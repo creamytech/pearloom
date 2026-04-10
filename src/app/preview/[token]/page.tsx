@@ -7,7 +7,8 @@ import type { StoryManifest } from '@/types';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
 import { Hero } from '@/components/hero';
-import { Timeline } from '@/components/timeline';
+import { StorySection } from '@/components/blocks/StoryLayouts';
+import { sanitizeSvg } from '@/lib/sanitize-svg';
 import { WeddingEvents } from '@/components/wedding-events';
 import { RegistryShowcase } from '@/components/registry-showcase';
 import { FaqSection } from '@/components/faq-section';
@@ -308,8 +309,17 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
       case 'story':
         if (!(manifest.chapters?.length)) return null;
         return (
-          <section key="story" id="our-story">
-            <Timeline chapters={manifest.chapters ?? []} layoutFormat={manifest.layoutFormat} />
+          <section key="story" id="our-story" style={{ position: 'relative' }}>
+            <StorySection
+              chapters={manifest.chapters ?? []}
+              storyLayout={manifest.storyLayout}
+              layoutFormat={manifest.layoutFormat}
+              chapterIcons={(vibeSkin.chapterIcons || []).map(svg => sanitizeSvg(svg))}
+              sectionBorderSvg={vibeSkin.sectionBorderSvg ? sanitizeSvg(vibeSkin.sectionBorderSvg) : undefined}
+              medallionSvg={vibeSkin.medallionSvg ? sanitizeSvg(vibeSkin.medallionSvg) : undefined}
+              accentColor={pal.accent}
+              transformUrl={(url) => proxyUrl(url, 1600, 1200)}
+            />
           </section>
         );
       case 'event':

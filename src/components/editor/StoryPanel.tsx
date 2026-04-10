@@ -11,6 +11,7 @@ import { Plus, Trash2, Image, Clock, GripVertical, ChevronDown, Undo2, X } from 
 import { ChapterPanel } from './ChapterPanel';
 import { slugDate } from './editor-utils';
 import { useEditor } from '@/lib/editor-state';
+import { layoutFormatToStoryLayout } from '@/components/blocks/StoryLayouts';
 import type { StoryManifest, Chapter } from '@/types';
 
 function getThumb(ch: Chapter) {
@@ -23,13 +24,18 @@ function getThumb(ch: Chapter) {
 }
 
 // ── Story Style Cards ─────────────────────────────────────────
+// These values map 1:1 to the canonical `StoryLayoutType` in
+// `src/components/blocks/StoryLayouts.tsx`. The StoryPanel and
+// DesignPanel pickers both write to `manifest.storyLayout` so they
+// never fight each other; legacy `manifest.layoutFormat` values are
+// honored read-only via `resolveStoryLayout` for back-compat.
 const STYLES = [
-  { id: 'cascade', label: 'Flowing Timeline', desc: 'Photos and text alternate down the page', color: 'rgba(163,177,138,0.3)' },
+  { id: 'parallax', label: 'Parallax Scroll', desc: 'Full-bleed cinematic chapters that scroll past the camera', color: 'rgba(163,177,138,0.3)' },
   { id: 'filmstrip', label: 'Film Strip', desc: 'Horizontal photo strips with text below', color: 'rgba(60,50,70,0.4)' },
   { id: 'magazine', label: 'Magazine Spread', desc: 'Large hero photos with elegant text overlay', color: 'rgba(180,160,140,0.3)' },
-  { id: 'scrapbook', label: 'Scrapbook', desc: 'Scattered photos with handwritten-style notes', color: 'rgba(200,180,160,0.3)' },
-  { id: 'chapters', label: 'Chapter Book', desc: 'Each story section as a distinct chapter page', color: 'rgba(140,160,180,0.3)' },
-  { id: 'starmap', label: 'Star Map', desc: 'Celestial-themed timeline with constellation connections', color: 'rgba(30,30,60,0.6)' },
+  { id: 'timeline', label: 'Timeline Vine', desc: 'Vertical vine connecting alternating chapters', color: 'rgba(140,160,180,0.3)' },
+  { id: 'kenburns', label: 'Ken Burns', desc: 'Animated pan-and-zoom over each chapter photo', color: 'rgba(200,180,160,0.3)' },
+  { id: 'bento', label: 'Bento Grid', desc: 'Multi-photo scrapbook grid with notes', color: 'rgba(30,30,60,0.6)' },
 ] as const;
 
 // ── Chapter Card ──────────────────────────────────────────────
@@ -364,11 +370,22 @@ export function StoryPanel() {
         </div>
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           {STYLES.map(s => {
-            const isActive = (manifest.layoutFormat || 'cascade') === s.id;
+            // Prefer the canonical `storyLayout` field, but fall back to the
+            // legacy `layoutFormat` mapping so existing drafts still show the
+            // correct active style on load.
+            const current = (manifest.storyLayout
+              || layoutFormatToStoryLayout(manifest.layoutFormat)) as string;
+            const isActive = current === s.id;
             return (
               <motion.button
                 key={s.id}
-                onClick={() => actions.handleDesignChange({ ...manifest, layoutFormat: s.id as StoryManifest['layoutFormat'] })}
+                onClick={() => actions.handleDesignChange({
+                  ...manifest,
+                  // Write to the unified field and clear the legacy one so
+                  // saved drafts can't drift back to a stale value.
+                  storyLayout: s.id as StoryManifest['storyLayout'],
+                  layoutFormat: undefined,
+                })}
                 whileHover={{ scale: 1.03, y: -1 }}
                 whileTap={{ scale: 0.97 }}
                 style={{

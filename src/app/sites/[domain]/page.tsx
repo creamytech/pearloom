@@ -5,7 +5,8 @@ import { getSiteConfig } from '@/lib/db';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
 import { Hero } from '@/components/hero';
-import { Timeline } from '@/components/timeline';
+import { StorySection } from '@/components/blocks/StoryLayouts';
+import { sanitizeSvg } from '@/lib/sanitize-svg';
 import { EventLogistics } from '@/components/event-logistics';
 import { ComingSoon } from '@/components/coming-soon';
 import { WeddingEvents } from '@/components/wedding-events';
@@ -339,8 +340,17 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         );
       case 'story':
         return (
-          <section key={key} id="our-story">
-            <Timeline chapters={manifest.chapters || []} vibeSkin={vibeSkin} layoutFormat={manifest.layoutFormat} />
+          <section key={key} id="our-story" style={{ position: 'relative' }}>
+            <StorySection
+              chapters={manifest.chapters || []}
+              storyLayout={manifest.storyLayout}
+              layoutFormat={manifest.layoutFormat}
+              chapterIcons={(vibeSkin.chapterIcons || []).map(svg => sanitizeSvg(svg))}
+              sectionBorderSvg={vibeSkin.sectionBorderSvg ? sanitizeSvg(vibeSkin.sectionBorderSvg) : undefined}
+              medallionSvg={vibeSkin.medallionSvg ? sanitizeSvg(vibeSkin.medallionSvg) : undefined}
+              accentColor={pal.accent}
+              transformUrl={(url) => proxyUrl(url, 1600, 1200)}
+            />
           </section>
         );
       case 'event':
@@ -1135,7 +1145,18 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               <VibeQuote />
               <WelcomeStatement />
               <ArtStrip />
-              <section id="our-story"><Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} /></section>
+              <section id="our-story" style={{ position: 'relative' }}>
+                <StorySection
+                  chapters={manifest.chapters || []}
+                  storyLayout={manifest.storyLayout}
+                  layoutFormat={manifest.layoutFormat}
+                  chapterIcons={(vibeSkin.chapterIcons || []).map(svg => sanitizeSvg(svg))}
+                  sectionBorderSvg={vibeSkin.sectionBorderSvg ? sanitizeSvg(vibeSkin.sectionBorderSvg) : undefined}
+                  medallionSvg={vibeSkin.medallionSvg ? sanitizeSvg(vibeSkin.medallionSvg) : undefined}
+                  accentColor={pal.accent}
+                  transformUrl={(url) => proxyUrl(url, 1600, 1200)}
+                />
+              </section>
               {manifest.events?.length ? (
                 <>
                   <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} />

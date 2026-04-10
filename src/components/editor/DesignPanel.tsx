@@ -16,7 +16,7 @@ import { VisualEffectsPanel } from './VisualEffectsPanel';
 import { DesignAdvisor } from './DesignAdvisor';
 import { AccessibilityAuditPanel } from './AccessibilityAuditPanel';
 import { CORNER_PRESETS, renderCornerSvg, type CornerPreset } from '@/lib/corner-presets';
-import { StoryLayoutPicker, type StoryLayoutType } from '@/components/blocks/StoryLayouts';
+import { StoryLayoutPicker, resolveStoryLayout, type StoryLayoutType } from '@/components/blocks/StoryLayouts';
 import { Check, Navigation } from 'lucide-react';
 import {
   PearIcon, PearlIcon, WeddingRingsIcon, BouquetIcon, ElegantHeartIcon,
@@ -978,8 +978,16 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             How your chapters unfold on the page
           </div>
           <StoryLayoutPicker
-            selected={(manifest.storyLayout || 'parallax') as StoryLayoutType}
-            onSelect={(layout) => onChange({ ...manifest, storyLayout: layout })}
+            // Canonical read path: prefer `storyLayout`, fall back to the
+            // legacy `layoutFormat` so existing drafts show the right
+            // selection until the user saves with the new field.
+            selected={resolveStoryLayout(manifest.storyLayout, manifest.layoutFormat)}
+            onSelect={(layout) => onChange({
+              ...manifest,
+              storyLayout: layout,
+              // Clear the legacy field so it can't silently override.
+              layoutFormat: undefined,
+            })}
           />
         </div>
       </SidebarSection>

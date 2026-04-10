@@ -11,8 +11,10 @@ import React, { useMemo, useCallback, useRef, useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronUp, ChevronDown, Copy, Trash2, Eye, EyeOff, GripVertical, CalendarDays, Mail, Gift, Plane, HelpCircle, PenLine, Camera, Hand, Sparkles } from 'lucide-react';
 import { Hero } from '@/components/hero';
-import { Timeline } from '@/components/timeline';
-import { StoryLayout } from '@/components/blocks/StoryLayouts';
+// Timeline is kept only as a legacy fallback for the rare code path that
+// doesn't have manifest.blocks. New renders go through StorySection, which
+// dispatches to the canonical StoryLayouts components.
+import { StorySection } from '@/components/blocks/StoryLayouts';
 import { WeddingEvents } from '@/components/wedding-events';
 import { VisualTimeline } from '@/components/visual-timeline';
 import { RegistryShowcase } from '@/components/registry-showcase';
@@ -975,78 +977,22 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           </div>
         );
       case 'story': {
-        const storyLayoutType = manifest.storyLayout || 'parallax';
-        const chapters = manifest.chapters || [];
-        const chapterIcons = vibeSkin.chapterIcons || [];
         return (
           <section key={key} id="our-story" data-pe-section="story" style={{ position: 'relative', ...blockStyle }}>
-            {/* AI-generated medallion ornament above the section */}
-            {vibeSkin.medallionSvg && (
-              <div
-                aria-hidden="true"
-                style={{
-                  width: 96,
-                  height: 96,
-                  margin: '2rem auto 0',
-                  pointerEvents: 'none',
-                  opacity: 0.72,
-                  color: pal.accent,
-                }}
-                dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.medallionSvg) }}
-              />
-            )}
-            {chapters.map((chapter, chapterIndex) => {
-              const icon = chapterIcons[chapterIndex];
-              return (
-                <div key={chapter.id || chapterIndex} style={{ position: 'relative' }}>
-                  {/* Per-chapter AI icon — small bespoke ornament per chapter */}
-                  {icon && (
-                    <div
-                      aria-hidden="true"
-                      style={{
-                        width: 56,
-                        height: 56,
-                        margin: '3rem auto 0.5rem',
-                        pointerEvents: 'none',
-                        color: pal.accent,
-                        opacity: 0.85,
-                      }}
-                      dangerouslySetInnerHTML={{ __html: sanitizeSvg(icon) }}
-                    />
-                  )}
-                  <StoryLayout
-                    type={storyLayoutType}
-                    photos={(chapter.images || []).map(img => ({
-                      url: img.url.includes('googleusercontent.com')
-                        ? `/api/photos/proxy?url=${encodeURIComponent(img.url)}&w=1600&h=1200`
-                        : img.url,
-                      alt: img.alt,
-                      caption: img.caption,
-                    }))}
-                    title={chapter.title}
-                    subtitle={chapter.subtitle}
-                    body={chapter.description}
-                    date={chapter.date}
-                    index={chapterIndex}
-                  />
-                  {/* AI-generated section border between chapters */}
-                  {vibeSkin.sectionBorderSvg && chapterIndex < chapters.length - 1 && (
-                    <div
-                      aria-hidden="true"
-                      style={{
-                        width: 'min(520px, 80%)',
-                        height: 32,
-                        margin: '2.5rem auto',
-                        pointerEvents: 'none',
-                        opacity: 0.5,
-                        color: pal.accent,
-                      }}
-                      dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.sectionBorderSvg) }}
-                    />
-                  )}
-                </div>
-              );
-            })}
+            <StorySection
+              chapters={manifest.chapters || []}
+              storyLayout={manifest.storyLayout}
+              layoutFormat={manifest.layoutFormat}
+              chapterIcons={(vibeSkin.chapterIcons || []).map(svg => sanitizeSvg(svg))}
+              sectionBorderSvg={vibeSkin.sectionBorderSvg ? sanitizeSvg(vibeSkin.sectionBorderSvg) : undefined}
+              medallionSvg={vibeSkin.medallionSvg ? sanitizeSvg(vibeSkin.medallionSvg) : undefined}
+              accentColor={pal.accent}
+              transformUrl={(url) =>
+                url.includes('googleusercontent.com')
+                  ? `/api/photos/proxy?url=${encodeURIComponent(url)}&w=1600&h=1200`
+                  : url
+              }
+            />
           </section>
         );
       }
@@ -1826,7 +1772,22 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             <>
               <Hero names={names} subtitle={manifest.chapters?.[0]?.subtitle || 'A love story beautifully told.'} coverPhoto={effectiveCover} weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date} vibeSkin={vibeSkin} heroTagline={manifest.poetry?.heroTagline} photos={((manifest as any).heroSlideshow?.length > 0 ? (manifest as any).heroSlideshow.filter(Boolean) : (manifest.chapters || []).flatMap(ch => (ch.images || []).slice(0, 1).map(img => img.url)).filter(Boolean).slice(0, 6))} editMode={editMode} />
               <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
-              <section id="our-story"><Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} /></section>
+              <section id="our-story" style={{ position: 'relative' }}>
+                <StorySection
+                  chapters={manifest.chapters || []}
+                  storyLayout={manifest.storyLayout}
+                  layoutFormat={manifest.layoutFormat}
+                  chapterIcons={(vibeSkin.chapterIcons || []).map(svg => sanitizeSvg(svg))}
+                  sectionBorderSvg={vibeSkin.sectionBorderSvg ? sanitizeSvg(vibeSkin.sectionBorderSvg) : undefined}
+                  medallionSvg={vibeSkin.medallionSvg ? sanitizeSvg(vibeSkin.medallionSvg) : undefined}
+                  accentColor={pal.accent}
+                  transformUrl={(url) =>
+                    url.includes('googleusercontent.com')
+                      ? `/api/photos/proxy?url=${encodeURIComponent(url)}&w=1600&h=1200`
+                      : url
+                  }
+                />
+              </section>
               {manifest.events?.length ? <section id="schedule"><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></section> : null}
               {manifest.events?.length ? <section id="rsvp"><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></section> : null}
               {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? <section id="registry"><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></section> : null}

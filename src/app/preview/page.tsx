@@ -11,7 +11,7 @@ import React from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useMemo, useState, useEffect, useCallback } from 'react';
 import { Hero } from '@/components/hero';
-import { Timeline } from '@/components/timeline';
+import { StorySection } from '@/components/blocks/StoryLayouts';
 import { ComingSoon } from '@/components/coming-soon';
 import { WeddingEvents } from '@/components/wedding-events';
 import { RegistryShowcase } from '@/components/registry-showcase';
@@ -278,7 +278,20 @@ function PreviewContent() {
           </div>
         );
       case 'story':
-        return <section key={key} id="our-story" data-pe-section="story" data-pe-label="Story"><Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} /></section>;
+        return (
+          <section key={key} id="our-story" data-pe-section="story" data-pe-label="Story" style={{ position: 'relative' }}>
+            <StorySection
+              chapters={manifest.chapters || []}
+              storyLayout={manifest.storyLayout}
+              layoutFormat={manifest.layoutFormat}
+              chapterIcons={(vibeSkin.chapterIcons || []).map(svg => sanitizeSvg(svg))}
+              sectionBorderSvg={vibeSkin.sectionBorderSvg ? sanitizeSvg(vibeSkin.sectionBorderSvg) : undefined}
+              medallionSvg={vibeSkin.medallionSvg ? sanitizeSvg(vibeSkin.medallionSvg) : undefined}
+              accentColor={pal.accent}
+              transformUrl={(url) => proxyUrl(url, 1600, 1200)}
+            />
+          </section>
+        );
       case 'event':
         if (!manifest.events?.length) return null;
         return (
@@ -717,7 +730,18 @@ function PreviewContent() {
                   : <WaveDivider skin={vibeSkin} fromColor={fallbackFrom} toColor={fallbackTo} height={height} />;
               return (
                 <>
-                  <div {...rvAttr}><section id="our-story"><Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} /></section></div>
+                  <div {...rvAttr}><section id="our-story" style={{ position: 'relative' }}>
+                    <StorySection
+                      chapters={manifest.chapters || []}
+                      storyLayout={manifest.storyLayout}
+                      layoutFormat={manifest.layoutFormat}
+                      chapterIcons={(vibeSkin.chapterIcons || []).map(svg => sanitizeSvg(svg))}
+                      sectionBorderSvg={vibeSkin.sectionBorderSvg ? sanitizeSvg(vibeSkin.sectionBorderSvg) : undefined}
+                      medallionSvg={vibeSkin.medallionSvg ? sanitizeSvg(vibeSkin.medallionSvg) : undefined}
+                      accentColor={pal.accent}
+                      transformUrl={(url) => proxyUrl(url, 1600, 1200)}
+                    />
+                  </section></div>
                   {manifest.events?.length ? <>{legacyDivider(cardBg, bgColor, cardBg)}<div {...rvAttr}><section id="schedule"><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></section></div></> : null}
                   {manifest.events?.length ? <div {...rvAttr}><section id="rsvp"><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></section></div> : null}
                   {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? <>{legacyDivider(accentLight, bgColor, accentLight, 80, !!globalDivider?.flip)}<div {...rvAttr}><section id="registry"><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></section></div></> : null}

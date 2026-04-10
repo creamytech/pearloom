@@ -1420,6 +1420,163 @@ export function StoryLayout({ type, ...props }: StoryLayoutDispatchProps) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────
+// Back-compat mapping — old `layoutFormat` → new `storyLayout`
+// The legacy Story Style picker wrote `manifest.layoutFormat` with
+// values like 'cascade'/'scrapbook'/'starmap'. We keep honoring them
+// so existing saved sites don't break when they switch to the unified
+// StoryLayout renderer.
+// ─────────────────────────────────────────────────────────────
+export function layoutFormatToStoryLayout(
+  layoutFormat: string | undefined | null,
+): StoryLayoutType {
+  switch (layoutFormat) {
+    case 'cascade':
+      return 'parallax';
+    case 'filmstrip':
+      return 'filmstrip';
+    case 'magazine':
+      return 'magazine';
+    case 'scrapbook':
+      return 'bento';
+    case 'chapters':
+      return 'timeline';
+    case 'starmap':
+      return 'kenburns';
+    default:
+      return 'parallax';
+  }
+}
+
+/**
+ * Resolve the canonical StoryLayoutType from a manifest, preferring the
+ * new `storyLayout` field and falling back to the legacy `layoutFormat`.
+ */
+export function resolveStoryLayout(
+  storyLayout: string | undefined | null,
+  layoutFormat: string | undefined | null,
+): StoryLayoutType {
+  const VALID: StoryLayoutType[] = ['parallax', 'filmstrip', 'magazine', 'timeline', 'kenburns', 'bento'];
+  if (storyLayout && VALID.includes(storyLayout as StoryLayoutType)) {
+    return storyLayout as StoryLayoutType;
+  }
+  return layoutFormatToStoryLayout(layoutFormat);
+}
+
+// ─────────────────────────────────────────────────────────────
+// StorySection — the canonical story-block renderer.
+// Used by the editor preview, public sites, and preview routes so
+// there is a SINGLE rendering path for chapters across the app.
+// ─────────────────────────────────────────────────────────────
+
+export interface StorySectionProps {
+  chapters: Array<{
+    id?: string;
+    title: string;
+    subtitle?: string;
+    description?: string;
+    date?: string;
+    images?: Array<{ url: string; alt?: string; caption?: string }>;
+  }>;
+  /** The canonical layout type. Prefer passing this. */
+  storyLayout?: StoryLayoutType | string;
+  /** Legacy field from older drafts — used only as fallback. */
+  layoutFormat?: string;
+  /** VibeSkin fields we render between chapters. */
+  chapterIcons?: string[];
+  sectionBorderSvg?: string;
+  medallionSvg?: string;
+  /** Accent hex for medallion / icon / divider tint. */
+  accentColor?: string;
+  /**
+   * Transform a raw photo URL (e.g. googleusercontent.com →
+   * /api/photos/proxy?…). If omitted the URL is passed through as-is.
+   */
+  transformUrl?: (url: string) => string;
+}
+
+export function StorySection({
+  chapters,
+  storyLayout,
+  layoutFormat,
+  chapterIcons = [],
+  sectionBorderSvg,
+  medallionSvg,
+  accentColor,
+  transformUrl,
+}: StorySectionProps) {
+  const layoutType = resolveStoryLayout(storyLayout, layoutFormat);
+  const tint = accentColor || colors.olive;
+
+  return (
+    <>
+      {medallionSvg && (
+        <div
+          aria-hidden="true"
+          style={{
+            width: 96,
+            height: 96,
+            margin: '2rem auto 0',
+            pointerEvents: 'none',
+            opacity: 0.72,
+            color: tint,
+          }}
+          dangerouslySetInnerHTML={{ __html: medallionSvg }}
+        />
+      )}
+      {chapters.map((chapter, chapterIndex) => {
+        const icon = chapterIcons[chapterIndex];
+        const photos = (chapter.images || []).map((img) => ({
+          url: transformUrl ? transformUrl(img.url) : img.url,
+          alt: img.alt,
+          caption: img.caption,
+        }));
+        return (
+          <div key={chapter.id || chapterIndex} style={{ position: 'relative' }}>
+            {icon && (
+              <div
+                aria-hidden="true"
+                style={{
+                  width: 56,
+                  height: 56,
+                  margin: '3rem auto 0.5rem',
+                  pointerEvents: 'none',
+                  color: tint,
+                  opacity: 0.85,
+                }}
+                dangerouslySetInnerHTML={{ __html: icon }}
+              />
+            )}
+            <StoryLayout
+              type={layoutType}
+              photos={photos}
+              title={chapter.title}
+              subtitle={chapter.subtitle}
+              body={chapter.description}
+              date={chapter.date}
+              index={chapterIndex}
+            />
+            {sectionBorderSvg && chapterIndex < chapters.length - 1 && (
+              <div
+                aria-hidden="true"
+                style={{
+                  width: 'min(520px, 80%)',
+                  height: 32,
+                  margin: '2.5rem auto',
+                  pointerEvents: 'none',
+                  opacity: 0.5,
+                  color: tint,
+                }}
+                dangerouslySetInnerHTML={{ __html: sectionBorderSvg }}
+              />
+            )}
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
 export function StoryLayoutPicker({
   selected,
   onSelect,
