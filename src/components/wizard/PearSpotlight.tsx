@@ -343,8 +343,9 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     }
   }, [step, showPhotoBrowser]);
 
-  // Auto-focus input on steps that need it
+  // Auto-focus input on steps that need it + clear stale input between steps
   useEffect(() => {
+    setInput('');
     if (step === 'names' || step === 'venue' || step === 'vibe-ask') {
       setTimeout(() => inputRef.current?.focus(), 400);
     }
@@ -413,6 +414,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   };
 
   const handleVenueSkip = () => {
+    setInput('');
     setDirection(1);
     setCollected(prev => ({ ...prev, venue: 'TBD' }));
   };
@@ -543,6 +545,75 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     setGenError(null);
     setGenStep(0);
     setGenProgress(0);
+
+    // Synthesize a skeleton manifest from collected data so the live
+    // preview shows IMMEDIATELY with real names/date/colors instead
+    // of waiting for the server to finish.
+    const paletteColors = selectedPaletteColors || ['#A3B18A', '#C4A96A', '#FAF7F2', '#3D3530'];
+    const photoUrls = photos.map(p => {
+      const raw = p?.baseUrl || p?.url || p?.uri || '';
+      return raw.includes('googleusercontent') ? `/api/photos/proxy?url=${encodeURIComponent(raw)}&w=1200&h=1200` : raw;
+    }).filter(Boolean);
+
+    const skeleton: any = {
+      occasion: c.occasion,
+      coupleId: c.names.filter(Boolean).join(' & '),
+      logistics: {
+        date: c.date || '',
+        venue: c.venue && c.venue !== 'TBD' ? c.venue : '',
+        venueAddress: '',
+        time: '',
+        dresscode: '',
+      },
+      poetry: {
+        heroTagline: c.vibe ? `A ${c.vibe.split(' ')[0]} celebration` : 'Our love story',
+        welcomeStatement: `Join us to celebrate ${c.names[1] ? `${c.names[0]} & ${c.names[1]}` : c.names[0]}.`,
+        closingLine: 'Thank you for being part of our story',
+        rsvpIntro: "We hope you'll join us",
+      },
+      coverPhoto: photoUrls[0] || '',
+      heroSlideshow: photoUrls.slice(0, 5),
+      vibeString: `${c.occasion} ${c.vibe || ''}`.trim(),
+      vibeSkin: {
+        colors: {
+          background: paletteColors[2] || '#FAF7F2',
+          foreground: paletteColors[3] || '#3D3530',
+          accent: paletteColors[0] || '#A3B18A',
+          accentLight: paletteColors[1] || '#C4A96A',
+          muted: '#8C7E72',
+          cardBg: 'rgba(255,255,255,0.8)',
+        },
+        fonts: {
+          heading: 'Playfair Display',
+          body: 'Lora',
+        },
+        particle: null,
+      },
+      chapters: [],
+      blocks: [
+        { id: 'hero-skel', type: 'hero', visible: true, config: { title: c.names.filter(Boolean).join(' & ') } },
+        ...(c.date ? [{ id: 'countdown-skel', type: 'countdown', visible: true, config: {} }] : []),
+        ...(photoUrls.length > 0 ? [{ id: 'story-skel', type: 'story', visible: true, config: {} }] : []),
+        ...(c.venue && c.venue !== 'TBD' ? [{ id: 'event-skel', type: 'event', visible: true, config: {} }] : []),
+      ],
+      events: c.venue && c.venue !== 'TBD' && c.date ? [{
+        name: `${c.occasion}`,
+        type: c.occasion || 'event',
+        date: c.date,
+        time: '',
+        venue: c.venue,
+        address: '',
+        dressCode: '',
+        description: '',
+      }] : [],
+      faqs: [],
+      registry: { entries: [], message: '', cashFundUrl: '', cashFundMessage: '' },
+      travelInfo: { hotels: [], airports: [] },
+      storyLayout: 'parallax' as const,
+      pageMode: 'single-page',
+      navStyle: 'glass',
+    };
+    setPartialManifest(skeleton);
 
     const requestBody = JSON.stringify({
       photos,
@@ -1300,9 +1371,10 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                     value={input}
                     onChange={setInput}
                     onSelect={(place) => {
-                      setInput(place.address ? `${place.name}, ${place.address}` : place.name);
+                      const venueName = place.address ? `${place.name}, ${place.address}` : place.name;
+                      setInput(''); // clear so it doesn't leak into next step
                       setDirection(1);
-                      setCollected(prev => ({ ...prev, venue: place.address ? `${place.name}, ${place.address}` : place.name }));
+                      setCollected(prev => ({ ...prev, venue: venueName }));
                     }}
                     placeholder="Search for a venue..."
                     dark={dark}
