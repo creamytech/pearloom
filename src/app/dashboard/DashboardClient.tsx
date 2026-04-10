@@ -433,6 +433,13 @@ export default function DashboardClient() {
     return (
       <PearSpotlight
         onComplete={(manifest: StoryManifest, names: [string, string], subdomain: string) => {
+          // Save site to database FIRST, then enter editor
+          fetch('/api/sites', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subdomain, manifest, names }),
+          }).catch(err => console.error('[PearSpotlight] Failed to save site draft:', err));
+
           dispatch({ type: 'EDIT_SITE', manifest, subdomain, names });
         }}
         onBack={() => goTo('photos')}
