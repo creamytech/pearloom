@@ -20,14 +20,71 @@ import { cn } from '@/lib/cn';
 
 import { parseLocalDate } from '@/lib/date';
 
+// ── Occasion gradients & icons ──────────────────────────────
+
+const OCCASION_GRADIENT: Record<string, [string, string]> = {
+  wedding:     ['#F2D1D1', '#FAF7F2'],
+  birthday:    ['#FFC857', '#FFD1DC'],
+  anniversary: ['#C4A96A', '#F0E6D6'],
+  engagement:  ['#E8B4C8', '#FAF7F2'],
+};
+const DEFAULT_GRADIENT: [string, string] = ['#A3B18A', '#FAF7F2'];
+
+function OccasionIcon({ occasion }: { occasion?: string }) {
+  const cls = "text-current";
+  switch (occasion) {
+    case 'wedding':
+      return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className={cls}>
+          <path d="M12 21C12 21 4 14.5 4 9.5C4 5.36 7.58 3 10.5 3C11.8 3 12 4 12 4C12 4 12.2 3 13.5 3C16.42 3 20 5.36 20 9.5C20 14.5 12 21 12 21Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      );
+    case 'birthday':
+      return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className={cls}>
+          <rect x="3" y="11" width="18" height="10" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+          <path d="M12 7V11M8 9V11M16 9V11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          <circle cx="12" cy="5" r="1.5" stroke="currentColor" strokeWidth="1"/>
+          <circle cx="8" cy="7" r="1" stroke="currentColor" strokeWidth="1"/>
+          <circle cx="16" cy="7" r="1" stroke="currentColor" strokeWidth="1"/>
+        </svg>
+      );
+    case 'anniversary':
+      return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className={cls}>
+          <path d="M12 2L14.09 8.26L21 9.27L16 14.14L17.18 21.02L12 17.77L6.82 21.02L8 14.14L3 9.27L9.91 8.26L12 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      );
+    case 'engagement':
+      return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className={cls}>
+          <circle cx="12" cy="14" r="6" stroke="currentColor" strokeWidth="1.5"/>
+          <path d="M12 8V4M10 4H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          <circle cx="12" cy="14" r="2.5" stroke="currentColor" strokeWidth="1"/>
+        </svg>
+      );
+    default:
+      return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className={cls}>
+          <path d="M12 3C7.03 3 3 7.03 3 12C3 16.97 7.03 21 12 21C16.97 21 21 16.97 21 12C21 7.03 16.97 3 12 3Z" stroke="currentColor" strokeWidth="1.5"/>
+          <path d="M8 12C8 8.5 10 6 12 6C14 6 16 8.5 16 12C16 15.5 14 18 12 18C10 18 8 15.5 8 12Z" stroke="currentColor" strokeWidth="1.5"/>
+          <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" strokeWidth="1.5"/>
+        </svg>
+      );
+  }
+}
+
 // ── Compact Thumbnail ────────────────────────────────────────
 
-function SiteThumbnail({ photos, coverPhoto, accentColor, accentDark }: {
+function SiteThumbnail({ photos, coverPhoto, accentColor, accentDark, occasion, displayName }: {
   photos: string[];
   coverPhoto?: string;
   accentColor: string;
   accentDark: string;
+  occasion?: string;
+  displayName?: string;
 }) {
+  const [imgError, setImgError] = useState(false);
   const src = coverPhoto || photos[0];
 
   // proxy Google URLs
@@ -35,17 +92,33 @@ function SiteThumbnail({ photos, coverPhoto, accentColor, accentDark }: {
     ? `/api/photos/proxy?url=${encodeURIComponent(src)}&w=120&h=120`
     : src;
 
-  if (!proxiedSrc) {
-    return (
-      <div
-        className="w-[60px] h-[60px] rounded-2xl flex-shrink-0 flex items-center justify-center"
-        style={{
-          background: `linear-gradient(135deg, ${accentColor} 0%, ${accentDark} 100%)`,
-        }}
-      >
-        <Globe size={20} className="text-white/60" />
-      </div>
-    );
+  const [gradStart, gradEnd] = OCCASION_GRADIENT[occasion || ''] || DEFAULT_GRADIENT;
+
+  const fallback = (
+    <div
+      className="w-[60px] h-[60px] rounded-2xl flex-shrink-0 flex items-center justify-center relative overflow-hidden"
+      style={{
+        background: `linear-gradient(135deg, ${gradStart} 0%, ${gradEnd} 100%)`,
+      }}
+    >
+      {/* Couple/person names watermark */}
+      {displayName && displayName !== 'Untitled Site' && (
+        <span
+          className="absolute inset-0 flex items-center justify-center font-heading italic text-[0.5rem] leading-tight text-center px-1 select-none pointer-events-none"
+          style={{ opacity: 0.15, color: '#2B1E14' }}
+        >
+          {displayName}
+        </span>
+      )}
+      {/* Occasion icon */}
+      <span className="relative z-[1] select-none pointer-events-none" style={{ opacity: 0.18, color: '#2B1E14' }}>
+        <OccasionIcon occasion={occasion} />
+      </span>
+    </div>
+  );
+
+  if (!proxiedSrc || imgError) {
+    return fallback;
   }
 
   return (
@@ -55,6 +128,7 @@ function SiteThumbnail({ photos, coverPhoto, accentColor, accentDark }: {
         src={proxiedSrc}
         alt=""
         className="w-full h-full object-cover"
+        onError={() => setImgError(true)}
       />
     </div>
   );
@@ -565,6 +639,8 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                     coverPhoto={coverPhotoUrl}
                     accentColor={accentColor}
                     accentDark={accentDark}
+                    occasion={site.manifest?.occasion}
+                    displayName={displayName}
                   />
 
                   {/* Content */}

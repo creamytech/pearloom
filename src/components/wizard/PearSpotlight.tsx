@@ -283,7 +283,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const [collected, setCollected] = useState<Collected>({});
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [phase, setPhase] = useState<'chat' | 'generating' | 'error' | 'done'>('chat');
+  const [phase, setPhase] = useState<'chat' | 'generating' | 'error' | 'done' | 'complete'>('chat');
   const [genError, setGenError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [showPhotoBrowser, setShowPhotoBrowser] = useState(false);
@@ -297,6 +297,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const [photoNotes, setPhotoNotes] = useState<Record<number, { location?: string; note?: string }>>({});
   const [reviewDone, setReviewDone] = useState(false);
   const [genStep, setGenStep] = useState(0);
+  const [completedData, setCompletedData] = useState<{ manifest: any; names: [string, string]; subdomain: string } | null>(null);
   const [genProgress, setGenProgress] = useState(0); // 0-100
   const inputRef = useRef<HTMLInputElement>(null);
   const collectedRef = useRef(collected);
@@ -568,8 +569,8 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
           const n2 = c.names[1] ? c.names[1].toLowerCase().replace(/[^a-z0-9]/g, '') : '';
           const suffix = Math.random().toString(36).slice(2, 6);
           const subdomain = n2 ? `${n1}-and-${n2}-${suffix}` : `${n1}-${suffix}`;
-          setPhase('done');
-          onComplete(manifest, c.names, subdomain);
+          setCompletedData({ manifest, names: c.names, subdomain });
+          setPhase('complete');
           return;
         }
       }
@@ -582,8 +583,8 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       const n2 = c.names[1] ? c.names[1].toLowerCase().replace(/[^a-z0-9]/g, '') : '';
       const suffix = Math.random().toString(36).slice(2, 6);
       const subdomain = n2 ? `${n1}-and-${n2}-${suffix}` : `${n1}-${suffix}`;
-      setPhase('done');
-      onComplete(data.manifest, c.names, subdomain);
+      setCompletedData({ manifest: data.manifest, names: c.names, subdomain });
+      setPhase('complete');
     } catch (err) {
       setGenError(err instanceof Error ? err.message : 'Generation failed');
       setRetryCount(prev => prev + 1);
@@ -817,6 +818,176 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
             </div>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // ── Celebration / Confirmation screen ────────────────────
+  if (phase === 'complete' && completedData) {
+    const siteUrl = `${completedData.subdomain}.pearloom.com`;
+    const displayNames = completedData.names[1]
+      ? `${completedData.names[0]} & ${completedData.names[1]}`
+      : completedData.names[0];
+
+    return (
+      <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <LivingCanvas occasion={collected.occasion} names={collected.names} date={collected.date} venue={collected.venue} vibe={collected.vibe} phase="chat" />
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+          style={{
+            position: 'relative', zIndex: 10,
+            maxWidth: 440, width: '90%',
+            background: 'rgba(255,255,255,0.45)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            borderRadius: 28,
+            padding: '40px 28px 32px',
+            border: '1px solid rgba(255,255,255,0.5)',
+            boxShadow: '0 12px 48px rgba(43,30,20,0.1)',
+            textAlign: 'center',
+          } as React.CSSProperties}
+        >
+          {/* Celebrating Pear */}
+          <motion.div
+            animate={{ rotate: [0, -8, 8, -4, 4, 0] }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+          >
+            <PearMascot size={100} mood="celebrating" />
+          </motion.div>
+
+          {/* Names */}
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            style={{
+              fontFamily: 'var(--pl-font-heading)',
+              fontStyle: 'italic',
+              fontSize: '1.6rem',
+              color: 'var(--pl-ink-soft)',
+              marginTop: 16,
+              marginBottom: 4,
+            }}
+          >
+            {displayNames}
+          </motion.p>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            style={{ fontSize: '0.85rem', color: 'var(--pl-muted)', marginBottom: 24 }}
+          >
+            Your site is ready!
+          </motion.p>
+
+          {/* URL display */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            style={{
+              background: 'rgba(255,255,255,0.5)',
+              borderRadius: 16,
+              padding: '14px 20px',
+              marginBottom: 20,
+              border: '1px solid rgba(255,255,255,0.5)',
+            }}
+          >
+            <p style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.1em', color: 'var(--pl-muted)', marginBottom: 6 }}>
+              Your site URL
+            </p>
+            <p style={{
+              fontSize: '1rem',
+              fontWeight: 600,
+              color: 'var(--pl-olive, #A3B18A)',
+              wordBreak: 'break-all' as const,
+            }}>
+              {siteUrl}
+            </p>
+            <button
+              onClick={() => navigator.clipboard?.writeText(`https://${siteUrl}`)}
+              style={{
+                marginTop: 8,
+                padding: '6px 16px',
+                borderRadius: 100,
+                background: 'rgba(163,177,138,0.12)',
+                border: '1px solid rgba(163,177,138,0.3)',
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                color: 'var(--pl-olive)',
+                cursor: 'pointer',
+              }}
+            >
+              Copy link
+            </button>
+          </motion.div>
+
+          {/* Pear's message */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.9 }}
+            style={{
+              fontSize: '0.82rem',
+              color: 'var(--pl-muted)',
+              lineHeight: 1.5,
+              marginBottom: 24,
+              fontStyle: 'italic',
+            }}
+          >
+            Photos are saved, site is on your dashboard. You can customize everything in the editor.
+            {'\n'}— Pear
+          </motion.p>
+
+          {/* CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.0 }}
+            style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
+          >
+            <button
+              onClick={() => onComplete(completedData.manifest, completedData.names, completedData.subdomain)}
+              style={{
+                width: '100%',
+                padding: '14px 0',
+                borderRadius: 100,
+                background: 'var(--pl-olive, #A3B18A)',
+                border: 'none',
+                fontSize: '0.88rem',
+                fontWeight: 700,
+                color: '#fff',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+              }}
+            >
+              Open Editor
+            </button>
+            <button
+              onClick={() => window.open(`https://${siteUrl}`, '_blank')}
+              style={{
+                width: '100%',
+                padding: '12px 0',
+                borderRadius: 100,
+                background: 'transparent',
+                border: '1px solid rgba(163,177,138,0.3)',
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                color: 'var(--pl-ink-soft)',
+                cursor: 'pointer',
+              }}
+            >
+              Preview live site
+            </button>
+          </motion.div>
+        </motion.div>
       </div>
     );
   }
