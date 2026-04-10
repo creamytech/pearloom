@@ -36,7 +36,6 @@
       "expo-camera",
       "expo-image-picker",
       "expo-notifications",
-      "expo-auth-session",
       "expo-secure-store"
     ],
     "experiments": {
