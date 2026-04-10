@@ -1151,23 +1151,57 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       {/* The Spotlight Card */}
       <div style={{ maxWidth: 480, width: '92%', position: 'relative', zIndex: 10 }}>
 
-        {/* Pear mascot — hide during photo review */}
+        {/* Pear mascot — compact during most steps, hidden during photo review */}
         {step !== 'photo-review' && (
           <motion.div
             key={step}
             initial={{ scale: 0.9, y: 10 }}
             animate={{ scale: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            style={{ position: 'relative', display: 'flex', justifyContent: 'center', marginBottom: -40, zIndex: 20 }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginBottom: 14 }}
           >
-            <ProgressRing progress={progress} size={140} />
-            <motion.div
-              animate={{ rotate: step === 'ready' ? [0, -5, 5, -3, 3, 0] : 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              style={{ paddingTop: 10 }}
-            >
-              <PearMascot size={120} mood={mood} />
-            </motion.div>
+            {/* Pear + Progress ring — smaller, inline with speech */}
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <ProgressRing progress={progress} size={72} />
+              <motion.div
+                animate={{ rotate: step === 'ready' ? [0, -5, 5, -3, 3, 0] : 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                style={{ paddingTop: 4 }}
+              >
+                <PearMascot size={60} mood={mood} />
+              </motion.div>
+            </div>
+            {/* Speech — next to Pear, not centered below */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={step}
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.2 }}
+                style={{ flex: 1, minWidth: 0 }}
+              >
+                <p style={{
+                  fontFamily: 'var(--pl-font-heading)',
+                  fontStyle: 'italic',
+                  fontSize: '1.1rem',
+                  color: textColor,
+                  lineHeight: 1.35,
+                  marginBottom: 3,
+                  transition: 'color 0.5s',
+                }}>
+                  {speech}
+                </p>
+                <p style={{
+                  fontSize: '0.72rem',
+                  color: mutedColor,
+                  lineHeight: 1.4,
+                  transition: 'color 0.5s',
+                }}>
+                  {subtext}
+                </p>
+              </motion.div>
+            </AnimatePresence>
           </motion.div>
         )}
 
@@ -1177,47 +1211,14 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
             background: cardBg,
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
-            borderRadius: step === 'photo-review' ? 14 : 28,
-            padding: step === 'photo-review' ? '0' : '56px 28px 28px',
+            borderRadius: step === 'photo-review' ? 20 : 24,
+            padding: step === 'photo-review' ? '0' : '24px',
             border: cardBorder,
             boxShadow: dark ? '0 8px 40px rgba(0,0,0,0.2)' : '0 8px 40px rgba(43,30,20,0.08)',
             overflow: 'hidden',
             transition: 'background 0.5s, border 0.5s, box-shadow 0.5s',
           }}
         >
-          {/* Speech bubble — hide during photo review */}
-          {step !== 'photo-review' && (
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={step}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.25 }}
-                style={{ textAlign: 'center', marginBottom: 24 }}
-              >
-                <p style={{
-                  fontFamily: 'var(--pl-font-heading)',
-                  fontStyle: 'italic',
-                  fontSize: '1.25rem',
-                  color: textColor,
-                  lineHeight: 1.4,
-                  marginBottom: 6,
-                  transition: 'color 0.5s',
-                }}>
-                  {speech}
-                </p>
-                <p style={{
-                  fontSize: '0.78rem',
-                  color: mutedColor,
-                  lineHeight: 1.5,
-                  transition: 'color 0.5s',
-                }}>
-                  {subtext}
-                </p>
-              </motion.div>
-            </AnimatePresence>
-          )}
 
           {/* Step content -- animated swap */}
           <AnimatePresence mode="wait">
@@ -1227,7 +1228,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: direction * -60 }}
               transition={{ duration: 0.3 }}
-              style={{ minHeight: 200 }}
+              style={{ minHeight: step === 'occasion' ? 200 : 120 }}
             >
               {/* ── Occasion step ── */}
               {step === 'occasion' && (
@@ -1634,54 +1635,6 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
             </motion.div>
           </AnimatePresence>
 
-          {/* Collected chips -- bottom of card */}
-          {progress > 0 && (
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 8,
-                marginTop: 20,
-                paddingTop: 16,
-                borderTop: '1px solid rgba(255,255,255,0.3)',
-              }}
-            >
-              {collected.occasion && (
-                <Chip
-                  label={collected.occasion.charAt(0).toUpperCase() + collected.occasion.slice(1)}
-                  onClick={() => handleEditField('occasion')}
-                />
-              )}
-              {collected.names?.[0] && (
-                <Chip
-                  label={
-                    collected.names[1]
-                      ? `${collected.names[0]} & ${collected.names[1]}`
-                      : collected.names[0]
-                  }
-                  onClick={() => handleEditField('names')}
-                />
-              )}
-              {collected.date && (
-                <Chip
-                  label={formatDateChip(collected.date)}
-                  onClick={() => handleEditField('date')}
-                />
-              )}
-              {collected.venue && collected.venue !== 'TBD' && (
-                <Chip
-                  label={collected.venue}
-                  onClick={() => handleEditField('venue')}
-                />
-              )}
-              {collected.vibe && (
-                <Chip
-                  label={collected.vibe}
-                  onClick={() => handleEditField('vibe')}
-                />
-              )}
-            </div>
-          )}
         </div>{/* end glass card */}
       </div>{/* end spotlight card container */}
 
