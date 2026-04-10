@@ -12,14 +12,19 @@ import {
   RefreshControl,
   Dimensions,
   Image,
+  Modal,
+  TextInput,
+  Alert,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { getSite } from '@/lib/api';
+import { getSite, apiFetch } from '@/lib/api';
 import { colors, fonts, spacing, radius } from '@/lib/theme';
 import NativeHero from '@/components/NativeHero';
 import NativeEventCard from '@/components/NativeEventCard';
 import NativeChapterCard from '@/components/NativeChapterCard';
+import PearChat from '@/components/PearChat';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -64,6 +69,15 @@ export default function EditorScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pearChatVisible, setPearChatVisible] = useState(false);
+
+  // Publish state
+  const [publishModalVisible, setPublishModalVisible] = useState(false);
+  const [publishSiteName, setPublishSiteName] = useState('');
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
+  const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
+  const [isLive, setIsLive] = useState(false);
 
   const tabIndicatorX = useRef(new Animated.Value(0)).current;
   const tabWidth = SCREEN_WIDTH / 3;
@@ -76,7 +90,15 @@ export default function EditorScreen() {
       const site = await getSite(siteId!);
       const m = site.manifest as Manifest;
       setManifest(m);
-      setCoupleNames(site.names?.join(' & ') ?? 'Your Site');
+      const names = site.names?.join(' & ') ?? 'Your Site';
+      setCoupleNames(names);
+      setIsLive((site as any).is_live ?? false);
+      if (!publishSiteName) {
+        const suggested = (site.names ?? [])
+          .map((n: string) => n.toLowerCase().replace(/\s+/g, ''))
+          .join('and');
+        setPublishSiteName(suggested || site.domain || '');
+      }
     } catch (err: any) {
       setError(err.message ?? 'Failed to load site');
     } finally {
@@ -134,6 +156,82 @@ export default function EditorScreen() {
     const url = `https://pearloom.com/s/${siteId}`;
     await Share.share({ url, message: `Check out our site: ${url}` });
   }, [siteId]);
+
+  // ── Pear Chat handlers ──────────────────────────────────────────────
+
+  const handleOpenPearChat = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setPearChatVisible(true);
+  }, []);
+
+  const handleClosePearChat = useCallback(() => {
+    setPearChatVisible(false);
+  }, []);
+
+  const handleManifestUpdate = useCallback(
+    (updated: Manifest) => {
+      setManifest(updated);
+      // Persist the updated manifest to the server
+      apiFetch(`/api/sites/${siteId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ manifest: updated }),
+      }).catch((err: any) => {
+        console.warn('[PearChat] Failed to save manifest:', err.message);
+      });
+    },
+    [siteId],
+  );
+
+  // ── Publish handlers ─────────────────────────────────────────────────
+
+  const handleOpenPublish = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setPublishError(null);
+    setPublishedUrl(null);
+    setPublishModalVisible(true);
+  }, []);
+
+  const handlePublish = useCallback(async () => {
+    setPublishing(true);
+    setPublishError(null);
+    try {
+      const result = await apiFetch<{ url: string; domain: string }>(
+        '/api/sites/publish',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            siteId,
+            siteName: publishSiteName.toLowerCase().replace(/[^a-z0-9-]/g, ''),
+          }),
+        },
+      );
+      setPublishedUrl(result.url ?? `https://${publishSiteName}.pearloom.com`);
+      setIsLive(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (err: any) {
+      setPublishError(err.message ?? 'Failed to publish. Please try again.');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } finally {
+      setPublishing(false);
+    }
+  }, [siteId, publishSiteName]);
+
+  const handleCopyLink = useCallback(async () => {
+    if (publishedUrl) {
+      await Clipboard.setStringAsync(publishedUrl);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Alert.alert('Copied!', 'Link copied to clipboard.');
+    }
+  }, [publishedUrl]);
+
+  const handleSharePublished = useCallback(async () => {
+    if (publishedUrl) {
+      await Share.share({
+        url: publishedUrl,
+        message: `Check out our site: ${publishedUrl}`,
+      });
+    }
+  }, [publishedUrl]);
 
   // ── Theme ────────────────────────────────────────────────────────────
 
@@ -363,6 +461,34 @@ export default function EditorScreen() {
           </View>
         );
 
+      case 'text':
+        return (
+          <View style={styles.section}>
+            {cfg.title ? <Text style={[styles.sectionTitle, { color: textColor }]}>{cfg.title}</Text> : null}
+            <Text style={styles.textBlockBody}>{cfg.text ?? cfg.content ?? cfg.body ?? ''}</Text>
+          </View>
+        );
+
+      case 'welcome':
+      case 'vibeQuote':
+        return (
+          <View style={styles.section}>
+            <View style={styles.welcomeBox}>
+              <Text style={[styles.welcomeText, { color: textColor }]}>{cfg.text ?? cfg.statement ?? cfg.quote ?? cfg.content ?? ''}</Text>
+            </View>
+          </View>
+        );
+
+      case 'footer':
+        return (
+          <View style={styles.footerSection}>
+            {(cfg.text ?? cfg.closingText ?? cfg.content) ? (
+              <Text style={[styles.footerText, { color: textColor }]}>{cfg.text ?? cfg.closingText ?? cfg.content}</Text>
+            ) : null}
+            <Text style={styles.footerBrand}>Made with Pearloom</Text>
+          </View>
+        );
+
       default:
         return (
           <View style={styles.section}>
@@ -414,9 +540,25 @@ export default function EditorScreen() {
           headerTitleStyle: { fontFamily: fonts.bodySemibold, color: colors.ink, fontSize: 16 },
           headerShadowVisible: false,
           headerRight: () => (
-            <Pressable onPress={handleShare} hitSlop={12} style={{ marginRight: spacing.sm }}>
-              <Text style={{ fontSize: 18 }}>{'\u{1F517}'}</Text>
-            </Pressable>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+              {isLive && (
+                <View style={styles.liveBadge}>
+                  <View style={styles.liveDot} />
+                  <Text style={styles.liveBadgeText}>Live</Text>
+                </View>
+              )}
+              <Pressable
+                onPress={handleOpenPublish}
+                style={[styles.publishBtn, isLive && styles.publishBtnLive]}
+              >
+                <Text style={[styles.publishBtnText, isLive && styles.publishBtnTextLive]}>
+                  {isLive ? 'Update' : 'Publish'}
+                </Text>
+              </Pressable>
+              <Pressable onPress={handleShare} hitSlop={12} style={{ marginRight: spacing.sm }}>
+                <Text style={{ fontSize: 18 }}>{'\u{1F517}'}</Text>
+              </Pressable>
+            </View>
           ),
         }}
       />
@@ -505,6 +647,21 @@ export default function EditorScreen() {
           </ScrollView>
         )}
       </View>
+
+      {/* ── Floating Pear Button ──────────────────────────────────── */}
+      {!pearChatVisible && (
+        <Pressable style={styles.pearFab} onPress={handleOpenPearChat}>
+          <Text style={styles.pearFabIcon}>{'\uD83C\uDF50'}</Text>
+        </Pressable>
+      )}
+
+      {/* ── Pear Chat Bottom Sheet ───────────────────────────────── */}
+      <PearChat
+        visible={pearChatVisible}
+        onClose={handleClosePearChat}
+        manifest={manifest ?? {}}
+        onManifestUpdate={handleManifestUpdate}
+      />
     </>
   );
 }
@@ -623,6 +780,18 @@ const styles = StyleSheet.create({
   // Video
   videoBox: { backgroundColor: colors.inkSoft, marginHorizontal: spacing.lg, borderRadius: radius.md, padding: spacing.xxl, alignItems: 'center' },
 
+  // Text
+  textBlockBody: { fontFamily: fonts.body, fontSize: 15, color: colors.inkSoft, lineHeight: 24, paddingHorizontal: spacing.lg },
+
+  // Welcome / VibeQuote
+  welcomeBox: { paddingHorizontal: spacing.xl, paddingVertical: spacing.md, alignItems: 'center' },
+  welcomeText: { fontFamily: fonts.heading, fontSize: 20, lineHeight: 30, fontStyle: 'italic', textAlign: 'center' },
+
+  // Footer
+  footerSection: { paddingVertical: spacing.xxl, alignItems: 'center', paddingHorizontal: spacing.lg },
+  footerText: { fontFamily: fonts.body, fontSize: 14, lineHeight: 22, textAlign: 'center', marginBottom: spacing.md },
+  footerBrand: { fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.muted, letterSpacing: 0.5 },
+
   // Unknown
   unknownBlock: { backgroundColor: colors.creamDeep, marginHorizontal: spacing.lg, padding: spacing.lg, borderRadius: radius.md, alignItems: 'center' },
   unknownText: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.muted, textTransform: 'capitalize' },
@@ -654,4 +823,28 @@ const styles = StyleSheet.create({
   paletteRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
   paletteSwatch: { flex: 1, height: 32, borderRadius: 6, borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)' },
   fontLabel: { fontFamily: fonts.body, fontSize: 13, color: colors.inkSoft, textTransform: 'capitalize' },
+
+  // Floating Pear button
+  pearFab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 20,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: colors.olive,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 100,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.22,
+        shadowRadius: 12,
+      },
+      android: { elevation: 8 },
+    }),
+  },
+  pearFabIcon: { fontSize: 24 },
 });

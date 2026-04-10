@@ -12,6 +12,7 @@ import {
   Image,
   ActivityIndicator,
   Dimensions,
+  Linking,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -266,10 +267,43 @@ export default function SitePreviewScreen() {
                   <Text style={styles.registryUrl} numberOfLines={1}>
                     {link.url ?? ''}
                   </Text>
+                  {link.url ? (
+                    <Pressable
+                      onPress={() => Linking.openURL(link.url)}
+                      style={[styles.registryLinkBtn, { backgroundColor: primaryColor }]}
+                    >
+                      <Text style={styles.registryLinkText}>View Registry</Text>
+                    </Pressable>
+                  ) : null}
                 </View>
               ),
             )}
-            {(cfg.links ?? cfg.registries ?? []).length === 0 && (
+            {cfg.cashFund && (
+              <View
+                style={[
+                  styles.registryCard,
+                  { borderLeftColor: colors.gold },
+                ]}
+              >
+                <Text style={styles.registryName}>
+                  {cfg.cashFund.name ?? 'Cash Fund'}
+                </Text>
+                {cfg.cashFund.description ? (
+                  <Text style={styles.registryUrl}>
+                    {cfg.cashFund.description}
+                  </Text>
+                ) : null}
+                {cfg.cashFund.url ? (
+                  <Pressable
+                    onPress={() => Linking.openURL(cfg.cashFund.url)}
+                    style={[styles.registryLinkBtn, { backgroundColor: colors.gold }]}
+                  >
+                    <Text style={styles.registryLinkText}>Contribute</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            )}
+            {(cfg.links ?? cfg.registries ?? []).length === 0 && !cfg.cashFund && (
               <Text style={styles.emptyText}>No registries added</Text>
             )}
           </View>
@@ -290,6 +324,13 @@ export default function SitePreviewScreen() {
                   {hotel.address && (
                     <Text style={styles.hotelAddress}>{hotel.address}</Text>
                   )}
+                  {(hotel.groupRate ?? hotel.group_rate) ? (
+                    <View style={styles.groupRateBadge}>
+                      <Text style={styles.groupRateText}>
+                        Group Rate: {hotel.groupRate ?? hotel.group_rate}
+                      </Text>
+                    </View>
+                  ) : null}
                   {hotel.phone && (
                     <Text style={styles.hotelDetail}>
                       {'\u{260E}'} {hotel.phone}
@@ -309,8 +350,32 @@ export default function SitePreviewScreen() {
                 </View>
               ),
             )}
-            {(cfg.hotels ?? cfg.accommodations ?? []).length === 0 && (
-              <Text style={styles.emptyText}>No hotels added</Text>
+            {(cfg.airports ?? []).length > 0 && (
+              <View style={styles.travelSubSection}>
+                <Text style={[styles.travelSubTitle, { color: textColor }]}>
+                  {'\u{2708}'} Airports
+                </Text>
+                {(cfg.airports ?? []).map((airport: any, ai: number) => (
+                  <Text key={ai} style={styles.travelListItem}>
+                    {typeof airport === 'string' ? airport : airport.name ?? airport.code ?? ''}
+                  </Text>
+                ))}
+              </View>
+            )}
+            {cfg.parking && (
+              <View style={styles.travelSubSection}>
+                <Text style={[styles.travelSubTitle, { color: textColor }]}>
+                  {'\u{1F17F}'} Parking
+                </Text>
+                <Text style={styles.travelListItem}>
+                  {typeof cfg.parking === 'string' ? cfg.parking : cfg.parking.info ?? cfg.parking.details ?? ''}
+                </Text>
+              </View>
+            )}
+            {(cfg.hotels ?? cfg.accommodations ?? []).length === 0 &&
+              (cfg.airports ?? []).length === 0 &&
+              !cfg.parking && (
+              <Text style={styles.emptyText}>No travel info added</Text>
             )}
           </View>
         );
@@ -417,19 +482,12 @@ export default function SitePreviewScreen() {
 
       case 'countdown':
         return (
-          <View key={key} style={styles.section}>
-            <View style={[styles.countdownBox, { backgroundColor: primaryColor + '11' }]}>
-              <Text style={styles.countdownIcon}>{'\u{23F3}'}</Text>
-              <Text style={[styles.countdownLabel, { color: primaryColor }]}>
-                {cfg.label ?? 'Days Until the Big Day'}
-              </Text>
-              {cfg.date && (
-                <Text style={[styles.countdownDays, { color: primaryColor }]}>
-                  {getDaysUntil(cfg.date)}
-                </Text>
-              )}
-            </View>
-          </View>
+          <CountdownBlock
+            key={key}
+            date={cfg.date ?? manifest?.couple?.date}
+            label={cfg.label ?? 'Days Until the Big Day'}
+            primaryColor={primaryColor}
+          />
         );
 
       case 'spotify':
@@ -439,11 +497,16 @@ export default function SitePreviewScreen() {
               <Text style={styles.spotifyIcon}>{'\u{1F3B5}'}</Text>
               <View style={styles.spotifyInfo}>
                 <Text style={styles.spotifyTitle}>
-                  {cfg.title ?? 'Our Playlist'}
+                  {cfg.title ?? cfg.name ?? 'Our Playlist'}
                 </Text>
-                <Text style={styles.spotifyUrl} numberOfLines={1}>
-                  {cfg.url ?? cfg.playlistUrl ?? ''}
-                </Text>
+                {(cfg.url ?? cfg.playlistUrl) ? (
+                  <Pressable
+                    onPress={() => Linking.openURL(cfg.url ?? cfg.playlistUrl)}
+                    style={styles.spotifyLinkBtn}
+                  >
+                    <Text style={styles.spotifyLinkText}>Open in Spotify</Text>
+                  </Pressable>
+                ) : null}
               </View>
             </View>
           </View>
@@ -461,6 +524,9 @@ export default function SitePreviewScreen() {
               <Text style={[styles.hashtagText, { color: primaryColor }]}>
                 #{cfg.hashtag ?? cfg.text ?? 'YourHashtag'}
               </Text>
+              <Text style={styles.hashtagSubtitle}>
+                {cfg.subtitle ?? 'Share your photos'}
+              </Text>
             </View>
           </View>
         );
@@ -477,6 +543,44 @@ export default function SitePreviewScreen() {
                 {cfg.url ?? ''}
               </Text>
             </View>
+          </View>
+        );
+
+      case 'text':
+        return (
+          <View key={key} style={styles.section}>
+            {cfg.title ? (
+              <Text style={[styles.sectionTitle, { color: textColor }]}>
+                {cfg.title}
+              </Text>
+            ) : null}
+            <Text style={styles.textBlockBody}>
+              {cfg.text ?? cfg.content ?? cfg.body ?? ''}
+            </Text>
+          </View>
+        );
+
+      case 'welcome':
+      case 'vibeQuote':
+        return (
+          <View key={key} style={styles.section}>
+            <View style={styles.welcomeBox}>
+              <Text style={[styles.welcomeText, { color: textColor }]}>
+                {cfg.text ?? cfg.statement ?? cfg.quote ?? cfg.content ?? ''}
+              </Text>
+            </View>
+          </View>
+        );
+
+      case 'footer':
+        return (
+          <View key={key} style={styles.footerSection}>
+            {(cfg.text ?? cfg.closingText ?? cfg.content) ? (
+              <Text style={[styles.footerText, { color: textColor }]}>
+                {cfg.text ?? cfg.closingText ?? cfg.content}
+              </Text>
+            ) : null}
+            <Text style={styles.footerBrand}>Made with Pearloom</Text>
           </View>
         );
 
@@ -678,6 +782,84 @@ function FaqItem({
   );
 }
 
+function CountdownBlock({
+  date,
+  label,
+  primaryColor,
+}: {
+  date?: string;
+  label: string;
+  primaryColor: string;
+}) {
+  const [timeLeft, setTimeLeft] = useState(() => computeTimeLeft(date));
+
+  useEffect(() => {
+    if (!date) return;
+    const interval = setInterval(() => {
+      setTimeLeft(computeTimeLeft(date));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [date]);
+
+  return (
+    <View style={styles.section}>
+      <View style={[styles.countdownBox, { backgroundColor: primaryColor + '11' }]}>
+        <Text style={styles.countdownIcon}>{'\u{23F3}'}</Text>
+        <Text style={[styles.countdownLabel, { color: primaryColor }]}>
+          {label}
+        </Text>
+        {date && (
+          <View style={styles.countdownRow}>
+            <CountdownUnit value={timeLeft.days} unit="Days" color={primaryColor} />
+            <CountdownUnit value={timeLeft.hours} unit="Hours" color={primaryColor} />
+            <CountdownUnit value={timeLeft.minutes} unit="Min" color={primaryColor} />
+            <CountdownUnit value={timeLeft.seconds} unit="Sec" color={primaryColor} />
+          </View>
+        )}
+        {date && timeLeft.passed && (
+          <Text style={[styles.countdownDays, { color: primaryColor }]}>
+            The day has passed!
+          </Text>
+        )}
+      </View>
+    </View>
+  );
+}
+
+function CountdownUnit({
+  value,
+  unit,
+  color,
+}: {
+  value: number;
+  unit: string;
+  color: string;
+}) {
+  return (
+    <View style={styles.countdownUnitBox}>
+      <Text style={[styles.countdownUnitValue, { color }]}>{value}</Text>
+      <Text style={styles.countdownUnitLabel}>{unit}</Text>
+    </View>
+  );
+}
+
+function computeTimeLeft(dateStr?: string) {
+  if (!dateStr) return { days: 0, hours: 0, minutes: 0, seconds: 0, passed: true };
+  try {
+    const target = new Date(dateStr).getTime();
+    const now = Date.now();
+    const diff = target - now;
+    if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, passed: true };
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    return { days, hours, minutes, seconds, passed: false };
+  } catch {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0, passed: true };
+  }
+}
+
 function getDaysUntil(dateStr: string): string {
   try {
     const target = new Date(dateStr).getTime();
@@ -788,6 +970,18 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.muted,
   },
+  registryLinkBtn: {
+    marginTop: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.md,
+    alignSelf: 'flex-start',
+  },
+  registryLinkText: {
+    fontFamily: fonts.bodySemibold,
+    fontSize: 13,
+    color: colors.white,
+  },
   // Travel
   hotelCard: {
     backgroundColor: colors.white,
@@ -827,6 +1021,35 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyMedium,
     fontSize: 13,
     marginBottom: 2,
+  },
+  groupRateBadge: {
+    backgroundColor: colors.gold + '20',
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: radius.sm,
+    marginBottom: 4,
+  },
+  groupRateText: {
+    fontFamily: fonts.bodySemibold,
+    fontSize: 12,
+    color: colors.gold,
+  },
+  travelSubSection: {
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+  },
+  travelSubTitle: {
+    fontFamily: fonts.bodySemibold,
+    fontSize: 16,
+    marginBottom: spacing.xs,
+  },
+  travelListItem: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.inkSoft,
+    lineHeight: 22,
+    paddingLeft: spacing.sm,
   },
   // Guestbook
   guestbookMsg: {
@@ -912,6 +1135,27 @@ const styles = StyleSheet.create({
     fontFamily: fonts.heading,
     fontSize: 28,
   },
+  countdownRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: spacing.sm,
+  },
+  countdownUnitBox: {
+    alignItems: 'center',
+    minWidth: 50,
+  },
+  countdownUnitValue: {
+    fontFamily: fonts.heading,
+    fontSize: 28,
+  },
+  countdownUnitLabel: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    color: colors.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: 2,
+  },
   // Spotify
   spotifyCard: {
     flexDirection: 'row',
@@ -949,6 +1193,19 @@ const styles = StyleSheet.create({
     color: colors.muted,
     marginTop: 2,
   },
+  spotifyLinkBtn: {
+    backgroundColor: '#1DB954',
+    paddingVertical: spacing.xs + 2,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.full,
+    alignSelf: 'flex-start',
+    marginTop: spacing.sm,
+  },
+  spotifyLinkText: {
+    fontFamily: fonts.bodySemibold,
+    fontSize: 13,
+    color: colors.white,
+  },
   // Hashtag
   hashtagBox: {
     marginHorizontal: spacing.lg,
@@ -960,6 +1217,12 @@ const styles = StyleSheet.create({
     fontFamily: fonts.heading,
     fontSize: 28,
     letterSpacing: 0.5,
+  },
+  hashtagSubtitle: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.muted,
+    marginTop: spacing.sm,
   },
   // Video
   videoPlaceholder: {
@@ -983,6 +1246,46 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.white + '88',
     marginTop: 4,
+  },
+  // Text
+  textBlockBody: {
+    fontFamily: fonts.body,
+    fontSize: 15,
+    color: colors.inkSoft,
+    lineHeight: 24,
+    paddingHorizontal: spacing.lg,
+  },
+  // Welcome / VibeQuote
+  welcomeBox: {
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+  },
+  welcomeText: {
+    fontFamily: fonts.heading,
+    fontSize: 20,
+    lineHeight: 30,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  // Footer
+  footerSection: {
+    paddingVertical: spacing.xxl,
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  footerText: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    lineHeight: 22,
+    textAlign: 'center',
+    marginBottom: spacing.md,
+  },
+  footerBrand: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+    color: colors.muted,
+    letterSpacing: 0.5,
   },
   // Unknown
   unknownBlock: {
