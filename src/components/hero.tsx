@@ -97,14 +97,24 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
     offset: ['start start', 'end start'],
   });
 
-  // Memory Film: multi-photo cycling
+  // Memory Film: multi-photo cycling with Ken Burns
   const [photoIdx, setPhotoIdx] = useState(0);
   const photoList = photos && photos.length > 1 ? photos : [coverPhoto].filter(Boolean) as string[];
   useEffect(() => {
     if (photoList.length <= 1) return;
-    const interval = setInterval(() => setPhotoIdx(i => (i + 1) % photoList.length), 4500);
+    const interval = setInterval(() => setPhotoIdx(i => (i + 1) % photoList.length), 6500);
     return () => clearInterval(interval);
   }, [photoList.length]);
+
+  // Ken Burns variations — each photo picks a different zoom/pan direction
+  // so no two adjacent slides have the same movement
+  const kenBurnsVariants = [
+    { from: { scale: 1.0, x: '0%', y: '0%' }, to: { scale: 1.15, x: '-2%', y: '-1%' } },   // zoom in, drift up-left
+    { from: { scale: 1.15, x: '0%', y: '0%' }, to: { scale: 1.0, x: '2%', y: '2%' } },     // zoom out, drift down-right
+    { from: { scale: 1.08, x: '-2%', y: '0%' }, to: { scale: 1.2, x: '2%', y: '0%' } },    // pan right
+    { from: { scale: 1.08, x: '2%', y: '0%' }, to: { scale: 1.2, x: '-2%', y: '0%' } },    // pan left
+    { from: { scale: 1.0, x: '0%', y: '2%' }, to: { scale: 1.18, x: '0%', y: '-2%' } },    // pan up
+  ];
 
   // Cover photo parallax: moves at ~0.4x scroll speed
   // In editor mode or reduced motion, use static values (no parallax)
@@ -221,22 +231,71 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               inset: 0,
               y: yImage,
               willChange: 'transform',
+              overflow: 'hidden',
             }}
           >
-            <AnimatePresence mode="sync">
-              <motion.img
-                key={photoIdx}
-                src={photoList[photoIdx]}
-                alt={names.join(' & ') + ' celebration'}
-                loading="lazy"
-                initial={isEditor || prefersReduced ? false : { opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={prefersReduced ? undefined : { opacity: 0 }}
-                transition={{ duration: prefersReduced ? 0 : 1.2 }}
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '110%', objectFit: 'cover', objectPosition: 'center top' }}
-              />
-            </AnimatePresence>
+            {/* Render ALL photos stacked — each one crossfades in/out with its own Ken Burns */}
+            {photoList.map((photo, i) => {
+              const isActive = i === photoIdx;
+              const variant = kenBurnsVariants[i % kenBurnsVariants.length];
+              return (
+                <motion.div
+                  key={`${photo}-${i}`}
+                  initial={false}
+                  animate={{ opacity: isActive ? 1 : 0 }}
+                  transition={{
+                    opacity: { duration: prefersReduced ? 0 : 1.8, ease: [0.4, 0, 0.2, 1] },
+                  }}
+                  style={{
+                    position: 'absolute', inset: 0,
+                    willChange: 'opacity',
+                  }}
+                >
+                  <motion.img
+                    src={photo}
+                    alt={names.join(' & ') + ' celebration'}
+                    loading={i === 0 ? 'eager' : 'lazy'}
+                    initial={variant.from}
+                    animate={isActive && !prefersReduced ? variant.to : variant.from}
+                    transition={{
+                      duration: 7,
+                      ease: 'linear',
+                    }}
+                    style={{
+                      position: 'absolute', inset: 0,
+                      width: '100%', height: '110%',
+                      objectFit: 'cover', objectPosition: 'center top',
+                      willChange: 'transform',
+                    }}
+                  />
+                </motion.div>
+              );
+            })}
           </motion.div>
+
+          {/* Slideshow progress indicators — only visible if multiple photos */}
+          {photoList.length > 1 && (
+            <div style={{
+              position: 'absolute', bottom: 'clamp(24px, 5vh, 48px)', left: '50%',
+              transform: 'translateX(-50%)', zIndex: 5,
+              display: 'flex', gap: 8, alignItems: 'center',
+              padding: '8px 14px', borderRadius: 100,
+              background: 'rgba(0,0,0,0.25)', backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255,255,255,0.15)',
+            }}>
+              {photoList.map((_, i) => (
+                <div
+                  key={i}
+                  style={{
+                    width: i === photoIdx ? 24 : 6,
+                    height: 6, borderRadius: 100,
+                    background: i === photoIdx ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.35)',
+                    transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+                  }}
+                />
+              ))}
+            </div>
+          )}
 
           {/* Dark overlay — lighter for illustrated SVGs, stronger for real photos */}
           <div style={{
