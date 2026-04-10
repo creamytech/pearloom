@@ -30,7 +30,7 @@ export interface LivingCanvasProps {
  *   - Flowers, gemstones, foods/drinks
  * Each entry may map to 1–3 hex values (primary, secondary, tertiary).
  */
-const COLOR_VOCAB: Record<string, string[]> = {
+export const COLOR_VOCAB: Record<string, string[]> = {
   // ── Named colours ──
   red:        ['#DC2626', '#FCA5A5'],
   crimson:    ['#DC143C', '#F5B7B1'],
