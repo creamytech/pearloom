@@ -115,6 +115,7 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
       role: 'pear',
       text: "Hey! I'm Pear. Tell me about your celebration and I'll build you something beautiful.",
       ts: Date.now(),
+      cardType: 'occasion',
       cards: [
         { label: 'Wedding', value: 'wedding', icon: '✦' },
         { label: 'Birthday', value: 'birthday', icon: '✦' },
