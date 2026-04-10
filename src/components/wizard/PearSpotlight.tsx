@@ -24,7 +24,7 @@ interface Collected {
   vibe?: string;
 }
 
-type Step = 'occasion' | 'names' | 'date' | 'venue' | 'vibe' | 'photos' | 'ready';
+type Step = 'occasion' | 'names' | 'date' | 'venue' | 'vibe-ask' | 'vibe-pick' | 'photos' | 'ready';
 
 const STYLE_PAIRS = [
   { a: { name: 'Blush & Sage', colors: ['#D4A0A0', '#A3B18A', '#FAF7F2', '#3D3530'] },
@@ -34,6 +34,104 @@ const STYLE_PAIRS = [
   { a: { name: 'Coastal', colors: ['#5B9BD5', '#B8D4E8', '#F0F7FF', '#1E4D8C'] },
     b: { name: 'Emerald', colors: ['#2D6A4F', '#C4A96A', '#F0F7F4', '#1C2E24'] } },
 ];
+
+// ── Palette generation from user's vibe description ────────
+
+const VIBE_PALETTES: Record<string, { name: string; colors: string[]; description: string }> = {
+  // Themes
+  country:    { name: 'Country Charm',       colors: ['#D4A574', '#8B6F47', '#A3B18A', '#F0E6D6'], description: 'Warm wood tones with natural greens' },
+  western:    { name: 'Western Sunset',      colors: ['#C67B5C', '#E8B89D', '#D4A574', '#3D2E24'], description: 'Desert warmth and leather tones' },
+  cowboy:     { name: 'Ranch Life',          colors: ['#8B6F47', '#D4A574', '#A3B18A', '#5C3317'], description: 'Earthy ranch vibes' },
+  horse:      { name: 'Equestrian',          colors: ['#5C3317', '#D4A574', '#A3B18A', '#F0E6D6'], description: 'Rich leather and stable greens' },
+  barn:       { name: 'Rustic Barn',         colors: ['#8B4513', '#D4A574', '#A8B890', '#FAF7F2'], description: 'Warm barn wood and wildflowers' },
+  rustic:     { name: 'Rustic Natural',      colors: ['#D4A574', '#A8B890', '#C8B896', '#8B6F47'], description: 'Earthy warmth and greenery' },
+  romantic:   { name: 'Romantic Blush',      colors: ['#F2D1D1', '#E8B4C8', '#C4A96A', '#FAF7F2'], description: 'Soft pinks with golden accents' },
+  elegant:    { name: 'Timeless Elegance',   colors: ['#F0E6D6', '#C4A96A', '#3D3530', '#FAF7F2'], description: 'Gold and ivory sophistication' },
+  modern:     { name: 'Modern Clean',        colors: ['#F5F5F0', '#E8E4DC', '#D4CFC4', '#3D3530'], description: 'Clean lines, neutral tones' },
+  minimal:    { name: 'Minimal',             colors: ['#F5F5F0', '#D4CFC4', '#FFFFFF', '#1C1C1C'], description: 'Less is more' },
+  dark:       { name: 'Dark & Dramatic',     colors: ['#2D2B33', '#4A3F54', '#7C3AED', '#C4A96A'], description: 'Moody sophistication' },
+  moody:      { name: 'Midnight Garden',     colors: ['#2D2B33', '#3D3544', '#800020', '#C4A96A'], description: 'Dark florals and candlelight' },
+  bold:       { name: 'Bold & Vibrant',      colors: ['#FF6B6B', '#FFC857', '#5BCEFA', '#F472B6'], description: 'Eye-catching and energetic' },
+  colorful:   { name: 'Party Pop',           colors: ['#FF6B6B', '#FFC857', '#5BCEFA', '#34D399'], description: 'Bright and festive' },
+  tropical:   { name: 'Tropical Paradise',   colors: ['#FF6B6B', '#34D399', '#FFC857', '#5BCEFA'], description: 'Island vibes and sunsets' },
+  beach:      { name: 'Coastal Breeze',      colors: ['#B8D4E8', '#5B9BD5', '#F5D5A0', '#E8F0F8'], description: 'Ocean blues and sandy warmth' },
+  coastal:    { name: 'Seaside',             colors: ['#5B9BD5', '#B8D4E8', '#F0F7FF', '#1E4D8C'], description: 'Crisp blues and whitewash' },
+  garden:     { name: 'Secret Garden',       colors: ['#A3B18A', '#D5F5E3', '#F2D1D1', '#5F7A3B'], description: 'Lush greens and soft blooms' },
+  boho:       { name: 'Boho Dreamscape',     colors: ['#D4A574', '#C27BA0', '#E8D5A0', '#A3B18A'], description: 'Free-spirited earth tones' },
+  bohemian:   { name: 'Bohemian Sunset',     colors: ['#D4A574', '#C27BA0', '#E8D5A0', '#A3B18A'], description: 'Warm and eclectic' },
+  vintage:    { name: 'Vintage Nostalgia',   colors: ['#DCC9A4', '#C4A96A', '#E8D5C4', '#8B6F47'], description: 'Antique golds and warm creams' },
+  retro:      { name: 'Retro Groove',        colors: ['#E06C75', '#E5C07B', '#56B6C2', '#C678DD'], description: '70s-inspired color blocking' },
+  celestial:  { name: 'Celestial Night',     colors: ['#1E1B3A', '#7C3AED', '#FDE68A', '#B8D4E8'], description: 'Starry skies and moonlight' },
+  fairy:      { name: 'Enchanted Forest',    colors: ['#E8D5F5', '#D5F5E3', '#FFD1DC', '#C4A5E0'], description: 'Whimsical pastels and magic' },
+  gothic:     { name: 'Gothic Romance',      colors: ['#1E1B24', '#800020', '#C4A96A', '#3D3544'], description: 'Dark drama with gold touches' },
+  glamorous:  { name: 'Black Tie Glam',      colors: ['#C4A96A', '#2D2B33', '#E8D5A0', '#1E1B24'], description: 'Gold, black, and luxury' },
+  whimsical:  { name: 'Whimsical Wonder',    colors: ['#FFD1DC', '#E8D5F5', '#D5F5E3', '#FFF3CD'], description: 'Playful pastels' },
+  fun:        { name: 'Fun & Festive',       colors: ['#FFD1DC', '#FFF3CD', '#D5F5E3', '#E8D5F5'], description: 'Joyful and lighthearted' },
+  lavender:   { name: 'Lavender Fields',     colors: ['#9B8EC1', '#D4A0C4', '#F8F5FD', '#E8D5F5'], description: 'Soft purples and dreamy tones' },
+  sage:       { name: 'Sage & Stone',        colors: ['#A3B18A', '#C8D5B9', '#D4CFC4', '#FAF7F2'], description: 'Calming greens and neutrals' },
+  gold:       { name: 'Golden Hour',         colors: ['#C4A96A', '#E8D5A0', '#F0E6D6', '#8B6F47'], description: 'Warm golds and amber light' },
+  blush:      { name: 'Blush & Cream',       colors: ['#F2C6C6', '#FCE4EC', '#FAF7F2', '#E8B4C8'], description: 'Delicate pinks and soft ivory' },
+  navy:       { name: 'Navy & Gold',         colors: ['#2C3E6B', '#C4A96A', '#FAF7F2', '#1C1C1C'], description: 'Classic and commanding' },
+  burgundy:   { name: 'Burgundy Velvet',     colors: ['#800020', '#B3445C', '#C4A96A', '#F0E6D6'], description: 'Rich wine tones with gold' },
+  terracotta: { name: 'Terracotta Sun',      colors: ['#C67B5C', '#E8B89D', '#FFF8F2', '#3D2E24'], description: 'Warm clay and earth' },
+  emerald:    { name: 'Emerald & Gold',      colors: ['#2D6A4F', '#C4A96A', '#F0F7F4', '#1C2E24'], description: 'Jewel-tone richness' },
+  pastel:     { name: 'Pastel Dream',        colors: ['#FFD1DC', '#D5F5E3', '#E8D5F5', '#FFF3CD'], description: 'Soft and soothing' },
+  neon:       { name: 'Electric Night',      colors: ['#39FF14', '#FF073A', '#FF6EFF', '#1E1B24'], description: 'High-energy glow' },
+  sports:     { name: 'Game Day',            colors: ['#DC2626', '#1E3A5F', '#FFFFFF', '#C4A96A'], description: 'Team spirit and energy' },
+  disney:     { name: 'Storybook Magic',     colors: ['#4B7BEC', '#FFD1DC', '#C4A96A', '#F0E6D6'], description: 'Fairytale enchantment' },
+  princess:   { name: 'Royal Court',         colors: ['#FFD1DC', '#C4A96A', '#E8D5F5', '#FFFFFF'], description: 'Regal pinks and gold' },
+  outdoor:    { name: 'Great Outdoors',      colors: ['#5F7A3B', '#8B6F47', '#A3B18A', '#B8D4E8'], description: 'Mountain air and open skies' },
+  mountain:   { name: 'Alpine Lodge',        colors: ['#5F7A3B', '#8B6F47', '#E8D5C4', '#2D2B33'], description: 'Pine, stone, and fireside warmth' },
+  vineyard:   { name: 'Vineyard Estate',     colors: ['#722F37', '#A3B18A', '#F0E6D6', '#C4A96A'], description: 'Wine country elegance' },
+  wine:       { name: 'Wine & Roses',        colors: ['#722F37', '#B5485D', '#F2C6C6', '#F0E6D6'], description: 'Deep reds and blush' },
+};
+
+/**
+ * Generate 3 palettes from a user's freeform vibe description.
+ * Scans for keywords, picks the best matches, fills with fallbacks.
+ */
+function generatePalettes(description: string, occasion?: string): { name: string; colors: string[]; description: string }[] {
+  const v = description.toLowerCase();
+  const keys = Object.keys(VIBE_PALETTES).sort((a, b) => b.length - a.length);
+  const matched: { name: string; colors: string[]; description: string }[] = [];
+  const used = new Set<string>();
+
+  for (const key of keys) {
+    if (v.includes(key) && !used.has(key) && matched.length < 3) {
+      used.add(key);
+      matched.push(VIBE_PALETTES[key]);
+    }
+  }
+
+  // If we got fewer than 2, add occasion-based fallbacks
+  if (matched.length < 2) {
+    const fallbacks: Record<string, string[]> = {
+      wedding: ['romantic', 'elegant', 'blush', 'garden'],
+      birthday: ['colorful', 'fun', 'bold', 'pastel'],
+      anniversary: ['elegant', 'gold', 'romantic', 'vintage'],
+      engagement: ['romantic', 'blush', 'modern', 'celestial'],
+    };
+    const occ = occasion || 'wedding';
+    const fb = fallbacks[occ] || fallbacks.wedding;
+    for (const key of fb) {
+      if (!used.has(key) && VIBE_PALETTES[key] && matched.length < 3) {
+        used.add(key);
+        matched.push(VIBE_PALETTES[key]);
+      }
+    }
+  }
+
+  // Always ensure at least 3
+  if (matched.length < 3) {
+    for (const key of ['elegant', 'modern', 'bold']) {
+      if (!used.has(key) && VIBE_PALETTES[key] && matched.length < 3) {
+        matched.push(VIBE_PALETTES[key]);
+      }
+    }
+  }
+
+  return matched.slice(0, 3);
+}
 
 function getDefaultVibeForOccasion(occasion?: string): string {
   switch (occasion) {
@@ -46,7 +144,7 @@ function getDefaultVibeForOccasion(occasion?: string): string {
 }
 
 // Determine current step from collected data
-function currentStep(c: Collected, photosDecided: boolean): Step {
+function currentStep(c: Collected, photosDecided: boolean, vibeDescription: string): Step {
   if (!c.occasion) return 'occasion';
   if (!c.names?.[0]) return 'names';
   if (c.occasion === 'wedding' || c.occasion === 'engagement' || c.occasion === 'anniversary') {
@@ -54,7 +152,7 @@ function currentStep(c: Collected, photosDecided: boolean): Step {
   }
   if (!c.date) return 'date';
   if (!c.venue) return 'venue';
-  if (!c.vibe) return 'vibe';
+  if (!c.vibe) return vibeDescription ? 'vibe-pick' : 'vibe-ask';
   if (!photosDecided) return 'photos';
   return 'ready';
 }
@@ -86,11 +184,13 @@ function speechForStep(step: Step, collected: Collected): string {
       if (dateStr) return `${dateStr} — perfect! Where's it happening?`;
       return "Where's the celebration happening?";
     }
-    case 'vibe': {
+    case 'vibe-ask': {
       const venue = collected.venue === 'TBD' ? '' : collected.venue;
-      if (venue) return `${venue} sounds amazing! What's the vibe?`;
-      return "Almost there! What's the vibe you're going for?";
+      if (venue) return `${venue} sounds amazing! Describe your dream vibe`;
+      return "Almost there! Describe the style or theme you love";
     }
+    case 'vibe-pick':
+      return "I put together some palettes based on your vision";
     case 'photos':
       return "Let's add some photos to make it personal";
     case 'ready':
@@ -106,7 +206,8 @@ function moodForStep(step: Step, loading: boolean): 'idle' | 'thinking' | 'happy
     case 'names': return 'happy';
     case 'date': return 'happy';
     case 'venue': return 'happy';
-    case 'vibe': return 'happy';
+    case 'vibe-ask': return 'happy';
+    case 'vibe-pick': return 'happy';
     case 'photos': return 'happy';
     case 'ready': return 'celebrating';
   }
@@ -153,13 +254,15 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const [selectedPhotos, setSelectedPhotos] = useState<any[]>([]);
   const [photosDecided, setPhotosDecided] = useState(false);
   const [direction, setDirection] = useState(1); // 1 = forward, -1 = back
+  const [vibeDescription, setVibeDescription] = useState(''); // raw user input before palette generation
+  const [generatedPalettes, setGeneratedPalettes] = useState<{name: string; colors: string[]; description: string}[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const collectedRef = useRef(collected);
   collectedRef.current = collected;
   const selectedPhotosRef = useRef<any[]>([]);
   useEffect(() => { selectedPhotosRef.current = selectedPhotos; }, [selectedPhotos]);
 
-  const step = currentStep(collected, photosDecided);
+  const step = currentStep(collected, photosDecided, vibeDescription);
   const progress = progressCount(collected);
   const speech = speechForStep(step, collected);
   const mood = moodForStep(step, loading);
@@ -174,7 +277,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
 
   // Auto-focus input on steps that need it
   useEffect(() => {
-    if (step === 'names' || step === 'venue') {
+    if (step === 'names' || step === 'venue' || step === 'vibe-ask') {
       setTimeout(() => inputRef.current?.focus(), 400);
     }
   }, [step]);
@@ -243,9 +346,21 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     setCollected(prev => ({ ...prev, venue: 'TBD' }));
   };
 
+  const handleVibeDescriptionSubmit = () => {
+    const text = input.trim();
+    if (!text) return;
+    setInput('');
+    setDirection(1);
+    setVibeDescription(text);
+    // Generate palettes from the user's description
+    setGeneratedPalettes(generatePalettes(text, collected.occasion));
+  };
+
   const handleVibeSelect = (vibe: string) => {
     setDirection(1);
-    setCollected(prev => ({ ...prev, vibe: vibe }));
+    // Store both the palette name and original description
+    const fullVibe = vibeDescription ? `${vibeDescription} - ${vibe}` : vibe;
+    setCollected(prev => ({ ...prev, vibe: fullVibe }));
   };
 
   const handlePhotosSkip = () => {
@@ -309,6 +424,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     e.preventDefault();
     if (step === 'names') handleNameSubmit();
     else if (step === 'venue') handleVenueSubmit();
+    else if (step === 'vibe-ask') handleVibeDescriptionSubmit();
   };
 
   // Edit a collected field
@@ -855,32 +971,80 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                 </form>
               )}
 
-              {/* ── Vibe step ── */}
-              {step === 'vibe' && (
+              {/* ── Vibe ask step — text input for description ── */}
+              {step === 'vibe-ask' && (
                 <div>
-                  <StyleDiscoveryCard
-                    pairs={STYLE_PAIRS}
-                    names={collected.names}
-                    onSelect={(s) => handleVibeSelect(s.name.toLowerCase())}
-                  />
+                  <form onSubmit={handleInputSubmit}>
+                    <input
+                      ref={inputRef}
+                      value={input}
+                      onChange={e => setInput(e.target.value)}
+                      placeholder="e.g. country western, rustic barn, horses..."
+                      style={{
+                        width: '100%', padding: '14px 18px', borderRadius: 16,
+                        border: '1px solid rgba(163,177,138,0.3)', background: 'rgba(255,255,255,0.6)',
+                        backdropFilter: 'blur(8px)', fontSize: '0.92rem', color: 'var(--pl-ink-soft)',
+                        fontFamily: 'inherit', outline: 'none',
+                      } as React.CSSProperties}
+                    />
+                    <button
+                      type="submit"
+                      disabled={!input.trim()}
+                      style={{
+                        marginTop: 12, width: '100%', padding: '14px 0', borderRadius: 100,
+                        background: input.trim() ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.2)',
+                        color: input.trim() ? 'white' : 'var(--pl-muted)',
+                        border: 'none', fontSize: '0.88rem', fontWeight: 700, cursor: 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      Show me palettes
+                    </button>
+                  </form>
                   <button
-                    onClick={() => handleVibeSelect(getDefaultVibeForOccasion(collected.occasion))}
+                    onClick={() => {
+                      setVibeDescription('surprise');
+                      setGeneratedPalettes(generatePalettes('elegant romantic', collected.occasion));
+                      setDirection(1);
+                    }}
                     style={{
-                      marginTop: 8,
-                      width: '100%',
-                      padding: '10px 0',
-                      borderRadius: 100,
-                      background: 'rgba(255,255,255,0.4)',
-                      backdropFilter: 'blur(8px)',
-                      WebkitBackdropFilter: 'blur(8px)',
-                      border: '1px solid rgba(255,255,255,0.4)',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      color: 'var(--pl-ink-soft)',
-                      cursor: 'pointer',
+                      marginTop: 8, width: '100%', padding: '10px 0', borderRadius: 100,
+                      background: 'transparent', border: '1px solid rgba(163,177,138,0.2)',
+                      fontSize: '0.78rem', fontWeight: 600, color: 'var(--pl-muted)', cursor: 'pointer',
                     }}
                   >
-                    Surprise me
+                    Surprise me instead
+                  </button>
+                </div>
+              )}
+
+              {/* ── Vibe pick step — generated palettes from user's description ── */}
+              {step === 'vibe-pick' && (
+                <div>
+                  <p style={{
+                    fontSize: '0.75rem', fontWeight: 600, color: 'var(--pl-muted)',
+                    textTransform: 'uppercase' as const, letterSpacing: '0.08em',
+                    textAlign: 'center', marginBottom: 12,
+                  }}>
+                    Based on &ldquo;{vibeDescription}&rdquo;
+                  </p>
+                  <ColorPaletteCard
+                    palettes={generatedPalettes}
+                    onSelect={(palette) => handleVibeSelect(palette.name.toLowerCase())}
+                  />
+                  <button
+                    onClick={() => {
+                      setVibeDescription('');
+                      setGeneratedPalettes([]);
+                      setDirection(-1);
+                    }}
+                    style={{
+                      marginTop: 10, width: '100%', padding: '10px 0', borderRadius: 100,
+                      background: 'transparent', border: '1px solid rgba(163,177,138,0.2)',
+                      fontSize: '0.78rem', fontWeight: 600, color: 'var(--pl-muted)', cursor: 'pointer',
+                    }}
+                  >
+                    Describe something different
                   </button>
                 </div>
               )}
