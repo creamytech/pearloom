@@ -21,7 +21,7 @@ interface ChatMessage {
   text: string;
   ts: number;
   cards?: Array<{ label: string; value: string; icon?: string }>;
-  cardType?: 'occasion' | 'date' | 'venue' | 'style';
+  cardType?: 'occasion' | 'date' | 'venue' | 'style' | 'theme-ask' | 'info-card';
 }
 
 // Style palette pairs for the A/B style discovery
@@ -208,7 +208,13 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
         ];
         pearMsg.cardType = 'venue';
       } else if (!nextCollected.vibe) {
-        pearMsg.cardType = 'style';
+        // Ask about theme/interests instead of showing static palettes
+        pearMsg.cardType = 'theme-ask';
+        pearMsg.cards = [
+          { label: 'I have a theme in mind', value: 'has-theme', icon: '✦' },
+          { label: 'Suggest based on my interests', value: 'suggest', icon: '✦' },
+          { label: 'Surprise me', value: 'surprise', icon: '✦' },
+        ];
       }
 
       setMessages(prev => [...prev, pearMsg]);
@@ -309,32 +315,51 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
         <div className="w-[72px]" />
       </header>
 
-      {/* Mini preview bar */}
+      {/* Progressive info cards — build as you go */}
       <AnimatePresence>
         {showPreviewBar && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="shrink-0 mx-4 md:mx-8 mb-2 px-4 py-2.5 rounded-2xl bg-white/50 backdrop-blur-md border border-white/40 flex items-center justify-between"
+            className="shrink-0 mx-4 md:mx-8 mb-2 rounded-2xl bg-white/50 backdrop-blur-md border border-white/40 overflow-hidden"
           >
-            <div>
-              <p className="text-[0.6rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-muted)]">
-                {collected.occasion}
-              </p>
-              <p className="font-heading italic text-[1.1rem] text-[var(--pl-ink-soft)] leading-tight">
-                {collected.names?.[0]}{collected.names?.[1] ? ` & ${collected.names[1]}` : ''}
-              </p>
+            {/* Name + occasion header */}
+            <div className="px-4 py-3 flex items-center justify-between">
+              <div>
+                <p className="text-[0.58rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-muted)]">
+                  {collected.occasion}
+                </p>
+                <p className="font-heading italic text-[1.15rem] text-[var(--pl-ink-soft)] leading-tight">
+                  {collected.names?.[0]}{collected.names?.[1] ? ` & ${collected.names[1]}` : ''}
+                </p>
+              </div>
+              <PearMascot size={28} mood="happy" />
             </div>
-            {collected.date && (
-              <span className="text-[0.72rem] font-semibold text-[var(--pl-olive-deep)]">
-                {(() => {
-                  try {
-                    const d = new Date(collected.date + 'T12:00:00');
-                    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                  } catch { return collected.date; }
-                })()}
-              </span>
+            {/* Detail chips — appear as info is collected */}
+            {(collected.date || collected.venue || collected.vibe) && (
+              <div className="px-4 pb-3 flex flex-wrap gap-2">
+                {collected.date && (
+                  <span className="text-[0.68rem] font-semibold px-3 py-1 rounded-full bg-[var(--pl-olive)]/10 text-[var(--pl-olive-deep)]">
+                    {(() => {
+                      try {
+                        const d = new Date(collected.date + 'T12:00:00');
+                        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                      } catch { return collected.date; }
+                    })()}
+                  </span>
+                )}
+                {collected.venue && collected.venue !== 'TBD' && (
+                  <span className="text-[0.68rem] font-semibold px-3 py-1 rounded-full bg-[var(--pl-olive)]/10 text-[var(--pl-olive-deep)]">
+                    {collected.venue}
+                  </span>
+                )}
+                {collected.vibe && (
+                  <span className="text-[0.68rem] font-semibold px-3 py-1 rounded-full bg-[var(--pl-gold)]/15 text-[var(--pl-ink-soft)]">
+                    {collected.vibe}
+                  </span>
+                )}
+              </div>
             )}
           </motion.div>
         )}
@@ -463,39 +488,67 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                 </div>
               )}
 
-              {/* ── Style palette A/B choice ── */}
+              {/* ── Theme discovery — ask about interests ── */}
+              {msg.cardType === 'theme-ask' && msg.cards && !collected.vibe && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
+                  {msg.cards.map((card) => (
+                    <button
+                      key={card.value}
+                      onClick={() => {
+                        if (card.value === 'surprise') {
+                          setCollected(prev => ({ ...prev, vibe: 'elegant modern' }));
+                          sendMessage("Surprise me with something beautiful!");
+                        } else if (card.value === 'has-theme') {
+                          sendMessage("I have a theme in mind — let me describe it");
+                        } else {
+                          sendMessage("Suggest colors based on my interests and the occasion");
+                        }
+                      }}
+                      style={{
+                        padding: '12px 16px', borderRadius: '14px',
+                        border: '1px solid rgba(163,177,138,0.25)', background: 'rgba(255,255,255,0.55)',
+                        backdropFilter: 'blur(8px)', cursor: 'pointer', fontSize: '0.82rem',
+                        fontWeight: 600, color: 'var(--pl-ink)', transition: 'all 0.15s',
+                        display: 'flex', alignItems: 'center', gap: '8px', textAlign: 'left',
+                      }}
+                    >
+                      <span style={{ color: 'var(--pl-olive)', flexShrink: 0 }}>{card.icon}</span>
+                      {card.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* ── Style palette choice (shown when AI suggests palettes) ── */}
               {msg.cardType === 'style' && !collected.vibe && (
-                <div style={{ display: 'flex', gap: '12px', marginTop: '12px', flexWrap: 'wrap' }}>
-                  {(() => {
-                    const pair = STYLE_PAIRS[Math.floor(Math.random() * STYLE_PAIRS.length)];
-                    return [pair.a, pair.b].map((palette) => (
-                      <button
-                        key={palette.name}
-                        onClick={() => {
-                          setCollected(prev => ({ ...prev, vibe: palette.name.toLowerCase() }));
-                          sendMessage(`I love the ${palette.name} style`);
-                        }}
-                        style={{
-                          flex: 1, minWidth: '120px', padding: '12px', borderRadius: '16px',
-                          border: '1px solid rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.5)',
-                          backdropFilter: 'blur(8px)', cursor: 'pointer', transition: 'all 0.15s',
-                          textAlign: 'center',
-                        }}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', marginBottom: '8px' }}>
-                          {palette.colors.map((c, ci) => (
-                            <div key={ci} style={{
-                              width: '24px', height: '24px', borderRadius: '50%',
-                              background: c, border: '1px solid rgba(0,0,0,0.08)',
-                            }} />
-                          ))}
-                        </div>
-                        <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--pl-ink)' }}>
-                          {palette.name}
-                        </div>
-                      </button>
-                    ));
-                  })()}
+                <div style={{ display: 'flex', gap: '10px', marginTop: '12px', flexWrap: 'wrap' }}>
+                  {STYLE_PAIRS.slice(0, 3).map((pair) => (
+                    <button
+                      key={pair.a.name}
+                      onClick={() => {
+                        setCollected(prev => ({ ...prev, vibe: pair.a.name.toLowerCase() }));
+                        sendMessage(`I love the ${pair.a.name} look`);
+                      }}
+                      style={{
+                        flex: 1, minWidth: '90px', padding: '10px', borderRadius: '14px',
+                        border: '1px solid rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.5)',
+                        backdropFilter: 'blur(8px)', cursor: 'pointer', transition: 'all 0.15s',
+                        textAlign: 'center',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'center', gap: '3px', marginBottom: '6px' }}>
+                        {pair.a.colors.map((c, ci) => (
+                          <div key={ci} style={{
+                            width: '20px', height: '20px', borderRadius: '50%',
+                            background: c, border: '1px solid rgba(0,0,0,0.08)',
+                          }} />
+                        ))}
+                      </div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--pl-ink)' }}>
+                        {pair.a.name}
+                      </div>
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
