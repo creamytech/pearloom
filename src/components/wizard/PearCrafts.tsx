@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Loader2, Sparkles, ArrowLeft } from 'lucide-react';
 import { PearMascot } from '@/components/icons/PearMascot';
 import { PhotoBrowser } from '@/components/dashboard/photo-browser';
+import { LivingCanvas } from '@/components/wizard/LivingCanvas';
 
 interface PearCraftsProps {
   onComplete: (manifest: any, names: [string, string], subdomain: string) => void;
@@ -58,7 +59,6 @@ interface Collected {
   turningAge?: number;
 }
 
-const BG_GRADIENT = 'linear-gradient(135deg, #E8D5C4 0%, #F2E6D9 25%, #D4B8A0 50%, #E8CDB8 75%, #F0DFD0 100%)';
 
 function getWizardPrompt(collected: Collected): string {
   const occasion = collected.occasion || 'unknown';
@@ -416,12 +416,13 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
     const currentPhase = GEN_PHASES[genStep] || GEN_PHASES[0];
     const progress = ((genStep + 1) / GEN_PHASES.length) * 100;
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center" style={{ background: BG_GRADIENT }}>
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center">
+        <LivingCanvas occasion={collected.occasion} names={collected.names} date={collected.date} venue={collected.venue} vibe={collected.vibe} photoCount={selectedPhotos.length} phase="generating" />
         {/* Soft glow behind mascot */}
         <div style={{
           position: 'absolute', width: '300px', height: '300px', borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(163,177,138,0.15) 0%, transparent 70%)',
-          filter: 'blur(40px)', pointerEvents: 'none',
+          filter: 'blur(40px)', pointerEvents: 'none', zIndex: 1,
         }} />
 
         <motion.div
@@ -485,11 +486,12 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
   if (phase === 'error') {
     const maxRetries = 3;
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center" style={{ background: BG_GRADIENT }}>
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center">
+        <LivingCanvas occasion={collected.occasion} names={collected.names} date={collected.date} venue={collected.venue} vibe={collected.vibe} photoCount={selectedPhotos.length} phase="chat" />
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="flex flex-col items-center gap-6 text-center px-6 max-w-md"
+          className="flex flex-col items-center gap-6 text-center px-6 max-w-md relative z-10"
         >
           <PearMascot size={80} mood="thinking" />
 
@@ -573,9 +575,10 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
 
   // ── Main chat UI ──────────────────────────────────────────
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center" style={{ background: BG_GRADIENT }}>
+    <div className="fixed inset-0 z-50 flex flex-col items-center">
+      <LivingCanvas occasion={collected.occasion} names={collected.names} date={collected.date} venue={collected.venue} vibe={collected.vibe} photoCount={selectedPhotos.length} phase="chat" />
       {/* Header — minimal, integrated */}
-      <header className="shrink-0 w-full flex items-center justify-between px-4 pt-[env(safe-area-inset-top,8px)] pb-1 md:px-6 max-w-[560px]">
+      <header className="shrink-0 w-full flex items-center justify-between px-4 pt-[env(safe-area-inset-top,8px)] pb-1 md:px-6 max-w-[560px] relative z-10">
         <button
           onClick={onBack}
           className="flex items-center gap-1 px-2.5 py-1.5 min-h-[36px] rounded-full text-[0.72rem] font-semibold text-[var(--pl-muted)] bg-transparent border-none cursor-pointer hover:bg-white/30 transition-all"
@@ -591,7 +594,7 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
       </header>
 
       {/* Card container — centered on desktop, snug on mobile */}
-      <div className="flex-1 flex flex-col w-full max-w-[560px] min-h-0 md:my-2 md:rounded-3xl md:overflow-hidden" style={{
+      <div className="flex-1 flex flex-col w-full max-w-[560px] min-h-0 md:my-2 md:rounded-3xl md:overflow-hidden relative z-10" style={{
         background: 'rgba(255,255,255,0.15)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
