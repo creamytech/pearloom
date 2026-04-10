@@ -87,8 +87,8 @@ RULES:
 - When the user describes a theme, colors, mood, or style preference, extract it as "vibe" (e.g., "dark moody gothic" or "bright and colorful" or "elegant minimalist")
 - The collection order is: occasion -> names -> date -> venue -> theme/style. Ask for ONE at a time.
 - Once you have all details including a style/theme, confirm the vibe enthusiastically in 1-2 sentences. Do NOT ask about photos, building, or next steps — the app handles that automatically.
-- NEVER assume you're talking TO the person being celebrated. The user might be a parent, friend, partner, or planner. Say "the birthday person" or use their name — never "nice to meet you [name]" or "your birthday"
-- When the user gives a name, acknowledge it warmly and move to the next question.
+- NEVER say "nice to meet you", "lovely to meet you", "how exciting for you", or anything that assumes the user IS the person being celebrated. The user might be a parent, friend, partner, or planner. When names are given, say something like "Got it, [Name] & [Name] — love that!" or "The site will be for [Name] & [Name]." NEVER greet them by their celebration names.
+- When the user gives names, acknowledge briefly and immediately ask for the NEXT thing (date). Do not make it a big moment.
 - The current year is ${currentYear}. If the user says a month/day without a year (like "November 12"), assume ${currentYear}. If the date has already passed this year, use ${currentYear + 1}. ALWAYS return dates in YYYY-MM-DD format.
 - NEVER mention photos, uploading photos, or ask if the user wants to add photos. The app handles photo selection automatically.
 
@@ -212,7 +212,16 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
         setCollected(prev => {
           const next = { ...prev };
           if (extracted.occasion && !prev.occasion) next.occasion = extracted.occasion;
-          if (extracted.names && !prev.names?.[0]) next.names = extracted.names;
+          if (extracted.names && !prev.names?.[0]) {
+            // Validate names — AI sometimes returns initials or garbage
+            const n = extracted.names;
+            const name1 = typeof n[0] === 'string' ? n[0].trim() : '';
+            const name2 = typeof n[1] === 'string' ? n[1].trim() : '';
+            // Only accept names that are at least 2 characters
+            if (name1.length >= 2) {
+              next.names = [name1, name2.length >= 2 ? name2 : ''];
+            }
+          }
           if (extracted.date && !prev.date) {
             // Fix dates in the past — bump year to current/next
             let d = extracted.date;
@@ -238,7 +247,11 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
       // Use the CURRENT collected state (already merged above via setCollected)
       const nextCollected = { ...collected };
       if (extracted?.occasion && !collected.occasion) nextCollected.occasion = extracted.occasion;
-      if (extracted?.names && !collected.names?.[0]) nextCollected.names = extracted.names;
+      if (extracted?.names && !collected.names?.[0]) {
+        const n1 = typeof extracted.names[0] === 'string' ? extracted.names[0].trim() : '';
+        const n2 = typeof extracted.names[1] === 'string' ? extracted.names[1].trim() : '';
+        if (n1.length >= 2) nextCollected.names = [n1, n2.length >= 2 ? n2 : ''];
+      }
       if (extracted?.date && !collected.date) nextCollected.date = extracted.date;
       if (extracted?.venue && !collected.venue) nextCollected.venue = extracted.venue;
       if (extracted?.vibe && !collected.vibe) nextCollected.vibe = extracted.vibe;
