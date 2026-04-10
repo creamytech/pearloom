@@ -169,7 +169,7 @@ function speechForStep(step: Step, collected: Collected, photoInfo?: { index: nu
 
   switch (step) {
     case 'occasion':
-      return "Hey, I'm Pear! What are we celebrating?";
+      return "Hey! What are we celebrating?";
     case 'names': {
       if (occ === 'birthday') return "Love it! Who's the birthday for?";
       if (occ === 'wedding') return "A wedding! Who's the happy couple?";
@@ -208,6 +208,29 @@ function speechForStep(step: Step, collected: Collected, photoInfo?: { index: nu
     case 'ready':
       return `${nameDisplay}'s site is ready to build!`;
   }
+}
+
+// Conversational sub-text — adds personality below the main speech
+function subtextForStep(step: Step, collected: Collected): string {
+  const occ = collected.occasion;
+  switch (step) {
+    case 'occasion': return "I'm Pear, your personal site builder. Let's make something beautiful together.";
+    case 'names': return occ === 'birthday' ? "Just their first name is perfect." : "First names are great — I'll make them look stunning.";
+    case 'date': return "I'll add a gorgeous countdown to the site.";
+    case 'venue': return "I'll put it on the map for your guests. Or skip if it's TBD.";
+    case 'vibe-ask': return "Colors, themes, moods — anything goes. Think Pinterest board.";
+    case 'vibe-pick': return "Tap the one that makes your heart sing.";
+    case 'photos': return "Your photos make the site 10x more personal. I'll help tell the story.";
+    case 'photo-review': return "I'll weave each photo into a beautiful timeline.";
+    case 'ready': return "Take a peek — you can always tweak in the editor after.";
+  }
+}
+
+// Detect if the vibe is dark-themed — used for contrast adaptation
+function isDarkVibe(vibe?: string): boolean {
+  if (!vibe) return false;
+  const v = vibe.toLowerCase();
+  return v.includes('dark') || v.includes('moody') || v.includes('gothic') || v.includes('midnight') || v.includes('noir') || v.includes('black') || v.includes('navy') || v.includes('celestial');
 }
 
 // Pear mood per step
@@ -284,7 +307,21 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const step = currentStep(collected, photosDecided, vibeDescription, selectedPhotos.length, reviewDone);
   const progress = progressCount(collected);
   const speech = speechForStep(step, collected, step === 'photo-review' ? { index: photoReviewIndex, total: selectedPhotos.length, location: photoNotes[photoReviewIndex]?.location } : undefined);
+  const subtext = subtextForStep(step, collected);
   const mood = moodForStep(step, loading);
+  const dark = isDarkVibe(collected.vibe);
+
+  // Contrast-adaptive colors
+  const textColor = dark ? '#FAF7F2' : 'var(--pl-ink-soft, #3D3530)';
+  const mutedColor = dark ? 'rgba(250,247,242,0.6)' : 'var(--pl-muted, #8C7E72)';
+  const cardBg = dark ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.4)';
+  const cardBorder = dark ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(255,255,255,0.5)';
+  const inputBg = dark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.6)';
+  const inputBorder = dark ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(163,177,138,0.3)';
+  const chipBg = dark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.5)';
+  const chipBorder = dark ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(255,255,255,0.4)';
+  const ghostBg = dark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.4)';
+  const ghostBorder = dark ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(163,177,138,0.2)';
 
   // Auto-open photo browser when we reach photos step
   useEffect(() => {
@@ -814,21 +851,22 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     }
   };
 
-  // Chip component
+  // Chip component — contrast-adaptive
   const Chip = ({ label, onClick }: { label: string; onClick: () => void }) => (
     <button
       onClick={onClick}
       style={{
         padding: '5px 14px',
         borderRadius: 100,
-        background: 'rgba(255,255,255,0.5)',
+        background: chipBg,
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
-        border: '1px solid rgba(255,255,255,0.4)',
+        border: chipBorder,
         fontSize: '0.72rem',
         fontWeight: 600,
-        color: 'var(--pl-ink-soft)',
+        color: textColor,
         cursor: 'pointer',
+        transition: 'all 0.4s',
       }}
     >
       {label}
@@ -865,7 +903,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
           border: '1px solid rgba(255,255,255,0.4)',
           fontSize: '0.8rem',
           fontWeight: 600,
-          color: 'var(--pl-ink-soft)',
+          color: textColor,
           cursor: 'pointer',
         }}
       >
@@ -876,47 +914,68 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       {/* The Spotlight Card */}
       <div style={{ maxWidth: 480, width: '92%', position: 'relative', zIndex: 10 }}>
 
-        {/* Pear mascot -- large, overlapping top of card */}
-        <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', marginBottom: -40, zIndex: 20 }}>
+        {/* Pear mascot — large, bounces between steps */}
+        <motion.div
+          key={step}
+          initial={{ scale: 0.9, y: 10 }}
+          animate={{ scale: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          style={{ position: 'relative', display: 'flex', justifyContent: 'center', marginBottom: -40, zIndex: 20 }}
+        >
           <ProgressRing progress={progress} size={140} />
-          <div style={{ paddingTop: 10 }}>
+          <motion.div
+            animate={{ rotate: step === 'ready' ? [0, -5, 5, -3, 3, 0] : 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            style={{ paddingTop: 10 }}
+          >
             <PearMascot size={120} mood={mood} />
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Glass card */}
         <div
           style={{
-            background: 'rgba(255,255,255,0.4)',
+            background: cardBg,
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
             borderRadius: 28,
             padding: '56px 28px 28px',
-            border: '1px solid rgba(255,255,255,0.5)',
-            boxShadow: '0 8px 40px rgba(43,30,20,0.08)',
+            border: cardBorder,
+            boxShadow: dark ? '0 8px 40px rgba(0,0,0,0.2)' : '0 8px 40px rgba(43,30,20,0.08)',
             overflow: 'hidden',
+            transition: 'background 0.5s, border 0.5s, box-shadow 0.5s',
           }}
         >
           {/* Speech bubble */}
           <AnimatePresence mode="wait">
-            <motion.p
+            <motion.div
               key={step}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25 }}
-              style={{
-                textAlign: 'center',
+              style={{ textAlign: 'center', marginBottom: 24 }}
+            >
+              <p style={{
                 fontFamily: 'var(--pl-font-heading)',
                 fontStyle: 'italic',
                 fontSize: '1.25rem',
-                color: 'var(--pl-ink-soft)',
-                marginBottom: 24,
+                color: textColor,
                 lineHeight: 1.4,
-              }}
-            >
-              {speech}
-            </motion.p>
+                marginBottom: 6,
+                transition: 'color 0.5s',
+              }}>
+                {speech}
+              </p>
+              <p style={{
+                fontSize: '0.78rem',
+                color: mutedColor,
+                lineHeight: 1.5,
+                transition: 'color 0.5s',
+              }}>
+                {subtext}
+              </p>
+            </motion.div>
           </AnimatePresence>
 
           {/* Step content -- animated swap */}
@@ -1160,7 +1219,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       placeholder="e.g. country western, rustic barn, horses..."
                       style={{
                         width: '100%', padding: '14px 18px', borderRadius: 16,
-                        border: '1px solid rgba(163,177,138,0.3)', background: 'rgba(255,255,255,0.6)',
+                        border: inputBorder, background: inputBg,
                         backdropFilter: 'blur(8px)', fontSize: '0.92rem', color: 'var(--pl-ink-soft)',
                         fontFamily: 'inherit', outline: 'none',
                       } as React.CSSProperties}
