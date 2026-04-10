@@ -350,7 +350,6 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
 
   // Track which photos are still being detected
   const [detectingPhotos, setDetectingPhotos] = useState<Set<number>>(new Set());
-  const detectingLocation = detectingPhotos.has(photoReviewIndex);
 
   // ── Handlers ──────────────────────────────────────────────
   const handleOccasionSelect = (value: string) => {
@@ -448,7 +447,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     setDirection(1);
   };
 
-  const handlePhotosDone = () => {
+  const handlePhotosDone = async () => {
     setShowPhotoBrowser(false);
     setPhotosDecided(true);
     setDirection(1);
@@ -456,11 +455,15 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       setReviewDone(true);
       return;
     }
-    // Kick off location detection for ALL photos immediately
-    // while Google Photos URLs are still fresh
-    selectedPhotos.forEach((photo, idx) => {
+
+    // Detect locations for all photos client-side
+    // Strategy: fetch each image as blob → exifr reads GPS → reverse geocode
+    const exifr = await import('exifr').catch(() => null);
+
+    selectedPhotos.forEach(async (photo, idx) => {
       const rawUrl = photo?.baseUrl || photo?.url || photo?.uri || '';
       if (!rawUrl) return;
+
       // Store date
       if (photo?.creationTime) {
         try {
@@ -469,28 +472,71 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
           setPhotoNotes(prev => ({ ...prev, [idx]: { ...prev[idx], date: dateLabel } }));
         } catch { /* ignore */ }
       }
-      // Detect location via server
+
       setDetectingPhotos(prev => new Set([...prev, idx]));
-      const detectUrl = rawUrl.includes('googleusercontent')
-        ? `${window.location.origin}/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=800&h=600`
-        : rawUrl;
-      fetch('/api/photos/detect-location', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl: detectUrl, occasion: collected.occasion }),
-      })
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (data?.location) {
-            setPhotoNotes(prev => ({ ...prev, [idx]: { ...prev[idx], location: data.location, locationDetected: true } }));
+
+      try {
+        // The photo is already displayed in the browser via the proxy
+        // Fetch through our proxy to get the actual bytes with auth
+        const proxyUrl = rawUrl.includes('googleusercontent')
+          ? `/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=1200&h=1200`
+          : rawUrl;
+
+        // Try EXIF GPS extraction client-side
+        if (exifr) {
+          try {
+            const imgRes = await fetch(proxyUrl);
+            if (imgRes.ok) {
+              const blob = await imgRes.blob();
+              const gps = await exifr.gps(blob);
+              if (gps?.latitude && gps?.longitude) {
+                // Reverse geocode via Nominatim (no auth needed, client-side)
+                const geoRes = await fetch(
+                  `https://nominatim.openstreetmap.org/reverse?lat=${gps.latitude}&lon=${gps.longitude}&format=json&zoom=14`,
+                  { headers: { 'User-Agent': 'Pearloom/1.0' } }
+                );
+                if (geoRes.ok) {
+                  const geoData = await geoRes.json();
+                  const { city, town, village, county, state, country } = geoData.address ?? {};
+                  const place = city || town || village || county || '';
+                  const label = place && state ? `${place}, ${state}` : (place && country ? `${place}, ${country}` : state || country || '');
+                  if (label) {
+                    setPhotoNotes(prev => ({ ...prev, [idx]: { ...prev[idx], location: label, locationDetected: true } }));
+                    setDetectingPhotos(prev => { const next = new Set(prev); next.delete(idx); return next; });
+                    return; // Done — got GPS location
+                  }
+                }
+              }
+            }
+          } catch { /* EXIF failed, try AI vision */ }
+        }
+
+        // Fallback: AI Vision — send image URL to our AI endpoint
+        try {
+          const aiRes = await fetch('/api/ai-chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: `Look at this photo and tell me WHERE it was taken. The photo URL is provided for context. Just return your best guess as a city/state or city/country. Be specific if you can recognize landmarks, signs, architecture, or scenery. Return ONLY JSON: { "action": "message", "data": { "extracted": { "venue": "City, State" } }, "reply": "Located" }`,
+              manifest: null,
+            }),
+          });
+          if (aiRes.ok) {
+            const aiData = await aiRes.json();
+            const venue = aiData?.data?.extracted?.venue;
+            if (venue && venue.length > 2) {
+              setPhotoNotes(prev => ({ ...prev, [idx]: { ...prev[idx], location: venue, locationDetected: true } }));
+            }
           }
-        })
-        .catch(() => {})
-        .finally(() => {
-          setDetectingPhotos(prev => { const next = new Set(prev); next.delete(idx); return next; });
-        });
+        } catch { /* AI also failed */ }
+      } catch { /* ignore */ }
+      finally {
+        setDetectingPhotos(prev => { const next = new Set(prev); next.delete(idx); return next; });
+      }
     });
   };
+
+  const detectingLocation = detectingPhotos.has(photoReviewIndex);
 
   const handleBuild = useCallback(async () => {
     const c = collectedRef.current;
