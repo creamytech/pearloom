@@ -20,6 +20,7 @@ interface ChatMessage {
   role: 'user' | 'pear';
   text: string;
   ts: number;
+  cards?: Array<{ label: string; value: string; icon?: string }>;
 }
 
 interface Collected {
@@ -60,8 +61,15 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
   useEffect(() => {
     setMessages([{
       role: 'pear',
-      text: "Hey! I'm Pear. Tell me about your celebration and I'll build you something beautiful. What's the occasion?",
+      text: "Hey! I'm Pear. Tell me about your celebration and I'll build you something beautiful.",
       ts: Date.now(),
+      cards: [
+        { label: 'Wedding', value: 'wedding', icon: '✦' },
+        { label: 'Birthday', value: 'birthday', icon: '✦' },
+        { label: 'Anniversary', value: 'anniversary', icon: '✦' },
+        { label: 'Engagement', value: 'engagement', icon: '✦' },
+        { label: 'Other', value: 'story', icon: '✦' },
+      ],
     }]);
   }, []);
 
@@ -198,7 +206,7 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
           <ArrowLeft size={14} />
           Back
         </button>
-        <span className="font-heading italic text-[1rem] text-[var(--pl-ink-soft)]">PearCrafts</span>
+        <span className="font-heading italic text-[1rem] text-[var(--pl-ink-soft)]">Create with Pear</span>
         <div className="w-[72px]" />
       </header>
 
@@ -279,6 +287,38 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
               }}
             >
               {msg.text}
+              {/* Inline option cards */}
+              {msg.cards && !collected.occasion && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
+                  {msg.cards.map((card) => (
+                    <button
+                      key={card.value}
+                      onClick={() => {
+                        setCollected(prev => ({ ...prev, occasion: card.value }));
+                        sendMessage(`It's a ${card.label.toLowerCase()}`);
+                      }}
+                      style={{
+                        padding: '10px 16px',
+                        borderRadius: '100px',
+                        border: '1px solid rgba(163,177,138,0.3)',
+                        background: 'rgba(255,255,255,0.6)',
+                        backdropFilter: 'blur(8px)',
+                        cursor: 'pointer',
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        color: 'var(--pl-ink, #2B1E14)',
+                        transition: 'all 0.15s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <span style={{ color: 'var(--pl-olive)', fontSize: '0.9rem' }}>{card.icon}</span>
+                      {card.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </motion.div>
         ))}
