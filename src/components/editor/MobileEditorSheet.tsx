@@ -110,8 +110,21 @@ export function MobileEditorSheet() {
     }
   }, [mobileActionChapterId, dispatch]);
 
-  // ── Section click — direct DOM (matches EditorCanvas) ──────
+  // ── Track scroll to distinguish tap from scroll ─────────────
+  const scrollingRef = useRef(false);
+  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handlePreviewScroll = useCallback(() => {
+    scrollingRef.current = true;
+    if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+    scrollTimerRef.current = setTimeout(() => { scrollingRef.current = false; }, 150);
+  }, []);
+
+  // ── Section click — only on intentional taps, not scroll ──────
   const handleSectionClick = useCallback((sectionId: string, chapterId?: string, blockId?: string) => {
+    // Ignore if user was just scrolling — prevents accidental opens
+    if (scrollingRef.current) return;
+
     if (chapterId) {
       setActiveChapterId(chapterId);
       setActiveSection('story');
@@ -133,8 +146,7 @@ export function MobileEditorSheet() {
     setActiveSection(sectionId);
     setActiveChapterId(null);
     setActiveTab('edit');
-    // Animate to half-sheet; if already there, the sheet will re-animate via
-    // the controlled snap. No flash-to-zero needed.
+    // Snap to half — not full — so it's less disruptive
     setSheetSnap(1);
 
     // Flash highlight on the tapped section in preview
@@ -661,7 +673,7 @@ export function MobileEditorSheet() {
       </div>
 
       {/* ── Preview Area (direct DOM, matches desktop) ── */}
-      <div ref={previewRef} className="pl-mobile-editor-preview" style={{
+      <div ref={previewRef} onScroll={handlePreviewScroll} className="pl-mobile-editor-preview" style={{
         flex: 1, position: 'relative', minHeight: 0,
         overflow: 'auto', WebkitOverflowScrolling: 'touch',
         background: 'var(--pl-cream)',
