@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -110,12 +111,15 @@ function OverflowMenu({ site, onShare, onDelete, isCopied, isDeleting }: {
   isDeleting: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
 
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node) &&
+          btnRef.current && !btnRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
     };
@@ -123,24 +127,36 @@ function OverflowMenu({ site, onShare, onDelete, isCopied, isDeleting }: {
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
+  useEffect(() => {
+    if (open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    }
+  }, [open]);
+
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative">
       <button
+        ref={btnRef}
         onClick={(e) => { e.stopPropagation(); setOpen((p) => !p); }}
         className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors"
         aria-label="More options"
       >
         <EllipsisVertical size={16} className="text-[var(--pl-muted)]" />
       </button>
-      <AnimatePresence>
-        {open && (
+      {open && typeof document !== 'undefined' && createPortal(
+        <div ref={menuRef}>
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: -4 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-10 z-50 min-w-[160px] rounded-xl overflow-hidden"
+            className="min-w-[160px] rounded-xl overflow-hidden"
             style={{
+              position: 'fixed',
+              top: menuPos.top,
+              right: menuPos.right,
+              zIndex: 9999,
               background: 'rgba(255,255,255,0.95)',
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
@@ -179,8 +195,9 @@ function OverflowMenu({ site, onShare, onDelete, isCopied, isDeleting }: {
               Delete site
             </button>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </div>,
+        document.body,
+      )}
     </div>
   );
 }
@@ -539,7 +556,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                     border: '1px solid rgba(255,255,255,0.6)',
                     boxShadow: '0 2px 12px rgba(43,30,20,0.04)',
                     position: 'relative',
-                    overflow: 'hidden',
+                    overflow: 'visible',
                   } as React.CSSProperties}
                 >
                   {/* Thumbnail */}
