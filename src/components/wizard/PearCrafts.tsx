@@ -40,6 +40,8 @@ interface Collected {
   date?: string;
   venue?: string;
   vibe?: string;
+  birthYear?: number;
+  turningAge?: number;
 }
 
 const BG_GRADIENT = 'linear-gradient(135deg, #E8D5C4 0%, #F2E6D9 25%, #D4B8A0 50%, #E8CDB8 75%, #F0DFD0 100%)';
@@ -48,6 +50,7 @@ function getWizardPrompt(collected: Collected): string {
   const occasion = collected.occasion || 'unknown';
   const isBirthday = occasion === 'birthday';
   const isWedding = occasion === 'wedding';
+  const currentYear = new Date().getFullYear();
   const isAnniversary = occasion === 'anniversary';
 
   return `You are Pear, helping a user create a ${occasion} site in Pearloom's setup wizard.
@@ -65,13 +68,16 @@ RULES:
 - Ask for the NEXT missing piece warmly
 - NEVER assume you're talking TO the person being celebrated. The user might be a parent, friend, partner, or planner setting up the site for someone else. Say "the birthday person" or use their name — never "nice to meet you [name]" or "your birthday"
 - When the user gives a name, acknowledge it neutrally: "Got it, the site will be for [name]!" not "Nice to meet you, [name]!"
+- The current year is ${currentYear}. If the user says a month/day without a year (like "November 12"), assume ${currentYear}. If the date has already passed this year, use ${currentYear + 1}. ALWAYS return dates in YYYY-MM-DD format.
 
 ${isBirthday ? `BIRTHDAY RULES:
 - Ask "What's the birthday person's name?" (ONE name, not two)
-- Ask "When's the birthday?" and "How old will they be turning?"
+- Ask "When's the birthday?" — use the date of the upcoming birthday party, NOT their birth year
+- Ask "What year were they born?" or "How old will they be turning?" to calculate age for the site
 - names should be [name, ""] (single person, second name empty)
 - Say "birthday" not "wedding" or "celebration"
-- Don't ask for a "partner" — it's one person's birthday` : ''}
+- Don't ask for a "partner" — it's one person's birthday
+- The event date should be the upcoming birthday in ${currentYear} or ${currentYear + 1}, NOT the birth year` : ''}
 ${isWedding ? `WEDDING RULES:
 - Ask for both names (bride and groom / partner and partner)
 - Ask "When's the big day?"
@@ -322,7 +328,12 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
             </div>
             {collected.date && (
               <span className="text-[0.72rem] font-semibold text-[var(--pl-olive-deep)]">
-                {collected.date}
+                {(() => {
+                  try {
+                    const d = new Date(collected.date + 'T12:00:00');
+                    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                  } catch { return collected.date; }
+                })()}
               </span>
             )}
           </motion.div>
