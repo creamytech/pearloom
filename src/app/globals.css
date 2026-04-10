@@ -1323,3 +1323,12 @@ button:hover > .pl-palette-swatches > div {
     animation: none !important;
   }
 }
+
+/* ── Pear mascot celebration bounce ── */
+@keyframes pl-pear-celebrate {
+  0%   { transform: translateY(0) scale(1); }
+  30%  { transform: translateY(-8px) scale(1.05); }
+  50%  { transform: translateY(-4px) scale(1.02); }
+  70%  { transform: translateY(-6px) scale(1.03); }
+  100% { transform: translateY(0) scale(1); }
+}
