@@ -1,268 +1,606 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Pressable,
-  Animated,
-  Dimensions,
-  SafeAreaView,
+  TextInput,
+  ScrollView,
+  KeyboardAvoidingView,
   Platform,
+  SafeAreaView,
+  ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import * as Haptics from 'expo-haptics';
+import * as ImagePicker from 'expo-image-picker';
 import { colors, fonts, spacing, radius } from '@/lib/theme';
-import type { WizardState } from '@/lib/types';
-
-import PhotosStep from '@/components/wizard/PhotosStep';
-import DetailsStep from '@/components/wizard/DetailsStep';
+import { apiFetch, uploadPhoto } from '@/lib/api';
+import type { WizardState, WizardPhoto } from '@/lib/types';
 import GeneratingStep from '@/components/wizard/GeneratingStep';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+// ── Types ──────────────────────────────────────────────────────
 
-const STEPS = [
-  { key: 'photos', label: 'Photos', icon: 'camera' as const },
-  { key: 'details', label: 'Details', icon: 'pencil' as const },
-  { key: 'generate', label: 'Generate', icon: 'magic' as const },
+interface ChatMessage {
+  role: 'user' | 'pear';
+  text: string;
+  ts: number;
+  cards?: Array<{ label: string; value: string; icon?: string }>;
+  cardType?: 'occasion' | 'names' | 'date' | 'vibe' | 'photos' | 'build';
+  imageUri?: string;
+}
+
+interface Collected {
+  occasion?: string;
+  names?: [string, string];
+  date?: string;
+  venue?: string;
+  vibe?: string;
+}
+
+// ── Occasion labels ────────────────────────────────────────────
+
+const OCCASIONS = [
+  { label: 'Wedding', value: 'wedding', icon: 'heart' as const },
+  { label: 'Birthday', value: 'birthday', icon: 'birthday-cake' as const },
+  { label: 'Anniversary', value: 'anniversary', icon: 'star' as const },
+  { label: 'Engagement', value: 'engagement', icon: 'diamond' as const },
+  { label: 'Other', value: 'story', icon: 'book' as const },
 ];
 
-export default function WizardContainer() {
+const VIBE_OPTIONS = [
+  { label: 'Romantic', value: 'romantic elegant' },
+  { label: 'Modern', value: 'modern minimal' },
+  { label: 'Rustic', value: 'rustic natural' },
+  { label: 'Bold', value: 'bold colorful' },
+  { label: 'Whimsical', value: 'whimsical fun' },
+  { label: 'Celestial', value: 'celestial dreamy' },
+];
+
+function needsTwoNames(occasion?: string): boolean {
+  return occasion === 'wedding' || occasion === 'engagement' || occasion === 'anniversary';
+}
+
+function hasAllRequired(c: Collected, photosDecided: boolean): boolean {
+  const hasName = c.names && c.names[0];
+  const namesOk = needsTwoNames(c.occasion) ? (hasName && c.names![1]) : hasName;
+  return !!(c.occasion && namesOk && c.date && c.vibe && photosDecided);
+}
+
+// ── Component ──────────────────────────────────────────────────
+
+export default function PearWizard() {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(0);
-  const slideAnim = useRef(new Animated.Value(0)).current;
-  const progressAnim = useRef(new Animated.Value(0)).current;
+  const scrollRef = useRef<ScrollView>(null);
+  const inputRef = useRef<TextInput>(null);
 
-  const [wizardState, setWizardState] = useState<WizardState>({
-    photos: [],
-    name1: '',
-    name2: '',
-    occasion: '',
-    vibeText: '',
-    selectedVibes: [],
-    eventDate: null,
-    venueName: '',
-  });
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [collected, setCollected] = useState<Collected>({});
+  const [photos, setPhotos] = useState<WizardPhoto[]>([]);
+  const [photosDecided, setPhotosDecided] = useState(false);
+  const [waitingForDate, setWaitingForDate] = useState(false);
+  const [phase, setPhase] = useState<'chat' | 'generating'>('chat');
 
-  const updateState = useCallback(
-    (updates: Partial<WizardState>) => {
-      setWizardState((prev) => ({ ...prev, ...updates }));
-    },
-    [],
-  );
+  // Refs for async callbacks
+  const collectedRef = useRef(collected);
+  collectedRef.current = collected;
 
-  const animateToStep = useCallback(
-    (toStep: number) => {
-      const direction = toStep > currentStep ? -1 : 1;
+  // Auto-scroll
+  useEffect(() => {
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+  }, [messages, loading]);
 
-      // Slide out current
-      Animated.timing(slideAnim, {
-        toValue: direction * SCREEN_WIDTH,
-        duration: 200,
-        useNativeDriver: true,
-      }).start(() => {
-        setCurrentStep(toStep);
-        // Position new step on the opposite side
-        slideAnim.setValue(-direction * SCREEN_WIDTH);
-        // Slide new step in
-        Animated.spring(slideAnim, {
-          toValue: 0,
-          friction: 12,
-          tension: 65,
-          useNativeDriver: true,
-        }).start();
-      });
+  // Greeting
+  useEffect(() => {
+    addPearMessage(
+      "Hey! I'm Pear. Tell me about your celebration and I'll build you something beautiful.",
+      'occasion',
+      OCCASIONS.map(o => ({ label: o.label, value: o.value, icon: o.icon })),
+    );
+  }, []);
 
-      // Animate progress bar
-      Animated.timing(progressAnim, {
-        toValue: toStep / (STEPS.length - 1),
-        duration: 400,
-        useNativeDriver: false,
-      }).start();
-    },
-    [currentStep, slideAnim, progressAnim],
-  );
+  // ── Helpers ────────────────────────────────────────────────
 
-  function handleNext() {
-    if (currentStep < STEPS.length - 1) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      animateToStep(currentStep + 1);
-    }
+  function addPearMessage(
+    text: string,
+    cardType?: ChatMessage['cardType'],
+    cards?: ChatMessage['cards'],
+    imageUri?: string,
+  ) {
+    setMessages(prev => [...prev, {
+      role: 'pear', text, ts: Date.now(), cardType, cards, imageUri,
+    }]);
   }
 
-  function handleBack() {
-    if (currentStep > 0) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      animateToStep(currentStep - 1);
-    } else {
-      router.back();
-    }
+  function addUserMessage(text: string) {
+    setMessages(prev => [...prev, { role: 'user', text, ts: Date.now() }]);
   }
 
-  function handleGenerate() {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    animateToStep(2);
+  // ── Card handlers ──────────────────────────────────────────
+
+  function handleOccasionPick(value: string) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const label = OCCASIONS.find(o => o.value === value)?.label ?? value;
+    addUserMessage(label);
+    setCollected(prev => ({ ...prev, occasion: value }));
+
+    setTimeout(() => {
+      if (needsTwoNames(value)) {
+        addPearMessage(
+          `A ${label.toLowerCase()} -- how exciting! What are both names?`,
+          'names',
+        );
+      } else {
+        addPearMessage(
+          `A ${label.toLowerCase()} -- love it! Who is this for?`,
+          'names',
+        );
+      }
+    }, 400);
   }
 
-  const canContinue = (() => {
-    if (currentStep === 0) return wizardState.photos.length > 0;
-    if (currentStep === 1) {
-      return (
-        wizardState.name1.trim().length > 0 &&
-        wizardState.name2.trim().length > 0 &&
-        wizardState.occasion.length > 0
+  function handleNameSubmit() {
+    const text = input.trim();
+    if (!text) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    addUserMessage(text);
+    setInput('');
+
+    // Parse names: "Shauna & Marcus", "Shauna and Marcus", or just "Shauna"
+    const parts = text.split(/\s*(?:&|and)\s*/i).map(s => s.trim()).filter(Boolean);
+    const name1 = parts[0] || '';
+    const name2 = parts[1] || '';
+    const names: [string, string] = [name1, name2];
+
+    setCollected(prev => ({ ...prev, names }));
+
+    setTimeout(() => {
+      if (needsTwoNames(collectedRef.current.occasion) && !name2) {
+        addPearMessage("What's their partner's name?", 'names');
+      } else {
+        const nameDisplay = name2 ? `${name1} & ${name2}` : name1;
+        addPearMessage(
+          `Got it -- the site will be for ${nameDisplay}! When's the date? (e.g. June 15, 2026)`,
+          'date',
+        );
+        setWaitingForDate(true);
+      }
+    }, 400);
+  }
+
+  function handleSecondName() {
+    const text = input.trim();
+    if (!text) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    addUserMessage(text);
+    setInput('');
+
+    setCollected(prev => ({
+      ...prev,
+      names: [prev.names?.[0] || '', text],
+    }));
+
+    setTimeout(() => {
+      const nameDisplay = `${collectedRef.current.names?.[0]} & ${text}`;
+      addPearMessage(
+        `${nameDisplay} -- beautiful! When's the date? (e.g. June 15, 2026)`,
+        'date',
       );
+      setWaitingForDate(true);
+    }, 400);
+  }
+
+  function handleDateInput() {
+    const text = input.trim();
+    if (!text) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    addUserMessage(text);
+    setInput('');
+    setWaitingForDate(false);
+
+    // Try to parse the date from natural language
+    const parsed = new Date(text);
+    const currentYear = new Date().getFullYear();
+    let dateStr: string;
+
+    if (!isNaN(parsed.getTime())) {
+      // Valid date parsed — ensure it's in the future
+      if (parsed.getTime() < Date.now()) {
+        parsed.setFullYear(currentYear);
+        if (parsed.getTime() < Date.now()) parsed.setFullYear(currentYear + 1);
+      }
+      dateStr = parsed.toISOString().slice(0, 10);
+    } else {
+      // Couldn't parse — store as-is and let the AI figure it out later
+      dateStr = text;
     }
-    return false;
+
+    setCollected(prev => ({ ...prev, date: dateStr }));
+
+    setTimeout(() => {
+      addPearMessage("Where's the venue? (Or type 'skip' if you haven't decided yet)");
+    }, 400);
+  }
+
+  function handleVenueOrFreeText() {
+    const text = input.trim();
+    if (!text) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    addUserMessage(text);
+    setInput('');
+
+    const c = collectedRef.current;
+
+    // If we don't have a venue yet
+    if (!c.venue && c.date) {
+      const isSkip = text.toLowerCase() === 'skip' || text.toLowerCase() === 'tbd';
+      setCollected(prev => ({ ...prev, venue: isSkip ? 'TBD' : text }));
+
+      setTimeout(() => {
+        addPearMessage(
+          "What's the vibe you're going for? Pick one or describe your own:",
+          'vibe',
+          VIBE_OPTIONS.map(v => ({ label: v.label, value: v.value })),
+        );
+      }, 400);
+      return;
+    }
+
+    // If we don't have a vibe yet, treat this as custom vibe text
+    if (!c.vibe) {
+      setCollected(prev => ({ ...prev, vibe: text }));
+      setTimeout(() => askAboutPhotos(), 400);
+      return;
+    }
+
+    // General free-text during chat
+    sendToAI(text);
+  }
+
+  function handleVibePick(value: string) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const label = VIBE_OPTIONS.find(v => v.value === value)?.label ?? value;
+    addUserMessage(label);
+    setCollected(prev => ({ ...prev, vibe: value }));
+
+    setTimeout(() => askAboutPhotos(), 400);
+  }
+
+  function askAboutPhotos() {
+    addPearMessage(
+      'Want to add photos? They make the site so much more personal.',
+      'photos',
+      [
+        { label: 'Add Photos', value: 'add-photos', icon: 'camera' },
+        { label: 'Skip Photos', value: 'skip-photos', icon: 'arrow-right' },
+      ],
+    );
+  }
+
+  async function handlePickPhotos() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      addPearMessage('I need photo library access to add your photos. Please grant permission in Settings.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      selectionLimit: 40,
+      quality: 0.85,
+    });
+
+    if (result.canceled || !result.assets?.length) return;
+
+    const newPhotos: WizardPhoto[] = result.assets.map((a, i) => ({
+      uri: a.uri,
+      id: `photo_${Date.now()}_${i}`,
+    }));
+
+    setPhotos(newPhotos);
+    setPhotosDecided(true);
+    addUserMessage(`Added ${newPhotos.length} photo${newPhotos.length > 1 ? 's' : ''}`);
+
+    setTimeout(() => {
+      addPearMessage(
+        `${newPhotos.length} photos added -- I'll weave them into your story. Ready to build?`,
+        'build',
+        [{ label: 'Build My Site', value: 'build', icon: 'magic' }],
+      );
+    }, 400);
+  }
+
+  function handleSkipPhotos() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    addUserMessage('Skip photos for now');
+    setPhotosDecided(true);
+
+    setTimeout(() => {
+      addPearMessage(
+        'No problem -- you can always add photos later. Ready to build?',
+        'build',
+        [{ label: 'Build My Site', value: 'build', icon: 'magic' }],
+      );
+    }, 400);
+  }
+
+  function handleBuild() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    addUserMessage('Build my site!');
+
+    setTimeout(() => {
+      setPhase('generating');
+    }, 600);
+  }
+
+  // ── AI chat fallback for free-form conversation ─────────
+
+  async function sendToAI(text: string) {
+    setLoading(true);
+    try {
+      const res = await apiFetch<{ reply: string; data?: { extracted?: Partial<Collected> } }>(
+        '/api/ai-chat',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            message: text,
+            manifest: null,
+          }),
+        },
+      );
+
+      const reply = res.reply || "I didn't quite catch that. Could you tell me more?";
+      addPearMessage(reply);
+    } catch {
+      addPearMessage('Sorry, I had trouble understanding that. Could you try again?');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ── Determine what the current input does ──────────────
+
+  function handleSend() {
+    const c = collectedRef.current;
+
+    // Waiting for names
+    if (c.occasion && !c.names?.[0]) {
+      handleNameSubmit();
+      return;
+    }
+
+    // Waiting for second name
+    if (c.occasion && c.names?.[0] && !c.names?.[1] && needsTwoNames(c.occasion)) {
+      handleSecondName();
+      return;
+    }
+
+    // Waiting for date
+    if (waitingForDate) {
+      handleDateInput();
+      return;
+    }
+
+    // Anything else — venue, vibe, or free text
+    handleVenueOrFreeText();
+  }
+
+  // ── Card click router ──────────────────────────────────
+
+  function handleCardClick(cardType: string | undefined, value: string) {
+    switch (cardType) {
+      case 'occasion': handleOccasionPick(value); break;
+      case 'vibe': handleVibePick(value); break;
+      case 'photos':
+        if (value === 'add-photos') handlePickPhotos();
+        else handleSkipPhotos();
+        break;
+      case 'build': handleBuild(); break;
+    }
+  }
+
+  // ── Generating phase ───────────────────────────────────
+
+  if (phase === 'generating') {
+    const c = collected;
+    const wizardState: WizardState = {
+      photos,
+      name1: c.names?.[0] || '',
+      name2: c.names?.[1] || '',
+      occasion: c.occasion || '',
+      vibeText: c.vibe || '',
+      selectedVibes: [],
+      eventDate: c.date ? new Date(c.date + 'T12:00:00') : null,
+      venueName: c.venue || '',
+    };
+
+    return (
+      <GeneratingStep
+        state={wizardState}
+        onRetry={() => setPhase('chat')}
+      />
+    );
+  }
+
+  // ── Chat UI ────────────────────────────────────────────
+
+  const placeholder = (() => {
+    const c = collected;
+    if (c.occasion && !c.names?.[0]) {
+      return needsTwoNames(c.occasion) ? 'Both names (e.g. Alex & Jordan)' : 'Their name';
+    }
+    if (c.names?.[0] && !c.names?.[1] && needsTwoNames(c.occasion)) {
+      return "Partner's name";
+    }
+    if (waitingForDate) return 'e.g. June 15, 2026';
+    if (c.date && !c.venue) return 'Venue name or "skip"';
+    if (c.venue && !c.vibe) return 'Describe your style...';
+    return 'Talk to Pear...';
   })();
 
-  const isGenerating = currentStep === 2;
-
-  const progressWidth = progressAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0%', '100%'],
-  });
+  // Only show text input when appropriate (not during card-only steps)
+  const showInput = !!collected.occasion && (
+    // Waiting for name
+    (!collected.names?.[0]) ||
+    // Waiting for second name
+    (collected.names?.[0] && !collected.names?.[1] && needsTwoNames(collected.occasion)) ||
+    // Waiting for date
+    waitingForDate ||
+    // Waiting for venue
+    (collected.date && !collected.venue) ||
+    // Waiting for custom vibe
+    (collected.venue && !collected.vibe) ||
+    // General chat after everything collected
+    (collected.vibe)
+  );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* Header: Step indicator */}
-      {!isGenerating && (
-        <View style={styles.header}>
-          {/* Back button */}
-          <Pressable
-            onPress={handleBack}
-            style={styles.backButton}
-            hitSlop={12}
-          >
-            <FontAwesome name="chevron-left" size={16} color={colors.ink} />
-          </Pressable>
+    <SafeAreaView style={s.safe}>
+      {/* Header */}
+      <View style={s.header}>
+        <Pressable onPress={() => router.back()} style={s.backBtn} hitSlop={12}>
+          <FontAwesome name="chevron-left" size={16} color={colors.ink} />
+        </Pressable>
+        <Text style={s.headerTitle}>Create with Pear</Text>
+        <View style={s.backBtn} />
+      </View>
 
-          {/* Step dots */}
-          <View style={styles.stepsRow}>
-            {STEPS.map((step, i) => {
-              const isActive = i === currentStep;
-              const isCompleted = i < currentStep;
-              return (
-                <View key={step.key} style={styles.stepItem}>
-                  <View
-                    style={[
-                      styles.stepDot,
-                      isActive && styles.stepDotActive,
-                      isCompleted && styles.stepDotCompleted,
-                    ]}
-                  >
-                    {isCompleted ? (
-                      <FontAwesome name="check" size={10} color={colors.white} />
-                    ) : (
-                      <Text
-                        style={[
-                          styles.stepNumber,
-                          (isActive || isCompleted) && styles.stepNumberActive,
-                        ]}
-                      >
-                        {i + 1}
-                      </Text>
-                    )}
-                  </View>
-                  <Text
-                    style={[
-                      styles.stepLabel,
-                      isActive && styles.stepLabelActive,
-                    ]}
-                  >
-                    {step.label}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
+      {/* Progress dots */}
+      <View style={s.progressRow}>
+        {['Occasion', 'Names', 'Date', 'Style', 'Photos'].map((label, i) => {
+          const steps = [
+            !!collected.occasion,
+            !!collected.names?.[0],
+            !!collected.date,
+            !!collected.vibe,
+            photosDecided,
+          ];
+          const done = steps[i];
+          return (
+            <View key={label} style={s.progressItem}>
+              <View style={[s.progressDot, done && s.progressDotDone]} />
+              <Text style={[s.progressLabel, done && s.progressLabelDone]}>{label}</Text>
+            </View>
+          );
+        })}
+      </View>
 
-          {/* Spacer to balance back button */}
-          <View style={styles.backButton} />
-        </View>
-      )}
-
-      {/* Progress bar */}
-      {!isGenerating && (
-        <View style={styles.progressTrack}>
-          <Animated.View
-            style={[styles.progressFill, { width: progressWidth }]}
-          />
-        </View>
-      )}
-
-      {/* Step content */}
-      <Animated.View
-        style={[
-          styles.content,
-          { transform: [{ translateX: slideAnim }] },
-        ]}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
-        {currentStep === 0 && (
-          <PhotosStep
-            photos={wizardState.photos}
-            onUpdatePhotos={(photos) => updateState({ photos })}
-          />
-        )}
-        {currentStep === 1 && (
-          <DetailsStep
-            state={wizardState}
-            onUpdate={updateState}
-            onGenerate={handleGenerate}
-          />
-        )}
-        {currentStep === 2 && (
-          <GeneratingStep
-            state={wizardState}
-            onRetry={() => animateToStep(1)}
-          />
-        )}
-      </Animated.View>
-
-      {/* Bottom navigation buttons (not shown during generation) */}
-      {!isGenerating && (
-        <View style={styles.bottomBar}>
-          {currentStep === 0 && (
-            <Pressable
-              onPress={() => router.back()}
-              style={styles.skipLink}
+        {/* Messages */}
+        <ScrollView
+          ref={scrollRef}
+          style={s.chatScroll}
+          contentContainerStyle={s.chatContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          {messages.map((msg, i) => (
+            <View
+              key={msg.ts + '-' + i}
+              style={[s.bubble, msg.role === 'user' ? s.bubbleUser : s.bubblePear]}
             >
-              <Text style={styles.skipText}>Start from Template instead</Text>
-            </Pressable>
+              {msg.role === 'pear' && (
+                <View style={s.pearAvatar}>
+                  <FontAwesome name="leaf" size={14} color={colors.olive} />
+                </View>
+              )}
+              <View style={[s.bubbleCard, msg.role === 'user' ? s.bubbleCardUser : s.bubbleCardPear]}>
+                {msg.imageUri && (
+                  <Image source={{ uri: msg.imageUri }} style={s.chatImage} resizeMode="cover" />
+                )}
+                <Text style={[s.bubbleText, msg.role === 'user' && s.bubbleTextUser]}>
+                  {msg.text}
+                </Text>
+
+                {/* Inline cards */}
+                {msg.cards && msg.cards.length > 0 && (
+                  <View style={s.cardsRow}>
+                    {msg.cards.map((card) => (
+                      <Pressable
+                        key={card.value}
+                        style={s.card}
+                        onPress={() => handleCardClick(msg.cardType, card.value)}
+                      >
+                        {card.icon && typeof card.icon === 'string' && (
+                          <FontAwesome
+                            name={card.icon as any}
+                            size={14}
+                            color={colors.olive}
+                            style={{ marginRight: 6 }}
+                          />
+                        )}
+                        <Text style={s.cardLabel}>{card.label}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
+              </View>
+            </View>
+          ))}
+
+          {/* Loading indicator */}
+          {loading && (
+            <View style={[s.bubble, s.bubblePear]}>
+              <View style={s.pearAvatar}>
+                <FontAwesome name="leaf" size={14} color={colors.olive} />
+              </View>
+              <View style={[s.bubbleCard, s.bubbleCardPear]}>
+                <ActivityIndicator size="small" color={colors.olive} />
+              </View>
+            </View>
           )}
+        </ScrollView>
 
-          {currentStep < 2 && (
+        {/* Input bar */}
+        {showInput && (
+          <View style={s.inputBar}>
+            <TextInput
+              ref={inputRef}
+              style={s.input}
+              value={input}
+              onChangeText={setInput}
+              placeholder={placeholder}
+              placeholderTextColor={colors.muted}
+              returnKeyType="send"
+              onSubmitEditing={handleSend}
+              blurOnSubmit={false}
+            />
             <Pressable
-              onPress={currentStep === 1 ? handleGenerate : handleNext}
-              disabled={!canContinue}
-              style={[
-                styles.nextButton,
-                !canContinue && styles.nextButtonDisabled,
-              ]}
+              style={[s.sendBtn, !input.trim() && s.sendBtnDisabled]}
+              onPress={handleSend}
+              disabled={!input.trim() || loading}
             >
-              <Text
-                style={[
-                  styles.nextButtonText,
-                  !canContinue && styles.nextButtonTextDisabled,
-                ]}
-              >
-                {currentStep === 1 ? 'Generate My Site' : 'Continue'}
-              </Text>
               <FontAwesome
-                name={currentStep === 1 ? 'magic' : 'arrow-right'}
-                size={14}
-                color={canContinue ? colors.white : colors.muted}
+                name="send"
+                size={16}
+                color={input.trim() ? colors.white : colors.muted}
               />
             </Pressable>
-          )}
-        </View>
-      )}
+          </View>
+        )}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
+// ── Styles ──────────────────────────────────────────────────
+
+const s = StyleSheet.create({
+  safe: {
     flex: 1,
     backgroundColor: colors.cream,
   },
@@ -271,121 +609,188 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingTop: Platform.OS === 'android' ? spacing.xl : spacing.md,
-    paddingBottom: spacing.md,
+    paddingTop: Platform.OS === 'android' ? spacing.xl : spacing.sm,
+    paddingBottom: spacing.sm,
   },
-  backButton: {
+  backBtn: {
     width: 40,
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  stepsRow: {
+  headerTitle: {
+    fontFamily: fonts.heading,
+    fontSize: 20,
+    color: colors.ink,
+    letterSpacing: -0.3,
+  },
+
+  // Progress
+  progressRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xl,
-  },
-  stepItem: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  stepDot: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.creamDeep,
     justifyContent: 'center',
+    gap: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.creamDeep,
+  },
+  progressItem: {
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'transparent',
+    gap: 3,
   },
-  stepDotActive: {
-    borderColor: colors.olive,
-    backgroundColor: colors.white,
-  },
-  stepDotCompleted: {
-    backgroundColor: colors.olive,
-    borderColor: colors.olive,
-  },
-  stepNumber: {
-    fontFamily: fonts.bodySemibold,
-    fontSize: 12,
-    color: colors.muted,
-  },
-  stepNumberActive: {
-    color: colors.olive,
-  },
-  stepLabel: {
-    fontFamily: fonts.body,
-    fontSize: 11,
-    color: colors.muted,
-  },
-  stepLabelActive: {
-    fontFamily: fonts.bodySemibold,
-    color: colors.oliveDeep,
-  },
-  progressTrack: {
-    height: 3,
+  progressDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: colors.creamDeep,
-    marginHorizontal: spacing.xl,
-    borderRadius: 2,
-    overflow: 'hidden',
   },
-  progressFill: {
-    height: '100%',
+  progressDotDone: {
     backgroundColor: colors.olive,
-    borderRadius: 2,
   },
-  content: {
+  progressLabel: {
+    fontFamily: fonts.body,
+    fontSize: 10,
+    color: colors.muted,
+  },
+  progressLabelDone: {
+    color: colors.oliveDeep,
+    fontFamily: fonts.bodySemibold,
+  },
+
+  // Chat
+  chatScroll: {
     flex: 1,
   },
-  bottomBar: {
-    paddingHorizontal: spacing.xl,
-    paddingBottom: Platform.OS === 'android' ? spacing.xl : spacing.lg,
-    paddingTop: spacing.md,
+  chatContent: {
+    padding: spacing.lg,
+    paddingBottom: spacing.xxl,
     gap: spacing.md,
+  },
+  bubble: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+  },
+  bubblePear: {
+    justifyContent: 'flex-start',
+  },
+  bubbleUser: {
+    justifyContent: 'flex-end',
+  },
+  pearAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.olive + '15',
+    justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 2,
   },
-  skipLink: {
-    paddingVertical: spacing.sm,
+  bubbleCard: {
+    maxWidth: '78%',
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    ...Platform.select({
+      ios: {
+        shadowColor: 'rgba(43,30,20,0.08)',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 1,
+        shadowRadius: 8,
+      },
+      android: { elevation: 2 },
+    }),
   },
-  skipText: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 14,
-    color: colors.muted,
-    textDecorationLine: 'underline',
+  bubbleCardPear: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 4,
   },
-  nextButton: {
+  bubbleCardUser: {
+    backgroundColor: colors.olive,
+    borderTopRightRadius: 4,
+  },
+  bubbleText: {
+    fontFamily: fonts.body,
+    fontSize: 15,
+    lineHeight: 22,
+    color: colors.ink,
+  },
+  bubbleTextUser: {
+    color: colors.white,
+  },
+  chatImage: {
+    width: '100%',
+    height: 180,
+    borderRadius: radius.md,
+    marginBottom: spacing.sm,
+  },
+
+  // Cards
+  cardsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  card: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: radius.full,
+    backgroundColor: colors.olive + '10',
+    borderWidth: 1,
+    borderColor: colors.olive + '30',
+  },
+  cardLabel: {
+    fontFamily: fonts.bodySemibold,
+    fontSize: 14,
+    color: colors.oliveDeep,
+  },
+
+  // Input bar
+  inputBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.creamDeep,
+    backgroundColor: colors.cream,
+  },
+  input: {
+    flex: 1,
+    height: 48,
+    backgroundColor: colors.white,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.lg,
+    fontFamily: fonts.body,
+    fontSize: 15,
+    color: colors.ink,
+    borderWidth: 1,
+    borderColor: colors.creamDeep,
+  },
+  sendBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: colors.olive,
-    width: '100%',
-    paddingVertical: 18,
-    borderRadius: radius.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
     ...Platform.select({
       ios: {
         shadowColor: colors.olive,
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: { width: 0, height: 3 },
         shadowOpacity: 0.25,
-        shadowRadius: 12,
+        shadowRadius: 8,
       },
-      android: { elevation: 6 },
+      android: { elevation: 4 },
     }),
   },
-  nextButtonDisabled: {
+  sendBtnDisabled: {
     backgroundColor: colors.creamDeep,
     shadowOpacity: 0,
     elevation: 0,
-  },
-  nextButtonText: {
-    fontFamily: fonts.bodySemibold,
-    color: colors.white,
-    fontSize: 17,
-    letterSpacing: 0.2,
-  },
-  nextButtonTextDisabled: {
-    color: colors.muted,
   },
 });
