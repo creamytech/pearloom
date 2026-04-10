@@ -10,6 +10,8 @@ import { PhotoBrowser } from '@/components/dashboard/photo-browser';
 import { LivingCanvas } from '@/components/wizard/LivingCanvas';
 import { OccasionCard, SitePreviewCard } from '@/components/wizard/WizardCards';
 import { StyleDiscoveryCard, ColorPaletteCard } from '@/components/wizard/WizardCardsB';
+import { SiteRenderer } from '@/components/editor/SiteRenderer';
+import type { StoryManifest } from '@/types';
 
 interface PearSpotlightProps {
   onComplete: (manifest: any, names: [string, string], subdomain: string) => void;
@@ -265,6 +267,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const [selectedPhotos, setSelectedPhotos] = useState<any[]>([]);
   const [photosDecided, setPhotosDecided] = useState(false);
   const [direction, setDirection] = useState(1); // 1 = forward, -1 = back
+  const [partialManifest, setPartialManifest] = useState<StoryManifest | null>(null);
   const [vibeDescription, setVibeDescription] = useState(''); // raw user input before palette generation
   const [generatedPalettes, setGeneratedPalettes] = useState<{name: string; colors: string[]; description: string}[]>([]);
   const [photoReviewIndex, setPhotoReviewIndex] = useState(0);
@@ -504,9 +507,14 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                   : 4;
                 setGenStep(stepIndex);
                 setGenProgress(Math.round(((pass + 1) / 8) * 100));
+                // Capture partial manifest if server sends it
+                if (event.manifest) {
+                  setPartialManifest(event.manifest);
+                }
               }
               if (event.type === 'complete') {
                 manifest = event.manifest;
+                if (manifest) setPartialManifest(manifest);
               }
               if (event.type === 'error') {
                 throw new Error(event.message || 'Generation failed');
@@ -591,75 +599,110 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
         ? `${collected.names[0]} & ${collected.names[1]}`
         : collected.names[0]
       : '';
+    const displayProgress = genProgress > 0 ? genProgress : ((genStep + 1) / GEN_PHASES.length) * 100;
 
     return (
-      <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', flexDirection: 'column' }}>
         <LivingCanvas occasion={collected.occasion} names={collected.names} date={collected.date} venue={collected.venue} vibe={collected.vibe} phase="generating" />
 
-        <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
-          <PearMascot size={96} mood="celebrating" />
-
-          {displayNames && (
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              style={{
-                fontFamily: 'var(--pl-font-heading)',
-                fontSize: '1.5rem',
-                fontStyle: 'italic',
-                color: 'var(--pl-ink-soft)',
-                textAlign: 'center',
-              }}
-            >
-              {displayNames}
-            </motion.p>
-          )}
-
-          {/* Animated progress bar */}
-          {(() => {
-            const displayProgress = genProgress > 0 ? genProgress : ((genStep + 1) / GEN_PHASES.length) * 100;
-            return (
-          <div style={{ width: 280, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: '100%', height: 4, borderRadius: 2, background: 'rgba(163,177,138,0.15)', overflow: 'hidden' }}>
+        {/* Top bar — progress + status */}
+        <div style={{
+          position: 'relative', zIndex: 10, flexShrink: 0,
+          padding: '16px 24px', display: 'flex', alignItems: 'center', gap: 16,
+        }}>
+          <PearMascot size={40} mood={genStep >= 4 ? 'celebrating' : 'thinking'} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={genStep}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--pl-ink-soft)' }}
+                >
+                  {GEN_PHASES[genStep]}...
+                </motion.span>
+              </AnimatePresence>
+            </div>
+            <div style={{ width: '100%', height: 3, borderRadius: 2, background: 'rgba(163,177,138,0.15)', overflow: 'hidden' }}>
               <motion.div
                 animate={{ width: `${displayProgress}%` }}
                 transition={{ duration: 0.8, ease: 'easeOut' }}
                 style={{ height: '100%', borderRadius: 2, background: 'var(--pl-olive, #A3B18A)' }}
               />
             </div>
-
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={genStep}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.3 }}
-                style={{ fontSize: '0.85rem', color: 'var(--pl-muted, #8C7E72)', textAlign: 'center' }}
-              >
-                {GEN_PHASES[genStep]}...
-              </motion.p>
-            </AnimatePresence>
-
-            {/* Step dots */}
-            <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
-              {GEN_PHASES.map((_, i) => (
-                <div
-                  key={i}
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: '50%',
-                    background: i <= genStep ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.25)',
-                    transition: 'background 0.4s ease',
-                  }}
-                />
-              ))}
-            </div>
           </div>
-            );
-          })()}
+          <div style={{ display: 'flex', gap: 4 }}>
+            {GEN_PHASES.map((_, i) => (
+              <div key={i} style={{
+                width: 5, height: 5, borderRadius: '50%',
+                background: i <= genStep ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.2)',
+                transition: 'background 0.3s',
+              }} />
+            ))}
+          </div>
+        </div>
+
+        {/* Live site preview — grows as manifest builds */}
+        <div style={{
+          flex: 1, position: 'relative', zIndex: 10,
+          display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
+          overflow: 'hidden', padding: '0 16px 16px',
+        }}>
+          {partialManifest ? (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              style={{
+                width: '100%', maxWidth: 480,
+                borderRadius: 20, overflow: 'hidden',
+                boxShadow: '0 12px 48px rgba(43,30,20,0.15)',
+                border: '1px solid rgba(255,255,255,0.4)',
+                maxHeight: '75vh',
+                overflowY: 'auto',
+                background: '#FAF7F2',
+              }}
+            >
+              <div style={{ transform: 'scale(1)', transformOrigin: 'top center' }}>
+                <SiteRenderer
+                  manifest={partialManifest}
+                  names={collected.names || ['', '']}
+                  editMode={false}
+                />
+              </div>
+            </motion.div>
+          ) : (
+            /* Skeleton while waiting for first manifest data */
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              style={{
+                width: '100%', maxWidth: 480,
+                borderRadius: 20, overflow: 'hidden',
+                boxShadow: '0 12px 48px rgba(43,30,20,0.1)',
+                border: '1px solid rgba(255,255,255,0.3)',
+                background: 'rgba(255,255,255,0.3)',
+                backdropFilter: 'blur(20px)',
+                padding: '60px 32px',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24,
+                minHeight: 400,
+              } as React.CSSProperties}
+            >
+              <PearMascot size={80} mood="thinking" />
+              <p style={{
+                fontFamily: 'var(--pl-font-heading)',
+                fontStyle: 'italic', fontSize: '1.4rem',
+                color: 'var(--pl-ink-soft)', textAlign: 'center',
+              }}>
+                {displayNames}
+              </p>
+              <p style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', textAlign: 'center' }}>
+                Building your site...
+              </p>
+            </motion.div>
+          )}
         </div>
       </div>
     );
