@@ -12,6 +12,8 @@ import { Send, Loader2, Sparkles, ArrowLeft } from 'lucide-react';
 import { PearMascot } from '@/components/icons/PearMascot';
 import { PhotoBrowser } from '@/components/dashboard/photo-browser';
 import { LivingCanvas } from '@/components/wizard/LivingCanvas';
+import { OccasionCard, NamesPreviewCard, CountdownCard, VenueMapCard, SitePreviewCard } from '@/components/wizard/WizardCards';
+import { StyleDiscoveryCard, ColorPaletteCard, PhotoTimelineCard, ProgressSummaryCard, QuickChips } from '@/components/wizard/WizardCardsB';
 
 interface PearCraftsProps {
   onComplete: (manifest: any, names: [string, string], subdomain: string) => void;
@@ -23,7 +25,7 @@ interface ChatMessage {
   text: string;
   ts: number;
   cards?: Array<{ label: string; value: string; icon?: string }>;
-  cardType?: 'occasion' | 'date' | 'venue' | 'style' | 'theme-ask' | 'theme-options' | 'photos-or-build' | 'photo-review' | 'info-card';
+  cardType?: 'occasion' | 'date' | 'venue' | 'style' | 'theme-ask' | 'theme-options' | 'photos-or-build' | 'photo-review' | 'info-card' | 'names-preview' | 'countdown' | 'venue-map' | 'style-discovery' | 'color-palette' | 'site-preview';
   photoUrl?: string;
   photoIndex?: number;
 }
@@ -240,6 +242,41 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
 
       const pearMsg: ChatMessage = { role: 'pear', text: reply, ts: Date.now() };
 
+      // Build follow-up rich cards for newly collected data
+      const followUpCards: ChatMessage[] = [];
+
+      // Names just collected → show names preview card
+      if (extracted?.names && !collected.names?.[0] && extracted.names[0]) {
+        followUpCards.push({
+          role: 'pear', text: '', ts: Date.now() + 1,
+          cardType: 'names-preview',
+        });
+      }
+
+      // Date just collected → show countdown card
+      if (extracted?.date && !collected.date) {
+        followUpCards.push({
+          role: 'pear', text: '', ts: Date.now() + 2,
+          cardType: 'countdown',
+        });
+      }
+
+      // Venue just collected → show venue map card
+      if (extracted?.venue && !collected.venue && extracted.venue !== 'TBD') {
+        followUpCards.push({
+          role: 'pear', text: '', ts: Date.now() + 3,
+          cardType: 'venue-map',
+        });
+      }
+
+      // Vibe just collected → show site preview card
+      if (extracted?.vibe && !collected.vibe) {
+        followUpCards.push({
+          role: 'pear', text: '', ts: Date.now() + 4,
+          cardType: 'site-preview',
+        });
+      }
+
       // Determine name requirement based on occasion
       const isSoloPerson = nextCollected.occasion === 'birthday' || nextCollected.occasion === 'story';
       const hasNames = isSoloPerson
@@ -345,7 +382,7 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
         setTimeout(() => setShowPhotoBrowser(true), 600);
       }
 
-      setMessages(prev => [...prev, pearMsg]);
+      setMessages(prev => [...prev, pearMsg, ...followUpCards]);
     } catch (err) {
       setMessages(prev => [...prev, {
         role: 'pear',
@@ -615,52 +652,26 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
         WebkitBackdropFilter: 'blur(8px)',
       } as React.CSSProperties}>
 
-      {/* Progressive info cards — build as you go */}
+      {/* Progress summary card — collapsible with edit */}
       <AnimatePresence>
         {showPreviewBar && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="shrink-0 mx-4 md:mx-8 mb-2 rounded-2xl bg-white/50 backdrop-blur-md border border-white/40 overflow-hidden"
+            className="shrink-0 mx-4 md:mx-8 mb-2"
           >
-            {/* Name + occasion header */}
-            <div className="px-4 py-3 flex items-center justify-between">
-              <div>
-                <p className="text-[0.58rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-muted)]">
-                  {collected.occasion}
-                </p>
-                <p className="font-heading italic text-[1.15rem] text-[var(--pl-ink-soft)] leading-tight">
-                  {collected.names?.[0]}{collected.names?.[1] ? ` & ${collected.names[1]}` : ''}
-                </p>
-              </div>
-              <PearMascot size={28} mood="happy" />
-            </div>
-            {/* Detail chips — appear as info is collected */}
-            {(collected.date || collected.venue || collected.vibe) && (
-              <div className="px-4 pb-3 flex flex-wrap gap-2">
-                {collected.date && (
-                  <span className="text-[0.68rem] font-semibold px-3 py-1 rounded-full bg-[var(--pl-olive)]/10 text-[var(--pl-olive-deep)]">
-                    {(() => {
-                      try {
-                        const d = new Date(collected.date + 'T12:00:00');
-                        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                      } catch { return collected.date; }
-                    })()}
-                  </span>
-                )}
-                {collected.venue && collected.venue !== 'TBD' && (
-                  <span className="text-[0.68rem] font-semibold px-3 py-1 rounded-full bg-[var(--pl-olive)]/10 text-[var(--pl-olive-deep)]">
-                    {collected.venue}
-                  </span>
-                )}
-                {collected.vibe && (
-                  <span className="text-[0.68rem] font-semibold px-3 py-1 rounded-full bg-[var(--pl-gold)]/15 text-[var(--pl-ink-soft)]">
-                    {collected.vibe}
-                  </span>
-                )}
-              </div>
-            )}
+            <ProgressSummaryCard
+              collected={collected}
+              onEdit={(field) => {
+                // Clear the field so user can re-enter it
+                setCollected(prev => ({ ...prev, [field]: undefined }));
+                const fieldLabels: Record<string, string> = {
+                  occasion: 'occasion', names: 'names', date: 'date', venue: 'venue', vibe: 'style',
+                };
+                sendMessage(`I want to change the ${fieldLabels[field] || field}`);
+              }}
+            />
           </motion.div>
         )}
       </AnimatePresence>
@@ -697,28 +708,25 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
             >
               {msg.text}
 
-              {/* ── Occasion cards ── */}
-              {msg.cardType === 'occasion' && msg.cards && !collected.occasion && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
-                  {msg.cards.map((card) => (
-                    <button
-                      key={card.value}
-                      onClick={() => {
-                        setCollected(prev => ({ ...prev, occasion: card.value }));
-                        sendMessage(`It's a ${card.label.toLowerCase()}`, { occasion: card.value });
-                      }}
-                      style={{
-                        padding: '10px 16px', borderRadius: '100px',
-                        border: '1px solid rgba(163,177,138,0.3)', background: 'rgba(255,255,255,0.6)',
-                        backdropFilter: 'blur(8px)', cursor: 'pointer', fontSize: '0.82rem',
-                        fontWeight: 600, color: 'var(--pl-ink, #2B1E14)', transition: 'all 0.15s',
-                        display: 'flex', alignItems: 'center', gap: '6px',
-                      }}
-                    >
-                      <span style={{ color: 'var(--pl-olive)', fontSize: '0.9rem' }}>{card.icon}</span>
-                      {card.label}
-                    </button>
-                  ))}
+              {/* ── Occasion cards — rich animated grid ── */}
+              {msg.cardType === 'occasion' && !collected.occasion && (
+                <div style={{ marginTop: '12px' }}>
+                  <OccasionCard
+                    occasions={[
+                      { label: 'Wedding', value: 'wedding', icon: 'ring' },
+                      { label: 'Birthday', value: 'birthday', icon: 'cake' },
+                      { label: 'Anniversary', value: 'anniversary', icon: 'star' },
+                      { label: 'Engagement', value: 'engagement', icon: 'diamond' },
+                      { label: 'Other', value: 'story', icon: 'book' },
+                    ]}
+                    onSelect={(value) => {
+                      const label = ['Wedding','Birthday','Anniversary','Engagement','Other'].find(
+                        (_, i) => ['wedding','birthday','anniversary','engagement','story'][i] === value
+                      ) || value;
+                      setCollected(prev => ({ ...prev, occasion: value }));
+                      sendMessage(`It's a ${label.toLowerCase()}`, { occasion: value });
+                    }}
+                  />
                 </div>
               )}
 
@@ -830,114 +838,52 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                 </div>
               )}
 
-              {/* ── Theme discovery — ask about interests ── */}
-              {msg.cardType === 'theme-ask' && msg.cards && !collected.vibe && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
-                  {msg.cards.map((card) => (
-                    <button
-                      key={card.value}
-                      onClick={() => {
-                        if (card.value === 'surprise') {
-                          setCollected(prev => ({ ...prev, vibe: 'elegant modern' }));
-                          sendMessage("Surprise me with something beautiful!", { vibe: 'elegant modern' });
-                        } else if (card.value === 'has-theme') {
-                          // Show inline theme-options cards instead of relying on free text
-                          const themeMsg: ChatMessage = {
-                            role: 'pear',
-                            text: "Pick a style that speaks to you:",
-                            ts: Date.now(),
-                            cardType: 'theme-options',
-                            cards: [
-                              { label: 'Romantic & Elegant', value: 'romantic elegant', icon: '✦' },
-                              { label: 'Bold & Colorful', value: 'bold colorful', icon: '✦' },
-                              { label: 'Rustic & Natural', value: 'rustic natural', icon: '✦' },
-                              { label: 'Modern & Minimal', value: 'modern minimal', icon: '✦' },
-                              { label: 'Dark & Moody', value: 'dark moody', icon: '✦' },
-                              { label: 'Whimsical & Fun', value: 'whimsical fun', icon: '✦' },
-                            ],
-                          };
-                          setMessages(prev => [
-                            ...prev,
-                            { role: 'user' as const, text: "I have a theme in mind", ts: Date.now() },
-                            themeMsg,
-                          ]);
-                        } else {
-                          // "Suggest something beautiful" — pick vibe based on occasion
-                          const occasionVibe = getDefaultVibeForOccasion(collectedRef.current.occasion);
-                          setCollected(prev => ({ ...prev, vibe: occasionVibe }));
-                          sendMessage("Pick something beautiful that matches the occasion!", { vibe: occasionVibe });
-                        }
-                      }}
-                      style={{
-                        padding: '12px 16px', borderRadius: '14px',
-                        border: '1px solid rgba(163,177,138,0.25)', background: 'rgba(255,255,255,0.55)',
-                        backdropFilter: 'blur(8px)', cursor: 'pointer', fontSize: '0.82rem',
-                        fontWeight: 600, color: 'var(--pl-ink)', transition: 'all 0.15s',
-                        display: 'flex', alignItems: 'center', gap: '8px', textAlign: 'left',
-                      }}
-                    >
-                      <span style={{ color: 'var(--pl-olive)', flexShrink: 0 }}>{card.icon}</span>
-                      {card.label}
-                    </button>
-                  ))}
+              {/* ── Theme discovery — style discovery carousel ── */}
+              {msg.cardType === 'theme-ask' && !collected.vibe && (
+                <div style={{ marginTop: '12px' }}>
+                  <StyleDiscoveryCard
+                    pairs={STYLE_PAIRS}
+                    names={collected.names}
+                    onSelect={(style) => {
+                      setCollected(prev => ({ ...prev, vibe: style.name.toLowerCase() }));
+                      sendMessage(`I love the ${style.name} style`, { vibe: style.name.toLowerCase() });
+                    }}
+                  />
+                  {/* Also allow free text */}
+                  <button
+                    onClick={() => {
+                      const occasionVibe = getDefaultVibeForOccasion(collectedRef.current.occasion);
+                      setCollected(prev => ({ ...prev, vibe: occasionVibe }));
+                      sendMessage("Surprise me with something beautiful!", { vibe: occasionVibe });
+                    }}
+                    style={{
+                      marginTop: '8px', padding: '10px 16px', borderRadius: '100px', width: '100%',
+                      border: '1px solid rgba(163,177,138,0.2)', background: 'rgba(255,255,255,0.4)',
+                      backdropFilter: 'blur(8px)', cursor: 'pointer', fontSize: '0.78rem',
+                      fontWeight: 600, color: 'var(--pl-muted)', transition: 'all 0.15s',
+                    }}
+                  >
+                    Surprise me instead
+                  </button>
                 </div>
               )}
 
-              {/* ── Theme options — inline style cards ── */}
-              {msg.cardType === 'theme-options' && msg.cards && !collected.vibe && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
-                  {msg.cards.map((card) => (
-                    <button
-                      key={card.value}
-                      onClick={() => {
-                        setCollected(prev => ({ ...prev, vibe: card.value }));
-                        sendMessage(`I'd love a ${card.label.toLowerCase()} style`, { vibe: card.value });
-                      }}
-                      style={{
-                        padding: '10px 16px', borderRadius: '100px',
-                        border: '1px solid rgba(163,177,138,0.3)', background: 'rgba(255,255,255,0.6)',
-                        backdropFilter: 'blur(8px)', cursor: 'pointer', fontSize: '0.82rem',
-                        fontWeight: 600, color: 'var(--pl-ink, #2B1E14)', transition: 'all 0.15s',
-                        display: 'flex', alignItems: 'center', gap: '6px',
-                      }}
-                    >
-                      <span style={{ color: 'var(--pl-olive)', fontSize: '0.9rem' }}>{card.icon}</span>
-                      {card.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* ── Style palette choice (shown when AI suggests palettes) ── */}
-              {msg.cardType === 'style' && !collected.vibe && (
-                <div style={{ display: 'flex', gap: '10px', marginTop: '12px', flexWrap: 'wrap' }}>
-                  {STYLE_PAIRS.slice(0, 3).map((pair) => (
-                    <button
-                      key={pair.a.name}
-                      onClick={() => {
-                        setCollected(prev => ({ ...prev, vibe: pair.a.name.toLowerCase() }));
-                        sendMessage(`I love the ${pair.a.name} look`, { vibe: pair.a.name.toLowerCase() });
-                      }}
-                      style={{
-                        flex: 1, minWidth: '90px', padding: '10px', borderRadius: '14px',
-                        border: '1px solid rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.5)',
-                        backdropFilter: 'blur(8px)', cursor: 'pointer', transition: 'all 0.15s',
-                        textAlign: 'center',
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'center', gap: '3px', marginBottom: '6px' }}>
-                        {pair.a.colors.map((c, ci) => (
-                          <div key={ci} style={{
-                            width: '20px', height: '20px', borderRadius: '50%',
-                            background: c, border: '1px solid rgba(0,0,0,0.08)',
-                          }} />
-                        ))}
-                      </div>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--pl-ink)' }}>
-                        {pair.a.name}
-                      </div>
-                    </button>
-                  ))}
+              {/* ── Theme options — color palette cards ── */}
+              {msg.cardType === 'theme-options' && !collected.vibe && (
+                <div style={{ marginTop: '12px' }}>
+                  <ColorPaletteCard
+                    palettes={[
+                      { name: 'Romantic & Elegant', colors: ['#F2D1D1', '#E8B4C8', '#C4A96A', '#FAF7F2'], description: 'Soft blush with golden accents' },
+                      { name: 'Bold & Colorful', colors: ['#FF6B6B', '#FFC857', '#5BCEFA', '#F472B6'], description: 'Vibrant and eye-catching' },
+                      { name: 'Rustic & Natural', colors: ['#D4A574', '#A8B890', '#C8B896', '#8B6F47'], description: 'Earthy warmth and greenery' },
+                      { name: 'Modern & Minimal', colors: ['#F5F5F0', '#E8E4DC', '#D4CFC4', '#3D3530'], description: 'Clean lines, neutral tones' },
+                      { name: 'Dark & Moody', colors: ['#2D2B33', '#4A3F54', '#7C3AED', '#C4A96A'], description: 'Dramatic and sophisticated' },
+                    ]}
+                    onSelect={(palette) => {
+                      setCollected(prev => ({ ...prev, vibe: palette.name.toLowerCase() }));
+                      sendMessage(`I love the ${palette.name} palette`, { vibe: palette.name.toLowerCase() });
+                    }}
+                  />
                 </div>
               )}
 
@@ -1043,6 +989,61 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                   ))}
                 </div>
               )}
+
+              {/* ── Names preview card ── */}
+              {msg.cardType === 'names-preview' && collected.names?.[0] && (
+                <div style={{ marginTop: '8px' }}>
+                  <NamesPreviewCard names={collected.names} occasion={collected.occasion} />
+                </div>
+              )}
+
+              {/* ── Countdown card ── */}
+              {msg.cardType === 'countdown' && collected.date && (
+                <div style={{ marginTop: '8px' }}>
+                  <CountdownCard date={collected.date} names={collected.names} occasion={collected.occasion} />
+                </div>
+              )}
+
+              {/* ── Venue map card ── */}
+              {msg.cardType === 'venue-map' && collected.venue && collected.venue !== 'TBD' && (
+                <div style={{ marginTop: '8px' }}>
+                  <VenueMapCard
+                    venue={collected.venue}
+                    onConfirm={() => {/* already confirmed by AI extraction */}}
+                    onEdit={() => {
+                      setCollected(prev => ({ ...prev, venue: undefined }));
+                      sendMessage("I want to change the venue");
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* ── Site preview card — wow moment before build ── */}
+              {msg.cardType === 'site-preview' && collected.names?.[0] && (
+                <div style={{ marginTop: '8px' }}>
+                  <SitePreviewCard
+                    names={collected.names}
+                    occasion={collected.occasion}
+                    date={collected.date}
+                    vibe={collected.vibe}
+                    venue={collected.venue}
+                  />
+                </div>
+              )}
+
+              {/* ── Style discovery (alternate cardType) ── */}
+              {msg.cardType === 'style-discovery' && !collected.vibe && (
+                <div style={{ marginTop: '8px' }}>
+                  <StyleDiscoveryCard
+                    pairs={STYLE_PAIRS}
+                    names={collected.names}
+                    onSelect={(style) => {
+                      setCollected(prev => ({ ...prev, vibe: style.name.toLowerCase() }));
+                      sendMessage(`I love the ${style.name} style`, { vibe: style.name.toLowerCase() });
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </motion.div>
         ))}
@@ -1090,6 +1091,71 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
           </motion.div>
         )}
       </div>
+
+      {/* Quick suggestion chips — contextual */}
+      {(() => {
+        const chips: { label: string; value: string }[] = [];
+        if (!collected.occasion) {
+          // No chips needed — occasion cards handle this
+        } else if (!collected.names?.[0]) {
+          // No chips — user needs to type names
+        } else if (!collected.date) {
+          chips.push({ label: 'This weekend', value: 'this-weekend' });
+          chips.push({ label: 'Next month', value: 'next-month' });
+          chips.push({ label: "Haven't decided yet", value: 'tbd-date' });
+        } else if (!collected.venue) {
+          chips.push({ label: "Skip for now", value: 'skip-venue' });
+          chips.push({ label: "It's at home", value: 'at-home' });
+          chips.push({ label: "Still looking", value: 'tbd-venue' });
+        } else if (!collected.vibe) {
+          chips.push({ label: 'Romantic', value: 'romantic elegant' });
+          chips.push({ label: 'Modern', value: 'modern minimal' });
+          chips.push({ label: 'Rustic', value: 'rustic natural' });
+          chips.push({ label: 'Bold', value: 'bold colorful' });
+          chips.push({ label: 'Surprise me', value: 'surprise' });
+        }
+        if (chips.length === 0) return null;
+        return (
+          <div className="shrink-0 px-3 md:px-6">
+            <QuickChips
+              chips={chips}
+              onSelect={(value) => {
+                if (value === 'this-weekend') {
+                  const now = new Date(); const day = now.getDay();
+                  const sat = new Date(now); sat.setDate(now.getDate() + (6 - day));
+                  const d = sat.toISOString().slice(0, 10);
+                  setCollected(prev => ({ ...prev, date: d }));
+                  sendMessage(`This weekend — ${sat.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`, { date: d });
+                } else if (value === 'next-month') {
+                  const next = new Date(); next.setMonth(next.getMonth() + 1, 15);
+                  const d = next.toISOString().slice(0, 10);
+                  setCollected(prev => ({ ...prev, date: d }));
+                  sendMessage(`Next month — ${next.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`, { date: d });
+                } else if (value === 'tbd-date') {
+                  const fallback = new Date(); fallback.setMonth(fallback.getMonth() + 3, 1);
+                  const d = fallback.toISOString().slice(0, 10);
+                  setCollected(prev => ({ ...prev, date: d }));
+                  sendMessage("Haven't decided on a date yet", { date: d });
+                } else if (value === 'skip-venue' || value === 'tbd-venue') {
+                  setCollected(prev => ({ ...prev, venue: 'TBD' }));
+                  sendMessage("I'll add the venue later", { venue: 'TBD' });
+                } else if (value === 'at-home') {
+                  setCollected(prev => ({ ...prev, venue: 'At home' }));
+                  sendMessage("It's at home", { venue: 'At home' });
+                } else if (value === 'surprise') {
+                  const v = getDefaultVibeForOccasion(collectedRef.current.occasion);
+                  setCollected(prev => ({ ...prev, vibe: v }));
+                  sendMessage("Surprise me with something beautiful!", { vibe: v });
+                } else {
+                  // Direct vibe value
+                  setCollected(prev => ({ ...prev, vibe: value }));
+                  sendMessage(`I'd love a ${value} style`, { vibe: value });
+                }
+              }}
+            />
+          </div>
+        );
+      })()}
 
       {/* Input bar */}
       <div className="shrink-0 px-3 md:px-6 pb-[env(safe-area-inset-bottom,8px)] pt-2">
