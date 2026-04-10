@@ -32,7 +32,6 @@ import { LiveUpdatesFeed } from '@/components/site/LiveUpdatesFeed';
 import { SpotifySection } from '@/components/site/SpotifySection';
 import { CoupleQuiz } from '@/components/site/CoupleQuiz';
 import { ShareBar } from '@/components/site/ShareBar';
-import { sanitizeSvg } from '@/lib/sanitize-svg';
 import { enforcePaletteContrast } from '@/lib/color-utils';
 import { StickerLayer } from '@/components/site-stickers/StickerLayer';
 import { AnalyticsBeacon } from '@/components/analytics/AnalyticsBeacon';
