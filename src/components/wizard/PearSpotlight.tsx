@@ -24,7 +24,7 @@ interface Collected {
   vibe?: string;
 }
 
-type Step = 'occasion' | 'names' | 'date' | 'venue' | 'vibe-ask' | 'vibe-pick' | 'photos' | 'ready';
+type Step = 'occasion' | 'names' | 'date' | 'venue' | 'vibe-ask' | 'vibe-pick' | 'photos' | 'photo-review' | 'ready';
 
 const STYLE_PAIRS = [
   { a: { name: 'Blush & Sage', colors: ['#D4A0A0', '#A3B18A', '#FAF7F2', '#3D3530'] },
@@ -144,7 +144,7 @@ function getDefaultVibeForOccasion(occasion?: string): string {
 }
 
 // Determine current step from collected data
-function currentStep(c: Collected, photosDecided: boolean, vibeDescription: string): Step {
+function currentStep(c: Collected, photosDecided: boolean, vibeDescription: string, photosCount: number, reviewDone: boolean): Step {
   if (!c.occasion) return 'occasion';
   if (!c.names?.[0]) return 'names';
   if (c.occasion === 'wedding' || c.occasion === 'engagement' || c.occasion === 'anniversary') {
@@ -154,11 +154,12 @@ function currentStep(c: Collected, photosDecided: boolean, vibeDescription: stri
   if (!c.venue) return 'venue';
   if (!c.vibe) return vibeDescription ? 'vibe-pick' : 'vibe-ask';
   if (!photosDecided) return 'photos';
+  if (photosCount > 0 && !reviewDone) return 'photo-review';
   return 'ready';
 }
 
 // Speech text for each step — warm, conversational, references what's been collected
-function speechForStep(step: Step, collected: Collected): string {
+function speechForStep(step: Step, collected: Collected, photoInfo?: { index: number; total: number; location?: string }): string {
   const name1 = collected.names?.[0];
   const name2 = collected.names?.[1];
   const nameDisplay = name2 ? `${name1} & ${name2}` : name1;
@@ -193,6 +194,15 @@ function speechForStep(step: Step, collected: Collected): string {
       return "I put together some palettes based on your vision";
     case 'photos':
       return "Let's add some photos to make it personal";
+    case 'photo-review': {
+      if (photoInfo) {
+        if (photoInfo.location) {
+          return `Photo ${photoInfo.index + 1} of ${photoInfo.total} — taken in ${photoInfo.location}`;
+        }
+        return `Photo ${photoInfo.index + 1} of ${photoInfo.total} — where was this?`;
+      }
+      return "Tell me about this moment";
+    }
     case 'ready':
       return `${nameDisplay}'s site is ready to build!`;
   }
@@ -209,6 +219,7 @@ function moodForStep(step: Step, loading: boolean): 'idle' | 'thinking' | 'happy
     case 'vibe-ask': return 'happy';
     case 'vibe-pick': return 'happy';
     case 'photos': return 'happy';
+    case 'photo-review': return 'happy';
     case 'ready': return 'celebrating';
   }
 }
@@ -256,15 +267,20 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const [direction, setDirection] = useState(1); // 1 = forward, -1 = back
   const [vibeDescription, setVibeDescription] = useState(''); // raw user input before palette generation
   const [generatedPalettes, setGeneratedPalettes] = useState<{name: string; colors: string[]; description: string}[]>([]);
+  const [photoReviewIndex, setPhotoReviewIndex] = useState(0);
+  const [photoNotes, setPhotoNotes] = useState<Record<number, { location?: string; note?: string }>>({});
+  const [reviewDone, setReviewDone] = useState(false);
+  const [genStep, setGenStep] = useState(0);
+  const [genProgress, setGenProgress] = useState(0); // 0-100
   const inputRef = useRef<HTMLInputElement>(null);
   const collectedRef = useRef(collected);
   collectedRef.current = collected;
   const selectedPhotosRef = useRef<any[]>([]);
   useEffect(() => { selectedPhotosRef.current = selectedPhotos; }, [selectedPhotos]);
 
-  const step = currentStep(collected, photosDecided, vibeDescription);
+  const step = currentStep(collected, photosDecided, vibeDescription, selectedPhotos.length, reviewDone);
   const progress = progressCount(collected);
-  const speech = speechForStep(step, collected);
+  const speech = speechForStep(step, collected, step === 'photo-review' ? { index: photoReviewIndex, total: selectedPhotos.length, location: photoNotes[photoReviewIndex]?.location } : undefined);
   const mood = moodForStep(step, loading);
 
   // Auto-open photo browser when we reach photos step
@@ -281,6 +297,26 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       setTimeout(() => inputRef.current?.focus(), 400);
     }
   }, [step]);
+
+  // Reverse geocode photo location when reviewing
+  useEffect(() => {
+    if (step !== 'photo-review') return;
+    const photo = selectedPhotos[photoReviewIndex];
+    if (!photo) return;
+    const loc = photo?.mediaMetadata?.location || photo?.location;
+    if (loc && (loc.latitude || loc.lat)) {
+      const lat = loc.latitude || loc.lat;
+      const lng = loc.longitude || loc.lng;
+      fetch(`/api/suggest-location?lat=${lat}&lng=${lng}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data?.label) {
+            setPhotoNotes(prev => ({ ...prev, [photoReviewIndex]: { ...prev[photoReviewIndex], location: data.label } }));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [step, photoReviewIndex, selectedPhotos]);
 
   // ── Handlers ──────────────────────────────────────────────
   const handleOccasionSelect = (value: string) => {
@@ -366,6 +402,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const handlePhotosSkip = () => {
     setShowPhotoBrowser(false);
     setPhotosDecided(true);
+    setReviewDone(true);
     setDirection(1);
   };
 
@@ -373,6 +410,9 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     setShowPhotoBrowser(false);
     setPhotosDecided(true);
     setDirection(1);
+    if (selectedPhotos.length === 0) {
+      setReviewDone(true);
+    }
   };
 
   const handleBuild = useCallback(async () => {
@@ -381,28 +421,99 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     if (!c.names || !c.occasion) return;
     setPhase('generating');
     setGenError(null);
+    setGenStep(0);
+    setGenProgress(0);
+
+    const requestBody = JSON.stringify({
+      photos,
+      vibeString: `${c.occasion} ${c.vibe || ''} ${c.venue || ''}`.trim(),
+      names: c.names,
+      occasion: c.occasion,
+      eventDate: c.date,
+      eventVenue: c.venue,
+      celebrationVenue: c.venue,
+      layoutFormat: 'cascade',
+    });
 
     try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          photos,
-          vibeString: `${c.occasion} ${c.vibe || ''} ${c.venue || ''}`.trim(),
-          names: c.names,
-          occasion: c.occasion,
-          eventDate: c.date,
-          eventVenue: c.venue,
-          celebrationVenue: c.venue,
-          layoutFormat: 'cascade',
-        }),
-      });
+      // Try the streaming endpoint first, fall back to synchronous
+      let res: Response;
+      try {
+        res = await fetch('/api/generate/stream', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: requestBody,
+        });
+        if (!res.ok) throw new Error('stream not available');
+      } catch {
+        res = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: requestBody,
+        });
+      }
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
         throw new Error(errData.error || `Generation failed (${res.status})`);
       }
 
+      // If streaming is available, read SSE events
+      if (res.headers.get('content-type')?.includes('text/event-stream') && res.body) {
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let manifest = null;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            const trimmed = line.startsWith('data:') ? line.slice(5).trim() : line.trim();
+            if (!trimmed) continue;
+            try {
+              const event = JSON.parse(trimmed);
+              if (event.type === 'progress') {
+                // Server sends pass 0-7; map to 5 UI steps
+                const pass = event.pass ?? 0;
+                const stepIndex = pass <= 0 ? 0
+                  : pass <= 1 ? 1
+                  : pass <= 3 ? 2
+                  : pass <= 5 ? 3
+                  : 4;
+                setGenStep(stepIndex);
+                setGenProgress(Math.round(((pass + 1) / 8) * 100));
+              }
+              if (event.type === 'complete') {
+                manifest = event.manifest;
+              }
+              if (event.type === 'error') {
+                throw new Error(event.message || 'Generation failed');
+              }
+            } catch (e) {
+              if (e instanceof SyntaxError) continue; // skip non-JSON lines
+              throw e;
+            }
+          }
+        }
+
+        if (manifest) {
+          const n1 = (c.names[0] || 'celebration').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const n2 = c.names[1] ? c.names[1].toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+          const suffix = Math.random().toString(36).slice(2, 6);
+          const subdomain = n2 ? `${n1}-and-${n2}-${suffix}` : `${n1}-${suffix}`;
+          setPhase('done');
+          onComplete(manifest, c.names, subdomain);
+          return;
+        }
+      }
+
+      // Fallback: non-streaming response (plain JSON)
       const data = await res.json();
       if (!data.manifest) throw new Error('No manifest returned');
 
@@ -410,7 +521,6 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       const n2 = c.names[1] ? c.names[1].toLowerCase().replace(/[^a-z0-9]/g, '') : '';
       const suffix = Math.random().toString(36).slice(2, 6);
       const subdomain = n2 ? `${n1}-and-${n2}-${suffix}` : `${n1}-${suffix}`;
-
       setPhase('done');
       onComplete(data.manifest, c.names, subdomain);
     } catch (err) {
@@ -440,17 +550,23 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   // ── SPLIT POINT: RENDER STARTS BELOW ──
   // ── Generating phase ─────────────────────────────────────
   const GEN_PHASES = ['Understanding your vision', 'Choosing colors and fonts', 'Designing your pages', 'Writing your content', 'Adding final touches'];
-  const [genPhaseIndex, setGenPhaseIndex] = useState(0);
 
+  // Fallback timer — only advances genStep if SSE isn't providing updates
   useEffect(() => {
-    if (phase !== 'generating') {
-      setGenPhaseIndex(0);
-      return;
-    }
-    const interval = setInterval(() => {
-      setGenPhaseIndex(prev => (prev + 1) % GEN_PHASES.length);
-    }, 5000);
-    return () => clearInterval(interval);
+    if (phase !== 'generating') { setGenStep(0); setGenProgress(0); return; }
+    let lastStep = 0;
+    const fallbackTimer = setInterval(() => {
+      setGenStep(prev => {
+        if (prev === lastStep) {
+          // No SSE update received, advance manually
+          lastStep = Math.min(prev + 1, GEN_PHASES.length - 1);
+          return lastStep;
+        }
+        lastStep = prev;
+        return prev;
+      });
+    }, 8000); // Slower fallback — 8s instead of 5s
+    return () => clearInterval(fallbackTimer);
   }, [phase]);
 
   if (phase === 'generating') {
@@ -485,27 +601,28 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
           )}
 
           {/* Animated progress bar */}
+          {(() => {
+            const displayProgress = genProgress > 0 ? genProgress : ((genStep + 1) / GEN_PHASES.length) * 100;
+            return (
           <div style={{ width: 280, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
             <div style={{ width: '100%', height: 4, borderRadius: 2, background: 'rgba(163,177,138,0.15)', overflow: 'hidden' }}>
               <motion.div
-                key={genPhaseIndex}
-                initial={{ width: '0%' }}
-                animate={{ width: '100%' }}
-                transition={{ duration: 4.8, ease: 'linear' }}
+                animate={{ width: `${displayProgress}%` }}
+                transition={{ duration: 0.8, ease: 'easeOut' }}
                 style={{ height: '100%', borderRadius: 2, background: 'var(--pl-olive, #A3B18A)' }}
               />
             </div>
 
             <AnimatePresence mode="wait">
               <motion.p
-                key={genPhaseIndex}
+                key={genStep}
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.3 }}
                 style={{ fontSize: '0.85rem', color: 'var(--pl-muted, #8C7E72)', textAlign: 'center' }}
               >
-                {GEN_PHASES[genPhaseIndex]}...
+                {GEN_PHASES[genStep]}...
               </motion.p>
             </AnimatePresence>
 
@@ -518,13 +635,15 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                     width: 6,
                     height: 6,
                     borderRadius: '50%',
-                    background: i <= genPhaseIndex ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.25)',
+                    background: i <= genStep ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.25)',
                     transition: 'background 0.4s ease',
                   }}
                 />
               ))}
             </div>
           </div>
+            );
+          })()}
         </div>
       </div>
     );
@@ -1057,6 +1176,119 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                   </p>
                 </div>
               )}
+
+              {/* ── Photo review step ── */}
+              {step === 'photo-review' && (() => {
+                const photo = selectedPhotos[photoReviewIndex];
+                const rawUrl = photo?.baseUrl || photo?.url || photo?.uri || '';
+                const photoUrl = rawUrl.includes('googleusercontent')
+                  ? `/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=600&h=400`
+                  : rawUrl;
+                const isLast = photoReviewIndex === selectedPhotos.length - 1;
+                const currentNote = photoNotes[photoReviewIndex]?.note || '';
+                const currentLocation = photoNotes[photoReviewIndex]?.location;
+
+                return (
+                  <div>
+                    {/* Photo display */}
+                    {photoUrl && (
+                      <div style={{ width: '100%', maxHeight: 220, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
+                        <img
+                          src={photoUrl}
+                          alt={`Photo ${photoReviewIndex + 1}`}
+                          style={{ width: '100%', maxHeight: 220, objectFit: 'cover', display: 'block', borderRadius: 14 }}
+                        />
+                      </div>
+                    )}
+
+                    {/* Counter */}
+                    <p style={{ fontSize: '0.75rem', color: 'var(--pl-muted, #8C7E72)', textAlign: 'center', marginBottom: 4 }}>
+                      Photo {photoReviewIndex + 1} of {selectedPhotos.length}
+                    </p>
+
+                    {/* Location label */}
+                    {currentLocation && (
+                      <p style={{ fontSize: '0.8rem', color: 'var(--pl-ink-soft)', textAlign: 'center', marginBottom: 8, fontWeight: 600 }}>
+                        {currentLocation}
+                      </p>
+                    )}
+
+                    {/* Note input */}
+                    <input
+                      value={currentNote}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setPhotoNotes(prev => ({
+                          ...prev,
+                          [photoReviewIndex]: { ...prev[photoReviewIndex], note: val },
+                        }));
+                      }}
+                      placeholder="Describe this moment..."
+                      style={{
+                        width: '100%',
+                        height: 44,
+                        padding: '0 14px',
+                        fontSize: '0.9rem',
+                        borderRadius: 12,
+                        border: '1px solid rgba(255,255,255,0.5)',
+                        background: 'rgba(255,255,255,0.5)',
+                        backdropFilter: 'blur(8px)',
+                        WebkitBackdropFilter: 'blur(8px)',
+                        outline: 'none',
+                        color: 'var(--pl-ink-soft)',
+                        fontFamily: 'inherit',
+                        boxSizing: 'border-box' as const,
+                        marginBottom: 12,
+                      }}
+                    />
+
+                    {/* Action buttons */}
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button
+                        onClick={() => setReviewDone(true)}
+                        style={{
+                          flex: 1,
+                          padding: '12px 0',
+                          borderRadius: 100,
+                          background: 'rgba(255,255,255,0.4)',
+                          backdropFilter: 'blur(8px)',
+                          WebkitBackdropFilter: 'blur(8px)',
+                          border: '1px solid rgba(255,255,255,0.4)',
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          color: 'var(--pl-ink-soft)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Skip
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (isLast) {
+                            setReviewDone(true);
+                          } else {
+                            setPhotoReviewIndex(prev => prev + 1);
+                          }
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '12px 0',
+                          borderRadius: 100,
+                          background: 'var(--pl-olive, #A3B18A)',
+                          border: 'none',
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          color: '#fff',
+                          cursor: 'pointer',
+                          transition: 'background 0.2s ease',
+                        }}
+                      >
+                        {isLast ? 'Done' : 'Next'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* ── Ready step ── */}
               {step === 'ready' && (
