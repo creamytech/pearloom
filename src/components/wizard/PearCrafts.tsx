@@ -21,7 +21,7 @@ interface ChatMessage {
   text: string;
   ts: number;
   cards?: Array<{ label: string; value: string; icon?: string }>;
-  cardType?: 'occasion' | 'date' | 'venue' | 'style' | 'theme-ask' | 'info-card';
+  cardType?: 'occasion' | 'date' | 'venue' | 'style' | 'theme-ask' | 'photos-or-build' | 'info-card';
 }
 
 // Style palette pairs for the A/B style discovery
@@ -63,9 +63,11 @@ ALREADY COLLECTED:
 
 RULES:
 - NEVER mention "wedding" if the occasion is birthday/anniversary/engagement
-- Extract details from the user's message: names, date (YYYY-MM-DD), venue
-- Return action 'message' with data: { extracted: { occasion?, names?, date?, venue? } }
-- Ask for the NEXT missing piece warmly
+- Extract details from the user's message: names, date (YYYY-MM-DD), venue, vibe/theme description
+- Return action 'message' with data: { extracted: { occasion?, names?, date?, venue?, vibe? } }
+- When the user describes a theme, colors, mood, or style preference, extract it as "vibe" (e.g., "dark moody gothic" or "bright and colorful" or "elegant minimalist")
+- Ask for the NEXT missing piece warmly. The order should be: occasion → names → date → venue → theme/style
+- Once you have all details including a style/theme, tell the user you're ready to build and ask if they want to add photos first
 - NEVER assume you're talking TO the person being celebrated. The user might be a parent, friend, partner, or planner setting up the site for someone else. Say "the birthday person" or use their name — never "nice to meet you [name]" or "your birthday"
 - When the user gives a name, acknowledge it neutrally: "Got it, the site will be for [name]!" not "Nice to meet you, [name]!"
 - The current year is ${currentYear}. If the user says a month/day without a year (like "November 12"), assume ${currentYear}. If the date has already passed this year, use ${currentYear + 1}. ALWAYS return dates in YYYY-MM-DD format.
@@ -229,12 +231,19 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
         ];
         pearMsg.cardType = 'venue';
       } else if (!nextCollected.vibe) {
-        // Ask about theme/interests instead of showing static palettes
+        // Ask about theme/interests
         pearMsg.cardType = 'theme-ask';
         pearMsg.cards = [
           { label: 'I have a theme in mind', value: 'has-theme', icon: '✦' },
-          { label: 'Suggest based on my interests', value: 'suggest', icon: '✦' },
+          { label: 'Suggest something beautiful', value: 'suggest', icon: '✦' },
           { label: 'Surprise me', value: 'surprise', icon: '✦' },
+        ];
+      } else if (phase === 'chat') {
+        // All info collected — offer photos or build
+        pearMsg.cardType = 'photos-or-build';
+        pearMsg.cards = [
+          { label: 'Add photos first', value: 'photos', icon: '✦' },
+          { label: 'Build now, add photos later', value: 'build', icon: '✦' },
         ];
       }
 
@@ -518,11 +527,12 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                       onClick={() => {
                         if (card.value === 'surprise') {
                           setCollected(prev => ({ ...prev, vibe: 'elegant modern' }));
-                          sendMessage("Surprise me with something beautiful!");
+                          sendMessage("Surprise me with something beautiful!", { vibe: 'elegant modern' });
                         } else if (card.value === 'has-theme') {
-                          sendMessage("I have a theme in mind — let me describe it");
+                          sendMessage("I have a theme in mind. What kind of details do you need?");
                         } else {
-                          sendMessage("Suggest colors based on my interests and the occasion");
+                          setCollected(prev => ({ ...prev, vibe: 'curated by pear' }));
+                          sendMessage("Pick something beautiful that matches the occasion!", { vibe: 'curated by pear' });
                         }
                       }}
                       style={{
@@ -568,6 +578,40 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                       <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--pl-ink)' }}>
                         {pair.a.name}
                       </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* ── Photos or Build choice ── */}
+              {msg.cardType === 'photos-or-build' && msg.cards && phase === 'chat' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
+                  {msg.cards.map((card) => (
+                    <button
+                      key={card.value}
+                      onClick={() => {
+                        if (card.value === 'build') {
+                          handleBuild();
+                        } else {
+                          // TODO: open photo picker
+                          sendMessage("I'd like to add some photos first");
+                        }
+                      }}
+                      style={{
+                        padding: '12px 16px', borderRadius: '14px',
+                        border: card.value === 'build'
+                          ? '2px solid var(--pl-olive)'
+                          : '1px solid rgba(163,177,138,0.25)',
+                        background: card.value === 'build'
+                          ? 'rgba(163,177,138,0.12)'
+                          : 'rgba(255,255,255,0.55)',
+                        backdropFilter: 'blur(8px)', cursor: 'pointer', fontSize: '0.82rem',
+                        fontWeight: 600, color: 'var(--pl-ink)', transition: 'all 0.15s',
+                        display: 'flex', alignItems: 'center', gap: '8px',
+                      }}
+                    >
+                      <span style={{ color: 'var(--pl-olive)' }}>{card.icon}</span>
+                      {card.label}
                     </button>
                   ))}
                 </div>
