@@ -365,6 +365,269 @@ function occasionColors(occasion?: string, vibe?: string): string[] {
   }
 }
 
+/* ── Themed shapes system ───────────────────────────────────── */
+
+/**
+ * CSS clip-path shapes for themed particles.
+ * Each shape is a clip-path polygon or path string.
+ */
+const CLIP_PATHS = {
+  star5:       'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)',
+  star4:       'polygon(50% 0%, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0% 50%, 38% 38%)',
+  horseshoe:   'polygon(15% 0%, 30% 0%, 30% 55%, 35% 70%, 45% 80%, 50% 82%, 55% 80%, 65% 70%, 70% 55%, 70% 0%, 85% 0%, 85% 60%, 78% 78%, 65% 90%, 50% 95%, 35% 90%, 22% 78%, 15% 60%)',
+  boot:        'polygon(30% 0%, 70% 0%, 70% 50%, 85% 55%, 90% 65%, 90% 100%, 10% 100%, 10% 65%, 30% 60%)',
+  hat:         'polygon(50% 0%, 65% 30%, 100% 35%, 100% 45%, 0% 45%, 0% 35%, 35% 30%)',
+  palmLeaf:    'polygon(50% 0%, 65% 15%, 90% 20%, 80% 40%, 95% 50%, 75% 55%, 80% 75%, 55% 65%, 50% 100%, 45% 65%, 20% 75%, 25% 55%, 5% 50%, 20% 40%, 10% 20%, 35% 15%)',
+  wave:        'polygon(0% 60%, 10% 50%, 20% 55%, 30% 45%, 40% 50%, 50% 40%, 60% 50%, 70% 45%, 80% 55%, 90% 50%, 100% 60%, 100% 100%, 0% 100%)',
+  mountain:    'polygon(50% 0%, 80% 60%, 100% 100%, 0% 100%, 20% 60%)',
+  pine:        'polygon(50% 0%, 65% 30%, 58% 30%, 70% 55%, 62% 55%, 72% 80%, 55% 80%, 55% 100%, 45% 100%, 45% 80%, 28% 80%, 38% 55%, 30% 55%, 42% 30%, 35% 30%)',
+  leaf:        'polygon(50% 0%, 70% 15%, 85% 35%, 90% 55%, 80% 75%, 60% 90%, 50% 100%, 40% 90%, 20% 75%, 10% 55%, 15% 35%, 30% 15%)',
+  butterfly:   'polygon(50% 10%, 70% 0%, 90% 10%, 95% 30%, 80% 50%, 50% 45%, 20% 50%, 5% 30%, 10% 10%, 30% 0%)',
+  crown:       'polygon(10% 100%, 10% 50%, 0% 30%, 25% 50%, 35% 0%, 50% 35%, 65% 0%, 75% 50%, 100% 30%, 90% 50%, 90% 100%)',
+  anchor:      'polygon(45% 0%, 55% 0%, 55% 15%, 65% 15%, 65% 25%, 55% 25%, 55% 60%, 75% 45%, 85% 55%, 60% 70%, 60% 85%, 80% 85%, 80% 95%, 55% 95%, 55% 100%, 45% 100%, 45% 95%, 20% 95%, 20% 85%, 40% 85%, 40% 70%, 15% 55%, 25% 45%, 45% 60%, 45% 25%, 35% 25%, 35% 15%, 45% 15%)',
+  diamond:     'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+  moon:        'polygon(50% 0%, 65% 10%, 75% 25%, 80% 50%, 75% 75%, 65% 90%, 50% 100%, 40% 92%, 35% 80%, 38% 65%, 45% 50%, 38% 35%, 35% 20%, 40% 8%)',
+  music:       'polygon(25% 0%, 75% 0%, 75% 70%, 85% 65%, 90% 75%, 85% 85%, 75% 90%, 65% 85%, 65% 30%, 35% 30%, 35% 80%, 45% 75%, 50% 85%, 45% 95%, 35% 100%, 25% 95%, 25% 80%)',
+  feather:     'polygon(50% 0%, 55% 20%, 70% 30%, 58% 35%, 75% 50%, 60% 50%, 70% 65%, 55% 60%, 60% 80%, 50% 70%, 45% 85%, 48% 100%, 42% 80%, 40% 60%, 30% 65%, 40% 50%, 25% 50%, 42% 35%, 30% 30%, 45% 20%)',
+  hexagon:     'polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)',
+  cross:       'polygon(35% 0%, 65% 0%, 65% 35%, 100% 35%, 100% 65%, 65% 65%, 65% 100%, 35% 100%, 35% 65%, 0% 65%, 0% 35%, 35% 35%)',
+  lightning:   'polygon(40% 0%, 70% 0%, 55% 40%, 80% 40%, 35% 100%, 45% 55%, 20% 55%)',
+  flame:       'polygon(50% 0%, 65% 25%, 80% 50%, 75% 70%, 65% 85%, 55% 95%, 50% 100%, 45% 95%, 35% 85%, 25% 70%, 20% 50%, 35% 25%)',
+} as const;
+
+type ClipName = keyof typeof CLIP_PATHS;
+
+/**
+ * Themed motifs — maps vibe keywords to floating shapes + animation style.
+ *
+ * Each theme config:
+ *  - shapes: which clip-paths to use (picks randomly per particle)
+ *  - anim: which keyframe animation drives the particles
+ *  - pattern: optional CSS background-image overlay for texture
+ *  - opacity: particle opacity (default 0.12)
+ */
+interface ThemeConfig {
+  shapes: ClipName[];
+  anim: 'float' | 'fall' | 'sway' | 'gallop' | 'spiral' | 'twinkle' | 'rise';
+  pattern?: string;
+  opacity?: number;
+}
+
+const THEME_VOCAB: Record<string, ThemeConfig> = {
+  // ── Country / Western ──
+  country:    { shapes: ['star5', 'horseshoe', 'boot', 'hat'],   anim: 'sway',   pattern: 'plaid' },
+  western:    { shapes: ['star5', 'horseshoe', 'boot', 'hat'],   anim: 'sway',   pattern: 'plaid' },
+  cowboy:     { shapes: ['star5', 'horseshoe', 'boot', 'hat'],   anim: 'sway',   pattern: 'plaid' },
+  cowgirl:    { shapes: ['star5', 'horseshoe', 'boot', 'hat'],   anim: 'sway',   pattern: 'plaid' },
+  rodeo:      { shapes: ['star5', 'horseshoe', 'boot'],          anim: 'gallop', pattern: 'plaid' },
+  ranch:      { shapes: ['star5', 'horseshoe'],                  anim: 'sway',   pattern: 'plaid' },
+  horse:      { shapes: ['horseshoe', 'star5'],                  anim: 'gallop'  },
+  horses:     { shapes: ['horseshoe', 'star5'],                  anim: 'gallop'  },
+  equestrian: { shapes: ['horseshoe', 'star5'],                  anim: 'gallop'  },
+  barn:       { shapes: ['star5', 'horseshoe'],                  anim: 'sway',   pattern: 'plaid' },
+  farmhouse:  { shapes: ['star5', 'leaf'],                       anim: 'sway'    },
+
+  // ── Tropical / Beach ──
+  tropical:   { shapes: ['palmLeaf', 'wave', 'flame'],           anim: 'sway'    },
+  hawaii:     { shapes: ['palmLeaf', 'wave'],                    anim: 'sway'    },
+  hawaiian:   { shapes: ['palmLeaf', 'wave'],                    anim: 'sway'    },
+  island:     { shapes: ['palmLeaf', 'wave'],                    anim: 'sway'    },
+  beach:      { shapes: ['wave', 'palmLeaf', 'star5'],           anim: 'sway',   pattern: 'waves' },
+  coastal:    { shapes: ['wave', 'anchor'],                      anim: 'sway',   pattern: 'waves' },
+  ocean:      { shapes: ['wave', 'anchor'],                      anim: 'sway',   pattern: 'waves' },
+  nautical:   { shapes: ['anchor', 'wave', 'star5'],             anim: 'float',  pattern: 'waves' },
+  sailing:    { shapes: ['anchor', 'wave'],                      anim: 'float',  pattern: 'waves' },
+  surf:       { shapes: ['wave', 'palmLeaf'],                    anim: 'sway'    },
+
+  // ── Nature / Garden ──
+  garden:     { shapes: ['leaf', 'butterfly', 'palmLeaf'],       anim: 'float'   },
+  botanical:  { shapes: ['leaf', 'butterfly'],                   anim: 'float'   },
+  forest:     { shapes: ['pine', 'leaf', 'mountain'],            anim: 'float'   },
+  woodland:   { shapes: ['pine', 'leaf'],                        anim: 'float'   },
+  mountain:   { shapes: ['mountain', 'pine'],                    anim: 'rise',   pattern: 'peaks' },
+  mountains:  { shapes: ['mountain', 'pine'],                    anim: 'rise',   pattern: 'peaks' },
+  rustic:     { shapes: ['leaf', 'pine', 'star5'],               anim: 'fall'    },
+  natural:    { shapes: ['leaf', 'butterfly'],                   anim: 'float'   },
+  outdoor:    { shapes: ['mountain', 'pine', 'leaf'],            anim: 'float'   },
+  outdoors:   { shapes: ['mountain', 'pine', 'leaf'],            anim: 'float'   },
+  camping:    { shapes: ['pine', 'mountain', 'flame'],           anim: 'float'   },
+  adventure:  { shapes: ['mountain', 'pine', 'star5'],           anim: 'rise'    },
+  earthy:     { shapes: ['leaf', 'pine'],                        anim: 'fall'    },
+
+  // ── Celestial / Space ──
+  celestial:  { shapes: ['star4', 'moon', 'diamond'],            anim: 'twinkle', pattern: 'starfield' },
+  starry:     { shapes: ['star4', 'star5', 'moon'],              anim: 'twinkle', pattern: 'starfield' },
+  cosmic:     { shapes: ['star4', 'moon', 'diamond'],            anim: 'spiral',  pattern: 'starfield' },
+  galaxy:     { shapes: ['star4', 'moon'],                       anim: 'spiral',  pattern: 'starfield' },
+  space:      { shapes: ['star4', 'moon', 'diamond'],            anim: 'twinkle', pattern: 'starfield' },
+  night:      { shapes: ['star4', 'moon'],                       anim: 'twinkle', pattern: 'starfield' },
+  dreamy:     { shapes: ['star4', 'moon', 'butterfly'],          anim: 'float'   },
+
+  // ── Fairy tale / Fantasy ──
+  fairy:      { shapes: ['butterfly', 'star4', 'crown'],         anim: 'float',  opacity: 0.15 },
+  fairytale:  { shapes: ['crown', 'star4', 'butterfly'],         anim: 'float',  opacity: 0.15 },
+  princess:   { shapes: ['crown', 'diamond', 'star4'],           anim: 'float',  opacity: 0.15 },
+  enchanted:  { shapes: ['butterfly', 'star4', 'moon'],          anim: 'float'   },
+  magical:    { shapes: ['star4', 'moon', 'butterfly'],          anim: 'spiral'  },
+  whimsical:  { shapes: ['butterfly', 'star4', 'feather'],       anim: 'float'   },
+  ethereal:   { shapes: ['feather', 'star4', 'butterfly'],       anim: 'float'   },
+
+  // ── Gothic / Dark ──
+  gothic:     { shapes: ['cross', 'moon', 'flame'],              anim: 'rise',   opacity: 0.10 },
+  dark:       { shapes: ['moon', 'star4'],                       anim: 'twinkle' },
+  moody:      { shapes: ['moon', 'feather'],                     anim: 'float'   },
+  dramatic:   { shapes: ['lightning', 'flame'],                  anim: 'rise'    },
+
+  // ── Music / Party ──
+  music:      { shapes: ['music', 'star5'],                      anim: 'float'   },
+  concert:    { shapes: ['music', 'lightning', 'star5'],         anim: 'rise'    },
+  disco:      { shapes: ['diamond', 'star4', 'hexagon'],         anim: 'spiral', opacity: 0.18 },
+  festival:   { shapes: ['music', 'star5', 'flame'],             anim: 'rise'    },
+  jazz:       { shapes: ['music', 'star4'],                      anim: 'sway'    },
+  rock:       { shapes: ['lightning', 'star5', 'flame'],         anim: 'rise'    },
+
+  // ── Bohemian ──
+  bohemian:   { shapes: ['feather', 'moon', 'leaf'],             anim: 'sway'    },
+  boho:       { shapes: ['feather', 'moon', 'leaf'],             anim: 'sway'    },
+  hippie:     { shapes: ['feather', 'leaf', 'butterfly'],        anim: 'float'   },
+  free:       { shapes: ['feather', 'butterfly'],                anim: 'float'   },
+
+  // ── Art Deco / Glam ──
+  'art deco': { shapes: ['hexagon', 'diamond', 'star4'],         anim: 'twinkle', pattern: 'deco' },
+  deco:       { shapes: ['hexagon', 'diamond'],                  anim: 'twinkle', pattern: 'deco' },
+  gatsby:     { shapes: ['diamond', 'hexagon', 'star4'],         anim: 'twinkle', pattern: 'deco', opacity: 0.15 },
+  glamorous:  { shapes: ['diamond', 'star4', 'crown'],           anim: 'twinkle' },
+  glam:       { shapes: ['diamond', 'star4', 'crown'],           anim: 'twinkle' },
+  luxe:       { shapes: ['diamond', 'hexagon'],                  anim: 'twinkle' },
+  luxury:     { shapes: ['diamond', 'hexagon'],                  anim: 'twinkle' },
+  regal:      { shapes: ['crown', 'diamond', 'star4'],           anim: 'float'   },
+  royal:      { shapes: ['crown', 'diamond', 'star4'],           anim: 'float'   },
+
+  // ── Seasonal ──
+  spring:     { shapes: ['butterfly', 'leaf'],                   anim: 'float'   },
+  summer:     { shapes: ['palmLeaf', 'wave', 'flame'],           anim: 'sway'    },
+  autumn:     { shapes: ['leaf', 'pine'],                        anim: 'fall'    },
+  fall:       { shapes: ['leaf', 'pine'],                        anim: 'fall'    },
+  winter:     { shapes: ['star4', 'diamond'],                    anim: 'fall',   pattern: 'starfield' },
+  holiday:    { shapes: ['star5', 'pine'],                       anim: 'fall'    },
+  christmas:  { shapes: ['star5', 'pine'],                       anim: 'fall'    },
+
+  // ── Vineyard / Wine ──
+  vineyard:   { shapes: ['leaf', 'diamond'],                     anim: 'sway'    },
+  wine:       { shapes: ['leaf', 'diamond'],                     anim: 'sway'    },
+  tuscan:     { shapes: ['leaf', 'star4'],                       anim: 'sway'    },
+  tuscany:    { shapes: ['leaf', 'star4'],                       anim: 'sway'    },
+  winery:     { shapes: ['leaf', 'diamond'],                     anim: 'sway'    },
+
+  // ── Travel / Wanderlust ──
+  travel:     { shapes: ['mountain', 'star4', 'diamond'],        anim: 'float'   },
+  wanderlust: { shapes: ['mountain', 'star4'],                   anim: 'float'   },
+  passport:   { shapes: ['diamond', 'star5'],                    anim: 'float'   },
+
+  // ── Fire / Energy ──
+  fire:       { shapes: ['flame', 'lightning'],                  anim: 'rise'    },
+  fiery:      { shapes: ['flame', 'lightning'],                  anim: 'rise'    },
+  neon:       { shapes: ['lightning', 'hexagon', 'diamond'],     anim: 'spiral', opacity: 0.20 },
+  electric:   { shapes: ['lightning', 'star4'],                  anim: 'spiral'  },
+  bold:       { shapes: ['lightning', 'star5', 'diamond'],       anim: 'rise'    },
+
+  // ── Vintage / Retro ──
+  vintage:    { shapes: ['diamond', 'star4', 'hexagon'],         anim: 'float'   },
+  retro:      { shapes: ['hexagon', 'star5', 'diamond'],         anim: 'float'   },
+  antique:    { shapes: ['diamond', 'cross'],                    anim: 'float'   },
+
+  // ── Modern / Minimal ──
+  modern:     { shapes: ['hexagon', 'diamond'],                  anim: 'float',  opacity: 0.08 },
+  minimal:    { shapes: ['diamond'],                             anim: 'float',  opacity: 0.06 },
+  geometric:  { shapes: ['hexagon', 'diamond', 'star4'],         anim: 'spiral'  },
+  abstract:   { shapes: ['hexagon', 'diamond', 'star4'],         anim: 'spiral'  },
+
+  // ── Floral ──
+  floral:     { shapes: ['leaf', 'butterfly', 'palmLeaf'],       anim: 'fall'    },
+  wildflower: { shapes: ['leaf', 'butterfly'],                   anim: 'sway'    },
+  sunflower:  { shapes: ['star5', 'leaf'],                       anim: 'sway'    },
+  peony:      { shapes: ['leaf', 'butterfly'],                   anim: 'float'   },
+  cherry:     { shapes: ['leaf', 'star4'],                       anim: 'fall'    },
+};
+
+/** CSS background pattern overlays for themed textures */
+const PATTERN_CSS: Record<string, string> = {
+  plaid: `repeating-linear-gradient(
+    0deg,
+    rgba(139,69,19,0.03) 0px, rgba(139,69,19,0.03) 1px,
+    transparent 1px, transparent 20px
+  ),
+  repeating-linear-gradient(
+    90deg,
+    rgba(139,69,19,0.03) 0px, rgba(139,69,19,0.03) 1px,
+    transparent 1px, transparent 20px
+  ),
+  repeating-linear-gradient(
+    45deg,
+    rgba(139,69,19,0.02) 0px, rgba(139,69,19,0.02) 1px,
+    transparent 1px, transparent 28px
+  )`,
+  waves: `repeating-linear-gradient(
+    170deg,
+    transparent 0px, transparent 14px,
+    rgba(91,155,213,0.04) 14px, rgba(91,155,213,0.04) 16px,
+    transparent 16px, transparent 30px
+  ),
+  repeating-linear-gradient(
+    175deg,
+    transparent 0px, transparent 20px,
+    rgba(91,155,213,0.03) 20px, rgba(91,155,213,0.03) 22px,
+    transparent 22px, transparent 42px
+  )`,
+  starfield: `radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.4) 50%, transparent 100%),
+  radial-gradient(1px 1px at 30% 45%, rgba(255,255,255,0.3) 50%, transparent 100%),
+  radial-gradient(1.5px 1.5px at 55% 25%, rgba(255,255,255,0.5) 50%, transparent 100%),
+  radial-gradient(1px 1px at 70% 65%, rgba(255,255,255,0.3) 50%, transparent 100%),
+  radial-gradient(1px 1px at 85% 35%, rgba(255,255,255,0.4) 50%, transparent 100%),
+  radial-gradient(1.5px 1.5px at 20% 80%, rgba(255,255,255,0.35) 50%, transparent 100%),
+  radial-gradient(1px 1px at 45% 70%, rgba(255,255,255,0.3) 50%, transparent 100%),
+  radial-gradient(1px 1px at 92% 85%, rgba(255,255,255,0.4) 50%, transparent 100%)`,
+  peaks: `linear-gradient(
+    125deg,
+    transparent 40%,
+    rgba(100,100,100,0.03) 40%,
+    rgba(100,100,100,0.03) 42%,
+    transparent 42%,
+    transparent 58%,
+    rgba(100,100,100,0.02) 58%,
+    rgba(100,100,100,0.02) 60%,
+    transparent 60%
+  )`,
+  deco: `repeating-linear-gradient(
+    60deg,
+    transparent 0px, transparent 18px,
+    rgba(196,169,106,0.04) 18px, rgba(196,169,106,0.04) 20px,
+    transparent 20px, transparent 38px
+  ),
+  repeating-linear-gradient(
+    -60deg,
+    transparent 0px, transparent 18px,
+    rgba(196,169,106,0.04) 18px, rgba(196,169,106,0.04) 20px,
+    transparent 20px, transparent 38px
+  )`,
+};
+
+/**
+ * Detect the best-matching theme config from a vibe string.
+ * Returns first match (longest-key-first) or null.
+ */
+function detectTheme(vibe?: string): (ThemeConfig & { keyword: string }) | null {
+  if (!vibe) return null;
+  const v = vibe.toLowerCase();
+  const sortedKeys = Object.keys(THEME_VOCAB).sort((a, b) => b.length - a.length);
+  for (const key of sortedKeys) {
+    if (v.includes(key)) {
+      return { ...THEME_VOCAB[key], keyword: key };
+    }
+  }
+  return null;
+}
+
 /* ── Keyframes (injected once via <style>) ───────────────────── */
 
 const KEYFRAMES = `
@@ -420,6 +683,75 @@ const KEYFRAMES = `
 @keyframes lc-vortex {
   0%   { transform: translate(var(--lc-x), var(--lc-y)) scale(1); opacity: 0.6; }
   100% { transform: translate(0, 0) scale(0.1); opacity: 0; }
+}
+
+/* ── Themed animations ── */
+
+/* Float — gentle meander */
+@keyframes lc-theme-float {
+  0%   { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  10%  { opacity: var(--lc-op, 0.12); }
+  50%  { transform: translate(25px, -35px) rotate(15deg); }
+  90%  { opacity: var(--lc-op, 0.12); }
+  100% { transform: translate(-10px, -70px) rotate(-5deg); opacity: 0; }
+}
+
+/* Sway — pendulum side-to-side with slow descent */
+@keyframes lc-theme-sway {
+  0%   { transform: translateX(0) translateY(0) rotate(-8deg); opacity: 0; }
+  10%  { opacity: var(--lc-op, 0.12); }
+  25%  { transform: translateX(30px) translateY(-15px) rotate(8deg); }
+  50%  { transform: translateX(-20px) translateY(-30px) rotate(-12deg); }
+  75%  { transform: translateX(25px) translateY(-50px) rotate(6deg); }
+  90%  { opacity: var(--lc-op, 0.12); }
+  100% { transform: translateX(0px) translateY(-80px) rotate(-3deg); opacity: 0; }
+}
+
+/* Gallop — bouncy horizontal movement */
+@keyframes lc-theme-gallop {
+  0%   { transform: translateX(0) translateY(0) scaleX(1); opacity: 0; }
+  8%   { opacity: var(--lc-op, 0.12); }
+  15%  { transform: translateX(20px) translateY(-18px) scaleX(1.05); }
+  30%  { transform: translateX(45px) translateY(0px) scaleX(0.95); }
+  45%  { transform: translateX(65px) translateY(-20px) scaleX(1.05); }
+  60%  { transform: translateX(90px) translateY(0px) scaleX(0.95); }
+  75%  { transform: translateX(110px) translateY(-15px) scaleX(1.03); }
+  90%  { opacity: var(--lc-op, 0.12); }
+  100% { transform: translateX(130px) translateY(-5px) scaleX(1); opacity: 0; }
+}
+
+/* Spiral — slow rotating outward */
+@keyframes lc-theme-spiral {
+  0%   { transform: translate(0, 0) rotate(0deg) scale(0.8); opacity: 0; }
+  10%  { opacity: var(--lc-op, 0.12); }
+  50%  { transform: translate(30px, -40px) rotate(180deg) scale(1.1); }
+  90%  { opacity: var(--lc-op, 0.12); }
+  100% { transform: translate(-20px, -80px) rotate(360deg) scale(0.6); opacity: 0; }
+}
+
+/* Rise — float upward with slight wobble */
+@keyframes lc-theme-rise {
+  0%   { transform: translateY(0) translateX(0) scale(0.9); opacity: 0; }
+  10%  { opacity: var(--lc-op, 0.12); }
+  30%  { transform: translateY(-30vh) translateX(10px) scale(1); }
+  60%  { transform: translateY(-55vh) translateX(-8px) scale(1.05); }
+  90%  { opacity: var(--lc-op, 0.12); }
+  100% { transform: translateY(-85vh) translateX(5px) scale(0.9); opacity: 0; }
+}
+
+/* Fall — themed version of petal fall with opacity variable */
+@keyframes lc-theme-fall {
+  0%   { transform: translateY(-10%) translateX(0) rotate(0deg); opacity: 0; }
+  10%  { opacity: var(--lc-op, 0.12); }
+  50%  { transform: translateY(50vh) translateX(25px) rotate(180deg); }
+  90%  { opacity: var(--lc-op, 0.12); }
+  100% { transform: translateY(110vh) translateX(40px) rotate(360deg); opacity: 0; }
+}
+
+/* Twinkle — themed pulse in/out */
+@keyframes lc-theme-twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.6) rotate(0deg); }
+  50%      { opacity: var(--lc-op, 0.12); transform: scale(1.1) rotate(15deg); }
 }
 `;
 
@@ -498,7 +830,33 @@ export function LivingCanvas({
     }));
   }, [photoCount]);
 
-  /* Total particle count guard: orbs(4) + particles(12) + photoSlots(8) = max 24 but we're under 20 active animated */
+  /* Themed shapes — driven by vibe keywords (max 10) */
+  const theme = useMemo(() => detectTheme(vibe), [vibe]);
+  const themeColors = useMemo(() => occasionColors(occasion, vibe), [occasion, vibe]);
+
+  const themedShapes = useMemo(() => {
+    if (!theme) return [];
+    const count = 10;
+    return Array.from({ length: count }, (_, i) => {
+      const shapeName = theme.shapes[i % theme.shapes.length];
+      return {
+        key: `theme-${i}`,
+        clipPath: CLIP_PATHS[shapeName],
+        color: themeColors[i % themeColors.length],
+        size: 18 + Math.random() * 22,
+        left: `${3 + Math.random() * 94}%`,
+        top: `${50 + Math.random() * 45}%`,
+        delay: `${-Math.random() * 16}s`,
+        duration: `${12 + Math.random() * 10}s`,
+        opacity: theme.opacity ?? 0.12,
+        anim: theme.anim,
+      };
+    });
+  }, [theme, themeColors]);
+
+  const patternOverlay = theme?.pattern ? PATTERN_CSS[theme.pattern] ?? null : null;
+
+  /* Total particle count: orbs(4) + particles(12) + themedShapes(10) + photoSlots(8) = max 34, but most states < 24 */
 
   return (
     <>
@@ -618,6 +976,41 @@ export function LivingCanvas({
             />
           );
         })}
+
+        {/* ── Themed shapes (vibe-driven clip-path particles) ── */}
+        {themedShapes.map((s) => (
+          <div
+            key={s.key}
+            style={{
+              position: 'absolute',
+              left: s.left,
+              top: s.top,
+              width: s.size,
+              height: s.size,
+              background: s.color,
+              clipPath: s.clipPath,
+              willChange: 'transform, opacity',
+              opacity: 0,
+              '--lc-op': String(s.opacity),
+              animation: isGenerating
+                ? `lc-vortex 3s ease-in forwards`
+                : `lc-theme-${s.anim} ${s.duration} ease-in-out infinite`,
+              animationDelay: s.delay,
+            } as React.CSSProperties}
+          />
+        ))}
+
+        {/* ── Pattern texture overlay ── */}
+        {patternOverlay && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage: patternOverlay,
+              pointerEvents: 'none',
+            }}
+          />
+        )}
 
         {/* ── Names watermark ── */}
         {names && names[0] && (
