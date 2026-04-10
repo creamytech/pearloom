@@ -466,7 +466,13 @@ interface SiteRendererProps {
 }
 
 export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBlockDrop, onBlockReorder, onBlockCopy, onBlockPaste, editMode = true, selectedBlockId, onBlockAction, hasClipboard, externalDrag }: SiteRendererProps) {
-  const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
+  // Guard against malformed `vibeSkin` values (e.g. legacy drafts or partial
+  // skeletons) that are missing the `palette` field entirely. Without this
+  // fallback, `enforcePaletteContrast` throws "Cannot read properties of
+  // undefined (reading 'foreground')" and breaks the whole renderer.
+  const vibeSkin = (manifest.vibeSkin && manifest.vibeSkin.palette)
+    ? manifest.vibeSkin
+    : deriveVibeSkin(manifest.vibeString || '');
   // Enforce contrast at render time — catches palettes saved before the update
   const pal = enforcePaletteContrast(vibeSkin.palette);
 

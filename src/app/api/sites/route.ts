@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import { saveSiteDraft } from '@/lib/db';
+import { mirrorDraftThumbnails } from '@/lib/mirror-photos';
 
 // Force this route to always be server-rendered (never statically collected)
 export const dynamic = 'force-dynamic';
@@ -74,10 +75,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing subdomain or manifest' }, { status: 400 });
     }
 
+    // Mirror dashboard-facing photos (coverPhoto + first chapter image) to
+    // permanent storage so they don't 403 when Google Picker tokens expire.
+    // Failures fall back to the original URL — never block the save.
+    let manifestToSave = manifest;
+    if (session.accessToken) {
+      try {
+        manifestToSave = await mirrorDraftThumbnails(
+          manifest,
+          session.accessToken as string,
+          subdomain,
+        );
+      } catch (err) {
+        console.warn('[api/sites] Draft thumbnail mirror failed (non-fatal):', err);
+      }
+    }
+
     const result = await saveSiteDraft(
       session.user.email,
       subdomain,
-      manifest,
+      manifestToSave,
       names || ['', '']
     );
 

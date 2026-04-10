@@ -61,7 +61,9 @@ function getVideoEmbedUrl(url?: string): string | null {
 
 // ── Subpage preview (mirrors [domain]/[page] route) ──────────
 function SubpagePreview({ page, manifest, names, rawParams }: { page: string; manifest: StoryManifest; names: [string, string]; rawParams?: string }) {
-  const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
+  const vibeSkin = (manifest.vibeSkin && manifest.vibeSkin.palette)
+    ? manifest.vibeSkin
+    : deriveVibeSkin(manifest.vibeString || '');
   const pal = enforcePaletteContrast(vibeSkin.palette);
   const bgColor = pal.background;
   const cardBg = pal.card;
@@ -209,7 +211,9 @@ function PreviewContent() {
   }
 
   // Derive visual skin
-  const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
+  const vibeSkin = (manifest.vibeSkin && manifest.vibeSkin.palette)
+    ? manifest.vibeSkin
+    : deriveVibeSkin(manifest.vibeString || '');
   const pal = enforcePaletteContrast(vibeSkin.palette);
   const bgColor = pal.background;
   const cardBg = pal.card;

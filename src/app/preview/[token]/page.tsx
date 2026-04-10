@@ -247,7 +247,9 @@ function getVideoEmbedUrl(url?: string): string | null {
 
 // ── Site Renderer ────────────────────────────────────────────────────────────
 function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
-  const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
+  const vibeSkin = (manifest.vibeSkin && manifest.vibeSkin.palette)
+    ? manifest.vibeSkin
+    : deriveVibeSkin(manifest.vibeString || '');
   const pal = vibeSkin.palette;
   const bgColor = pal.background;
   const cardBg = pal.card;

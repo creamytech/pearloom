@@ -13,6 +13,7 @@ import { LocationAutocomplete } from '@/components/wizard/LocationAutocomplete';
 import { StyleDiscoveryCard, ColorPaletteCard } from '@/components/wizard/WizardCardsB';
 import { PearCalendar } from '@/components/wizard/PearCalendar';
 import { SiteRenderer } from '@/components/editor/SiteRenderer';
+import { deriveVibeSkin } from '@/lib/vibe-engine';
 import type { StoryManifest } from '@/types';
 
 interface PearSpotlightProps {
@@ -555,6 +556,23 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       return raw.includes('googleusercontent') ? `/api/photos/proxy?url=${encodeURIComponent(raw)}&w=1200&h=1200` : raw;
     }).filter(Boolean);
 
+    // Build a properly-shaped VibeSkin from the fallback derivation so every
+    // required field (including `palette`) exists. Then override the palette
+    // colors with the user's chosen palette so the live preview reflects their
+    // selection instantly.
+    const vibeString = `${c.occasion} ${c.vibe || ''}`.trim();
+    const baseVibeSkin = deriveVibeSkin(vibeString);
+    const skeletonVibeSkin = {
+      ...baseVibeSkin,
+      palette: {
+        ...baseVibeSkin.palette,
+        background: paletteColors[2] || baseVibeSkin.palette.background,
+        foreground: paletteColors[3] || baseVibeSkin.palette.foreground,
+        accent: paletteColors[0] || baseVibeSkin.palette.accent,
+        accent2: paletteColors[1] || baseVibeSkin.palette.accent2,
+      },
+    };
+
     const skeleton: any = {
       occasion: c.occasion,
       coupleId: c.names.filter(Boolean).join(' & '),
@@ -573,22 +591,8 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       },
       coverPhoto: photoUrls[0] || '',
       heroSlideshow: photoUrls.slice(0, 5),
-      vibeString: `${c.occasion} ${c.vibe || ''}`.trim(),
-      vibeSkin: {
-        colors: {
-          background: paletteColors[2] || '#FAF7F2',
-          foreground: paletteColors[3] || '#3D3530',
-          accent: paletteColors[0] || '#A3B18A',
-          accentLight: paletteColors[1] || '#C4A96A',
-          muted: '#8C7E72',
-          cardBg: 'rgba(255,255,255,0.8)',
-        },
-        fonts: {
-          heading: 'Playfair Display',
-          body: 'Lora',
-        },
-        particle: null,
-      },
+      vibeString,
+      vibeSkin: skeletonVibeSkin,
       chapters: [],
       blocks: [
         { id: 'hero-skel', type: 'hero', visible: true, config: { title: c.names.filter(Boolean).join(' & ') } },

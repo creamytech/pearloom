@@ -87,8 +87,12 @@ export async function generateMetadata(
     ? `${displayNames}'s love story — ${vibeString.slice(0, 120)}${vibeString.length > 120 ? '...' : ''}`
     : `${displayNames}'s ${occasionDescLabel[occasion] || 'wedding website'}. ${chapterCount} chapters of their story.`;
 
-  // Derive vibeSkin for themed OG image colors & fonts
-  const vibeSkin = manifest?.vibeSkin || deriveVibeSkin(manifest?.vibeString || '');
+  // Derive vibeSkin for themed OG image colors & fonts.
+  // Guard against malformed skins missing the palette field so metadata
+  // generation never crashes on "foreground of undefined".
+  const vibeSkin = (manifest?.vibeSkin && manifest.vibeSkin.palette)
+    ? manifest.vibeSkin
+    : deriveVibeSkin(manifest?.vibeString || '');
   const tagline = manifest?.poetry?.heroTagline || siteConfig.tagline || vibeString || '';
 
   const siteUrl = `https://${domain}.pearloom.com`;
@@ -227,8 +231,12 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     ...(coverPhotoUrl ? { image: coverPhotoUrl.startsWith('/') ? `https://pearloom.com${coverPhotoUrl}` : coverPhotoUrl } : {}),
   } : null;
 
-  // Use cached AI skin if available, fall back to deterministic
-  const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
+  // Use cached AI skin if available, fall back to deterministic.
+  // Also recover from malformed skins (no palette) which would otherwise
+  // crash with "Cannot read properties of undefined (reading 'foreground')".
+  const vibeSkin = (manifest.vibeSkin && manifest.vibeSkin.palette)
+    ? manifest.vibeSkin
+    : deriveVibeSkin(manifest.vibeString || '');
 
   // Derive ALL colors from the AI-generated palette (with contrast enforcement)
   const pal = enforcePaletteContrast(vibeSkin.palette);
