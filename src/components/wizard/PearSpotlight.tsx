@@ -1446,161 +1446,134 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                 const photo = selectedPhotos[photoReviewIndex];
                 const rawUrl = photo?.baseUrl || photo?.url || photo?.uri || '';
                 const photoUrl = rawUrl.includes('googleusercontent')
-                  ? `/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=600&h=400`
+                  ? `/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=800&h=800`
                   : rawUrl;
                 const isLast = photoReviewIndex === selectedPhotos.length - 1;
                 const notes = photoNotes[photoReviewIndex] || {};
                 const currentLocation = notes.location || '';
                 const currentDate = notes.date || '';
                 const currentNote = notes.note || '';
-                const hasGeoLocation = !!photo?.location?.latitude;
 
                 return (
-                  <div>
-                    {/* Photo display — taller, aspect-ratio preserved */}
-                    {photoUrl && (
-                      <div style={{ width: '100%', borderRadius: 14, overflow: 'hidden', marginBottom: 10, position: 'relative', aspectRatio: '4/3', background: '#1a1a1a' }}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={photoUrl}
-                          alt={`Photo ${photoReviewIndex + 1}`}
-                          style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
-                        />
-                        {/* Counter overlay */}
-                        <div style={{
-                          position: 'absolute', top: 10, left: 10,
-                          padding: '4px 12px', borderRadius: 100,
-                          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)',
-                          fontSize: '0.7rem', fontWeight: 600, color: '#fff',
-                        }}>
-                          {photoReviewIndex + 1} / {selectedPhotos.length}
-                        </div>
-                        {/* Date overlay */}
-                        {currentDate && (
+                  <div style={{ margin: '-56px -28px -28px', display: 'flex', flexDirection: 'column' }}>
+                    {/* Photo — full bleed, hero size */}
+                    <div style={{ position: 'relative', width: '100%', aspectRatio: '3/4', maxHeight: '50vh', overflow: 'hidden' }}>
+                      {photoUrl && (
+                        <>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={photoUrl}
+                            alt={`Photo ${photoReviewIndex + 1}`}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                          />
+                          {/* Gradient overlay for text readability */}
                           <div style={{
-                            position: 'absolute', bottom: 10, left: 10,
-                            padding: '4px 12px', borderRadius: 100,
-                            background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)',
-                            fontSize: '0.7rem', fontWeight: 600, color: '#fff',
-                          }}>
+                            position: 'absolute', inset: 0,
+                            background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 30%, transparent 60%, rgba(0,0,0,0.5) 100%)',
+                            pointerEvents: 'none',
+                          }} />
+                        </>
+                      )}
+                      {/* Top bar — counter + date */}
+                      <div style={{
+                        position: 'absolute', top: 0, left: 0, right: 0,
+                        padding: '16px 16px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff', letterSpacing: '0.05em' }}>
+                          {photoReviewIndex + 1} / {selectedPhotos.length}
+                        </span>
+                        {currentDate && (
+                          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>
                             {currentDate}
-                          </div>
+                          </span>
                         )}
                       </div>
-                    )}
-
-                    {/* Location — detected, detecting, or user-input */}
-                    {detectingLocation ? (
-                      <div style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                        marginBottom: 10, padding: '8px 14px',
-                      }}>
-                        <div style={{
-                          width: 14, height: 14, borderRadius: '50%',
-                          border: '2px solid var(--pl-olive)',
-                          borderTopColor: 'transparent',
-                          animation: 'spin 0.8s linear infinite',
-                        }} />
-                        <span style={{ fontSize: '0.78rem', color: mutedColor, fontStyle: 'italic' }}>
-                          Detecting location...
-                        </span>
-                        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                      {/* Bottom — location badge or detecting */}
+                      <div style={{ position: 'absolute', bottom: 12, left: 16, right: 16 }}>
+                        {detectingLocation ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <div style={{
+                              width: 12, height: 12, borderRadius: '50%',
+                              border: '2px solid #fff', borderTopColor: 'transparent',
+                              animation: 'spin 0.8s linear infinite',
+                            }} />
+                            <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)', fontStyle: 'italic' }}>
+                              Detecting location...
+                            </span>
+                            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                          </div>
+                        ) : notes.locationDetected && currentLocation ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+                            </svg>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#fff' }}>
+                              {currentLocation}
+                            </span>
+                          </div>
+                        ) : null}
                       </div>
-                    ) : notes.locationDetected && currentLocation ? (
-                      <div style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                        marginBottom: 10, padding: '6px 14px', borderRadius: 100,
-                        background: 'rgba(163,177,138,0.12)', alignSelf: 'center',
-                        width: 'fit-content', margin: '0 auto 10px',
-                      }}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--pl-olive)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
-                        </svg>
-                        <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--pl-olive)' }}>
-                          {currentLocation}
-                        </span>
-                      </div>
-                    ) : (
-                      <div style={{ marginBottom: 10 }}>
-                        <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, color: mutedColor, marginBottom: 4, textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>
-                          Where was this taken?
-                        </label>
-                        <input
-                          value={currentLocation}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setPhotoNotes(prev => ({
-                              ...prev,
-                              [photoReviewIndex]: { ...prev[photoReviewIndex], location: val },
-                            }));
-                          }}
-                          placeholder="e.g. Miami Beach, Paris, Grandma's house"
-                          style={{
-                            width: '100%', height: 40, padding: '0 14px',
-                            fontSize: '0.85rem', borderRadius: 10,
-                            border: inputBorder, background: inputBg,
-                            backdropFilter: 'blur(8px)', outline: 'none',
-                            color: textColor, fontFamily: 'inherit',
-                            boxSizing: 'border-box' as const,
-                          } as React.CSSProperties}
-                        />
-                      </div>
-                    )}
-
-                    {/* Moment description */}
-                    <div style={{ marginBottom: 12 }}>
-                      <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, color: mutedColor, marginBottom: 4, textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>
-                        What was happening?
-                      </label>
-                      <input
-                        value={currentNote}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setPhotoNotes(prev => ({
-                            ...prev,
-                            [photoReviewIndex]: { ...prev[photoReviewIndex], note: val },
-                          }));
-                        }}
-                        placeholder="A quick note about this moment..."
-                        style={{
-                          width: '100%', height: 40, padding: '0 14px',
-                          fontSize: '0.85rem', borderRadius: 10,
-                          border: inputBorder, background: inputBg,
-                          backdropFilter: 'blur(8px)', outline: 'none',
-                          color: textColor, fontFamily: 'inherit',
-                          boxSizing: 'border-box' as const,
-                        } as React.CSSProperties}
-                      />
                     </div>
 
-                    {/* Action buttons */}
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <button
-                        onClick={() => setReviewDone(true)}
+                    {/* Controls strip — compact, below photo */}
+                    <div style={{ padding: '16px 20px 20px' }}>
+                      {/* Location input (only if not auto-detected) */}
+                      {!notes.locationDetected && (
+                        <input
+                          value={currentLocation}
+                          onChange={(e) => setPhotoNotes(prev => ({
+                            ...prev,
+                            [photoReviewIndex]: { ...prev[photoReviewIndex], location: e.target.value },
+                          }))}
+                          placeholder="Where was this taken?"
+                          style={{
+                            width: '100%', height: 38, padding: '0 14px',
+                            fontSize: '0.82rem', borderRadius: 10,
+                            border: inputBorder, background: inputBg,
+                            outline: 'none', color: textColor, fontFamily: 'inherit',
+                            boxSizing: 'border-box' as const, marginBottom: 8,
+                          } as React.CSSProperties}
+                        />
+                      )}
+                      {/* Note input */}
+                      <input
+                        value={currentNote}
+                        onChange={(e) => setPhotoNotes(prev => ({
+                          ...prev,
+                          [photoReviewIndex]: { ...prev[photoReviewIndex], note: e.target.value },
+                        }))}
+                        placeholder="What was happening?"
                         style={{
-                          flex: 1, padding: '12px 0', borderRadius: 100,
-                          background: ghostBg, border: ghostBorder,
-                          fontSize: '0.85rem', fontWeight: 600, color: textColor, cursor: 'pointer',
-                        }}
-                      >
-                        Skip all
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (isLast) {
-                            setReviewDone(true);
-                          } else {
-                            setPhotoReviewIndex(prev => prev + 1);
-                          }
-                        }}
-                        style={{
-                          flex: 1, padding: '12px 0', borderRadius: 100,
-                          background: 'var(--pl-olive, #A3B18A)', border: 'none',
-                          fontSize: '0.85rem', fontWeight: 600, color: '#fff', cursor: 'pointer',
-                        }}
-                      >
-                        {isLast ? 'Done' : 'Next'}
-                      </button>
+                          width: '100%', height: 38, padding: '0 14px',
+                          fontSize: '0.82rem', borderRadius: 10,
+                          border: inputBorder, background: inputBg,
+                          outline: 'none', color: textColor, fontFamily: 'inherit',
+                          boxSizing: 'border-box' as const, marginBottom: 12,
+                        } as React.CSSProperties}
+                      />
+                      {/* Action buttons */}
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button
+                          onClick={() => setReviewDone(true)}
+                          style={{
+                            flex: 1, padding: '11px 0', borderRadius: 100,
+                            background: ghostBg, border: ghostBorder,
+                            fontSize: '0.82rem', fontWeight: 600, color: textColor, cursor: 'pointer',
+                          }}
+                        >
+                          Skip all
+                        </button>
+                        <button
+                          onClick={() => isLast ? setReviewDone(true) : setPhotoReviewIndex(prev => prev + 1)}
+                          style={{
+                            flex: 1, padding: '11px 0', borderRadius: 100,
+                            background: 'var(--pl-olive, #A3B18A)', border: 'none',
+                            fontSize: '0.82rem', fontWeight: 700, color: '#fff', cursor: 'pointer',
+                          }}
+                        >
+                          {isLast ? 'Done' : 'Next'}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
