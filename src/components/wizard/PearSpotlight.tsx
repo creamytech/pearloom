@@ -303,7 +303,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const [vibeDescription, setVibeDescription] = useState(''); // raw user input before palette generation
   const [generatedPalettes, setGeneratedPalettes] = useState<{name: string; colors: string[]; description: string}[]>([]);
   const [photoReviewIndex, setPhotoReviewIndex] = useState(0);
-  const [photoNotes, setPhotoNotes] = useState<Record<number, { location?: string; date?: string; note?: string }>>({});
+  const [photoNotes, setPhotoNotes] = useState<Record<number, { location?: string; locationDetected?: boolean; date?: string; note?: string }>>({});
   const [reviewDone, setReviewDone] = useState(false);
   const [genStep, setGenStep] = useState(0);
   const [completedData, setCompletedData] = useState<{ manifest: any; names: [string, string]; subdomain: string } | null>(null);
@@ -383,7 +383,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data?.location) {
-          setPhotoNotes(prev => ({ ...prev, [photoReviewIndex]: { ...prev[photoReviewIndex], location: data.location } }));
+          setPhotoNotes(prev => ({ ...prev, [photoReviewIndex]: { ...prev[photoReviewIndex], location: data.location, locationDetected: true } }));
         }
       })
       .catch(() => {})
@@ -1431,14 +1431,14 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
 
                 return (
                   <div>
-                    {/* Photo display */}
+                    {/* Photo display — taller, aspect-ratio preserved */}
                     {photoUrl && (
-                      <div style={{ width: '100%', maxHeight: 220, borderRadius: 14, overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
+                      <div style={{ width: '100%', borderRadius: 14, overflow: 'hidden', marginBottom: 10, position: 'relative', aspectRatio: '4/3', background: '#1a1a1a' }}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={photoUrl}
                           alt={`Photo ${photoReviewIndex + 1}`}
-                          style={{ width: '100%', maxHeight: 220, objectFit: 'cover', display: 'block' }}
+                          style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
                         />
                         {/* Counter overlay */}
                         <div style={{
@@ -1480,7 +1480,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                         </span>
                         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
                       </div>
-                    ) : currentLocation ? (
+                    ) : notes.locationDetected && currentLocation ? (
                       <div style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                         marginBottom: 10, padding: '6px 14px', borderRadius: 100,
