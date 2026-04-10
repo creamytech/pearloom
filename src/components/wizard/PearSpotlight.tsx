@@ -10,6 +10,7 @@ import { PhotoBrowser } from '@/components/dashboard/photo-browser';
 import { LivingCanvas } from '@/components/wizard/LivingCanvas';
 import { OccasionCard, SitePreviewCard } from '@/components/wizard/WizardCards';
 import { StyleDiscoveryCard, ColorPaletteCard } from '@/components/wizard/WizardCardsB';
+import { PearCalendar } from '@/components/wizard/PearCalendar';
 import { SiteRenderer } from '@/components/editor/SiteRenderer';
 import type { StoryManifest } from '@/types';
 
@@ -1249,90 +1250,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
 
               {/* ── Date step ── */}
               {step === 'date' && (
-                <div>
-                  {/* Quick presets */}
-                  <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                    <button
-                      onClick={() => handleDateSubmit(getThisWeekend())}
-                      style={{
-                        flex: 1,
-                        padding: '10px 0',
-                        borderRadius: 12,
-                        background: 'rgba(255,255,255,0.5)',
-                        backdropFilter: 'blur(8px)',
-                        WebkitBackdropFilter: 'blur(8px)',
-                        border: '1px solid rgba(255,255,255,0.4)',
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        color: 'var(--pl-ink-soft)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      This weekend
-                    </button>
-                    <button
-                      onClick={() => handleDateSubmit(getNextMonth())}
-                      style={{
-                        flex: 1,
-                        padding: '10px 0',
-                        borderRadius: 12,
-                        background: 'rgba(255,255,255,0.5)',
-                        backdropFilter: 'blur(8px)',
-                        WebkitBackdropFilter: 'blur(8px)',
-                        border: '1px solid rgba(255,255,255,0.4)',
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        color: 'var(--pl-ink-soft)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Next month
-                    </button>
-                  </div>
-                  {/* Date input + confirm */}
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <input
-                      type="date"
-                      id="spotlight-date"
-                      style={{
-                        flex: 1,
-                        height: 48,
-                        padding: '0 12px',
-                        fontSize: '0.9rem',
-                        borderRadius: 14,
-                        border: '1px solid rgba(255,255,255,0.5)',
-                        background: 'rgba(255,255,255,0.5)',
-                        backdropFilter: 'blur(8px)',
-                        WebkitBackdropFilter: 'blur(8px)',
-                        outline: 'none',
-                        color: 'var(--pl-ink-soft)',
-                        fontFamily: 'inherit',
-                      }}
-                    />
-                    <button
-                      onClick={() => {
-                        const el = document.getElementById('spotlight-date') as HTMLInputElement | null;
-                        if (el?.value) {
-                          handleDateSubmit(el.value);
-                        }
-                      }}
-                      style={{
-                        padding: '0 20px',
-                        height: 48,
-                        borderRadius: 14,
-                        background: 'var(--pl-olive, #A3B18A)',
-                        border: 'none',
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        color: '#fff',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      Confirm
-                    </button>
-                  </div>
-                </div>
+                <PearCalendar onSelect={handleDateSubmit} dark={dark} />
               )}
 
               {/* ── Venue step ── */}
