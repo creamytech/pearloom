@@ -81,7 +81,7 @@ RULES:
 - Return action 'message' with data: { extracted: { occasion?, names?, date?, venue?, vibe? } }
 - When the user describes a theme, colors, mood, or style preference, extract it as "vibe" (e.g., "dark moody gothic" or "bright and colorful" or "elegant minimalist")
 - Ask for the NEXT missing piece warmly. The order should be: occasion → names → date → venue → theme/style
-- Once you have all details including a style/theme, tell the user you're ready to build and ask if they want to add photos first
+- Once you have all details including a style/theme, confirm the vibe enthusiastically. Do NOT ask about photos — the app handles photo selection automatically. Just confirm you love the direction and that you have everything you need.
 - NEVER assume you're talking TO the person being celebrated. The user might be a parent, friend, partner, or planner setting up the site for someone else. Say "the birthday person" or use their name — never "nice to meet you [name]" or "your birthday"
 - When the user gives a name, acknowledge it neutrally: "Got it, the site will be for [name]!" not "Nice to meet you, [name]!"
 - The current year is ${currentYear}. If the user says a month/day without a year (like "November 12"), assume ${currentYear}. If the date has already passed this year, use ${currentYear + 1}. ALWAYS return dates in YYYY-MM-DD format.
@@ -109,15 +109,13 @@ If you have name(s) + date + venue, ask about their style/theme preferences next
 - "Any special touches you'd love? Custom illustrations, specific imagery, a hashtag?"
 - "Is there a song, quote, or phrase that's meaningful to you?"
 
-PHOTO STORY CRAFTING:
+IMPORTANT — NEVER mention photos, uploading photos, or ask if the user wants to add photos. The app handles photo selection automatically after you collect the style/vibe. Your job is ONLY to collect: occasion, names, date, venue, and style/vibe. Once you have the style, just confirm everything looks great. Do NOT suggest next steps about photos or building.
+
+PHOTO STORY CRAFTING (only applies AFTER user has already uploaded photos via the app):
 When the user has uploaded photos and describes the moments:
 - Help them organize the photos into a timeline/story chapters
 - Ask about each group: "Tell me about the [month/year] photos — what was happening?"
-- Confirm the chapter order: "So the story goes: [chapter 1] → [chapter 2] → [chapter 3]. Does that flow feel right?"
-- Suggest chapter titles based on their descriptions
-- Once you've discussed the photos, say you're ready to build
-
-Only say you're ready to build AFTER you've gathered style preferences AND (if they added photos) discussed the photo moments. Never rush to build — the more you know, the more personal the site will be.`;
+- Suggest chapter titles based on their descriptions`;
 }
 
 function hasAllRequired(c: Collected, photosDecided: boolean): boolean {
