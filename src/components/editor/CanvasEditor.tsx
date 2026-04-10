@@ -852,6 +852,8 @@ function BlockConfigPanel({
   };
 
   const [galleryOpen, setGalleryOpen] = useState(false);
+  const [slideshowGalleryOpen, setSlideshowGalleryOpen] = useState(false);
+  const slideshowUploadRef = useRef<HTMLInputElement>(null);
 
   const noConfig = (
     <p style={{ fontSize: '0.75rem', color: 'var(--pl-ink-soft)', lineHeight: 1.6 }}>
@@ -1047,40 +1049,116 @@ function BlockConfigPanel({
               <div style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--pl-muted)', marginBottom: '6px' }}>
                 Photo Slideshow {slideshowPhotos.length > 0 && `· ${slideshowPhotos.length}`}
               </div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--pl-muted)', marginBottom: '6px', lineHeight: 1.4 }}>
-                Add multiple photos for an auto-rotating hero slideshow
+              <div style={{ fontSize: '0.7rem', color: 'var(--pl-muted)', marginBottom: '8px', lineHeight: 1.4 }}>
+                Add photos for an auto-rotating hero slideshow with Ken Burns transitions
               </div>
-              {slideshowPhotos.map((url, i) => (
-                <div key={i} style={{ display: 'flex', gap: '4px', marginBottom: '4px', alignItems: 'center' }}>
-                  <MiniInput
-                    label={`Photo ${i + 1}`}
-                    value={url}
-                    onChange={v => {
-                      const updated = [...slideshowPhotos];
-                      updated[i] = v;
-                      onChange({ ...manifest, heroSlideshow: updated });
-                    }}
-                    placeholder="Paste an image link"
-                  />
-                  <button
-                    onClick={() => onChange({ ...manifest, heroSlideshow: slideshowPhotos.filter((_, j) => j !== i) })}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#e87171', fontSize: '0.8rem', padding: '4px', flexShrink: 0 }}
-                    title="Remove"
-                  >×</button>
+
+              {/* Photo thumbnail grid */}
+              {slideshowPhotos.length > 0 && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: '8px' }}>
+                  {slideshowPhotos.map((url, i) => (
+                    <div key={i} style={{
+                      position: 'relative', aspectRatio: '1',
+                      borderRadius: '8px', overflow: 'hidden',
+                      background: 'rgba(163,177,138,0.1)',
+                      border: '1px solid rgba(255,255,255,0.15)',
+                    }}>
+                      {url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={url} alt={`Slide ${i + 1}`}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <div style={{
+                          width: '100%', height: '100%',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: 'var(--pl-muted)', fontSize: '0.65rem',
+                        }}>
+                          Empty
+                        </div>
+                      )}
+                      <button
+                        onClick={() => onChange({ ...manifest, heroSlideshow: slideshowPhotos.filter((_, j) => j !== i) })}
+                        style={{
+                          position: 'absolute', top: 4, right: 4,
+                          width: 20, height: 20, borderRadius: '50%',
+                          background: 'rgba(0,0,0,0.6)', border: 'none',
+                          cursor: 'pointer', color: '#fff',
+                          fontSize: '0.75rem', fontWeight: 700,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          padding: 0,
+                        }}
+                        title="Remove"
+                      >×</button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-              <button
-                onClick={() => onChange({ ...manifest, heroSlideshow: [...slideshowPhotos, ''] })}
-                style={{
-                  width: '100%', padding: '6px', borderRadius: '8px',
-                  border: '1.5px dashed rgba(163,177,138,0.3)', background: 'rgba(163,177,138,0.05)',
-                  color: 'var(--pl-olive)', fontSize: '0.72rem', fontWeight: 600,
-                  cursor: 'pointer', transition: 'all 0.15s',
-                }}
-              >
-                + Add Slideshow Photo
-              </button>
+              )}
+
+              {/* Add from gallery / upload buttons */}
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button
+                  onClick={() => setSlideshowGalleryOpen(true)}
+                  style={{
+                    flex: 1, padding: '8px', borderRadius: '8px',
+                    border: '1.5px solid rgba(163,177,138,0.3)', background: 'rgba(163,177,138,0.05)',
+                    color: 'var(--pl-olive)', fontSize: '0.72rem', fontWeight: 600,
+                    cursor: 'pointer', transition: 'all 0.15s',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+                  }}
+                >
+                  <ImageIcon size={12} />
+                  Gallery
+                </button>
+                <button
+                  onClick={() => slideshowUploadRef.current?.click()}
+                  style={{
+                    flex: 1, padding: '8px', borderRadius: '8px',
+                    border: '1.5px dashed rgba(163,177,138,0.3)', background: 'rgba(163,177,138,0.05)',
+                    color: 'var(--pl-olive)', fontSize: '0.72rem', fontWeight: 600,
+                    cursor: 'pointer', transition: 'all 0.15s',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+                  }}
+                >
+                  Upload
+                </button>
+                <input
+                  ref={slideshowUploadRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  style={{ display: 'none' }}
+                  onChange={async (e) => {
+                    const files = Array.from(e.target.files || []);
+                    if (files.length === 0) return;
+                    const newUrls: string[] = [];
+                    for (const file of files) {
+                      try {
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                        if (res.ok) {
+                          const data = await res.json();
+                          if (data.publicUrl) newUrls.push(data.publicUrl);
+                        }
+                      } catch (err) {
+                        console.error('[slideshow upload]', err);
+                      }
+                    }
+                    if (newUrls.length > 0) {
+                      onChange({ ...manifest, heroSlideshow: [...slideshowPhotos, ...newUrls] });
+                    }
+                    if (slideshowUploadRef.current) slideshowUploadRef.current.value = '';
+                  }}
+                />
+              </div>
             </div>
+            <GalleryPicker
+              open={slideshowGalleryOpen}
+              onClose={() => setSlideshowGalleryOpen(false)}
+              onSelect={(url) => onChange({ ...manifest, heroSlideshow: [...slideshowPhotos, url] })}
+            />
           </div>
         );
       }

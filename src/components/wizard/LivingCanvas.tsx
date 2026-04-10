@@ -777,7 +777,7 @@ export function LivingCanvas({
     ? `linear-gradient(135deg, ${paletteColors.map((c, i) => `${c} ${Math.round((i / (paletteColors.length - 1)) * 100)}%`).join(', ')})`
     : '';
   const vibeGradient = gradientForVibe(vibe);
-  const baseGradient = 'linear-gradient(135deg, #E8D5C4 0%, #F2E6D9 25%, #D4B8A0 50%, #E8CDB8 75%, #F0DFD0 100%)';
+  const baseGradient = 'linear-gradient(135deg, #A3B18A 0%, #C8D5B9 25%, #87986A 50%, #B5C49E 75%, #6B7F5A 100%)';
   const gradient = paletteGradient || vibeGradient || baseGradient;
 
   /* Base orbs — always present (max 4) */

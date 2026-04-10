@@ -736,13 +736,13 @@ export function AICommandBar() {
             {status === 'idle' && (
               <div style={{
                 display: 'flex',
-                overflowX: 'auto',
+                flexWrap: 'wrap',
                 gap: 6,
-                padding: '8px 16px',
+                padding: '10px 16px',
                 borderTop: '1px solid rgba(163,177,138,0.08)',
                 flexShrink: 0,
-                WebkitOverflowScrolling: 'touch',
-                scrollbarWidth: 'none',
+                width: '100%',
+                boxSizing: 'border-box',
               } as React.CSSProperties}>
                 {quickActions.map(action => (
                   <button
@@ -760,7 +760,6 @@ export function AICommandBar() {
                       cursor: 'pointer',
                       outline: 'none',
                       whiteSpace: 'nowrap',
-                      flexShrink: 0,
                       transition: 'background 0.15s, border-color 0.15s',
                     }}
                     onMouseEnter={e => {
