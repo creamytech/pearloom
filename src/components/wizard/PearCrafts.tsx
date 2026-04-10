@@ -44,10 +44,50 @@ interface Collected {
 
 const BG_GRADIENT = 'linear-gradient(135deg, #E8D5C4 0%, #F2E6D9 25%, #D4B8A0 50%, #E8CDB8 75%, #F0DFD0 100%)';
 
-const WIZARD_SYSTEM = `The user is in the site creation wizard. Extract any details from their message: occasion (wedding/birthday/anniversary/engagement), couple names, event date (YYYY-MM-DD), venue name. Return action 'message' with data: { extracted: { occasion?, names?, date?, venue? } } and a warm follow-up asking for the NEXT missing piece of info. If you have occasion+names+date, say you're ready to build.`;
+function getWizardPrompt(collected: Collected): string {
+  const occasion = collected.occasion || 'unknown';
+  const isBirthday = occasion === 'birthday';
+  const isWedding = occasion === 'wedding';
+  const isAnniversary = occasion === 'anniversary';
+
+  return `You are Pear, helping a user create a ${occasion} site in Pearloom's setup wizard.
+
+ALREADY COLLECTED:
+- Occasion: ${collected.occasion || '(not set)'}
+- Name(s): ${collected.names ? collected.names.filter(Boolean).join(' & ') : '(not set)'}
+- Date: ${collected.date || '(not set)'}
+- Venue: ${collected.venue || '(not set)'}
+
+RULES:
+- NEVER mention "wedding" if the occasion is birthday/anniversary/engagement
+- Extract details from the user's message: names, date (YYYY-MM-DD), venue
+- Return action 'message' with data: { extracted: { occasion?, names?, date?, venue? } }
+- Ask for the NEXT missing piece warmly
+
+${isBirthday ? `BIRTHDAY RULES:
+- Ask "What's the birthday person's name?" (ONE name, not two)
+- Ask "When's the birthday?" and "How old will they be turning?"
+- names should be [name, ""] (single person, second name empty)
+- Say "birthday" not "wedding" or "celebration"
+- Don't ask for a "partner" — it's one person's birthday` : ''}
+${isWedding ? `WEDDING RULES:
+- Ask for both names (bride and groom / partner and partner)
+- Ask "When's the big day?"
+- names should be [name1, name2]` : ''}
+${isAnniversary ? `ANNIVERSARY RULES:
+- Ask for both names
+- Ask "When's the anniversary?"
+- Ask "How many years are you celebrating?"` : ''}
+
+If you have name(s) + date, say you're ready to build their site.`;
+}
 
 function hasAllRequired(c: Collected): boolean {
-  return !!(c.occasion && c.names && c.names[0] && c.date);
+  const hasName = c.names && c.names[0];
+  // Birthdays only need one name; weddings/anniversaries need two
+  const needsTwoNames = c.occasion === 'wedding' || c.occasion === 'engagement';
+  const namesOk = needsTwoNames ? (hasName && c.names![1]) : hasName;
+  return !!(c.occasion && namesOk && c.date);
 }
 
 export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
@@ -97,7 +137,7 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: `${WIZARD_SYSTEM}\n\nUser says: ${userText.trim()}`,
+          message: `${getWizardPrompt(collected)}\n\nUser says: ${userText.trim()}`,
           manifest: null,
         }),
       });
@@ -110,15 +150,15 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
       const reply = data.reply || "I didn't quite catch that. Could you tell me more?";
       const extracted = data.data?.extracted;
 
-      // Merge extracted fields
+      // Merge extracted fields — NEVER override already-set values
       if (extracted) {
         setCollected(prev => {
           const next = { ...prev };
-          if (extracted.occasion) next.occasion = extracted.occasion;
-          if (extracted.names) next.names = extracted.names;
-          if (extracted.date) next.date = extracted.date;
-          if (extracted.venue) next.venue = extracted.venue;
-          if (extracted.vibe) next.vibe = extracted.vibe;
+          if (extracted.occasion && !prev.occasion) next.occasion = extracted.occasion;
+          if (extracted.names && !prev.names?.[0]) next.names = extracted.names;
+          if (extracted.date && !prev.date) next.date = extracted.date;
+          if (extracted.venue && !prev.venue) next.venue = extracted.venue;
+          if (extracted.vibe && !prev.vibe) next.vibe = extracted.vibe;
           return next;
         });
       }
