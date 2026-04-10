@@ -101,16 +101,21 @@ ${isAnniversary ? `ANNIVERSARY RULES:
 - Ask "When's the anniversary?"
 - Ask "How many years are you celebrating?"` : ''}
 
-If you have name(s) + date, say you're ready to build their site.`;
+If you have name(s) + date + venue, ask about their style/theme preferences next. Questions to ask:
+- "Do you have any favorite colors or a color scheme in mind?"
+- "What's the overall vibe you're going for?" (elegant, fun, rustic, modern, etc.)
+- "Any special touches you'd love? Custom illustrations, specific imagery, a hashtag?"
+- "Is there a song, quote, or phrase that's meaningful to you two?"
+
+Only say you're ready to build AFTER you've gathered style preferences. Never rush to build — the more you know, the more personal the site will be.`;
 }
 
-function hasAllRequired(c: Collected): boolean {
+function hasAllRequired(c: Collected, photosDecided: boolean): boolean {
   const hasName = c.names && c.names[0];
-  // Birthdays only need one name; weddings/anniversaries need two
   const needsTwoNames = c.occasion === 'wedding' || c.occasion === 'engagement';
   const namesOk = needsTwoNames ? (hasName && c.names![1]) : hasName;
-  // Need occasion + name(s) + date + style before showing Build button
-  return !!(c.occasion && namesOk && c.date && c.vibe);
+  // Need occasion + names + date + style + photos decision before Build button
+  return !!(c.occasion && namesOk && c.date && c.vibe && photosDecided);
 }
 
 export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
@@ -123,6 +128,7 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
   const [retryCount, setRetryCount] = useState(0);
   const [showPhotoBrowser, setShowPhotoBrowser] = useState(false);
   const [selectedPhotos, setSelectedPhotos] = useState<any[]>([]);
+  const [photosDecided, setPhotosDecided] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -325,7 +331,7 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
   }, [collected, selectedPhotos, onComplete]);
 
   const showPreviewBar = !!(collected.occasion && collected.names && collected.names[0]);
-  const readyToBuild = hasAllRequired(collected);
+  const readyToBuild = hasAllRequired(collected, photosDecided);
 
   // ── Generating overlay ────────────────────────────────────
   // ── Generating phase — cinematic build experience ─────────
@@ -839,7 +845,9 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                       key={card.value}
                       onClick={() => {
                         if (card.value === 'build') {
-                          handleBuild();
+                          setPhotosDecided(true);
+                          // Don't build yet — Build My Site button will appear
+                          sendMessage("Let's build it!", { });
                         } else {
                           setShowPhotoBrowser(true);
                         }
@@ -978,6 +986,8 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
               <button
                 onClick={() => {
                   setShowPhotoBrowser(false);
+                  setPhotosDecided(true);
+                  setMessages(prev => [...prev, { role: 'pear', text: "No problem! You can always add photos later in the editor. Ready to build?", ts: Date.now() }]);
                 }}
                 style={{
                   padding: '12px 24px', borderRadius: '100px', fontSize: '0.82rem',
