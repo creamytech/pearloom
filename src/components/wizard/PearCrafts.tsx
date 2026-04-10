@@ -60,7 +60,7 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
   useEffect(() => {
     setMessages([{
       role: 'pear',
-      text: "Hey! I'm Pear \ud83c\udf50 Tell me about your celebration and I'll build you something beautiful. What's the occasion?",
+      text: "Hey! I'm Pear. Tell me about your celebration and I'll build you something beautiful. What's the occasion?",
       ts: Date.now(),
     }]);
   }, []);

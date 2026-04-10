@@ -160,7 +160,7 @@ function LiveCountdown({ targetDate, accentColor, textColor, mutedColor, heading
     return (
       <div style={{ padding: '1rem' }}>
         <div style={{ fontFamily: `"${headingFont}", serif`, fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', color: accentColor }}>
-          The Day Has Arrived! 🎉
+          The Day Has Arrived!
         </div>
       </div>
     );
@@ -1433,10 +1433,10 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         const annMilestones = (blockCfg.milestones as Array<{ label: string; date?: string; emoji?: string }>) || [];
         const weddingDateStr = manifest.events?.[0]?.date || manifest.logistics?.date;
         const defaultMilestones = annMilestones.length > 0 ? annMilestones : [
-          { label: 'First Date', emoji: '💕', date: '' },
-          { label: 'Engaged', emoji: '💍', date: '' },
-          { label: weddingDateStr ? 'Wedding Day' : '1 Year', emoji: '🎂', date: weddingDateStr || '' },
-          { label: 'Today', emoji: '✨', date: new Date().toISOString().slice(0, 10) },
+          { label: 'First Date', emoji: '✦', date: '' },
+          { label: 'Engaged', emoji: '✦', date: '' },
+          { label: weddingDateStr ? 'Wedding Day' : '1 Year', emoji: '✦', date: weddingDateStr || '' },
+          { label: 'Today', emoji: '✦', date: new Date().toISOString().slice(0, 10) },
         ];
         return (
           <section key={key} data-pe-section="anniversary" style={{ padding: '4rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
@@ -1447,7 +1447,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(0.75rem, 2vw, 2rem)', flexWrap: 'wrap' }}>
               {defaultMilestones.map((m, i) => (
                 <div key={i} style={{ padding: '1.25rem 1rem', borderRadius: '16px', background: `${pal.accent}0D`, border: `1px solid ${pal.accent}20`, minWidth: '110px', maxWidth: '140px' }}>
-                  <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{m.emoji || ['💕', '💍', '🎂', '✨'][i % 4]}</div>
+                  <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{m.emoji || '✦'}</div>
                   <div style={{ fontSize: '0.82rem', fontWeight: 600, color: safeFg }}>{m.label}</div>
                   {m.date && <div style={{ fontSize: '0.7rem', color: safeMuted, marginTop: '0.25rem' }}>{m.date}</div>}
                 </div>

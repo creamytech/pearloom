@@ -155,7 +155,7 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
             marginBottom: '1.5rem',
           }}
         >
-          {isReturning ? '👋' : '✦'}
+          {isReturning ? '✦' : '✦'}
         </motion.div>
 
         {/* Title */}

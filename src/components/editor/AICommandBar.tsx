@@ -199,7 +199,7 @@ export function AICommandBar() {
   // ── Intro message on first open ──────────────────────────
   useEffect(() => {
     if (expanded && messages.length === 0) {
-      setMessages([{ role: 'pear', text: "Hey! I'm Pear 🍐 What can I help with today?", ts: Date.now() }]);
+      setMessages([{ role: 'pear', text: "Hey! I'm Pear. What can I help with today?", ts: Date.now() }]);
     }
   }, [expanded]); // eslint-disable-line react-hooks/exhaustive-deps
 

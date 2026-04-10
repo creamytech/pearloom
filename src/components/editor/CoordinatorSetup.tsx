@@ -473,7 +473,7 @@ function PreviewCoordinator({ siteId, coupleNames, vibeSkin }: PreviewCoordinato
       {/* Messages */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <div style={{ alignSelf: 'flex-start', backgroundColor: 'var(--pl-cream)', borderRadius: '14px 14px 14px 4px', padding: '10px 14px', fontSize: '14px', lineHeight: 1.5, maxWidth: '88%', boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
-          👋 Hi! I'm your wedding day assistant for {name1} &amp; {name2}'s celebration. Ask me anything!
+          Hi! I'm your celebration assistant for {name1} &amp; {name2}'s site. Ask me anything!
         </div>
 
         {messages.length === 0 && (
