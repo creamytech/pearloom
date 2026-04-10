@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Loader2, Sparkles, ArrowLeft } from 'lucide-react';
 import { PearMascot } from '@/components/icons/PearMascot';
+import { PhotoBrowser } from '@/components/dashboard/photo-browser';
 
 interface PearCraftsProps {
   onComplete: (manifest: any, names: [string, string], subdomain: string) => void;
@@ -21,7 +22,18 @@ interface ChatMessage {
   text: string;
   ts: number;
   cards?: Array<{ label: string; value: string; icon?: string }>;
-  cardType?: 'occasion' | 'date' | 'venue' | 'style' | 'theme-ask' | 'photos-or-build' | 'info-card';
+  cardType?: 'occasion' | 'date' | 'venue' | 'style' | 'theme-ask' | 'theme-options' | 'photos-or-build' | 'info-card';
+}
+
+// Occasion-based default vibes for "Suggest something beautiful"
+function getDefaultVibeForOccasion(occasion?: string): string {
+  switch (occasion) {
+    case 'wedding': return 'romantic elegant';
+    case 'birthday': return 'fun colorful celebration';
+    case 'anniversary': return 'timeless elegant';
+    case 'engagement': return 'romantic modern';
+    default: return 'elegant modern';
+  }
 }
 
 // Style palette pairs for the A/B style discovery
@@ -106,8 +118,11 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [collected, setCollected] = useState<Collected>({});
-  const [phase, setPhase] = useState<'chat' | 'style' | 'photos' | 'generating' | 'done'>('chat');
+  const [phase, setPhase] = useState<'chat' | 'style' | 'photos' | 'generating' | 'error' | 'done'>('chat');
   const [genError, setGenError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const [showPhotoBrowser, setShowPhotoBrowser] = useState(false);
+  const [selectedPhotos, setSelectedPhotos] = useState<any[]>([]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -136,9 +151,11 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
     }]);
   }, []);
 
-  // Use ref to always have latest collected state in async callbacks
+  // Use refs to always have latest state in async callbacks
   const collectedRef = useRef(collected);
   collectedRef.current = collected;
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
 
   const sendMessage = useCallback(async (userText: string, overrideCollected?: Partial<Collected>) => {
     if (!userText.trim() || loading) return;
@@ -156,7 +173,7 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: `${getWizardPrompt(latestCollected)}\n\nUser says: ${userText.trim()}`,
+          message: `${getWizardPrompt(latestCollected)}\n\nConversation so far:\n${messagesRef.current.slice(-6).map(m => `${m.role === 'user' ? 'User' : 'Pear'}: ${m.text}`).join('\n')}\n\nUser says: ${userText.trim()}`,
           manifest: null,
         }),
       });
@@ -274,13 +291,14 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          photos: [],
+          photos: selectedPhotos,
           vibeString: `${collected.occasion} ${collected.vibe || ''} ${collected.venue || ''}`.trim(),
           names: collected.names,
           occasion: collected.occasion,
           eventDate: collected.date,
           eventVenue: collected.venue,
           celebrationVenue: collected.venue,
+          layoutFormat: 'cascade',
         }),
       });
 
@@ -301,9 +319,10 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
       onComplete(data.manifest, collected.names, subdomain);
     } catch (err) {
       setGenError(err instanceof Error ? err.message : 'Generation failed');
-      setPhase('chat');
+      setRetryCount(prev => prev + 1);
+      setPhase('error');
     }
-  }, [collected, onComplete]);
+  }, [collected, selectedPhotos, onComplete]);
 
   const showPreviewBar = !!(collected.occasion && collected.names && collected.names[0]);
   const readyToBuild = hasAllRequired(collected);
@@ -541,24 +560,70 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
 
               {/* ── Date picker ── */}
               {msg.cardType === 'date' && !collected.date && (
-                <div style={{ marginTop: '12px' }}>
-                  <input
-                    type="date"
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        setCollected(prev => ({ ...prev, date: e.target.value }));
-                        const d = new Date(e.target.value + 'T12:00:00');
-                        const formatted = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-                        sendMessage(`The date is ${formatted}`);
-                      }
-                    }}
-                    style={{
-                      padding: '10px 14px', borderRadius: '12px', fontSize: '0.88rem',
-                      border: '1px solid rgba(163,177,138,0.3)', background: 'rgba(255,255,255,0.7)',
-                      color: 'var(--pl-ink)', fontFamily: 'inherit', cursor: 'pointer',
-                      width: '100%', maxWidth: '220px',
-                    }}
-                  />
+                <div style={{
+                  marginTop: '12px', padding: '16px', borderRadius: '16px',
+                  background: 'rgba(255,255,255,0.5)', backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(255,255,255,0.5)',
+                  boxShadow: '0 2px 12px rgba(43,30,20,0.04)',
+                } as React.CSSProperties}>
+                  <p style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: 'var(--pl-muted)', marginBottom: '10px' }}>
+                    Pick a date
+                  </p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
+                    {[
+                      { label: 'This weekend', getValue: () => {
+                        const now = new Date(); const day = now.getDay();
+                        const sat = new Date(now); sat.setDate(now.getDate() + (6 - day));
+                        return sat.toISOString().slice(0, 10);
+                      }},
+                      { label: 'Next month', getValue: () => {
+                        const now = new Date();
+                        const next = new Date(now.getFullYear(), now.getMonth() + 1, 15);
+                        return next.toISOString().slice(0, 10);
+                      }},
+                    ].map((preset) => (
+                      <button
+                        key={preset.label}
+                        onClick={() => {
+                          const val = preset.getValue();
+                          setCollected(prev => ({ ...prev, date: val }));
+                          const d = new Date(val + 'T12:00:00');
+                          const formatted = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                          sendMessage(`The date is ${formatted}`, { date: val });
+                        }}
+                        style={{
+                          padding: '8px 14px', borderRadius: '100px', fontSize: '0.78rem',
+                          fontWeight: 600, border: '1px solid rgba(163,177,138,0.3)',
+                          background: 'rgba(163,177,138,0.08)', color: 'var(--pl-ink)',
+                          cursor: 'pointer', transition: 'all 0.15s',
+                        }}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                  <label style={{ display: 'block' }}>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', fontWeight: 500, marginBottom: '4px', display: 'block' }}>Custom date</span>
+                    <input
+                      type="date"
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          setCollected(prev => ({ ...prev, date: e.target.value }));
+                          const d = new Date(e.target.value + 'T12:00:00');
+                          const formatted = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                          sendMessage(`The date is ${formatted}`, { date: e.target.value });
+                        }
+                      }}
+                      style={{
+                        padding: '10px 14px', borderRadius: '12px', fontSize: '0.88rem',
+                        border: '1px solid rgba(163,177,138,0.3)', background: 'rgba(255,255,255,0.7)',
+                        backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+                        color: 'var(--pl-ink)', fontFamily: 'inherit', cursor: 'pointer',
+                        width: '100%', maxWidth: '220px',
+                      } as React.CSSProperties}
+                    />
+                  </label>
                 </div>
               )}
 
@@ -570,7 +635,7 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                       key={card.value}
                       onClick={() => {
                         setCollected(prev => ({ ...prev, venue: 'TBD' }));
-                        sendMessage("I'll add the venue later");
+                        sendMessage("I'll add the venue later", { venue: 'TBD' });
                       }}
                       style={{
                         padding: '8px 16px', borderRadius: '100px',
@@ -596,10 +661,31 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                           setCollected(prev => ({ ...prev, vibe: 'elegant modern' }));
                           sendMessage("Surprise me with something beautiful!", { vibe: 'elegant modern' });
                         } else if (card.value === 'has-theme') {
-                          sendMessage("I have a theme in mind. What kind of details do you need?");
+                          // Show inline theme-options cards instead of relying on free text
+                          const themeMsg: ChatMessage = {
+                            role: 'pear',
+                            text: "Pick a style that speaks to you:",
+                            ts: Date.now(),
+                            cardType: 'theme-options',
+                            cards: [
+                              { label: 'Romantic & Elegant', value: 'romantic elegant', icon: '✦' },
+                              { label: 'Bold & Colorful', value: 'bold colorful', icon: '✦' },
+                              { label: 'Rustic & Natural', value: 'rustic natural', icon: '✦' },
+                              { label: 'Modern & Minimal', value: 'modern minimal', icon: '✦' },
+                              { label: 'Dark & Moody', value: 'dark moody', icon: '✦' },
+                              { label: 'Whimsical & Fun', value: 'whimsical fun', icon: '✦' },
+                            ],
+                          };
+                          setMessages(prev => [
+                            ...prev,
+                            { role: 'user' as const, text: "I have a theme in mind", ts: Date.now() },
+                            themeMsg,
+                          ]);
                         } else {
-                          setCollected(prev => ({ ...prev, vibe: 'curated by pear' }));
-                          sendMessage("Pick something beautiful that matches the occasion!", { vibe: 'curated by pear' });
+                          // "Suggest something beautiful" — pick vibe based on occasion
+                          const occasionVibe = getDefaultVibeForOccasion(collectedRef.current.occasion);
+                          setCollected(prev => ({ ...prev, vibe: occasionVibe }));
+                          sendMessage("Pick something beautiful that matches the occasion!", { vibe: occasionVibe });
                         }
                       }}
                       style={{
@@ -617,6 +703,31 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                 </div>
               )}
 
+              {/* ── Theme options — inline style cards ── */}
+              {msg.cardType === 'theme-options' && msg.cards && !collected.vibe && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
+                  {msg.cards.map((card) => (
+                    <button
+                      key={card.value}
+                      onClick={() => {
+                        setCollected(prev => ({ ...prev, vibe: card.value }));
+                        sendMessage(`I'd love a ${card.label.toLowerCase()} style`, { vibe: card.value });
+                      }}
+                      style={{
+                        padding: '10px 16px', borderRadius: '100px',
+                        border: '1px solid rgba(163,177,138,0.3)', background: 'rgba(255,255,255,0.6)',
+                        backdropFilter: 'blur(8px)', cursor: 'pointer', fontSize: '0.82rem',
+                        fontWeight: 600, color: 'var(--pl-ink, #2B1E14)', transition: 'all 0.15s',
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                      }}
+                    >
+                      <span style={{ color: 'var(--pl-olive)', fontSize: '0.9rem' }}>{card.icon}</span>
+                      {card.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {/* ── Style palette choice (shown when AI suggests palettes) ── */}
               {msg.cardType === 'style' && !collected.vibe && (
                 <div style={{ display: 'flex', gap: '10px', marginTop: '12px', flexWrap: 'wrap' }}>
@@ -625,7 +736,7 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                       key={pair.a.name}
                       onClick={() => {
                         setCollected(prev => ({ ...prev, vibe: pair.a.name.toLowerCase() }));
-                        sendMessage(`I love the ${pair.a.name} look`);
+                        sendMessage(`I love the ${pair.a.name} look`, { vibe: pair.a.name.toLowerCase() });
                       }}
                       style={{
                         flex: 1, minWidth: '90px', padding: '10px', borderRadius: '14px',
@@ -660,8 +771,7 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                         if (card.value === 'build') {
                           handleBuild();
                         } else {
-                          // TODO: open photo picker
-                          sendMessage("I'd like to add some photos first");
+                          setShowPhotoBrowser(true);
                         }
                       }}
                       style={{
@@ -713,7 +823,7 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
         )}
 
         {/* Build button */}
-        {readyToBuild && !loading && (
+        {readyToBuild && !loading && !messages.some(m => m.cardType === 'photos-or-build') && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -769,6 +879,74 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
           </button>
         </div>
       </div>
+
+      {/* ── Photo Browser modal overlay ── */}
+      <AnimatePresence>
+        {showPhotoBrowser && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 60,
+              background: 'rgba(232,213,196,0.85)',
+              backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+              display: 'flex', flexDirection: 'column',
+              overflow: 'auto',
+            } as React.CSSProperties}
+          >
+            <div style={{ flex: 1, padding: '24px 16px', overflowY: 'auto' }}>
+              <PhotoBrowser
+                onSelectionChange={(photos) => setSelectedPhotos(photos)}
+                maxSelection={30}
+              />
+            </div>
+            <div style={{
+              display: 'flex', gap: '12px', justifyContent: 'center',
+              padding: '16px 24px 28px', flexShrink: 0,
+            }}>
+              <button
+                onClick={() => {
+                  setShowPhotoBrowser(false);
+                }}
+                style={{
+                  padding: '12px 24px', borderRadius: '100px', fontSize: '0.82rem',
+                  fontWeight: 600, border: '1px solid rgba(163,177,138,0.3)',
+                  background: 'rgba(255,255,255,0.5)', color: 'var(--pl-muted)',
+                  cursor: 'pointer', transition: 'all 0.15s',
+                }}
+              >
+                Skip photos
+              </button>
+              <button
+                onClick={() => {
+                  setShowPhotoBrowser(false);
+                  const count = selectedPhotos.length;
+                  setMessages(prev => [...prev, {
+                    role: 'pear',
+                    text: count > 0
+                      ? `Got ${count} photo${count === 1 ? '' : 's'}! Ready to build?`
+                      : 'No photos selected. Ready to build?',
+                    ts: Date.now(),
+                    cardType: 'photos-or-build',
+                    cards: [
+                      { label: 'Build now', value: 'build', icon: '✦' },
+                    ],
+                  }]);
+                }}
+                style={{
+                  padding: '12px 24px', borderRadius: '100px', fontSize: '0.82rem',
+                  fontWeight: 700, border: 'none',
+                  background: 'var(--pl-olive-deep, #6B7F5A)', color: 'white',
+                  cursor: 'pointer', transition: 'all 0.15s',
+                }}
+              >
+                Done with photos
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
