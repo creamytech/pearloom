@@ -514,24 +514,27 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
   // ── Main chat UI ──────────────────────────────────────────
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center" style={{ background: BG_GRADIENT }}>
-      {/* Header — compact on desktop */}
-      <header className="shrink-0 w-full flex items-center justify-between px-4 py-3 md:px-6 max-w-[560px]">
+      {/* Header — minimal, integrated */}
+      <header className="shrink-0 w-full flex items-center justify-between px-4 pt-[env(safe-area-inset-top,8px)] pb-1 md:px-6 max-w-[560px]">
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-full text-[0.78rem] font-semibold text-[var(--pl-muted)] bg-white/40 backdrop-blur-md border border-white/30 cursor-pointer hover:bg-white/60 transition-all"
+          className="flex items-center gap-1 px-2.5 py-1.5 min-h-[36px] rounded-full text-[0.72rem] font-semibold text-[var(--pl-muted)] bg-transparent border-none cursor-pointer hover:bg-white/30 transition-all"
         >
-          <ArrowLeft size={14} />
+          <ArrowLeft size={13} />
           Back
         </button>
-        <span className="font-heading italic text-[1rem] text-[var(--pl-ink-soft)]">Create with Pear</span>
-        <div className="w-[72px]" />
+        <div className="flex items-center gap-2">
+          <PearMascot size={22} mood={loading ? 'thinking' : 'idle'} />
+          <span className="font-heading italic text-[0.88rem] text-[var(--pl-ink-soft)]">Pear</span>
+        </div>
+        <div className="w-[52px]" />
       </header>
 
-      {/* Centered card container — 520px max on desktop, full on mobile */}
+      {/* Card container — centered on desktop, snug on mobile */}
       <div className="flex-1 flex flex-col w-full max-w-[560px] min-h-0 md:my-2 md:rounded-3xl md:overflow-hidden" style={{
-        background: 'rgba(255,255,255,0.2)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
+        background: 'rgba(255,255,255,0.15)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
       } as React.CSSProperties}>
 
       {/* Progressive info cards — build as you go */}
@@ -585,18 +588,18 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
       </AnimatePresence>
 
       {/* Chat messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 md:px-8 py-4 space-y-4">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 md:px-6 py-3 space-y-3">
         {messages.map((msg, i) => (
           <motion.div
             key={msg.ts + '-' + i}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25 }}
-            className={`flex gap-2.5 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {msg.role === 'pear' && (
               <div className="shrink-0 mt-1">
-                <PearMascot size={36} mood="greeting" />
+                <PearMascot size={24} mood="greeting" />
               </div>
             )}
             <div
@@ -927,7 +930,7 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
       </div>
 
       {/* Input bar */}
-      <div className="shrink-0 px-4 md:px-8 pb-3 pt-2">
+      <div className="shrink-0 px-3 md:px-6 pb-[env(safe-area-inset-bottom,8px)] pt-2">
         <form
           onSubmit={handleSubmit}
           className="flex items-center gap-2 px-4 py-2 rounded-full"

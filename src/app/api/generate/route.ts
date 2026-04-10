@@ -362,9 +362,14 @@ export async function POST(req: NextRequest) {
     } catch {}
 
     // Generate the Story Manifest via Gemini (3-pass: generate → critique → vibeSkin)
+    // If no photos at all, pass a minimal dummy cluster so the AI has something to work with
+    const clustersForGeneration = enrichedClusters.length > 0
+      ? enrichedClusters
+      : [{ photos: [], location: null, startDate: eventDate || new Date().toISOString(), endDate: eventDate || new Date().toISOString() }] as PhotoCluster[];
+
     const manifest = await generateStoryManifest(
-      enrichedClusters,
-      vibeString,
+      clustersForGeneration,
+      vibeString || `${occasion || 'celebration'} ${names[0]} ${names[1] || ''}`.trim(),
       names,
       apiKey,
       session.accessToken,
