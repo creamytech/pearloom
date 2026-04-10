@@ -370,15 +370,16 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     const rawUrl = photo?.baseUrl || photo?.url || photo?.uri || '';
     if (!rawUrl) return;
 
-    const imageUrl = rawUrl.includes('googleusercontent')
-      ? `/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=800&h=600`
+    // Use the proxy URL for Google Photos (server needs auth)
+    const detectUrl = rawUrl.includes('googleusercontent')
+      ? `${window.location.origin}/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=800&h=600`
       : rawUrl;
 
     setDetectingLocation(true);
     fetch('/api/photos/detect-location', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageUrl: rawUrl, occasion: collected.occasion }),
+      body: JSON.stringify({ imageUrl: detectUrl, occasion: collected.occasion }),
     })
       .then(r => r.ok ? r.json() : null)
       .then(data => {
