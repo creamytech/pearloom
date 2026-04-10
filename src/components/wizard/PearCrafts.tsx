@@ -138,10 +138,12 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
   const photoReviewRef = useRef(-1);
   const selectedPhotosRef = useRef<any[]>([]);
   const [photoNotes, setPhotoNotes] = useState<Record<number, { location?: string; note?: string }>>({});
+  const photosDecidedRef = useRef(false);
 
   // Keep refs in sync
   useEffect(() => { photoReviewRef.current = photoReviewIndex; }, [photoReviewIndex]);
   useEffect(() => { selectedPhotosRef.current = selectedPhotos; }, [selectedPhotos]);
+  useEffect(() => { photosDecidedRef.current = photosDecided; }, [photosDecided]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -239,6 +241,7 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
       if (extracted?.names && !collected.names?.[0]) nextCollected.names = extracted.names;
       if (extracted?.date && !collected.date) nextCollected.date = extracted.date;
       if (extracted?.venue && !collected.venue) nextCollected.venue = extracted.venue;
+      if (extracted?.vibe && !collected.vibe) nextCollected.vibe = extracted.vibe;
 
       const pearMsg: ChatMessage = { role: 'pear', text: reply, ts: Date.now() };
 
@@ -367,18 +370,16 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
           { label: 'Suggest something beautiful', value: 'suggest', icon: '✦' },
           { label: 'Surprise me', value: 'surprise', icon: '✦' },
         ];
-      } else if (selectedPhotos.length > 0 && !photosDecided) {
+      } else if (selectedPhotosRef.current.length > 0 && !photosDecidedRef.current) {
         // Photos uploaded but user still discussing them — offer to build
         pearMsg.cardType = 'photos-or-build';
         pearMsg.cards = [
           { label: 'Looks great, build my site', value: 'build', icon: '✦' },
           { label: 'Tell me more about these photos', value: 'more', icon: '✦' },
         ];
-      } else if (phase === 'chat' && !photosDecided) {
+      } else if (!photosDecidedRef.current) {
         // All text info collected, no photos yet — auto-open photo browser
-        // The message still shows, but the browser opens immediately
-        pearMsg.text = (pearMsg.text || '') + "\n\nLet's pick some photos to make your site personal — or skip if you'd rather add them later.";
-        // Auto-open the photo browser after a short delay
+        // Don't append text to AI response — just open the browser
         setTimeout(() => setShowPhotoBrowser(true), 600);
       }
 
@@ -400,7 +401,9 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
   };
 
   const handleBuild = useCallback(async () => {
-    if (!collected.names || !collected.occasion) return;
+    const c = collectedRef.current;
+    const photos = selectedPhotosRef.current;
+    if (!c.names || !c.occasion) return;
     setPhase('generating');
     setGenError(null);
 
@@ -409,13 +412,13 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          photos: selectedPhotos,
-          vibeString: `${collected.occasion} ${collected.vibe || ''} ${collected.venue || ''}`.trim(),
-          names: collected.names,
-          occasion: collected.occasion,
-          eventDate: collected.date,
-          eventVenue: collected.venue,
-          celebrationVenue: collected.venue,
+          photos,
+          vibeString: `${c.occasion} ${c.vibe || ''} ${c.venue || ''}`.trim(),
+          names: c.names,
+          occasion: c.occasion,
+          eventDate: c.date,
+          eventVenue: c.venue,
+          celebrationVenue: c.venue,
           layoutFormat: 'cascade',
         }),
       });
@@ -428,19 +431,19 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
       const data = await res.json();
       if (!data.manifest) throw new Error('No manifest returned');
 
-      const n1 = (collected.names[0] || 'celebration').toLowerCase().replace(/[^a-z0-9]/g, '');
-      const n2 = collected.names[1] ? collected.names[1].toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+      const n1 = (c.names[0] || 'celebration').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const n2 = c.names[1] ? c.names[1].toLowerCase().replace(/[^a-z0-9]/g, '') : '';
       const suffix = Math.random().toString(36).slice(2, 6);
       const subdomain = n2 ? `${n1}-and-${n2}-${suffix}` : `${n1}-${suffix}`;
 
       setPhase('done');
-      onComplete(data.manifest, collected.names, subdomain);
+      onComplete(data.manifest, c.names, subdomain);
     } catch (err) {
       setGenError(err instanceof Error ? err.message : 'Generation failed');
       setRetryCount(prev => prev + 1);
       setPhase('error');
     }
-  }, [collected, selectedPhotos, onComplete]);
+  }, [onComplete]);
 
   const showPreviewBar = !!(collected.occasion && collected.names && collected.names[0]);
   const readyToBuild = hasAllRequired(collected, photosDecided);
@@ -963,7 +966,7 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                       onClick={() => {
                         if (card.value === 'build') {
                           setPhotosDecided(true);
-                          sendMessage("Looks great, let's build it!", { });
+                          handleBuild();
                         } else if (card.value === 'more') {
                           sendMessage("Tell me more about what you'd like for these photo chapters");
                         } else if (card.value === 'photos') {
@@ -1227,7 +1230,13 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                 onClick={() => {
                   setShowPhotoBrowser(false);
                   setPhotosDecided(true);
-                  setMessages(prev => [...prev, { role: 'pear', text: "No problem! You can always add photos later in the editor. Ready to build?", ts: Date.now() }]);
+                  setMessages(prev => [...prev, {
+                    role: 'pear',
+                    text: "No problem! You can always add photos later in the editor. Ready to build?",
+                    ts: Date.now(),
+                    cardType: 'photos-or-build',
+                    cards: [{ label: 'Build my site', value: 'build', icon: '✦' }],
+                  }]);
                 }}
                 style={{
                   padding: '12px 24px', borderRadius: '100px', fontSize: '0.82rem',
