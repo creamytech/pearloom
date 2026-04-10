@@ -268,6 +268,7 @@ export async function POST(req: NextRequest) {
       eventVenue,
       selectedPaletteColors,
       photoNotes,
+      storyLayout,
     }: {
       photos: GooglePhotoMetadata[];
       clusters?: PhotoCluster[];
@@ -294,6 +295,7 @@ export async function POST(req: NextRequest) {
       eventVenue?: string;
       selectedPaletteColors?: string[];
       photoNotes?: Record<string, { note?: string; location?: string; date?: string }>;
+      storyLayout?: 'parallax' | 'filmstrip' | 'magazine' | 'timeline' | 'kenburns' | 'bento';
     } = body;
 
     if (!photos?.length) {
@@ -570,6 +572,11 @@ export async function POST(req: NextRequest) {
     manifest.chapters = updatedChapters;
     manifest.logoIcon = logoResult.logoIcon;
     if (logoResult.logoSvg) manifest.logoSvg = logoResult.logoSvg;
+    // Persist the wizard's story layout pick onto the final manifest so
+    // the published site renders with it.
+    if (storyLayout) {
+      manifest.storyLayout = storyLayout;
+    }
 
     // Train voice profile if samples provided
     if (voiceSamples && voiceSamples.length > 0) {

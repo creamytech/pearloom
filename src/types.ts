@@ -27,6 +27,10 @@ export interface StoryManifest {
   // Story chapter layout — controls how individual chapters render in the story section.
   // Defaults to 'parallax' (premium cinematic) when unset. See src/components/blocks/StoryLayouts.tsx.
   storyLayout?: 'parallax' | 'filmstrip' | 'magazine' | 'timeline' | 'kenburns' | 'bento';
+  // User-configurable date format for chapter headers. Presets are defined
+  // in CHAPTER_DATE_FORMATS in src/components/blocks/StoryLayouts.tsx.
+  // Omitted = "long" default (January 15, 2024).
+  dateFormat?: 'long' | 'short' | 'numeric' | 'iso' | 'month-year';
   logistics?: {
     venue?: string;
     venueAddress?: string;

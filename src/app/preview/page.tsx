@@ -11,7 +11,7 @@ import React from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useMemo, useState, useEffect, useCallback } from 'react';
 import { Hero } from '@/components/hero';
-import { StorySection } from '@/components/blocks/StoryLayouts';
+import { StorySection, chapterDateFormatOptions } from '@/components/blocks/StoryLayouts';
 import { ComingSoon } from '@/components/coming-soon';
 import { WeddingEvents } from '@/components/wedding-events';
 import { RegistryShowcase } from '@/components/registry-showcase';
@@ -288,6 +288,7 @@ function PreviewContent() {
               sectionBorderSvg={vibeSkin.sectionBorderSvg ? sanitizeSvg(vibeSkin.sectionBorderSvg) : undefined}
               medallionSvg={vibeSkin.medallionSvg ? sanitizeSvg(vibeSkin.medallionSvg) : undefined}
               accentColor={pal.accent}
+              dateFormat={chapterDateFormatOptions(manifest.dateFormat)}
               transformUrl={(url) => proxyUrl(url, 1600, 1200)}
             />
           </section>
@@ -739,6 +740,7 @@ function PreviewContent() {
                       sectionBorderSvg={vibeSkin.sectionBorderSvg ? sanitizeSvg(vibeSkin.sectionBorderSvg) : undefined}
                       medallionSvg={vibeSkin.medallionSvg ? sanitizeSvg(vibeSkin.medallionSvg) : undefined}
                       accentColor={pal.accent}
+                      dateFormat={chapterDateFormatOptions(manifest.dateFormat)}
                       transformUrl={(url) => proxyUrl(url, 1600, 1200)}
                     />
                   </section></div>

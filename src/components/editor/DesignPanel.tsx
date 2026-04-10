@@ -16,7 +16,13 @@ import { VisualEffectsPanel } from './VisualEffectsPanel';
 import { DesignAdvisor } from './DesignAdvisor';
 import { AccessibilityAuditPanel } from './AccessibilityAuditPanel';
 import { CORNER_PRESETS, renderCornerSvg, type CornerPreset } from '@/lib/corner-presets';
-import { StoryLayoutPicker, resolveStoryLayout, type StoryLayoutType } from '@/components/blocks/StoryLayouts';
+import {
+  StoryLayoutPicker,
+  resolveStoryLayout,
+  CHAPTER_DATE_FORMATS,
+  type StoryLayoutType,
+  type ChapterDateFormatKey,
+} from '@/components/blocks/StoryLayouts';
 import { Check, Navigation } from 'lucide-react';
 import {
   PearIcon, PearlIcon, WeddingRingsIcon, BouquetIcon, ElegantHeartIcon,
@@ -989,6 +995,59 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               layoutFormat: undefined,
             })}
           />
+
+          {/* ── Date format — applies to chapter date labels ── */}
+          <div style={{ marginTop: 20 }}>
+            <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '6px' }}>
+              Date format
+            </div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)', lineHeight: 1.5, marginBottom: '10px' }}>
+              How dates read on every chapter
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {(Object.keys(CHAPTER_DATE_FORMATS) as ChapterDateFormatKey[]).map((key) => {
+                const preset = CHAPTER_DATE_FORMATS[key];
+                const isActive = (manifest.dateFormat || 'long') === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => onChange({ ...manifest, dateFormat: key })}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: 12,
+                      border: `1.5px solid ${isActive ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.2)'}`,
+                      background: isActive ? 'rgba(163,177,138,0.12)' : 'rgba(255,255,255,0.5)',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 12,
+                      transition: 'border-color 0.15s, background 0.15s',
+                    }}
+                    aria-pressed={isActive}
+                  >
+                    <span style={{
+                      fontSize: '0.72rem',
+                      fontWeight: isActive ? 700 : 600,
+                      color: 'var(--pl-ink-soft)',
+                    }}>
+                      {preset.label}
+                    </span>
+                    <span style={{
+                      fontSize: '0.68rem',
+                      fontFamily: 'ui-monospace, SFMono-Regular, monospace',
+                      color: 'var(--pl-muted)',
+                    }}>
+                      {preset.example}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </SidebarSection>
 

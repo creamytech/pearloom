@@ -5,7 +5,7 @@ import { getSiteConfig } from '@/lib/db';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
 import { Hero } from '@/components/hero';
-import { StorySection } from '@/components/blocks/StoryLayouts';
+import { StorySection, chapterDateFormatOptions } from '@/components/blocks/StoryLayouts';
 import { sanitizeSvg } from '@/lib/sanitize-svg';
 import { EventLogistics } from '@/components/event-logistics';
 import { ComingSoon } from '@/components/coming-soon';
@@ -348,6 +348,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               sectionBorderSvg={vibeSkin.sectionBorderSvg ? sanitizeSvg(vibeSkin.sectionBorderSvg) : undefined}
               medallionSvg={vibeSkin.medallionSvg ? sanitizeSvg(vibeSkin.medallionSvg) : undefined}
               accentColor={pal.accent}
+              dateFormat={chapterDateFormatOptions(manifest.dateFormat)}
               transformUrl={(url) => proxyUrl(url, 1600, 1200)}
             />
           </section>
@@ -1153,6 +1154,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                   sectionBorderSvg={vibeSkin.sectionBorderSvg ? sanitizeSvg(vibeSkin.sectionBorderSvg) : undefined}
                   medallionSvg={vibeSkin.medallionSvg ? sanitizeSvg(vibeSkin.medallionSvg) : undefined}
                   accentColor={pal.accent}
+                  dateFormat={chapterDateFormatOptions(manifest.dateFormat)}
                   transformUrl={(url) => proxyUrl(url, 1600, 1200)}
                 />
               </section>

@@ -14,7 +14,7 @@ import { Hero } from '@/components/hero';
 // Timeline is kept only as a legacy fallback for the rare code path that
 // doesn't have manifest.blocks. New renders go through StorySection, which
 // dispatches to the canonical StoryLayouts components.
-import { StorySection } from '@/components/blocks/StoryLayouts';
+import { StorySection, chapterDateFormatOptions } from '@/components/blocks/StoryLayouts';
 import { WeddingEvents } from '@/components/wedding-events';
 import { VisualTimeline } from '@/components/visual-timeline';
 import { RegistryShowcase } from '@/components/registry-showcase';
@@ -987,6 +987,10 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               sectionBorderSvg={vibeSkin.sectionBorderSvg ? sanitizeSvg(vibeSkin.sectionBorderSvg) : undefined}
               medallionSvg={vibeSkin.medallionSvg ? sanitizeSvg(vibeSkin.medallionSvg) : undefined}
               accentColor={pal.accent}
+              dateFormat={chapterDateFormatOptions(manifest.dateFormat)}
+              // Only the editor preview marks text as editable so public
+              // renders stay read-only.
+              editable={editMode}
               transformUrl={(url) =>
                 url.includes('googleusercontent.com')
                   ? `/api/photos/proxy?url=${encodeURIComponent(url)}&w=1600&h=1200`
@@ -1781,6 +1785,8 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                   sectionBorderSvg={vibeSkin.sectionBorderSvg ? sanitizeSvg(vibeSkin.sectionBorderSvg) : undefined}
                   medallionSvg={vibeSkin.medallionSvg ? sanitizeSvg(vibeSkin.medallionSvg) : undefined}
                   accentColor={pal.accent}
+                  dateFormat={chapterDateFormatOptions(manifest.dateFormat)}
+                  editable={editMode}
                   transformUrl={(url) =>
                     url.includes('googleusercontent.com')
                       ? `/api/photos/proxy?url=${encodeURIComponent(url)}&w=1600&h=1200`

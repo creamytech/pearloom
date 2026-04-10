@@ -14,6 +14,7 @@ import { StyleDiscoveryCard, ColorPaletteCard } from '@/components/wizard/Wizard
 import { PearCalendar } from '@/components/wizard/PearCalendar';
 import { SiteRenderer } from '@/components/editor/SiteRenderer';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
+import { StoryLayoutPicker, type StoryLayoutType } from '@/components/blocks/StoryLayouts';
 import type { StoryManifest } from '@/types';
 
 interface PearSpotlightProps {
@@ -27,9 +28,11 @@ interface Collected {
   date?: string;
   venue?: string;
   vibe?: string;
+  /** User-picked story layout — maps to manifest.storyLayout on generation. */
+  storyLayout?: StoryLayoutType;
 }
 
-type Step = 'occasion' | 'names' | 'date' | 'venue' | 'vibe-ask' | 'vibe-pick' | 'photos' | 'photo-review' | 'ready';
+type Step = 'occasion' | 'names' | 'date' | 'venue' | 'vibe-ask' | 'vibe-pick' | 'photos' | 'photo-review' | 'layout' | 'ready';
 
 const STYLE_PAIRS = [
   { a: { name: 'Blush & Sage', colors: ['#D4A0A0', '#A3B18A', '#FAF7F2', '#3D3530'] },
@@ -168,6 +171,9 @@ function currentStep(c: Collected, photosDecided: boolean, vibeDescription: stri
   if (!c.vibe) return vibeDescription ? 'vibe-pick' : 'vibe-ask';
   if (!photosDecided) return 'photos';
   if (photosCount > 0 && !reviewDone) return 'photo-review';
+  // Ask the user to pick a story layout before we build so the live
+  // preview renders with their chosen format, not the default.
+  if (!c.storyLayout) return 'layout';
   return 'ready';
 }
 
@@ -216,6 +222,8 @@ function speechForStep(step: Step, collected: Collected, photoInfo?: { index: nu
       }
       return "Tell me about this photo";
     }
+    case 'layout':
+      return "How should your story unfold?";
     case 'ready':
       return `${nameDisplay}'s site is ready to build!`;
   }
@@ -233,6 +241,7 @@ function subtextForStep(step: Step, collected: Collected): string {
     case 'vibe-pick': return "Tap the one that makes your heart sing.";
     case 'photos': return "Your photos make the site 10x more personal. I'll help tell the story.";
     case 'photo-review': return "Add the location and a note — it makes the story richer.";
+    case 'layout': return "Pick the layout that fits your vibe. You can change it later in the editor.";
     case 'ready': return "Take a peek — you can always tweak in the editor after.";
   }
 }
@@ -256,6 +265,7 @@ function moodForStep(step: Step, loading: boolean): 'idle' | 'thinking' | 'happy
     case 'vibe-pick': return 'happy';
     case 'photos': return 'happy';
     case 'photo-review': return 'happy';
+    case 'layout': return 'happy';
     case 'ready': return 'celebrating';
   }
 }
@@ -615,7 +625,9 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       faqs: [],
       registry: { entries: [], message: '', cashFundUrl: '', cashFundMessage: '' },
       travelInfo: { hotels: [], airports: [] },
-      storyLayout: 'parallax' as const,
+      // Honor the user's story layout pick from the wizard — falls back to
+      // the classic parallax default if they skipped the step.
+      storyLayout: (c.storyLayout || 'parallax') as StoryLayoutType,
       pageMode: 'single-page',
       navStyle: 'glass',
     };
@@ -648,6 +660,9 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       eventVenue: c.venue,
       celebrationVenue: c.venue,
       layoutFormat: 'cascade',
+      // User-picked story layout from the wizard — persisted to
+      // manifest.storyLayout so the final site renders with it.
+      storyLayout: c.storyLayout || 'parallax',
       // Chosen color palette from the wizard — must be honored as the final palette.
       selectedPaletteColors: selectedPaletteColors || undefined,
       // Per-photo notes + manual locations collected during photo review.
@@ -1878,6 +1893,45 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                   </div>
                 );
               })()}
+
+              {/* ── Story layout step ── */}
+              {step === 'layout' && (
+                <div>
+                  <div style={{ marginBottom: 14 }}>
+                    <StoryLayoutPicker
+                      selected={collected.storyLayout || 'parallax'}
+                      onSelect={(layout) => {
+                        // Tapping a tile commits the pick AND advances — the
+                        // currentStep() guard flips to 'ready' as soon as
+                        // collected.storyLayout is set.
+                        setDirection(1);
+                        setCollected(prev => ({ ...prev, storyLayout: layout }));
+                      }}
+                    />
+                  </div>
+                  <button
+                    onClick={() => {
+                      // Let the user accept the default (parallax) without
+                      // having to click a tile.
+                      setDirection(1);
+                      setCollected(prev => ({
+                        ...prev,
+                        storyLayout: prev.storyLayout || 'parallax',
+                      }));
+                    }}
+                    style={{
+                      marginTop: 12, width: '100%', padding: '14px 0', borderRadius: 100,
+                      background: 'var(--pl-olive, #A3B18A)',
+                      border: 'none', fontSize: '0.92rem', fontWeight: 700,
+                      color: '#fff',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    Continue
+                  </button>
+                </div>
+              )}
 
               {/* ── Ready step ── */}
               {step === 'ready' && (

@@ -9,22 +9,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { colors, radius, shadow, ease, text as textScale } from '@/lib/design-tokens';
-
-// ── Shared Props ──────────────────────────────────────────────
-
-export interface StoryLayoutProps {
-  photos: Array<{
-    url: string;
-    alt?: string;
-    caption?: string;
-  }>;
-  title: string;
-  subtitle?: string;
-  body?: string;
-  date?: string;
-  /** Index of the current chapter (for alternating layouts) */
-  index?: number;
-}
+import { formatLocalDate } from '@/lib/date';
+import { getImageBrightness, textColorForBrightness } from '@/lib/smart-features';
 
 // ── Shared Style Helpers ──────────────────────────────────────
 
@@ -42,6 +28,167 @@ const glassCard: React.CSSProperties = {
   boxShadow: shadow.md,
 };
 
+// ── Shared Props ──────────────────────────────────────────────
+
+export interface StoryLayoutProps {
+  photos: Array<{
+    url: string;
+    alt?: string;
+    caption?: string;
+  }>;
+  title: string;
+  subtitle?: string;
+  body?: string;
+  date?: string;
+  /** Optional human-readable location label for the chapter badge. */
+  location?: string | null;
+  /** Index of the current chapter (for alternating layouts) */
+  index?: number;
+  /**
+   * Optional Intl date-format override. When set we format `date` via
+   * `formatLocalDate`; otherwise the raw `date` string passes through
+   * so callers can format it themselves.
+   */
+  dateFormat?: Intl.DateTimeFormatOptions;
+  /**
+   * When true, wire `data-pe-editable="true"` + `data-pe-field="title|
+   * subtitle|description"` onto the relevant text nodes so the editor's
+   * EditBridge can upgrade them to contentEditable. Off by default so
+   * public renders stay read-only.
+   */
+  editable?: boolean;
+}
+
+// ── Shared rendering helpers ──────────────────────────────────
+
+/** Format a date string using the layout's preferred format (or pass through). */
+function formatChapterDate(
+  date: string | undefined,
+  dateFormat: Intl.DateTimeFormatOptions | undefined,
+): string {
+  if (!date) return '';
+  if (dateFormat) return formatLocalDate(date, dateFormat);
+  return date;
+}
+
+type EditableAttrs = {
+  'data-pe-editable'?: 'true';
+  'data-pe-field'?: 'title' | 'subtitle' | 'description';
+};
+function editAttrs(
+  enabled: boolean | undefined,
+  field: 'title' | 'subtitle' | 'description',
+): EditableAttrs {
+  if (!enabled) return {};
+  return {
+    'data-pe-editable': 'true',
+    'data-pe-field': field,
+    // Leave contentEditable for EditBridge to toggle at runtime — declaring
+    // it here would suppress React's text diffing when the user types.
+  };
+}
+
+/**
+ * Shared location pill renderer. Shows a small rounded badge with a pin
+ * icon + label. Returns null when no location is present.
+ */
+interface LocationBadgeProps {
+  label?: string | null;
+  /** Text color inside the pill. */
+  color?: string;
+  /** Pill background — if omitted a translucent backdrop is used. */
+  background?: string;
+  style?: React.CSSProperties;
+}
+function LocationBadge({ label, color, background, style }: LocationBadgeProps) {
+  if (!label) return null;
+  const fg = color || colors.inkSoft;
+  const bg = background || 'rgba(255,255,255,0.82)';
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '0.4rem',
+        padding: '4px 10px',
+        borderRadius: '999px',
+        background: bg,
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        border: `1px solid ${fg}33`,
+        fontFamily: bodyFont,
+        fontSize: textScale.xs,
+        fontWeight: 600,
+        letterSpacing: '0.04em',
+        color: fg,
+        whiteSpace: 'nowrap',
+        ...style,
+      }}
+    >
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+        <circle cx="12" cy="10" r="3" />
+      </svg>
+      {label}
+    </span>
+  );
+}
+
+/**
+ * Hook that samples a photo URL client-side to decide whether text
+ * overlaid on it should be light or dark. Returns a text color + a
+ * recommended dark-overlay opacity. While the sample is in flight it
+ * returns the `light` defaults so layouts render safely on SSR too.
+ */
+function useAutoTextColor(
+  photoUrl: string | undefined,
+  options: { light?: string; dark?: string } = {},
+): { textColor: string; overlayOpacity: number } {
+  const { light = '#F5F1E8', dark = '#1A1A1A' } = options;
+  const [choice, setChoice] = useState<'light' | 'dark' | null>(null);
+
+  useEffect(() => {
+    setChoice(null);
+    if (!photoUrl || typeof window === 'undefined') return;
+    // Skip data URLs and hero-art endpoints — they're synthetic illustrations,
+    // not photographs, and the detector often mis-reads them.
+    if (photoUrl.startsWith('data:') || photoUrl.includes('/api/hero-art')) return;
+
+    let cancelled = false;
+    const img = new window.Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      if (cancelled) return;
+      const brightness = getImageBrightness(img);
+      if (brightness !== null) setChoice(textColorForBrightness(brightness));
+    };
+    img.onerror = () => {
+      if (!cancelled) setChoice(null);
+    };
+    img.src = photoUrl;
+    return () => {
+      cancelled = true;
+    };
+  }, [photoUrl]);
+
+  if (choice === 'dark') {
+    return { textColor: dark, overlayOpacity: 0.12 };
+  }
+  // Default to light text (with a strong dark overlay) on SSR and for any
+  // photo we couldn't sample — this is the safer fallback for hero photos.
+  return { textColor: light, overlayOpacity: 0.55 };
+}
+
 // ─────────────────────────────────────────────────────────────
 // 1. ParallaxScroll
 // ─────────────────────────────────────────────────────────────
@@ -52,10 +199,15 @@ export function ParallaxScroll({
   subtitle,
   body,
   date,
+  location,
+  dateFormat,
+  editable,
 }: StoryLayoutProps) {
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
   const bgUrl = photos[0]?.url;
+  const { textColor, overlayOpacity } = useAutoTextColor(bgUrl);
+  const formattedDate = formatChapterDate(date, dateFormat);
 
   useEffect(() => {
     const node = sectionRef.current;
@@ -89,11 +241,16 @@ export function ParallaxScroll({
     overflow: 'hidden',
   };
 
+  // Overlay strength is driven by whether the photo reads as light or dark:
+  // dark photos get a gentler overlay, bright photos need a stronger wash so
+  // the light text stays legible.
   const overlayStyle: React.CSSProperties = {
     position: 'absolute',
     inset: 0,
     background:
-      'linear-gradient(180deg, rgba(26,26,26,0.25) 0%, rgba(26,26,26,0.55) 55%, rgba(26,26,26,0.78) 100%)',
+      textColor === '#1A1A1A'
+        ? `linear-gradient(180deg, rgba(245,241,232,${Math.max(0.35, overlayOpacity)}) 0%, rgba(245,241,232,${Math.max(0.55, overlayOpacity + 0.2)}) 100%)`
+        : `linear-gradient(180deg, rgba(26,26,26,${Math.max(0.25, overlayOpacity - 0.3)}) 0%, rgba(26,26,26,${Math.max(0.55, overlayOpacity)}) 55%, rgba(26,26,26,${Math.max(0.78, overlayOpacity + 0.23)}) 100%)`,
     pointerEvents: 'none',
   };
 
@@ -103,7 +260,7 @@ export function ParallaxScroll({
     maxWidth: '760px',
     padding: '3rem 1.5rem',
     textAlign: 'center',
-    color: '#F5F1E8',
+    color: textColor,
     opacity: visible ? 1 : 0,
     transform: visible ? 'translateY(0)' : 'translateY(36px)',
     transition:
@@ -114,21 +271,45 @@ export function ParallaxScroll({
     <section ref={sectionRef} style={sectionStyle}>
       <div style={overlayStyle} />
       <div style={contentStyle}>
-        {date && (
+        {(formattedDate || location) && (
           <div
             style={{
-              fontFamily: bodyFont,
-              fontSize: textScale.xs,
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              opacity: 0.85,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.75rem',
               marginBottom: '1rem',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
             }}
           >
-            {date}
+            {formattedDate && (
+              <div
+                style={{
+                  fontFamily: bodyFont,
+                  fontSize: textScale.xs,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  opacity: 0.85,
+                }}
+              >
+                {formattedDate}
+              </div>
+            )}
+            {location && (
+              <LocationBadge
+                label={location}
+                color={textColor}
+                background={
+                  textColor === '#1A1A1A'
+                    ? 'rgba(255,255,255,0.78)'
+                    : 'rgba(0,0,0,0.28)'
+                }
+              />
+            )}
           </div>
         )}
         <h2
+          {...editAttrs(editable, 'title')}
           style={{
             fontFamily: headingFont,
             fontSize: textScale['3xl'],
@@ -142,6 +323,7 @@ export function ParallaxScroll({
         </h2>
         {subtitle && (
           <div
+            {...editAttrs(editable, 'subtitle')}
             style={{
               fontFamily: headingFont,
               fontStyle: 'italic',
@@ -155,6 +337,7 @@ export function ParallaxScroll({
         )}
         {body && (
           <p
+            {...editAttrs(editable, 'description')}
             style={{
               fontFamily: bodyFont,
               fontSize: textScale.md,
@@ -176,8 +359,18 @@ export function ParallaxScroll({
 // 2. FilmStrip
 // ─────────────────────────────────────────────────────────────
 
-export function FilmStrip({ photos, title, subtitle, body, date }: StoryLayoutProps) {
+export function FilmStrip({
+  photos,
+  title,
+  subtitle,
+  body,
+  date,
+  location,
+  dateFormat,
+  editable,
+}: StoryLayoutProps) {
   const primary = photos[0];
+  const formattedDate = formatChapterDate(date, dateFormat);
 
   const sprocketHoles = Array.from({ length: 14 }).map((_, i) => (
     <span
@@ -298,21 +491,40 @@ export function FilmStrip({ photos, title, subtitle, body, date }: StoryLayoutPr
             className="pl-filmstrip-text"
             style={{ width: '45%', fontFamily: bodyFont, color: colors.ink }}
           >
-            {date && (
+            {(formattedDate || location) && (
               <div
                 style={{
-                  fontSize: textScale.xs,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  color: colors.oliveDeep,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  flexWrap: 'wrap',
                   marginBottom: '0.75rem',
-                  fontWeight: 500,
                 }}
               >
-                {date}
+                {formattedDate && (
+                  <div
+                    style={{
+                      fontSize: textScale.xs,
+                      letterSpacing: '0.18em',
+                      textTransform: 'uppercase',
+                      color: colors.oliveDeep,
+                      fontWeight: 500,
+                    }}
+                  >
+                    {formattedDate}
+                  </div>
+                )}
+                {location && (
+                  <LocationBadge
+                    label={location}
+                    color={colors.oliveDeep}
+                    background={'rgba(163,177,138,0.12)'}
+                  />
+                )}
               </div>
             )}
             <h2
+              {...editAttrs(editable, 'title')}
               style={{
                 fontFamily: headingFont,
                 fontSize: textScale['2xl'],
@@ -326,6 +538,7 @@ export function FilmStrip({ photos, title, subtitle, body, date }: StoryLayoutPr
             </h2>
             {subtitle && (
               <div
+                {...editAttrs(editable, 'subtitle')}
                 style={{
                   fontFamily: headingFont,
                   fontStyle: 'italic',
@@ -339,6 +552,7 @@ export function FilmStrip({ photos, title, subtitle, body, date }: StoryLayoutPr
             )}
             {body && (
               <p
+                {...editAttrs(editable, 'description')}
                 style={{
                   fontSize: textScale.md,
                   lineHeight: 1.75,
@@ -366,13 +580,23 @@ export function MagazineSpread({
   subtitle,
   body,
   date,
+  location,
+  dateFormat,
+  editable,
   index = 0,
 }: StoryLayoutProps) {
   const isEven = index % 2 === 0;
   const primary = photos[0];
+  const formattedDate = formatChapterDate(date, dateFormat);
+  // Only the photo-overlay variant samples the photo — the two-column
+  // variant already sits on a cream background so it doesn't need it.
+  const { textColor, overlayOpacity } = useAutoTextColor(isEven ? primary?.url : undefined);
 
   // Even index: full-bleed photo with text overlay at bottom
   if (isEven) {
+    const overlayBg = textColor === '#1A1A1A'
+      ? `linear-gradient(180deg, rgba(245,241,232,0) 40%, rgba(245,241,232,${Math.max(0.65, overlayOpacity + 0.5)}) 100%)`
+      : `linear-gradient(180deg, rgba(26,26,26,0) 40%, rgba(26,26,26,${Math.max(0.82, overlayOpacity + 0.3)}) 100%)`;
     return (
       <motion.section
         initial={{ opacity: 0 }}
@@ -414,8 +638,7 @@ export function MagazineSpread({
             style={{
               position: 'absolute',
               inset: 0,
-              background:
-                'linear-gradient(180deg, rgba(26,26,26,0) 40%, rgba(26,26,26,0.82) 100%)',
+              background: overlayBg,
               pointerEvents: 'none',
             }}
           />
@@ -425,25 +648,44 @@ export function MagazineSpread({
             position: 'relative',
             gridRow: 2,
             padding: 'clamp(2rem, 5vw, 4rem)',
-            color: '#F5F1E8',
+            color: textColor,
             maxWidth: '900px',
             fontFamily: bodyFont,
           }}
         >
-          {date && (
+          {(formattedDate || location) && (
             <div
               style={{
-                fontSize: textScale.xs,
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                flexWrap: 'wrap',
                 marginBottom: '0.75rem',
-                opacity: 0.88,
               }}
             >
-              {date}
+              {formattedDate && (
+                <div
+                  style={{
+                    fontSize: textScale.xs,
+                    letterSpacing: '0.2em',
+                    textTransform: 'uppercase',
+                    opacity: 0.88,
+                  }}
+                >
+                  {formattedDate}
+                </div>
+              )}
+              {location && (
+                <LocationBadge
+                  label={location}
+                  color={textColor}
+                  background={textColor === '#1A1A1A' ? 'rgba(255,255,255,0.78)' : 'rgba(0,0,0,0.28)'}
+                />
+              )}
             </div>
           )}
           <h2
+            {...editAttrs(editable, 'title')}
             style={{
               fontFamily: headingFont,
               fontSize: textScale['3xl'],
@@ -455,8 +697,23 @@ export function MagazineSpread({
           >
             {title}
           </h2>
+          {subtitle && (
+            <div
+              {...editAttrs(editable, 'subtitle')}
+              style={{
+                fontFamily: headingFont,
+                fontStyle: 'italic',
+                fontSize: textScale.xl,
+                opacity: 0.88,
+                margin: '0 0 1rem 0',
+              }}
+            >
+              {subtitle}
+            </div>
+          )}
           {body && (
             <p
+              {...editAttrs(editable, 'description')}
               style={{
                 fontSize: textScale.md,
                 lineHeight: 1.75,
@@ -527,21 +784,40 @@ export function MagazineSpread({
             color: colors.ink,
           }}
         >
-          {date && (
+          {(formattedDate || location) && (
             <div
               style={{
-                fontSize: textScale.xs,
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-                color: colors.oliveDeep,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                flexWrap: 'wrap',
                 marginBottom: '0.75rem',
-                fontWeight: 500,
               }}
             >
-              {date}
+              {formattedDate && (
+                <div
+                  style={{
+                    fontSize: textScale.xs,
+                    letterSpacing: '0.2em',
+                    textTransform: 'uppercase',
+                    color: colors.oliveDeep,
+                    fontWeight: 500,
+                  }}
+                >
+                  {formattedDate}
+                </div>
+              )}
+              {location && (
+                <LocationBadge
+                  label={location}
+                  color={colors.oliveDeep}
+                  background={'rgba(163,177,138,0.12)'}
+                />
+              )}
             </div>
           )}
           <h2
+            {...editAttrs(editable, 'title')}
             style={{
               fontFamily: headingFont,
               fontSize: textScale['2xl'],
@@ -555,6 +831,7 @@ export function MagazineSpread({
           </h2>
           {subtitle && (
             <blockquote
+              {...editAttrs(editable, 'subtitle')}
               style={{
                 fontFamily: headingFont,
                 fontStyle: 'italic',
@@ -571,6 +848,7 @@ export function MagazineSpread({
           )}
           {body && (
             <p
+              {...editAttrs(editable, 'description')}
               style={{
                 fontSize: textScale.md,
                 lineHeight: 1.75,
@@ -597,10 +875,20 @@ export function TimelineVine({
   subtitle,
   body,
   date,
+  location,
+  dateFormat,
+  editable,
   index = 0,
 }: StoryLayoutProps) {
   const onRight = index % 2 === 0;
   const primary = photos[0];
+  // TimelineVine's date node uses a short "MMM YYYY"-ish format even when
+  // the user picks a long format, so the circle stays legible. The full
+  // formatted date goes into the card body.
+  const formattedDate = formatChapterDate(date, dateFormat);
+  const nodeDate = date
+    ? formatLocalDate(date, { month: 'short', year: 'numeric' })
+    : '';
 
   return (
     <motion.section
@@ -670,7 +958,7 @@ export function TimelineVine({
               padding: '4px',
             }}
           >
-            {date || ''}
+            {nodeDate || ''}
           </div>
         </div>
 
@@ -729,7 +1017,40 @@ export function TimelineVine({
             </div>
           )}
           <div style={{ fontFamily: bodyFont, color: colors.ink }}>
+            {(formattedDate || location) && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  flexWrap: 'wrap',
+                  marginBottom: '0.4rem',
+                }}
+              >
+                {formattedDate && (
+                  <span
+                    style={{
+                      fontSize: textScale.xs,
+                      letterSpacing: '0.15em',
+                      textTransform: 'uppercase',
+                      color: colors.oliveDeep,
+                      fontWeight: 500,
+                    }}
+                  >
+                    {formattedDate}
+                  </span>
+                )}
+                {location && (
+                  <LocationBadge
+                    label={location}
+                    color={colors.oliveDeep}
+                    background={'rgba(163,177,138,0.12)'}
+                  />
+                )}
+              </div>
+            )}
             <h3
+              {...editAttrs(editable, 'title')}
               style={{
                 fontFamily: headingFont,
                 fontSize: textScale.xl,
@@ -743,6 +1064,7 @@ export function TimelineVine({
             </h3>
             {subtitle && (
               <div
+                {...editAttrs(editable, 'subtitle')}
                 style={{
                   fontFamily: headingFont,
                   fontStyle: 'italic',
@@ -756,6 +1078,7 @@ export function TimelineVine({
             )}
             {body && (
               <p
+                {...editAttrs(editable, 'description')}
                 style={{
                   fontSize: textScale.base,
                   lineHeight: 1.65,
@@ -777,9 +1100,21 @@ export function TimelineVine({
 // 5. KenBurns
 // ─────────────────────────────────────────────────────────────
 
-export function KenBurns({ photos, title, subtitle, body, date }: StoryLayoutProps) {
+export function KenBurns({
+  photos,
+  title,
+  subtitle,
+  body,
+  date,
+  location,
+  dateFormat,
+  editable,
+}: StoryLayoutProps) {
   const [activeIdx, setActiveIdx] = useState(0);
   const hasMultiple = photos.length > 1;
+  const activePhoto = photos[activeIdx];
+  const { textColor, overlayOpacity } = useAutoTextColor(activePhoto?.url);
+  const formattedDate = formatChapterDate(date, dateFormat);
 
   useEffect(() => {
     if (!hasMultiple) return;
@@ -832,13 +1167,15 @@ export function KenBurns({ photos, title, subtitle, body, date }: StoryLayoutPro
           </div>
         ))}
 
-        {/* Gradient overlay */}
+        {/* Gradient overlay — light/dark depending on photo brightness */}
         <div
           style={{
             position: 'absolute',
             inset: 0,
             background:
-              'linear-gradient(180deg, rgba(26,26,26,0) 45%, rgba(26,26,26,0.55) 80%, rgba(26,26,26,0.88) 100%)',
+              textColor === '#1A1A1A'
+                ? `linear-gradient(180deg, rgba(245,241,232,0) 45%, rgba(245,241,232,${Math.max(0.55, overlayOpacity + 0.4)}) 100%)`
+                : `linear-gradient(180deg, rgba(26,26,26,0) 45%, rgba(26,26,26,${Math.max(0.55, overlayOpacity)}) 80%, rgba(26,26,26,${Math.max(0.88, overlayOpacity + 0.3)}) 100%)`,
             pointerEvents: 'none',
           }}
         />
@@ -851,7 +1188,7 @@ export function KenBurns({ photos, title, subtitle, body, date }: StoryLayoutPro
             right: 0,
             bottom: 0,
             padding: 'clamp(2rem, 5vw, 4rem)',
-            color: '#F5F1E8',
+            color: textColor,
             fontFamily: bodyFont,
           }}
         >
@@ -864,20 +1201,39 @@ export function KenBurns({ photos, title, subtitle, body, date }: StoryLayoutPro
               transition={{ duration: 0.6, ease: ease.smooth }}
               style={{ maxWidth: '720px' }}
             >
-              {date && (
+              {(formattedDate || location) && (
                 <div
                   style={{
-                    fontSize: textScale.xs,
-                    letterSpacing: '0.2em',
-                    textTransform: 'uppercase',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    flexWrap: 'wrap',
                     marginBottom: '0.75rem',
-                    opacity: 0.88,
                   }}
                 >
-                  {date}
+                  {formattedDate && (
+                    <div
+                      style={{
+                        fontSize: textScale.xs,
+                        letterSpacing: '0.2em',
+                        textTransform: 'uppercase',
+                        opacity: 0.88,
+                      }}
+                    >
+                      {formattedDate}
+                    </div>
+                  )}
+                  {location && (
+                    <LocationBadge
+                      label={location}
+                      color={textColor}
+                      background={textColor === '#1A1A1A' ? 'rgba(255,255,255,0.78)' : 'rgba(0,0,0,0.28)'}
+                    />
+                  )}
                 </div>
               )}
               <h2
+                {...editAttrs(editable, 'title')}
                 style={{
                   fontFamily: headingFont,
                   fontSize: textScale['3xl'],
@@ -890,6 +1246,7 @@ export function KenBurns({ photos, title, subtitle, body, date }: StoryLayoutPro
               </h2>
               {subtitle && (
                 <div
+                  {...editAttrs(editable, 'subtitle')}
                   style={{
                     fontFamily: headingFont,
                     fontStyle: 'italic',
@@ -903,6 +1260,7 @@ export function KenBurns({ photos, title, subtitle, body, date }: StoryLayoutPro
               )}
               {body && (
                 <p
+                  {...editAttrs(editable, 'description')}
                   style={{
                     fontSize: textScale.md,
                     lineHeight: 1.7,
@@ -925,8 +1283,18 @@ export function KenBurns({ photos, title, subtitle, body, date }: StoryLayoutPro
 // 6. BentoGrid
 // ─────────────────────────────────────────────────────────────
 
-export function BentoGrid({ photos, title, subtitle, body, date }: StoryLayoutProps) {
+export function BentoGrid({
+  photos,
+  title,
+  subtitle,
+  body,
+  date,
+  location,
+  dateFormat,
+  editable,
+}: StoryLayoutProps) {
   const count = photos.length;
+  const formattedDate = formatChapterDate(date, dateFormat);
 
   const cellBase: React.CSSProperties = {
     borderRadius: '16px',
@@ -973,22 +1341,41 @@ export function BentoGrid({ photos, title, subtitle, body, date }: StoryLayoutPr
         ...style,
       }}
     >
-      {date && (
+      {(formattedDate || location) && (
         <div
           style={{
-            fontFamily: bodyFont,
-            fontSize: textScale.xs,
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-            color: colors.oliveDeep,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            flexWrap: 'wrap',
             marginBottom: '0.5rem',
-            fontWeight: 500,
           }}
         >
-          {date}
+          {formattedDate && (
+            <span
+              style={{
+                fontFamily: bodyFont,
+                fontSize: textScale.xs,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                color: colors.oliveDeep,
+                fontWeight: 500,
+              }}
+            >
+              {formattedDate}
+            </span>
+          )}
+          {location && (
+            <LocationBadge
+              label={location}
+              color={colors.oliveDeep}
+              background={'rgba(163,177,138,0.12)'}
+            />
+          )}
         </div>
       )}
       <h3
+        {...editAttrs(editable, 'title')}
         style={{
           fontFamily: headingFont,
           fontSize: textScale.xl,
@@ -1002,6 +1389,7 @@ export function BentoGrid({ photos, title, subtitle, body, date }: StoryLayoutPr
       </h3>
       {subtitle && (
         <div
+          {...editAttrs(editable, 'subtitle')}
           style={{
             fontFamily: headingFont,
             fontStyle: 'italic',
@@ -1015,6 +1403,7 @@ export function BentoGrid({ photos, title, subtitle, body, date }: StoryLayoutPr
       )}
       {body && (
         <p
+          {...editAttrs(editable, 'description')}
           style={{
             fontFamily: bodyFont,
             fontSize: textScale.sm,
@@ -1476,6 +1865,7 @@ export interface StorySectionProps {
     subtitle?: string;
     description?: string;
     date?: string;
+    location?: { label?: string | null } | null;
     images?: Array<{ url: string; alt?: string; caption?: string }>;
   }>;
   /** The canonical layout type. Prefer passing this. */
@@ -1493,6 +1883,75 @@ export interface StorySectionProps {
    * /api/photos/proxy?…). If omitted the URL is passed through as-is.
    */
   transformUrl?: (url: string) => string;
+  /**
+   * Intl date format used to render each chapter's date. Default is
+   * a long "Month Day, Year" format if no preference is set.
+   */
+  dateFormat?: Intl.DateTimeFormatOptions;
+  /**
+   * When true, layouts mark title/subtitle/description with
+   * `data-pe-editable="true"` so the editor's EditBridge can make them
+   * contentEditable in-place.
+   */
+  editable?: boolean;
+}
+
+// Default format used when no user preference is provided.
+const DEFAULT_CHAPTER_DATE_FORMAT: Intl.DateTimeFormatOptions = {
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+};
+
+// User-configurable date format presets. The wizard / editor picker
+// writes one of these keys to `manifest.dateFormat`; StorySection maps
+// it to an Intl.DateTimeFormatOptions object here. `undefined` falls
+// back to DEFAULT_CHAPTER_DATE_FORMAT.
+export type ChapterDateFormatKey =
+  | 'long'
+  | 'short'
+  | 'numeric'
+  | 'iso'
+  | 'month-year';
+
+export const CHAPTER_DATE_FORMATS: Record<
+  ChapterDateFormatKey,
+  { label: string; example: string; options: Intl.DateTimeFormatOptions }
+> = {
+  long: {
+    label: 'Long',
+    example: 'January 15, 2024',
+    options: { month: 'long', day: 'numeric', year: 'numeric' },
+  },
+  short: {
+    label: 'Short',
+    example: 'Jan 15, 2024',
+    options: { month: 'short', day: 'numeric', year: 'numeric' },
+  },
+  numeric: {
+    label: 'Numeric',
+    example: '01/15/2024',
+    options: { month: '2-digit', day: '2-digit', year: 'numeric' },
+  },
+  iso: {
+    label: 'ISO',
+    example: '2024-01-15',
+    options: { year: 'numeric', month: '2-digit', day: '2-digit' },
+  },
+  'month-year': {
+    label: 'Month & Year',
+    example: 'January 2024',
+    options: { month: 'long', year: 'numeric' },
+  },
+};
+
+/** Resolve a preset key from StoryManifest into an Intl options object. */
+export function chapterDateFormatOptions(
+  key: ChapterDateFormatKey | string | undefined,
+): Intl.DateTimeFormatOptions {
+  if (!key) return DEFAULT_CHAPTER_DATE_FORMAT;
+  const preset = CHAPTER_DATE_FORMATS[key as ChapterDateFormatKey];
+  return preset ? preset.options : DEFAULT_CHAPTER_DATE_FORMAT;
 }
 
 export function StorySection({
@@ -1504,6 +1963,8 @@ export function StorySection({
   medallionSvg,
   accentColor,
   transformUrl,
+  dateFormat = DEFAULT_CHAPTER_DATE_FORMAT,
+  editable,
 }: StorySectionProps) {
   const layoutType = resolveStoryLayout(storyLayout, layoutFormat);
   const tint = accentColor || colors.olive;
@@ -1531,8 +1992,17 @@ export function StorySection({
           alt: img.alt,
           caption: img.caption,
         }));
+        const locationLabel = chapter.location?.label || null;
         return (
-          <div key={chapter.id || chapterIndex} style={{ position: 'relative' }}>
+          <div
+            key={chapter.id || chapterIndex}
+            // data-pe-chapter lets EditBridge walk up from a contenteditable
+            // element and attribute edits to the right chapter id on save.
+            data-pe-chapter={chapter.id}
+            data-pe-section="chapter"
+            data-pe-label={`Chapter ${chapterIndex + 1}`}
+            style={{ position: 'relative' }}
+          >
             {icon && (
               <div
                 aria-hidden="true"
@@ -1554,6 +2024,9 @@ export function StorySection({
               subtitle={chapter.subtitle}
               body={chapter.description}
               date={chapter.date}
+              location={locationLabel}
+              dateFormat={dateFormat}
+              editable={editable}
               index={chapterIndex}
             />
             {sectionBorderSvg && chapterIndex < chapters.length - 1 && (
