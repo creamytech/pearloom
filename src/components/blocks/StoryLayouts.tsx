@@ -1,14 +1,16 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// Pearloom / blocks/StoryLayouts.tsx
-// 6 story layout components for chapter rendering + picker
+// Pearloom / components/blocks/StoryLayouts.tsx
+// Six chapter layouts for storytelling pages, plus a picker.
+// All use inline styles and follow the Organic Glass design system.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { colors, radius, shadow, ease, text as textScale } from '@/lib/design-tokens';
 
-/* ── Shared types ─────────────────────────────────────────── */
+// ── Shared Props ──────────────────────────────────────────────
 
 export interface StoryLayoutProps {
   photos: Array<{
@@ -24,912 +26,1459 @@ export interface StoryLayoutProps {
   index?: number;
 }
 
-export type StoryLayoutType = 'parallax' | 'filmstrip' | 'magazine' | 'timeline' | 'kenburns' | 'bento';
+// ── Shared Style Helpers ──────────────────────────────────────
 
-/* ── Helpers ──────────────────────────────────────────────── */
+const headingFont =
+  "'Fraunces', 'Cormorant Garamond', 'Playfair Display', Georgia, serif";
+const bodyFont =
+  "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 
-function useInView(threshold = 0.2): [React.RefObject<HTMLDivElement | null>, boolean] {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [inView, setInView] = useState(false);
+const glassCard: React.CSSProperties = {
+  background: 'rgba(255, 255, 255, 0.72)',
+  backdropFilter: 'blur(16px) saturate(140%)',
+  WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+  border: `1px solid ${colors.divider}`,
+  borderRadius: radius.lg,
+  boxShadow: shadow.md,
+};
+
+// ─────────────────────────────────────────────────────────────
+// 1. ParallaxScroll
+// ─────────────────────────────────────────────────────────────
+
+export function ParallaxScroll({
+  photos,
+  title,
+  subtitle,
+  body,
+  date,
+}: StoryLayoutProps) {
+  const sectionRef = useRef<HTMLDivElement | null>(null);
+  const [visible, setVisible] = useState(false);
+  const bgUrl = photos[0]?.url;
+
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+    const node = sectionRef.current;
+    if (!node) return;
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setInView(true); },
-      { threshold }
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setVisible(true);
+          }
+        });
+      },
+      { threshold: 0.2 }
     );
-    observer.observe(el);
+    observer.observe(node);
     return () => observer.disconnect();
-  }, [threshold]);
-  return [ref, inView];
-}
+  }, []);
 
-const HEADING_FONT = 'var(--pl-font-heading, "Playfair Display", Georgia, serif)';
-const BODY_FONT = 'var(--pl-font-body, "Lora", Georgia, serif)';
-const INK = 'var(--pl-ink-soft, #3D3530)';
-const MUTED = 'var(--pl-muted, #8C7E72)';
-const OLIVE = 'var(--pl-olive, #A3B18A)';
-const CREAM = 'var(--pl-cream, #FAF7F2)';
+  const sectionStyle: React.CSSProperties = {
+    position: 'relative',
+    width: '100%',
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundImage: bgUrl ? `url(${bgUrl})` : undefined,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundAttachment: 'fixed',
+    backgroundColor: colors.inkSoft,
+    overflow: 'hidden',
+  };
 
-/* ═════════════════════════════════════════════════════════════
-   1. ParallaxScroll — full-viewport parallax hero per chapter
-   ═════════════════════════════════════════════════════════════ */
+  const overlayStyle: React.CSSProperties = {
+    position: 'absolute',
+    inset: 0,
+    background:
+      'linear-gradient(180deg, rgba(26,26,26,0.25) 0%, rgba(26,26,26,0.55) 55%, rgba(26,26,26,0.78) 100%)',
+    pointerEvents: 'none',
+  };
 
-export function ParallaxScroll({ photos, title, subtitle, body, date }: StoryLayoutProps) {
-  const [ref, inView] = useInView(0.15);
-  const bgPhoto = photos[0]?.url;
+  const contentStyle: React.CSSProperties = {
+    position: 'relative',
+    zIndex: 1,
+    maxWidth: '760px',
+    padding: '3rem 1.5rem',
+    textAlign: 'center',
+    color: '#F5F1E8',
+    opacity: visible ? 1 : 0,
+    transform: visible ? 'translateY(0)' : 'translateY(36px)',
+    transition:
+      'opacity 900ms cubic-bezier(0.22, 1, 0.36, 1), transform 900ms cubic-bezier(0.22, 1, 0.36, 1)',
+  };
 
   return (
-    <section
-      ref={ref}
-      style={{
-        position: 'relative',
-        minHeight: '90vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-        background: bgPhoto ? `url(${bgPhoto}) center/cover` : CREAM,
-        backgroundAttachment: 'fixed',
-      }}
-    >
-      {/* Dark gradient overlay for text readability */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.55) 70%, rgba(0,0,0,0.75) 100%)',
-      }} />
-
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-        style={{
-          position: 'relative', zIndex: 2,
-          textAlign: 'center', padding: '0 24px',
-          maxWidth: 800, color: '#fff',
-        }}
-      >
+    <section ref={sectionRef} style={sectionStyle}>
+      <div style={overlayStyle} />
+      <div style={contentStyle}>
         {date && (
-          <p style={{
-            fontSize: '0.75rem', letterSpacing: '0.3em', textTransform: 'uppercase',
-            fontWeight: 600, opacity: 0.75, marginBottom: 20,
-          }}>
+          <div
+            style={{
+              fontFamily: bodyFont,
+              fontSize: textScale.xs,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              opacity: 0.85,
+              marginBottom: '1rem',
+            }}
+          >
             {date}
-          </p>
+          </div>
         )}
-        <h2 style={{
-          fontFamily: HEADING_FONT, fontStyle: 'italic',
-          fontSize: 'clamp(2.5rem, 6vw, 5rem)', fontWeight: 400,
-          lineHeight: 1.1, margin: '0 0 16px',
-          textShadow: '0 2px 20px rgba(0,0,0,0.4)',
-        }}>
+        <h2
+          style={{
+            fontFamily: headingFont,
+            fontSize: textScale['3xl'],
+            lineHeight: 1.08,
+            fontWeight: 400,
+            margin: '0 0 1rem 0',
+            letterSpacing: '-0.01em',
+          }}
+        >
           {title}
         </h2>
         {subtitle && (
-          <p style={{
-            fontFamily: BODY_FONT, fontStyle: 'italic',
-            fontSize: 'clamp(1rem, 2vw, 1.25rem)', opacity: 0.9,
-            marginBottom: 24,
-          }}>
+          <div
+            style={{
+              fontFamily: headingFont,
+              fontStyle: 'italic',
+              fontSize: textScale.xl,
+              opacity: 0.9,
+              marginBottom: '1.25rem',
+            }}
+          >
             {subtitle}
-          </p>
+          </div>
         )}
         {body && (
-          <p style={{
-            fontFamily: BODY_FONT, fontSize: 'clamp(0.95rem, 1.6vw, 1.1rem)',
-            lineHeight: 1.75, maxWidth: 620, margin: '0 auto', opacity: 0.85,
-          }}>
+          <p
+            style={{
+              fontFamily: bodyFont,
+              fontSize: textScale.md,
+              lineHeight: 1.75,
+              maxWidth: '620px',
+              margin: '0 auto',
+              opacity: 0.92,
+            }}
+          >
             {body}
           </p>
         )}
-      </motion.div>
-    </section>
-  );
-}
-
-/* ═════════════════════════════════════════════════════════════
-   2. FilmStrip — horizontal film frame with sprocket holes
-   ═════════════════════════════════════════════════════════════ */
-
-export function FilmStrip({ photos, title, subtitle, body, date }: StoryLayoutProps) {
-  const [ref, inView] = useInView(0.2);
-  const photo = photos[0]?.url;
-
-  // Responsive detection
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-
-  return (
-    <section
-      ref={ref}
-      style={{
-        padding: '80px 24px', background: CREAM,
-        display: 'flex', justifyContent: 'center',
-      }}
-    >
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        style={{
-          display: 'flex', flexDirection: isMobile ? 'column' : 'row',
-          alignItems: 'center', gap: 48, maxWidth: 1100, width: '100%',
-        }}
-      >
-        {/* Film frame with sprocket holes */}
-        {photo && (
-          <div style={{
-            position: 'relative',
-            width: isMobile ? '100%' : '55%',
-            aspectRatio: '4/5',
-            background: '#1a1a1a',
-            padding: '24px 0',
-            transform: isMobile ? 'none' : 'rotate(-2deg)',
-            boxShadow: '0 20px 60px rgba(43,30,20,0.15)',
-            borderRadius: 4,
-          }}>
-            {/* Top sprocket holes */}
-            <div style={{
-              position: 'absolute', top: 4, left: 0, right: 0, height: 16,
-              display: 'flex', justifyContent: 'space-around', padding: '0 8px',
-            }}>
-              {Array.from({ length: 10 }).map((_, i) => (
-                <div key={i} style={{ width: 14, height: 10, background: CREAM, borderRadius: 2 }} />
-              ))}
-            </div>
-            {/* Bottom sprocket holes */}
-            <div style={{
-              position: 'absolute', bottom: 4, left: 0, right: 0, height: 16,
-              display: 'flex', justifyContent: 'space-around', padding: '0 8px',
-            }}>
-              {Array.from({ length: 10 }).map((_, i) => (
-                <div key={i} style={{ width: 14, height: 10, background: CREAM, borderRadius: 2 }} />
-              ))}
-            </div>
-            {/* Photo */}
-            <img
-              src={photo} alt={title}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          </div>
-        )}
-
-        {/* Text panel */}
-        <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
-          {date && (
-            <p style={{
-              fontSize: '0.7rem', letterSpacing: '0.3em', textTransform: 'uppercase',
-              fontWeight: 700, color: OLIVE, marginBottom: 16,
-            }}>
-              {date}
-            </p>
-          )}
-          <h2 style={{
-            fontFamily: HEADING_FONT, fontStyle: 'italic',
-            fontSize: 'clamp(2rem, 4vw, 3.25rem)', fontWeight: 400,
-            color: INK, lineHeight: 1.15, margin: '0 0 16px',
-          }}>
-            {title}
-          </h2>
-          {subtitle && (
-            <p style={{
-              fontFamily: BODY_FONT, fontStyle: 'italic',
-              fontSize: '1.15rem', color: MUTED, marginBottom: 20, lineHeight: 1.5,
-            }}>
-              {subtitle}
-            </p>
-          )}
-          {body && (
-            <p style={{
-              fontFamily: BODY_FONT, fontSize: '1rem',
-              lineHeight: 1.75, color: INK,
-            }}>
-              {body}
-            </p>
-          )}
-        </div>
-      </motion.div>
-    </section>
-  );
-}
-
-/* ═════════════════════════════════════════════════════════════
-   3. MagazineSpread — alternating editorial layouts
-   ═════════════════════════════════════════════════════════════ */
-
-export function MagazineSpread({ photos, title, subtitle, body, date, index = 0 }: StoryLayoutProps) {
-  const [ref, inView] = useInView(0.15);
-  const even = index % 2 === 0;
-  const mainPhoto = photos[0]?.url;
-
-  if (even) {
-    // Full-bleed with text overlay at bottom
-    return (
-      <section
-        ref={ref}
-        style={{
-          position: 'relative', height: '85vh', overflow: 'hidden',
-          background: '#000',
-        }}
-      >
-        {mainPhoto && (
-          <motion.img
-            src={mainPhoto}
-            initial={{ scale: 1.1 }}
-            animate={inView ? { scale: 1 } : {}}
-            transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
-            style={{
-              position: 'absolute', inset: 0,
-              width: '100%', height: '100%', objectFit: 'cover',
-            }}
-          />
-        )}
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)',
-        }} />
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.9, delay: 0.3 }}
-          style={{
-            position: 'absolute', bottom: 60, left: 0, right: 0,
-            padding: '0 48px', color: '#fff',
-          }}
-        >
-          {date && (
-            <p style={{
-              fontSize: '0.7rem', letterSpacing: '0.3em', textTransform: 'uppercase',
-              fontWeight: 700, opacity: 0.75, marginBottom: 12,
-            }}>
-              {date}
-            </p>
-          )}
-          <h2 style={{
-            fontFamily: HEADING_FONT, fontStyle: 'italic',
-            fontSize: 'clamp(2.5rem, 5vw, 4.5rem)', fontWeight: 400,
-            lineHeight: 1.1, margin: '0 0 16px', maxWidth: 900,
-          }}>
-            {title}
-          </h2>
-          {body && (
-            <p style={{
-              fontFamily: BODY_FONT, fontSize: '1.1rem',
-              lineHeight: 1.65, maxWidth: 600, opacity: 0.9,
-            }}>
-              {body}
-            </p>
-          )}
-        </motion.div>
-      </section>
-    );
-  }
-
-  // Two-column layout with pull quote
-  return (
-    <section
-      ref={ref}
-      style={{
-        padding: '100px 48px', background: CREAM,
-        display: 'flex', justifyContent: 'center',
-      }}
-    >
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={inView ? { opacity: 1 } : {}}
-        transition={{ duration: 0.8 }}
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
-          gap: 60,
-          maxWidth: 1200, width: '100%',
-          alignItems: 'center',
-        }}
-      >
-        {/* Text column */}
-        <div>
-          {date && (
-            <p style={{
-              fontSize: '0.7rem', letterSpacing: '0.3em', textTransform: 'uppercase',
-              fontWeight: 700, color: OLIVE, marginBottom: 16,
-            }}>
-              {date}
-            </p>
-          )}
-          <h2 style={{
-            fontFamily: HEADING_FONT, fontStyle: 'italic',
-            fontSize: 'clamp(2rem, 3.5vw, 3.5rem)', fontWeight: 400,
-            color: INK, lineHeight: 1.1, margin: '0 0 24px',
-          }}>
-            {title}
-          </h2>
-          {subtitle && (
-            <p style={{
-              fontFamily: HEADING_FONT, fontStyle: 'italic',
-              fontSize: '1.5rem', color: OLIVE,
-              marginBottom: 24, lineHeight: 1.3,
-              borderLeft: `3px solid ${OLIVE}`, paddingLeft: 20,
-            }}>
-              &ldquo;{subtitle}&rdquo;
-            </p>
-          )}
-          {body && (
-            <p style={{
-              fontFamily: BODY_FONT, fontSize: '1.05rem',
-              lineHeight: 1.8, color: INK,
-            }}>
-              {body}
-            </p>
-          )}
-        </div>
-
-        {/* Photo column with hover zoom */}
-        {mainPhoto && (
-          <div style={{
-            position: 'relative', aspectRatio: '3/4',
-            overflow: 'hidden', borderRadius: 8,
-            boxShadow: '0 20px 60px rgba(43,30,20,0.12)',
-          }}>
-            <img
-              src={mainPhoto} alt={title}
-              style={{
-                width: '100%', height: '100%', objectFit: 'cover',
-                transition: 'transform 0.8s ease',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-            />
-          </div>
-        )}
-      </motion.div>
-    </section>
-  );
-}
-
-/* ═════════════════════════════════════════════════════════════
-   4. TimelineVine — vertical timeline with alternating branches
-   ═════════════════════════════════════════════════════════════ */
-
-export function TimelineVine({ photos, title, subtitle, body, date, index = 0 }: StoryLayoutProps) {
-  const [ref, inView] = useInView(0.2);
-  const left = index % 2 === 0;
-  const photo = photos[0]?.url;
-
-  return (
-    <section
-      ref={ref}
-      style={{
-        position: 'relative',
-        padding: '60px 24px', background: CREAM,
-        display: 'flex', justifyContent: 'center',
-      }}
-    >
-      {/* Center vine */}
-      <div style={{
-        position: 'absolute', top: 0, bottom: 0, left: '50%',
-        width: 2, background: `linear-gradient(to bottom, transparent, ${OLIVE}66, ${OLIVE}66, transparent)`,
-      }} />
-
-      <div style={{
-        position: 'relative', maxWidth: 1100, width: '100%',
-        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0,
-      }}>
-        {/* Node circle on timeline */}
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={inView ? { scale: 1 } : {}}
-          transition={{ type: 'spring', stiffness: 300, damping: 18, delay: 0.1 }}
-          style={{
-            position: 'absolute', left: '50%', top: 48,
-            transform: 'translateX(-50%)',
-            width: 18, height: 18, borderRadius: '50%',
-            background: OLIVE, border: `3px solid ${CREAM}`,
-            boxShadow: '0 4px 16px rgba(163,177,138,0.4)',
-            zIndex: 2,
-          }}
-        />
-
-        {/* Content card — alternating side */}
-        <motion.div
-          initial={{ opacity: 0, x: left ? -40 : 40 }}
-          animate={inView ? { opacity: 1, x: 0 } : {}}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          style={{
-            gridColumn: left ? 1 : 2,
-            padding: left ? '20px 60px 20px 0' : '20px 0 20px 60px',
-            textAlign: left ? 'right' : 'left',
-          }}
-        >
-          {/* Connector line from card to vine */}
-          <div style={{
-            position: 'absolute', top: 56,
-            [left ? 'right' : 'left']: 'calc(50% + 9px)',
-            width: 52, height: 2,
-            background: `${OLIVE}66`,
-          } as React.CSSProperties} />
-
-          <div style={{
-            display: 'inline-block', maxWidth: 440, textAlign: 'left',
-            background: 'rgba(255,255,255,0.6)',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255,255,255,0.5)',
-            borderRadius: 16,
-            overflow: 'hidden',
-            boxShadow: '0 8px 32px rgba(43,30,20,0.08)',
-          }}>
-            {photo && (
-              <img
-                src={photo} alt={title}
-                style={{
-                  width: '100%', aspectRatio: '16/9',
-                  objectFit: 'cover', display: 'block',
-                }}
-              />
-            )}
-            <div style={{ padding: 24 }}>
-              {date && (
-                <p style={{
-                  fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase',
-                  fontWeight: 700, color: OLIVE, marginBottom: 8,
-                }}>
-                  {date}
-                </p>
-              )}
-              <h3 style={{
-                fontFamily: HEADING_FONT, fontStyle: 'italic',
-                fontSize: '1.75rem', fontWeight: 400,
-                color: INK, margin: '0 0 10px', lineHeight: 1.2,
-              }}>
-                {title}
-              </h3>
-              {subtitle && (
-                <p style={{ fontSize: '0.9rem', color: MUTED, fontStyle: 'italic', marginBottom: 12 }}>
-                  {subtitle}
-                </p>
-              )}
-              {body && (
-                <p style={{
-                  fontFamily: BODY_FONT, fontSize: '0.95rem',
-                  lineHeight: 1.65, color: INK,
-                }}>
-                  {body}
-                </p>
-              )}
-            </div>
-          </div>
-        </motion.div>
       </div>
     </section>
   );
 }
 
-/* ═════════════════════════════════════════════════════════════
-   5. KenBurns — slow zoom + crossfade slideshow
-   ═════════════════════════════════════════════════════════════ */
+// ─────────────────────────────────────────────────────────────
+// 2. FilmStrip
+// ─────────────────────────────────────────────────────────────
 
-export function KenBurns({ photos, title, subtitle, body, date }: StoryLayoutProps) {
-  const [ref, inView] = useInView(0.15);
-  const [idx, setIdx] = useState(0);
+export function FilmStrip({ photos, title, subtitle, body, date }: StoryLayoutProps) {
+  const primary = photos[0];
 
-  useEffect(() => {
-    if (photos.length <= 1) return;
-    const interval = setInterval(() => {
-      setIdx(prev => (prev + 1) % photos.length);
-    }, 8000);
-    return () => clearInterval(interval);
-  }, [photos.length]);
+  const sprocketHoles = Array.from({ length: 14 }).map((_, i) => (
+    <span
+      key={i}
+      style={{
+        display: 'inline-block',
+        width: '14px',
+        height: '8px',
+        borderRadius: '3px',
+        background: colors.cream,
+      }}
+    />
+  ));
 
   return (
-    <section
-      ref={ref}
-      style={{
-        position: 'relative', height: '90vh',
-        overflow: 'hidden', background: '#000',
-      }}
-    >
-      {/* All photos stacked with Ken Burns */}
-      {photos.map((photo, i) => {
-        const isActive = i === idx;
-        return (
-          <motion.div
-            key={`${photo.url}-${i}`}
-            initial={false}
-            animate={{ opacity: isActive ? 1 : 0 }}
-            transition={{ duration: 2, ease: [0.4, 0, 0.2, 1] }}
-            style={{ position: 'absolute', inset: 0 }}
-          >
-            <motion.img
-              src={photo.url} alt={photo.alt || title}
-              initial={{ scale: 1 }}
-              animate={isActive ? { scale: 1.15 } : { scale: 1 }}
-              transition={{ duration: 12, ease: 'linear' }}
-              style={{
-                width: '100%', height: '100%',
-                objectFit: 'cover',
-                willChange: 'transform',
-              }}
-            />
-          </motion.div>
-        );
-      })}
-
-      {/* Dark gradient overlay */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 40%, transparent 70%)',
-      }} />
-
-      {/* Text */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 1, delay: 0.4 }}
+    <>
+      <style>{`
+        @media (max-width: 768px) {
+          .pl-filmstrip-wrap {
+            flex-direction: column !important;
+          }
+          .pl-filmstrip-photo, .pl-filmstrip-text {
+            width: 100% !important;
+          }
+          .pl-filmstrip-photo {
+            transform: rotate(0deg) !important;
+          }
+        }
+      `}</style>
+      <motion.section
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.7, ease: ease.smooth }}
         style={{
-          position: 'absolute', bottom: 80, left: 0, right: 0,
-          padding: '0 48px', color: '#fff', textAlign: 'center',
-          maxWidth: 900, margin: '0 auto',
+          padding: 'clamp(3rem, 6vw, 5rem) 1.5rem',
+          background: colors.cream,
         }}
       >
-        {date && (
-          <p style={{
-            fontSize: '0.7rem', letterSpacing: '0.3em', textTransform: 'uppercase',
-            fontWeight: 700, opacity: 0.75, marginBottom: 16,
-          }}>
-            {date}
-          </p>
-        )}
-        <h2 style={{
-          fontFamily: HEADING_FONT, fontStyle: 'italic',
-          fontSize: 'clamp(2.5rem, 5vw, 4.5rem)', fontWeight: 400,
-          lineHeight: 1.1, margin: '0 0 16px',
-          textShadow: '0 2px 20px rgba(0,0,0,0.5)',
-        }}>
-          {title}
-        </h2>
-        {subtitle && (
-          <p style={{
-            fontFamily: BODY_FONT, fontStyle: 'italic',
-            fontSize: '1.2rem', opacity: 0.9, marginBottom: 16,
-          }}>
-            {subtitle}
-          </p>
-        )}
-        {body && (
-          <p style={{
-            fontFamily: BODY_FONT, fontSize: '1rem',
-            lineHeight: 1.7, opacity: 0.85,
-          }}>
-            {body}
-          </p>
-        )}
-      </motion.div>
-
-      {/* Progress dots */}
-      {photos.length > 1 && (
-        <div style={{
-          position: 'absolute', bottom: 32, left: '50%',
-          transform: 'translateX(-50%)',
-          display: 'flex', gap: 8,
-          padding: '8px 14px', borderRadius: 100,
-          background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(12px)',
-        }}>
-          {photos.map((_, i) => (
+        <div
+          className="pl-filmstrip-wrap"
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: '3rem',
+            maxWidth: '1200px',
+            margin: '0 auto',
+          }}
+        >
+          <div
+            className="pl-filmstrip-photo"
+            style={{
+              width: '55%',
+              position: 'relative',
+              transform: 'rotate(-2deg)',
+              background: colors.ink,
+              padding: '24px 10px',
+              borderRadius: '6px',
+              boxShadow: shadow.lg,
+            }}
+          >
             <div
-              key={i}
               style={{
-                width: i === idx ? 24 : 6, height: 6, borderRadius: 100,
-                background: i === idx ? '#fff' : 'rgba(255,255,255,0.4)',
-                transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '20px',
+                display: 'flex',
+                justifyContent: 'space-around',
+                alignItems: 'center',
+                padding: '0 8px',
               }}
-            />
-          ))}
+            >
+              {sprocketHoles}
+            </div>
+            <div
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: '20px',
+                display: 'flex',
+                justifyContent: 'space-around',
+                alignItems: 'center',
+                padding: '0 8px',
+              }}
+            >
+              {sprocketHoles}
+            </div>
+            {primary ? (
+              <img
+                src={primary.url}
+                alt={primary.alt || title}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  aspectRatio: '4 / 3',
+                  objectFit: 'cover',
+                  borderRadius: '2px',
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: '100%',
+                  aspectRatio: '4 / 3',
+                  background: colors.inkSoft,
+                  borderRadius: '2px',
+                }}
+              />
+            )}
+          </div>
+
+          <div
+            className="pl-filmstrip-text"
+            style={{ width: '45%', fontFamily: bodyFont, color: colors.ink }}
+          >
+            {date && (
+              <div
+                style={{
+                  fontSize: textScale.xs,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  color: colors.oliveDeep,
+                  marginBottom: '0.75rem',
+                  fontWeight: 500,
+                }}
+              >
+                {date}
+              </div>
+            )}
+            <h2
+              style={{
+                fontFamily: headingFont,
+                fontSize: textScale['2xl'],
+                lineHeight: 1.1,
+                fontWeight: 400,
+                margin: '0 0 0.75rem 0',
+                color: colors.ink,
+              }}
+            >
+              {title}
+            </h2>
+            {subtitle && (
+              <div
+                style={{
+                  fontFamily: headingFont,
+                  fontStyle: 'italic',
+                  fontSize: textScale.lg,
+                  color: colors.muted,
+                  marginBottom: '1.25rem',
+                }}
+              >
+                {subtitle}
+              </div>
+            )}
+            {body && (
+              <p
+                style={{
+                  fontSize: textScale.md,
+                  lineHeight: 1.75,
+                  color: colors.inkSoft,
+                  margin: 0,
+                }}
+              >
+                {body}
+              </p>
+            )}
+          </div>
         </div>
-      )}
-    </section>
+      </motion.section>
+    </>
   );
 }
 
-/* ═════════════════════════════════════════════════════════════
-   6. BentoGrid — asymmetric bento box layout
-   ═════════════════════════════════════════════════════════════ */
+// ─────────────────────────────────────────────────────────────
+// 3. MagazineSpread
+// ─────────────────────────────────────────────────────────────
 
-export function BentoGrid({ photos, title, subtitle, body, date }: StoryLayoutProps) {
-  const [ref, inView] = useInView(0.15);
-  const photoCount = photos.length;
+export function MagazineSpread({
+  photos,
+  title,
+  subtitle,
+  body,
+  date,
+  index = 0,
+}: StoryLayoutProps) {
+  const isEven = index % 2 === 0;
+  const primary = photos[0];
 
-  return (
-    <section
-      ref={ref}
-      style={{
-        padding: '80px 24px', background: CREAM,
-        display: 'flex', justifyContent: 'center',
-      }}
-    >
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.8 }}
+  // Even index: full-bleed photo with text overlay at bottom
+  if (isEven) {
+    return (
+      <motion.section
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.8, ease: ease.smooth }}
         style={{
-          maxWidth: 1100, width: '100%',
+          position: 'relative',
+          width: '100%',
+          minHeight: '85vh',
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gridAutoRows: '160px',
-          gap: 10,
+          gridTemplateRows: '1fr auto',
+          overflow: 'hidden',
+          background: colors.inkSoft,
         }}
       >
-        {/* Text cell */}
-        <div style={{
-          gridColumn: 'span 2', gridRow: 'span 2',
-          padding: 28, borderRadius: 16,
-          background: 'rgba(255,255,255,0.6)',
-          backdropFilter: 'blur(12px)',
-          border: '1px solid rgba(255,255,255,0.5)',
-          boxShadow: '0 8px 32px rgba(43,30,20,0.06)',
-          display: 'flex', flexDirection: 'column', justifyContent: 'center',
-        }}>
-          {date && (
-            <p style={{
-              fontSize: '0.7rem', letterSpacing: '0.3em', textTransform: 'uppercase',
-              fontWeight: 700, color: OLIVE, marginBottom: 12,
-            }}>
-              {date}
-            </p>
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            overflow: 'hidden',
+          }}
+        >
+          {primary && (
+            <motion.img
+              src={primary.url}
+              alt={primary.alt || title}
+              whileHover={{ scale: 1.03 }}
+              transition={{ duration: 0.8, ease: ease.smooth }}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+              }}
+            />
           )}
-          <h2 style={{
-            fontFamily: HEADING_FONT, fontStyle: 'italic',
-            fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', fontWeight: 400,
-            color: INK, lineHeight: 1.15, margin: '0 0 14px',
-          }}>
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background:
+                'linear-gradient(180deg, rgba(26,26,26,0) 40%, rgba(26,26,26,0.82) 100%)',
+              pointerEvents: 'none',
+            }}
+          />
+        </div>
+        <div
+          style={{
+            position: 'relative',
+            gridRow: 2,
+            padding: 'clamp(2rem, 5vw, 4rem)',
+            color: '#F5F1E8',
+            maxWidth: '900px',
+            fontFamily: bodyFont,
+          }}
+        >
+          {date && (
+            <div
+              style={{
+                fontSize: textScale.xs,
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                marginBottom: '0.75rem',
+                opacity: 0.88,
+              }}
+            >
+              {date}
+            </div>
+          )}
+          <h2
+            style={{
+              fontFamily: headingFont,
+              fontSize: textScale['3xl'],
+              lineHeight: 1.05,
+              fontWeight: 400,
+              margin: '0 0 1rem 0',
+              fontStyle: 'italic',
+            }}
+          >
             {title}
           </h2>
-          {subtitle && (
-            <p style={{
-              fontSize: '0.95rem', color: MUTED,
-              fontStyle: 'italic', marginBottom: 12,
-            }}>
-              {subtitle}
-            </p>
-          )}
           {body && (
-            <p style={{
-              fontFamily: BODY_FONT, fontSize: '0.92rem',
-              lineHeight: 1.65, color: INK,
-            }}>
+            <p
+              style={{
+                fontSize: textScale.md,
+                lineHeight: 1.75,
+                margin: 0,
+                opacity: 0.92,
+                maxWidth: '640px',
+              }}
+            >
               {body}
             </p>
           )}
         </div>
+      </motion.section>
+    );
+  }
 
-        {/* First photo — large 2x2 */}
-        {photoCount >= 1 && (
-          <BentoCell photo={photos[0]} span="2x2" />
-        )}
-
-        {/* Remaining photos — 1x1 cells */}
-        {photoCount >= 2 && <BentoCell photo={photos[1]} span="1x1" />}
-        {photoCount >= 3 && <BentoCell photo={photos[2]} span="1x1" />}
-        {photoCount >= 4 && <BentoCell photo={photos[3]} span="1x1" />}
-        {photoCount >= 5 && <BentoCell photo={photos[4]} span="1x1" />}
-      </motion.div>
-    </section>
-  );
-}
-
-function BentoCell({ photo, span }: { photo: { url: string; alt?: string }; span: '1x1' | '2x2' }) {
+  // Odd index: two-column grid
   return (
-    <div
+    <motion.section
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.7, ease: ease.smooth }}
       style={{
-        gridColumn: span === '2x2' ? 'span 2' : 'span 1',
-        gridRow: span === '2x2' ? 'span 2' : 'span 1',
-        borderRadius: 16, overflow: 'hidden',
-        background: '#1a1a1a',
-        boxShadow: '0 4px 16px rgba(43,30,20,0.08)',
-        cursor: 'pointer',
+        padding: 'clamp(3rem, 6vw, 5rem) 1.5rem',
+        background: colors.cream,
       }}
     >
-      <img
-        src={photo.url} alt={photo.alt || ''}
+      <div
         style={{
-          width: '100%', height: '100%', objectFit: 'cover',
-          transition: 'transform 0.5s ease',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(12, 1fr)',
+          gap: '2rem',
+          maxWidth: '1240px',
+          margin: '0 auto',
+          alignItems: 'center',
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.06)')}
-        onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-      />
-    </div>
+      >
+        <div
+          style={{
+            gridColumn: 'span 7',
+            overflow: 'hidden',
+            borderRadius: radius.lg,
+            boxShadow: shadow.lg,
+            aspectRatio: '4 / 5',
+            background: colors.oliveMist,
+          }}
+        >
+          {primary && (
+            <motion.img
+              src={primary.url}
+              alt={primary.alt || title}
+              whileHover={{ scale: 1.03 }}
+              transition={{ duration: 0.8, ease: ease.smooth }}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+              }}
+            />
+          )}
+        </div>
+        <div
+          style={{
+            gridColumn: 'span 5',
+            fontFamily: bodyFont,
+            color: colors.ink,
+          }}
+        >
+          {date && (
+            <div
+              style={{
+                fontSize: textScale.xs,
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                color: colors.oliveDeep,
+                marginBottom: '0.75rem',
+                fontWeight: 500,
+              }}
+            >
+              {date}
+            </div>
+          )}
+          <h2
+            style={{
+              fontFamily: headingFont,
+              fontSize: textScale['2xl'],
+              lineHeight: 1.1,
+              fontWeight: 400,
+              margin: '0 0 1rem 0',
+              color: colors.ink,
+            }}
+          >
+            {title}
+          </h2>
+          {subtitle && (
+            <blockquote
+              style={{
+                fontFamily: headingFont,
+                fontStyle: 'italic',
+                fontSize: textScale.xl,
+                lineHeight: 1.3,
+                color: colors.oliveDeep,
+                borderLeft: `3px solid ${colors.olive}`,
+                paddingLeft: '1rem',
+                margin: '1rem 0',
+              }}
+            >
+              {subtitle}
+            </blockquote>
+          )}
+          {body && (
+            <p
+              style={{
+                fontSize: textScale.md,
+                lineHeight: 1.75,
+                color: colors.inkSoft,
+                margin: 0,
+              }}
+            >
+              {body}
+            </p>
+          )}
+        </div>
+      </div>
+    </motion.section>
   );
 }
 
-/* ═════════════════════════════════════════════════════════════
-   StoryLayoutPicker — 3x2 grid of mini layout previews
-   ═════════════════════════════════════════════════════════════ */
+// ─────────────────────────────────────────────────────────────
+// 4. TimelineVine
+// ─────────────────────────────────────────────────────────────
 
-interface PickerProps {
-  selected: StoryLayoutType;
-  onSelect: (layout: StoryLayoutType) => void;
+export function TimelineVine({
+  photos,
+  title,
+  subtitle,
+  body,
+  date,
+  index = 0,
+}: StoryLayoutProps) {
+  const onRight = index % 2 === 0;
+  const primary = photos[0];
+
+  return (
+    <motion.section
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true, amount: 0.25 }}
+      transition={{ duration: 0.7, ease: ease.smooth }}
+      style={{
+        position: 'relative',
+        padding: '2.5rem 1.5rem',
+        background: colors.cream,
+      }}
+    >
+      {/* Central vine line */}
+      <div
+        style={{
+          position: 'absolute',
+          left: '50%',
+          top: 0,
+          bottom: 0,
+          width: '2px',
+          background: `linear-gradient(180deg, ${colors.olive}00, ${colors.olive} 12%, ${colors.olive} 88%, ${colors.olive}00)`,
+          transform: 'translateX(-50%)',
+          pointerEvents: 'none',
+        }}
+      />
+
+      <div
+        style={{
+          position: 'relative',
+          maxWidth: '1080px',
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          alignItems: 'center',
+          minHeight: '260px',
+        }}
+      >
+        {/* Node circle with date */}
+        <div
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 2,
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+            background: colors.olive,
+            border: `4px solid ${colors.cream}`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: shadow.md,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: bodyFont,
+              fontSize: textScale.xs,
+              color: '#FFFFFF',
+              textAlign: 'center',
+              lineHeight: 1.1,
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+              padding: '4px',
+            }}
+          >
+            {date || ''}
+          </div>
+        </div>
+
+        {/* Connector line from card to vine */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: onRight ? '50%' : 'calc(50% - 60px)',
+            width: '60px',
+            height: '2px',
+            background: colors.olive,
+            transform: 'translateY(-50%)',
+            zIndex: 1,
+          }}
+        />
+
+        {/* Glass card */}
+        <motion.div
+          initial={{ opacity: 0, x: onRight ? 40 : -40 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.7, ease: ease.smooth }}
+          style={{
+            ...glassCard,
+            gridColumn: onRight ? 2 : 1,
+            marginLeft: onRight ? '64px' : 0,
+            marginRight: onRight ? 0 : '64px',
+            padding: '1.25rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.875rem',
+            overflow: 'hidden',
+          }}
+        >
+          {primary && (
+            <div
+              style={{
+                width: '100%',
+                aspectRatio: '16 / 9',
+                overflow: 'hidden',
+                borderRadius: radius.md,
+                background: colors.oliveMist,
+              }}
+            >
+              <img
+                src={primary.url}
+                alt={primary.alt || title}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                }}
+              />
+            </div>
+          )}
+          <div style={{ fontFamily: bodyFont, color: colors.ink }}>
+            <h3
+              style={{
+                fontFamily: headingFont,
+                fontSize: textScale.xl,
+                lineHeight: 1.2,
+                fontWeight: 400,
+                margin: '0 0 0.5rem 0',
+                color: colors.ink,
+              }}
+            >
+              {title}
+            </h3>
+            {subtitle && (
+              <div
+                style={{
+                  fontFamily: headingFont,
+                  fontStyle: 'italic',
+                  fontSize: textScale.base,
+                  color: colors.oliveDeep,
+                  marginBottom: '0.5rem',
+                }}
+              >
+                {subtitle}
+              </div>
+            )}
+            {body && (
+              <p
+                style={{
+                  fontSize: textScale.base,
+                  lineHeight: 1.65,
+                  color: colors.inkSoft,
+                  margin: 0,
+                }}
+              >
+                {body}
+              </p>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    </motion.section>
+  );
 }
 
-const LAYOUTS: { id: StoryLayoutType; label: string; description: string }[] = [
-  { id: 'parallax', label: 'Parallax Scroll', description: 'Full-screen cinematic' },
-  { id: 'filmstrip', label: 'Film Strip', description: 'Horizontal photo frame' },
-  { id: 'magazine', label: 'Magazine', description: 'Editorial spreads' },
-  { id: 'timeline', label: 'Timeline', description: 'Vertical journey' },
-  { id: 'kenburns', label: 'Ken Burns', description: 'Slow zoom slideshow' },
-  { id: 'bento', label: 'Bento Grid', description: 'Asymmetric grid' },
+// ─────────────────────────────────────────────────────────────
+// 5. KenBurns
+// ─────────────────────────────────────────────────────────────
+
+export function KenBurns({ photos, title, subtitle, body, date }: StoryLayoutProps) {
+  const [activeIdx, setActiveIdx] = useState(0);
+  const hasMultiple = photos.length > 1;
+
+  useEffect(() => {
+    if (!hasMultiple) return;
+    const id = window.setInterval(() => {
+      setActiveIdx((i) => (i + 1) % photos.length);
+    }, 8000);
+    return () => window.clearInterval(id);
+  }, [hasMultiple, photos.length]);
+
+  return (
+    <>
+      <style>{`
+        @keyframes pl-kb-zoom {
+          from { transform: scale(1); }
+          to   { transform: scale(1.12); }
+        }
+      `}</style>
+      <section
+        style={{
+          position: 'relative',
+          width: '100%',
+          minHeight: '80vh',
+          overflow: 'hidden',
+          background: colors.inkSoft,
+        }}
+      >
+        {photos.map((p, i) => (
+          <div
+            key={`${p.url}-${i}`}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              opacity: i === activeIdx ? 1 : 0,
+              transition: 'opacity 1400ms cubic-bezier(0.22, 1, 0.36, 1)',
+              overflow: 'hidden',
+            }}
+          >
+            <img
+              src={p.url}
+              alt={p.alt || title}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+                transformOrigin: 'center center',
+                animation: 'pl-kb-zoom 12s ease-out forwards',
+              }}
+            />
+          </div>
+        ))}
+
+        {/* Gradient overlay */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(180deg, rgba(26,26,26,0) 45%, rgba(26,26,26,0.55) 80%, rgba(26,26,26,0.88) 100%)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Text */}
+        <div
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            padding: 'clamp(2rem, 5vw, 4rem)',
+            color: '#F5F1E8',
+            fontFamily: bodyFont,
+          }}
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${title}-${activeIdx}`}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.6, ease: ease.smooth }}
+              style={{ maxWidth: '720px' }}
+            >
+              {date && (
+                <div
+                  style={{
+                    fontSize: textScale.xs,
+                    letterSpacing: '0.2em',
+                    textTransform: 'uppercase',
+                    marginBottom: '0.75rem',
+                    opacity: 0.88,
+                  }}
+                >
+                  {date}
+                </div>
+              )}
+              <h2
+                style={{
+                  fontFamily: headingFont,
+                  fontSize: textScale['3xl'],
+                  lineHeight: 1.08,
+                  fontWeight: 400,
+                  margin: '0 0 0.75rem 0',
+                }}
+              >
+                {title}
+              </h2>
+              {subtitle && (
+                <div
+                  style={{
+                    fontFamily: headingFont,
+                    fontStyle: 'italic',
+                    fontSize: textScale.xl,
+                    opacity: 0.9,
+                    marginBottom: '0.75rem',
+                  }}
+                >
+                  {subtitle}
+                </div>
+              )}
+              {body && (
+                <p
+                  style={{
+                    fontSize: textScale.md,
+                    lineHeight: 1.7,
+                    margin: 0,
+                    opacity: 0.92,
+                  }}
+                >
+                  {body}
+                </p>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </section>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// 6. BentoGrid
+// ─────────────────────────────────────────────────────────────
+
+export function BentoGrid({ photos, title, subtitle, body, date }: StoryLayoutProps) {
+  const count = photos.length;
+
+  const cellBase: React.CSSProperties = {
+    borderRadius: '16px',
+    overflow: 'hidden',
+    background: colors.oliveMist,
+    position: 'relative',
+  };
+
+  const photoCell = (
+    p: { url: string; alt?: string },
+    key: string,
+    style: React.CSSProperties
+  ) => (
+    <motion.div
+      key={key}
+      whileHover={{ scale: 1.02 }}
+      transition={{ duration: 0.35, ease: ease.smooth }}
+      style={{ ...cellBase, ...style }}
+    >
+      <img
+        src={p.url}
+        alt={p.alt || ''}
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          display: 'block',
+        }}
+      />
+    </motion.div>
+  );
+
+  const textCard = (style: React.CSSProperties) => (
+    <motion.div
+      key="text-card"
+      whileHover={{ scale: 1.01 }}
+      transition={{ duration: 0.35, ease: ease.smooth }}
+      style={{
+        ...glassCard,
+        padding: '1.5rem',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        ...style,
+      }}
+    >
+      {date && (
+        <div
+          style={{
+            fontFamily: bodyFont,
+            fontSize: textScale.xs,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: colors.oliveDeep,
+            marginBottom: '0.5rem',
+            fontWeight: 500,
+          }}
+        >
+          {date}
+        </div>
+      )}
+      <h3
+        style={{
+          fontFamily: headingFont,
+          fontSize: textScale.xl,
+          lineHeight: 1.15,
+          fontWeight: 400,
+          margin: '0 0 0.5rem 0',
+          color: colors.ink,
+        }}
+      >
+        {title}
+      </h3>
+      {subtitle && (
+        <div
+          style={{
+            fontFamily: headingFont,
+            fontStyle: 'italic',
+            fontSize: textScale.base,
+            color: colors.muted,
+            marginBottom: '0.5rem',
+          }}
+        >
+          {subtitle}
+        </div>
+      )}
+      {body && (
+        <p
+          style={{
+            fontFamily: bodyFont,
+            fontSize: textScale.sm,
+            lineHeight: 1.6,
+            color: colors.inkSoft,
+            margin: 0,
+          }}
+        >
+          {body}
+        </p>
+      )}
+    </motion.div>
+  );
+
+  // Layout selection based on number of photos
+  let gridContent: React.ReactNode;
+
+  if (count === 0) {
+    gridContent = (
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr',
+          gap: '8px',
+        }}
+      >
+        {textCard({ minHeight: '280px' })}
+      </div>
+    );
+  } else if (count === 1) {
+    gridContent = (
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gridTemplateRows: 'repeat(2, minmax(160px, 1fr))',
+          gap: '8px',
+        }}
+      >
+        {photoCell(photos[0], 'p0', {
+          gridColumn: 'span 3',
+          gridRow: 'span 2',
+        })}
+        {textCard({ gridColumn: 'span 1', gridRow: 'span 2' })}
+      </div>
+    );
+  } else if (count === 2) {
+    gridContent = (
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateRows: 'repeat(2, minmax(160px, 1fr))',
+          gap: '8px',
+        }}
+      >
+        {photoCell(photos[0], 'p0', {
+          gridColumn: 'span 2',
+          gridRow: 'span 2',
+        })}
+        {photoCell(photos[1], 'p1', { gridColumn: 'span 1', gridRow: 'span 1' })}
+        {textCard({ gridColumn: 'span 1', gridRow: 'span 1' })}
+      </div>
+    );
+  } else {
+    // 3+ photos
+    const extras = photos.slice(1, 5);
+    gridContent = (
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gridTemplateRows: 'repeat(2, minmax(160px, 1fr))',
+          gap: '8px',
+        }}
+      >
+        {photoCell(photos[0], 'p0', {
+          gridColumn: 'span 2',
+          gridRow: 'span 2',
+        })}
+        {extras.map((p, i) =>
+          photoCell(p, `p${i + 1}`, {
+            gridColumn: 'span 1',
+            gridRow: 'span 1',
+          })
+        )}
+        {textCard({ gridColumn: 'span 1', gridRow: 'span 1' })}
+      </div>
+    );
+  }
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.7, ease: ease.smooth }}
+      style={{
+        padding: 'clamp(2rem, 5vw, 4rem) 1.5rem',
+        background: colors.cream,
+      }}
+    >
+      <div style={{ maxWidth: '1240px', margin: '0 auto' }}>{gridContent}</div>
+    </motion.section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Layout Picker
+// ─────────────────────────────────────────────────────────────
+
+export type StoryLayoutType =
+  | 'parallax'
+  | 'filmstrip'
+  | 'magazine'
+  | 'timeline'
+  | 'kenburns'
+  | 'bento';
+
+const LAYOUT_OPTIONS: Array<{ type: StoryLayoutType; label: string }> = [
+  { type: 'parallax', label: 'Parallax' },
+  { type: 'filmstrip', label: 'Film Strip' },
+  { type: 'magazine', label: 'Magazine' },
+  { type: 'timeline', label: 'Timeline' },
+  { type: 'kenburns', label: 'Ken Burns' },
+  { type: 'bento', label: 'Bento' },
 ];
 
-/** Abstract mini-preview — colored rectangles suggesting each layout */
-function MiniPreview({ type }: { type: StoryLayoutType }) {
-  const bg = 'rgba(163,177,138,0.15)';
-  const fg = OLIVE;
-  const text = 'rgba(61,53,48,0.3)';
+// Mini-diagram renderers — abstract representations of each layout
+function MiniDiagram({ type }: { type: StoryLayoutType }) {
+  const box: React.CSSProperties = {
+    width: '100%',
+    height: '60px',
+    background: colors.oliveMist,
+    borderRadius: '6px',
+    position: 'relative',
+    overflow: 'hidden',
+  };
+  const photoFill: React.CSSProperties = {
+    background: colors.olive,
+    borderRadius: '3px',
+  };
+  const line: React.CSSProperties = {
+    background: colors.muted,
+    height: '2px',
+    borderRadius: '1px',
+    opacity: 0.55,
+  };
 
   switch (type) {
     case 'parallax':
       return (
-        <svg viewBox="0 0 100 70" style={{ width: '100%', height: '100%' }}>
-          <rect width="100" height="70" fill={fg} opacity="0.8" />
-          <rect y="45" width="100" height="25" fill="rgba(0,0,0,0.3)" />
-          <rect x="30" y="52" width="40" height="3" fill="#fff" opacity="0.9" />
-          <rect x="35" y="58" width="30" height="2" fill="#fff" opacity="0.6" />
-        </svg>
+        <div style={box}>
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: colors.olive,
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              left: '20%',
+              right: '20%',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '3px',
+            }}
+          >
+            <div
+              style={{
+                background: colors.cream,
+                height: '4px',
+                width: '100%',
+                borderRadius: '1px',
+              }}
+            />
+            <div
+              style={{
+                background: colors.cream,
+                height: '2px',
+                width: '70%',
+                borderRadius: '1px',
+                margin: '0 auto',
+              }}
+            />
+          </div>
+        </div>
       );
+
     case 'filmstrip':
       return (
-        <svg viewBox="0 0 100 70" style={{ width: '100%', height: '100%' }}>
-          <rect width="100" height="70" fill={bg} />
-          {/* Film frame */}
-          <rect x="5" y="12" width="48" height="46" fill={fg} opacity="0.85" transform="rotate(-2 29 35)" />
-          {/* Sprocket holes */}
-          {[0,1,2,3,4,5,6].map(i => (
-            <rect key={`top-${i}`} x={7 + i * 7} y="8" width="4" height="3" fill={bg} />
-          ))}
-          {[0,1,2,3,4,5,6].map(i => (
-            <rect key={`bot-${i}`} x={7 + i * 7} y="58" width="4" height="3" fill={bg} />
-          ))}
-          {/* Text lines */}
-          <rect x="60" y="22" width="32" height="3" fill={text} />
-          <rect x="60" y="30" width="28" height="2" fill={text} opacity="0.6" />
-          <rect x="60" y="36" width="30" height="2" fill={text} opacity="0.6" />
-          <rect x="60" y="42" width="25" height="2" fill={text} opacity="0.6" />
-        </svg>
+        <div style={{ ...box, display: 'flex', padding: '8px', gap: '6px' }}>
+          <div
+            style={{
+              ...photoFill,
+              width: '55%',
+              height: '100%',
+              transform: 'rotate(-4deg)',
+            }}
+          />
+          <div
+            style={{
+              width: '45%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              gap: '4px',
+            }}
+          >
+            <div style={{ ...line, width: '80%' }} />
+            <div style={{ ...line, width: '60%' }} />
+            <div style={{ ...line, width: '70%' }} />
+          </div>
+        </div>
       );
+
     case 'magazine':
       return (
-        <svg viewBox="0 0 100 70" style={{ width: '100%', height: '100%' }}>
-          <rect width="100" height="70" fill={bg} />
-          {/* Left text column */}
-          <rect x="6" y="12" width="40" height="3" fill={text} />
-          <rect x="6" y="18" width="32" height="2" fill={text} opacity="0.6" />
-          <rect x="6" y="23" width="36" height="2" fill={text} opacity="0.6" />
-          <rect x="6" y="28" width="30" height="2" fill={text} opacity="0.6" />
-          <rect x="6" y="36" width="20" height="3" fill={fg} />
-          {/* Right photo */}
-          <rect x="54" y="10" width="40" height="50" fill={fg} opacity="0.85" rx="2" />
-        </svg>
+        <div style={{ ...box, display: 'flex', padding: '6px', gap: '6px' }}>
+          <div style={{ ...photoFill, width: '60%', height: '100%' }} />
+          <div
+            style={{
+              width: '40%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              gap: '4px',
+            }}
+          >
+            <div style={{ ...line, width: '90%', height: '3px' }} />
+            <div style={{ ...line, width: '70%' }} />
+            <div style={{ ...line, width: '80%' }} />
+          </div>
+        </div>
       );
+
     case 'timeline':
       return (
-        <svg viewBox="0 0 100 70" style={{ width: '100%', height: '100%' }}>
-          <rect width="100" height="70" fill={bg} />
-          {/* Vine */}
-          <line x1="50" y1="5" x2="50" y2="65" stroke={fg} strokeWidth="1.5" opacity="0.5" />
-          {/* Nodes */}
-          <circle cx="50" cy="18" r="3" fill={fg} />
-          <circle cx="50" cy="38" r="3" fill={fg} />
-          <circle cx="50" cy="56" r="3" fill={fg} />
-          {/* Left card */}
-          <rect x="8" y="12" width="30" height="14" fill={fg} opacity="0.8" rx="2" />
-          {/* Right card */}
-          <rect x="62" y="32" width="30" height="14" fill={fg} opacity="0.8" rx="2" />
-          {/* Left card 2 */}
-          <rect x="8" y="50" width="30" height="12" fill={fg} opacity="0.8" rx="2" />
-        </svg>
+        <div style={box}>
+          <div
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: 0,
+              bottom: 0,
+              width: '2px',
+              background: colors.olive,
+              transform: 'translateX(-50%)',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              width: '10px',
+              height: '10px',
+              borderRadius: '50%',
+              background: colors.olive,
+              transform: 'translate(-50%, -50%)',
+              border: `2px solid ${colors.cream}`,
+            }}
+          />
+          <div
+            style={{
+              ...photoFill,
+              position: 'absolute',
+              left: '8px',
+              top: '10px',
+              width: '34%',
+              height: '18px',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              right: '8px',
+              bottom: '10px',
+              width: '34%',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '3px',
+            }}
+          >
+            <div style={{ ...line, width: '100%' }} />
+            <div style={{ ...line, width: '70%' }} />
+          </div>
+        </div>
       );
+
     case 'kenburns':
       return (
-        <svg viewBox="0 0 100 70" style={{ width: '100%', height: '100%' }}>
-          <rect width="100" height="70" fill={fg} opacity="0.85" />
-          {/* Zoom indicator — corner brackets */}
-          <path d="M20 20 L20 12 L28 12" stroke="#fff" strokeWidth="1.5" fill="none" opacity="0.7" />
-          <path d="M72 12 L80 12 L80 20" stroke="#fff" strokeWidth="1.5" fill="none" opacity="0.7" />
-          <path d="M80 50 L80 58 L72 58" stroke="#fff" strokeWidth="1.5" fill="none" opacity="0.7" />
-          <path d="M28 58 L20 58 L20 50" stroke="#fff" strokeWidth="1.5" fill="none" opacity="0.7" />
-          {/* Center text */}
-          <rect x="30" y="32" width="40" height="3" fill="#fff" opacity="0.9" />
-          <rect x="35" y="38" width="30" height="2" fill="#fff" opacity="0.6" />
-          {/* Dots */}
-          <rect x="44" y="62" width="12" height="2" fill="#fff" opacity="0.8" rx="1" />
-        </svg>
+        <div style={box}>
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: colors.olive,
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background:
+                'linear-gradient(180deg, transparent 50%, rgba(26,26,26,0.6) 100%)',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              left: '10%',
+              right: '10%',
+              bottom: '8px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '3px',
+            }}
+          >
+            <div
+              style={{
+                background: colors.cream,
+                height: '3px',
+                width: '70%',
+                borderRadius: '1px',
+              }}
+            />
+            <div
+              style={{
+                background: colors.cream,
+                height: '2px',
+                width: '50%',
+                borderRadius: '1px',
+              }}
+            />
+          </div>
+        </div>
       );
+
     case 'bento':
       return (
-        <svg viewBox="0 0 100 70" style={{ width: '100%', height: '100%' }}>
-          <rect width="100" height="70" fill={bg} />
-          {/* Text cell 2x2 */}
-          <rect x="6" y="8" width="38" height="38" fill="rgba(255,255,255,0.9)" rx="2" />
-          <rect x="10" y="14" width="20" height="2" fill={fg} />
-          <rect x="10" y="20" width="24" height="2" fill={text} opacity="0.6" />
-          <rect x="10" y="25" width="22" height="2" fill={text} opacity="0.6" />
-          {/* Big photo 2x2 */}
-          <rect x="50" y="8" width="44" height="38" fill={fg} opacity="0.85" rx="2" />
-          {/* Small photos */}
-          <rect x="6" y="50" width="20" height="14" fill={fg} opacity="0.7" rx="2" />
-          <rect x="30" y="50" width="20" height="14" fill={fg} opacity="0.75" rx="2" />
-          <rect x="54" y="50" width="18" height="14" fill={fg} opacity="0.7" rx="2" />
-          <rect x="76" y="50" width="18" height="14" fill={fg} opacity="0.75" rx="2" />
-        </svg>
+        <div
+          style={{
+            ...box,
+            background: 'transparent',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gridTemplateRows: 'repeat(2, 1fr)',
+            gap: '3px',
+          }}
+        >
+          <div
+            style={{
+              ...photoFill,
+              gridColumn: 'span 2',
+              gridRow: 'span 2',
+            }}
+          />
+          <div style={{ ...photoFill, opacity: 0.75 }} />
+          <div
+            style={{
+              background: 'rgba(255,255,255,0.82)',
+              border: `1px solid ${colors.divider}`,
+              borderRadius: '3px',
+            }}
+          />
+        </div>
       );
+
+    default:
+      return <div style={box} />;
   }
 }
 
-export function StoryLayoutPicker({ selected, onSelect }: PickerProps) {
+// ─────────────────────────────────────────────────────────────
+// StoryLayout dispatcher — picks a layout component by type
+// ─────────────────────────────────────────────────────────────
+
+export interface StoryLayoutDispatchProps extends StoryLayoutProps {
+  type: StoryLayoutType;
+}
+
+export function StoryLayout({ type, ...props }: StoryLayoutDispatchProps) {
+  switch (type) {
+    case 'parallax':
+      return <ParallaxScroll {...props} />;
+    case 'filmstrip':
+      return <FilmStrip {...props} />;
+    case 'magazine':
+      return <MagazineSpread {...props} />;
+    case 'timeline':
+      return <TimelineVine {...props} />;
+    case 'kenburns':
+      return <KenBurns {...props} />;
+    case 'bento':
+      return <BentoGrid {...props} />;
+    default:
+      return <ParallaxScroll {...props} />;
+  }
+}
+
+export function StoryLayoutPicker({
+  selected,
+  onSelect,
+}: {
+  selected: StoryLayoutType;
+  onSelect: (layout: StoryLayoutType) => void;
+}) {
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(3, 1fr)',
-      gap: 12,
-    }}>
-      {LAYOUTS.map(layout => {
-        const isSelected = selected === layout.id;
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, minmax(100px, 1fr))',
+        gap: '12px',
+        maxWidth: '360px',
+        fontFamily: bodyFont,
+      }}
+    >
+      {LAYOUT_OPTIONS.map((opt) => {
+        const isSelected = selected === opt.type;
         return (
-          <button
-            key={layout.id}
-            onClick={() => onSelect(layout.id)}
+          <motion.button
+            key={opt.type}
+            type="button"
+            onClick={() => onSelect(opt.type)}
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ duration: 0.2, ease: ease.smooth }}
             style={{
-              padding: 0,
-              borderRadius: 14,
-              overflow: 'hidden',
-              border: isSelected ? `2px solid ${OLIVE}` : '2px solid rgba(255,255,255,0.4)',
-              background: isSelected ? 'rgba(163,177,138,0.08)' : 'rgba(255,255,255,0.4)',
-              backdropFilter: 'blur(8px)',
+              width: '100%',
+              padding: '10px',
+              background: isSelected ? colors.oliveMist : colors.card,
+              border: `2px solid ${isSelected ? colors.olive : colors.divider}`,
+              borderRadius: radius.md,
+              boxShadow: isSelected ? shadow.focus : shadow.xs,
               cursor: 'pointer',
-              transition: 'all 0.2s',
-              textAlign: 'left' as const,
-              boxShadow: isSelected ? '0 4px 16px rgba(163,177,138,0.25)' : '0 2px 8px rgba(43,30,20,0.04)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'stretch',
+              gap: '8px',
+              textAlign: 'center',
+              transition: 'background 0.2s ease, border-color 0.2s ease',
             }}
+            aria-pressed={isSelected}
+            aria-label={`Select ${opt.label} layout`}
           >
-            <div style={{
-              width: '100%', aspectRatio: '10/7',
-              background: 'rgba(255,255,255,0.4)',
-            }}>
-              <MiniPreview type={layout.id} />
-            </div>
-            <div style={{ padding: '8px 10px' }}>
-              <div style={{
-                fontSize: '0.78rem', fontWeight: 700,
-                color: INK, marginBottom: 2,
-              }}>
-                {layout.label}
-              </div>
-              <div style={{
-                fontSize: '0.68rem', color: MUTED, lineHeight: 1.3,
-              }}>
-                {layout.description}
-              </div>
-            </div>
-          </button>
+            <MiniDiagram type={opt.type} />
+            <span
+              style={{
+                fontSize: textScale.xs,
+                fontWeight: isSelected ? 600 : 500,
+                color: isSelected ? colors.oliveDeep : colors.inkSoft,
+                letterSpacing: '0.02em',
+              }}
+            >
+              {opt.label}
+            </span>
+          </motion.button>
         );
       })}
     </div>
   );
-}
-
-/* ── Dynamic renderer — picks layout by type ──────────────── */
-
-export function StoryLayout({ type, ...props }: StoryLayoutProps & { type: StoryLayoutType }) {
-  switch (type) {
-    case 'parallax':  return <ParallaxScroll {...props} />;
-    case 'filmstrip': return <FilmStrip {...props} />;
-    case 'magazine':  return <MagazineSpread {...props} />;
-    case 'timeline':  return <TimelineVine {...props} />;
-    case 'kenburns':  return <KenBurns {...props} />;
-    case 'bento':     return <BentoGrid {...props} />;
-    default:          return <ParallaxScroll {...props} />;
-  }
 }
