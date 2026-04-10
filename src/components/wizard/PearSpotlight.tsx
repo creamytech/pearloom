@@ -1181,6 +1181,62 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
         .pear-btn:focus-visible { box-shadow: 0 0 0 3px rgba(163,177,138,0.35) !important; outline: none; }
         .pear-btn:active { transform: scale(0.97); }
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pear-breathe {
+          0%, 100% { transform: translateY(0) scale(1); }
+          50%      { transform: translateY(-6px) scale(1.02); }
+        }
+        @keyframes pear-blink {
+          0%, 92%, 100% { opacity: 1; }
+          95%           { opacity: 0.4; }
+        }
+        .pear-float {
+          animation: pear-breathe 4.5s ease-in-out infinite;
+        }
+        .pear-shadow {
+          animation: pear-breathe 4.5s ease-in-out infinite reverse;
+        }
+        /* Responsive layout: side-by-side on desktop, stacked on mobile */
+        .pear-stage {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 24px;
+          width: 100%;
+          max-width: 860px;
+          padding: 0 20px;
+        }
+        .pear-stage-mascot {
+          flex-shrink: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          width: 220px;
+        }
+        .pear-stage-card {
+          flex: 1;
+          max-width: 480px;
+          min-width: 0;
+        }
+        @media (max-width: 767px) {
+          .pear-stage {
+            flex-direction: column;
+            gap: 0;
+            padding: 0 16px;
+          }
+          .pear-stage-mascot {
+            width: 140px;
+            margin-bottom: -10px;
+          }
+          .pear-stage-card {
+            width: 100%;
+          }
+          /* Tail points UP toward Pear on mobile instead of left */
+          .pear-speech-tail {
+            left: 50% !important;
+            top: -8px !important;
+            transform: translateX(-50%) rotate(135deg) !important;
+          }
+        }
       `}</style>
       <LivingCanvas
         occasion={collected.occasion}
@@ -1219,77 +1275,163 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
         Back
       </button>
 
-      {/* The Spotlight Card */}
-      <div style={{ maxWidth: 480, width: '92%', position: 'relative', zIndex: 10 }}>
+      {/* The Spotlight Stage — Pear side-by-side with card */}
+      <div className="pear-stage" style={{ position: 'relative', zIndex: 10 }}>
 
-        {/* Pear mascot — compact during most steps, hidden during photo review */}
+        {/* Big Pear mascot — the star of the show */}
         {step !== 'photo-review' && (
-          <motion.div
-            key={step}
-            initial={{ scale: 0.9, y: 10 }}
-            animate={{ scale: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginBottom: 14 }}
-          >
-            {/* Pear + Progress ring — smaller, inline with speech */}
-            <div style={{ position: 'relative', flexShrink: 0 }}>
-              <ProgressRing progress={progress} size={72} />
-              <motion.div
-                animate={{ rotate: step === 'ready' ? [0, -5, 5, -3, 3, 0] : 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                style={{ paddingTop: 4 }}
-              >
-                <PearMascot size={60} mood={mood} />
-              </motion.div>
-            </div>
-            {/* Speech — next to Pear, not centered below */}
+          <div className="pear-stage-mascot">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.85, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 180, damping: 18 }}
+              style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+            >
+              {/* Glow halo behind Pear */}
+              <div style={{
+                position: 'absolute',
+                top: '50%', left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '110%', height: '110%',
+                borderRadius: '50%',
+                background: `radial-gradient(circle, ${dark ? 'rgba(163,177,138,0.25)' : 'rgba(163,177,138,0.2)'} 0%, transparent 65%)`,
+                filter: 'blur(20px)',
+                pointerEvents: 'none',
+                zIndex: -1,
+              }} />
+
+              {/* Progress ring — wraps around Pear like a halo */}
+              <div style={{ position: 'relative', width: 200, height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ position: 'absolute', inset: 0 }}>
+                  <ProgressRing progress={progress} size={200} />
+                </div>
+
+                {/* Pear himself — breathing idle animation + reaction wiggles */}
+                <motion.div
+                  className="pear-float"
+                  animate={{
+                    rotate: step === 'ready' ? [0, -6, 6, -4, 4, 0] : 0,
+                  }}
+                  transition={{
+                    rotate: { duration: 0.8, delay: 0.2 },
+                  }}
+                  key={`pear-${step}`}
+                  style={{ position: 'relative', zIndex: 2 }}
+                >
+                  <PearMascot size={160} mood={mood} />
+                </motion.div>
+              </div>
+
+              {/* Floor shadow — subtle ellipse beneath Pear */}
+              <div
+                className="pear-shadow"
+                style={{
+                  width: 120, height: 12,
+                  borderRadius: '50%',
+                  background: 'radial-gradient(ellipse, rgba(43,30,20,0.15) 0%, transparent 70%)',
+                  marginTop: -8,
+                }}
+              />
+
+              {/* Thinking particles — only when loading */}
+              {loading && (
+                <div style={{ position: 'absolute', top: 10, right: 20, display: 'flex', gap: 4 }}>
+                  {[0, 1, 2].map(i => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 0 }}
+                      animate={{ opacity: [0, 1, 0], y: [-4, -12, -20] }}
+                      transition={{ duration: 1.4, delay: i * 0.2, repeat: Infinity }}
+                      style={{
+                        width: 6, height: 6, borderRadius: '50%',
+                        background: 'var(--pl-olive, #A3B18A)',
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+
+        {/* Right side — speech + card stack */}
+        <div className="pear-stage-card">
+
+          {/* Speech bubble — sits above the card with tail pointing to Pear */}
+          {step !== 'photo-review' && (
             <AnimatePresence mode="wait">
               <motion.div
-                key={step}
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.2 }}
-                style={{ flex: 1, minWidth: 0 }}
+                key={`speech-${step}`}
+                initial={{ opacity: 0, x: -12, y: 4 }}
+                animate={{ opacity: 1, x: 0, y: 0 }}
+                exit={{ opacity: 0, x: -12, y: -4 }}
+                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                style={{
+                  position: 'relative',
+                  padding: '18px 22px',
+                  marginBottom: 14,
+                  borderRadius: 20,
+                  background: cardBg,
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  border: cardBorder,
+                  boxShadow: dark ? '0 8px 32px rgba(0,0,0,0.18)' : '0 8px 32px rgba(43,30,20,0.07)',
+                  transition: 'background 0.5s, border 0.5s',
+                }}
               >
+                {/* Tail pointing LEFT toward Pear (hidden on mobile where Pear is above) */}
+                <div
+                  aria-hidden="true"
+                  style={{
+                    position: 'absolute',
+                    left: -8, top: 28,
+                    width: 16, height: 16,
+                    background: cardBg,
+                    borderLeft: cardBorder,
+                    borderBottom: cardBorder,
+                    transform: 'rotate(45deg)',
+                    backdropFilter: 'blur(20px)',
+                  }}
+                  className="pear-speech-tail"
+                />
                 <p style={{
                   fontFamily: 'var(--pl-font-heading)',
                   fontStyle: 'italic',
-                  fontSize: '1.1rem',
+                  fontSize: '1.2rem',
                   color: textColor,
                   lineHeight: 1.35,
-                  marginBottom: 3,
+                  margin: '0 0 4px',
                   transition: 'color 0.5s',
                 }}>
                   {speech}
                 </p>
                 <p style={{
-                  fontSize: '0.72rem',
+                  fontSize: '0.78rem',
                   color: mutedColor,
-                  lineHeight: 1.4,
+                  lineHeight: 1.5,
+                  margin: 0,
                   transition: 'color 0.5s',
                 }}>
                   {subtext}
                 </p>
               </motion.div>
             </AnimatePresence>
-          </motion.div>
-        )}
+          )}
 
-        {/* Glass card */}
-        <div
-          style={{
-            background: cardBg,
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            borderRadius: step === 'photo-review' ? 20 : 24,
-            padding: step === 'photo-review' ? '0' : '24px',
-            border: cardBorder,
-            boxShadow: dark ? '0 8px 40px rgba(0,0,0,0.2)' : '0 8px 40px rgba(43,30,20,0.08)',
-            overflow: 'hidden',
-            transition: 'background 0.5s, border 0.5s, box-shadow 0.5s',
-          }}
-        >
+          {/* Glass card — the interactive content */}
+          <div
+            style={{
+              background: cardBg,
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              borderRadius: step === 'photo-review' ? 20 : 24,
+              padding: step === 'photo-review' ? '0' : '24px',
+              border: cardBorder,
+              boxShadow: dark ? '0 8px 40px rgba(0,0,0,0.2)' : '0 8px 40px rgba(43,30,20,0.08)',
+              overflow: 'hidden',
+              transition: 'background 0.5s, border 0.5s, box-shadow 0.5s',
+            }}
+          >
 
           {/* Step content -- animated swap */}
           <AnimatePresence mode="wait">
@@ -1708,7 +1850,8 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
           </AnimatePresence>
 
         </div>{/* end glass card */}
-      </div>{/* end spotlight card container */}
+        </div>{/* end pear-stage-card */}
+      </div>{/* end pear-stage */}
 
       {/* Photo Browser overlay */}
       <AnimatePresence>
