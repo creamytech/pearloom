@@ -348,48 +348,9 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     }
   }, [step]);
 
-  // Detect photo location — EXIF GPS → AI Vision → ask user
-  const [detectingLocation, setDetectingLocation] = useState(false);
-  useEffect(() => {
-    if (step !== 'photo-review') return;
-    const photo = selectedPhotos[photoReviewIndex];
-    if (!photo) return;
-    // Already have location for this photo
-    if (photoNotes[photoReviewIndex]?.location) return;
-
-    // Store date (always, if available)
-    if (photo?.creationTime && !photoNotes[photoReviewIndex]?.date) {
-      try {
-        const d = new Date(photo.creationTime);
-        const dateLabel = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        setPhotoNotes(prev => ({ ...prev, [photoReviewIndex]: { ...prev[photoReviewIndex], date: dateLabel } }));
-      } catch { /* ignore */ }
-    }
-
-    // Try to detect location via EXIF + AI Vision
-    const rawUrl = photo?.baseUrl || photo?.url || photo?.uri || '';
-    if (!rawUrl) return;
-
-    // Use the proxy URL for Google Photos (server needs auth)
-    const detectUrl = rawUrl.includes('googleusercontent')
-      ? `${window.location.origin}/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=800&h=600`
-      : rawUrl;
-
-    setDetectingLocation(true);
-    fetch('/api/photos/detect-location', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageUrl: detectUrl, occasion: collected.occasion }),
-    })
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data?.location) {
-          setPhotoNotes(prev => ({ ...prev, [photoReviewIndex]: { ...prev[photoReviewIndex], location: data.location, locationDetected: true } }));
-        }
-      })
-      .catch(() => {})
-      .finally(() => setDetectingLocation(false));
-  }, [step, photoReviewIndex, selectedPhotos]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Track which photos are still being detected
+  const [detectingPhotos, setDetectingPhotos] = useState<Set<number>>(new Set());
+  const detectingLocation = detectingPhotos.has(photoReviewIndex);
 
   // ── Handlers ──────────────────────────────────────────────
   const handleOccasionSelect = (value: string) => {
@@ -493,7 +454,42 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     setDirection(1);
     if (selectedPhotos.length === 0) {
       setReviewDone(true);
+      return;
     }
+    // Kick off location detection for ALL photos immediately
+    // while Google Photos URLs are still fresh
+    selectedPhotos.forEach((photo, idx) => {
+      const rawUrl = photo?.baseUrl || photo?.url || photo?.uri || '';
+      if (!rawUrl) return;
+      // Store date
+      if (photo?.creationTime) {
+        try {
+          const d = new Date(photo.creationTime);
+          const dateLabel = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+          setPhotoNotes(prev => ({ ...prev, [idx]: { ...prev[idx], date: dateLabel } }));
+        } catch { /* ignore */ }
+      }
+      // Detect location via server
+      setDetectingPhotos(prev => new Set([...prev, idx]));
+      const detectUrl = rawUrl.includes('googleusercontent')
+        ? `${window.location.origin}/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=800&h=600`
+        : rawUrl;
+      fetch('/api/photos/detect-location', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl: detectUrl, occasion: collected.occasion }),
+      })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data?.location) {
+            setPhotoNotes(prev => ({ ...prev, [idx]: { ...prev[idx], location: data.location, locationDetected: true } }));
+          }
+        })
+        .catch(() => {})
+        .finally(() => {
+          setDetectingPhotos(prev => { const next = new Set(prev); next.delete(idx); return next; });
+        });
+    });
   };
 
   const handleBuild = useCallback(async () => {
