@@ -134,8 +134,15 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
     }]);
   }, []);
 
-  const sendMessage = useCallback(async (userText: string) => {
+  // Use ref to always have latest collected state in async callbacks
+  const collectedRef = useRef(collected);
+  collectedRef.current = collected;
+
+  const sendMessage = useCallback(async (userText: string, overrideCollected?: Partial<Collected>) => {
     if (!userText.trim() || loading) return;
+
+    // Merge any override (from card clicks that set state + send simultaneously)
+    const latestCollected = { ...collectedRef.current, ...overrideCollected };
 
     const userMsg: ChatMessage = { role: 'user', text: userText.trim(), ts: Date.now() };
     setMessages(prev => [...prev, userMsg]);
@@ -147,7 +154,7 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: `${getWizardPrompt(collected)}\n\nUser says: ${userText.trim()}`,
+          message: `${getWizardPrompt(latestCollected)}\n\nUser says: ${userText.trim()}`,
           manifest: null,
         }),
       });
@@ -166,7 +173,21 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
           const next = { ...prev };
           if (extracted.occasion && !prev.occasion) next.occasion = extracted.occasion;
           if (extracted.names && !prev.names?.[0]) next.names = extracted.names;
-          if (extracted.date && !prev.date) next.date = extracted.date;
+          if (extracted.date && !prev.date) {
+            // Fix dates in the past — bump year to current/next
+            let d = extracted.date;
+            if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+              const parsed = new Date(d + 'T12:00:00');
+              if (parsed.getTime() < Date.now()) {
+                const thisYear = new Date().getFullYear();
+                const bumped = new Date(parsed);
+                bumped.setFullYear(thisYear);
+                if (bumped.getTime() < Date.now()) bumped.setFullYear(thisYear + 1);
+                d = bumped.toISOString().slice(0, 10);
+              }
+            }
+            next.date = d;
+          }
           if (extracted.venue && !prev.venue) next.venue = extracted.venue;
           if (extracted.vibe && !prev.vibe) next.vibe = extracted.vibe;
           return next;
@@ -425,7 +446,7 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                       key={card.value}
                       onClick={() => {
                         setCollected(prev => ({ ...prev, occasion: card.value }));
-                        sendMessage(`It's a ${card.label.toLowerCase()}`);
+                        sendMessage(`It's a ${card.label.toLowerCase()}`, { occasion: card.value });
                       }}
                       style={{
                         padding: '10px 16px', borderRadius: '100px',
