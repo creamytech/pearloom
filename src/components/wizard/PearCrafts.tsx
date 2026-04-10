@@ -87,7 +87,8 @@ function hasAllRequired(c: Collected): boolean {
   // Birthdays only need one name; weddings/anniversaries need two
   const needsTwoNames = c.occasion === 'wedding' || c.occasion === 'engagement';
   const namesOk = needsTwoNames ? (hasName && c.names![1]) : hasName;
-  return !!(c.occasion && namesOk && c.date);
+  // Need occasion + name(s) + date + style before showing Build button
+  return !!(c.occasion && namesOk && c.date && c.vibe);
 }
 
 export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
@@ -164,15 +165,22 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
       }
 
       // Determine what interactive element to show next
+      // Use the CURRENT collected state (already merged above via setCollected)
       const nextCollected = { ...collected };
-      if (extracted?.occasion) nextCollected.occasion = extracted.occasion;
-      if (extracted?.names) nextCollected.names = extracted.names;
-      if (extracted?.date) nextCollected.date = extracted.date;
-      if (extracted?.venue) nextCollected.venue = extracted.venue;
+      if (extracted?.occasion && !collected.occasion) nextCollected.occasion = extracted.occasion;
+      if (extracted?.names && !collected.names?.[0]) nextCollected.names = extracted.names;
+      if (extracted?.date && !collected.date) nextCollected.date = extracted.date;
+      if (extracted?.venue && !collected.venue) nextCollected.venue = extracted.venue;
 
       const pearMsg: ChatMessage = { role: 'pear', text: reply, ts: Date.now() };
 
-      // Add contextual interactive cards based on what's still missing
+      // Determine name requirement based on occasion
+      const isSoloPerson = nextCollected.occasion === 'birthday' || nextCollected.occasion === 'story';
+      const hasNames = isSoloPerson
+        ? !!(nextCollected.names?.[0])
+        : !!(nextCollected.names?.[0] && nextCollected.names?.[1]);
+
+      // Add contextual interactive cards — ordered by importance
       if (!nextCollected.occasion) {
         pearMsg.cards = [
           { label: 'Wedding', value: 'wedding', icon: '✦' },
@@ -181,6 +189,8 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
           { label: 'Engagement', value: 'engagement', icon: '✦' },
         ];
         pearMsg.cardType = 'occasion';
+      } else if (!hasNames) {
+        // Names still needed — no card, just let user type
       } else if (!nextCollected.date) {
         pearMsg.cardType = 'date';
       } else if (!nextCollected.venue) {
