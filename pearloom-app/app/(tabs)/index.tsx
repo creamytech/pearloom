@@ -12,12 +12,14 @@ import {
   Platform,
   Animated,
   Pressable,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import SiteCard from '@/components/SiteCard';
 import StatsBar from '@/components/StatsBar';
-import { getSites } from '@/lib/api'; // May not exist yet
+import { getSites, apiFetch } from '@/lib/api';
 import type { UserSite, RsvpStats } from '@/lib/types';
 
 // Design tokens
@@ -186,6 +188,45 @@ export default function HomeScreen() {
     if (!s.event_date) return false;
     return new Date(s.event_date) >= new Date();
   }).length;
+
+  function handleLongPressSite(site: DashboardSite) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    Alert.alert(
+      site.names?.join(' & ') ?? 'Site',
+      'What would you like to do?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete Site',
+          style: 'destructive',
+          onPress: () => confirmDeleteSite(site),
+        },
+      ],
+    );
+  }
+
+  function confirmDeleteSite(site: DashboardSite) {
+    Alert.alert(
+      'Are you sure?',
+      `This will permanently delete "${site.names?.join(' & ') ?? 'this site'}". This action cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await apiFetch(`/api/sites/${site.id}`, { method: 'DELETE' });
+              setSites((prev) => prev.filter((s) => s.id !== site.id));
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            } catch (err) {
+              Alert.alert('Error', 'Failed to delete site. Please try again.');
+            }
+          },
+        },
+      ],
+    );
+  }
 
   function getGreeting(): string {
     const hour = new Date().getHours();
@@ -371,7 +412,9 @@ export default function HomeScreen() {
                   ],
                 }}
               >
-                <SiteCard site={site} />
+                <Pressable onLongPress={() => handleLongPressSite(site)} delayLongPress={500}>
+                  <SiteCard site={site} />
+                </Pressable>
               </Animated.View>
             ))}
           </View>

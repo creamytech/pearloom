@@ -662,6 +662,79 @@ export default function EditorScreen() {
         manifest={manifest ?? {}}
         onManifestUpdate={handleManifestUpdate}
       />
+
+      {/* ── Publish Modal ───────────────────────────────────────── */}
+      <Modal
+        visible={publishModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPublishModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            {publishedUrl ? (
+              <>
+                <Text style={styles.modalSuccessIcon}>{'\u{2705}'}</Text>
+                <Text style={styles.modalTitle}>Your site is live!</Text>
+                <Text style={styles.modalUrl}>{publishedUrl}</Text>
+                <View style={styles.modalBtnRow}>
+                  <Pressable style={styles.modalCopyBtn} onPress={handleCopyLink}>
+                    <Text style={styles.modalCopyBtnText}>Copy Link</Text>
+                  </Pressable>
+                  <Pressable style={styles.modalShareBtn} onPress={handleSharePublished}>
+                    <Text style={styles.modalShareBtnText}>Share</Text>
+                  </Pressable>
+                </View>
+                <Pressable
+                  style={styles.modalCloseBtn}
+                  onPress={() => setPublishModalVisible(false)}
+                >
+                  <Text style={styles.modalCloseBtnText}>Done</Text>
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <Text style={styles.modalTitle}>Publish Your Site</Text>
+                <Text style={styles.modalLabel}>Site Name</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  value={publishSiteName}
+                  onChangeText={(text) =>
+                    setPublishSiteName(text.toLowerCase().replace(/[^a-z0-9-]/g, ''))
+                  }
+                  placeholder="yourname"
+                  placeholderTextColor={colors.muted}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                <Text style={styles.modalUrlPreview}>
+                  {publishSiteName || 'yourname'}.pearloom.com
+                </Text>
+                {publishError && (
+                  <Text style={styles.modalError}>{publishError}</Text>
+                )}
+                <Pressable
+                  style={[styles.modalPublishBtn, publishing && { opacity: 0.6 }]}
+                  onPress={handlePublish}
+                  disabled={publishing}
+                >
+                  {publishing ? (
+                    <ActivityIndicator size="small" color={colors.white} />
+                  ) : (
+                    <Text style={styles.modalPublishBtnText}>Publish</Text>
+                  )}
+                </Pressable>
+                <Pressable
+                  style={styles.modalCancelBtn}
+                  onPress={() => setPublishModalVisible(false)}
+                >
+                  <Text style={styles.modalCancelBtnText}>Cancel</Text>
+                </Pressable>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }
@@ -847,4 +920,179 @@ const styles = StyleSheet.create({
     }),
   },
   pearFabIcon: { fontSize: 24 },
+
+  // Publish button in header
+  publishBtn: {
+    backgroundColor: colors.olive,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: radius.md,
+  },
+  publishBtnLive: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.olive,
+  },
+  publishBtnText: {
+    fontFamily: fonts.bodySemibold,
+    fontSize: 13,
+    color: colors.white,
+  },
+  publishBtnTextLive: {
+    color: colors.olive,
+  },
+  liveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.success + '18',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: radius.full,
+    gap: 4,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.success,
+  },
+  liveBadgeText: {
+    fontFamily: fonts.bodySemibold,
+    fontSize: 11,
+    color: colors.success,
+  },
+
+  // Publish modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  modalCard: {
+    backgroundColor: colors.white,
+    borderRadius: radius.xl,
+    padding: spacing.xl,
+    width: '100%',
+    maxWidth: 360,
+    alignItems: 'center',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.15, shadowRadius: 24 },
+      android: { elevation: 10 },
+    }),
+  },
+  modalTitle: {
+    fontFamily: fonts.heading,
+    fontSize: 22,
+    color: colors.ink,
+    marginBottom: spacing.lg,
+    textAlign: 'center',
+  },
+  modalSuccessIcon: {
+    fontSize: 40,
+    marginBottom: spacing.md,
+  },
+  modalLabel: {
+    fontFamily: fonts.bodySemibold,
+    fontSize: 13,
+    color: colors.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    alignSelf: 'flex-start',
+    marginBottom: spacing.xs,
+  },
+  modalInput: {
+    width: '100%',
+    borderWidth: 1.5,
+    borderColor: colors.creamDeep,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    fontSize: 16,
+    fontFamily: fonts.body,
+    color: colors.ink,
+    marginBottom: spacing.xs,
+  },
+  modalUrlPreview: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.muted,
+    marginBottom: spacing.lg,
+    alignSelf: 'flex-start',
+  },
+  modalUrl: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 15,
+    color: colors.olive,
+    marginBottom: spacing.lg,
+    textAlign: 'center',
+  },
+  modalError: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.danger,
+    marginBottom: spacing.md,
+    textAlign: 'center',
+  },
+  modalPublishBtn: {
+    backgroundColor: colors.olive,
+    paddingVertical: spacing.md + 2,
+    paddingHorizontal: spacing.xxl,
+    borderRadius: radius.lg,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  modalPublishBtnText: {
+    fontFamily: fonts.bodySemibold,
+    fontSize: 16,
+    color: colors.white,
+  },
+  modalCancelBtn: {
+    paddingVertical: spacing.md,
+  },
+  modalCancelBtnText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 15,
+    color: colors.muted,
+  },
+  modalBtnRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+    width: '100%',
+  },
+  modalCopyBtn: {
+    flex: 1,
+    backgroundColor: colors.olive,
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
+    alignItems: 'center',
+  },
+  modalCopyBtnText: {
+    fontFamily: fonts.bodySemibold,
+    fontSize: 14,
+    color: colors.white,
+  },
+  modalShareBtn: {
+    flex: 1,
+    backgroundColor: colors.creamDeep,
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
+    alignItems: 'center',
+  },
+  modalShareBtnText: {
+    fontFamily: fonts.bodySemibold,
+    fontSize: 14,
+    color: colors.ink,
+  },
+  modalCloseBtn: {
+    paddingVertical: spacing.sm,
+  },
+  modalCloseBtnText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 15,
+    color: colors.muted,
+  },
 });

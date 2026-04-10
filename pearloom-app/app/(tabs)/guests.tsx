@@ -11,12 +11,14 @@ import {
   Alert,
   Platform,
   Animated,
+  Modal,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { colors, spacing, radius } from '@/lib/theme';
+import { colors, spacing, radius, fonts } from '@/lib/theme';
 import { getGuests, getRsvpStats, getSites, apiFetch } from '@/lib/api';
 import type { Guest, RsvpStats, UserSite } from '@/lib/types';
 import RsvpRing from '@/components/RsvpRing';
@@ -54,6 +56,13 @@ export default function GuestsScreen() {
   const [search, setSearch] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   const searchBorderAnim = useRef(new Animated.Value(0)).current;
+
+  // Add Guest modal
+  const [addGuestVisible, setAddGuestVisible] = useState(false);
+  const [newGuestName, setNewGuestName] = useState('');
+  const [newGuestEmail, setNewGuestEmail] = useState('');
+  const [newGuestStatus, setNewGuestStatus] = useState<'pending' | 'attending' | 'declined'>('pending');
+  const [addingGuest, setAddingGuest] = useState(false);
 
   // FAB animation
   const fabScaleAnim = useRef(new Animated.Value(0)).current;
@@ -241,6 +250,51 @@ export default function GuestsScreen() {
     },
     [selectedSiteId],
   );
+
+  // ── Add Guest ───────────────────────────────────────────────────────
+
+  const handleOpenAddGuest = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setNewGuestName('');
+    setNewGuestEmail('');
+    setNewGuestStatus('pending');
+    setAddGuestVisible(true);
+  }, []);
+
+  const handleAddGuest = useCallback(async () => {
+    if (!newGuestName.trim()) {
+      Alert.alert('Name Required', 'Please enter a guest name.');
+      return;
+    }
+    if (!selectedSiteId) return;
+
+    setAddingGuest(true);
+    try {
+      const newGuest = await apiFetch<Guest>(
+        `/api/sites/${selectedSiteId}/guests`,
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            name: newGuestName.trim(),
+            email: newGuestEmail.trim() || undefined,
+            rsvp_status: newGuestStatus,
+          }),
+        },
+      );
+      setGuests((prev) => [...prev, newGuest]);
+      setStats((prev) => ({
+        ...prev,
+        [newGuestStatus]: prev[newGuestStatus] + 1,
+        total: prev.total + 1,
+      }));
+      setAddGuestVisible(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (err) {
+      Alert.alert('Error', 'Failed to add guest. Please try again.');
+    } finally {
+      setAddingGuest(false);
+    }
+  }, [selectedSiteId, newGuestName, newGuestEmail, newGuestStatus]);
 
   // ── Selected site label ──────────────────────────────────────────────
 
@@ -444,14 +498,99 @@ export default function GuestsScreen() {
             styles.fab,
             pressed && styles.fabPressed,
           ]}
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            Alert.alert('Add Guest', 'Guest creation form coming soon.');
-          }}
+          onPress={handleOpenAddGuest}
         >
           <FontAwesome name="plus" size={22} color={colors.white} />
         </Pressable>
       </Animated.View>
+
+      {/* ── Add Guest Modal ──────────────────────────────────────── */}
+      <Modal
+        visible={addGuestVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setAddGuestVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.addGuestOverlay}
+        >
+          <View style={styles.addGuestCard}>
+            <Text style={styles.addGuestTitle}>Add Guest</Text>
+
+            <Text style={styles.addGuestLabel}>Name</Text>
+            <TextInput
+              style={styles.addGuestInput}
+              value={newGuestName}
+              onChangeText={setNewGuestName}
+              placeholder="Guest name"
+              placeholderTextColor={colors.muted}
+              autoCapitalize="words"
+              autoFocus
+            />
+
+            <Text style={styles.addGuestLabel}>Email (optional)</Text>
+            <TextInput
+              style={styles.addGuestInput}
+              value={newGuestEmail}
+              onChangeText={setNewGuestEmail}
+              placeholder="guest@email.com"
+              placeholderTextColor={colors.muted}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+
+            <Text style={styles.addGuestLabel}>Status</Text>
+            <View style={styles.statusRow}>
+              {(['pending', 'attending', 'declined'] as const).map((status) => (
+                <Pressable
+                  key={status}
+                  style={[
+                    styles.statusChip,
+                    newGuestStatus === status && styles.statusChipActive,
+                    newGuestStatus === status && status === 'attending' && { backgroundColor: colors.olive },
+                    newGuestStatus === status && status === 'declined' && { backgroundColor: colors.danger },
+                    newGuestStatus === status && status === 'pending' && { backgroundColor: colors.gold },
+                  ]}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setNewGuestStatus(status);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.statusChipText,
+                      newGuestStatus === status && styles.statusChipTextActive,
+                    ]}
+                  >
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <Pressable
+              style={[styles.addGuestSubmitBtn, addingGuest && { opacity: 0.6 }]}
+              onPress={handleAddGuest}
+              disabled={addingGuest}
+            >
+              {addingGuest ? (
+                <ActivityIndicator size="small" color={colors.white} />
+              ) : (
+                <Text style={styles.addGuestSubmitText}>Add Guest</Text>
+              )}
+            </Pressable>
+
+            <Pressable
+              style={styles.addGuestCancelBtn}
+              onPress={() => setAddGuestVisible(false)}
+            >
+              <Text style={styles.addGuestCancelText}>Cancel</Text>
+            </Pressable>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
@@ -639,5 +778,98 @@ const styles = StyleSheet.create({
   fabPressed: {
     opacity: 0.85,
     transform: [{ scale: 0.92 }],
+  },
+
+  // Add Guest Modal
+  addGuestOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  addGuestCard: {
+    backgroundColor: colors.white,
+    borderRadius: radius.xl ?? 20,
+    padding: spacing.xl,
+    width: '100%',
+    maxWidth: 360,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.15, shadowRadius: 24 },
+      android: { elevation: 10 },
+    }),
+  },
+  addGuestTitle: {
+    fontFamily: fonts.heading,
+    fontSize: 22,
+    color: colors.ink,
+    marginBottom: spacing.lg,
+    textAlign: 'center',
+  },
+  addGuestLabel: {
+    fontFamily: fonts.bodySemibold,
+    fontSize: 13,
+    color: colors.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: spacing.xs,
+    marginTop: spacing.sm,
+  },
+  addGuestInput: {
+    borderWidth: 1.5,
+    borderColor: colors.creamDeep,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    fontSize: 15,
+    fontFamily: fonts.body,
+    color: colors.ink,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+    marginBottom: spacing.lg,
+  },
+  statusChip: {
+    flex: 1,
+    paddingVertical: spacing.sm + 2,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: colors.creamDeep,
+    alignItems: 'center',
+  },
+  statusChipActive: {
+    borderColor: 'transparent',
+  },
+  statusChipText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 13,
+    color: colors.muted,
+  },
+  statusChipTextActive: {
+    color: colors.white,
+    fontFamily: fonts.bodySemibold,
+  },
+  addGuestSubmitBtn: {
+    backgroundColor: colors.olive,
+    paddingVertical: spacing.md + 2,
+    borderRadius: radius.lg ?? 16,
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  addGuestSubmitText: {
+    fontFamily: fonts.bodySemibold,
+    fontSize: 16,
+    color: colors.white,
+  },
+  addGuestCancelBtn: {
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+  },
+  addGuestCancelText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 15,
+    color: colors.muted,
   },
 });
