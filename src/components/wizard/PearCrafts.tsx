@@ -63,6 +63,8 @@ RULES:
 - Extract details from the user's message: names, date (YYYY-MM-DD), venue
 - Return action 'message' with data: { extracted: { occasion?, names?, date?, venue? } }
 - Ask for the NEXT missing piece warmly
+- NEVER assume you're talking TO the person being celebrated. The user might be a parent, friend, partner, or planner setting up the site for someone else. Say "the birthday person" or use their name — never "nice to meet you [name]" or "your birthday"
+- When the user gives a name, acknowledge it neutrally: "Got it, the site will be for [name]!" not "Nice to meet you, [name]!"
 
 ${isBirthday ? `BIRTHDAY RULES:
 - Ask "What's the birthday person's name?" (ONE name, not two)
