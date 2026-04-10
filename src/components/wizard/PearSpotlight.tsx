@@ -197,9 +197,9 @@ function speechForStep(step: Step, collected: Collected, photoInfo?: { index: nu
     case 'photo-review': {
       if (photoInfo) {
         if (photoInfo.location) {
-          return `Photo ${photoInfo.index + 1} of ${photoInfo.total} — taken in ${photoInfo.location}`;
+          return `This looks like ${photoInfo.location} — tell me about this moment`;
         }
-        return `Photo ${photoInfo.index + 1} of ${photoInfo.total} — where was this?`;
+        return `Photo ${photoInfo.index + 1} of ${photoInfo.total} — what's the story here?`;
       }
       return "Tell me about this moment";
     }
@@ -303,20 +303,36 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     if (step !== 'photo-review') return;
     const photo = selectedPhotos[photoReviewIndex];
     if (!photo) return;
-    const loc = photo?.mediaMetadata?.location || photo?.location;
-    if (loc && (loc.latitude || loc.lat)) {
-      const lat = loc.latitude || loc.lat;
-      const lng = loc.longitude || loc.lng;
-      fetch(`/api/suggest-location?lat=${lat}&lng=${lng}`)
+    // Already have location for this photo
+    if (photoNotes[photoReviewIndex]?.location) return;
+
+    const loc = photo?.location;
+    if (loc && loc.latitude && loc.longitude) {
+      // Direct Nominatim reverse geocode — no auth needed
+      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${loc.latitude}&lon=${loc.longitude}&format=json&zoom=14`, {
+        headers: { 'User-Agent': 'Pearloom/1.0' },
+        signal: AbortSignal.timeout(5000),
+      })
         .then(r => r.ok ? r.json() : null)
         .then(data => {
-          if (data?.label) {
-            setPhotoNotes(prev => ({ ...prev, [photoReviewIndex]: { ...prev[photoReviewIndex], location: data.label } }));
+          if (!data?.address) return;
+          const { city, town, village, county, state, country } = data.address;
+          const place = city || town || village || county || '';
+          const label = place && state ? `${place}, ${state}` : (place && country ? `${place}, ${country}` : state || country || '');
+          if (label) {
+            setPhotoNotes(prev => ({ ...prev, [photoReviewIndex]: { ...prev[photoReviewIndex], location: label } }));
           }
         })
         .catch(() => {});
+    } else if (photo?.creationTime) {
+      // No GPS — show date-based label as fallback
+      try {
+        const d = new Date(photo.creationTime);
+        const label = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        setPhotoNotes(prev => ({ ...prev, [photoReviewIndex]: { ...prev[photoReviewIndex], location: label } }));
+      } catch { /* ignore */ }
     }
-  }, [step, photoReviewIndex, selectedPhotos]);
+  }, [step, photoReviewIndex, selectedPhotos, photoNotes]);
 
   // ── Handlers ──────────────────────────────────────────────
   const handleOccasionSelect = (value: string) => {
