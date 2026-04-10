@@ -336,7 +336,7 @@ export function StyleDiscoveryCard({ pairs, onSelect, names }: StyleDiscoveryCar
             fontStyle: 'italic',
             textAlign: 'left',
           }}>
-            {names[0]} &amp; {names[1]}
+            {names[0]}{names[1] ? ` & ${names[1]}` : ''}
           </span>
         )}
       </motion.button>

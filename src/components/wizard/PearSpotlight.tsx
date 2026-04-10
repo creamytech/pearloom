@@ -59,21 +59,42 @@ function currentStep(c: Collected, photosDecided: boolean): Step {
   return 'ready';
 }
 
-// Speech text for each step
+// Speech text for each step — warm, conversational, references what's been collected
 function speechForStep(step: Step, collected: Collected): string {
+  const name1 = collected.names?.[0];
+  const name2 = collected.names?.[1];
+  const nameDisplay = name2 ? `${name1} & ${name2}` : name1;
+  const occ = collected.occasion;
+
   switch (step) {
-    case 'occasion': return "What are we celebrating?";
+    case 'occasion':
+      return "Hey, I'm Pear! What are we celebrating?";
     case 'names': {
-      if (collected.occasion === 'birthday') return "Who's the birthday for?";
-      if (collected.occasion === 'wedding' || collected.occasion === 'engagement') return "Who's the happy couple?";
-      if (collected.occasion === 'anniversary') return "Who's celebrating?";
-      return "Who is this for?";
+      if (occ === 'birthday') return "Love it! Who's the birthday for?";
+      if (occ === 'wedding') return "A wedding! Who's the happy couple?";
+      if (occ === 'engagement') return "How exciting! Who just got engaged?";
+      if (occ === 'anniversary') return "Beautiful! Who's celebrating?";
+      return "Great! Who is this for?";
     }
-    case 'date': return "When's the big day?";
-    case 'venue': return "Where's it happening?";
-    case 'vibe': return "What's the vibe?";
-    case 'photos': return "Pick your favorite photos";
-    case 'ready': return "Here's a preview — ready to build?";
+    case 'date': {
+      if (occ === 'birthday') return `${nameDisplay}'s birthday — when is it?`;
+      if (occ === 'wedding') return `${nameDisplay} — when's the big day?`;
+      return `Got it, ${nameDisplay}! When's the date?`;
+    }
+    case 'venue': {
+      const dateStr = collected.date ? new Date(collected.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) : '';
+      if (dateStr) return `${dateStr} — perfect! Where's it happening?`;
+      return "Where's the celebration happening?";
+    }
+    case 'vibe': {
+      const venue = collected.venue === 'TBD' ? '' : collected.venue;
+      if (venue) return `${venue} sounds amazing! What's the vibe?`;
+      return "Almost there! What's the vibe you're going for?";
+    }
+    case 'photos':
+      return "Let's add some photos to make it personal";
+    case 'ready':
+      return `${nameDisplay}'s site is ready to build!`;
   }
 }
 
