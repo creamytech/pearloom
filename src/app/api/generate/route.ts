@@ -266,6 +266,8 @@ export async function POST(req: NextRequest) {
       rsvpDeadline,
       cashFundUrl,
       eventVenue,
+      selectedPaletteColors,
+      photoNotes,
     }: {
       photos: GooglePhotoMetadata[];
       clusters?: PhotoCluster[];
@@ -290,6 +292,8 @@ export async function POST(req: NextRequest) {
       rsvpDeadline?: string;
       cashFundUrl?: string;
       eventVenue?: string;
+      selectedPaletteColors?: string[];
+      photoNotes?: Record<string, { note?: string; location?: string; date?: string }>;
     } = body;
 
     if (!photos?.length) {
@@ -339,6 +343,37 @@ export async function POST(req: NextRequest) {
       console.log(`[Generate] Built ${enrichedClusters.length} clusters from scratch`);
     }
 
+    // Attach per-photo user notes (from the photo-review step) onto the
+    // containing cluster so Pass 1's prompt cites them verbatim.
+    if (photoNotes && Object.keys(photoNotes).length > 0) {
+      enrichedClusters = enrichedClusters.map((cluster) => {
+        const notesForCluster: string[] = [];
+        let manualLocation: string | null = null;
+        for (const photo of cluster.photos) {
+          const entry = photoNotes[photo.id];
+          if (!entry) continue;
+          if (entry.note && entry.note.trim().length > 0) {
+            notesForCluster.push(entry.note.trim());
+          }
+          if (!manualLocation && entry.location && entry.location.trim().length > 0) {
+            manualLocation = entry.location.trim();
+          }
+        }
+        const mergedNote = notesForCluster.length > 0
+          ? notesForCluster.join(' • ')
+          : cluster.note;
+        let location = cluster.location;
+        if (manualLocation) {
+          location = location
+            ? { ...location, label: manualLocation }
+            : { lat: 0, lng: 0, label: manualLocation };
+        }
+        return { ...cluster, note: mergedNote, location };
+      });
+      const withNotes = enrichedClusters.filter(c => c.note && c.note.length > 0).length;
+      console.log(`[Generate] Attached user notes to ${withNotes}/${enrichedClusters.length} clusters`);
+    }
+
     // ── Photo Intelligence — score photos for story arc ──────────
     // Enhances hero selection and narrative ordering by analyzing
     // emotional intensity and visual quality of each cluster's best photo.
@@ -376,7 +411,9 @@ export async function POST(req: NextRequest) {
       occasion,
       eventDate,
       inspirationUrls,  // passed to memory-engine for visual style matching
-      layoutFormat
+      layoutFormat,
+      undefined,
+      selectedPaletteColors,
     );
 
     // Pre-populate logistics from user-provided fields

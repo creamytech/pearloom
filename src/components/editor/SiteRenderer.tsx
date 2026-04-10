@@ -908,7 +908,25 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     switch (block.type) {
       case 'hero':
         return (
-          <div key={key} data-pe-section="hero" data-pe-label="Hero" style={{ position: 'relative', ...blockStyle }}>
+          <div key={key} data-pe-section="hero" data-pe-label="Hero" style={{ position: 'relative', overflow: 'hidden', ...blockStyle }}>
+            {/* AI-generated hero blob illustration — couple-specific motifs */}
+            {vibeSkin.heroBlobSvg && (
+              <div
+                aria-hidden="true"
+                style={{
+                  position: 'absolute',
+                  right: '-6%',
+                  top: '8%',
+                  width: 'min(560px, 46%)',
+                  height: 'auto',
+                  pointerEvents: 'none',
+                  zIndex: 2,
+                  opacity: 0.78,
+                  mixBlendMode: 'multiply',
+                }}
+                dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.heroBlobSvg) }}
+              />
+            )}
             <Hero
               names={names}
               subtitle={manifest.chapters?.[0]?.subtitle || `${manifest.chapters?.length || 0} chapters of your love story`}
@@ -925,8 +943,21 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               }
               editMode={editMode}
             />
-            {/* Theme art: corner decorations (only if vibeSkin doesn't already provide cornerFlourishSvg) */}
-            {art.cornerSvg && !vibeSkin.cornerFlourishSvg && (
+            {/* AI-generated corner flourish (takes priority over theme cornerSvg) */}
+            {vibeSkin.cornerFlourishSvg ? (
+              <>
+                <div
+                  aria-hidden="true"
+                  style={{ position: 'absolute', top: 0, left: 0, width: 'min(28vw, 260px)', height: 'min(28vw, 260px)', pointerEvents: 'none', zIndex: 2, opacity: 0.7 }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.cornerFlourishSvg) }}
+                />
+                <div
+                  aria-hidden="true"
+                  style={{ position: 'absolute', top: 0, right: 0, width: 'min(28vw, 260px)', height: 'min(28vw, 260px)', pointerEvents: 'none', zIndex: 2, transform: 'scaleX(-1)', opacity: 0.7 }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.cornerFlourishSvg) }}
+                />
+              </>
+            ) : art.cornerSvg && (
               <>
                 <div
                   aria-hidden="true"
@@ -945,26 +976,77 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         );
       case 'story': {
         const storyLayoutType = manifest.storyLayout || 'parallax';
+        const chapters = manifest.chapters || [];
+        const chapterIcons = vibeSkin.chapterIcons || [];
         return (
-          <section key={key} id="our-story" data-pe-section="story" style={blockStyle}>
-            {(manifest.chapters || []).map((chapter, chapterIndex) => (
-              <StoryLayout
-                key={chapter.id || chapterIndex}
-                type={storyLayoutType}
-                photos={(chapter.images || []).map(img => ({
-                  url: img.url.includes('googleusercontent.com')
-                    ? `/api/photos/proxy?url=${encodeURIComponent(img.url)}&w=1600&h=1200`
-                    : img.url,
-                  alt: img.alt,
-                  caption: img.caption,
-                }))}
-                title={chapter.title}
-                subtitle={chapter.subtitle}
-                body={chapter.description}
-                date={chapter.date}
-                index={chapterIndex}
+          <section key={key} id="our-story" data-pe-section="story" style={{ position: 'relative', ...blockStyle }}>
+            {/* AI-generated medallion ornament above the section */}
+            {vibeSkin.medallionSvg && (
+              <div
+                aria-hidden="true"
+                style={{
+                  width: 96,
+                  height: 96,
+                  margin: '2rem auto 0',
+                  pointerEvents: 'none',
+                  opacity: 0.72,
+                  color: pal.accent,
+                }}
+                dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.medallionSvg) }}
               />
-            ))}
+            )}
+            {chapters.map((chapter, chapterIndex) => {
+              const icon = chapterIcons[chapterIndex];
+              return (
+                <div key={chapter.id || chapterIndex} style={{ position: 'relative' }}>
+                  {/* Per-chapter AI icon — small bespoke ornament per chapter */}
+                  {icon && (
+                    <div
+                      aria-hidden="true"
+                      style={{
+                        width: 56,
+                        height: 56,
+                        margin: '3rem auto 0.5rem',
+                        pointerEvents: 'none',
+                        color: pal.accent,
+                        opacity: 0.85,
+                      }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeSvg(icon) }}
+                    />
+                  )}
+                  <StoryLayout
+                    type={storyLayoutType}
+                    photos={(chapter.images || []).map(img => ({
+                      url: img.url.includes('googleusercontent.com')
+                        ? `/api/photos/proxy?url=${encodeURIComponent(img.url)}&w=1600&h=1200`
+                        : img.url,
+                      alt: img.alt,
+                      caption: img.caption,
+                    }))}
+                    title={chapter.title}
+                    subtitle={chapter.subtitle}
+                    body={chapter.description}
+                    date={chapter.date}
+                    index={chapterIndex}
+                  />
+                  {/* AI-generated section border between chapters */}
+                  {vibeSkin.sectionBorderSvg && chapterIndex < chapters.length - 1 && (
+                    <div
+                      aria-hidden="true"
+                      style={{
+                        width: 'min(520px, 80%)',
+                        height: 32,
+                        margin: '2.5rem auto',
+                        pointerEvents: 'none',
+                        opacity: 0.5,
+                        color: pal.accent,
+                      }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.sectionBorderSvg) }}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </section>
         );
       }
@@ -1713,11 +1795,24 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                   <React.Fragment key={block.id}>
                     {needsDivider && (
                       <>
-                        {art.dividerPath && (
+                        {vibeSkin.sectionBorderSvg ? (
+                          <div
+                            aria-hidden="true"
+                            style={{
+                              width: 'min(640px, 70%)',
+                              height: 36,
+                              margin: '1.5rem auto 0.5rem',
+                              pointerEvents: 'none',
+                              opacity: 0.55,
+                              color: pal.accent,
+                            }}
+                            dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.sectionBorderSvg) }}
+                          />
+                        ) : art.dividerPath ? (
                           <svg viewBox="0 0 200 50" style={{ width: '100%', height: '40px' }} preserveAspectRatio="none">
                             <path d={art.dividerPath} fill="none" stroke={pal.accent} strokeWidth="1" opacity="0.2" />
                           </svg>
-                        )}
+                        ) : null}
                         <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={60} />
                       </>
                     )}

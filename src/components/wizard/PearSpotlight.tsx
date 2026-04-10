@@ -595,10 +595,12 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       vibeSkin: skeletonVibeSkin,
       chapters: [],
       blocks: [
-        { id: 'hero-skel', type: 'hero', visible: true, config: { title: c.names.filter(Boolean).join(' & ') } },
-        ...(c.date ? [{ id: 'countdown-skel', type: 'countdown', visible: true, config: {} }] : []),
-        ...(photoUrls.length > 0 ? [{ id: 'story-skel', type: 'story', visible: true, config: {} }] : []),
-        ...(c.venue && c.venue !== 'TBD' ? [{ id: 'event-skel', type: 'event', visible: true, config: {} }] : []),
+        { id: 'hero-skel', type: 'hero', visible: true, order: 0, config: { title: c.names.filter(Boolean).join(' & ') } },
+        // Always include a story block so the preview reserves space for
+        // chapters the moment Pass 1 streams them in.
+        { id: 'story-skel', type: 'story', visible: true, order: 1, config: {} },
+        ...(c.date ? [{ id: 'countdown-skel', type: 'countdown', visible: true, order: 2, config: {} }] : []),
+        ...(c.venue && c.venue !== 'TBD' ? [{ id: 'event-skel', type: 'event', visible: true, order: 3, config: {} }] : []),
       ],
       events: c.venue && c.venue !== 'TBD' && c.date ? [{
         name: `${c.occasion}`,
@@ -619,8 +621,26 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     };
     setPartialManifest(skeleton);
 
+    // Build a photoNotes lookup keyed by photo.id so server-side clustering
+    // can re-attach the user's exact notes + manual locations to the right
+    // cluster regardless of clustering order.
+    const photoNotesById: Record<string, { note?: string; location?: string; date?: string }> = {};
+    photos.forEach((p, idx) => {
+      const n = photoNotes[idx];
+      if (!p?.id || !n) return;
+      if (n.note || n.location || n.date) {
+        photoNotesById[p.id] = {
+          note: n.note || undefined,
+          location: n.location || undefined,
+          date: n.date || undefined,
+        };
+      }
+    });
+
     const requestBody = JSON.stringify({
       photos,
+      // Send the vibe string + any explicit hex colors the user picked so the
+      // design engine honors the chosen palette.
       vibeString: `${c.occasion} ${c.vibe || ''} ${c.venue || ''}`.trim(),
       names: c.names,
       occasion: c.occasion,
@@ -628,6 +648,10 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       eventVenue: c.venue,
       celebrationVenue: c.venue,
       layoutFormat: 'cascade',
+      // Chosen color palette from the wizard — must be honored as the final palette.
+      selectedPaletteColors: selectedPaletteColors || undefined,
+      // Per-photo notes + manual locations collected during photo review.
+      photoNotes: Object.keys(photoNotesById).length > 0 ? photoNotesById : undefined,
     });
 
     try {
@@ -683,9 +707,27 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                   : 4;
                 setGenStep(stepIndex);
                 setGenProgress(Math.round(((pass + 1) / 8) * 100));
-                // Capture partial manifest if server sends it
+                // Merge the server snapshot onto the current partial manifest
+                // so fields that the pipeline hasn't filled in yet (blocks,
+                // coverPhoto, heroSlideshow, etc.) stay populated from the
+                // skeleton while real content (chapters, theme, vibeSkin)
+                // streams in progressively.
                 if (event.manifest) {
-                  setPartialManifest(event.manifest);
+                  setPartialManifest(prev => {
+                    const snap = event.manifest as StoryManifest;
+                    if (!prev) return snap;
+                    return {
+                      ...prev,
+                      ...snap,
+                      // Always prefer the real chapters/theme/vibeSkin/poetry
+                      // from the server snapshot; keep the skeleton's blocks
+                      // and hero media until the pipeline provides its own.
+                      chapters: snap.chapters?.length ? snap.chapters : prev.chapters,
+                      blocks: snap.blocks?.length ? snap.blocks : prev.blocks,
+                      coverPhoto: prev.coverPhoto || snap.coverPhoto,
+                      heroSlideshow: prev.heroSlideshow?.length ? prev.heroSlideshow : snap.heroSlideshow,
+                    } as StoryManifest;
+                  });
                 }
               }
               if (event.type === 'complete') {
@@ -779,6 +821,23 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
 
     return (
       <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', flexDirection: 'column' }}>
+        {/* Live preview sizing: desktop width by default, narrower on small screens */}
+        <style>{`
+          .pear-live-preview {
+            width: 100%;
+            max-width: min(1200px, 92vw);
+          }
+          @media (max-width: 900px) {
+            .pear-live-preview {
+              max-width: min(760px, 96vw);
+            }
+          }
+          @media (max-width: 640px) {
+            .pear-live-preview {
+              max-width: 96vw;
+            }
+          }
+        `}</style>
         <LivingCanvas occasion={collected.occasion} names={collected.names} date={collected.date} venue={collected.venue} vibe={collected.vibe} paletteColors={selectedPaletteColors} phase="generating" />
 
         {/* Top bar — progress + status */}
@@ -824,19 +883,19 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
         <div style={{
           flex: 1, position: 'relative', zIndex: 10,
           display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
-          overflow: 'hidden', padding: '0 16px 16px',
+          overflow: 'hidden', padding: '0 24px 24px',
         }}>
           {partialManifest ? (
             <motion.div
+              className="pear-live-preview"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
               style={{
-                width: '100%', maxWidth: 480,
                 borderRadius: 20, overflow: 'hidden',
-                boxShadow: '0 12px 48px rgba(43,30,20,0.15)',
+                boxShadow: '0 12px 48px rgba(43,30,20,0.18)',
                 border: '1px solid rgba(255,255,255,0.4)',
-                maxHeight: '75vh',
+                maxHeight: '78vh',
                 overflowY: 'auto',
                 background: '#FAF7F2',
               }}
@@ -852,10 +911,10 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
           ) : (
             /* Skeleton while waiting for first manifest data */
             <motion.div
+              className="pear-live-preview"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               style={{
-                width: '100%', maxWidth: 480,
                 borderRadius: 20, overflow: 'hidden',
                 boxShadow: '0 12px 48px rgba(43,30,20,0.1)',
                 border: '1px solid rgba(255,255,255,0.3)',

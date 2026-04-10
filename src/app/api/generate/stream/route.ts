@@ -268,6 +268,8 @@ export async function POST(req: Request) {
     rsvpDeadline,
     cashFundUrl,
     eventVenue,
+    selectedPaletteColors,
+    photoNotes,
   } = body as {
     photos: GooglePhotoMetadata[];
     clusters?: PhotoCluster[];
@@ -291,6 +293,8 @@ export async function POST(req: Request) {
     rsvpDeadline?: string;
     cashFundUrl?: string;
     eventVenue?: string;
+    selectedPaletteColors?: string[];
+    photoNotes?: Record<string, { note?: string; location?: string; date?: string }>;
   };
 
   if (!photos?.length) {
@@ -341,6 +345,40 @@ export async function POST(req: Request) {
     );
   }
 
+  // Attach per-photo user notes (from the photo-review step) onto the
+  // containing cluster so Pass 1's prompt can cite them verbatim. Each
+  // cluster aggregates the notes + any user-entered locations for its
+  // member photos.
+  if (photoNotes && Object.keys(photoNotes).length > 0) {
+    enrichedClusters = enrichedClusters.map((cluster) => {
+      const notesForCluster: string[] = [];
+      let manualLocation: string | null = null;
+      for (const photo of cluster.photos) {
+        const entry = photoNotes[photo.id];
+        if (!entry) continue;
+        if (entry.note && entry.note.trim().length > 0) {
+          notesForCluster.push(entry.note.trim());
+        }
+        if (!manualLocation && entry.location && entry.location.trim().length > 0) {
+          manualLocation = entry.location.trim();
+        }
+      }
+      const mergedNote = notesForCluster.length > 0
+        ? notesForCluster.join(' • ')
+        : cluster.note;
+      // Only overwrite location label if the user actually typed one.
+      let location = cluster.location;
+      if (manualLocation) {
+        location = location
+          ? { ...location, label: manualLocation }
+          : { lat: 0, lng: 0, label: manualLocation };
+      }
+      return { ...cluster, note: mergedNote, location };
+    });
+    const withNotes = enrichedClusters.filter(c => c.note && c.note.length > 0).length;
+    console.log(`[Generate/Stream] Attached user notes to ${withNotes}/${enrichedClusters.length} clusters`);
+  }
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
@@ -364,9 +402,17 @@ export async function POST(req: Request) {
           eventDate,
           inspirationUrls,
           layoutFormat,
-          (pass) => {
-            send({ type: 'progress', pass, label: PASS_LABELS[Math.min(pass, 7)] });
-          }
+          (pass, snapshot) => {
+            send({
+              type: 'progress',
+              pass,
+              label: PASS_LABELS[Math.min(pass, 7)],
+              // Stream intermediate manifest snapshots as each pass completes
+              // so the live preview updates in real time.
+              manifest: snapshot ?? undefined,
+            });
+          },
+          selectedPaletteColors,
         );
 
         // ── Post-processing (mirrors /api/generate/route.ts lines 354-506) ──

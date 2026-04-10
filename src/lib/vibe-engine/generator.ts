@@ -165,7 +165,28 @@ export async function generateVibeSkin(
   context?: VibeSkinContext,
   occasion?: string
 ): Promise<VibeSkin> {
-  if (!apiKey) return deriveFallback(vibeString);
+  const preferredPaletteEarly = (context?.preferredPalette || [])
+    .filter(c => typeof c === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(c.trim()))
+    .map(c => c.trim());
+
+  if (!apiKey) {
+    const fb = deriveFallback(vibeString);
+    if (preferredPaletteEarly.length > 0) {
+      return {
+        ...fb,
+        palette: {
+          ...fb.palette,
+          accent: preferredPaletteEarly[0] || fb.palette.accent,
+          accent2: preferredPaletteEarly[1] || fb.palette.accent2,
+          background: preferredPaletteEarly[2] || fb.palette.background,
+          foreground: preferredPaletteEarly[3] || fb.palette.foreground,
+          highlight: preferredPaletteEarly[0] || fb.palette.highlight,
+          ink: preferredPaletteEarly[3] || fb.palette.ink,
+        },
+      };
+    }
+    return fb;
+  }
 
   // Extract occasion-specific numeric details from the vibe string
   const anniversaryMatch = vibeString.match(/ANNIVERSARY:\s*(\d+)\s*years/i);
@@ -276,7 +297,28 @@ This is NON-NEGOTIABLE. The inspiration images override everything else.
 `
     : '';
 
-  const prompt = `${inspirationDirective}You are a world-class wedding visual designer AND SVG artist for Pearloom, a premium wedding website platform.
+  // Hard palette directive — when the user picked colors in the wizard we must
+  // respect them. The AI's output is also overridden post-parse so the final
+  // skin always uses these hex values, but we still tell the model so it can
+  // build harmonious SVG art around them.
+  const preferredPalette = (context?.preferredPalette || [])
+    .filter(c => typeof c === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(c.trim()))
+    .map(c => c.trim());
+  const paletteDirective = preferredPalette.length > 0
+    ? `🎨 NON-NEGOTIABLE PALETTE (user-selected in the wizard):
+The user explicitly picked these hex colors and they MUST be the final palette:
+  accent: ${preferredPalette[0] || 'choose from user colors'}
+  accent2: ${preferredPalette[1] || 'choose from user colors'}
+  background: ${preferredPalette[2] || 'choose from user colors'}
+  foreground / ink: ${preferredPalette[3] || 'choose from user colors'}
+Use THESE EXACT hex values. Do not substitute softer or more muted versions.
+All SVG art (heroBlobSvg, cornerFlourishSvg, etc.) must be colored with the
+accent and accent2 above so the design feels cohesive.
+
+`
+    : '';
+
+  const prompt = `${paletteDirective}${inspirationDirective}You are a world-class wedding visual designer AND SVG artist for Pearloom, a premium wedding website platform.
 ${namesContext}
 The couple's vibe is: "${vibeString}"
 
@@ -512,17 +554,25 @@ CRITICAL DESIGN RULES:
     const hexOrDefault = (val: unknown, def: string): string =>
       typeof val === 'string' && val.startsWith('#') ? val : def;
 
-    const bgColor = hexOrDefault(parsed.palette?.background, '#F5F1E8');
-    const fgColor = hexOrDefault(parsed.palette?.foreground, '#2B2B2B');
-    const accentColor = hexOrDefault(parsed.palette?.accent, '#A3B18A');
-    const accent2Color = hexOrDefault(parsed.palette?.accent2, '#D6C6A8');
+    // HARD OVERRIDE: if the user picked specific colors in the wizard, force
+    // them into the final palette regardless of what the AI returned. The
+    // convention is [accent, accent2, background, foreground].
+    const userAccent = preferredPalette[0];
+    const userAccent2 = preferredPalette[1];
+    const userBg = preferredPalette[2];
+    const userFg = preferredPalette[3];
+
+    const bgColor = userBg || hexOrDefault(parsed.palette?.background, '#F5F1E8');
+    const fgColor = userFg || hexOrDefault(parsed.palette?.foreground, '#2B2B2B');
+    const accentColor = userAccent || hexOrDefault(parsed.palette?.accent, '#A3B18A');
+    const accent2Color = userAccent2 || hexOrDefault(parsed.palette?.accent2, '#D6C6A8');
     const cardColor = (typeof parsed.palette?.card === 'string' &&
       (parsed.palette.card.startsWith('#') || parsed.palette.card.startsWith('rgba')))
       ? parsed.palette.card : '#FDFAF4';
     const mutedColor = hexOrDefault(parsed.palette?.muted, '#9A9488');
-    const highlightColor = hexOrDefault(parsed.palette?.highlight, accentColor);
+    const highlightColor = userAccent || hexOrDefault(parsed.palette?.highlight, accentColor);
     const subtleColor = hexOrDefault(parsed.palette?.subtle, bgColor);
-    const inkColor = hexOrDefault(parsed.palette?.ink, '#1C1C1C');
+    const inkColor = userFg || hexOrDefault(parsed.palette?.ink, '#1C1C1C');
 
     return {
       curve,
@@ -605,7 +655,24 @@ CRITICAL DESIGN RULES:
     };
   } catch (err) {
     logWarn('[VibeEngine] Gemini skin generation failed, using fallback:', err);
-    return deriveFallback(vibeString);
+    const fallback = deriveFallback(vibeString);
+    // Apply the user's palette even in the fallback path so their choice
+    // is never silently dropped when the AI call fails.
+    if (preferredPalette.length > 0) {
+      return {
+        ...fallback,
+        palette: {
+          ...fallback.palette,
+          accent: preferredPalette[0] || fallback.palette.accent,
+          accent2: preferredPalette[1] || fallback.palette.accent2,
+          background: preferredPalette[2] || fallback.palette.background,
+          foreground: preferredPalette[3] || fallback.palette.foreground,
+          highlight: preferredPalette[0] || fallback.palette.highlight,
+          ink: preferredPalette[3] || fallback.palette.ink,
+        },
+      };
+    }
+    return fallback;
   }
 }
 

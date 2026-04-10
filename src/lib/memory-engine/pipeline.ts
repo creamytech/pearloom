@@ -20,7 +20,8 @@ export async function generateStoryManifest(
   eventDate?: string,
   inspirationUrls?: string[],
   layoutFormat?: string,
-  onProgress?: (pass: number) => void,
+  onProgress?: (pass: number, snapshot?: StoryManifest) => void,
+  preferredPalette?: string[],
 ): Promise<StoryManifest> {
   onProgress?.(0);
 
@@ -233,7 +234,9 @@ export async function generateStoryManifest(
     manifest.faqs = [];
   }
 
-  onProgress?.(1);
+  // Emit first real snapshot so the live preview can show the chapters
+  // and theme as soon as Pass 1 finishes — don't wait for the full pipeline.
+  onProgress?.(1, manifest);
 
   // ── Passes 1.2, 1.5, 4: Run in parallel ─────────────────────────────
   // All three depend only on the chapters from Pass 1 and the vibeString.
@@ -298,7 +301,8 @@ export async function generateStoryManifest(
     };
   }
 
-  onProgress?.(4);
+  // Emit snapshot after passes 1.2/1.5/4 — chapters + poetry are now refined
+  onProgress?.(4, manifest);
 
   // ── Pass 2: Generate vibeSkin (visual design + custom SVG art) ────────
   // Depends on refined chapters (1.2) and couple profile (1.5) — runs after both.
@@ -322,6 +326,7 @@ export async function generateStoryManifest(
       photoUrls,
       inspirationUrls,
       coupleProfile,  // Couple DNA drives bespoke illustration generation
+      preferredPalette,  // User-chosen hex colors — must appear in final palette
     }, occasion);
     manifest.vibeSkin = vibeSkin;
     log('[Memory Engine] Pass 2: VibeSkin generated',
@@ -330,8 +335,6 @@ export async function generateStoryManifest(
   } catch (err) {
     logWarn('[Memory Engine] VibeSkin generation failed (non-fatal):', err);
   }
-
-  onProgress?.(5);
 
   // ── Reconcile theme.colors with vibeSkin.palette — single source of truth ──
   // Raster art (Pass 2.5) is generated separately via /api/generate/art after
@@ -351,7 +354,10 @@ export async function generateStoryManifest(
     };
   }
 
-  onProgress?.(6);
+  // Emit snapshot AFTER reconcile so downstream consumers see the final
+  // palette + theme applied alongside the vibeSkin SVG art.
+  onProgress?.(5, manifest);
+  onProgress?.(6, manifest);
 
   // Enforce emotional arc: last chapter should be the emotional peak
   if (manifest.chapters.length > 1) {
