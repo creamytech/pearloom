@@ -705,17 +705,12 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                     ))}
                   </div>
                   <label style={{ display: 'block' }}>
-                    <span style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', fontWeight: 500, marginBottom: '4px', display: 'block' }}>Custom date</span>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', fontWeight: 500, marginBottom: '4px', display: 'block' }}>Pick a date, then tap confirm</span>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <input
                       type="date"
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          setCollected(prev => ({ ...prev, date: e.target.value }));
-                          const d = new Date(e.target.value + 'T12:00:00');
-                          const formatted = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-                          sendMessage(`The date is ${formatted}`, { date: e.target.value });
-                        }
-                      }}
+                      id="pear-date-input"
+                      onChange={() => {/* Don't auto-submit — wait for confirm */}}
                       style={{
                         padding: '10px 14px', borderRadius: '12px', fontSize: '0.88rem',
                         border: '1px solid rgba(163,177,138,0.3)', background: 'rgba(255,255,255,0.7)',
@@ -724,6 +719,27 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                         width: '100%', maxWidth: '220px',
                       } as React.CSSProperties}
                     />
+                    <button
+                      onClick={() => {
+                        const el = document.getElementById('pear-date-input') as HTMLInputElement | null;
+                        const val = el?.value;
+                        if (val) {
+                          setCollected(prev => ({ ...prev, date: val }));
+                          const d = new Date(val + 'T12:00:00');
+                          const formatted = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                          sendMessage(`The date is ${formatted}`, { date: val });
+                        }
+                      }}
+                      style={{
+                        padding: '10px 18px', borderRadius: '12px', fontSize: '0.82rem',
+                        fontWeight: 700, border: 'none', flexShrink: 0,
+                        background: 'var(--pl-olive, #A3B18A)', color: 'white',
+                        cursor: 'pointer', transition: 'all 0.15s',
+                      }}
+                    >
+                      Confirm
+                    </button>
+                    </div>
                   </label>
                 </div>
               )}
