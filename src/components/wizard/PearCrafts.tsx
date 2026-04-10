@@ -105,9 +105,17 @@ If you have name(s) + date + venue, ask about their style/theme preferences next
 - "Do you have any favorite colors or a color scheme in mind?"
 - "What's the overall vibe you're going for?" (elegant, fun, rustic, modern, etc.)
 - "Any special touches you'd love? Custom illustrations, specific imagery, a hashtag?"
-- "Is there a song, quote, or phrase that's meaningful to you two?"
+- "Is there a song, quote, or phrase that's meaningful to you?"
 
-Only say you're ready to build AFTER you've gathered style preferences. Never rush to build — the more you know, the more personal the site will be.`;
+PHOTO STORY CRAFTING:
+When the user has uploaded photos and describes the moments:
+- Help them organize the photos into a timeline/story chapters
+- Ask about each group: "Tell me about the [month/year] photos — what was happening?"
+- Confirm the chapter order: "So the story goes: [chapter 1] → [chapter 2] → [chapter 3]. Does that flow feel right?"
+- Suggest chapter titles based on their descriptions
+- Once you've discussed the photos, say you're ready to build
+
+Only say you're ready to build AFTER you've gathered style preferences AND (if they added photos) discussed the photo moments. Never rush to build — the more you know, the more personal the site will be.`;
 }
 
 function hasAllRequired(c: Collected, photosDecided: boolean): boolean {
@@ -261,8 +269,15 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
           { label: 'Suggest something beautiful', value: 'suggest', icon: '✦' },
           { label: 'Surprise me', value: 'surprise', icon: '✦' },
         ];
-      } else if (phase === 'chat') {
-        // All info collected — offer photos or build
+      } else if (selectedPhotos.length > 0 && !photosDecided) {
+        // Photos uploaded but user still discussing them — offer to build
+        pearMsg.cardType = 'photos-or-build';
+        pearMsg.cards = [
+          { label: 'Looks great, build my site', value: 'build', icon: '✦' },
+          { label: 'Tell me more about these photos', value: 'more', icon: '✦' },
+        ];
+      } else if (phase === 'chat' && !photosDecided) {
+        // All text info collected, no photos yet — offer photos or build
         pearMsg.cardType = 'photos-or-build';
         pearMsg.cards = [
           { label: 'Add photos first', value: 'photos', icon: '✦' },
@@ -856,9 +871,10 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                       onClick={() => {
                         if (card.value === 'build') {
                           setPhotosDecided(true);
-                          // Don't build yet — Build My Site button will appear
-                          sendMessage("Let's build it!", { });
-                        } else {
+                          sendMessage("Looks great, let's build it!", { });
+                        } else if (card.value === 'more') {
+                          sendMessage("Tell me more about what you'd like for these photo chapters");
+                        } else if (card.value === 'photos') {
                           setShowPhotoBrowser(true);
                         }
                       }}
@@ -1011,20 +1027,71 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                 Skip photos
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   setShowPhotoBrowser(false);
                   const count = selectedPhotos.length;
+
+                  if (count === 0) {
+                    setPhotosDecided(true);
+                    setMessages(prev => [...prev, {
+                      role: 'pear',
+                      text: 'No photos selected. You can always add them later in the editor!',
+                      ts: Date.now(),
+                      cardType: 'photos-or-build',
+                      cards: [{ label: 'Build my site', value: 'build', icon: '✦' }],
+                    }]);
+                    return;
+                  }
+
+                  // Analyze photos — group by date, ask about them
+                  setMessages(prev => [...prev, {
+                    role: 'user',
+                    text: `I selected ${count} photo${count === 1 ? '' : 's'}`,
+                    ts: Date.now(),
+                  }]);
+                  setLoading(true);
+
+                  // Group photos by date (month/year)
+                  const groups: Record<string, number> = {};
+                  for (const p of selectedPhotos) {
+                    const date = p.creationTime || p.mediaMetadata?.creationTime;
+                    if (date) {
+                      const d = new Date(date);
+                      const key = `${d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
+                      groups[key] = (groups[key] || 0) + 1;
+                    }
+                  }
+
+                  const groupEntries = Object.entries(groups);
+                  let analysisText = '';
+
+                  if (groupEntries.length > 1) {
+                    analysisText = `I found ${count} photos from ${groupEntries.length} different moments:\n\n`;
+                    analysisText += groupEntries.map(([period, num]) => `- ${period} (${num} photo${num > 1 ? 's' : ''})`).join('\n');
+                    analysisText += '\n\nThese will become chapters in your story. Can you tell me a little about each moment? What was happening? Where were you?';
+                  } else if (groupEntries.length === 1) {
+                    analysisText = `Beautiful! I found ${count} photos from ${groupEntries[0][0]}. Tell me about this moment — what was happening? This will help me write a more personal story.`;
+                  } else {
+                    analysisText = `Got ${count} beautiful photos! Tell me a little about these moments — what was happening? Where were you? The more I know, the more personal your site will be.`;
+                  }
+
+                  // Check for location data
+                  const withLocation = selectedPhotos.filter(p => {
+                    const loc = p.mediaMetadata?.location || p.location;
+                    return loc && (loc.latitude || loc.lat);
+                  });
+                  if (withLocation.length > 0) {
+                    analysisText += `\n\nI also detected location data in ${withLocation.length} of your photos — I'll use that to add venue details automatically.`;
+                  }
+
+                  setLoading(false);
                   setMessages(prev => [...prev, {
                     role: 'pear',
-                    text: count > 0
-                      ? `Got ${count} photo${count === 1 ? '' : 's'}! Ready to build?`
-                      : 'No photos selected. Ready to build?',
+                    text: analysisText,
                     ts: Date.now(),
-                    cardType: 'photos-or-build',
-                    cards: [
-                      { label: 'Build now', value: 'build', icon: '✦' },
-                    ],
                   }]);
+                  // Don't set photosDecided yet — let user describe the moments first
+                  // After user responds, the next AI call will have the context and can offer to build
                 }}
                 style={{
                   padding: '12px 24px', borderRadius: '100px', fontSize: '0.82rem',
