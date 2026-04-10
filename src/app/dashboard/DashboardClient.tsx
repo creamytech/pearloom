@@ -38,6 +38,7 @@ import { GeneratingStep } from '@/components/wizard/GeneratingStep';
 import { LivePreview, QuickStartBanner } from '@/components/wizard/LivePreview';
 import { createProgressiveSession, type ProgressiveState } from '@/lib/progressive-generation';
 import { GuestsStep } from '@/components/wizard/GuestsStep';
+import { PearCrafts } from '@/components/wizard/PearCrafts';
 import { PublishModal } from '@/components/shared/PublishModal';
 import { TemplateGallery } from '@/components/dashboard/TemplateGallery';
 import { MobileBottomNav } from '@/components/dashboard/MobileBottomNav';
@@ -183,6 +184,7 @@ function TemplatePersonalizeModal({ template, onConfirm, onClose }: {
 
 const STEP_META: Record<WizardStep, { title: string; subtitle: string }> = {
   dashboard: { title: '', subtitle: '' },
+  'pear-crafts': { title: '', subtitle: '' },
   photos: { title: 'Choose Your Memories', subtitle: 'The moments that matter most become the chapters of your story.' },
   upload: { title: 'Your Photos', subtitle: 'Upload the images that tell your story.' },
   clusters: { title: 'The Places', subtitle: 'Where did these moments happen? Add locations to enrich your narrative.' },
@@ -426,6 +428,18 @@ export default function DashboardClient() {
     );
   }
 
+  // ── PearCrafts conversational wizard takes over ─────────────
+  if (state.step === 'pear-crafts') {
+    return (
+      <PearCrafts
+        onComplete={(manifest: StoryManifest, names: [string, string], subdomain: string) => {
+          dispatch({ type: 'EDIT_SITE', manifest, subdomain, names });
+        }}
+        onBack={() => goTo('photos')}
+      />
+    );
+  }
+
   // ── Main wizard render ──────────────────────────────────────
   const handleTemplateSelect = (template: SiteTemplate) => {
     setPendingTemplate(template);
@@ -490,7 +504,7 @@ export default function DashboardClient() {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => goTo('photos')}
+                onClick={() => goTo('pear-crafts')}
                 className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-full text-[0.72rem] font-bold text-white bg-[var(--pl-olive-deep)] border-none cursor-pointer hover:opacity-90 transition-opacity"
                 aria-label="Create new site"
               >
@@ -506,7 +520,7 @@ export default function DashboardClient() {
           <div className="flex flex-1 overflow-hidden">
             {/* Desktop sidebar */}
             <div className="hidden md:block">
-              <DashboardSidebar onNewSite={() => goTo('photos')} />
+              <DashboardSidebar onNewSite={() => goTo('pear-crafts')} />
             </div>
             {/* Main content */}
             <main className="flex-1 overflow-auto p-4 pb-20 md:p-8 lg:p-12 lg:pb-12">
@@ -517,7 +531,7 @@ export default function DashboardClient() {
                   if (draft) dispatch({ type: 'RESTORE_DRAFT', draft });
                 }}
                 onDismissDraft={() => { clearDraft(); goTo('photos'); }}
-                onStartNew={() => goTo('photos')}
+                onStartNew={() => goTo('pear-crafts')}
                 onQuickStart={() => setShowTemplates(true)}
                 onOpenTemplates={() => setShowTemplates(true)}
                 onEditSite={(site) => dispatch({ type: 'EDIT_SITE', manifest: site.manifest, subdomain: site.domain, names: site.names || ['', ''] })}
@@ -733,7 +747,7 @@ export default function DashboardClient() {
         <MobileBottomNav
           activeTab={mobileTab}
           onTabChange={setMobileTab}
-          onBuild={() => goTo('photos')}
+          onBuild={() => goTo('pear-crafts')}
         />
       )}
     </ThemeProvider>

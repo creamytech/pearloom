@@ -43,6 +43,7 @@ const FullscreenEditor = nextDynamic(
 
 const STEP_META: Record<WizardStep, { title: string; subtitle: string }> = {
   dashboard: { title: '', subtitle: '' },
+  'pear-crafts': { title: '', subtitle: '' },
   photos: { title: 'Select Your Memories', subtitle: 'Choose the photos that tell your story.' },
   upload: { title: 'Upload Photos', subtitle: 'Directly upload your favorite high-quality images.' },
   clusters: { title: 'Where Were You?', subtitle: 'Add locations to each memory group for a richer story.' },

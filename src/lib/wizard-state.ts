@@ -5,6 +5,7 @@ import type { GooglePhotoMetadata, StoryManifest, PhotoCluster } from '@/types';
 
 export type WizardStep =
   | 'dashboard'
+  | 'pear-crafts'
   | 'photos'
   | 'upload'
   | 'clusters'
