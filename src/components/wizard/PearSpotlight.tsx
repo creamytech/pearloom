@@ -1432,7 +1432,11 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
               padding: step === 'photo-review' ? '0' : '24px',
               border: cardBorder,
               boxShadow: dark ? '0 8px 40px rgba(0,0,0,0.2)' : '0 8px 40px rgba(43,30,20,0.08)',
-              overflow: 'hidden',
+              // Venue + photo-review steps render an absolutely-positioned
+              // location autocomplete dropdown that must escape the card.
+              // All other steps clip their slide-in transition to the card
+              // bounds so the sliding content doesn't bleed outside.
+              overflow: step === 'venue' || step === 'photo-review' ? 'visible' : 'hidden',
               transition: 'background 0.5s, border 0.5s, box-shadow 0.5s',
             }}
           >
