@@ -345,12 +345,11 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
           { label: 'Tell me more about these photos', value: 'more', icon: '✦' },
         ];
       } else if (phase === 'chat' && !photosDecided) {
-        // All text info collected, no photos yet — offer photos or build
-        pearMsg.cardType = 'photos-or-build';
-        pearMsg.cards = [
-          { label: 'Add photos first', value: 'photos', icon: '✦' },
-          { label: 'Build now, add photos later', value: 'build', icon: '✦' },
-        ];
+        // All text info collected, no photos yet — auto-open photo browser
+        // The message still shows, but the browser opens immediately
+        pearMsg.text = (pearMsg.text || '') + "\n\nLet's pick some photos to make your site personal — or skip if you'd rather add them later.";
+        // Auto-open the photo browser after a short delay
+        setTimeout(() => setShowPhotoBrowser(true), 600);
       }
 
       setMessages(prev => [...prev, pearMsg]);

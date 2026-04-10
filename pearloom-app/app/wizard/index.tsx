@@ -276,13 +276,10 @@ export default function PearWizard() {
 
   function askAboutPhotos() {
     addPearMessage(
-      'Want to add photos? They make the site so much more personal.',
-      'photos',
-      [
-        { label: 'Add Photos', value: 'add-photos', icon: 'camera' },
-        { label: 'Skip Photos', value: 'skip-photos', icon: 'arrow-right' },
-      ],
+      "Let's pick some photos to make your site personal -- or skip if you'd rather add them later.",
     );
+    // Auto-launch the native photo picker after a short delay
+    setTimeout(() => handlePickPhotos(), 600);
   }
 
   async function handlePickPhotos() {
@@ -301,7 +298,18 @@ export default function PearWizard() {
       quality: 0.85,
     });
 
-    if (result.canceled || !result.assets?.length) return;
+    if (result.canceled || !result.assets?.length) {
+      // User dismissed the picker — show skip option
+      addPearMessage(
+        'No photos selected. Want to try again or skip for now?',
+        'photos',
+        [
+          { label: 'Try Again', value: 'add-photos', icon: 'camera' },
+          { label: 'Skip Photos', value: 'skip-photos', icon: 'arrow-right' },
+        ],
+      );
+      return;
+    }
 
     const newPhotos: WizardPhoto[] = result.assets.map((a, i) => ({
       uri: a.uri,
