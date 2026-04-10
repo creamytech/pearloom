@@ -22,7 +22,9 @@ interface ChatMessage {
   text: string;
   ts: number;
   cards?: Array<{ label: string; value: string; icon?: string }>;
-  cardType?: 'occasion' | 'date' | 'venue' | 'style' | 'theme-ask' | 'theme-options' | 'photos-or-build' | 'info-card';
+  cardType?: 'occasion' | 'date' | 'venue' | 'style' | 'theme-ask' | 'theme-options' | 'photos-or-build' | 'photo-review' | 'info-card';
+  photoUrl?: string;
+  photoIndex?: number;
 }
 
 // Occasion-based default vibes for "Suggest something beautiful"
@@ -137,6 +139,8 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
   const [showPhotoBrowser, setShowPhotoBrowser] = useState(false);
   const [selectedPhotos, setSelectedPhotos] = useState<any[]>([]);
   const [photosDecided, setPhotosDecided] = useState(false);
+  const [photoReviewIndex, setPhotoReviewIndex] = useState(-1); // -1 = not reviewing
+  const [photoNotes, setPhotoNotes] = useState<Record<number, { location?: string; note?: string }>>({});
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -242,6 +246,47 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
       const hasNames = isSoloPerson
         ? !!(nextCollected.names?.[0])
         : !!(nextCollected.names?.[0] && nextCollected.names?.[1]);
+
+      // If reviewing photos, advance to next photo after user describes one
+      if (photoReviewIndex >= 0 && photoReviewIndex < selectedPhotos.length - 1) {
+        const nextIdx = photoReviewIndex + 1;
+        const nextPhoto = selectedPhotos[nextIdx];
+        const nextUrl = nextPhoto?.baseUrl || nextPhoto?.url || nextPhoto?.uri || '';
+        const nextDate = nextPhoto?.mediaMetadata?.creationTime || nextPhoto?.creationTime;
+
+        // First add AI's response to current photo
+        setMessages(prev => [...prev, pearMsg]);
+
+        // Then show next photo
+        let nextMsg = `Great! Next photo (${nextIdx + 1} of ${selectedPhotos.length}):`;
+        if (nextDate) {
+          const d = new Date(nextDate);
+          nextMsg += ` From ${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.`;
+        }
+        nextMsg += '\nWhat was happening here?';
+
+        setPhotoReviewIndex(nextIdx);
+        setMessages(prev => [...prev, {
+          role: 'pear', text: nextMsg, ts: Date.now(),
+          cardType: 'photo-review',
+          photoUrl: nextUrl ? (nextUrl.includes('googleusercontent') ? `/api/photos/proxy?url=${encodeURIComponent(nextUrl)}&w=400&h=300` : nextUrl) : undefined,
+          photoIndex: nextIdx,
+          cards: nextIdx < selectedPhotos.length - 1 ? [{ label: 'Skip', value: 'skip', icon: '→' }] : [],
+        }]);
+        return; // Don't add the normal card logic
+      } else if (photoReviewIndex >= 0 && photoReviewIndex >= selectedPhotos.length - 1) {
+        // Last photo reviewed
+        setPhotoReviewIndex(-1);
+        setPhotosDecided(true);
+        setMessages(prev => [...prev, pearMsg, {
+          role: 'pear',
+          text: "I've got a beautiful picture of your story now. Ready to build your site?",
+          ts: Date.now(),
+          cardType: 'photos-or-build',
+          cards: [{ label: 'Build my site', value: 'build', icon: '✦' }],
+        }]);
+        return;
+      }
 
       // Add contextual interactive cards — ordered by importance
       if (!nextCollected.occasion) {
@@ -879,6 +924,73 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
               )}
 
               {/* ── Photos or Build choice ── */}
+              {/* ── Photo review — show actual photo ── */}
+              {msg.cardType === 'photo-review' && msg.photoUrl && (
+                <div style={{ marginTop: '12px', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.4)' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={msg.photoUrl}
+                    alt={`Photo ${(msg.photoIndex ?? 0) + 1}`}
+                    style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', display: 'block' }}
+                  />
+                  <div style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--pl-muted)' }}>
+                      Photo {(msg.photoIndex ?? 0) + 1} of {selectedPhotos.length}
+                    </span>
+                    {msg.cards && msg.cards.length > 0 && photoReviewIndex === msg.photoIndex && (
+                      <button
+                        onClick={() => {
+                          // Skip to next photo
+                          const nextIdx = (msg.photoIndex ?? 0) + 1;
+                          if (nextIdx < selectedPhotos.length) {
+                            const nextPhoto = selectedPhotos[nextIdx];
+                            const nextUrl = nextPhoto?.baseUrl || nextPhoto?.url || nextPhoto?.uri || '';
+                            const nextDate = nextPhoto?.mediaMetadata?.creationTime || nextPhoto?.creationTime;
+                            const nextLoc = nextPhoto?.mediaMetadata?.location || nextPhoto?.location;
+                            const hasNextLoc = nextLoc && (nextLoc.latitude || nextLoc.lat);
+
+                            let nextMsg = '';
+                            if (nextDate) {
+                              const d = new Date(nextDate);
+                              nextMsg += `This one is from ${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.`;
+                            }
+                            nextMsg += hasNextLoc ? ' I see location data on this one.' : '\nWhere was this taken?';
+                            nextMsg += '\nWhat was happening in this moment?';
+
+                            setPhotoReviewIndex(nextIdx);
+                            setMessages(prev => [...prev, {
+                              role: 'pear', text: nextMsg, ts: Date.now(),
+                              cardType: 'photo-review',
+                              photoUrl: nextUrl ? (nextUrl.includes('googleusercontent') ? `/api/photos/proxy?url=${encodeURIComponent(nextUrl)}&w=400&h=300` : nextUrl) : undefined,
+                              photoIndex: nextIdx,
+                              cards: nextIdx < selectedPhotos.length - 1 ? [{ label: 'Skip', value: 'skip', icon: '→' }] : [],
+                            }]);
+                          } else {
+                            // All photos reviewed
+                            setPhotosDecided(true);
+                            setMessages(prev => [...prev, {
+                              role: 'pear',
+                              text: "That's all your photos! I have a great picture of your story now. Ready to build your site?",
+                              ts: Date.now(),
+                              cardType: 'photos-or-build',
+                              cards: [{ label: 'Build my site', value: 'build', icon: '✦' }],
+                            }]);
+                          }
+                        }}
+                        style={{
+                          padding: '4px 12px', borderRadius: '100px', fontSize: '0.68rem',
+                          fontWeight: 600, border: '1px solid rgba(163,177,138,0.3)',
+                          background: 'rgba(255,255,255,0.5)', color: 'var(--pl-muted)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {(msg.photoIndex ?? 0) < selectedPhotos.length - 1 ? 'Skip to next' : 'Done reviewing'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {msg.cardType === 'photos-or-build' && msg.cards && phase === 'chat' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
                   {msg.cards.map((card) => (
@@ -1059,55 +1171,44 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                     return;
                   }
 
-                  // Analyze photos — group by date, ask about them
+                  // Start photo-by-photo review
                   setMessages(prev => [...prev, {
                     role: 'user',
                     text: `I selected ${count} photo${count === 1 ? '' : 's'}`,
                     ts: Date.now(),
                   }]);
-                  setLoading(true);
 
-                  // Group photos by date (month/year)
-                  const groups: Record<string, number> = {};
-                  for (const p of selectedPhotos) {
-                    const date = p.creationTime || p.mediaMetadata?.creationTime;
-                    if (date) {
-                      const d = new Date(date);
-                      const key = `${d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
-                      groups[key] = (groups[key] || 0) + 1;
-                    }
+                  // Get photo URL for first photo
+                  const firstPhoto = selectedPhotos[0];
+                  const firstUrl = firstPhoto?.baseUrl || firstPhoto?.url || firstPhoto?.uri || '';
+                  const firstDate = firstPhoto?.mediaMetadata?.creationTime || firstPhoto?.creationTime;
+                  const firstLoc = firstPhoto?.mediaMetadata?.location || firstPhoto?.location;
+                  const hasLoc = firstLoc && (firstLoc.latitude || firstLoc.lat);
+
+                  let firstMsg = `Let's go through your photos one by one so I can craft the perfect story.`;
+                  if (firstDate) {
+                    const d = new Date(firstDate);
+                    firstMsg += `\n\nThis one was taken ${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.`;
                   }
-
-                  const groupEntries = Object.entries(groups);
-                  let analysisText = '';
-
-                  if (groupEntries.length > 1) {
-                    analysisText = `I found ${count} photos from ${groupEntries.length} different moments:\n\n`;
-                    analysisText += groupEntries.map(([period, num]) => `- ${period} (${num} photo${num > 1 ? 's' : ''})`).join('\n');
-                    analysisText += '\n\nThese will become chapters in your story. Can you tell me a little about each moment? What was happening? Where were you?';
-                  } else if (groupEntries.length === 1) {
-                    analysisText = `Beautiful! I found ${count} photos from ${groupEntries[0][0]}. Tell me about this moment — what was happening? This will help me write a more personal story.`;
+                  if (hasLoc) {
+                    firstMsg += ` I can see it has location data — I'll use that.`;
                   } else {
-                    analysisText = `Got ${count} beautiful photos! Tell me a little about these moments — what was happening? Where were you? The more I know, the more personal your site will be.`;
+                    firstMsg += `\n\nWhere was this taken?`;
                   }
+                  firstMsg += `\n\nTell me about this moment — what was happening here?`;
 
-                  // Check for location data
-                  const withLocation = selectedPhotos.filter(p => {
-                    const loc = p.mediaMetadata?.location || p.location;
-                    return loc && (loc.latitude || loc.lat);
-                  });
-                  if (withLocation.length > 0) {
-                    analysisText += `\n\nI also detected location data in ${withLocation.length} of your photos — I'll use that to add venue details automatically.`;
-                  }
-
-                  setLoading(false);
+                  setPhotoReviewIndex(0);
                   setMessages(prev => [...prev, {
                     role: 'pear',
-                    text: analysisText,
+                    text: firstMsg,
                     ts: Date.now(),
+                    cardType: 'photo-review',
+                    photoUrl: firstUrl ? (firstUrl.includes('googleusercontent') ? `/api/photos/proxy?url=${encodeURIComponent(firstUrl)}&w=400&h=300` : firstUrl) : undefined,
+                    photoIndex: 0,
+                    cards: count > 1 ? [
+                      { label: 'Skip this photo', value: 'skip', icon: '→' },
+                    ] : [],
                   }]);
-                  // Don't set photosDecided yet — let user describe the moments first
-                  // After user responds, the next AI call will have the context and can offer to build
                 }}
                 style={{
                   padding: '12px 24px', borderRadius: '100px', fontSize: '0.82rem',
