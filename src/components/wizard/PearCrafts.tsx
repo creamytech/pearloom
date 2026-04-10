@@ -140,7 +140,13 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
   const [selectedPhotos, setSelectedPhotos] = useState<any[]>([]);
   const [photosDecided, setPhotosDecided] = useState(false);
   const [photoReviewIndex, setPhotoReviewIndex] = useState(-1); // -1 = not reviewing
+  const photoReviewRef = useRef(-1);
+  const selectedPhotosRef = useRef<any[]>([]);
   const [photoNotes, setPhotoNotes] = useState<Record<number, { location?: string; note?: string }>>({});
+
+  // Keep refs in sync
+  useEffect(() => { photoReviewRef.current = photoReviewIndex; }, [photoReviewIndex]);
+  useEffect(() => { selectedPhotosRef.current = selectedPhotos; }, [selectedPhotos]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -248,20 +254,37 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
         : !!(nextCollected.names?.[0] && nextCollected.names?.[1]);
 
       // If reviewing photos, advance to next photo after user describes one
-      if (photoReviewIndex >= 0 && photoReviewIndex < selectedPhotos.length - 1) {
-        const nextIdx = photoReviewIndex + 1;
-        const nextPhoto = selectedPhotos[nextIdx];
+      const currentReviewIdx = photoReviewRef.current;
+      const currentPhotos = selectedPhotosRef.current;
+      if (currentReviewIdx >= 0 && currentReviewIdx < currentPhotos.length - 1) {
+        const nextIdx = currentReviewIdx + 1;
+        const nextPhoto = currentPhotos[nextIdx];
         const nextUrl = nextPhoto?.baseUrl || nextPhoto?.url || nextPhoto?.uri || '';
         const nextDate = nextPhoto?.mediaMetadata?.creationTime || nextPhoto?.creationTime;
+        const nextLoc = nextPhoto?.mediaMetadata?.location || nextPhoto?.location;
+        const hasNextLoc = nextLoc && (nextLoc.latitude || nextLoc.lat);
 
         // First add AI's response to current photo
         setMessages(prev => [...prev, pearMsg]);
 
-        // Then show next photo
-        let nextMsg = `Great! Next photo (${nextIdx + 1} of ${selectedPhotos.length}):`;
+        // Then show next photo with location if available
+        let nextMsg = `Next photo (${nextIdx + 1} of ${currentPhotos.length}):`;
         if (nextDate) {
           const d = new Date(nextDate);
           nextMsg += ` From ${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.`;
+        }
+        if (hasNextLoc) {
+          try {
+            const lat = nextLoc.latitude || nextLoc.lat;
+            const lng = nextLoc.longitude || nextLoc.lng;
+            const geoRes = await fetch(`/api/suggest-location?lat=${lat}&lng=${lng}`);
+            if (geoRes.ok) {
+              const geoData = await geoRes.json();
+              if (geoData.label) nextMsg += ` Taken in ${geoData.label}.`;
+            }
+          } catch { /* ignore */ }
+        } else {
+          nextMsg += '\nWhere was this taken?';
         }
         nextMsg += '\nWhat was happening here?';
 
@@ -274,7 +297,7 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
           cards: nextIdx < selectedPhotos.length - 1 ? [{ label: 'Skip', value: 'skip', icon: '→' }] : [],
         }]);
         return; // Don't add the normal card logic
-      } else if (photoReviewIndex >= 0 && photoReviewIndex >= selectedPhotos.length - 1) {
+      } else if (currentReviewIdx >= 0 && currentReviewIdx >= currentPhotos.length - 1) {
         // Last photo reviewed
         setPhotoReviewIndex(-1);
         setPhotosDecided(true);
@@ -1194,7 +1217,22 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                     firstMsg += `\n\nThis one was taken ${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.`;
                   }
                   if (hasLoc) {
-                    firstMsg += ` I can see it has location data — I'll use that.`;
+                    const lat = firstLoc.latitude || firstLoc.lat;
+                    const lng = firstLoc.longitude || firstLoc.lng;
+                    // Try to get a readable location via reverse geocode
+                    try {
+                      const geoRes = await fetch(`/api/suggest-location?lat=${lat}&lng=${lng}`);
+                      if (geoRes.ok) {
+                        const geoData = await geoRes.json();
+                        if (geoData.label) {
+                          firstMsg += ` Looks like it was taken in ${geoData.label}.`;
+                        } else {
+                          firstMsg += ` I detected a location for this photo.`;
+                        }
+                      }
+                    } catch {
+                      firstMsg += ` I detected a location for this photo.`;
+                    }
                   } else {
                     firstMsg += `\n\nWhere was this taken?`;
                   }
