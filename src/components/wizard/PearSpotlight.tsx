@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, ArrowLeft } from 'lucide-react';
+import { Send, Sparkles, ArrowLeft, MapPin, MessageCircle } from 'lucide-react';
 import { PearMascot } from '@/components/icons/PearMascot';
 import { PhotoBrowser } from '@/components/dashboard/photo-browser';
 import { LivingCanvas } from '@/components/wizard/LivingCanvas';
@@ -457,15 +457,8 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       return;
     }
 
-    // Detect locations for all photos client-side
-    // Strategy: fetch each image as blob → exifr reads GPS → reverse geocode
-    const exifr = await import('exifr').catch(() => null);
-
-    selectedPhotos.forEach(async (photo, idx) => {
-      const rawUrl = photo?.baseUrl || photo?.url || photo?.uri || '';
-      if (!rawUrl) return;
-
-      // Store date
+    // Store dates for all photos first
+    selectedPhotos.forEach((photo, idx) => {
       if (photo?.creationTime) {
         try {
           const d = new Date(photo.creationTime);
@@ -473,49 +466,70 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
           setPhotoNotes(prev => ({ ...prev, [idx]: { ...prev[idx], date: dateLabel } }));
         } catch { /* ignore */ }
       }
+    });
+
+    // Detect locations via Gemini Vision — process 2 at a time to rate-limit
+    const CONCURRENCY = 2;
+    const queue = selectedPhotos.map((photo, idx) => ({ photo, idx }));
+
+    const processOne = async (photo: any, idx: number) => {
+      const rawUrl = photo?.baseUrl || photo?.url || photo?.uri || '';
+      if (!rawUrl) return;
 
       setDetectingPhotos(prev => new Set([...prev, idx]));
 
       try {
-        // The photo is already displayed in the browser via the proxy
-        // Fetch through our proxy to get the actual bytes with auth
+        // Fetch the image through our proxy as a blob
         const proxyUrl = rawUrl.includes('googleusercontent')
           ? `/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=1200&h=1200`
           : rawUrl;
+        const imgRes = await fetch(proxyUrl);
+        if (!imgRes.ok) return;
+        const blob = await imgRes.blob();
+        const mimeType = blob.type || 'image/jpeg';
 
-        // Try EXIF GPS extraction client-side
-        if (exifr) {
-          try {
-            const imgRes = await fetch(proxyUrl);
-            if (imgRes.ok) {
-              const blob = await imgRes.blob();
-              const gps = await exifr.gps(blob);
-              if (gps?.latitude && gps?.longitude) {
-                // Reverse geocode via Nominatim (no auth needed, client-side)
-                const geoRes = await fetch(
-                  `https://nominatim.openstreetmap.org/reverse?lat=${gps.latitude}&lon=${gps.longitude}&format=json&zoom=14`,
-                  { headers: { 'User-Agent': 'Pearloom/1.0' } }
-                );
-                if (geoRes.ok) {
-                  const geoData = await geoRes.json();
-                  const { city, town, village, county, state, country } = geoData.address ?? {};
-                  const place = city || town || village || county || '';
-                  const label = place && state ? `${place}, ${state}` : (place && country ? `${place}, ${country}` : state || country || '');
-                  if (label) {
-                    setPhotoNotes(prev => ({ ...prev, [idx]: { ...prev[idx], location: label, locationDetected: true } }));
-                    setDetectingPhotos(prev => { const next = new Set(prev); next.delete(idx); return next; });
-                    return; // Done — got GPS location
-                  }
-                }
-              }
-            }
-          } catch { /* EXIF extraction failed — show manual input */ }
+        // Convert blob to base64
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const dataUrl = reader.result as string;
+            // Strip the data:...;base64, prefix
+            const b64 = dataUrl.split(',')[1] || '';
+            resolve(b64);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+
+        if (!base64) return;
+
+        // Send base64 to server for Gemini Vision analysis
+        const res = await fetch('/api/photos/detect-location', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ base64, mimeType, occasion: collected.occasion }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.location) {
+            setPhotoNotes(prev => ({
+              ...prev,
+              [idx]: { ...prev[idx], location: data.location, locationDetected: true },
+            }));
+          }
         }
-      } catch { /* ignore */ }
+      } catch { /* location detection is best-effort */ }
       finally {
         setDetectingPhotos(prev => { const next = new Set(prev); next.delete(idx); return next; });
       }
-    });
+    };
+
+    // Process in batches of CONCURRENCY
+    for (let i = 0; i < queue.length; i += CONCURRENCY) {
+      const batch = queue.slice(i, i + CONCURRENCY);
+      await Promise.all(batch.map(({ photo, idx }) => processOne(photo, idx)));
+    }
   };
 
   const detectingLocation = detectingPhotos.has(photoReviewIndex);
@@ -1134,23 +1148,25 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       {/* The Spotlight Card */}
       <div style={{ maxWidth: 480, width: '92%', position: 'relative', zIndex: 10 }}>
 
-        {/* Pear mascot — large, bounces between steps */}
-        <motion.div
-          key={step}
-          initial={{ scale: 0.9, y: 10 }}
-          animate={{ scale: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-          style={{ position: 'relative', display: 'flex', justifyContent: 'center', marginBottom: -40, zIndex: 20 }}
-        >
-          <ProgressRing progress={progress} size={140} />
+        {/* Pear mascot — hide during photo review */}
+        {step !== 'photo-review' && (
           <motion.div
-            animate={{ rotate: step === 'ready' ? [0, -5, 5, -3, 3, 0] : 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            style={{ paddingTop: 10 }}
+            key={step}
+            initial={{ scale: 0.9, y: 10 }}
+            animate={{ scale: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            style={{ position: 'relative', display: 'flex', justifyContent: 'center', marginBottom: -40, zIndex: 20 }}
           >
-            <PearMascot size={120} mood={mood} />
+            <ProgressRing progress={progress} size={140} />
+            <motion.div
+              animate={{ rotate: step === 'ready' ? [0, -5, 5, -3, 3, 0] : 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              style={{ paddingTop: 10 }}
+            >
+              <PearMascot size={120} mood={mood} />
+            </motion.div>
           </motion.div>
-        </motion.div>
+        )}
 
         {/* Glass card */}
         <div
@@ -1158,45 +1174,47 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
             background: cardBg,
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
-            borderRadius: 28,
-            padding: '56px 28px 28px',
+            borderRadius: step === 'photo-review' ? 14 : 28,
+            padding: step === 'photo-review' ? '0' : '56px 28px 28px',
             border: cardBorder,
             boxShadow: dark ? '0 8px 40px rgba(0,0,0,0.2)' : '0 8px 40px rgba(43,30,20,0.08)',
             overflow: 'hidden',
             transition: 'background 0.5s, border 0.5s, box-shadow 0.5s',
           }}
         >
-          {/* Speech bubble */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={step}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25 }}
-              style={{ textAlign: 'center', marginBottom: 24 }}
-            >
-              <p style={{
-                fontFamily: 'var(--pl-font-heading)',
-                fontStyle: 'italic',
-                fontSize: '1.25rem',
-                color: textColor,
-                lineHeight: 1.4,
-                marginBottom: 6,
-                transition: 'color 0.5s',
-              }}>
-                {speech}
-              </p>
-              <p style={{
-                fontSize: '0.78rem',
-                color: mutedColor,
-                lineHeight: 1.5,
-                transition: 'color 0.5s',
-              }}>
-                {subtext}
-              </p>
-            </motion.div>
-          </AnimatePresence>
+          {/* Speech bubble — hide during photo review */}
+          {step !== 'photo-review' && (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={step}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25 }}
+                style={{ textAlign: 'center', marginBottom: 24 }}
+              >
+                <p style={{
+                  fontFamily: 'var(--pl-font-heading)',
+                  fontStyle: 'italic',
+                  fontSize: '1.25rem',
+                  color: textColor,
+                  lineHeight: 1.4,
+                  marginBottom: 6,
+                  transition: 'color 0.5s',
+                }}>
+                  {speech}
+                </p>
+                <p style={{
+                  fontSize: '0.78rem',
+                  color: mutedColor,
+                  lineHeight: 1.5,
+                  transition: 'color 0.5s',
+                }}>
+                  {subtext}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+          )}
 
           {/* Step content -- animated swap */}
           <AnimatePresence mode="wait">
@@ -1441,7 +1459,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                 </div>
               )}
 
-              {/* ── Photo review step ── */}
+              {/* ── Photo review step — immersive full-card experience ── */}
               {step === 'photo-review' && (() => {
                 const photo = selectedPhotos[photoReviewIndex];
                 const rawUrl = photo?.baseUrl || photo?.url || photo?.uri || '';
@@ -1455,9 +1473,9 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                 const currentNote = notes.note || '';
 
                 return (
-                  <div style={{ margin: '-56px -28px -28px', display: 'flex', flexDirection: 'column' }}>
-                    {/* Photo — full bleed, hero size */}
-                    <div style={{ position: 'relative', width: '100%', aspectRatio: '3/4', maxHeight: '50vh', overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {/* Photo — full bleed with rounded top corners matching card */}
+                    <div style={{ position: 'relative', width: '100%', aspectRatio: '4/5', maxHeight: '52vh', overflow: 'hidden', borderRadius: '14px 14px 0 0' }}>
                       {photoUrl && (
                         <>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1466,10 +1484,10 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                             alt={`Photo ${photoReviewIndex + 1}`}
                             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                           />
-                          {/* Gradient overlay for text readability */}
+                          {/* Subtle gradient overlay — just enough for text readability */}
                           <div style={{
                             position: 'absolute', inset: 0,
-                            background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 30%, transparent 60%, rgba(0,0,0,0.5) 100%)',
+                            background: 'linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, transparent 25%, transparent 70%, rgba(0,0,0,0.3) 100%)',
                             pointerEvents: 'none',
                           }} />
                         </>
@@ -1477,13 +1495,21 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       {/* Top bar — counter + date */}
                       <div style={{
                         position: 'absolute', top: 0, left: 0, right: 0,
-                        padding: '16px 16px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        padding: '14px 16px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                       }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff', letterSpacing: '0.05em' }}>
+                        <span style={{
+                          fontSize: '0.72rem', fontWeight: 700, color: '#fff', letterSpacing: '0.06em',
+                          background: 'rgba(0,0,0,0.25)', backdropFilter: 'blur(8px)',
+                          padding: '4px 10px', borderRadius: 100,
+                        }}>
                           {photoReviewIndex + 1} / {selectedPhotos.length}
                         </span>
                         {currentDate && (
-                          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>
+                          <span style={{
+                            fontSize: '0.72rem', fontWeight: 600, color: '#fff',
+                            background: 'rgba(0,0,0,0.25)', backdropFilter: 'blur(8px)',
+                            padding: '4px 10px', borderRadius: 100,
+                          }}>
                             {currentDate}
                           </span>
                         )}
@@ -1491,23 +1517,29 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       {/* Bottom — location badge or detecting */}
                       <div style={{ position: 'absolute', bottom: 12, left: 16, right: 16 }}>
                         {detectingLocation ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 6,
+                            background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)',
+                            padding: '5px 12px', borderRadius: 100,
+                          }}>
                             <div style={{
                               width: 12, height: 12, borderRadius: '50%',
                               border: '2px solid #fff', borderTopColor: 'transparent',
                               animation: 'spin 0.8s linear infinite',
                             }} />
-                            <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)', fontStyle: 'italic' }}>
+                            <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.9)', fontStyle: 'italic' }}>
                               Detecting location...
                             </span>
                             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
                           </div>
                         ) : notes.locationDetected && currentLocation ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
-                            </svg>
-                            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#fff' }}>
+                          <div style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 5,
+                            background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)',
+                            padding: '5px 12px', borderRadius: 100,
+                          }}>
+                            <MapPin size={12} color="#fff" strokeWidth={2.5} />
+                            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#fff' }}>
                               {currentLocation}
                             </span>
                           </div>
@@ -1516,41 +1548,47 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                     </div>
 
                     {/* Controls strip — compact, below photo */}
-                    <div style={{ padding: '16px 20px 20px' }}>
+                    <div style={{ padding: '14px 16px 16px' }}>
                       {/* Location input (only if not auto-detected) */}
                       {!notes.locationDetected && (
-                        <input
-                          value={currentLocation}
-                          onChange={(e) => setPhotoNotes(prev => ({
-                            ...prev,
-                            [photoReviewIndex]: { ...prev[photoReviewIndex], location: e.target.value },
-                          }))}
-                          placeholder="Where was this taken?"
-                          style={{
-                            width: '100%', height: 38, padding: '0 14px',
-                            fontSize: '0.82rem', borderRadius: 10,
-                            border: inputBorder, background: inputBg,
-                            outline: 'none', color: textColor, fontFamily: 'inherit',
-                            boxSizing: 'border-box' as const, marginBottom: 8,
-                          } as React.CSSProperties}
-                        />
+                        <div style={{ position: 'relative', marginBottom: 8 }}>
+                          <MapPin size={14} color={mutedColor} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                          <input
+                            value={currentLocation}
+                            onChange={(e) => setPhotoNotes(prev => ({
+                              ...prev,
+                              [photoReviewIndex]: { ...prev[photoReviewIndex], location: e.target.value },
+                            }))}
+                            placeholder="Location (e.g. Paris, France)"
+                            style={{
+                              width: '100%', height: 40, padding: '0 14px 0 34px',
+                              fontSize: '0.82rem', borderRadius: 12,
+                              border: inputBorder, background: inputBg,
+                              outline: 'none', color: textColor, fontFamily: 'inherit',
+                              boxSizing: 'border-box' as const,
+                            } as React.CSSProperties}
+                          />
+                        </div>
                       )}
                       {/* Note input */}
-                      <input
-                        value={currentNote}
-                        onChange={(e) => setPhotoNotes(prev => ({
-                          ...prev,
-                          [photoReviewIndex]: { ...prev[photoReviewIndex], note: e.target.value },
-                        }))}
-                        placeholder="What was happening?"
-                        style={{
-                          width: '100%', height: 38, padding: '0 14px',
-                          fontSize: '0.82rem', borderRadius: 10,
-                          border: inputBorder, background: inputBg,
-                          outline: 'none', color: textColor, fontFamily: 'inherit',
-                          boxSizing: 'border-box' as const, marginBottom: 12,
-                        } as React.CSSProperties}
-                      />
+                      <div style={{ position: 'relative', marginBottom: 14 }}>
+                        <MessageCircle size={14} color={mutedColor} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                        <input
+                          value={currentNote}
+                          onChange={(e) => setPhotoNotes(prev => ({
+                            ...prev,
+                            [photoReviewIndex]: { ...prev[photoReviewIndex], note: e.target.value },
+                          }))}
+                          placeholder="Add a note about this moment..."
+                          style={{
+                            width: '100%', height: 40, padding: '0 14px 0 34px',
+                            fontSize: '0.82rem', borderRadius: 12,
+                            border: inputBorder, background: inputBg,
+                            outline: 'none', color: textColor, fontFamily: 'inherit',
+                            boxSizing: 'border-box' as const,
+                          } as React.CSSProperties}
+                        />
+                      </div>
                       {/* Action buttons */}
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button

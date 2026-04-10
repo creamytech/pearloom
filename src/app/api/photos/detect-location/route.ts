@@ -70,20 +70,38 @@ async function extractExifGps(imageUrl: string, authToken?: string): Promise<{ l
 }
 
 /** Use Gemini Vision to guess location from the photo */
-async function aiGuessLocation(imageUrl: string, context?: string, authToken?: string): Promise<string> {
+async function aiGuessLocation(options: {
+  imageUrl?: string;
+  base64?: string;
+  mimeType?: string;
+  context?: string;
+  authToken?: string;
+}): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) return '';
 
   try {
-    // Fetch image and convert to base64
-    const imgHeaders: Record<string, string> = {};
-    if (authToken) imgHeaders['Authorization'] = `Bearer ${authToken}`;
-    const imgRes = await fetch(imageUrl, { headers: imgHeaders, signal: AbortSignal.timeout(10000) });
-    if (!imgRes.ok) return '';
-    const imgBuf = Buffer.from(await imgRes.arrayBuffer());
-    const base64 = imgBuf.toString('base64');
-    const mimeType = imgRes.headers.get('content-type') || 'image/jpeg';
+    let base64: string;
+    let mimeType: string;
 
+    if (options.base64) {
+      // Base64 provided directly by client — no need to fetch
+      base64 = options.base64;
+      mimeType = options.mimeType || 'image/jpeg';
+    } else if (options.imageUrl) {
+      // Legacy path: fetch image and convert to base64
+      const imgHeaders: Record<string, string> = {};
+      if (options.authToken) imgHeaders['Authorization'] = `Bearer ${options.authToken}`;
+      const imgRes = await fetch(options.imageUrl, { headers: imgHeaders, signal: AbortSignal.timeout(10000) });
+      if (!imgRes.ok) return '';
+      const imgBuf = Buffer.from(await imgRes.arrayBuffer());
+      base64 = imgBuf.toString('base64');
+      mimeType = imgRes.headers.get('content-type') || 'image/jpeg';
+    } else {
+      return '';
+    }
+
+    const context = options.context;
     const prompt = `Look at this photo and tell me WHERE it was taken. Identify the specific location if you can recognize:
 - Landmarks, buildings, or monuments
 - Street signs, store signs, or text visible in the photo
@@ -146,9 +164,31 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { imageUrl, occasion } = await req.json();
+    const body = await req.json();
+    const { imageUrl, occasion, base64, mimeType } = body;
+
+    // ── Path A: Client sent base64 — skip EXIF, go straight to Gemini Vision ──
+    if (base64) {
+      console.log('[detect-location] Processing base64 image via AI Vision');
+      const aiLocation = await aiGuessLocation({ base64, mimeType, context: occasion });
+      console.log('[detect-location] AI Vision result:', aiLocation || 'none');
+      if (aiLocation) {
+        return NextResponse.json({
+          location: aiLocation,
+          method: 'ai-vision',
+          confidence: 'medium',
+        });
+      }
+      return NextResponse.json({
+        location: '',
+        method: 'none',
+        confidence: 'none',
+      });
+    }
+
+    // ── Path B: Legacy imageUrl approach ──
     if (!imageUrl) {
-      return NextResponse.json({ error: 'imageUrl is required' }, { status: 400 });
+      return NextResponse.json({ error: 'imageUrl or base64 is required' }, { status: 400 });
     }
 
     // Resolve the actual image URL — handle proxy URLs
@@ -186,7 +226,7 @@ export async function POST(req: NextRequest) {
 
     // Strategy 2: AI Vision analysis
     console.log('[detect-location] Trying AI Vision...');
-    const aiLocation = await aiGuessLocation(fetchableUrl, occasion, isGoogleUrl ? accessToken : undefined);
+    const aiLocation = await aiGuessLocation({ imageUrl: fetchableUrl, context: occasion, authToken: isGoogleUrl ? accessToken : undefined });
     console.log('[detect-location] AI Vision result:', aiLocation || 'none');
     if (aiLocation) {
       return NextResponse.json({

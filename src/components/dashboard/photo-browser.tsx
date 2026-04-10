@@ -90,28 +90,6 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
       setSelected(allIds);
       onSelectionChange(fetchedPhotos);
     }
-
-    // Enrich photos with EXIF GPS in the background (token is fresh now)
-    const exifr = await import('exifr').catch(() => null);
-    if (exifr) {
-      fetchedPhotos.forEach(async (photo, idx) => {
-        if (photo.location?.latitude) return; // Already has location from API
-        const url = photo.baseUrl;
-        if (!url) return;
-        try {
-          const proxyUrl = url.includes('googleusercontent')
-            ? `/api/photos/proxy?url=${encodeURIComponent(url)}&w=1200&h=1200`
-            : url;
-          const res = await fetch(proxyUrl);
-          if (!res.ok) return;
-          const blob = await res.blob();
-          const gps = await exifr.gps(blob);
-          if (gps?.latitude && gps?.longitude) {
-            setPhotos(prev => prev.map((p, i) => i === idx ? { ...p, location: { latitude: gps.latitude, longitude: gps.longitude } } : p));
-          }
-        } catch { /* ignore — EXIF extraction is best-effort */ }
-      });
-    }
   }, [maxSelection, onSelectionChange]);
 
   // ── Launch the Picker flow ──
