@@ -415,6 +415,96 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
     );
   }
 
+  // ── Error phase — dedicated error state with retry ────────
+  if (phase === 'error') {
+    const maxRetries = 3;
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center" style={{ background: BG_GRADIENT }}>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-6 text-center px-6 max-w-md"
+        >
+          <PearMascot size={80} mood="thinking" />
+
+          {/* Info card showing what was being built */}
+          <div style={{
+            padding: '20px 28px', borderRadius: '20px',
+            background: 'rgba(255,255,255,0.5)', backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.5)',
+            boxShadow: '0 4px 24px rgba(43,30,20,0.08)',
+            width: '100%',
+          }}>
+            <p className="text-[0.72rem] font-bold tracking-[0.1em] uppercase text-[var(--pl-muted)] mb-2">
+              Your details are safe
+            </p>
+            <p className="font-heading italic text-[1.2rem] text-[var(--pl-ink-soft)] leading-tight mb-1">
+              {collected.names?.[0]}{collected.names?.[1] ? ` & ${collected.names[1]}` : ''}
+            </p>
+            <p className="text-[0.75rem] text-[var(--pl-muted)]">
+              {collected.occasion}{collected.date ? ` \u00B7 ${new Date(collected.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : ''}
+              {collected.vibe ? ` \u00B7 ${collected.vibe}` : ''}
+            </p>
+          </div>
+
+          {/* Error message */}
+          <div style={{
+            padding: '16px 24px', borderRadius: '16px',
+            background: 'rgba(239,68,68,0.08)', backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(239,68,68,0.2)',
+            width: '100%',
+          }}>
+            <p className="text-[0.85rem] font-semibold text-red-700 mb-1">
+              Something went wrong
+            </p>
+            <p className="text-[0.78rem] text-red-600/80">
+              {genError}
+            </p>
+          </div>
+
+          {retryCount >= maxRetries ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+              <p className="text-[0.82rem] text-[var(--pl-muted)]">
+                We have tried {maxRetries} times without success. Please contact support for help.
+              </p>
+              <button
+                onClick={() => {
+                  setRetryCount(0);
+                  setGenError(null);
+                  setPhase('chat');
+                }}
+                className="px-5 py-3 rounded-full text-[0.82rem] font-semibold border-none cursor-pointer transition-all"
+                style={{ background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(8px)', color: 'var(--pl-ink-soft)' }}
+              >
+                Back to Chat
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
+              <button
+                onClick={() => {
+                  setGenError(null);
+                  setPhase('chat');
+                }}
+                className="flex-1 px-5 py-3 rounded-full text-[0.82rem] font-semibold border-none cursor-pointer transition-all"
+                style={{ background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(8px)', color: 'var(--pl-ink-soft)' }}
+              >
+                Back to Chat
+              </button>
+              <button
+                onClick={handleBuild}
+                className="flex-1 px-5 py-3 rounded-full text-[0.82rem] font-bold text-white border-none cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
+                style={{ background: 'var(--pl-olive-deep, #6B7F5A)' }}
+              >
+                Try Again ({retryCount}/{maxRetries})
+              </button>
+            </div>
+          )}
+        </motion.div>
+      </div>
+    );
+  }
+
   // ── Main chat UI ──────────────────────────────────────────
   return (
     <div className="fixed inset-0 z-50 flex flex-col" style={{ background: BG_GRADIENT }}>
@@ -477,26 +567,6 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                 )}
               </div>
             )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Error bar */}
-      <AnimatePresence>
-        {genError && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="shrink-0 mx-4 md:mx-8 mb-2 px-4 py-3 rounded-2xl bg-red-50/80 backdrop-blur-md border border-red-200/60 flex items-center gap-3"
-          >
-            <span className="text-[0.82rem] text-red-700 flex-1">{genError}</span>
-            <button
-              onClick={handleBuild}
-              className="px-3 py-1.5 rounded-full text-[0.72rem] font-bold text-white bg-[var(--pl-olive)] border-none cursor-pointer"
-            >
-              Retry
-            </button>
           </motion.div>
         )}
       </AnimatePresence>
