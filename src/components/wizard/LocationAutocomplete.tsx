@@ -127,6 +127,7 @@ export function LocationAutocomplete({
             border: inputBorder, background: inputBg,
             backdropFilter: 'blur(8px)',
             outline: 'none', color: textColor, fontFamily: 'inherit',
+            transition: 'border-color 0.2s, box-shadow 0.2s',
             boxSizing: 'border-box' as const,
           } as React.CSSProperties}
         />

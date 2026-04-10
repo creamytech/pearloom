@@ -9,6 +9,7 @@ import { PearMascot } from '@/components/icons/PearMascot';
 import { PhotoBrowser } from '@/components/dashboard/photo-browser';
 import { LivingCanvas } from '@/components/wizard/LivingCanvas';
 import { OccasionCard, SitePreviewCard } from '@/components/wizard/WizardCards';
+import { LocationAutocomplete } from '@/components/wizard/LocationAutocomplete';
 import { StyleDiscoveryCard, ColorPaletteCard } from '@/components/wizard/WizardCardsB';
 import { PearCalendar } from '@/components/wizard/PearCalendar';
 import { SiteRenderer } from '@/components/editor/SiteRenderer';
@@ -1088,18 +1089,13 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const Chip = ({ label, onClick }: { label: string; onClick: () => void }) => (
     <button
       onClick={onClick}
+      className="pear-btn"
       style={{
-        padding: '5px 14px',
+        padding: '6px 16px', minHeight: 32,
         borderRadius: 100,
-        background: chipBg,
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        border: chipBorder,
-        fontSize: '0.72rem',
-        fontWeight: 600,
-        color: textColor,
-        cursor: 'pointer',
-        transition: 'all 0.4s',
+        background: chipBg, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+        border: chipBorder, fontSize: '0.75rem', fontWeight: 600,
+        color: textColor, cursor: 'pointer', transition: 'all 0.2s',
       }}
     >
       {label}
@@ -1108,6 +1104,13 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {/* Global focus + interaction styles */}
+      <style>{`
+        .pear-input:focus-visible { box-shadow: 0 0 0 3px rgba(163,177,138,0.35) !important; outline: none; }
+        .pear-btn:focus-visible { box-shadow: 0 0 0 3px rgba(163,177,138,0.35) !important; outline: none; }
+        .pear-btn:active { transform: scale(0.97); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
       <LivingCanvas
         occasion={collected.occasion}
         names={collected.names}
@@ -1254,35 +1257,27 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                           : 'Both names (e.g. Alex & Jordan)'
                         : 'Their name'
                     }
+                    className="pear-input"
                     style={{
-                      width: '100%',
-                      height: 48,
-                      padding: '0 16px',
-                      fontSize: '1rem',
-                      borderRadius: 14,
-                      border: '1px solid rgba(255,255,255,0.5)',
-                      background: 'rgba(255,255,255,0.5)',
-                      backdropFilter: 'blur(8px)',
-                      WebkitBackdropFilter: 'blur(8px)',
-                      outline: 'none',
-                      color: 'var(--pl-ink-soft)',
-                      fontFamily: 'inherit',
-                      boxSizing: 'border-box',
+                      width: '100%', height: 48, padding: '0 16px',
+                      fontSize: '1rem', borderRadius: 14,
+                      border: inputBorder, background: inputBg,
+                      backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+                      outline: 'none', color: textColor, fontFamily: 'inherit',
+                      boxSizing: 'border-box' as const,
+                      transition: 'border-color 0.2s, box-shadow 0.2s',
                     }}
                   />
                   <button
                     type="submit"
                     disabled={!input.trim()}
+                    className="pear-btn"
                     style={{
-                      marginTop: 12,
-                      width: '100%',
-                      padding: '12px 0',
-                      borderRadius: 100,
-                      background: input.trim() ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.3)',
-                      border: 'none',
-                      fontSize: '0.9rem',
-                      fontWeight: 600,
-                      color: '#fff',
+                      marginTop: 12, width: '100%', minHeight: 44,
+                      padding: '0 16px', borderRadius: 100,
+                      background: input.trim() ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.25)',
+                      border: 'none', fontSize: '0.88rem', fontWeight: 700,
+                      color: input.trim() ? '#fff' : mutedColor,
                       cursor: input.trim() ? 'pointer' : 'default',
                       transition: 'background 0.2s ease',
                     }}
@@ -1299,68 +1294,46 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
 
               {/* ── Venue step ── */}
               {step === 'venue' && (
-                <form onSubmit={handleInputSubmit}>
-                  <input
-                    ref={inputRef}
+                <div>
+                  <LocationAutocomplete
                     value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Venue name or address"
-                    style={{
-                      width: '100%',
-                      height: 48,
-                      padding: '0 16px',
-                      fontSize: '1rem',
-                      borderRadius: 14,
-                      border: '1px solid rgba(255,255,255,0.5)',
-                      background: 'rgba(255,255,255,0.5)',
-                      backdropFilter: 'blur(8px)',
-                      WebkitBackdropFilter: 'blur(8px)',
-                      outline: 'none',
-                      color: 'var(--pl-ink-soft)',
-                      fontFamily: 'inherit',
-                      boxSizing: 'border-box',
+                    onChange={setInput}
+                    onSelect={(place) => {
+                      setInput(place.address ? `${place.name}, ${place.address}` : place.name);
+                      setDirection(1);
+                      setCollected(prev => ({ ...prev, venue: place.address ? `${place.name}, ${place.address}` : place.name }));
                     }}
+                    placeholder="Search for a venue..."
+                    dark={dark}
                   />
                   <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                     <button
                       type="button"
                       onClick={handleVenueSkip}
                       style={{
-                        flex: 1,
-                        padding: '12px 0',
-                        borderRadius: 100,
-                        background: 'rgba(255,255,255,0.4)',
-                        backdropFilter: 'blur(8px)',
-                        WebkitBackdropFilter: 'blur(8px)',
-                        border: '1px solid rgba(255,255,255,0.4)',
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        color: 'var(--pl-ink-soft)',
-                        cursor: 'pointer',
+                        flex: 1, minHeight: 44, padding: '0 16px', borderRadius: 100,
+                        background: ghostBg, border: ghostBorder,
+                        fontSize: '0.85rem', fontWeight: 600, color: textColor, cursor: 'pointer',
+                        transition: 'all 0.15s',
                       }}
                     >
                       Skip for now
                     </button>
                     <button
-                      type="submit"
+                      onClick={() => { if (input.trim()) handleVenueSubmit(); }}
                       disabled={!input.trim()}
                       style={{
-                        flex: 1,
-                        padding: '12px 0',
-                        borderRadius: 100,
-                        background: input.trim() ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.3)',
-                        border: 'none',
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        color: '#fff',
-                        cursor: input.trim() ? 'pointer' : 'default',
-                        transition: 'background 0.2s ease',
+                        flex: 1, minHeight: 44, padding: '0 16px', borderRadius: 100,
+                        background: input.trim() ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.25)',
+                        border: 'none', fontSize: '0.85rem', fontWeight: 700,
+                        color: input.trim() ? '#fff' : mutedColor, cursor: input.trim() ? 'pointer' : 'default',
+                        transition: 'all 0.2s',
                       }}
                     >
                       Continue
                     </button>
                   </div>
-                </form>
+                </div>
               )}
 
               {/* ── Vibe ask step — text input for description ── */}
@@ -1372,20 +1345,24 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       value={input}
                       onChange={e => setInput(e.target.value)}
                       placeholder="e.g. country western, rustic barn, horses..."
+                      className="pear-input"
                       style={{
-                        width: '100%', padding: '14px 18px', borderRadius: 16,
+                        width: '100%', height: 48, padding: '0 18px', borderRadius: 14,
                         border: inputBorder, background: inputBg,
-                        backdropFilter: 'blur(8px)', fontSize: '0.92rem', color: 'var(--pl-ink-soft)',
+                        backdropFilter: 'blur(8px)', fontSize: '0.92rem', color: textColor,
                         fontFamily: 'inherit', outline: 'none',
+                        boxSizing: 'border-box' as const,
+                        transition: 'border-color 0.2s, box-shadow 0.2s',
                       } as React.CSSProperties}
                     />
                     <button
                       type="submit"
                       disabled={!input.trim()}
+                      className="pear-btn"
                       style={{
-                        marginTop: 12, width: '100%', padding: '14px 0', borderRadius: 100,
-                        background: input.trim() ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.2)',
-                        color: input.trim() ? 'white' : 'var(--pl-muted)',
+                        marginTop: 12, width: '100%', minHeight: 44, padding: '0 16px', borderRadius: 100,
+                        background: input.trim() ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.25)',
+                        color: input.trim() ? '#fff' : mutedColor,
                         border: 'none', fontSize: '0.88rem', fontWeight: 700, cursor: 'pointer',
                         transition: 'all 0.2s',
                       }}
@@ -1408,10 +1385,12 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                         setLoading(false);
                       }
                     }}
+                    className="pear-btn"
                     style={{
-                      marginTop: 8, width: '100%', padding: '10px 0', borderRadius: 100,
-                      background: 'transparent', border: '1px solid rgba(163,177,138,0.2)',
-                      fontSize: '0.78rem', fontWeight: 600, color: 'var(--pl-muted)', cursor: 'pointer',
+                      marginTop: 8, width: '100%', minHeight: 44, padding: '0 16px', borderRadius: 100,
+                      background: ghostBg, border: ghostBorder,
+                      fontSize: '0.82rem', fontWeight: 600, color: textColor, cursor: 'pointer',
+                      transition: 'all 0.15s',
                     }}
                   >
                     Surprise me instead
@@ -1549,24 +1528,21 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
 
                     {/* Controls strip — compact, below photo */}
                     <div style={{ padding: '14px 16px 16px' }}>
-                      {/* Location input (only if not auto-detected) */}
+                      {/* Location input with autocomplete (only if not auto-detected) */}
                       {!notes.locationDetected && (
-                        <div style={{ position: 'relative', marginBottom: 8 }}>
-                          <MapPin size={14} color={mutedColor} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                          <input
+                        <div style={{ marginBottom: 8 }}>
+                          <LocationAutocomplete
                             value={currentLocation}
-                            onChange={(e) => setPhotoNotes(prev => ({
+                            onChange={(val) => setPhotoNotes(prev => ({
                               ...prev,
-                              [photoReviewIndex]: { ...prev[photoReviewIndex], location: e.target.value },
+                              [photoReviewIndex]: { ...prev[photoReviewIndex], location: val },
                             }))}
-                            placeholder="Location (e.g. Paris, France)"
-                            style={{
-                              width: '100%', height: 40, padding: '0 14px 0 34px',
-                              fontSize: '0.82rem', borderRadius: 12,
-                              border: inputBorder, background: inputBg,
-                              outline: 'none', color: textColor, fontFamily: 'inherit',
-                              boxSizing: 'border-box' as const,
-                            } as React.CSSProperties}
+                            onSelect={(place) => setPhotoNotes(prev => ({
+                              ...prev,
+                              [photoReviewIndex]: { ...prev[photoReviewIndex], location: place.address ? `${place.name}, ${place.address}` : place.name },
+                            }))}
+                            placeholder="Where was this taken?"
+                            dark={dark}
                           />
                         </div>
                       )}
@@ -1580,12 +1556,14 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                             [photoReviewIndex]: { ...prev[photoReviewIndex], note: e.target.value },
                           }))}
                           placeholder="Add a note about this moment..."
+                          className="pear-input"
                           style={{
-                            width: '100%', height: 40, padding: '0 14px 0 34px',
-                            fontSize: '0.82rem', borderRadius: 12,
+                            width: '100%', height: 44, padding: '0 14px 0 34px',
+                            fontSize: '0.85rem', borderRadius: 12,
                             border: inputBorder, background: inputBg,
                             outline: 'none', color: textColor, fontFamily: 'inherit',
                             boxSizing: 'border-box' as const,
+                            transition: 'border-color 0.2s, box-shadow 0.2s',
                           } as React.CSSProperties}
                         />
                       </div>
@@ -1593,20 +1571,22 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button
                           onClick={() => setReviewDone(true)}
+                          className="pear-btn"
                           style={{
-                            flex: 1, padding: '11px 0', borderRadius: 100,
+                            flex: 1, minHeight: 44, padding: '0 16px', borderRadius: 100,
                             background: ghostBg, border: ghostBorder,
-                            fontSize: '0.82rem', fontWeight: 600, color: textColor, cursor: 'pointer',
+                            fontSize: '0.85rem', fontWeight: 600, color: textColor, cursor: 'pointer',
                           }}
                         >
                           Skip all
                         </button>
                         <button
                           onClick={() => isLast ? setReviewDone(true) : setPhotoReviewIndex(prev => prev + 1)}
+                          className="pear-btn"
                           style={{
-                            flex: 1, padding: '11px 0', borderRadius: 100,
+                            flex: 1, minHeight: 44, padding: '0 16px', borderRadius: 100,
                             background: 'var(--pl-olive, #A3B18A)', border: 'none',
-                            fontSize: '0.82rem', fontWeight: 700, color: '#fff', cursor: 'pointer',
+                            fontSize: '0.85rem', fontWeight: 700, color: '#fff', cursor: 'pointer',
                           }}
                         >
                           {isLast ? 'Done' : 'Next'}
