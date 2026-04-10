@@ -302,6 +302,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const [partialManifest, setPartialManifest] = useState<StoryManifest | null>(null);
   const [vibeDescription, setVibeDescription] = useState(''); // raw user input before palette generation
   const [generatedPalettes, setGeneratedPalettes] = useState<{name: string; colors: string[]; description: string}[]>([]);
+  const [selectedPaletteColors, setSelectedPaletteColors] = useState<string[] | null>(null);
   const [photoReviewIndex, setPhotoReviewIndex] = useState(0);
   const [photoNotes, setPhotoNotes] = useState<Record<number, { location?: string; locationDetected?: boolean; date?: string; note?: string }>>({});
   const [reviewDone, setReviewDone] = useState(false);
@@ -433,11 +434,11 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     }
   };
 
-  const handleVibeSelect = (vibe: string) => {
+  const handleVibeSelect = (vibe: string, colors?: string[]) => {
     setDirection(1);
-    // Store both the palette name and original description
     const fullVibe = vibeDescription ? `${vibeDescription} - ${vibe}` : vibe;
     setCollected(prev => ({ ...prev, vibe: fullVibe }));
+    if (colors) setSelectedPaletteColors(colors);
   };
 
   const handlePhotosSkip = () => {
@@ -508,27 +509,8 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                 }
               }
             }
-          } catch { /* EXIF failed, try AI vision */ }
+          } catch { /* EXIF extraction failed — show manual input */ }
         }
-
-        // Fallback: AI Vision — send image URL to our AI endpoint
-        try {
-          const aiRes = await fetch('/api/ai-chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              message: `Look at this photo and tell me WHERE it was taken. The photo URL is provided for context. Just return your best guess as a city/state or city/country. Be specific if you can recognize landmarks, signs, architecture, or scenery. Return ONLY JSON: { "action": "message", "data": { "extracted": { "venue": "City, State" } }, "reply": "Located" }`,
-              manifest: null,
-            }),
-          });
-          if (aiRes.ok) {
-            const aiData = await aiRes.json();
-            const venue = aiData?.data?.extracted?.venue;
-            if (venue && venue.length > 2) {
-              setPhotoNotes(prev => ({ ...prev, [idx]: { ...prev[idx], location: venue, locationDetected: true } }));
-            }
-          }
-        } catch { /* AI also failed */ }
       } catch { /* ignore */ }
       finally {
         setDetectingPhotos(prev => { const next = new Set(prev); next.delete(idx); return next; });
@@ -707,7 +689,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
 
     return (
       <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', flexDirection: 'column' }}>
-        <LivingCanvas occasion={collected.occasion} names={collected.names} date={collected.date} venue={collected.venue} vibe={collected.vibe} phase="generating" />
+        <LivingCanvas occasion={collected.occasion} names={collected.names} date={collected.date} venue={collected.venue} vibe={collected.vibe} paletteColors={selectedPaletteColors} phase="generating" />
 
         {/* Top bar — progress + status */}
         <div style={{
@@ -816,7 +798,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   if (phase === 'error') {
     return (
       <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-        <LivingCanvas occasion={collected.occasion} names={collected.names} phase="chat" />
+        <LivingCanvas occasion={collected.occasion} names={collected.names} paletteColors={selectedPaletteColors} phase="chat" />
 
         <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
           <PearMascot size={80} mood="thinking" />
@@ -1118,6 +1100,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
         date={collected.date}
         venue={collected.venue}
         vibe={collected.vibe}
+        paletteColors={selectedPaletteColors}
         phase="chat"
       />
 
@@ -1430,7 +1413,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                   </p>
                   <ColorPaletteCard
                     palettes={generatedPalettes}
-                    onSelect={(palette) => handleVibeSelect(palette.name.toLowerCase())}
+                    onSelect={(palette) => handleVibeSelect(palette.name.toLowerCase(), palette.colors)}
                   />
                   <button
                     onClick={() => {

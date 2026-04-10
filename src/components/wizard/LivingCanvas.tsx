@@ -17,6 +17,8 @@ export interface LivingCanvasProps {
   vibe?: string;
   photoCount?: number;
   phase?: 'chat' | 'generating' | 'done';
+  /** Override gradient with specific palette colors (from user selection) */
+  paletteColors?: string[] | null;
 }
 
 /* ── Gradient palette helpers ────────────────────────────────── */
@@ -765,14 +767,18 @@ export function LivingCanvas({
   vibe,
   photoCount = 0,
   phase = 'chat',
+  paletteColors,
 }: LivingCanvasProps) {
 
   const isGenerating = phase === 'generating';
 
-  /* Gradient: vibe-driven if set, else warm default */
+  /* Gradient: palette override → vibe-driven → warm default */
+  const paletteGradient = paletteColors && paletteColors.length >= 2
+    ? `linear-gradient(135deg, ${paletteColors.map((c, i) => `${c} ${Math.round((i / (paletteColors.length - 1)) * 100)}%`).join(', ')})`
+    : '';
   const vibeGradient = gradientForVibe(vibe);
   const baseGradient = 'linear-gradient(135deg, #E8D5C4 0%, #F2E6D9 25%, #D4B8A0 50%, #E8CDB8 75%, #F0DFD0 100%)';
-  const gradient = vibeGradient || baseGradient;
+  const gradient = paletteGradient || vibeGradient || baseGradient;
 
   /* Base orbs — always present (max 4) */
   const orbs = useMemo(() => {
