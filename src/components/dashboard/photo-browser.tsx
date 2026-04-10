@@ -683,7 +683,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
 
   // ── GRID GALLERY ──
   return (
-    <div style={{ padding: '0 0.5rem' }}>
+    <div style={{ padding: '0 0.5rem', maxWidth: 640, margin: '0 auto' }}>
       {/* Partial-upload failure banner */}
       {error && (
         <div style={{
@@ -699,89 +699,197 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
           </button>
         </div>
       )}
-      {/* Toolbar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <p style={{ fontSize: '0.95rem', color: C.muted }}>
-            {selected.size} / {maxSelection} photos selected <span style={{ opacity: 0.5 }}>&#183; {photos.length} total from picker</span>
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            onClick={selectAll}
-            style={{ padding: '0.5rem 1rem', borderRadius: '100px', border: card.border, background: card.bg, fontSize: text.sm, fontWeight: 500, cursor: 'pointer', height: '2.25rem', boxSizing: 'border-box' }}
-          >
-            Select All ({Math.min(photos.length, maxSelection)})
-          </button>
-          <button
-            onClick={clearSelection}
-            style={{ padding: '0.5rem 1rem', borderRadius: '100px', border: card.border, background: card.bg, fontSize: text.sm, fontWeight: 500, cursor: 'pointer', height: '2.25rem', boxSizing: 'border-box' }}
-          >
-            Clear All
-          </button>
-          <button
-            onClick={() => { stopPolling(); startPickerFlow(); }}
-            style={{ padding: '0.5rem 1rem', borderRadius: '100px', border: card.border, background: card.bg, fontSize: text.sm, fontWeight: 500, cursor: 'pointer', height: '2.25rem', boxSizing: 'border-box' }}
-          >
-            <RefreshCw size={14} style={{ marginRight: '0.25rem' }} /> Re-pick
-          </button>
-        </div>
+
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: 20 }}>
+        <h3 style={{
+          fontFamily: 'var(--pl-font-heading)',
+          fontStyle: 'italic',
+          fontSize: 'clamp(1.3rem, 3vw, 1.6rem)',
+          fontWeight: 400,
+          color: 'var(--pl-ink-soft)',
+          marginBottom: 6,
+        }}>
+          Choose your favorites
+        </h3>
+        <p style={{ fontSize: '0.82rem', color: C.muted, lineHeight: 1.5 }}>
+          {selected.size > 0 ? (
+            <><span style={{ fontWeight: 700, color: C.olive }}>{selected.size}</span> of {maxSelection} selected</>
+          ) : (
+            <>Tap photos to select — up to {maxSelection}</>
+          )}
+        </p>
       </div>
 
-      {/* Photo grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.75rem' }}>
+      {/* Compact action bar */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        gap: 6, marginBottom: 16, flexWrap: 'wrap',
+      }}>
+        {selected.size > 0 && selected.size < photos.length && (
+          <button
+            onClick={selectAll}
+            style={{
+              padding: '6px 14px', borderRadius: 100, fontSize: '0.72rem', fontWeight: 600,
+              background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.5)',
+              backdropFilter: 'blur(8px)', cursor: 'pointer', color: 'var(--pl-ink-soft)',
+            }}
+          >
+            Select all
+          </button>
+        )}
+        {selected.size > 0 && (
+          <button
+            onClick={clearSelection}
+            style={{
+              padding: '6px 14px', borderRadius: 100, fontSize: '0.72rem', fontWeight: 600,
+              background: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.3)',
+              cursor: 'pointer', color: C.muted,
+            }}
+          >
+            Clear
+          </button>
+        )}
+        <button
+          onClick={() => { stopPolling(); startPickerFlow(); }}
+          style={{
+            padding: '6px 14px', borderRadius: 100, fontSize: '0.72rem', fontWeight: 600,
+            background: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.3)',
+            cursor: 'pointer', color: C.muted,
+            display: 'flex', alignItems: 'center', gap: 4,
+          }}
+        >
+          <RefreshCw size={11} /> Re-pick
+        </button>
+      </div>
+
+      {/* Photo grid — masonry-like with varying sizes */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: 8,
+        maxHeight: '55vh',
+        overflowY: 'auto',
+        padding: '2px',
+        borderRadius: 16,
+      }}>
         <AnimatePresence>
-          {photos.map((photo) => {
+          {photos.map((photo, idx) => {
             if (!photo?.id) return null;
             const isSelected = selected.has(photo.id);
+            // First photo and every 7th gets a 2x2 span for visual hierarchy
+            const isFeature = idx === 0 || idx % 7 === 0;
             let dateLabel = '';
             try {
               if (photo.creationTime) {
                 dateLabel = new Date(photo.creationTime).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
               }
             } catch { dateLabel = ''; }
+            const selectionNumber = isSelected
+              ? [...selected].indexOf(photo.id) + 1
+              : 0;
             return (
               <motion.button
                 key={photo.id}
                 layout
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.92 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
+                exit={{ opacity: 0, scale: 0.92 }}
+                transition={{ delay: Math.min(idx * 0.03, 0.3), duration: 0.3 }}
                 onClick={() => togglePhoto(photo)}
                 style={{
-                  position: 'relative', aspectRatio: '1', borderRadius: card.radius, overflow: 'hidden', cursor: 'pointer', padding: 0,
-                  border: isSelected ? `2px solid ${C.olive}` : card.border,
-                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                  boxShadow: isSelected ? card.shadowHover : card.shadow,
+                  position: 'relative',
+                  aspectRatio: isFeature ? '1' : '1',
+                  gridColumn: isFeature ? 'span 2' : 'span 1',
+                  gridRow: isFeature ? 'span 2' : 'span 1',
+                  borderRadius: 14,
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  padding: 0,
+                  border: isSelected ? `2.5px solid ${C.olive}` : '2.5px solid transparent',
+                  transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                  boxShadow: isSelected
+                    ? `0 4px 20px rgba(163,177,138,0.3)`
+                    : '0 2px 8px rgba(43,30,20,0.06)',
+                  transform: isSelected ? 'scale(0.97)' : 'scale(1)',
+                  background: '#f0ebe4',
                 }}
               >
                 <img
                   src={photo.baseUrl
                     ? (photo.baseUrl.includes('googleusercontent.com')
-                      ? `/api/photos/proxy?url=${encodeURIComponent(photo.baseUrl)}&w=300&h=300`
+                      ? `/api/photos/proxy?url=${encodeURIComponent(photo.baseUrl)}&w=${isFeature ? 500 : 300}&h=${isFeature ? 500 : 300}`
                       : photo.baseUrl)
                     : ''}
                   alt={photo.filename || 'Photo'}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', background: '#f0ebe4' }}
+                  style={{
+                    width: '100%', height: '100%', objectFit: 'cover',
+                    transition: 'transform 0.3s ease',
+                  }}
                   loading="lazy"
                 />
+
+                {/* Selection overlay */}
                 <AnimatePresence>
                   {isSelected && (
                     <motion.div
-                      initial={{ opacity: 0, scale: 0.5 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      style={{
+                        position: 'absolute', inset: 0,
+                        background: 'rgba(163,177,138,0.12)',
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  )}
+                </AnimatePresence>
+
+                {/* Selection number badge */}
+                <AnimatePresence>
+                  {isSelected && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.3 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.5 }}
-                      style={{ position: 'absolute', top: '6px', right: '6px', width: '20px', height: '20px', borderRadius: '50%', background: C.olive, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.2)', zIndex: 2 }}
+                      exit={{ opacity: 0, scale: 0.3 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                      style={{
+                        position: 'absolute', top: 8, right: 8,
+                        width: 26, height: 26, borderRadius: '50%',
+                        background: C.olive,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 2px 8px rgba(43,30,20,0.2)',
+                        zIndex: 2,
+                        fontSize: '0.68rem', fontWeight: 700, color: '#fff',
+                      }}
                     >
-                      <Check size={11} color="#fff" strokeWidth={3} />
+                      {selectionNumber}
                     </motion.div>
                   )}
                 </AnimatePresence>
+
+                {/* Unselected circle */}
+                {!isSelected && (
+                  <div style={{
+                    position: 'absolute', top: 8, right: 8,
+                    width: 26, height: 26, borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.5)',
+                    border: '2px solid rgba(255,255,255,0.7)',
+                    backdropFilter: 'blur(4px)',
+                    zIndex: 2,
+                  }} />
+                )}
+
+                {/* Date pill — bottom left */}
                 {dateLabel && (
                   <div style={{
-                    position: 'absolute', bottom: 0, left: 0, right: 0,
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)',
-                    padding: '1rem 0.5rem 0.5rem', fontSize: '0.7rem', color: '#fff', fontWeight: 500,
+                    position: 'absolute', bottom: 8, left: 8,
+                    padding: '3px 10px', borderRadius: 100,
+                    background: 'rgba(0,0,0,0.45)',
+                    backdropFilter: 'blur(8px)',
+                    fontSize: '0.65rem', fontWeight: 600, color: '#fff',
+                    letterSpacing: '0.02em',
+                    zIndex: 2,
                   }}>
                     {dateLabel}
                   </div>
