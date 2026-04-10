@@ -125,15 +125,10 @@ function PearNudge({ prompt, onDismiss }: { prompt: string; onDismiss: () => voi
   );
 }
 
-// ── Prompt map for empty sections ──
-const EMPTY_SECTION_PROMPTS: Record<string, string> = {
-  events: 'Set up my wedding events',
-  faq: 'Write FAQs for my site',
-  registry: 'Suggest registry links',
-  travel: 'Add travel and hotel info',
-  text: 'Write a text section',
-  rsvp: 'Set up my RSVP section',
-};
+// ── Generic prompt — let Pear figure out what to do based on context ──
+function getPearPrompt(sectionType: string): string {
+  return `Look at this empty ${sectionType} section on my site. Based on the occasion type, couple names, and any details you already know, fill it in with appropriate content. Ask me for any info you need.`;
+}
 
 function proxyUrl(rawUrl: string, w: number, h: number): string {
   if (!rawUrl) return '';
@@ -808,7 +803,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       for (const entry of entries) {
         if (entry.isIntersecting && !pearNudgeShownRef.current) {
           const sectionType = (entry.target as HTMLElement).getAttribute('data-pe-empty-section');
-          if (sectionType && EMPTY_SECTION_PROMPTS[sectionType]) {
+          if (sectionType && getPearPrompt(sectionType)) {
             pearNudgeShownRef.current = true;
             setPearNudgeSection(sectionType);
             try { sessionStorage.setItem('pear_nudge_shown', '1'); } catch { /* ignore */ }
@@ -954,8 +949,8 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               <div style={{ marginBottom: '0.75rem' }}><CalendarDays size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Events</div>
               <p style={{ fontSize: '0.85rem' }}>Add your ceremony, reception, and other events in the Events panel</p>
-              <PearHelpButton label="Ask Pear to set up events" prompt="Set up my wedding events" />
-              {pearNudgeSection === 'events' && <PearNudge prompt={EMPTY_SECTION_PROMPTS.events} onDismiss={dismissPearNudge} />}
+              <PearHelpButton label="Ask Pear to set up events" prompt={getPearPrompt('events')} />
+              {pearNudgeSection === 'events' && <PearNudge prompt={getPearPrompt('events')} onDismiss={dismissPearNudge} />}
             </div>
           </section>
         ) : null;
@@ -1012,8 +1007,8 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               <div style={{ marginBottom: '0.75rem' }}><Mail size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>RSVP</div>
               <p style={{ fontSize: '0.85rem' }}>Add events first — the RSVP form will appear here for your guests</p>
-              <PearHelpButton label="Ask Pear to set up RSVP" prompt="Set up my RSVP section" />
-              {pearNudgeSection === 'rsvp' && <PearNudge prompt={EMPTY_SECTION_PROMPTS.rsvp} onDismiss={dismissPearNudge} />}
+              <PearHelpButton label="Ask Pear to set up RSVP" prompt={getPearPrompt('RSVP')} />
+              {pearNudgeSection === 'rsvp' && <PearNudge prompt={getPearPrompt('RSVP')} onDismiss={dismissPearNudge} />}
             </div>
           </section>
         ) : null;
@@ -1046,8 +1041,8 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               <div style={{ marginBottom: '0.75rem' }}><Gift size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Registry</div>
               <p style={{ fontSize: '0.85rem' }}>Add registry links in Details → Registry</p>
-              <PearHelpButton label="Ask Pear to suggest registries" prompt="Suggest registry links" />
-              {pearNudgeSection === 'registry' && <PearNudge prompt={EMPTY_SECTION_PROMPTS.registry} onDismiss={dismissPearNudge} />}
+              <PearHelpButton label="Ask Pear to help" prompt={getPearPrompt('registry')} />
+              {pearNudgeSection === 'registry' && <PearNudge prompt={getPearPrompt('registry')} onDismiss={dismissPearNudge} />}
             </div>
           </section>
         ) : null;
@@ -1059,8 +1054,8 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               <div style={{ marginBottom: '0.75rem' }}><Plane size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Travel & Hotels</div>
               <p style={{ fontSize: '0.85rem' }}>Add hotel and travel info in Details → Travel</p>
-              <PearHelpButton label="Ask Pear to add travel info" prompt="Add travel and hotel info" />
-              {pearNudgeSection === 'travel' && <PearNudge prompt={EMPTY_SECTION_PROMPTS.travel} onDismiss={dismissPearNudge} />}
+              <PearHelpButton label="Ask Pear to help" prompt={getPearPrompt('travel')} />
+              {pearNudgeSection === 'travel' && <PearNudge prompt={getPearPrompt('travel')} onDismiss={dismissPearNudge} />}
             </div>
           </section>
         ) : null;
@@ -1083,8 +1078,8 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               <div style={{ marginBottom: '0.75rem' }}><HelpCircle size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>FAQ</div>
               <p style={{ fontSize: '0.85rem' }}>Add frequently asked questions in Details → FAQ</p>
-              <PearHelpButton label="Ask Pear to write FAQs" prompt="Write FAQs for my site" />
-              {pearNudgeSection === 'faq' && <PearNudge prompt={EMPTY_SECTION_PROMPTS.faq} onDismiss={dismissPearNudge} />}
+              <PearHelpButton label="Ask Pear to help" prompt={getPearPrompt('FAQ')} />
+              {pearNudgeSection === 'faq' && <PearNudge prompt={getPearPrompt('FAQ')} onDismiss={dismissPearNudge} />}
             </div>
           </section>
         ) : null;
@@ -1132,8 +1127,8 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             <div className="pl-empty-gradient" style={{ padding: '2.5rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.5rem' }}><PenLine size={22} style={{ color: 'var(--pl-muted)' }} /></div>
               <p style={{ fontSize: '0.85rem' }}>Click to add text content</p>
-              <PearHelpButton label="Ask Pear to write this" prompt="Write a text section" />
-              {pearNudgeSection === 'text' && <PearNudge prompt={EMPTY_SECTION_PROMPTS.text} onDismiss={dismissPearNudge} />}
+              <PearHelpButton label="Ask Pear to write this" prompt={getPearPrompt('text')} />
+              {pearNudgeSection === 'text' && <PearNudge prompt={getPearPrompt('text')} onDismiss={dismissPearNudge} />}
             </div>
           </section>
         ) : null;
