@@ -347,7 +347,8 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     }
   }, [step]);
 
-  // Reverse geocode photo location when reviewing
+  // Detect photo location — EXIF GPS → AI Vision → ask user
+  const [detectingLocation, setDetectingLocation] = useState(false);
   useEffect(() => {
     if (step !== 'photo-review') return;
     const photo = selectedPhotos[photoReviewIndex];
@@ -355,26 +356,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     // Already have location for this photo
     if (photoNotes[photoReviewIndex]?.location) return;
 
-    const loc = photo?.location;
-    if (loc && loc.latitude && loc.longitude) {
-      // Direct Nominatim reverse geocode — no auth needed
-      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${loc.latitude}&lon=${loc.longitude}&format=json&zoom=14`, {
-        headers: { 'User-Agent': 'Pearloom/1.0' },
-        signal: AbortSignal.timeout(5000),
-      })
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (!data?.address) return;
-          const { city, town, village, county, state, country } = data.address;
-          const place = city || town || village || county || '';
-          const label = place && state ? `${place}, ${state}` : (place && country ? `${place}, ${country}` : state || country || '');
-          if (label) {
-            setPhotoNotes(prev => ({ ...prev, [photoReviewIndex]: { ...prev[photoReviewIndex], location: label } }));
-          }
-        })
-        .catch(() => {});
-    }
-    // Store date separately (always, if available)
+    // Store date (always, if available)
     if (photo?.creationTime && !photoNotes[photoReviewIndex]?.date) {
       try {
         const d = new Date(photo.creationTime);
@@ -382,7 +364,30 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
         setPhotoNotes(prev => ({ ...prev, [photoReviewIndex]: { ...prev[photoReviewIndex], date: dateLabel } }));
       } catch { /* ignore */ }
     }
-  }, [step, photoReviewIndex, selectedPhotos, photoNotes]);
+
+    // Try to detect location via EXIF + AI Vision
+    const rawUrl = photo?.baseUrl || photo?.url || photo?.uri || '';
+    if (!rawUrl) return;
+
+    const imageUrl = rawUrl.includes('googleusercontent')
+      ? `/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=800&h=600`
+      : rawUrl;
+
+    setDetectingLocation(true);
+    fetch('/api/photos/detect-location', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageUrl: rawUrl, occasion: collected.occasion }),
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.location) {
+          setPhotoNotes(prev => ({ ...prev, [photoReviewIndex]: { ...prev[photoReviewIndex], location: data.location } }));
+        }
+      })
+      .catch(() => {})
+      .finally(() => setDetectingLocation(false));
+  }, [step, photoReviewIndex, selectedPhotos]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Handlers ──────────────────────────────────────────────
   const handleOccasionSelect = (value: string) => {
@@ -1540,8 +1545,24 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       </div>
                     )}
 
-                    {/* Location — detected or user-input */}
-                    {hasGeoLocation && currentLocation ? (
+                    {/* Location — detected, detecting, or user-input */}
+                    {detectingLocation ? (
+                      <div style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                        marginBottom: 10, padding: '8px 14px',
+                      }}>
+                        <div style={{
+                          width: 14, height: 14, borderRadius: '50%',
+                          border: '2px solid var(--pl-olive)',
+                          borderTopColor: 'transparent',
+                          animation: 'spin 0.8s linear infinite',
+                        }} />
+                        <span style={{ fontSize: '0.78rem', color: mutedColor, fontStyle: 'italic' }}>
+                          Detecting location...
+                        </span>
+                        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                      </div>
+                    ) : currentLocation ? (
                       <div style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                         marginBottom: 10, padding: '6px 14px', borderRadius: 100,
