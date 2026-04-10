@@ -275,11 +275,12 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           photos: [],
-          vibeString: collected.vibe || collected.occasion,
+          vibeString: `${collected.occasion} ${collected.vibe || ''} ${collected.venue || ''}`.trim(),
           names: collected.names,
           occasion: collected.occasion,
           eventDate: collected.date,
           eventVenue: collected.venue,
+          celebrationVenue: collected.venue,
         }),
       });
 
@@ -291,10 +292,10 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
       const data = await res.json();
       if (!data.manifest) throw new Error('No manifest returned');
 
-      const n1 = (collected.names[0] || 'us').toLowerCase().replace(/[^a-z0-9]/g, '');
-      const n2 = (collected.names[1] || 'together').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const n1 = (collected.names[0] || 'celebration').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const n2 = collected.names[1] ? collected.names[1].toLowerCase().replace(/[^a-z0-9]/g, '') : '';
       const suffix = Math.random().toString(36).slice(2, 6);
-      const subdomain = `${n1}-and-${n2}-${suffix}`;
+      const subdomain = n2 ? `${n1}-and-${n2}-${suffix}` : `${n1}-${suffix}`;
 
       setPhase('done');
       onComplete(data.manifest, collected.names, subdomain);
@@ -308,22 +309,88 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
   const readyToBuild = hasAllRequired(collected);
 
   // ── Generating overlay ────────────────────────────────────
+  // ── Generating phase — cinematic build experience ─────────
+  const [genStep, setGenStep] = useState(0);
+  const GEN_PHASES = [
+    { label: 'Understanding your vision', mascotMood: 'thinking' as const },
+    { label: 'Choosing your colors and fonts', mascotMood: 'thinking' as const },
+    { label: 'Designing your pages', mascotMood: 'happy' as const },
+    { label: 'Writing your content', mascotMood: 'happy' as const },
+    { label: 'Adding final touches', mascotMood: 'celebrating' as const },
+  ];
+
+  useEffect(() => {
+    if (phase !== 'generating') { setGenStep(0); return; }
+    const timers = GEN_PHASES.map((_, i) =>
+      setTimeout(() => setGenStep(i), i * 5000)
+    );
+    return () => timers.forEach(clearTimeout);
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (phase === 'generating') {
+    const currentPhase = GEN_PHASES[genStep] || GEN_PHASES[0];
+    const progress = ((genStep + 1) / GEN_PHASES.length) * 100;
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center" style={{ background: BG_GRADIENT }}>
+        {/* Soft glow behind mascot */}
+        <div style={{
+          position: 'absolute', width: '300px', height: '300px', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(163,177,138,0.15) 0%, transparent 70%)',
+          filter: 'blur(40px)', pointerEvents: 'none',
+        }} />
+
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="flex flex-col items-center gap-6 text-center px-6"
+          className="flex flex-col items-center gap-6 text-center px-6 relative z-10"
         >
-          <PearMascot size={96} mood="thinking" />
-          <h2 className="font-heading italic text-[1.6rem] text-[var(--pl-ink-soft)]">
-            Pear is building your site...
-          </h2>
-          <p className="text-[0.88rem] text-[var(--pl-muted)] max-w-[320px]">
-            This usually takes 15-30 seconds. Sit tight while the magic happens.
-          </p>
-          <Loader2 size={24} className="text-[var(--pl-olive)] animate-spin" />
+          <PearMascot size={96} mood={currentPhase.mascotMood} />
+
+          {/* Preview card showing collected info */}
+          <div style={{
+            padding: '16px 24px', borderRadius: '20px',
+            background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.5)',
+            boxShadow: '0 4px 24px rgba(43,30,20,0.06)',
+            minWidth: '260px',
+          }}>
+            <p className="font-heading italic text-[1.3rem] text-[var(--pl-ink-soft)] leading-tight mb-1">
+              {collected.names?.[0]}{collected.names?.[1] ? ` & ${collected.names[1]}` : ''}
+            </p>
+            <p className="text-[0.72rem] text-[var(--pl-muted)]">
+              {collected.occasion} {collected.date && `\u00B7 ${new Date(collected.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+            </p>
+          </div>
+
+          {/* Phase label */}
+          <motion.p
+            key={genStep}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-[0.92rem] font-medium text-[var(--pl-ink-soft)]"
+          >
+            {currentPhase.label}...
+          </motion.p>
+
+          {/* Progress bar */}
+          <div style={{ width: '200px', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.4)', overflow: 'hidden' }}>
+            <div style={{
+              height: '100%', borderRadius: '2px',
+              background: 'var(--pl-olive)', width: `${progress}%`,
+              transition: 'width 0.8s ease',
+            }} />
+          </div>
+
+          {/* Step dots */}
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {GEN_PHASES.map((_, i) => (
+              <div key={i} style={{
+                width: '8px', height: '8px', borderRadius: '50%',
+                background: i <= genStep ? 'var(--pl-olive)' : 'rgba(255,255,255,0.4)',
+                transition: 'background 0.3s',
+              }} />
+            ))}
+          </div>
         </motion.div>
       </div>
     );
