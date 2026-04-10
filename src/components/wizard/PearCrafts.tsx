@@ -513,9 +513,9 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
 
   // ── Main chat UI ──────────────────────────────────────────
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: BG_GRADIENT }}>
-      {/* Header */}
-      <header className="shrink-0 flex items-center justify-between px-4 py-3 md:px-6">
+    <div className="fixed inset-0 z-50 flex flex-col items-center" style={{ background: BG_GRADIENT }}>
+      {/* Header — compact on desktop */}
+      <header className="shrink-0 w-full flex items-center justify-between px-4 py-3 md:px-6 max-w-[560px]">
         <button
           onClick={onBack}
           className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-full text-[0.78rem] font-semibold text-[var(--pl-muted)] bg-white/40 backdrop-blur-md border border-white/30 cursor-pointer hover:bg-white/60 transition-all"
@@ -526,6 +526,13 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
         <span className="font-heading italic text-[1rem] text-[var(--pl-ink-soft)]">Create with Pear</span>
         <div className="w-[72px]" />
       </header>
+
+      {/* Centered card container — 520px max on desktop, full on mobile */}
+      <div className="flex-1 flex flex-col w-full max-w-[560px] min-h-0 md:my-2 md:rounded-3xl md:overflow-hidden" style={{
+        background: 'rgba(255,255,255,0.2)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+      } as React.CSSProperties}>
 
       {/* Progressive info cards — build as you go */}
       <AnimatePresence>
@@ -593,7 +600,7 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
               </div>
             )}
             <div
-              className="max-w-[75%] md:max-w-[60%] px-4 py-3 text-[0.88rem] leading-relaxed"
+              className="max-w-[85%] px-4 py-3 text-[0.85rem] leading-relaxed"
               style={{
                 borderRadius: 16,
                 background: msg.role === 'user'
@@ -957,6 +964,8 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
           </button>
         </div>
       </div>
+
+      </div>{/* end centered card container */}
 
       {/* ── Photo Browser modal overlay ── */}
       <AnimatePresence>
