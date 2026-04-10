@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronUp, ChevronDown, Copy, Trash2, Eye, EyeOff, GripVertical, CalendarDays, Mail, Gift, Plane, HelpCircle, PenLine, Camera, Hand, Sparkles } from 'lucide-react';
 import { Hero } from '@/components/hero';
 import { Timeline } from '@/components/timeline';
+import { StoryLayout } from '@/components/blocks/StoryLayouts';
 import { WeddingEvents } from '@/components/wedding-events';
 import { VisualTimeline } from '@/components/visual-timeline';
 import { RegistryShowcase } from '@/components/registry-showcase';
@@ -936,12 +937,31 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             <StickerLayer stickers={manifest.stickers || []} accentColor={pal.accent} />
           </div>
         );
-      case 'story':
+      case 'story': {
+        const storyLayoutType = manifest.storyLayout || 'parallax';
         return (
           <section key={key} id="our-story" data-pe-section="story" style={blockStyle}>
-            <Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} />
+            {(manifest.chapters || []).map((chapter, chapterIndex) => (
+              <StoryLayout
+                key={chapter.id || chapterIndex}
+                type={storyLayoutType}
+                photos={(chapter.images || []).map(img => ({
+                  url: img.url.includes('googleusercontent.com')
+                    ? `/api/photos/proxy?url=${encodeURIComponent(img.url)}&w=1600&h=1200`
+                    : img.url,
+                  alt: img.alt,
+                  caption: img.caption,
+                }))}
+                title={chapter.title}
+                subtitle={chapter.subtitle}
+                body={chapter.description}
+                date={chapter.date}
+                index={chapterIndex}
+              />
+            ))}
           </section>
         );
+      }
       case 'event':
         if (!manifest.events?.length) return editMode ? (
           <section key={key} data-pe-section="events" data-pe-empty-section="events" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>

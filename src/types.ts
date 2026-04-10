@@ -24,6 +24,9 @@ export interface StoryManifest {
   occasion?: 'wedding' | 'anniversary' | 'engagement' | 'birthday' | 'story';
   // Timeline macro layout format chosen by user
   layoutFormat?: 'cascade' | 'filmstrip' | 'scrapbook' | 'magazine' | 'chapters' | 'starmap';
+  // Story chapter layout — controls how individual chapters render in the story section.
+  // Defaults to 'parallax' (premium cinematic) when unset. See src/components/blocks/StoryLayouts.tsx.
+  storyLayout?: 'parallax' | 'filmstrip' | 'magazine' | 'timeline' | 'kenburns' | 'bento';
   logistics?: {
     venue?: string;
     venueAddress?: string;

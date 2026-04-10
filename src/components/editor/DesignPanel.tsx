@@ -16,6 +16,7 @@ import { VisualEffectsPanel } from './VisualEffectsPanel';
 import { DesignAdvisor } from './DesignAdvisor';
 import { AccessibilityAuditPanel } from './AccessibilityAuditPanel';
 import { CORNER_PRESETS, renderCornerSvg, type CornerPreset } from '@/lib/corner-presets';
+import { StoryLayoutPicker, type StoryLayoutType } from '@/components/blocks/StoryLayouts';
 import { Check, Navigation } from 'lucide-react';
 import {
   PearIcon, PearlIcon, WeddingRingsIcon, BouquetIcon, ElegantHeartIcon,
@@ -965,6 +966,22 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       {/* ── Navigation — logo + nav style ── */}
       <SidebarSection title="Navigation" defaultOpen={forceOpenSection === 'navigation' || !forceOpenSection} key={forceOpenSection === 'navigation' ? 'nav-open' : 'nav'}>
         <NavCustomizationPanel manifest={manifest} onChange={onChange} />
+      </SidebarSection>
+
+      {/* ── Story Layout — how chapters unfold on the page ── */}
+      <SidebarSection title="Story Layout" defaultOpen={false}>
+        <div>
+          <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '6px' }}>
+            Story Layout
+          </div>
+          <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)', lineHeight: 1.5, marginBottom: '12px' }}>
+            How your chapters unfold on the page
+          </div>
+          <StoryLayoutPicker
+            selected={(manifest.storyLayout || 'parallax') as StoryLayoutType}
+            onSelect={(layout) => onChange({ ...manifest, storyLayout: layout })}
+          />
+        </div>
       </SidebarSection>
 
       {/* ── Corner Decorations — swappable presets ── */}
