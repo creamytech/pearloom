@@ -5,8 +5,18 @@
 //
 // Google Photos Picker baseUrls expire within ~1 hour, so any
 // URL we persist to the DB must first be mirrored; otherwise
-// dashboard thumbnails and published sites hit 403 when the
-// token expires.
+// dashboard thumbnails, hero images, and published sites hit 403
+// when the picker token expires.
+//
+// This module walks EVERY photo field on a StoryManifest:
+//   • manifest.coverPhoto
+//   • manifest.heroSlideshow[]
+//   • manifest.chapters[*].images[*]
+//
+// It also transparently unwraps `/api/photos/proxy?url=<...>`
+// wrappers that the wizard uses for live-preview images — the
+// wrapper points at an ephemeral session token, so persisting the
+// wrapper itself leaves dead links in the DB.
 // ─────────────────────────────────────────────────────────────
 
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
@@ -36,28 +46,75 @@ interface MirrorContext {
   subdomain: string;
 }
 
+// ── URL helpers ───────────────────────────────────────────────
+
 /**
- * Mirror a single Google Photos URL to permanent storage.
- * Returns the permanent URL on success or `null` if mirroring failed.
+ * Unwrap a `/api/photos/proxy?url=<encoded>&w=...&h=...` wrapper
+ * and return the inner URL. Returns the input unchanged if it isn't
+ * a proxy URL.
+ *
+ * The wizard pipes googleusercontent URLs through the proxy during
+ * the authoring session so the browser can authenticate with the
+ * user's OAuth token, but the inner URL is the canonical reference
+ * and the only thing worth persisting or mirroring.
+ */
+export function unwrapProxyUrl(url: string): string {
+  if (!url || typeof url !== 'string') return url;
+  if (!url.includes('/api/photos/proxy')) return url;
+  try {
+    // Works for both absolute and relative forms of the proxy URL.
+    const u = new URL(url, 'http://localhost');
+    const inner = u.searchParams.get('url');
+    return inner || url;
+  } catch {
+    return url;
+  }
+}
+
+/**
+ * Returns true when a URL is a googleusercontent.com picker URL,
+ * INCLUDING when it's wrapped in `/api/photos/proxy?url=...`.
+ */
+function isExpiringGoogleUrl(url: string | undefined | null): boolean {
+  if (!url) return false;
+  const inner = unwrapProxyUrl(url);
+  return inner.includes('googleusercontent.com') || inner.includes('lh3.google');
+}
+
+/**
+ * Mirror a single URL (proxy-wrapped or raw) to permanent storage.
+ * Returns the permanent URL on success or the original URL if the
+ * mirror couldn't be done (no storage configured, photo 403, etc.).
+ * Non-google URLs and already-permanent URLs are passed through.
  */
 async function mirrorOne(
   ctx: MirrorContext,
   rawUrl: string,
-  pathKey: string
-): Promise<string | null> {
+  pathKey: string,
+): Promise<string> {
+  if (!rawUrl) return rawUrl;
+  const inner = unwrapProxyUrl(rawUrl);
+
+  // Only mirror expiring google URLs — everything else is already
+  // either permanent or a data URL.
+  if (!inner.includes('googleusercontent.com') && !inner.includes('lh3.google')) {
+    return inner;
+  }
+
   try {
     // Picker baseUrls need a size directive; passthrough if already sized.
-    const sizedUrl = rawUrl.includes('=w') || rawUrl.includes('=h')
-      ? rawUrl
-      : `${rawUrl}=w1600-h1200-c`;
+    const sizedUrl = inner.includes('=w') || inner.includes('=h')
+      ? inner
+      : `${inner}=w1600-h1200-c`;
 
     const photoRes = await fetch(sizedUrl, {
       headers: { Authorization: `Bearer ${ctx.accessToken}` },
     });
     if (!photoRes.ok) {
-      // 403 / 401 means the baseUrl or token has expired — common for old drafts.
-      // Silently skip so the caller can fall back gracefully.
-      return null;
+      // 403/401 means the baseUrl or token has expired — return the
+      // inner URL so the DB at least keeps a meaningful pointer (the
+      // wrapper pointing at an expired token is worse than nothing).
+      return inner;
     }
 
     const buffer = await photoRes.arrayBuffer();
@@ -90,28 +147,20 @@ async function mirrorOne(
         });
       if (error) {
         console.warn(`[mirror] Supabase upload failed for ${path}:`, error.message);
-        return null;
+        return inner;
       }
       const { data: { publicUrl } } = ctx.supabase.storage.from('photos').getPublicUrl(path);
       return publicUrl;
     }
 
-    return null;
+    return inner;
   } catch (err) {
     console.warn(`[mirror] Exception mirroring ${pathKey}:`, err);
-    return null;
+    return inner;
   }
 }
 
-/**
- * Full mirror pass — walks every chapter image + `coverPhoto` and replaces
- * Google URLs with permanent ones. Used on publish.
- */
-export async function mirrorManifestPhotos(
-  manifest: StoryManifest,
-  accessToken: string,
-  subdomain: string
-): Promise<StoryManifest> {
+function buildContext(accessToken: string, subdomain: string): MirrorContext | null {
   const r2 = getR2Client();
   const r2Bucket = process.env.R2_BUCKET_NAME || 'pearloom-photos';
   const r2PublicBase = process.env.NEXT_PUBLIC_R2_PUBLIC_URL?.replace(/\/$/, '');
@@ -123,10 +172,10 @@ export async function mirrorManifestPhotos(
   const hasSupabase = !!(supabaseUrl && serviceKey);
   if (!hasR2 && !hasSupabase) {
     console.warn('[mirror] No storage backend configured — skipping mirror');
-    return manifest;
+    return null;
   }
 
-  const ctx: MirrorContext = {
+  return {
     r2,
     r2Bucket,
     r2PublicBase,
@@ -134,87 +183,159 @@ export async function mirrorManifestPhotos(
     accessToken,
     subdomain,
   };
+}
+
+// ── Public API ────────────────────────────────────────────────
+
+/**
+ * Full mirror pass — walks every chapter image, `coverPhoto`, and
+ * `heroSlideshow[*]` and replaces proxy-wrapped or expiring Google
+ * URLs with permanent ones. Used on publish AND draft save.
+ */
+export async function mirrorManifestPhotos(
+  manifest: StoryManifest,
+  accessToken: string,
+  subdomain: string,
+): Promise<StoryManifest> {
+  const ctx = buildContext(accessToken, subdomain);
+  if (!ctx) return stripProxyUrls(manifest);
 
   const limit = pLimit(5);
 
+  // Mirror all chapter images. Each slot gets a stable path so
+  // re-saves idempotently overwrite the same R2 object.
   const updatedChapters = await Promise.all(
     (manifest.chapters || []).map(async (chapter, ci) => {
+      if (!chapter.images?.length) return chapter;
       const updatedImages = await Promise.all(
-        (chapter.images || []).map((img, ii) => limit(async () => {
-          if (!img.url || !img.url.includes('googleusercontent.com')) return img;
-          const mirrored = await mirrorOne(ctx, img.url, `ch${ci}-img${ii}`);
-          return mirrored ? { ...img, url: mirrored } : img;
-        }))
+        chapter.images.map((img, ii) => limit(async () => {
+          if (!isExpiringGoogleUrl(img.url)) {
+            // Already permanent — but still unwrap any proxy wrapper.
+            return { ...img, url: unwrapProxyUrl(img.url) };
+          }
+          const permanent = await mirrorOne(ctx, img.url, `ch${ci}-img${ii}`);
+          return { ...img, url: permanent };
+        })),
       );
       return { ...chapter, images: updatedImages };
-    })
+    }),
   );
 
+  // Mirror coverPhoto (if expiring) and heroSlideshow (always walk).
   let updatedCover = manifest.coverPhoto;
-  if (updatedCover && updatedCover.includes('googleusercontent.com')) {
-    const mirrored = await mirrorOne(ctx, updatedCover, 'cover');
-    if (mirrored) updatedCover = mirrored;
+  if (updatedCover && isExpiringGoogleUrl(updatedCover)) {
+    updatedCover = await mirrorOne(ctx, updatedCover, 'cover');
+  } else if (updatedCover) {
+    updatedCover = unwrapProxyUrl(updatedCover);
   }
 
-  return { ...manifest, chapters: updatedChapters, coverPhoto: updatedCover };
+  let updatedHeroSlideshow = manifest.heroSlideshow;
+  if (updatedHeroSlideshow && updatedHeroSlideshow.length > 0) {
+    updatedHeroSlideshow = await Promise.all(
+      updatedHeroSlideshow.map((url, i) => limit(async () => {
+        if (!isExpiringGoogleUrl(url)) return unwrapProxyUrl(url);
+        return mirrorOne(ctx, url, `hero-${i}`);
+      })),
+    );
+  }
+
+  return {
+    ...manifest,
+    chapters: updatedChapters,
+    coverPhoto: updatedCover,
+    heroSlideshow: updatedHeroSlideshow,
+  };
 }
 
 /**
- * Lightweight mirror — only the first chapter cover and `coverPhoto`.
- * Used on draft saves so dashboard thumbnails never rot, without paying
- * the cost of mirroring every chapter photo on every autosave.
+ * Lightweight mirror — only the fields the dashboard thumbnail
+ * grid reads (coverPhoto + first chapter first image + first
+ * heroSlideshow entry). Used on draft save so the first autosave
+ * already has permanent thumbnails, even before publish.
+ *
+ * This helper also unwraps any `/api/photos/proxy` wrapper on
+ * every photo URL in the manifest so the DB never holds a proxy
+ * URL, even for photos we don't actively mirror.
  */
 export async function mirrorDraftThumbnails(
   manifest: StoryManifest,
   accessToken: string,
-  subdomain: string
+  subdomain: string,
 ): Promise<StoryManifest> {
-  const r2 = getR2Client();
-  const r2Bucket = process.env.R2_BUCKET_NAME || 'pearloom-photos';
-  const r2PublicBase = process.env.NEXT_PUBLIC_R2_PUBLIC_URL?.replace(/\/$/, '');
+  const ctx = buildContext(accessToken, subdomain);
+  // We still unwrap proxy URLs even when no storage backend is
+  // configured so the DB never holds a wrapper pointing at an
+  // ephemeral session token.
+  const base = stripProxyUrls(manifest);
+  if (!ctx) return base;
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  const hasR2 = !!(r2 && r2PublicBase);
-  const hasSupabase = !!(supabaseUrl && serviceKey);
-  if (!hasR2 && !hasSupabase) return manifest;
-
-  const ctx: MirrorContext = {
-    r2,
-    r2Bucket,
-    r2PublicBase,
-    supabase: hasSupabase ? createClient(supabaseUrl!, serviceKey!) : null,
-    accessToken,
-    subdomain,
-  };
-
-  // Mirror only what the dashboard thumbnail grabs: coverPhoto (if set) or
-  // the first chapter's first image.
-  let updatedCover = manifest.coverPhoto;
-  let updatedChapters = manifest.chapters;
-
-  if (updatedCover && updatedCover.includes('googleusercontent.com')) {
-    const mirrored = await mirrorOne(ctx, updatedCover, 'cover');
-    if (mirrored) updatedCover = mirrored;
+  // Cover photo
+  let updatedCover = base.coverPhoto;
+  if (updatedCover && isExpiringGoogleUrl(updatedCover)) {
+    updatedCover = await mirrorOne(ctx, updatedCover, 'cover');
   }
 
-  const firstChapterFirstImage = manifest.chapters?.[0]?.images?.[0];
+  // First chapter first image — picked up by user-sites thumbnails
+  let updatedChapters = base.chapters;
+  const firstChapterFirstImage = base.chapters?.[0]?.images?.[0];
   if (
     firstChapterFirstImage?.url &&
-    firstChapterFirstImage.url.includes('googleusercontent.com')
+    isExpiringGoogleUrl(firstChapterFirstImage.url) &&
+    base.chapters
   ) {
     const mirrored = await mirrorOne(ctx, firstChapterFirstImage.url, 'ch0-img0');
-    if (mirrored && manifest.chapters) {
-      updatedChapters = manifest.chapters.map((ch, ci) => {
-        if (ci !== 0 || !ch.images?.length) return ch;
-        const images = ch.images.map((img, ii) =>
-          ii === 0 ? { ...img, url: mirrored } : img
-        );
-        return { ...ch, images };
-      });
+    updatedChapters = base.chapters.map((ch, ci) => {
+      if (ci !== 0 || !ch.images?.length) return ch;
+      const images = ch.images.map((img, ii) =>
+        ii === 0 ? { ...img, url: mirrored } : img,
+      );
+      return { ...ch, images };
+    });
+  }
+
+  // First heroSlideshow entry — visible on the hero before the
+  // slideshow starts cycling so it's worth mirroring up front.
+  let updatedHeroSlideshow = base.heroSlideshow;
+  if (updatedHeroSlideshow && updatedHeroSlideshow.length > 0) {
+    const first = updatedHeroSlideshow[0];
+    if (isExpiringGoogleUrl(first)) {
+      const mirrored = await mirrorOne(ctx, first, 'hero-0');
+      updatedHeroSlideshow = [mirrored, ...updatedHeroSlideshow.slice(1)];
     }
   }
 
-  return { ...manifest, chapters: updatedChapters, coverPhoto: updatedCover };
+  return {
+    ...base,
+    chapters: updatedChapters,
+    coverPhoto: updatedCover,
+    heroSlideshow: updatedHeroSlideshow,
+  };
+}
+
+/**
+ * Walk every photo URL on a manifest and unwrap any
+ * `/api/photos/proxy` wrapper, leaving the raw underlying URL.
+ * This is a pure, sync transform — no network calls — and is safe
+ * to run whenever the DB shouldn't hold proxy wrappers (e.g. draft
+ * save paths where we know the wrapper is scoped to the current
+ * editing session).
+ */
+export function stripProxyUrls(manifest: StoryManifest): StoryManifest {
+  const chapters = (manifest.chapters || []).map((ch) => {
+    if (!ch.images?.length) return ch;
+    const images = ch.images.map((img) => ({
+      ...img,
+      url: unwrapProxyUrl(img.url),
+    }));
+    return { ...ch, images };
+  });
+
+  return {
+    ...manifest,
+    chapters,
+    coverPhoto: manifest.coverPhoto ? unwrapProxyUrl(manifest.coverPhoto) : manifest.coverPhoto,
+    heroSlideshow: manifest.heroSlideshow
+      ? manifest.heroSlideshow.map(unwrapProxyUrl)
+      : manifest.heroSlideshow,
+  };
 }

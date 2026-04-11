@@ -525,8 +525,19 @@ export async function POST(req: Request) {
         }
         const uploadLimit = pLimit(8); // max 8 concurrent R2 uploads
 
-        // Run chapter photo uploads and logo generation in parallel
-        const [updatedChapters, logoResult] = await Promise.all([
+        // Pre-upload the first few photos to R2 while the OAuth token
+        // is still fresh so we can fill `coverPhoto` + `heroSlideshow`
+        // with permanent URLs before the client ever hits save. This
+        // is the first-ever save's safety net — without it, the
+        // skeleton's proxy-wrapped Picker URLs would survive into the
+        // DB and 404 within the hour.
+        const heroPhotoSources = photos.slice(0, 6);
+        const heroUploadPromise = Promise.all(
+          heroPhotoSources.map(p => uploadLimit(() => uploadPhotoUrl(p.baseUrl))),
+        );
+
+        // Run chapter photo uploads, logo generation, and hero mirroring in parallel
+        const [updatedChapters, logoResult, heroUrls] = await Promise.all([
           // 1. Upload chapter photos to R2 + resolve locations
           Promise.all(manifest.chapters.map(async (chapter, i) => {
             const cluster = enrichedClusters[i];
@@ -560,11 +571,23 @@ export async function POST(req: Request) {
 
           // 2. Generate custom AI logo icon
           generateLogoIcon(occasion, vibeString, names, apiKey),
+
+          // 3. Pre-upload hero photos to R2 while the OAuth token is fresh
+          heroUploadPromise,
         ]);
 
         manifest.chapters = updatedChapters;
         manifest.logoIcon = logoResult.logoIcon;
         if (logoResult.logoSvg) manifest.logoSvg = logoResult.logoSvg;
+        // Seed the hero media with the freshly-uploaded R2 URLs.
+        // `uploadPhotoUrl` falls back to the original baseUrl on
+        // failure so we only adopt values that actually look
+        // permanent (`/api/img/…` or an R2 public URL).
+        const permanentHeroUrls = heroUrls.filter((u: string) => u && !u.includes('googleusercontent.com'));
+        if (permanentHeroUrls.length > 0) {
+          manifest.coverPhoto = permanentHeroUrls[0];
+          manifest.heroSlideshow = permanentHeroUrls.slice(0, 5);
+        }
         // Persist the wizard's story layout pick onto the final manifest so
         // the published site renders with it.
         if (storyLayout) {

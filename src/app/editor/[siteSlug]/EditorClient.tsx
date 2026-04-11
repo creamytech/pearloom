@@ -27,30 +27,44 @@ interface EditorClientProps {
 }
 
 /**
- * Convert Google Photos proxy URLs back to direct Google URLs for storage.
- * Proxy URLs (/api/photos/proxy?url=...) only work during the editing session.
- * Direct Google URLs also expire (~1h), but the publish flow mirrors them to R2.
- * For draft saves, we keep the direct URL so the image at least works for a while.
+ * Strip `/api/photos/proxy?url=…` wrappers from every photo field on
+ * the manifest before we POST it to `/api/sites`. Proxy URLs only
+ * work during the editing session (they carry the OAuth token), so
+ * the saved DB record must hold the raw underlying URL instead.
+ *
+ * The server-side mirror pass (`mirrorManifestPhotos` inside the
+ * `/api/sites` POST) will then upload those raw Google URLs to
+ * permanent R2 storage. This client-side strip is a belt-and-braces
+ * backup so the wire payload is always clean.
  */
+function unwrapProxy(url: string | undefined): string | undefined {
+  if (!url || !url.includes('/api/photos/proxy')) return url;
+  try {
+    const params = new URL(url, 'http://localhost').searchParams;
+    const inner = params.get('url');
+    return inner || url;
+  } catch {
+    return url;
+  }
+}
+
 function unproxyImageUrls(manifest: StoryManifest): StoryManifest {
-  if (!manifest.chapters) return manifest;
-  const chapters = manifest.chapters.map(chapter => {
+  const chapters = (manifest.chapters || []).map(chapter => {
     if (!chapter.images?.length) return chapter;
-    const images: ChapterImage[] = chapter.images.map(img => {
-      if (img.url?.includes('/api/photos/proxy?url=')) {
-        try {
-          const params = new URL(img.url, 'http://localhost').searchParams;
-          const originalUrl = params.get('url');
-          if (originalUrl) {
-            return { ...img, url: originalUrl };
-          }
-        } catch { /* keep original */ }
-      }
-      return img;
-    });
+    const images: ChapterImage[] = chapter.images.map(img => ({
+      ...img,
+      url: unwrapProxy(img.url) || img.url,
+    }));
     return { ...chapter, images };
   });
-  return { ...manifest, chapters };
+  return {
+    ...manifest,
+    chapters,
+    coverPhoto: unwrapProxy(manifest.coverPhoto),
+    heroSlideshow: manifest.heroSlideshow
+      ? manifest.heroSlideshow.map(u => unwrapProxy(u) || u)
+      : manifest.heroSlideshow,
+  };
 }
 
 export default function EditorClient({ manifest: initialManifest, siteSlug, names }: EditorClientProps) {

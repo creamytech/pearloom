@@ -3,124 +3,9 @@ import { publishSite } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import type { StoryManifest } from '@/types';
 import { generateVibeSkin } from '@/lib/vibe-engine';
-import pLimit from 'p-limit';
-
-function getR2Client() {
-  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
-  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
-  if (!accountId || !accessKeyId || !secretAccessKey) return null;
-  return new S3Client({
-    region: 'auto',
-    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-    credentials: { accessKeyId, secretAccessKey },
-  });
-}
-
-// -- Mirror Google Photos URLs -> R2 (primary) or Supabase Storage (fallback) --
-// Google Photos baseUrls expire within ~1 hour. On publish we upload
-// each image to permanent storage so they're accessible forever.
-async function mirrorImagesToStorage(
-  manifest: StoryManifest,
-  accessToken: string,
-  subdomain: string
-): Promise<StoryManifest> {
-  const r2 = getR2Client();
-  const r2Bucket = process.env.R2_BUCKET_NAME || 'pearloom-photos';
-  const r2PublicBase = process.env.NEXT_PUBLIC_R2_PUBLIC_URL?.replace(/\/$/, '');
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  const hasR2 = !!(r2 && r2PublicBase);
-  const hasSupabase = !!(supabaseUrl && serviceKey);
-
-  if (!hasR2 && !hasSupabase) {
-    console.warn('[Mirror] No storage backend configured — photos will use Google CDN (may expire)');
-    return manifest;
-  }
-
-  const supabase = hasSupabase ? createClient(supabaseUrl!, serviceKey!) : null;
-  const limit = pLimit(5);
-
-  const updatedChapters = await Promise.all(
-    manifest.chapters.map(async (chapter, ci) => {
-      const updatedImages = await Promise.all(
-        (chapter.images || []).map((img, ii) => limit(async () => {
-          // Only mirror Google Photos URLs (not already-mirrored or base64 uploads)
-          if (!img.url || !img.url.includes('googleusercontent.com')) return img;
-
-          try {
-            // Fetch image server-side using the user's OAuth token
-            const photoRes = await fetch(`${img.url}=w1600-h1200-c`, {
-              headers: { Authorization: `Bearer ${accessToken}` },
-            });
-            if (!photoRes.ok) {
-              console.warn(`[Mirror] Google returned ${photoRes.status} for ch${ci}-img${ii}`);
-              return img;
-            }
-
-            const buffer = await photoRes.arrayBuffer();
-            const contentType = photoRes.headers.get('content-type') || 'image/jpeg';
-            const ext = contentType.includes('png') ? 'png' : 'jpg';
-            const path = `sites/${subdomain}/ch${ci}-img${ii}.${ext}`;
-
-            // Primary: Upload to R2
-            if (hasR2) {
-              try {
-                await r2!.send(new PutObjectCommand({
-                  Bucket: r2Bucket,
-                  Key: path,
-                  Body: Buffer.from(buffer),
-                  ContentType: contentType,
-                  CacheControl: 'public, max-age=31536000, immutable',
-                }));
-
-                const publicUrl = `${r2PublicBase}/${path}`;
-                console.log(`[Mirror] R2 OK ${path} -> ${publicUrl}`);
-                return { ...img, url: publicUrl };
-              } catch (r2Err) {
-                console.warn(`[Mirror] R2 upload failed for ${path}, falling back to Supabase:`, r2Err);
-                // Fall through to Supabase
-              }
-            }
-
-            // Fallback: Upload to Supabase Storage
-            if (supabase) {
-              const { error } = await supabase.storage
-                .from('photos')
-                .upload(path, buffer, {
-                  contentType,
-                  upsert: true,
-                  cacheControl: '31536000',
-                });
-
-              if (error) {
-                console.warn(`[Mirror] Supabase upload failed for ${path}:`, error.message);
-                return img;
-              }
-
-              const { data: { publicUrl } } = supabase.storage.from('photos').getPublicUrl(path);
-              console.log(`[Mirror] Supabase OK ${path} -> ${publicUrl}`);
-              return { ...img, url: publicUrl };
-            }
-
-            return img;
-          } catch (err) {
-            console.warn(`[Mirror] Exception for ch${ci}-img${ii}:`, err);
-            return img;
-          }
-        }))
-      );
-      return { ...chapter, images: updatedImages };
-    })
-  );
-
-  return { ...manifest, chapters: updatedChapters };
-}
+import { mirrorManifestPhotos } from '@/lib/mirror-photos';
 
 export async function POST(req: NextRequest) {
   try {
@@ -162,11 +47,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'That subdomain is reserved. Please choose another.' }, { status: 400 });
     }
 
-    // Mirror Google Photos -> Supabase Storage before persisting
+    // Mirror every photo field (chapters, coverPhoto, heroSlideshow)
+    // to permanent storage before persisting. `mirrorManifestPhotos`
+    // also transparently unwraps any `/api/photos/proxy?url=…`
+    // wrappers that were kept in the draft during the editing session.
     let persistManifest: StoryManifest = manifest;
     if (session.accessToken) {
-      console.log('[Publish API] Mirroring photos to Supabase Storage...');
-      persistManifest = await mirrorImagesToStorage(manifest, session.accessToken, cleanSubdomain);
+      console.log('[Publish API] Mirroring photos to permanent storage...');
+      persistManifest = await mirrorManifestPhotos(
+        manifest,
+        session.accessToken as string,
+        cleanSubdomain,
+      );
     }
 
     // Generate AI vibe skin (unless already cached)

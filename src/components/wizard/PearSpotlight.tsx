@@ -731,16 +731,22 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                   setPartialManifest(prev => {
                     const snap = event.manifest as StoryManifest;
                     if (!prev) return snap;
+                    // Server snapshots are canonical once they arrive:
+                    // their chapters/cover/heroSlideshow point at
+                    // permanent R2 URLs, while the skeleton's versions
+                    // wrap ephemeral Google Picker tokens that expire
+                    // within the hour. Prefer `snap.*` whenever it's
+                    // populated and only fall back to the skeleton
+                    // when the server hasn't filled that field yet.
                     return {
                       ...prev,
                       ...snap,
-                      // Always prefer the real chapters/theme/vibeSkin/poetry
-                      // from the server snapshot; keep the skeleton's blocks
-                      // and hero media until the pipeline provides its own.
                       chapters: snap.chapters?.length ? snap.chapters : prev.chapters,
                       blocks: snap.blocks?.length ? snap.blocks : prev.blocks,
-                      coverPhoto: prev.coverPhoto || snap.coverPhoto,
-                      heroSlideshow: prev.heroSlideshow?.length ? prev.heroSlideshow : snap.heroSlideshow,
+                      coverPhoto: snap.coverPhoto || prev.coverPhoto,
+                      heroSlideshow: snap.heroSlideshow?.length
+                        ? snap.heroSlideshow
+                        : prev.heroSlideshow,
                     } as StoryManifest;
                   });
                 }
