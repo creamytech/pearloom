@@ -233,7 +233,7 @@ function buildSkeleton(
       rsvpIntro: '',
     },
     storyLayout: collected.storyLayout || 'parallax',
-    pageMode: 'single-page',
+    pageMode: 'single-scroll',
     navStyle: 'glass',
   } as StoryManifest;
 

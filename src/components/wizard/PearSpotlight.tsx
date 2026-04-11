@@ -930,7 +930,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       // Honor the user's story layout pick from the wizard — falls back to
       // the classic parallax default if they skipped the step.
       storyLayout: (c.storyLayout || 'parallax') as StoryLayoutType,
-      pageMode: 'single-page',
+      pageMode: 'single-scroll',
       navStyle: 'glass',
     };
     setPartialManifest(skeleton);
