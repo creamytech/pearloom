@@ -3,15 +3,19 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / editor/panel/PanelSection.tsx
 // Canonical collapsible section wrapper for editor panels.
-// Replaces the 9 hand-rolled section containers with a single
-// consistent API. Visually matches SidebarSection but works
-// standalone (no sidebar scaffold required).
+//
+// VISUAL RULE: one glass card wraps BOTH the header and the body.
+// The header is not a floating title above the card — it's part of
+// the same rounded surface, so the section always reads as a single
+// cohesive unit regardless of the user's site theme. Uses HARD-CODED
+// radii + backgrounds so the editor chrome never inherits the site-
+// level `elementShape` (arch/pill/etc).
 // ─────────────────────────────────────────────────────────────
 
 import { useState, type ReactNode, type ElementType } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
-import { panelText, panelSection, panelWeight, panelTracking } from './panel-tokens';
+import { panelText, panelWeight, panelTracking } from './panel-tokens';
 
 export interface PanelSectionProps {
   /** Uppercase eyebrow title rendered in the section header. */
@@ -27,21 +31,27 @@ export interface PanelSectionProps {
   /** Initial open state when collapsible. Default true. */
   defaultOpen?: boolean;
   /**
-   * When true, wrap the children in the standard glass card (14px
-   * radius, translucent bg, olive-tinted border, 14px padding).
-   * Set to false if the children render their own full-width chrome
-   * (e.g. a gallery grid or a long list). Default true.
+   * When `true` (default), the section renders on the canonical
+   * translucent glass card. Pass `false` to get an unstyled
+   * container for sections whose children already render their own
+   * full-bleed chrome (e.g. a block-list Reorder group).
    */
   card?: boolean;
   /** Panel-level children. */
   children: ReactNode;
 }
 
+// One hard-coded radius for ALL editor panel chrome so site-level
+// elementShape overrides (arch / pill / etc) can't leak in.
+const PANEL_RADIUS = '14px';
+const PANEL_CARD_BG = 'rgba(255,255,255,0.5)';
+const PANEL_CARD_BORDER = '1px solid rgba(163,177,138,0.18)';
+
 /**
- * A single consistent collapsible section with:
+ * A single collapsible section with:
  *   - uppercase eyebrow title @ 0.6rem / 700 / 0.1em tracking
  *   - chevron that rotates 90° when open
- *   - olive-tinted glass card body
+ *   - ONE rounded glass card wrapping the full header+body
  *   - spring-based height animation
  *
  * Usage:
@@ -66,20 +76,24 @@ export function PanelSection({
     <motion.button
       type="button"
       onClick={collapsible ? () => setOpen((v) => !v) : undefined}
-      whileHover={collapsible ? { backgroundColor: 'rgba(163,177,138,0.06)' } : undefined}
-      whileTap={collapsible ? { scale: 0.98 } : undefined}
+      whileHover={collapsible ? { backgroundColor: 'rgba(163,177,138,0.08)' } : undefined}
+      whileTap={collapsible ? { scale: 0.99 } : undefined}
       transition={{ type: 'spring', stiffness: 400, damping: 22 }}
       style={{
         width: '100%',
         display: 'flex',
         alignItems: 'center',
         gap: '8px',
-        padding: '10px 12px',
-        borderRadius: 'var(--pl-radius-sm)',
+        // The header is flush with the card's rounded top when closed
+        // and keeps that same radius when open — the body extends the
+        // same card downward, so it's one continuous surface.
+        padding: card ? '12px 14px' : '10px 12px',
+        borderRadius: card ? `${PANEL_RADIUS} ${PANEL_RADIUS} 0 0` : '10px',
         border: 'none',
         background: 'transparent',
         cursor: collapsible ? 'pointer' : 'default',
         color: 'var(--pl-ink-soft)',
+        textAlign: 'left',
       }}
     >
       {collapsible && (
@@ -127,7 +141,7 @@ export function PanelSection({
   const body = (
     <div
       style={{
-        padding: '2px 10px 12px',
+        padding: card ? '0 14px 14px' : '2px 10px 10px',
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
@@ -139,31 +153,35 @@ export function PanelSection({
             fontSize: panelText.hint,
             color: 'var(--pl-muted)',
             lineHeight: 1.5,
-            margin: '-4px 0 4px',
+            margin: '-2px 0 2px',
           }}
         >
           {hint}
         </div>
       )}
-      {card ? (
-        <div
-          style={{
-            borderRadius: panelSection.cardRadius,
-            background: panelSection.cardBg,
-            border: panelSection.cardBorder,
-            padding: panelSection.cardPadding,
-          }}
-        >
-          {children}
-        </div>
-      ) : (
-        children
-      )}
+      {children}
     </div>
   );
 
+  // Outer wrapper: ONE glass card (when `card`) that contains both the
+  // header button and the body. No nested cards — the site-theme arch
+  // radius can't sneak in because this wrapper doesn't use the
+  // `.pl-panel-section` CSS class or `var(--pl-radius-md)`.
+  const wrapperStyle: React.CSSProperties = card
+    ? {
+        marginBottom: '10px',
+        marginInline: '12px',
+        borderRadius: PANEL_RADIUS,
+        background: PANEL_CARD_BG,
+        border: PANEL_CARD_BORDER,
+        overflow: 'hidden',
+      }
+    : {
+        marginBottom: '2px',
+      };
+
   return (
-    <div className="pl-panel-section" style={{ marginBottom: '2px' }}>
+    <div style={wrapperStyle}>
       {header}
       {collapsible ? (
         <AnimatePresence initial={false}>
@@ -197,8 +215,9 @@ export function PanelRoot({ children }: { children: ReactNode }) {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: '2px',
-        paddingBottom: panelSection.rootPaddingBottom,
+        gap: '0',
+        paddingBottom: '24px',
+        paddingTop: '4px',
       }}
     >
       {children}

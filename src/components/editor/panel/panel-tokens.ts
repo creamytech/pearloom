@@ -42,19 +42,24 @@ export const panelTracking = {
 } as const;
 
 // ── Section chrome ───────────────────────────────────────────
-
+//
+// These are the ONE canonical values for an editor panel card. They
+// are hand-coded (not `var(--pl-radius-md)`) so the editor chrome
+// never inherits the user's site-level `elementShape` (arch, pill,
+// etc). PanelSection inlines these; local `Section` helpers in
+// panels like ChapterPanel should pull from here too.
 export const panelSection = {
-  /** Inner section card background (glass) */
-  cardBg: 'rgba(255,255,255,0.15)',
-  /** Inner section card border (subtle olive tint) */
-  cardBorder: '1px solid rgba(163,177,138,0.2)',
-  /** Section card corner radius */
+  /** Section card background (translucent glass). */
+  cardBg: 'rgba(255,255,255,0.5)',
+  /** Section card border — subtle olive tint. */
+  cardBorder: '1px solid rgba(163,177,138,0.18)',
+  /** Section card corner radius — always 14px, never theme-driven. */
   cardRadius: '14px',
-  /** Inner section padding */
+  /** Default inner padding. */
   cardPadding: '14px',
-  /** Gap between stacked sections inside a panel */
+  /** Gap between stacked sections inside a panel. */
   stackGap: '10px',
-  /** Default bottom padding for a panel root */
+  /** Default bottom padding for a panel root. */
   rootPaddingBottom: '24px',
 } as const;
 
