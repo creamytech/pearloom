@@ -285,8 +285,11 @@ export function WizardLivePreview({
       </div>
 
       {/* The preview frame — a scaled-down SiteRenderer on a glass
-          surface. Each answer layers another block in so the user
-          sees their site accumulate in real time. */}
+          surface. We render the site into a fake 1280px × ~1657px
+          "desktop viewport" and then CSS-transform the whole thing
+          down so it fits inside the 340 × 440 glass card. Without
+          the scale trick, every layout's min-height: 100vh hero
+          eats the entire frame and the user only sees a sliver. */}
       <motion.div
         layout
         style={{
@@ -300,22 +303,42 @@ export function WizardLivePreview({
           background: 'rgba(255,255,255,0.7)',
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
-          maxHeight: 420,
-          overflowY: 'auto',
+          height: 440,
           position: 'relative',
         }}
       >
         {skeleton ? (
-          // Scale the real SiteRenderer down so a full hero +
-          // countdown + first chapter fits in the mini frame.
-          // The renderer is heavy-ish but the preview is read-only
-          // (editMode=false) so it's fine.
+          // The inner scroller is sized as a fake desktop viewport
+          // (1280 × 1657) and then scaled down to exactly fit the
+          // 340 × 440 glass card. Scroll happens at the scaled-up
+          // level, so the user can drag through the full site but
+          // the visual footprint stays inside the frame.
+          //
+          //   PREVIEW_SCALE = 340 / 1280 ≈ 0.2656
+          //   fake height    = 440 / PREVIEW_SCALE ≈ 1657
           <div
             style={{
-              width: '100%',
-              transformOrigin: 'top center',
+              width: 1280,
+              height: 1657,
+              transform: 'scale(0.265625)',
+              transformOrigin: 'top left',
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              position: 'relative',
             }}
+            className="pear-wizard-preview-scroll"
           >
+            <style>{`
+              /* Hide the scroll bar inside the mini preview so it
+                 reads as a site surface, not a scroll container. */
+              .pear-wizard-preview-scroll::-webkit-scrollbar {
+                width: 0;
+                background: transparent;
+              }
+              .pear-wizard-preview-scroll {
+                scrollbar-width: none;
+              }
+            `}</style>
             <SiteRenderer
               manifest={skeleton}
               names={collected.names || ['', '']}
