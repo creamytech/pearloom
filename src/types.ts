@@ -266,9 +266,17 @@ export interface ThemeSchema {
     cursorColor?: string;
     /** SVG dividers between page sections */
     sectionDivider?: {
-      style: 'none' | 'wave' | 'wave2' | 'diagonal' | 'zigzag' | 'torn' | 'chevron' | 'arc';
+      style:
+        // Classic shape dividers
+        | 'none' | 'wave' | 'wave2' | 'diagonal' | 'zigzag' | 'torn' | 'chevron' | 'arc'
+        // Decorative animated dividers
+        | 'botanical' | 'petals' | 'ink' | 'flourish' | 'sparkle' | 'ribbon' | 'confetti' | 'constellation';
       height: number; // px 30–200
       flip: boolean; // alternate direction every other section
+      /** Enables the built-in motion for whichever style is picked.
+       *  Always respects prefers-reduced-motion regardless of this flag.
+       *  Defaults to true when omitted. */
+      animated?: boolean;
     };
     /** Scroll-triggered entrance animations for content blocks */
     scrollReveal?: 'none' | 'fade' | 'slide-up' | 'slide-left' | 'zoom' | 'blur-in';

@@ -152,15 +152,25 @@ const CURSOR_SHAPES: Array<{ id: CursorShape; icon: React.ReactNode; label: stri
 ];
 
 // ── Section divider style picker ───────────────────────────────
-const DIVIDER_STYLES: Array<{ id: DividerStyle; label: string; preview: string }> = [
-  { id: 'none',     label: 'None',     preview: '─────' },
-  { id: 'wave',     label: 'Wave',     preview: '∿∿∿∿∿' },
-  { id: 'wave2',    label: 'Wave 2',   preview: '∿∿∿∿∿' },
-  { id: 'diagonal', label: 'Diagonal', preview: '╱╱╱╱╱' },
-  { id: 'zigzag',   label: 'Zigzag',   preview: '/\\/\\/' },
-  { id: 'torn',     label: 'Torn',     preview: 'ᵥᵥᵥᵥᵥ' },
-  { id: 'chevron',  label: 'Chevron',  preview: '∧∧∧∧∧' },
-  { id: 'arc',      label: 'Arc',      preview: '⌢⌢⌢⌢⌢' },
+const DIVIDER_STYLES: Array<{ id: DividerStyle; label: string; preview: string; group: 'shape' | 'decorative' }> = [
+  // Classic shape dividers
+  { id: 'none',          label: 'None',          preview: '─────', group: 'shape' },
+  { id: 'wave',          label: 'Wave',          preview: '∿∿∿∿∿', group: 'shape' },
+  { id: 'wave2',         label: 'Wave 2',        preview: '∿∿∿∿∿', group: 'shape' },
+  { id: 'diagonal',      label: 'Diagonal',      preview: '╱╱╱╱╱', group: 'shape' },
+  { id: 'zigzag',        label: 'Zigzag',        preview: '/\\/\\/', group: 'shape' },
+  { id: 'torn',          label: 'Torn',          preview: 'ᵥᵥᵥᵥᵥ', group: 'shape' },
+  { id: 'chevron',       label: 'Chevron',       preview: '∧∧∧∧∧', group: 'shape' },
+  { id: 'arc',           label: 'Arc',           preview: '⌢⌢⌢⌢⌢', group: 'shape' },
+  // Decorative animated dividers
+  { id: 'botanical',     label: 'Botanical',     preview: '❦ · ❦',  group: 'decorative' },
+  { id: 'petals',        label: 'Petals',        preview: '✿ ✿ ✿',  group: 'decorative' },
+  { id: 'ink',           label: 'Ink Bleed',     preview: '◠◡◠◡',  group: 'decorative' },
+  { id: 'flourish',      label: 'Flourish',      preview: '— § —',  group: 'decorative' },
+  { id: 'sparkle',       label: 'Sparkle',       preview: '· ✦ ·',  group: 'decorative' },
+  { id: 'ribbon',        label: 'Stitched',      preview: '- - -',  group: 'decorative' },
+  { id: 'confetti',      label: 'Confetti',      preview: '◆ ◉ ◆',  group: 'decorative' },
+  { id: 'constellation', label: 'Constellation', preview: '· — ·',  group: 'decorative' },
 ];
 
 // ── Scroll reveal picker ───────────────────────────────────────
@@ -189,7 +199,7 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
     onChange({ ...effects, [key]: val });
 
   const mesh = effects.gradientMesh ?? { preset: 'none', speed: 'slow', opacity: 50 };
-  const divider = effects.sectionDivider ?? { style: 'none', height: 80, flip: true };
+  const divider = effects.sectionDivider ?? { style: 'none', height: 80, flip: true, animated: true };
 
   const [meshOpen, setMeshOpen] = useState(false);
   const [dividerOpen, setDividerOpen] = useState(false);
@@ -304,7 +314,7 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
       >
         <SectionLabel>Shape</SectionLabel>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-          {DIVIDER_STYLES.map(d => (
+          {DIVIDER_STYLES.filter(d => d.group === 'shape').map(d => (
             <button
               key={d.id}
               onClick={() => set('sectionDivider', { ...divider, style: d.id })}
@@ -324,6 +334,30 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
           ))}
         </div>
 
+        <div style={{ marginTop: '10px' }}>
+          <SectionLabel>Decorative & animated</SectionLabel>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            {DIVIDER_STYLES.filter(d => d.group === 'decorative').map(d => (
+              <button
+                key={d.id}
+                onClick={() => set('sectionDivider', { ...divider, style: d.id })}
+                style={{
+                  padding: '6px 10px', borderRadius: '8px',
+                  border: `1px solid ${divider.style === d.id ? 'rgba(163,177,138,0.6)' : 'rgba(0,0,0,0.06)'}`,
+                  background: divider.style === d.id ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.05)',
+                  color: divider.style === d.id ? 'rgba(163,177,138,1)' : 'var(--pl-ink-soft)',
+                  cursor: 'pointer', fontSize: '0.72rem', fontWeight: divider.style === d.id ? 700 : 400,
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <span style={{ fontSize: '0.65rem', fontFamily: 'monospace', letterSpacing: '-0.03em', opacity: 0.7 }}>{d.preview}</span>
+                <span>{d.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {divider.style !== 'none' && (
           <div style={{ marginTop: '12px' }}>
             <SliderRow
@@ -332,12 +366,20 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
               min={30} max={200} unit="px"
               onChange={v => set('sectionDivider', { ...divider, height: v })}
             />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
               <ToggleChip
                 active={divider.flip}
                 label="Alternate flip"
                 onClick={() => set('sectionDivider', { ...divider, flip: !divider.flip })}
               />
+              <ToggleChip
+                active={divider.animated ?? true}
+                label="Animated"
+                onClick={() => set('sectionDivider', { ...divider, animated: !(divider.animated ?? true) })}
+              />
+            </div>
+            <div style={{ marginTop: '8px', fontSize: '0.65rem', color: 'var(--pl-muted)' }}>
+              Animations always respect the visitor&rsquo;s reduced-motion preference.
             </div>
           </div>
         )}

@@ -523,6 +523,7 @@ function PreviewContent() {
               bgColor={prevExitColor}
               height={globalDivider!.height}
               flip={shouldFlip}
+              animated={globalDivider!.animated ?? true}
             />
           );
           dividerIdx++;

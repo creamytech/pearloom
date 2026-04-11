@@ -873,6 +873,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               bgColor={prevExitColor}
               height={globalDiv!.height}
               flip={shouldFlip}
+              animated={globalDiv!.animated ?? true}
             />
           );
           dividerIdx++;

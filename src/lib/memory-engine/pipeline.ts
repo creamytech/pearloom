@@ -354,6 +354,45 @@ export async function generateStoryManifest(
     };
   }
 
+  // ── Pick a sensible animated section divider based on vibe + occasion ──
+  // Users can always override this in the editor's Visual Effects panel.
+  // We only seed a default when one hasn't already been set.
+  if (!manifest.theme?.effects?.sectionDivider) {
+    const pickDivider = (): NonNullable<NonNullable<ThemeSchema['effects']>['sectionDivider']> => {
+      const tone = manifest.vibeSkin?.tone;
+      const curve = manifest.vibeSkin?.curve;
+      const occ = (occasion || '').toLowerCase();
+      // Occasion-first: birthdays and playful celebrations get confetti/sparkle
+      if (occ.includes('birthday') || tone === 'playful') {
+        return { style: 'confetti', height: 80, flip: false, animated: true };
+      }
+      if (tone === 'cosmic') {
+        return { style: 'constellation', height: 80, flip: false, animated: true };
+      }
+      if (tone === 'luxurious') {
+        return { style: 'flourish', height: 80, flip: false, animated: true };
+      }
+      if (tone === 'intimate' || occ.includes('anniversary') || occ.includes('vow')) {
+        return { style: 'ribbon', height: 80, flip: true, animated: true };
+      }
+      if (tone === 'wild' || tone === 'rustic' || curve === 'petal') {
+        return { style: 'botanical', height: 90, flip: true, animated: true };
+      }
+      if (tone === 'dreamy' || curve === 'organic' || curve === 'ribbon') {
+        return { style: 'petals', height: 80, flip: true, animated: true };
+      }
+      // Sensible default — animated wave matches most vibes
+      return { style: 'wave2', height: 70, flip: true, animated: true };
+    };
+    manifest.theme = {
+      ...manifest.theme,
+      effects: {
+        ...(manifest.theme?.effects ?? {}),
+        sectionDivider: pickDivider(),
+      },
+    };
+  }
+
   // Emit snapshot AFTER reconcile so downstream consumers see the final
   // palette + theme applied alongside the vibeSkin SVG art.
   onProgress?.(5, manifest);
