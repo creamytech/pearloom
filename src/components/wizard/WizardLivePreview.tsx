@@ -271,56 +271,56 @@ export function WizardLivePreview({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: 6,
-          fontSize: '0.58rem',
+          gap: 7,
+          fontSize: '0.68rem',
           fontWeight: 800,
-          letterSpacing: '0.14em',
+          letterSpacing: '0.16em',
           textTransform: 'uppercase',
           color: 'var(--pl-olive-deep, #7D9B6A)',
           opacity: 0.85,
         }}
       >
-        <Eye size={10} />
+        <Eye size={12} />
         <span>Your site so far</span>
       </div>
 
       {/* The preview frame — a scaled-down SiteRenderer on a glass
-          surface. We render the site into a fake 1280px × ~1657px
-          "desktop viewport" and then CSS-transform the whole thing
-          down so it fits inside the 340 × 440 glass card. Without
-          the scale trick, every layout's min-height: 100vh hero
-          eats the entire frame and the user only sees a sliver. */}
+          surface. We render the site into a fake 1600 × 1000 desktop
+          viewport and then CSS-transform the whole thing down so it
+          fits inside the 640 × 400 glass card. This gives a real
+          desktop-shaped preview (16:10) instead of a mobile-phone
+          sliver, and the 0.4× scale is still readable. */}
       <motion.div
         layout
         style={{
           width: '100%',
-          maxWidth: 340,
+          maxWidth: 640,
           margin: '0 auto',
-          borderRadius: 18,
+          borderRadius: 20,
           overflow: 'hidden',
-          boxShadow: '0 18px 48px rgba(43,30,20,0.18), 0 2px 8px rgba(43,30,20,0.06)',
-          border: '1px solid rgba(255,255,255,0.55)',
-          background: 'rgba(255,255,255,0.7)',
+          boxShadow: '0 22px 60px rgba(43,30,20,0.22), 0 2px 8px rgba(43,30,20,0.08)',
+          border: '1px solid rgba(255,255,255,0.6)',
+          background: 'rgba(255,255,255,0.72)',
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
-          height: 440,
+          height: 400,
           position: 'relative',
         }}
       >
         {skeleton ? (
           // The inner scroller is sized as a fake desktop viewport
-          // (1280 × 1657) and then scaled down to exactly fit the
-          // 340 × 440 glass card. Scroll happens at the scaled-up
+          // (1600 × 1000) and then scaled down to exactly fit the
+          // 640 × 400 glass card. Scroll happens at the scaled-up
           // level, so the user can drag through the full site but
           // the visual footprint stays inside the frame.
           //
-          //   PREVIEW_SCALE = 340 / 1280 ≈ 0.2656
-          //   fake height    = 440 / PREVIEW_SCALE ≈ 1657
+          //   PREVIEW_SCALE = 640 / 1600 = 0.40
+          //   fake height    = 400 / 0.40 = 1000
           <div
             style={{
-              width: 1280,
-              height: 1657,
-              transform: 'scale(0.265625)',
+              width: 1600,
+              height: 1000,
+              transform: 'scale(0.4)',
               transformOrigin: 'top left',
               overflowY: 'auto',
               overflowX: 'hidden',
@@ -357,20 +357,21 @@ function EmptyPreview() {
   return (
     <div
       style={{
-        padding: '36px 20px',
+        width: '100%',
+        height: '100%',
+        padding: '36px 32px',
         textAlign: 'center',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 10,
-        minHeight: 240,
+        gap: 14,
         justifyContent: 'center',
       }}
     >
       <div
         style={{
-          width: 56,
-          height: 56,
+          width: 72,
+          height: 72,
           borderRadius: 999,
           background: 'rgba(163,177,138,0.15)',
           display: 'flex',
@@ -379,13 +380,13 @@ function EmptyPreview() {
           border: '1px dashed rgba(163,177,138,0.4)',
         }}
       >
-        <Eye size={22} color="var(--pl-olive, #A3B18A)" />
+        <Eye size={28} color="var(--pl-olive, #A3B18A)" />
       </div>
       <div
         style={{
           fontFamily: 'var(--pl-font-heading)',
           fontStyle: 'italic',
-          fontSize: '0.95rem',
+          fontSize: '1.2rem',
           color: 'var(--pl-ink-soft)',
         }}
       >
@@ -393,10 +394,10 @@ function EmptyPreview() {
       </div>
       <div
         style={{
-          fontSize: '0.7rem',
+          fontSize: '0.85rem',
           color: 'var(--pl-muted)',
-          maxWidth: 220,
-          lineHeight: 1.5,
+          maxWidth: 320,
+          lineHeight: 1.55,
         }}
       >
         Every answer lights up another piece of your real site so you can watch

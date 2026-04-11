@@ -1527,10 +1527,10 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
           display: flex;
           align-items: flex-start;
           justify-content: center;
-          gap: 24px;
+          gap: 28px;
           width: 100%;
-          max-width: 1280px;
-          padding: 32px 20px 0;
+          max-width: 1480px;
+          padding: 32px 24px 0;
         }
         .pear-stage-mascot {
           flex-shrink: 0;
@@ -1547,14 +1547,19 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
         }
         .pear-stage-preview {
           flex-shrink: 0;
-          width: 360px;
+          width: 640px;
           padding-top: 14px;
         }
-        /* Hide the live preview panel at <1100px so the card has
-           room to breathe. On mobile we show the breadcrumb + card
-           only; the generation phase is where the preview really
-           shines anyway. */
-        @media (max-width: 1099px) {
+        /* Hide the live preview panel below ~1440px so the 640px
+           preview frame always has room to render at its full scale
+           instead of getting clipped. On smaller laptops the card
+           gets the stage to itself; the generation phase takes over
+           with a full-size preview anyway. */
+        @media (max-width: 1439px) {
+          .pear-stage {
+            max-width: 1200px;
+            gap: 24px;
+          }
           .pear-stage-preview {
             display: none;
           }
