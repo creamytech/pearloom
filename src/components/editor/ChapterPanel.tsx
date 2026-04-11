@@ -13,6 +13,7 @@ import { Field, lbl, inp } from './editor-utils';
 import { ImageManager } from './ImageManager';
 import { SectionStyleEditor } from './SectionStyleEditor';
 import { AlternatesCarousel } from './AlternatesCarousel';
+import { panelText, panelWeight, panelTracking, panelSection } from './panel';
 import type { Chapter } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
 import type { SectionStyleOverrides } from './SectionStyleEditor';
@@ -45,20 +46,28 @@ interface ChapterPanelProps {
   onCloseAlternates?: () => void;
 }
 
-// Glass section wrapper
+// Glass section wrapper — stays lightweight (no chevron/collapsible)
+// because ChapterPanel is embedded inline inside StoryPanel's chapter
+// edit flyout, not at the top of the sidebar. Heading / chrome comes
+// from the shared panel tokens so it matches every other panel.
 function Section({ children, label }: { children: React.ReactNode; label?: string }) {
   return (
     <div style={{
-      background: 'rgba(255,255,255,0.15)',
-      borderRadius: '14px',
-      border: '1px solid rgba(255,255,255,0.2)',
-      padding: '12px',
-      display: 'flex', flexDirection: 'column', gap: '8px',
+      background: panelSection.cardBg,
+      borderRadius: panelSection.cardRadius,
+      border: panelSection.cardBorder,
+      padding: panelSection.cardPadding,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '10px',
     }}>
       {label && (
         <span style={{
-          fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.12em',
-          textTransform: 'uppercase', color: 'var(--pl-muted)',
+          fontSize: panelText.heading,
+          fontWeight: panelWeight.bold,
+          letterSpacing: panelTracking.wider,
+          textTransform: 'uppercase',
+          color: 'var(--pl-ink-soft)',
         }}>
           {label}
         </span>

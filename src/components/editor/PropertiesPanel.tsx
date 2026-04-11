@@ -2,19 +2,19 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / editor/PropertiesPanel.tsx
-// Floating contextual inspector properties — houses Typography Pair,
-// Parchment Tint, Watermark toggle, Private Gallery toggle,
-// REPLACE IMAGERY / EDIT TYPOGRAPHY quick actions.
-// Matches Stitch "Properties" panel from Photo Atelier.
+// Contextual inspector for the selected block. Houses Typography
+// pair, Parchment tint, watermark toggle, and private gallery
+// toggle. Uses the shared PanelSection/PanelRoot primitives so
+// the chrome matches every other panel in the editor.
 // ─────────────────────────────────────────────────────────────
 
-import { motion } from 'framer-motion';
-import { Image, Type, Eye, EyeOff, Lock, Unlock, Pen } from 'lucide-react';
+import { Image, Type, Lock, Unlock, Wand2, Sparkles, EyeOff } from 'lucide-react';
 import { useEditor } from '@/lib/editor-state';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { ParchmentTintPanel, type TintId } from './ParchmentTintPanel';
 import { TypographyPairSelector, type PairId } from './TypographyPairSelector';
+import { PanelRoot, PanelSection, panelText, panelWeight } from './panel';
 import type { StoryManifest } from '@/types';
 
 interface PropertiesPanelProps {
@@ -42,17 +42,8 @@ export function PropertiesPanel({ manifest, onChange }: PropertiesPanelProps) {
   };
 
   return (
-    <div>
-      {/* Quick actions */}
-      <div style={{ padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.25)' }}>
-        <h4 style={{
-          fontSize: '0.65rem', fontWeight: 700,
-          letterSpacing: '0.12em', textTransform: 'uppercase',
-          color: 'var(--pl-muted)',
-          marginBottom: '10px',
-        }}>
-          Quick Actions
-        </h4>
+    <PanelRoot>
+      <PanelSection title="Quick Actions" icon={Wand2}>
         <div style={{ display: 'flex', gap: '8px' }}>
           <Button
             variant="secondary"
@@ -73,91 +64,74 @@ export function PropertiesPanel({ manifest, onChange }: PropertiesPanelProps) {
             Edit Typography
           </Button>
         </div>
-      </div>
+      </PanelSection>
 
-      {/* Typography Pair selector */}
-      <div style={{ borderBottom: '1px solid rgba(255,255,255,0.25)' }}>
+      <PanelSection title="Typography" icon={Type} card={false}>
         <TypographyPairSelector
           value={manifest.typographyPair || 'serif-sans'}
           onChange={handleTypographyChange}
         />
-      </div>
+      </PanelSection>
 
-      {/* Parchment Tint */}
-      <div style={{ borderBottom: '1px solid rgba(255,255,255,0.25)' }}>
+      <PanelSection title="Parchment Tint" icon={Sparkles} card={false}>
         <ParchmentTintPanel
           currentTint={manifest.parchmentTint || 'none'}
           onApply={handleTintChange}
         />
-      </div>
+      </PanelSection>
 
-      {/* Watermark toggle */}
-      <div style={{
-        padding: '16px',
-        borderBottom: '1px solid rgba(255,255,255,0.25)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <div>
-          <h4 style={{
-            fontSize: '0.82rem', fontWeight: 600,
-            color: 'var(--pl-ink)',
-            marginBottom: '2px',
-          }}>
-            Hand-curated with Pearloom
-          </h4>
-          <p style={{
-            fontSize: '0.68rem',
-            color: 'var(--pl-muted)',
-          }}>
-            Show subtle watermark on published site
-          </p>
-        </div>
-        <Switch
-          checked={manifest.watermark ?? false}
-          onChange={handleWatermarkToggle}
-        />
-      </div>
+      <PanelSection title="Site Visibility" icon={EyeOff}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {/* Watermark toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontSize: panelText.body,
+                fontWeight: panelWeight.semibold,
+                color: 'var(--pl-ink)',
+                marginBottom: '2px',
+              }}>
+                Hand-curated with Pearloom
+              </div>
+              <div style={{ fontSize: panelText.hint, color: 'var(--pl-muted)' }}>
+                Show subtle watermark on published site
+              </div>
+            </div>
+            <Switch
+              checked={manifest.watermark ?? false}
+              onChange={handleWatermarkToggle}
+            />
+          </div>
 
-      {/* Private Gallery toggle */}
-      <div style={{
-        padding: '16px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {manifest.privateGallery ? (
-            <Lock size={14} className="text-[var(--pl-warning)]" />
-          ) : (
-            <Unlock size={14} className="text-[var(--pl-olive)]" />
-          )}
-          <div>
-            <h4 style={{
-              fontSize: '0.82rem', fontWeight: 600,
-              color: 'var(--pl-ink)',
-              marginBottom: '2px',
-              display: 'flex', alignItems: 'center', gap: '6px',
-            }}>
-              Private Gallery
-              {!manifest.privateGallery && (
-                <span style={{
-                  width: '6px', height: '6px', borderRadius: '50%',
-                  background: 'var(--pl-olive)',
-                  display: 'inline-block',
-                }} />
+          {/* Private gallery toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+              {manifest.privateGallery ? (
+                <Lock size={14} className="text-[var(--pl-warning)]" style={{ flexShrink: 0 }} />
+              ) : (
+                <Unlock size={14} className="text-[var(--pl-olive)]" style={{ flexShrink: 0 }} />
               )}
-            </h4>
-            <p style={{
-              fontSize: '0.68rem',
-              color: 'var(--pl-muted)',
-            }}>
-              {manifest.privateGallery ? 'Photos hidden from visitors' : 'Photos visible to all visitors'}
-            </p>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontSize: panelText.body,
+                  fontWeight: panelWeight.semibold,
+                  color: 'var(--pl-ink)',
+                  marginBottom: '2px',
+                }}>
+                  Private Gallery
+                </div>
+                <div style={{ fontSize: panelText.hint, color: 'var(--pl-muted)' }}>
+                  {manifest.privateGallery ? 'Photos hidden from visitors' : 'Photos visible to all visitors'}
+                </div>
+              </div>
+            </div>
+            <Switch
+              checked={manifest.privateGallery ?? false}
+              onChange={handlePrivateGalleryToggle}
+            />
           </div>
         </div>
-        <Switch
-          checked={manifest.privateGallery ?? false}
-          onChange={handlePrivateGalleryToggle}
-        />
-      </div>
-    </div>
+      </PanelSection>
+    </PanelRoot>
   );
 }

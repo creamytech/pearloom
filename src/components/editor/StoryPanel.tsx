@@ -12,6 +12,14 @@ import { ChapterPanel } from './ChapterPanel';
 import { slugDate } from './editor-utils';
 import { useEditor } from '@/lib/editor-state';
 import { layoutFormatToStoryLayout } from '@/components/blocks/StoryLayouts';
+import {
+  PanelRoot,
+  PanelSection,
+  PanelChip,
+  panelText,
+  panelWeight,
+} from './panel';
+import { Layout, BookOpen, Plus as PlusIcon } from 'lucide-react';
 import type { StoryManifest, Chapter } from '@/types';
 
 function getThumb(ch: Chapter) {
@@ -353,32 +361,19 @@ export function StoryPanel() {
     }
   };
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0', paddingBottom: '24px' }}>
+  const currentStoryLayout = (manifest.storyLayout
+    || layoutFormatToStoryLayout(manifest.layoutFormat)) as string;
 
-      {/* ── Story Style ── */}
-      <div style={{ padding: '4px 14px 12px' }}>
-        {/* FIX #13: Stronger section heading for visual hierarchy */}
-        <div style={{
-          fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
-          textTransform: 'uppercase', color: 'var(--pl-olive)',
-          marginBottom: '8px',
-          display: 'flex', alignItems: 'center', gap: '8px',
-        }}>
-          <span>Story Style</span>
-          <div style={{ flex: 1, height: '1px', background: 'rgba(163,177,138,0.2)' }} />
-        </div>
+  return (
+    <PanelRoot>
+      <PanelSection title="Story Style" icon={Layout}>
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           {STYLES.map(s => {
-            // Prefer the canonical `storyLayout` field, but fall back to the
-            // legacy `layoutFormat` mapping so existing drafts still show the
-            // correct active style on load.
-            const current = (manifest.storyLayout
-              || layoutFormatToStoryLayout(manifest.layoutFormat)) as string;
-            const isActive = current === s.id;
+            const isActive = currentStoryLayout === s.id;
             return (
-              <motion.button
+              <PanelChip
                 key={s.id}
+                active={isActive}
                 onClick={() => actions.handleDesignChange({
                   ...manifest,
                   // Write to the unified field and clear the legacy one so
@@ -386,54 +381,25 @@ export function StoryPanel() {
                   storyLayout: s.id as StoryManifest['storyLayout'],
                   layoutFormat: undefined,
                 })}
-                whileHover={{ scale: 1.03, y: -1 }}
-                whileTap={{ scale: 0.97 }}
-                style={{
-                  padding: '8px 14px', borderRadius: '14px', border: 'none',
-                  cursor: 'pointer',
-                  background: isActive ? 'var(--pl-olive)' : 'rgba(255,255,255,0.3)',
-                  backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-                  color: isActive ? 'white' : 'var(--pl-ink-soft)',
-                  boxShadow: isActive ? '0 2px 8px rgba(163,177,138,0.3)' : 'none',
-                  transition: 'all 0.15s',
-                  textAlign: 'left',
-                  display: 'flex', flexDirection: 'column', gap: '2px',
-                } as React.CSSProperties}
+                hint={s.desc}
+                variant="tile"
+                size="md"
+                fullWidth={false}
               >
-                <span style={{ fontSize: '0.68rem', fontWeight: isActive ? 700 : 600, lineHeight: 1.3 }}>
-                  {s.label}
-                </span>
-                <span style={{
-                  fontSize: '0.55rem', fontWeight: 400, lineHeight: 1.3,
-                  opacity: isActive ? 0.85 : 0.65,
-                }}>
-                  {s.desc}
-                </span>
-              </motion.button>
+                {s.label}
+              </PanelChip>
             );
           })}
         </div>
-      </div>
+      </PanelSection>
 
-      {/* ── Chapter count ── */}
-      <div style={{
-        padding: '10px 14px 6px',
-        fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
-        textTransform: 'uppercase', color: 'var(--pl-olive)',
-        display: 'flex', alignItems: 'center', gap: '8px',
-      }}>
-        <span>Chapters</span>
-        <span style={{
-          fontSize: '0.6rem', fontWeight: 700,
-          background: 'rgba(163,177,138,0.15)', color: 'var(--pl-olive)',
-          padding: '1px 7px', borderRadius: '100px',
-          border: '1px solid rgba(163,177,138,0.2)',
-        }}>{chapters.length}</span>
-        <div style={{ flex: 1, height: '1px', background: 'rgba(163,177,138,0.2)' }} />
-      </div>
-
-      {/* ── Chapter list ── */}
-      <div style={{ padding: '0 10px' }}>
+      <PanelSection
+        title="Chapters"
+        icon={BookOpen}
+        badge={chapters.length}
+        card={false}
+      >
+        <div>{/* Chapter list */}
         {chapters.length > 0 ? (
           <Reorder.Group axis="y" values={chapters} onReorder={actions.handleReorder} as="div" style={{ margin: 0, padding: 0 }}>
             <AnimatePresence>
@@ -533,6 +499,7 @@ export function StoryPanel() {
           </motion.div>
         )}
       </AnimatePresence>
+      </PanelSection>
 
       {/* ── Undo toast ── */}
       <AnimatePresence>
@@ -545,6 +512,6 @@ export function StoryPanel() {
           />
         )}
       </AnimatePresence>
-    </div>
+    </PanelRoot>
   );
 }

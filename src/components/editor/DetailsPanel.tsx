@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, X, ChevronDown, Sparkles, MapPin, Check, UtensilsCrossed, Link, Loader2 } from 'lucide-react';
 import { LocationPinIcon } from '@/components/icons/PearloomIcons';
 import { Field, lbl, inp } from './editor-utils';
+import { panelText, panelWeight, panelTracking } from './panel';
 import type { StoryManifest, FaqItem, TravelInfo, HotelBlock, MealOption } from '@/types';
 import { VenueSearch } from '@/components/venue/VenueSearch';
 import type { VenuePartial } from '@/components/venue/VenueSearch';
@@ -288,23 +289,25 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       <div style={{
         borderRadius: '16px', marginBottom: '4px',
         background: isOpen ? 'rgba(255,255,255,0.15)' : 'transparent',
-        border: isOpen ? '1px solid rgba(255,255,255,0.2)' : '1px solid transparent',
+        border: isOpen ? '1px solid rgba(163,177,138,0.2)' : '1px solid transparent',
         transition: 'all 0.15s',
         position: 'relative', zIndex: isOpen ? 10 : 1,
       }}>
-        {/* FIX #3: Stronger section headings matching sectionHead pattern for hierarchy */}
         <button
           onClick={() => setOpenSection(isOpen ? null : id)}
           style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '12px', background: 'none', border: 'none', cursor: 'pointer',
-            color: isOpen ? 'var(--pl-olive-deep)' : 'var(--pl-ink-soft)',
+            color: isOpen ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
             borderRadius: '16px',
           }}
         >
           <span style={{
-            fontSize: '0.78rem', fontWeight: 800, letterSpacing: '0.08em',
-            textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px',
+            fontSize: panelText.heading,
+            fontWeight: panelWeight.bold,
+            letterSpacing: panelTracking.wider,
+            textTransform: 'uppercase',
+            display: 'flex', alignItems: 'center', gap: '8px',
           }}>
             {isFilled && (
               <span style={{
@@ -335,7 +338,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
               style={{ overflow: 'hidden' }}
             >
-              <div style={{ padding: '0 12px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ padding: '0 12px 14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {children}
               </div>
             </motion.div>
@@ -345,11 +348,18 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
     );
   };
 
-  // Section heading divider style
+  // Sub-heading divider used inside long sections (e.g. Site Features)
   const sectionHead = (label: string) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-      <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', whiteSpace: 'nowrap' }}>{label}</span>
-      <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.3)' }} />
+      <span style={{
+        fontSize: panelText.label,
+        fontWeight: panelWeight.bold,
+        letterSpacing: panelTracking.wider,
+        textTransform: 'uppercase',
+        color: 'var(--pl-muted)',
+        whiteSpace: 'nowrap',
+      }}>{label}</span>
+      <div style={{ flex: 1, height: '1px', background: 'rgba(163,177,138,0.2)' }} />
     </div>
   );
 

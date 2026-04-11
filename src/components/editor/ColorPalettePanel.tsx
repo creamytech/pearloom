@@ -11,6 +11,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { ColorPicker } from '@/components/ui/color-picker';
 import { motion, AnimatePresence } from 'framer-motion';
+import { panelText, panelWeight, panelTracking } from './panel';
 import {
   RefreshCw, Check, Sparkles, Loader2, Wand2,
   Download, Copy, AlertTriangle, ChevronRight, Image,
@@ -111,9 +112,13 @@ function Swatch({ color, onChange, label }: { color: string; onChange: (c: strin
   return (
     <div>
       <label style={{
-        display: 'block', fontSize: '0.62rem', fontWeight: 800,
-        letterSpacing: '0.12em', textTransform: 'uppercase',
-        color: 'var(--pl-muted)', marginBottom: '6px',
+        display: 'block',
+        fontSize: panelText.label,
+        fontWeight: panelWeight.bold,
+        letterSpacing: panelTracking.wider,
+        textTransform: 'uppercase',
+        color: 'var(--pl-muted)',
+        marginBottom: '6px',
       }}>{label}</label>
       <ColorPicker value={color} onChange={onChange} />
     </div>

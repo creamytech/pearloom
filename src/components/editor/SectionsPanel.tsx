@@ -15,11 +15,12 @@ import { SpacingHandle } from './SpacingHandle';
 import { BlockDropZone } from './BlockDropZone';
 import { useEditor } from '@/lib/editor-state';
 import { insertBlockAt } from '@/lib/block-engine/block-actions';
+import { PanelRoot, PanelSection, PanelChip, panelText, panelWeight } from './panel';
 import {
   Eye, EyeOff, GripVertical, Plus, Trash2, Sparkles,
   Image, BookOpen, CalendarDays, Mail, Gift, Plane,
   HelpCircle, Timer, FileText, Quote, Video, MapPin,
-  Camera, MessageSquare, Minus, Package, Music, Hash, Star,
+  Camera, MessageSquare, Minus, Package, Music, Hash, Star, Layers,
   type LucideIcon,
 } from 'lucide-react';
 import type { StoryManifest, PageBlock } from '@/types';
@@ -134,16 +135,14 @@ export function SectionsPanel({ manifest, onChange }: {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <div>
-        <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.8)', marginBottom: '0.3rem' }}>
-          Page Sections
-        </div>
-        <p style={{ fontSize: '0.7rem', color: 'var(--pl-muted)', lineHeight: 1.5, margin: 0 }}>
-          Reorder, show, or hide sections on your site. Drag or use arrows to change order.
-        </p>
-      </div>
-
+    <PanelRoot>
+      <PanelSection
+        title="Page Sections"
+        icon={Layers}
+        badge={blocks.length}
+        hint="Reorder, show, or hide sections on your site. Drag or use arrows to change order."
+        card={false}
+      >
       {/* Block list */}
       <Reorder.Group
         axis="y"
@@ -239,11 +238,11 @@ export function SectionsPanel({ manifest, onChange }: {
         })}
       </Reorder.Group>
 
-      {/* Add section */}
-      <div>
-        <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--pl-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
-          Add Section
-        </div>
+      </PanelSection>
+
+      {/* Add section — lives in its own collapsible section so the
+          chip grid doesn't visually compete with the block list. */}
+      <PanelSection title="Add Section" icon={Plus} defaultOpen={false}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
           {ADDABLE_TYPES.map(type => {
             const meta = BLOCK_LABELS[type] || { label: type };
@@ -258,10 +257,12 @@ export function SectionsPanel({ manifest, onChange }: {
                 style={{
                   display: 'flex', alignItems: 'center', gap: '5px',
                   padding: '6px 10px', borderRadius: '8px',
-                  border: '1px solid rgba(0,0,0,0.06)',
+                  border: '1px solid rgba(163,177,138,0.2)',
                   background: 'rgba(163,177,138,0.04)',
                   color: 'var(--pl-ink-soft)',
-                  fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer',
+                  fontSize: panelText.chip,
+                  fontWeight: panelWeight.semibold,
+                  cursor: 'pointer',
                   transition: 'all 0.15s',
                 }}
               >
@@ -271,18 +272,15 @@ export function SectionsPanel({ manifest, onChange }: {
             );
           })}
         </div>
-      </div>
+      </PanelSection>
 
       {/* AI Suggestions — missing sections */}
       {(() => {
         const suggestions = suggestMissingBlocks(blocks, manifest);
         if (suggestions.length === 0) return null;
         return (
-          <div style={{ padding: '0 12px', marginTop: '8px' }}>
-            <div className="pl-panel-label" style={{ marginBottom: '6px' }}>
-              <Sparkles size={10} /> Suggested Sections
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <PanelSection title="Suggested Sections" icon={Sparkles} defaultOpen>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {suggestions.slice(0, 3).map((s) => {
                 const SuggestIcon = BLOCK_ICONS[s.type] || Package;
                 return (
@@ -290,21 +288,36 @@ export function SectionsPanel({ manifest, onChange }: {
                     key={s.type}
                     onClick={() => addBlock(s.type)}
                     className="pl-panel-card"
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', border: 'none', textAlign: 'left', width: '100%' }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '8px',
+                      cursor: 'pointer',
+                      border: '1px solid rgba(163,177,138,0.2)',
+                      textAlign: 'left', width: '100%',
+                      padding: '8px 10px',
+                      borderRadius: '10px',
+                      background: 'rgba(255,255,255,0.5)',
+                    }}
                   >
                     <SuggestIcon size={14} style={{ color: 'var(--pl-gold)', flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--pl-ink)', display: 'block' }}>
+                      <span style={{
+                        fontSize: panelText.body,
+                        fontWeight: panelWeight.semibold,
+                        color: 'var(--pl-ink)',
+                        display: 'block',
+                      }}>
                         {BLOCK_LABELS[s.type]?.label || s.type}
                       </span>
-                      <span style={{ fontSize: '0.62rem', color: 'var(--pl-muted)' }}>{s.reason}</span>
+                      <span style={{ fontSize: panelText.meta, color: 'var(--pl-muted)' }}>
+                        {s.reason}
+                      </span>
                     </div>
                     <Plus size={12} style={{ color: 'var(--pl-olive)', flexShrink: 0 }} />
                   </button>
                 );
               })}
             </div>
-          </div>
+          </PanelSection>
         );
       })()}
 
@@ -317,6 +330,6 @@ export function SectionsPanel({ manifest, onChange }: {
           onClearSelection={() => dispatch({ type: 'SET_SELECTED_BLOCKS', ids: [] })}
         />
       )}
-    </div>
+    </PanelRoot>
   );
 }

@@ -8,6 +8,7 @@
 import { useState } from 'react';
 import { RangeSlider } from '@/components/ui/range-slider';
 import { ColorPicker } from '@/components/ui/color-picker';
+import { PanelRoot, panelText, panelWeight, panelTracking } from './panel';
 import type { ThemeSchema } from '@/types';
 import {
   IconFilmGrain, IconVignette, IconColorTemp, IconMesh,
@@ -194,8 +195,7 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
   const [dividerOpen, setDividerOpen] = useState(false);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-
+    <PanelRoot>
       {/* ── Film Grain ── */}
       <EffectBlock title="Film Grain" icon={<IconFilmGrain />} active={(effects.grain ?? 0) > 0}>
         <SliderRow
@@ -380,7 +380,7 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
           Subtle material feel layered over the background
         </div>
       </EffectBlock>
-    </div>
+    </PanelRoot>
   );
 }
 
@@ -397,40 +397,62 @@ function EffectBlock({
   const toggle = onToggleExpand ?? (() => setOpen(v => !v));
 
   return (
-    <div style={{ borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+    <div style={{ borderBottom: '1px solid rgba(163,177,138,0.15)' }}>
       <button
         onClick={toggle}
         style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
-          padding: '11px 0', background: 'none', border: 'none',
+          width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
+          padding: '12px 4px', background: 'none', border: 'none',
           cursor: 'pointer', textAlign: 'left',
         }}
       >
         <span style={{
           display: 'flex', alignItems: 'center',
-          color: active ? 'rgba(214,198,168,0.9)' : 'var(--pl-ink-soft)',
+          color: active ? 'var(--pl-olive)' : 'var(--pl-muted)',
         }}>
           {icon}
         </span>
-        <span style={{ flex: 1, fontSize: '0.82rem', fontWeight: 700, color: active ? 'rgba(214,198,168,0.95)' : 'var(--pl-ink-soft)' }}>
+        <span style={{
+          flex: 1,
+          fontSize: panelText.heading,
+          fontWeight: panelWeight.bold,
+          letterSpacing: panelTracking.wider,
+          textTransform: 'uppercase',
+          color: active ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
+        }}>
           {title}
         </span>
         {active && (
           <span style={{
-            fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
-            color: 'rgba(163,177,138,0.9)', background: 'rgba(163,177,138,0.12)',
-            padding: '2px 7px', borderRadius: '100px', border: '1px solid rgba(163,177,138,0.25)',
+            fontSize: panelText.meta,
+            fontWeight: panelWeight.bold,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: 'var(--pl-olive-deep)',
+            background: 'rgba(163,177,138,0.12)',
+            padding: '2px 7px',
+            borderRadius: '100px',
           }}>
             ON
           </span>
         )}
-        <span style={{ display: 'flex', alignItems: 'center', color: 'var(--pl-muted)', transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+        <span style={{
+          display: 'flex', alignItems: 'center',
+          color: 'var(--pl-muted)',
+          transition: 'transform 0.2s',
+          transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+        }}>
           <IconChevronDown size={14} />
         </span>
       </button>
 
       {isOpen && (
-        <div style={{ paddingBottom: '14px' }}>
+        <div style={{
+          padding: '6px 4px 14px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px',
+        }}>
           {children}
         </div>
       )}
