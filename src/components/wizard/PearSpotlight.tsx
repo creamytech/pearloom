@@ -16,6 +16,9 @@ import { SiteRenderer } from '@/components/editor/SiteRenderer';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { StoryLayoutPicker, type StoryLayoutType } from '@/components/blocks/StoryLayouts';
 import { useGenerationTicker } from '@/components/wizard/useGenerationTicker';
+import { WizardBreadcrumb, type BreadcrumbStepKey } from '@/components/wizard/WizardBreadcrumb';
+import { WizardLivePreview } from '@/components/wizard/WizardLivePreview';
+import { useConfetti } from '@/components/wizard/useConfetti';
 import type { StoryManifest } from '@/types';
 
 interface PearSpotlightProps {
@@ -178,7 +181,10 @@ function currentStep(c: Collected, photosDecided: boolean, vibeDescription: stri
   return 'ready';
 }
 
-// Speech text for each step — warm, conversational, references what's been collected
+// Speech text for each step — warm, conversational, references
+// what's been collected. Pear changes voice per occasion so a
+// birthday site feels playful, an anniversary feels warm and
+// reflective, an engagement feels electric, etc.
 function speechForStep(step: Step, collected: Collected, photoInfo?: { index: number; total: number; location?: string }): string {
   const name1 = collected.names?.[0];
   const name2 = collected.names?.[1];
@@ -188,32 +194,59 @@ function speechForStep(step: Step, collected: Collected, photoInfo?: { index: nu
   switch (step) {
     case 'occasion':
       return "Hey! What are we celebrating?";
+
     case 'names': {
-      if (occ === 'birthday') return "Love it! Who's the birthday for?";
-      if (occ === 'wedding') return "A wedding! Who's the happy couple?";
-      if (occ === 'engagement') return "How exciting! Who just got engaged?";
-      if (occ === 'anniversary') return "Beautiful! Who's celebrating?";
-      return "Great! Who is this for?";
+      if (occ === 'birthday') return "Amazing — whose birthday is it?!";
+      if (occ === 'wedding') return "A wedding! Tell me about the couple.";
+      if (occ === 'engagement') return "Oh my — who just said yes?";
+      if (occ === 'anniversary') return "Beautiful. Whose love story are we celebrating?";
+      return "Lovely. Who's this for?";
     }
+
     case 'date': {
-      if (occ === 'birthday') return `${nameDisplay}'s birthday — when is it?`;
-      if (occ === 'wedding') return `${nameDisplay} — when's the big day?`;
-      return `Got it, ${nameDisplay}! When's the date?`;
+      if (occ === 'birthday') return `When's ${name1}'s big day?`;
+      if (occ === 'wedding') return `${nameDisplay} — when's the wedding?`;
+      if (occ === 'engagement') return `${nameDisplay} — when did it happen?`;
+      if (occ === 'anniversary') return `${nameDisplay} — when are we celebrating?`;
+      return `Got it, ${nameDisplay}. When's the date?`;
     }
+
     case 'venue': {
       const dateStr = collected.date ? new Date(collected.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) : '';
-      if (dateStr) return `${dateStr} — perfect! Where's it happening?`;
-      return "Where's the celebration happening?";
+      if (occ === 'wedding' && dateStr) return `${dateStr} — where's the wedding?`;
+      if (occ === 'birthday') return `Where's the party?`;
+      if (occ === 'engagement') return `Where did the proposal happen?`;
+      if (occ === 'anniversary') return `Any place special to revisit?`;
+      if (dateStr) return `${dateStr} — where's it happening?`;
+      return "Where's the celebration?";
     }
+
     case 'vibe-ask': {
       const venue = collected.venue === 'TBD' ? '' : collected.venue;
-      if (venue) return `${venue} sounds amazing! Describe your dream vibe`;
-      return "Almost there! Describe the style or theme you love";
+      if (occ === 'wedding' && venue) return `${venue} sounds dreamy. What's the vibe?`;
+      if (occ === 'birthday' && venue) return `${venue} — what's the mood?`;
+      if (occ === 'birthday') return `What's the vibe for this party?`;
+      if (occ === 'anniversary') return "What feeling do you want this to have?";
+      if (venue) return `${venue} sounds amazing! Describe your dream vibe.`;
+      return "Almost there — describe the style you love.";
     }
-    case 'vibe-pick':
-      return "I put together some palettes based on your vision";
-    case 'photos':
-      return "Let's add some photos to make it personal";
+
+    case 'vibe-pick': {
+      if (occ === 'wedding') return "Here are palettes made for your day.";
+      if (occ === 'birthday') return "Pick the one that looks like the party.";
+      if (occ === 'engagement') return "Which one feels like your proposal?";
+      if (occ === 'anniversary') return "Which palette holds your story?";
+      return "Tap the one that makes your heart sing.";
+    }
+
+    case 'photos': {
+      if (occ === 'wedding') return "Now — the photos that tell your love story.";
+      if (occ === 'birthday') return `Photos of ${name1} being ${name1}.`;
+      if (occ === 'engagement') return "The photos from around the big question.";
+      if (occ === 'anniversary') return "Photos from the years together — any favorites.";
+      return "Let's add photos to make it yours.";
+    }
+
     case 'photo-review': {
       if (photoInfo) {
         if (photoInfo.location) {
@@ -223,10 +256,20 @@ function speechForStep(step: Step, collected: Collected, photoInfo?: { index: nu
       }
       return "Tell me about this photo";
     }
-    case 'layout':
+
+    case 'layout': {
+      if (occ === 'wedding') return "How should your love story unfold?";
+      if (occ === 'birthday') return `How should we tell ${name1}'s story?`;
       return "How should your story unfold?";
-    case 'ready':
-      return `${nameDisplay}'s site is ready to build!`;
+    }
+
+    case 'ready': {
+      if (occ === 'wedding') return `${nameDisplay}'s wedding site is ready to build.`;
+      if (occ === 'birthday') return `${name1}'s site is ready — let's make it!`;
+      if (occ === 'engagement') return `${nameDisplay}'s announcement is ready.`;
+      if (occ === 'anniversary') return `${nameDisplay}'s love letter is ready.`;
+      return `${nameDisplay}'s site is ready to build.`;
+    }
   }
 }
 
@@ -235,12 +278,20 @@ function subtextForStep(step: Step, collected: Collected): string {
   const occ = collected.occasion;
   switch (step) {
     case 'occasion': return "I'm Pear, your personal site builder. Let's make something beautiful together.";
-    case 'names': return occ === 'birthday' ? "Just their first name is perfect." : "First names are great — I'll make them look stunning.";
-    case 'date': return "I'll add a gorgeous countdown to the site.";
+    case 'names':
+      if (occ === 'birthday') return "Just their first name is perfect.";
+      if (occ === 'engagement') return "Both of your first names — the real ones or the nicknames, whichever fits.";
+      return "First names are great — I'll make them look stunning.";
+    case 'date':
+      if (occ === 'birthday') return "I'll add a countdown that builds the anticipation.";
+      if (occ === 'anniversary') return "I'll hold it on the hero as your anchor moment.";
+      return "I'll add a gorgeous countdown to the site.";
     case 'venue': return "I'll put it on the map for your guests. Or skip if it's TBD.";
-    case 'vibe-ask': return "Colors, themes, moods — anything goes. Think Pinterest board.";
+    case 'vibe-ask':
+      if (occ === 'birthday') return "Colors, vibes, inside jokes — whatever makes this feel like them.";
+      return "Colors, themes, moods — anything goes. Think Pinterest board.";
     case 'vibe-pick': return "Tap the one that makes your heart sing.";
-    case 'photos': return "Your photos make the site 10x more personal. I'll help tell the story.";
+    case 'photos': return "Your photos make the site 10× more personal. I'll help tell the story.";
     case 'photo-review': return "Add the location and a note — it makes the story richer.";
     case 'layout': return "Pick the layout that fits your vibe. You can change it later in the editor.";
     case 'ready': return "Take a peek — you can always tweak in the editor after.";
@@ -336,6 +387,102 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const subtext = subtextForStep(step, collected);
   const mood = moodForStep(step, loading);
   const dark = isDarkVibe(collected.vibe);
+  const fireConfetti = useConfetti();
+
+  // ── Breadcrumb edit handler ────────────────────────────────
+  // Resets a single field on `collected`, which makes
+  // `currentStep()` automatically rewind to that step so the
+  // user can fix a typo without losing everything after it.
+  const handleEditField = useCallback((field: BreadcrumbStepKey) => {
+    setDirection(-1);
+    if (field === 'occasion') {
+      setCollected((prev) => ({ ...prev, occasion: undefined }));
+    } else if (field === 'names') {
+      setCollected((prev) => ({ ...prev, names: undefined }));
+      setInput('');
+    } else if (field === 'date') {
+      setCollected((prev) => ({ ...prev, date: undefined }));
+    } else if (field === 'venue') {
+      setCollected((prev) => ({ ...prev, venue: undefined }));
+      setInput('');
+    } else if (field === 'vibe') {
+      setCollected((prev) => ({ ...prev, vibe: undefined }));
+      setVibeDescription('');
+      setGeneratedPalettes([]);
+      setSelectedPaletteColors(null);
+    } else if (field === 'photos') {
+      setPhotosDecided(false);
+      setSelectedPhotos([]);
+      setReviewDone(false);
+    } else if (field === 'layout') {
+      setCollected((prev) => ({ ...prev, storyLayout: undefined }));
+    }
+  }, []);
+
+  // ── Freeform description mode ──────────────────────────────
+  // Power users tap "Tell Pear everything at once" on the
+  // occasion screen and paste a natural-language description;
+  // we send it to /api/wizard/parse and merge the extracted
+  // fields into `collected` in one shot.
+  const [freeformOpen, setFreeformOpen] = useState(false);
+  const [freeformText, setFreeformText] = useState('');
+  const [freeformLoading, setFreeformLoading] = useState(false);
+  const [freeformError, setFreeformError] = useState<string | null>(null);
+  const submitFreeform = useCallback(async () => {
+    const text = freeformText.trim();
+    if (text.length < 3 || freeformLoading) return;
+    setFreeformLoading(true);
+    setFreeformError(null);
+    try {
+      const res = await fetch('/api/wizard/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) {
+        const { error } = await res.json().catch(() => ({ error: '' }));
+        throw new Error(error || `Parse failed (${res.status})`);
+      }
+      const parsed = await res.json() as {
+        occasion?: string | null;
+        name1?: string | null;
+        name2?: string | null;
+        date?: string | null;
+        venue?: string | null;
+        vibe?: string | null;
+      };
+
+      // Merge the parsed fields into `collected`. Fields the
+      // parser couldn't extract stay unset so the wizard just
+      // continues from wherever the user stopped providing info.
+      setCollected((prev) => {
+        const next: typeof prev = { ...prev };
+        if (parsed.occasion) next.occasion = parsed.occasion;
+        if (parsed.name1 || parsed.name2) {
+          next.names = [
+            parsed.name1 || prev.names?.[0] || '',
+            parsed.name2 || prev.names?.[1] || '',
+          ];
+        }
+        if (parsed.date) next.date = parsed.date;
+        if (parsed.venue) next.venue = parsed.venue;
+        if (parsed.vibe) next.vibe = parsed.vibe;
+        return next;
+      });
+      if (parsed.vibe) {
+        // Seed the vibe description so the vibe-pick step shows
+        // palettes right away instead of asking for it again.
+        setVibeDescription(parsed.vibe);
+      }
+      setDirection(1);
+      setFreeformOpen(false);
+      setFreeformText('');
+    } catch (err) {
+      setFreeformError(err instanceof Error ? err.message : 'Pear couldn\u2019t read that');
+    } finally {
+      setFreeformLoading(false);
+    }
+  }, [freeformText, freeformLoading]);
 
   // Contrast-adaptive colors
   const textColor = dark ? '#FAF7F2' : 'var(--pl-ink-soft, #3D3530)';
@@ -1166,37 +1313,54 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
         .pear-shadow {
           animation: pear-breathe 4.5s ease-in-out infinite reverse;
         }
-        /* Responsive layout: side-by-side on desktop, stacked on mobile */
+        /* Responsive layout: three columns on XL (mascot + card + preview),
+           two on desktop (mascot + card), stacked on mobile. */
         .pear-stage {
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: center;
           gap: 24px;
           width: 100%;
-          max-width: 860px;
-          padding: 0 20px;
+          max-width: 1280px;
+          padding: 32px 20px 0;
         }
         .pear-stage-mascot {
           flex-shrink: 0;
           display: flex;
           flex-direction: column;
           align-items: center;
-          width: 220px;
+          width: 200px;
+          padding-top: 40px;
         }
         .pear-stage-card {
-          flex: 1;
+          flex: 1 1 auto;
           max-width: 480px;
           min-width: 0;
+        }
+        .pear-stage-preview {
+          flex-shrink: 0;
+          width: 360px;
+          padding-top: 14px;
+        }
+        /* Hide the live preview panel at <1100px so the card has
+           room to breathe. On mobile we show the breadcrumb + card
+           only; the generation phase is where the preview really
+           shines anyway. */
+        @media (max-width: 1099px) {
+          .pear-stage-preview {
+            display: none;
+          }
         }
         @media (max-width: 767px) {
           .pear-stage {
             flex-direction: column;
             gap: 0;
-            padding: 0 16px;
+            padding: 16px 16px 0;
           }
           .pear-stage-mascot {
             width: 140px;
             margin-bottom: -10px;
+            padding-top: 0;
           }
           .pear-stage-card {
             width: 100%;
@@ -1328,6 +1492,20 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
         {/* Right side — speech + card stack */}
         <div className="pear-stage-card">
 
+          {/* Editable breadcrumb of answered steps — tap a chip to
+              go back and fix a typo. Hidden during photo-review
+              because that step takes over the whole card. */}
+          {step !== 'photo-review' && (
+            <div style={{ marginBottom: 10 }}>
+              <WizardBreadcrumb
+                collected={collected}
+                currentStep={step}
+                onEditField={handleEditField}
+                dark={dark}
+              />
+            </div>
+          )}
+
           {/* Speech bubble — sits above the card with tail pointing to Pear */}
           {step !== 'photo-review' && (
             <AnimatePresence mode="wait">
@@ -1419,17 +1597,190 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
               style={{ minHeight: step === 'occasion' ? 200 : 120 }}
             >
               {/* ── Occasion step ── */}
-              {step === 'occasion' && (
-                <OccasionCard
-                  occasions={[
-                    { label: 'Wedding', value: 'wedding' },
-                    { label: 'Birthday', value: 'birthday' },
-                    { label: 'Anniversary', value: 'anniversary' },
-                    { label: 'Engagement', value: 'engagement' },
-                    { label: 'Our Story', value: 'story' },
-                  ]}
-                  onSelect={handleOccasionSelect}
-                />
+              {step === 'occasion' && !freeformOpen && (
+                <div>
+                  <OccasionCard
+                    occasions={[
+                      { label: 'Wedding', value: 'wedding' },
+                      { label: 'Birthday', value: 'birthday' },
+                      { label: 'Anniversary', value: 'anniversary' },
+                      { label: 'Engagement', value: 'engagement' },
+                      { label: 'Our Story', value: 'story' },
+                    ]}
+                    onSelect={handleOccasionSelect}
+                  />
+                  {/* Power-user shortcut — lets people describe
+                      their whole celebration in one sentence and
+                      have Pear pre-fill every field at once. */}
+                  <button
+                    type="button"
+                    onClick={() => setFreeformOpen(true)}
+                    style={{
+                      marginTop: 12,
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: 100,
+                      background: 'transparent',
+                      border: `1px dashed ${dark ? 'rgba(255,255,255,0.3)' : 'rgba(163,177,138,0.4)'}`,
+                      color: textColor,
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 6,
+                      fontFamily: 'inherit',
+                      transition: 'background 0.15s, border-color 0.15s',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = dark
+                        ? 'rgba(255,255,255,0.06)'
+                        : 'rgba(163,177,138,0.08)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    <Sparkles size={12} />
+                    Or tell Pear everything at once
+                  </button>
+                </div>
+              )}
+
+              {/* ── Freeform natural-language entry ── */}
+              {step === 'occasion' && freeformOpen && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div
+                    style={{
+                      fontSize: '0.68rem',
+                      color: mutedColor,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    Describe your celebration in a sentence or two — Pear will
+                    pull out the date, names, venue, and vibe.
+                  </div>
+                  <textarea
+                    autoFocus
+                    value={freeformText}
+                    onChange={(e) => {
+                      setFreeformText(e.target.value);
+                      setFreeformError(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                        e.preventDefault();
+                        submitFreeform();
+                      }
+                    }}
+                    placeholder={'e.g. October 28 2026 wedding in Cape Cod for Alex & Jordan — sage and linen, beach vibes, 80 guests'}
+                    rows={4}
+                    disabled={freeformLoading}
+                    style={{
+                      width: '100%',
+                      padding: '12px 14px',
+                      borderRadius: 14,
+                      border: inputBorder,
+                      background: inputBg,
+                      backdropFilter: 'blur(8px)',
+                      WebkitBackdropFilter: 'blur(8px)',
+                      fontSize: 'max(16px, 0.88rem)',
+                      color: textColor,
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                      resize: 'vertical',
+                      minHeight: 96,
+                      transition: 'border-color 0.2s, box-shadow 0.2s',
+                      boxSizing: 'border-box' as const,
+                    } as React.CSSProperties}
+                  />
+                  {freeformError && (
+                    <div
+                      style={{
+                        fontSize: '0.7rem',
+                        color: '#b91c1c',
+                        background: 'rgba(185,28,28,0.08)',
+                        padding: '8px 12px',
+                        borderRadius: 10,
+                        border: '1px solid rgba(185,28,28,0.18)',
+                      }}
+                    >
+                      {freeformError}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFreeformOpen(false);
+                        setFreeformText('');
+                        setFreeformError(null);
+                      }}
+                      disabled={freeformLoading}
+                      style={{
+                        flex: 1,
+                        minHeight: 44,
+                        padding: '0 16px',
+                        borderRadius: 100,
+                        background: ghostBg,
+                        border: ghostBorder,
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        color: textColor,
+                        cursor: freeformLoading ? 'default' : 'pointer',
+                        opacity: freeformLoading ? 0.5 : 1,
+                      }}
+                    >
+                      Back to steps
+                    </button>
+                    <button
+                      type="button"
+                      onClick={submitFreeform}
+                      disabled={freeformLoading || freeformText.trim().length < 3}
+                      style={{
+                        flex: 1.4,
+                        minHeight: 44,
+                        padding: '0 18px',
+                        borderRadius: 100,
+                        background: freeformText.trim().length < 3
+                          ? 'rgba(163,177,138,0.25)'
+                          : 'var(--pl-olive, #A3B18A)',
+                        border: 'none',
+                        fontSize: '0.85rem',
+                        fontWeight: 700,
+                        color: freeformText.trim().length < 3 ? mutedColor : '#fff',
+                        cursor: freeformLoading ? 'default' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                      }}
+                    >
+                      {freeformLoading ? (
+                        <>
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                            style={{
+                              width: 12,
+                              height: 12,
+                              borderRadius: '50%',
+                              border: '2px solid rgba(255,255,255,0.4)',
+                              borderTopColor: '#fff',
+                            }}
+                          />
+                          Reading…
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles size={12} />
+                          Let Pear read it
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
               )}
 
               {/* ── Names step ── */}
@@ -1600,7 +1951,21 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                   </p>
                   <ColorPaletteCard
                     palettes={generatedPalettes}
-                    onSelect={(palette) => handleVibeSelect(palette.name.toLowerCase(), palette.colors)}
+                    onSelect={(palette) => {
+                      // Fire a small color-matched confetti burst at
+                      // the palette tile's location so picking a
+                      // palette *feels* like something happened.
+                      try {
+                        const active = document.activeElement as HTMLElement | null;
+                        if (active) {
+                          fireConfetti(active, {
+                            colors: palette.colors,
+                            count: 22,
+                          });
+                        }
+                      } catch { /* non-fatal visual effect */ }
+                      handleVibeSelect(palette.name.toLowerCase(), palette.colors);
+                    }}
                   />
                   <button
                     onClick={() => {
@@ -1837,7 +2202,21 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                     venue={collected.venue}
                   />
                   <button
-                    onClick={handleBuild}
+                    onClick={(e) => {
+                      // Big celebration burst matched to the
+                      // user's picked palette (or the default
+                      // olive set) before the generating screen
+                      // mounts over the top.
+                      try {
+                        fireConfetti(e, {
+                          colors: selectedPaletteColors || ['#A3B18A', '#D4A574', '#E8C39C', '#C4A96A'],
+                          count: 42,
+                          spread: 220,
+                          lifetimeMs: 1600,
+                        });
+                      } catch { /* non-fatal visual effect */ }
+                      handleBuild();
+                    }}
                     style={{
                       marginTop: 16,
                       width: '100%',
@@ -1865,6 +2244,21 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
 
         </div>{/* end glass card */}
         </div>{/* end pear-stage-card */}
+
+        {/* Live site preview — the single biggest magical moment of
+            the wizard. Every answer lights up another piece of the
+            real site so the user watches it assemble itself. Hidden
+            on tablets/mobile via media query; the generating phase
+            takes over with the full-size preview instead. */}
+        {step !== 'photo-review' && (
+          <div className="pear-stage-preview">
+            <WizardLivePreview
+              collected={collected}
+              selectedPhotos={selectedPhotos}
+              selectedPaletteColors={selectedPaletteColors}
+            />
+          </div>
+        )}
       </div>{/* end pear-stage */}
 
       {/* Photo Browser overlay */}
