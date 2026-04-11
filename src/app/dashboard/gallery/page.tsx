@@ -63,24 +63,37 @@ export default function GalleryPage() {
     // Load photos from all user sites
     async function loadPhotos() {
       try {
-        const res = await fetch('/api/site');
+        const res = await fetch('/api/sites');
         if (!res.ok) { setLoading(false); return; }
         const data = await res.json();
         const sites = data.sites || [];
 
         const allPhotos: PhotoItem[] = [];
+        const seen = new Set<string>();
+        const push = (url: string | undefined, alt: string, site: { domain: string; names?: [string, string] }) => {
+          if (!url || seen.has(url)) return;
+          seen.add(url);
+          allPhotos.push({
+            id: `${site.domain}-${allPhotos.length}`,
+            url,
+            alt,
+            siteName: site.names?.[0] || site.domain,
+            siteId: site.domain,
+          });
+        };
         for (const site of sites) {
           const manifest = site.manifest;
-          if (!manifest?.chapters) continue;
-          for (const chapter of manifest.chapters) {
+          if (!manifest) continue;
+          // Cover photo — single hero still from the generator
+          push(manifest.coverPhoto, site.names?.join(' & ') || site.domain, site);
+          // Hero slideshow — every image the wizard pre-uploaded
+          for (const url of (manifest.heroSlideshow || [])) {
+            push(url, site.names?.join(' & ') || site.domain, site);
+          }
+          // Chapter photos — the rest of the story
+          for (const chapter of (manifest.chapters || [])) {
             for (const img of (chapter.images || [])) {
-              allPhotos.push({
-                id: img.id || `${site.domain}-${allPhotos.length}`,
-                url: img.url,
-                alt: img.alt || chapter.title || '',
-                siteName: site.names?.[0] || site.domain,
-                siteId: site.domain,
-              });
+              push(img.url, img.alt || chapter.title || '', site);
             }
           }
         }
