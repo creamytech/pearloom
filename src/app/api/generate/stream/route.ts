@@ -271,6 +271,7 @@ export async function POST(req: Request) {
     selectedPaletteColors,
     photoNotes,
     storyLayout,
+    songUrl,
   } = body as {
     photos: GooglePhotoMetadata[];
     clusters?: PhotoCluster[];
@@ -297,6 +298,7 @@ export async function POST(req: Request) {
     selectedPaletteColors?: string[];
     photoNotes?: Record<string, { note?: string; location?: string; date?: string }>;
     storyLayout?: 'parallax' | 'filmstrip' | 'magazine' | 'timeline' | 'kenburns' | 'bento';
+    songUrl?: string;
   };
 
   if (!photos?.length) {
@@ -592,6 +594,30 @@ export async function POST(req: Request) {
         // the published site renders with it.
         if (storyLayout) {
           manifest.storyLayout = storyLayout;
+        }
+
+        // Insert a Spotify/YouTube music block if the user
+        // pasted a song URL on the wizard's song step. The
+        // block is added right after the hero so it's visible
+        // above the fold on the published site.
+        if (songUrl && typeof songUrl === 'string' && songUrl.trim().length > 0) {
+          const songBlock = {
+            id: `spotify-${Date.now()}`,
+            type: 'spotify' as const,
+            visible: true,
+            order: 1,
+            config: { url: songUrl.trim() },
+          };
+          const existing = manifest.blocks || [];
+          // Bump every existing block's order by 1 to make
+          // room for the song block at order 1 (just under the
+          // hero which lives at order 0).
+          manifest.blocks = [
+            ...existing.map((b) =>
+              b.order >= 1 ? { ...b, order: b.order + 1 } : b,
+            ),
+            songBlock,
+          ].sort((a, b) => a.order - b.order);
         }
 
         send({ type: 'complete', manifest });

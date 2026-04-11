@@ -269,6 +269,7 @@ export async function POST(req: NextRequest) {
       selectedPaletteColors,
       photoNotes,
       storyLayout,
+      songUrl,
     }: {
       photos: GooglePhotoMetadata[];
       clusters?: PhotoCluster[];
@@ -296,6 +297,7 @@ export async function POST(req: NextRequest) {
       selectedPaletteColors?: string[];
       photoNotes?: Record<string, { note?: string; location?: string; date?: string }>;
       storyLayout?: 'parallax' | 'filmstrip' | 'magazine' | 'timeline' | 'kenburns' | 'bento';
+      songUrl?: string;
     } = body;
 
     if (!photos?.length) {
@@ -595,6 +597,25 @@ export async function POST(req: NextRequest) {
     // the published site renders with it.
     if (storyLayout) {
       manifest.storyLayout = storyLayout;
+    }
+
+    // Insert a Spotify/YouTube music block if the user pasted a
+    // song URL on the wizard's song step.
+    if (songUrl && typeof songUrl === 'string' && songUrl.trim().length > 0) {
+      const songBlock = {
+        id: `spotify-${Date.now()}`,
+        type: 'spotify' as const,
+        visible: true,
+        order: 1,
+        config: { url: songUrl.trim() },
+      };
+      const existing = manifest.blocks || [];
+      manifest.blocks = [
+        ...existing.map((b) =>
+          b.order >= 1 ? { ...b, order: b.order + 1 } : b,
+        ),
+        songBlock,
+      ].sort((a, b) => a.order - b.order);
     }
 
     // Train voice profile if samples provided

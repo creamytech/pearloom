@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, ArrowLeft, MapPin, MessageCircle } from 'lucide-react';
+import { Send, Sparkles, ArrowLeft, MapPin, MessageCircle, Check, Mic, Music } from 'lucide-react';
 import { PearMascot } from '@/components/icons/PearMascot';
 import { PhotoBrowser } from '@/components/dashboard/photo-browser';
 import { LivingCanvas } from '@/components/wizard/LivingCanvas';
@@ -19,6 +19,8 @@ import { useGenerationTicker } from '@/components/wizard/useGenerationTicker';
 import { WizardBreadcrumb, type BreadcrumbStepKey } from '@/components/wizard/WizardBreadcrumb';
 import { WizardLivePreview } from '@/components/wizard/WizardLivePreview';
 import { useConfetti } from '@/components/wizard/useConfetti';
+import { PhotoDropZone } from '@/components/wizard/PhotoDropZone';
+import { useSpeechRecognition } from '@/components/wizard/useSpeechRecognition';
 import type { StoryManifest } from '@/types';
 
 interface PearSpotlightProps {
@@ -34,9 +36,11 @@ interface Collected {
   vibe?: string;
   /** User-picked story layout — maps to manifest.storyLayout on generation. */
   storyLayout?: StoryLayoutType;
+  /** Optional Spotify or YouTube URL that powers a music block. */
+  songUrl?: string;
 }
 
-type Step = 'occasion' | 'names' | 'date' | 'venue' | 'vibe-ask' | 'vibe-pick' | 'photos' | 'photo-review' | 'layout' | 'ready';
+type Step = 'occasion' | 'names' | 'date' | 'venue' | 'vibe-ask' | 'vibe-pick' | 'photos' | 'photo-review' | 'layout' | 'song' | 'ready';
 
 const STYLE_PAIRS = [
   { a: { name: 'Blush & Sage', colors: ['#D4A0A0', '#A3B18A', '#FAF7F2', '#3D3530'] },
@@ -163,8 +167,12 @@ function getDefaultVibeForOccasion(occasion?: string): string {
   }
 }
 
-// Determine current step from collected data
-function currentStep(c: Collected, photosDecided: boolean, vibeDescription: string, photosCount: number, reviewDone: boolean): Step {
+// Determine current step from collected data.
+//
+// NOTE: photos come BEFORE vibe so Pear can auto-suggest vibes
+// from the actual photos the user picked (see the vibe-ask
+// step's "Let Pear look at your photos" suggestions block).
+function currentStep(c: Collected, photosDecided: boolean, vibeDescription: string, photosCount: number, reviewDone: boolean, songDecided: boolean): Step {
   if (!c.occasion) return 'occasion';
   if (!c.names?.[0]) return 'names';
   if (c.occasion === 'wedding' || c.occasion === 'engagement' || c.occasion === 'anniversary') {
@@ -172,12 +180,13 @@ function currentStep(c: Collected, photosDecided: boolean, vibeDescription: stri
   }
   if (!c.date) return 'date';
   if (!c.venue) return 'venue';
-  if (!c.vibe) return vibeDescription ? 'vibe-pick' : 'vibe-ask';
   if (!photosDecided) return 'photos';
   if (photosCount > 0 && !reviewDone) return 'photo-review';
+  if (!c.vibe) return vibeDescription ? 'vibe-pick' : 'vibe-ask';
   // Ask the user to pick a story layout before we build so the live
   // preview renders with their chosen format, not the default.
   if (!c.storyLayout) return 'layout';
+  if (!songDecided) return 'song';
   return 'ready';
 }
 
@@ -263,6 +272,14 @@ function speechForStep(step: Step, collected: Collected, photoInfo?: { index: nu
       return "How should your story unfold?";
     }
 
+    case 'song': {
+      if (occ === 'wedding') return "What's your song? (the one)";
+      if (occ === 'birthday') return `What song is ${name1}'s anthem?`;
+      if (occ === 'engagement') return "What song was playing?";
+      if (occ === 'anniversary') return "What song has followed you through the years?";
+      return "What song fits the story?";
+    }
+
     case 'ready': {
       if (occ === 'wedding') return `${nameDisplay}'s wedding site is ready to build.`;
       if (occ === 'birthday') return `${name1}'s site is ready — let's make it!`;
@@ -294,6 +311,7 @@ function subtextForStep(step: Step, collected: Collected): string {
     case 'photos': return "Your photos make the site 10× more personal. I'll help tell the story.";
     case 'photo-review': return "Add the location and a note — it makes the story richer.";
     case 'layout': return "Pick the layout that fits your vibe. You can change it later in the editor.";
+    case 'song': return "Optional — paste a Spotify or YouTube link and I'll add a music block.";
     case 'ready': return "Take a peek — you can always tweak in the editor after.";
   }
 }
@@ -318,6 +336,7 @@ function moodForStep(step: Step, loading: boolean): 'idle' | 'thinking' | 'happy
     case 'photos': return 'happy';
     case 'photo-review': return 'happy';
     case 'layout': return 'happy';
+    case 'song': return 'happy';
     case 'ready': return 'celebrating';
   }
 }
@@ -370,6 +389,16 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const [photoReviewIndex, setPhotoReviewIndex] = useState(0);
   const [photoNotes, setPhotoNotes] = useState<Record<number, { location?: string; locationDetected?: boolean; date?: string; note?: string }>>({});
   const [reviewDone, setReviewDone] = useState(false);
+  /** User dismissed the optional "your song" step (with or without a value). */
+  const [songDecided, setSongDecided] = useState(false);
+  /** Gemini-Vision-suggested vibes from the user's uploaded photos. */
+  const [photoSuggestions, setPhotoSuggestions] = useState<Array<{
+    vibe: string;
+    reason: string;
+    palette?: string[];
+  }>>([]);
+  /** Whether we're currently fetching vibe suggestions. */
+  const [suggestingVibe, setSuggestingVibe] = useState(false);
   const [genStep, setGenStep] = useState(0);
   /** Raw server pass number (0..7). Drives the dynamic ticker. */
   const [genPass, setGenPass] = useState(0);
@@ -381,7 +410,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const selectedPhotosRef = useRef<any[]>([]);
   useEffect(() => { selectedPhotosRef.current = selectedPhotos; }, [selectedPhotos]);
 
-  const step = currentStep(collected, photosDecided, vibeDescription, selectedPhotos.length, reviewDone);
+  const step = currentStep(collected, photosDecided, vibeDescription, selectedPhotos.length, reviewDone, songDecided);
   const progress = progressCount(collected);
   const speech = speechForStep(step, collected, step === 'photo-review' ? { index: photoReviewIndex, total: selectedPhotos.length, location: photoNotes[photoReviewIndex]?.location } : undefined);
   const subtext = subtextForStep(step, collected);
@@ -414,9 +443,14 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       setPhotosDecided(false);
       setSelectedPhotos([]);
       setReviewDone(false);
+      setPhotoSuggestions([]); // stale; re-derive on new photos
     } else if (field === 'layout') {
       setCollected((prev) => ({ ...prev, storyLayout: undefined }));
     }
+    // Reset the song step whenever any earlier field changes
+    // so the user lands on it again after re-confirming later
+    // steps (and isn't silently skipping back to ready).
+    setSongDecided(false);
   }, []);
 
   // ── Freeform description mode ──────────────────────────────
@@ -428,6 +462,30 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const [freeformText, setFreeformText] = useState('');
   const [freeformLoading, setFreeformLoading] = useState(false);
   const [freeformError, setFreeformError] = useState<string | null>(null);
+  const freeformTextRef = useRef(freeformText);
+  useEffect(() => { freeformTextRef.current = freeformText; }, [freeformText]);
+
+  // Voice dictation for the freeform textarea — tap the mic and
+  // speak; we append the transcript to whatever was already in
+  // the input so users can speak and type in the same session.
+  // Renamed to `dictation` (not `speech`) because `speech` is
+  // already used above for the Pear speech-bubble text.
+  const dictation = useSpeechRecognition();
+  const dictationBaselineRef = useRef<string>('');
+  const startDictation = useCallback(() => {
+    if (dictation.listening) {
+      dictation.stop();
+      return;
+    }
+    dictationBaselineRef.current = freeformTextRef.current;
+    dictation.start((transcript) => {
+      // Append the running transcript to whatever text was
+      // already in the input when the user tapped the mic.
+      const baseline = dictationBaselineRef.current;
+      const joiner = baseline && !baseline.endsWith(' ') ? ' ' : '';
+      setFreeformText(`${baseline}${joiner}${transcript}`.trim());
+    });
+  }, [dictation]);
   const submitFreeform = useCallback(async () => {
     const text = freeformText.trim();
     if (text.length < 3 || freeformLoading) return;
@@ -496,13 +554,106 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const ghostBg = dark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.4)';
   const ghostBorder = dark ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(163,177,138,0.2)';
 
-  // Auto-open photo browser when we reach photos step
+  // NOTE: we no longer auto-open the Google Photos browser on
+  // the photos step — the user now picks between drag-and-drop
+  // direct upload and Google Photos themselves. The browser is
+  // triggered by the explicit "Pick from Google Photos" button
+  // inside the photos step render block.
+
+  // ── Keyboard shortcuts — small power-user win.
+  //    Esc closes overlays (photo browser, freeform mode).
+  //    Arrow-left steps back by clearing the current field.
+  //    We intentionally don't map Arrow-right/Enter to "continue"
+  //    because each step already has its own commit gesture and
+  //    we don't want surprise submissions when users are typing.
   useEffect(() => {
-    if (step === 'photos' && !showPhotoBrowser) {
-      const t = setTimeout(() => setShowPhotoBrowser(true), 500);
-      return () => clearTimeout(t);
-    }
-  }, [step, showPhotoBrowser]);
+    const onKey = (e: KeyboardEvent) => {
+      // Never fire while typing in inputs/textareas
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (e.key === 'Escape') {
+        if (showPhotoBrowser) {
+          setShowPhotoBrowser(false);
+          return;
+        }
+        if (freeformOpen) {
+          setFreeformOpen(false);
+          return;
+        }
+      }
+
+      if (e.key === 'ArrowLeft' && (e.metaKey || e.ctrlKey)) {
+        // Cmd/Ctrl + ← steps back by clearing the current field
+        // and letting `currentStep()` rewind.
+        e.preventDefault();
+        if (step === 'names') handleEditField('occasion');
+        else if (step === 'date') handleEditField('names');
+        else if (step === 'venue') handleEditField('date');
+        else if (step === 'photos') handleEditField('venue');
+        else if (step === 'vibe-ask' || step === 'vibe-pick') handleEditField('photos');
+        else if (step === 'layout') handleEditField('vibe');
+        else if (step === 'song') handleEditField('layout');
+        else if (step === 'ready') setSongDecided(false);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [step, showPhotoBrowser, freeformOpen, handleEditField]);
+
+  // ── AI vibe suggestion — trigger on vibe-ask step if photos
+  //    are available. Sends 2-4 photos to Gemini Vision and
+  //    renders 3 tappable vibe suggestions above the text input.
+  useEffect(() => {
+    if (step !== 'vibe-ask') return;
+    if (selectedPhotos.length === 0) return;
+    if (photoSuggestions.length > 0) return;
+    if (suggestingVibe) return;
+
+    const photoUrls = selectedPhotos
+      .slice(0, 4)
+      .map((p) => p?.baseUrl || p?.url || p?.uri || '')
+      .filter(Boolean);
+    if (photoUrls.length === 0) return;
+
+    let cancelled = false;
+    setSuggestingVibe(true);
+    fetch('/api/photos/suggest-vibe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        photoUrls,
+        occasion: collected.occasion,
+        names: collected.names,
+      }),
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`Suggest failed (${res.status})`);
+        return res.json();
+      })
+      .then((data: { suggestions?: Array<{ vibe: string; reason: string; palette?: string[] }> }) => {
+        if (cancelled) return;
+        if (Array.isArray(data.suggestions) && data.suggestions.length > 0) {
+          setPhotoSuggestions(data.suggestions);
+        }
+      })
+      .catch(() => { /* silent — text input still works */ })
+      .finally(() => {
+        if (!cancelled) setSuggestingVibe(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, selectedPhotos.length]);
 
   // Auto-focus input on steps that need it + clear stale input between steps
   useEffect(() => {
@@ -818,6 +969,10 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       selectedPaletteColors: selectedPaletteColors || undefined,
       // Per-photo notes + manual locations collected during photo review.
       photoNotes: Object.keys(photoNotesById).length > 0 ? photoNotesById : undefined,
+      // Optional song URL — Spotify/YouTube link the user pasted
+      // on the song step. The server adds a music block to the
+      // manifest when this is set.
+      songUrl: c.songUrl?.trim() || undefined,
     });
 
     try {
@@ -952,15 +1107,10 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     else if (step === 'vibe-ask') handleVibeDescriptionSubmit();
   };
 
-  // Edit a collected field
-  const handleEditField = (field: keyof Collected) => {
-    setDirection(-1);
-    if (field === 'names') {
-      setCollected(prev => ({ ...prev, names: undefined }));
-    } else {
-      setCollected(prev => ({ ...prev, [field]: undefined }));
-    }
-  };
+  // NOTE: the canonical `handleEditField` is defined earlier in
+  // the component (around line 425) and is used by the wizard
+  // breadcrumb. A duplicate stub used to live here from an
+  // earlier draft — delete it so the component compiles.
 
   // ── SPLIT POINT: RENDER STARTS BELOW ──
   // ── Generating phase ─────────────────────────────────────
@@ -1000,6 +1150,25 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
 
   // ── Error phase ──────────────────────────────────────────
   if (phase === 'error') {
+    // Figure out a human-friendly error category so the copy
+    // matches what actually happened instead of always saying
+    // "something went wrong".
+    const errMsg = genError || 'An unexpected error occurred while generating your site.';
+    const isTimeout = /timeout|timed out|abort/i.test(errMsg);
+    const isRate = /rate limit|too many/i.test(errMsg);
+    const isAuth = /unauthoriz|sign ?out|session/i.test(errMsg);
+    const isAI = /gemini|invalid json|model|generation/i.test(errMsg);
+    const headline = isTimeout ? 'Pear needed more time'
+      : isRate ? 'Too many tries at once'
+      : isAuth ? 'Please sign back in'
+      : isAI ? 'Pear hit a snag'
+      : 'Something went sideways';
+    const suggestion = isTimeout ? 'Sometimes the AI takes a little longer. One more try usually does it.'
+      : isRate ? 'Wait a minute and try again — our AI quota resets quickly.'
+      : isAuth ? 'Your Google session expired. Sign back in and we\u2019ll pick up right where you left off.'
+      : isAI ? 'This usually works on the second attempt — the AI can be moody.'
+      : 'Your answers are safe. Let\u2019s try again.';
+
     return (
       <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
         <LivingCanvas occasion={collected.occasion} names={collected.names} paletteColors={selectedPaletteColors} phase="chat" />
@@ -1016,21 +1185,53 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
               padding: '28px 24px',
               border: '1px solid rgba(255,255,255,0.5)',
               boxShadow: '0 4px 24px rgba(43,30,20,0.08)',
-              maxWidth: 400,
+              maxWidth: 440,
               width: '88%',
               textAlign: 'center',
             }}
           >
-            <p style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.1rem', color: 'var(--pl-ink-soft)', marginBottom: 8, fontWeight: 600 }}>
-              Oops, something went wrong
+            <p style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.2rem', color: 'var(--pl-ink-soft)', marginBottom: 8, fontWeight: 600, fontStyle: 'italic' }}>
+              {headline}
             </p>
-            <p style={{ fontSize: '0.85rem', color: 'var(--pl-muted, #8C7E72)', marginBottom: 20, lineHeight: 1.5 }}>
-              {genError || 'An unexpected error occurred while generating your site.'}
+            <p style={{ fontSize: '0.82rem', color: 'var(--pl-muted, #8C7E72)', marginBottom: 6, lineHeight: 1.5 }}>
+              {suggestion}
+            </p>
+            {/* Show the raw error message too, dimmed, for users
+                who want specifics. */}
+            <p style={{ fontSize: '0.68rem', color: 'var(--pl-muted, #8C7E72)', marginBottom: 16, lineHeight: 1.5, opacity: 0.7, fontStyle: 'italic' }}>
+              {errMsg}
             </p>
 
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+            {/* Reassurance chip — their state IS preserved */}
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '5px 12px',
+                borderRadius: 100,
+                background: 'rgba(163,177,138,0.15)',
+                border: '1px solid rgba(163,177,138,0.25)',
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: 'var(--pl-olive-deep, #7D9B6A)',
+                marginBottom: 18,
+              }}
+            >
+              <Check size={10} />
+              {selectedPhotos.length} photos · {collected.vibe ? 'vibe set' : 'vibe pending'} · nothing lost
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
               <button
-                onClick={onBack}
+                onClick={() => {
+                  // Go back into the wizard chat mode so the
+                  // user can edit any step via the breadcrumb.
+                  setPhase('chat');
+                  setGenError(null);
+                }}
                 style={{
                   padding: '10px 20px',
                   borderRadius: 100,
@@ -1043,7 +1244,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                   cursor: 'pointer',
                 }}
               >
-                Go Back
+                Edit answers
               </button>
 
               {retryCount < 3 && (
@@ -1051,7 +1252,10 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                   onClick={() => {
                     setPhase('chat');
                     setGenError(null);
-                    handleBuild();
+                    // Re-invoke handleBuild from the CURRENT
+                    // `collected` + `selectedPhotos` state, which
+                    // never got cleared on error.
+                    setTimeout(() => handleBuild(), 50);
                   }}
                   style={{
                     padding: '10px 20px',
@@ -1059,12 +1263,16 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                     background: 'var(--pl-olive, #A3B18A)',
                     border: 'none',
                     fontSize: '0.85rem',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     color: '#fff',
                     cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
                   }}
                 >
-                  Try Again {retryCount > 0 ? `(${retryCount}/3)` : ''}
+                  <Sparkles size={13} />
+                  Try again {retryCount > 0 ? `(${retryCount}/3)` : ''}
                 </button>
               )}
             </div>
@@ -1661,40 +1869,105 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                     Describe your celebration in a sentence or two — Pear will
                     pull out the date, names, venue, and vibe.
                   </div>
-                  <textarea
-                    autoFocus
-                    value={freeformText}
-                    onChange={(e) => {
-                      setFreeformText(e.target.value);
-                      setFreeformError(null);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-                        e.preventDefault();
-                        submitFreeform();
-                      }
-                    }}
-                    placeholder={'e.g. October 28 2026 wedding in Cape Cod for Alex & Jordan — sage and linen, beach vibes, 80 guests'}
-                    rows={4}
-                    disabled={freeformLoading}
-                    style={{
-                      width: '100%',
-                      padding: '12px 14px',
-                      borderRadius: 14,
-                      border: inputBorder,
-                      background: inputBg,
-                      backdropFilter: 'blur(8px)',
-                      WebkitBackdropFilter: 'blur(8px)',
-                      fontSize: 'max(16px, 0.88rem)',
-                      color: textColor,
-                      fontFamily: 'inherit',
-                      outline: 'none',
-                      resize: 'vertical',
-                      minHeight: 96,
-                      transition: 'border-color 0.2s, box-shadow 0.2s',
-                      boxSizing: 'border-box' as const,
-                    } as React.CSSProperties}
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <textarea
+                      autoFocus
+                      value={freeformText}
+                      onChange={(e) => {
+                        setFreeformText(e.target.value);
+                        setFreeformError(null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                          e.preventDefault();
+                          submitFreeform();
+                        }
+                      }}
+                      placeholder={'e.g. October 28 2026 wedding in Cape Cod for Alex & Jordan — sage and linen, beach vibes, 80 guests'}
+                      rows={4}
+                      disabled={freeformLoading}
+                      style={{
+                        width: '100%',
+                        padding: '12px 14px',
+                        // Extra right padding to clear the mic button
+                        paddingRight: dictation.supported ? 52 : 14,
+                        borderRadius: 14,
+                        border: inputBorder,
+                        background: inputBg,
+                        backdropFilter: 'blur(8px)',
+                        WebkitBackdropFilter: 'blur(8px)',
+                        fontSize: 'max(16px, 0.88rem)',
+                        color: textColor,
+                        fontFamily: 'inherit',
+                        outline: 'none',
+                        resize: 'vertical',
+                        minHeight: 96,
+                        transition: 'border-color 0.2s, box-shadow 0.2s',
+                        boxSizing: 'border-box' as const,
+                      } as React.CSSProperties}
+                    />
+                    {/* Mic button — Web Speech API dictation. Hidden
+                        in browsers that don't support it. */}
+                    {dictation.supported && (
+                      <button
+                        type="button"
+                        onClick={startDictation}
+                        disabled={freeformLoading}
+                        aria-label={dictation.listening ? 'Stop dictation' : 'Dictate with mic'}
+                        title={dictation.listening ? 'Stop dictation' : 'Tap to dictate'}
+                        style={{
+                          position: 'absolute',
+                          top: 10,
+                          right: 10,
+                          width: 36,
+                          height: 36,
+                          borderRadius: '50%',
+                          border: 'none',
+                          background: dictation.listening
+                            ? 'var(--pl-olive, #A3B18A)'
+                            : 'rgba(255,255,255,0.8)',
+                          boxShadow: dictation.listening
+                            ? '0 0 0 0 rgba(163,177,138,0.5)'
+                            : '0 2px 8px rgba(43,30,20,0.08)',
+                          cursor: freeformLoading ? 'default' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: dictation.listening ? '#fff' : 'var(--pl-olive-deep, #7D9B6A)',
+                          transition: 'background 0.18s, box-shadow 0.18s',
+                          animation: dictation.listening ? 'pear-mic-pulse 1.6s ease-in-out infinite' : undefined,
+                        }}
+                      >
+                        <Mic size={15} />
+                      </button>
+                    )}
+                    {/* Mic-pulse keyframe lives here so we don't
+                        need a global stylesheet for one animation. */}
+                    {dictation.listening && (
+                      <style>{`
+                        @keyframes pear-mic-pulse {
+                          0%, 100% {
+                            box-shadow: 0 0 0 0 rgba(163,177,138,0.55);
+                          }
+                          50% {
+                            box-shadow: 0 0 0 10px rgba(163,177,138,0);
+                          }
+                        }
+                      `}</style>
+                    )}
+                  </div>
+                  {dictation.error && (
+                    <div
+                      style={{
+                        fontSize: '0.65rem',
+                        color: 'var(--pl-muted)',
+                        fontStyle: 'italic',
+                        marginTop: -6,
+                      }}
+                    >
+                      {dictation.error}
+                    </div>
+                  )}
                   {freeformError && (
                     <div
                       style={{
@@ -1880,6 +2153,162 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
               {/* ── Vibe ask step — text input for description ── */}
               {step === 'vibe-ask' && (
                 <div>
+                  {/* AI-suggested vibes from the user's photos —
+                      shown above the text input when we have
+                      suggestions. Tap one to skip typing entirely
+                      and jump straight to the palette picker. */}
+                  {(suggestingVibe || photoSuggestions.length > 0) && (
+                    <div style={{ marginBottom: 14 }}>
+                      <div
+                        style={{
+                          fontSize: '0.62rem',
+                          fontWeight: 800,
+                          letterSpacing: '0.12em',
+                          textTransform: 'uppercase',
+                          color: 'var(--pl-olive-deep, #7D9B6A)',
+                          marginBottom: 8,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                        }}
+                      >
+                        <Sparkles size={11} />
+                        {suggestingVibe
+                          ? 'Pear is reading your photos…'
+                          : 'From your photos'}
+                      </div>
+                      {suggestingVibe ? (
+                        <div
+                          style={{
+                            padding: '18px 14px',
+                            borderRadius: 14,
+                            background: 'rgba(163,177,138,0.08)',
+                            border: '1px dashed rgba(163,177,138,0.3)',
+                            fontSize: '0.74rem',
+                            color: mutedColor,
+                            textAlign: 'center',
+                            fontStyle: 'italic',
+                          }}
+                        >
+                          Looking at your photos for the vibe…
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          {photoSuggestions.map((s, i) => (
+                            <motion.button
+                              key={`${s.vibe}-${i}`}
+                              type="button"
+                              initial={{ opacity: 0, y: 6 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.25, delay: i * 0.08 }}
+                              whileHover={{ y: -1 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={async (e) => {
+                                if (s.palette && s.palette.length > 0) {
+                                  fireConfetti(e, {
+                                    colors: s.palette,
+                                    count: 18,
+                                  });
+                                }
+                                setVibeDescription(s.vibe);
+                                setDirection(1);
+                                setLoading(true);
+                                try {
+                                  const palettes = await generatePalettesFromAI(
+                                    s.vibe,
+                                    collected.occasion,
+                                  );
+                                  setGeneratedPalettes(palettes);
+                                } catch {
+                                  setGeneratedPalettes(
+                                    generatePalettesFallback(s.vibe, collected.occasion),
+                                  );
+                                } finally {
+                                  setLoading(false);
+                                }
+                              }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 10,
+                                padding: '10px 14px',
+                                borderRadius: 14,
+                                border: `1px solid ${dark ? 'rgba(255,255,255,0.2)' : 'rgba(163,177,138,0.3)'}`,
+                                background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.55)',
+                                cursor: 'pointer',
+                                textAlign: 'left',
+                                fontFamily: 'inherit',
+                                backdropFilter: 'blur(12px)',
+                                WebkitBackdropFilter: 'blur(12px)',
+                                transition: 'background 0.15s, border-color 0.15s',
+                              }}
+                            >
+                              {/* Tiny palette swatches */}
+                              {s.palette && s.palette.length > 0 && (
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    gap: 2,
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  {s.palette.slice(0, 3).map((c, ci) => (
+                                    <div
+                                      key={ci}
+                                      style={{
+                                        width: 14,
+                                        height: 14,
+                                        borderRadius: 4,
+                                        background: c,
+                                        border: '1px solid rgba(0,0,0,0.06)',
+                                      }}
+                                    />
+                                  ))}
+                                </div>
+                              )}
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div
+                                  style={{
+                                    fontSize: '0.82rem',
+                                    fontWeight: 700,
+                                    color: textColor,
+                                    fontFamily: 'var(--pl-font-heading)',
+                                    fontStyle: 'italic',
+                                    lineHeight: 1.25,
+                                  }}
+                                >
+                                  {s.vibe}
+                                </div>
+                                {s.reason && (
+                                  <div
+                                    style={{
+                                      fontSize: '0.65rem',
+                                      color: mutedColor,
+                                      marginTop: 2,
+                                      lineHeight: 1.35,
+                                    }}
+                                  >
+                                    {s.reason}
+                                  </div>
+                                )}
+                              </div>
+                            </motion.button>
+                          ))}
+                        </div>
+                      )}
+                      <div
+                        style={{
+                          fontSize: '0.62rem',
+                          color: mutedColor,
+                          textAlign: 'center',
+                          margin: '10px 0 4px',
+                          opacity: 0.7,
+                        }}
+                      >
+                        Or describe your own
+                      </div>
+                    </div>
+                  )}
                   <form onSubmit={handleInputSubmit}>
                     <input
                       ref={inputRef}
@@ -1986,10 +2415,84 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
 
               {/* ── Photos step ── */}
               {step === 'photos' && (
-                <div style={{ textAlign: 'center', paddingTop: 24, paddingBottom: 24 }}>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--pl-muted, #8C7E72)' }}>
-                    Opening photo picker...
-                  </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {/* Drag-and-drop direct upload — the biggest
+                      accessibility win of the wizard. Users who
+                      don't have their photos in Google Photos can
+                      upload straight from their device and the
+                      rest of the flow treats them identically. */}
+                  <PhotoDropZone
+                    dark={dark}
+                    onPhotosUploaded={(uploaded) => {
+                      setSelectedPhotos((prev) => [...prev, ...uploaded]);
+                      setPhotosDecided(true);
+                    }}
+                  />
+
+                  {/* Divider */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      fontSize: '0.62rem',
+                      letterSpacing: '0.14em',
+                      textTransform: 'uppercase',
+                      color: mutedColor,
+                      opacity: 0.7,
+                      margin: '2px 0',
+                    }}
+                  >
+                    <div style={{ flex: 1, height: 1, background: 'rgba(163,177,138,0.25)' }} />
+                    or
+                    <div style={{ flex: 1, height: 1, background: 'rgba(163,177,138,0.25)' }} />
+                  </div>
+
+                  {/* Google Photos picker — original path */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPhotoBrowser(true)}
+                    style={{
+                      width: '100%',
+                      minHeight: 48,
+                      padding: '12px 16px',
+                      borderRadius: 14,
+                      background: 'rgba(255,255,255,0.5)',
+                      border: `1px solid ${dark ? 'rgba(255,255,255,0.25)' : 'rgba(163,177,138,0.35)'}`,
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      color: textColor,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      backdropFilter: 'blur(12px)',
+                    }}
+                  >
+                    <svg width={16} height={16} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M12 2a10 10 0 0 0-9.95 9h11.64L9.74 7.05a.75.75 0 0 1 1.06-1.06l5.5 5.5a.75.75 0 0 1 0 1.06l-5.5 5.5a.75.75 0 1 1-1.06-1.06l3.95-3.95H2.05A10 10 0 1 0 12 2z" fill="var(--pl-olive-deep, #7D9B6A)" />
+                    </svg>
+                    Pick from Google Photos
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handlePhotosSkip}
+                    style={{
+                      width: '100%',
+                      padding: '10px 16px',
+                      background: 'transparent',
+                      border: 'none',
+                      fontSize: '0.74rem',
+                      color: mutedColor,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    Skip photos for now
+                  </button>
                 </div>
               )}
 
@@ -2188,6 +2691,121 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                   >
                     Continue
                   </button>
+                </div>
+              )}
+
+              {/* ── Song step — optional music block ── */}
+              {step === 'song' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div
+                    style={{
+                      fontSize: '0.72rem',
+                      color: mutedColor,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    Paste a Spotify or YouTube link and Pear will add a music
+                    block with the song below your hero.
+                  </div>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="url"
+                      value={collected.songUrl || ''}
+                      onChange={(e) =>
+                        setCollected((prev) => ({ ...prev, songUrl: e.target.value }))
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          setSongDecided(true);
+                          setDirection(1);
+                        }
+                      }}
+                      placeholder="spotify.com/track/… or youtu.be/…"
+                      style={{
+                        width: '100%',
+                        height: 48,
+                        padding: '0 46px 0 16px',
+                        borderRadius: 14,
+                        border: inputBorder,
+                        background: inputBg,
+                        backdropFilter: 'blur(8px)',
+                        fontSize: 'max(16px, 0.88rem)',
+                        color: textColor,
+                        fontFamily: 'inherit',
+                        outline: 'none',
+                        boxSizing: 'border-box' as const,
+                        transition: 'border-color 0.2s',
+                      } as React.CSSProperties}
+                    />
+                    <Music
+                      size={16}
+                      style={{
+                        position: 'absolute',
+                        right: 16,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: 'var(--pl-olive, #A3B18A)',
+                        opacity: 0.7,
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Dismiss without setting a song.
+                        setSongDecided(true);
+                        setCollected((prev) => ({ ...prev, songUrl: undefined }));
+                        setDirection(1);
+                      }}
+                      style={{
+                        flex: 1,
+                        minHeight: 44,
+                        padding: '0 16px',
+                        borderRadius: 100,
+                        background: ghostBg,
+                        border: ghostBorder,
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        color: textColor,
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      Skip — no song
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSongDecided(true);
+                        setDirection(1);
+                      }}
+                      disabled={!(collected.songUrl || '').trim()}
+                      style={{
+                        flex: 1.2,
+                        minHeight: 44,
+                        padding: '0 18px',
+                        borderRadius: 100,
+                        background: (collected.songUrl || '').trim()
+                          ? 'var(--pl-olive, #A3B18A)'
+                          : 'rgba(163,177,138,0.25)',
+                        border: 'none',
+                        fontSize: '0.85rem',
+                        fontWeight: 700,
+                        color: (collected.songUrl || '').trim() ? '#fff' : mutedColor,
+                        cursor: (collected.songUrl || '').trim() ? 'pointer' : 'default',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                      }}
+                    >
+                      <Music size={13} />
+                      Add song
+                    </button>
+                  </div>
                 </div>
               )}
 
