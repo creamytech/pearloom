@@ -301,7 +301,6 @@ interface UserSitesProps {
   onQuickStart?: () => void;
   onOpenTemplates?: () => void;
   onEditSite: (site: UserSite) => void;
-  onManageGuests: (site: UserSite) => void;
   userName?: string;
 }
 
@@ -315,7 +314,7 @@ const OCCASION_BADGE: Record<string, { label: string; variant: 'plum' | 'gold' |
 
 // ─────────────────────────────────────────────────────────────
 
-export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSite, onManageGuests, userName }: UserSitesProps) {
+export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSite, userName }: UserSitesProps) {
   const router = useRouter();
   const [sites, setSites]                   = useState<UserSite[]>([]);
   const [loading, setLoading]               = useState(true);
