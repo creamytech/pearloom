@@ -1101,7 +1101,7 @@ export function TimelineVine({
 // ─────────────────────────────────────────────────────────────
 
 export function KenBurns({
-  photos,
+  photos: rawPhotos,
   title,
   subtitle,
   body,
@@ -1110,6 +1110,11 @@ export function KenBurns({
   dateFormat,
   editable,
 }: StoryLayoutProps) {
+  // Cap the slideshow at 6 so a cluster of 50 vacation photos doesn't
+  // turn into a 6-minute rotation. The rest of the cluster still lives
+  // in the manifest — it just isn't on the main stage. The dashboard
+  // gallery, photos block, and other layouts can still use the tail.
+  const photos = rawPhotos.slice(0, 6);
   const [activeIdx, setActiveIdx] = useState(0);
   const hasMultiple = photos.length > 1;
   const activePhoto = photos[activeIdx];

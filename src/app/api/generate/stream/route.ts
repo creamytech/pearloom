@@ -544,7 +544,13 @@ export async function POST(req: Request) {
           Promise.all(manifest.chapters.map(async (chapter, i) => {
             const cluster = enrichedClusters[i];
             if (cluster) {
-              const photosToUpload = cluster.photos.slice(0, 3);
+              // Attach EVERY photo in the cluster, not just the first 3.
+              // Individual layouts cap their own display counts at render
+              // time (FilmStrip/MagazineSpread/TimelineVine use photos[0],
+              // BentoGrid caps at 5, KenBurns at 6). Keeping the full set
+              // in the manifest means the dashboard gallery can show every
+              // photo the user actually uploaded instead of losing the tail.
+              const photosToUpload = cluster.photos;
               const uploadedUrls = await Promise.all(
                 photosToUpload.map(p => uploadLimit(() => uploadPhotoUrl(p.baseUrl)))
               );

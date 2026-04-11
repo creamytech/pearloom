@@ -453,10 +453,12 @@ function hydrateChapterImages(
 
     if (!bestCluster) return chapter;
 
-    // Build ChapterImage[] from the cluster's photos
-    // Limit to 6 per chapter to keep the UI clean
+    // Build ChapterImage[] from EVERY photo in the cluster. Individual
+    // layouts cap display counts at render time (most use photos[0];
+    // BentoGrid caps at 5; KenBurns at 6). Keeping the full set in the
+    // manifest lets the dashboard gallery show every photo the user
+    // uploaded instead of losing the tail.
     const images: import('@/types').ChapterImage[] = bestCluster.photos
-      .slice(0, 6)
       .map((photo) => ({
         id: photo.id,
         // Google Photos: append size params. Local uploads: already a data URL
