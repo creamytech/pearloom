@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { buildSiteUrl } from '@/lib/site-urls';
 
 export const dynamic = 'force-dynamic';
 
@@ -110,7 +111,7 @@ export async function POST(req: NextRequest) {
   const toSend = validGuests.slice(0, 500);
 
   const coupleDisplay = coupleNames.filter(Boolean).join(' & ') || 'The Couple';
-  const siteUrl = `https://${subdomain}.pearloom.com`;
+  const siteUrl = buildSiteUrl(subdomain);
   const defaultMessage = message?.trim() || `We are delighted to invite you to celebrate our special day. Please visit our website for details and to RSVP.`;
 
   const resendKey = process.env.RESEND_API_KEY;

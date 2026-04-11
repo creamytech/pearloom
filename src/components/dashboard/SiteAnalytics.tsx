@@ -11,6 +11,7 @@ import {
   TrendingUp, Share2, Pencil, ExternalLink,
 } from 'lucide-react';
 import type { StoryManifest } from '@/types';
+import { buildSiteUrl } from '@/lib/site-urls';
 
 // ── Brand palette ──────────────────────────────────────────────
 const C = {
@@ -174,7 +175,7 @@ export function SiteAnalytics({ manifest, coupleNames, onEdit, onShare }: SiteAn
   const previewHref = manifest.previewToken
     ? `/preview/${manifest.previewToken}`
     : manifest.subdomain
-      ? `https://${manifest.subdomain}.pearloom.com`
+      ? buildSiteUrl(manifest.subdomain)
       : undefined;
 
   return (

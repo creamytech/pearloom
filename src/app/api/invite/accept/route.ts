@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { acceptSiteInvite } from '@/lib/db';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { buildSiteUrl } from '@/lib/site-urls';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
       siteId: result.siteId,
       role: result.role,
       subdomain: result.subdomain,
-      redirectTo: result.subdomain ? `https://pearloom.com/${result.subdomain}` : 'https://pearloom.com',
+      redirectTo: result.subdomain ? buildSiteUrl(result.subdomain) : 'https://pearloom.com',
     });
   } catch (err) {
     console.error('[invite/accept POST] Error:', err);

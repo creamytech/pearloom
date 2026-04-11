@@ -1119,10 +1119,10 @@ function PublishModalInline() {
                   </motion.div>
                 )}
                 <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.05)', borderRadius: '0.85rem', border: '1px solid rgba(0,0,0,0.07)', overflow: 'hidden', marginBottom: '1.5rem', boxShadow: '0 2px 12px rgba(0,0,0,0.2) inset' }}>
+                  <div style={{ padding: '0.9rem 0.25rem 0.9rem 1rem', color: 'rgba(255,255,255,0.28)', fontSize: '0.82rem', whiteSpace: 'nowrap', background: 'rgba(163,177,138,0.04)' }}>pearloom.com/sites/</div>
                   <input value={subdomain} onChange={e => dispatch({ type: 'SET_SUBDOMAIN', subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
                     placeholder="shauna-and-ben" disabled={isPublishing} autoFocus
                     style={{ flex: 1, padding: '0.9rem 1rem', background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '0.95rem', fontFamily: 'inherit' }} />
-                  <div style={{ padding: '0.9rem 1rem', color: 'rgba(255,255,255,0.28)', fontSize: '0.82rem', borderLeft: '1px solid rgba(0,0,0,0.06)', whiteSpace: 'nowrap', background: 'rgba(163,177,138,0.04)' }}>.pearloom.com</div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
                   <motion.button onClick={() => dispatch({ type: 'SET_SHOW_PUBLISH', show: false })} disabled={isPublishing}

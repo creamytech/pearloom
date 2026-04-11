@@ -2,6 +2,7 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getSiteConfig } from '@/lib/db';
+import { buildSiteUrl } from '@/lib/site-urls';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
 import { Hero } from '@/components/hero';
@@ -95,7 +96,7 @@ export async function generateMetadata(
     : deriveVibeSkin(manifest?.vibeString || '');
   const tagline = manifest?.poetry?.heroTagline || siteConfig.tagline || vibeString || '';
 
-  const siteUrl = `https://${domain}.pearloom.com`;
+  const siteUrl = buildSiteUrl(domain);
 
   // Build themed OG image URL with full palette & font info
   const ogUrl = new URL('/api/og', siteUrl);
@@ -195,11 +196,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     : occasion === 'birthday' ? 'SocialEvent'
     : occasion === 'story' ? 'Event'
     : 'SocialEvent';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  const canonicalUrl = siteUrl
-    ? `${siteUrl.replace(/^https?:\/\//, 'https://')
-        .replace(/^(https?:\/\/)/, `$1${domain}.`)}`
-    : `https://${domain}.pearloom.com`;
+  const canonicalUrl = buildSiteUrl(domain);
   const vibeString = manifest.vibeString || '';
   const heroTagline = manifest.poetry?.heroTagline || '';
   const jsonLdDesc = heroTagline

@@ -5,6 +5,7 @@
 
 import { MetadataRoute } from 'next';
 import { getPublishedSites } from '@/lib/db';
+import { buildSiteUrl } from '@/lib/site-urls';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [
@@ -39,7 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const sites = await getPublishedSites();
     for (const site of sites) {
       entries.push({
-        url: `https://${site.domain}.pearloom.com`,
+        url: buildSiteUrl(site.domain),
         lastModified: new Date(site.updated_at || site.created_at),
         changeFrequency: 'weekly',
         priority: 0.6,

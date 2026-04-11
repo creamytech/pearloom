@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getSiteConfig } from '@/lib/db';
+import { buildSiteUrl } from '@/lib/site-urls';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
@@ -64,7 +65,7 @@ export async function generateMetadata(
 
   const pageTitle = `${coupleTitle} · ${pageMeta.title}`;
   const fullTitle = `${pageTitle} | Pearloom`;
-  const siteUrl = `https://${domain}.pearloom.com/${page}`;
+  const siteUrl = buildSiteUrl(domain, `/${page}`);
 
   return {
     metadataBase: new URL('https://pearloom.com'),

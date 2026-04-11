@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { LoomThreadIcon } from '@/components/icons/PearloomIcons';
 import Link from 'next/link';
+import { formatSiteDisplayUrl } from '@/lib/site-urls';
 
 // Force dynamic since we pull live RSVP data
 export const dynamic = 'force-dynamic';
@@ -807,7 +808,7 @@ function RsvpPageContent({ domain }: { domain: string }) {
       });
   }, [domain]);
 
-  const siteUrl = `${domain}.pearloom.com`;
+  const siteUrl = formatSiteDisplayUrl(domain);
   const list = guests ?? [];
 
   const attending = list.filter((r) => r.status === 'attending');

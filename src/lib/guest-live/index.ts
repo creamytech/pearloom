@@ -8,6 +8,8 @@
 // "what app is this?" — and that's how we grow.
 // ─────────────────────────────────────────────────────────────
 
+import { buildSiteUrl } from '@/lib/site-urls';
+
 // ── Types ────────────────────────────────────────────────────
 
 export interface LiveEvent {
@@ -76,14 +78,14 @@ export interface GuestCheckIn {
  * Generate a QR code URL for guest check-in at the venue.
  */
 export function getCheckInQrUrl(siteId: string): string {
-  return `https://${siteId}.pearloom.com/live?checkin=true`;
+  return buildSiteUrl(siteId, '/live?checkin=true');
 }
 
 /**
  * Generate the big screen display URL.
  */
 export function getBigScreenUrl(siteId: string): string {
-  return `https://${siteId}.pearloom.com/live?mode=bigscreen`;
+  return buildSiteUrl(siteId, '/live?mode=bigscreen');
 }
 
 // ── Live Timeline ────────────────────────────────────────────

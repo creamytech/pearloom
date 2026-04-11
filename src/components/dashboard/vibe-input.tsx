@@ -18,6 +18,7 @@ import {
 import { PearBackground } from '@/components/icons/PearShapes';
 import { VenueSearch, type VenuePartial } from '@/components/venue/VenueSearch';
 import { Button } from '@/components/ui';
+import { formatSiteDisplayUrl } from '@/lib/site-urls';
 
 // Small tooltip component for Phase 2 field hints
 function Tooltip({ text }: { text: string }) {
@@ -1412,12 +1413,15 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
             <PearBackground color="var(--pl-olive, #A3B18A)" opacity={0.055} size={110} />
           </div>
           <div style={{ position: 'relative', zIndex: 1 }}>
-          <p style={sectionHeading}><Globe size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.4rem' }} />Your Site URL<Tooltip text="This becomes your site URL: yourname.pearloom.com" /></p>
+          <p style={sectionHeading}><Globe size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.4rem' }} />Your Site URL<Tooltip text="This becomes your site URL: pearloom.com/sites/yourname" /></p>
           <p style={{ fontSize: '0.85rem', color: 'var(--pl-muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
             This is where your site will live. You can always change it later.
           </p>
           <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid rgba(255,255,255,0.4)', borderRadius: '12px', overflow: 'hidden', transition: 'border-color 0.2s', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } as React.CSSProperties}
             onFocus={() => {}} onBlur={() => {}}>
+            <div style={{ padding: '0.85rem 0.4rem 0.85rem 1rem', background: 'rgba(0,0,0,0.03)', color: 'var(--pl-muted)', fontWeight: 500, borderRight: '1px solid rgba(0,0,0,0.08)', whiteSpace: 'nowrap', fontSize: '0.9rem' }}>
+              pearloom.com/sites/
+            </div>
             <input
               value={subdomain}
               onChange={e => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
@@ -1426,13 +1430,10 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
               onFocus={e => { (e.target.parentElement as HTMLElement).style.borderColor = 'var(--pl-olive)'; }}
               onBlur={e => { (e.target.parentElement as HTMLElement).style.borderColor = 'rgba(0,0,0,0.1)'; }}
             />
-            <div style={{ padding: '0.85rem 1rem', background: 'rgba(0,0,0,0.03)', color: 'var(--pl-muted)', fontWeight: 500, borderLeft: '1px solid rgba(0,0,0,0.08)', whiteSpace: 'nowrap', fontSize: '0.9rem' }}>
-              .pearloom.com
-            </div>
           </div>
           {subdomain && (
             <p style={{ fontSize: '0.8rem', color: 'var(--pl-olive)', marginTop: '0.5rem', fontWeight: 500 }}>
-              {subdomain}.pearloom.com
+              {formatSiteDisplayUrl(subdomain)}
             </p>
           )}
           {/* Availability status */}
@@ -1690,7 +1691,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                   <div style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', fontStyle: 'italic' }}>No date set</div>
                 )}
                 <div style={{ fontSize: '0.78rem', color: 'var(--pl-olive)', fontFamily: 'ui-monospace, monospace', fontWeight: 600 }}>
-                  {finalSlug}.pearloom.com
+                  {formatSiteDisplayUrl(finalSlug)}
                 </div>
               </div>
             </>,
@@ -1903,9 +1904,11 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
             {name1.trim() && (
               <p style={{ fontSize: '0.85rem', color: 'var(--pl-muted)', marginTop: '1rem' }}>
                 Your site URL: <span style={{ fontWeight: 600 }}>
-                  {isBirthday
-                    ? `${name1.toLowerCase().replace(/[^a-z0-9]/g, '') || 'birthday'}-birthday.pearloom.com`
-                    : `${slugFromNames(name1, name2)}.pearloom.com`}
+                  {formatSiteDisplayUrl(
+                    isBirthday
+                      ? `${name1.toLowerCase().replace(/[^a-z0-9]/g, '') || 'birthday'}-birthday`
+                      : slugFromNames(name1, name2)
+                  )}
                 </span>
               </p>
             )}

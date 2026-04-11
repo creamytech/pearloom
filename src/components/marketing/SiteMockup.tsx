@@ -58,7 +58,7 @@ export function SiteMockup() {
           className="flex-1 text-center text-[0.65rem] tracking-wide font-medium"
           style={{ color: C.muted }}
         >
-          pearloom.com/emma-james
+          pearloom.com/sites/emma-james
         </div>
       </div>
 

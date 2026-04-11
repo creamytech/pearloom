@@ -14,6 +14,7 @@ import { StyleDiscoveryCard, ColorPaletteCard } from '@/components/wizard/Wizard
 import { PearCalendar } from '@/components/wizard/PearCalendar';
 import { SiteRenderer } from '@/components/editor/SiteRenderer';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
+import { formatSiteDisplayUrl } from '@/lib/site-urls';
 import { StoryLayoutPicker, type StoryLayoutType } from '@/components/blocks/StoryLayouts';
 import { useGenerationTicker } from '@/components/wizard/useGenerationTicker';
 import { WizardBreadcrumb, type BreadcrumbStepKey } from '@/components/wizard/WizardBreadcrumb';
@@ -1284,7 +1285,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
 
   // ── Celebration / Confirmation screen ────────────────────
   if (phase === 'complete' && completedData) {
-    const siteUrl = `${completedData.subdomain}.pearloom.com`;
+    const siteUrl = formatSiteDisplayUrl(completedData.subdomain);
     const displayNames = completedData.names[1]
       ? `${completedData.names[0]} & ${completedData.names[1]}`
       : completedData.names[0];

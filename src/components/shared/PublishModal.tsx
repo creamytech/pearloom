@@ -274,7 +274,7 @@ export function PublishModal({
               Your site will be at
             </div>
             <div className="text-[1.15rem] font-bold text-[var(--pl-ink)] tracking-tight">
-              {subdomain || '...'}<span className="text-[var(--pl-olive)] opacity-60">.pearloom.com</span>
+              <span className="text-[var(--pl-olive)] opacity-60">pearloom.com/sites/</span>{subdomain || '...'}
             </div>
           </div>
 
@@ -293,7 +293,7 @@ export function PublishModal({
                 onChange={(e) => handleSubdomainChange(e.target.value)}
                 placeholder="sarah-and-james"
                 disabled={isPublishing}
-                suffix=".pearloom.com"
+                prefix="pearloom.com/sites/"
               />
             </div>
           )}

@@ -14,6 +14,7 @@ import { useRef, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Download, Link2, Check, Calendar, Image } from 'lucide-react';
 import type { StoryManifest } from '@/types';
+import { buildSiteUrl, formatSiteDisplayUrl } from '@/lib/site-urls';
 
 // ── Card layout themes ────────────────────────────────────────
 const CARD_STYLES = [
@@ -72,7 +73,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
   }, [subdomain]);
 
   const handleCopyLink = useCallback(async () => {
-    const url = `https://${subdomain}.pearloom.com`;
+    const url = buildSiteUrl(subdomain);
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
@@ -207,7 +208,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
             fontSize: '0.5rem', color: `${style.accent}80`,
             letterSpacing: '0.12em', textTransform: 'lowercase',
           }}>
-            {subdomain}.pearloom.com
+            {formatSiteDisplayUrl(subdomain)}
           </div>
         </div>
       </div>

@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { StoryManifest, MealOption, GuestBroadcast } from '@/types';
+import { buildSiteUrl } from '@/lib/site-urls';
 
 // ── Meal Selection ───────────────────────────────────────────
 
@@ -207,7 +208,7 @@ export function generateJsonLd(
     '@context': 'https://schema.org',
     '@type': eventType,
     name: `${displayName}'s ${occasion === 'wedding' ? 'Wedding' : occasion === 'birthday' ? 'Birthday' : 'Celebration'}`,
-    url: `https://${domain}.pearloom.com`,
+    url: buildSiteUrl(domain),
     description: manifest.poetry?.heroTagline || manifest.vibeString || '',
   };
 

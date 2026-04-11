@@ -13,6 +13,7 @@ import {
   UndoIcon, RedoIcon, PublishIcon, SavedIcon, UnsavedIcon,
 } from '@/components/icons/EditorIcons';
 import { RichTooltip } from '@/components/ui/tooltip';
+import { buildSiteUrl } from '@/lib/site-urls';
 import { useEditor } from '@/lib/editor-state';
 import { KeyboardShortcuts } from './KeyboardShortcuts';
 
@@ -160,7 +161,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
           <RichTooltip label="Copy site link" side="bottom">
             <motion.button
               onClick={async () => {
-                const url = `https://${subdomain}.pearloom.com`;
+                const url = buildSiteUrl(subdomain);
                 try { await navigator.clipboard.writeText(url); } catch {}
                 setShareCopied(true);
                 setTimeout(() => setShareCopied(false), 2000);

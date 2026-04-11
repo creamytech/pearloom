@@ -25,7 +25,7 @@ const FAQS = [
   },
   {
     q: 'Can I use my own domain?',
-    a: 'Absolutely. Atelier and Legacy sites can connect a custom domain (like emma-and-james.com). We handle SSL and DNS setup for you. Journal sites use a yourname.pearloom.com subdomain.',
+    a: 'Absolutely. Atelier and Legacy sites can connect a custom domain (like emma-and-james.com). We handle SSL and DNS setup for you. Journal sites live at pearloom.com/sites/yourname.',
   },
   {
     q: 'What languages are supported?',

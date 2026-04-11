@@ -11,6 +11,7 @@ import {
   panelWeight,
 } from './panel';
 import type { StoryManifest } from '@/types';
+import { formatSiteDisplayUrl } from '@/lib/site-urls';
 
 export type OccasionType = 'wedding' | 'anniversary' | 'engagement' | 'birthday' | 'story';
 
@@ -258,7 +259,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
             textAlign: 'center',
             opacity: 0.6,
           }}>
-            {subdomain}.pearloom.com
+            {formatSiteDisplayUrl(subdomain)}
           </div>
         )}
       </PanelSection>

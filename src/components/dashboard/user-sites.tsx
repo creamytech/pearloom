@@ -19,6 +19,7 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/cn';
 
 import { parseLocalDate } from '@/lib/date';
+import { buildSiteUrl } from '@/lib/site-urls';
 
 // ── Occasion gradients & icons ──────────────────────────────
 
@@ -279,11 +280,7 @@ function OverflowMenu({ site, onShare, onDelete, isCopied, isDeleting }: {
 // ── Static helper for site URL (used in OverflowMenu) ────────
 
 function getSiteUrlStatic(domain: string) {
-  if (typeof window === 'undefined') return `https://${domain}.pearloom.com`;
-  const { hostname, origin } = window.location;
-  if (hostname === 'localhost') return `http://${domain}.localhost:3000`;
-  if (hostname.includes('vercel.app')) return `${origin}/sites/${domain}`;
-  return `https://${domain}.pearloom.com`;
+  return buildSiteUrl(domain);
 }
 
 // ── Types ──────────────────────────────────────────────────────
