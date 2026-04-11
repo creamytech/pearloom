@@ -515,7 +515,20 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         return <WaveDivider key={key} skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={(blockCfg.height as number) || 60} />;
       case 'photos': {
         if (isPrivateGallery) return null; // Private gallery — hide photos from visitors
-        const allPhotos = (manifest.chapters || []).flatMap((ch: import('@/types').Chapter) => ch.images || []).slice(0, 9);
+        // Pull every chapter image into the gallery, deduped by URL so a
+        // hero photo that also appears in a chapter doesn't show twice.
+        const allPhotos = (() => {
+          const seen = new Set<string>();
+          const out: Array<{ url: string; alt?: string }> = [];
+          for (const ch of manifest.chapters || []) {
+            for (const img of ((ch as import('@/types').Chapter).images || [])) {
+              if (!img?.url || seen.has(img.url)) continue;
+              seen.add(img.url);
+              out.push(img);
+            }
+          }
+          return out;
+        })();
         return (
           <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
             <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>

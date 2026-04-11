@@ -581,6 +581,22 @@ export async function POST(req: Request) {
         manifest.chapters = updatedChapters;
         manifest.logoIcon = logoResult.logoIcon;
         if (logoResult.logoSvg) manifest.logoSvg = logoResult.logoSvg;
+
+        // Auto-reveal the photos block whenever the user uploaded
+        // photos. The gallery renders by aggregating chapter images,
+        // so if any chapter has images it means the user gave us
+        // something to show — no reason to leave the block hidden
+        // and force them to toggle it on manually.
+        {
+          const hasAnyChapterPhoto = (manifest.chapters || []).some(
+            (c) => Array.isArray(c.images) && c.images.length > 0,
+          );
+          if (hasAnyChapterPhoto && manifest.blocks) {
+            manifest.blocks = manifest.blocks.map((b) =>
+              b.type === 'photos' ? { ...b, visible: true } : b,
+            );
+          }
+        }
         // Seed the hero media with the freshly-uploaded R2 URLs.
         // `uploadPhotoUrl` falls back to the original baseUrl on
         // failure so we only adopt values that actually look
