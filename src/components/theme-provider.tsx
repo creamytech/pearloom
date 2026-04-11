@@ -69,6 +69,39 @@ export function ThemeProvider({ theme = defaultTheme, children }: ThemeProviderP
     };
   }, [cssVars]);
 
+  // ── Smooth theme-color transitions ───────────────────────────
+  // When the palette changes (e.g. live during generation), every
+  // element that reads these CSS vars will transition to the new
+  // color over ~700ms instead of snapping. The transition stays on
+  // at all times because the cost is negligible and it also
+  // smooths out any user-driven palette tweaks in the editor.
+  useEffect(() => {
+    const STYLE_ID = 'pearloom-theme-transition';
+    if (document.getElementById(STYLE_ID)) return;
+    const el = document.createElement('style');
+    el.id = STYLE_ID;
+    el.textContent = `
+      /* Smooth every themed surface when the palette changes */
+      body,
+      [data-pl-site-root],
+      [data-pl-site-root] * {
+        transition-property: background-color, color, border-color, fill, stroke;
+        transition-duration: 700ms;
+        transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      /* Don't animate on inputs the user is interacting with */
+      [data-pl-site-root] input:focus,
+      [data-pl-site-root] textarea:focus,
+      [data-pl-site-root] button:active {
+        transition: none;
+      }
+    `;
+    document.head.appendChild(el);
+    return () => {
+      el.remove();
+    };
+  }, []);
+
   // ── Google Fonts ─────────────────────────────────────────────
   useEffect(() => {
     const id = 'pearloom-google-fonts';

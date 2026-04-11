@@ -1969,17 +1969,29 @@ export function StorySection({
   const layoutType = resolveStoryLayout(storyLayout, layoutFormat);
   const tint = accentColor || colors.olive;
 
+  // Track how many chapters were already visible on the previous
+  // render. New arrivals animate in; previously-shown chapters
+  // don't re-animate, so the preview doesn't thrash every time
+  // the user tweaks a field in the editor.
+  const previousCountRef = useRef(0);
+  const previousCount = previousCountRef.current;
+  useEffect(() => {
+    previousCountRef.current = chapters.length;
+  }, [chapters.length]);
+
   return (
     <>
       {medallionSvg && (
-        <div
+        <motion.div
           aria-hidden="true"
+          initial={{ opacity: 0, scale: 0.85, rotate: -6 }}
+          animate={{ opacity: 0.72, scale: 1, rotate: 0 }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
           style={{
             width: 96,
             height: 96,
             margin: '2rem auto 0',
             pointerEvents: 'none',
-            opacity: 0.72,
             color: tint,
           }}
           dangerouslySetInnerHTML={{ __html: medallionSvg }}
@@ -1993,26 +2005,48 @@ export function StorySection({
           caption: img.caption,
         }));
         const locationLabel = chapter.location?.label || null;
+
+        // Only newly-added chapters get the reveal animation.
+        // Previously rendered chapters stay still so edits don't
+        // trigger a full re-animate on every keystroke.
+        const isNew = chapterIndex >= previousCount;
+        const enterDelay = isNew
+          ? Math.min((chapterIndex - previousCount) * 0.28, 1.4)
+          : 0;
+
         return (
-          <div
+          <motion.div
             key={chapter.id || chapterIndex}
             // data-pe-chapter lets EditBridge walk up from a contenteditable
             // element and attribute edits to the right chapter id on save.
             data-pe-chapter={chapter.id}
             data-pe-section="chapter"
             data-pe-label={`Chapter ${chapterIndex + 1}`}
+            initial={isNew ? { opacity: 0, y: 40, scale: 0.98 } : false}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{
+              duration: 0.7,
+              delay: enterDelay,
+              ease: [0.22, 1, 0.36, 1],
+            }}
             style={{ position: 'relative' }}
           >
             {icon && (
-              <div
+              <motion.div
                 aria-hidden="true"
+                initial={isNew ? { opacity: 0, scale: 0.7 } : false}
+                animate={{ opacity: 0.85, scale: 1 }}
+                transition={{
+                  duration: 0.6,
+                  delay: enterDelay + 0.15,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
                 style={{
                   width: 56,
                   height: 56,
                   margin: '3rem auto 0.5rem',
                   pointerEvents: 'none',
                   color: tint,
-                  opacity: 0.85,
                 }}
                 dangerouslySetInnerHTML={{ __html: icon }}
               />
@@ -2030,20 +2064,26 @@ export function StorySection({
               index={chapterIndex}
             />
             {sectionBorderSvg && chapterIndex < chapters.length - 1 && (
-              <div
+              <motion.div
                 aria-hidden="true"
+                initial={isNew ? { opacity: 0, scaleX: 0.6 } : false}
+                animate={{ opacity: 0.5, scaleX: 1 }}
+                transition={{
+                  duration: 0.7,
+                  delay: enterDelay + 0.3,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
                 style={{
                   width: 'min(520px, 80%)',
                   height: 32,
                   margin: '2.5rem auto',
                   pointerEvents: 'none',
-                  opacity: 0.5,
                   color: tint,
                 }}
                 dangerouslySetInnerHTML={{ __html: sectionBorderSvg }}
               />
             )}
-          </div>
+          </motion.div>
         );
       })}
     </>

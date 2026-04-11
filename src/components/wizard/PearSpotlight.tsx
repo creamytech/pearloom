@@ -15,6 +15,7 @@ import { PearCalendar } from '@/components/wizard/PearCalendar';
 import { SiteRenderer } from '@/components/editor/SiteRenderer';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { StoryLayoutPicker, type StoryLayoutType } from '@/components/blocks/StoryLayouts';
+import { useGenerationTicker } from '@/components/wizard/useGenerationTicker';
 import type { StoryManifest } from '@/types';
 
 interface PearSpotlightProps {
@@ -319,6 +320,8 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const [photoNotes, setPhotoNotes] = useState<Record<number, { location?: string; locationDetected?: boolean; date?: string; note?: string }>>({});
   const [reviewDone, setReviewDone] = useState(false);
   const [genStep, setGenStep] = useState(0);
+  /** Raw server pass number (0..7). Drives the dynamic ticker. */
+  const [genPass, setGenPass] = useState(0);
   const [completedData, setCompletedData] = useState<{ manifest: any; names: [string, string]; subdomain: string } | null>(null);
   const [genProgress, setGenProgress] = useState(0); // 0-100
   const inputRef = useRef<HTMLInputElement>(null);
@@ -555,6 +558,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     setPhase('generating');
     setGenError(null);
     setGenStep(0);
+    setGenPass(0);
     setGenProgress(0);
 
     // Synthesize a skeleton manifest from collected data so the live
@@ -721,6 +725,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                   : pass <= 5 ? 3
                   : 4;
                 setGenStep(stepIndex);
+                setGenPass(pass);
                 setGenProgress(Math.round(((pass + 1) / 8) * 100));
                 // Merge the server snapshot onto the current partial manifest
                 // so fields that the pipeline hasn't filled in yet (blocks,
@@ -816,7 +821,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
 
   // Fallback timer — only advances genStep if SSE isn't providing updates
   useEffect(() => {
-    if (phase !== 'generating') { setGenStep(0); setGenProgress(0); return; }
+    if (phase !== 'generating') { setGenStep(0); setGenPass(0); setGenProgress(0); return; }
     let lastStep = 0;
     const fallbackTimer = setInterval(() => {
       setGenStep(prev => {
@@ -833,134 +838,16 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   }, [phase]);
 
   if (phase === 'generating') {
-    const displayNames = collected.names
-      ? collected.names[1]
-        ? `${collected.names[0]} & ${collected.names[1]}`
-        : collected.names[0]
-      : '';
-    const displayProgress = genProgress > 0 ? genProgress : ((genStep + 1) / GEN_PHASES.length) * 100;
-
     return (
-      <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', flexDirection: 'column' }}>
-        {/* Live preview sizing: desktop width by default, narrower on small screens */}
-        <style>{`
-          .pear-live-preview {
-            width: 100%;
-            max-width: min(1200px, 92vw);
-          }
-          @media (max-width: 900px) {
-            .pear-live-preview {
-              max-width: min(760px, 96vw);
-            }
-          }
-          @media (max-width: 640px) {
-            .pear-live-preview {
-              max-width: 96vw;
-            }
-          }
-        `}</style>
-        <LivingCanvas occasion={collected.occasion} names={collected.names} date={collected.date} venue={collected.venue} vibe={collected.vibe} paletteColors={selectedPaletteColors} phase="generating" />
-
-        {/* Top bar — progress + status */}
-        <div style={{
-          position: 'relative', zIndex: 10, flexShrink: 0,
-          padding: '16px 24px', display: 'flex', alignItems: 'center', gap: 16,
-        }}>
-          <PearMascot size={40} mood={genStep >= 4 ? 'celebrating' : 'thinking'} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <AnimatePresence mode="wait">
-                <motion.span
-                  key={genStep}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--pl-ink-soft)' }}
-                >
-                  {GEN_PHASES[genStep]}...
-                </motion.span>
-              </AnimatePresence>
-            </div>
-            <div style={{ width: '100%', height: 3, borderRadius: 2, background: 'rgba(163,177,138,0.15)', overflow: 'hidden' }}>
-              <motion.div
-                animate={{ width: `${displayProgress}%` }}
-                transition={{ duration: 0.8, ease: 'easeOut' }}
-                style={{ height: '100%', borderRadius: 2, background: 'var(--pl-olive, #A3B18A)' }}
-              />
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 4 }}>
-            {GEN_PHASES.map((_, i) => (
-              <div key={i} style={{
-                width: 5, height: 5, borderRadius: '50%',
-                background: i <= genStep ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.2)',
-                transition: 'background 0.3s',
-              }} />
-            ))}
-          </div>
-        </div>
-
-        {/* Live site preview — grows as manifest builds */}
-        <div style={{
-          flex: 1, position: 'relative', zIndex: 10,
-          display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
-          overflow: 'hidden', padding: '0 24px 24px',
-        }}>
-          {partialManifest ? (
-            <motion.div
-              className="pear-live-preview"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              style={{
-                borderRadius: 20, overflow: 'hidden',
-                boxShadow: '0 12px 48px rgba(43,30,20,0.18)',
-                border: '1px solid rgba(255,255,255,0.4)',
-                maxHeight: '78vh',
-                overflowY: 'auto',
-                background: '#FAF7F2',
-              }}
-            >
-              <div style={{ transform: 'scale(1)', transformOrigin: 'top center' }}>
-                <SiteRenderer
-                  manifest={partialManifest}
-                  names={collected.names || ['', '']}
-                  editMode={false}
-                />
-              </div>
-            </motion.div>
-          ) : (
-            /* Skeleton while waiting for first manifest data */
-            <motion.div
-              className="pear-live-preview"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              style={{
-                borderRadius: 20, overflow: 'hidden',
-                boxShadow: '0 12px 48px rgba(43,30,20,0.1)',
-                border: '1px solid rgba(255,255,255,0.3)',
-                background: 'rgba(255,255,255,0.3)',
-                backdropFilter: 'blur(20px)',
-                padding: '60px 32px',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24,
-                minHeight: 400,
-              } as React.CSSProperties}
-            >
-              <PearMascot size={80} mood="thinking" />
-              <p style={{
-                fontFamily: 'var(--pl-font-heading)',
-                fontStyle: 'italic', fontSize: '1.4rem',
-                color: 'var(--pl-ink-soft)', textAlign: 'center',
-              }}>
-                {displayNames}
-              </p>
-              <p style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', textAlign: 'center' }}>
-                Building your site...
-              </p>
-            </motion.div>
-          )}
-        </div>
-      </div>
+      <GeneratingStage
+        collected={collected}
+        selectedPaletteColors={selectedPaletteColors}
+        photoCount={selectedPhotos.length}
+        genPass={genPass}
+        genStep={genStep}
+        genProgress={genProgress}
+        partialManifest={partialManifest}
+      />
     );
   }
 
@@ -2064,6 +1951,344 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// GeneratingStage — the "something magical is happening" screen
+// Extracted into its own component so the ticker hook + pulse
+// animation + continuous progress tween don't thrash the parent
+// component on every tick.
+// ─────────────────────────────────────────────────────────────
+
+interface GeneratingStageProps {
+  collected: Collected;
+  selectedPaletteColors: string[] | null;
+  photoCount: number;
+  genPass: number;
+  genStep: number;
+  genProgress: number;
+  partialManifest: StoryManifest | null;
+}
+
+function GeneratingStage({
+  collected,
+  selectedPaletteColors,
+  photoCount,
+  genPass,
+  genStep,
+  genProgress,
+  partialManifest,
+}: GeneratingStageProps) {
+  const displayNames = collected.names
+    ? collected.names[1]
+      ? `${collected.names[0]} & ${collected.names[1]}`
+      : collected.names[0]
+    : '';
+
+  // ── Dynamic ticker — rotates through phase-specific messages
+  //    on a 2.4s interval so the UI always feels alive even when
+  //    the server hasn't shipped a new snapshot. ──
+  const ticker = useGenerationTicker({
+    pass: genPass,
+    manifest: partialManifest,
+    photoCount,
+    names: collected.names,
+  });
+
+  // ── Continuous progress bar — the server only emits progress
+  //    4 times across a 60-90s generation, so we tween between
+  //    them locally. Target is the server-reported progress plus
+  //    a small drift that advances between server updates. ──
+  const [smoothProgress, setSmoothProgress] = useState(0);
+  const targetRef = useRef(genProgress);
+  useEffect(() => {
+    // New server update — snap target to the real value.
+    targetRef.current = Math.max(targetRef.current, genProgress);
+  }, [genProgress]);
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setSmoothProgress((prev) => {
+        // Drift toward target. Between server updates, creep
+        // forward up to 85% of the *next* phase's expected
+        // endpoint so the bar never completely stalls.
+        const ceiling = Math.min(100, targetRef.current + 6);
+        const next = prev + (ceiling - prev) * 0.06;
+        return next;
+      });
+    }, 120);
+    return () => window.clearInterval(id);
+  }, []);
+
+  // Reset when unmounted/remounted.
+  useEffect(() => {
+    setSmoothProgress(0);
+    targetRef.current = 0;
+  }, []);
+
+  // ── Update pulse — briefly flashes an olive halo around the
+  //    preview every time a fresh snapshot lands, so the user
+  //    feels the generation "ticking" forward even if the visible
+  //    content change is subtle. ──
+  const [pulseKey, setPulseKey] = useState(0);
+  const lastFingerprintRef = useRef<string>('');
+  useEffect(() => {
+    if (!partialManifest) return;
+    const fingerprint = JSON.stringify({
+      c: partialManifest.chapters?.length,
+      v: partialManifest.vibeSkin?.palette?.accent,
+      t: partialManifest.theme?.colors?.accent,
+      p: partialManifest.poetry?.heroTagline,
+      b: partialManifest.blocks?.length,
+    });
+    if (fingerprint !== lastFingerprintRef.current) {
+      lastFingerprintRef.current = fingerprint;
+      setPulseKey((k) => k + 1);
+    }
+  }, [partialManifest]);
+
+  const displayProgress = Math.max(smoothProgress, genProgress);
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', flexDirection: 'column' }}>
+      {/* Keyframes + live preview sizing */}
+      <style>{`
+        .pear-live-preview {
+          width: 100%;
+          max-width: min(1200px, 92vw);
+        }
+        @media (max-width: 900px) {
+          .pear-live-preview {
+            max-width: min(760px, 96vw);
+          }
+        }
+        @media (max-width: 640px) {
+          .pear-live-preview {
+            max-width: 96vw;
+          }
+        }
+
+        /* Olive halo pulse used on every manifest update */
+        @keyframes pear-preview-pulse {
+          0%   { box-shadow: 0 0 0 0 rgba(163,177,138,0.55), 0 12px 48px rgba(43,30,20,0.18); }
+          50%  { box-shadow: 0 0 0 14px rgba(163,177,138,0.00), 0 16px 64px rgba(163,177,138,0.25); }
+          100% { box-shadow: 0 0 0 0 rgba(163,177,138,0.00), 0 12px 48px rgba(43,30,20,0.18); }
+        }
+        .pear-preview-pulse {
+          animation: pear-preview-pulse 1.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* Diagonal shimmer sweep across the top of the preview */
+        @keyframes pear-shimmer-sweep {
+          0%   { transform: translateX(-120%) skewX(-12deg); opacity: 0; }
+          30%  { opacity: 1; }
+          100% { transform: translateX(220%) skewX(-12deg); opacity: 0; }
+        }
+
+        /* Progress sparkle on the bar's leading edge */
+        @keyframes pear-progress-sparkle {
+          0%   { transform: scale(0.8); opacity: 0.4; }
+          50%  { transform: scale(1.3); opacity: 1; }
+          100% { transform: scale(0.8); opacity: 0.4; }
+        }
+      `}</style>
+
+      <LivingCanvas
+        occasion={collected.occasion}
+        names={collected.names}
+        date={collected.date}
+        venue={collected.venue}
+        vibe={collected.vibe}
+        paletteColors={selectedPaletteColors}
+        phase="generating"
+      />
+
+      {/* ── Top bar — phase headline + ticker + progress ── */}
+      <div style={{
+        position: 'relative', zIndex: 10, flexShrink: 0,
+        padding: '18px 28px 14px',
+        display: 'flex', alignItems: 'center', gap: 18,
+      }}>
+        <PearMascot size={44} mood={genStep >= 4 ? 'celebrating' : 'thinking'} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {/* Phase headline — big, stable label per pass */}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 4 }}>
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={`phase-${ticker.phaseLabel}`}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                style={{
+                  fontFamily: 'var(--pl-font-heading)',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  fontStyle: 'italic',
+                  color: 'var(--pl-ink-soft)',
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {ticker.phaseLabel}
+              </motion.span>
+            </AnimatePresence>
+            <span style={{
+              fontSize: '0.68rem',
+              fontWeight: 700,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: 'var(--pl-olive)',
+            }}>
+              {Math.round(displayProgress)}%
+            </span>
+          </div>
+
+          {/* Dynamic ticker — rotates every 2.4s with plausible
+              phase-specific actions. This is the "real time" feel
+              that sells the generation as actually working. */}
+          <div style={{ minHeight: 18, marginBottom: 8 }}>
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={ticker.key}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontSize: '0.78rem',
+                  color: 'var(--pl-muted)',
+                  fontStyle: 'italic',
+                }}
+              >
+                <span style={{
+                  width: 5, height: 5, borderRadius: '50%',
+                  background: 'var(--pl-olive)',
+                  animation: 'pear-progress-sparkle 1.4s ease-in-out infinite',
+                  flexShrink: 0,
+                }} />
+                {ticker.message}…
+              </motion.span>
+            </AnimatePresence>
+          </div>
+
+          {/* Continuous progress bar */}
+          <div style={{
+            width: '100%', height: 4, borderRadius: 2,
+            background: 'rgba(163,177,138,0.15)',
+            overflow: 'hidden',
+            position: 'relative',
+          }}>
+            <motion.div
+              animate={{ width: `${displayProgress}%` }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              style={{
+                height: '100%',
+                borderRadius: 2,
+                background: 'linear-gradient(90deg, var(--pl-olive-mist, #d6c6a8) 0%, var(--pl-olive, #A3B18A) 50%, var(--pl-olive-deep, #7d9b6a) 100%)',
+                position: 'relative',
+              }}
+            />
+            {/* Sparkle on the leading edge */}
+            <div style={{
+              position: 'absolute',
+              top: -2,
+              left: `calc(${displayProgress}% - 4px)`,
+              width: 8, height: 8, borderRadius: '50%',
+              background: 'var(--pl-olive)',
+              boxShadow: '0 0 12px 2px rgba(163,177,138,0.6)',
+              animation: 'pear-progress-sparkle 1.2s ease-in-out infinite',
+              pointerEvents: 'none',
+              transition: 'left 0.3s ease-out',
+            }} />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Live site preview — grows as manifest builds ── */}
+      <div style={{
+        flex: 1, position: 'relative', zIndex: 10,
+        display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
+        overflow: 'hidden', padding: '0 24px 24px',
+      }}>
+        {partialManifest ? (
+          <motion.div
+            key={`preview-pulse-${pulseKey}`}
+            className="pear-live-preview pear-preview-pulse"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            style={{
+              borderRadius: 20,
+              overflow: 'hidden',
+              border: '1px solid rgba(255,255,255,0.4)',
+              maxHeight: '78vh',
+              overflowY: 'auto',
+              background: '#FAF7F2',
+              position: 'relative',
+            }}
+          >
+            {/* Diagonal shimmer that sweeps across the preview on
+                every new snapshot — paired with the box-shadow
+                pulse above. Re-triggers via pulseKey. */}
+            <div
+              key={`shimmer-${pulseKey}`}
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '60%',
+                height: '100%',
+                background: 'linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%)',
+                pointerEvents: 'none',
+                zIndex: 5,
+                animation: 'pear-shimmer-sweep 1.4s cubic-bezier(0.22, 1, 0.36, 1)',
+                animationFillMode: 'forwards',
+              }}
+            />
+            <div style={{ transform: 'scale(1)', transformOrigin: 'top center' }}>
+              <SiteRenderer
+                manifest={partialManifest}
+                names={collected.names || ['', '']}
+                editMode={false}
+              />
+            </div>
+          </motion.div>
+        ) : (
+          /* Skeleton while waiting for the first manifest snapshot */
+          <motion.div
+            className="pear-live-preview"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            style={{
+              borderRadius: 20, overflow: 'hidden',
+              boxShadow: '0 12px 48px rgba(43,30,20,0.1)',
+              border: '1px solid rgba(255,255,255,0.3)',
+              background: 'rgba(255,255,255,0.3)',
+              backdropFilter: 'blur(20px)',
+              padding: '60px 32px',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24,
+              minHeight: 400,
+            } as React.CSSProperties}
+          >
+            <PearMascot size={80} mood="thinking" />
+            <p style={{
+              fontFamily: 'var(--pl-font-heading)',
+              fontStyle: 'italic', fontSize: '1.4rem',
+              color: 'var(--pl-ink-soft)', textAlign: 'center',
+            }}>
+              {displayNames}
+            </p>
+            <p style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', textAlign: 'center' }}>
+              Pear is reading your photos…
+            </p>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 }

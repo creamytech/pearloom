@@ -913,8 +913,12 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           <div key={key} data-pe-section="hero" data-pe-label="Hero" style={{ position: 'relative', overflow: 'hidden', ...blockStyle }}>
             {/* AI-generated hero blob illustration — couple-specific motifs */}
             {vibeSkin.heroBlobSvg && (
-              <div
+              <motion.div
                 aria-hidden="true"
+                className="pear-svg-draw-in"
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={{ opacity: 0.78, scale: 1 }}
+                transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
                 style={{
                   position: 'absolute',
                   right: '-6%',
@@ -923,7 +927,6 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                   height: 'auto',
                   pointerEvents: 'none',
                   zIndex: 2,
-                  opacity: 0.78,
                   mixBlendMode: 'multiply',
                 }}
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.heroBlobSvg) }}
@@ -948,14 +951,20 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             {/* AI-generated corner flourish (takes priority over theme cornerSvg) */}
             {vibeSkin.cornerFlourishSvg ? (
               <>
-                <div
+                <motion.div
                   aria-hidden="true"
-                  style={{ position: 'absolute', top: 0, left: 0, width: 'min(28vw, 260px)', height: 'min(28vw, 260px)', pointerEvents: 'none', zIndex: 2, opacity: 0.7 }}
+                  initial={{ opacity: 0, scale: 0.85, rotate: -4 }}
+                  animate={{ opacity: 0.7, scale: 1, rotate: 0 }}
+                  transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+                  style={{ position: 'absolute', top: 0, left: 0, width: 'min(28vw, 260px)', height: 'min(28vw, 260px)', pointerEvents: 'none', zIndex: 2 }}
                   dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.cornerFlourishSvg) }}
                 />
-                <div
+                <motion.div
                   aria-hidden="true"
-                  style={{ position: 'absolute', top: 0, right: 0, width: 'min(28vw, 260px)', height: 'min(28vw, 260px)', pointerEvents: 'none', zIndex: 2, transform: 'scaleX(-1)', opacity: 0.7 }}
+                  initial={{ opacity: 0, scale: 0.85, rotate: 4 }}
+                  animate={{ opacity: 0.7, scale: 1, rotate: 0 }}
+                  transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+                  style={{ position: 'absolute', top: 0, right: 0, width: 'min(28vw, 260px)', height: 'min(28vw, 260px)', pointerEvents: 'none', zIndex: 2, transform: 'scaleX(-1)' }}
                   dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.cornerFlourishSvg) }}
                 />
               </>
