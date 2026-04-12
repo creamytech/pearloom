@@ -291,7 +291,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   // R2 during generation), then fall back to the first image of each chapter.
   // Must match the editor's SiteRenderer logic so WYSIWYG holds.
   const heroPhotos: string[] = (() => {
-    const slideshow = (manifest as Record<string, unknown>).heroSlideshow as string[] | undefined;
+    const slideshow = (manifest as unknown as Record<string, unknown>).heroSlideshow as string[] | undefined;
     if (Array.isArray(slideshow) && slideshow.filter(Boolean).length > 0) {
       return slideshow.filter(Boolean).map((u: string) => proxyUrl(u, 1800, 1200));
     }
