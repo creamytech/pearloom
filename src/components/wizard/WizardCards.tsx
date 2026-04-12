@@ -1,107 +1,69 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// Pearloom / WizardCards.tsx — Rich inline cards for AI wizard
-// Organic Glass design: backdrop-blur, warm shadows, olive accents
+// Pearloom / WizardCards.tsx — Wizard card components
+// Redesign v5: solid surfaces, monochrome icons, zinc neutrals
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { Heart, Cake, Sparkles, Diamond, BookOpen } from 'lucide-react';
 
-// ── Shared constants ────────────────────────────────────────
+// ── Shared constants (v5 design system) ─────────────────────
 
-const GLASS_BG = 'rgba(255,255,255,0.5)';
-const GLASS_BORDER = '1px solid rgba(255,255,255,0.5)';
-const WARM_SHADOW = '0 4px 24px rgba(43,30,20,0.08)';
-const WARM_SHADOW_HOVER = '0 8px 32px rgba(43,30,20,0.14)';
-const BACKDROP = 'blur(16px)';
-const RADIUS = 20;
+const CARD_BG = '#FFFFFF';
+const CARD_BORDER = '1px solid #E4E4E7';
+const CARD_SHADOW = '0 1px 3px rgba(0,0,0,0.04)';
+const CARD_SHADOW_HOVER = '0 2px 8px rgba(0,0,0,0.06)';
+const RADIUS = 10;
 
-const FONT_HEADING = 'var(--pl-font-heading, "Playfair Display")';
+const FONT_HEADING = 'var(--pl-font-heading, "DM Sans", system-ui, sans-serif)';
 const FONT_BODY = 'var(--pl-font-body, inherit)';
-const COLOR_OLIVE = 'var(--pl-olive, #A3B18A)';
-const COLOR_INK_SOFT = 'var(--pl-ink-soft, #3D3530)';
-const COLOR_MUTED = 'var(--pl-muted, #8C7E72)';
+const COLOR_INK = '#18181B';
+const COLOR_INK_SOFT = '#3F3F46';
+const COLOR_MUTED = '#71717A';
+const COLOR_BORDER_ACTIVE = '#18181B';
 
 const fadeIn = {
-  initial: { opacity: 0, y: 12, scale: 0.97 },
-  animate: { opacity: 1, y: 0, scale: 1 },
-  transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
 };
 
-// ── Occasion gradient + icon map ────────────────────────────
+// ── Occasion icon + description map ─────────────────────────
 
-const OCCASION_STYLES: Record<string, { gradient: string; icon: React.ReactNode }> = {
+const OCCASION_META: Record<string, { icon: React.ReactNode; description: string }> = {
   wedding: {
-    gradient: 'linear-gradient(135deg, #F2CDD0 0%, #E8A5B0 50%, #D4878F 100%)',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-        <circle cx="12" cy="16" r="7" stroke="white" strokeWidth="1.8" fill="none" />
-        <circle cx="20" cy="16" r="7" stroke="white" strokeWidth="1.8" fill="none" />
-      </svg>
-    ),
+    icon: <Heart size={20} strokeWidth={1.5} />,
+    description: 'Ceremony, reception & more',
   },
   birthday: {
-    gradient: 'linear-gradient(135deg, #F9D976 0%, #F39F86 50%, #E8739E 100%)',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-        <rect x="8" y="16" width="16" height="10" rx="3" stroke="white" strokeWidth="1.8" fill="none" />
-        <line x1="16" y1="16" x2="16" y2="10" stroke="white" strokeWidth="1.8" />
-        <circle cx="16" cy="8" r="2" fill="white" opacity="0.9" />
-      </svg>
-    ),
+    icon: <Cake size={20} strokeWidth={1.5} />,
+    description: 'Party, milestones & fun',
   },
   anniversary: {
-    gradient: 'linear-gradient(135deg, #F5D998 0%, #E2B662 50%, #C99A3A 100%)',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-        <path d="M16 6l2.5 5.5L24 12.5l-4 4.2 1 6.3L16 20.5 10.8 23l1-6.3-4-4.2 5.5-1z" stroke="white" strokeWidth="1.8" fill="none" />
-      </svg>
-    ),
+    icon: <Sparkles size={20} strokeWidth={1.5} />,
+    description: 'Celebrate years together',
   },
   engagement: {
-    gradient: 'linear-gradient(135deg, #F5E0EC 0%, #E8BDD4 50%, #D4A0BF 100%)',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-        <path d="M16 8l3 5h-6l3-5z" fill="white" opacity="0.9" />
-        <circle cx="16" cy="20" r="6" stroke="white" strokeWidth="1.8" fill="none" />
-        <line x1="16" y1="14" x2="16" y2="13" stroke="white" strokeWidth="1.8" />
-      </svg>
-    ),
+    icon: <Diamond size={20} strokeWidth={1.5} />,
+    description: 'The big announcement',
   },
   story: {
-    gradient: 'linear-gradient(135deg, #D4CEC8 0%, #B8B0A6 50%, #9C9488 100%)',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-        <rect x="9" y="7" width="14" height="18" rx="2" stroke="white" strokeWidth="1.8" fill="none" />
-        <line x1="13" y1="12" x2="19" y2="12" stroke="white" strokeWidth="1.4" />
-        <line x1="13" y1="16" x2="19" y2="16" stroke="white" strokeWidth="1.4" />
-        <line x1="13" y1="20" x2="17" y2="20" stroke="white" strokeWidth="1.4" />
-      </svg>
-    ),
+    icon: <BookOpen size={20} strokeWidth={1.5} />,
+    description: 'Tell any story your way',
   },
 };
 
-function getOccasionStyle(value: string) {
-  return OCCASION_STYLES[value] || OCCASION_STYLES.story;
-}
-
-// ── Occasion-based gradient for other cards ─────────────────
-
-function occasionGradient(occasion?: string): string {
-  switch (occasion) {
-    case 'wedding': return 'linear-gradient(135deg, rgba(242,205,208,0.3) 0%, rgba(232,165,176,0.15) 100%)';
-    case 'birthday': return 'linear-gradient(135deg, rgba(249,217,118,0.25) 0%, rgba(243,159,134,0.15) 100%)';
-    case 'anniversary': return 'linear-gradient(135deg, rgba(245,217,152,0.3) 0%, rgba(226,182,98,0.15) 100%)';
-    case 'engagement': return 'linear-gradient(135deg, rgba(245,224,236,0.3) 0%, rgba(232,189,212,0.15) 100%)';
-    default: return 'linear-gradient(135deg, rgba(212,206,200,0.3) 0%, rgba(184,176,166,0.15) 100%)';
-  }
+function getOccasionMeta(value: string) {
+  return OCCASION_META[value] || OCCASION_META.story;
 }
 
 // ── Vibe-based gradient for SitePreviewCard ────────────────
+// (Kept for the preview card — shows user a taste of the generated site's palette)
 
 function vibeGradient(vibe?: string): string {
-  if (!vibe) return 'linear-gradient(135deg, #E8D5C4 0%, #D4B8A0 50%, #C4A088 100%)';
+  if (!vibe) return 'linear-gradient(135deg, #E4E4E7 0%, #D4D4D8 50%, #A1A1AA 100%)';
   const v = vibe.toLowerCase();
   if (v.includes('dark') || v.includes('moody') || v.includes('gothic'))
     return 'linear-gradient(135deg, #2C2C2C 0%, #3D3530 50%, #4A3F36 100%)';
@@ -119,7 +81,7 @@ function vibeGradient(vibe?: string): string {
     return 'linear-gradient(135deg, #C4A96A 0%, #E8D5A8 50%, #F5EED8 100%)';
   if (v.includes('romantic') || v.includes('blush') || v.includes('rose'))
     return 'linear-gradient(135deg, #E8BDD4 0%, #F2CDD0 50%, #FAE8EC 100%)';
-  return 'linear-gradient(135deg, #E8D5C4 0%, #D4B8A0 50%, #C4A088 100%)';
+  return 'linear-gradient(135deg, #E4E4E7 0%, #D4D4D8 50%, #A1A1AA 100%)';
 }
 
 
@@ -134,96 +96,88 @@ interface OccasionCardProps {
 
 export function OccasionCard({ occasions, onSelect }: OccasionCardProps) {
   const [selected, setSelected] = useState<string | null>(null);
-  const [pressing, setPressing] = useState<string | null>(null);
 
   const handleSelect = (value: string) => {
     setSelected(value);
-    setPressing(value);
-    setTimeout(() => {
-      setPressing(null);
-      onSelect(value);
-    }, 200);
-  };
-
-  const gridStyle: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: '10px',
-    marginTop: '14px',
+    setTimeout(() => onSelect(value), 180);
   };
 
   return (
     <motion.div {...fadeIn}>
-      <div style={gridStyle}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: '8px',
+      }}>
         {occasions.map((occ) => {
-          const style = getOccasionStyle(occ.value);
+          const meta = getOccasionMeta(occ.value);
           const isSelected = selected === occ.value;
-          const isPressing = pressing === occ.value;
-
-          const cardStyle: React.CSSProperties = {
-            position: 'relative',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            padding: '18px 12px',
-            borderRadius: 16,
-            border: isSelected ? '2px solid rgba(255,255,255,0.8)' : '1px solid rgba(255,255,255,0.3)',
-            background: style.gradient,
-            cursor: selected && !isSelected ? 'default' : 'pointer',
-            opacity: selected && !isSelected ? 0.45 : 1,
-            transform: isPressing ? 'scale(0.97)' : 'scale(1)',
-            transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, box-shadow 0.2s ease, border 0.2s ease',
-            boxShadow: isSelected ? WARM_SHADOW_HOVER : '0 2px 12px rgba(43,30,20,0.06)',
-            overflow: 'hidden',
-          };
-
-          const labelStyle: React.CSSProperties = {
-            fontSize: '0.82rem',
-            fontWeight: 700,
-            color: 'white',
-            textShadow: '0 1px 3px rgba(0,0,0,0.15)',
-            fontFamily: FONT_BODY,
-            textAlign: 'center',
-          };
 
           return (
             <button
               key={occ.value}
               onClick={() => !selected && handleSelect(occ.value)}
               disabled={!!selected}
-              style={cardStyle}
+              style={{
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: '6px',
+                padding: '16px 14px',
+                borderRadius: RADIUS,
+                border: isSelected ? `2px solid ${COLOR_BORDER_ACTIVE}` : CARD_BORDER,
+                background: isSelected ? '#F4F4F5' : CARD_BG,
+                cursor: selected && !isSelected ? 'default' : 'pointer',
+                opacity: selected && !isSelected ? 0.4 : 1,
+                boxShadow: isSelected ? CARD_SHADOW_HOVER : CARD_SHADOW,
+                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                overflow: 'hidden',
+                textAlign: 'left',
+                fontFamily: 'inherit',
+              }}
               onMouseEnter={(e) => {
                 if (!selected) {
-                  (e.currentTarget as HTMLElement).style.transform = 'scale(1.03)';
-                  (e.currentTarget as HTMLElement).style.boxShadow = WARM_SHADOW_HOVER;
+                  (e.currentTarget as HTMLElement).style.borderColor = COLOR_BORDER_ACTIVE;
+                  (e.currentTarget as HTMLElement).style.boxShadow = CARD_SHADOW_HOVER;
                 }
               }}
               onMouseLeave={(e) => {
-                if (!selected) {
-                  (e.currentTarget as HTMLElement).style.transform = 'scale(1)';
-                  (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(43,30,20,0.06)';
+                if (!selected && !isSelected) {
+                  (e.currentTarget as HTMLElement).style.borderColor = '#E4E4E7';
+                  (e.currentTarget as HTMLElement).style.boxShadow = CARD_SHADOW;
                 }
               }}
             >
-              {style.icon}
-              <span style={labelStyle}>{occ.label}</span>
+              <span style={{ color: COLOR_INK_SOFT, opacity: 0.7 }}>
+                {meta.icon}
+              </span>
+              <span style={{
+                fontSize: '0.88rem',
+                fontWeight: 600,
+                color: COLOR_INK,
+                fontFamily: FONT_BODY,
+              }}>
+                {occ.label}
+              </span>
+              <span style={{
+                fontSize: '0.68rem',
+                color: COLOR_MUTED,
+                fontFamily: FONT_BODY,
+                lineHeight: 1.3,
+              }}>
+                {meta.description}
+              </span>
 
-              {/* Checkmark overlay */}
+              {/* Checkmark */}
               {isSelected && (
                 <div style={{
                   position: 'absolute',
-                  top: 0, left: 0, right: 0, bottom: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: 'rgba(0,0,0,0.18)',
-                  borderRadius: 15,
+                  top: 10, right: 10,
                 }}>
-                  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                    <circle cx="14" cy="14" r="12" fill="white" opacity="0.9" />
-                    <path d="M9 14.5l3.5 3.5 6.5-7" stroke="#3D3530" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <circle cx="10" cy="10" r="10" fill={COLOR_BORDER_ACTIVE} />
+                    <path d="M6 10.5l2.5 2.5 5-5.5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
               )}
@@ -245,63 +199,36 @@ interface NamesPreviewCardProps {
   occasion?: string;
 }
 
-export function NamesPreviewCard({ names, occasion }: NamesPreviewCardProps) {
+export function NamesPreviewCard({ names }: NamesPreviewCardProps) {
   const isSolo = !names[1];
   const displayText = isSolo ? names[0] : `${names[0]} & ${names[1]}`;
 
-  const cardStyle: React.CSSProperties = {
-    position: 'relative',
-    marginTop: '14px',
-    padding: '28px 24px',
-    borderRadius: RADIUS,
-    background: GLASS_BG,
-    backdropFilter: BACKDROP,
-    WebkitBackdropFilter: BACKDROP,
-    border: GLASS_BORDER,
-    boxShadow: WARM_SHADOW,
-    overflow: 'hidden',
-    textAlign: 'center',
-  };
-
-  const gradientOverlayStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
-    background: occasionGradient(occasion),
-    pointerEvents: 'none',
-    borderRadius: RADIUS,
-  };
-
-  const decorativeCharStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    fontSize: '5rem',
-    fontFamily: FONT_HEADING,
-    fontStyle: 'italic',
-    color: COLOR_INK_SOFT,
-    opacity: 0.06,
-    pointerEvents: 'none',
-    lineHeight: 1,
-  };
-
-  const namesStyle: React.CSSProperties = {
-    position: 'relative',
-    fontSize: '1.5rem',
-    fontFamily: FONT_HEADING,
-    fontStyle: 'italic',
-    fontWeight: 400,
-    color: COLOR_INK_SOFT,
-    lineHeight: 1.3,
-    zIndex: 1,
-  };
-
   return (
     <motion.div {...fadeIn}>
-      <div style={cardStyle}>
-        <div style={gradientOverlayStyle} />
-        {!isSolo && <div style={decorativeCharStyle}>&amp;</div>}
-        <p style={namesStyle}>{displayText}</p>
+      <div style={{
+        position: 'relative',
+        marginTop: '12px',
+        padding: '24px 20px',
+        borderRadius: RADIUS,
+        background: CARD_BG,
+        border: CARD_BORDER,
+        boxShadow: CARD_SHADOW,
+        overflow: 'hidden',
+        textAlign: 'center',
+      }}>
+        {!isSolo && <div style={{
+          position: 'absolute', top: '50%', left: '50%',
+          transform: 'translate(-50%, -50%)',
+          fontSize: '4rem', fontFamily: FONT_HEADING, fontWeight: 300,
+          color: COLOR_INK_SOFT, opacity: 0.05, pointerEvents: 'none', lineHeight: 1,
+        }}>&amp;</div>}
+        <p style={{
+          position: 'relative', fontSize: '1.4rem',
+          fontFamily: FONT_HEADING, fontWeight: 500,
+          color: COLOR_INK, lineHeight: 1.3, zIndex: 1, margin: 0,
+        }}>
+          {displayText}
+        </p>
       </div>
     </motion.div>
   );
@@ -318,97 +245,55 @@ interface CountdownCardProps {
   occasion?: string;
 }
 
-export function CountdownCard({ date, names, occasion }: CountdownCardProps) {
-  const { daysUntil, formatted, isExciting } = useMemo(() => {
+export function CountdownCard({ date }: CountdownCardProps) {
+  const { daysUntil, formatted } = useMemo(() => {
     const target = new Date(date + 'T12:00:00');
     const now = new Date();
     const diff = target.getTime() - now.getTime();
     const days = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
     const fmt = target.toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
+      month: 'long', day: 'numeric', year: 'numeric',
     });
-    return {
-      daysUntil: days,
-      formatted: fmt,
-      isExciting: days <= 30,
-    };
+    return { daysUntil: days, formatted: fmt };
   }, [date]);
-
-  const cardStyle: React.CSSProperties = {
-    position: 'relative',
-    marginTop: '14px',
-    padding: '24px 24px 24px 32px',
-    borderRadius: RADIUS,
-    background: GLASS_BG,
-    backdropFilter: BACKDROP,
-    WebkitBackdropFilter: BACKDROP,
-    border: GLASS_BORDER,
-    boxShadow: WARM_SHADOW,
-    overflow: 'hidden',
-  };
-
-  const accentStripStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '5px',
-    height: '100%',
-    background: occasionGradient(occasion)
-      .replace('rgba', 'rgba')
-      .includes('linear-gradient')
-      ? `linear-gradient(180deg, ${COLOR_OLIVE} 0%, rgba(163,177,138,0.4) 100%)`
-      : COLOR_OLIVE,
-    borderRadius: '20px 0 0 20px',
-  };
-
-  const numberStyle: React.CSSProperties = {
-    fontSize: '3rem',
-    fontFamily: FONT_HEADING,
-    fontWeight: 400,
-    fontStyle: 'italic',
-    color: COLOR_INK_SOFT,
-    lineHeight: 1,
-    letterSpacing: '-0.02em',
-  };
-
-  const subtitleStyle: React.CSSProperties = {
-    fontSize: '0.82rem',
-    fontFamily: FONT_BODY,
-    fontWeight: 600,
-    color: COLOR_MUTED,
-    marginTop: '4px',
-  };
-
-  const dateStyle: React.CSSProperties = {
-    fontSize: '0.75rem',
-    fontFamily: FONT_BODY,
-    color: COLOR_MUTED,
-    marginTop: '12px',
-    fontWeight: 500,
-  };
-
-  const excitedStyle: React.CSSProperties = {
-    fontSize: '0.78rem',
-    fontFamily: FONT_BODY,
-    fontWeight: 600,
-    color: COLOR_OLIVE,
-    marginTop: '8px',
-  };
 
   return (
     <motion.div {...fadeIn}>
-      <div style={cardStyle}>
-        <div style={accentStripStyle} />
-        <div style={numberStyle}>{daysUntil}</div>
-        <div style={subtitleStyle}>
+      <div style={{
+        position: 'relative',
+        marginTop: '12px',
+        padding: '20px 20px 20px 24px',
+        borderRadius: RADIUS,
+        background: CARD_BG,
+        border: CARD_BORDER,
+        boxShadow: CARD_SHADOW,
+        overflow: 'hidden',
+      }}>
+        {/* Left accent strip */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0,
+          width: '3px', height: '100%',
+          background: COLOR_INK,
+          borderRadius: `${RADIUS}px 0 0 ${RADIUS}px`,
+        }} />
+        <div style={{
+          fontSize: '2.5rem', fontFamily: FONT_HEADING, fontWeight: 500,
+          color: COLOR_INK, lineHeight: 1, letterSpacing: '-0.02em',
+        }}>
+          {daysUntil}
+        </div>
+        <div style={{
+          fontSize: '0.82rem', fontFamily: FONT_BODY, fontWeight: 600,
+          color: COLOR_MUTED, marginTop: '4px',
+        }}>
           {daysUntil === 0 ? "It's today!" : daysUntil === 1 ? 'day to go' : 'days to go'}
         </div>
-        {isExciting && daysUntil > 0 && (
-          <div style={excitedStyle}>It&apos;s almost here!</div>
-        )}
-        <div style={dateStyle}>{formatted}</div>
+        <div style={{
+          fontSize: '0.72rem', fontFamily: FONT_BODY,
+          color: COLOR_MUTED, marginTop: '10px', fontWeight: 500,
+        }}>
+          {formatted}
+        </div>
       </div>
     </motion.div>
   );
@@ -427,118 +312,55 @@ interface VenueMapCardProps {
 }
 
 export function VenueMapCard({ venue, address, onConfirm, onEdit }: VenueMapCardProps) {
-  const cardStyle: React.CSSProperties = {
-    marginTop: '14px',
-    borderRadius: RADIUS,
-    background: GLASS_BG,
-    backdropFilter: BACKDROP,
-    WebkitBackdropFilter: BACKDROP,
-    border: GLASS_BORDER,
-    boxShadow: WARM_SHADOW,
-    overflow: 'hidden',
-  };
-
-  const venueNameStyle: React.CSSProperties = {
-    fontSize: '1rem',
-    fontWeight: 700,
-    color: COLOR_INK_SOFT,
-    fontFamily: FONT_BODY,
-    padding: '18px 20px 12px',
-  };
-
-  const mapAreaStyle: React.CSSProperties = {
-    position: 'relative',
-    margin: '0 16px',
-    height: '120px',
-    borderRadius: 12,
-    background: 'linear-gradient(145deg, rgba(163,177,138,0.15) 0%, rgba(200,195,185,0.2) 50%, rgba(180,170,158,0.15) 100%)',
-    border: '1px solid rgba(163,177,138,0.2)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  };
-
-  const pinIcon = (
-    <svg width="32" height="42" viewBox="0 0 32 42" fill="none">
-      <path
-        d="M16 2C9.4 2 4 7.4 4 14c0 9 12 24 12 24s12-15 12-24c0-6.6-5.4-12-12-12z"
-        fill={COLOR_OLIVE}
-        opacity="0.7"
-      />
-      <circle cx="16" cy="14" r="5" fill="white" opacity="0.9" />
-    </svg>
-  );
-
-  const addressStyle: React.CSSProperties = {
-    fontSize: '0.78rem',
-    color: COLOR_MUTED,
-    fontFamily: FONT_BODY,
-    padding: '10px 20px 0',
-    lineHeight: 1.5,
-  };
-
-  const buttonRowStyle: React.CSSProperties = {
-    display: 'flex',
-    gap: '10px',
-    padding: '16px 20px 18px',
-  };
-
-  const primaryBtnStyle: React.CSSProperties = {
-    flex: 1,
-    padding: '11px 16px',
-    borderRadius: 12,
-    border: 'none',
-    background: COLOR_OLIVE,
-    color: 'white',
-    fontSize: '0.82rem',
-    fontWeight: 700,
-    fontFamily: FONT_BODY,
-    cursor: 'pointer',
-    transition: 'all 0.15s ease',
-  };
-
-  const ghostBtnStyle: React.CSSProperties = {
-    flex: 1,
-    padding: '11px 16px',
-    borderRadius: 12,
-    border: '1px solid rgba(163,177,138,0.3)',
-    background: 'transparent',
-    color: COLOR_MUTED,
-    fontSize: '0.82rem',
-    fontWeight: 600,
-    fontFamily: FONT_BODY,
-    cursor: 'pointer',
-    transition: 'all 0.15s ease',
-  };
-
   return (
     <motion.div {...fadeIn}>
-      <div style={cardStyle}>
-        <div style={venueNameStyle}>{venue}</div>
-        <div style={mapAreaStyle}>{pinIcon}</div>
-        {address && <div style={addressStyle}>{address}</div>}
-        <div style={buttonRowStyle}>
-          <button
-            style={primaryBtnStyle}
-            onClick={onConfirm}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.opacity = '0.88';
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.opacity = '1';
-            }}
+      <div style={{
+        marginTop: '12px', borderRadius: RADIUS,
+        background: CARD_BG, border: CARD_BORDER,
+        boxShadow: CARD_SHADOW, overflow: 'hidden',
+      }}>
+        <div style={{
+          fontSize: '0.95rem', fontWeight: 600,
+          color: COLOR_INK, fontFamily: FONT_BODY,
+          padding: '16px 16px 10px',
+        }}>
+          {venue}
+        </div>
+        <div style={{
+          position: 'relative', margin: '0 12px', height: '100px',
+          borderRadius: 8, background: '#F4F4F5', border: '1px solid #E4E4E7',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <svg width="24" height="32" viewBox="0 0 24 32" fill="none">
+            <path d="M12 1C6.5 1 2 5.5 2 11c0 7 10 19 10 19s10-12 10-19c0-5.5-4.5-10-10-10z"
+              fill="#A1A1AA" opacity="0.5" />
+            <circle cx="12" cy="11" r="4" fill="white" opacity="0.9" />
+          </svg>
+        </div>
+        {address && <div style={{
+          fontSize: '0.75rem', color: COLOR_MUTED, fontFamily: FONT_BODY,
+          padding: '8px 16px 0', lineHeight: 1.5,
+        }}>{address}</div>}
+        <div style={{ display: 'flex', gap: '8px', padding: '14px 16px 16px' }}>
+          <button onClick={onConfirm} style={{
+            flex: 1, padding: '10px 14px', borderRadius: 8, border: 'none',
+            background: COLOR_INK, color: 'white', fontSize: '0.82rem',
+            fontWeight: 600, fontFamily: FONT_BODY, cursor: 'pointer',
+            transition: 'opacity 0.15s',
+          }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#27272A'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = COLOR_INK; }}
           >
-            That&apos;s the spot
+            Looks right
           </button>
-          <button
-            style={ghostBtnStyle}
-            onClick={onEdit}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.4)';
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'transparent';
-            }}
+          <button onClick={onEdit} style={{
+            flex: 1, padding: '10px 14px', borderRadius: 8,
+            border: CARD_BORDER, background: 'transparent',
+            color: COLOR_MUTED, fontSize: '0.82rem', fontWeight: 600,
+            fontFamily: FONT_BODY, cursor: 'pointer', transition: 'background 0.15s',
+          }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#F4F4F5'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
           >
             Edit
           </button>
@@ -568,84 +390,11 @@ export function SitePreviewCard({ names, occasion, date, vibe, venue }: SitePrev
   const formattedDate = useMemo(() => {
     if (!date) return null;
     const d = new Date(date + 'T12:00:00');
-    return d.toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    });
+    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   }, [date]);
 
   const gradient = vibeGradient(vibe);
   const isDarkVibe = vibe?.toLowerCase().includes('dark') || vibe?.toLowerCase().includes('moody') || vibe?.toLowerCase().includes('gothic');
-
-  const cardStyle: React.CSSProperties = {
-    marginTop: '14px',
-    borderRadius: RADIUS,
-    background: GLASS_BG,
-    backdropFilter: BACKDROP,
-    WebkitBackdropFilter: BACKDROP,
-    border: GLASS_BORDER,
-    boxShadow: WARM_SHADOW,
-    overflow: 'hidden',
-  };
-
-  const subtitleBarStyle: React.CSSProperties = {
-    padding: '14px 20px 10px',
-    fontSize: '0.72rem',
-    fontWeight: 700,
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase' as const,
-    color: COLOR_MUTED,
-    fontFamily: FONT_BODY,
-  };
-
-  const previewAreaStyle: React.CSSProperties = {
-    margin: '0 16px',
-    borderRadius: 14,
-    background: gradient,
-    padding: '36px 24px 28px',
-    textAlign: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-  };
-
-  const previewNamesStyle: React.CSSProperties = {
-    fontFamily: FONT_HEADING,
-    fontStyle: 'italic',
-    fontSize: '1.6rem',
-    fontWeight: 400,
-    color: isDarkVibe ? 'rgba(255,255,255,0.92)' : 'white',
-    textShadow: isDarkVibe ? 'none' : '0 2px 8px rgba(0,0,0,0.15)',
-    lineHeight: 1.25,
-    position: 'relative',
-    zIndex: 1,
-  };
-
-  const labelStyle: React.CSSProperties = {
-    fontSize: '0.68rem',
-    fontWeight: 600,
-    fontFamily: FONT_BODY,
-    color: isDarkVibe ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.75)',
-    marginTop: '10px',
-    letterSpacing: '0.05em',
-    position: 'relative',
-    zIndex: 1,
-  };
-
-  const metaRowStyle: React.CSSProperties = {
-    display: 'flex',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: '6px 14px',
-    padding: '14px 20px 18px',
-  };
-
-  const metaTagStyle: React.CSSProperties = {
-    fontSize: '0.72rem',
-    fontWeight: 600,
-    color: COLOR_MUTED,
-    fontFamily: FONT_BODY,
-  };
 
   const labels: string[] = [];
   if (occasion) labels.push(occasion.charAt(0).toUpperCase() + occasion.slice(1));
@@ -654,20 +403,52 @@ export function SitePreviewCard({ names, occasion, date, vibe, venue }: SitePrev
 
   return (
     <motion.div {...fadeIn}>
-      <div style={cardStyle}>
-        <div style={subtitleBarStyle}>Here&apos;s a taste of what we&apos;re building</div>
-        <div style={previewAreaStyle}>
-          <p style={previewNamesStyle}>{displayNames}</p>
+      <div style={{
+        marginTop: '12px', borderRadius: RADIUS,
+        background: CARD_BG, border: CARD_BORDER,
+        boxShadow: CARD_SHADOW, overflow: 'hidden',
+      }}>
+        <div style={{
+          padding: '12px 16px 8px', fontSize: '0.68rem', fontWeight: 600,
+          letterSpacing: '0.08em', textTransform: 'uppercase' as const,
+          color: COLOR_MUTED, fontFamily: FONT_BODY,
+        }}>
+          Preview
+        </div>
+        <div style={{
+          margin: '0 12px', borderRadius: 8, background: gradient,
+          padding: '32px 20px 24px', textAlign: 'center',
+          position: 'relative', overflow: 'hidden',
+        }}>
+          <p style={{
+            fontFamily: FONT_HEADING, fontSize: '1.4rem', fontWeight: 500,
+            color: isDarkVibe ? 'rgba(255,255,255,0.92)' : 'white',
+            textShadow: isDarkVibe ? 'none' : '0 2px 8px rgba(0,0,0,0.15)',
+            lineHeight: 1.25, position: 'relative', zIndex: 1, margin: 0,
+          }}>
+            {displayNames}
+          </p>
           {labels.length > 0 && (
-            <p style={labelStyle}>
-              {labels.join('  /  ')}
+            <p style={{
+              fontSize: '0.65rem', fontWeight: 600, fontFamily: FONT_BODY,
+              color: isDarkVibe ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.75)',
+              marginTop: '8px', letterSpacing: '0.05em',
+              position: 'relative', zIndex: 1,
+            }}>
+              {labels.join('  ·  ')}
             </p>
           )}
         </div>
         {labels.length > 0 && (
-          <div style={metaRowStyle}>
+          <div style={{
+            display: 'flex', flexWrap: 'wrap', justifyContent: 'center',
+            gap: '4px 12px', padding: '12px 16px 14px',
+          }}>
             {labels.map((l, i) => (
-              <span key={i} style={metaTagStyle}>{l}</span>
+              <span key={i} style={{
+                fontSize: '0.68rem', fontWeight: 600,
+                color: COLOR_MUTED, fontFamily: FONT_BODY,
+              }}>{l}</span>
             ))}
           </div>
         )}

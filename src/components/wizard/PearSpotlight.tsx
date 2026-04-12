@@ -4,13 +4,12 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, ArrowLeft, MapPin, MessageCircle, Check, Mic, Music } from 'lucide-react';
+import { Sparkles, ArrowLeft, MapPin, MessageCircle, Check, Mic, Music } from 'lucide-react';
 import { PearMascot } from '@/components/icons/PearMascot';
 import { PhotoBrowser } from '@/components/dashboard/photo-browser';
-import { LivingCanvas } from '@/components/wizard/LivingCanvas';
 import { OccasionCard, SitePreviewCard } from '@/components/wizard/WizardCards';
 import { LocationAutocomplete } from '@/components/wizard/LocationAutocomplete';
-import { StyleDiscoveryCard, ColorPaletteCard } from '@/components/wizard/WizardCardsB';
+import { ColorPaletteCard } from '@/components/wizard/WizardCardsB';
 import { PearCalendar } from '@/components/wizard/PearCalendar';
 import { SiteRenderer } from '@/components/editor/SiteRenderer';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
@@ -18,7 +17,6 @@ import { formatSiteDisplayUrl } from '@/lib/site-urls';
 import { StoryLayoutPicker, type StoryLayoutType } from '@/components/blocks/StoryLayouts';
 import { useGenerationTicker } from '@/components/wizard/useGenerationTicker';
 import { WizardBreadcrumb, type BreadcrumbStepKey } from '@/components/wizard/WizardBreadcrumb';
-import { WizardLivePreview } from '@/components/wizard/WizardLivePreview';
 import { useConfetti } from '@/components/wizard/useConfetti';
 import { PhotoDropZone } from '@/components/wizard/PhotoDropZone';
 import { useSpeechRecognition } from '@/components/wizard/useSpeechRecognition';
@@ -191,129 +189,46 @@ function currentStep(c: Collected, photosDecided: boolean, vibeDescription: stri
   return 'ready';
 }
 
-// Speech text for each step — warm, conversational, references
-// what's been collected. Pear changes voice per occasion so a
-// birthday site feels playful, an anniversary feels warm and
-// reflective, an engagement feels electric, etc.
-function speechForStep(step: Step, collected: Collected, photoInfo?: { index: number; total: number; location?: string }): string {
+// Step titles — direct, professional UX writing (no mascot voice)
+function titleForStep(step: Step, collected: Collected): string {
   const name1 = collected.names?.[0];
   const name2 = collected.names?.[1];
   const nameDisplay = name2 ? `${name1} & ${name2}` : name1;
-  const occ = collected.occasion;
 
   switch (step) {
-    case 'occasion':
-      return "Hey! What are we celebrating?";
-
-    case 'names': {
-      if (occ === 'birthday') return "Amazing — whose birthday is it?!";
-      if (occ === 'wedding') return "A wedding! Tell me about the couple.";
-      if (occ === 'engagement') return "Oh my — who just said yes?";
-      if (occ === 'anniversary') return "Beautiful. Whose love story are we celebrating?";
-      return "Lovely. Who's this for?";
-    }
-
-    case 'date': {
-      if (occ === 'birthday') return `When's ${name1}'s big day?`;
-      if (occ === 'wedding') return `${nameDisplay} — when's the wedding?`;
-      if (occ === 'engagement') return `${nameDisplay} — when did it happen?`;
-      if (occ === 'anniversary') return `${nameDisplay} — when are we celebrating?`;
-      return `Got it, ${nameDisplay}. When's the date?`;
-    }
-
-    case 'venue': {
-      const dateStr = collected.date ? new Date(collected.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) : '';
-      if (occ === 'wedding' && dateStr) return `${dateStr} — where's the wedding?`;
-      if (occ === 'birthday') return `Where's the party?`;
-      if (occ === 'engagement') return `Where did the proposal happen?`;
-      if (occ === 'anniversary') return `Any place special to revisit?`;
-      if (dateStr) return `${dateStr} — where's it happening?`;
-      return "Where's the celebration?";
-    }
-
-    case 'vibe-ask': {
-      const venue = collected.venue === 'TBD' ? '' : collected.venue;
-      if (occ === 'wedding' && venue) return `${venue} sounds dreamy. What's the vibe?`;
-      if (occ === 'birthday' && venue) return `${venue} — what's the mood?`;
-      if (occ === 'birthday') return `What's the vibe for this party?`;
-      if (occ === 'anniversary') return "What feeling do you want this to have?";
-      if (venue) return `${venue} sounds amazing! Describe your dream vibe.`;
-      return "Almost there — describe the style you love.";
-    }
-
-    case 'vibe-pick': {
-      if (occ === 'wedding') return "Here are palettes made for your day.";
-      if (occ === 'birthday') return "Pick the one that looks like the party.";
-      if (occ === 'engagement') return "Which one feels like your proposal?";
-      if (occ === 'anniversary') return "Which palette holds your story?";
-      return "Tap the one that makes your heart sing.";
-    }
-
-    case 'photos': {
-      if (occ === 'wedding') return "Now — the photos that tell your love story.";
-      if (occ === 'birthday') return `Photos of ${name1} being ${name1}.`;
-      if (occ === 'engagement') return "The photos from around the big question.";
-      if (occ === 'anniversary') return "Photos from the years together — any favorites.";
-      return "Let's add photos to make it yours.";
-    }
-
-    case 'photo-review': {
-      if (photoInfo) {
-        if (photoInfo.location) {
-          return `Taken in ${photoInfo.location} — what was this moment?`;
-        }
-        return `Photo ${photoInfo.index + 1} of ${photoInfo.total} — where was this?`;
-      }
-      return "Tell me about this photo";
-    }
-
-    case 'layout': {
-      if (occ === 'wedding') return "How should your love story unfold?";
-      if (occ === 'birthday') return `How should we tell ${name1}'s story?`;
-      return "How should your story unfold?";
-    }
-
-    case 'song': {
-      if (occ === 'wedding') return "What's your song? (the one)";
-      if (occ === 'birthday') return `What song is ${name1}'s anthem?`;
-      if (occ === 'engagement') return "What song was playing?";
-      if (occ === 'anniversary') return "What song has followed you through the years?";
-      return "What song fits the story?";
-    }
-
-    case 'ready': {
-      if (occ === 'wedding') return `${nameDisplay}'s wedding site is ready to build.`;
-      if (occ === 'birthday') return `${name1}'s site is ready — let's make it!`;
-      if (occ === 'engagement') return `${nameDisplay}'s announcement is ready.`;
-      if (occ === 'anniversary') return `${nameDisplay}'s love letter is ready.`;
-      return `${nameDisplay}'s site is ready to build.`;
-    }
+    case 'occasion': return 'What are we celebrating?';
+    case 'names': return 'Who is this for?';
+    case 'date': return "When's the date?";
+    case 'venue': return "Where's it happening?";
+    case 'vibe-ask': return 'Describe your style';
+    case 'vibe-pick': return 'Pick a color palette';
+    case 'photos': return 'Add your photos';
+    case 'photo-review': return 'Review your photos';
+    case 'layout': return 'Choose a layout';
+    case 'song': return 'Add a song';
+    case 'ready': return `${nameDisplay}'s site is ready`;
   }
 }
 
-// Conversational sub-text — adds personality below the main speech
-function subtextForStep(step: Step, collected: Collected): string {
+// Step descriptions — helpful context below the title
+function descriptionForStep(step: Step, collected: Collected): string {
   const occ = collected.occasion;
   switch (step) {
-    case 'occasion': return "I'm Pear, your personal site builder. Let's make something beautiful together.";
+    case 'occasion': return 'This helps us personalize your site layout and features.';
     case 'names':
-      if (occ === 'birthday') return "Just their first name is perfect.";
-      if (occ === 'engagement') return "Both of your first names — the real ones or the nicknames, whichever fits.";
-      return "First names are great — I'll make them look stunning.";
+      if (occ === 'birthday') return 'Just their first name is perfect.';
+      if (occ === 'engagement') return 'Both first names — real ones or nicknames.';
+      return 'First names work great.';
     case 'date':
-      if (occ === 'birthday') return "I'll add a countdown that builds the anticipation.";
-      if (occ === 'anniversary') return "I'll hold it on the hero as your anchor moment.";
-      return "I'll add a gorgeous countdown to the site.";
-    case 'venue': return "I'll put it on the map for your guests. Or skip if it's TBD.";
-    case 'vibe-ask':
-      if (occ === 'birthday') return "Colors, vibes, inside jokes — whatever makes this feel like them.";
-      return "Colors, themes, moods — anything goes. Think Pinterest board.";
-    case 'vibe-pick': return "Tap the one that makes your heart sing.";
-    case 'photos': return "Your photos make the site 10× more personal. I'll help tell the story.";
-    case 'photo-review': return "Add the location and a note — it makes the story richer.";
-    case 'layout': return "Pick the layout that fits your vibe. You can change it later in the editor.";
-    case 'song': return "Optional — paste a Spotify or YouTube link and I'll add a music block.";
-    case 'ready': return "Take a peek — you can always tweak in the editor after.";
+      return "We'll add a countdown to your site.";
+    case 'venue': return "We'll add it to the map for your guests. Skip if TBD.";
+    case 'vibe-ask': return 'Colors, themes, moods — describe what you want.';
+    case 'vibe-pick': return `Based on "${collected.vibe?.split(' - ')[0] || ''}"`;
+    case 'photos': return 'Photos make your site personal. Upload or pick from Google Photos.';
+    case 'photo-review': return 'Add locations and notes to enrich the story.';
+    case 'layout': return 'You can always change this later in the editor.';
+    case 'song': return 'Optional — paste a Spotify or YouTube link.';
+    case 'ready': return 'Review and build your site.';
   }
 }
 
@@ -324,51 +239,11 @@ function isDarkVibe(vibe?: string): boolean {
   return v.includes('dark') || v.includes('moody') || v.includes('gothic') || v.includes('midnight') || v.includes('noir') || v.includes('black') || v.includes('navy') || v.includes('celestial');
 }
 
-// Pear mood per step
-function moodForStep(step: Step, loading: boolean): 'idle' | 'thinking' | 'happy' | 'greeting' | 'celebrating' {
-  if (loading) return 'thinking';
-  switch (step) {
-    case 'occasion': return 'greeting';
-    case 'names': return 'happy';
-    case 'date': return 'happy';
-    case 'venue': return 'happy';
-    case 'vibe-ask': return 'happy';
-    case 'vibe-pick': return 'happy';
-    case 'photos': return 'happy';
-    case 'photo-review': return 'happy';
-    case 'layout': return 'happy';
-    case 'song': return 'happy';
-    case 'ready': return 'celebrating';
-  }
-}
-
-// Progress: how many of 5 steps done
-function progressCount(c: Collected): number {
-  let n = 0;
-  if (c.occasion) n++;
-  if (c.names?.[0]) n++;
-  if (c.date) n++;
-  if (c.venue) n++;
-  if (c.vibe) n++;
-  return n;
-}
-
-// SVG progress ring component
-function ProgressRing({ progress, size = 140 }: { progress: number; size?: number }) {
-  const stroke = 3;
-  const r = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * r;
-  const offset = circumference - (progress / 5) * circumference;
-  return (
-    <svg width={size} height={size} style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', pointerEvents: 'none' }}>
-      {/* Track */}
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(163,177,138,0.15)" strokeWidth={stroke} />
-      {/* Fill */}
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--pl-olive, #A3B18A)" strokeWidth={stroke}
-        strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
-        style={{ transition: 'stroke-dashoffset 0.8s ease', transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }} />
-    </svg>
-  );
+// Step index for progress bar (0-based out of total steps)
+const TOTAL_STEPS = 11;
+function stepIndex(step: Step): number {
+  const ORDER: Step[] = ['occasion', 'names', 'date', 'venue', 'photos', 'photo-review', 'vibe-ask', 'vibe-pick', 'layout', 'song', 'ready'];
+  return ORDER.indexOf(step);
 }
 
 export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
@@ -412,10 +287,10 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   useEffect(() => { selectedPhotosRef.current = selectedPhotos; }, [selectedPhotos]);
 
   const step = currentStep(collected, photosDecided, vibeDescription, selectedPhotos.length, reviewDone, songDecided);
-  const progress = progressCount(collected);
-  const speech = speechForStep(step, collected, step === 'photo-review' ? { index: photoReviewIndex, total: selectedPhotos.length, location: photoNotes[photoReviewIndex]?.location } : undefined);
-  const subtext = subtextForStep(step, collected);
-  const mood = moodForStep(step, loading);
+  const stepTitle = titleForStep(step, collected);
+  const stepDesc = descriptionForStep(step, collected);
+  const currentStepIdx = stepIndex(step);
+  const progressPct = Math.round((currentStepIdx / (TOTAL_STEPS - 1)) * 100);
   const dark = isDarkVibe(collected.vibe);
   const fireConfetti = useConfetti();
 
@@ -543,17 +418,13 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     }
   }, [freeformText, freeformLoading]);
 
-  // Contrast-adaptive colors
-  const textColor = dark ? '#FAF7F2' : 'var(--pl-ink-soft, #3D3530)';
-  const mutedColor = dark ? 'rgba(250,247,242,0.6)' : 'var(--pl-muted, #8C7E72)';
-  const cardBg = dark ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.4)';
-  const cardBorder = dark ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(255,255,255,0.5)';
-  const inputBg = dark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.6)';
-  const inputBorder = dark ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(163,177,138,0.3)';
-  const chipBg = dark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.5)';
-  const chipBorder = dark ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(255,255,255,0.4)';
-  const ghostBg = dark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.4)';
-  const ghostBorder = dark ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(163,177,138,0.2)';
+  // v5 design system — solid surfaces, no glass
+  const textColor = '#18181B';
+  const mutedColor = '#71717A';
+  const inputBg = '#FFFFFF';
+  const inputBorder = '1px solid #E4E4E7';
+  const ghostBg = 'transparent';
+  const ghostBorder = '1px solid #E4E4E7';
 
   // NOTE: we no longer auto-open the Google Photos browser on
   // the photos step — the user now picks between drag-and-drop
@@ -1171,106 +1042,37 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       : 'Your answers are safe. Let\u2019s try again.';
 
     return (
-      <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-        <LivingCanvas occasion={collected.occasion} names={collected.names} paletteColors={selectedPaletteColors} phase="chat" />
+      <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', background: '#FAFAFA' }}>
+        <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, maxWidth: 440, width: '90%' }}>
+          <PearMascot size={32} mood="thinking" color="#A1A1AA" />
 
-        <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-          <PearMascot size={80} mood="thinking" />
+          <div style={{
+            background: '#FFFFFF', borderRadius: 12, padding: '28px 24px',
+            border: '1px solid #E4E4E7', boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+            width: '100%', textAlign: 'center',
+          }}>
+            <p style={{ fontSize: '1.1rem', color: '#18181B', marginBottom: 8, fontWeight: 600 }}>{headline}</p>
+            <p style={{ fontSize: '0.82rem', color: '#71717A', marginBottom: 6, lineHeight: 1.5 }}>{suggestion}</p>
+            <p style={{ fontSize: '0.68rem', color: '#A1A1AA', marginBottom: 16, lineHeight: 1.5 }}>{errMsg}</p>
 
-          <div
-            style={{
-              background: 'rgba(255,255,255,0.5)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              borderRadius: 20,
-              padding: '28px 24px',
-              border: '1px solid rgba(255,255,255,0.5)',
-              boxShadow: '0 4px 24px rgba(43,30,20,0.08)',
-              maxWidth: 440,
-              width: '88%',
-              textAlign: 'center',
-            }}
-          >
-            <p style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.2rem', color: 'var(--pl-ink-soft)', marginBottom: 8, fontWeight: 600, fontStyle: 'italic' }}>
-              {headline}
-            </p>
-            <p style={{ fontSize: '0.82rem', color: 'var(--pl-muted, #8C7E72)', marginBottom: 6, lineHeight: 1.5 }}>
-              {suggestion}
-            </p>
-            {/* Show the raw error message too, dimmed, for users
-                who want specifics. */}
-            <p style={{ fontSize: '0.68rem', color: 'var(--pl-muted, #8C7E72)', marginBottom: 16, lineHeight: 1.5, opacity: 0.7, fontStyle: 'italic' }}>
-              {errMsg}
-            </p>
-
-            {/* Reassurance chip — their state IS preserved */}
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '5px 12px',
-                borderRadius: 100,
-                background: 'rgba(163,177,138,0.15)',
-                border: '1px solid rgba(163,177,138,0.25)',
-                fontSize: '0.62rem',
-                fontWeight: 700,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                color: 'var(--pl-olive-deep, #7D9B6A)',
-                marginBottom: 18,
-              }}
-            >
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '5px 12px', borderRadius: 100,
+              background: '#F4F4F5', border: '1px solid #E4E4E7',
+              fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.06em',
+              textTransform: 'uppercase', color: '#71717A', marginBottom: 18,
+            }}>
               <Check size={10} />
               {selectedPhotos.length} photos · {collected.vibe ? 'vibe set' : 'vibe pending'} · nothing lost
             </div>
 
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => {
-                  // Go back into the wizard chat mode so the
-                  // user can edit any step via the breadcrumb.
-                  setPhase('chat');
-                  setGenError(null);
-                }}
-                style={{
-                  padding: '10px 20px',
-                  borderRadius: 100,
-                  background: 'rgba(255,255,255,0.5)',
-                  backdropFilter: 'blur(8px)',
-                  border: '1px solid rgba(255,255,255,0.4)',
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  color: 'var(--pl-ink-soft)',
-                  cursor: 'pointer',
-                }}
-              >
-                Edit answers
-              </button>
-
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+              <button onClick={() => { setPhase('chat'); setGenError(null); }}
+                style={{ padding: '10px 18px', borderRadius: 8, background: 'transparent', border: '1px solid #E4E4E7', fontSize: '0.85rem', fontWeight: 600, color: '#3F3F46', cursor: 'pointer' }}
+              >Edit answers</button>
               {retryCount < 3 && (
-                <button
-                  onClick={() => {
-                    setPhase('chat');
-                    setGenError(null);
-                    // Re-invoke handleBuild from the CURRENT
-                    // `collected` + `selectedPhotos` state, which
-                    // never got cleared on error.
-                    setTimeout(() => handleBuild(), 50);
-                  }}
-                  style={{
-                    padding: '10px 20px',
-                    borderRadius: 100,
-                    background: 'var(--pl-olive, #A3B18A)',
-                    border: 'none',
-                    fontSize: '0.85rem',
-                    fontWeight: 700,
-                    color: '#fff',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                  }}
+                <button onClick={() => { setPhase('chat'); setGenError(null); setTimeout(() => handleBuild(), 50); }}
+                  style={{ padding: '10px 18px', borderRadius: 8, background: '#18181B', border: 'none', fontSize: '0.85rem', fontWeight: 600, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                 >
                   <Sparkles size={13} />
                   Try again {retryCount > 0 ? `(${retryCount}/3)` : ''}
@@ -1291,162 +1093,52 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       : completedData.names[0];
 
     return (
-      <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <LivingCanvas occasion={collected.occasion} names={collected.names} date={collected.date} venue={collected.venue} vibe={collected.vibe} phase="chat" />
-
+      <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FAFAFA' }}>
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           style={{
-            position: 'relative', zIndex: 10,
-            maxWidth: 440, width: '90%',
-            background: 'rgba(255,255,255,0.45)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            borderRadius: 28,
-            padding: '40px 28px 32px',
-            border: '1px solid rgba(255,255,255,0.5)',
-            boxShadow: '0 12px 48px rgba(43,30,20,0.1)',
+            position: 'relative', zIndex: 10, maxWidth: 480, width: '90%',
+            background: '#FFFFFF', borderRadius: 12, padding: '36px 28px 28px',
+            border: '1px solid #E4E4E7', boxShadow: '0 16px 40px rgba(0,0,0,0.08)',
             textAlign: 'center',
-          } as React.CSSProperties}
+          }}
         >
-          {/* Celebrating Pear */}
-          <motion.div
-            animate={{ rotate: [0, -8, 8, -4, 4, 0] }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+          {/* Small pear logomark */}
+          <PearMascot size={28} mood="idle" color="#A1A1AA" />
+
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+            style={{ fontSize: '1.5rem', fontWeight: 500, color: '#18181B', marginTop: 16, marginBottom: 4 }}
+          >{displayNames}</motion.p>
+
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
+            style={{ fontSize: '0.85rem', color: '#71717A', marginBottom: 24 }}
+          >Your site is ready!</motion.p>
+
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
+            style={{ background: '#F4F4F5', borderRadius: 8, padding: '14px 20px', marginBottom: 20, border: '1px solid #E4E4E7' }}
           >
-            <PearMascot size={100} mood="celebrating" />
+            <p style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#A1A1AA', marginBottom: 6 }}>Your site URL</p>
+            <p style={{ fontSize: '0.95rem', fontWeight: 600, color: '#18181B', wordBreak: 'break-all' as const }}>{siteUrl}</p>
+            <button onClick={() => navigator.clipboard?.writeText(`https://${siteUrl}`)}
+              style={{ marginTop: 8, padding: '5px 14px', borderRadius: 6, background: '#FFFFFF', border: '1px solid #E4E4E7', fontSize: '0.7rem', fontWeight: 600, color: '#3F3F46', cursor: 'pointer' }}
+            >Copy link</button>
           </motion.div>
 
-          {/* Names */}
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            style={{
-              fontFamily: 'var(--pl-font-heading)',
-              fontStyle: 'italic',
-              fontSize: '1.6rem',
-              color: 'var(--pl-ink-soft)',
-              marginTop: 16,
-              marginBottom: 4,
-            }}
-          >
-            {displayNames}
-          </motion.p>
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
+            style={{ fontSize: '0.78rem', color: '#A1A1AA', lineHeight: 1.5, marginBottom: 24 }}
+          >Photos are saved. Customize everything in the editor.</motion.p>
 
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            style={{ fontSize: '0.85rem', color: 'var(--pl-muted)', marginBottom: 24 }}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}
+            style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
           >
-            Your site is ready!
-          </motion.p>
-
-          {/* URL display */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            style={{
-              background: 'rgba(255,255,255,0.5)',
-              borderRadius: 16,
-              padding: '14px 20px',
-              marginBottom: 20,
-              border: '1px solid rgba(255,255,255,0.5)',
-            }}
-          >
-            <p style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.1em', color: 'var(--pl-muted)', marginBottom: 6 }}>
-              Your site URL
-            </p>
-            <p style={{
-              fontSize: '1rem',
-              fontWeight: 600,
-              color: 'var(--pl-olive, #A3B18A)',
-              wordBreak: 'break-all' as const,
-            }}>
-              {siteUrl}
-            </p>
-            <button
-              onClick={() => navigator.clipboard?.writeText(`https://${siteUrl}`)}
-              style={{
-                marginTop: 8,
-                padding: '6px 16px',
-                borderRadius: 100,
-                background: 'rgba(163,177,138,0.12)',
-                border: '1px solid rgba(163,177,138,0.3)',
-                fontSize: '0.72rem',
-                fontWeight: 600,
-                color: 'var(--pl-olive)',
-                cursor: 'pointer',
-              }}
-            >
-              Copy link
-            </button>
-          </motion.div>
-
-          {/* Pear's message */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.9 }}
-            style={{
-              fontSize: '0.82rem',
-              color: 'var(--pl-muted)',
-              lineHeight: 1.5,
-              marginBottom: 24,
-              fontStyle: 'italic',
-            }}
-          >
-            Photos are saved, site is on your dashboard. You can customize everything in the editor.
-            {'\n'}— Pear
-          </motion.p>
-
-          {/* CTA */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.0 }}
-            style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
-          >
-            <button
-              onClick={() => onComplete(completedData.manifest, completedData.names, completedData.subdomain)}
-              style={{
-                width: '100%',
-                padding: '14px 0',
-                borderRadius: 100,
-                background: 'var(--pl-olive, #A3B18A)',
-                border: 'none',
-                fontSize: '0.88rem',
-                fontWeight: 700,
-                color: '#fff',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-              }}
-            >
-              Open Editor
-            </button>
-            <button
-              onClick={() => window.open(`https://${siteUrl}`, '_blank')}
-              style={{
-                width: '100%',
-                padding: '12px 0',
-                borderRadius: 100,
-                background: 'transparent',
-                border: '1px solid rgba(163,177,138,0.3)',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                color: 'var(--pl-ink-soft)',
-                cursor: 'pointer',
-              }}
-            >
-              Preview live site
-            </button>
+            <button onClick={() => onComplete(completedData.manifest, completedData.names, completedData.subdomain)}
+              style={{ width: '100%', padding: '12px 0', borderRadius: 8, background: '#18181B', border: 'none', fontSize: '0.88rem', fontWeight: 600, color: '#fff', cursor: 'pointer' }}
+            >Open Editor</button>
+            <button onClick={() => window.open(`https://${siteUrl}`, '_blank')}
+              style={{ width: '100%', padding: '10px 0', borderRadius: 8, background: 'transparent', border: '1px solid #E4E4E7', fontSize: '0.82rem', fontWeight: 600, color: '#3F3F46', cursor: 'pointer' }}
+            >Preview live site</button>
           </motion.div>
         </motion.div>
       </div>
@@ -1457,359 +1149,106 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const needsTwo = collected.occasion === 'wedding' || collected.occasion === 'engagement' || collected.occasion === 'anniversary';
   const hasFirstName = !!(collected.names?.[0] && !collected.names?.[1]);
 
-  // Date preset helpers
-  const getThisWeekend = (): string => {
-    const now = new Date();
-    const dayOfWeek = now.getDay();
-    const daysUntilSaturday = (6 - dayOfWeek + 7) % 7 || 7;
-    const saturday = new Date(now);
-    saturday.setDate(now.getDate() + daysUntilSaturday);
-    return saturday.toISOString().slice(0, 10);
-  };
-
-  const getNextMonth = (): string => {
-    const now = new Date();
-    const next = new Date(now.getFullYear(), now.getMonth() + 1, 15);
-    return next.toISOString().slice(0, 10);
-  };
-
-  // Format date for chip display
-  const formatDateChip = (dateStr: string): string => {
-    try {
-      const d = new Date(dateStr + 'T12:00:00');
-      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    } catch {
-      return dateStr;
-    }
-  };
-
-  // Chip component — contrast-adaptive
-  const Chip = ({ label, onClick }: { label: string; onClick: () => void }) => (
-    <button
-      onClick={onClick}
-      className="pear-btn"
-      style={{
-        padding: '6px 16px', minHeight: 32,
-        borderRadius: 100,
-        background: chipBg, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-        border: chipBorder, fontSize: '0.75rem', fontWeight: 600,
-        color: textColor, cursor: 'pointer', transition: 'all 0.2s',
-      }}
-    >
-      {label}
-    </button>
-  );
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      {/* Global focus + interaction styles */}
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', background: '#FAFAFA', overflowY: 'auto' }}>
+      {/* Focus + interaction styles */}
       <style>{`
-        .pear-input:focus-visible { box-shadow: 0 0 0 3px rgba(163,177,138,0.35) !important; outline: none; }
-        .pear-btn:focus-visible { box-shadow: 0 0 0 3px rgba(163,177,138,0.35) !important; outline: none; }
+        .pear-input:focus-visible { box-shadow: 0 0 0 2px rgba(24,24,27,0.15) !important; outline: none; }
+        .pear-btn:focus-visible { box-shadow: 0 0 0 2px rgba(24,24,27,0.15) !important; outline: none; }
         .pear-btn:active { transform: scale(0.97); }
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes pear-breathe {
-          0%, 100% { transform: translateY(0) scale(1); }
-          50%      { transform: translateY(-6px) scale(1.02); }
-        }
-        @keyframes pear-blink {
-          0%, 92%, 100% { opacity: 1; }
-          95%           { opacity: 0.4; }
-        }
-        .pear-float {
-          animation: pear-breathe 4.5s ease-in-out infinite;
-        }
-        .pear-shadow {
-          animation: pear-breathe 4.5s ease-in-out infinite reverse;
-        }
-        /* Responsive layout: three columns on XL (mascot + card + preview),
-           two on desktop (mascot + card), stacked on mobile. */
-        .pear-stage {
-          display: flex;
-          align-items: flex-start;
-          justify-content: center;
-          gap: 28px;
-          width: 100%;
-          max-width: 1480px;
-          padding: 32px 24px 0;
-        }
-        .pear-stage-mascot {
-          flex-shrink: 0;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          width: 200px;
-          padding-top: 40px;
-        }
-        .pear-stage-card {
-          flex: 1 1 auto;
-          max-width: 480px;
-          min-width: 0;
-        }
-        .pear-stage-preview {
-          flex-shrink: 0;
-          width: 640px;
-          padding-top: 14px;
-        }
-        /* Hide the live preview panel below ~1440px so the 640px
-           preview frame always has room to render at its full scale
-           instead of getting clipped. On smaller laptops the card
-           gets the stage to itself; the generation phase takes over
-           with a full-size preview anyway. */
-        @media (max-width: 1439px) {
-          .pear-stage {
-            max-width: 1200px;
-            gap: 24px;
-          }
-          .pear-stage-preview {
-            display: none;
-          }
-        }
-        @media (max-width: 767px) {
-          .pear-stage {
-            flex-direction: column;
-            gap: 0;
-            padding: 16px 16px 0;
-          }
-          .pear-stage-mascot {
-            width: 140px;
-            margin-bottom: -10px;
-            padding-top: 0;
-          }
-          .pear-stage-card {
-            width: 100%;
-          }
-          /* Tail points UP toward Pear on mobile instead of left */
-          .pear-speech-tail {
-            left: 50% !important;
-            top: -8px !important;
-            transform: translateX(-50%) rotate(135deg) !important;
-          }
-        }
       `}</style>
-      <LivingCanvas
-        occasion={collected.occasion}
-        names={collected.names}
-        date={collected.date}
-        venue={collected.venue}
-        vibe={collected.vibe}
-        paletteColors={selectedPaletteColors}
-        phase="chat"
-      />
 
-      {/* Back button -- top left */}
+      {/* Subtle radial gradient background */}
+      <div aria-hidden="true" style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        background: 'radial-gradient(ellipse at 50% 30%, rgba(228,228,231,0.4) 0%, transparent 70%)',
+      }} />
+
+      {/* Back button */}
       <button
         onClick={onBack}
         style={{
-          position: 'absolute',
-          top: 20,
-          left: 20,
-          zIndex: 20,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          padding: '8px 14px',
-          borderRadius: 100,
-          background: 'rgba(255,255,255,0.4)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          border: '1px solid rgba(255,255,255,0.4)',
-          fontSize: '0.8rem',
-          fontWeight: 600,
-          color: textColor,
-          cursor: 'pointer',
+          position: 'fixed', top: 20, left: 20, zIndex: 20,
+          display: 'flex', alignItems: 'center', gap: 6,
+          padding: '8px 14px', borderRadius: 8,
+          background: '#FFFFFF', border: '1px solid #E4E4E7',
+          fontSize: '0.8rem', fontWeight: 600, color: '#3F3F46', cursor: 'pointer',
         }}
       >
         <ArrowLeft size={14} />
         Back
       </button>
 
-      {/* The Spotlight Stage — Pear side-by-side with card */}
-      <div className="pear-stage" style={{ position: 'relative', zIndex: 10 }}>
-
-        {/* Big Pear mascot — the star of the show */}
-        {step !== 'photo-review' && (
-          <div className="pear-stage-mascot">
+      {/* ── Single centered card ── */}
+      <div style={{
+        position: 'relative', zIndex: 10,
+        width: '100%', maxWidth: 560, padding: '80px 20px 40px',
+      }}>
+        <div style={{
+          background: '#FFFFFF', borderRadius: 12,
+          border: '1px solid #E4E4E7',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+          overflow: step === 'venue' || step === 'photo-review' ? 'visible' : 'hidden',
+        }}>
+          {/* Progress bar — thin line at top of card */}
+          <div style={{ height: 3, background: '#F4F4F5', borderRadius: '12px 12px 0 0', overflow: 'hidden' }}>
             <motion.div
-              initial={{ opacity: 0, scale: 0.85, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ type: 'spring', stiffness: 180, damping: 18 }}
-              style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-            >
-              {/* Glow halo behind Pear */}
-              <div style={{
-                position: 'absolute',
-                top: '50%', left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: '110%', height: '110%',
-                borderRadius: '50%',
-                background: `radial-gradient(circle, ${dark ? 'rgba(163,177,138,0.25)' : 'rgba(163,177,138,0.2)'} 0%, transparent 65%)`,
-                filter: 'blur(20px)',
-                pointerEvents: 'none',
-                zIndex: -1,
-              }} />
-
-              {/* Progress ring — wraps around Pear like a halo */}
-              <div style={{ position: 'relative', width: 200, height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ position: 'absolute', inset: 0 }}>
-                  <ProgressRing progress={progress} size={200} />
-                </div>
-
-                {/* Pear himself — breathing idle animation + reaction wiggles */}
-                <motion.div
-                  className="pear-float"
-                  animate={{
-                    rotate: step === 'ready' ? [0, -6, 6, -4, 4, 0] : 0,
-                  }}
-                  transition={{
-                    rotate: { duration: 0.8, delay: 0.2 },
-                  }}
-                  key={`pear-${step}`}
-                  style={{ position: 'relative', zIndex: 2 }}
-                >
-                  <PearMascot size={160} mood={mood} />
-                </motion.div>
-              </div>
-
-              {/* Floor shadow — subtle ellipse beneath Pear */}
-              <div
-                className="pear-shadow"
-                style={{
-                  width: 120, height: 12,
-                  borderRadius: '50%',
-                  background: 'radial-gradient(ellipse, rgba(43,30,20,0.15) 0%, transparent 70%)',
-                  marginTop: -8,
-                }}
-              />
-
-              {/* Thinking particles — only when loading */}
-              {loading && (
-                <div style={{ position: 'absolute', top: 10, right: 20, display: 'flex', gap: 4 }}>
-                  {[0, 1, 2].map(i => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, y: 0 }}
-                      animate={{ opacity: [0, 1, 0], y: [-4, -12, -20] }}
-                      transition={{ duration: 1.4, delay: i * 0.2, repeat: Infinity }}
-                      style={{
-                        width: 6, height: 6, borderRadius: '50%',
-                        background: 'var(--pl-olive, #A3B18A)',
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-            </motion.div>
+              animate={{ width: `${progressPct}%` }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              style={{ height: '100%', background: '#18181B', borderRadius: 2 }}
+            />
           </div>
-        )}
 
-        {/* Right side — speech + card stack */}
-        <div className="pear-stage-card">
+          {/* Card content */}
+          <div style={{ padding: step === 'photo-review' ? 0 : '28px 28px 24px' }}>
+            {/* Step header — title + description */}
+            {step !== 'photo-review' && (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`header-${step}`}
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                  style={{ marginBottom: 20 }}
+                >
+                  <h2 style={{
+                    fontSize: '1.25rem', fontWeight: 600, color: '#18181B',
+                    margin: '0 0 4px', letterSpacing: '-0.01em',
+                  }}>
+                    {stepTitle}
+                  </h2>
+                  <p style={{ fontSize: '0.82rem', color: '#71717A', margin: 0, lineHeight: 1.5 }}>
+                    {stepDesc}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
+            )}
 
-          {/* Editable breadcrumb of answered steps — tap a chip to
-              go back and fix a typo. Hidden during photo-review
-              because that step takes over the whole card. */}
-          {step !== 'photo-review' && (
-            <div style={{ marginBottom: 10 }}>
-              <WizardBreadcrumb
-                collected={collected}
-                currentStep={step}
-                onEditField={handleEditField}
-                dark={dark}
-              />
-            </div>
-          )}
+            {/* Breadcrumb — editable chips for answered steps */}
+            {step !== 'photo-review' && step !== 'occasion' && (
+              <div style={{ marginBottom: 16 }}>
+                <WizardBreadcrumb
+                  collected={collected}
+                  currentStep={step}
+                  onEditField={handleEditField}
+                  dark={false}
+                />
+              </div>
+            )}
 
-          {/* Speech bubble — sits above the card with tail pointing to Pear */}
-          {step !== 'photo-review' && (
+            {/* Step content — directional slide transitions */}
             <AnimatePresence mode="wait">
               <motion.div
-                key={`speech-${step}`}
-                initial={{ opacity: 0, x: -12, y: 4 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
-                exit={{ opacity: 0, x: -12, y: -4 }}
-                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                style={{
-                  position: 'relative',
-                  padding: '18px 22px',
-                  marginBottom: 14,
-                  borderRadius: 20,
-                  background: cardBg,
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                  border: cardBorder,
-                  boxShadow: dark ? '0 8px 32px rgba(0,0,0,0.18)' : '0 8px 32px rgba(43,30,20,0.07)',
-                  transition: 'background 0.5s, border 0.5s',
-                }}
+                key={step}
+                initial={{ opacity: 0, x: direction * 40 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: direction * -40 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                style={{ minHeight: step === 'occasion' ? 200 : 120 }}
               >
-                {/* Tail pointing LEFT toward Pear (hidden on mobile where Pear is above) */}
-                <div
-                  aria-hidden="true"
-                  style={{
-                    position: 'absolute',
-                    left: -8, top: 28,
-                    width: 16, height: 16,
-                    background: cardBg,
-                    borderLeft: cardBorder,
-                    borderBottom: cardBorder,
-                    transform: 'rotate(45deg)',
-                    backdropFilter: 'blur(20px)',
-                  }}
-                  className="pear-speech-tail"
-                />
-                <p style={{
-                  fontFamily: 'var(--pl-font-heading)',
-                  fontStyle: 'italic',
-                  fontSize: '1.2rem',
-                  color: textColor,
-                  lineHeight: 1.35,
-                  margin: '0 0 4px',
-                  transition: 'color 0.5s',
-                }}>
-                  {speech}
-                </p>
-                <p style={{
-                  fontSize: '0.78rem',
-                  color: mutedColor,
-                  lineHeight: 1.5,
-                  margin: 0,
-                  transition: 'color 0.5s',
-                }}>
-                  {subtext}
-                </p>
-              </motion.div>
-            </AnimatePresence>
-          )}
-
-          {/* Glass card — the interactive content */}
-          <div
-            style={{
-              background: cardBg,
-              backdropFilter: 'blur(24px)',
-              WebkitBackdropFilter: 'blur(24px)',
-              borderRadius: step === 'photo-review' ? 20 : 24,
-              padding: step === 'photo-review' ? '0' : '24px',
-              border: cardBorder,
-              boxShadow: dark ? '0 8px 40px rgba(0,0,0,0.2)' : '0 8px 40px rgba(43,30,20,0.08)',
-              // Venue + photo-review steps render an absolutely-positioned
-              // location autocomplete dropdown that must escape the card.
-              // All other steps clip their slide-in transition to the card
-              // bounds so the sliding content doesn't bleed outside.
-              overflow: step === 'venue' || step === 'photo-review' ? 'visible' : 'hidden',
-              transition: 'background 0.5s, border 0.5s, box-shadow 0.5s',
-            }}
-          >
-
-          {/* Step content -- animated swap */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={step}
-              initial={{ opacity: 0, x: direction * 60 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: direction * -60 }}
-              transition={{ duration: 0.3 }}
-              style={{ minHeight: step === 'occasion' ? 200 : 120 }}
-            >
               {/* ── Occasion step ── */}
               {step === 'occasion' && !freeformOpen && (
                 <div>
@@ -1835,7 +1274,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       padding: '10px 14px',
                       borderRadius: 100,
                       background: 'transparent',
-                      border: `1px dashed ${dark ? 'rgba(255,255,255,0.3)' : 'rgba(163,177,138,0.4)'}`,
+                      border: '1px dashed #D4D4D8',
                       color: textColor,
                       fontSize: '0.75rem',
                       fontWeight: 600,
@@ -1848,9 +1287,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       transition: 'background 0.15s, border-color 0.15s',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = dark
-                        ? 'rgba(255,255,255,0.06)'
-                        : 'rgba(163,177,138,0.08)';
+                      e.currentTarget.style.background = '#F4F4F5';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.background = 'transparent';
@@ -1900,8 +1337,6 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                         borderRadius: 14,
                         border: inputBorder,
                         background: inputBg,
-                        backdropFilter: 'blur(8px)',
-                        WebkitBackdropFilter: 'blur(8px)',
                         fontSize: 'max(16px, 0.88rem)',
                         color: textColor,
                         fontFamily: 'inherit',
@@ -1930,16 +1365,16 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                           borderRadius: '50%',
                           border: 'none',
                           background: dictation.listening
-                            ? 'var(--pl-olive, #A3B18A)'
-                            : 'rgba(255,255,255,0.8)',
+                            ? '#18181B'
+                            : '#F4F4F5',
                           boxShadow: dictation.listening
-                            ? '0 0 0 0 rgba(163,177,138,0.5)'
-                            : '0 2px 8px rgba(43,30,20,0.08)',
+                            ? '0 0 0 0 rgba(24,24,27,0.3)'
+                            : '0 1px 3px rgba(0,0,0,0.06)',
                           cursor: freeformLoading ? 'default' : 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          color: dictation.listening ? '#fff' : 'var(--pl-olive-deep, #7D9B6A)',
+                          color: dictation.listening ? '#fff' : '#3F3F46',
                           transition: 'background 0.18s, box-shadow 0.18s',
                           animation: dictation.listening ? 'pear-mic-pulse 1.6s ease-in-out infinite' : undefined,
                         }}
@@ -1953,10 +1388,10 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       <style>{`
                         @keyframes pear-mic-pulse {
                           0%, 100% {
-                            box-shadow: 0 0 0 0 rgba(163,177,138,0.55);
+                            box-shadow: 0 0 0 0 rgba(24,24,27,0.35);
                           }
                           50% {
-                            box-shadow: 0 0 0 10px rgba(163,177,138,0);
+                            box-shadow: 0 0 0 10px rgba(24,24,27,0);
                           }
                         }
                       `}</style>
@@ -1966,7 +1401,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                     <div
                       style={{
                         fontSize: '0.65rem',
-                        color: 'var(--pl-muted)',
+                        color: '#A1A1AA',
                         fontStyle: 'italic',
                         marginTop: -6,
                       }}
@@ -2023,8 +1458,8 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                         padding: '0 18px',
                         borderRadius: 100,
                         background: freeformText.trim().length < 3
-                          ? 'rgba(163,177,138,0.25)'
-                          : 'var(--pl-olive, #A3B18A)',
+                          ? '#D4D4D8'
+                          : '#18181B',
                         border: 'none',
                         fontSize: '0.85rem',
                         fontWeight: 700,
@@ -2079,9 +1514,8 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                     className="pear-input"
                     style={{
                       width: '100%', height: 48, padding: '0 16px',
-                      fontSize: '1rem', borderRadius: 14,
+                      fontSize: '1rem', borderRadius: 10,
                       border: inputBorder, background: inputBg,
-                      backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
                       outline: 'none', color: textColor, fontFamily: 'inherit',
                       boxSizing: 'border-box' as const,
                       transition: 'border-color 0.2s, box-shadow 0.2s',
@@ -2093,12 +1527,11 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                     className="pear-btn"
                     style={{
                       marginTop: 12, width: '100%', minHeight: 44,
-                      padding: '0 16px', borderRadius: 100,
-                      background: input.trim() ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.25)',
-                      border: 'none', fontSize: '0.88rem', fontWeight: 700,
-                      color: input.trim() ? '#fff' : mutedColor,
+                      padding: '0 16px', borderRadius: 8,
+                      background: input.trim() ? '#18181B' : '#D4D4D8',
+                      border: 'none', fontSize: '0.88rem', fontWeight: 600,
+                      color: '#fff',
                       cursor: input.trim() ? 'pointer' : 'default',
-                      transition: 'background 0.2s ease',
                     }}
                   >
                     Continue
@@ -2131,10 +1564,9 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       type="button"
                       onClick={handleVenueSkip}
                       style={{
-                        flex: 1, minHeight: 44, padding: '0 16px', borderRadius: 100,
-                        background: ghostBg, border: ghostBorder,
-                        fontSize: '0.85rem', fontWeight: 600, color: textColor, cursor: 'pointer',
-                        transition: 'all 0.15s',
+                        flex: 1, minHeight: 44, padding: '0 16px', borderRadius: 8,
+                        background: 'transparent', border: '1px solid #E4E4E7',
+                        fontSize: '0.85rem', fontWeight: 600, color: '#3F3F46', cursor: 'pointer',
                       }}
                     >
                       Skip for now
@@ -2143,11 +1575,10 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       onClick={() => { if (input.trim()) handleVenueSubmit(); }}
                       disabled={!input.trim()}
                       style={{
-                        flex: 1, minHeight: 44, padding: '0 16px', borderRadius: 100,
-                        background: input.trim() ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.25)',
-                        border: 'none', fontSize: '0.85rem', fontWeight: 700,
-                        color: input.trim() ? '#fff' : mutedColor, cursor: input.trim() ? 'pointer' : 'default',
-                        transition: 'all 0.2s',
+                        flex: 1, minHeight: 44, padding: '0 16px', borderRadius: 8,
+                        background: input.trim() ? '#18181B' : '#D4D4D8',
+                        border: 'none', fontSize: '0.85rem', fontWeight: 600,
+                        color: '#fff', cursor: input.trim() ? 'pointer' : 'default',
                       }}
                     >
                       Continue
@@ -2171,7 +1602,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                           fontWeight: 800,
                           letterSpacing: '0.12em',
                           textTransform: 'uppercase',
-                          color: 'var(--pl-olive-deep, #7D9B6A)',
+                          color: '#71717A',
                           marginBottom: 8,
                           display: 'flex',
                           alignItems: 'center',
@@ -2187,9 +1618,9 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                         <div
                           style={{
                             padding: '18px 14px',
-                            borderRadius: 14,
-                            background: 'rgba(163,177,138,0.08)',
-                            border: '1px dashed rgba(163,177,138,0.3)',
+                            borderRadius: 10,
+                            background: '#F4F4F5',
+                            border: '1px dashed #D4D4D8',
                             fontSize: '0.74rem',
                             color: mutedColor,
                             textAlign: 'center',
@@ -2239,13 +1670,11 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                                 gap: 10,
                                 padding: '10px 14px',
                                 borderRadius: 14,
-                                border: `1px solid ${dark ? 'rgba(255,255,255,0.2)' : 'rgba(163,177,138,0.3)'}`,
-                                background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.55)',
+                                border: '1px solid #E4E4E7',
+                                background: '#FFFFFF',
                                 cursor: 'pointer',
                                 textAlign: 'left',
                                 fontFamily: 'inherit',
-                                backdropFilter: 'blur(12px)',
-                                WebkitBackdropFilter: 'blur(12px)',
                                 transition: 'background 0.15s, border-color 0.15s',
                               }}
                             >
@@ -2276,10 +1705,8 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                                 <div
                                   style={{
                                     fontSize: '0.82rem',
-                                    fontWeight: 700,
-                                    color: textColor,
-                                    fontFamily: 'var(--pl-font-heading)',
-                                    fontStyle: 'italic',
+                                    fontWeight: 600,
+                                    color: '#18181B',
                                     lineHeight: 1.25,
                                   }}
                                 >
@@ -2323,9 +1750,9 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       placeholder="e.g. country western, rustic barn, horses..."
                       className="pear-input"
                       style={{
-                        width: '100%', height: 48, padding: '0 18px', borderRadius: 14,
+                        width: '100%', height: 48, padding: '0 18px', borderRadius: 10,
                         border: inputBorder, background: inputBg,
-                        backdropFilter: 'blur(8px)', fontSize: '0.92rem', color: textColor,
+                        fontSize: '0.92rem', color: textColor,
                         fontFamily: 'inherit', outline: 'none',
                         boxSizing: 'border-box' as const,
                         transition: 'border-color 0.2s, box-shadow 0.2s',
@@ -2336,11 +1763,10 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       disabled={!input.trim()}
                       className="pear-btn"
                       style={{
-                        marginTop: 12, width: '100%', minHeight: 44, padding: '0 16px', borderRadius: 100,
-                        background: input.trim() ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.25)',
-                        color: input.trim() ? '#fff' : mutedColor,
-                        border: 'none', fontSize: '0.88rem', fontWeight: 700, cursor: 'pointer',
-                        transition: 'all 0.2s',
+                        marginTop: 12, width: '100%', minHeight: 44, padding: '0 16px', borderRadius: 8,
+                        background: input.trim() ? '#18181B' : '#D4D4D8',
+                        color: '#fff',
+                        border: 'none', fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer',
                       }}
                     >
                       Show me palettes
@@ -2363,10 +1789,9 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                     }}
                     className="pear-btn"
                     style={{
-                      marginTop: 8, width: '100%', minHeight: 44, padding: '0 16px', borderRadius: 100,
-                      background: ghostBg, border: ghostBorder,
-                      fontSize: '0.82rem', fontWeight: 600, color: textColor, cursor: 'pointer',
-                      transition: 'all 0.15s',
+                      marginTop: 8, width: '100%', minHeight: 44, padding: '0 16px', borderRadius: 8,
+                      background: 'transparent', border: '1px solid #E4E4E7',
+                      fontSize: '0.82rem', fontWeight: 600, color: '#3F3F46', cursor: 'pointer',
                     }}
                   >
                     Surprise me instead
@@ -2378,7 +1803,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
               {step === 'vibe-pick' && (
                 <div>
                   <p style={{
-                    fontSize: '0.75rem', fontWeight: 600, color: 'var(--pl-muted)',
+                    fontSize: '0.75rem', fontWeight: 600, color: '#71717A',
                     textTransform: 'uppercase' as const, letterSpacing: '0.08em',
                     textAlign: 'center', marginBottom: 12,
                   }}>
@@ -2409,9 +1834,9 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       setDirection(-1);
                     }}
                     style={{
-                      marginTop: 10, width: '100%', padding: '10px 0', borderRadius: 100,
-                      background: 'transparent', border: '1px solid rgba(163,177,138,0.2)',
-                      fontSize: '0.78rem', fontWeight: 600, color: 'var(--pl-muted)', cursor: 'pointer',
+                      marginTop: 10, width: '100%', padding: '10px 0', borderRadius: 8,
+                      background: 'transparent', border: '1px solid #E4E4E7',
+                      fontSize: '0.78rem', fontWeight: 600, color: '#71717A', cursor: 'pointer',
                     }}
                   >
                     Describe something different
@@ -2449,9 +1874,9 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       margin: '2px 0',
                     }}
                   >
-                    <div style={{ flex: 1, height: 1, background: 'rgba(163,177,138,0.25)' }} />
+                    <div style={{ flex: 1, height: 1, background: '#E4E4E7' }} />
                     or
-                    <div style={{ flex: 1, height: 1, background: 'rgba(163,177,138,0.25)' }} />
+                    <div style={{ flex: 1, height: 1, background: '#E4E4E7' }} />
                   </div>
 
                   {/* Google Photos picker — original path */}
@@ -2462,23 +1887,22 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       width: '100%',
                       minHeight: 48,
                       padding: '12px 16px',
-                      borderRadius: 14,
-                      background: 'rgba(255,255,255,0.5)',
-                      border: `1px solid ${dark ? 'rgba(255,255,255,0.25)' : 'rgba(163,177,138,0.35)'}`,
+                      borderRadius: 10,
+                      background: '#FFFFFF',
+                      border: '1px solid #E4E4E7',
                       fontSize: '0.82rem',
                       fontWeight: 600,
-                      color: textColor,
+                      color: '#18181B',
                       cursor: 'pointer',
                       fontFamily: 'inherit',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: 8,
-                      backdropFilter: 'blur(12px)',
                     }}
                   >
                     <svg width={16} height={16} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path d="M12 2a10 10 0 0 0-9.95 9h11.64L9.74 7.05a.75.75 0 0 1 1.06-1.06l5.5 5.5a.75.75 0 0 1 0 1.06l-5.5 5.5a.75.75 0 1 1-1.06-1.06l3.95-3.95H2.05A10 10 0 1 0 12 2z" fill="var(--pl-olive-deep, #7D9B6A)" />
+                      <path d="M12 2a10 10 0 0 0-9.95 9h11.64L9.74 7.05a.75.75 0 0 1 1.06-1.06l5.5 5.5a.75.75 0 0 1 0 1.06l-5.5 5.5a.75.75 0 1 1-1.06-1.06l3.95-3.95H2.05A10 10 0 1 0 12 2z" fill="#3F3F46" />
                     </svg>
                     Pick from Google Photos
                   </button>
@@ -2637,9 +2061,9 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                           onClick={() => setReviewDone(true)}
                           className="pear-btn"
                           style={{
-                            flex: 1, minHeight: 44, padding: '0 16px', borderRadius: 100,
-                            background: ghostBg, border: ghostBorder,
-                            fontSize: '0.85rem', fontWeight: 600, color: textColor, cursor: 'pointer',
+                            flex: 1, minHeight: 44, padding: '0 16px', borderRadius: 8,
+                            background: 'transparent', border: '1px solid #E4E4E7',
+                            fontSize: '0.85rem', fontWeight: 600, color: '#3F3F46', cursor: 'pointer',
                           }}
                         >
                           Skip all
@@ -2648,9 +2072,9 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                           onClick={() => isLast ? setReviewDone(true) : setPhotoReviewIndex(prev => prev + 1)}
                           className="pear-btn"
                           style={{
-                            flex: 1, minHeight: 44, padding: '0 16px', borderRadius: 100,
-                            background: 'var(--pl-olive, #A3B18A)', border: 'none',
-                            fontSize: '0.85rem', fontWeight: 700, color: '#fff', cursor: 'pointer',
+                            flex: 1, minHeight: 44, padding: '0 16px', borderRadius: 8,
+                            background: '#18181B', border: 'none',
+                            fontSize: '0.85rem', fontWeight: 600, color: '#fff', cursor: 'pointer',
                           }}
                         >
                           {isLast ? 'Done' : 'Next'}
@@ -2687,12 +2111,11 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       }));
                     }}
                     style={{
-                      marginTop: 12, width: '100%', padding: '14px 0', borderRadius: 100,
-                      background: 'var(--pl-olive, #A3B18A)',
-                      border: 'none', fontSize: '0.92rem', fontWeight: 700,
+                      marginTop: 12, width: '100%', padding: '14px 0', borderRadius: 8,
+                      background: '#18181B',
+                      border: 'none', fontSize: '0.92rem', fontWeight: 600,
                       color: '#fff',
                       cursor: 'pointer',
-                      transition: 'all 0.2s',
                     }}
                   >
                     Continue
@@ -2732,10 +2155,9 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                         width: '100%',
                         height: 48,
                         padding: '0 46px 0 16px',
-                        borderRadius: 14,
+                        borderRadius: 10,
                         border: inputBorder,
                         background: inputBg,
-                        backdropFilter: 'blur(8px)',
                         fontSize: 'max(16px, 0.88rem)',
                         color: textColor,
                         fontFamily: 'inherit',
@@ -2751,7 +2173,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                         right: 16,
                         top: '50%',
                         transform: 'translateY(-50%)',
-                        color: 'var(--pl-olive, #A3B18A)',
+                        color: '#A1A1AA',
                         opacity: 0.7,
                         pointerEvents: 'none',
                       }}
@@ -2770,12 +2192,12 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                         flex: 1,
                         minHeight: 44,
                         padding: '0 16px',
-                        borderRadius: 100,
-                        background: ghostBg,
-                        border: ghostBorder,
+                        borderRadius: 8,
+                        background: 'transparent',
+                        border: '1px solid #E4E4E7',
                         fontSize: '0.82rem',
                         fontWeight: 600,
-                        color: textColor,
+                        color: '#3F3F46',
                         cursor: 'pointer',
                         fontFamily: 'inherit',
                       }}
@@ -2793,14 +2215,14 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                         flex: 1.2,
                         minHeight: 44,
                         padding: '0 18px',
-                        borderRadius: 100,
+                        borderRadius: 8,
                         background: (collected.songUrl || '').trim()
-                          ? 'var(--pl-olive, #A3B18A)'
-                          : 'rgba(163,177,138,0.25)',
+                          ? '#18181B'
+                          : '#D4D4D8',
                         border: 'none',
                         fontSize: '0.85rem',
-                        fontWeight: 700,
-                        color: (collected.songUrl || '').trim() ? '#fff' : mutedColor,
+                        fontWeight: 600,
+                        color: '#fff',
                         cursor: (collected.songUrl || '').trim() ? 'pointer' : 'default',
                         display: 'flex',
                         alignItems: 'center',
@@ -2845,11 +2267,11 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       marginTop: 16,
                       width: '100%',
                       padding: '16px 0',
-                      borderRadius: 100,
-                      background: 'var(--pl-olive, #A3B18A)',
+                      borderRadius: 8,
+                      background: '#18181B',
                       border: 'none',
                       fontSize: '1rem',
-                      fontWeight: 700,
+                      fontWeight: 600,
                       color: '#fff',
                       cursor: 'pointer',
                       display: 'flex',
@@ -2865,25 +2287,9 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
               )}
             </motion.div>
           </AnimatePresence>
-
-        </div>{/* end glass card */}
-        </div>{/* end pear-stage-card */}
-
-        {/* Live site preview — the single biggest magical moment of
-            the wizard. Every answer lights up another piece of the
-            real site so the user watches it assemble itself. Hidden
-            on tablets/mobile via media query; the generating phase
-            takes over with the full-size preview instead. */}
-        {step !== 'photo-review' && (
-          <div className="pear-stage-preview">
-            <WizardLivePreview
-              collected={collected}
-              selectedPhotos={selectedPhotos}
-              selectedPaletteColors={selectedPaletteColors}
-            />
-          </div>
-        )}
-      </div>{/* end pear-stage */}
+          </div>{/* end card content */}
+        </div>{/* end card shell */}
+      </div>{/* end centered wrapper */}
 
       {/* Photo Browser overlay */}
       <AnimatePresence>
@@ -2894,35 +2300,23 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
             style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 60,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(0,0,0,0.4)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
+              position: 'fixed', inset: 0, zIndex: 60,
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(0,0,0,0.5)',
             }}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
               style={{
-                background: 'rgba(255,255,255,0.85)',
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
-                borderRadius: 24,
-                padding: 24,
-                maxWidth: 560,
-                width: '92%',
-                maxHeight: '80vh',
-                overflow: 'auto',
-                border: '1px solid rgba(255,255,255,0.6)',
-                boxShadow: '0 12px 48px rgba(43,30,20,0.15)',
+                background: '#FFFFFF', borderRadius: 12,
+                padding: 24, maxWidth: 560, width: '92%',
+                maxHeight: '80vh', overflow: 'auto',
+                border: '1px solid #E4E4E7',
+                boxShadow: '0 16px 48px rgba(0,0,0,0.12)',
               }}
             >
               <PhotoBrowser
@@ -2934,16 +2328,10 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                 <button
                   onClick={handlePhotosSkip}
                   style={{
-                    padding: '10px 24px',
-                    borderRadius: 100,
-                    background: 'rgba(255,255,255,0.5)',
-                    backdropFilter: 'blur(8px)',
-                    WebkitBackdropFilter: 'blur(8px)',
-                    border: '1px solid rgba(255,255,255,0.4)',
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                    color: 'var(--pl-ink-soft)',
-                    cursor: 'pointer',
+                    padding: '10px 24px', borderRadius: 8,
+                    background: 'transparent', border: '1px solid #E4E4E7',
+                    fontSize: '0.85rem', fontWeight: 600,
+                    color: '#3F3F46', cursor: 'pointer',
                   }}
                 >
                   Skip
@@ -2951,15 +2339,11 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                 <button
                   onClick={handlePhotosDone}
                   style={{
-                    padding: '10px 24px',
-                    borderRadius: 100,
-                    background: selectedPhotos.length > 0 ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.3)',
-                    border: 'none',
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
+                    padding: '10px 24px', borderRadius: 8,
+                    background: selectedPhotos.length > 0 ? '#18181B' : '#D4D4D8',
+                    border: 'none', fontSize: '0.85rem', fontWeight: 600,
                     color: '#fff',
                     cursor: selectedPhotos.length > 0 ? 'pointer' : 'default',
-                    transition: 'background 0.2s ease',
                   }}
                 >
                   Done{selectedPhotos.length > 0 ? ` (${selectedPhotos.length})` : ''}
@@ -3069,7 +2453,7 @@ function GeneratingStage({
   const displayProgress = Math.max(smoothProgress, genProgress);
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', flexDirection: 'column' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', flexDirection: 'column', background: '#FAFAFA' }}>
       {/* Keyframes + live preview sizing */}
       <style>{`
         .pear-live-preview {
@@ -3087,50 +2471,48 @@ function GeneratingStage({
           }
         }
 
-        /* Olive halo pulse used on every manifest update */
+        /* Subtle pulse on every manifest update */
         @keyframes pear-preview-pulse {
-          0%   { box-shadow: 0 0 0 0 rgba(163,177,138,0.55), 0 12px 48px rgba(43,30,20,0.18); }
-          50%  { box-shadow: 0 0 0 14px rgba(163,177,138,0.00), 0 16px 64px rgba(163,177,138,0.25); }
-          100% { box-shadow: 0 0 0 0 rgba(163,177,138,0.00), 0 12px 48px rgba(43,30,20,0.18); }
+          0%   { box-shadow: 0 0 0 0 rgba(24,24,27,0.08), 0 12px 48px rgba(0,0,0,0.08); }
+          50%  { box-shadow: 0 0 0 8px rgba(24,24,27,0.00), 0 16px 64px rgba(0,0,0,0.12); }
+          100% { box-shadow: 0 0 0 0 rgba(24,24,27,0.00), 0 12px 48px rgba(0,0,0,0.08); }
         }
         .pear-preview-pulse {
           animation: pear-preview-pulse 1.6s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
-        /* Diagonal shimmer sweep across the top of the preview */
+        /* Diagonal shimmer sweep across the preview */
         @keyframes pear-shimmer-sweep {
           0%   { transform: translateX(-120%) skewX(-12deg); opacity: 0; }
           30%  { opacity: 1; }
           100% { transform: translateX(220%) skewX(-12deg); opacity: 0; }
         }
 
-        /* Progress sparkle on the bar's leading edge */
-        @keyframes pear-progress-sparkle {
-          0%   { transform: scale(0.8); opacity: 0.4; }
-          50%  { transform: scale(1.3); opacity: 1; }
-          100% { transform: scale(0.8); opacity: 0.4; }
+        /* Progress pulse on the bar's leading edge */
+        @keyframes pear-progress-pulse {
+          0%   { opacity: 0.4; }
+          50%  { opacity: 1; }
+          100% { opacity: 0.4; }
         }
       `}</style>
 
-      <LivingCanvas
-        occasion={collected.occasion}
-        names={collected.names}
-        date={collected.date}
-        venue={collected.venue}
-        vibe={collected.vibe}
-        paletteColors={selectedPaletteColors}
-        phase="generating"
-      />
+      {/* Subtle background gradient */}
+      <div aria-hidden="true" style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        background: 'radial-gradient(ellipse at 50% 30%, rgba(228,228,231,0.4) 0%, transparent 70%)',
+      }} />
 
       {/* ── Top bar — phase headline + ticker + progress ── */}
       <div style={{
         position: 'relative', zIndex: 10, flexShrink: 0,
-        padding: '18px 28px 14px',
-        display: 'flex', alignItems: 'center', gap: 18,
+        padding: '20px 28px 16px',
+        display: 'flex', alignItems: 'center', gap: 16,
+        borderBottom: '1px solid #E4E4E7',
+        background: '#FFFFFF',
       }}>
-        <PearMascot size={44} mood={genStep >= 4 ? 'celebrating' : 'thinking'} />
+        <PearMascot size={36} mood={genStep >= 4 ? 'celebrating' : 'thinking'} color="#A1A1AA" />
         <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Phase headline — big, stable label per pass */}
+          {/* Phase headline */}
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 4 }}>
             <AnimatePresence mode="wait">
               <motion.span
@@ -3138,13 +2520,11 @@ function GeneratingStage({
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 style={{
-                  fontFamily: 'var(--pl-font-heading)',
-                  fontSize: '1rem',
+                  fontSize: '0.95rem',
                   fontWeight: 600,
-                  fontStyle: 'italic',
-                  color: 'var(--pl-ink-soft)',
+                  color: '#18181B',
                   letterSpacing: '-0.01em',
                 }}
               >
@@ -3154,17 +2534,15 @@ function GeneratingStage({
             <span style={{
               fontSize: '0.68rem',
               fontWeight: 700,
-              letterSpacing: '0.12em',
+              letterSpacing: '0.1em',
               textTransform: 'uppercase',
-              color: 'var(--pl-olive)',
+              color: '#71717A',
             }}>
               {Math.round(displayProgress)}%
             </span>
           </div>
 
-          {/* Dynamic ticker — rotates every 2.4s with plausible
-              phase-specific actions. This is the "real time" feel
-              that sells the generation as actually working. */}
+          {/* Dynamic ticker */}
           <div style={{ minHeight: 18, marginBottom: 8 }}>
             <AnimatePresence mode="wait">
               <motion.span
@@ -3172,20 +2550,19 @@ function GeneratingStage({
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 6,
                   fontSize: '0.78rem',
-                  color: 'var(--pl-muted)',
-                  fontStyle: 'italic',
+                  color: '#A1A1AA',
                 }}
               >
                 <span style={{
                   width: 5, height: 5, borderRadius: '50%',
-                  background: 'var(--pl-olive)',
-                  animation: 'pear-progress-sparkle 1.4s ease-in-out infinite',
+                  background: '#18181B',
+                  animation: 'pear-progress-pulse 1.4s ease-in-out infinite',
                   flexShrink: 0,
                 }} />
                 {ticker.message}…
@@ -3193,10 +2570,10 @@ function GeneratingStage({
             </AnimatePresence>
           </div>
 
-          {/* Continuous progress bar */}
+          {/* Progress bar */}
           <div style={{
-            width: '100%', height: 4, borderRadius: 2,
-            background: 'rgba(163,177,138,0.15)',
+            width: '100%', height: 3, borderRadius: 2,
+            background: '#F4F4F5',
             overflow: 'hidden',
             position: 'relative',
           }}>
@@ -3206,22 +2583,9 @@ function GeneratingStage({
               style={{
                 height: '100%',
                 borderRadius: 2,
-                background: 'linear-gradient(90deg, var(--pl-olive-mist, #d6c6a8) 0%, var(--pl-olive, #A3B18A) 50%, var(--pl-olive-deep, #7d9b6a) 100%)',
-                position: 'relative',
+                background: '#18181B',
               }}
             />
-            {/* Sparkle on the leading edge */}
-            <div style={{
-              position: 'absolute',
-              top: -2,
-              left: `calc(${displayProgress}% - 4px)`,
-              width: 8, height: 8, borderRadius: '50%',
-              background: 'var(--pl-olive)',
-              boxShadow: '0 0 12px 2px rgba(163,177,138,0.6)',
-              animation: 'pear-progress-sparkle 1.2s ease-in-out infinite',
-              pointerEvents: 'none',
-              transition: 'left 0.3s ease-out',
-            }} />
           </div>
         </div>
       </div>
@@ -3230,7 +2594,7 @@ function GeneratingStage({
       <div style={{
         flex: 1, position: 'relative', zIndex: 10,
         display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
-        overflow: 'hidden', padding: '0 24px 24px',
+        overflow: 'hidden', padding: '24px 24px',
       }}>
         {partialManifest ? (
           <motion.div
@@ -3240,27 +2604,24 @@ function GeneratingStage({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             style={{
-              borderRadius: 20,
+              borderRadius: 12,
               overflow: 'hidden',
-              border: '1px solid rgba(255,255,255,0.4)',
+              border: '1px solid #E4E4E7',
               maxHeight: '78vh',
               overflowY: 'auto',
-              background: '#FAF7F2',
+              background: '#FFFFFF',
               position: 'relative',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
             }}
           >
-            {/* Diagonal shimmer that sweeps across the preview on
-                every new snapshot — paired with the box-shadow
-                pulse above. Re-triggers via pulseKey. */}
+            {/* Shimmer sweep on new snapshots */}
             <div
               key={`shimmer-${pulseKey}`}
               aria-hidden="true"
               style={{
                 position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '60%',
-                height: '100%',
+                top: 0, left: 0,
+                width: '60%', height: '100%',
                 background: 'linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%)',
                 pointerEvents: 'none',
                 zIndex: 5,
@@ -3283,26 +2644,24 @@ function GeneratingStage({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             style={{
-              borderRadius: 20, overflow: 'hidden',
-              boxShadow: '0 12px 48px rgba(43,30,20,0.1)',
-              border: '1px solid rgba(255,255,255,0.3)',
-              background: 'rgba(255,255,255,0.3)',
-              backdropFilter: 'blur(20px)',
+              borderRadius: 12, overflow: 'hidden',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.06)',
+              border: '1px solid #E4E4E7',
+              background: '#FFFFFF',
               padding: '60px 32px',
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24,
               minHeight: 400,
-            } as React.CSSProperties}
+            }}
           >
-            <PearMascot size={80} mood="thinking" />
+            <PearMascot size={64} mood="thinking" color="#A1A1AA" />
             <p style={{
-              fontFamily: 'var(--pl-font-heading)',
-              fontStyle: 'italic', fontSize: '1.4rem',
-              color: 'var(--pl-ink-soft)', textAlign: 'center',
+              fontSize: '1.4rem', fontWeight: 500,
+              color: '#18181B', textAlign: 'center',
             }}>
               {displayNames}
             </p>
-            <p style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', textAlign: 'center' }}>
-              Pear is reading your photos…
+            <p style={{ fontSize: '0.82rem', color: '#A1A1AA', textAlign: 'center' }}>
+              Building your site…
             </p>
           </motion.div>
         )}
