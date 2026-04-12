@@ -54,7 +54,7 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-[rgba(250,247,242,0.9)] backdrop-blur-md"
+        className="absolute inset-0 bg-black/50"
         onClick={onClose}
       />
 
@@ -64,39 +64,38 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 20 }}
         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-        className="relative z-10 w-full max-w-[900px] max-h-[85vh] flex flex-col rounded-[16px]"
-        style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)' } as React.CSSProperties}
+        className="relative z-10 w-full max-w-[900px] max-h-[85vh] flex flex-col rounded-xl bg-white border border-[#E4E4E7] shadow-[0_16px_48px_rgba(0,0,0,0.12)]"
       >
         {/* Header */}
-        <div className="shrink-0 px-6 pt-6 pb-4 border-b border-[var(--pl-divider)]">
+        <div className="shrink-0 px-6 pt-6 pb-4 border-b border-[#E4E4E7]">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 style={{ fontFamily: 'var(--pl-font-heading)', fontStyle: 'italic' }} className="text-[1.4rem] text-[var(--pl-ink)] m-0">
+              <h2 className="text-[1.2rem] font-semibold text-[#18181B] m-0">
                 Choose a Template
               </h2>
-              <p className="text-[0.78rem] text-[var(--pl-muted)] mt-1">
+              <p className="text-[0.78rem] text-[#71717A] mt-1">
                 Pick a starting point — every template is fully customizable.
               </p>
             </div>
             <button
               onClick={onClose}
-              className="w-11 h-11 rounded-full border border-[var(--pl-divider)] bg-transparent cursor-pointer flex items-center justify-center text-[var(--pl-muted)] hover:text-[var(--pl-ink)] hover:border-[var(--pl-ink)] transition-colors"
+              className="w-9 h-9 rounded-md border border-[#E4E4E7] bg-transparent cursor-pointer flex items-center justify-center text-[#71717A] hover:text-[#18181B] hover:border-[#18181B] transition-colors"
               aria-label="Close template gallery"
             >
-              <X size={18} />
+              <X size={16} />
             </button>
           </div>
 
           {/* Search + Filters */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div className="flex-1 min-w-0 flex items-center gap-2 px-3 py-2.5 rounded-[12px]" style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.4)' } as React.CSSProperties}>
-              <Search size={14} className="text-[var(--pl-muted)] flex-shrink-0" />
+            <div className="flex-1 min-w-0 flex items-center gap-2 px-3 py-2 rounded-md border border-[#E4E4E7] bg-white">
+              <Search size={14} className="text-[#A1A1AA] flex-shrink-0" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search templates..."
-                className="flex-1 bg-transparent border-none outline-none text-[max(16px,0.85rem)] text-[var(--pl-ink)] placeholder:text-[var(--pl-muted)] placeholder:opacity-50"
+                className="flex-1 bg-transparent border-none outline-none text-[max(16px,0.85rem)] text-[#18181B] placeholder:text-[#A1A1AA]"
               />
             </div>
             <div className="flex gap-1.5 overflow-x-auto pb-1 -mb-1 scrollbar-hide">
@@ -104,10 +103,10 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
                 <button
                   key={f.id}
                   onClick={() => { setFilter(f.id); setSearch(''); }}
-                  className={`px-3.5 py-2 min-h-[44px] rounded-full text-[0.72rem] font-bold uppercase tracking-[0.06em] border-none cursor-pointer transition-all whitespace-nowrap flex-shrink-0 ${
+                  className={`px-3 py-1.5 rounded-md text-[0.72rem] font-semibold border cursor-pointer transition-all whitespace-nowrap flex-shrink-0 ${
                     filter === f.id
-                      ? 'bg-[var(--pl-olive-deep)] text-white'
-                      : 'bg-[var(--pl-cream-deep)] text-[var(--pl-muted)] hover:text-[var(--pl-ink)]'
+                      ? 'bg-[#18181B] text-white border-[#18181B]'
+                      : 'bg-white text-[#71717A] border-[#E4E4E7] hover:text-[#18181B] hover:border-[#18181B]'
                   }`}
                 >
                   {f.label}
@@ -120,7 +119,7 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
         {/* Template grid */}
         <div className="flex-1 overflow-auto p-4 md:p-6">
           {templates.length === 0 ? (
-            <div className="text-center py-12 text-[var(--pl-muted)]">
+            <div className="text-center py-12 text-[#71717A]">
               <p className="text-[0.92rem]">No templates match your search.</p>
             </div>
           ) : (
@@ -139,15 +138,13 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
                     onMouseLeave={() => setHoveredId(null)}
                     className="text-left"
                     style={{
-                      borderRadius: '16px',
+                      borderRadius: '12px',
                       overflow: 'hidden',
-                      border: isSelected ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.5)',
+                      border: isSelected ? '2px solid #18181B' : '1px solid #E4E4E7',
                       boxShadow: isSelected
-                        ? '0 0 0 3px rgba(163,177,138,0.2)'
-                        : '0 4px 20px rgba(43,30,20,0.06)',
-                      background: 'rgba(255,255,255,0.45)',
-                      backdropFilter: 'blur(20px)',
-                      WebkitBackdropFilter: 'blur(20px)',
+                        ? '0 0 0 1px #18181B'
+                        : '0 1px 3px rgba(0,0,0,0.04)',
+                      background: '#FFFFFF',
                       cursor: 'pointer',
                       transition: 'all 0.2s',
                       transform: isHovered ? 'translateY(-2px)' : 'none',
@@ -175,14 +172,14 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
 
                       {/* Selected checkmark */}
                       {isSelected && (
-                        <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-[var(--pl-olive)] flex items-center justify-center" style={{ zIndex: 5 }}>
+                        <div className="absolute top-3 right-3 w-6 h-6 rounded-md bg-[#18181B] flex items-center justify-center" style={{ zIndex: 5 }}>
                           <Check size={14} color="white" strokeWidth={3} />
                         </div>
                       )}
 
                       {/* Popularity badge */}
                       {template.popularity >= 90 && (
-                        <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/80 backdrop-blur-lg text-[0.55rem] font-bold uppercase tracking-[0.08em] text-[var(--pl-olive-deep)]" style={{ zIndex: 5 }}>
+                        <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-[#E4E4E7] text-[0.55rem] font-semibold uppercase tracking-[0.06em] text-[#18181B]" style={{ zIndex: 5 }}>
                           <Sparkles size={9} /> Popular
                         </div>
                       )}
@@ -215,7 +212,7 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
                       </p>
                       <div className="flex gap-1 mt-2 flex-wrap">
                         {template.tags.slice(0, 3).map(tag => (
-                          <span key={tag} className="text-[0.55rem] font-bold uppercase tracking-[0.06em] px-1.5 py-0.5 rounded-full bg-white/40 backdrop-blur-sm text-[var(--pl-muted)]">
+                          <span key={tag} className="text-[0.55rem] font-semibold uppercase tracking-[0.06em] px-1.5 py-0.5 rounded-md bg-[#F4F4F5] text-[#71717A]">
                             {tag}
                           </span>
                         ))}
@@ -229,8 +226,8 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
         </div>
 
         {/* Footer — apply button */}
-        <div className="shrink-0 px-6 py-4 border-t border-[var(--pl-divider)] flex items-center justify-between">
-          <p className="text-[0.75rem] text-[var(--pl-muted)]">
+        <div className="shrink-0 px-6 py-4 border-t border-[#E4E4E7] flex items-center justify-between">
+          <p className="text-[0.75rem] text-[#71717A]">
             {selected
               ? `"${SITE_TEMPLATES.find(t => t.id === selected)?.name}" selected`
               : `${templates.length} templates available`

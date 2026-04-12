@@ -3,69 +3,69 @@
 @tailwind utilities;
 
 /* ═══════════════════════════════════════════════════════════════
-   PEARLOOM — DESIGN SYSTEM v3
-   Heirloom Luxury — warm parchment, pressed botanicals, antique gold
+   PEARLOOM — DESIGN SYSTEM v5
+   Professional minimal — zinc neutrals, solid surfaces, DM Sans
    Single source of truth: CSS vars → Tailwind config → components
    ═══════════════════════════════════════════════════════════════ */
 
 /* ─── Design Tokens ─── */
 :root {
   /* ── Core Palette ── */
-  --pl-cream:        #FAF7F2;   /* Warm Parchment — main background    */
-  --pl-cream-deep:   #F0EBE0;   /* Warm Sand — alternating sections    */
-  --pl-cream-card:   #FFFFFF;   /* Cards / elevated surfaces           */
-  --pl-ink:          #1A1A1A;   /* Near-black — body text              */
-  --pl-ink-soft:     #3D3530;   /* Warm dark — headings on light       */
-  --pl-muted:        #6B665F;   /* Secondary text (WCAG AA on cream)   */
-  --pl-divider:      #E0D8CA;   /* Borders, separators                 */
+  --pl-cream:        #FAFAFA;   /* Zinc-50 — main background           */
+  --pl-cream-deep:   #F4F4F5;   /* Zinc-100 — alternating sections     */
+  --pl-cream-card:   #FFFFFF;   /* Cards / elevated surfaces            */
+  --pl-ink:          #18181B;   /* Zinc-900 — body text                */
+  --pl-ink-soft:     #27272A;   /* Zinc-800 — headings on light        */
+  --pl-muted:        #71717A;   /* Zinc-500 — secondary text           */
+  --pl-divider:      #E4E4E7;   /* Zinc-200 — borders, separators      */
 
   /* ── Brand Accents ── */
-  --pl-olive:        #A3B18A;   /* Primary brand — Soft Olive          */
-  --pl-olive-hover:  #8FA876;   /* Olive hover                         */
-  --pl-olive-deep:   #6E8C5C;   /* Olive pressed / active              */
-  --pl-olive-mist:   #EEE8DC;   /* Olive tint — badge backgrounds      */
-  --pl-gold:         #C4A96A;   /* Antique Gold — premium accent       */
-  --pl-gold-mist:    rgba(196,169,106,0.12);
-  --pl-plum:         #6D597A;   /* Muted Plum — emotional highlight    */
-  --pl-plum-mist:    rgba(109,89,122,0.10);
+  --pl-olive:        #18181B;   /* Zinc-900 — primary actions          */
+  --pl-olive-hover:  #27272A;   /* Zinc-800 — hover                    */
+  --pl-olive-deep:   #09090B;   /* Zinc-950 — pressed / active         */
+  --pl-olive-mist:   #F4F4F5;   /* Zinc-100 — badge backgrounds        */
+  --pl-gold:         #A1A1AA;   /* Zinc-400 — secondary accent         */
+  --pl-gold-mist:    rgba(161,161,170,0.12);
+  --pl-plum:         #52525B;   /* Zinc-600 — tertiary accent          */
+  --pl-plum-mist:    rgba(82,82,91,0.10);
 
   /* ── Dark surfaces (editor, generation, loom) ── */
-  --pl-dark-bg:      #1E1B24;
-  --pl-dark-card:    rgba(255,255,255,0.09);
-  --pl-dark-border:  rgba(255,255,255,0.12);
-  --pl-dark-text:    rgba(245,241,232,0.75);
-  --pl-dark-heading: #F5F1E8;
+  --pl-dark-bg:      #09090B;
+  --pl-dark-card:    rgba(255,255,255,0.06);
+  --pl-dark-border:  rgba(255,255,255,0.10);
+  --pl-dark-text:    rgba(250,250,250,0.75);
+  --pl-dark-heading: #FAFAFA;
 
   /* ── Semantic states ── */
-  --pl-warning:      #C45D3E;   /* Warm terracotta — warning actions     */
-  --pl-warning-mist: rgba(196,93,62,0.10);
-  --pl-success:      #5A7A4A;   /* Deep botanical green                  */
-  --pl-success-mist: rgba(90,122,74,0.10);
+  --pl-warning:      #DC2626;   /* Red-600 — warning actions              */
+  --pl-warning-mist: rgba(220,38,38,0.08);
+  --pl-success:      #16A34A;   /* Green-600 — success actions            */
+  --pl-success-mist: rgba(22,163,74,0.08);
 
-  /* ── Glass ── */
-  --pl-glass:             rgba(245,241,232,0.78);
-  --pl-glass-border:      rgba(214,198,168,0.32);
-  --pl-glass-light:       rgba(255,255,255,0.88);
-  --pl-glass-light-border: rgba(0,0,0,0.06);
-  --pl-glass-heavy:       rgba(255,255,255,0.94);
-  --pl-glass-dark:        rgba(28,25,22,0.92);
-  --pl-glass-dark-border: rgba(255,255,255,0.08);
-  --pl-glass-shadow:      0 4px 24px rgba(43,30,20,0.08);
-  --pl-glass-shadow-lg:   0 12px 48px rgba(43,30,20,0.14);
-  --pl-glass-blur:        blur(24px) saturate(1.5);
-  --pl-glass-blur-sm:     blur(12px);
-  --pl-glass-blur-lg:     blur(40px) saturate(1.8);
+  /* ── Glass (v5: solid surfaces — glass vars kept for compat) ── */
+  --pl-glass:             #FFFFFF;
+  --pl-glass-border:      #E4E4E7;
+  --pl-glass-light:       #FFFFFF;
+  --pl-glass-light-border: #E4E4E7;
+  --pl-glass-heavy:       #FFFFFF;
+  --pl-glass-dark:        #18181B;
+  --pl-glass-dark-border: rgba(255,255,255,0.10);
+  --pl-glass-shadow:      0 1px 3px rgba(0,0,0,0.04);
+  --pl-glass-shadow-lg:   0 4px 24px rgba(0,0,0,0.08);
+  --pl-glass-blur:        none;
+  --pl-glass-blur-sm:     none;
+  --pl-glass-blur-lg:     none;
 
-  /* ── Olive opacity scale ── */
-  --pl-olive-5:   rgba(163,177,138,0.05);
-  --pl-olive-8:   rgba(163,177,138,0.08);
-  --pl-olive-10:  rgba(163,177,138,0.10);
-  --pl-olive-12:  rgba(163,177,138,0.12);
-  --pl-olive-15:  rgba(163,177,138,0.15);
-  --pl-olive-20:  rgba(163,177,138,0.20);
-  --pl-olive-30:  rgba(163,177,138,0.30);
-  --pl-olive-40:  rgba(163,177,138,0.40);
-  --pl-olive-50:  rgba(163,177,138,0.50);
+  /* ── Primary opacity scale (zinc-based) ── */
+  --pl-olive-5:   rgba(24,24,27,0.05);
+  --pl-olive-8:   rgba(24,24,27,0.08);
+  --pl-olive-10:  rgba(24,24,27,0.10);
+  --pl-olive-12:  rgba(24,24,27,0.12);
+  --pl-olive-15:  rgba(24,24,27,0.15);
+  --pl-olive-20:  rgba(24,24,27,0.20);
+  --pl-olive-30:  rgba(24,24,27,0.30);
+  --pl-olive-40:  rgba(24,24,27,0.40);
+  --pl-olive-50:  rgba(24,24,27,0.50);
 
   /* ── Neutral opacity scale ── */
   --pl-black-4:   rgba(0,0,0,0.04);
@@ -97,26 +97,26 @@
   --pl-icon-xl:   24px;
 
   /* ── Typography ── */
-  --pl-font-heading: "Playfair Display", Georgia, serif;
-  --pl-font-body:    "Lora", Georgia, serif;
+  --pl-font-heading: "DM Sans", system-ui, -apple-system, sans-serif;
+  --pl-font-body:    "DM Sans", system-ui, -apple-system, sans-serif;
   --pl-font-label:   0.68rem;
-  --pl-label-tracking: 0.12em;
+  --pl-label-tracking: 0.06em;
 
   /* ── Border Radius ── */
-  --pl-radius-xs:  0.375rem;   /* 6px  — tight chips                  */
-  --pl-radius-sm:  0.625rem;   /* 10px — inputs, small cards          */
-  --pl-radius-md:  0.875rem;   /* 14px — cards, panels                */
-  --pl-radius-lg:  1.25rem;    /* 20px — large cards, modals          */
-  --pl-radius-xl:  1.75rem;    /* 28px — hero elements                */
+  --pl-radius-xs:  0.25rem;    /* 4px  — tight chips                  */
+  --pl-radius-sm:  0.375rem;   /* 6px  — inputs, small cards          */
+  --pl-radius-md:  0.5rem;     /* 8px  — cards, panels, buttons       */
+  --pl-radius-lg:  0.75rem;    /* 12px — large cards, modals          */
+  --pl-radius-xl:  1rem;       /* 16px — hero elements                */
   --pl-radius-full: 100px;     /* Pill — badges, chips                */
 
-  /* ── Shadows (warm-tinted) ── */
-  --pl-shadow-xs: 0 1px 2px rgba(43,30,20,0.04);
-  --pl-shadow-sm: 0 1px 4px rgba(43,30,20,0.05), 0 4px 14px rgba(43,30,20,0.04);
-  --pl-shadow-md: 0 4px 16px rgba(43,30,20,0.08), 0 12px 40px rgba(43,30,20,0.05);
-  --pl-shadow-lg: 0 12px 40px rgba(43,30,20,0.10), 0 24px 60px rgba(43,30,20,0.06);
-  --pl-shadow-xl: 0 24px 60px rgba(43,30,20,0.12), 0 40px 80px rgba(43,30,20,0.07);
-  --pl-shadow-focus: 0 0 0 3px rgba(163,177,138,0.22);
+  /* ── Shadows (neutral) ── */
+  --pl-shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+  --pl-shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+  --pl-shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+  --pl-shadow-lg: 0 8px 32px rgba(0,0,0,0.08);
+  --pl-shadow-xl: 0 16px 48px rgba(0,0,0,0.10);
+  --pl-shadow-focus: 0 0 0 2px rgba(24,24,27,0.15);
 
   /* ── Card standard ── */
   --pl-card-radius:  var(--pl-radius-md);
@@ -148,9 +148,9 @@
   --z-max:      500;
 
   /* ── Gradients ── */
-  --pl-gradient-page:   linear-gradient(180deg, #EBE5D5 0%, var(--pl-cream) 40%);
-  --pl-gradient-warm:   linear-gradient(135deg, #EEE8DC 0%, #F5F1E8 50%, #E8E2D8 100%);
-  --pl-gradient-hero:   radial-gradient(ellipse at 50% 0%, #F0EBE0 0%, var(--pl-cream) 55%);
+  --pl-gradient-page:   linear-gradient(180deg, #F4F4F5 0%, var(--pl-cream) 40%);
+  --pl-gradient-warm:   linear-gradient(135deg, #F4F4F5 0%, #FAFAFA 50%, #F4F4F5 100%);
+  --pl-gradient-hero:   radial-gradient(ellipse at 50% 0%, #F4F4F5 0%, var(--pl-cream) 55%);
   --pl-gradient-section: linear-gradient(180deg, var(--pl-cream) 0%, var(--pl-cream-deep) 50%, var(--pl-cream) 100%);
 
   /* ── Legacy aliases (keep so editor components still compile) ── */
@@ -205,10 +205,10 @@
 
 /* ─── Micro-animation utilities ─── */
 
-/* Focus glow — warm olive ring that blooms on focus */
+/* Focus glow — subtle ring on focus */
 .pl-focus-glow:focus-within {
-  box-shadow: 0 0 0 3px rgba(163,177,138,0.22), 0 0 12px rgba(163,177,138,0.08);
-  border-color: var(--pl-olive) !important;
+  box-shadow: 0 0 0 2px rgba(24,24,27,0.15);
+  border-color: #A1A1AA !important;
   transition: box-shadow 0.25s ease, border-color 0.2s ease;
 }
 
@@ -249,8 +249,8 @@
               box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .pl-hover-lift:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 28px rgba(43,30,20,0.1), 0 2px 8px rgba(43,30,20,0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
 }
 
 /* Stagger children entrance — apply to parent, children get delayed */
@@ -276,8 +276,8 @@
   transition: filter 0.3s ease, transform 0.3s ease;
 }
 .pl-glow-hover:hover {
-  filter: brightness(1.05) drop-shadow(0 0 12px rgba(163,177,138,0.2));
-  transform: scale(1.02);
+  filter: brightness(1.02);
+  transform: scale(1.01);
 }
 
 /* ── Panel internals ─── */
@@ -287,47 +287,39 @@
    site-level `elementShape` — otherwise an "arch" theme turns every
    panel card into a 12rem arched top that chops off the headings. */
 .pl-panel-section {
-  background: rgba(255,255,255,0.5);
-  border: 1px solid rgba(163,177,138,0.18);
-  border-radius: 14px;
+  background: #FFFFFF;
+  border: 1px solid #E4E4E7;
+  border-radius: 8px;
   padding: 14px;
   margin: 8px 12px;
 }
 .pl-panel-section:hover {
-  background: rgba(255,255,255,0.65);
+  background: #FAFAFA;
 }
 
-/* ── Glass Surface Utilities ── */
-/* Light glass — floating toolbars, popovers, context menus */
+/* ── Surface Utilities (v5: solid, no glass) ── */
+/* Light surface — floating toolbars, popovers, context menus */
 .pl-glass-surface {
-  background: var(--pl-glass-light);
-  backdrop-filter: var(--pl-glass-blur);
-  -webkit-backdrop-filter: var(--pl-glass-blur);
-  border: 1px solid var(--pl-glass-light-border);
+  background: #FFFFFF;
+  border: 1px solid #E4E4E7;
   box-shadow: var(--pl-glass-shadow);
 }
-/* Heavy glass — elevated menus, dropdowns */
+/* Heavy surface — elevated menus, dropdowns */
 .pl-glass-surface-heavy {
-  background: var(--pl-glass-heavy);
-  backdrop-filter: var(--pl-glass-blur);
-  -webkit-backdrop-filter: var(--pl-glass-blur);
-  border: 1px solid var(--pl-glass-light-border);
+  background: #FFFFFF;
+  border: 1px solid #E4E4E7;
   box-shadow: var(--pl-glass-shadow-lg);
 }
-/* Dark glass — dark toolbars, rails */
+/* Dark surface — dark toolbars, rails */
 .pl-glass-surface-dark {
-  background: var(--pl-glass-dark);
-  backdrop-filter: var(--pl-glass-blur-lg);
-  -webkit-backdrop-filter: var(--pl-glass-blur-lg);
-  border: 1px solid var(--pl-glass-dark-border);
+  background: #18181B;
+  border: 1px solid rgba(255,255,255,0.10);
   box-shadow: var(--pl-glass-shadow-lg);
 }
-/* Warm glass — panels, wings */
+/* Neutral surface — panels, wings */
 .pl-glass-surface-warm {
-  background: var(--pl-glass);
-  backdrop-filter: var(--pl-glass-blur);
-  -webkit-backdrop-filter: var(--pl-glass-blur);
-  border: 1px solid var(--pl-glass-border);
+  background: #FFFFFF;
+  border: 1px solid #E4E4E7;
   box-shadow: var(--pl-glass-shadow);
 }
 
@@ -383,22 +375,21 @@
 
 /* Panel card — clickable item card inside a section */
 .pl-panel-card {
-  background: rgba(255,255,255,0.7);
-  border: 1px solid rgba(0,0,0,0.05);
+  background: #FFFFFF;
+  border: 1px solid #E4E4E7;
   border-radius: var(--pl-radius-sm);
   padding: 10px 12px;
   transition: all 0.15s ease;
   cursor: pointer;
 }
 .pl-panel-card:hover {
-  background: rgba(255,255,255,0.9);
-  border-color: rgba(163,177,138,0.3);
-  box-shadow: 0 2px 8px rgba(43,30,20,0.04);
+  background: #FAFAFA;
+  border-color: #D4D4D8;
 }
 .pl-panel-card.active {
-  background: rgba(163,177,138,0.08);
-  border-color: var(--pl-olive);
-  box-shadow: 0 0 0 2px rgba(163,177,138,0.12);
+  background: #F4F4F5;
+  border-color: #18181B;
+  box-shadow: 0 0 0 1px #18181B;
 }
 
 /* Panel divider — subtle separator between sections */
