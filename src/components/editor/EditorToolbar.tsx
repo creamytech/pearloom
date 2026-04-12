@@ -61,10 +61,8 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
       display: 'flex', alignItems: 'center',
       justifyContent: 'space-between',
       padding: '0 12px',
-      background: 'rgba(250,247,242,0.7)',
-      backdropFilter: 'blur(32px) saturate(1.5)',
-      WebkitBackdropFilter: 'blur(32px) saturate(1.5)',
-      borderBottom: '1px solid rgba(255,255,255,0.3)',
+      background: '#FFFFFF',
+      borderBottom: '1px solid #E4E4E7',
       zIndex: 10,
     } as React.CSSProperties}>
 

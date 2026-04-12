@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
 import { ArrowRight, Play } from 'lucide-react';
 import { SiteMockup } from './SiteMockup';
 import { layout } from '@/lib/design-tokens';
@@ -53,27 +53,12 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
   const ref = useRef<HTMLElement>(null);
   const mockupRef = useRef<HTMLDivElement>(null);
 
-  // Parallax tilt on hover — cached rect to avoid layout thrashing
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const rotateX = useSpring(useTransform(mouseY, [-300, 300], [4, -4]), { stiffness: 150, damping: 20 });
-  const rotateY = useSpring(useTransform(mouseX, [-400, 400], [-4, 4]), { stiffness: 150, damping: 20 });
-  const cachedRect = useRef<DOMRect | null>(null);
+  // Parallax tilt removed — professional, no toy-like hover effects
+  const rotateX = useMotionValue(0);
+  const rotateY = useMotionValue(0);
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!mockupRef.current) return;
-    // Cache rect on first move, refresh on scroll/resize via handleMouseLeave
-    if (!cachedRect.current) cachedRect.current = mockupRef.current.getBoundingClientRect();
-    const rect = cachedRect.current;
-    mouseX.set(e.clientX - (rect.left + rect.width / 2));
-    mouseY.set(e.clientY - (rect.top + rect.height / 2));
-  };
-
-  const handleMouseLeave = () => {
-    mouseX.set(0);
-    mouseY.set(0);
-    cachedRect.current = null; // Invalidate cache
-  };
+  const handleMouseMove = (_e: React.MouseEvent) => {};
+  const handleMouseLeave = () => {};
 
   return (
     <section
@@ -85,29 +70,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
         background: 'radial-gradient(ellipse at 50% 0%, var(--pl-cream-deep) 0%, var(--pl-cream) 55%)',
       }}
     >
-      {/* Ambient orbs — static blur, GPU-composited */}
-      <div
-        aria-hidden="true"
-        className="absolute top-[-10%] right-[-12%] w-[55vw] h-[55vw] rounded-full pointer-events-none"
-        style={{
-          background: 'radial-gradient(circle, var(--pl-olive-mist) 0%, transparent 70%)',
-          filter: 'blur(90px)',
-          opacity: 0.55,
-          willChange: 'transform',
-          transform: 'translateZ(0)',
-        }}
-      />
-      <div
-        aria-hidden="true"
-        className="absolute bottom-[-8%] left-[-10%] w-[40vw] h-[40vw] rounded-full pointer-events-none"
-        style={{
-          background: 'radial-gradient(circle, var(--pl-plum-mist) 0%, transparent 70%)',
-          filter: 'blur(80px)',
-          opacity: 0.35,
-          willChange: 'transform',
-          transform: 'translateZ(0)',
-        }}
-      />
+      {/* Clean subtle gradient — no floating orbs */}
 
       <div
         className="relative z-10 w-full text-center"

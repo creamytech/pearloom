@@ -147,7 +147,7 @@ export function EditorWing({
           initial={{ opacity: 0, x: 30, scale: 0.96 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: 30, scale: 0.96 }}
-          transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 35, mass: 0.8 }}
           drag
           dragControls={dragControls}
           dragMomentum={false}
@@ -163,12 +163,10 @@ export function EditorWing({
             zIndex: 60,
             display: 'flex',
             flexDirection: 'column',
-            borderRadius: '20px',
-            background: 'rgba(250,247,242,0.82)',
-            backdropFilter: 'blur(32px) saturate(1.6)',
-            WebkitBackdropFilter: 'blur(32px) saturate(1.6)',
-            border: '1px solid rgba(255,255,255,0.5)',
-            boxShadow: '0 8px 40px rgba(43,30,20,0.12), 0 2px 8px rgba(43,30,20,0.06), inset 0 1px 0 rgba(255,255,255,0.4)',
+            borderRadius: '12px',
+            background: '#FFFFFF',
+            border: '1px solid #E4E4E7',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)',
             overflow: 'hidden',
           } as React.CSSProperties}
         >
@@ -177,9 +175,9 @@ export function EditorWing({
             onPointerDown={(e) => dragControls.start(e)}
             style={{
               padding: '12px 14px 8px',
-              borderBottom: '1px solid rgba(255,255,255,0.2)',
+              borderBottom: '1px solid #E4E4E7',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              background: 'rgba(255,255,255,0.08)',
+              background: '#FAFAFA',
               flexShrink: 0,
               cursor: 'grab',
               touchAction: 'none',

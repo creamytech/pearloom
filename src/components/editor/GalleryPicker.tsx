@@ -121,9 +121,7 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
             position: 'fixed',
             inset: 0,
             zIndex: 9999,
-            background: 'rgba(43,30,20,0.35)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
+            background: 'rgba(0,0,0,0.4)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -142,12 +140,10 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
               maxHeight: '85dvh',
               display: 'flex',
               flexDirection: 'column',
-              borderRadius: '16px',
-              background: 'rgba(255,255,255,0.65)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              boxShadow: '0 8px 40px rgba(43,30,20,0.06), 0 1px 3px rgba(43,30,20,0.04)',
-              border: '1px solid rgba(255,255,255,0.5)',
+              borderRadius: '12px',
+              background: '#FFFFFF',
+              boxShadow: '0 16px 40px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.05)',
+              border: '1px solid #E4E4E7',
               overflow: 'hidden',
             }}
           >
@@ -162,9 +158,9 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
             }}>
               <h2 style={{
                 margin: 0,
-                fontFamily: 'var(--font-heading, serif)',
-                fontStyle: 'italic',
-                fontSize: '1.1rem',
+                fontFamily: 'var(--pl-font-heading)',
+                fontStyle: 'normal',
+                fontSize: '0.95rem',
                 fontWeight: 600,
                 color: 'var(--pl-ink, #2B1E14)',
               }}>

@@ -79,7 +79,7 @@ const config: Config = {
           to:   { opacity: '1', transform: 'translateY(0)' },
         },
         'pop-in': {
-          from: { opacity: '0', transform: 'scale(0.7)' },
+          from: { opacity: '0', transform: 'scale(0.96)' },
           to:   { opacity: '1', transform: 'scale(1)' },
         },
         'slide-up': {
@@ -100,7 +100,7 @@ const config: Config = {
         'orb-drift':      'orb-drift 8s ease-in-out infinite',
         'orb-pulse':      'orb-pulse 6s ease-in-out infinite',
         'fade-in':        'fade-in 0.5s ease forwards',
-        'pop-in':         'pop-in 0.35s cubic-bezier(0.34,1.56,0.64,1) both',
+        'pop-in':         'pop-in 0.25s cubic-bezier(0.16,1,0.3,1) both',
         'slide-up':       'slide-up 0.4s ease forwards',
         'scale-in':       'scale-in 0.3s ease forwards',
       },

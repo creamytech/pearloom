@@ -98,25 +98,10 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
         cursor: 'pointer', overflow: 'hidden',
       }}
     >
-      {/* Warm gradient background — slow-shifting animation */}
-      <div className="pl-welcome-shift" style={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(135deg, #E8D5C4 0%, #F2E6D9 25%, #D4B8A0 50%, #E8CDB8 75%, #F0DFD0 100%)',
-      }} />
-
-      {/* Soft radial glows */}
+      {/* Clean neutral background */}
       <div style={{
         position: 'absolute', inset: 0,
-        background: `
-          radial-gradient(ellipse 80% 60% at 30% 40%, rgba(255,240,220,0.5) 0%, transparent 60%),
-          radial-gradient(ellipse 60% 50% at 70% 60%, rgba(210,190,170,0.4) 0%, transparent 50%)
-        `,
-      }} />
-
-      {/* Noise texture */}
-      <div style={{
-        position: 'absolute', inset: 0, opacity: 0.02,
-        backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")',
+        background: '#FAFAFA',
       }} />
 
       {/* Glass card */}
@@ -129,12 +114,10 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', gap: '0',
           padding: 'clamp(2.5rem, 6vw, 4rem) clamp(2rem, 5vw, 5rem)',
-          borderRadius: '32px',
-          background: 'rgba(255,255,255,0.4)',
-          backdropFilter: 'blur(40px) saturate(1.4)',
-          WebkitBackdropFilter: 'blur(40px) saturate(1.4)',
-          border: '1px solid rgba(255,255,255,0.6)',
-          boxShadow: '0 24px 80px rgba(43,30,20,0.08), inset 0 1px 0 rgba(255,255,255,0.5)',
+          borderRadius: '16px',
+          background: '#FFFFFF',
+          border: '1px solid #E4E4E7',
+          boxShadow: '0 16px 40px rgba(0,0,0,0.08)',
           maxWidth: '480px',
           width: '90%',
         } as React.CSSProperties}
