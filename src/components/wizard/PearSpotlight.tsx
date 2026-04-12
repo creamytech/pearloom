@@ -171,7 +171,7 @@ function getDefaultVibeForOccasion(occasion?: string): string {
 // NOTE: photos come BEFORE vibe so Pear can auto-suggest vibes
 // from the actual photos the user picked (see the vibe-ask
 // step's "Let Pear look at your photos" suggestions block).
-function currentStep(c: Collected, photosDecided: boolean, vibeDescription: string, photosCount: number, reviewDone: boolean, songDecided: boolean): Step {
+function currentStep(c: Collected, photosDecided: boolean, vibeDescription: string, photosCount: number, reviewDone: boolean, layoutConfirmed: boolean, songDecided: boolean): Step {
   if (!c.occasion) return 'occasion';
   if (!c.names?.[0]) return 'names';
   if (c.occasion === 'wedding' || c.occasion === 'engagement' || c.occasion === 'anniversary') {
@@ -184,7 +184,7 @@ function currentStep(c: Collected, photosDecided: boolean, vibeDescription: stri
   if (!c.vibe) return vibeDescription ? 'vibe-pick' : 'vibe-ask';
   // Ask the user to pick a story layout before we build so the live
   // preview renders with their chosen format, not the default.
-  if (!c.storyLayout) return 'layout';
+  if (!layoutConfirmed) return 'layout';
   if (!songDecided) return 'song';
   return 'ready';
 }
@@ -262,9 +262,13 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const [vibeDescription, setVibeDescription] = useState(''); // raw user input before palette generation
   const [generatedPalettes, setGeneratedPalettes] = useState<{name: string; colors: string[]; description: string}[]>([]);
   const [selectedPaletteColors, setSelectedPaletteColors] = useState<string[] | null>(null);
+  /** Palette the user tapped but hasn't confirmed yet. */
+  const [pendingPalette, setPendingPalette] = useState<{ name: string; colors: string[] } | null>(null);
   const [photoReviewIndex, setPhotoReviewIndex] = useState(0);
   const [photoNotes, setPhotoNotes] = useState<Record<number, { location?: string; locationDetected?: boolean; date?: string; note?: string }>>({});
   const [reviewDone, setReviewDone] = useState(false);
+  /** User confirmed layout selection (requires explicit Continue). */
+  const [layoutConfirmed, setLayoutConfirmed] = useState(false);
   /** User dismissed the optional "your song" step (with or without a value). */
   const [songDecided, setSongDecided] = useState(false);
   /** Gemini-Vision-suggested vibes from the user's uploaded photos. */
@@ -286,7 +290,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const selectedPhotosRef = useRef<any[]>([]);
   useEffect(() => { selectedPhotosRef.current = selectedPhotos; }, [selectedPhotos]);
 
-  const step = currentStep(collected, photosDecided, vibeDescription, selectedPhotos.length, reviewDone, songDecided);
+  const step = currentStep(collected, photosDecided, vibeDescription, selectedPhotos.length, reviewDone, layoutConfirmed, songDecided);
   const stepTitle = titleForStep(step, collected);
   const stepDesc = descriptionForStep(step, collected);
   const currentStepIdx = stepIndex(step);
@@ -322,10 +326,12 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       setPhotoSuggestions([]); // stale; re-derive on new photos
     } else if (field === 'layout') {
       setCollected((prev) => ({ ...prev, storyLayout: undefined }));
+      setLayoutConfirmed(false);
     }
     // Reset the song step whenever any earlier field changes
     // so the user lands on it again after re-confirming later
     // steps (and isn't silently skipping back to ready).
+    setLayoutConfirmed(false);
     setSongDecided(false);
   }, []);
 
@@ -1803,8 +1809,8 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
               {step === 'vibe-pick' && (
                 <div>
                   <p style={{
-                    fontSize: '0.75rem', fontWeight: 600, color: '#71717A',
-                    textTransform: 'uppercase' as const, letterSpacing: '0.08em',
+                    fontSize: '0.72rem', fontWeight: 600, color: '#A1A1AA',
+                    textTransform: 'uppercase' as const, letterSpacing: '0.06em',
                     textAlign: 'center', marginBottom: 12,
                   }}>
                     Based on &ldquo;{vibeDescription}&rdquo;
@@ -1812,9 +1818,10 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                   <ColorPaletteCard
                     palettes={generatedPalettes}
                     onSelect={(palette) => {
-                      // Fire a small color-matched confetti burst at
-                      // the palette tile's location so picking a
-                      // palette *feels* like something happened.
+                      // Store selection without advancing — user must click Continue
+                      setPendingPalette(palette);
+                      setSelectedPaletteColors(palette.colors);
+                      // Fire confetti for delight
                       try {
                         const active = document.activeElement as HTMLElement | null;
                         if (active) {
@@ -1824,17 +1831,35 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                           });
                         }
                       } catch { /* non-fatal visual effect */ }
-                      handleVibeSelect(palette.name.toLowerCase(), palette.colors);
                     }}
                   />
+                  <button
+                    disabled={!pendingPalette}
+                    onClick={() => {
+                      if (pendingPalette) {
+                        handleVibeSelect(pendingPalette.name.toLowerCase(), pendingPalette.colors);
+                      }
+                    }}
+                    style={{
+                      marginTop: 14, width: '100%', padding: '14px 0', borderRadius: 8,
+                      background: pendingPalette ? '#18181B' : '#E4E4E7',
+                      border: 'none', fontSize: '0.85rem', fontWeight: 600,
+                      color: pendingPalette ? '#fff' : '#A1A1AA',
+                      cursor: pendingPalette ? 'pointer' : 'default',
+                      transition: 'background 0.2s, color 0.2s',
+                    }}
+                  >
+                    Continue
+                  </button>
                   <button
                     onClick={() => {
                       setVibeDescription('');
                       setGeneratedPalettes([]);
+                      setPendingPalette(null);
                       setDirection(-1);
                     }}
                     style={{
-                      marginTop: 10, width: '100%', padding: '10px 0', borderRadius: 8,
+                      marginTop: 8, width: '100%', padding: '10px 0', borderRadius: 8,
                       background: 'transparent', border: '1px solid #E4E4E7',
                       fontSize: '0.78rem', fontWeight: 600, color: '#71717A', cursor: 'pointer',
                     }}
@@ -2088,32 +2113,25 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
               {/* ── Story layout step ── */}
               {step === 'layout' && (
                 <div>
-                  <div style={{ marginBottom: 14 }}>
-                    <StoryLayoutPicker
-                      selected={collected.storyLayout || 'parallax'}
-                      onSelect={(layout) => {
-                        // Tapping a tile commits the pick AND advances — the
-                        // currentStep() guard flips to 'ready' as soon as
-                        // collected.storyLayout is set.
-                        setDirection(1);
-                        setCollected(prev => ({ ...prev, storyLayout: layout }));
-                      }}
-                    />
-                  </div>
+                  <StoryLayoutPicker
+                    selected={collected.storyLayout || 'parallax'}
+                    onSelect={(layout) => {
+                      setCollected(prev => ({ ...prev, storyLayout: layout }));
+                    }}
+                  />
                   <button
                     onClick={() => {
-                      // Let the user accept the default (parallax) without
-                      // having to click a tile.
                       setDirection(1);
                       setCollected(prev => ({
                         ...prev,
                         storyLayout: prev.storyLayout || 'parallax',
                       }));
+                      setLayoutConfirmed(true);
                     }}
                     style={{
-                      marginTop: 12, width: '100%', padding: '14px 0', borderRadius: 8,
+                      marginTop: 16, width: '100%', padding: '14px 0', borderRadius: 8,
                       background: '#18181B',
-                      border: 'none', fontSize: '0.92rem', fontWeight: 600,
+                      border: 'none', fontSize: '0.85rem', fontWeight: 600,
                       color: '#fff',
                       cursor: 'pointer',
                     }}

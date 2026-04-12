@@ -1528,31 +1528,31 @@ export type StoryLayoutType =
   | 'kenburns'
   | 'bento';
 
-const LAYOUT_OPTIONS: Array<{ type: StoryLayoutType; label: string }> = [
-  { type: 'parallax', label: 'Parallax' },
-  { type: 'filmstrip', label: 'Film Strip' },
-  { type: 'magazine', label: 'Magazine' },
-  { type: 'timeline', label: 'Timeline' },
-  { type: 'kenburns', label: 'Ken Burns' },
-  { type: 'bento', label: 'Bento' },
+const LAYOUT_OPTIONS: Array<{ type: StoryLayoutType; label: string; desc: string }> = [
+  { type: 'parallax', label: 'Parallax', desc: 'Full-bleed photos with scroll depth' },
+  { type: 'filmstrip', label: 'Film Strip', desc: 'Cinematic horizontal scroll' },
+  { type: 'magazine', label: 'Magazine', desc: 'Editorial photo + text pairing' },
+  { type: 'timeline', label: 'Timeline', desc: 'Chronological story flow' },
+  { type: 'kenburns', label: 'Ken Burns', desc: 'Slow zoom with text overlays' },
+  { type: 'bento', label: 'Bento', desc: 'Grid mosaic of photos & text' },
 ];
 
 // Mini-diagram renderers — abstract representations of each layout
 function MiniDiagram({ type }: { type: StoryLayoutType }) {
   const box: React.CSSProperties = {
     width: '100%',
-    height: '60px',
-    background: colors.oliveMist,
+    height: '72px',
+    background: '#F4F4F5',
     borderRadius: '6px',
     position: 'relative',
     overflow: 'hidden',
   };
   const photoFill: React.CSSProperties = {
-    background: colors.olive,
+    background: '#A1A1AA',
     borderRadius: '3px',
   };
   const line: React.CSSProperties = {
-    background: colors.muted,
+    background: '#71717A',
     height: '2px',
     borderRadius: '1px',
     opacity: 0.55,
@@ -1566,7 +1566,7 @@ function MiniDiagram({ type }: { type: StoryLayoutType }) {
             style={{
               position: 'absolute',
               inset: 0,
-              background: colors.olive,
+              background: '#A1A1AA',
             }}
           />
           <div
@@ -1583,7 +1583,7 @@ function MiniDiagram({ type }: { type: StoryLayoutType }) {
           >
             <div
               style={{
-                background: colors.cream,
+                background: '#FAFAFA',
                 height: '4px',
                 width: '100%',
                 borderRadius: '1px',
@@ -1591,7 +1591,7 @@ function MiniDiagram({ type }: { type: StoryLayoutType }) {
             />
             <div
               style={{
-                background: colors.cream,
+                background: '#FAFAFA',
                 height: '2px',
                 width: '70%',
                 borderRadius: '1px',
@@ -1659,7 +1659,7 @@ function MiniDiagram({ type }: { type: StoryLayoutType }) {
               top: 0,
               bottom: 0,
               width: '2px',
-              background: colors.olive,
+              background: '#A1A1AA',
               transform: 'translateX(-50%)',
             }}
           />
@@ -1671,9 +1671,9 @@ function MiniDiagram({ type }: { type: StoryLayoutType }) {
               width: '10px',
               height: '10px',
               borderRadius: '50%',
-              background: colors.olive,
+              background: '#A1A1AA',
               transform: 'translate(-50%, -50%)',
-              border: `2px solid ${colors.cream}`,
+              border: '2px solid #FAFAFA',
             }}
           />
           <div
@@ -1710,7 +1710,7 @@ function MiniDiagram({ type }: { type: StoryLayoutType }) {
             style={{
               position: 'absolute',
               inset: 0,
-              background: colors.olive,
+              background: '#A1A1AA',
             }}
           />
           <div
@@ -1734,7 +1734,7 @@ function MiniDiagram({ type }: { type: StoryLayoutType }) {
           >
             <div
               style={{
-                background: colors.cream,
+                background: '#FAFAFA',
                 height: '3px',
                 width: '70%',
                 borderRadius: '1px',
@@ -1742,7 +1742,7 @@ function MiniDiagram({ type }: { type: StoryLayoutType }) {
             />
             <div
               style={{
-                background: colors.cream,
+                background: '#FAFAFA',
                 height: '2px',
                 width: '50%',
                 borderRadius: '1px',
@@ -1775,7 +1775,7 @@ function MiniDiagram({ type }: { type: StoryLayoutType }) {
           <div
             style={{
               background: 'rgba(255,255,255,0.82)',
-              border: `1px solid ${colors.divider}`,
+              border: '1px solid #E4E4E7',
               borderRadius: '3px',
             }}
           />
@@ -2106,9 +2106,10 @@ export function StoryLayoutPicker({
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(3, minmax(100px, 1fr))',
-        gap: '12px',
-        maxWidth: '360px',
+        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+        gap: '10px',
+        width: '100%',
+        margin: '0 auto',
         fontFamily: bodyFont,
       }}
     >
@@ -2125,15 +2126,15 @@ export function StoryLayoutPicker({
             style={{
               width: '100%',
               padding: '10px',
-              background: isSelected ? colors.oliveMist : colors.card,
-              border: `2px solid ${isSelected ? colors.olive : colors.divider}`,
-              borderRadius: radius.md,
-              boxShadow: isSelected ? shadow.focus : shadow.xs,
+              background: isSelected ? '#F4F4F5' : '#FFFFFF',
+              border: `2px solid ${isSelected ? '#18181B' : '#E4E4E7'}`,
+              borderRadius: '10px',
+              boxShadow: isSelected ? '0 0 0 1px #18181B' : '0 1px 2px rgba(0,0,0,0.04)',
               cursor: 'pointer',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'stretch',
-              gap: '8px',
+              gap: '6px',
               textAlign: 'center',
               transition: 'background 0.2s ease, border-color 0.2s ease',
             }}
@@ -2143,13 +2144,22 @@ export function StoryLayoutPicker({
             <MiniDiagram type={opt.type} />
             <span
               style={{
-                fontSize: textScale.xs,
+                fontSize: '0.78rem',
                 fontWeight: isSelected ? 600 : 500,
-                color: isSelected ? colors.oliveDeep : colors.inkSoft,
-                letterSpacing: '0.02em',
+                color: isSelected ? '#18181B' : '#71717A',
+                letterSpacing: '0.01em',
               }}
             >
               {opt.label}
+            </span>
+            <span
+              style={{
+                fontSize: '0.62rem',
+                color: '#A1A1AA',
+                lineHeight: 1.3,
+              }}
+            >
+              {opt.desc}
             </span>
           </motion.button>
         );

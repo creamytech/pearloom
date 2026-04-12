@@ -397,6 +397,50 @@ interface ColorPaletteCardProps {
   onSelect: (palette: { name: string; colors: string[] }) => void;
 }
 
+/** Mini site preview showing how a palette looks applied */
+function PaletteMiniPreview({ colors: c }: { colors: string[] }) {
+  // c[0]=accent, c[1]=accent2, c[2]=background, c[3]=foreground
+  const bg = c[2] || '#FAFAFA';
+  const fg = c[3] || '#18181B';
+  const accent = c[0] || '#A3B18A';
+  const accent2 = c[1] || '#C4A96A';
+
+  return (
+    <div style={{
+      width: '100%', height: '80px', borderRadius: '6px',
+      background: bg, overflow: 'hidden', position: 'relative',
+      border: '1px solid rgba(0,0,0,0.06)',
+    }}>
+      {/* Hero photo placeholder */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, width: '45%', height: '100%',
+        background: accent2, opacity: 0.35,
+      }} />
+      {/* Content area */}
+      <div style={{
+        position: 'absolute', top: '12px', left: '52%', right: '10px',
+        display: 'flex', flexDirection: 'column', gap: '5px',
+      }}>
+        {/* Title */}
+        <div style={{ height: '5px', width: '80%', background: fg, borderRadius: '2px', opacity: 0.85 }} />
+        <div style={{ height: '3px', width: '55%', background: fg, borderRadius: '1px', opacity: 0.3 }} />
+        <div style={{ height: '3px', width: '65%', background: fg, borderRadius: '1px', opacity: 0.3 }} />
+        {/* CTA button */}
+        <div style={{
+          marginTop: '4px', height: '12px', width: '48px', borderRadius: '3px',
+          background: accent,
+        }} />
+      </div>
+      {/* Color strip at bottom */}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, display: 'flex', height: '3px' }}>
+        {c.slice(0, 4).map((color, i) => (
+          <div key={i} style={{ flex: 1, background: color }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function ColorPaletteCard({ palettes, onSelect }: ColorPaletteCardProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
@@ -406,14 +450,10 @@ export function ColorPaletteCard({ palettes, onSelect }: ColorPaletteCardProps) 
       animate={MOUNT_ANIMATE}
       transition={MOUNT_TRANSITION}
       style={{
-        background: GLASS_BG,
-        borderRadius: CARD_RADIUS,
-        border: `1px solid ${GLASS_BORDER}`,
-        boxShadow: WARM_SHADOW,
-        padding: '14px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '8px',
+        gap: '10px',
+        width: '100%',
       }}
     >
       {palettes.slice(0, 3).map((palette, idx) => {
@@ -427,7 +467,7 @@ export function ColorPaletteCard({ palettes, onSelect }: ColorPaletteCardProps) 
             transition={{ delay: idx * 0.06, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             style={{
               position: 'relative',
-              borderRadius: '8px',
+              borderRadius: '10px',
               padding: '12px',
               border: isSelected ? '2px solid #18181B' : `1px solid ${GLASS_BORDER}`,
               background: isSelected ? '#F4F4F5' : '#FFFFFF',
@@ -436,7 +476,7 @@ export function ColorPaletteCard({ palettes, onSelect }: ColorPaletteCardProps) 
               boxShadow: isSelected ? OLIVE_GLOW : 'none',
               display: 'flex',
               flexDirection: 'column',
-              gap: '8px',
+              gap: '10px',
               textAlign: 'left',
               fontFamily: 'inherit',
             }}
@@ -457,8 +497,8 @@ export function ColorPaletteCard({ palettes, onSelect }: ColorPaletteCardProps) 
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 style={{
-                  position: 'absolute', top: '8px', right: '8px',
-                  width: '18px', height: '18px', borderRadius: '50%',
+                  position: 'absolute', top: '8px', right: '8px', zIndex: 2,
+                  width: '20px', height: '20px', borderRadius: '6px',
                   background: '#18181B',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}
@@ -467,33 +507,42 @@ export function ColorPaletteCard({ palettes, onSelect }: ColorPaletteCardProps) 
               </motion.div>
             )}
 
-            {/* Color swatches row */}
-            <div style={{ display: 'flex', gap: '4px' }}>
-              {palette.colors.slice(0, 5).map((color, i) => (
-                <div key={i} style={{
-                  width: '28px', height: '18px', borderRadius: '4px',
-                  background: color, border: '1px solid rgba(0,0,0,0.06)',
-                }} />
-              ))}
+            {/* Mini site preview */}
+            <PaletteMiniPreview colors={palette.colors} />
+
+            {/* Palette info row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {/* Color swatches */}
+              <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
+                {palette.colors.slice(0, 5).map((color, i) => (
+                  <div key={i} style={{
+                    width: '16px', height: '16px', borderRadius: '4px',
+                    background: color, border: '1px solid rgba(0,0,0,0.06)',
+                  }} />
+                ))}
+              </div>
+
+              {/* Name + description */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <span style={{
+                  display: 'block',
+                  fontSize: '0.8rem', fontWeight: 600,
+                  color: '#18181B', lineHeight: 1.3,
+                }}>
+                  {palette.name}
+                </span>
+                {palette.description && (
+                  <span style={{
+                    display: 'block',
+                    fontSize: '0.65rem', color: '#A1A1AA',
+                    lineHeight: 1.3, marginTop: '1px',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
+                    {palette.description}
+                  </span>
+                )}
+              </div>
             </div>
-
-            {/* Palette name */}
-            <span style={{
-              fontSize: '0.82rem', fontWeight: 600,
-              color: '#18181B', lineHeight: 1.3,
-            }}>
-              {palette.name}
-            </span>
-
-            {/* Description */}
-            {palette.description && (
-              <span style={{
-                fontSize: '0.68rem', color: '#71717A',
-                lineHeight: 1.4,
-              }}>
-                {palette.description}
-              </span>
-            )}
           </motion.button>
         );
       })}
