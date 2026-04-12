@@ -62,15 +62,15 @@ function RailButton({ item, isActive, onClick }: { item: RailItem; isActive: boo
     >
       <motion.button
         onClick={onClick}
-        whileHover={{ backgroundColor: 'rgba(163,177,138,0.12)' }}
+        whileHover={{ backgroundColor: 'rgba(24,24,27,0.08)' }}
         whileTap={{ scale: 0.88 }}
         style={{
           width: '38px', height: '38px',
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
           gap: '4px', border: 'none', borderRadius: '12px',
-          background: isActive ? 'rgba(163,177,138,0.15)' : 'transparent',
-          color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+          background: isActive ? 'rgba(24,24,27,0.08)' : 'transparent',
+          color: isActive ? '#18181B' : 'var(--pl-muted)',
           cursor: 'pointer', position: 'relative',
           transition: 'background 0.15s, color 0.15s',
         }}
@@ -81,7 +81,7 @@ function RailButton({ item, isActive, onClick }: { item: RailItem; isActive: boo
             style={{
               position: 'absolute', left: '-4px', top: '50%', transform: 'translateY(-50%)',
               width: '3px', height: '20px', borderRadius: '0 3px 3px 0',
-              background: 'var(--pl-olive-deep)',
+              background: '#18181B',
             }}
             transition={{ type: 'spring', stiffness: 400, damping: 28 }}
           />
@@ -128,13 +128,11 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
       style={{
         position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
         zIndex: 50, display: 'flex', flexDirection: 'column', alignItems: 'center',
-        gap: '4px', padding: '8px 6px', borderRadius: '18px',
-        background: 'rgba(250,247,242,0.72)',
-        backdropFilter: 'blur(32px) saturate(1.5)',
-        WebkitBackdropFilter: 'blur(32px) saturate(1.5)',
-        border: '1px solid rgba(255,255,255,0.4)',
-        boxShadow: '0 4px 20px rgba(43,30,20,0.08), inset 0 1px 0 rgba(255,255,255,0.3)',
-      } as React.CSSProperties}
+        gap: '4px', padding: '8px 6px', borderRadius: '12px',
+        background: '#FFFFFF',
+        border: '1px solid #E4E4E7',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+      }}
     >
       {/* Primary nav items */}
       {PRIMARY_ITEMS.map(item => (
@@ -146,15 +144,15 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
         <RichTooltip label="More tools" description="All editor panels & features" side="right">
           <motion.button
             onClick={() => setMoreOpen(!moreOpen)}
-            whileHover={{ backgroundColor: 'rgba(163,177,138,0.12)' }}
+            whileHover={{ backgroundColor: 'rgba(24,24,27,0.08)' }}
             whileTap={{ scale: 0.88 }}
             style={{
               width: '44px', height: '44px',
               display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'center',
               gap: '3px', border: 'none', borderRadius: '14px',
-              background: moreOpen || isMoreActive ? 'rgba(163,177,138,0.15)' : 'transparent',
-              color: moreOpen || isMoreActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+              background: moreOpen || isMoreActive ? 'rgba(24,24,27,0.08)' : 'transparent',
+              color: moreOpen || isMoreActive ? '#18181B' : 'var(--pl-muted)',
               cursor: 'pointer', transition: 'background 0.15s',
             }}
           >
@@ -164,7 +162,7 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
             </span>
             {/* Notification dot if active tab is in More */}
             {isMoreActive && !moreOpen && (
-              <div style={{ position: 'absolute', top: '6px', right: '6px', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--pl-olive)' }} />
+              <div style={{ position: 'absolute', top: '6px', right: '6px', width: '6px', height: '6px', borderRadius: '50%', background: '#18181B' }} />
             )}
           </motion.button>
         </RichTooltip>
@@ -180,12 +178,10 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
               style={{
                 position: 'absolute', left: 'calc(100% + 12px)', top: '50%', transform: 'translateY(-50%)',
                 width: '200px', padding: '8px',
-                background: 'rgba(255,255,255,0.92)',
-                backdropFilter: 'blur(24px) saturate(1.4)',
-                WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
-                borderRadius: '16px',
-                border: '1px solid rgba(255,255,255,0.6)',
-                boxShadow: '0 12px 40px rgba(43,30,20,0.12), 0 4px 12px rgba(43,30,20,0.05)',
+                background: '#FFFFFF',
+                borderRadius: '12px',
+                border: '1px solid #E4E4E7',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)',
                 zIndex: 100,
                 display: 'flex', flexDirection: 'column', gap: '4px',
                 maxHeight: '400px', overflowY: 'auto',
@@ -204,15 +200,15 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
                     style={{
                       display: 'flex', alignItems: 'center', gap: '10px',
                       padding: '8px 10px', borderRadius: '12px', border: 'none',
-                      background: isActive ? 'rgba(163,177,138,0.12)' : 'transparent',
-                      color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-ink-soft)',
+                      background: isActive ? 'rgba(24,24,27,0.08)' : 'transparent',
+                      color: isActive ? '#18181B' : 'var(--pl-ink-soft)',
                       cursor: 'pointer', fontSize: '0.78rem', fontWeight: isActive ? 600 : 400,
                       width: '100%', textAlign: 'left', transition: 'background 0.12s',
                     }}
                     onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(43,30,20,0.03)'; }}
                     onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                   >
-                    <Icon size={15} style={{ color: isActive ? 'var(--pl-olive)' : 'var(--pl-muted)', flexShrink: 0 }} />
+                    <Icon size={15} style={{ color: isActive ? '#18181B' : 'var(--pl-muted)', flexShrink: 0 }} />
                     {item.label}
                   </button>
                 );

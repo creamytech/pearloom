@@ -46,30 +46,25 @@ export const sectionHeading: React.CSSProperties = {
 // ── Shared input style — glass with white glow border ─────────
 export const inp: React.CSSProperties = {
   width: '100%', padding: '0.75rem 0.875rem',
-  borderRadius: '12px',
-  border: '1px solid rgba(0,0,0,0.08)',
-  background: 'rgba(255,255,255,0.75)',
-  backdropFilter: 'blur(8px)',
-  WebkitBackdropFilter: 'blur(8px)',
-  color: 'var(--pl-ink, #1A1A1A)',
+  borderRadius: '8px',
+  border: '1px solid #E4E4E7',
+  background: '#FFFFFF',
+  color: '#18181B',
   fontSize: 'max(16px, 0.88rem)',
   outline: 'none', fontFamily: 'inherit',
-  transition: 'border-color 0.15s, box-shadow 0.15s, background 0.15s',
+  transition: 'border-color 0.15s, box-shadow 0.15s',
   boxSizing: 'border-box',
   minHeight: '44px',
-  boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
-} as React.CSSProperties;
+};
 
 // ── Focus/blur handlers ──────────────────────────────────────
 const focusStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-  e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)';
-  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.25), 0 1px 2px rgba(0,0,0,0.04)';
-  e.currentTarget.style.background = 'rgba(255,255,255,0.92)';
+  e.currentTarget.style.borderColor = '#18181B';
+  e.currentTarget.style.boxShadow = '0 0 0 2px rgba(24,24,27,0.12)';
 };
 const blurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-  e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)';
-  e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04)';
-  e.currentTarget.style.background = 'rgba(255,255,255,0.75)';
+  e.currentTarget.style.borderColor = '#E4E4E7';
+  e.currentTarget.style.boxShadow = 'none';
 };
 
 // ── Reusable form field — glass input with label ──────────────

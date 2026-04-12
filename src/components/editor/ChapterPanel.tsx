@@ -102,8 +102,7 @@ export function ChapterPanel({
           ...inp,
           fontSize: 'max(16px, 1.1rem)',
           fontWeight: 600,
-          fontFamily: 'var(--pl-font-heading)',
-          fontStyle: 'italic',
+          fontFamily: 'inherit',
           letterSpacing: '-0.02em',
         }}
       />
@@ -130,10 +129,10 @@ export function ChapterPanel({
             whileTap={!isRewriting ? { scale: 0.97 } : {}}
             style={{
               display: 'flex', alignItems: 'center', gap: '4px',
-              padding: '5px 12px', borderRadius: '100px',
-              border: 'none',
-              background: 'rgba(163,177,138,0.15)',
-              color: 'var(--pl-olive-deep)',
+              padding: '5px 12px', borderRadius: '6px',
+              border: '1px solid #E4E4E7',
+              background: '#FFFFFF',
+              color: '#18181B',
               fontSize: '0.65rem', fontWeight: 700, cursor: isRewriting ? 'not-allowed' : 'pointer',
             }}
           >
@@ -147,10 +146,10 @@ export function ChapterPanel({
               whileHover={!isLoadingAlternates ? { scale: 1.03 } : {}}
               style={{
                 display: 'flex', alignItems: 'center', gap: '4px',
-                padding: '5px 12px', borderRadius: '100px',
-                border: 'none',
-                background: 'rgba(109,89,122,0.12)',
-                color: 'var(--pl-plum)',
+                padding: '5px 12px', borderRadius: '6px',
+                border: '1px solid #E4E4E7',
+                background: '#FFFFFF',
+                color: '#18181B',
                 fontSize: '0.65rem', fontWeight: 700, cursor: isLoadingAlternates ? 'not-allowed' : 'pointer',
               }}
             >
@@ -196,9 +195,9 @@ export function ChapterPanel({
                 whileTap={{ scale: 0.95 }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '4px',
-                  padding: '4px 10px', borderRadius: '100px',
-                  border: isActive ? `1.5px solid ${m.color}` : '1px solid rgba(255,255,255,0.3)',
-                  background: isActive ? `${m.color}18` : 'rgba(255,255,255,0.2)',
+                  padding: '4px 10px', borderRadius: '6px',
+                  border: isActive ? `1.5px solid ${m.color}` : '1px solid #E4E4E7',
+                  background: isActive ? `${m.color}18` : '#FFFFFF',
                   cursor: 'pointer', fontSize: '0.68rem', fontWeight: 600,
                   color: isActive ? m.color : 'var(--pl-ink-soft)',
                   transition: 'all 0.15s',

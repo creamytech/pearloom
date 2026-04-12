@@ -194,8 +194,7 @@ export function EditorWing({
                   <h3 style={{
                     fontSize: '0.92rem',
                     fontWeight: 600,
-                    fontFamily: 'var(--pl-font-heading)',
-                    fontStyle: 'italic',
+                    fontFamily: 'inherit',
                     color: 'var(--pl-ink)',
                     margin: 0, lineHeight: 1.2,
                   }}>
@@ -242,10 +241,10 @@ export function EditorWing({
                     style={{
                       display: 'flex', alignItems: 'center', gap: '3px',
                       fontSize: '0.58rem', fontWeight: 600,
-                      color: 'var(--pl-olive, #A3B18A)',
+                      color: '#18181B',
                       padding: '2px 6px',
                       borderRadius: '4px',
-                      background: 'rgba(163,177,138,0.1)',
+                      background: 'rgba(24,24,27,0.06)',
                     }}
                   >
                     <Check size={9} /> Saved
@@ -298,11 +297,11 @@ export function EditorWing({
           >
             <div style={{
               width: '3px', height: '40px', borderRadius: '3px',
-              background: 'rgba(163,177,138,0.2)',
+              background: 'rgba(24,24,27,0.12)',
               transition: 'background 0.2s, height 0.2s',
             }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.5)'; (e.currentTarget as HTMLElement).style.height = '60px'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)'; (e.currentTarget as HTMLElement).style.height = '40px'; }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.25)'; (e.currentTarget as HTMLElement).style.height = '60px'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.12)'; (e.currentTarget as HTMLElement).style.height = '40px'; }}
             />
           </div>
 
@@ -335,11 +334,11 @@ export function EditorWing({
           >
             <div style={{
               width: '40px', height: '3px', borderRadius: '3px',
-              background: 'rgba(163,177,138,0.2)',
+              background: 'rgba(24,24,27,0.12)',
               transition: 'background 0.2s, width 0.2s',
             }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.5)'; (e.currentTarget as HTMLElement).style.width = '60px'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)'; (e.currentTarget as HTMLElement).style.width = '40px'; }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.25)'; (e.currentTarget as HTMLElement).style.width = '60px'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.12)'; (e.currentTarget as HTMLElement).style.width = '40px'; }}
             />
           </div>
         </motion.div>

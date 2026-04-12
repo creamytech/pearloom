@@ -84,13 +84,11 @@ export function PanelField({
 export const panelInputStyle: CSSProperties = {
   width: '100%',
   padding: '10px 12px',
-  borderRadius: '10px',
-  background: 'rgba(255,255,255,0.6)',
-  backdropFilter: 'blur(8px)',
-  WebkitBackdropFilter: 'blur(8px)',
-  border: '1px solid rgba(163,177,138,0.25)',
+  borderRadius: '8px',
+  background: '#FFFFFF',
+  border: '1px solid #E4E4E7',
   fontSize: 'max(16px, 0.82rem)', // 16px min keeps iOS from zoom-in
-  color: 'var(--pl-ink)',
+  color: '#18181B',
   fontFamily: 'inherit',
   outline: 'none',
   transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
@@ -124,11 +122,11 @@ export function PanelInput({
       disabled={disabled}
       style={panelInputStyle}
       onFocus={(e) => {
-        e.currentTarget.style.borderColor = 'var(--pl-olive)';
-        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.22)';
+        e.currentTarget.style.borderColor = '#18181B';
+        e.currentTarget.style.boxShadow = '0 0 0 2px rgba(24,24,27,0.12)';
       }}
       onBlur={(e) => {
-        e.currentTarget.style.borderColor = 'rgba(163,177,138,0.25)';
+        e.currentTarget.style.borderColor = '#E4E4E7';
         e.currentTarget.style.boxShadow = 'none';
       }}
     />
@@ -158,11 +156,11 @@ export function PanelTextarea({
       disabled={disabled}
       style={{ ...panelInputStyle, resize: 'vertical', minHeight: 60 }}
       onFocus={(e) => {
-        e.currentTarget.style.borderColor = 'var(--pl-olive)';
-        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.22)';
+        e.currentTarget.style.borderColor = '#18181B';
+        e.currentTarget.style.boxShadow = '0 0 0 2px rgba(24,24,27,0.12)';
       }}
       onBlur={(e) => {
-        e.currentTarget.style.borderColor = 'rgba(163,177,138,0.25)';
+        e.currentTarget.style.borderColor = '#E4E4E7';
         e.currentTarget.style.boxShadow = 'none';
       }}
     />

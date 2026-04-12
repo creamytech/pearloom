@@ -43,9 +43,9 @@ export interface PanelSectionProps {
 
 // One hard-coded radius for ALL editor panel chrome so site-level
 // elementShape overrides (arch / pill / etc) can't leak in.
-const PANEL_RADIUS = '14px';
-const PANEL_CARD_BG = 'rgba(255,255,255,0.5)';
-const PANEL_CARD_BORDER = '1px solid rgba(163,177,138,0.18)';
+const PANEL_RADIUS = '12px';
+const PANEL_CARD_BG = '#FFFFFF';
+const PANEL_CARD_BORDER = '1px solid #E4E4E7';
 
 /**
  * A single collapsible section with:
@@ -76,7 +76,7 @@ export function PanelSection({
     <motion.button
       type="button"
       onClick={collapsible ? () => setOpen((v) => !v) : undefined}
-      whileHover={collapsible ? { backgroundColor: 'rgba(163,177,138,0.08)' } : undefined}
+      whileHover={collapsible ? { backgroundColor: 'rgba(24,24,27,0.04)' } : undefined}
       whileTap={collapsible ? { scale: 0.99 } : undefined}
       transition={{ type: 'spring', stiffness: 400, damping: 22 }}
       style={{
@@ -102,12 +102,12 @@ export function PanelSection({
           style={{
             transform: isOpen ? 'rotate(90deg)' : 'none',
             transition: 'transform 0.2s',
-            color: isOpen ? 'var(--pl-olive)' : 'var(--pl-muted)',
+            color: isOpen ? '#18181B' : 'var(--pl-muted)',
             flexShrink: 0,
           }}
         />
       )}
-      {Icon && <Icon size={12} color="var(--pl-olive)" />}
+      {Icon && <Icon size={12} color="#18181B" />}
       <span
         style={{
           flex: 1,
@@ -127,8 +127,8 @@ export function PanelSection({
             fontSize: panelText.meta,
             padding: '2px 7px',
             borderRadius: '100px',
-            background: 'rgba(163,177,138,0.12)',
-            color: 'var(--pl-olive-deep)',
+            background: '#F4F4F5',
+            color: '#18181B',
             fontWeight: panelWeight.bold,
           }}
         >
