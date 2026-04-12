@@ -433,7 +433,7 @@ function EffectBlock({
   title: string; icon: React.ReactNode; active: boolean; children: React.ReactNode;
   onToggleExpand?: () => void; expanded?: boolean;
 }) {
-  const [open, setOpen] = useState(active);
+  const [open, setOpen] = useState(false);
 
   const isOpen = onToggleExpand ? expanded : open;
   const toggle = onToggleExpand ?? (() => setOpen(v => !v));
@@ -443,8 +443,8 @@ function EffectBlock({
       <button
         onClick={toggle}
         style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
-          padding: '12px 4px', background: 'none', border: 'none',
+          width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
+          padding: '8px 4px', background: 'none', border: 'none',
           cursor: 'pointer', textAlign: 'left',
         }}
       >

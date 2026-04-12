@@ -113,12 +113,12 @@ function Swatch({ color, onChange, label }: { color: string; onChange: (c: strin
     <div>
       <label style={{
         display: 'block',
-        fontSize: panelText.label,
-        fontWeight: panelWeight.bold,
-        letterSpacing: panelTracking.wider,
+        fontSize: '0.6rem',
+        fontWeight: 600,
+        letterSpacing: '0.04em',
         textTransform: 'uppercase',
-        color: '#71717A',
-        marginBottom: '6px',
+        color: '#A1A1AA',
+        marginBottom: '4px',
       }}>{label}</label>
       <ColorPicker value={color} onChange={onChange} />
     </div>
@@ -132,7 +132,7 @@ function SvgPreview({ svg, bg, label }: { svg: string; bg: string; label?: strin
   return (
     <div style={{ position: 'relative' }}>
       <div style={{
-        width: '100%', height: '140px', borderRadius: '10px',
+        width: '100%', height: '100px', borderRadius: '8px',
         background: bg,
         backgroundImage: `url("${dataUri}")`,
         backgroundSize: 'cover',
