@@ -24,12 +24,12 @@ import { buildSiteUrl } from '@/lib/site-urls';
 // ── Occasion gradients & icons ──────────────────────────────
 
 const OCCASION_GRADIENT: Record<string, [string, string]> = {
-  wedding:     ['#F2D1D1', '#FAF7F2'],
-  birthday:    ['#FFC857', '#FFD1DC'],
-  anniversary: ['#C4A96A', '#F0E6D6'],
-  engagement:  ['#E8B4C8', '#FAF7F2'],
+  wedding:     ['#F4F4F5', '#FAFAFA'],
+  birthday:    ['#F4F4F5', '#FAFAFA'],
+  anniversary: ['#F4F4F5', '#FAFAFA'],
+  engagement:  ['#F4F4F5', '#FAFAFA'],
 };
-const DEFAULT_GRADIENT: [string, string] = ['#A3B18A', '#FAF7F2'];
+const DEFAULT_GRADIENT: [string, string] = ['#F4F4F5', '#FAFAFA'];
 
 function OccasionIcon({ occasion }: { occasion?: string }) {
   const cls = "text-current";
@@ -97,7 +97,7 @@ function SiteThumbnail({ photos, coverPhoto, accentColor, accentDark, occasion, 
 
   const fallback = (
     <div
-      className="w-[60px] h-[60px] rounded-2xl flex-shrink-0 flex items-center justify-center relative overflow-hidden"
+      className="w-[60px] h-[60px] rounded-lg flex-shrink-0 flex items-center justify-center relative overflow-hidden"
       style={{
         background: `linear-gradient(135deg, ${gradStart} 0%, ${gradEnd} 100%)`,
       }}
@@ -105,14 +105,14 @@ function SiteThumbnail({ photos, coverPhoto, accentColor, accentDark, occasion, 
       {/* Couple/person names watermark */}
       {displayName && displayName !== 'Untitled Site' && (
         <span
-          className="absolute inset-0 flex items-center justify-center font-heading italic text-[0.5rem] leading-tight text-center px-1 select-none pointer-events-none"
-          style={{ opacity: 0.15, color: '#2B1E14' }}
+          className="absolute inset-0 flex items-center justify-center text-[0.5rem] font-medium leading-tight text-center px-1 select-none pointer-events-none"
+          style={{ opacity: 0.12, color: '#18181B' }}
         >
           {displayName}
         </span>
       )}
       {/* Occasion icon */}
-      <span className="relative z-[1] select-none pointer-events-none" style={{ opacity: 0.18, color: '#2B1E14' }}>
+      <span className="relative z-[1] select-none pointer-events-none" style={{ opacity: 0.15, color: '#18181B' }}>
         <OccasionIcon occasion={occasion} />
       </span>
     </div>
@@ -123,7 +123,7 @@ function SiteThumbnail({ photos, coverPhoto, accentColor, accentDark, occasion, 
   }
 
   return (
-    <div className="w-[60px] h-[60px] rounded-2xl flex-shrink-0 overflow-hidden">
+    <div className="w-[60px] h-[60px] rounded-lg flex-shrink-0 overflow-hidden">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={proxiedSrc}
@@ -158,16 +158,8 @@ function daysUntil(dateStr: string): number | null {
 
 function SkeletonCard() {
   return (
-    <div
-      className="flex items-center gap-4 px-4 py-3 rounded-2xl"
-      style={{
-        background: 'rgba(255,255,255,0.5)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255,255,255,0.5)',
-      } as React.CSSProperties}
-    >
-      <div className="w-[60px] h-[60px] rounded-2xl skeleton flex-shrink-0" />
+    <div className="flex items-center gap-4 px-4 py-3 rounded-xl bg-white border border-[#E4E4E7]">
+      <div className="w-[60px] h-[60px] rounded-lg skeleton flex-shrink-0" />
       <div className="flex-1 flex flex-col gap-2">
         <div className="h-4 rounded-full w-[55%] skeleton" />
         <div className="h-3 rounded-full w-[30%] skeleton" />
@@ -226,17 +218,12 @@ function OverflowMenu({ site, onShare, onDelete, isCopied, isDeleting }: {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="min-w-[160px] rounded-xl overflow-hidden"
+            className="min-w-[160px] rounded-lg overflow-hidden bg-white border border-[#E4E4E7] shadow-[0_8px_32px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)]"
             style={{
               position: 'fixed',
               top: menuPos.top,
               right: menuPos.right,
               zIndex: 9999,
-              background: 'rgba(255,255,255,0.95)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              border: '1px solid rgba(0,0,0,0.08)',
-              boxShadow: '0 8px 32px rgba(43,30,20,0.12), 0 2px 8px rgba(43,30,20,0.06)',
             } as React.CSSProperties}
           >
             <button
@@ -390,54 +377,41 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
     <div className="w-full max-w-[1280px] mx-auto pb-24 md:pb-20">
 
       {/* ── Header band ── */}
-      <div
-        className="pl-enter rounded-2xl sm:rounded-[var(--pl-radius-xl)] bg-[var(--pl-cream)] px-5 py-6 sm:px-10 sm:py-10 mb-6 sm:mb-10 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 sm:gap-6 overflow-hidden relative"
-      >
-        <div>
-          <p className="text-[0.68rem] font-bold tracking-[0.14em] uppercase text-[var(--pl-olive-deep)] mb-2">
-            {getGreeting()}{userName ? `, ${userName}` : ''}
-          </p>
-          <h1 className="font-heading text-[clamp(1.6rem,3vw,2.4rem)] font-medium text-[var(--pl-ink-soft)] leading-tight">
-            Your celebrations are
-            <br />
-            <em className="text-[var(--pl-olive-deep)]">looking beautiful.</em>
-          </h1>
-        </div>
+      <div className="pl-enter mb-6 sm:mb-10">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <p className="text-[0.65rem] font-semibold tracking-[0.06em] uppercase text-[#A1A1AA] mb-1">
+              {getGreeting()}{userName ? `, ${userName}` : ''}
+            </p>
+            <h1 className="text-[clamp(1.4rem,3vw,2rem)] font-semibold text-[#18181B] leading-tight">
+              Your Sites
+            </h1>
+          </div>
 
-        <div className="flex items-center gap-3 flex-shrink-0">
-          {/* Pear usage indicator */}
-          {pearUsage && (
-            <div
-              className="flex items-center gap-2 px-3 py-2 rounded-full"
-              style={{
-                background: 'rgba(255,255,255,0.5)',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                border: '1px solid rgba(163,177,138,0.15)',
-              } as React.CSSProperties}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            {/* Pear usage indicator */}
+            {pearUsage && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#F4F4F5] border border-[#E4E4E7]">
+                <Sparkles size={13} className="text-[#18181B]" />
+                <span className="text-[0.72rem] font-semibold text-[#18181B]">
+                  Pear:{' '}
+                  {pearUsage.plan !== 'free' ? (
+                    <span className="text-[#18181B]">{'\u221E'}</span>
+                  ) : (
+                    <span style={{ color: pearUsage.used >= pearUsage.limit ? '#b91c1c' : pearUsage.used >= pearUsage.limit - 3 ? '#b45309' : '#18181B' }}>
+                      {pearUsage.used}/{pearUsage.limit} used
+                    </span>
+                  )}
+                </span>
+              </div>
+            )}
+            <button
+              onClick={onStartNew}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-md bg-[#18181B] text-white text-[0.75rem] font-semibold border-none cursor-pointer hover:bg-[#27272A] transition-colors flex-shrink-0"
             >
-              <Sparkles size={13} className="text-[var(--pl-olive)]" />
-              <span className="text-[0.72rem] font-semibold" style={{ color: 'var(--pl-ink-soft)' }}>
-                Pear:{' '}
-                {pearUsage.plan !== 'free' ? (
-                  <span className="text-[var(--pl-olive)]">{'\u221E'}</span>
-                ) : (
-                  <span style={{ color: pearUsage.used >= pearUsage.limit ? '#b91c1c' : pearUsage.used >= pearUsage.limit - 3 ? '#b45309' : 'var(--pl-olive)' }}>
-                    {pearUsage.used}/{pearUsage.limit} used
-                  </span>
-                )}
-              </span>
-            </div>
-          )}
-          <Button
-            variant="accent"
-            size="md"
-            onClick={onStartNew}
-            icon={<Plus size={15} />}
-            className="flex-shrink-0 shadow-[0_4px_20px_rgba(163,177,138,0.35)]"
-          >
-            New Site
-          </Button>
+              <Plus size={15} /> New Site
+            </button>
+          </div>
         </div>
       </div>
 
@@ -451,9 +425,9 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
         >
           {[
-            { icon: <Sparkles size={20} />, title: 'Let Pear handle it', action: onStartNew },
-            { icon: <Image size={20} />, title: 'Upload Photos', action: () => { if (onStartNew) onStartNew(); } },
-            { icon: <Globe size={20} />, title: 'From Template', action: onOpenTemplates || onQuickStart || onStartNew },
+            { icon: <Sparkles size={18} />, title: 'Let Pear handle it', action: onStartNew },
+            { icon: <Image size={18} />, title: 'Upload Photos', action: () => { if (onStartNew) onStartNew(); } },
+            { icon: <Globe size={18} />, title: 'From Template', action: onOpenTemplates || onQuickStart || onStartNew },
           ].map((card, i) => (
             <button
               key={card.title}
@@ -461,20 +435,15 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
               className={cn(
                 `pl-enter pl-enter-d${i + 1}`,
                 'flex items-center gap-3 px-4 py-3 min-w-[140px] max-h-[80px]',
-                'rounded-2xl border border-transparent',
-                'hover:bg-white hover:border-[rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(43,30,20,0.06)]',
+                'rounded-lg bg-white border border-[#E4E4E7]',
+                'hover:border-[#18181B] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]',
                 'active:scale-[0.98] transition-all duration-200 cursor-pointer flex-shrink-0',
               )}
-              style={{
-                background: 'rgba(255,255,255,0.45)',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-              } as React.CSSProperties}
             >
-              <div className="w-10 h-10 rounded-xl border border-[var(--pl-divider)] flex items-center justify-center text-[var(--pl-muted)] flex-shrink-0">
+              <div className="w-9 h-9 rounded-md border border-[#E4E4E7] flex items-center justify-center text-[#71717A] flex-shrink-0">
                 {card.icon}
               </div>
-              <span className="font-heading italic text-[0.88rem] text-[var(--pl-ink-soft)] whitespace-nowrap">{card.title}</span>
+              <span className="text-[0.82rem] font-medium text-[#18181B] whitespace-nowrap">{card.title}</span>
             </button>
           ))}
         </motion.div>
@@ -487,57 +456,46 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
         </div>
 
       ) : fetchError ? (
-        <Card variant="elevated" className="p-8 sm:p-16 text-center max-w-[480px] mx-auto">
-          <div className="w-16 h-16 rounded-2xl bg-[var(--pl-plum-mist)] flex items-center justify-center mx-auto mb-6">
-            <AlertTriangle size={28} className="text-[var(--pl-plum)]" />
+        <div className="p-8 sm:p-16 text-center max-w-[480px] mx-auto bg-white rounded-xl border border-[#E4E4E7]">
+          <div className="w-14 h-14 rounded-lg bg-[#FEF2F2] flex items-center justify-center mx-auto mb-5">
+            <AlertTriangle size={24} className="text-[#DC2626]" />
           </div>
-          <h3 className="font-heading text-2xl font-semibold italic mb-2 text-[var(--pl-ink-soft)]">
-            Pear hit a snag
+          <h3 className="text-xl font-semibold mb-2 text-[#18181B]">
+            Something went wrong
           </h3>
-          <p className="text-[var(--pl-muted)] text-[0.88rem] mb-8 leading-relaxed">
+          <p className="text-[#71717A] text-[0.85rem] mb-6 leading-relaxed">
             We couldn&apos;t load your sites. Check your connection and try again.
           </p>
           <Button variant="primary" size="md" onClick={loadSites} icon={<RefreshCw size={14} />}>
             Try Again
           </Button>
-        </Card>
+        </div>
 
       ) : sites.length === 0 ? (
         <div className="max-w-[640px] mx-auto">
           {/* Hero empty state */}
-          <div
-            className="pl-enter flex flex-col items-center justify-center text-center py-20 px-8 rounded-[24px] mb-8"
-            style={{
-              background: 'rgba(255,255,255,0.5)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255,255,255,0.6)',
-              boxShadow: '0 4px 24px rgba(43,30,20,0.04)',
-            } as React.CSSProperties}
-          >
-            <div className="w-20 h-20 rounded-2xl bg-[var(--pl-olive-mist)] flex items-center justify-center mb-6">
-              <PearIcon size={48} color="var(--pl-olive)" />
+          <div className="pl-enter flex flex-col items-center justify-center text-center py-16 px-8 rounded-xl bg-white border border-[#E4E4E7] mb-6">
+            <div className="w-16 h-16 rounded-lg bg-[#F4F4F5] flex items-center justify-center mb-5">
+              <PearIcon size={40} color="#18181B" />
             </div>
-            <h2 className="font-heading text-[clamp(2rem,5vw,2.8rem)] italic text-[var(--pl-ink-soft)] mb-3 tracking-tight leading-tight">
-              Welcome to Pearloom!
+            <h2 className="text-[clamp(1.6rem,4vw,2.2rem)] font-semibold text-[#18181B] mb-2 leading-tight">
+              Welcome to Pearloom
             </h2>
-            <p className="text-[var(--pl-muted)] max-w-[380px] leading-[1.7] text-[1rem] mb-10">
-              Pearloom is ready when you are. Create your first celebration site in minutes.
+            <p className="text-[#71717A] max-w-[360px] leading-[1.6] text-[0.9rem] mb-8">
+              Create your first celebration site in minutes.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 items-center">
-              <Button variant="accent" size="lg" onClick={onStartNew} icon={<Sparkles size={15} />} className="shadow-[0_4px_20px_rgba(163,177,138,0.35)] min-w-[180px]">
-                Start with AI
-              </Button>
-              <Button variant="secondary" size="lg" onClick={onOpenTemplates || onQuickStart || onStartNew} className="min-w-[180px]">
+            <div className="flex flex-col sm:flex-row gap-3 items-center">
+              <button onClick={onStartNew} className="flex items-center gap-2 px-5 py-2.5 rounded-md bg-[#18181B] text-white text-[0.8rem] font-semibold border-none cursor-pointer hover:bg-[#27272A] transition-colors min-w-[180px] justify-center">
+                <Sparkles size={15} /> Start with AI
+              </button>
+              <button onClick={onOpenTemplates || onQuickStart || onStartNew} className="flex items-center justify-center px-5 py-2.5 rounded-md bg-white text-[#18181B] text-[0.8rem] font-semibold border border-[#E4E4E7] cursor-pointer hover:bg-[#F4F4F5] transition-colors min-w-[180px]">
                 Browse Templates
-              </Button>
+              </button>
             </div>
           </div>
 
           {/* How it works — 3 steps */}
-          <div
-            className="pl-enter pl-enter-d2 grid grid-cols-1 sm:grid-cols-3 gap-4"
-          >
+          <div className="pl-enter pl-enter-d2 grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
               { num: '1', title: 'Add photos', desc: 'From Google Photos or your device — the moments that matter most.' },
               { num: '2', title: 'Set your vibe', desc: 'Describe the feeling. AI crafts colors, fonts, and layout around it.' },
@@ -548,19 +506,13 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 + i * 0.1, duration: 0.5 }}
-                className="p-5 rounded-2xl text-center"
-                style={{
-                  background: 'rgba(255,255,255,0.4)',
-                  backdropFilter: 'blur(12px)',
-                  WebkitBackdropFilter: 'blur(12px)',
-                  border: '1px solid rgba(255,255,255,0.5)',
-                } as React.CSSProperties}
+                className="p-5 rounded-xl bg-white border border-[#E4E4E7] text-center"
               >
-                <div className="w-8 h-8 rounded-full bg-[var(--pl-olive-mist)] flex items-center justify-center mx-auto mb-3 text-[0.72rem] font-bold text-[var(--pl-olive-deep)]">
+                <div className="w-8 h-8 rounded-md bg-[#F4F4F5] flex items-center justify-center mx-auto mb-3 text-[0.72rem] font-bold text-[#18181B]">
                   {step.num}
                 </div>
-                <h4 className="text-[0.82rem] font-semibold text-[var(--pl-ink)] mb-1">{step.title}</h4>
-                <p className="text-[0.72rem] text-[var(--pl-muted)] leading-relaxed">{step.desc}</p>
+                <h4 className="text-[0.82rem] font-semibold text-[#18181B] mb-1">{step.title}</h4>
+                <p className="text-[0.72rem] text-[#71717A] leading-relaxed">{step.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -570,8 +522,8 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
         <>
         {/* Your Sites heading + count */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-heading italic text-[clamp(1.4rem,2.5vw,1.8rem)] text-[var(--pl-ink-soft)]">Your Sites</h2>
-          <span className="text-[0.78rem] text-[var(--pl-muted)]">
+          <h2 className="text-[0.65rem] font-semibold tracking-[0.06em] uppercase text-[#A1A1AA]">Your Sites</h2>
+          <span className="text-[0.75rem] text-[#71717A]">
             {sites.length} {sites.length === 1 ? 'site' : 'sites'}
           </span>
         </div>
@@ -614,20 +566,12 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                   transition={{ duration: 0.3, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
                   onClick={() => onEditSite(site)}
                   className={cn(
-                    'pl-site-card flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer',
+                    'pl-site-card flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer',
+                    'bg-white border border-[#E4E4E7]',
                     'transition-all duration-200',
-                    'hover:shadow-[0_8px_32px_rgba(163,177,138,0.12)] hover:-translate-y-0.5 hover:scale-[1.01]',
+                    'hover:border-[#18181B] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]',
                     'active:scale-[0.99]',
                   )}
-                  style={{
-                    background: 'rgba(255,255,255,0.5)',
-                    backdropFilter: 'blur(16px)',
-                    WebkitBackdropFilter: 'blur(16px)',
-                    border: '1px solid rgba(255,255,255,0.6)',
-                    boxShadow: '0 2px 12px rgba(43,30,20,0.04)',
-                    position: 'relative',
-                    overflow: 'visible',
-                  } as React.CSSProperties}
                 >
                   {/* Thumbnail */}
                   <SiteThumbnail
@@ -643,7 +587,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                   <div className="flex-1 min-w-0 flex flex-col gap-1">
                     {/* Row 1: Name + status badge */}
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-heading text-[0.95rem] font-semibold italic text-[var(--pl-ink-soft)] truncate">
+                      <span className="text-[0.9rem] font-semibold text-[#18181B] truncate">
                         {displayName}
                       </span>
                       {isLive ? (
@@ -708,70 +652,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
         </>
       )}
 
-      {/* ── Floating bottom nav (desktop only — mobile uses MobileBottomNav) ── */}
-      {!loading && !fetchError && (
-        <div className="hidden md:block fixed bottom-6 left-0 right-0 z-50 pointer-events-none">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.4 }}
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-          }}
-        >
-          <div style={{
-            pointerEvents: 'auto',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            padding: '6px 8px',
-            borderRadius: '100px',
-            background: 'rgba(255,255,255,0.92)',
-            backdropFilter: 'blur(24px) saturate(1.4)',
-            WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
-            border: '1px solid rgba(0,0,0,0.06)',
-            boxShadow: '0 4px 24px rgba(43,30,20,0.1), 0 1px 4px rgba(43,30,20,0.06)',
-          } as React.CSSProperties}
-        >
-          <button
-            onClick={onStartNew}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '10px 20px', borderRadius: '100px', border: 'none',
-              background: 'var(--pl-olive-deep)', color: 'white',
-              cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
-              letterSpacing: '0.08em', textTransform: 'uppercase',
-            }}
-          >
-            <Plus size={14} /> New Site
-          </button>
-          {[
-            { label: 'Templates', icon: <Globe size={14} />, onClick: onOpenTemplates || onQuickStart },
-            { label: 'Marketplace', icon: <Sparkles size={14} />, onClick: () => window.location.href = '/marketplace' },
-            { label: 'Gallery', icon: <Image size={14} />, onClick: () => window.location.href = '/dashboard/gallery' },
-          ].map((item) => (
-            <button
-              key={item.label}
-              onClick={item.onClick}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '5px',
-                padding: '10px 14px', borderRadius: '100px', border: 'none',
-                background: 'transparent', color: 'var(--pl-muted)',
-                cursor: 'pointer', fontSize: '0.68rem', fontWeight: 600,
-                letterSpacing: '0.06em', textTransform: 'uppercase',
-                transition: 'color 0.15s',
-              }}
-              onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.color = 'var(--pl-ink)'; }}
-              onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.color = 'var(--pl-muted)'; }}
-            >
-              {item.icon} {item.label}
-            </button>
-          ))}
-          </div>
-        </motion.div>
-        </div>
-      )}
+      {/* Desktop floating nav removed — sidebar provides navigation */}
 
       {/* Delete Modal */}
       <Modal
@@ -780,14 +661,14 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
         maxWidth="max-w-[420px]"
       >
         <div className="text-center pt-2">
-          <div className="w-16 h-16 rounded-2xl bg-[var(--pl-plum-mist)] flex items-center justify-center mx-auto mb-6">
-            <AlertTriangle size={28} className="text-[var(--pl-plum)]" />
+          <div className="w-14 h-14 rounded-lg bg-[#FEF2F2] flex items-center justify-center mx-auto mb-5">
+            <AlertTriangle size={24} className="text-[#DC2626]" />
           </div>
-          <h3 className="font-heading text-2xl font-semibold italic mb-3 text-[var(--pl-ink-soft)]">
+          <h3 className="text-xl font-semibold mb-2 text-[#18181B]">
             Delete this site?
           </h3>
-          <p className="text-[var(--pl-muted)] leading-relaxed mb-6 text-[0.88rem]">
-            <strong className="text-[var(--pl-ink)]">{confirmDelete ? getDisplayName(confirmDelete) : ''}</strong> will be
+          <p className="text-[#71717A] leading-relaxed mb-6 text-[0.85rem]">
+            <strong className="text-[#18181B]">{confirmDelete ? getDisplayName(confirmDelete) : ''}</strong> will be
             permanently removed and guests will lose access.
           </p>
           {deleteError && (

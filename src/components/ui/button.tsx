@@ -16,60 +16,57 @@ const buttonVariants = cva(
   // Base — shared across all variants
   [
     'inline-flex items-center justify-center font-semibold leading-none',
-    'uppercase tracking-[0.08em]',
+    'tracking-[0.02em]',
     'transition-all duration-200 cursor-pointer select-none',
-    'font-body',
     'disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--pl-olive)] focus-visible:ring-offset-2',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#18181B] focus-visible:ring-offset-2',
   ].join(' '),
   {
     variants: {
       variant: {
-        /** Olive-filled — primary CTA (brand-first) */
+        /** Dark-filled — primary CTA */
         primary: [
-          'bg-[var(--pl-olive-deep)] text-white border border-[var(--pl-olive-deep)]',
-          'hover:bg-[var(--pl-olive)] hover:-translate-y-px',
-          'shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)] hover:shadow-[0_4px_20px_rgba(43,30,20,0.12),0_8px_30px_rgba(43,30,20,0.07)]',
+          'bg-[#18181B] text-white border border-[#18181B]',
+          'hover:bg-[#27272A]',
+          'shadow-[0_1px_3px_rgba(0,0,0,0.08)]',
         ].join(' '),
 
-        /** Olive-filled — brand CTA (alias) */
+        /** Dark-filled — brand CTA (alias) */
         accent: [
-          'bg-[var(--pl-olive)] text-white border border-[var(--pl-olive)]',
-          'hover:bg-[var(--pl-olive-hover)] hover:-translate-y-px',
-          'shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)] hover:shadow-[0_4px_20px_rgba(43,30,20,0.12),0_8px_30px_rgba(43,30,20,0.07)]',
+          'bg-[#18181B] text-white border border-[#18181B]',
+          'hover:bg-[#27272A]',
+          'shadow-[0_1px_3px_rgba(0,0,0,0.08)]',
         ].join(' '),
 
         /** Outlined — secondary action */
         secondary: [
-          'bg-white text-[var(--pl-ink)] border border-[var(--pl-divider)]',
-          'hover:border-[var(--pl-olive)] hover:bg-[var(--pl-olive-mist)]',
+          'bg-white text-[#18181B] border border-[#E4E4E7]',
+          'hover:border-[#18181B] hover:bg-[#F4F4F5]',
         ].join(' '),
 
-        /** Underlined italic — tertiary / inline action */
+        /** Minimal text — tertiary / inline action */
         ghost: [
-          'bg-transparent text-[var(--pl-ink)] border border-transparent',
-          'not-italic tracking-normal normal-case underline underline-offset-4 decoration-[var(--pl-divider)]',
-          'hover:text-[var(--pl-olive-deep)] hover:decoration-[var(--pl-olive)]',
-          'font-heading italic',
+          'bg-transparent text-[#71717A] border border-transparent',
+          'hover:text-[#18181B] hover:bg-[#F4F4F5]',
         ].join(' '),
 
         /** Gold-filled — premium / upgrade prompt */
         gold: [
           'bg-[var(--pl-gold)] text-white border border-[var(--pl-gold)]',
-          'hover:bg-[#b89a5a] hover:-translate-y-px',
-          'shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)]',
+          'hover:bg-[#b89a5a]',
+          'shadow-[0_1px_3px_rgba(0,0,0,0.08)]',
         ].join(' '),
 
-        /** Warning — terracotta outline */
+        /** Warning — outline */
         warning: [
-          'bg-transparent text-[var(--pl-warning)] border border-[var(--pl-warning)]',
-          'hover:bg-[var(--pl-warning-mist)]',
+          'bg-transparent text-[#DC2626] border border-[#DC2626]',
+          'hover:bg-[#FEF2F2]',
         ].join(' '),
 
         /** Destructive */
         danger: [
           'bg-destructive text-destructive-foreground border border-destructive',
-          'hover:opacity-90 shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)]',
+          'hover:opacity-90 shadow-[0_1px_3px_rgba(0,0,0,0.08)]',
         ].join(' '),
 
         /** Dark-surface ghost — for use inside editor / dark panels */
@@ -80,21 +77,21 @@ const buttonVariants = cva(
 
         /** Ink-filled — secondary dark CTA */
         ink: [
-          'bg-[var(--pl-ink)] text-white border border-[var(--pl-ink)]',
-          'hover:bg-[var(--pl-ink-soft)] hover:-translate-y-px',
-          'shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)]',
+          'bg-[#18181B] text-white border border-[#18181B]',
+          'hover:bg-[#27272A]',
+          'shadow-[0_1px_3px_rgba(0,0,0,0.08)]',
         ].join(' '),
       },
 
       size: {
-        xs: 'text-[0.68rem] px-2.5 py-1.5 gap-1 rounded-[var(--pl-radius-xs)]',
-        sm: 'text-[0.75rem] px-3.5 py-2 gap-1.5 rounded-[var(--pl-radius-sm)]',
-        md: 'text-[0.78rem] px-5 py-2.5 gap-2 rounded-[var(--pl-radius-sm)]',
-        lg: 'text-[0.82rem] px-7 py-3 gap-2.5 rounded-[var(--pl-radius-md)]',
-        xl: 'text-[0.88rem] px-9 py-4 gap-3 rounded-[var(--pl-radius-md)]',
+        xs: 'text-[0.68rem] px-2.5 py-1.5 gap-1 rounded-md',
+        sm: 'text-[0.75rem] px-3.5 py-2 gap-1.5 rounded-md',
+        md: 'text-[0.78rem] px-5 py-2.5 gap-2 rounded-md',
+        lg: 'text-[0.82rem] px-7 py-3 gap-2.5 rounded-lg',
+        xl: 'text-[0.88rem] px-9 py-4 gap-3 rounded-lg',
         /** Icon-only square */
-        icon: 'w-9 h-9 rounded-[var(--pl-radius-sm)]',
-        iconLg: 'w-11 h-11 rounded-[var(--pl-radius-md)]',
+        icon: 'w-9 h-9 rounded-md',
+        iconLg: 'w-11 h-11 rounded-lg',
       },
     },
     defaultVariants: {

@@ -67,22 +67,22 @@ function TemplatePersonalizeModal({ template, onConfirm, onClose }: {
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[200] flex items-center justify-center p-4"
     >
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <motion.div
         initial={{ opacity: 0, y: 20, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-        className="relative w-full max-w-[440px] bg-white rounded-[var(--pl-radius-xl)] shadow-[0_24px_80px_rgba(0,0,0,0.15)] overflow-hidden"
+        className="relative w-full max-w-[440px] bg-white rounded-xl border border-[#E4E4E7] shadow-[0_16px_48px_rgba(0,0,0,0.12)] overflow-hidden"
       >
         {/* Header */}
-        <div className="px-6 pt-6 pb-4 border-b border-[var(--pl-divider)]">
-          <p className="text-[0.6rem] font-bold tracking-[0.14em] uppercase text-[var(--pl-olive-deep)] mb-1">
-            Using template: {template.name}
+        <div className="px-6 pt-6 pb-4 border-b border-[#E4E4E7]">
+          <p className="text-[0.65rem] font-semibold tracking-[0.06em] uppercase text-[#A1A1AA] mb-1">
+            Template: {template.name}
           </p>
-          <h2 className="font-heading italic text-[1.4rem] text-[var(--pl-ink-soft)] leading-tight">
+          <h2 className="text-xl font-semibold text-[#18181B] leading-tight">
             Personalize your site
           </h2>
-          <p className="text-[0.82rem] text-[var(--pl-muted)] mt-1">
+          <p className="text-[0.82rem] text-[#71717A] mt-1">
             Tell us who this celebration is for.
           </p>
         </div>
@@ -91,7 +91,7 @@ function TemplatePersonalizeModal({ template, onConfirm, onClose }: {
         <div className="px-6 py-5 flex flex-col gap-4">
           {/* Occasion */}
           <div>
-            <label className="block text-[0.62rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-muted)] mb-2">
+            <label className="block text-[0.68rem] font-semibold text-[#71717A] mb-2">
               Occasion
             </label>
             <div className="flex flex-wrap gap-2">
@@ -99,11 +99,11 @@ function TemplatePersonalizeModal({ template, onConfirm, onClose }: {
                 <button
                   key={o.id}
                   onClick={() => setOccasion(o.id)}
-                  className="px-4 py-2.5 min-h-[44px] rounded-full border text-[0.78rem] font-semibold transition-all cursor-pointer"
+                  className="px-4 py-2 rounded-md border text-[0.78rem] font-medium transition-all cursor-pointer"
                   style={{
-                    background: occasion === o.id ? 'var(--pl-olive)' : 'transparent',
-                    color: occasion === o.id ? 'white' : 'var(--pl-muted)',
-                    borderColor: occasion === o.id ? 'var(--pl-olive)' : 'var(--pl-divider)',
+                    background: occasion === o.id ? '#18181B' : 'transparent',
+                    color: occasion === o.id ? 'white' : '#71717A',
+                    borderColor: occasion === o.id ? '#18181B' : '#E4E4E7',
                   }}
                 >
                   {o.label}
@@ -115,7 +115,7 @@ function TemplatePersonalizeModal({ template, onConfirm, onClose }: {
           {/* Names */}
           <div className={occasion === 'birthday' ? 'grid grid-cols-1 gap-3' : 'grid grid-cols-2 gap-3'}>
             <div>
-              <label className="block text-[0.62rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-muted)] mb-1.5">
+              <label className="block text-[0.68rem] font-semibold text-[#71717A] mb-1.5">
                 {occasion === 'birthday' ? "Birthday Person's Name"
                   : occasion === 'wedding' ? "Bride's Name"
                   : 'First Name'}
@@ -127,19 +127,19 @@ function TemplatePersonalizeModal({ template, onConfirm, onClose }: {
                 placeholder={occasion === 'birthday' ? 'Their name'
                   : occasion === 'wedding' ? 'e.g. Alex'
                   : 'First name'}
-                className="w-full px-3 py-2.5 rounded-[var(--pl-radius-sm)] border border-[var(--pl-divider)] text-[max(16px,0.88rem)] text-[var(--pl-ink)] bg-white outline-none focus:border-[var(--pl-olive)] transition-colors"
+                className="w-full px-3 py-2.5 rounded-md border border-[#E4E4E7] text-[max(16px,0.88rem)] text-[#18181B] bg-white outline-none focus:border-[#A1A1AA] focus:shadow-[0_0_0_2px_rgba(24,24,27,0.08)] transition-all"
               />
             </div>
             {occasion !== 'birthday' && (
               <div>
-                <label className="block text-[0.62rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-muted)] mb-1.5">
+                <label className="block text-[0.68rem] font-semibold text-[#71717A] mb-1.5">
                   {occasion === 'wedding' ? "Groom's Name" : 'Second Name'}
                 </label>
                 <input
                   value={name2}
                   onChange={e => setName2(e.target.value)}
                   placeholder={occasion === 'wedding' ? 'e.g. Jordan' : 'Second name'}
-                  className="w-full px-3 py-2.5 rounded-[var(--pl-radius-sm)] border border-[var(--pl-divider)] text-[max(16px,0.88rem)] text-[var(--pl-ink)] bg-white outline-none focus:border-[var(--pl-olive)] transition-colors"
+                  className="w-full px-3 py-2.5 rounded-md border border-[#E4E4E7] text-[max(16px,0.88rem)] text-[#18181B] bg-white outline-none focus:border-[#A1A1AA] focus:shadow-[0_0_0_2px_rgba(24,24,27,0.08)] transition-all"
                 />
               </div>
             )}
@@ -147,20 +147,19 @@ function TemplatePersonalizeModal({ template, onConfirm, onClose }: {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-[var(--pl-divider)] flex justify-between items-center bg-[var(--pl-cream)]">
+        <div className="px-6 py-4 border-t border-[#E4E4E7] flex justify-between items-center bg-[#FAFAFA]">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-[0.82rem] text-[var(--pl-muted)] bg-transparent border-none cursor-pointer hover:text-[var(--pl-ink)] transition-colors"
+            className="px-4 py-2 text-[0.82rem] text-[#71717A] bg-transparent border-none cursor-pointer hover:text-[#18181B] transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={() => canSubmit && onConfirm([name1.trim(), name2.trim()] as [string, string], occasion)}
             disabled={!canSubmit}
-            className="px-6 py-2.5 rounded-full text-[0.82rem] font-bold text-white border-none cursor-pointer transition-all"
+            className="px-6 py-2.5 rounded-md text-[0.82rem] font-semibold text-white border-none cursor-pointer transition-all"
             style={{
-              background: canSubmit ? 'var(--pl-olive)' : 'var(--pl-divider)',
-              opacity: canSubmit ? 1 : 0.5,
+              background: canSubmit ? '#18181B' : '#D4D4D8',
             }}
           >
             Start Building
@@ -283,48 +282,48 @@ export default function DashboardClient() {
   return (
     <DialogProvider>
     <ThemeProvider theme={{
-      name: 'pearloom-ivory',
-      fonts: { heading: 'Playfair Display', body: 'Inter' },
-      colors: { background: '#F5F1E8', foreground: '#2B2B2B', accent: '#A3B18A', accentLight: '#EEE8DC', muted: '#9A9488', cardBg: '#ffffff' },
-      borderRadius: '1rem',
+      name: 'pearloom-v5',
+      fonts: { heading: 'DM Sans', body: 'DM Sans' },
+      colors: { background: '#FAFAFA', foreground: '#18181B', accent: '#18181B', accentLight: '#F4F4F5', muted: '#71717A', cardBg: '#ffffff' },
+      borderRadius: '0.75rem',
     }}>
       {status === 'loading' ? (
         /* Issue 1: Show a branded loading state instead of blank screen while auth loads */
-        <div className="min-h-dvh flex flex-col items-center justify-center bg-[var(--pl-cream)]">
+        <div className="min-h-dvh flex flex-col items-center justify-center bg-[#FAFAFA]">
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-col items-center gap-4"
+            className="flex flex-col items-center gap-3"
           >
-            <div className="w-12 h-12 rounded-2xl bg-[var(--pl-olive-mist)] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-[#18181B] flex items-center justify-center">
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
               >
-                <Plus size={20} className="text-[var(--pl-olive)]" />
+                <Plus size={16} className="text-white" />
               </motion.div>
             </div>
-            <span className="font-heading italic text-[1.1rem] text-[var(--pl-ink-soft)]">Loading your Pearloom studio...</span>
+            <span className="text-[0.85rem] font-medium text-[#71717A]">Loading your studio…</span>
           </motion.div>
         </div>
       ) : state.step === 'dashboard' ? (
         /* ── Dashboard: own layout with sidebar, no SiteNav ── */
-        <div className="min-h-dvh flex flex-col bg-[var(--pl-cream)]">
-          {/* Dashboard top bar — minimal, not the heavy SiteNav */}
-          <header className="h-14 shrink-0 flex items-center justify-between px-4 md:px-6 border-b border-[var(--pl-divider)] bg-white/80 backdrop-blur-md z-10">
-            <div className="flex items-center gap-3">
-              <span className="font-heading italic text-[1.05rem] font-semibold text-[var(--pl-ink-soft)]">
+        <div className="min-h-dvh flex flex-col bg-[#FAFAFA]">
+          {/* Dashboard top bar — minimal solid bar */}
+          <header className="h-12 shrink-0 flex items-center justify-between px-4 md:px-6 border-b border-[#E4E4E7] bg-white z-10">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-md bg-[#18181B] flex items-center justify-center md:hidden">
+                <span className="text-white text-[0.6rem] font-bold leading-none">P</span>
+              </div>
+              <span className="text-[0.85rem] font-semibold text-[#18181B] md:hidden">
                 Pearloom
-              </span>
-              <span className="hidden sm:block text-[0.6rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-muted)]">
-                The Atelier
               </span>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => goTo('pear-crafts')}
-                className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-full text-[0.72rem] font-bold text-white bg-[var(--pl-olive-deep)] border-none cursor-pointer hover:opacity-90 transition-opacity"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[0.75rem] font-semibold text-white bg-[#18181B] border-none cursor-pointer hover:bg-[#27272A] transition-colors md:hidden"
                 aria-label="Create new site"
               >
                 <Plus size={14} />

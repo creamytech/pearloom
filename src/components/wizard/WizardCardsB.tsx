@@ -9,16 +9,16 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 
-// ── Shared Constants ────────────────────────────────────────
+// ── Shared Constants (v5 design system) ─────────────────────
 
-const GLASS_BG = 'rgba(255,255,255,0.5)';
-const GLASS_BORDER = 'rgba(255,255,255,0.6)';
-const WARM_SHADOW = '0 2px 12px rgba(43,30,20,0.06), 0 4px 24px rgba(43,30,20,0.04)';
-const OLIVE_GLOW = '0 0 0 2px rgba(163,177,138,0.25), 0 4px 20px rgba(163,177,138,0.18)';
-const CARD_RADIUS = '16px';
-const MOUNT_INITIAL = { opacity: 0, y: 14 } as const;
+const GLASS_BG = '#FFFFFF';
+const GLASS_BORDER = '#E4E4E7';
+const WARM_SHADOW = '0 1px 3px rgba(0,0,0,0.04)';
+const OLIVE_GLOW = '0 0 0 2px rgba(24,24,27,0.12)';
+const CARD_RADIUS = '10px';
+const MOUNT_INITIAL = { opacity: 0, y: 8 } as const;
 const MOUNT_ANIMATE = { opacity: 1, y: 0 } as const;
-const MOUNT_TRANSITION = { duration: 0.45, ease: [0.16, 1, 0.3, 1] as const };
+const MOUNT_TRANSITION = { duration: 0.35, ease: [0.16, 1, 0.3, 1] as const };
 
 // ── SVG Icons (no emojis) ───────────────────────────────────
 
@@ -400,51 +400,55 @@ interface ColorPaletteCardProps {
 export function ColorPaletteCard({ palettes, onSelect }: ColorPaletteCardProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  const containerStyle: React.CSSProperties = {
-    background: GLASS_BG,
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    borderRadius: CARD_RADIUS,
-    border: `1px solid ${GLASS_BORDER}`,
-    boxShadow: WARM_SHADOW,
-    padding: '18px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-    maxWidth: '380px',
-  };
-
   return (
-    <motion.div initial={MOUNT_INITIAL} animate={MOUNT_ANIMATE} transition={MOUNT_TRANSITION} style={containerStyle}>
+    <motion.div
+      initial={MOUNT_INITIAL}
+      animate={MOUNT_ANIMATE}
+      transition={MOUNT_TRANSITION}
+      style={{
+        background: GLASS_BG,
+        borderRadius: CARD_RADIUS,
+        border: `1px solid ${GLASS_BORDER}`,
+        boxShadow: WARM_SHADOW,
+        padding: '14px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+      }}
+    >
       {palettes.slice(0, 3).map((palette, idx) => {
         const isSelected = selectedIndex === idx;
-
-        const optionStyle: React.CSSProperties = {
-          position: 'relative',
-          borderRadius: '12px',
-          padding: '14px',
-          border: isSelected ? '2px solid var(--pl-olive)' : `1px solid ${GLASS_BORDER}`,
-          background: makeGradientFromColors(palette.colors, 0.1),
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          cursor: 'pointer',
-          transition: 'all 0.25s ease',
-          boxShadow: isSelected ? OLIVE_GLOW : '0 1px 6px rgba(43,30,20,0.04)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '10px',
-        };
 
         return (
           <motion.button
             key={palette.name}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.08, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            style={optionStyle}
+            transition={{ delay: idx * 0.06, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              position: 'relative',
+              borderRadius: '8px',
+              padding: '12px',
+              border: isSelected ? '2px solid #18181B' : `1px solid ${GLASS_BORDER}`,
+              background: isSelected ? '#F4F4F5' : '#FFFFFF',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: isSelected ? OLIVE_GLOW : 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+              textAlign: 'left',
+              fontFamily: 'inherit',
+            }}
             onClick={() => {
               setSelectedIndex(idx);
               onSelect({ name: palette.name, colors: palette.colors });
+            }}
+            onMouseEnter={(e) => {
+              if (!isSelected) (e.currentTarget as HTMLElement).style.borderColor = '#18181B';
+            }}
+            onMouseLeave={(e) => {
+              if (!isSelected) (e.currentTarget as HTMLElement).style.borderColor = GLASS_BORDER;
             }}
           >
             {/* Selected checkmark */}
@@ -453,16 +457,10 @@ export function ColorPaletteCard({ palettes, onSelect }: ColorPaletteCardProps) 
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 style={{
-                  position: 'absolute',
-                  top: '10px',
-                  right: '10px',
-                  width: '20px',
-                  height: '20px',
-                  borderRadius: '50%',
-                  background: 'var(--pl-olive)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  position: 'absolute', top: '8px', right: '8px',
+                  width: '18px', height: '18px', borderRadius: '50%',
+                  background: '#18181B',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}
               >
                 <CheckIcon size={10} color="white" />
@@ -470,30 +468,19 @@ export function ColorPaletteCard({ palettes, onSelect }: ColorPaletteCardProps) 
             )}
 
             {/* Color swatches row */}
-            <div style={{ display: 'flex', gap: '6px' }}>
+            <div style={{ display: 'flex', gap: '4px' }}>
               {palette.colors.slice(0, 5).map((color, i) => (
-                <div
-                  key={i}
-                  style={{
-                    width: '32px',
-                    height: '22px',
-                    borderRadius: '6px',
-                    background: color,
-                    border: '1.5px solid rgba(255,255,255,0.6)',
-                    boxShadow: '0 1px 3px rgba(43,30,20,0.08)',
-                  }}
-                />
+                <div key={i} style={{
+                  width: '28px', height: '18px', borderRadius: '4px',
+                  background: color, border: '1px solid rgba(0,0,0,0.06)',
+                }} />
               ))}
             </div>
 
             {/* Palette name */}
             <span style={{
-              fontFamily: 'var(--pl-font-heading)',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              color: 'var(--pl-ink-soft)',
-              textAlign: 'left',
-              lineHeight: 1.3,
+              fontSize: '0.82rem', fontWeight: 600,
+              color: '#18181B', lineHeight: 1.3,
             }}>
               {palette.name}
             </span>
@@ -501,10 +488,8 @@ export function ColorPaletteCard({ palettes, onSelect }: ColorPaletteCardProps) 
             {/* Description */}
             {palette.description && (
               <span style={{
-                fontSize: '0.72rem',
-                color: 'var(--pl-muted)',
-                lineHeight: 1.5,
-                textAlign: 'left',
+                fontSize: '0.68rem', color: '#71717A',
+                lineHeight: 1.4,
               }}>
                 {palette.description}
               </span>
