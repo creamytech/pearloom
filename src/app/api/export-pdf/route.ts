@@ -299,12 +299,19 @@ function buildHtml(manifest: StoryManifest, siteId: string): string {
 
   <!-- Cover -->
   <div class="cover">
+    ${(manifest as any).coverPhoto ? `<img src="${escapeHtml((manifest as any).coverPhoto)}" alt="Cover" style="max-width:60%;max-height:10cm;border-radius:8px;margin-bottom:2rem;object-fit:cover;" />` : ''}
     <div class="cover-eyebrow">A Love Story</div>
     <h1 class="cover-title">${escapeHtml(title)}</h1>
     <div class="cover-accent">♡</div>
     <p class="cover-subtitle">
       ${chapters.length} chapter${chapters.length !== 1 ? 's' : ''} &nbsp;·&nbsp; ${escapeHtml(formatDate(new Date().toISOString()))}
     </p>
+    ${((manifest as any).heroSlideshow || []).filter(Boolean).length > 0 ? `
+    <div class="chapter-images" style="margin-top:1.5cm;justify-content:center;">
+      ${((manifest as any).heroSlideshow as string[]).filter(Boolean).slice(0, 4).map((u: string) =>
+        `<img src="${escapeHtml(u)}" alt="" style="max-width:40%;max-height:6cm;border-radius:4px;object-fit:cover;" />`
+      ).join('')}
+    </div>` : ''}
   </div>
 
   <!-- Chapters -->

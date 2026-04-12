@@ -34,7 +34,7 @@ import { StickerLayer } from '@/components/site-stickers/StickerLayer';
 
 function proxyUrl(rawUrl: string, w: number, h: number): string {
   if (!rawUrl) return '';
-  if (rawUrl.includes('googleusercontent.com')) {
+  if (rawUrl.includes('googleusercontent.com') || rawUrl.includes('lh3.google')) {
     return `/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=${w}&h=${h}`;
   }
   return rawUrl;
@@ -407,7 +407,20 @@ function PreviewContent() {
       case 'divider':
         return <WaveDivider key={key} skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={60} />;
       case 'photos': {
-        const allPhotos = manifest.chapters?.flatMap(ch => ch.images || []).slice(0, 9) || [];
+        const pvSeen = new Set<string>();
+        const allPhotos: Array<{ url: string; alt?: string }> = [];
+        if ((manifest as any).coverPhoto) {
+          const u = (manifest as any).coverPhoto as string;
+          if (!pvSeen.has(u)) { pvSeen.add(u); allPhotos.push({ url: u, alt: 'Cover photo' }); }
+        }
+        for (const u of ((manifest as any).heroSlideshow || []) as string[]) {
+          if (u && !pvSeen.has(u)) { pvSeen.add(u); allPhotos.push({ url: u, alt: 'Hero slideshow' }); }
+        }
+        for (const ch of (manifest.chapters || [])) {
+          for (const img of (ch.images || [])) {
+            if (img.url && !pvSeen.has(img.url)) { pvSeen.add(img.url); allPhotos.push(img); }
+          }
+        }
         return (
           <section key={key} data-pe-section="photos" data-pe-label="Photos" style={{ padding: '4rem 2rem' }}>
             <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>

@@ -8,6 +8,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createSiteInvite, getSiteInvites, deleteSiteInvite } from '@/lib/db';
 import { Resend } from 'resend';
+import { getAppOrigin } from '@/lib/site-urls';
 import { checkRateLimit } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
       invitedBy: session.user.email,
     });
 
-    const acceptUrl = `https://pearloom.com/invite?token=${token}`;
+    const acceptUrl = `${getAppOrigin()}/invite?token=${token}`;
     const inviterName = session.user.name || session.user.email;
     const roleLabel = role === 'coordinator' ? 'coordinator' : 'viewer';
 

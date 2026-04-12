@@ -6,6 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { StoryManifest } from '@/types';
 import { generateVibeSkin } from '@/lib/vibe-engine';
 import { mirrorManifestPhotos } from '@/lib/mirror-photos';
+import { buildSiteUrl } from '@/lib/site-urls';
 
 export async function POST(req: NextRequest) {
   try {
@@ -87,33 +88,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error || 'Failed to publish' }, { status: 400 });
     }
 
+    // Build the canonical published URL using the centralized helper.
+    // This always produces path-based URLs (pearloom.com/sites/<slug>)
+    // regardless of how the API request arrived.
     const host = req.headers.get('host') || 'localhost:3000';
-
-    // Auto-detect the URL format to return.
-    // NEXT_PUBLIC_SITE_URL (e.g. https://pearloom.com) is the canonical base —
-    // use it when set so we always produce the correct subdomain URL regardless
-    // of which host the API request arrived on (e.g. app.pearloom.com vs pearloom.com).
-    let finalUrl = '';
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-    if (siteUrl) {
-      try {
-        const base = new URL(siteUrl);
-        finalUrl = `${base.protocol}//${cleanSubdomain}.${base.hostname}`;
-      } catch {
-        // fall through to host-based detection below
-      }
-    }
-    if (!finalUrl) {
-      if (host.includes('localhost')) {
-        finalUrl = `http://${cleanSubdomain}.localhost:3000`;
-      } else if (host.includes('vercel.app')) {
-        finalUrl = `https://${host}/sites/${cleanSubdomain}`;
-      } else {
-        // Strip any port and www. prefix so we get clean subdomain URLs
-        const baseDomain = host.replace(/^www\./, '').replace(/:\d+$/, '');
-        finalUrl = `https://${cleanSubdomain}.${baseDomain}`;
-      }
-    }
+    const origin = process.env.NEXT_PUBLIC_SITE_URL
+      || (host.includes('localhost') ? `http://${host}` : `https://${host}`);
+    const finalUrl = buildSiteUrl(cleanSubdomain, '', origin);
 
     // Generate a preview token and store it alongside the published site
     let previewToken: string | null = null;

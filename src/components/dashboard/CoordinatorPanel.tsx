@@ -8,6 +8,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Mail, Copy, Check, Trash2, Clock, UserCheck, ChevronDown } from 'lucide-react';
+import { getAppOrigin } from '@/lib/site-urls';
 
 interface Invite {
   id: string;
@@ -96,7 +97,7 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
   };
 
   const copyInviteLink = async (token: string, id: string) => {
-    const url = `https://pearloom.com/invite?token=${token}`;
+    const url = `${getAppOrigin()}/invite?token=${token}`;
     await navigator.clipboard.writeText(url).catch(() => {});
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);

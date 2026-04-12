@@ -461,7 +461,20 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
       case 'divider':
         return <WaveDivider key="divider" skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={60} />;
       case 'photos': {
-        const allPhotos = (manifest.chapters || []).flatMap((ch: import('@/types').Chapter) => ch.images || []).slice(0, 9);
+        const tpSeen = new Set<string>();
+        const allPhotos: Array<{ url: string; alt?: string }> = [];
+        if ((manifest as any).coverPhoto) {
+          const u = (manifest as any).coverPhoto as string;
+          if (!tpSeen.has(u)) { tpSeen.add(u); allPhotos.push({ url: u, alt: 'Cover photo' }); }
+        }
+        for (const u of ((manifest as any).heroSlideshow || []) as string[]) {
+          if (u && !tpSeen.has(u)) { tpSeen.add(u); allPhotos.push({ url: u, alt: 'Hero slideshow' }); }
+        }
+        for (const ch of ((manifest as any).chapters || [])) {
+          for (const img of (ch.images || [])) {
+            if (img.url && !tpSeen.has(img.url)) { tpSeen.add(img.url); allPhotos.push(img); }
+          }
+        }
         if (!allPhotos.length) return null;
         return (
           <section key="photos" style={{ padding: 'clamp(2rem, 5vw, 5rem) clamp(1rem, 4vw, 2rem)', maxWidth: '1200px', margin: '0 auto' }}>

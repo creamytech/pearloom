@@ -41,7 +41,9 @@ function getSiteStats(manifest?: StoryManifest) {
   const guestbookCount = (manifest as any).guestbookMessages?.length || 0;
   const chapterCount = manifest.chapters?.length || 0;
   const eventCount = manifest.events?.length || 0;
-  const photoCount = manifest.chapters?.reduce((sum, ch) => sum + (ch.images?.length || 0), 0) || 0;
+  const photoCount = (manifest.chapters?.reduce((sum, ch) => sum + (ch.images?.length || 0), 0) || 0)
+    + ((manifest as any).coverPhoto ? 1 : 0)
+    + ((manifest as any).heroSlideshow?.filter(Boolean)?.length || 0);
   const hasBlocks = (manifest.blocks?.length || 0) > 0;
 
   const stats: Array<{ label: string; value: string }> = [];

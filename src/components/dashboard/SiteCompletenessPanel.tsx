@@ -373,7 +373,9 @@ export function SiteCompletenessPanel({
 
   // ── Compute milestones ──────────────────────────────────────
   const chaptersWithPhotos = (manifest.chapters || []).filter(c => c.images?.length > 0);
-  const totalPhotos = (manifest.chapters || []).reduce((n, c) => n + (c.images?.length || 0), 0);
+  const totalPhotos = (manifest.chapters || []).reduce((n, c) => n + (c.images?.length || 0), 0)
+    + ((manifest as any).coverPhoto ? 1 : 0)
+    + ((manifest as any).heroSlideshow?.filter(Boolean)?.length || 0);
 
   const milestones: Milestone[] = [
     {

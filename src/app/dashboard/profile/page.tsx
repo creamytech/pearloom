@@ -44,7 +44,7 @@ export default function ProfilePage() {
 
   const handleExportData = async () => {
     try {
-      const res = await fetch('/api/site');
+      const res = await fetch('/api/sites');
       if (!res.ok) return;
       const data = await res.json();
       const exportData = {

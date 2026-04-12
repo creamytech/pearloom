@@ -135,7 +135,7 @@ function getPearPrompt(sectionType: string): string {
 
 function proxyUrl(rawUrl: string, w: number, h: number): string {
   if (!rawUrl) return '';
-  if (rawUrl.includes('googleusercontent.com')) {
+  if (rawUrl.includes('googleusercontent.com') || rawUrl.includes('lh3.google')) {
     return `/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=${w}&h=${h}`;
   }
   return rawUrl;
@@ -524,7 +524,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     ...(manifest.faqs?.length ? [{ id: 'faq', slug: 'faq', label: 'FAQ', enabled: true, order: 5 }] : []),
   ], [manifest, vibeSkin]);
 
-  const visibleBlocksRaw = manifest.blocks?.filter(b => b.visible).sort((a, b) => a.order - b.order);
+  const visibleBlocksRaw = manifest.blocks?.filter(b => b.visible !== false).sort((a, b) => a.order - b.order);
   // Smart section ordering: auto-reorder based on date context
   const visibleBlocks = useMemo(() => {
     if (!visibleBlocksRaw) return undefined;
@@ -942,8 +942,8 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               photos={
                 // Explicit slideshow photos take priority, then chapter first-photos
                 ((manifest as any).heroSlideshow?.length > 0
-                  ? (manifest as any).heroSlideshow.filter(Boolean)
-                  : (manifest.chapters || []).flatMap(ch => (ch.images || []).slice(0, 1).map(img => img.url.includes('googleusercontent.com') ? `/api/photos/proxy?url=${encodeURIComponent(img.url)}&w=1200&h=800` : img.url)).filter(Boolean).slice(0, 6)
+                  ? (manifest as any).heroSlideshow.filter(Boolean).map((u: string) => proxyUrl(u, 1800, 1200))
+                  : (manifest.chapters || []).flatMap(ch => (ch.images || []).slice(0, 1).map(img => proxyUrl(img.url, 1800, 1200))).filter(Boolean).slice(0, 6)
                 )
               }
               editMode={editMode}
@@ -1239,7 +1239,20 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           </section>
         );
       case 'photos': {
-        const allPhotos = manifest.chapters?.flatMap(ch => ch.images || []).slice(0, 9) || [];
+        const seen = new Set<string>();
+        const allPhotos: Array<{ url: string; alt?: string }> = [];
+        if ((manifest as any).coverPhoto) {
+          const u = (manifest as any).coverPhoto as string;
+          if (!seen.has(u)) { seen.add(u); allPhotos.push({ url: u, alt: 'Cover photo' }); }
+        }
+        for (const u of ((manifest as any).heroSlideshow || []) as string[]) {
+          if (u && !seen.has(u)) { seen.add(u); allPhotos.push({ url: u, alt: 'Hero slideshow' }); }
+        }
+        for (const ch of (manifest.chapters || [])) {
+          for (const img of (ch.images || [])) {
+            if (img.url && !seen.has(img.url)) { seen.add(img.url); allPhotos.push(img); }
+          }
+        }
         if (!allPhotos.length) return editMode ? (
           <section key={key} data-pe-section="photos" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
             <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
@@ -1460,7 +1473,20 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       }
       case 'photoWall':
       case 'gallery': {
-        const photos = manifest.chapters?.flatMap(ch => ch.images || []).slice(0, 12) || [];
+        const gwSeen = new Set<string>();
+        const photos: Array<{ url: string; alt?: string }> = [];
+        if ((manifest as any).coverPhoto) {
+          const u = (manifest as any).coverPhoto as string;
+          if (!gwSeen.has(u)) { gwSeen.add(u); photos.push({ url: u, alt: 'Cover photo' }); }
+        }
+        for (const u of ((manifest as any).heroSlideshow || []) as string[]) {
+          if (u && !gwSeen.has(u)) { gwSeen.add(u); photos.push({ url: u, alt: 'Hero slideshow' }); }
+        }
+        for (const ch of (manifest.chapters || [])) {
+          for (const img of (ch.images || [])) {
+            if (img.url && !gwSeen.has(img.url)) { gwSeen.add(img.url); photos.push(img); }
+          }
+        }
         return (
           <section key={key} data-pe-section={block.type} style={{ padding: '4rem 2rem' }}>
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>

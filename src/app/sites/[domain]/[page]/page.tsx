@@ -28,6 +28,14 @@ import { SiteClientSections } from '@/components/site/SiteClientSections';
 
 export const dynamic = 'force-dynamic';
 
+function proxyUrl(rawUrl: string, w: number, h: number): string {
+  if (!rawUrl) return rawUrl;
+  if (rawUrl.includes('googleusercontent.com') || rawUrl.includes('lh3.google')) {
+    return `/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=${w}&h=${h}`;
+  }
+  return rawUrl;
+}
+
 const PAGE_META: Record<string, { title: string; description: string }> = {
   travel:   { title: 'Travel & Hotels',  description: 'Hotels, airports, and directions for our wedding' },
   venue:    { title: 'Venue',            description: 'Ceremony and reception venue details' },
@@ -357,10 +365,10 @@ export default async function SiteSubPage(
                   )}
                   {block.type === 'photos' && (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
-                      {((block.config?.urls as string[]) || []).slice(0, 12).map((url: string, i: number) => (
+                      {((block.config?.urls as string[]) || []).map((url: string, i: number) => (
                         <div key={i} style={{ borderRadius: '1rem', overflow: 'hidden', aspectRatio: '4/3' }}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={url} alt={'Photo from ' + customPage.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <img src={proxyUrl(url, 800, 600)} alt={'Photo from ' + customPage.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
                       ))}
                     </div>

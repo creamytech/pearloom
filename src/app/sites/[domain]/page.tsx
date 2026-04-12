@@ -293,7 +293,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   const heroPhotos: string[] = (() => {
     const slideshow = (manifest as Record<string, unknown>).heroSlideshow as string[] | undefined;
     if (Array.isArray(slideshow) && slideshow.filter(Boolean).length > 0) {
-      return slideshow.filter(Boolean);
+      return slideshow.filter(Boolean).map((u: string) => proxyUrl(u, 1800, 1200));
     }
     return (manifest.chapters || [])
       .flatMap((ch: import('@/types').Chapter) => (ch.images || []).slice(0, 1))
