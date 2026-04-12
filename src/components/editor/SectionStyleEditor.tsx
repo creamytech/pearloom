@@ -27,9 +27,9 @@ export interface SectionStyleEditorProps {
 }
 
 const lbl: React.CSSProperties = {
-  display: 'block', fontSize: '0.82rem', fontWeight: 700,
-  letterSpacing: '0.1em', textTransform: 'uppercase',
-  color: 'var(--pl-muted, #9A9488)', marginBottom: '0.5rem',
+  display: 'block', fontSize: '0.6rem', fontWeight: 600,
+  letterSpacing: '0.04em', textTransform: 'uppercase',
+  color: '#A1A1AA', marginBottom: '4px',
 };
 
 const PADDING_OPTS: Array<{ value: SectionStyleOverrides['padding']; label: string }> = [
