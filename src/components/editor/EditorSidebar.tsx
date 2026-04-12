@@ -94,16 +94,16 @@ export function SidebarSection({
         />
         {Icon && <Icon size={12} color="var(--pl-olive)" />}
         <span style={{
-          flex: 1, textAlign: 'left', fontSize: '0.6rem', fontWeight: 700,
-          letterSpacing: '0.1em', textTransform: 'uppercase',
-          color: open ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
+          flex: 1, textAlign: 'left', fontSize: '0.65rem', fontWeight: 600,
+          letterSpacing: '0.04em', textTransform: 'uppercase',
+          color: open ? '#3F3F46' : '#71717A',
         }}>
           {title}
         </span>
         {badge !== undefined && (
           <span style={{
-            fontSize: '0.58rem', padding: '2px 7px', borderRadius: '100px',
-            background: 'rgba(163,177,138,0.12)', color: 'var(--pl-olive-deep)',
+            fontSize: '0.58rem', padding: '2px 7px', borderRadius: '8px',
+            background: '#F4F4F5', color: '#18181B',
             fontWeight: 700,
           }}>
             {badge}

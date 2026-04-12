@@ -41,9 +41,9 @@ interface VisualEffectsPanelProps {
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.12em',
-      textTransform: 'uppercase', color: 'var(--pl-muted)',
-      marginBottom: '8px', marginTop: '4px',
+      fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em',
+      textTransform: 'uppercase', color: '#A1A1AA',
+      marginBottom: '6px', marginTop: '2px',
     }}>
       {children}
     </div>
@@ -72,7 +72,7 @@ function SliderRow({
 }
 
 function ToggleChip({
-  active, label, icon, onClick, color,
+  active, label, icon, onClick,
 }: {
   active: boolean; label: string; icon?: React.ReactNode; onClick: () => void; color?: string;
 }) {
@@ -80,15 +80,16 @@ function ToggleChip({
     <button
       onClick={onClick}
       style={{
-        padding: '6px 10px', borderRadius: '8px', border: `1px solid ${active ? (color ?? 'rgba(163,177,138,0.6)') : 'rgba(0,0,0,0.06)'}`,
-        background: active ? `${color ?? 'rgba(163,177,138,1)'}22` : 'rgba(163,177,138,0.05)',
-        color: active ? (color ?? 'rgba(163,177,138,1)') : 'var(--pl-ink-soft)',
-        cursor: 'pointer', fontSize: '0.75rem', fontWeight: active ? 700 : 500,
+        padding: '6px 10px', borderRadius: '8px',
+        border: `1px solid ${active ? '#18181B' : '#E4E4E7'}`,
+        background: active ? '#18181B' : '#FFFFFF',
+        color: active ? '#FFFFFF' : '#3F3F46',
+        cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600,
         display: 'flex', alignItems: 'center', gap: '5px',
-        transition: 'all 0.15s',
+        transition: 'all 0.15s', minHeight: '32px',
       }}
     >
-      {icon && <span style={{ display: 'flex', alignItems: 'center', opacity: active ? 1 : 0.6 }}>{icon}</span>}
+      {icon && <span style={{ display: 'flex', alignItems: 'center' }}>{icon}</span>}
       {label}
     </button>
   );
@@ -119,19 +120,19 @@ function MeshPresetPicker({ value, onChange }: { value: MeshPreset; onChange: (v
             title={p.label}
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
-              padding: '6px 8px', borderRadius: '10px', border: `2px solid ${active ? 'rgba(163,177,138,0.8)' : 'transparent'}`,
-              background: active ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.05)',
+              padding: '6px 8px', borderRadius: '8px',
+              border: active ? '2px solid #18181B' : '1px solid #E4E4E7',
+              background: active ? 'rgba(24,24,27,0.05)' : '#FFFFFF',
               cursor: 'pointer', transition: 'all 0.15s',
             }}
           >
             <div style={{
-              width: '36px', height: '24px', borderRadius: '6px', overflow: 'hidden',
+              width: '32px', height: '20px', borderRadius: '4px', overflow: 'hidden',
               background: p.id === 'none'
-                ? 'rgba(0,0,0,0.06)'
+                ? '#F4F4F5'
                 : `linear-gradient(135deg, ${p.colors[0]}, ${p.colors[1]}, ${p.colors[2]})`,
-              opacity: p.id === 'none' ? 0.4 : 1,
             }} />
-            <span style={{ fontSize: '0.6rem', color: active ? 'rgba(163,177,138,1)' : 'rgba(255,255,255,0.45)', fontWeight: active ? 700 : 400 }}>
+            <span style={{ fontSize: '0.58rem', color: active ? '#18181B' : '#71717A', fontWeight: active ? 700 : 400 }}>
               {p.label}
             </span>
           </button>
@@ -320,10 +321,10 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
               onClick={() => set('sectionDivider', { ...divider, style: d.id })}
               style={{
                 padding: '6px 10px', borderRadius: '8px',
-                border: `1px solid ${divider.style === d.id ? 'rgba(163,177,138,0.6)' : 'rgba(0,0,0,0.06)'}`,
-                background: divider.style === d.id ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.05)',
-                color: divider.style === d.id ? 'rgba(163,177,138,1)' : 'var(--pl-ink-soft)',
-                cursor: 'pointer', fontSize: '0.72rem', fontWeight: divider.style === d.id ? 700 : 400,
+                border: `1px solid ${divider.style === d.id ? '#18181B' : '#E4E4E7'}`,
+                background: divider.style === d.id ? '#18181B' : '#FFFFFF',
+                color: divider.style === d.id ? '#FFFFFF' : '#3F3F46',
+                cursor: 'pointer', fontSize: '0.65rem', fontWeight: 600,
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
                 transition: 'all 0.15s',
               }}
@@ -439,61 +440,67 @@ function EffectBlock({
   const toggle = onToggleExpand ?? (() => setOpen(v => !v));
 
   return (
-    <div style={{ borderBottom: '1px solid rgba(163,177,138,0.15)' }}>
+    <div style={{
+      marginBottom: '6px', marginInline: '8px',
+      borderRadius: '12px', background: '#FFFFFF',
+      border: '1px solid #E4E4E7', overflow: 'hidden',
+    }}>
       <button
         onClick={toggle}
         style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
-          padding: '12px 4px', background: 'none', border: 'none',
+          width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
+          padding: '10px 12px', background: 'transparent', border: 'none',
           cursor: 'pointer', textAlign: 'left',
         }}
       >
         <span style={{
           display: 'flex', alignItems: 'center',
-          color: active ? 'var(--pl-olive)' : 'var(--pl-muted)',
+          color: active ? '#18181B' : '#A1A1AA',
         }}>
           {icon}
         </span>
         <span style={{
           flex: 1,
-          fontSize: panelText.heading,
-          fontWeight: panelWeight.bold,
-          letterSpacing: panelTracking.wider,
+          fontSize: '0.65rem',
+          fontWeight: 600,
+          letterSpacing: '0.04em',
           textTransform: 'uppercase',
-          color: active ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
+          color: active ? '#3F3F46' : '#71717A',
         }}>
           {title}
         </span>
         {active && (
           <span style={{
-            fontSize: panelText.meta,
-            fontWeight: panelWeight.bold,
-            letterSpacing: '0.08em',
+            fontSize: '0.55rem',
+            fontWeight: 700,
+            letterSpacing: '0.06em',
             textTransform: 'uppercase',
-            color: 'var(--pl-olive-deep)',
-            background: 'rgba(163,177,138,0.12)',
-            padding: '2px 7px',
-            borderRadius: '100px',
+            color: '#18181B',
+            background: '#F4F4F5',
+            padding: '2px 6px',
+            borderRadius: '8px',
           }}>
             ON
           </span>
         )}
         <span style={{
           display: 'flex', alignItems: 'center',
-          color: 'var(--pl-muted)',
+          color: '#A1A1AA',
           transition: 'transform 0.2s',
           transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
         }}>
-          <IconChevronDown size={14} />
+          <IconChevronDown size={12} />
         </span>
       </button>
 
       {isOpen && (
         <div style={{
-          padding: '6px 4px 14px',
+          padding: '0 12px 12px',
           display: 'flex',
           flexDirection: 'column',
           gap: '10px',
+          borderTop: '1px solid #F4F4F5',
+          paddingTop: '10px',
         }}>
           {children}
         </div>

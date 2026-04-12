@@ -137,7 +137,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
       {/* Page layout mode */}
       <div>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA', marginBottom: '6px' }}>
           Site Layout
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
@@ -151,14 +151,14 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 key={mode.id}
                 onClick={() => onChange({ ...manifest, pageMode: mode.id })}
                 style={{
-                  padding: '12px 8px', borderRadius: '12px', textAlign: 'center',
-                  border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
-                  background: isActive ? 'rgba(163,177,138,0.08)' : 'rgba(255,255,255,0.5)',
+                  padding: '10px 8px', borderRadius: '8px', textAlign: 'center',
+                  border: isActive ? '2px solid #18181B' : '1px solid #E4E4E7',
+                  background: isActive ? 'rgba(24,24,27,0.04)' : '#FFFFFF',
                   cursor: 'pointer', transition: 'all 0.15s',
                 }}
               >
-                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-ink)' }}>{mode.label}</div>
-                <div style={{ fontSize: '0.55rem', color: 'var(--pl-muted)', marginTop: '2px' }}>{mode.desc}</div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 600, color: isActive ? '#18181B' : '#3F3F46' }}>{mode.label}</div>
+                <div style={{ fontSize: '0.58rem', color: '#71717A', marginTop: '2px' }}>{mode.desc}</div>
               </button>
             );
           })}
@@ -172,7 +172,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
       {/* Logo icon picker */}
       <div>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA', marginBottom: '6px' }}>
           Site Logo Icon
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
@@ -185,11 +185,9 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 title={label}
                 style={{
                   aspectRatio: '1',
-                  borderRadius: '12px',
-                  border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
-                  background: isActive ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.5)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
+                  borderRadius: '10px',
+                  border: isActive ? '2px solid #18181B' : '1px solid #E4E4E7',
+                  background: isActive ? 'rgba(24,24,27,0.05)' : '#FFFFFF',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -197,7 +195,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                   padding: 0,
                   transition: 'all 0.15s',
                   position: 'relative',
-                } as React.CSSProperties}
+                }}
               >
                 <Icon size={18} color={isActive ? accent : 'var(--pl-muted)'} />
               </button>
@@ -224,7 +222,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
       {/* Desktop nav bar style */}
       <div>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA', marginBottom: '6px' }}>
           Desktop Nav Style
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
@@ -236,21 +234,21 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 onClick={() => onChange({ ...manifest, navStyle: style.id as StoryManifest['navStyle'] })}
                 style={{
                   display: 'flex', flexDirection: 'column',
-                  borderRadius: '12px', overflow: 'hidden',
-                  border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
-                  background: isActive ? 'rgba(163,177,138,0.06)' : 'rgba(255,255,255,0.5)',
+                  borderRadius: '8px', overflow: 'hidden',
+                  border: isActive ? '2px solid #18181B' : '1px solid #E4E4E7',
+                  background: isActive ? 'rgba(24,24,27,0.04)' : '#FFFFFF',
                   cursor: 'pointer', padding: 0,
-                  boxShadow: isActive ? '0 2px 8px rgba(163,177,138,0.12)' : 'none',
+                  boxShadow: isActive ? '0 2px 6px rgba(24,24,27,0.1)' : 'none',
                   transition: 'all 0.15s',
                 }}
               >
-                <div style={{ height: '32px', overflow: 'hidden' }}>
+                <div style={{ height: '28px', overflow: 'hidden' }}>
                   {style.preview}
                 </div>
                 <div style={{ padding: '4px 6px', textAlign: 'center' }}>
                   <div style={{
-                    fontSize: '0.58rem', fontWeight: 700,
-                    color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+                    fontSize: '0.58rem', fontWeight: 600,
+                    color: isActive ? '#18181B' : '#71717A',
                   }}>
                     {style.label}
                   </div>
@@ -263,7 +261,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
       {/* Mobile nav style */}
       <div>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA', marginBottom: '6px' }}>
           Mobile Nav Style
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
@@ -275,23 +273,22 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 onClick={() => onChange({ ...manifest, mobileNavStyle: style.id as StoryManifest['mobileNavStyle'] })}
                 style={{
                   display: 'flex', flexDirection: 'column',
-                  borderRadius: '12px',
-                  border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
-                  background: isActive ? 'rgba(163,177,138,0.06)' : 'rgba(255,255,255,0.5)',
+                  borderRadius: '8px',
+                  border: isActive ? '2px solid #18181B' : '1px solid #E4E4E7',
+                  background: isActive ? 'rgba(24,24,27,0.04)' : '#FFFFFF',
                   cursor: 'pointer', padding: '8px 6px',
-                  boxShadow: isActive ? '0 2px 8px rgba(163,177,138,0.12)' : 'none',
                   transition: 'all 0.15s',
                   textAlign: 'center',
                 }}
               >
                 <div style={{
-                  fontSize: '0.58rem', fontWeight: 700,
-                  color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+                  fontSize: '0.6rem', fontWeight: 600,
+                  color: isActive ? '#18181B' : '#3F3F46',
                 }}>
                   {style.label}
                 </div>
                 <div style={{
-                  fontSize: '0.48rem', color: 'var(--pl-muted)', marginTop: '2px', lineHeight: 1.3,
+                  fontSize: '0.55rem', color: '#71717A', marginTop: '2px', lineHeight: 1.3,
                 }}>
                   {style.desc}
                 </div>
@@ -303,7 +300,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
       {/* Nav opacity */}
       <div>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA', marginBottom: '6px' }}>
           Nav Opacity — {manifest.navOpacity ?? 100}%
         </div>
         <input
@@ -322,7 +319,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
       {/* Nav background color */}
       <div>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA', marginBottom: '6px' }}>
           Nav Background
         </div>
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
@@ -340,10 +337,10 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 key={opt.label}
                 onClick={() => onChange({ ...manifest, navBackground: opt.value || undefined })}
                 style={{
-                  padding: '6px 10px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 600,
-                  border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
-                  background: isActive ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.5)',
-                  color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+                  padding: '5px 10px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: 600,
+                  border: isActive ? '2px solid #18181B' : '1px solid #E4E4E7',
+                  background: isActive ? 'rgba(24,24,27,0.05)' : '#FFFFFF',
+                  color: isActive ? '#18181B' : '#71717A',
                   cursor: 'pointer', transition: 'all 0.15s',
                 }}
               >
@@ -428,11 +425,9 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
               style={{
                 position: 'relative',
                 aspectRatio: '1',
-                borderRadius: '12px',
-                border: active ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
-                background: active ? 'rgba(163,177,138,0.08)' : 'rgba(255,255,255,0.5)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
+                borderRadius: '10px',
+                border: active ? '2px solid #18181B' : '1px solid #E4E4E7',
+                background: active ? 'rgba(24,24,27,0.04)' : '#FFFFFF',
                 cursor: 'pointer',
                 overflow: 'hidden',
                 transition: 'all 0.15s',
@@ -440,7 +435,7 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-              } as React.CSSProperties}
+              }}
             >
               {previewSvg ? (
                 <div
@@ -620,14 +615,13 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       {/* ── AI Design Critic ── */}
       <div className="pl-panel-section" style={{
         display: 'flex', flexDirection: 'column', gap: '10px',
-        background: 'rgba(255,255,255,0.45)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        border: '1px solid rgba(163,177,138,0.2)',
-        borderRadius: '14px',
+        background: '#FFFFFF',
+        border: '1px solid #E4E4E7',
+        borderRadius: '12px',
         padding: '14px',
         marginBottom: '2px',
-      } as React.CSSProperties}>
+        marginInline: '8px',
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <PearIcon size={18} color="var(--pl-olive, #A3B18A)" />
           <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--pl-ink)', fontFamily: 'var(--pl-font-heading)', fontStyle: 'italic' }}>
@@ -740,19 +734,17 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '5px',
-                    padding: '10px 12px',
-                    borderRadius: '12px',
-                    border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
-                    background: isActive ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.5)',
-                    backdropFilter: 'blur(20px)',
-                    WebkitBackdropFilter: 'blur(20px)',
+                    padding: '9px 12px',
+                    borderRadius: '8px',
+                    border: isActive ? '2px solid #18181B' : '1px solid #E4E4E7',
+                    background: isActive ? '#18181B' : '#FFFFFF',
                     cursor: toneLoading ? 'wait' : 'pointer',
                     opacity: toneLoading && !isActive ? 0.5 : 1,
                     transition: 'all 0.15s',
                     fontSize: '0.72rem',
-                    fontWeight: isActive ? 700 : 600,
-                    color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-ink-soft, #3D3530)',
-                  } as React.CSSProperties}
+                    fontWeight: 600,
+                    color: isActive ? '#FFFFFF' : '#3F3F46',
+                  }}
                 >
                   {isActive && toneLoading ? (
                     <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
@@ -796,7 +788,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       {/* ── Page Background ── */}
       <SidebarSection title="Page Background" defaultOpen={false}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label style={{ display: 'block', fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--pl-muted)', marginBottom: '4px' }}>Background Color</label>
+          <label style={{ display: 'block', fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#A1A1AA', marginBottom: '4px' }}>Background Color</label>
           <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
             {[
               { label: 'Theme', value: '' },
@@ -828,7 +820,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               );
             })}
           </div>
-          <label style={{ display: 'block', fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--pl-muted)', marginBottom: '4px' }}>Background Pattern</label>
+          <label style={{ display: 'block', fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#A1A1AA', marginBottom: '4px' }}>Background Pattern</label>
           <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
             {[
               { label: 'None', value: '' },
@@ -977,7 +969,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       {/* ── Story Layout — how chapters unfold on the page ── */}
       <SidebarSection title="Story Layout" defaultOpen={false}>
         <div>
-          <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '6px' }}>
+          <div style={{ fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA', marginBottom: '6px' }}>
             Story Layout
           </div>
           <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)', lineHeight: 1.5, marginBottom: '12px' }}>
@@ -998,7 +990,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
           {/* ── Date format — applies to chapter date labels ── */}
           <div style={{ marginTop: 20 }}>
-            <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '6px' }}>
+            <div style={{ fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA', marginBottom: '6px' }}>
               Date format
             </div>
             <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)', lineHeight: 1.5, marginBottom: '10px' }}>
@@ -1207,7 +1199,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {manifest.stickers!.map((s, i) => (
-                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', borderRadius: '12px', background: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', borderRadius: '8px', background: '#FAFAFA', border: '1px solid #E4E4E7' }}>
                   <span style={{ fontSize: '0.72rem', color: 'var(--pl-ink-soft, #3D3530)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'var(--pl-muted, #7A756E)' }}>
                     Size
@@ -1234,7 +1226,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       </SidebarSection>
 
       {/* Live preview — compact, no extra nesting */}
-      <div style={{ borderRadius: '16px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(43,30,20,0.05)', border: '1px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' } as React.CSSProperties}>
+      <div style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: '1px solid #E4E4E7', background: '#FFFFFF' }}>
         <div style={{ background: colors.background || '#faf9f6', padding: '14px' }}>
           <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1rem', fontWeight: 700, color: colors.foreground || 'var(--pl-ink, var(--pl-ink-soft))', marginBottom: '3px' }}>
             {manifest.chapters?.[0]?.title || 'Preview'}
