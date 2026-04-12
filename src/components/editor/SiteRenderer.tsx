@@ -515,14 +515,18 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     foreground: pal.foreground,
   }) : undefined);
 
-  const sitePages: SitePage[] = useMemo(() => [
-    { id: 'story', slug: 'our-story', label: vibeSkin.sectionLabels?.story || 'Our Story', enabled: true, order: 0 },
-    ...(manifest.events?.length ? [{ id: 'schedule', slug: 'schedule', label: 'Schedule', enabled: true, order: 1 }] : []),
-    ...(manifest.events?.length ? [{ id: 'rsvp', slug: 'rsvp', label: 'RSVP', enabled: true, order: 2 }] : []),
-    ...((manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? [{ id: 'registry', slug: 'registry', label: 'Registry', enabled: true, order: 3 }] : []),
-    ...((manifest.travelInfo?.hotels?.length || manifest.travelInfo?.airports?.length) ? [{ id: 'travel', slug: 'travel', label: 'Travel', enabled: true, order: 4 }] : []),
-    ...(manifest.faqs?.length ? [{ id: 'faq', slug: 'faq', label: 'FAQ', enabled: true, order: 5 }] : []),
-  ], [manifest, vibeSkin]);
+  const sitePages: SitePage[] = useMemo(() => {
+    const hidden = new Set(manifest.hiddenPages || []);
+    return [
+      { id: 'story', slug: 'our-story', label: vibeSkin.sectionLabels?.story || 'Our Story', enabled: !hidden.has('story'), order: 0 },
+      ...(manifest.events?.length && !hidden.has('schedule') ? [{ id: 'schedule', slug: 'schedule', label: 'Schedule', enabled: true, order: 1 }] : []),
+      ...(manifest.events?.length && !hidden.has('rsvp') ? [{ id: 'rsvp', slug: 'rsvp', label: 'RSVP', enabled: true, order: 2 }] : []),
+      ...((manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) && !hidden.has('registry') ? [{ id: 'registry', slug: 'registry', label: 'Registry', enabled: true, order: 3 }] : []),
+      ...((manifest.travelInfo?.hotels?.length || manifest.travelInfo?.airports?.length) && !hidden.has('travel') ? [{ id: 'travel', slug: 'travel', label: 'Travel', enabled: true, order: 4 }] : []),
+      ...(manifest.faqs?.length && !hidden.has('faq') ? [{ id: 'faq', slug: 'faq', label: 'FAQ', enabled: true, order: 5 }] : []),
+      ...(manifest.features?.guestbook && !hidden.has('guestbook') ? [{ id: 'guestbook', slug: 'guest-wishes', label: 'Guest Wishes', enabled: true, order: 6 }] : []),
+    ];
+  }, [manifest, vibeSkin]);
 
   const visibleBlocksRaw = manifest.blocks?.filter(b => b.visible !== false).sort((a, b) => a.order - b.order);
   // Smart section ordering: auto-reorder based on date context
