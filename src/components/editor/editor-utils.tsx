@@ -108,8 +108,8 @@ export function FieldGroup({ title, children, columns }: {
     <div style={{
       padding: spacing.md,
       borderRadius: '12px',
-      background: 'rgba(255,255,255,0.2)',
-      border: '1px solid rgba(255,255,255,0.15)',
+      background: '#FAFAFA',
+      border: '1px solid #E4E4E7',
       display: 'flex', flexDirection: 'column',
       gap: spacing.lg,
     }}>
@@ -198,8 +198,8 @@ export function EmptyState({ icon, title, description, action, onAction }: {
     <div style={{
       padding: spacing.xl, textAlign: 'center',
       borderRadius: '12px',
-      border: '1.5px dashed rgba(24,24,27,0.12)',
-      background: 'rgba(255,255,255,0.15)',
+      border: '1.5px dashed #E4E4E7',
+      background: '#FAFAFA',
     }}>
       {icon && <div style={{ fontSize: '1.5rem', marginBottom: spacing.sm, opacity: 0.5 }}>{icon}</div>}
       <div style={{ fontSize: fontSize.sm, fontWeight: 700, color: '#3F3F46', marginBottom: spacing.xs }}>{title}</div>

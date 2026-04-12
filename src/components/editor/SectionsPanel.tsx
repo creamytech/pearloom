@@ -295,7 +295,7 @@ export function SectionsPanel({ manifest, onChange }: {
                       textAlign: 'left', width: '100%',
                       padding: '8px 10px',
                       borderRadius: '10px',
-                      background: 'rgba(255,255,255,0.5)',
+                      background: '#FFFFFF',
                     }}
                   >
                     <SuggestIcon size={14} style={{ color: 'var(--pl-gold)', flexShrink: 0 }} />

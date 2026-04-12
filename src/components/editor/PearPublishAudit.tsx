@@ -195,8 +195,6 @@ export function PearPublishAudit({ manifest, coupleNames, onProceed, onClose }: 
           inset: 0,
           zIndex: 2000,
           background: 'rgba(0,0,0,0.6)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -212,10 +210,8 @@ export function PearPublishAudit({ manifest, coupleNames, onProceed, onClose }: 
           onClick={(e) => e.stopPropagation()}
           style={{
             background: 'rgba(250, 247, 242, 0.95)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
             borderRadius: '20px',
-            border: '1px solid rgba(255,255,255,0.5)',
+            border: '1px solid #E4E4E7',
             boxShadow: '0 24px 80px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.03)',
             maxWidth: '480px',
             width: '100%',
@@ -288,7 +284,7 @@ export function PearPublishAudit({ manifest, coupleNames, onProceed, onClose }: 
                 alignItems: 'center',
                 gap: '10px',
                 padding: '16px',
-                borderRadius: '14px',
+                borderRadius: '8px',
                 background: 'rgba(24,24,27,0.06)',
                 border: '1px solid rgba(24,24,27,0.1)',
               }}

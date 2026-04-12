@@ -94,7 +94,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
             transition={{ duration: 0.15 }}
             style={{
               position: 'absolute', top: 'calc(100% + 8px)', right: 0,
-              background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(16px)', border: '1px solid rgba(0,0,0,0.06)',
+              background: '#FFFFFF', backdropFilter: 'blur(16px)', border: '1px solid rgba(0,0,0,0.06)',
               borderRadius: '0.75rem', boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
               padding: '0.75rem', minWidth: '220px', zIndex: 100,
             }}

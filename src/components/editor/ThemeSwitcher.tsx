@@ -1263,9 +1263,7 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
                 flex: '0 0 auto', width: '120px',
                 display: 'flex', flexDirection: 'column', alignItems: 'stretch',
                 padding: 0, borderRadius: '8px', border: 'none', cursor: 'pointer',
-                background: 'rgba(255,255,255,0.5)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
+                background: '#FFFFFF',
                 outline: isSelected
                   ? '2px solid #6b7c3f'
                   : isHovered ? '1px solid #71717A' : '1px solid rgba(0,0,0,0.05)',

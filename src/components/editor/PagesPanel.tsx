@@ -90,9 +90,9 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                 style={{
                   display: 'flex', alignItems: 'center', gap: '8px',
                   padding: '10px 10px 10px 12px',
-                  borderRadius: '14px',
+                  borderRadius: '8px',
                   background: isHidden ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.2)',
-                  border: '1px solid rgba(255,255,255,0.2)',
+                  border: '1px solid #E4E4E7',
                   transition: 'all 0.15s',
                   opacity: isHidden ? 0.5 : 1,
                 }}
@@ -152,9 +152,9 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                 style={{
                   display: 'flex', alignItems: 'center', gap: '8px',
                   padding: '10px 10px 10px 12px',
-                  borderRadius: '14px',
-                  background: 'rgba(255,255,255,0.2)',
-                  border: '1px solid rgba(255,255,255,0.2)',
+                  borderRadius: '8px',
+                  background: '#FAFAFA',
+                  border: '1px solid #E4E4E7',
                 }}
               >
                 <span style={{
@@ -191,8 +191,8 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
           whileTap={{ scale: 0.98 }}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            padding: '10px', borderRadius: '14px', width: '100%',
-            border: '1.5px dashed rgba(24,24,27,0.12)',
+            padding: '10px', borderRadius: '8px', width: '100%',
+            border: '1.5px dashed #E4E4E7',
             background: 'transparent', color: '#18181B',
             cursor: 'pointer',
             fontSize: panelText.chip,
@@ -223,7 +223,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                     onClick={() => { setShowAddPage(false); setNewPageTitle(''); }}
                     style={{
                       flex: 1, padding: '8px', borderRadius: '10px', border: 'none',
-                      background: 'rgba(255,255,255,0.4)', color: '#71717A',
+                      background: '#F4F4F5', color: '#71717A',
                       cursor: 'pointer',
                       fontSize: panelText.chip,
                       fontWeight: panelWeight.semibold,

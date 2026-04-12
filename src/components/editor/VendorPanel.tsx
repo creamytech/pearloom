@@ -359,7 +359,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
           >
             <div style={{
               display: 'flex', flexDirection: 'column', gap: '8px',
-              padding: '12px', borderRadius: '14px',
+              padding: '12px', borderRadius: '8px',
               background: 'rgba(24,24,27,0.04)', border: '1px solid rgba(0,0,0,0.06)',
             }}>
               <input

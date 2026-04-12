@@ -160,7 +160,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                 style={{
                   display: 'flex', alignItems: 'center', gap: '10px',
                   width: '100%', padding: '8px 10px', borderRadius: '12px',
-                  border: '1px solid rgba(255,255,255,0.15)',
+                  border: '1px solid #E4E4E7',
                   background: 'rgba(24,24,27,0.03)',
                   cursor: generating ? 'wait' : 'pointer',
                   textAlign: 'left',

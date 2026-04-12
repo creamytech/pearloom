@@ -218,7 +218,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
             <span style={{ fontSize: '0.68rem', color: '#71717A' }}>Seat fill</span>
             <span style={{ fontSize: '0.68rem', color: '#71717A', fontWeight: 700 }}>{fillPct}%</span>
           </div>
-          <div style={{ height: '5px', borderRadius: '3px', background: 'rgba(255,255,255,0.2)', overflow: 'hidden' }}>
+          <div style={{ height: '5px', borderRadius: '3px', background: '#FAFAFA', overflow: 'hidden' }}>
             <div style={{
               height: '100%', width: `${fillPct}%`, borderRadius: '3px',
               background: fillPct >= 90 ? '#f87171' : '#71717A',
@@ -285,7 +285,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
               style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
                 padding: '7px 10px', borderRadius: '7px',
-                border: '1px solid rgba(255,255,255,0.2)',
+                border: '1px solid #E4E4E7',
                 background: 'rgba(24,24,27,0.03)',
                 color: '#3F3F46', cursor: 'pointer', fontSize: '0.75rem',
                 textAlign: 'left',

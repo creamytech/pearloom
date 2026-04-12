@@ -189,7 +189,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
               width: '100%', maxWidth: '580px',
               zIndex: 2001,
               background: '#19160f',
-              borderRadius: '16px',
+              borderRadius: '10px',
               border: '1px solid rgba(0,0,0,0.06)',
               boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(24,24,27,0.04)',
               overflow: 'hidden',

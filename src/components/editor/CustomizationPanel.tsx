@@ -49,8 +49,6 @@ function PickerGrid<T extends { id: string; name: string; preview: string }>({
               padding: '10px',
               border: active ? '2px solid #18181B' : '1px solid rgba(24,24,27,0.1)',
               background: active ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.5)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
               borderRadius: '12px',
               textAlign: 'center',
               cursor: 'pointer',

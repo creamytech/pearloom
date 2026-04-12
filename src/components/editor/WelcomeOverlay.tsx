@@ -114,7 +114,7 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', gap: '0',
           padding: 'clamp(2.5rem, 6vw, 4rem) clamp(2rem, 5vw, 5rem)',
-          borderRadius: '16px',
+          borderRadius: '10px',
           background: '#FFFFFF',
           border: '1px solid #E4E4E7',
           boxShadow: '0 16px 40px rgba(0,0,0,0.08)',

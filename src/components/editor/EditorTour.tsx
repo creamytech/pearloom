@@ -307,7 +307,7 @@ export function EditorTour({ onComplete }: { onComplete?: () => void }) {
             background: 'rgba(250, 247, 242, 0.88)',
             backdropFilter: 'blur(32px) saturate(1.5)',
             WebkitBackdropFilter: 'blur(32px) saturate(1.5)',
-            border: '1px solid rgba(255,255,255,0.5)',
+            border: '1px solid #E4E4E7',
             boxShadow: '0 12px 48px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.4)',
             animation: transitioning ? 'pl-tour-card-exit 0.2s ease both' : 'pl-tour-card-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1) both',
             pointerEvents: 'auto',
@@ -390,7 +390,7 @@ export function EditorTour({ onComplete }: { onComplete?: () => void }) {
                 style={{
                   padding: '8px 18px', borderRadius: '8px',
                   border: '1px solid rgba(0,0,0,0.08)',
-                  background: 'rgba(255,255,255,0.6)',
+                  background: '#FFFFFF',
                   color: 'var(--pl-ink-soft, #5a4f42)',
                   cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600,
                   transition: 'background 0.15s',

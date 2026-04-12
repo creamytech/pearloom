@@ -200,7 +200,7 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
                 gap: '8px',
                 padding: '8px 12px',
                 borderRadius: '12px',
-                background: 'rgba(255,255,255,0.75)',
+                background: '#FFFFFF',
                 border: '1px solid rgba(0,0,0,0.06)',
               }}>
                 <Search size={14} style={{ color: '#71717A', flexShrink: 0 }} />
@@ -260,7 +260,7 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
                   <div style={{
                     width: '56px',
                     height: '56px',
-                    borderRadius: '16px',
+                    borderRadius: '10px',
                     background: 'rgba(24,24,27,0.08)',
                     display: 'flex',
                     alignItems: 'center',

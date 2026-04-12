@@ -839,7 +839,7 @@ export function AICommandBar() {
                   width: '100%',
                   padding: '16px',
                   borderRadius: 16,
-                  background: 'rgba(255,255,255,0.5)',
+                  background: '#FFFFFF',
                   backdropFilter: 'blur(12px)',
                   WebkitBackdropFilter: 'blur(12px)',
                   border: '1px solid rgba(24,24,27,0.08)',
@@ -1055,7 +1055,7 @@ export function AICommandBar() {
                   gap: '8px',
                   padding: '10px 20px',
                   borderRadius: '8px',
-                  background: 'rgba(255,255,255,0.75)',
+                  background: '#FFFFFF',
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
                   border: `1px solid #E4E4E7`,
@@ -1104,7 +1104,7 @@ export function AICommandBar() {
                   background: 'rgba(255,255,255,0.8)',
                   backdropFilter: 'blur(24px)',
                   WebkitBackdropFilter: 'blur(24px)',
-                  border: '1px solid rgba(255,255,255,0.6)',
+                  border: '1px solid #E4E4E7',
                   boxShadow: '0 8px 32px rgba(0,0,0,0.06)',
                   overflow: 'hidden',
                   position: 'relative',
@@ -1158,7 +1158,7 @@ export function AICommandBar() {
                           </div>
                         )}
                         <div style={{
-                          maxWidth: '80%', padding: '8px 12px', borderRadius: '14px',
+                          maxWidth: '80%', padding: '8px 12px', borderRadius: '8px',
                           fontSize: '0.82rem', lineHeight: 1.5, whiteSpace: 'pre-wrap',
                           background: msg.role === 'user' ? '#F4F4F5' : 'rgba(250,247,242,0.8)',
                           color: 'var(--pl-ink-soft, #3D3530)',

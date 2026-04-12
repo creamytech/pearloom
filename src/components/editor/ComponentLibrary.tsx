@@ -394,8 +394,6 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
             display: 'flex', alignItems: 'center', gap: '6px',
             padding: '7px 10px', borderRadius: '10px',
             background: 'var(--pl-white-20)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
             border: '1px solid rgba(24,24,27,0.08)',
             boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
           } as React.CSSProperties}>
@@ -481,10 +479,8 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
             padding: '24px 16px', textAlign: 'center',
           }}>
             <div style={{
-              width: '48px', height: '48px', borderRadius: '14px',
+              width: '48px', height: '48px', borderRadius: '8px',
               background: 'var(--pl-white-20)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
               border: '1px solid rgba(24,24,27,0.08)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 12px',
@@ -532,10 +528,8 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
                   exit={{ opacity: 0, scale: 0.93, height: 0 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 28 }}
                   style={{
-                    borderRadius: '14px',
+                    borderRadius: '8px',
                     background: 'var(--pl-white-20)',
-                    backdropFilter: 'blur(8px)',
-                    WebkitBackdropFilter: 'blur(8px)',
                     border: isBuiltIn
                       ? '1px solid rgba(24,24,27,0.1)'
                       : '1px solid rgba(24,24,27,0.08)',
@@ -555,7 +549,6 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
                       position: 'absolute', top: '4px', right: '4px',
                       padding: '1px 5px', borderRadius: '4px',
                       background: '#18181B',
-                      backdropFilter: 'blur(4px)',
                       fontSize: '0.5rem', fontWeight: 800,
                       color: 'white', letterSpacing: '0.05em',
                       textTransform: 'uppercase',

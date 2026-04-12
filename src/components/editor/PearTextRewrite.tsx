@@ -187,9 +187,7 @@ export function PearTextRewrite({ onTextEdit }: PearTextRewriteProps) {
             padding: '4px 6px',
             borderRadius: '8px',
             background: 'rgba(250, 247, 242, 0.92)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255,255,255,0.6)',
+            border: '1px solid #E4E4E7',
             boxShadow: '0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)',
             whiteSpace: 'nowrap',
           } as React.CSSProperties}

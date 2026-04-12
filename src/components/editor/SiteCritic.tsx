@@ -191,13 +191,11 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
         transition={{ duration: 0.35, ease: 'easeOut' }}
         style={{
           background: 'rgba(255,255,255,0.55)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
           borderLeft: '3px solid #18181B',
           borderRadius: '12px',
           padding: '14px 16px',
           position: 'relative',
-          border: '1px solid rgba(255,255,255,0.5)',
+          border: '1px solid #E4E4E7',
           boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
         } as React.CSSProperties}
       >

@@ -66,10 +66,8 @@ export function MultiSelectToolbar({
           alignItems: 'center',
           gap: '2px',
           padding: '6px 8px',
-          borderRadius: '16px',
+          borderRadius: '10px',
           background: 'rgba(255,255,255,0.95)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
           border: '1px solid rgba(0,0,0,0.06)',
           boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
         } as React.CSSProperties}
@@ -121,7 +119,7 @@ export function MultiSelectToolbar({
           whileTap={{ scale: 0.9 }}
           style={{
             width: '28px', height: '28px', borderRadius: '50%',
-            border: '1px solid rgba(255,255,255,0.25)', background: 'transparent',
+            border: '1px solid #E4E4E7', background: 'transparent',
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: '#71717A', marginLeft: '4px',
           }}

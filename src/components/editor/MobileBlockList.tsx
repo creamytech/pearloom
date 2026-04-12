@@ -628,8 +628,6 @@ function AddBlockSheet({
           maxHeight: '70vh',
           borderRadius: '20px 20px 0 0',
           background: 'var(--pl-cream, #FFFCF7)',
-          backdropFilter: 'blur(24px) saturate(1.2)',
-          WebkitBackdropFilter: 'blur(24px) saturate(1.2)',
           border: '1px solid var(--pl-black-7, rgba(0,0,0,0.07))',
           borderBottom: 'none',
           boxShadow: '0 -8px 40px rgba(0,0,0,0.1)',

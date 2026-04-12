@@ -366,7 +366,6 @@ export function AIEditorChat({
                   padding: '0.5rem 0.75rem',
                   borderRadius: '0.6rem',
                   border: `1px solid #E4E4E7`,
-                  background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(16px)',
                   color: '#18181B',
                   fontSize: '0.82rem',
                   outline: 'none',

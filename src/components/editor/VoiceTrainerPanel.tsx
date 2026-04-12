@@ -59,7 +59,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
   };
 
   const textareaStyle: React.CSSProperties = {
-    width: '100%', padding: '0.75rem', borderRadius: '14px',
+    width: '100%', padding: '0.75rem', borderRadius: '8px',
     border: '1.5px solid rgba(255,255,255,0.2)', fontSize: '0.85rem',
     background: 'rgba(24,24,27,0.04)', fontFamily: 'var(--pl-font-body)',
     color: '#18181B', outline: 'none', resize: 'none',
@@ -100,8 +100,8 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 style={{
-                  background: 'rgba(255,255,255,0.15)', borderRadius: '14px', padding: '0.65rem 0.85rem',
-                  border: '1px solid rgba(255,255,255,0.2)', display: 'flex',
+                  background: '#FAFAFA', borderRadius: '8px', padding: '0.65rem 0.85rem',
+                  border: '1px solid #E4E4E7', display: 'flex',
                   alignItems: 'flex-start', gap: '0.5rem',
                 }}
               >
@@ -140,7 +140,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
           disabled={!newSample.trim()}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-            padding: '0.65rem 1rem', borderRadius: '14px',
+            padding: '0.65rem 1rem', borderRadius: '8px',
             background: '#18181B', color: '#fff',
             border: 'none', cursor: newSample.trim() ? 'pointer' : 'not-allowed',
             fontSize: '0.8rem', fontWeight: 700, opacity: newSample.trim() ? 1 : 0.4,
@@ -157,7 +157,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
         <button
           onClick={loadExamples}
           style={{
-            padding: '0.6rem 1rem', borderRadius: '14px',
+            padding: '0.6rem 1rem', borderRadius: '8px',
             border: '1.5px dashed rgba(255,255,255,0.25)', background: 'transparent',
             color: '#71717A', fontSize: '0.75rem', cursor: 'pointer',
             fontWeight: 600, letterSpacing: '0.02em',

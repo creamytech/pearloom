@@ -80,19 +80,17 @@ function ChapterCard({
         onClick={isConfirming ? undefined : onSelect}
         whileHover={!isActive && !isConfirming ? { y: -1 } : {}}
         style={{
-          borderRadius: '16px',
-          background: isConfirming ? 'rgba(248,113,113,0.04)' : isActive ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.25)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: isConfirming ? '1.5px solid rgba(248,113,113,0.4)' : isActive ? '1.5px solid #E4E4E7' : '1px solid rgba(255,255,255,0.3)',
+          borderRadius: '10px',
+          background: isConfirming ? 'rgba(248,113,113,0.04)' : isActive ? '#F4F4F5' : '#FFFFFF',
+          border: isConfirming ? '1.5px solid rgba(248,113,113,0.4)' : isActive ? '1.5px solid #E4E4E7' : '1px solid #E4E4E7',
           overflow: 'hidden',
           cursor: isConfirming ? 'default' : 'pointer',
-          transition: 'all 0.2s',
+          transition: 'all 0.15s',
           boxShadow: isConfirming
-            ? '0 4px 16px rgba(248,113,113,0.08)'
+            ? '0 2px 8px rgba(248,113,113,0.06)'
             : isActive
-              ? '0 4px 16px rgba(24,24,27,0.06), inset 0 1px 0 rgba(255,255,255,0.3)'
-              : '0 1px 4px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.2)',
+              ? '0 1px 3px rgba(0,0,0,0.04)'
+              : 'none',
         } as React.CSSProperties}
       >
         {/* Main row */}
@@ -111,12 +109,12 @@ function ChapterCard({
 
           {/* Chapter number */}
           <div style={{
-            width: '24px', height: '24px', borderRadius: '12px', flexShrink: 0,
-            background: isActive ? '#18181B' : 'rgba(255,255,255,0.4)',
+            width: '22px', height: '22px', borderRadius: '6px', flexShrink: 0,
+            background: isActive ? '#18181B' : '#F4F4F5',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '0.62rem', fontWeight: 800,
             color: isActive ? 'white' : '#71717A',
-            border: isActive ? 'none' : '1px solid rgba(255,255,255,0.3)',
+            border: isActive ? 'none' : '1px solid #E4E4E7',
           }}>
             {index + 1}
           </div>
@@ -124,8 +122,8 @@ function ChapterCard({
           {/* Thumbnail */}
           {thumb && (
             <div style={{
-              width: '40px', height: '40px', borderRadius: '12px', flexShrink: 0,
-              overflow: 'hidden', border: '1px solid rgba(255,255,255,0.3)',
+              width: '36px', height: '36px', borderRadius: '6px', flexShrink: 0,
+              overflow: 'hidden', border: '1px solid #E4E4E7',
             }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -178,7 +176,7 @@ function ChapterCard({
             whileHover={{ color: '#f87171', background: 'rgba(248,113,113,0.1)' }}
             whileTap={{ scale: 0.88 }}
             style={{
-              padding: '6px', borderRadius: '12px', border: 'none',
+              padding: '4px', borderRadius: '6px', border: 'none',
               background: 'transparent', color: '#71717A', cursor: 'pointer',
               display: 'flex', flexShrink: 0, opacity: 0.6,
             }}
@@ -211,8 +209,8 @@ function ChapterCard({
                   <button
                     onClick={e => { e.stopPropagation(); onCancelDelete(); }}
                     style={{
-                      flex: 1, padding: '7px 12px', borderRadius: '10px',
-                      border: '1px solid rgba(0,0,0,0.1)', background: 'rgba(255,255,255,0.5)',
+                      flex: 1, padding: '7px 12px', borderRadius: '6px',
+                      border: '1px solid #E4E4E7', background: '#FFFFFF',
                       color: '#3F3F46', fontSize: '0.75rem', fontWeight: 600,
                       cursor: 'pointer', transition: 'background 0.15s',
                     }}
@@ -222,7 +220,7 @@ function ChapterCard({
                   <button
                     onClick={e => { e.stopPropagation(); onDelete(); }}
                     style={{
-                      flex: 1, padding: '7px 12px', borderRadius: '10px',
+                      flex: 1, padding: '7px 12px', borderRadius: '6px',
                       border: 'none', background: '#ef4444',
                       color: '#fff', fontSize: '0.75rem', fontWeight: 700,
                       cursor: 'pointer', transition: 'background 0.15s',
@@ -256,9 +254,7 @@ function UndoToast({ message, onUndo, onDismiss }: { message: string; onUndo: ()
       style={{
         position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
         zIndex: 9999, display: 'flex', alignItems: 'center', gap: '10px',
-        padding: '10px 16px', borderRadius: '14px',
-        background: 'rgba(30,25,20,0.92)', backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
+        padding: '10px 16px', borderRadius: '8px',
         boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
         color: '#fff', fontSize: '0.82rem', fontWeight: 500,
       } as React.CSSProperties}
@@ -423,9 +419,9 @@ export function StoryPanel() {
           /* FIX #1: Empty state for chapters */
           <div style={{
             padding: '24px 16px', textAlign: 'center',
-            borderRadius: '16px',
-            background: 'rgba(255,255,255,0.15)',
-            border: '1px dashed rgba(24,24,27,0.12)',
+            borderRadius: '10px',
+            background: '#FAFAFA',
+            border: '1px dashed #E4E4E7',
           }}>
             <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3F3F46', marginBottom: '4px' }}>
               No chapters yet
@@ -444,7 +440,7 @@ export function StoryPanel() {
           style={{
             width: '100%', padding: '12px', marginTop: '6px',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            border: '1.5px dashed #E4E4E7', borderRadius: '16px',
+            border: '1.5px dashed #E4E4E7', borderRadius: '8px',
             background: 'transparent', cursor: 'pointer',
             color: '#18181B', fontSize: '0.75rem', fontWeight: 600,
             transition: 'all 0.15s',
@@ -466,13 +462,11 @@ export function StoryPanel() {
             style={{ overflow: 'hidden', padding: '0 10px' }}
           >
             <div style={{
-              marginTop: '12px', padding: '16px',
-              borderRadius: '16px',
-              background: 'rgba(255,255,255,0.2)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255,255,255,0.25)',
-            } as React.CSSProperties}>
+              marginTop: '8px', padding: '12px',
+              borderRadius: '10px',
+              background: '#FFFFFF',
+              border: '1px solid #E4E4E7',
+            }}>
               <ChapterPanel
                 chapter={activeChapter}
                 onUpdate={actions.updateChapter}

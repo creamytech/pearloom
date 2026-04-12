@@ -379,7 +379,7 @@ export function EditorCanvas() {
             padding: '6px 16px', borderRadius: '8px',
             background: 'rgba(250,247,242,0.92)',
             backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255,255,255,0.5)',
+            border: '1px solid #E4E4E7',
             boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
             fontSize: '0.72rem', fontWeight: 600, color: '#18181B',
             whiteSpace: 'nowrap',

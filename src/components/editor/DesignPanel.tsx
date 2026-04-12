@@ -57,7 +57,7 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
     id: 'glass', label: 'Glass', desc: 'Frosted blur, floats over content',
     preview: (
       <div style={{ height: '100%', background: 'linear-gradient(135deg, rgba(24,24,27,0.08), rgba(196,169,106,0.1))', position: 'relative' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.5)' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', background: 'rgba(255,255,255,0.7)', /* blur removed */ borderBottom: '1px solid rgba(255,255,255,0.5)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
             <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#18181B' }} />
             <div style={{ width: '12px', height: '2px', background: '#18181B', borderRadius: '1px', opacity: 0.6 }} />
@@ -188,8 +188,8 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                   borderRadius: '12px',
                   border: isActive ? '2px solid #18181B' : '1px solid rgba(255,255,255,0.3)',
                   background: isActive ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.5)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
+                  /* blur removed */
+                  /* blur removed */
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -212,7 +212,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
             <button
               onClick={() => onChange({ ...manifest, logoSvg: undefined })}
               style={{
-                fontSize: '0.55rem', color: '#71717A', background: 'rgba(255,255,255,0.2)',
+                fontSize: '0.55rem', color: '#71717A', background: '#FAFAFA',
                 border: 'none', borderRadius: '4px', padding: '2px 6px', cursor: 'pointer',
               }}
             >
@@ -431,8 +431,8 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
                 borderRadius: '12px',
                 border: active ? '2px solid #18181B' : '1px solid rgba(255,255,255,0.3)',
                 background: active ? 'rgba(24,24,27,0.04)' : 'rgba(255,255,255,0.5)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
+                /* blur removed */
+                /* blur removed */
                 cursor: 'pointer',
                 overflow: 'hidden',
                 transition: 'all 0.15s',
@@ -644,11 +644,11 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       {/* ── AI Design Critic ── */}
       <div className="pl-panel-section" style={{
         display: 'flex', flexDirection: 'column', gap: '10px',
-        background: 'rgba(255,255,255,0.45)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
+        background: '#F4F4F5',
+        /* blur removed */
+        /* blur removed */
         border: '1px solid rgba(24,24,27,0.1)',
-        borderRadius: '14px',
+        borderRadius: '8px',
         padding: '14px',
         marginBottom: '2px',
       } as React.CSSProperties}>
@@ -768,8 +768,8 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                     borderRadius: '12px',
                     border: isActive ? '2px solid #18181B' : '1px solid rgba(255,255,255,0.3)',
                     background: isActive ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.5)',
-                    backdropFilter: 'blur(20px)',
-                    WebkitBackdropFilter: 'blur(20px)',
+                    /* blur removed */
+                    /* blur removed */
                     cursor: toneLoading ? 'wait' : 'pointer',
                     opacity: toneLoading && !isActive ? 0.5 : 1,
                     transition: 'all 0.15s',
@@ -929,7 +929,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                 display: 'flex', flexDirection: 'column', gap: '8px',
                 padding: '10px', borderRadius: '12px', cursor: 'pointer',
                 border: '1px solid rgba(255,255,255,0.25)',
-                background: 'rgba(255,255,255,0.3)',
+                background: '#FFFFFF',
                 textAlign: 'left', transition: 'all 0.15s',
               }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#A1A1AA'; }}
@@ -1108,7 +1108,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                 display: 'flex', flexDirection: 'column', gap: '6px',
                 padding: '10px', borderRadius: '12px', cursor: 'pointer',
                 border: '1px solid rgba(255,255,255,0.25)',
-                background: 'rgba(255,255,255,0.3)',
+                background: '#FFFFFF',
                 textAlign: 'left', transition: 'all 0.15s',
               }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#A1A1AA'; }}
@@ -1235,7 +1235,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {manifest.stickers!.map((s, i) => (
-                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', borderRadius: '12px', background: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', borderRadius: '12px', background: '#FFFFFF', border: '1px solid rgba(255,255,255,0.3)', /* blur removed */ WebkitBackdropFilter: 'blur(20px)' }}>
                   <span style={{ fontSize: '0.72rem', color: 'var(--pl-ink-soft, #3D3530)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: '#71717A' }}>
                     Size
@@ -1264,7 +1264,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       </>}
 
       {/* Live preview — compact, no extra nesting */}
-      <div style={{ borderRadius: '16px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' } as React.CSSProperties}>
+      <div style={{ borderRadius: '10px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid rgba(255,255,255,0.3)', background: '#FAFAFA', /* blur removed */ WebkitBackdropFilter: 'blur(20px)' } as React.CSSProperties}>
         <div style={{ background: colors.background || '#faf9f6', padding: '14px' }}>
           <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1rem', fontWeight: 700, color: colors.foreground || 'var(--pl-ink, #3F3F46)', marginBottom: '3px' }}>
             {manifest.chapters?.[0]?.title || 'Preview'}

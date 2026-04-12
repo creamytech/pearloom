@@ -288,7 +288,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
     const isFilled = sectionFilled[id];
     return (
       <div style={{
-        borderRadius: '16px', marginBottom: '4px',
+        borderRadius: '10px', marginBottom: '4px',
         background: isOpen ? 'rgba(255,255,255,0.15)' : 'transparent',
         border: isOpen ? '1px solid rgba(24,24,27,0.1)' : '1px solid transparent',
         transition: 'all 0.15s',
@@ -300,7 +300,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '12px', background: 'none', border: 'none', cursor: 'pointer',
             color: isOpen ? '#3F3F46' : '#71717A',
-            borderRadius: '16px',
+            borderRadius: '10px',
           }}
         >
           <span style={{
@@ -390,7 +390,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       }}>
         <div style={{
           flex: 1, height: '4px', borderRadius: '8px',
-          background: 'rgba(255,255,255,0.15)', overflow: 'hidden',
+          background: '#FAFAFA', overflow: 'hidden',
         }}>
           <div style={{
             height: '100%', borderRadius: '8px',
@@ -531,10 +531,10 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         <Field label="Cash Fund Message" value={manifest.registry?.cashFundMessage || ''} onChange={v => updRegistry({ cashFundMessage: v })} placeholder="We are saving for our honeymoon!" />
         {/* ── Smart Registry Import ── */}
         <div style={{
-          background: 'rgba(255,255,255,0.15)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderRadius: '16px',
+          background: '#FAFAFA',
+          /* blur removed */
+          /* blur removed */
+          borderRadius: '10px',
           padding: '12px',
           border: '1px solid rgba(255,255,255,0.2)',
           marginTop: '4px',
@@ -619,7 +619,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           </button>
         </div>
         {entries.map((entry, i) => (
-          <div key={i} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
+          <div key={i} style={{ background: '#FAFAFA', /* blur removed */ /* blur removed */ borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#18181B' }}>Registry {i + 1}</span>
               <ConfirmDeleteButton onConfirm={() => delEntry(i)} />
@@ -762,8 +762,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           {/* Existing meal option cards */}
           {mealOptions.map((meal, i) => (
             <div key={meal.id} style={{
-              background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-              borderRadius: '16px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px',
+              background: '#FAFAFA', /* blur removed */ /* blur removed */
+              borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px',
               border: '1px solid rgba(255,255,255,0.2)',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -817,7 +817,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           <div style={{ marginTop: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
               <span style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', whiteSpace: 'nowrap' }}>Attendance Insights</span>
-              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.3)' }} />
+              <div style={{ flex: 1, height: '1px', background: '#FFFFFF' }} />
             </div>
             <RsvpInsights
               rsvps={manifest.rsvps}
@@ -874,7 +874,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           </div>
         </div>
         {(travel.hotels || []).map((hotel, i) => (
-          <div key={i} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
+          <div key={i} style={{ background: '#FAFAFA', /* blur removed */ /* blur removed */ borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#18181B' }}>Hotel {i + 1}</span>
               <ConfirmDeleteButton onConfirm={() => delHotel(i)} />
@@ -928,7 +928,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           </p>
         )}
         {faqs.map(faq => (
-          <div key={faq.id} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
+          <div key={faq.id} style={{ background: '#FAFAFA', /* blur removed */ /* blur removed */ borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <ConfirmDeleteButton onConfirm={() => delFaq(faq.id)} />
             </div>

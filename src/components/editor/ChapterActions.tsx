@@ -181,7 +181,6 @@ function LayoutSwitcher({ current, onChange }: { current: string; onChange: (l: 
           borderRadius: '10px', padding: '6px',
           display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px',
           zIndex: 300, boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
-          backdropFilter: 'blur(16px)', minWidth: '168px',
         }}>
           {LAYOUT_OPTS.map(opt => {
             const isActive = opt.id === current;
@@ -371,7 +370,6 @@ export function ChapterActions({
             background: 'rgba(22,20,17,0.98)', border: '1px solid rgba(0,0,0,0.06)',
             borderRadius: '8px', padding: '4px', minWidth: '148px',
             zIndex: 200, boxShadow: '0 8px 32px rgba(0,0,0,0.06)',
-            backdropFilter: 'blur(12px)',
           }}>
             {TONE_OPTS.map(({ value, label, desc }) => (
               <button

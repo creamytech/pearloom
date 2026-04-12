@@ -192,7 +192,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
               rows={3}
               style={{
                 width: '100%', padding: '8px 10px', borderRadius: '12px',
-                border: '1px solid rgba(255,255,255,0.2)',
+                border: '1px solid #E4E4E7',
                 background: 'rgba(24,24,27,0.04)',
                 color: '#18181B', fontSize: '0.78rem',
                 outline: 'none', resize: 'vertical', boxSizing: 'border-box',
@@ -223,7 +223,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
                 exit={{ opacity: 0, height: 0 }}
                 style={{
                   borderRadius: '9px', overflow: 'hidden',
-                  border: '1px solid rgba(255,255,255,0.2)',
+                  border: '1px solid #E4E4E7',
                   background: '#FAF8F4',
                 }}
               >

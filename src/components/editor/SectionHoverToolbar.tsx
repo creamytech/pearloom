@@ -114,7 +114,7 @@ export function SectionHoverToolbar() {
             zIndex: 50,
             display: 'flex', alignItems: 'center',
             height: TOOLBAR_H,
-            background: 'rgba(255,255,255,0.92)',
+            background: '#FFFFFF',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
             border: '1px solid rgba(0,0,0,0.06)',

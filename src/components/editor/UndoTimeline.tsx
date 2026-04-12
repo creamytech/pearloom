@@ -228,9 +228,7 @@ export function UndoTimeline({ open, onClose }: UndoTimelinePopupProps) {
               display: 'flex',
               flexDirection: 'column',
               background: 'var(--pl-white-20)',
-              backdropFilter: 'blur(40px) saturate(1.6)',
-              WebkitBackdropFilter: 'blur(40px) saturate(1.6)',
-              borderRadius: '14px',
+              borderRadius: '8px',
               border: '1px solid var(--pl-white-30)',
               boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px var(--pl-black-6)',
               overflow: 'hidden',
@@ -358,8 +356,6 @@ export function UndoTimelinePanel() {
         padding: '10px 14px',
         borderRadius: '10px',
         background: 'var(--pl-white-20)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
         border: '1px solid var(--pl-white-30)',
       } as React.CSSProperties}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -443,8 +439,6 @@ export function UndoTimelinePanel() {
       <div style={{
         borderRadius: '12px',
         background: 'var(--pl-white-20)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
         border: '1px solid var(--pl-white-30)',
         boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
         overflow: 'hidden',
@@ -563,8 +557,6 @@ export function UndoTimelinePanel() {
             borderRadius: '10px',
             border: '1px solid var(--pl-white-30)',
             background: 'rgba(24,24,27,0.08)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',

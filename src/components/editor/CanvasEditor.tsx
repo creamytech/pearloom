@@ -165,7 +165,7 @@ const lbl: React.CSSProperties = {
 
 const inp: React.CSSProperties = {
   width: '100%', padding: '0.6rem 0.75rem', borderRadius: '0.5rem',
-  border: '1px solid rgba(255,255,255,0.3)', background: '#F4F4F5',
+  border: '1px solid #E4E4E7', background: '#F4F4F5',
   color: '#18181B', fontSize: 'max(16px, 0.82rem)', outline: 'none', fontFamily: 'inherit',
   boxSizing: 'border-box', transition: 'border-color 0.15s',
 };
@@ -478,7 +478,7 @@ function BlockRow({
         layout
         initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: block.visible ? 1 : 0.4 }}
-        whileHover={{ background: 'rgba(255,255,255,0.45)' }}
+        whileHover={{ background: '#F4F4F5' }}
         transition={{ duration: 0.15 }}
         onClick={() => onSelect(block.id)}
         style={{
@@ -569,8 +569,8 @@ function BlockRow({
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     width: '32px', height: '32px', borderRadius: '8px',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    background: 'rgba(255,255,255,0.25)',
+                    border: '1px solid #E4E4E7',
+                    background: '#FFFFFF',
                     color: (a as { danger?: boolean }).danger ? '#e87171' : '#71717A',
                     cursor: 'pointer', transition: 'all 0.12s',
                   }}
@@ -703,7 +703,7 @@ function SectionStylePanel({
         />
         {(config.bgImage as string) && (
           <div style={{ marginTop: '4px', display: 'flex', gap: '4px' }}>
-            <button onClick={() => updateConfig({ bgImage: '' })} style={{ padding: '3px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.2)', color: '#71717A', cursor: 'pointer', fontSize: '0.62rem' }}>Remove</button>
+            <button onClick={() => updateConfig({ bgImage: '' })} style={{ padding: '3px 8px', borderRadius: '6px', border: 'none', background: '#FAFAFA', color: '#71717A', cursor: 'pointer', fontSize: '0.62rem' }}>Remove</button>
             <select value={(config.bgSize as string) || 'cover'} onChange={e => updateConfig({ bgSize: e.target.value })} style={{ ...inp, flex: 1, fontSize: '0.65rem', padding: '3px 6px' }}>
               <option value="cover">Cover</option>
               <option value="contain">Contain</option>
@@ -792,7 +792,6 @@ function SectionStylePanel({
         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
           {[
             { id: 'default', label: 'Default', style: {} },
-            { id: 'glass', label: 'Glass', style: { backdropFilter: 'blur(20px)', background: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '24px' } },
             { id: 'rounded', label: 'Rounded', style: { borderRadius: '32px', overflow: 'hidden' } },
             { id: 'card', label: 'Card', style: { background: 'rgba(255,255,255,0.8)', borderRadius: '20px', boxShadow: '0 8px 32px rgba(0,0,0,0.04)', maxWidth: '900px', margin: '2rem auto' } },
             { id: 'dark', label: 'Dark', style: { background: '#1a1814', color: '#F5F1E8', borderRadius: '0' } },
@@ -1061,7 +1060,7 @@ function BlockConfigPanel({
                       position: 'relative', aspectRatio: '1',
                       borderRadius: '8px', overflow: 'hidden',
                       background: 'rgba(24,24,27,0.06)',
-                      border: '1px solid rgba(255,255,255,0.15)',
+                      border: '1px solid #E4E4E7',
                     }}>
                       {url ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -1509,7 +1508,6 @@ function AddBlockPicker({ onAdd, onDragType, existingTypes, occasion = 'wedding'
             transition={{ duration: 0.15 }}
             style={{
               position: 'absolute', left: 0, right: 0, top: '100%', zIndex: 100,
-              background: 'rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.3)',
               borderRadius: '12px', overflow: 'hidden', marginTop: '4px',
               boxShadow: '0 20px 60px rgba(0,0,0,0.06)',
             }}
@@ -1947,9 +1945,9 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
         {blocks.length === 0 && (
           <div style={{
             padding: '24px 16px', textAlign: 'center',
-            borderRadius: '14px',
-            background: 'rgba(255,255,255,0.15)',
-            border: '1px dashed rgba(24,24,27,0.12)',
+            borderRadius: '8px',
+            background: '#FAFAFA',
+            border: '1px dashed #E4E4E7',
             marginBottom: '8px',
           }}>
             <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3F3F46', marginBottom: '4px' }}>
@@ -2072,8 +2070,6 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                       transition: 'max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease',
                       borderLeft: `2px solid ${blockColor}60`,
                       background: `${blockColor}08`,
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
                       borderRadius: '0 0 12px 12px',
                       marginTop: '-2px',
                     } as React.CSSProperties}
@@ -2093,7 +2089,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                         </div>
                         <button
                           onClick={() => setActiveBlockId(null)}
-                          style={{ background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '6px', cursor: 'pointer', color: '#3F3F46', display: 'flex', padding: '5px' }}
+                          style={{ background: '#FAFAFA', border: '1px solid #E4E4E7', borderRadius: '6px', cursor: 'pointer', color: '#3F3F46', display: 'flex', padding: '5px' }}
                         >
                           <X size={13} />
                         </button>
@@ -2169,10 +2165,8 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
               alignItems: 'center',
               gap: '10px',
               padding: '14px 12px',
-              borderRadius: '16px',
-              background: 'rgba(255,255,255,0.85)',
-              backdropFilter: 'blur(20px) saturate(1.3)',
-              WebkitBackdropFilter: 'blur(20px) saturate(1.3)',
+              borderRadius: '10px',
+              background: '#FFFFFF',
               border: `1.5px solid rgba(255,255,255,0.7)`,
               borderLeft: `3px solid ${ghostColor}`,
               boxShadow: `0 16px 48px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04), 0 0 0 1px ${ghostColor}20`,

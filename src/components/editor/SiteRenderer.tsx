@@ -108,7 +108,7 @@ function PearNudge({ prompt, onDismiss }: { prompt: string; onDismiss: () => voi
         gap: '6px',
         padding: '8px 16px',
         borderRadius: '8px',
-        background: 'rgba(255,255,255,0.75)',
+        background: '#FFFFFF',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
         border: '1px solid #E4E4E7',
@@ -180,7 +180,7 @@ function LiveCountdown({ targetDate, accentColor, textColor, mutedColor, heading
     <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(0.5rem, 2vw, 1.5rem)', flexWrap: 'wrap' }}>
       {units.map((u) => (
         <div key={u.label} style={{
-          minWidth: '70px', padding: '1rem 0.75rem', borderRadius: '16px',
+          minWidth: '70px', padding: '1rem 0.75rem', borderRadius: '10px',
           background: `${accentColor}0D`, border: `1px solid ${accentColor}20`,
         }}>
           <div style={{
@@ -359,7 +359,7 @@ const SectionOverlay = React.memo(function SectionOverlay({
           padding: '4px 6px', borderRadius: '12px',
           background: 'rgba(250,247,242,0.92)',
           backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255,255,255,0.5)',
+          border: '1px solid #E4E4E7',
           boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
         } as React.CSSProperties}>
           {/* Drag handle — grab to reorder */}
@@ -377,7 +377,7 @@ const SectionOverlay = React.memo(function SectionOverlay({
           <span style={{ fontSize: '0.55rem', fontWeight: 700, color, letterSpacing: '0.06em', textTransform: 'uppercase', padding: '0 4px' }}>
             {def?.label || blockType}
           </span>
-          <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.25)' }} />
+          <div style={{ width: '1px', height: '14px', background: '#FFFFFF' }} />
           {[
             ...(index > 0 ? [{ icon: '↑', action: 'moveUp' as const, handler: () => onBlockAction?.('moveUp', blockId) }] : []),
             ...(index < total - 1 ? [{ icon: '↓', action: 'moveDown' as const, handler: () => onBlockAction?.('moveDown', blockId) }] : []),
@@ -403,7 +403,7 @@ const SectionOverlay = React.memo(function SectionOverlay({
             position: 'fixed', top: menuPos.y, left: menuPos.x, zIndex: 9999,
             minWidth: '160px', padding: '4px',
             background: 'rgba(250,247,242,0.95)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-            borderRadius: '12px', border: '1px solid rgba(255,255,255,0.5)',
+            borderRadius: '12px', border: '1px solid #E4E4E7',
             boxShadow: '0 12px 40px rgba(0,0,0,0.1)',
           } as React.CSSProperties}>
             {[
@@ -1539,7 +1539,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             </h2>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(0.75rem, 2vw, 2rem)', flexWrap: 'wrap' }}>
               {defaultMilestones.map((m, i) => (
-                <div key={i} style={{ padding: '1.25rem 1rem', borderRadius: '16px', background: `${pal.accent}0D`, border: `1px solid ${pal.accent}20`, minWidth: '110px', maxWidth: '140px' }}>
+                <div key={i} style={{ padding: '1.25rem 1rem', borderRadius: '10px', background: `${pal.accent}0D`, border: `1px solid ${pal.accent}20`, minWidth: '110px', maxWidth: '140px' }}>
                   <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{m.emoji || '✦'}</div>
                   <div style={{ fontSize: '0.82rem', fontWeight: 600, color: safeFg }}>{m.label}</div>
                   {m.date && <div style={{ fontSize: '0.7rem', color: safeMuted, marginTop: '0.25rem' }}>{m.date}</div>}
@@ -1643,7 +1643,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               position: 'relative', zIndex: 10,
               width: '28px', height: '28px', borderRadius: '50%',
               border: '1.5px solid #E4E4E7',
-              background: 'rgba(255,255,255,0.85)',
+              background: '#FFFFFF',
               backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
               color: '#18181B',
               cursor: 'pointer', fontSize: '1rem', fontWeight: 300,
@@ -1675,7 +1675,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               zIndex: 99, padding: '8px', minWidth: '200px', maxHeight: '320px', overflowY: 'auto',
               background: 'rgba(250,247,242,0.95)',
               backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-              borderRadius: '14px', border: '1px solid rgba(255,255,255,0.5)',
+              borderRadius: '8px', border: '1px solid #E4E4E7',
               boxShadow: '0 12px 40px rgba(0,0,0,0.08)',
               display: 'flex', flexDirection: 'column', gap: '2px',
             } as React.CSSProperties}>

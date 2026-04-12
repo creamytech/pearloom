@@ -115,9 +115,7 @@ export function ResponsiveControls<T>({
           display: 'flex', alignItems: 'center', gap: '1px',
           padding: '2px',
           borderRadius: '8px',
-          background: 'rgba(255,255,255,0.25)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
+          background: '#FFFFFF',
           border: '1px solid var(--pl-black-4)',
         } as React.CSSProperties}>
           {DEVICE_LIST.map(({ mode, Icon, label: deviceLabel }) => {
@@ -179,8 +177,6 @@ export function ResponsiveControls<T>({
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             borderRadius: '6px', border: '1px solid var(--pl-black-6)',
             background: isLinked ? 'rgba(24,24,27,0.08)' : 'var(--pl-white-20)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
             color: isLinked ? '#18181B' : '#71717A',
             cursor: 'pointer',
             transition: 'background 0.15s, color 0.15s',

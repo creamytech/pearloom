@@ -79,7 +79,7 @@ const cardStyle: React.CSSProperties = {
   background: 'rgba(250,247,242,0.92)',
   backdropFilter: 'blur(40px) saturate(1.6)',
   WebkitBackdropFilter: 'blur(40px) saturate(1.6)',
-  border: '1px solid rgba(255,255,255,0.5)',
+  border: '1px solid #E4E4E7',
   boxShadow: '0 24px 80px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.4)',
   animation: 'pl-kb-card-in 0.25s cubic-bezier(0.16,1,0.3,1) both',
 };

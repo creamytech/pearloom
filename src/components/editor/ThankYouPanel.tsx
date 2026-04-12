@@ -63,7 +63,7 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '8px 12px',
         borderBottom: '1px solid rgba(0,0,0,0.04)',
-        background: 'rgba(255,255,255,0.15)',
+        background: '#FAFAFA',
       }}>
         <span style={{
           fontSize: '0.78rem', fontWeight: 700,
@@ -278,9 +278,9 @@ export function ThankYouPanel() {
               key={entry.id}
               style={{
                 display: 'flex', flexDirection: 'column', gap: '4px',
-                padding: '8px 10px', borderRadius: '14px',
+                padding: '8px 10px', borderRadius: '8px',
                 border: '1px solid rgba(0,0,0,0.06)',
-                background: 'rgba(255,255,255,0.15)',
+                background: '#FAFAFA',
                 position: 'relative',
               }}
             >
@@ -422,7 +422,7 @@ export function ThankYouPanel() {
             style={{
               marginTop: '10px', width: '100%',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
-              padding: '10px', borderRadius: '14px',
+              padding: '10px', borderRadius: '8px',
               border: '1px solid rgba(24,24,27,0.06)',
               background: 'rgba(24,24,27,0.03)',
               color: '#71717A', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,

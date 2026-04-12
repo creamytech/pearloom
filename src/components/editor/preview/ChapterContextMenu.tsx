@@ -57,7 +57,7 @@ function MenuItem({
 }
 
 const Divider = () => (
-  <div style={{ height: 1, background: 'rgba(255,255,255,0.25)', margin: '4px 0' }} />
+  <div style={{ height: 1, background: '#FFFFFF', margin: '4px 0' }} />
 );
 
 export function ChapterContextMenu({
@@ -104,7 +104,7 @@ export function ChapterContextMenu({
         left: clampedX,
         zIndex: 9999,
         minWidth: menuWidth,
-        background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(16px)',
+        background: '#FFFFFF', backdropFilter: 'blur(16px)',
         borderRadius: 12,
         border: '1px solid rgba(0,0,0,0.08)',
         boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',

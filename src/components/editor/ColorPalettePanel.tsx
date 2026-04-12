@@ -151,7 +151,6 @@ function SvgPreview({ svg, bg, label }: { svg: string; bg: string; label?: strin
           position: 'absolute', bottom: '8px', left: '8px',
           fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em',
           textTransform: 'uppercase', color: '#3F3F46',
-          background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(4px)',
           padding: '2px 6px', borderRadius: '4px',
         }}>{label}</div>
       )}

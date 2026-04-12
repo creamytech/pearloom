@@ -62,7 +62,7 @@ export function FloatingToolbar() {
         background: 'rgba(250,247,242,0.78)',
         backdropFilter: 'blur(32px) saturate(1.5)',
         WebkitBackdropFilter: 'blur(32px) saturate(1.5)',
-        border: '1px solid rgba(255,255,255,0.5)',
+        border: '1px solid #E4E4E7',
         boxShadow: '0 4px 24px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04)',
       } as React.CSSProperties}
     >

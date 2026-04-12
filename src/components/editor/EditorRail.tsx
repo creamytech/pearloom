@@ -150,7 +150,7 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
               width: '44px', height: '44px',
               display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'center',
-              gap: '3px', border: 'none', borderRadius: '14px',
+              gap: '3px', border: 'none', borderRadius: '8px',
               background: moreOpen || isMoreActive ? 'rgba(24,24,27,0.08)' : 'transparent',
               color: moreOpen || isMoreActive ? '#18181B' : '#71717A',
               cursor: 'pointer', transition: 'background 0.15s',

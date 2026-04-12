@@ -93,8 +93,8 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
           >
             <div style={{
               display: 'flex', gap: '8px', padding: '12px',
-              borderRadius: '10px', background: 'rgba(255,255,255,0.2)',
-              border: '1px solid rgba(255,255,255,0.25)',
+              borderRadius: '10px', background: '#FAFAFA',
+              border: '1px solid #E4E4E7',
             }}>
               <input
                 type="text"
@@ -139,7 +139,7 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
               style={{
                 padding: '10px 12px',
                 borderRadius: '10px',
-                border: '1px solid rgba(255,255,255,0.25)',
+                border: '1px solid #E4E4E7',
                 background: confirmRestore === snap.id ? 'rgba(24,24,27,0.04)' : 'white',
                 transition: 'background 0.15s',
               }}
@@ -178,7 +178,7 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
                         title="Restore this version"
                         style={{
                           width: '28px', height: '28px', borderRadius: '6px',
-                          border: '1px solid rgba(255,255,255,0.25)', background: 'transparent',
+                          border: '1px solid #E4E4E7', background: 'transparent',
                           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                           color: '#18181B',
                         }}
@@ -190,7 +190,7 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
                         title="Delete snapshot"
                         style={{
                           width: '28px', height: '28px', borderRadius: '6px',
-                          border: '1px solid rgba(255,255,255,0.25)', background: 'transparent',
+                          border: '1px solid #E4E4E7', background: 'transparent',
                           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                           color: '#71717A',
                         }}

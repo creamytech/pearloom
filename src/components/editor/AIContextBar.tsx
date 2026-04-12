@@ -42,9 +42,7 @@ export function AIContextBar() {
           style={{
             flexShrink: 0,
             overflow: 'hidden',
-            background: 'rgba(255,255,255,0.75)',
-            backdropFilter: 'blur(16px) saturate(1.3)',
-            WebkitBackdropFilter: 'blur(16px) saturate(1.3)',
+            background: '#FFFFFF',
             borderBottom: '1px solid rgba(0,0,0,0.05)',
             boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
           }}

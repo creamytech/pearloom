@@ -123,15 +123,13 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
       <div style={{
         position: 'fixed', inset: 0, zIndex: 9999,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
         animation: 'pl-hotel-fade-in 0.2s ease-out',
       }}
         onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       >
         <div style={{
           width: '100%', maxWidth: '560px', maxHeight: '85vh',
-          background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-          borderRadius: '20px', border: '1px solid rgba(255,255,255,0.5)',
+          borderRadius: '20px', border: '1px solid #E4E4E7',
           boxShadow: '0 24px 80px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.2)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
           animation: 'pl-hotel-fade-in 0.3s ease-out',
@@ -213,7 +211,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {[1, 2, 3].map(i => (
                   <div key={i} style={{
-                    borderRadius: '14px', padding: '16px',
+                    borderRadius: '8px', padding: '16px',
                     background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.04)',
                     animation: 'pl-hotel-pulse 1.5s ease-in-out infinite',
                     animationDelay: `${i * 0.15}s`,
@@ -239,9 +237,8 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                     <div
                       key={i}
                       style={{
-                        borderRadius: '14px', padding: '16px',
-                        background: 'rgba(255,255,255,0.6)',
-                        backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+                        borderRadius: '8px', padding: '16px',
+                        background: '#FFFFFF',
                         border: '1px solid rgba(0,0,0,0.06)',
                         animation: 'pl-hotel-slide-in 0.35s ease-out backwards',
                         animationDelay: `${i * 0.08}s`,

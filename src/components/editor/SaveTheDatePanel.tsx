@@ -121,7 +121,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
           placeholder="Please save the date"
           style={{
             width: '100%', padding: '7px 10px', borderRadius: '7px',
-            border: '1px solid rgba(255,255,255,0.2)',
+            border: '1px solid #E4E4E7',
             background: 'rgba(24,24,27,0.04)',
             color: '#18181B', fontSize: '0.78rem',
             outline: 'none', boxSizing: 'border-box',
@@ -147,7 +147,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
             padding: '24px',
             boxSizing: 'border-box',
             position: 'relative',
-            border: '1px solid rgba(255,255,255,0.2)',
+            border: '1px solid #E4E4E7',
           }}
         >
           {/* Decorative top line */}

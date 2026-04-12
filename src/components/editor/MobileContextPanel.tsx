@@ -475,8 +475,6 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
             padding: '14px 16px', borderRadius: 12, cursor: 'pointer',
             border: `1.5px dashed ${dragOver ? '#71717A' : 'rgba(255,255,255,0.5)'}`,
             background: dragOver ? 'rgba(24,24,27,0.04)' : 'rgba(255,255,255,0.35)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
             textAlign: 'left' as const, width: '100%',
             transition: 'border-color 0.25s ease, background 0.25s ease',
           }}
@@ -505,10 +503,8 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
           style={{
             display: 'flex', alignItems: 'center', gap: 12,
             padding: '14px 16px', borderRadius: 12, cursor: 'pointer',
-            border: '1px solid rgba(255,255,255,0.5)',
-            background: 'rgba(255,255,255,0.35)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
+            border: '1px solid #E4E4E7',
+            background: '#FFFFFF',
             textAlign: 'left' as const, width: '100%',
           }}
         >
@@ -536,8 +532,6 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
             padding: '14px 16px', borderRadius: 12, cursor: 'pointer',
             border: '1.5px dashed #E4E4E7',
             background: 'rgba(24,24,27,0.04)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
             textAlign: 'left' as const, width: '100%',
           }}
         >

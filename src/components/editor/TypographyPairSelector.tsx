@@ -72,7 +72,6 @@ export function TypographyPairSelector({ value = 'serif-sans', onChange }: Typog
           padding: '10px 14px',
           borderRadius: 'var(--pl-radius-sm)',
           border: '1.5px solid rgba(255,255,255,0.25)',
-          background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)',
           cursor: 'pointer',
           fontSize: '0.88rem',
           fontFamily: 'var(--pl-font-body)',
@@ -101,8 +100,7 @@ export function TypographyPairSelector({ value = 'serif-sans', onChange }: Typog
             style={{
               marginTop: '4px',
               borderRadius: 'var(--pl-radius-sm)',
-              border: '1px solid rgba(255,255,255,0.25)',
-              background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)',
+              border: '1px solid #E4E4E7',
               overflow: 'hidden',
               boxShadow: 'var(--pl-shadow-md)',
             }}

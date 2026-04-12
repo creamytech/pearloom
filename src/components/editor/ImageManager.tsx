@@ -361,7 +361,7 @@ export function ImageManager({
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               gap: '8px', width: '100%', padding: '1.5rem',
-              border: '2px dashed rgba(0,0,0,0.06)', borderRadius: '10px',
+              border: '2px dashed #E4E4E7', borderRadius: '10px',
               background: 'transparent', cursor: 'pointer', color: '#71717A',
             }}
             onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = '#E4E4E7'; (e.currentTarget as HTMLElement).style.color = '#18181B'; }}
@@ -397,7 +397,6 @@ export function ImageManager({
                     width: '20px', height: '20px', borderRadius: '50%',
                     background: 'rgba(0,0,0,0.7)', border: 'none', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#fff', backdropFilter: 'blur(4px)',
                     transition: 'background 0.15s',
                     zIndex: 2,
                   }}
@@ -423,7 +422,7 @@ export function ImageManager({
               onClick={() => fileInputRef.current?.click()}
               style={{
                 aspectRatio: '1', borderRadius: '8px',
-                border: '2px dashed rgba(0,0,0,0.06)', background: 'transparent',
+                border: '2px dashed #E4E4E7', background: 'transparent',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: '#71717A', transition: 'all 0.15s',
               }}
@@ -531,7 +530,6 @@ export function ImageManager({
                         alignItems: 'center',
                         justifyContent: 'center',
                         color: '#fff',
-                        backdropFilter: 'blur(4px)',
                         transition: 'background 0.15s',
                         zIndex: 2,
                         padding: 0,
@@ -552,7 +550,7 @@ export function ImageManager({
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                 width: '100%', marginTop: '8px', padding: '7px 12px', borderRadius: '8px',
-                border: '2px dashed rgba(0,0,0,0.06)', background: 'transparent',
+                border: '2px dashed #E4E4E7', background: 'transparent',
                 cursor: 'pointer', color: '#71717A', transition: 'all 0.15s',
               }}
               onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = '#E4E4E7'; (e.currentTarget as HTMLElement).style.color = '#18181B'; }}
@@ -619,8 +617,6 @@ export function ImageManager({
           display: 'flex', alignItems: 'center', gap: '8px',
           padding: '8px 12px', borderRadius: '8px',
           background: 'rgba(255,255,255,0.7)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
           border: '1px solid rgba(24,24,27,0.12)',
           boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
           fontSize: '0.76rem', lineHeight: 1.4,

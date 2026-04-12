@@ -141,9 +141,9 @@ export function SpotifyPanel() {
                     justifyContent: 'space-between',
                     gap: '8px',
                     padding: '8px 10px',
-                    borderRadius: '14px',
+                    borderRadius: '8px',
                     background: 'rgba(24,24,27,0.03)',
-                    border: '1px solid rgba(255,255,255,0.15)',
+                    border: '1px solid #E4E4E7',
                   }}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -189,7 +189,7 @@ export function SpotifyPanel() {
                       width: '26px',
                       height: '26px',
                       borderRadius: '6px',
-                      background: 'rgba(255,255,255,0.15)',
+                      background: '#FAFAFA',
                       color: '#3F3F46',
                       flexShrink: 0,
                       textDecoration: 'none',
@@ -222,7 +222,7 @@ export function SpotifyPanel() {
       {/* Embed preview */}
       {embedUrl && (
         <SidebarSection title="Preview" defaultOpen={false}>
-          <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.2)' }}>
+          <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #E4E4E7' }}>
             <iframe
               src={embedUrl}
               width="100%"

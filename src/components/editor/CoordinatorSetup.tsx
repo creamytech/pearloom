@@ -385,7 +385,7 @@ export default function CoordinatorSetup({ manifest, onChange }: CoordinatorSetu
               your live site.
             </p>
             {/* Inline preview — render the widget in a contained preview box */}
-            <div style={{ position: 'relative', height: '460px', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.1)' }}>
+            <div style={{ position: 'relative', height: '460px', borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.1)' }}>
               <PreviewCoordinator
                 siteId={coupleId || 'preview'}
                 coupleNames={

@@ -62,11 +62,9 @@ function GlassCard({ children, style }: { children: React.ReactNode; style?: Rea
   return (
     <div style={{
       padding: '14px 14px',
-      borderRadius: '16px',
+      borderRadius: '10px',
       background: 'rgba(255,255,255,0.045)',
-      backdropFilter: 'blur(24px) saturate(1.5)',
-      WebkitBackdropFilter: 'blur(24px) saturate(1.5)',
-      border: '1px solid rgba(255,255,255,0.08)',
+      border: '1px solid #E4E4E7',
       ...style,
     }}>
       {children}
@@ -473,7 +471,7 @@ function ShareStatsCard({ stats }: { stats: ShareStats }) {
       <div style={{ display: 'flex', gap: '8px' }}>
         <div style={{
           flex: 1, padding: '8px 10px', borderRadius: '8px',
-          background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)',
+          background: 'rgba(255,255,255,0.03)', border: '1px solid #E4E4E7',
           textAlign: 'center',
         }}>
           <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#fff' }}>{stats.linkCopied}</div>
@@ -481,7 +479,7 @@ function ShareStatsCard({ stats }: { stats: ShareStats }) {
         </div>
         <div style={{
           flex: 1, padding: '8px 10px', borderRadius: '8px',
-          background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)',
+          background: 'rgba(255,255,255,0.03)', border: '1px solid #E4E4E7',
           textAlign: 'center',
         }}>
           <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#fff' }}>{stats.socialShares}</div>

@@ -109,7 +109,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               </RichTooltip>
             );
           })}
-          <div style={{ width: '1px', height: '16px', background: 'rgba(255,255,255,0.2)', margin: '0 4px' }} />
+          <div style={{ width: '1px', height: '16px', background: '#FAFAFA', margin: '0 4px' }} />
           <RichTooltip label="Undo" shortcut="⌘Z" side="bottom">
             <ToolBtn onClick={actions.undo} disabled={!canUndo}>
               <UndoIcon size={13} />
@@ -120,7 +120,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               <RedoIcon size={13} />
             </ToolBtn>
           </RichTooltip>
-          <div style={{ width: '1px', height: '16px', background: 'rgba(255,255,255,0.2)', margin: '0 4px' }} />
+          <div style={{ width: '1px', height: '16px', background: '#FAFAFA', margin: '0 4px' }} />
           <RichTooltip label="Quick actions" shortcut="⌘K" side="bottom">
             <ToolBtn onClick={() => dispatch({ type: 'SET_CMD_PALETTE', open: true })}>
               <Command size={12} />
@@ -209,13 +209,13 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
           <RichTooltip label="Keyboard shortcuts" shortcut="?" side="bottom">
             <motion.button
               onClick={() => setShortcutsOpen(true)}
-              whileHover={{ scale: 1.1, background: 'rgba(255,255,255,0.3)' }}
+              whileHover={{ scale: 1.1, background: '#FFFFFF' }}
               whileTap={{ scale: 0.88 }}
               style={{
                 width: '26px', height: '26px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 borderRadius: '50%', border: '1px solid rgba(0,0,0,0.08)',
-                background: 'rgba(255,255,255,0.2)',
+                background: '#FAFAFA',
                 color: '#71717A',
                 cursor: 'pointer',
                 fontSize: '0.68rem',
@@ -274,7 +274,7 @@ function ToolBtn({ onClick, disabled, children }: {
     <motion.button
       onClick={onClick}
       disabled={disabled}
-      whileHover={!disabled ? { scale: 1.1, background: 'rgba(255,255,255,0.3)' } : {}}
+      whileHover={!disabled ? { scale: 1.1, background: '#FFFFFF' } : {}}
       whileTap={!disabled ? { scale: 0.88 } : {}}
       style={{
         width: '30px', height: '30px',

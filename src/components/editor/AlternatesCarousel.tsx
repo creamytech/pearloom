@@ -22,8 +22,6 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
         right: 0,
         zIndex: 20,
         background: 'rgba(14,11,18,0.98)',
-        backdropFilter: 'blur(28px)',
-        WebkitBackdropFilter: 'blur(28px)',
         padding: '20px',
         borderTop: '1px solid rgba(0,0,0,0.05)',
       }}
@@ -67,8 +65,6 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
             style={{
               flex: '0 0 260px',
               background: 'rgba(22,18,28,0.96)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
               border: '1px solid rgba(0,0,0,0.06)',
               borderRadius: '12px',
               padding: '16px',

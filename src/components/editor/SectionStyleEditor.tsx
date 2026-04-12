@@ -61,8 +61,7 @@ export function SectionStyleEditor({
 
   return (
     <div style={{
-      background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', borderRadius: '14px', padding: '14px',
-      border: '1px solid rgba(255,255,255,0.25)',
+      border: '1px solid #E4E4E7',
       display: 'flex', flexDirection: 'column', gap: '12px',
     }}>
       {/* Background Color */}

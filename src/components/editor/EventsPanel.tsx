@@ -74,8 +74,8 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
               animate={{ opacity: 1, y: 0 }}
               style={{
                 textAlign: 'center', padding: '2rem 1rem',
-                borderRadius: '16px', border: '1.5px dashed rgba(24,24,27,0.12)',
-                background: 'rgba(255,255,255,0.25)',
+                borderRadius: '10px', border: '1.5px dashed #E4E4E7',
+                background: '#FFFFFF',
               }}
             >
               <CalendarHeartIcon size={24} style={{ opacity: 0.7, marginBottom: '8px', color: '#18181B' }} />
@@ -100,7 +100,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                 key={evt.id}
                 layout
                 style={{
-                  borderRadius: '16px',
+                  borderRadius: '10px',
                   background: isExpanded ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.15)',
                   border: isExpanded ? `1.5px solid ${typeColor}40` : '1px solid rgba(255,255,255,0.2)',
                   overflow: 'hidden', transition: 'all 0.15s',
@@ -214,8 +214,8 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
             whileTap={{ scale: 0.98 }}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-              padding: '10px', borderRadius: '14px',
-              border: '1.5px dashed rgba(24,24,27,0.12)',
+              padding: '10px', borderRadius: '8px',
+              border: '1.5px dashed #E4E4E7',
               background: 'transparent', color: '#18181B',
               cursor: 'pointer',
               fontSize: panelText.chip,
@@ -235,7 +235,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                 style={{
                   flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
                   padding: '8px', borderRadius: '10px',
-                  background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.25)',
+                  background: '#FAFAFA', border: '1px solid #E4E4E7',
                   color: '#18181B',
                   fontSize: panelText.hint,
                   fontWeight: panelWeight.semibold,
@@ -250,7 +250,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                 style={{
                   flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
                   padding: '8px', borderRadius: '10px',
-                  background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.25)',
+                  background: '#FAFAFA', border: '1px solid #E4E4E7',
                   color: '#3F3F46',
                   fontSize: panelText.hint,
                   fontWeight: panelWeight.semibold,
