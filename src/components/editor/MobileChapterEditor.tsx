@@ -135,7 +135,7 @@ export function MobileChapterEditor({
             background: 'rgba(0,0,0,0.05)',
             color: '#3F3F46',
             cursor: 'pointer',
-            fontSize: '0.85rem',
+            fontSize: '0.8rem',
             fontWeight: 600,
           }}
         >
@@ -154,7 +154,7 @@ export function MobileChapterEditor({
             whiteSpace: 'nowrap',
             fontFamily: 'inherit',
             
-            fontSize: '0.95rem',
+            fontSize: '0.9rem',
             fontWeight: 600,
             color: '#18181B',
           }}
@@ -304,7 +304,7 @@ export function MobileChapterEditor({
                       ? '#E4E4E7'
                       : '#71717A',
                   cursor: isRewriting || isStreaming ? 'wait' : 'pointer',
-                  fontSize: '0.78rem',
+                  fontSize: '0.75rem',
                   fontWeight: 700,
                   letterSpacing: '0.02em',
                 }}
@@ -334,7 +334,7 @@ export function MobileChapterEditor({
                 fontSize: '0.97rem',
                 lineHeight: 1.75,
                 color: '#3F3F46',
-                padding: '14px 16px',
+                padding: '10px 12px',
                 boxSizing: 'border-box',
                 WebkitAppearance: 'none',
                 transition: 'border-color 0.18s',
@@ -367,7 +367,7 @@ export function MobileChapterEditor({
                       flexDirection: 'column',
                       alignItems: 'center',
                       gap: 6,
-                      padding: '12px 14px',
+                      padding: '10px 12px',
                       borderRadius: 13,
                       border: active
                         ? '1px solid rgba(24,24,27,0.55)'
@@ -386,7 +386,7 @@ export function MobileChapterEditor({
                     <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>{glyph}</span>
                     <span
                       style={{
-                        fontSize: '0.63rem',
+                        fontSize: '0.6rem',
                         fontWeight: 700,
                         letterSpacing: '0.05em',
                         textTransform: 'uppercase',
@@ -420,7 +420,7 @@ export function MobileChapterEditor({
               placeholder="Romantic, joyful, nostalgic…"
               style={{
                 width: '100%',
-                padding: '9px 14px',
+                padding: '8px 10px',
                 borderRadius: 10,
                 border: '1px solid rgba(0,0,0,0.07)',
                 background: 'rgba(24,24,27,0.03)',
@@ -443,7 +443,7 @@ export function MobileChapterEditor({
               placeholder="Paris, the old café…"
               style={{
                 width: '100%',
-                padding: '9px 14px',
+                padding: '8px 10px',
                 borderRadius: 10,
                 border: '1px solid rgba(0,0,0,0.07)',
                 background: 'rgba(24,24,27,0.03)',
@@ -477,7 +477,7 @@ export function MobileChapterEditor({
 // ── Shared label style ──
 const labelStyle: React.CSSProperties = {
   display: 'block',
-  fontSize: '0.62rem',
+  fontSize: '0.6rem',
   fontWeight: 800,
   letterSpacing: '0.14em',
   textTransform: 'uppercase',

@@ -142,7 +142,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '6px',
-        fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
+        fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em',
         textTransform: 'uppercase', color: '#71717A',
       }}>
         <Users size={11} /> Guest List
@@ -155,7 +155,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
             key={s}
             onClick={() => setStatusFilter(s)}
             style={{
-              padding: '3px 9px', borderRadius: '20px', fontSize: '0.68rem', fontWeight: 700,
+              padding: '3px 9px', borderRadius: '10px', fontSize: '0.65rem', fontWeight: 700,
               border: `1px solid ${statusFilter === s ? (STATUS_COLOR[s] || '#D6C6A8') : 'rgba(0,0,0,0.06)'}`,
               background: statusFilter === s ? `${STATUS_COLOR[s] || '#D6C6A8'}1a` : 'transparent',
               color: statusFilter === s ? (STATUS_COLOR[s] || '#D6C6A8') : '#3F3F46',
@@ -178,7 +178,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
             width: '100%', padding: '7px 10px 7px 30px', borderRadius: '8px',
             border: '1px solid rgba(0,0,0,0.06)',
             background: 'rgba(24,24,27,0.04)',
-            color: '#18181B', fontSize: '0.78rem',
+            color: '#18181B', fontSize: '0.75rem',
             outline: 'none', boxSizing: 'border-box',
           }}
         />
@@ -206,7 +206,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
           filtered.map(guest => (
             <div key={guest.id} style={{
               display: 'flex', alignItems: 'center', gap: '8px',
-              padding: '6px 8px', borderRadius: '7px',
+              padding: '6px 8px', borderRadius: '6px',
               background: 'rgba(24,24,27,0.03)',
               border: '1px solid #F4F4F5',
             }}>
@@ -227,7 +227,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
                   )}
                 </div>
                 {guest.email && (
-                  <div style={{ fontSize: '0.62rem', color: '#71717A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{guest.email}</div>
+                  <div style={{ fontSize: '0.6rem', color: '#71717A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{guest.email}</div>
                 )}
               </div>
               {guest.mealPreference && (
@@ -253,10 +253,10 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
             onChange={e => setAddName(e.target.value)}
             placeholder="Full name *"
             style={{
-              padding: '7px 10px', borderRadius: '7px',
+              padding: '6px 10px', borderRadius: '6px',
               border: '1px solid rgba(0,0,0,0.06)',
               background: 'rgba(24,24,27,0.04)',
-              color: '#18181B', fontSize: '0.78rem',
+              color: '#18181B', fontSize: '0.75rem',
               outline: 'none',
             }}
           />
@@ -266,10 +266,10 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
             placeholder="Email (optional)"
             type="email"
             style={{
-              padding: '7px 10px', borderRadius: '7px',
+              padding: '6px 10px', borderRadius: '6px',
               border: '1px solid rgba(0,0,0,0.06)',
               background: 'rgba(24,24,27,0.04)',
-              color: '#18181B', fontSize: '0.78rem',
+              color: '#18181B', fontSize: '0.75rem',
               outline: 'none',
             }}
           />
@@ -277,11 +277,11 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
             onClick={handleAdd}
             disabled={adding || !addName.trim()}
             style={{
-              padding: '7px', borderRadius: '7px',
+              padding: '7px', borderRadius: '6px',
               border: 'none', background: addName.trim() ? 'rgba(24,24,27,0.1)' : '#F4F4F5',
               color: addName.trim() ? '#71717A' : '#71717A',
               cursor: addName.trim() ? 'pointer' : 'default',
-              fontSize: '0.78rem', fontWeight: 700,
+              fontSize: '0.75rem', fontWeight: 700,
             }}
           >
             {adding ? 'Adding…' : '+ Add Guest'}

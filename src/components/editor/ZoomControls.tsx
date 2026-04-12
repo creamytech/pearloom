@@ -55,7 +55,7 @@ export function ZoomControls({ zoom, onZoomChange, className }: ZoomControlsProp
         title="Zoom out"
         style={{
           padding: '4px 6px',
-          borderRadius: '5px',
+          borderRadius: '6px',
           border: 'none',
           background: 'transparent',
           color: zoom <= MIN_ZOOM ? 'rgba(0,0,0,0.08)' : '#3F3F46',
@@ -102,7 +102,7 @@ export function ZoomControls({ zoom, onZoomChange, className }: ZoomControlsProp
         title="Zoom in"
         style={{
           padding: '4px 6px',
-          borderRadius: '5px',
+          borderRadius: '6px',
           border: 'none',
           background: 'transparent',
           color: zoom >= MAX_ZOOM ? 'rgba(0,0,0,0.08)' : '#3F3F46',

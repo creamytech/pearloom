@@ -210,7 +210,7 @@ export function PearPublishAudit({ manifest, coupleNames, onProceed, onClose }: 
           onClick={(e) => e.stopPropagation()}
           style={{
             background: 'rgba(250, 247, 242, 0.95)',
-            borderRadius: '20px',
+            borderRadius: '10px',
             border: '1px solid #E4E4E7',
             boxShadow: '0 24px 80px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.03)',
             maxWidth: '480px',
@@ -247,7 +247,7 @@ export function PearPublishAudit({ manifest, coupleNames, onProceed, onClose }: 
                   {autoProceed ? 'Your site looks great!' : "Pear's Pre-Publish Check"}
                 </h2>
                 {!autoProceed && (
-                  <p style={{ fontSize: '0.72rem', color: '#71717A', margin: '2px 0 0' }}>
+                  <p style={{ fontSize: '0.65rem', color: '#71717A', margin: '2px 0 0' }}>
                     {issues.length} {issues.length === 1 ? 'item' : 'items'} found before publishing
                   </p>
                 )}
@@ -290,7 +290,7 @@ export function PearPublishAudit({ manifest, coupleNames, onProceed, onClose }: 
               }}
             >
               <Check size={18} color={OLIVE} />
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#18181B' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#18181B' }}>
                 Ready to publish! Proceeding...
               </span>
             </motion.div>
@@ -369,7 +369,7 @@ export function PearPublishAudit({ manifest, coupleNames, onProceed, onClose }: 
                     border: 'none',
                     background: OLIVE,
                     color: '#fff',
-                    fontSize: '0.72rem',
+                    fontSize: '0.65rem',
                     fontWeight: 700,
                     cursor: fixingAll ? 'wait' : 'pointer',
                     letterSpacing: '0.04em',
@@ -393,7 +393,7 @@ export function PearPublishAudit({ manifest, coupleNames, onProceed, onClose }: 
                     border: '1px solid rgba(0,0,0,0.08)',
                     background: 'rgba(0,0,0,0.03)',
                     color: 'var(--pl-ink-soft, #3D3530)',
-                    fontSize: '0.72rem',
+                    fontSize: '0.65rem',
                     fontWeight: 600,
                     cursor: 'pointer',
                     letterSpacing: '0.02em',
@@ -420,7 +420,7 @@ function IssueRow({ issue, fixing, onFix }: { issue: AuditIssue; fixing: boolean
       display: 'flex',
       alignItems: 'center',
       gap: '10px',
-      padding: '10px 12px',
+      padding: '8px 10px',
       borderRadius: '12px',
       background: isWarning ? 'rgba(196,138,63,0.06)' : 'rgba(0,0,0,0.02)',
       border: `1px solid ${isWarning ? 'rgba(196,138,63,0.15)' : 'rgba(0,0,0,0.04)'}`,
@@ -432,7 +432,7 @@ function IssueRow({ issue, fixing, onFix }: { issue: AuditIssue; fixing: boolean
       )}
       <span style={{
         flex: 1,
-        fontSize: '0.78rem',
+        fontSize: '0.75rem',
         fontWeight: 500,
         color: 'var(--pl-ink-soft, #3D3530)',
         lineHeight: 1.4,
@@ -453,7 +453,7 @@ function IssueRow({ issue, fixing, onFix }: { issue: AuditIssue; fixing: boolean
           border: `1px solid #E4E4E7`,
           background: 'transparent',
           color: OLIVE,
-          fontSize: '0.62rem',
+          fontSize: '0.6rem',
           fontWeight: 700,
           cursor: fixing ? 'wait' : 'pointer',
           whiteSpace: 'nowrap',

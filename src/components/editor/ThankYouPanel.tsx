@@ -66,7 +66,7 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
         background: '#FAFAFA',
       }}>
         <span style={{
-          fontSize: '0.78rem', fontWeight: 700,
+          fontSize: '0.75rem', fontWeight: 700,
           color: '#71717A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {note.guestName}
@@ -76,7 +76,7 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
             onClick={handleToggleEdit}
             style={{
               fontSize: '0.65rem', fontWeight: 700, padding: '2px 7px',
-              borderRadius: '5px', border: '1px solid rgba(0,0,0,0.07)',
+              borderRadius: '6px', border: '1px solid rgba(0,0,0,0.07)',
               background: editing ? 'rgba(24,24,27,0.08)' : 'transparent',
               color: editing ? '#71717A' : 'rgba(255,255,255,0.45)',
               cursor: 'pointer',
@@ -89,7 +89,7 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
             title="Copy to clipboard"
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              width: '24px', height: '24px', borderRadius: '5px',
+              width: '24px', height: '24px', borderRadius: '6px',
               border: '1px solid rgba(0,0,0,0.07)',
               background: copied ? 'rgba(24,24,27,0.08)' : 'transparent',
               color: copied ? '#71717A' : 'rgba(255,255,255,0.45)',
@@ -101,7 +101,7 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
         </div>
       </div>
       {/* Card body */}
-      <div style={{ padding: '10px 12px' }}>
+      <div style={{ padding: '8px 10px' }}>
         {editing ? (
           <textarea
             value={draft}
@@ -255,7 +255,7 @@ export function ThankYouPanel() {
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '6px',
-        fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
+        fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em',
         textTransform: 'uppercase', color: '#71717A',
         padding: '0 16px',
       }}>
@@ -306,7 +306,7 @@ export function ThankYouPanel() {
                 onChange={e => updateEntry(entry.id, 'name', e.target.value)}
                 style={{
                   background: 'transparent', border: 'none', borderBottom: '1px solid rgba(0,0,0,0.06)',
-                  color: '#18181B', fontSize: '0.78rem', fontWeight: 600,
+                  color: '#18181B', fontSize: '0.75rem', fontWeight: 600,
                   padding: '2px 0', outline: 'none', width: 'calc(100% - 20px)',
                   fontFamily: 'inherit',
                 }}
@@ -320,7 +320,7 @@ export function ThankYouPanel() {
                 onChange={e => updateEntry(entry.id, 'gift', e.target.value)}
                 style={{
                   background: 'transparent', border: 'none', borderBottom: '1px solid rgba(0,0,0,0.04)',
-                  color: '#3F3F46', fontSize: '0.72rem',
+                  color: '#3F3F46', fontSize: '0.65rem',
                   padding: '2px 0', outline: 'none', width: '100%',
                   fontFamily: 'inherit',
                 }}
@@ -334,7 +334,7 @@ export function ThankYouPanel() {
                 onChange={e => updateEntry(entry.id, 'relationship', e.target.value)}
                 style={{
                   background: 'transparent', border: 'none', borderBottom: '1px solid rgba(0,0,0,0.04)',
-                  color: '#3F3F46', fontSize: '0.72rem',
+                  color: '#3F3F46', fontSize: '0.65rem',
                   padding: '2px 0', outline: 'none', width: '100%',
                   fontFamily: 'inherit',
                 }}
@@ -350,7 +350,7 @@ export function ThankYouPanel() {
               padding: '7px', borderRadius: '8px',
               border: '1px dashed rgba(0,0,0,0.07)',
               background: 'transparent',
-              color: '#71717A', cursor: 'pointer', fontSize: '0.73rem',
+              color: '#71717A', cursor: 'pointer', fontSize: '0.65rem',
             }}
           >
             <Plus size={12} /> Add guest
@@ -374,7 +374,7 @@ export function ThankYouPanel() {
               : 'rgba(24,24,27,0.04)',
             color: canGenerate ? '#71717A' : '#71717A',
             cursor: canGenerate ? 'pointer' : 'default',
-            fontSize: '0.78rem', fontWeight: 700,
+            fontSize: '0.75rem', fontWeight: 700,
             transition: 'all 0.15s',
           }}
         >
@@ -393,7 +393,7 @@ export function ThankYouPanel() {
 
         {error && (
           <p style={{
-            margin: '6px 0 0', fontSize: '0.72rem', color: '#f87171',
+            margin: '6px 0 0', fontSize: '0.65rem', color: '#f87171',
             textAlign: 'center',
           }}>
             {error}

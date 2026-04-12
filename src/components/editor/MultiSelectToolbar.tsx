@@ -75,7 +75,7 @@ export function MultiSelectToolbar({
         {/* Selection count */}
         <div style={{
           padding: '6px 12px',
-          fontSize: '0.72rem', fontWeight: 700,
+          fontSize: '0.65rem', fontWeight: 700,
           color: '#18181B',
           borderRight: '1px solid rgba(255,255,255,0.25)',
           marginRight: '4px',

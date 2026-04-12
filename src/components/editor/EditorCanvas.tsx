@@ -381,7 +381,7 @@ export function EditorCanvas() {
             backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
             border: '1px solid #E4E4E7',
             boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
-            fontSize: '0.72rem', fontWeight: 600, color: '#18181B',
+            fontSize: '0.65rem', fontWeight: 600, color: '#18181B',
             whiteSpace: 'nowrap',
           } as React.CSSProperties}
         >
@@ -395,7 +395,7 @@ export function EditorCanvas() {
           position: 'absolute', top: '56px', left: '50%', transform: 'translateX(-50%)',
           zIndex: 200, padding: '4px 12px', borderRadius: '8px',
           background: '#18181B', color: 'white',
-          fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
+          fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
         }}>
           Panning — release Space to stop
         </div>

@@ -37,9 +37,9 @@ function MenuItem({
       onClick={onClick}
       style={{
         display: 'flex', alignItems: 'center', gap: 8,
-        width: '100%', padding: '7px 12px', border: 'none', borderRadius: 8,
+        width: '100%', padding: '6px 10px', border: 'none', borderRadius: 8,
         background: 'transparent', cursor: 'pointer',
-        fontSize: '0.88rem', fontWeight: 500,
+        fontSize: '0.8rem', fontWeight: 500,
         color: danger ? '#ef4444' : '#18181B',
         fontFamily: 'var(--pl-font-body)',
         transition: 'background 0.12s',
@@ -119,7 +119,7 @@ export function ChapterContextMenu({
       <Divider />
 
       {/* Layout sub-items */}
-      <div style={{ padding: '4px 12px 2px', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A' }}>
+      <div style={{ padding: '4px 12px 2px', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A' }}>
         Layout
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, padding: '2px 4px 4px' }}>

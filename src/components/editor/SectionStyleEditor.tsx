@@ -100,8 +100,8 @@ export function SectionStyleEditor({
           <button
             onClick={() => upd({ textColor: vibeSkin.palette.ink })}
             style={{
-              flex: 1, padding: '7px 10px', borderRadius: '6px', border: 'none',
-              cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
+              flex: 1, padding: '6px 10px', borderRadius: '6px', border: 'none',
+              cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
               background: isDark ? '#71717A' : 'rgba(0,0,0,0.05)',
               color: isDark ? '#fff' : '#3F3F46',
               transition: 'all 0.15s',
@@ -113,8 +113,8 @@ export function SectionStyleEditor({
           <button
             onClick={() => upd({ textColor: vibeSkin.palette.card })}
             style={{
-              flex: 1, padding: '7px 10px', borderRadius: '6px', border: 'none',
-              cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
+              flex: 1, padding: '6px 10px', borderRadius: '6px', border: 'none',
+              cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
               background: !isDark ? '#71717A' : 'rgba(0,0,0,0.05)',
               color: !isDark ? '#fff' : '#3F3F46',
               transition: 'all 0.15s',
@@ -136,7 +136,7 @@ export function SectionStyleEditor({
               onClick={() => upd({ padding: opt.value })}
               style={{
                 flex: 1, padding: '7px 6px', borderRadius: '6px', border: 'none',
-                cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
+                cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
                 background: padding === opt.value ? '#71717A' : 'rgba(0,0,0,0.05)',
                 color: padding === opt.value ? '#fff' : '#3F3F46',
                 transition: 'all 0.15s',
@@ -153,7 +153,7 @@ export function SectionStyleEditor({
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {/* Full bleed */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: '36px' }}>
-          <span style={{ fontSize: '0.85rem', color: '#18181B', fontWeight: 600 }}>Full bleed</span>
+          <span style={{ fontSize: '0.8rem', color: '#18181B', fontWeight: 600 }}>Full bleed</span>
           <button
             onClick={() => upd({ fullWidth: !currentOverrides.fullWidth })}
             style={{
@@ -172,7 +172,7 @@ export function SectionStyleEditor({
         </div>
         {/* Divider before */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: '36px' }}>
-          <span style={{ fontSize: '0.85rem', color: '#18181B', fontWeight: 600 }}>Divider before</span>
+          <span style={{ fontSize: '0.8rem', color: '#18181B', fontWeight: 600 }}>Divider before</span>
           <button
             onClick={() => upd({ dividerBefore: !currentOverrides.dividerBefore })}
             style={{
@@ -191,7 +191,7 @@ export function SectionStyleEditor({
         </div>
         {/* Divider after */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: '36px' }}>
-          <span style={{ fontSize: '0.85rem', color: '#18181B', fontWeight: 600 }}>Divider after</span>
+          <span style={{ fontSize: '0.8rem', color: '#18181B', fontWeight: 600 }}>Divider after</span>
           <button
             onClick={() => upd({ dividerAfter: !currentOverrides.dividerAfter })}
             style={{

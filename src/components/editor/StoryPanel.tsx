@@ -112,7 +112,7 @@ function ChapterCard({
             width: '22px', height: '22px', borderRadius: '6px', flexShrink: 0,
             background: isActive ? '#18181B' : '#F4F4F5',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '0.62rem', fontWeight: 800,
+            fontSize: '0.6rem', fontWeight: 800,
             color: isActive ? 'white' : '#71717A',
             border: isActive ? 'none' : '1px solid #E4E4E7',
           }}>
@@ -133,7 +133,7 @@ function ChapterCard({
           {/* Title + meta */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
-              fontSize: '0.85rem', fontWeight: 600,
+              fontSize: '0.8rem', fontWeight: 600,
               fontFamily: 'inherit',
               color: '#18181B',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -201,7 +201,7 @@ function ChapterCard({
                 display: 'flex', flexDirection: 'column', gap: '8px',
               }}>
                 <div style={{
-                  fontSize: '0.78rem', color: '#b91c1c', fontWeight: 600, lineHeight: 1.4,
+                  fontSize: '0.75rem', color: '#b91c1c', fontWeight: 600, lineHeight: 1.4,
                 }}>
                   Delete &ldquo;{chapter.title || 'Untitled'}&rdquo;? This can&apos;t be undone.
                 </div>
@@ -209,7 +209,7 @@ function ChapterCard({
                   <button
                     onClick={e => { e.stopPropagation(); onCancelDelete(); }}
                     style={{
-                      flex: 1, padding: '7px 12px', borderRadius: '6px',
+                      flex: 1, padding: '6px 10px', borderRadius: '6px',
                       border: '1px solid #E4E4E7', background: '#FFFFFF',
                       color: '#3F3F46', fontSize: '0.75rem', fontWeight: 600,
                       cursor: 'pointer', transition: 'background 0.15s',
@@ -220,7 +220,7 @@ function ChapterCard({
                   <button
                     onClick={e => { e.stopPropagation(); onDelete(); }}
                     style={{
-                      flex: 1, padding: '7px 12px', borderRadius: '6px',
+                      flex: 1, padding: '6px 10px', borderRadius: '6px',
                       border: 'none', background: '#ef4444',
                       color: '#fff', fontSize: '0.75rem', fontWeight: 700,
                       cursor: 'pointer', transition: 'background 0.15s',
@@ -256,7 +256,7 @@ function UndoToast({ message, onUndo, onDismiss }: { message: string; onUndo: ()
         zIndex: 9999, display: 'flex', alignItems: 'center', gap: '10px',
         padding: '10px 16px', borderRadius: '8px',
         boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-        color: '#fff', fontSize: '0.82rem', fontWeight: 500,
+        color: '#fff', fontSize: '0.8rem', fontWeight: 500,
       } as React.CSSProperties}
     >
       <span>{message}</span>
@@ -265,7 +265,7 @@ function UndoToast({ message, onUndo, onDismiss }: { message: string; onUndo: ()
         style={{
           padding: '4px 12px', borderRadius: '8px', border: 'none',
           background: 'rgba(255,255,255,0.18)', color: '#fff',
-          fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer',
+          fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: '4px',
           transition: 'background 0.15s',
         }}
@@ -423,10 +423,10 @@ export function StoryPanel() {
             background: '#FAFAFA',
             border: '1px dashed #E4E4E7',
           }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3F3F46', marginBottom: '4px' }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#3F3F46', marginBottom: '4px' }}>
               No chapters yet
             </div>
-            <div style={{ fontSize: '0.72rem', color: '#71717A', lineHeight: 1.5 }}>
+            <div style={{ fontSize: '0.65rem', color: '#71717A', lineHeight: 1.5 }}>
               Add your first chapter to start telling your story.
             </div>
           </div>

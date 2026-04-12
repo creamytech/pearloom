@@ -193,7 +193,7 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
           background: 'rgba(255,255,255,0.55)',
           borderLeft: '3px solid #18181B',
           borderRadius: '12px',
-          padding: '14px 16px',
+          padding: '10px 12px',
           position: 'relative',
           border: '1px solid #E4E4E7',
           boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
@@ -224,7 +224,7 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
             <span style={{ color: '#18181B', display: 'flex', alignItems: 'center' }}>
               <IconSparkle size={15} />
             </span>
-            <span style={{ fontSize: '0.88rem', fontWeight: 700, letterSpacing: '-0.01em' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '-0.01em' }}>
               AI Review
             </span>
             <span
@@ -277,7 +277,7 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
               >
                 <StatusDot level={s.level} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#18181B', lineHeight: 1.3 }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#18181B', lineHeight: 1.3 }}>
                     {s.title}
                   </div>
                   <div style={{ fontSize: '0.8rem', color: '#71717A', lineHeight: 1.45, marginTop: 2 }}>
@@ -316,7 +316,7 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
                   border: 'none',
                   cursor: 'pointer',
                   color: '#18181B',
-                  fontSize: '0.78rem',
+                  fontSize: '0.75rem',
                   fontWeight: 600,
                   padding: '4px 0 0',
                   textAlign: 'left',

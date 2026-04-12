@@ -102,10 +102,10 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
           onClick={() => setSaving(true)}
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '7px 10px', borderRadius: '8px',
+            padding: '6px 10px', borderRadius: '8px',
             border: '1px dashed rgba(24,24,27,0.08)',
             background: 'transparent', color: '#71717A',
-            cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
+            cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700,
             letterSpacing: '0.06em', textTransform: 'uppercase',
             width: '100%', justifyContent: 'center',
           }}
@@ -121,10 +121,10 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
             onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') setSaving(false); }}
             placeholder="Preset name…"
             style={{
-              flex: 1, padding: '6px 10px', borderRadius: '7px',
+              flex: 1, padding: '6px 10px', borderRadius: '6px',
               border: '1px solid rgba(24,24,27,0.08)',
               background: '#F4F4F5',
-              color: '#18181B', fontSize: '0.78rem',
+              color: '#18181B', fontSize: '0.75rem',
               outline: 'none',
             }}
           />
@@ -132,18 +132,18 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
             onClick={handleSave}
             disabled={!saveName.trim()}
             style={{
-              padding: '6px 10px', borderRadius: '7px',
+              padding: '6px 10px', borderRadius: '6px',
               border: 'none', background: 'rgba(24,24,27,0.12)',
-              color: '#71717A', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem',
+              color: '#71717A', cursor: 'pointer', fontWeight: 700, fontSize: '0.75rem',
               opacity: saveName.trim() ? 1 : 0.4,
             }}
           >Save</button>
           <button
             onClick={() => setSaving(false)}
             style={{
-              padding: '6px 8px', borderRadius: '7px',
+              padding: '6px 8px', borderRadius: '6px',
               border: 'none', background: 'rgba(0,0,0,0.04)',
-              color: '#3F3F46', cursor: 'pointer', fontSize: '0.78rem',
+              color: '#3F3F46', cursor: 'pointer', fontSize: '0.75rem',
             }}
           >✕</button>
         </div>
@@ -171,7 +171,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
             <Bookmark size={12} color="#A1A1AA" style={{ flexShrink: 0 }} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#18181B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{preset.name}</div>
-              <div style={{ fontSize: '0.63rem', color: '#71717A' }}>
+              <div style={{ fontSize: '0.6rem', color: '#71717A' }}>
                 {new Date(preset.savedAt).toLocaleDateString()}
               </div>
             </div>
@@ -183,7 +183,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
                 padding: '4px 8px', borderRadius: '6px',
                 border: '1px solid rgba(24,24,27,0.12)',
                 background: 'rgba(24,24,27,0.04)',
-                color: '#71717A', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700,
+                color: '#71717A', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700,
                 flexShrink: 0,
               }}
             >
@@ -193,7 +193,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
               onClick={() => deletePreset(preset.id)}
               title="Delete preset"
               style={{
-                display: 'flex', padding: '4px', borderRadius: '5px',
+                display: 'flex', padding: '4px', borderRadius: '6px',
                 border: 'none', background: 'none',
                 color: '#71717A', cursor: 'pointer',
                 flexShrink: 0,

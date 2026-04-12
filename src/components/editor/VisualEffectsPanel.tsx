@@ -323,7 +323,7 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
                 border: `1px solid ${divider.style === d.id ? '#71717A' : 'rgba(0,0,0,0.06)'}`,
                 background: divider.style === d.id ? '#F4F4F5' : 'rgba(24,24,27,0.04)',
                 color: divider.style === d.id ? '#18181B' : '#3F3F46',
-                cursor: 'pointer', fontSize: '0.72rem', fontWeight: divider.style === d.id ? 700 : 400,
+                cursor: 'pointer', fontSize: '0.65rem', fontWeight: divider.style === d.id ? 700 : 400,
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
                 transition: 'all 0.15s',
               }}
@@ -346,7 +346,7 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
                   border: `1px solid ${divider.style === d.id ? '#71717A' : 'rgba(0,0,0,0.06)'}`,
                   background: divider.style === d.id ? '#F4F4F5' : 'rgba(24,24,27,0.04)',
                   color: divider.style === d.id ? '#18181B' : '#3F3F46',
-                  cursor: 'pointer', fontSize: '0.72rem', fontWeight: divider.style === d.id ? 700 : 400,
+                  cursor: 'pointer', fontSize: '0.65rem', fontWeight: divider.style === d.id ? 700 : 400,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
                   transition: 'all 0.15s',
                 }}

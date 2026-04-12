@@ -40,7 +40,7 @@ const DARK  = 'var(--pl-ink-soft, #3D3530)';
 // ── Typing dots animation ──────────────────────────────────────
 function TypingIndicator() {
   return (
-    <div style={{ display: 'flex', gap: '4px', alignItems: 'center', padding: '10px 14px' }}>
+    <div style={{ display: 'flex', gap: '4px', alignItems: 'center', padding: '8px 10px' }}>
       {[0, 1, 2].map(i => (
         <motion.span
           key={i}
@@ -210,7 +210,7 @@ export function AIEditorChat({
                 <span style={{
                   color: CREAM,
                   fontWeight: 700,
-                  fontSize: '0.85rem',
+                  fontSize: '0.8rem',
                   letterSpacing: '0.04em',
                   fontFamily: 'inherit',
                 }}>
@@ -245,7 +245,7 @@ export function AIEditorChat({
               {messages.length === 0 && !thinking && (
                 <div style={{ padding: '0.5rem 0' }}>
                   <p style={{
-                    fontSize: '0.78rem',
+                    fontSize: '0.75rem',
                     color: '#8B7E74',
                     textAlign: 'center',
                     margin: '0 0 0.75rem',
@@ -264,7 +264,7 @@ export function AIEditorChat({
                           border: `1px solid rgba(212,193,155,0.7)`,
                           borderRadius: '0.5rem',
                           padding: '0.45rem 0.75rem',
-                          fontSize: '0.78rem',
+                          fontSize: '0.75rem',
                           color: '#3D3530',
                           cursor: 'pointer',
                           textAlign: 'left',
@@ -310,7 +310,7 @@ export function AIEditorChat({
                         : '1rem 1rem 1rem 0.2rem',
                       background: msg.role === 'user' ? OLIVE : CREAM,
                       color: msg.role === 'user' ? CREAM : '#2B2B2B',
-                      fontSize: '0.82rem',
+                      fontSize: '0.8rem',
                       lineHeight: 1.55,
                       borderLeft: msg.role === 'ai' ? `3px solid ${PLUM}` : 'none',
                       boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
@@ -367,7 +367,7 @@ export function AIEditorChat({
                   borderRadius: '0.6rem',
                   border: `1px solid #E4E4E7`,
                   color: '#18181B',
-                  fontSize: '0.82rem',
+                  fontSize: '0.8rem',
                   outline: 'none',
                   fontFamily: 'inherit',
                   opacity: thinking ? 0.6 : 1,

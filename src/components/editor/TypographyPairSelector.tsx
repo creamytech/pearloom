@@ -69,11 +69,11 @@ export function TypographyPairSelector({ value = 'serif-sans', onChange }: Typog
         style={{
           width: '100%',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '10px 14px',
+          padding: '8px 10px',
           borderRadius: 'var(--pl-radius-sm)',
           border: '1.5px solid rgba(255,255,255,0.25)',
           cursor: 'pointer',
-          fontSize: '0.88rem',
+          fontSize: '0.8rem',
           fontFamily: 'var(--pl-font-body)',
           color: '#18181B',
         }}
@@ -112,7 +112,7 @@ export function TypographyPairSelector({ value = 'serif-sans', onChange }: Typog
                 style={{
                   width: '100%',
                   display: 'flex', flexDirection: 'column', gap: '2px',
-                  padding: '10px 14px',
+                  padding: '8px 10px',
                   border: 'none',
                   background: pair.id === value ? '#F4F4F5' : 'transparent',
                   cursor: 'pointer',
@@ -128,14 +128,14 @@ export function TypographyPairSelector({ value = 'serif-sans', onChange }: Typog
                 }}
               >
                 <span style={{
-                  fontSize: '0.82rem',
+                  fontSize: '0.8rem',
                   fontWeight: pair.id === value ? 600 : 500,
                   color: pair.id === value ? '#18181B' : '#18181B',
                 }}>
                   {pair.label}
                 </span>
                 <span style={{
-                  fontSize: '0.68rem',
+                  fontSize: '0.65rem',
                   color: '#71717A',
                 }}>
                   {pair.preview.heading} + {pair.preview.body}

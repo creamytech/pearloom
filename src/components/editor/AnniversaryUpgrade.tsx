@@ -168,7 +168,7 @@ export function AnniversaryUpgrade({ manifest, onChange }: AnniversaryUpgradePro
   };
 
   const bodyStyle: React.CSSProperties = {
-    fontSize: '0.85rem',
+    fontSize: '0.8rem',
     color: 'rgba(245,240,232,0.65)',
     lineHeight: 1.6,
     marginBottom: '1rem',

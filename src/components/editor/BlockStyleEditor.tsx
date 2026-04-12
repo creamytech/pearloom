@@ -44,7 +44,7 @@ export function BlockStyleEditor({ block, onChange }: BlockStyleEditorProps) {
   };
 
   const labelStyle: React.CSSProperties = {
-    fontSize: '0.62rem', fontWeight: 700,
+    fontSize: '0.6rem', fontWeight: 700,
     letterSpacing: '0.1em', textTransform: 'uppercase',
     color: '#71717A',
     marginBottom: '8px', display: 'block',
@@ -55,7 +55,7 @@ export function BlockStyleEditor({ block, onChange }: BlockStyleEditorProps) {
     border: active ? '1.5px solid #18181B' : '1.5px solid rgba(255,255,255,0.25)',
     background: active ? 'rgba(24,24,27,0.06)' : 'transparent',
     color: active ? '#18181B' : '#71717A',
-    fontSize: '0.72rem', fontWeight: 600,
+    fontSize: '0.65rem', fontWeight: 600,
     cursor: 'pointer', transition: 'all 0.15s',
   });
 

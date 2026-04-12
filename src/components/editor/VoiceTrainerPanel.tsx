@@ -60,7 +60,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
 
   const textareaStyle: React.CSSProperties = {
     width: '100%', padding: '0.75rem', borderRadius: '8px',
-    border: '1.5px solid rgba(255,255,255,0.2)', fontSize: '0.85rem',
+    border: '1.5px solid rgba(255,255,255,0.2)', fontSize: '0.8rem',
     background: 'rgba(24,24,27,0.04)', fontFamily: 'var(--pl-font-body)',
     color: '#18181B', outline: 'none', resize: 'none',
     lineHeight: 1.6, boxSizing: 'border-box',
@@ -208,7 +208,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
               <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: '#71717A', marginBottom: '4px' }}>Signature Phrases</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                 {voiceProfile.signaturePhrases.slice(0, 5).map(phrase => (
-                  <span key={phrase} style={{ padding: '2px 8px', borderRadius: '8px', background: '#F4F4F5', color: '#18181B', fontSize: '0.62rem', fontWeight: 600 }}>
+                  <span key={phrase} style={{ padding: '2px 8px', borderRadius: '8px', background: '#F4F4F5', color: '#18181B', fontSize: '0.6rem', fontWeight: 600 }}>
                     {phrase}
                   </span>
                 ))}

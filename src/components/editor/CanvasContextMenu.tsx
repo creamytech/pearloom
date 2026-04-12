@@ -365,7 +365,7 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
                   alignItems: 'center',
                   gap: '8px',
                   width: '100%',
-                  padding: '7px 10px',
+                  padding: '6px 10px',
                   borderRadius: '8px',
                   border: 'none',
                   background: 'transparent',

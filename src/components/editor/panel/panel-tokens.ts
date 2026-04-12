@@ -13,17 +13,17 @@ import { colors, radius, shadow, ease } from '@/lib/design-tokens';
 // map so sizes stay consistent across the whole editor.
 export const panelText = {
   // SECTION HEADINGS — "DESIGN", "COLORS", etc. (uppercase eyebrow)
-  heading: '0.72rem',
+  heading: '0.6rem',
   // FIELD LABELS — "Accent Color", "Font pairing" (uppercase)
-  label: '0.7rem',
+  label: '0.6rem',
   // Inline helper / description text under a heading or label
-  hint: '0.72rem',
+  hint: '0.65rem',
   // Default body copy inside a panel section
-  body: '0.82rem',
+  body: '0.75rem',
   // Compact pill / chip text
-  chip: '0.75rem',
+  chip: '0.65rem',
   // Smallest meta — timestamps, counts, units
-  meta: '0.65rem',
+  meta: '0.55rem',
 } as const;
 
 export const panelWeight = {

@@ -83,7 +83,7 @@ export function SpacingHandle({ value, min = 16, max = 200, onChange }: SpacingH
       >
         <GripHorizontal size={12} />
         <span style={{
-          fontSize: '0.62rem', fontWeight: 700,
+          fontSize: '0.6rem', fontWeight: 700,
           letterSpacing: '0.06em',
           fontVariantNumeric: 'tabular-nums',
         }}>

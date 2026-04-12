@@ -169,7 +169,7 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 1.2 }}
             style={{
-              fontSize: '0.92rem', fontWeight: 600,
+              fontSize: '0.9rem', fontWeight: 600,
               color: '#18181B',
               marginBottom: '0.5rem',
               letterSpacing: '0.02em',
@@ -185,7 +185,7 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 1.3, ease: [0.16, 1, 0.3, 1] }}
           style={{
-            fontSize: '0.88rem',
+            fontSize: '0.8rem',
             color: '#71717A',
             textAlign: 'center',
             lineHeight: 1.6,
@@ -217,7 +217,7 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
                   border: '1px solid rgba(24,24,27,0.08)',
                 }}
               >
-                <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#18181B' }}>{s.value}</span>
+                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#18181B' }}>{s.value}</span>
                 <span style={{ fontSize: '0.6rem', fontWeight: 600, color: '#71717A', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{s.label}</span>
               </div>
             ))}
@@ -235,7 +235,7 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
             background: 'rgba(24,24,27,0.06)',
             border: '1px solid rgba(24,24,27,0.1)',
             color: '#18181B',
-            fontSize: '0.72rem', fontWeight: 600,
+            fontSize: '0.65rem', fontWeight: 600,
             letterSpacing: '0.06em',
           }}
         >

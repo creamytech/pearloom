@@ -44,7 +44,7 @@ function PropControl({
     borderRadius: 'var(--pl-radius-sm)',
     border: '1px solid #E4E4E7',
     background: '#FFFFFF',
-    fontSize: '0.88rem',
+    fontSize: '0.8rem',
     fontFamily: 'var(--pl-font-body)',
     color: '#18181B',
     outline: 'none',
@@ -177,7 +177,7 @@ function PropControl({
           style={{
             ...inputStyle,
             fontFamily: 'monospace',
-            fontSize: '0.82rem',
+            fontSize: '0.8rem',
             color: '#18181B',
           }}
           className="pl-focus-glow"
@@ -187,7 +187,7 @@ function PropControl({
       {/* Description */}
       {schema.description && (
         <p style={{
-          fontSize: '0.68rem', color: '#71717A',
+          fontSize: '0.65rem', color: '#71717A',
           marginTop: '4px', lineHeight: 1.4,
         }}>
           {schema.description}
@@ -197,7 +197,7 @@ function PropControl({
       {/* Binding indicator */}
       {isBinding && (
         <p style={{
-          fontSize: '0.62rem', color: '#18181B',
+          fontSize: '0.6rem', color: '#18181B',
           marginTop: '3px', fontFamily: 'monospace',
           display: 'flex', alignItems: 'center', gap: '4px',
         }}>
@@ -225,7 +225,7 @@ export function BlockConfigEditor({ block, onChange }: BlockConfigEditorProps) {
         padding: '20px',
         textAlign: 'center',
         color: '#71717A',
-        fontSize: '0.85rem',
+        fontSize: '0.8rem',
       }}>
         <Settings2 size={24} style={{ opacity: 0.3, marginBottom: '8px' }} />
         <p>No editable properties for this block type.</p>
@@ -274,7 +274,7 @@ export function BlockConfigEditor({ block, onChange }: BlockConfigEditorProps) {
             {schema.label}
           </h3>
           <p style={{
-            fontSize: '0.68rem', color: '#71717A',
+            fontSize: '0.65rem', color: '#71717A',
             margin: 0,
           }}>
             {schema.description}
@@ -292,7 +292,7 @@ export function BlockConfigEditor({ block, onChange }: BlockConfigEditorProps) {
         }}>
           {Object.keys(groups).length > 1 && (
             <h4 style={{
-              fontSize: '0.68rem', fontWeight: 800,
+              fontSize: '0.65rem', fontWeight: 800,
               letterSpacing: '0.1em', textTransform: 'uppercase',
               color: '#3F3F46',
               marginBottom: '16px',

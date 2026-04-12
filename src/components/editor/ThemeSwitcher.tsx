@@ -1308,7 +1308,7 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
               {isActive && (
                 <div style={{
                   position: 'absolute', top: '4px', right: '4px',
-                  fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.08em',
+                  fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.08em',
                   textTransform: 'uppercase',
                   background: '#6b7c3f', color: '#fff',
                   padding: '2px 5px', borderRadius: '3px',
@@ -1332,7 +1332,7 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
           padding: '9px 16px', borderRadius: '8px', border: 'none', cursor: pendingName ? 'pointer' : 'not-allowed',
           background: pendingName ? 'linear-gradient(135deg, #6b7c3f, #8a9e56)' : 'rgba(0,0,0,0.04)',
           color: pendingName ? '#fff' : '#71717A',
-          fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.04em',
+          fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.04em',
           transition: 'background 0.15s',
           opacity: pendingName ? 1 : 0.6,
         }}

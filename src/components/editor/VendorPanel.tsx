@@ -114,8 +114,8 @@ function StatusBadge({ status }: { status: VendorStatus }) {
 const inputStyle: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box',
   background: '#F4F4F5', border: '1px solid rgba(0,0,0,0.07)',
-  borderRadius: '7px', color: '#fff', fontSize: '0.78rem',
-  padding: '7px 10px', outline: 'none',
+  borderRadius: '6px', color: '#fff', fontSize: '0.75rem',
+  padding: '6px 10px', outline: 'none',
 };
 
 const selectStyle: React.CSSProperties = {
@@ -329,7 +329,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
       }}>
         <div style={{
           display: 'flex', alignItems: 'center', gap: '6px',
-          fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
+          fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em',
           textTransform: 'uppercase', color: '#71717A',
         }}>
           <Briefcase size={11} /> Vendors
@@ -340,7 +340,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
             display: 'flex', alignItems: 'center', gap: '4px',
             background: showForm ? 'rgba(248,113,113,0.12)' : '#F4F4F5',
             border: `1px solid ${showForm ? 'rgba(248,113,113,0.3)' : '#E4E4E7'}`,
-            borderRadius: '7px', color: showForm ? '#f87171' : '#71717A',
+            borderRadius: '6px', color: showForm ? '#f87171' : '#71717A',
             fontSize: '0.7rem', fontWeight: 700, padding: '4px 10px', cursor: 'pointer',
           }}
         >
@@ -407,7 +407,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                 disabled={saving || !formData.name.trim()}
                 style={{
                   background: 'rgba(24,24,27,0.08)', border: '1px solid #E4E4E7',
-                  borderRadius: '7px', color: '#71717A', fontSize: '0.75rem',
+                  borderRadius: '6px', color: '#71717A', fontSize: '0.75rem',
                   fontWeight: 700, padding: '8px', cursor: saving ? 'not-allowed' : 'pointer',
                   opacity: saving || !formData.name.trim() ? 0.5 : 1,
                 }}
@@ -438,7 +438,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
               <div style={{ fontSize: '0.6rem', color: '#71717A', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '3px' }}>
                 {s.label}
               </div>
-              <div style={{ fontSize: '0.88rem', fontWeight: 800, color: s.color }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 800, color: s.color }}>
                 {s.value}
               </div>
             </div>
@@ -452,7 +452,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
           <div style={{
             padding: '12px', borderRadius: '8px',
             background: 'rgba(24,24,27,0.03)', border: '1px solid rgba(0,0,0,0.06)',
-            fontSize: '0.73rem', color: '#71717A', textAlign: 'center',
+            fontSize: '0.65rem', color: '#71717A', textAlign: 'center',
           }}>
             No vendors yet. Click + Add to get started.
           </div>
@@ -480,24 +480,24 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                     <input style={inputStyle} value={editData.contactEmail} onChange={e => setEditData(p => ({ ...p, contactEmail: e.target.value }))} placeholder="Contact email" type="email" />
                     <input style={inputStyle} value={editData.amountCents} onChange={e => setEditData(p => ({ ...p, amountCents: e.target.value }))} placeholder="Amount" type="number" />
                     <div style={{ display: 'flex', gap: '6px' }}>
-                      <button onClick={saveEdit} disabled={saving} style={{ flex: 1, background: 'rgba(24,24,27,0.08)', border: '1px solid #E4E4E7', borderRadius: '6px', color: '#71717A', fontSize: '0.72rem', fontWeight: 700, padding: '6px', cursor: 'pointer' }}>
+                      <button onClick={saveEdit} disabled={saving} style={{ flex: 1, background: 'rgba(24,24,27,0.08)', border: '1px solid #E4E4E7', borderRadius: '6px', color: '#71717A', fontSize: '0.65rem', fontWeight: 700, padding: '6px', cursor: 'pointer' }}>
                         <Check size={11} style={{ display: 'inline', marginRight: '4px' }} />Save
                       </button>
-                      <button onClick={() => setEditingId(null)} style={{ flex: 1, background: '#F4F4F5', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '6px', color: 'rgba(255,255,255,0.45)', fontSize: '0.72rem', padding: '6px', cursor: 'pointer' }}>
+                      <button onClick={() => setEditingId(null)} style={{ flex: 1, background: '#F4F4F5', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '6px', color: 'rgba(255,255,255,0.45)', fontSize: '0.65rem', padding: '6px', cursor: 'pointer' }}>
                         Cancel
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div style={{
-                    padding: '10px 12px', borderRadius: '8px',
+                    padding: '8px 10px', borderRadius: '8px',
                     background: 'rgba(24,24,27,0.04)', border: '1px solid rgba(0,0,0,0.06)',
                     display: 'flex', flexDirection: 'column', gap: '5px',
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ fontSize: '1rem', flexShrink: 0 }}>{getCategoryIcon(v.category)}</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</div>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
                           <StatusBadge status={v.status} />
                           {v.amount_cents ? (
@@ -556,12 +556,12 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                                   value={emailDraft[v.id] || ''}
                                   style={{
                                     ...inputStyle, minHeight: '80px', resize: 'vertical',
-                                    fontSize: '0.72rem', lineHeight: 1.6,
+                                    fontSize: '0.65rem', lineHeight: 1.6,
                                     color: '#18181B',
                                   }}
                                   onClick={e => (e.target as HTMLTextAreaElement).select()}
                                 />
-                                <div style={{ fontSize: '0.63rem', color: '#71717A', marginTop: '3px' }}>
+                                <div style={{ fontSize: '0.6rem', color: '#71717A', marginTop: '3px' }}>
                                   Click to select all, then copy
                                 </div>
                               </>
@@ -635,7 +635,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                       {item.description}
                     </div>
                     {item.vendor && (
-                      <div style={{ fontSize: '0.64rem', color: '#71717A', marginTop: '2px',  }}>
+                      <div style={{ fontSize: '0.6rem', color: '#71717A', marginTop: '2px',  }}>
                         {item.vendor}
                       </div>
                     )}

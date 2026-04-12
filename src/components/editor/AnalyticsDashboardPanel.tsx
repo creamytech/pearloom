@@ -84,7 +84,7 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
   const c = color || '#71717A';
   return (
     <div style={{
-      padding: '10px 12px', borderRadius: '10px',
+      padding: '8px 10px', borderRadius: '10px',
       background: `${c}0d`, border: `1px solid ${c}22`,
       display: 'flex', alignItems: 'center', gap: '10px',
     }}>
@@ -96,7 +96,7 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
         <Icon size={15} color={c} />
       </div>
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: '0.68rem', color: '#71717A', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>{label}</div>
+        <div style={{ fontSize: '0.65rem', color: '#71717A', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>{label}</div>
         <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fff', lineHeight: 1.2 }}>{value}</div>
         {sub && <div style={{ fontSize: '0.65rem', color: '#71717A', marginTop: '1px' }}>{sub}</div>}
       </div>
@@ -220,7 +220,7 @@ function RsvpLegendItem({ icon: Icon, color, label, count }: {
       }} />
       <Icon size={11} color={color} style={{ flexShrink: 0 }} />
       <span style={{ fontSize: '0.7rem', color: '#3F3F46', flex: 1 }}>{label}</span>
-      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#fff' }}>{count}</span>
+      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff' }}>{count}</span>
     </div>
   );
 }
@@ -277,7 +277,7 @@ function ViewsBarChart({ dailyViews }: { dailyViews: DailyView[] }) {
       {/* Summary line */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        fontSize: '0.62rem', color: '#71717A', marginTop: '2px',
+        fontSize: '0.6rem', color: '#71717A', marginTop: '2px',
       }}>
         <span>Last 14 days</span>
         <span style={{ color: '#fff', fontWeight: 700 }}>
@@ -331,13 +331,13 @@ function TopSectionsList({ sections }: { sections: SectionStat[] }) {
                 {i + 1}
               </div>
               <span style={{
-                flex: 1, fontSize: '0.72rem', color: '#fff',
+                flex: 1, fontSize: '0.65rem', color: '#fff',
                 fontWeight: i === 0 ? 700 : 500,
               }}>
                 {label}
               </span>
               <span style={{
-                fontSize: '0.68rem', fontWeight: 700,
+                fontSize: '0.65rem', fontWeight: 700,
                 color: i === 0 ? '#18181B' : '#71717A',
               }}>
                 {sec.views.toLocaleString()}
@@ -392,7 +392,7 @@ function ActivityFeed({ events }: { events: ActivityEvent[] }) {
   if (events.length === 0) {
     return (
       <div style={{
-        padding: '12px 14px', borderRadius: '10px',
+        padding: '10px 12px', borderRadius: '10px',
         background: '#F4F4F5', border: '1px solid #F4F4F5',
         fontSize: '0.7rem', color: '#3F3F46', lineHeight: 1.6,
       }}>
@@ -447,7 +447,7 @@ function ShareStatsCard({ stats }: { stats: ShareStats }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       <div style={{
         display: 'flex', alignItems: 'center', gap: '12px',
-        padding: '12px 14px', borderRadius: '12px',
+        padding: '10px 12px', borderRadius: '12px',
         background: 'rgba(24,24,27,0.05)', border: '1px solid rgba(24,24,27,0.08)',
       }}>
         <div style={{
@@ -462,7 +462,7 @@ function ShareStatsCard({ stats }: { stats: ShareStats }) {
           <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#fff', lineHeight: 1 }}>
             {stats.totalShares.toLocaleString()}
           </div>
-          <div style={{ fontSize: '0.62rem', color: '#71717A', marginTop: '2px' }}>
+          <div style={{ fontSize: '0.6rem', color: '#71717A', marginTop: '2px' }}>
             total shares
           </div>
         </div>
@@ -474,7 +474,7 @@ function ShareStatsCard({ stats }: { stats: ShareStats }) {
           background: 'rgba(255,255,255,0.03)', border: '1px solid #E4E4E7',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#fff' }}>{stats.linkCopied}</div>
+          <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#fff' }}>{stats.linkCopied}</div>
           <div style={{ fontSize: '0.56rem', color: '#71717A', marginTop: '1px' }}>Link copied</div>
         </div>
         <div style={{
@@ -482,7 +482,7 @@ function ShareStatsCard({ stats }: { stats: ShareStats }) {
           background: 'rgba(255,255,255,0.03)', border: '1px solid #E4E4E7',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#fff' }}>{stats.socialShares}</div>
+          <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#fff' }}>{stats.socialShares}</div>
           <div style={{ fontSize: '0.56rem', color: '#71717A', marginTop: '1px' }}>Social shares</div>
         </div>
       </div>
@@ -620,7 +620,7 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{
           display: 'flex', alignItems: 'center', gap: '6px',
-          fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
+          fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em',
           textTransform: 'uppercase', color: '#71717A',
         }}>
           <BarChart2 size={11} /> Site Analytics
@@ -649,12 +649,12 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
         {/* Device breakdown */}
         {visits && visits.visits > 0 && (
           <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <div style={{ fontSize: '0.67rem', color: '#71717A', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, marginBottom: '2px' }}>
+            <div style={{ fontSize: '0.65rem', color: '#71717A', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, marginBottom: '2px' }}>
               Device Split
             </div>
             <ProgressBar label={<><Smartphone size={9} style={{ display: 'inline' }} /> Mobile</>  as unknown as string} value={visits.mobile} total={visits.visits} color="#e87ab8" />
             <ProgressBar label={<><Monitor size={9} style={{ display: 'inline' }} /> Desktop</>  as unknown as string} value={visits.desktop} total={visits.visits} color="#71717A" />
-            <div style={{ fontSize: '0.68rem', color: '#71717A', marginTop: '2px' }}>
+            <div style={{ fontSize: '0.65rem', color: '#71717A', marginTop: '2px' }}>
               {devicePct}% of visitors are on mobile
             </div>
           </div>

@@ -126,7 +126,7 @@ export function CanvasCursors({ currentUserId, siteId, containerRef }: CanvasCur
               borderRadius: '4px',
               background: cursor.color,
               color: 'white',
-              fontSize: '0.62rem',
+              fontSize: '0.6rem',
               fontWeight: 700,
               whiteSpace: 'nowrap',
               boxShadow: '0 2px 8px rgba(0,0,0,0.15)',

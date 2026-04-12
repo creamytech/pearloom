@@ -81,7 +81,7 @@ export function ParchmentTintPanel({ currentTint = 'none', onApply }: ParchmentT
 
       {/* Selected label */}
       <p style={{
-        fontSize: '0.78rem',
+        fontSize: '0.75rem',
         color: '#3F3F46',
         fontFamily: 'inherit',
         
@@ -89,7 +89,7 @@ export function ParchmentTintPanel({ currentTint = 'none', onApply }: ParchmentT
       }}>
         {TINTS.find(t => t.id === selected)?.label || 'None'}
         {selected !== 'none' && (
-          <span style={{ color: '#71717A', fontStyle: 'normal', fontSize: '0.68rem', marginLeft: '8px' }}>
+          <span style={{ color: '#71717A', fontStyle: 'normal', fontSize: '0.65rem', marginLeft: '8px' }}>
             Applied to all photos
           </span>
         )}

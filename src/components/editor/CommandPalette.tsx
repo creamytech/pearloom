@@ -198,7 +198,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
             {/* Search input */}
             <div style={{
               display: 'flex', alignItems: 'center', gap: '12px',
-              padding: '14px 16px',
+              padding: '10px 12px',
               borderBottom: '1px solid rgba(0,0,0,0.05)',
             }}>
               <Search size={16} color="#3F3F46" />
@@ -210,7 +210,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                 placeholder="Search actions, tabs, chapters…"
                 style={{
                   flex: 1, background: 'transparent', border: 'none', outline: 'none',
-                  color: '#18181B', fontSize: '0.95rem', fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
+                  color: '#18181B', fontSize: '0.9rem', fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
                   caretColor: '#18181B',
                 }}
               />
@@ -227,7 +227,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
               style={{ maxHeight: '400px', overflowY: 'auto', padding: '8px' }}
             >
               {flatFiltered.length === 0 ? (
-                <div style={{ padding: '2rem', textAlign: 'center', color: '#71717A', fontSize: '0.85rem' }}>
+                <div style={{ padding: '2rem', textAlign: 'center', color: '#71717A', fontSize: '0.8rem' }}>
                   No results for &ldquo;{query}&rdquo;
                 </div>
               ) : (
@@ -236,7 +236,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                     {/* Group label */}
                     <div style={{
                       padding: '6px 10px 4px',
-                      fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.15em',
+                      fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.15em',
                       textTransform: 'uppercase', color: 'rgba(255,255,255,0.22)',
                     }}>
                       {groupName}
@@ -265,7 +265,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                         >
                           {/* Icon */}
                           <div style={{
-                            width: '30px', height: '30px', borderRadius: '7px',
+                            width: '30px', height: '30px', borderRadius: '6px',
                             background: '#F4F4F5',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             flexShrink: 0,
@@ -276,11 +276,11 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
 
                           {/* Text */}
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff', lineHeight: 1.2 }}>
+                            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff', lineHeight: 1.2 }}>
                               {cmd.label}
                             </div>
                             {cmd.description && (
-                              <div style={{ fontSize: '0.72rem', color: '#71717A', marginTop: '1px' }}>
+                              <div style={{ fontSize: '0.65rem', color: '#71717A', marginTop: '1px' }}>
                                 {cmd.description}
                               </div>
                             )}
@@ -289,7 +289,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                           {/* Shortcut or arrow */}
                           {cmd.shortcut ? (
                             <kbd style={{
-                              padding: '2px 7px', borderRadius: '5px', fontSize: '0.65rem',
+                              padding: '2px 7px', borderRadius: '6px', fontSize: '0.65rem',
                               background: 'rgba(0,0,0,0.04)', color: '#71717A',
                               border: '1px solid rgba(0,0,0,0.06)', fontFamily: 'inherit',
                               flexShrink: 0,

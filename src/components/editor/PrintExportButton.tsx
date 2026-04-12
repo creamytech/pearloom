@@ -29,7 +29,7 @@ export function PrintExportButton({ siteId, style }: PrintExportButtonProps) {
         border: '1.5px solid #8A7A4A',
         background: 'transparent',
         color: '#C9B97A',
-        fontSize: '0.78rem',
+        fontSize: '0.75rem',
         fontWeight: 600,
         letterSpacing: '0.06em',
         cursor: 'pointer',

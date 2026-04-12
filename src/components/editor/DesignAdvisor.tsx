@@ -42,7 +42,7 @@ function IssueCard({ severity, title, detail, onDismiss }: {
   const s = SEV[severity] ?? SEV.tip;
   return (
     <div style={{
-      display: 'flex', gap: '9px', padding: '10px 12px',
+      display: 'flex', gap: '9px', padding: '8px 10px',
       borderRadius: '10px', background: s.bg,
       border: `1px solid ${s.border}`,
       position: 'relative',
@@ -182,7 +182,7 @@ export function DesignAdvisor({ manifest }: DesignAdvisorProps) {
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '6px',
-        fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
+        fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em',
         textTransform: 'uppercase', color: '#71717A',
         marginBottom: '2px',
       }}>

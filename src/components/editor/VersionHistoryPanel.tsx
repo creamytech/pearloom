@@ -104,7 +104,7 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
                 className="pl-focus-glow"
                 style={{
                   flex: 1, padding: '6px 10px', borderRadius: '6px',
-                  border: '1.5px solid rgba(255,255,255,0.25)', fontSize: '0.82rem',
+                  border: '1.5px solid rgba(255,255,255,0.25)', fontSize: '0.8rem',
                   background: 'white', color: '#18181B',
                 }}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
@@ -121,11 +121,11 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
       {snapshots.length === 0 ? (
         <div style={{
           textAlign: 'center', padding: '24px 12px',
-          color: '#71717A', fontSize: '0.82rem',
+          color: '#71717A', fontSize: '0.8rem',
         }}>
           <Clock size={20} style={{ opacity: 0.3, marginBottom: '8px' }} />
           <p>No snapshots saved yet.</p>
-          <p style={{ fontSize: '0.72rem', marginTop: '4px' }}>
+          <p style={{ fontSize: '0.65rem', marginTop: '4px' }}>
             Save a snapshot to preserve this version of your site.
           </p>
         </div>
@@ -137,7 +137,7 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               style={{
-                padding: '10px 12px',
+                padding: '8px 10px',
                 borderRadius: '10px',
                 border: '1px solid #E4E4E7',
                 background: confirmRestore === snap.id ? 'rgba(24,24,27,0.04)' : 'white',
@@ -149,13 +149,13 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
               }}>
                 <div>
                   <p style={{
-                    fontSize: '0.82rem', fontWeight: 600,
+                    fontSize: '0.8rem', fontWeight: 600,
                     color: '#18181B', margin: 0,
                   }}>
                     {snap.label}
                   </p>
                   <p style={{
-                    fontSize: '0.68rem', color: '#71717A',
+                    fontSize: '0.65rem', color: '#71717A',
                     margin: '2px 0 0',
                   }}>
                     {timeAgo(snap.timestamp)}

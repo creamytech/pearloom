@@ -263,7 +263,7 @@ export function ArtManager({ manifest, coupleNames, onUpdate }: ArtManagerProps)
       {(error || gpError) && (
         <div style={{
           background: 'rgba(220,60,60,0.12)', border: '1px solid rgba(220,60,60,0.3)',
-          borderRadius: '8px', padding: '8px 12px', fontSize: '0.82rem',
+          borderRadius: '8px', padding: '8px 12px', fontSize: '0.8rem',
           color: '#ff6b6b', fontWeight: 600,
         }}>
           {error || gpError}

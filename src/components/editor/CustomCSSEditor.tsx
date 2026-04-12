@@ -81,7 +81,7 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
           border: error ? '1.5px solid var(--pl-warning)' : '1.5px solid rgba(255,255,255,0.25)',
           background: '#FAFAFA',
           fontFamily: '"JetBrains Mono", "Fira Code", monospace',
-          fontSize: '0.78rem',
+          fontSize: '0.75rem',
           lineHeight: 1.6,
           color: '#18181B',
           resize: 'vertical',
@@ -93,7 +93,7 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
         <div style={{
           display: 'flex', alignItems: 'center', gap: '6px',
           marginTop: '6px', color: 'var(--pl-warning)',
-          fontSize: '0.72rem', fontWeight: 600,
+          fontSize: '0.65rem', fontWeight: 600,
         }}>
           <AlertTriangle size={12} /> {error}
         </div>
@@ -123,7 +123,7 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
       </div>
 
       <p style={{
-        fontSize: '0.62rem', color: '#71717A',
+        fontSize: '0.6rem', color: '#71717A',
         marginTop: '8px', lineHeight: 1.4,
       }}>
         CSS is scoped to this block. Use <code style={{ fontSize: '0.58rem', background: '#FAFAFA', padding: '1px 4px', borderRadius: '3px' }}>.block</code> to target the wrapper.

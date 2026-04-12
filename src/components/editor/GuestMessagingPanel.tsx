@@ -44,7 +44,7 @@ const glassCard: React.CSSProperties = {
 
 const labelStyle: React.CSSProperties = {
   display: 'block',
-  fontSize: '0.72rem',
+  fontSize: '0.65rem',
   fontWeight: 700,
   letterSpacing: '0.1em',
   textTransform: 'uppercase',
@@ -196,7 +196,7 @@ export function GuestMessagingPanel() {
         </h2>
         <p
           style={{
-            fontSize: '0.82rem',
+            fontSize: '0.8rem',
             color: 'var(--pl-ink-soft, #9A9488)',
             margin: 0,
             lineHeight: 1.5,
@@ -235,7 +235,7 @@ export function GuestMessagingPanel() {
                     color: isActive
                       ? '#18181B'
                       : 'var(--pl-ink-soft, #9A9488)',
-                    fontSize: '0.78rem',
+                    fontSize: '0.75rem',
                     fontWeight: isActive ? 700 : 500,
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
@@ -313,7 +313,7 @@ export function GuestMessagingPanel() {
                   ? '#F4F4F5'
                   : 'rgba(248,113,113,0.1)',
                 border: `1px solid ${sendResult.ok ? '#E4E4E7' : 'rgba(248,113,113,0.3)'}`,
-                fontSize: '0.82rem',
+                fontSize: '0.8rem',
                 color: sendResult.ok ? '#6B7F5B' : '#dc2626',
                 fontWeight: 500,
               }}
@@ -344,7 +344,7 @@ export function GuestMessagingPanel() {
                 ? 'rgba(154,148,136,0.5)'
                 : 'white',
             fontWeight: 700,
-            fontSize: '0.88rem',
+            fontSize: '0.8rem',
             letterSpacing: '0.02em',
             cursor:
               sending || !subject.trim() || !body.trim()
@@ -385,7 +385,7 @@ export function GuestMessagingPanel() {
       <div>
         <h3
           style={{
-            fontSize: '0.95rem',
+            fontSize: '0.9rem',
             fontWeight: 500,
             
             fontFamily: 'inherit',
@@ -403,7 +403,7 @@ export function GuestMessagingPanel() {
         {loadingHistory && (
           <p
             style={{
-              fontSize: '0.82rem',
+              fontSize: '0.8rem',
               color: 'var(--pl-ink-soft, #9A9488)',
               
             }}
@@ -429,7 +429,7 @@ export function GuestMessagingPanel() {
             />
             <p
               style={{
-                fontSize: '0.82rem',
+                fontSize: '0.8rem',
                 color: 'var(--pl-ink-soft, #9A9488)',
                 margin: 0,
                 lineHeight: 1.5,
@@ -453,7 +453,7 @@ export function GuestMessagingPanel() {
                   transition={{ duration: 0.2 }}
                   style={{
                     ...glassCard,
-                    padding: '14px 16px',
+                    padding: '10px 12px',
                     cursor: 'pointer',
                   }}
                   onClick={() => setExpandedId(isExpanded ? null : msg.id)}
@@ -470,7 +470,7 @@ export function GuestMessagingPanel() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div
                         style={{
-                          fontSize: '0.85rem',
+                          fontSize: '0.8rem',
                           fontWeight: 600,
                           color: 'var(--pl-ink, #2B2B2B)',
                           overflow: 'hidden',
@@ -486,7 +486,7 @@ export function GuestMessagingPanel() {
                           alignItems: 'center',
                           gap: '8px',
                           marginTop: '4px',
-                          fontSize: '0.72rem',
+                          fontSize: '0.65rem',
                           color: 'var(--pl-ink-soft, #9A9488)',
                         }}
                       >
@@ -498,7 +498,7 @@ export function GuestMessagingPanel() {
                             background: '#F4F4F5',
                             color: '#18181B',
                             fontWeight: 600,
-                            fontSize: '0.68rem',
+                            fontSize: '0.65rem',
                             letterSpacing: '0.03em',
                           }}
                         >
@@ -528,7 +528,7 @@ export function GuestMessagingPanel() {
                             marginTop: '12px',
                             paddingTop: '12px',
                             borderTop: '1px solid rgba(0,0,0,0.05)',
-                            fontSize: '0.82rem',
+                            fontSize: '0.8rem',
                             lineHeight: 1.65,
                             color: 'var(--pl-ink, #2B2B2B)',
                             whiteSpace: 'pre-wrap',
@@ -549,7 +549,7 @@ export function GuestMessagingPanel() {
       {/* Footer note */}
       <p
         style={{
-          fontSize: '0.72rem',
+          fontSize: '0.65rem',
           color: 'var(--pl-muted, #9A9488)',
           textAlign: 'center',
           margin: 0,

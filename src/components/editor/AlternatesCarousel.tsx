@@ -29,7 +29,7 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
       {/* Header row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
         <span style={{
-          fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.12em',
+          fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.12em',
           textTransform: 'uppercase', color: '#71717A',
         }}>
           3 Alternatives
@@ -75,7 +75,7 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
           >
             {/* Label badge */}
             <span style={{
-              fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
+              fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em',
               textTransform: 'uppercase',
               color: '#18181B',
               background: 'rgba(24,24,27,0.06)',
@@ -88,7 +88,7 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
 
             {/* Description text */}
             <p style={{
-              fontSize: '0.84rem',
+              fontSize: '0.8rem',
               lineHeight: 1.65,
               color: 'rgba(255,255,255,0.78)',
               margin: 0,
@@ -102,7 +102,7 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
               onClick={() => { onSelect(desc); onClose(); }}
               style={{
                 padding: '8px 14px',
-                borderRadius: '7px',
+                borderRadius: '6px',
                 border: '1px solid #E4E4E7',
                 background: '#F4F4F5',
                 color: '#18181B',

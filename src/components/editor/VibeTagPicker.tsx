@@ -122,7 +122,7 @@ export function VibeTagPicker({ selectedTags, onChange }: VibeTagPickerProps) {
                   style={{
                     padding: '0.3rem 0.7rem',
                     borderRadius: '2rem',
-                    fontSize: '0.78rem',
+                    fontSize: '0.75rem',
                     fontWeight: isSelected ? 600 : 400,
                     border: isSelected
                       ? '1px solid #71717A'

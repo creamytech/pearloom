@@ -90,7 +90,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '6px',
-        fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
+        fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em',
         textTransform: 'uppercase', color: '#71717A',
       }}>
         <Globe size={11} /> Translations
@@ -108,12 +108,12 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
             {LOCALES.filter(l => done.has(l.code)).map(locale => (
               <div key={locale.code} style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
-                padding: '7px 10px', borderRadius: '12px',
+                padding: '6px 10px', borderRadius: '12px',
                 background: 'rgba(24,24,27,0.04)',
                 border: '1px solid rgba(24,24,27,0.1)',
               }}>
                 <span style={{ fontSize: '1rem' }}>{locale.flag}</span>
-                <div style={{ flex: 1, fontSize: '0.78rem', fontWeight: 600, color: '#71717A' }}>
+                <div style={{ flex: 1, fontSize: '0.75rem', fontWeight: 600, color: '#71717A' }}>
                   {locale.label}
                 </div>
                 <Check size={11} color="#71717A" />
@@ -121,7 +121,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                   onClick={() => handleGenerate(locale.code)}
                   disabled={generating === locale.code}
                   style={{
-                    padding: '3px 8px', borderRadius: '5px',
+                    padding: '3px 8px', borderRadius: '6px',
                     border: '1px solid rgba(24,24,27,0.06)',
                     background: 'none', color: '#3F3F46',
                     cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700,
@@ -133,7 +133,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                 <button
                   onClick={() => handleRemove(locale.code)}
                   style={{
-                    padding: '3px', borderRadius: '5px',
+                    padding: '3px', borderRadius: '6px',
                     border: 'none', background: 'none',
                     color: '#71717A', cursor: 'pointer',
                   }}
@@ -167,7 +167,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                 }}
               >
                 <span style={{ fontSize: '1rem', flexShrink: 0 }}>{locale.flag}</span>
-                <span style={{ flex: 1, fontSize: '0.78rem', fontWeight: 600, color: '#3F3F46' }}>
+                <span style={{ flex: 1, fontSize: '0.75rem', fontWeight: 600, color: '#3F3F46' }}>
                   {locale.label}
                 </span>
                 {generating === locale.code ? (
@@ -180,7 +180,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                 )}
               </motion.button>
               {errors[locale.code] && (
-                <div style={{ fontSize: '0.68rem', color: '#f87171', padding: '3px 10px' }}>
+                <div style={{ fontSize: '0.65rem', color: '#f87171', padding: '3px 10px' }}>
                   {errors[locale.code]}
                 </div>
               )}
@@ -191,9 +191,9 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
 
       {chapters.length === 0 && (
         <div style={{
-          padding: '10px 12px', borderRadius: '12px',
+          padding: '8px 10px', borderRadius: '12px',
           background: 'rgba(234,179,8,0.07)', border: '1px solid rgba(234,179,8,0.2)',
-          fontSize: '0.72rem', color: '#3F3F46',
+          fontSize: '0.65rem', color: '#3F3F46',
         }}>
           Add story chapters before generating translations.
         </div>

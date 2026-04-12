@@ -53,7 +53,7 @@ function Divider() {
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <span style={{
-      fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.04em',
+      fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em',
       textTransform: 'uppercase', color: '#A1A1AA', display: 'block',
       marginBottom: '6px',
     }}>
@@ -144,7 +144,7 @@ export function ChapterPanel({
           placeholder="Write your memory here..."
           style={{
             ...inp, resize: 'vertical', lineHeight: 1.6, minHeight: '80px',
-            fontSize: '0.82rem', padding: '8px 10px',
+            fontSize: '0.8rem', padding: '8px 10px',
             ...(streamingText != null ? { opacity: 0.85, cursor: 'default' } : {}),
           }}
         />
@@ -192,7 +192,7 @@ export function ChapterPanel({
           value={chapter.mood || ''}
           onChange={e => upd({ mood: e.target.value })}
           placeholder="Or type a custom mood..."
-          style={{ ...inp, fontSize: '0.72rem', padding: '5px 8px', minHeight: 'auto' }}
+          style={{ ...inp, fontSize: '0.65rem', padding: '5px 8px', minHeight: 'auto' }}
         />
       </div>
 

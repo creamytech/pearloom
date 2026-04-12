@@ -137,7 +137,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
       {/* Page layout mode */}
       <div>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
           Site Layout
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
@@ -157,7 +157,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                   cursor: 'pointer', transition: 'all 0.15s',
                 }}
               >
-                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: isActive ? '#18181B' : '#18181B' }}>{mode.label}</div>
+                <div style={{ fontSize: '0.65rem', fontWeight: 700, color: isActive ? '#18181B' : '#18181B' }}>{mode.label}</div>
                 <div style={{ fontSize: '0.55rem', color: '#71717A', marginTop: '2px' }}>{mode.desc}</div>
               </button>
             );
@@ -172,7 +172,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
       {/* Logo icon picker */}
       <div>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
           Site Logo Icon
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
@@ -224,7 +224,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
       {/* Desktop nav bar style */}
       <div>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
           Desktop Nav Style
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
@@ -263,7 +263,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
       {/* Mobile nav style */}
       <div>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
           Mobile Nav Style
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
@@ -303,7 +303,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
       {/* Nav opacity */}
       <div>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
           Nav Opacity — {manifest.navOpacity ?? 100}%
         </div>
         <input
@@ -322,7 +322,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
       {/* Nav background color */}
       <div>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
           Nav Background
         </div>
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
@@ -392,7 +392,7 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <p style={{ fontSize: '0.72rem', color: '#71717A', lineHeight: 1.5, margin: 0 }}>
+      <p style={{ fontSize: '0.65rem', color: '#71717A', lineHeight: 1.5, margin: 0 }}>
         Decorative corners for the hero and footer — personalized to your style.
       </p>
 
@@ -629,7 +629,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               border: designTab === tab ? '1px solid #18181B' : '1px solid #E4E4E7',
               background: designTab === tab ? '#18181B' : '#FFFFFF',
               color: designTab === tab ? '#FFFFFF' : '#71717A',
-              fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer',
+              fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer',
               transition: 'all 0.15s',
               textTransform: 'capitalize',
             }}
@@ -654,7 +654,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       } as React.CSSProperties}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <PearIcon size={18} color="#18181B" />
-          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#18181B', fontFamily: 'inherit',  }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#18181B', fontFamily: 'inherit',  }}>
             Want Pear to review your design?
           </span>
         </div>
@@ -668,7 +668,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             background: feedbackLoading ? 'rgba(24,24,27,0.1)' : '#18181B',
             color: feedbackLoading ? '#3F3F46' : '#fff',
             cursor: feedbackLoading ? 'not-allowed' : 'pointer',
-            fontSize: '0.78rem', fontWeight: 700, transition: 'all 0.15s',
+            fontSize: '0.75rem', fontWeight: 700, transition: 'all 0.15s',
             boxShadow: feedbackLoading ? 'none' : '0 2px 8px #E4E4E7',
             width: '100%',
           }}
@@ -677,7 +677,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
           {feedbackLoading ? 'Analyzing design...' : 'Get Feedback'}
         </button>
         {feedbackError && (
-          <p style={{ fontSize: '0.72rem', color: '#e87a7a', margin: 0 }}>{feedbackError}</p>
+          <p style={{ fontSize: '0.65rem', color: '#e87a7a', margin: 0 }}>{feedbackError}</p>
         )}
         {designFeedback && (
           <div style={{ marginTop: '2px' }}>
@@ -686,7 +686,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               style={{
                 display: 'flex', alignItems: 'center', gap: '4px',
                 background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.06em',
+                fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.06em',
                 textTransform: 'uppercase', color: '#18181B',
               }}
             >
@@ -694,9 +694,9 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             </button>
             {feedbackExpanded && (
               <div style={{
-                marginTop: '6px', padding: '10px 12px', borderRadius: '10px',
+                marginTop: '6px', padding: '8px 10px', borderRadius: '10px',
                 background: '#F4F4F5', border: '1px solid #F4F4F5',
-                fontSize: '0.78rem', lineHeight: 1.6, color: 'var(--pl-ink-soft, #3D3530)',
+                fontSize: '0.75rem', lineHeight: 1.6, color: 'var(--pl-ink-soft, #3D3530)',
                 whiteSpace: 'pre-wrap',
               }}>
                 {designFeedback}
@@ -714,7 +714,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       }}>
         {vibeSkin?.tone && (
           <span style={{
-            fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.06em',
+            fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.06em',
             textTransform: 'uppercase', color: '#71717A',
             background: 'rgba(24,24,27,0.08)', padding: '3px 10px', borderRadius: '8px',
             border: '1px solid rgba(24,24,27,0.1)', flexShrink: 0,
@@ -742,13 +742,13 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
         </button>
       </div>
       {regenError && (
-        <p style={{ fontSize: '0.78rem', color: '#e87a7a', marginTop: '-4px' }}>{regenError}</p>
+        <p style={{ fontSize: '0.75rem', color: '#e87a7a', marginTop: '-4px' }}>{regenError}</p>
       )}
 
       {/* ── Writing Style — AI tone adjuster ── */}
       <SidebarSection title="Writing Style" defaultOpen={false}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <p style={{ fontSize: '0.72rem', color: '#71717A', margin: 0, lineHeight: 1.5 }}>
+          <p style={{ fontSize: '0.65rem', color: '#71717A', margin: 0, lineHeight: 1.5 }}>
             Let Pear rewrite all your site copy to match a tone.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
@@ -764,7 +764,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '5px',
-                    padding: '10px 12px',
+                    padding: '8px 10px',
                     borderRadius: '12px',
                     border: isActive ? '2px solid #18181B' : '1px solid rgba(255,255,255,0.3)',
                     background: isActive ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.5)',
@@ -773,7 +773,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                     cursor: toneLoading ? 'wait' : 'pointer',
                     opacity: toneLoading && !isActive ? 0.5 : 1,
                     transition: 'all 0.15s',
-                    fontSize: '0.72rem',
+                    fontSize: '0.65rem',
                     fontWeight: isActive ? 700 : 600,
                     color: isActive ? '#18181B' : 'var(--pl-ink-soft, #3D3530)',
                   } as React.CSSProperties}
@@ -797,7 +797,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               borderRadius: '10px',
               background: '#F4F4F5',
               border: '1px solid #F4F4F5',
-              fontSize: '0.72rem',
+              fontSize: '0.65rem',
               fontWeight: 600,
               color: '#18181B',
             }}>
@@ -889,7 +889,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
       {/* ── Wedding Palettes — curated presets ── */}
       <SidebarSection title="Wedding Palettes" defaultOpen={false}>
-        <p style={{ fontSize: '0.72rem', color: '#71717A', lineHeight: 1.5, margin: '0 0 8px' }}>
+        <p style={{ fontSize: '0.65rem', color: '#71717A', lineHeight: 1.5, margin: '0 0 8px' }}>
           One-click curated palettes designed for weddings.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
@@ -944,7 +944,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                   }} />
                 ))}
               </div>
-              <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#18181B' }}>
+              <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#18181B' }}>
                 {preset.name}
               </div>
             </button>
@@ -988,9 +988,9 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             onUpdate={(updates) => onChange({ ...manifest, ...updates })}
           />
         ) : (
-          <div style={{ padding: '1rem', textAlign: 'center', color: '#71717A', fontSize: '0.82rem' }}>
+          <div style={{ padding: '1rem', textAlign: 'center', color: '#71717A', fontSize: '0.8rem' }}>
             <p style={{ marginBottom: '0.75rem' }}>No AI art generated yet.</p>
-            <button onClick={handleRegenerateDesign} style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: '#18181B', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>
+            <button onClick={handleRegenerateDesign} style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: '#18181B', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
               Generate AI Art
             </button>
           </div>
@@ -1005,10 +1005,10 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       {/* ── Story Layout — how chapters unfold on the page ── */}
       <SidebarSection title="Story Layout" defaultOpen={false}>
         <div>
-          <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '6px' }}>
+          <div style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '6px' }}>
             Story Layout
           </div>
-          <div style={{ fontSize: '0.68rem', color: '#71717A', lineHeight: 1.5, marginBottom: '12px' }}>
+          <div style={{ fontSize: '0.65rem', color: '#71717A', lineHeight: 1.5, marginBottom: '12px' }}>
             How your chapters unfold on the page
           </div>
           <StoryLayoutPicker
@@ -1026,10 +1026,10 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
           {/* ── Date format — applies to chapter date labels ── */}
           <div style={{ marginTop: 20 }}>
-            <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '6px' }}>
+            <div style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '6px' }}>
               Date format
             </div>
-            <div style={{ fontSize: '0.68rem', color: '#71717A', lineHeight: 1.5, marginBottom: '10px' }}>
+            <div style={{ fontSize: '0.65rem', color: '#71717A', lineHeight: 1.5, marginBottom: '10px' }}>
               How dates read on every chapter
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -1043,7 +1043,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                     onClick={() => onChange({ ...manifest, dateFormat: key })}
                     style={{
                       width: '100%',
-                      padding: '10px 14px',
+                      padding: '8px 10px',
                       borderRadius: 12,
                       border: `1.5px solid ${isActive ? '#18181B' : 'rgba(24,24,27,0.1)'}`,
                       background: isActive ? '#F4F4F5' : 'rgba(255,255,255,0.5)',
@@ -1058,14 +1058,14 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                     aria-pressed={isActive}
                   >
                     <span style={{
-                      fontSize: '0.72rem',
+                      fontSize: '0.65rem',
                       fontWeight: isActive ? 700 : 600,
                       color: '#3F3F46',
                     }}>
                       {preset.label}
                     </span>
                     <span style={{
-                      fontSize: '0.68rem',
+                      fontSize: '0.65rem',
                       fontFamily: 'ui-monospace, SFMono-Regular, monospace',
                       color: '#71717A',
                     }}>
@@ -1119,7 +1119,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                   <div key={i} style={{ width: 16, height: 16, borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,0.08)' }} />
                 ))}
               </div>
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#18181B' }}>{preset.name}</div>
+              <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#18181B' }}>{preset.name}</div>
               <div style={{ fontSize: '0.58rem', color: '#71717A', lineHeight: 1.3 }}>{preset.description}</div>
             </button>
           ))}
@@ -1128,7 +1128,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
       {/* ── Dark Mode Preview ── */}
       <SidebarSection title="Dark Mode Preview" defaultOpen={false}>
-        <p style={{ fontSize: '0.72rem', color: '#71717A', marginBottom: '8px', lineHeight: 1.5 }}>
+        <p style={{ fontSize: '0.65rem', color: '#71717A', marginBottom: '8px', lineHeight: 1.5 }}>
           Preview how your site would look with inverted colors. Great for evening events.
         </p>
         <button
@@ -1139,11 +1139,11 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             handleThemeApply(darkSkin);
           }}
           style={{
-            width: '100%', padding: '10px 14px', borderRadius: '12px',
+            width: '100%', padding: '8px 10px', borderRadius: '12px',
             border: '1px solid rgba(255,255,255,0.3)',
             background: 'linear-gradient(135deg, #1a1520 0%, #252030 100%)',
             color: '#F0E8D8', cursor: 'pointer',
-            fontSize: '0.78rem', fontWeight: 700,
+            fontSize: '0.75rem', fontWeight: 700,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
           }}
         >
@@ -1153,7 +1153,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
       {/* ── Typographic Scale ── */}
       <SidebarSection title="Type Scale" defaultOpen={false}>
-        <p style={{ fontSize: '0.72rem', color: '#71717A', marginBottom: '8px', lineHeight: 1.5 }}>
+        <p style={{ fontSize: '0.65rem', color: '#71717A', marginBottom: '8px', lineHeight: 1.5 }}>
           Set the mathematical ratio for font size hierarchy across your site.
         </p>
         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
@@ -1201,7 +1201,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
       {/* Asset Library */}
       <SidebarSection title="Asset Library" defaultOpen={false}>
-        <p style={{ fontSize: '0.82rem', color: '#71717A', marginBottom: '10px', lineHeight: 1.5 }}>
+        <p style={{ fontSize: '0.8rem', color: '#71717A', marginBottom: '10px', lineHeight: 1.5 }}>
           Dividers, illustrations & accents to add to your pages.
         </p>
         <AssetPicker
@@ -1230,13 +1230,13 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
         {/* Active stickers list with controls */}
         {(manifest.stickers?.length ?? 0) > 0 && (
           <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.3)', paddingTop: '10px' }}>
-            <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
+            <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
               Active ({manifest.stickers!.length})
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {manifest.stickers!.map((s, i) => (
                 <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', borderRadius: '12px', background: '#FFFFFF', border: '1px solid rgba(255,255,255,0.3)', /* blur removed */ WebkitBackdropFilter: 'blur(20px)' }}>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--pl-ink-soft, #3D3530)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--pl-ink-soft, #3D3530)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: '#71717A' }}>
                     Size
                     <RangeSlider min={30} max={200} value={s.size} onChange={v => {
@@ -1269,7 +1269,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
           <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1rem', fontWeight: 700, color: colors.foreground || 'var(--pl-ink, #3F3F46)', marginBottom: '3px' }}>
             {manifest.chapters?.[0]?.title || 'Preview'}
           </div>
-          <div style={{ color: colors.muted || '#8c8c8c', fontSize: '0.72rem', marginBottom: '8px' }}>The beginning of everything.</div>
+          <div style={{ color: colors.muted || '#8c8c8c', fontSize: '0.65rem', marginBottom: '8px' }}>The beginning of everything.</div>
           <div style={{ display: 'flex', gap: '6px' }}>
             <div style={{ background: colors.accent || '#71717A', color: '#fff', padding: '3px 10px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: 700 }}>RSVP</div>
             <div style={{ background: colors.accentLight || '#f3e8d8', color: colors.accent || '#71717A', padding: '3px 10px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: 600 }}>View Story</div>

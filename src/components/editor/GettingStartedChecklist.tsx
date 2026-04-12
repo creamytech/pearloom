@@ -162,14 +162,14 @@ export function GettingStartedChecklist() {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{
-              fontSize: '0.78rem', fontWeight: 700,
+              fontSize: '0.75rem', fontWeight: 700,
               fontFamily: 'var(--pl-font-heading, Georgia, serif)',
               color: 'var(--pl-ink, #2b1e14)',
             }}>
               Getting Started
             </span>
             <span style={{
-              fontSize: '0.62rem', fontWeight: 700,
+              fontSize: '0.6rem', fontWeight: 700,
               color: '#18181B',
               background: '#F4F4F5',
               padding: '2px 7px', borderRadius: '8px',
@@ -231,14 +231,14 @@ export function GettingStartedChecklist() {
             }}>
               <div style={{ fontSize: '2rem', marginBottom: '8px' }}>{'\u{1F389}'}</div>
               <p style={{
-                margin: 0, fontSize: '0.88rem', fontWeight: 700,
+                margin: 0, fontSize: '0.8rem', fontWeight: 700,
                 fontFamily: 'var(--pl-font-heading, Georgia, serif)',
                 color: 'var(--pl-ink, #2b1e14)',
               }}>
                 You&apos;re all set!
               </p>
               <p style={{
-                margin: '4px 0 0', fontSize: '0.72rem',
+                margin: '4px 0 0', fontSize: '0.65rem',
                 color: 'var(--pl-muted, #8a8472)',
               }}>
                 Your site is ready to shine.

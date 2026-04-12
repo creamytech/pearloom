@@ -202,7 +202,7 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
                       padding: '8px 10px', borderRadius: '12px', border: 'none',
                       background: isActive ? 'rgba(24,24,27,0.08)' : 'transparent',
                       color: isActive ? '#18181B' : '#3F3F46',
-                      cursor: 'pointer', fontSize: '0.78rem', fontWeight: isActive ? 600 : 400,
+                      cursor: 'pointer', fontSize: '0.75rem', fontWeight: isActive ? 600 : 400,
                       width: '100%', textAlign: 'left', transition: 'background 0.12s',
                     }}
                     onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.02)'; }}

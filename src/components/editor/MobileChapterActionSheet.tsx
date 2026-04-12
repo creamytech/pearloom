@@ -47,7 +47,7 @@ function ActionBtn({
       disabled={disabled}
       style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-        padding: '10px 12px', borderRadius: 10, border: 'none',
+        padding: '8px 10px', borderRadius: 10, border: 'none',
         background: danger ? 'rgba(239,68,68,0.12)' : 'rgba(0,0,0,0.04)',
         color: danger ? '#fca5a5' : '#18181B',
         cursor: disabled ? 'not-allowed' : 'pointer',
@@ -80,7 +80,7 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 
 // ── Input field (dark theme) ────────────────────────────────────
 const fieldStyle: React.CSSProperties = {
-  width: '100%', padding: '12px 14px', borderRadius: 10,
+  width: '100%', padding: '10px 12px', borderRadius: 10,
   border: '1.5px solid rgba(0,0,0,0.06)',
   background: 'rgba(24,24,27,0.04)',
   color: '#18181B',
@@ -207,14 +207,14 @@ export function MobileChapterActionSheet({
             )}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
-                fontSize: '0.95rem', fontWeight: 700,
+                fontSize: '0.9rem', fontWeight: 700,
                 color: '#18181B',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 fontFamily: 'inherit',
               }}>
                 {chapter.title || 'Untitled'}
               </div>
-              <div style={{ fontSize: '0.72rem', color: '#3F3F46' }}>
+              <div style={{ fontSize: '0.65rem', color: '#3F3F46' }}>
                 Chapter {chapterIndex + 1} of {chapterCount}
               </div>
             </div>

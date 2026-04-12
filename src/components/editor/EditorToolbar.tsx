@@ -77,7 +77,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               display: 'flex', alignItems: 'center', gap: '4px',
               padding: '4px 8px', borderRadius: '8px', border: 'none',
               background: 'transparent', color: '#71717A',
-              cursor: 'pointer', fontSize: '0.72rem', fontWeight: 500,
+              cursor: 'pointer', fontSize: '0.65rem', fontWeight: 500,
             }}
           >
             <ArrowLeft size={14} />
@@ -85,7 +85,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
         </RichTooltip>
 
         <span style={{
-          fontSize: '0.82rem', fontWeight: 600,
+          fontSize: '0.8rem', fontWeight: 600,
           color: '#3F3F46',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           maxWidth: '200px',
@@ -133,7 +133,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
         {/* Save indicator */}
         <span style={{
-          fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.06em',
+          fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em',
           color: saveState === 'saved' ? '#18181B' : '#fb923c',
           display: 'flex', alignItems: 'center', gap: '3px',
         }}>
@@ -218,7 +218,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
                 background: '#FAFAFA',
                 color: '#71717A',
                 cursor: 'pointer',
-                fontSize: '0.68rem',
+                fontSize: '0.65rem',
                 fontWeight: 700,
                 transition: 'border-color 0.15s',
               }}
@@ -241,7 +241,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               borderRadius: '8px', border: 'none',
               background: '#18181B',
               color: '#fff', cursor: 'pointer',
-              fontSize: '0.68rem', fontWeight: 700,
+              fontSize: '0.65rem', fontWeight: 700,
               letterSpacing: '0.08em', textTransform: 'uppercase',
               boxShadow: '0 2px 8px rgba(110,140,92,0.25)',
               transition: 'box-shadow 0.25s ease',

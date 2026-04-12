@@ -75,7 +75,7 @@ const cardStyle: React.CSSProperties = {
   maxHeight: '80vh',
   margin: '0 20px',
   overflowY: 'auto',
-  borderRadius: '20px',
+  borderRadius: '10px',
   background: 'rgba(250,247,242,0.92)',
   backdropFilter: 'blur(40px) saturate(1.6)',
   WebkitBackdropFilter: 'blur(40px) saturate(1.6)',
@@ -113,7 +113,7 @@ const keyBadgeStyle: React.CSSProperties = {
   border: '1px solid rgba(0,0,0,0.1)',
   boxShadow: '0 1px 2px rgba(0,0,0,0.06), inset 0 -1px 0 rgba(0,0,0,0.04)',
   fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace',
-  fontSize: '0.68rem',
+  fontSize: '0.65rem',
   fontWeight: 500,
   color: 'var(--pl-ink-soft, #3a3530)',
   lineHeight: 1,
@@ -253,7 +253,7 @@ export function KeyboardShortcuts({ open, onClose }: KeyboardShortcutsProps) {
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                   >
                     <span style={{
-                      fontSize: '0.78rem',
+                      fontSize: '0.75rem',
                       color: 'var(--pl-ink-soft, #3a3530)',
                       fontWeight: 400,
                     }}>

@@ -160,7 +160,7 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
                 margin: 0,
                 fontFamily: 'inherit',
                 fontStyle: 'normal',
-                fontSize: '0.95rem',
+                fontSize: '0.9rem',
                 fontWeight: 600,
                 color: 'var(--pl-ink, #2B1E14)',
               }}>
@@ -214,7 +214,7 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
                     border: 'none',
                     background: 'none',
                     outline: 'none',
-                    fontSize: '0.82rem',
+                    fontSize: '0.8rem',
                     color: 'var(--pl-ink, #2B1E14)',
                     fontFamily: 'inherit',
                   }}
@@ -270,7 +270,7 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
                     <ImageIcon size={24} style={{ color: '#18181B' }} />
                   </div>
                   <p style={{
-                    fontSize: '0.88rem',
+                    fontSize: '0.8rem',
                     color: '#71717A',
                     maxWidth: '280px',
                     lineHeight: 1.5,
@@ -345,7 +345,7 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
                         <p style={{
                           margin: 0,
                           color: '#fff',
-                          fontSize: '0.68rem',
+                          fontSize: '0.65rem',
                           fontWeight: 600,
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',

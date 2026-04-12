@@ -86,7 +86,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '6px',
-        fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
+        fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em',
         textTransform: 'uppercase', color: '#71717A',
       }}>
         <Calendar size={11} /> Save the Date
@@ -94,14 +94,14 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
 
       {/* Style picker */}
       <div>
-        <div style={{ fontSize: '0.68rem', color: '#71717A', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Card Style</div>
+        <div style={{ fontSize: '0.65rem', color: '#71717A', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Card Style</div>
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           {CARD_STYLES.map(s => (
             <button
               key={s.id}
               onClick={() => setCardStyle(s.id)}
               style={{
-                padding: '5px 10px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: 700,
+                padding: '5px 10px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 700,
                 border: `1px solid ${cardStyle === s.id ? s.accent : 'rgba(255,255,255,0.2)'}`,
                 background: cardStyle === s.id ? `${s.accent}22` : 'transparent',
                 color: cardStyle === s.id ? s.accent : 'rgba(255,255,255,0.45)',
@@ -114,16 +114,16 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
 
       {/* Custom message */}
       <div>
-        <div style={{ fontSize: '0.68rem', color: '#71717A', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Message</div>
+        <div style={{ fontSize: '0.65rem', color: '#71717A', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Message</div>
         <input
           value={customMessage}
           onChange={e => setCustomMessage(e.target.value)}
           placeholder="Please save the date"
           style={{
-            width: '100%', padding: '7px 10px', borderRadius: '7px',
+            width: '100%', padding: '6px 10px', borderRadius: '6px',
             border: '1px solid #E4E4E7',
             background: 'rgba(24,24,27,0.04)',
-            color: '#18181B', fontSize: '0.78rem',
+            color: '#18181B', fontSize: '0.75rem',
             outline: 'none', boxSizing: 'border-box',
           }}
         />
@@ -131,7 +131,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
 
       {/* Card preview */}
       <div>
-        <div style={{ fontSize: '0.68rem', color: '#71717A', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Preview</div>
+        <div style={{ fontSize: '0.65rem', color: '#71717A', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Preview</div>
         <div
           ref={cardRef}
           style={{
@@ -222,7 +222,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
           whileTap={{ scale: 0.97 }}
           style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            padding: '9px', borderRadius: '9px',
+            padding: '9px', borderRadius: '8px',
             border: '1px solid #E4E4E7',
             background: 'rgba(24,24,27,0.06)', color: '#71717A',
             cursor: downloading ? 'wait' : 'pointer', fontSize: '0.75rem', fontWeight: 700,
@@ -238,7 +238,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
           whileTap={{ scale: 0.97 }}
           style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            padding: '9px', borderRadius: '9px',
+            padding: '9px', borderRadius: '8px',
             border: '1px solid rgba(24,24,27,0.08)',
             background: 'rgba(24,24,27,0.04)', color: '#71717A',
             cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
@@ -251,7 +251,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
 
       {!mainEvent && (
         <div style={{
-          padding: '8px 10px', borderRadius: '7px',
+          padding: '8px 10px', borderRadius: '6px',
           background: 'rgba(234,179,8,0.07)', border: '1px solid rgba(234,179,8,0.2)',
           fontSize: '0.7rem', color: '#3F3F46',
         }}>

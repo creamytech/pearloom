@@ -169,7 +169,7 @@ export function AnniversaryNudgePanel() {
             background: 'rgba(24,24,27,0.08)',
             border: '1px solid #E4E4E7',
             borderRadius: 20,
-            fontSize: '0.72rem',
+            fontSize: '0.65rem',
             letterSpacing: '1.5px',
             textTransform: 'uppercase',
             color: '#71717A',
@@ -184,7 +184,7 @@ export function AnniversaryNudgePanel() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             style={{
-              fontSize: '0.88rem',
+              fontSize: '0.8rem',
               color: '#71717A',
               lineHeight: 1.6,
             }}
@@ -196,7 +196,7 @@ export function AnniversaryNudgePanel() {
             <p
               style={{
                 margin: '0 0 12px',
-                fontSize: '0.88rem',
+                fontSize: '0.8rem',
                 color: '#3F3F46',
                 lineHeight: 1.6,
               }}
@@ -228,7 +228,7 @@ export function AnniversaryNudgePanel() {
                 border: '1px solid #E4E4E7',
                 borderRadius: 8,
                 color: loading ? '#A1A1AA' : '#71717A',
-                fontSize: '0.78rem',
+                fontSize: '0.75rem',
                 letterSpacing: '1.5px',
                 textTransform: 'uppercase',
                 cursor: loading ? 'not-allowed' : 'pointer',

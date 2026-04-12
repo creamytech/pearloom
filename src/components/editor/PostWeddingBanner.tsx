@@ -137,7 +137,7 @@ export function PostWeddingBanner({ manifest, subdomain, onUpdate }: PostWedding
         <div style={{ flex: 1, minWidth: '200px' }}>
           <h3 style={{
             margin: '0 0 0.3rem',
-            fontSize: '0.95rem', fontWeight: 700,
+            fontSize: '0.9rem', fontWeight: 700,
             color: '#18181B',
             fontFamily: 'var(--pl-font-heading, Georgia, serif)',
           }}>
@@ -166,7 +166,7 @@ export function PostWeddingBanner({ manifest, subdomain, onUpdate }: PostWedding
             border: 'none',
             borderRadius: '0.625rem',
             cursor: loading ? 'not-allowed' : 'pointer',
-            fontSize: '0.85rem',
+            fontSize: '0.8rem',
             fontWeight: 700,
             fontFamily: 'var(--pl-font-body, Georgia, serif)',
             whiteSpace: 'nowrap',

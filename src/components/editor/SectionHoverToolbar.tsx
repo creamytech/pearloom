@@ -257,7 +257,7 @@ function DropdownItem({
       whileTap={{ scale: 0.97 }}
       style={{
         display: 'flex', alignItems: 'center', gap: '8px',
-        width: '100%', padding: '7px 10px', borderRadius: '8px',
+        width: '100%', padding: '6px 10px', borderRadius: '8px',
         border: 'none', background: 'transparent', cursor: 'pointer',
         color: danger ? 'rgba(248,113,113,0.9)' : '#18181B',
         fontSize: '0.75rem', fontWeight: 600, textAlign: 'left',

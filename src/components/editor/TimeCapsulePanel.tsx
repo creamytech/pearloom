@@ -442,7 +442,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'rgba(24,24,27,0.04)',
     border: '1px solid rgba(24,24,27,0.06)',
     borderRadius: '8px',
-    padding: '14px 16px',
+    padding: '10px 12px',
     marginBottom: '10px',
   },
   capsuleInfo: {
@@ -576,7 +576,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: 'Georgia, serif',
     fontSize: '15px',
     lineHeight: 1.75,
-    padding: '14px 16px',
+    padding: '10px 12px',
     resize: 'vertical',
     outline: 'none',
     width: '100%',
@@ -597,7 +597,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: '6px',
     color: '#C0856A',
     fontSize: '13px',
-    padding: '10px 14px',
+    padding: '8px 10px',
     marginBottom: '14px',
   },
 

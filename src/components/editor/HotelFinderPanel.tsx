@@ -129,7 +129,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
       >
         <div style={{
           width: '100%', maxWidth: '560px', maxHeight: '85vh',
-          borderRadius: '20px', border: '1px solid #E4E4E7',
+          borderRadius: '10px', border: '1px solid #E4E4E7',
           boxShadow: '0 24px 80px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.2)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
           animation: 'pl-hotel-fade-in 0.3s ease-out',
@@ -141,7 +141,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <MapPin size={16} style={{ color: '#18181B' }} />
-              <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#18181B', letterSpacing: '-0.01em' }}>
+              <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#18181B', letterSpacing: '-0.01em' }}>
                 Find Hotels Near Venue
               </span>
             </div>
@@ -166,7 +166,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                 onChange={e => setVenueAddress(e.target.value)}
                 placeholder="123 Garden Lane, Newport, RI"
                 style={{
-                  flex: 1, padding: '10px 14px', borderRadius: '12px',
+                  flex: 1, padding: '8px 10px', borderRadius: '12px',
                   border: '1px solid rgba(0,0,0,0.1)', background: 'rgba(255,255,255,0.7)',
                   fontSize: 'max(16px, 0.85rem)', color: '#18181B',
                   outline: 'none', fontFamily: 'inherit',
@@ -188,7 +188,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                 style={{
                   padding: '10px 18px', borderRadius: '12px', border: 'none',
                   background: loading ? '#E4E4E7' : '#18181B',
-                  color: '#fff', fontSize: '0.82rem', fontWeight: 700,
+                  color: '#fff', fontSize: '0.8rem', fontWeight: 700,
                   cursor: loading ? 'default' : 'pointer',
                   letterSpacing: '0.04em', whiteSpace: 'nowrap',
                   transition: 'background 0.15s, transform 0.1s',
@@ -200,7 +200,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
               </button>
             </div>
             {error && (
-              <p style={{ fontSize: '0.82rem', color: '#e87a7a', marginTop: '8px' }}>{error}</p>
+              <p style={{ fontSize: '0.8rem', color: '#e87a7a', marginTop: '8px' }}>{error}</p>
             )}
           </div>
 
@@ -284,7 +284,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
 
                       {/* Description */}
                       <p style={{
-                        fontSize: '0.82rem', color: '#18181B',
+                        fontSize: '0.8rem', color: '#18181B',
                         lineHeight: 1.55, margin: '0 0 10px',
                       }}>
                         {hotel.description}
@@ -295,7 +295,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '10px' }}>
                           {hotel.amenities.map((amenity, j) => (
                             <span key={j} style={{
-                              padding: '2px 7px', borderRadius: '4px', fontSize: '0.68rem',
+                              padding: '2px 7px', borderRadius: '4px', fontSize: '0.65rem',
                               fontWeight: 600, background: 'rgba(24,24,27,0.06)',
                               color: '#18181B',
                             }}>
@@ -308,7 +308,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                       {/* Group rate tip */}
                       {hotel.groupRateTip && (
                         <div style={{
-                          padding: '10px 12px', borderRadius: '10px',
+                          padding: '8px 10px', borderRadius: '10px',
                           background: 'rgba(196,169,106,0.08)',
                           border: '1px solid rgba(196,169,106,0.15)',
                           marginBottom: '12px',
@@ -319,7 +319,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                               Group Rate Tip
                             </span>
                           </div>
-                          <p style={{ fontSize: '0.78rem', color: '#18181B', lineHeight: 1.5, margin: 0 }}>
+                          <p style={{ fontSize: '0.75rem', color: '#18181B', lineHeight: 1.5, margin: 0 }}>
                             {hotel.groupRateTip}
                           </p>
                         </div>
@@ -335,7 +335,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                             padding: '7px 14px', borderRadius: '8px', border: 'none',
                             background: isAdded ? 'rgba(24,24,27,0.08)' : '#18181B',
                             color: isAdded ? '#18181B' : '#fff',
-                            fontSize: '0.78rem', fontWeight: 700, cursor: isAdded ? 'default' : 'pointer',
+                            fontSize: '0.75rem', fontWeight: 700, cursor: isAdded ? 'default' : 'pointer',
                             letterSpacing: '0.03em', transition: 'background 0.15s',
                           }}
                           onMouseOver={e => { if (!isAdded) (e.currentTarget as HTMLElement).style.background = '#8fa47a'; }}
@@ -353,7 +353,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                               display: 'flex', alignItems: 'center', gap: '5px',
                               padding: '7px 14px', borderRadius: '8px',
                               border: '1px solid rgba(0,0,0,0.08)', background: 'transparent',
-                              color: '#71717A', fontSize: '0.78rem',
+                              color: '#71717A', fontSize: '0.75rem',
                               fontWeight: 600, textDecoration: 'none',
                               transition: 'background 0.15s',
                             }}
@@ -378,10 +378,10 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                 color: '#71717A',
               }}>
                 <MapPin size={28} style={{ opacity: 0.3, marginBottom: '12px' }} />
-                <p style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '4px' }}>
+                <p style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '4px' }}>
                   Enter your venue address above
                 </p>
-                <p style={{ fontSize: '0.78rem', opacity: 0.6 }}>
+                <p style={{ fontSize: '0.75rem', opacity: 0.6 }}>
                   AI will suggest nearby hotels perfect for your guests
                 </p>
               </div>

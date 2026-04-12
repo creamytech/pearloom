@@ -12,7 +12,7 @@ export function DraftBanner({ onRestore, onDismiss }: DraftBannerProps) {
       background: 'var(--pl-gold, #D6C6A8)', color: '#18181B',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       gap: '0.75rem', padding: '0.6rem 1rem',
-      fontSize: '0.85rem', fontWeight: 600,
+      fontSize: '0.8rem', fontWeight: 600,
     }}>
       <span>Unsaved draft recovered</span>
       <span style={{ opacity: 0.4 }}>—</span>
@@ -20,7 +20,7 @@ export function DraftBanner({ onRestore, onDismiss }: DraftBannerProps) {
         onClick={onRestore}
         style={{
           background: '#18181B', color: '#fff', border: 'none', borderRadius: '4px',
-          padding: '3px 10px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer',
+          padding: '3px 10px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer',
         }}
       >
         restore draft
@@ -29,7 +29,7 @@ export function DraftBanner({ onRestore, onDismiss }: DraftBannerProps) {
         onClick={onDismiss}
         style={{
           background: 'transparent', border: 'none', cursor: 'pointer',
-          color: '#18181B', fontSize: '0.78rem', fontWeight: 600, opacity: 0.6, padding: '3px 6px',
+          color: '#18181B', fontSize: '0.75rem', fontWeight: 600, opacity: 0.6, padding: '3px 6px',
         }}
       >
         dismiss

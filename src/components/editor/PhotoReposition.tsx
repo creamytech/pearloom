@@ -168,7 +168,7 @@ export function PhotoReposition({
           }}>
             Drag to reposition
           </span>
-          <span style={{ fontSize: '0.62rem', color: '#3F3F46', textShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
+          <span style={{ fontSize: '0.6rem', color: '#3F3F46', textShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
             {Math.round(posX)}% · {Math.round(posY)}%
           </span>
 
@@ -196,7 +196,7 @@ export function PhotoReposition({
           style={{
             position: 'absolute', bottom: '6px', right: '6px',
             display: 'flex', alignItems: 'center', gap: '4px',
-            padding: '4px 8px', borderRadius: '5px',
+            padding: '4px 8px', borderRadius: '6px',
             background: 'rgba(0,0,0,0.08)', border: '1px solid #71717A',
             color: '#fff', cursor: 'pointer', fontSize: '0.6rem', fontWeight: 700,
             backdropFilter: 'blur(6px)',

@@ -49,7 +49,7 @@ function ConfirmDeleteButton({ onConfirm }: { onConfirm: () => void }) {
         gap: '3px',
         padding: confirming ? '2px 8px' : '2px',
         borderRadius: '6px',
-        fontSize: '0.72rem',
+        fontSize: '0.65rem',
         fontWeight: confirming ? 700 : 400,
         transition: 'all 0.15s',
       }}
@@ -383,7 +383,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       {/* Progress indicator */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '8px',
-        padding: '10px 12px', marginBottom: '4px',
+        padding: '8px 10px', marginBottom: '4px',
         borderRadius: '12px',
         background: 'rgba(255,255,255,0.1)',
         border: '1px solid rgba(255,255,255,0.15)',
@@ -420,7 +420,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               borderRadius: '12px',
               background: 'rgba(24,24,27,0.06)',
               border: '1px solid rgba(24,24,27,0.1)',
-              fontSize: '0.68rem', fontWeight: 600,
+              fontSize: '0.65rem', fontWeight: 600,
               color: '#18181B',
             }}
           >
@@ -485,7 +485,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(24,24,27,0.06)', border: '1px solid #E4E4E7', borderRadius: '12px', padding: '12px' }}>
               <LocationPinIcon size={13} color="#18181B" style={{ flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#18181B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{logistics.venue}</div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#18181B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{logistics.venue}</div>
                 {logistics.venueAddress && <div style={{ fontSize: '0.75rem', color: '#3F3F46', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px' }}>{logistics.venueAddress}</div>}
               </div>
               <button
@@ -511,7 +511,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       <Section id="registry" label="Registry">
         {/* Registry enabled toggle */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-          <span style={{ fontSize: '0.88rem', color: '#18181B', fontWeight: 600 }}>Registry enabled</span>
+          <span style={{ fontSize: '0.8rem', color: '#18181B', fontWeight: 600 }}>Registry enabled</span>
           <button
             onClick={() => updRegistry({ enabled: !manifest.registry?.enabled })}
             style={{
@@ -548,7 +548,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               value={registryUrl}
               onChange={e => setRegistryUrl(e.target.value)}
               placeholder="https://www.zola.com/registry/..."
-              style={{ ...inp, flex: 1, fontSize: '0.82rem' }}
+              style={{ ...inp, flex: 1, fontSize: '0.8rem' }}
               onKeyDown={e => { if (e.key === 'Enter') handleRegistryImport(); }}
             />
             <button
@@ -562,7 +562,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 background: registryUrl.trim() ? '#18181B' : 'rgba(24,24,27,0.1)',
                 color: registryUrl.trim() ? '#fff' : '#71717A',
                 cursor: registryUrl.trim() && !registryImportLoading ? 'pointer' : 'default',
-                fontSize: '0.78rem',
+                fontSize: '0.75rem',
                 fontWeight: 700,
                 transition: 'background 0.15s',
                 flexShrink: 0,
@@ -573,7 +573,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             </button>
           </div>
           {registryImportError && (
-            <p style={{ fontSize: '0.72rem', color: '#f87171', margin: '6px 0 0' }}>{registryImportError}</p>
+            <p style={{ fontSize: '0.65rem', color: '#f87171', margin: '6px 0 0' }}>{registryImportError}</p>
           )}
           {registryImportResult && (
             <div style={{
@@ -583,10 +583,10 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               borderRadius: '12px',
               padding: '12px',
             }}>
-              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#18181B', marginBottom: '2px' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#18181B', marginBottom: '2px' }}>
                 {registryImportResult.name}
               </div>
-              <div style={{ fontSize: '0.72rem', color: '#71717A', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ fontSize: '0.65rem', color: '#71717A', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {registryImportResult.url}
               </div>
               <div style={{ fontSize: '0.75rem', color: '#3F3F46', marginBottom: '8px' }}>
@@ -602,7 +602,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                   background: '#18181B',
                   color: '#fff',
                   cursor: 'pointer',
-                  fontSize: '0.78rem',
+                  fontSize: '0.75rem',
                   fontWeight: 700,
                 }}
               >
@@ -614,14 +614,14 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px' }}>
           <label style={{ ...lbl, margin: 0 }}>Registry Links ({entries.length})</label>
-          <button onClick={addEntry} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(24,24,27,0.08)', color: '#18181B', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
+          <button onClick={addEntry} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(24,24,27,0.08)', color: '#18181B', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700 }}>
             <Plus size={10} /> Add Registry
           </button>
         </div>
         {entries.map((entry, i) => (
           <div key={i} style={{ background: '#FAFAFA', /* blur removed */ /* blur removed */ borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#18181B' }}>Registry {i + 1}</span>
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#18181B' }}>Registry {i + 1}</span>
               <ConfirmDeleteButton onConfirm={() => delEntry(i)} />
             </div>
             <Field label="Store Name" value={entry.name} onChange={v => updEntry(i, { name: v })} placeholder="Williams Sonoma" />
@@ -629,7 +629,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             <Field label="Note (optional)" value={entry.note || ''} onChange={v => updEntry(i, { note: v })} placeholder="Our kitchen wishlist" />
           </div>
         ))}
-        {entries.length === 0 && <p style={{ fontSize: '0.82rem', color: '#71717A', textAlign: 'center', padding: '0.5rem 0' }}>No registries yet</p>}
+        {entries.length === 0 && <p style={{ fontSize: '0.8rem', color: '#71717A', textAlign: 'center', padding: '0.5rem 0' }}>No registries yet</p>}
       </Section>
       </>}
 
@@ -657,7 +657,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                   borderRadius: '12px', border: '1px solid #E4E4E7',
                   background: aiMealLoading ? 'rgba(24,24,27,0.04)' : 'rgba(24,24,27,0.06)',
                   color: '#18181B', cursor: aiMealLoading ? 'wait' : 'pointer',
-                  fontSize: '0.82rem', fontWeight: 700, opacity: aiMealLoading ? 0.6 : 1,
+                  fontSize: '0.8rem', fontWeight: 700, opacity: aiMealLoading ? 0.6 : 1,
                   transition: 'background 0.18s',
                 }}
                 onMouseOver={e => { if (!aiMealLoading) (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.1)'; }}
@@ -666,7 +666,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 <Sparkles size={10} />
                 {aiMealLoading ? 'Generating...' : 'Generate Menu with AI'}
               </button>
-              <button onClick={addMealOption} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(24,24,27,0.08)', color: '#18181B', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
+              <button onClick={addMealOption} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(24,24,27,0.08)', color: '#18181B', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700 }}>
                 <Plus size={10} /> Add Meal
               </button>
             </div>
@@ -690,7 +690,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#18181B', marginBottom: '3px' }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#18181B', marginBottom: '3px' }}>
                         {meal.name}
                       </div>
                       {meal.description && (
@@ -718,7 +718,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                           display: 'flex', alignItems: 'center', gap: '3px',
                           padding: '4px 8px', borderRadius: '6px', border: 'none',
                           background: '#18181B', color: '#fff',
-                          fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer',
+                          fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer',
                         }}
                       >
                         <Check size={10} /> Add
@@ -751,7 +751,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                   animation: 'pl-meal-pulse 1.5s ease-in-out infinite',
                   animationDelay: `${i * 0.12}s`,
                 }}>
-                  <div style={{ width: '60%', height: '14px', borderRadius: '7px', background: 'rgba(0,0,0,0.06)', marginBottom: '6px' }} />
+                  <div style={{ width: '60%', height: '14px', borderRadius: '6px', background: 'rgba(0,0,0,0.06)', marginBottom: '6px' }} />
                   <div style={{ width: '85%', height: '10px', borderRadius: '12px', background: 'rgba(0,0,0,0.04)' }} />
                 </div>
               ))}
@@ -767,7 +767,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               border: '1px solid rgba(255,255,255,0.2)',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#18181B' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#18181B' }}>
                   <UtensilsCrossed size={10} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
                   Meal {i + 1}
                 </span>
@@ -806,7 +806,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             </div>
           ))}
           {mealOptions.length === 0 && aiMealPreviews.length === 0 && !aiMealLoading && (
-            <p style={{ fontSize: '0.82rem', color: '#71717A', textAlign: 'center', padding: '0.5rem 0' }}>
+            <p style={{ fontSize: '0.8rem', color: '#71717A', textAlign: 'center', padding: '0.5rem 0' }}>
               No meal options yet — add them manually or generate with AI
             </p>
           )}
@@ -816,7 +816,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         {manifest.rsvps && manifest.rsvps.length > 0 && (
           <div style={{ marginTop: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-              <span style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', whiteSpace: 'nowrap' }}>Attendance Insights</span>
+              <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', whiteSpace: 'nowrap' }}>Attendance Insights</span>
               <div style={{ flex: 1, height: '1px', background: '#FFFFFF' }} />
             </div>
             <RsvpInsights
@@ -860,7 +860,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px',
                 borderRadius: '12px', border: '1px solid #E4E4E7',
                 background: 'rgba(24,24,27,0.06)', color: '#18181B',
-                cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
+                cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
                 transition: 'background 0.18s',
               }}
               onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.1)'; }}
@@ -868,7 +868,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             >
               <MapPin size={10} /> Find Hotels Near Venue
             </button>
-            <button onClick={addHotel} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(24,24,27,0.08)', color: '#18181B', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
+            <button onClick={addHotel} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(24,24,27,0.08)', color: '#18181B', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700 }}>
               <Plus size={10} /> Add Hotel
             </button>
           </div>
@@ -876,7 +876,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         {(travel.hotels || []).map((hotel, i) => (
           <div key={i} style={{ background: '#FAFAFA', /* blur removed */ /* blur removed */ borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#18181B' }}>Hotel {i + 1}</span>
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#18181B' }}>Hotel {i + 1}</span>
               <ConfirmDeleteButton onConfirm={() => delHotel(i)} />
             </div>
             <Field label="Hotel Name" value={hotel.name} onChange={v => updHotel(i, { name: v })} placeholder="Marriott Newport" />
@@ -888,7 +888,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         ))}
         {/* FIX #5: Empty state for hotels */}
         {(travel.hotels || []).length === 0 && (
-          <p style={{ fontSize: '0.82rem', color: '#71717A', textAlign: 'center', padding: '0.5rem 0' }}>
+          <p style={{ fontSize: '0.8rem', color: '#71717A', textAlign: 'center', padding: '0.5rem 0' }}>
             No hotels yet — add manually or find nearby hotels
           </p>
         )}
@@ -908,7 +908,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 ? 'rgba(24,24,27,0.04)'
                 : 'linear-gradient(135deg, rgba(24,24,27,0.08), rgba(196,169,106,0.1))',
               color: '#18181B', cursor: aiFaqLoading ? 'wait' : 'pointer',
-              fontSize: '0.78rem', fontWeight: 700, opacity: aiFaqLoading ? 0.6 : 1,
+              fontSize: '0.75rem', fontWeight: 700, opacity: aiFaqLoading ? 0.6 : 1,
               transition: 'all 0.18s',
               boxShadow: aiFaqLoading ? 'none' : '0 1px 4px rgba(24,24,27,0.08)',
             }}
@@ -918,7 +918,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             <Sparkles size={11} />
             {aiFaqLoading ? 'Pear is thinking...' : 'Ask Pear to write FAQs'}
           </button>
-          <button onClick={addFaq} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(24,24,27,0.08)', color: '#18181B', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
+          <button onClick={addFaq} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(24,24,27,0.08)', color: '#18181B', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700 }}>
             <Plus size={10} /> Add Question
           </button>
         </div>
@@ -936,7 +936,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             <Field label="Answer" value={faq.answer} onChange={v => updFaq(faq.id, { answer: v })} rows={2} placeholder="Yes, the venue has full accessibility…" />
           </div>
         ))}
-        {faqs.length === 0 && <p style={{ fontSize: '0.82rem', color: '#71717A', textAlign: 'center', padding: '1rem 0' }}>No FAQs yet — add common guest questions</p>}
+        {faqs.length === 0 && <p style={{ fontSize: '0.8rem', color: '#71717A', textAlign: 'center', padding: '1rem 0' }}>No FAQs yet — add common guest questions</p>}
       </Section>
 
       <Section id="vibe" label="Site Vibe">
@@ -951,7 +951,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             onFocus={e => { e.currentTarget.style.borderColor = '#71717A'; }}
             onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
           />
-          <div style={{ fontSize: '0.82rem', color: '#71717A', marginTop: '0.4rem', lineHeight: 1.5 }}>
+          <div style={{ fontSize: '0.8rem', color: '#71717A', marginTop: '0.4rem', lineHeight: 1.5 }}>
             Used by the AI when rewriting chapters and generating art.
           </div>
         </div>
@@ -961,8 +961,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           {/* Guestbook toggle */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
             <div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Guest Wishes Wall</div>
-              <div style={{ fontSize: '0.72rem', opacity: 0.5, marginTop: '2px' }}>Let guests leave messages on your site</div>
+              <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>Guest Wishes Wall</div>
+              <div style={{ fontSize: '0.65rem', opacity: 0.5, marginTop: '2px' }}>Let guests leave messages on your site</div>
             </div>
             <button
               onClick={() => onChange({
@@ -970,7 +970,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 features: { ...manifest.features, guestbook: !(manifest.features?.guestbook ?? true) }
               })}
               style={{
-                width: '40px', height: '22px', borderRadius: '11px',
+                width: '40px', height: '22px', borderRadius: '10px',
                 background: (manifest.features?.guestbook ?? true) ? '#18181B' : 'rgba(255,255,255,0.2)',
                 border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
                 flexShrink: 0,
@@ -989,8 +989,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           {/* Live Updates toggle */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
             <div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Live Updates Feed</div>
-              <div style={{ fontSize: '0.72rem', opacity: 0.5, marginTop: '2px' }}>Enable live updates feed for day-of announcements</div>
+              <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>Live Updates Feed</div>
+              <div style={{ fontSize: '0.65rem', opacity: 0.5, marginTop: '2px' }}>Enable live updates feed for day-of announcements</div>
             </div>
             <button
               onClick={() => onChange({
@@ -998,7 +998,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 features: { ...manifest.features, liveUpdates: !(manifest.features?.liveUpdates ?? true) }
               })}
               style={{
-                width: '40px', height: '22px', borderRadius: '11px',
+                width: '40px', height: '22px', borderRadius: '10px',
                 background: (manifest.features?.liveUpdates ?? true) ? '#18181B' : 'rgba(255,255,255,0.2)',
                 border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
                 flexShrink: 0,
@@ -1017,8 +1017,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           {/* Photo Wall toggle */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
             <div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Guest Photo Wall</div>
-              <div style={{ fontSize: '0.72rem', opacity: 0.5, marginTop: '2px' }}>Let guests upload photos from the celebration</div>
+              <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>Guest Photo Wall</div>
+              <div style={{ fontSize: '0.65rem', opacity: 0.5, marginTop: '2px' }}>Let guests upload photos from the celebration</div>
             </div>
             <button
               onClick={() => onChange({
@@ -1026,7 +1026,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 features: { ...manifest.features, photoWall: !(manifest.features?.photoWall ?? false) }
               })}
               style={{
-                width: '40px', height: '22px', borderRadius: '11px',
+                width: '40px', height: '22px', borderRadius: '10px',
                 background: (manifest.features?.photoWall ?? false) ? '#18181B' : 'rgba(255,255,255,0.2)',
                 border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
                 flexShrink: 0,
@@ -1047,7 +1047,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       {/* Seating chart — weddings + engagements only */}
       {isEvent && (
         <Section id="seating" label="Seating Chart">
-          <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.45)', marginBottom: '10px', lineHeight: 1.5 }}>
+          <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.45)', marginBottom: '10px', lineHeight: 1.5 }}>
             Drag guests to tables. Add constraints like &quot;keep together&quot; or &quot;near the exit&quot;.
           </div>
           <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.2)' }}>
@@ -1068,13 +1068,13 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               alignItems: 'center',
               justifyContent: 'center',
               gap: '6px',
-              padding: '9px 14px',
+              padding: '8px 10px',
               borderRadius: '12px',
               border: '1px solid #E4E4E7',
               background: 'rgba(24,24,27,0.06)',
               color: '#18181B',
               cursor: 'pointer',
-              fontSize: '0.82rem',
+              fontSize: '0.8rem',
               fontWeight: 700,
               letterSpacing: '0.04em',
               transition: 'background 0.18s',
@@ -1116,7 +1116,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       <Section id="protection" label="Access & Protection">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
-            <span style={{ fontSize: '0.82rem', color: '#3F3F46' }}>Coming Soon Mode</span>
+            <span style={{ fontSize: '0.8rem', color: '#3F3F46' }}>Coming Soon Mode</span>
             <input
               type="checkbox"
               checked={manifest.comingSoon?.enabled || false}
@@ -1143,7 +1143,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             placeholder="Leave blank for public access"
           />
           {manifest.sitePassword && (
-            <p style={{ fontSize: '0.68rem', color: '#18181B', margin: 0 }}>
+            <p style={{ fontSize: '0.65rem', color: '#18181B', margin: 0 }}>
               ✦ Visitors will need to enter this password to view your site
             </p>
           )}

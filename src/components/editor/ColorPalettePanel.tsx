@@ -349,7 +349,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                 Bespoke AI Background Art
               </span>
             </div>
-            <p style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.55, margin: 0 }}>
+            <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.55, margin: 0 }}>
               Gemini writes a unique SVG illustration just for your couple — botanical, cultural, celestial — no two are alike.
             </p>
           </div>
@@ -359,7 +359,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
             {/* Place / inspiration */}
             <div>
               <label style={{
-                display: 'block', fontSize: '0.62rem', fontWeight: 800,
+                display: 'block', fontSize: '0.6rem', fontWeight: 800,
                 letterSpacing: '0.12em', textTransform: 'uppercase',
                 color: '#71717A', marginBottom: '6px',
               }}>
@@ -370,9 +370,9 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                 onChange={e => setPlace(e.target.value)}
                 placeholder="Santorini, Japanese garden, Tuscany vineyard, the Alps…"
                 style={{
-                  width: '100%', padding: '8px 10px', borderRadius: '7px',
+                  width: '100%', padding: '8px 10px', borderRadius: '6px',
                   border: '1px solid rgba(0,0,0,0.06)', background: '#F4F4F5',
-                  color: '#18181B', fontSize: '0.78rem', outline: 'none', fontFamily: 'inherit',
+                  color: '#18181B', fontSize: '0.75rem', outline: 'none', fontFamily: 'inherit',
                   boxSizing: 'border-box',
                 }}
                 onFocus={e => { e.currentTarget.style.borderColor = '#A1A1AA'; }}
@@ -383,7 +383,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
             {/* Art style grid */}
             <div>
               <label style={{
-                display: 'block', fontSize: '0.62rem', fontWeight: 800,
+                display: 'block', fontSize: '0.6rem', fontWeight: 800,
                 letterSpacing: '0.12em', textTransform: 'uppercase',
                 color: '#71717A', marginBottom: '6px',
               }}>
@@ -413,7 +413,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
             {/* Extra prompt */}
             <div>
               <label style={{
-                display: 'block', fontSize: '0.62rem', fontWeight: 800,
+                display: 'block', fontSize: '0.6rem', fontWeight: 800,
                 letterSpacing: '0.12em', textTransform: 'uppercase',
                 color: '#71717A', marginBottom: '6px',
               }}>
@@ -425,7 +425,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                 rows={2}
                 placeholder="We met hiking in the mountains, we love jazz, our dog is a golden retriever…"
                 style={{
-                  width: '100%', padding: '8px 10px', borderRadius: '7px',
+                  width: '100%', padding: '8px 10px', borderRadius: '6px',
                   border: '1px solid rgba(0,0,0,0.06)', background: '#F4F4F5',
                   color: '#18181B', fontSize: '0.75rem', outline: 'none', fontFamily: 'inherit',
                   boxSizing: 'border-box', resize: 'vertical', lineHeight: 1.5,
@@ -449,7 +449,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                 ? 'rgba(0,0,0,0.04)'
                 : 'linear-gradient(135deg, #9b7fd9, #18181B)',
               color: generating ? '#3F3F46' : '#fff',
-              fontSize: '0.82rem', fontWeight: 800, cursor: generating ? 'not-allowed' : 'pointer',
+              fontSize: '0.8rem', fontWeight: 800, cursor: generating ? 'not-allowed' : 'pointer',
               letterSpacing: '0.05em', boxShadow: generating ? 'none' : '0 4px 20px rgba(155,127,217,0.3)',
               transition: 'all 0.2s',
             }}
@@ -485,8 +485,8 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
           {genError && (
             <div style={{
               display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 10px',
-              borderRadius: '7px', background: 'rgba(24,24,27,0.06)',
-              border: '1px solid rgba(24,24,27,0.1)', fontSize: '0.72rem', color: '#71717A',
+              borderRadius: '6px', background: 'rgba(24,24,27,0.06)',
+              border: '1px solid rgba(24,24,27,0.1)', fontSize: '0.65rem', color: '#71717A',
             }}>
               <AlertTriangle size={12} /> {genError}
             </div>
@@ -503,7 +503,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
               >
                 {isFallback && (
                   <div style={{
-                    fontSize: '0.62rem', color: '#71717A',
+                    fontSize: '0.6rem', color: '#71717A',
                     display: 'flex', alignItems: 'center', gap: '4px',
                   }}>
                     <AlertTriangle size={9} /> Using generative fallback — try again for a Gemini-crafted design
@@ -529,7 +529,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                   <button
                     onClick={removeBackground}
                     style={{
-                      padding: '7px 12px', borderRadius: '6px',
+                      padding: '6px 10px', borderRadius: '6px',
                       border: '1px solid rgba(0,0,0,0.06)', background: 'transparent',
                       color: '#71717A', cursor: 'pointer', fontSize: '0.7rem',
                     }}
@@ -545,7 +545,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
           {prevSvgs.length > 0 && (
             <div>
               <div style={{
-                fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.12em',
+                fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.12em',
                 textTransform: 'uppercase', color: '#71717A', marginBottom: '6px',
               }}>
                 Previous generations
@@ -574,7 +574,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
 
           {/* Tip */}
           <p style={{
-            fontSize: '0.62rem', color: '#71717A', lineHeight: 1.5, margin: 0,
+            fontSize: '0.6rem', color: '#71717A', lineHeight: 1.5, margin: 0,
             borderTop: '1px solid #F4F4F5', paddingTop: '8px',
           }}>
             The more specific you are — place, story details, style — the more unique and tailored the artwork becomes. Hit Regenerate for a fresh interpretation.

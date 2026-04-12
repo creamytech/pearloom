@@ -56,10 +56,10 @@ export function MessagingPanel({ manifest, siteId, subdomain }: MessagingPanelPr
             onChange={e => setSubject(e.target.value)}
             placeholder="A message from us"
             style={{
-              width: '100%', padding: '10px 12px', borderRadius: 10,
+              width: '100%', padding: '8px 10px', borderRadius: 10,
               border: '1px solid rgba(0,0,0,0.06)',
               background: '#F4F4F5',
-              color: '#18181B', fontSize: '0.88rem',
+              color: '#18181B', fontSize: '0.8rem',
               outline: 'none', boxSizing: 'border-box',
             }}
           />
@@ -79,10 +79,10 @@ export function MessagingPanel({ manifest, siteId, subdomain }: MessagingPanelPr
             rows={6}
             placeholder="Write your message here…"
             style={{
-              width: '100%', padding: '10px 12px', borderRadius: 10,
+              width: '100%', padding: '8px 10px', borderRadius: 10,
               border: '1px solid rgba(0,0,0,0.06)',
               background: '#F4F4F5',
-              color: '#18181B', fontSize: '0.88rem',
+              color: '#18181B', fontSize: '0.8rem',
               outline: 'none', resize: 'vertical', boxSizing: 'border-box',
               fontFamily: 'inherit',
             }}
@@ -91,12 +91,12 @@ export function MessagingPanel({ manifest, siteId, subdomain }: MessagingPanelPr
 
         {result && (
           <div style={{
-            padding: '10px 14px', borderRadius: 10,
+            padding: '8px 10px', borderRadius: 10,
             background: result.failed === 0
               ? '#F4F4F5' : 'rgba(248,113,113,0.1)',
             border: `1px solid ${result.failed === 0
               ? '#E4E4E7' : 'rgba(248,113,113,0.3)'}`,
-            fontSize: '0.82rem',
+            fontSize: '0.8rem',
             color: result.failed === 0 ? '#71717A' : '#f87171',
           }}>
             {result.failed === 0
@@ -117,7 +117,7 @@ export function MessagingPanel({ manifest, siteId, subdomain }: MessagingPanelPr
             border: '1px solid #E4E4E7',
             background: '#F4F4F5', color: '#71717A',
             cursor: sending ? 'not-allowed' : 'pointer',
-            fontSize: '0.85rem', fontWeight: 700,
+            fontSize: '0.8rem', fontWeight: 700,
             opacity: (sending || !subject.trim() || !body.trim()) ? 0.5 : 1,
           }}
         >

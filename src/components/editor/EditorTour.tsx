@@ -320,7 +320,7 @@ export function EditorTour({ onComplete }: { onComplete?: () => void }) {
             marginBottom: '14px',
           }}>
             <span style={{
-              fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em',
+              fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em',
               textTransform: 'uppercase', color: 'var(--pl-muted, #8a8472)',
             }}>
               {step + 1} of {STEPS.length}
@@ -329,7 +329,7 @@ export function EditorTour({ onComplete }: { onComplete?: () => void }) {
               onClick={handleSkip}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
-                fontSize: '0.68rem', fontWeight: 600,
+                fontSize: '0.65rem', fontWeight: 600,
                 color: 'var(--pl-muted, #8a8472)',
                 padding: '2px 6px', borderRadius: '6px',
                 transition: 'background 0.15s',
@@ -356,7 +356,7 @@ export function EditorTour({ onComplete }: { onComplete?: () => void }) {
 
           {/* Body */}
           <p style={{
-            margin: '0 0 18px 0', fontSize: '0.82rem', lineHeight: 1.6,
+            margin: '0 0 18px 0', fontSize: '0.8rem', lineHeight: 1.6,
             color: 'var(--pl-ink-soft, #5a4f42)',
           }}>
             {currentStep.body}

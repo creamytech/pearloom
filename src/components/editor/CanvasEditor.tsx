@@ -158,7 +158,7 @@ const EVENT_TYPES: Record<WeddingEvent['type'], {
 
 // ── Shared mini styles ──────────────────────────────────────────
 const lbl: React.CSSProperties = {
-  display: 'block', fontSize: '0.62rem', fontWeight: 800,
+  display: 'block', fontSize: '0.6rem', fontWeight: 800,
   letterSpacing: '0.14em', textTransform: 'uppercase',
   color: '#71717A', marginBottom: '0.4rem',
 };
@@ -190,7 +190,7 @@ function MiniInput({ label, value, onChange, placeholder, type = 'text', hint }:
 function Toggle({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0' }}>
-      <span style={{ fontSize: '0.78rem', color: '#3F3F46' }}>{label}</span>
+      <span style={{ fontSize: '0.75rem', color: '#3F3F46' }}>{label}</span>
       <button
         onClick={() => onChange(!value)}
         style={{
@@ -251,7 +251,7 @@ function EventBlockConfig({ events, onChange }: {
               key={e.id}
               onClick={() => setActiveId(e.id)}
               style={{
-                padding: '4px 10px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700,
+                padding: '4px 10px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700,
                 background: activeId === e.id ? def.color : 'rgba(255,255,255,0.25)',
                 color: activeId === e.id ? '#fff' : '#3F3F46',
                 transition: 'all 0.15s',
@@ -271,7 +271,7 @@ function EventBlockConfig({ events, onChange }: {
             onClick={() => addEvent(type as WeddingEvent['type'])}
             style={{
               padding: '3px 8px', borderRadius: '6px', border: `1px dashed ${def.color}50`,
-              background: 'transparent', color: def.color, cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700,
+              background: 'transparent', color: def.color, cursor: 'pointer', fontSize: '0.6rem', fontWeight: 700,
               transition: 'all 0.15s',
             }}
             title={`Add ${def.label}`}
@@ -295,7 +295,7 @@ function EventBlockConfig({ events, onChange }: {
           <div style={{ background: `${def.color}10`, borderRadius: '12px', border: `1px solid ${def.color}30`, padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {/* Event type badge + name + delete */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-              <span style={{ flex: 1, fontSize: '0.72rem', fontWeight: 800, color: def.color, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              <span style={{ flex: 1, fontSize: '0.65rem', fontWeight: 800, color: def.color, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                 {def.label}
               </span>
               <button onClick={() => remove(activeEvent.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', display: 'flex', padding: '2px' }}>
@@ -334,7 +334,7 @@ function EventBlockConfig({ events, onChange }: {
             {def.specificFields.length > 0 && (
               <>
                 <div style={{ height: '1px', background: `${def.color}30`, margin: '4px 0' }} />
-                <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: def.color }}>
+                <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: def.color }}>
                   {def.label} specifics
                 </div>
                 {def.specificFields.map(field => (
@@ -513,7 +513,7 @@ function BlockRow({
         {/* Name + inline content summary */}
         <div style={{ flex: 1, overflow: 'hidden', minWidth: 0 }}>
           <span style={{
-            fontSize: '0.82rem', fontWeight: 600,
+            fontSize: '0.8rem', fontWeight: 600,
             color: block.visible ? '#18181B' : '#71717A',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             display: 'block',
@@ -522,7 +522,7 @@ function BlockRow({
           </span>
           {summary && (
             <span style={{
-              fontSize: '0.68rem', color: '#71717A', lineHeight: 1.3,
+              fontSize: '0.65rem', color: '#71717A', lineHeight: 1.3,
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               display: 'block', marginTop: '1px',
             }}>
@@ -646,7 +646,7 @@ function SectionStylePanel({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '12px', marginTop: '4px' }}>
-      <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#71717A' }}>
+      <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#71717A' }}>
         Section Style
       </div>
 
@@ -686,7 +686,7 @@ function SectionStylePanel({
               value={config.bgColor as string || ''}
               onChange={e => updateConfig({ bgColor: e.target.value })}
               placeholder="e.g., #71717A"
-              style={{ ...inp, flex: 1, fontSize: '0.72rem', padding: '4px 8px' }}
+              style={{ ...inp, flex: 1, fontSize: '0.65rem', padding: '4px 8px' }}
             />
           </div>
         </div>
@@ -699,11 +699,11 @@ function SectionStylePanel({
           value={(config.bgImage as string) || ''}
           onChange={e => updateConfig({ bgImage: e.target.value })}
           placeholder="Paste an image link..."
-          style={{ ...inp, fontSize: '0.72rem', padding: '6px 8px' }}
+          style={{ ...inp, fontSize: '0.65rem', padding: '6px 8px' }}
         />
         {(config.bgImage as string) && (
           <div style={{ marginTop: '4px', display: 'flex', gap: '4px' }}>
-            <button onClick={() => updateConfig({ bgImage: '' })} style={{ padding: '3px 8px', borderRadius: '6px', border: 'none', background: '#FAFAFA', color: '#71717A', cursor: 'pointer', fontSize: '0.62rem' }}>Remove</button>
+            <button onClick={() => updateConfig({ bgImage: '' })} style={{ padding: '3px 8px', borderRadius: '6px', border: 'none', background: '#FAFAFA', color: '#71717A', cursor: 'pointer', fontSize: '0.6rem' }}>Remove</button>
             <select value={(config.bgSize as string) || 'cover'} onChange={e => updateConfig({ bgSize: e.target.value })} style={{ ...inp, flex: 1, fontSize: '0.65rem', padding: '3px 6px' }}>
               <option value="cover">Cover</option>
               <option value="contain">Contain</option>
@@ -779,7 +779,7 @@ function SectionStylePanel({
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}
               >
-                {!c && <span style={{ fontSize: '0.62rem', color: '#3F3F46', fontWeight: 700 }}>A</span>}
+                {!c && <span style={{ fontSize: '0.6rem', color: '#3F3F46', fontWeight: 700 }}>A</span>}
               </button>
             );
           })}
@@ -793,7 +793,7 @@ function SectionStylePanel({
           {[
             { id: 'default', label: 'Default', style: {} },
             { id: 'rounded', label: 'Rounded', style: { borderRadius: '32px', overflow: 'hidden' } },
-            { id: 'card', label: 'Card', style: { background: 'rgba(255,255,255,0.8)', borderRadius: '20px', boxShadow: '0 8px 32px rgba(0,0,0,0.04)', maxWidth: '900px', margin: '2rem auto' } },
+            { id: 'card', label: 'Card', style: { background: 'rgba(255,255,255,0.8)', borderRadius: '10px', boxShadow: '0 8px 32px rgba(0,0,0,0.04)', maxWidth: '900px', margin: '2rem auto' } },
             { id: 'dark', label: 'Dark', style: { background: '#1a1814', color: '#F5F1E8', borderRadius: '0' } },
             { id: 'accent', label: 'Accent', style: { background: '#18181B', color: 'white', borderRadius: '0' } },
           ].map(preset => {
@@ -806,7 +806,7 @@ function SectionStylePanel({
                   padding: '5px 10px', borderRadius: '8px', border: 'none',
                   background: isActive ? '#18181B' : 'rgba(255,255,255,0.2)',
                   color: isActive ? 'white' : '#71717A',
-                  fontSize: '0.62rem', fontWeight: 600, cursor: 'pointer',
+                  fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer',
                   transition: 'all 0.12s',
                 }}
               >
@@ -1026,11 +1026,11 @@ function BlockConfigPanel({
               onClick={() => setGalleryOpen(true)}
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
-                width: '100%', padding: '7px 12px', borderRadius: '8px',
+                width: '100%', padding: '6px 10px', borderRadius: '8px',
                 border: '1.5px dashed #E4E4E7',
                 background: 'rgba(24,24,27,0.04)',
                 color: '#18181B',
-                fontSize: '0.72rem', fontWeight: 700,
+                fontSize: '0.65rem', fontWeight: 700,
                 cursor: 'pointer', transition: 'all 0.15s',
                 letterSpacing: '0.04em',
               }}
@@ -1102,7 +1102,7 @@ function BlockConfigPanel({
                   style={{
                     flex: 1, padding: '8px', borderRadius: '8px',
                     border: '1.5px solid #E4E4E7', background: 'rgba(24,24,27,0.04)',
-                    color: '#18181B', fontSize: '0.72rem', fontWeight: 600,
+                    color: '#18181B', fontSize: '0.65rem', fontWeight: 600,
                     cursor: 'pointer', transition: 'all 0.15s',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
                   }}
@@ -1115,7 +1115,7 @@ function BlockConfigPanel({
                   style={{
                     flex: 1, padding: '8px', borderRadius: '8px',
                     border: '1.5px dashed #E4E4E7', background: 'rgba(24,24,27,0.04)',
-                    color: '#18181B', fontSize: '0.72rem', fontWeight: 600,
+                    color: '#18181B', fontSize: '0.65rem', fontWeight: 600,
                     cursor: 'pointer', transition: 'all 0.15s',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
                   }}
@@ -1238,7 +1238,7 @@ function BlockConfigPanel({
                     flex: 1, padding: '6px', borderRadius: '8px', border: 'none',
                     background: String(block.config?.height || '60') === h.value ? 'rgba(24,24,27,0.12)' : 'rgba(255,255,255,0.2)',
                     color: String(block.config?.height || '60') === h.value ? '#18181B' : '#71717A',
-                    fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer',
+                    fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer',
                   }}
                 >
                   {h.label}
@@ -1392,7 +1392,7 @@ function BlockEffectsEditor({
 
           {/* Scroll reveal */}
           <div>
-            <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '6px' }}>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '6px' }}>
               Entrance Animation
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
@@ -1401,11 +1401,11 @@ function BlockEffectsEditor({
                   key={opt.value}
                   onClick={() => onUpdate({ scrollReveal: opt.value === 'none' ? undefined : (opt.value as 'fade' | 'slide-up' | 'slide-left' | 'zoom' | 'blur-in') })}
                   style={{
-                    padding: '5px 9px', borderRadius: '7px',
+                    padding: '5px 9px', borderRadius: '6px',
                     border: `1px solid ${reveal === opt.value ? '#71717A' : 'rgba(255,255,255,0.25)'}`,
                     background: reveal === opt.value ? 'rgba(24,24,27,0.14)' : 'rgba(24,24,27,0.04)',
                     color: reveal === opt.value ? '#18181B' : '#3F3F46',
-                    cursor: 'pointer', fontSize: '0.72rem', fontWeight: reveal === opt.value ? 700 : 400,
+                    cursor: 'pointer', fontSize: '0.65rem', fontWeight: reveal === opt.value ? 700 : 400,
                     display: 'flex', alignItems: 'center', gap: '4px',
                     transition: 'all 0.12s',
                   }}
@@ -1419,7 +1419,7 @@ function BlockEffectsEditor({
 
           {/* Divider above */}
           <div>
-            <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '6px' }}>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '6px' }}>
               Divider Shape Above
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
@@ -1434,11 +1434,11 @@ function BlockEffectsEditor({
                     }
                   }}
                   style={{
-                    padding: '5px 9px', borderRadius: '7px',
+                    padding: '5px 9px', borderRadius: '6px',
                     border: `1px solid ${divStyle === opt.value ? '#71717A' : 'rgba(255,255,255,0.25)'}`,
                     background: divStyle === opt.value ? 'rgba(24,24,27,0.14)' : 'rgba(24,24,27,0.04)',
                     color: divStyle === opt.value ? '#18181B' : '#3F3F46',
-                    cursor: 'pointer', fontSize: '0.72rem', fontWeight: divStyle === opt.value ? 700 : 400,
+                    cursor: 'pointer', fontSize: '0.65rem', fontWeight: divStyle === opt.value ? 700 : 400,
                     display: 'flex', alignItems: 'center', gap: '4px',
                     transition: 'all 0.12s',
                   }}
@@ -1452,8 +1452,8 @@ function BlockEffectsEditor({
             {divStyle !== null && (
               <div style={{ marginTop: '10px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '0.72rem', color: '#3F3F46' }}>Height</span>
-                  <span style={{ fontSize: '0.72rem', color: '#71717A', fontWeight: 700 }}>{divHeight}px</span>
+                  <span style={{ fontSize: '0.65rem', color: '#3F3F46' }}>Height</span>
+                  <span style={{ fontSize: '0.65rem', color: '#71717A', fontWeight: 700 }}>{divHeight}px</span>
                 </div>
                 <RangeSlider min={30} max={200} value={divHeight} suffix="px"
                   onChange={v => onUpdate({ dividerAbove: { style: divStyle, height: v } })}
@@ -1489,7 +1489,7 @@ function AddBlockPicker({ onAdd, onDragType, existingTypes, occasion = 'wedding'
           border: '1px solid rgba(24,24,27,0.12)',
           background: open ? '#F4F4F5' : '#F4F4F5',
           color: 'rgba(24,24,27,0.95)', cursor: 'pointer',
-          fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.06em',
+          fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.06em',
           transition: 'all 0.15s',
           boxShadow: open ? 'inset 0 1px 0 rgba(24,24,27,0.04)' : 'none',
         }}
@@ -1519,7 +1519,7 @@ function AddBlockPicker({ onAdd, onDragType, existingTypes, occasion = 'wedding'
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Search sections…"
-                style={{ ...inp, fontSize: '0.78rem', padding: '6px 10px' }}
+                style={{ ...inp, fontSize: '0.75rem', padding: '6px 10px' }}
               />
             </div>
 
@@ -1565,13 +1565,13 @@ function AddBlockPicker({ onAdd, onDragType, existingTypes, occasion = 'wedding'
                     <b.icon size={15} color={b.color} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#18181B', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#18181B', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {b.label}
                       {existingTypes.has(b.type) && (
                         <span style={{ fontSize: '0.58rem', color: b.color, padding: '1px 5px', borderRadius: '4px', background: `${b.color}18`, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>added</span>
                       )}
                     </div>
-                    <div style={{ fontSize: '0.68rem', color: '#71717A', marginTop: '1px', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{b.description}</div>
+                    <div style={{ fontSize: '0.65rem', color: '#71717A', marginTop: '1px', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{b.description}</div>
                   </div>
                 </button>
               ))}
@@ -1856,7 +1856,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
             value={activePage}
             onChange={e => setActivePage(e.target.value)}
             style={{
-              ...inp, fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer',
+              ...inp, fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer',
               background: 'rgba(24,24,27,0.06)', borderColor: '#E4E4E7',
               color: '#18181B', padding: '8px 10px',
             }}
@@ -1912,7 +1912,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                       value={newPageTitle}
                       onChange={e => setNewPageTitle(e.target.value)}
                       placeholder="e.g. Our Venue, Engagement"
-                      style={{ ...inp, flex: 1, fontSize: '0.78rem', padding: '6px 8px' }}
+                      style={{ ...inp, flex: 1, fontSize: '0.75rem', padding: '6px 8px' }}
                       onKeyDown={e => e.key === 'Enter' && addCustomPage()}
                       autoFocus
                     />
@@ -1920,10 +1920,10 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                       onClick={addCustomPage}
                       disabled={!newPageTitle.trim()}
                       style={{
-                        padding: '6px 12px', borderRadius: '5px', border: 'none',
+                        padding: '6px 12px', borderRadius: '6px', border: 'none',
                         background: newPageTitle.trim() ? '#18181B' : 'rgba(255,255,255,0.2)',
                         color: newPageTitle.trim() ? '#fff' : '#71717A',
-                        fontSize: '0.72rem', fontWeight: 700, cursor: newPageTitle.trim() ? 'pointer' : 'not-allowed',
+                        fontSize: '0.65rem', fontWeight: 700, cursor: newPageTitle.trim() ? 'pointer' : 'not-allowed',
                       }}
                     >Add</button>
                   </div>
@@ -1950,10 +1950,10 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
             border: '1px dashed #E4E4E7',
             marginBottom: '8px',
           }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3F3F46', marginBottom: '4px' }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#3F3F46', marginBottom: '4px' }}>
               No sections on this page
             </div>
-            <div style={{ fontSize: '0.72rem', color: '#71717A', lineHeight: 1.5 }}>
+            <div style={{ fontSize: '0.65rem', color: '#71717A', lineHeight: 1.5 }}>
               Click &ldquo;Add Section&rdquo; below or drag blocks from the catalogue to get started.
             </div>
           </div>
@@ -2084,7 +2084,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                           <inlineActiveDef.icon size={14} color={blockColor} />
                         </div>
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#18181B' }}>{inlineActiveDef.label}</div>
+                          <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#18181B' }}>{inlineActiveDef.label}</div>
                           <div style={{ fontSize: '0.6rem', color: '#3F3F46' }}>Section Settings</div>
                         </div>
                         <button
@@ -2192,10 +2192,10 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
               <GhostIcon size={15} color={ghostColor} />
             </div>
             <div>
-              <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#18181B', lineHeight: 1.3 }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#18181B', lineHeight: 1.3 }}>
                 {draggedDef?.label ?? (draggedBlock?.type || '').replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim()}
               </div>
-              <div style={{ fontSize: '0.62rem', color: '#71717A', marginTop: '2px' }}>
+              <div style={{ fontSize: '0.6rem', color: '#71717A', marginTop: '2px' }}>
                 Drag to reorder
               </div>
             </div>

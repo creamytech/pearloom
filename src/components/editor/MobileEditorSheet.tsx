@@ -654,7 +654,7 @@ export function MobileEditorSheet() {
                       disabled={item.disabled}
                       style={{
                         width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-                        padding: '10px 12px', border: 'none', borderRadius: 'var(--pl-radius-xs)',
+                        padding: '8px 10px', border: 'none', borderRadius: 'var(--pl-radius-xs)',
                         background: 'transparent', cursor: item.disabled ? 'default' : 'pointer',
                         color: item.disabled ? '#71717A' : '#3F3F46',
                         fontSize: 'var(--pl-text-sm)', fontWeight: 600,

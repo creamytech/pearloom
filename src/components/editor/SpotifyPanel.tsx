@@ -99,7 +99,7 @@ export function SpotifyPanel() {
               background: loading ? '#F4F4F5' : '#FFFFFF',
               color: loading ? '#A1A1AA' : '#18181B',
               cursor: loading ? 'not-allowed' : 'pointer',
-              fontSize: '0.72rem',
+              fontSize: '0.65rem',
               fontWeight: 600,
               transition: 'background 0.18s',
             }}
@@ -124,7 +124,7 @@ export function SpotifyPanel() {
           </button>
 
           {error && (
-            <p style={{ fontSize: '0.78rem', color: '#f87171', margin: 0, textAlign: 'center' }}>
+            <p style={{ fontSize: '0.75rem', color: '#f87171', margin: 0, textAlign: 'center' }}>
               {error}
             </p>
           )}
@@ -148,7 +148,7 @@ export function SpotifyPanel() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div
                       style={{
-                        fontSize: '0.82rem',
+                        fontSize: '0.8rem',
                         fontWeight: 600,
                         color: 'rgba(255,255,255,0.88)',
                         overflow: 'hidden',
@@ -211,7 +211,7 @@ export function SpotifyPanel() {
           )}
 
           {songs.length === 0 && !loading && !error && (
-            <p style={{ fontSize: '0.78rem', color: '#71717A', textAlign: 'center', margin: 0, padding: '0.5rem 0' }}>
+            <p style={{ fontSize: '0.75rem', color: '#71717A', textAlign: 'center', margin: 0, padding: '0.5rem 0' }}>
               Click the button to get 10 songs matched to your vibe
             </p>
           )}

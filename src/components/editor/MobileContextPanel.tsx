@@ -224,10 +224,10 @@ export function MobileContextPanel({
                   background: 'var(--pl-glass-light)',
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#18181B' }}>{ev.name || `Event ${i + 1}`}</div>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#18181B' }}>{ev.name || `Event ${i + 1}`}</div>
                     <button
                       onClick={() => scheduleManifestUpdate({ events: events.filter(e => e.id !== ev.id) })}
-                      style={{ background: 'none', border: 'none', color: '#e87171', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer', padding: '4px 8px', flexShrink: 0 }}
+                      style={{ background: 'none', border: 'none', color: '#e87171', fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer', padding: '4px 8px', flexShrink: 0 }}
                     >Remove</button>
                   </div>
                   <EventSettings
@@ -250,7 +250,7 @@ export function MobileContextPanel({
                 style={{
                   width: '100%', padding: '12px', borderRadius: 10,
                   border: '2px dashed #E4E4E7', background: 'rgba(24,24,27,0.03)',
-                  color: '#18181B', fontSize: '0.82rem', fontWeight: 600,
+                  color: '#18181B', fontSize: '0.8rem', fontWeight: 600,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 }}
               >+ Add Event</button>
@@ -472,7 +472,7 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
           }}
           style={{
             display: 'flex', alignItems: 'center', gap: 12,
-            padding: '14px 16px', borderRadius: 12, cursor: 'pointer',
+            padding: '10px 12px', borderRadius: 12, cursor: 'pointer',
             border: `1.5px dashed ${dragOver ? '#71717A' : 'rgba(255,255,255,0.5)'}`,
             background: dragOver ? 'rgba(24,24,27,0.04)' : 'rgba(255,255,255,0.35)',
             textAlign: 'left' as const, width: '100%',
@@ -485,10 +485,10 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
             <Upload size={18} className="pl-dropzone-icon" style={{ color: '#18181B', transition: 'transform 0.2s ease' }} />
           )}
           <div>
-            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#18181B' }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#18181B' }}>
               {uploading ? 'Uploading...' : dragOver ? 'Drop image here' : 'Upload from Device'}
             </div>
-            <div style={{ fontSize: '0.68rem', color: '#71717A' }}>
+            <div style={{ fontSize: '0.65rem', color: '#71717A' }}>
               JPG, PNG, or HEIC
             </div>
           </div>
@@ -502,7 +502,7 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
           }}
           style={{
             display: 'flex', alignItems: 'center', gap: 12,
-            padding: '14px 16px', borderRadius: 12, cursor: 'pointer',
+            padding: '10px 12px', borderRadius: 12, cursor: 'pointer',
             border: '1px solid #E4E4E7',
             background: '#FFFFFF',
             textAlign: 'left' as const, width: '100%',
@@ -515,10 +515,10 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
             <path d="M24 44L18.5 33.5H29.5L24 44Z" fill="#FBBC05"/>
           </svg>
           <div>
-            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#18181B' }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#18181B' }}>
               Google Photos
             </div>
-            <div style={{ fontSize: '0.68rem', color: '#71717A' }}>
+            <div style={{ fontSize: '0.65rem', color: '#71717A' }}>
               Pick from your library
             </div>
           </div>
@@ -529,7 +529,7 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
           onClick={() => setGalleryOpen(true)}
           style={{
             display: 'flex', alignItems: 'center', gap: 12,
-            padding: '14px 16px', borderRadius: 12, cursor: 'pointer',
+            padding: '10px 12px', borderRadius: 12, cursor: 'pointer',
             border: '1.5px dashed #E4E4E7',
             background: 'rgba(24,24,27,0.04)',
             textAlign: 'left' as const, width: '100%',
@@ -537,10 +537,10 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
         >
           <Image size={18} style={{ color: '#18181B' }} />
           <div>
-            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#18181B' }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#18181B' }}>
               Choose from Gallery
             </div>
-            <div style={{ fontSize: '0.68rem', color: '#71717A' }}>
+            <div style={{ fontSize: '0.65rem', color: '#71717A' }}>
               Reuse photos from your sites
             </div>
           </div>
@@ -614,7 +614,7 @@ function HeroSettings({
                 whileTap={{ scale: 0.92 }}
                 style={{
                   flex: 1,
-                  padding: '10px 12px',
+                  padding: '8px 10px',
                   borderRadius: 10,
                   border: '1px solid var(--pl-black-6)',
                   background: i === 0 ? 'rgba(24,24,27,0.06)' : 'transparent',
@@ -735,7 +735,7 @@ function ChapterSettings({
                     flexShrink: 0,
                     display: 'flex', flexDirection: 'column',
                     alignItems: 'center', gap: 5,
-                    padding: '10px 12px', borderRadius: 10,
+                    padding: '8px 10px', borderRadius: 10,
                     border: active ? '1px solid rgba(24,24,27,0.25)' : '1px solid var(--pl-black-6)',
                     background: active ? 'rgba(24,24,27,0.06)' : 'rgba(24,24,27,0.03)',
                     color: active ? '#18181B' : '#71717A',
@@ -937,7 +937,7 @@ function DesignSettings({
                       cursor: 'pointer', transition: 'all 0.15s',
                     }}
                   >
-                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: active ? '#18181B' : '#18181B' }}>{mode.label}</div>
+                    <div style={{ fontSize: '0.65rem', fontWeight: 600, color: active ? '#18181B' : '#18181B' }}>{mode.label}</div>
                     <div style={{ fontSize: '0.55rem', color: '#71717A', marginTop: 2 }}>{mode.desc}</div>
                   </button>
                 );
@@ -964,7 +964,7 @@ function DesignSettings({
                       cursor: 'pointer', transition: 'all 0.15s',
                     }}
                   >
-                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: active ? '#18181B' : '#18181B' }}>{s.label}</div>
+                    <div style={{ fontSize: '0.65rem', fontWeight: 600, color: active ? '#18181B' : '#18181B' }}>{s.label}</div>
                     <div style={{ fontSize: '0.55rem', color: '#71717A', marginTop: 2 }}>{s.desc}</div>
                   </button>
                 );
@@ -991,7 +991,7 @@ function DesignSettings({
                       cursor: 'pointer', transition: 'all 0.15s',
                     }}
                   >
-                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: active ? '#18181B' : '#18181B' }}>{s.label}</div>
+                    <div style={{ fontSize: '0.65rem', fontWeight: 600, color: active ? '#18181B' : '#18181B' }}>{s.label}</div>
                     <div style={{ fontSize: '0.55rem', color: '#71717A', marginTop: 2 }}>{s.desc}</div>
                   </button>
                 );
@@ -1025,7 +1025,7 @@ function DesignSettings({
                     key={p.label}
                     onClick={() => onUpdate({ navBackground: p.value || undefined })}
                     style={{
-                      padding: '6px 12px', borderRadius: 8, fontSize: '0.68rem', fontWeight: 600,
+                      padding: '6px 12px', borderRadius: 8, fontSize: '0.65rem', fontWeight: 600,
                       border: active ? '2px solid #18181B' : '1px solid rgba(0,0,0,0.06)',
                       background: active ? 'rgba(24,24,27,0.04)' : 'rgba(255,255,255,0.75)',
                       color: active ? '#18181B' : '#71717A',
@@ -1050,7 +1050,7 @@ function DesignSettings({
               onChange={e => onUpdate({ theme: { ...theme, colors: { ...colors, background: e.target.value } } })}
               style={{ width: 52, height: 44, padding: 3, borderRadius: 10, border: '1px solid rgba(0,0,0,0.08)', cursor: 'pointer', background: 'transparent', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
             />
-            <span style={{ fontSize: '0.72rem', color: '#71717A', fontFamily: 'monospace' }}>{colors.background || '#FFFDF8'}</span>
+            <span style={{ fontSize: '0.65rem', color: '#71717A', fontFamily: 'monospace' }}>{colors.background || '#FFFDF8'}</span>
           </div>
         </div>
 
@@ -1061,7 +1061,7 @@ function DesignSettings({
               onChange={e => onUpdate({ theme: { ...theme, colors: { ...colors, accent: e.target.value } } })}
               style={{ width: 52, height: 44, padding: 3, borderRadius: 10, border: '1px solid rgba(0,0,0,0.08)', cursor: 'pointer', background: 'transparent', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
             />
-            <span style={{ fontSize: '0.72rem', color: '#71717A', fontFamily: 'monospace' }}>{colors.accent || '#71717A'}</span>
+            <span style={{ fontSize: '0.65rem', color: '#71717A', fontFamily: 'monospace' }}>{colors.accent || '#71717A'}</span>
           </div>
         </div>
 
@@ -1194,13 +1194,13 @@ function RegistrySettings({
               border: '1px solid var(--pl-black-6)', background: 'var(--pl-glass-light)',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#3F3F46' }}>{entry.name || `Registry ${i + 1}`}</span>
+                <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#3F3F46' }}>{entry.name || `Registry ${i + 1}`}</span>
                 <button
                   onClick={() => {
                     const entries = (registry.entries || []).filter((_, j) => j !== i);
                     onUpdate({ registry: { ...registry, entries } });
                   }}
-                  style={{ background: 'none', border: 'none', color: '#e87171', fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer' }}
+                  style={{ background: 'none', border: 'none', color: '#e87171', fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer' }}
                 >Remove</button>
               </div>
               <Field label="Name" value={entry.name || ''} onChange={(v) => {
@@ -1224,7 +1224,7 @@ function RegistrySettings({
             style={{
               width: '100%', padding: '12px', borderRadius: 10,
               border: '2px dashed #E4E4E7', background: 'rgba(24,24,27,0.03)',
-              color: '#18181B', fontSize: '0.82rem', fontWeight: 600,
+              color: '#18181B', fontSize: '0.8rem', fontWeight: 600,
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}
           >+ Add Registry</button>
@@ -1284,10 +1284,10 @@ function TravelSettings({
               border: '1px solid var(--pl-black-6)', background: 'var(--pl-glass-light)',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#3F3F46' }}>Hotel {i + 1}</span>
+                <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#3F3F46' }}>Hotel {i + 1}</span>
                 <button
                   onClick={() => onUpdate({ travelInfo: { ...travel, hotels: (travel.hotels || []).filter((_, j) => j !== i) } })}
-                  style={{ background: 'none', border: 'none', color: '#e87171', fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer' }}
+                  style={{ background: 'none', border: 'none', color: '#e87171', fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer' }}
                 >Remove</button>
               </div>
               <Field label="Name" value={hotel.name || ''} onChange={(v) => {
@@ -1320,7 +1320,7 @@ function TravelSettings({
             style={{
               width: '100%', padding: '12px', borderRadius: 10,
               border: '2px dashed #E4E4E7', background: 'rgba(24,24,27,0.03)',
-              color: '#18181B', fontSize: '0.82rem', fontWeight: 600,
+              color: '#18181B', fontSize: '0.8rem', fontWeight: 600,
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}
           >+ Add Hotel</button>
@@ -1369,8 +1369,8 @@ function FaqSettings({
             background: 'var(--pl-glass-light)',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#3F3F46', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Q{i + 1}</span>
-              <button onClick={() => removeFaq(i)} style={{ background: 'none', border: 'none', color: '#e87171', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer', padding: '4px 8px' }}>Remove</button>
+              <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#3F3F46', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Q{i + 1}</span>
+              <button onClick={() => removeFaq(i)} style={{ background: 'none', border: 'none', color: '#e87171', fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer', padding: '4px 8px' }}>Remove</button>
             </div>
             <Field
               label="Question"
@@ -1393,7 +1393,7 @@ function FaqSettings({
           style={{
             width: '100%', padding: '12px', borderRadius: 10,
             border: '2px dashed #E4E4E7', background: 'rgba(24,24,27,0.03)',
-            color: '#18181B', fontSize: '0.82rem', fontWeight: 600,
+            color: '#18181B', fontSize: '0.8rem', fontWeight: 600,
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
           }}
         >+ Add Question</button>

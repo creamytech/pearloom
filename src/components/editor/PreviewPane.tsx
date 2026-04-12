@@ -400,7 +400,7 @@ export function PreviewPane({
         background: 'rgba(0,0,0,0.2)',
       }}>
         <span style={{
-          fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em',
+          fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.1em',
           textTransform: 'uppercase', color: '#3F3F46',
         }}>
           Live Preview

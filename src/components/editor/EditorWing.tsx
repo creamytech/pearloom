@@ -192,7 +192,7 @@ export function EditorWing({
                   transition={{ duration: 0.14 }}
                 >
                   <h3 style={{
-                    fontSize: '0.92rem',
+                    fontSize: '0.9rem',
                     fontWeight: 600,
                     fontFamily: 'inherit',
                     color: '#18181B',

@@ -78,7 +78,7 @@ export function SidebarSection({
         transition={{ type: 'spring', stiffness: 400, damping: 22 }}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
-          padding: '10px 12px', borderRadius: 'var(--pl-radius-sm)', border: 'none',
+          padding: '8px 10px', borderRadius: 'var(--pl-radius-sm)', border: 'none',
           background: 'transparent', cursor: 'pointer',
           color: '#3F3F46',
         }}
@@ -309,7 +309,7 @@ export function EditorSidebar({
                 </motion.div>
                 {/* Micro-label */}
                 <span style={{
-                  fontSize: '0.62rem',
+                  fontSize: '0.6rem',
                   fontWeight: 700,
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',
@@ -388,7 +388,7 @@ export function EditorSidebar({
               <span
                 style={{
                   flex: 1,
-                  fontSize: '0.92rem',
+                  fontSize: '0.9rem',
                   fontWeight: 500,
                   fontFamily: 'inherit',
                   letterSpacing: '-0.01em',

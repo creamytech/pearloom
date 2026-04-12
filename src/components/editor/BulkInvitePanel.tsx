@@ -104,7 +104,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '6px',
-        fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
+        fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em',
         textTransform: 'uppercase', color: '#71717A',
       }}>
         <Mail size={11} /> Send Invitations
@@ -151,7 +151,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
                       })}
                       style={{
                         display: 'flex', alignItems: 'center', gap: '8px',
-                        padding: '6px 8px', borderRadius: '7px',
+                        padding: '6px 8px', borderRadius: '6px',
                         background: isSelected ? 'rgba(24,24,27,0.04)' : 'rgba(24,24,27,0.02)',
                         border: `1px solid ${isSelected ? 'rgba(24,24,27,0.1)' : 'transparent'}`,
                         cursor: 'pointer', textAlign: 'left',
@@ -166,10 +166,10 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
                         {isSelected && <Check size={8} color="#71717A" />}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '0.73rem', fontWeight: 600, color: '#18181B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <div style={{ fontSize: '0.65rem', fontWeight: 600, color: '#18181B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {guest.name}
                         </div>
-                        <div style={{ fontSize: '0.62rem', color: '#71717A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <div style={{ fontSize: '0.6rem', color: '#71717A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {guest.email}
                         </div>
                       </div>
@@ -182,7 +182,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
 
           {/* Message */}
           <div>
-            <div style={{ fontSize: '0.68rem', color: '#71717A', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>
+            <div style={{ fontSize: '0.65rem', color: '#71717A', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>
               Personal Message (optional)
             </div>
             <textarea
@@ -194,7 +194,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
                 width: '100%', padding: '8px 10px', borderRadius: '12px',
                 border: '1px solid #E4E4E7',
                 background: 'rgba(24,24,27,0.04)',
-                color: '#18181B', fontSize: '0.78rem',
+                color: '#18181B', fontSize: '0.75rem',
                 outline: 'none', resize: 'vertical', boxSizing: 'border-box',
                 lineHeight: 1.5,
               }}
@@ -222,7 +222,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 style={{
-                  borderRadius: '9px', overflow: 'hidden',
+                  borderRadius: '8px', overflow: 'hidden',
                   border: '1px solid #E4E4E7',
                   background: '#FAF8F4',
                 }}
@@ -232,12 +232,12 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
                     <div style={{ fontSize: '0.9rem', fontWeight: 400, letterSpacing: '-0.01em' }}>{coupleDisplay}</div>
                     <div style={{ fontSize: '0.6rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#8A7A4A', marginTop: '3px' }}>Request the pleasure of your company</div>
                   </div>
-                  <p style={{ fontSize: '0.78rem', lineHeight: 1.6, color: '#444', margin: '0 0 8px' }}>Dear Guest,</p>
-                  <p style={{ fontSize: '0.78rem', lineHeight: 1.6, color: '#444', margin: '0 0 12px' }}>
+                  <p style={{ fontSize: '0.75rem', lineHeight: 1.6, color: '#444', margin: '0 0 8px' }}>Dear Guest,</p>
+                  <p style={{ fontSize: '0.75rem', lineHeight: 1.6, color: '#444', margin: '0 0 12px' }}>
                     {message.trim() || 'We are delighted to invite you to celebrate our special day. Please visit our website for details and to RSVP.'}
                   </p>
                   <div style={{ textAlign: 'center' }}>
-                    <span style={{ display: 'inline-block', padding: '8px 20px', background: '#71717A', color: '#fff', borderRadius: '6px', fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.08em' }}>RSVP NOW →</span>
+                    <span style={{ display: 'inline-block', padding: '8px 20px', background: '#71717A', color: '#fff', borderRadius: '6px', fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.08em' }}>RSVP NOW →</span>
                   </div>
                 </div>
               </motion.div>
@@ -247,7 +247,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
           {/* Result banner */}
           {result && (
             <div style={{
-              padding: '10px 12px', borderRadius: '12px',
+              padding: '8px 10px', borderRadius: '12px',
               background: result.failed === 0 ? 'rgba(24,24,27,0.06)' : 'rgba(248,81,73,0.1)',
               border: `1px solid ${result.failed === 0 ? '#E4E4E7' : 'rgba(248,81,73,0.3)'}`,
               fontSize: '0.75rem',
@@ -271,7 +271,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
               background: selectedGuests.length > 0 ? 'rgba(24,24,27,0.12)' : '#F4F4F5',
               color: selectedGuests.length > 0 ? '#71717A' : '#71717A',
               cursor: selectedGuests.length > 0 && !sending ? 'pointer' : 'default',
-              fontSize: '0.82rem', fontWeight: 800,
+              fontSize: '0.8rem', fontWeight: 800,
             }}
           >
             <Send size={14} />

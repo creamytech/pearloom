@@ -231,7 +231,7 @@ export function ImageManager({
     <div>
       {/* Header: label + source buttons */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-        <span style={{ fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA' }}>
+        <span style={{ fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA' }}>
           Photos{images.length > 0 ? ` (${images.length})` : ''}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
@@ -340,7 +340,7 @@ export function ImageManager({
             onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.06)'; (e.currentTarget as HTMLElement).style.color = '#71717A'; }}
           >
             <Camera size={20} />
-            <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Add photos</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Add photos</span>
           </button>
         ) : viewMode === 'grid' ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
@@ -382,7 +382,7 @@ export function ImageManager({
                   <div style={{
                     position: 'absolute', bottom: '4px', left: '4px',
                     background: '#18181B', color: '#fff',
-                    fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.1em',
+                    fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.1em',
                     textTransform: 'uppercase', padding: '2px 5px', borderRadius: '3px',
                     zIndex: 2,
                   }}>Cover</div>
@@ -521,7 +521,7 @@ export function ImageManager({
               onClick={() => fileInputRef.current?.click()}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                width: '100%', marginTop: '8px', padding: '7px 12px', borderRadius: '8px',
+                width: '100%', marginTop: '8px', padding: '6px 10px', borderRadius: '8px',
                 border: '2px dashed #E4E4E7', background: 'transparent',
                 cursor: 'pointer', color: '#71717A', transition: 'all 0.15s',
               }}
@@ -540,7 +540,7 @@ export function ImageManager({
         <div style={{
           marginTop: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: '6px',
           background: 'rgba(185,28,28,0.15)', border: '1px solid rgba(185,28,28,0.3)',
-          color: '#fca5a5', fontSize: '0.78rem', lineHeight: 1.4,
+          color: '#fca5a5', fontSize: '0.75rem', lineHeight: 1.4,
         }}>
           {uploadError ? `Upload failed: ${uploadError}` : gpError}
         </div>
@@ -558,7 +558,7 @@ export function ImageManager({
               border: '1px solid #E4E4E7',
               background: '#fff',
               color: generatingCaptions ? '#A1A1AA' : '#18181B',
-              fontSize: '0.62rem', fontWeight: 600, cursor: generatingCaptions ? 'not-allowed' : 'pointer',
+              fontSize: '0.6rem', fontWeight: 600, cursor: generatingCaptions ? 'not-allowed' : 'pointer',
               transition: 'all 0.15s',
             }}
             onMouseOver={e => { if (!generatingCaptions) (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.1)'; }}
@@ -574,7 +574,7 @@ export function ImageManager({
             <div style={{
               marginTop: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: '6px',
               background: 'rgba(185,28,28,0.15)', border: '1px solid rgba(185,28,28,0.3)',
-              color: '#fca5a5', fontSize: '0.78rem', lineHeight: 1.4,
+              color: '#fca5a5', fontSize: '0.75rem', lineHeight: 1.4,
             }}>
               {captionError}
             </div>

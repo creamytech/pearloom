@@ -80,7 +80,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
             >
               <CalendarHeartIcon size={24} style={{ opacity: 0.7, marginBottom: '8px', color: '#18181B' }} />
               <div style={{
-                fontSize: '0.85rem', fontWeight: panelWeight.semibold, 
+                fontSize: '0.8rem', fontWeight: panelWeight.semibold, 
                 fontFamily: 'inherit', color: '#71717A',
               }}>
                 No events yet
@@ -111,7 +111,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                   onClick={() => setExpandedId(isExpanded ? null : evt.id)}
                   style={{
                     width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
-                    padding: '11px 12px', background: 'none', border: 'none',
+                    padding: '8px 10px', background: 'none', border: 'none',
                     cursor: 'pointer', textAlign: 'left',
                   }}
                 >
@@ -182,7 +182,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                         {/* Optional fields — collapsed by default */}
                         <details style={{ marginTop: '2px' }}>
                           <summary style={{
-                            fontSize: '0.62rem', fontWeight: 600, color: '#A1A1AA',
+                            fontSize: '0.6rem', fontWeight: 600, color: '#A1A1AA',
                             cursor: 'pointer', padding: '4px 0', listStyle: 'none',
                             display: 'flex', alignItems: 'center', gap: '4px',
                           }}>

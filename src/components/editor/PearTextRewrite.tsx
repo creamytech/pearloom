@@ -200,7 +200,7 @@ export function PearTextRewrite({ onTextEdit }: PearTextRewriteProps) {
               gap: '4px',
               padding: '3px 8px 3px 6px',
               color: OLIVE,
-              fontSize: '0.68rem',
+              fontSize: '0.65rem',
               fontWeight: 700,
               letterSpacing: '0.03em',
             }}
@@ -233,7 +233,7 @@ export function PearTextRewrite({ onTextEdit }: PearTextRewriteProps) {
                 border: 'none',
                 background: activeStyle === opt.value ? 'rgba(24,24,27,0.08)' : 'transparent',
                 color: 'var(--pl-ink-soft, #3D3530)',
-                fontSize: '0.64rem',
+                fontSize: '0.6rem',
                 fontWeight: 600,
                 cursor: loading ? 'wait' : 'pointer',
                 opacity: loading && activeStyle !== opt.value ? 0.5 : 1,

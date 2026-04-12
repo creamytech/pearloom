@@ -100,7 +100,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
             }}
             onClick={e => e.stopPropagation()}
           >
-            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#71717A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#71717A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
               AI Rewrite
             </div>
 
@@ -115,7 +115,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
                     padding: '0.35rem 0.65rem', borderRadius: '8px',
                     border: `1.5px solid ${activeStyle === s.id ? '#71717A' : 'rgba(0,0,0,0.08)'}`,
                     background: activeStyle === s.id ? 'rgba(24,24,27,0.06)' : '#fff',
-                    fontSize: '0.78rem', fontWeight: 500, cursor: loading ? 'wait' : 'pointer',
+                    fontSize: '0.75rem', fontWeight: 500, cursor: loading ? 'wait' : 'pointer',
                     color: '#18181B', transition: 'all 0.15s',
                   }}
                 >
@@ -126,7 +126,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
 
             {/* Loading state */}
             {loading && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0', color: '#9A9488', fontSize: '0.82rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0', color: '#9A9488', fontSize: '0.8rem' }}>
                 <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
                 Rewriting...
               </div>
@@ -137,7 +137,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
               <div>
                 <div style={{
                   padding: '0.6rem', borderRadius: '0.5rem', background: '#F4F4F5',
-                  border: '1px solid rgba(24,24,27,0.08)', fontSize: '0.85rem', lineHeight: 1.5,
+                  border: '1px solid rgba(24,24,27,0.08)', fontSize: '0.8rem', lineHeight: 1.5,
                   color: '#18181B', marginBottom: '0.5rem',
                 }}>
                   {result}
@@ -148,7 +148,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
                     style={{
                       padding: '0.35rem 0.75rem', borderRadius: '8px',
                       border: '1px solid rgba(0,0,0,0.08)', background: '#fff',
-                      fontSize: '0.78rem', cursor: 'pointer', color: '#9A9488',
+                      fontSize: '0.75rem', cursor: 'pointer', color: '#9A9488',
                     }}
                   >Dismiss</button>
                   <button
@@ -161,7 +161,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
                     style={{
                       padding: '0.35rem 0.75rem', borderRadius: '8px',
                       border: 'none', background: '#71717A', color: '#fff',
-                      fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
+                      fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
                     }}
                   >Use this</button>
                 </div>

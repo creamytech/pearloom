@@ -276,7 +276,7 @@ export function MobileBlockList({ onSelectBlock, onScrollToBlock }: MobileBlockL
               background: 'var(--pl-cream, #FFFCF7)',
               border: '1px solid #ef4444',
               borderRadius: 'var(--pl-radius-sm, 8px)',
-              padding: '14px 16px',
+              padding: '10px 12px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',

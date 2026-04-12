@@ -162,7 +162,7 @@ function AIActionPill({
         background: accent ? 'rgba(24,24,27,0.06)' : 'rgba(24,24,27,0.04)',
         color: accent ? 'rgba(24,24,27,0.85)' : '#71717A',
         cursor: disabled ? 'not-allowed' : 'pointer',
-        fontSize: '0.72rem', fontWeight: 700,
+        fontSize: '0.65rem', fontWeight: 700,
         opacity: disabled ? 0.5 : 1,
         whiteSpace: 'nowrap',
         flexShrink: 0,

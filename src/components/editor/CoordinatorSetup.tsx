@@ -95,7 +95,7 @@ export default function CoordinatorSetup({ manifest, onChange }: CoordinatorSetu
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
-          padding: '10px 14px',
+          padding: '8px 10px',
           borderRadius: '10px',
           backgroundColor: hasVenueInfo ? '#eef7ee' : '#fff8ed',
           border: `1px solid ${hasVenueInfo ? '#b8ddb8' : '#f0d9a0'}`,
@@ -124,7 +124,7 @@ export default function CoordinatorSetup({ manifest, onChange }: CoordinatorSetu
           alignItems: 'center',
           justifyContent: 'space-between',
           marginBottom: '24px',
-          padding: '12px 16px',
+          padding: '10px 12px',
           backgroundColor: '#fff',
           border: '1px solid rgba(0,0,0,0.1)',
           borderRadius: '12px',
@@ -355,7 +355,7 @@ export default function CoordinatorSetup({ manifest, onChange }: CoordinatorSetu
           <div
             style={{
               backgroundColor: '#faf7f2',
-              borderRadius: '20px',
+              borderRadius: '10px',
               padding: '24px',
               width: 'min(440px, 100%)',
               position: 'relative',
@@ -463,7 +463,7 @@ function PreviewCoordinator({ siteId, coupleNames, vibeSkin }: PreviewCoordinato
         }
       `}</style>
       {/* Header */}
-      <div style={{ backgroundColor: accentColor, color: '#fff', padding: '14px 16px', flexShrink: 0 }}>
+      <div style={{ backgroundColor: accentColor, color: '#fff', padding: '10px 12px', flexShrink: 0 }}>
         <div style={{ fontWeight: 700, fontSize: '15px', display: 'flex', alignItems: 'center', gap: '6px' }}>
           <MessageCircle size={16} style={{ color: '#fff' }} /> Wedding Coordinator
         </div>
@@ -472,7 +472,7 @@ function PreviewCoordinator({ siteId, coupleNames, vibeSkin }: PreviewCoordinato
 
       {/* Messages */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <div style={{ alignSelf: 'flex-start', backgroundColor: 'var(--pl-cream)', borderRadius: '14px 14px 14px 4px', padding: '10px 14px', fontSize: '14px', lineHeight: 1.5, maxWidth: '88%', boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
+        <div style={{ alignSelf: 'flex-start', backgroundColor: 'var(--pl-cream)', borderRadius: '14px 14px 14px 4px', padding: '8px 10px', fontSize: '14px', lineHeight: 1.5, maxWidth: '88%', boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
           Hi! I'm your celebration assistant for {name1} &amp; {name2}'s site. Ask me anything!
         </div>
 
@@ -482,7 +482,7 @@ function PreviewCoordinator({ siteId, coupleNames, vibeSkin }: PreviewCoordinato
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {SUGGESTED_QUESTIONS.map(q => (
                 <button key={q.label} onClick={() => sendMessage(q.label)}
-                  style={{ backgroundColor: 'var(--pl-cream)', border: `1.5px solid ${accentColor}30`, borderRadius: '20px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer', color: foreground, display: 'flex', alignItems: 'center', gap: '4px', fontFamily: 'inherit' }}>
+                  style={{ backgroundColor: 'var(--pl-cream)', border: `1.5px solid ${accentColor}30`, borderRadius: '10px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer', color: foreground, display: 'flex', alignItems: 'center', gap: '4px', fontFamily: 'inherit' }}>
                   <span>{QUESTION_ICONS[q.icon] || q.icon}</span> {q.label}
                 </button>
               ))}
@@ -491,13 +491,13 @@ function PreviewCoordinator({ siteId, coupleNames, vibeSkin }: PreviewCoordinato
         )}
 
         {messages.map((msg, i) => (
-          <div key={i} style={{ alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', backgroundColor: msg.role === 'user' ? '#6b7c5e' : 'var(--pl-cream)', color: msg.role === 'user' ? '#fff' : foreground, borderRadius: msg.role === 'user' ? '14px 14px 4px 14px' : '14px 14px 14px 4px', padding: '10px 14px', fontSize: '14px', lineHeight: 1.5, maxWidth: '88%', boxShadow: '0 1px 4px rgba(0,0,0,0.07)', whiteSpace: 'pre-wrap' }}>
+          <div key={i} style={{ alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', backgroundColor: msg.role === 'user' ? '#6b7c5e' : 'var(--pl-cream)', color: msg.role === 'user' ? '#fff' : foreground, borderRadius: msg.role === 'user' ? '14px 14px 4px 14px' : '14px 14px 14px 4px', padding: '8px 10px', fontSize: '14px', lineHeight: 1.5, maxWidth: '88%', boxShadow: '0 1px 4px rgba(0,0,0,0.07)', whiteSpace: 'pre-wrap' }}>
             {msg.content}
           </div>
         ))}
 
         {loading && (
-          <div style={{ alignSelf: 'flex-start', backgroundColor: 'var(--pl-cream)', borderRadius: '14px 14px 14px 4px', padding: '12px 16px', display: 'flex', gap: '5px', boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
+          <div style={{ alignSelf: 'flex-start', backgroundColor: 'var(--pl-cream)', borderRadius: '14px 14px 14px 4px', padding: '10px 12px', display: 'flex', gap: '5px', boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
             {[0,1,2].map(i => <span key={i} style={{ width: '7px', height: '7px', backgroundColor: accentColor, borderRadius: '50%', display: 'inline-block', animation: `previewDot 1.2s ease-in-out ${i * 0.2}s infinite` }} />)}
           </div>
         )}
@@ -505,7 +505,7 @@ function PreviewCoordinator({ siteId, coupleNames, vibeSkin }: PreviewCoordinato
       </div>
 
       {/* Input */}
-      <div style={{ borderTop: '1px solid rgba(0,0,0,0.08)', padding: '12px 14px', display: 'flex', gap: '10px', alignItems: 'flex-end', backgroundColor: '#18181B' }}>
+      <div style={{ borderTop: '1px solid rgba(0,0,0,0.08)', padding: '10px 12px', display: 'flex', gap: '10px', alignItems: 'flex-end', backgroundColor: '#18181B' }}>
         <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Type a question..." rows={1}
           style={{ flex: 1, border: '1.5px solid rgba(0,0,0,0.12)', borderRadius: '12px', padding: '9px 13px', fontSize: '14px', fontFamily: 'inherit', resize: 'none', outline: 'none', backgroundColor: 'var(--pl-cream)', color: foreground, lineHeight: 1.5, maxHeight: '80px', overflowY: 'auto' }} />
         <button onClick={() => sendMessage(input)} disabled={loading || !input.trim()}

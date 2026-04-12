@@ -353,7 +353,7 @@ export function UndoTimelinePanel() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '10px 14px',
+        padding: '8px 10px',
         borderRadius: '10px',
         background: 'var(--pl-white-20)',
         border: '1px solid var(--pl-white-30)',
@@ -399,7 +399,7 @@ export function UndoTimelinePanel() {
             style={{
               width: '28px',
               height: '28px',
-              borderRadius: '7px',
+              borderRadius: '6px',
               border: 'none',
               background: state.canUndo ? 'var(--pl-black-6)' : 'transparent',
               color: state.canUndo ? '#3F3F46' : 'rgba(0,0,0,0.15)',
@@ -420,7 +420,7 @@ export function UndoTimelinePanel() {
             style={{
               width: '28px',
               height: '28px',
-              borderRadius: '7px',
+              borderRadius: '6px',
               border: 'none',
               background: state.canRedo ? 'var(--pl-black-6)' : 'transparent',
               color: state.canRedo ? '#3F3F46' : 'rgba(0,0,0,0.15)',
@@ -553,7 +553,7 @@ export function UndoTimelinePanel() {
           whileTap={{ scale: 0.98 }}
           style={{
             width: '100%',
-            padding: '10px 14px',
+            padding: '8px 10px',
             borderRadius: '10px',
             border: '1px solid var(--pl-white-30)',
             background: 'rgba(24,24,27,0.08)',

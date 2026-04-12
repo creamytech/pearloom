@@ -83,16 +83,17 @@ export function PanelField({
 // (via :focus CSS, see globals.css / editor-utils).
 export const panelInputStyle: CSSProperties = {
   width: '100%',
-  padding: '10px 12px',
-  borderRadius: '8px',
+  padding: '8px 10px',
+  borderRadius: '6px',
   background: '#FFFFFF',
   border: '1px solid #E4E4E7',
-  fontSize: 'max(16px, 0.82rem)', // 16px min keeps iOS from zoom-in
+  fontSize: 'max(16px, 0.8rem)', // 16px min keeps iOS from zoom-in
   color: '#18181B',
   fontFamily: 'inherit',
   outline: 'none',
   transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
   boxSizing: 'border-box',
+  minHeight: '36px',
 };
 
 /**

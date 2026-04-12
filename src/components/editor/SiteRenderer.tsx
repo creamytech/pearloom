@@ -55,7 +55,7 @@ function PearHelpButton({ label, prompt }: { label: string; prompt: string }) {
         background: 'transparent',
         border: `1px solid #E4E4E7`,
         color: OLIVE,
-        fontSize: '0.72rem',
+        fontSize: '0.65rem',
         fontWeight: 600,
         fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
         cursor: 'pointer',
@@ -116,7 +116,7 @@ function PearNudge({ prompt, onDismiss }: { prompt: string; onDismiss: () => voi
         cursor: 'pointer',
         marginTop: '0.75rem',
         fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
-        fontSize: '0.78rem',
+        fontSize: '0.75rem',
         fontWeight: 500,
         color: 'var(--pl-ink-soft, #3D3530)',
         whiteSpace: 'nowrap',
@@ -387,7 +387,7 @@ const SectionOverlay = React.memo(function SectionOverlay({
           ].map(a => (
             <button key={a.action} onClick={(e) => { e.stopPropagation(); a.handler(); }}
               title={a.action.charAt(0).toUpperCase() + a.action.slice(1)}
-              style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: '6px', background: 'transparent', color: (a as { danger?: boolean }).danger ? '#d06060' : '#71717A', cursor: 'pointer', fontSize: '0.72rem' }}
+              style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: '6px', background: 'transparent', color: (a as { danger?: boolean }).danger ? '#d06060' : '#71717A', cursor: 'pointer', fontSize: '0.65rem' }}
             >{a.icon}</button>
           ))}
         </div>
@@ -1019,7 +1019,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.75rem' }}><CalendarDays size={28} style={{ color: '#71717A' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Events</div>
-              <p style={{ fontSize: '0.85rem' }}>Add your ceremony, reception, and other events in the Events panel</p>
+              <p style={{ fontSize: '0.8rem' }}>Add your ceremony, reception, and other events in the Events panel</p>
               <PearHelpButton label="Ask Pear to set up events" prompt={getPearPrompt('events')} />
               {pearNudgeSection === 'events' && <PearNudge prompt={getPearPrompt('events')} onDismiss={dismissPearNudge} />}
             </div>
@@ -1056,7 +1056,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               <div style={{ padding: '0 2rem 4rem', position: 'relative', zIndex: 2 }}>
                 <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                   <span style={{
-                    fontSize: '0.62rem',
+                    fontSize: '0.6rem',
                     letterSpacing: '0.25em',
                     textTransform: 'uppercase' as const,
                     color: pal.accent,
@@ -1077,7 +1077,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.75rem' }}><Mail size={28} style={{ color: '#71717A' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>RSVP</div>
-              <p style={{ fontSize: '0.85rem' }}>Add events first — the RSVP form will appear here for your guests</p>
+              <p style={{ fontSize: '0.8rem' }}>Add events first — the RSVP form will appear here for your guests</p>
               <PearHelpButton label="Ask Pear to set up RSVP" prompt={getPearPrompt('RSVP')} />
               {pearNudgeSection === 'rsvp' && <PearNudge prompt={getPearPrompt('RSVP')} onDismiss={dismissPearNudge} />}
             </div>
@@ -1111,7 +1111,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.75rem' }}><Gift size={28} style={{ color: '#71717A' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Registry</div>
-              <p style={{ fontSize: '0.85rem' }}>Add registry links in Details → Registry</p>
+              <p style={{ fontSize: '0.8rem' }}>Add registry links in Details → Registry</p>
               <PearHelpButton label="Ask Pear to help" prompt={getPearPrompt('registry')} />
               {pearNudgeSection === 'registry' && <PearNudge prompt={getPearPrompt('registry')} onDismiss={dismissPearNudge} />}
             </div>
@@ -1124,7 +1124,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.75rem' }}><Plane size={28} style={{ color: '#71717A' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Travel & Hotels</div>
-              <p style={{ fontSize: '0.85rem' }}>Add hotel and travel info in Details → Travel</p>
+              <p style={{ fontSize: '0.8rem' }}>Add hotel and travel info in Details → Travel</p>
               <PearHelpButton label="Ask Pear to help" prompt={getPearPrompt('travel')} />
               {pearNudgeSection === 'travel' && <PearNudge prompt={getPearPrompt('travel')} onDismiss={dismissPearNudge} />}
             </div>
@@ -1148,7 +1148,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.75rem' }}><HelpCircle size={28} style={{ color: '#71717A' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>FAQ</div>
-              <p style={{ fontSize: '0.85rem' }}>Add frequently asked questions in Details → FAQ</p>
+              <p style={{ fontSize: '0.8rem' }}>Add frequently asked questions in Details → FAQ</p>
               <PearHelpButton label="Ask Pear to help" prompt={getPearPrompt('FAQ')} />
               {pearNudgeSection === 'faq' && <PearNudge prompt={getPearPrompt('FAQ')} onDismiss={dismissPearNudge} />}
             </div>
@@ -1186,7 +1186,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             {countdownDate ? (
               <LiveCountdown targetDate={countdownDate} accentColor={safeAccent} textColor={safeFg} mutedColor={safeMuted} headingFont={vibeSkin.fonts.heading} bodyFont={vibeSkin.fonts.body} />
             ) : (
-              <p style={{ color: safeMuted, fontSize: '0.92rem',  }}>Set a date in the countdown block settings</p>
+              <p style={{ color: safeMuted, fontSize: '0.9rem',  }}>Set a date in the countdown block settings</p>
             )}
           </section>
         );
@@ -1197,7 +1197,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           <section key={key} data-pe-section="text" data-pe-empty-section="text" style={{ padding: '3rem 2rem', textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
             <div className="pl-empty-gradient" style={{ padding: '2.5rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.5rem' }}><PenLine size={22} style={{ color: '#71717A' }} /></div>
-              <p style={{ fontSize: '0.85rem' }}>Click to add text content</p>
+              <p style={{ fontSize: '0.8rem' }}>Click to add text content</p>
               <PearHelpButton label="Ask Pear to write this" prompt={getPearPrompt('text')} />
               {pearNudgeSection === 'text' && <PearNudge prompt={getPearPrompt('text')} onDismiss={dismissPearNudge} />}
             </div>
@@ -1262,7 +1262,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.75rem' }}><Camera size={28} style={{ color: '#71717A' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Photo Gallery</div>
-              <p style={{ fontSize: '0.85rem' }}>Add photos to your story chapters — they&apos;ll appear here</p>
+              <p style={{ fontSize: '0.8rem' }}>Add photos to your story chapters — they&apos;ll appear here</p>
             </div>
           </section>
         ) : null;
@@ -1307,7 +1307,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               </div>
             ) : (
               <div className="pl-empty-gradient" style={{ padding: '3rem', textAlign: 'center', borderRadius: '1rem', border: '2px dashed #E4E4E7', color: '#71717A' }}>
-                <p data-pe-editable="true" data-pe-path={`blocks.${block.id}.config.url`} style={{ fontSize: '0.88rem' }}>
+                <p data-pe-editable="true" data-pe-path={`blocks.${block.id}.config.url`} style={{ fontSize: '0.8rem' }}>
                   {videoUrl || 'Paste a YouTube or Vimeo URL'}
                 </p>
               </div>
@@ -1324,7 +1324,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                 <iframe src={`https://maps.google.com/maps?q=${encodeURIComponent(mapAddress)}&output=embed&z=15`} style={{ width: '100%', height: '100%', border: 'none' }} loading="lazy" title="Venue" />
               </div>
             ) : (
-              <div className="pl-empty-gradient" style={{ padding: '3rem', textAlign: 'center', borderRadius: '1rem', border: '2px dashed #E4E4E7', color: '#71717A', fontSize: '0.88rem' }}>
+              <div className="pl-empty-gradient" style={{ padding: '3rem', textAlign: 'center', borderRadius: '1rem', border: '2px dashed #E4E4E7', color: '#71717A', fontSize: '0.8rem' }}>
                 Add an event address to show the map
               </div>
             )}
@@ -1354,7 +1354,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             <h2 style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.6rem, 3vw, 2.4rem)', color: safeFg, marginBottom: '1rem' }}>
               {(blockCfg.heading as string) || (blockCfg.title as string) || 'Leave Your Wishes'}
             </h2>
-            <p style={{ color: safeMuted, fontSize: '0.95rem', marginBottom: '2rem' }}>{(blockCfg.prompt as string) || 'Share your love and well wishes'}</p>
+            <p style={{ color: safeMuted, fontSize: '0.9rem', marginBottom: '2rem' }}>{(blockCfg.prompt as string) || 'Share your love and well wishes'}</p>
             <div style={{ padding: '2rem', borderRadius: '1rem', background: `${pal.card}40`, border: `1px solid ${pal.accent}20` }}>
               <p style={{ color: safeMuted,  }}>Guestbook messages will appear here</p>
             </div>
@@ -1368,7 +1368,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             {embedSrc ? (
               <iframe src={embedSrc} style={{ width: '100%', height: '352px', borderRadius: '12px', border: 'none' }} allow="encrypted-media" title="Spotify Playlist" />
             ) : (
-              <div className="pl-empty-gradient" style={{ padding: '3rem', textAlign: 'center', borderRadius: '1rem', border: '2px dashed #E4E4E7', color: '#71717A', fontSize: '0.88rem' }}>
+              <div className="pl-empty-gradient" style={{ padding: '3rem', textAlign: 'center', borderRadius: '1rem', border: '2px dashed #E4E4E7', color: '#71717A', fontSize: '0.8rem' }}>
                 Add a Spotify playlist URL in the Music panel
               </div>
             )}
@@ -1381,7 +1381,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             <div style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontWeight: 600, color: safeAccent }}>
               #{(blockCfg.hashtag as string) || `${names[0]}And${names[1]}`.replace(/\s/g, '')}
             </div>
-            <p style={{ color: safeMuted, fontSize: '0.88rem', marginTop: '0.5rem' }}>Share your photos with our hashtag</p>
+            <p style={{ color: safeMuted, fontSize: '0.8rem', marginTop: '0.5rem' }}>Share your photos with our hashtag</p>
           </section>
         );
       case 'weddingParty':
@@ -1397,7 +1397,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                     <div style={{ width: '80px', height: '80px', borderRadius: '50%', margin: '0 auto 0.75rem', background: `${pal.accent}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', color: pal.accent }}>
                       {m.name?.[0] || '?'}
                     </div>
-                    <div style={{ fontWeight: 600, color: safeFg, fontSize: '0.88rem' }}>{m.name}</div>
+                    <div style={{ fontWeight: 600, color: safeFg, fontSize: '0.8rem' }}>{m.name}</div>
                     <div style={{ color: safeMuted, fontSize: '0.75rem' }}>{m.role}</div>
                   </div>
                 ))}
@@ -1417,7 +1417,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1rem', color: safeFg, marginBottom: '0.25rem' }}>
                 {block.type === 'welcome' ? 'Welcome Message' : 'Vibe Quote'}
               </div>
-              <p style={{ fontSize: '0.85rem' }}>Click to add {block.type === 'welcome' ? 'a welcome statement' : 'an atmospheric quote'}</p>
+              <p style={{ fontSize: '0.8rem' }}>Click to add {block.type === 'welcome' ? 'a welcome statement' : 'an atmospheric quote'}</p>
             </div>
           </section>
         ) : null;
@@ -1454,11 +1454,11 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', textAlign: 'left' }}>
                 {quizQuestions.map((q, qi) => (
                   <div key={qi} style={{ padding: '1.25rem', borderRadius: '12px', background: `${pal.card}60`, border: `1px solid ${pal.accent}15` }}>
-                    <div style={{ fontWeight: 600, color: safeFg, fontSize: '0.92rem', marginBottom: '0.75rem' }}>
+                    <div style={{ fontWeight: 600, color: safeFg, fontSize: '0.9rem', marginBottom: '0.75rem' }}>
                       {qi + 1}. {q.question}
                     </div>
                     {(q.options || []).map((opt, oi) => (
-                      <div key={oi} style={{ padding: '0.5rem 0.75rem', marginBottom: '0.25rem', borderRadius: '8px', background: `${pal.accent}08`, fontSize: '0.85rem', color: safeFg, opacity: 0.8 }}>
+                      <div key={oi} style={{ padding: '0.5rem 0.75rem', marginBottom: '0.25rem', borderRadius: '8px', background: `${pal.accent}08`, fontSize: '0.8rem', color: safeFg, opacity: 0.8 }}>
                         {opt}
                       </div>
                     ))}
@@ -1517,7 +1517,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         const footerText = blockCfg.text as string | undefined;
         return (
           <section key={key} data-pe-section="footer" style={{ padding: '3rem 2rem', textAlign: 'center', borderTop: `1px solid ${pal.accent}15`, ...blockStyle }}>
-            <p style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '0.88rem',  color: safeMuted, lineHeight: 1.6 }}>
+            <p style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '0.8rem',  color: safeMuted, lineHeight: 1.6 }}>
               {footerText || manifest.poetry?.closingLine || 'Made with love'}
             </p>
             <p style={{ fontSize: '0.65rem', color: safeMuted, opacity: 0.6, marginTop: '0.5rem' }}>
@@ -1545,7 +1545,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               {defaultMilestones.map((m, i) => (
                 <div key={i} style={{ padding: '1.25rem 1rem', borderRadius: '10px', background: `${pal.accent}0D`, border: `1px solid ${pal.accent}20`, minWidth: '110px', maxWidth: '140px' }}>
                   <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{m.emoji || '✦'}</div>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 600, color: safeFg }}>{m.label}</div>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 600, color: safeFg }}>{m.label}</div>
                   {m.date && <div style={{ fontSize: '0.7rem', color: safeMuted, marginTop: '0.25rem' }}>{m.date}</div>}
                 </div>
               ))}
@@ -1562,7 +1562,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             <p style={{ color: safeMuted, marginBottom: '2rem' }}>The places that made our story</p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
               {(manifest.chapters || []).slice(0, 4).filter(c => c.location?.label).map((ch, i) => (
-                <div key={i} style={{ padding: '0.75rem 1.25rem', borderRadius: '8px', background: `${pal.accent}10`, border: `1px solid ${pal.accent}20`, fontSize: '0.82rem', color: safeFg }}>
+                <div key={i} style={{ padding: '0.75rem 1.25rem', borderRadius: '8px', background: `${pal.accent}10`, border: `1px solid ${pal.accent}20`, fontSize: '0.8rem', color: safeFg }}>
                   📍 {ch.location!.label}
                 </div>
               ))}
@@ -1576,7 +1576,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         // Unknown block type — show placeholder instead of nothing
         return (
           <section key={key} data-pe-section={block.type} className="pl-empty-gradient" style={{ padding: '2rem', margin: '1rem auto', maxWidth: '700px', textAlign: 'center', borderRadius: '1rem', border: '2px dashed rgba(24,24,27,0.1)' }}>
-            <p style={{ color: '#71717A', fontSize: '0.82rem' }}>
+            <p style={{ color: '#71717A', fontSize: '0.8rem' }}>
               {String(block.type).replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim()} section
             </p>
           </section>
@@ -1694,7 +1694,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                     display: 'flex', alignItems: 'center', gap: '8px',
                     padding: '6px 10px', borderRadius: '8px', border: 'none',
                     background: 'transparent', cursor: 'pointer', textAlign: 'left',
-                    fontSize: '0.78rem', color: '#18181B',
+                    fontSize: '0.75rem', color: '#18181B',
                     transition: 'background 0.1s', width: '100%',
                   }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.5)'; }}
@@ -1850,7 +1850,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           fontSize: '0.75rem', letterSpacing: '0.05em', position: 'relative',
         }}>
           <div style={{ marginBottom: '0.5rem', fontSize: '1rem', opacity: 0.6 }}>{vibeSkin.accentSymbol || '♡'}</div>
-          <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+          <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.5rem' }}>
             {safeNames[0]}{safeNames[1] ? ` & ${safeNames[1]}` : ''}
           </div>
           {manifest.poetry?.closingLine && (

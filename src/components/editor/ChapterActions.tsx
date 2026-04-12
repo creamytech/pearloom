@@ -159,7 +159,7 @@ function LayoutSwitcher({ current, onChange }: { current: string; onChange: (l: 
         title={`Layout: ${active.label}`}
         style={{
           display: 'flex', alignItems: 'center', gap: '4px',
-          padding: '4px 7px', height: '26px', borderRadius: '5px',
+          padding: '4px 7px', height: '26px', borderRadius: '6px',
           border: `1px solid ${open ? '#A1A1AA' : 'rgba(0,0,0,0.07)'}`,
           background: open ? '#F4F4F5' : '#F4F4F5',
           color: open ? '#18181B' : '#3F3F46',
@@ -193,7 +193,7 @@ function LayoutSwitcher({ current, onChange }: { current: string; onChange: (l: 
                 onMouseLeave={() => setHovered(null)}
                 style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
-                  padding: '8px 6px', borderRadius: '7px', border: 'none', cursor: 'pointer',
+                  padding: '8px 6px', borderRadius: '6px', border: 'none', cursor: 'pointer',
                   background: isActive ? 'rgba(24,24,27,0.08)' : isHov ? 'rgba(0,0,0,0.06)' : 'transparent',
                   color: isActive ? '#18181B' : isHov ? '#18181B' : '#3F3F46',
                   transition: 'all 0.12s',
@@ -201,7 +201,7 @@ function LayoutSwitcher({ current, onChange }: { current: string; onChange: (l: 
                 }}
               >
                 <span style={{ display: 'flex', alignItems: 'center' }}>{opt.icon}</span>
-                <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
                   {opt.label}
                 </span>
               </button>
@@ -345,7 +345,7 @@ export function ChapterActions({
           onClick={() => !rewriting && setShowToneMenu(v => !v)}
           style={{
             display: 'flex', alignItems: 'center', gap: '4px',
-            padding: '4px 8px', borderRadius: '5px',
+            padding: '4px 8px', borderRadius: '6px',
             border: '1px solid #E4E4E7',
             background: rewriting ? 'rgba(24,24,27,0.04)' : 'rgba(24,24,27,0.06)',
             color: rewriting ? '#71717A' : '#18181B',
@@ -377,7 +377,7 @@ export function ChapterActions({
                 onClick={() => handleRewrite(value)}
                 style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
-                  width: '100%', padding: '6px 8px', borderRadius: '5px',
+                  width: '100%', padding: '6px 8px', borderRadius: '6px',
                   border: 'none', background: 'transparent', cursor: 'pointer',
                   textAlign: 'left', transition: 'background 0.1s',
                 }}
@@ -399,7 +399,7 @@ export function ChapterActions({
           onClick={handleSortPhotos}
           style={{
             display: 'flex', alignItems: 'center', gap: '4px',
-            padding: '4px 8px', borderRadius: '5px',
+            padding: '4px 8px', borderRadius: '6px',
             border: '1px solid rgba(0,0,0,0.06)',
             background: sortingPhotos ? 'rgba(24,24,27,0.02)' : '#F4F4F5',
             color: sortingPhotos ? '#71717A' : 'rgba(255,255,255,0.45)',

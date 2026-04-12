@@ -54,9 +54,9 @@ export function WeddingPartyEditor({ members, onChange }: WeddingPartyEditorProp
   };
 
   const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '7px 10px', borderRadius: '8px',
+    width: '100%', padding: '6px 10px', borderRadius: '8px',
     border: '1.5px solid rgba(255,255,255,0.25)', background: 'white',
-    fontSize: '0.82rem', color: '#18181B', outline: 'none',
+    fontSize: '0.8rem', color: '#18181B', outline: 'none',
   };
 
   const labelStyle: React.CSSProperties = {
@@ -135,16 +135,16 @@ export function WeddingPartyEditor({ members, onChange }: WeddingPartyEditorProp
                   width: '32px', height: '32px', borderRadius: '50%',
                   background: '#F4F4F5',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '0.82rem', fontWeight: 600, color: '#18181B',
+                  fontSize: '0.8rem', fontWeight: 600, color: '#18181B',
                   flexShrink: 0,
                 }}>
                   {member.name ? member.name.charAt(0).toUpperCase() : '?'}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#18181B' }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#18181B' }}>
                     {member.name || 'Unnamed'}
                   </div>
-                  <div style={{ fontSize: '0.62rem', color: '#18181B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  <div style={{ fontSize: '0.6rem', color: '#18181B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     {ROLES.find(r => r.value === member.role)?.label}
                   </div>
                 </div>

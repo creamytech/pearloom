@@ -21,40 +21,40 @@ export const spacing = {
 
 // ── Font size hierarchy ──────────────────────────────────────
 export const fontSize = {
-  '2xs': '0.55rem',  // Badges, meta
-  xs: '0.62rem',     // Labels, captions
-  sm: '0.72rem',     // Descriptions, hints
-  md: '0.82rem',     // Body text, inputs
-  lg: '0.92rem',     // Sub-headings
-  xl: '1rem',        // Headings
+  '2xs': '0.55rem',  // Tiny badges
+  xs: '0.6rem',      // Labels, captions
+  sm: '0.65rem',     // Hints, meta
+  md: '0.75rem',     // Body text, chips
+  lg: '0.8rem',      // Inputs, prominent text
+  xl: '0.9rem',      // Panel headings
 } as const;
 
 // ── Shared label style ────────────────────────────────────────
 export const lbl: React.CSSProperties = {
-  display: 'block', fontSize: fontSize.xs, fontWeight: 700,
-  letterSpacing: '0.1em', textTransform: 'uppercase',
-  color: '#71717A', marginBottom: spacing.sm,
+  display: 'block', fontSize: fontSize.xs, fontWeight: 600,
+  letterSpacing: '0.04em', textTransform: 'uppercase',
+  color: '#A1A1AA', marginBottom: '4px',
 };
 
 // ── Section heading (bigger than field labels) ────────────────
 export const sectionHeading: React.CSSProperties = {
-  fontSize: fontSize.sm, fontWeight: 800,
-  letterSpacing: '0.08em', textTransform: 'uppercase',
-  color: '#18181B', marginBottom: spacing.md,
+  fontSize: fontSize.md, fontWeight: 600,
+  letterSpacing: '0.04em', textTransform: 'uppercase',
+  color: '#18181B', marginBottom: spacing.sm,
 };
 
-// ── Shared input style — glass with white glow border ─────────
+// ── Shared input style ───────────────────────────────────────
 export const inp: React.CSSProperties = {
-  width: '100%', padding: '0.75rem 0.875rem',
-  borderRadius: '8px',
+  width: '100%', padding: '8px 10px',
+  borderRadius: '6px',
   border: '1px solid #E4E4E7',
   background: '#FFFFFF',
   color: '#18181B',
-  fontSize: 'max(16px, 0.88rem)',
+  fontSize: 'max(16px, 0.8rem)',
   outline: 'none', fontFamily: 'inherit',
   transition: 'border-color 0.15s, box-shadow 0.15s',
   boxSizing: 'border-box',
-  minHeight: '44px',
+  minHeight: '36px',
 };
 
 // ── Focus/blur handlers ──────────────────────────────────────

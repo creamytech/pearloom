@@ -392,7 +392,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
         <div style={{ padding: '0 12px 8px' }}>
           <div style={{
             display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '7px 10px', borderRadius: '10px',
+            padding: '6px 10px', borderRadius: '10px',
             background: 'var(--pl-white-20)',
             border: '1px solid rgba(24,24,27,0.08)',
             boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
