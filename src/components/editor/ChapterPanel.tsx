@@ -52,26 +52,11 @@ function Divider() {
 /** Section label — just a small muted string, no card */
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{
-      background: '#FFFFFF',
-      borderRadius: '12px',
-      border: '1px solid #E4E4E7',
-      padding: '12px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '10px',
+    <span style={{
+      fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em',
+      textTransform: 'uppercase', color: '#A1A1AA', display: 'block',
+      marginBottom: '6px',
     }}>
-      {label && (
-        <span style={{
-          fontSize: '0.6rem',
-          fontWeight: 600,
-          letterSpacing: '0.04em',
-          textTransform: 'uppercase',
-          color: '#A1A1AA',
-        }}>
-          {label}
-        </span>
-      )}
       {children}
     </span>
   );
@@ -110,38 +95,23 @@ export function ChapterPanel({
         <Field label="Subtitle" value={chapter.subtitle || ''} onChange={v => upd({ subtitle: v })} placeholder="A quiet beginning" />
       </div>
 
-      {/* ── Story text + AI actions ── */}
-      <Section label="Story">
-        <div style={{ display: 'flex', gap: '6px', marginBottom: '2px' }}>
-          <motion.button
-            onClick={() => onAIRewrite(chapter.id)}
-            disabled={isRewriting}
-            whileHover={!isRewriting ? { scale: 1.02 } : {}}
-            whileTap={!isRewriting ? { scale: 0.97 } : {}}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '4px',
-              padding: '5px 12px', borderRadius: '8px',
-              border: '1px solid #E4E4E7',
-              background: '#F4F4F5',
-              color: '#18181B',
-              fontSize: '0.65rem', fontWeight: 600, cursor: isRewriting ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {isRewriting ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={10} />}
-            {isRewriting ? 'Rewriting…' : 'AI Rewrite'}
-          </motion.button>
-          {onShowAlternates && (
-            <motion.button
-              onClick={onShowAlternates}
-              disabled={isLoadingAlternates}
-              whileHover={!isLoadingAlternates ? { scale: 1.02 } : {}}
+      <Divider />
+
+      {/* Story text */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+          <Label>Story</Label>
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <button
+              onClick={() => onAIRewrite(chapter.id)}
+              disabled={isRewriting}
               style={{
-                display: 'flex', alignItems: 'center', gap: '4px',
-                padding: '5px 12px', borderRadius: '8px',
-                border: '1px solid #E4E4E7',
-                background: '#F4F4F5',
-                color: '#18181B',
-                fontSize: '0.65rem', fontWeight: 600, cursor: isLoadingAlternates ? 'not-allowed' : 'pointer',
+                display: 'flex', alignItems: 'center', gap: '3px',
+                padding: '3px 8px', borderRadius: '4px',
+                border: '1px solid #E4E4E7', background: '#F4F4F5',
+                color: '#18181B', fontSize: '0.6rem', fontWeight: 600,
+                cursor: isRewriting ? 'not-allowed' : 'pointer',
+                opacity: isRewriting ? 0.5 : 1,
               }}
             >
               {isRewriting ? <Loader2 size={9} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={9} />}
@@ -154,7 +124,7 @@ export function ChapterPanel({
                 style={{
                   display: 'flex', alignItems: 'center', gap: '3px',
                   padding: '3px 8px', borderRadius: '4px',
-                  border: '1px solid #E4E4E7', background: '#fff',
+                  border: '1px solid #E4E4E7', background: '#F4F4F5',
                   color: '#18181B', fontSize: '0.6rem', fontWeight: 600,
                   cursor: isLoadingAlternates ? 'not-allowed' : 'pointer',
                   opacity: isLoadingAlternates ? 0.5 : 1,
@@ -202,7 +172,6 @@ export function ChapterPanel({
               <button
                 key={m.id}
                 onClick={() => upd({ mood: m.label.toLowerCase() })}
-                whileTap={{ scale: 0.95 }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '5px',
                   padding: '5px 10px', borderRadius: '8px',
