@@ -36,24 +36,41 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
 
     async function loadPhotos() {
       try {
-        const res = await fetch('/api/site');
+        const res = await fetch('/api/sites');
         if (!res.ok) { setLoading(false); return; }
         const data = await res.json();
         const sites = data.sites || [];
 
         const allPhotos: PhotoItem[] = [];
+        const seen = new Set<string>();
+        const push = (url: string, alt: string, siteName: string, siteId: string) => {
+          if (!url || seen.has(url)) return;
+          seen.add(url);
+          allPhotos.push({
+            id: `${siteId}-${allPhotos.length}`,
+            url,
+            alt,
+            siteName,
+            siteId,
+          });
+        };
         for (const site of sites) {
           const manifest = site.manifest;
-          if (!manifest?.chapters) continue;
-          for (const chapter of manifest.chapters) {
+          if (!manifest) continue;
+          const name = site.names?.[0] || site.domain;
+
+          // Cover photo
+          if (manifest.coverPhoto) {
+            push(manifest.coverPhoto, 'Cover photo', name, site.domain);
+          }
+          // Hero slideshow
+          for (const url of (manifest.heroSlideshow || [])) {
+            push(url, 'Hero slideshow', name, site.domain);
+          }
+          // Chapter images
+          for (const chapter of (manifest.chapters || [])) {
             for (const img of (chapter.images || [])) {
-              allPhotos.push({
-                id: img.id || `${site.domain}-${allPhotos.length}`,
-                url: img.url,
-                alt: img.alt || chapter.title || '',
-                siteName: site.names?.[0] || site.domain,
-                siteId: site.domain,
-              });
+              push(img.url, img.alt || chapter.title || '', name, site.domain);
             }
           }
         }
