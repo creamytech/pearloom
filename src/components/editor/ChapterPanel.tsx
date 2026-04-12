@@ -53,21 +53,17 @@ interface ChapterPanelProps {
 function Section({ children, label }: { children: React.ReactNode; label?: string }) {
   return (
     <div style={{
-      background: panelSection.cardBg,
-      borderRadius: panelSection.cardRadius,
-      border: panelSection.cardBorder,
-      padding: panelSection.cardPadding,
       display: 'flex',
       flexDirection: 'column',
-      gap: '10px',
+      gap: '8px',
     }}>
       {label && (
         <span style={{
-          fontSize: panelText.heading,
-          fontWeight: panelWeight.bold,
-          letterSpacing: panelTracking.wider,
+          fontSize: '0.65rem',
+          fontWeight: 600,
+          letterSpacing: '0.04em',
           textTransform: 'uppercase',
-          color: 'var(--pl-ink-soft)',
+          color: '#A1A1AA',
         }}>
           {label}
         </span>
@@ -91,7 +87,7 @@ export function ChapterPanel({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 6 }}
       transition={{ duration: 0.2 }}
-      style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+      style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
     >
       {/* ── Title ── */}
       <input
@@ -100,10 +96,10 @@ export function ChapterPanel({
         placeholder="Chapter Title"
         style={{
           ...inp,
-          fontSize: 'max(16px, 1.1rem)',
+          fontSize: 'max(16px, 0.95rem)',
           fontWeight: 600,
           fontFamily: 'inherit',
-          letterSpacing: '-0.02em',
+          padding: '8px 12px',
         }}
       />
 
@@ -184,26 +180,25 @@ export function ChapterPanel({
 
       {/* ── Mood ── */}
       <Section label="Mood">
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
           {MOOD_PRESETS.map(m => {
             const isActive = (chapter.mood || '').toLowerCase().includes(m.id);
             return (
               <motion.button
                 key={m.id}
                 onClick={() => upd({ mood: m.label.toLowerCase() })}
-                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: '4px',
-                  padding: '4px 10px', borderRadius: '6px',
+                  display: 'flex', alignItems: 'center', gap: '3px',
+                  padding: '3px 8px', borderRadius: '6px',
                   border: isActive ? `1.5px solid ${m.color}` : '1px solid #E4E4E7',
-                  background: isActive ? `${m.color}18` : '#FFFFFF',
-                  cursor: 'pointer', fontSize: '0.68rem', fontWeight: 600,
-                  color: isActive ? m.color : 'var(--pl-ink-soft)',
+                  background: isActive ? `${m.color}12` : 'transparent',
+                  cursor: 'pointer', fontSize: '0.65rem', fontWeight: 500,
+                  color: isActive ? m.color : '#71717A',
                   transition: 'all 0.15s',
                 }}
               >
-                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: m.color }} />
+                <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: m.color }} />
                 {m.label}
               </motion.button>
             );
@@ -213,7 +208,7 @@ export function ChapterPanel({
           value={chapter.mood || ''}
           onChange={e => upd({ mood: e.target.value })}
           placeholder="Or type a custom mood..."
-          style={{ ...inp, fontSize: '0.78rem', padding: '6px 10px' }}
+          style={{ ...inp, fontSize: '0.75rem', padding: '6px 10px', minHeight: 'auto' }}
         />
       </Section>
 

@@ -87,8 +87,8 @@ export function PanelSection({
         // The header is flush with the card's rounded top when closed
         // and keeps that same radius when open — the body extends the
         // same card downward, so it's one continuous surface.
-        padding: card ? '12px 14px' : '10px 12px',
-        borderRadius: card ? `${PANEL_RADIUS} ${PANEL_RADIUS} 0 0` : '10px',
+        padding: card ? '10px 12px' : '8px 10px',
+        borderRadius: card ? `${PANEL_RADIUS} ${PANEL_RADIUS} 0 0` : '8px',
         border: 'none',
         background: 'transparent',
         cursor: collapsible ? 'pointer' : 'default',
@@ -112,9 +112,9 @@ export function PanelSection({
         style={{
           flex: 1,
           textAlign: 'left',
-          fontSize: panelText.heading,
-          fontWeight: panelWeight.bold,
-          letterSpacing: panelTracking.wider,
+          fontSize: '0.65rem',
+          fontWeight: 600,
+          letterSpacing: '0.04em',
           textTransform: 'uppercase',
           color: isOpen ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
         }}
@@ -141,7 +141,7 @@ export function PanelSection({
   const body = (
     <div
       style={{
-        padding: card ? '0 14px 14px' : '2px 10px 10px',
+        padding: card ? '0 12px 12px' : '2px 10px 10px',
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
@@ -169,8 +169,8 @@ export function PanelSection({
   // `.pl-panel-section` CSS class or `var(--pl-radius-md)`.
   const wrapperStyle: React.CSSProperties = card
     ? {
-        marginBottom: '10px',
-        marginInline: '12px',
+        marginBottom: '6px',
+        marginInline: '8px',
         borderRadius: PANEL_RADIUS,
         background: PANEL_CARD_BG,
         border: PANEL_CARD_BORDER,
