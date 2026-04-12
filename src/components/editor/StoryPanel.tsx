@@ -80,18 +80,14 @@ function ChapterCard({
         onClick={isConfirming ? undefined : onSelect}
         whileHover={!isActive && !isConfirming ? { y: -1 } : {}}
         style={{
-          borderRadius: '10px',
-          background: isConfirming ? 'rgba(248,113,113,0.04)' : isActive ? '#F4F4F5' : '#FFFFFF',
-          border: isConfirming ? '1.5px solid rgba(248,113,113,0.4)' : isActive ? '1.5px solid #E4E4E7' : '1px solid #E4E4E7',
+          borderRadius: '12px',
+          background: isConfirming ? 'rgba(248,113,113,0.04)' : isActive ? 'rgba(24,24,27,0.04)' : '#FFFFFF',
+          border: isConfirming ? '1.5px solid rgba(248,113,113,0.4)' : isActive ? '1.5px solid #18181B' : '1px solid #E4E4E7',
           overflow: 'hidden',
           cursor: isConfirming ? 'default' : 'pointer',
-          transition: 'all 0.15s',
-          boxShadow: isConfirming
-            ? '0 2px 8px rgba(248,113,113,0.06)'
-            : isActive
-              ? '0 1px 3px rgba(0,0,0,0.04)'
-              : 'none',
-        } as React.CSSProperties}
+          transition: 'all 0.2s',
+          boxShadow: isConfirming ? '0 2px 8px rgba(248,113,113,0.08)' : isActive ? '0 2px 8px rgba(24,24,27,0.08)' : 'none',
+        }}
       >
         {/* Main row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 12px 12px 8px' }}>
@@ -109,12 +105,11 @@ function ChapterCard({
 
           {/* Chapter number */}
           <div style={{
-            width: '22px', height: '22px', borderRadius: '6px', flexShrink: 0,
+            width: '22px', height: '22px', borderRadius: '50%', flexShrink: 0,
             background: isActive ? '#18181B' : '#F4F4F5',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '0.6rem', fontWeight: 800,
-            color: isActive ? 'white' : '#71717A',
-            border: isActive ? 'none' : '1px solid #E4E4E7',
+            fontSize: '0.58rem', fontWeight: 700,
+            color: isActive ? '#FFFFFF' : '#71717A',
           }}>
             {index + 1}
           </div>
@@ -149,8 +144,8 @@ function ChapterCard({
               {slugDate(chapter.date)}
               {chapter.layout && (
                 <span style={{
-                  background: 'rgba(24,24,27,0.06)', color: '#18181B',
-                  padding: '0 5px', borderRadius: '8px', fontSize: '0.55rem', fontWeight: 600,
+                  background: '#F4F4F5', color: '#71717A',
+                  padding: '1px 5px', borderRadius: '4px', fontSize: '0.55rem', fontWeight: 600,
                 }}>
                   {chapter.layout}
                 </span>
@@ -363,7 +358,7 @@ export function StoryPanel() {
   return (
     <PanelRoot>
       <PanelSection title="Story Style" icon={Layout}>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
           {STYLES.map(s => {
             const isActive = currentStoryLayout === s.id;
             return (
@@ -372,15 +367,13 @@ export function StoryPanel() {
                 active={isActive}
                 onClick={() => actions.handleDesignChange({
                   ...manifest,
-                  // Write to the unified field and clear the legacy one so
-                  // saved drafts can't drift back to a stale value.
                   storyLayout: s.id as StoryManifest['storyLayout'],
                   layoutFormat: undefined,
                 })}
                 hint={s.desc}
                 variant="tile"
-                size="md"
-                fullWidth={false}
+                size="sm"
+                fullWidth
               >
                 {s.label}
               </PanelChip>
@@ -418,12 +411,12 @@ export function StoryPanel() {
         ) : (
           /* FIX #1: Empty state for chapters */
           <div style={{
-            padding: '24px 16px', textAlign: 'center',
-            borderRadius: '10px',
+            padding: '20px 16px', textAlign: 'center',
+            borderRadius: '12px',
             background: '#FAFAFA',
-            border: '1px dashed #E4E4E7',
+            border: '1.5px dashed #E4E4E7',
           }}>
-            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#3F3F46', marginBottom: '4px' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#3F3F46', marginBottom: '4px' }}>
               No chapters yet
             </div>
             <div style={{ fontSize: '0.65rem', color: '#71717A', lineHeight: 1.5 }}>
@@ -438,15 +431,15 @@ export function StoryPanel() {
           whileHover={{ borderColor: '#A1A1AA', y: -1 }}
           whileTap={{ scale: 0.98 }}
           style={{
-            width: '100%', padding: '12px', marginTop: '6px',
+            width: '100%', padding: '10px', marginTop: '6px',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            border: '1.5px dashed #E4E4E7', borderRadius: '8px',
-            background: 'transparent', cursor: 'pointer',
-            color: '#18181B', fontSize: '0.75rem', fontWeight: 600,
+            border: '1.5px dashed #E4E4E7', borderRadius: '10px',
+            background: '#FAFAFA', cursor: 'pointer',
+            color: '#18181B', fontSize: '0.72rem', fontWeight: 600,
             transition: 'all 0.15s',
           }}
         >
-          <Plus size={14} /> Add Chapter
+          <Plus size={13} /> Add Chapter
         </motion.button>
       </div>
 
@@ -462,8 +455,8 @@ export function StoryPanel() {
             style={{ overflow: 'hidden', padding: '0 10px' }}
           >
             <div style={{
-              marginTop: '8px', padding: '12px',
-              borderRadius: '10px',
+              marginTop: '12px', padding: '16px',
+              borderRadius: '12px',
               background: '#FFFFFF',
               border: '1px solid #E4E4E7',
             }}>

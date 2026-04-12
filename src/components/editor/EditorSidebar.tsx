@@ -94,8 +94,8 @@ export function SidebarSection({
         />
         {Icon && <Icon size={12} color="#18181B" />}
         <span style={{
-          flex: 1, textAlign: 'left', fontSize: '0.6rem', fontWeight: 700,
-          letterSpacing: '0.1em', textTransform: 'uppercase',
+          flex: 1, textAlign: 'left', fontSize: '0.65rem', fontWeight: 600,
+          letterSpacing: '0.04em', textTransform: 'uppercase',
           color: open ? '#3F3F46' : '#71717A',
         }}>
           {title}

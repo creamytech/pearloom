@@ -73,19 +73,19 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               style={{
-                textAlign: 'center', padding: '2rem 1rem',
-                borderRadius: '10px', border: '1.5px dashed #E4E4E7',
-                background: '#FFFFFF',
+                textAlign: 'center', padding: '20px 16px',
+                borderRadius: '12px', border: '1.5px dashed #E4E4E7',
+                background: '#FAFAFA',
               }}
             >
-              <CalendarHeartIcon size={24} style={{ opacity: 0.7, marginBottom: '8px', color: '#18181B' }} />
+              <CalendarHeartIcon size={22} style={{ opacity: 0.5, marginBottom: '8px', color: '#71717A' }} />
               <div style={{
-                fontSize: '0.8rem', fontWeight: panelWeight.semibold, 
-                fontFamily: 'inherit', color: '#71717A',
+                fontSize: '0.75rem', fontWeight: 600,
+                color: '#3F3F46', marginBottom: '4px',
               }}>
                 No events yet
               </div>
-              <div style={{ fontSize: panelText.chip, color: '#71717A', marginTop: '4px' }}>
+              <div style={{ fontSize: '0.65rem', color: '#71717A' }}>
                 Add ceremony, reception, and more
               </div>
             </motion.div>
@@ -100,9 +100,9 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                 key={evt.id}
                 layout
                 style={{
-                  borderRadius: '8px',
-                  background: isExpanded ? '#FFFFFF' : '#FAFAFA',
-                  border: isExpanded ? `1.5px solid ${typeColor}40` : '1px solid #E4E4E7',
+                  borderRadius: '12px',
+                  background: '#FFFFFF',
+                  border: isExpanded ? `1.5px solid ${typeColor}` : '1px solid #E4E4E7',
                   overflow: 'hidden', transition: 'all 0.15s',
                 }}
               >
@@ -121,21 +121,21 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                   }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
-                      fontSize: panelText.body,
-                      fontWeight: panelWeight.semibold,
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
                       color: '#18181B',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {evt.name || 'Event'}
                     </div>
-                    <div style={{ fontSize: panelText.hint, color: '#71717A', marginTop: '1px' }}>
+                    <div style={{ fontSize: '0.65rem', color: '#71717A', marginTop: '1px' }}>
                       {evt.time}{evt.venue ? ` · ${evt.venue}` : ''}
                     </div>
                   </div>
                   <motion.div
                     animate={{ rotate: isExpanded ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
-                    style={{ color: '#71717A', display: 'flex' }}
+                    style={{ color: '#A1A1AA', display: 'flex' }}
                   >
                     <ChevronDown size={13} />
                   </motion.div>
@@ -202,10 +202,13 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                         <button
                           onClick={() => removeEvent(evt.id)}
                           style={{
-                            alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '3px',
-                            padding: '3px 8px', borderRadius: '4px', border: 'none',
-                            background: 'rgba(220,80,80,0.06)', color: '#d05050',
-                            cursor: 'pointer', fontSize: '0.6rem', fontWeight: 600,
+                            alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px',
+                            padding: '5px 10px', borderRadius: '6px',
+                            border: '1px solid rgba(239,68,68,0.2)',
+                            background: 'rgba(239,68,68,0.05)', color: '#e87a7a',
+                            cursor: 'pointer',
+                            fontSize: '0.65rem',
+                            fontWeight: 600,
                           }}
                         >
                           <Trash2 size={10} /> Remove
@@ -221,13 +224,13 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
           {/* Add event */}
           <motion.button
             onClick={addEvent}
-            whileHover={{ y: -1, borderColor: '#E4E4E7' }}
+            whileHover={{ y: -1, borderColor: '#A1A1AA' }}
             whileTap={{ scale: 0.98 }}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-              padding: '10px', borderRadius: '8px',
+              padding: '10px', borderRadius: '10px',
               border: '1.5px dashed #E4E4E7',
-              background: 'transparent', color: '#18181B',
+              background: '#FAFAFA', color: '#18181B',
               cursor: 'pointer',
               fontSize: panelText.chip,
               fontWeight: panelWeight.semibold,
@@ -245,9 +248,9 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                 download="event.ics"
                 style={{
                   flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-                  padding: '8px', borderRadius: '10px',
+                  padding: '7px', borderRadius: '8px',
                   background: '#FAFAFA', border: '1px solid #E4E4E7',
-                  color: '#18181B',
+                  color: '#3F3F46',
                   fontSize: panelText.hint,
                   fontWeight: panelWeight.semibold,
                   textDecoration: 'none', transition: 'background 0.12s',
@@ -260,7 +263,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                 target="_blank" rel="noopener noreferrer"
                 style={{
                   flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-                  padding: '8px', borderRadius: '10px',
+                  padding: '7px', borderRadius: '8px',
                   background: '#FAFAFA', border: '1px solid #E4E4E7',
                   color: '#3F3F46',
                   fontSize: panelText.hint,
