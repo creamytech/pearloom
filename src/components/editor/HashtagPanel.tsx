@@ -76,13 +76,9 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
   // ── Styles ────────────────────────────────────────────────────
 
   const panelStyle: React.CSSProperties = {
-    background: '#1E1B16',
-    border: '1px solid rgba(24,24,27,0.06)',
-    borderRadius: '0.875rem',
-    padding: '1.25rem',
     display: 'flex',
     flexDirection: 'column',
-    gap: '1rem',
+    gap: '12px',
   };
 
   const headerStyle: React.CSSProperties = {
@@ -95,28 +91,28 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
   const labelStyle: React.CSSProperties = {
     display: 'flex',
     alignItems: 'center',
-    gap: '0.45rem',
-    fontSize: '0.85rem',
-    fontWeight: 700,
-    color: '#3F3F46',
-    letterSpacing: '0.02em',
+    gap: '6px',
+    fontSize: '0.62rem',
+    fontWeight: 600,
+    color: '#A1A1AA',
+    letterSpacing: '0.04em',
+    textTransform: 'uppercase',
   };
 
   const generateBtnStyle: React.CSSProperties = {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '0.4rem',
-    padding: '0.45rem 1rem',
-    borderRadius: '0.55rem',
-    fontSize: '0.8rem',
-    fontWeight: 700,
+    gap: '4px',
+    padding: '4px 10px',
+    borderRadius: '4px',
+    fontSize: '0.6rem',
+    fontWeight: 600,
     cursor: generating ? 'not-allowed' : 'pointer',
-    opacity: generating ? 0.7 : 1,
-    background: generating ? 'rgba(24,24,27,0.12)' : '#71717A',
-    color: '#1E1B16',
+    opacity: generating ? 0.6 : 1,
+    background: '#18181B',
+    color: '#fff',
     border: 'none',
     transition: 'all 0.15s ease',
-    letterSpacing: '0.01em',
   };
 
   const tagRowStyle: React.CSSProperties = {
@@ -131,11 +127,10 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
   };
 
   const tagTextStyle: React.CSSProperties = {
-    fontSize: '0.85rem',
-    fontWeight: 600,
-    color: '#71717A',
-    fontFamily: 'monospace',
-    letterSpacing: '0.01em',
+    fontSize: '0.8rem',
+    fontWeight: 500,
+    color: '#18181B',
+    fontFamily: 'inherit',
   };
 
   const copyBtnStyle: React.CSSProperties = {

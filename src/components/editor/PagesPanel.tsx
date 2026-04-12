@@ -91,7 +91,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                   display: 'flex', alignItems: 'center', gap: '8px',
                   padding: '10px 10px 10px 12px',
                   borderRadius: '8px',
-                  background: isHidden ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.2)',
+                  background: isHidden ? '#FAFAFA' : '#FFFFFF',
                   border: '1px solid #E4E4E7',
                   transition: 'all 0.15s',
                   opacity: isHidden ? 0.5 : 1,

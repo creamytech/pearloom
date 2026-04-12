@@ -229,50 +229,22 @@ export function ImageManager({
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
-        <label style={lbl}>Photos ({images.length})</label>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          {/* View toggle buttons — only shown when there are images */}
-          {images.length > 0 && (
-            <>
-              <button
-                onClick={() => setViewMode('grid')}
-                title="Grid view"
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  width: '28px', height: '28px', borderRadius: '5px', border: 'none',
-                  background: viewMode === 'grid' ? 'rgba(24,24,27,0.08)' : 'transparent',
-                  color: viewMode === 'grid' ? '#18181B' : '#3F3F46',
-                  cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
-                }}
-              >
-                <LayoutGrid size={14} />
-              </button>
-              <button
-                onClick={() => setViewMode('constellation')}
-                title="Constellation view"
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  width: '28px', height: '28px', borderRadius: '5px', border: 'none',
-                  background: viewMode === 'constellation' ? 'rgba(24,24,27,0.08)' : 'transparent',
-                  color: viewMode === 'constellation' ? '#18181B' : '#3F3F46',
-                  cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
-                }}
-              >
-                <Share2 size={14} />
-              </button>
-            </>
-          )}
+      {/* Header: label + source buttons */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+        <span style={{ fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA' }}>
+          Photos{images.length > 0 ? ` (${images.length})` : ''}
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
           <button
             onClick={() => pickGooglePhotos(handleGooglePhotosPicked)}
             disabled={gpState !== 'idle' && gpState !== 'done' && gpState !== 'error'}
             title="Pick from Google Photos"
             style={{
-              display: 'flex', alignItems: 'center', gap: '4px',
-              padding: '5px 10px', borderRadius: '5px', border: '1px solid rgba(0,0,0,0.07)',
-              background: 'rgba(0,0,0,0.04)', color: '#3F3F46',
-              fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
-              minHeight: '32px', transition: 'all 0.15s',
+              display: 'flex', alignItems: 'center', gap: '3px',
+              padding: '3px 8px', borderRadius: '4px', border: '1px solid #E4E4E7',
+              background: '#fff', color: '#18181B',
+              fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer',
+              transition: 'all 0.15s',
             }}
           >
             {gpState === 'waiting' || gpState === 'fetching' || gpState === 'creating'
@@ -284,25 +256,25 @@ export function ImageManager({
             onClick={() => setGalleryOpen(true)}
             title="Choose from Gallery"
             style={{
-              display: 'flex', alignItems: 'center', gap: '4px',
-              padding: '5px 10px', borderRadius: '5px', border: '1px solid #E4E4E7',
-              background: 'rgba(24,24,27,0.04)', color: '#18181B',
-              fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
-              minHeight: '32px', transition: 'all 0.15s',
+              display: 'flex', alignItems: 'center', gap: '3px',
+              padding: '3px 8px', borderRadius: '4px', border: '1px solid #E4E4E7',
+              background: '#fff', color: '#18181B',
+              fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer',
+              transition: 'all 0.15s',
             }}
           >
-            <LayoutGrid size={10} />
+            <LayoutGrid size={9} />
             Gallery
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
             style={{
-              display: 'flex', alignItems: 'center', gap: '4px',
-              padding: '5px 12px', borderRadius: '5px', border: '1px solid #E4E4E7',
-              background: 'rgba(24,24,27,0.08)', color: '#18181B',
-              fontSize: '0.82rem', fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer',
-              opacity: uploading ? 0.6 : 1, minHeight: '32px',
+              display: 'flex', alignItems: 'center', gap: '3px',
+              padding: '3px 8px', borderRadius: '4px', border: '1px solid #E4E4E7',
+              background: '#F4F4F5', color: '#18181B',
+              fontSize: '0.6rem', fontWeight: 600, cursor: uploading ? 'not-allowed' : 'pointer',
+              opacity: uploading ? 0.6 : 1,
             }}
           >
             {uploading
@@ -576,18 +548,18 @@ export function ImageManager({
 
       {/* Generate Captions button */}
       {images.length > 0 && (
-        <div style={{ marginTop: '0.75rem' }}>
+        <div style={{ marginTop: '6px' }}>
           <button
             onClick={handleGenerateCaptions}
             disabled={generatingCaptions}
             style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-              width: '100%', padding: '7px 12px', borderRadius: '6px',
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              padding: '4px 10px', borderRadius: '4px',
               border: '1px solid #E4E4E7',
-              background: generatingCaptions ? 'rgba(24,24,27,0.04)' : 'rgba(24,24,27,0.06)',
-              color: generatingCaptions ? '#3F3F46' : '#18181B',
-              fontSize: '0.82rem', fontWeight: 700, cursor: generatingCaptions ? 'not-allowed' : 'pointer',
-              letterSpacing: '0.04em', transition: 'all 0.15s',
+              background: '#fff',
+              color: generatingCaptions ? '#A1A1AA' : '#18181B',
+              fontSize: '0.62rem', fontWeight: 600, cursor: generatingCaptions ? 'not-allowed' : 'pointer',
+              transition: 'all 0.15s',
             }}
             onMouseOver={e => { if (!generatingCaptions) (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.1)'; }}
             onMouseOut={e => { if (!generatingCaptions) (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.06)'; }}

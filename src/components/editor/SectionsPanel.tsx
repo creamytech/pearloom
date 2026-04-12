@@ -164,72 +164,55 @@ export function SectionsPanel({ manifest, onChange }: {
             <Reorder.Item
               value={block}
               onClick={(e: React.MouseEvent) => handleBlockClick(block.id, e.shiftKey)}
-              className="pl-panel-card"
               style={{
-                display: 'flex', alignItems: 'center', gap: '10px',
+                display: 'flex', alignItems: 'center', gap: '6px',
+                padding: '6px 8px',
+                borderRadius: '6px',
+                background: isSelected ? '#F4F4F5' : '#FFFFFF',
+                border: isSelected ? '1px solid #18181B' : '1px solid #E4E4E7',
                 opacity: isHidden ? 0.45 : 1,
                 cursor: 'grab',
                 touchAction: 'none',
+                transition: 'all 0.1s',
               }}
             >
               {/* Drag handle */}
-              <GripVertical size={14} style={{ color: '#71717A', flexShrink: 0 }} />
+              <GripVertical size={12} style={{ color: '#A1A1AA', flexShrink: 0 }} />
 
-              {/* Icon + label */}
-              <BlockIcon size={16} style={{ flexShrink: 0, color: isHidden ? '#71717A' : '#18181B' }} />
+              {/* Label */}
               <span style={{
-                flex: 1, fontSize: '0.82rem', fontWeight: 600,
-                color: isHidden ? '#71717A' : '#18181B',
+                flex: 1, fontSize: '0.75rem', fontWeight: 500,
+                color: isHidden ? '#A1A1AA' : '#18181B',
                 textDecoration: isHidden ? 'line-through' : 'none',
               }}>
                 {meta.label}
               </span>
 
-              {/* Move up/down */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', flexShrink: 0 }}>
-                <button
-                  onClick={(e) => { e.stopPropagation(); moveBlock(idx, -1); }}
-                  disabled={idx === 0}
-                  style={{
-                    all: 'unset', cursor: idx === 0 ? 'default' : 'pointer',
-                    fontSize: '0.6rem', lineHeight: 1, padding: '2px',
-                    color: idx === 0 ? 'rgba(0,0,0,0.06)' : '#3F3F46',
-                  }}
-                >▲</button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); moveBlock(idx, 1); }}
-                  disabled={idx === blocks.length - 1}
-                  style={{
-                    all: 'unset', cursor: idx === blocks.length - 1 ? 'default' : 'pointer',
-                    fontSize: '0.6rem', lineHeight: 1, padding: '2px',
-                    color: idx === blocks.length - 1 ? 'rgba(0,0,0,0.06)' : '#3F3F46',
-                  }}
-                >▼</button>
-              </div>
-
               {/* Visibility toggle */}
               <button
                 onClick={(e) => { e.stopPropagation(); toggleVisible(block.id); }}
+                title={isHidden ? 'Show' : 'Hide'}
                 style={{
                   all: 'unset', cursor: 'pointer', display: 'flex',
-                  padding: '4px', borderRadius: '6px',
-                  color: isHidden ? '#71717A' : '#71717A',
+                  padding: '3px', borderRadius: '4px',
+                  color: isHidden ? '#A1A1AA' : '#71717A',
                 }}
               >
-                {isHidden ? <EyeOff size={14} /> : <Eye size={14} />}
+                {isHidden ? <EyeOff size={13} /> : <Eye size={13} />}
               </button>
 
               {/* Delete (only for addable types) */}
               {ADDABLE_TYPES.includes(block.type) && (
                 <button
                   onClick={(e) => { e.stopPropagation(); removeBlock(block.id); }}
+                  title="Remove"
                   style={{
                     all: 'unset', cursor: 'pointer', display: 'flex',
-                    padding: '4px', borderRadius: '6px',
-                    color: 'rgba(0,0,0,0.08)',
+                    padding: '3px', borderRadius: '4px',
+                    color: '#A1A1AA',
                   }}
                 >
-                  <Trash2 size={12} />
+                  <Trash2 size={11} />
                 </button>
               )}
             </Reorder.Item>

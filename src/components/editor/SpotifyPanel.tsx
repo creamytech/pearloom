@@ -64,7 +64,7 @@ export function SpotifyPanel() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '0 2px' }}>
 
       {/* Playlist URL + name */}
-      <SidebarSection title="Spotify Link" defaultOpen>
+      <SidebarSection title="Music" defaultOpen>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <Field
             label="Spotify Embed / Playlist URL"
@@ -93,15 +93,14 @@ export function SpotifyPanel() {
               justifyContent: 'center',
               gap: '6px',
               width: '100%',
-              padding: '9px 14px',
-              borderRadius: '12px',
+              padding: '6px 12px',
+              borderRadius: '6px',
               border: '1px solid #E4E4E7',
-              background: loading ? '#F4F4F5' : '#F4F4F5',
+              background: loading ? '#F4F4F5' : '#FFFFFF',
               color: loading ? '#A1A1AA' : '#18181B',
               cursor: loading ? 'not-allowed' : 'pointer',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              letterSpacing: '0.04em',
+              fontSize: '0.72rem',
+              fontWeight: 600,
               transition: 'background 0.18s',
             }}
             onMouseOver={e => {

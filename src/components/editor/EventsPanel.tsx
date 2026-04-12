@@ -100,9 +100,9 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                 key={evt.id}
                 layout
                 style={{
-                  borderRadius: '10px',
-                  background: isExpanded ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.15)',
-                  border: isExpanded ? `1.5px solid ${typeColor}40` : '1px solid rgba(255,255,255,0.2)',
+                  borderRadius: '8px',
+                  background: isExpanded ? '#FFFFFF' : '#FAFAFA',
+                  border: isExpanded ? `1.5px solid ${typeColor}40` : '1px solid #E4E4E7',
                   overflow: 'hidden', transition: 'all 0.15s',
                 }}
               >
@@ -151,10 +151,9 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                       transition={{ duration: 0.2 }}
                       style={{ overflow: 'hidden' }}
                     >
-                      <div style={{ padding: '0 12px 14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        {/* Event type chips — uses the shared PanelChip so every
-                            picker across the editor speaks the same visual language. */}
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      <div style={{ padding: '0 12px 12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {/* Event type — compact chip row */}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                           {EVENT_TYPE_OPTS.map(opt => {
                             const active = (evt.type || 'other') === opt.type;
                             return (
@@ -172,32 +171,44 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                           })}
                         </div>
 
+                        {/* Essential fields */}
                         <Field label="Name" value={evt.name} onChange={v => updateEvent(evt.id, { name: v })} placeholder="Ceremony" />
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                           <DatePicker label="Date" value={evt.date || ''} onChange={d => updateEvent(evt.id, { date: d })} />
                           <Field label="Time" value={evt.time} onChange={v => updateEvent(evt.id, { time: v })} placeholder="5:00 PM" />
                         </div>
                         <Field label="Venue" value={evt.venue} onChange={v => updateEvent(evt.id, { venue: v })} placeholder="The Grand Ballroom" />
-                        <Field label="Address" value={evt.address} onChange={v => updateEvent(evt.id, { address: v })} placeholder="123 Main St" />
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                          <Field label="Dress Code" value={evt.dressCode || ''} onChange={v => updateEvent(evt.id, { dressCode: v })} placeholder="Black Tie" />
-                          <Field label="End Time" value={evt.endTime || ''} onChange={v => updateEvent(evt.id, { endTime: v })} placeholder="11:00 PM" />
-                        </div>
-                        <Field label="Description" value={evt.description || ''} onChange={v => updateEvent(evt.id, { description: v })} placeholder="Brief description…" />
+
+                        {/* Optional fields — collapsed by default */}
+                        <details style={{ marginTop: '2px' }}>
+                          <summary style={{
+                            fontSize: '0.62rem', fontWeight: 600, color: '#A1A1AA',
+                            cursor: 'pointer', padding: '4px 0', listStyle: 'none',
+                            display: 'flex', alignItems: 'center', gap: '4px',
+                          }}>
+                            <ChevronDown size={10} /> More details
+                          </summary>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '8px' }}>
+                            <Field label="Address" value={evt.address} onChange={v => updateEvent(evt.id, { address: v })} placeholder="123 Main St" />
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                              <Field label="Dress Code" value={evt.dressCode || ''} onChange={v => updateEvent(evt.id, { dressCode: v })} placeholder="Black Tie" />
+                              <Field label="End Time" value={evt.endTime || ''} onChange={v => updateEvent(evt.id, { endTime: v })} placeholder="11:00 PM" />
+                            </div>
+                            <Field label="Description" value={evt.description || ''} onChange={v => updateEvent(evt.id, { description: v })} rows={2} placeholder="Brief description…" />
+                          </div>
+                        </details>
 
                         {/* Remove */}
                         <button
                           onClick={() => removeEvent(evt.id)}
                           style={{
-                            alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px',
-                            padding: '5px 12px', borderRadius: '8px', border: 'none',
-                            background: 'rgba(220,80,80,0.08)', color: '#d05050',
-                            cursor: 'pointer',
-                            fontSize: panelText.hint,
-                            fontWeight: panelWeight.semibold,
+                            alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '3px',
+                            padding: '3px 8px', borderRadius: '4px', border: 'none',
+                            background: 'rgba(220,80,80,0.06)', color: '#d05050',
+                            cursor: 'pointer', fontSize: '0.6rem', fontWeight: 600,
                           }}
                         >
-                          <Trash2 size={11} /> Remove
+                          <Trash2 size={10} /> Remove
                         </button>
                       </div>
                     </motion.div>
