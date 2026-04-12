@@ -287,11 +287,19 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   // Hero image priority: 1) user-uploaded cover, 2) AI-generated art, 3) hero-art API
   const coverPhoto = manifest.coverPhoto || vibeSkin.heroArtDataUrl || `/api/hero-art?${heroArtParams.toString()}`;
 
-  // Memory Film: collect up to 6 chapter images for the cycling hero backdrop
-  const filmPhotos = (manifest.chapters || [])
-    .flatMap((ch: import('@/types').Chapter) => ch.images || [])
-    .slice(0, 6)
-    .map((img: { url: string }) => proxyUrl(img.url, 1800, 1200));
+  // Hero slideshow: prefer the explicit heroSlideshow URLs (pre-uploaded to
+  // R2 during generation), then fall back to the first image of each chapter.
+  // Must match the editor's SiteRenderer logic so WYSIWYG holds.
+  const heroPhotos: string[] = (() => {
+    const slideshow = (manifest as Record<string, unknown>).heroSlideshow as string[] | undefined;
+    if (Array.isArray(slideshow) && slideshow.filter(Boolean).length > 0) {
+      return slideshow.filter(Boolean);
+    }
+    return (manifest.chapters || [])
+      .flatMap((ch: import('@/types').Chapter) => (ch.images || []).slice(0, 1))
+      .slice(0, 6)
+      .map((img: { url: string }) => proxyUrl(img.url, 1800, 1200));
+  })();
 
   // Build real nav pages from manifest content
   const hidden = new Set(manifest.hiddenPages || []);
@@ -329,7 +337,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
               vibeSkin={vibeSkin}
               heroTagline={manifest.poetry?.heroTagline}
-              photos={filmPhotos.length > 0 ? filmPhotos : undefined}
+              photos={heroPhotos.length > 0 ? heroPhotos : undefined}
             />
             <StickerLayer stickers={manifest.stickers || []} accentColor={pal.accent} />
           </div>
@@ -1141,7 +1149,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           ) : (
             // ── LEGACY: hardcoded order (no blocks yet) ──
             <>
-              <Hero names={safeNames} subtitle={siteConfig.tagline || 'A love story beautifully told.'} coverPhoto={coverPhoto} weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date} vibeSkin={vibeSkin} heroTagline={manifest.poetry?.heroTagline} photos={filmPhotos.length > 0 ? filmPhotos : undefined} />
+              <Hero names={safeNames} subtitle={siteConfig.tagline || 'A love story beautifully told.'} coverPhoto={coverPhoto} weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date} vibeSkin={vibeSkin} heroTagline={manifest.poetry?.heroTagline} photos={heroPhotos.length > 0 ? heroPhotos : undefined} />
               {manifest.anniversaryMode && (
                 <div style={{
                   textAlign: 'center', fontSize: '0.85rem',
