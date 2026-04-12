@@ -14,19 +14,67 @@ import { getImageBrightness, textColorForBrightness } from '@/lib/smart-features
 
 // ── Shared Style Helpers ──────────────────────────────────────
 
-const headingFont =
-  "'Fraunces', 'Cormorant Garamond', 'Playfair Display', Georgia, serif";
-const bodyFont =
-  "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+// Default fallbacks — used only when no vibeSkin fonts are provided
+const DEFAULT_HEADING_FONT =
+  "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+const DEFAULT_BODY_FONT =
+  "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 
-const glassCard: React.CSSProperties = {
-  background: 'rgba(255, 255, 255, 0.72)',
-  backdropFilter: 'blur(16px) saturate(140%)',
-  WebkitBackdropFilter: 'blur(16px) saturate(140%)',
-  border: `1px solid ${colors.divider}`,
-  borderRadius: radius.lg,
-  boxShadow: shadow.md,
-};
+/** Build font-family string from a vibeSkin font name (Google Font). */
+function fontStack(fontName: string | undefined, fallback: string): string {
+  if (!fontName) return fallback;
+  return `'${fontName}', ${fallback}`;
+}
+
+type CardStyle = 'glass' | 'solid' | 'outlined' | 'minimal' | 'elevated';
+
+/** Build card CSS based on the vibeSkin cardStyle. */
+function buildCardStyle(style: CardStyle | undefined): React.CSSProperties {
+  switch (style) {
+    case 'glass':
+      return {
+        background: 'rgba(255, 255, 255, 0.72)',
+        backdropFilter: 'blur(16px) saturate(140%)',
+        WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+        border: '1px solid #E4E4E7',
+        borderRadius: '12px',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+      };
+    case 'outlined':
+      return {
+        background: 'transparent',
+        border: '1px solid #E4E4E7',
+        borderRadius: '12px',
+      };
+    case 'minimal':
+      return {
+        background: 'transparent',
+        border: 'none',
+        borderRadius: '12px',
+      };
+    case 'elevated':
+      return {
+        background: '#FFFFFF',
+        border: '1px solid #E4E4E7',
+        borderRadius: '12px',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+      };
+    case 'solid':
+    default:
+      return {
+        background: '#FFFFFF',
+        border: '1px solid #E4E4E7',
+        borderRadius: '12px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+      };
+  }
+}
+
+// Legacy aliases — consumed by the individual layout components via props
+// These are overridden at render time when themeFonts is provided.
+let headingFont = DEFAULT_HEADING_FONT;
+let bodyFont = DEFAULT_BODY_FONT;
+let glassCard: React.CSSProperties = buildCardStyle('solid');
 
 // ── Shared Props ──────────────────────────────────────────────
 
@@ -57,6 +105,10 @@ export interface StoryLayoutProps {
    * public renders stay read-only.
    */
   editable?: boolean;
+  /** VibeSkin font names — override the default heading/body fonts. */
+  themeFonts?: { heading?: string; body?: string };
+  /** VibeSkin cardStyle — override the default card appearance. */
+  themeCardStyle?: CardStyle;
 }
 
 // ── Shared rendering helpers ──────────────────────────────────
@@ -1899,6 +1951,10 @@ export interface StorySectionProps {
    * contentEditable in-place.
    */
   editable?: boolean;
+  /** VibeSkin font names — override the default heading/body fonts. */
+  themeFonts?: { heading?: string; body?: string };
+  /** VibeSkin cardStyle — override the default card appearance. */
+  themeCardStyle?: CardStyle;
 }
 
 // Default format used when no user preference is provided.
@@ -1970,9 +2026,18 @@ export function StorySection({
   transformUrl,
   dateFormat = DEFAULT_CHAPTER_DATE_FORMAT,
   editable,
+  themeFonts,
+  themeCardStyle,
 }: StorySectionProps) {
   const layoutType = resolveStoryLayout(storyLayout, layoutFormat);
-  const tint = accentColor || colors.olive;
+  const tint = accentColor || '#18181B';
+
+  // Apply vibeSkin fonts and card style for this render pass.
+  // These module-level variables are updated so all child layout
+  // components pick them up without needing explicit prop drilling.
+  headingFont = fontStack(themeFonts?.heading, DEFAULT_HEADING_FONT);
+  bodyFont = fontStack(themeFonts?.body, DEFAULT_BODY_FONT);
+  glassCard = buildCardStyle(themeCardStyle);
 
   // Track how many chapters were already visible on the previous
   // render. New arrivals animate in; previously-shown chapters

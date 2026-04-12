@@ -124,7 +124,7 @@ export function SiteNav({
   pages,
   logoIcon,
   logoSvg,
-  navStyle = 'glass',
+  navStyle = 'solid',
   mobileNavStyle = 'classic',
   navOpacity,
   navBackground,

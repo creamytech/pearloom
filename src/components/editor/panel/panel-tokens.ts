@@ -13,17 +13,17 @@ import { colors, radius, shadow, ease } from '@/lib/design-tokens';
 // map so sizes stay consistent across the whole editor.
 export const panelText = {
   // SECTION HEADINGS — "DESIGN", "COLORS", etc. (uppercase eyebrow)
-  heading: '0.6rem',
+  heading: '0.72rem',
   // FIELD LABELS — "Accent Color", "Font pairing" (uppercase)
-  label: '0.62rem',
+  label: '0.7rem',
   // Inline helper / description text under a heading or label
-  hint: '0.68rem',
+  hint: '0.72rem',
   // Default body copy inside a panel section
-  body: '0.78rem',
+  body: '0.82rem',
   // Compact pill / chip text
-  chip: '0.72rem',
+  chip: '0.75rem',
   // Smallest meta — timestamps, counts, units
-  meta: '0.58rem',
+  meta: '0.65rem',
 } as const;
 
 export const panelWeight = {
@@ -49,12 +49,12 @@ export const panelTracking = {
 // etc). PanelSection inlines these; local `Section` helpers in
 // panels like ChapterPanel should pull from here too.
 export const panelSection = {
-  /** Section card background (translucent glass). */
-  cardBg: 'rgba(255,255,255,0.5)',
-  /** Section card border — subtle olive tint. */
-  cardBorder: '1px solid rgba(163,177,138,0.18)',
-  /** Section card corner radius — always 14px, never theme-driven. */
-  cardRadius: '14px',
+  /** Section card background — solid white. */
+  cardBg: '#FFFFFF',
+  /** Section card border — neutral zinc. */
+  cardBorder: '1px solid #E4E4E7',
+  /** Section card corner radius — 12px, never theme-driven. */
+  cardRadius: '12px',
   /** Default inner padding. */
   cardPadding: '14px',
   /** Gap between stacked sections inside a panel. */
@@ -70,31 +70,27 @@ export const panelSection = {
 
 export const panelChip = {
   inactive: {
-    border: '1px solid rgba(255,255,255,0.3)',
-    background: 'rgba(255,255,255,0.5)',
-    color: 'var(--pl-ink-soft)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid #E4E4E7',
+    background: '#FFFFFF',
+    color: '#71717A',
   },
   active: {
-    border: '2px solid var(--pl-olive)',
-    background: 'rgba(163,177,138,0.1)',
-    color: 'var(--pl-olive-deep)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
+    border: '2px solid #18181B',
+    background: '#F4F4F5',
+    color: '#18181B',
   },
   hover: {
-    borderColor: 'var(--pl-olive-hover)',
+    borderColor: '#18181B',
   },
-  radius: '12px',
+  radius: '8px',
   padding: '8px 14px',
   transition: 'all 0.15s ease',
 } as const;
 
 // ── Divider style ────────────────────────────────────────────
 export const panelDivider = {
-  color: 'rgba(255,255,255,0.2)',
-  line: '1px solid rgba(255,255,255,0.2)',
+  color: '#E4E4E7',
+  line: '1px solid #E4E4E7',
   gapY: '12px',
 } as const;
 

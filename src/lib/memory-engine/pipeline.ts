@@ -207,7 +207,7 @@ export async function generateStoryManifest(
     if (manifest.chapters[i].layout === manifest.chapters[i - 1].layout) {
       const current = manifest.chapters[i].layout || 'editorial';
       const alternatives = LAYOUT_CYCLE.filter(l => l !== current);
-      manifest.chapters[i] = { ...manifest.chapters[i], layout: alternatives[i % alternatives.length] };
+      manifest.chapters[i] = { ...manifest.chapters[i], layout: alternatives[Math.floor(Math.random() * alternatives.length)] };
     }
   }
 
@@ -215,9 +215,9 @@ export async function generateStoryManifest(
   const BANNED_WORDS_RE = /\b(journey|adventure|soulmate|fairy[ -]?tale|happily ever after|storybook|chapter of our lives?|love story begins?|ride or die)\b/gi;
   manifest.chapters = manifest.chapters.map((ch: Chapter) => ({
     ...ch,
-    title: ch.title?.replace(BANNED_WORDS_RE, '').trim() || ch.title,
-    description: ch.description?.replace(BANNED_WORDS_RE, '').trim() || ch.description,
-    subtitle: ch.subtitle?.replace(BANNED_WORDS_RE, '').trim() || ch.subtitle,
+    title: ch.title?.replace(BANNED_WORDS_RE, '').trim() || `Chapter ${(ch as { order?: number }).order ?? ''}`.trim(),
+    description: ch.description?.replace(BANNED_WORDS_RE, '').trim() || ch.description || '',
+    subtitle: ch.subtitle?.replace(BANNED_WORDS_RE, '').trim() || '',
   }));
 
   // Strip wedding-specific event types for non-wedding occasions

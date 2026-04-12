@@ -63,6 +63,7 @@ function ConfirmDeleteButton({ onConfirm }: { onConfirm: () => void }) {
 
 export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void; subdomain?: string }) {
   const { state } = useEditor();
+  const [detailsTab, setDetailsTab] = useState<'logistics' | 'guests' | 'settings'>('logistics');
   const logistics = manifest.logistics || {};
   const occasion = manifest.occasion || 'wedding';
   const isEvent = occasion === 'wedding' || occasion === 'engagement';
@@ -427,6 +428,30 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── Sub-tab switcher: Logistics / Guests / Settings ── */}
+      <div style={{ display: 'flex', gap: '4px', padding: '0 0 8px', borderBottom: '1px solid #E4E4E7', marginBottom: '6px' }}>
+        {(['logistics', 'guests', 'settings'] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setDetailsTab(tab)}
+            style={{
+              flex: 1, padding: '8px 0', borderRadius: '8px',
+              border: detailsTab === tab ? '1px solid #18181B' : '1px solid #E4E4E7',
+              background: detailsTab === tab ? '#18181B' : '#FFFFFF',
+              color: detailsTab === tab ? '#FFFFFF' : '#71717A',
+              fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer',
+              transition: 'all 0.15s',
+              textTransform: 'capitalize',
+            }}
+          >
+            {tab === 'logistics' ? 'Logistics' : tab === 'guests' ? 'Guests' : 'Settings'}
+          </button>
+        ))}
+      </div>
+
+      {/* ═══ Logistics tier ═══ */}
+      {detailsTab === 'logistics' && <>
       <Section id="couple" label={occasion === 'birthday' ? 'Honoree' : occasion === 'anniversary' ? 'Couple' : 'Couple'}>
         {occasion !== 'birthday' && (
           <Field label="Dress Code" value={logistics.dresscode || ''} onChange={v => upd({ dresscode: v })} placeholder="Black Tie Optional" />
@@ -606,7 +631,10 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         ))}
         {entries.length === 0 && <p style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', textAlign: 'center', padding: '0.5rem 0' }}>No registries yet</p>}
       </Section>
+      </>}
 
+      {/* ═══ Guests tier ═══ */}
+      {detailsTab === 'guests' && <>
       <Section id="rsvp" label="RSVP">
         <div>
           <DatePicker
@@ -1058,6 +1086,10 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           </button>
         </div>
       )}
+      </>}
+
+      {/* ═══ Settings tier ═══ */}
+      {detailsTab === 'settings' && <>
       {/* ── SEO & Sharing ── */}
       <Section id="seo" label="SEO & Sharing">
         <Field
@@ -1117,6 +1149,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           )}
         </div>
       </Section>
+
+      </>}
 
       {/* Hotel Finder overlay */}
       {showHotelFinder && (

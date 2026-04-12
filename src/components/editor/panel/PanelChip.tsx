@@ -99,8 +99,6 @@ export function PanelChip({
         border,
         background,
         color,
-        backdropFilter: base.backdropFilter,
-        WebkitBackdropFilter: base.WebkitBackdropFilter,
         borderRadius: radius,
         padding,
         fontSize,

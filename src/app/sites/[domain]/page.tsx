@@ -355,6 +355,8 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               accentColor={pal.accent}
               dateFormat={chapterDateFormatOptions(manifest.dateFormat)}
               transformUrl={(url) => proxyUrl(url, 1600, 1200)}
+              themeFonts={vibeSkin.fonts}
+              themeCardStyle={vibeSkin.cardStyle}
             />
           </section>
         );
@@ -1175,6 +1177,8 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                   accentColor={pal.accent}
                   dateFormat={chapterDateFormatOptions(manifest.dateFormat)}
                   transformUrl={(url) => proxyUrl(url, 1600, 1200)}
+                  themeFonts={vibeSkin.fonts}
+                  themeCardStyle={vibeSkin.cardStyle}
                 />
               </section>
               {manifest.events?.length ? (

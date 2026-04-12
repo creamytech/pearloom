@@ -483,6 +483,7 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
 
 export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void; coupleNames?: [string, string] }) {
   const { state, dispatch } = useEditor();
+  const [designTab, setDesignTab] = useState<'theme' | 'effects'>('theme');
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [regenError, setRegenError] = useState('');
   const [forceOpenSection, setForceOpenSection] = useState<string | null>(null);
@@ -617,6 +618,29 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', paddingBottom: '24px' }}>
 
+      {/* ── Sub-tab switcher: Theme / Effects ── */}
+      <div style={{ display: 'flex', gap: '4px', padding: '0 0 8px', borderBottom: '1px solid #E4E4E7', marginBottom: '6px' }}>
+        {(['theme', 'effects'] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setDesignTab(tab)}
+            style={{
+              flex: 1, padding: '8px 0', borderRadius: '8px',
+              border: designTab === tab ? '1px solid #18181B' : '1px solid #E4E4E7',
+              background: designTab === tab ? '#18181B' : '#FFFFFF',
+              color: designTab === tab ? '#FFFFFF' : '#71717A',
+              fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer',
+              transition: 'all 0.15s',
+              textTransform: 'capitalize',
+            }}
+          >
+            {tab === 'theme' ? 'Theme' : 'Effects & Advanced'}
+          </button>
+        ))}
+      </div>
+
+      {/* ═══ Theme tier ═══ */}
+      {designTab === 'theme' && <>
       {/* ── AI Design Critic ── */}
       <div className="pl-panel-section" style={{
         display: 'flex', flexDirection: 'column', gap: '10px',
@@ -928,6 +952,10 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
         </div>
       </SidebarSection>
 
+      </>}
+
+      {/* ═══ Effects & Advanced tier ═══ */}
+      {designTab === 'effects' && <>
       {/* FIX #6: Visual Effects collapsed by default — panel was too long */}
       <SidebarSection title="Visual Effects" defaultOpen={false}>
         <VisualEffectsPanel
@@ -1232,6 +1260,8 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
           </div>
         )}
       </SidebarSection>
+
+      </>}
 
       {/* Live preview — compact, no extra nesting */}
       <div style={{ borderRadius: '16px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(43,30,20,0.05)', border: '1px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' } as React.CSSProperties}>
