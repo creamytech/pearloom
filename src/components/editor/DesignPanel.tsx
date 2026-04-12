@@ -56,11 +56,11 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
   {
     id: 'glass', label: 'Glass', desc: 'Frosted blur, floats over content',
     preview: (
-      <div style={{ height: '100%', background: 'linear-gradient(135deg, rgba(163,177,138,0.15), rgba(196,169,106,0.1))', position: 'relative' }}>
+      <div style={{ height: '100%', background: 'linear-gradient(135deg, rgba(24,24,27,0.08), rgba(196,169,106,0.1))', position: 'relative' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.5)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
-            <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--pl-olive)' }} />
-            <div style={{ width: '12px', height: '2px', background: 'var(--pl-ink)', borderRadius: '1px', opacity: 0.6 }} />
+            <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#18181B' }} />
+            <div style={{ width: '12px', height: '2px', background: '#18181B', borderRadius: '1px', opacity: 0.6 }} />
           </div>
         </div>
       </div>
@@ -72,7 +72,7 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
       <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', borderBottom: '1px solid rgba(255,255,255,0.3)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
-            <div style={{ width: '12px', height: '2px', background: 'var(--pl-ink)', borderRadius: '1px', opacity: 0.4 }} />
+            <div style={{ width: '12px', height: '2px', background: '#18181B', borderRadius: '1px', opacity: 0.4 }} />
           </div>
         </div>
       </div>
@@ -82,10 +82,10 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
     id: 'solid', label: 'Solid', desc: 'Opaque bar with shadow',
     preview: (
       <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', background: 'white', boxShadow: '0 1px 3px rgba(43,30,20,0.06)' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
-            <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--pl-olive)' }} />
-            <div style={{ width: '12px', height: '2px', background: 'var(--pl-ink)', borderRadius: '1px', opacity: 0.5 }} />
+            <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#18181B' }} />
+            <div style={{ width: '12px', height: '2px', background: '#18181B', borderRadius: '1px', opacity: 0.5 }} />
           </div>
         </div>
       </div>
@@ -96,9 +96,9 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
     preview: (
       <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '14px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1px', paddingTop: '2px' }}>
-          <div style={{ width: '16px', height: '2.5px', background: 'var(--pl-ink)', borderRadius: '1px', opacity: 0.5 }} />
+          <div style={{ width: '16px', height: '2.5px', background: '#18181B', borderRadius: '1px', opacity: 0.5 }} />
           <div style={{ display: 'flex', gap: '4px' }}>
-            {[0, 1, 2].map(i => <div key={i} style={{ width: '6px', height: '1.5px', background: 'var(--pl-muted)', borderRadius: '1px', opacity: 0.5 }} />)}
+            {[0, 1, 2].map(i => <div key={i} style={{ width: '6px', height: '1.5px', background: '#71717A', borderRadius: '1px', opacity: 0.5 }} />)}
           </div>
         </div>
       </div>
@@ -108,10 +108,10 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
     id: 'floating', label: 'Floating', desc: 'Pill-shaped, detached from edge',
     preview: (
       <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
-        <div style={{ position: 'absolute', top: '3px', left: '15%', right: '15%', height: '8px', background: 'rgba(255,255,255,0.9)', borderRadius: '100px', border: '1px solid rgba(255,255,255,0.25)', boxShadow: '0 1px 4px rgba(43,30,20,0.06)' }}>
+        <div style={{ position: 'absolute', top: '3px', left: '15%', right: '15%', height: '8px', background: 'rgba(255,255,255,0.9)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.25)', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
-            <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--pl-olive)' }} />
-            <div style={{ width: '10px', height: '1.5px', background: 'var(--pl-ink)', borderRadius: '1px', opacity: 0.4 }} />
+            <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#18181B' }} />
+            <div style={{ width: '10px', height: '1.5px', background: '#18181B', borderRadius: '1px', opacity: 0.4 }} />
           </div>
         </div>
       </div>
@@ -131,13 +131,13 @@ const MOBILE_NAV_STYLES: Array<{ id: string; label: string; desc: string }> = [
 function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const currentLogo = manifest.logoIcon || 'pear';
   const currentNavStyle = manifest.navStyle || 'glass';
-  const accent = manifest.vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#A3B18A';
+  const accent = manifest.vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#71717A';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
       {/* Page layout mode */}
       <div>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
           Site Layout
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
@@ -152,18 +152,18 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 onClick={() => onChange({ ...manifest, pageMode: mode.id })}
                 style={{
                   padding: '12px 8px', borderRadius: '12px', textAlign: 'center',
-                  border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
-                  background: isActive ? 'rgba(163,177,138,0.08)' : 'rgba(255,255,255,0.5)',
+                  border: isActive ? '2px solid #18181B' : '1px solid rgba(255,255,255,0.3)',
+                  background: isActive ? 'rgba(24,24,27,0.04)' : 'rgba(255,255,255,0.5)',
                   cursor: 'pointer', transition: 'all 0.15s',
                 }}
               >
-                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-ink)' }}>{mode.label}</div>
-                <div style={{ fontSize: '0.55rem', color: 'var(--pl-muted)', marginTop: '2px' }}>{mode.desc}</div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: isActive ? '#18181B' : '#18181B' }}>{mode.label}</div>
+                <div style={{ fontSize: '0.55rem', color: '#71717A', marginTop: '2px' }}>{mode.desc}</div>
               </button>
             );
           })}
         </div>
-        <div style={{ fontSize: '0.55rem', color: 'var(--pl-muted)', marginTop: '6px', lineHeight: 1.4 }}>
+        <div style={{ fontSize: '0.55rem', color: '#71717A', marginTop: '6px', lineHeight: 1.4 }}>
           {(manifest.pageMode || 'multi-page') === 'multi-page'
             ? 'Guests navigate between pages like a real website. Best for sites with lots of content.'
             : 'All content on one page that guests scroll through. Great for minimal sites.'}
@@ -172,7 +172,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
       {/* Logo icon picker */}
       <div>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
           Site Logo Icon
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
@@ -186,8 +186,8 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 style={{
                   aspectRatio: '1',
                   borderRadius: '12px',
-                  border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
-                  background: isActive ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.5)',
+                  border: isActive ? '2px solid #18181B' : '1px solid rgba(255,255,255,0.3)',
+                  background: isActive ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.5)',
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
                   cursor: 'pointer',
@@ -199,20 +199,20 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                   position: 'relative',
                 } as React.CSSProperties}
               >
-                <Icon size={18} color={isActive ? accent : 'var(--pl-muted)'} />
+                <Icon size={18} color={isActive ? accent : '#71717A'} />
               </button>
             );
           })}
         </div>
         {manifest.logoSvg && (
           <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '0.6rem', color: 'var(--pl-olive)', fontStyle: 'italic' }}>
+            <span style={{ fontSize: '0.6rem', color: '#18181B',  }}>
               ✦ Using AI-generated logo
             </span>
             <button
               onClick={() => onChange({ ...manifest, logoSvg: undefined })}
               style={{
-                fontSize: '0.55rem', color: 'var(--pl-muted)', background: 'rgba(255,255,255,0.2)',
+                fontSize: '0.55rem', color: '#71717A', background: 'rgba(255,255,255,0.2)',
                 border: 'none', borderRadius: '4px', padding: '2px 6px', cursor: 'pointer',
               }}
             >
@@ -224,7 +224,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
       {/* Desktop nav bar style */}
       <div>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
           Desktop Nav Style
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
@@ -237,10 +237,10 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 style={{
                   display: 'flex', flexDirection: 'column',
                   borderRadius: '12px', overflow: 'hidden',
-                  border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
-                  background: isActive ? 'rgba(163,177,138,0.06)' : 'rgba(255,255,255,0.5)',
+                  border: isActive ? '2px solid #18181B' : '1px solid rgba(255,255,255,0.3)',
+                  background: isActive ? '#F4F4F5' : 'rgba(255,255,255,0.5)',
                   cursor: 'pointer', padding: 0,
-                  boxShadow: isActive ? '0 2px 8px rgba(163,177,138,0.12)' : 'none',
+                  boxShadow: isActive ? '0 2px 8px #F4F4F5' : 'none',
                   transition: 'all 0.15s',
                 }}
               >
@@ -250,7 +250,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 <div style={{ padding: '4px 6px', textAlign: 'center' }}>
                   <div style={{
                     fontSize: '0.58rem', fontWeight: 700,
-                    color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+                    color: isActive ? '#18181B' : '#71717A',
                   }}>
                     {style.label}
                   </div>
@@ -263,7 +263,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
       {/* Mobile nav style */}
       <div>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
           Mobile Nav Style
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
@@ -276,22 +276,22 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 style={{
                   display: 'flex', flexDirection: 'column',
                   borderRadius: '12px',
-                  border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
-                  background: isActive ? 'rgba(163,177,138,0.06)' : 'rgba(255,255,255,0.5)',
+                  border: isActive ? '2px solid #18181B' : '1px solid rgba(255,255,255,0.3)',
+                  background: isActive ? '#F4F4F5' : 'rgba(255,255,255,0.5)',
                   cursor: 'pointer', padding: '8px 6px',
-                  boxShadow: isActive ? '0 2px 8px rgba(163,177,138,0.12)' : 'none',
+                  boxShadow: isActive ? '0 2px 8px #F4F4F5' : 'none',
                   transition: 'all 0.15s',
                   textAlign: 'center',
                 }}
               >
                 <div style={{
                   fontSize: '0.58rem', fontWeight: 700,
-                  color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+                  color: isActive ? '#18181B' : '#71717A',
                 }}>
                   {style.label}
                 </div>
                 <div style={{
-                  fontSize: '0.48rem', color: 'var(--pl-muted)', marginTop: '2px', lineHeight: 1.3,
+                  fontSize: '0.48rem', color: '#71717A', marginTop: '2px', lineHeight: 1.3,
                 }}>
                   {style.desc}
                 </div>
@@ -303,7 +303,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
       {/* Nav opacity */}
       <div>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
           Nav Opacity — {manifest.navOpacity ?? 100}%
         </div>
         <input
@@ -313,16 +313,16 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
           step={5}
           value={manifest.navOpacity ?? 100}
           onChange={e => onChange({ ...manifest, navOpacity: Number(e.target.value) })}
-          style={{ width: '100%', accentColor: 'var(--pl-olive)' }}
+          style={{ width: '100%', accentColor: '#18181B' }}
         />
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.55rem', color: 'var(--pl-muted)', marginTop: '2px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.55rem', color: '#71717A', marginTop: '2px' }}>
           <span>Transparent</span><span>Full</span>
         </div>
       </div>
 
       {/* Nav background color */}
       <div>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
           Nav Background
         </div>
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
@@ -341,9 +341,9 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 onClick={() => onChange({ ...manifest, navBackground: opt.value || undefined })}
                 style={{
                   padding: '6px 10px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 600,
-                  border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
-                  background: isActive ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.5)',
-                  color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+                  border: isActive ? '2px solid #18181B' : '1px solid rgba(255,255,255,0.3)',
+                  background: isActive ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.5)',
+                  color: isActive ? '#18181B' : '#71717A',
                   cursor: 'pointer', transition: 'all 0.15s',
                 }}
               >
@@ -366,7 +366,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
 // ── Corner Decoration Picker ──────────────────────────────────
 function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
-  const accent = manifest.vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#A3B18A';
+  const accent = manifest.vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#71717A';
   const currentSvg = manifest.vibeSkin?.cornerFlourishSvg || '';
   const [filter, setFilter] = useState<string>('all');
 
@@ -392,7 +392,7 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <p style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', lineHeight: 1.5, margin: 0 }}>
+      <p style={{ fontSize: '0.72rem', color: '#71717A', lineHeight: 1.5, margin: 0 }}>
         Decorative corners for the hero and footer — personalized to your style.
       </p>
 
@@ -403,11 +403,11 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
             key={cat}
             onClick={() => setFilter(cat)}
             style={{
-              padding: '3px 10px', borderRadius: '100px', border: 'none',
+              padding: '3px 10px', borderRadius: '8px', border: 'none',
               fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em',
               textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.15s',
-              background: filter === cat ? 'var(--pl-olive)' : 'rgba(255,255,255,0.2)',
-              color: filter === cat ? 'white' : 'var(--pl-muted)',
+              background: filter === cat ? '#18181B' : 'rgba(255,255,255,0.2)',
+              color: filter === cat ? 'white' : '#71717A',
             }}
           >
             {cat}
@@ -429,8 +429,8 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
                 position: 'relative',
                 aspectRatio: '1',
                 borderRadius: '12px',
-                border: active ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
-                background: active ? 'rgba(163,177,138,0.08)' : 'rgba(255,255,255,0.5)',
+                border: active ? '2px solid #18181B' : '1px solid rgba(255,255,255,0.3)',
+                background: active ? 'rgba(24,24,27,0.04)' : 'rgba(255,255,255,0.5)',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
                 cursor: 'pointer',
@@ -448,13 +448,13 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
                   dangerouslySetInnerHTML={{ __html: previewSvg }}
                 />
               ) : (
-                <span style={{ fontSize: '0.6rem', color: 'var(--pl-muted)', fontWeight: 600 }}>None</span>
+                <span style={{ fontSize: '0.6rem', color: '#71717A', fontWeight: 600 }}>None</span>
               )}
               {active && (
                 <div style={{
                   position: 'absolute', top: '4px', right: '4px',
                   width: '16px', height: '16px', borderRadius: '50%',
-                  background: 'var(--pl-olive)', display: 'flex',
+                  background: '#18181B', display: 'flex',
                   alignItems: 'center', justifyContent: 'center',
                 }}>
                   <Check size={9} color="white" strokeWidth={3} />
@@ -462,7 +462,7 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
               )}
               <span style={{
                 position: 'absolute', bottom: '3px', left: 0, right: 0,
-                fontSize: '0.5rem', fontWeight: 700, color: 'var(--pl-muted)',
+                fontSize: '0.5rem', fontWeight: 700, color: '#71717A',
                 textAlign: 'center', letterSpacing: '0.03em',
               }}>
                 {preset.label}
@@ -473,7 +473,7 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
       </div>
 
       {currentSvg && (
-        <p style={{ fontSize: '0.6rem', color: 'var(--pl-olive)', textAlign: 'center', margin: 0, fontStyle: 'italic' }}>
+        <p style={{ fontSize: '0.6rem', color: '#18181B', textAlign: 'center', margin: 0,  }}>
           ✦ AI-generated corners will be replaced when you pick a preset
         </p>
       )}
@@ -647,14 +647,14 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
         background: 'rgba(255,255,255,0.45)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
-        border: '1px solid rgba(163,177,138,0.2)',
+        border: '1px solid rgba(24,24,27,0.1)',
         borderRadius: '14px',
         padding: '14px',
         marginBottom: '2px',
       } as React.CSSProperties}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <PearIcon size={18} color="var(--pl-olive, #A3B18A)" />
-          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--pl-ink)', fontFamily: 'var(--pl-font-heading)', fontStyle: 'italic' }}>
+          <PearIcon size={18} color="#18181B" />
+          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#18181B', fontFamily: 'inherit',  }}>
             Want Pear to review your design?
           </span>
         </div>
@@ -663,13 +663,13 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
           disabled={feedbackLoading}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            padding: '7px 14px', borderRadius: '100px',
+            padding: '7px 14px', borderRadius: '8px',
             border: 'none',
-            background: feedbackLoading ? 'rgba(163,177,138,0.2)' : 'rgba(163,177,138,0.9)',
-            color: feedbackLoading ? 'var(--pl-ink-soft)' : '#fff',
+            background: feedbackLoading ? 'rgba(24,24,27,0.1)' : '#18181B',
+            color: feedbackLoading ? '#3F3F46' : '#fff',
             cursor: feedbackLoading ? 'not-allowed' : 'pointer',
             fontSize: '0.78rem', fontWeight: 700, transition: 'all 0.15s',
-            boxShadow: feedbackLoading ? 'none' : '0 2px 8px rgba(163,177,138,0.3)',
+            boxShadow: feedbackLoading ? 'none' : '0 2px 8px #E4E4E7',
             width: '100%',
           }}
         >
@@ -687,7 +687,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                 display: 'flex', alignItems: 'center', gap: '4px',
                 background: 'none', border: 'none', cursor: 'pointer', padding: 0,
                 fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.06em',
-                textTransform: 'uppercase', color: 'var(--pl-olive, #A3B18A)',
+                textTransform: 'uppercase', color: '#18181B',
               }}
             >
               {feedbackExpanded ? 'Hide' : 'Show'} Feedback
@@ -695,7 +695,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             {feedbackExpanded && (
               <div style={{
                 marginTop: '6px', padding: '10px 12px', borderRadius: '10px',
-                background: 'rgba(163,177,138,0.06)', border: '1px solid rgba(163,177,138,0.12)',
+                background: '#F4F4F5', border: '1px solid #F4F4F5',
                 fontSize: '0.78rem', lineHeight: 1.6, color: 'var(--pl-ink-soft, #3D3530)',
                 whiteSpace: 'pre-wrap',
               }}>
@@ -709,15 +709,15 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       {/* ── Quick AI regenerate ── */}
       <div className="pl-panel-section" style={{
         display: 'flex', alignItems: 'center', gap: '8px',
-        background: 'linear-gradient(135deg, rgba(163,177,138,0.06), rgba(196,169,106,0.04))',
-        border: '1px solid rgba(163,177,138,0.15)',
+        background: 'linear-gradient(135deg, #F4F4F5, rgba(196,169,106,0.04))',
+        border: '1px solid rgba(24,24,27,0.08)',
       }}>
         {vibeSkin?.tone && (
           <span style={{
             fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.06em',
-            textTransform: 'uppercase', color: '#A3B18A',
-            background: 'rgba(163,177,138,0.15)', padding: '3px 10px', borderRadius: '100px',
-            border: '1px solid rgba(163,177,138,0.2)', flexShrink: 0,
+            textTransform: 'uppercase', color: '#71717A',
+            background: 'rgba(24,24,27,0.08)', padding: '3px 10px', borderRadius: '8px',
+            border: '1px solid rgba(24,24,27,0.1)', flexShrink: 0,
           }}>
             {vibeSkin.tone}
           </span>
@@ -728,13 +728,13 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
           disabled={isRegenerating}
           style={{
             display: 'flex', alignItems: 'center', gap: '5px',
-            padding: '5px 12px', borderRadius: '100px',
+            padding: '5px 12px', borderRadius: '8px',
             border: 'none',
-            background: isRegenerating ? 'rgba(163,177,138,0.2)' : 'rgba(163,177,138,0.9)',
-            color: isRegenerating ? 'var(--pl-ink-soft)' : '#fff',
+            background: isRegenerating ? 'rgba(24,24,27,0.1)' : '#18181B',
+            color: isRegenerating ? '#3F3F46' : '#fff',
             cursor: isRegenerating ? 'not-allowed' : 'pointer',
             fontSize: '0.75rem', fontWeight: 700, transition: 'all 0.15s',
-            boxShadow: isRegenerating ? 'none' : '0 2px 8px rgba(163,177,138,0.3)',
+            boxShadow: isRegenerating ? 'none' : '0 2px 8px #E4E4E7',
           }}
         >
           {isRegenerating ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <DesignIcon size={12} />}
@@ -748,7 +748,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       {/* ── Writing Style — AI tone adjuster ── */}
       <SidebarSection title="Writing Style" defaultOpen={false}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <p style={{ fontSize: '0.72rem', color: 'var(--pl-muted, #7A756E)', margin: 0, lineHeight: 1.5 }}>
+          <p style={{ fontSize: '0.72rem', color: '#71717A', margin: 0, lineHeight: 1.5 }}>
             Let Pear rewrite all your site copy to match a tone.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
@@ -766,8 +766,8 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                     gap: '5px',
                     padding: '10px 12px',
                     borderRadius: '12px',
-                    border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
-                    background: isActive ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.5)',
+                    border: isActive ? '2px solid #18181B' : '1px solid rgba(255,255,255,0.3)',
+                    background: isActive ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.5)',
                     backdropFilter: 'blur(20px)',
                     WebkitBackdropFilter: 'blur(20px)',
                     cursor: toneLoading ? 'wait' : 'pointer',
@@ -775,13 +775,13 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                     transition: 'all 0.15s',
                     fontSize: '0.72rem',
                     fontWeight: isActive ? 700 : 600,
-                    color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-ink-soft, #3D3530)',
+                    color: isActive ? '#18181B' : 'var(--pl-ink-soft, #3D3530)',
                   } as React.CSSProperties}
                 >
                   {isActive && toneLoading ? (
                     <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
                   ) : (
-                    <PearIcon size={12} color={isActive ? 'var(--pl-olive)' : 'var(--pl-muted, #7A756E)'} />
+                    <PearIcon size={12} color={isActive ? '#18181B' : '#71717A'} />
                   )}
                   {tone}
                 </button>
@@ -795,11 +795,11 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               gap: '6px',
               padding: '8px 12px',
               borderRadius: '10px',
-              background: 'rgba(163,177,138,0.06)',
-              border: '1px solid rgba(163,177,138,0.12)',
+              background: '#F4F4F5',
+              border: '1px solid #F4F4F5',
               fontSize: '0.72rem',
               fontWeight: 600,
-              color: 'var(--pl-olive, #A3B18A)',
+              color: '#18181B',
             }}>
               <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
               Pear is adjusting your tone...
@@ -820,7 +820,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       {/* ── Page Background ── */}
       <SidebarSection title="Page Background" defaultOpen={false}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label style={{ display: 'block', fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--pl-muted)', marginBottom: '4px' }}>Background Color</label>
+          <label style={{ display: 'block', fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717A', marginBottom: '4px' }}>Background Color</label>
           <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
             {[
               { label: 'Theme', value: '' },
@@ -844,7 +844,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                   title={bg.label}
                   style={{
                     width: '28px', height: '28px', borderRadius: '12px',
-                    border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
+                    border: isActive ? '2px solid #18181B' : '1px solid rgba(255,255,255,0.3)',
                     background: bg.value || 'linear-gradient(135deg, #FAF7F2, #E8D5C4)',
                     cursor: 'pointer', transition: 'border 0.15s',
                   }}
@@ -852,13 +852,13 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               );
             })}
           </div>
-          <label style={{ display: 'block', fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--pl-muted)', marginBottom: '4px' }}>Background Pattern</label>
+          <label style={{ display: 'block', fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717A', marginBottom: '4px' }}>Background Pattern</label>
           <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
             {[
               { label: 'None', value: '' },
-              { label: 'Dots', value: 'radial-gradient(circle, rgba(163,177,138,0.08) 1px, transparent 1px)' },
-              { label: 'Lines', value: 'repeating-linear-gradient(0deg, rgba(163,177,138,0.04) 0px, transparent 1px, transparent 40px)' },
-              { label: 'Grid', value: 'linear-gradient(rgba(163,177,138,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(163,177,138,0.03) 1px, transparent 1px)' },
+              { label: 'Dots', value: 'radial-gradient(circle, rgba(24,24,27,0.04) 1px, transparent 1px)' },
+              { label: 'Lines', value: 'repeating-linear-gradient(0deg, rgba(24,24,27,0.03) 0px, transparent 1px, transparent 40px)' },
+              { label: 'Grid', value: 'linear-gradient(rgba(24,24,27,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(24,24,27,0.02) 1px, transparent 1px)' },
             ].map(p => {
               const current = (manifest as unknown as Record<string, unknown>).backgroundPatternCss as string || '';
               const isActive = p.value === current;
@@ -867,10 +867,10 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                   key={p.label}
                   onClick={() => onChange({ ...manifest, backgroundPatternCss: p.value } as StoryManifest)}
                   style={{
-                    padding: '4px 10px', borderRadius: '100px',
-                    border: isActive ? '1.5px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
-                    background: isActive ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.2)',
-                    color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+                    padding: '4px 10px', borderRadius: '8px',
+                    border: isActive ? '1.5px solid #18181B' : '1px solid rgba(255,255,255,0.3)',
+                    background: isActive ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.2)',
+                    color: isActive ? '#18181B' : '#71717A',
                     cursor: 'pointer', fontSize: '0.65rem', fontWeight: 600,
                   }}
                 >
@@ -889,12 +889,12 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
       {/* ── Wedding Palettes — curated presets ── */}
       <SidebarSection title="Wedding Palettes" defaultOpen={false}>
-        <p style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', lineHeight: 1.5, margin: '0 0 8px' }}>
+        <p style={{ fontSize: '0.72rem', color: '#71717A', lineHeight: 1.5, margin: '0 0 8px' }}>
           One-click curated palettes designed for weddings.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
           {([
-            { name: 'Blush & Sage', colors: ['#D4A0A0', '#A3B18A', '#FAF7F2', '#3D3530', '#F5F1E8'] },
+            { name: 'Blush & Sage', colors: ['#D4A0A0', '#71717A', '#FAF7F2', '#3D3530', '#F5F1E8'] },
             { name: 'Navy & Gold', colors: ['#2C3E6B', '#C4A96A', '#FAF7F2', '#1C1C1C', '#F5F1E8'] },
             { name: 'Terracotta & Cream', colors: ['#C67B5C', '#E8B89D', '#FFF8F2', '#3D2E24', '#F5ECE4'] },
             { name: 'Lavender Dream', colors: ['#9B8EC1', '#D4A0C4', '#F8F5FD', '#2D2640', '#F0ECF8'] },
@@ -932,7 +932,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                 background: 'rgba(255,255,255,0.3)',
                 textAlign: 'left', transition: 'all 0.15s',
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.5)'; }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#A1A1AA'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.25)'; }}
             >
               <div className="pl-palette-swatches" style={{ display: 'flex', gap: '3px' }}>
@@ -944,7 +944,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                   }} />
                 ))}
               </div>
-              <div style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--pl-ink)' }}>
+              <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#18181B' }}>
                 {preset.name}
               </div>
             </button>
@@ -988,9 +988,9 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             onUpdate={(updates) => onChange({ ...manifest, ...updates })}
           />
         ) : (
-          <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--pl-muted, #7A756E)', fontSize: '0.82rem' }}>
+          <div style={{ padding: '1rem', textAlign: 'center', color: '#71717A', fontSize: '0.82rem' }}>
             <p style={{ marginBottom: '0.75rem' }}>No AI art generated yet.</p>
-            <button onClick={handleRegenerateDesign} style={{ padding: '0.5rem 1rem', borderRadius: '100px', background: 'var(--pl-olive, #A3B18A)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>
+            <button onClick={handleRegenerateDesign} style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: '#18181B', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>
               Generate AI Art
             </button>
           </div>
@@ -1005,10 +1005,10 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       {/* ── Story Layout — how chapters unfold on the page ── */}
       <SidebarSection title="Story Layout" defaultOpen={false}>
         <div>
-          <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '6px' }}>
+          <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '6px' }}>
             Story Layout
           </div>
-          <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)', lineHeight: 1.5, marginBottom: '12px' }}>
+          <div style={{ fontSize: '0.68rem', color: '#71717A', lineHeight: 1.5, marginBottom: '12px' }}>
             How your chapters unfold on the page
           </div>
           <StoryLayoutPicker
@@ -1026,10 +1026,10 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
           {/* ── Date format — applies to chapter date labels ── */}
           <div style={{ marginTop: 20 }}>
-            <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '6px' }}>
+            <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', marginBottom: '6px' }}>
               Date format
             </div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)', lineHeight: 1.5, marginBottom: '10px' }}>
+            <div style={{ fontSize: '0.68rem', color: '#71717A', lineHeight: 1.5, marginBottom: '10px' }}>
               How dates read on every chapter
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -1045,8 +1045,8 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                       width: '100%',
                       padding: '10px 14px',
                       borderRadius: 12,
-                      border: `1.5px solid ${isActive ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.2)'}`,
-                      background: isActive ? 'rgba(163,177,138,0.12)' : 'rgba(255,255,255,0.5)',
+                      border: `1.5px solid ${isActive ? '#18181B' : 'rgba(24,24,27,0.1)'}`,
+                      background: isActive ? '#F4F4F5' : 'rgba(255,255,255,0.5)',
                       cursor: 'pointer',
                       textAlign: 'left',
                       display: 'flex',
@@ -1060,14 +1060,14 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                     <span style={{
                       fontSize: '0.72rem',
                       fontWeight: isActive ? 700 : 600,
-                      color: 'var(--pl-ink-soft)',
+                      color: '#3F3F46',
                     }}>
                       {preset.label}
                     </span>
                     <span style={{
                       fontSize: '0.68rem',
                       fontFamily: 'ui-monospace, SFMono-Regular, monospace',
-                      color: 'var(--pl-muted)',
+                      color: '#71717A',
                     }}>
                       {preset.example}
                     </span>
@@ -1111,7 +1111,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                 background: 'rgba(255,255,255,0.3)',
                 textAlign: 'left', transition: 'all 0.15s',
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.5)'; }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#A1A1AA'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.25)'; }}
             >
               <div style={{ display: 'flex', gap: '3px' }}>
@@ -1119,8 +1119,8 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                   <div key={i} style={{ width: 16, height: 16, borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,0.08)' }} />
                 ))}
               </div>
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--pl-ink)' }}>{preset.name}</div>
-              <div style={{ fontSize: '0.58rem', color: 'var(--pl-muted)', lineHeight: 1.3 }}>{preset.description}</div>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#18181B' }}>{preset.name}</div>
+              <div style={{ fontSize: '0.58rem', color: '#71717A', lineHeight: 1.3 }}>{preset.description}</div>
             </button>
           ))}
         </div>
@@ -1128,7 +1128,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
       {/* ── Dark Mode Preview ── */}
       <SidebarSection title="Dark Mode Preview" defaultOpen={false}>
-        <p style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', marginBottom: '8px', lineHeight: 1.5 }}>
+        <p style={{ fontSize: '0.72rem', color: '#71717A', marginBottom: '8px', lineHeight: 1.5 }}>
           Preview how your site would look with inverted colors. Great for evening events.
         </p>
         <button
@@ -1153,7 +1153,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
       {/* ── Typographic Scale ── */}
       <SidebarSection title="Type Scale" defaultOpen={false}>
-        <p style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', marginBottom: '8px', lineHeight: 1.5 }}>
+        <p style={{ fontSize: '0.72rem', color: '#71717A', marginBottom: '8px', lineHeight: 1.5 }}>
           Set the mathematical ratio for font size hierarchy across your site.
         </p>
         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
@@ -1175,16 +1175,16 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                 style={{
                   flex: 1, minWidth: '70px', padding: '8px 6px', borderRadius: '12px',
                   border: manifest.theme?.typeScale === scale
-                    ? '1.5px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.25)',
+                    ? '1.5px solid #18181B' : '1px solid rgba(255,255,255,0.25)',
                   background: manifest.theme?.typeScale === scale
-                    ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.3)',
+                    ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.3)',
                   cursor: 'pointer', textAlign: 'center',
                 }}
               >
-                <div style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--pl-ink)', textTransform: 'capitalize' }}>
+                <div style={{ fontSize: '0.6rem', fontWeight: 700, color: '#18181B', textTransform: 'capitalize' }}>
                   {scale.replace('-', ' ')}
                 </div>
-                <div style={{ fontSize: '0.5rem', color: 'var(--pl-muted)' }}>
+                <div style={{ fontSize: '0.5rem', color: '#71717A' }}>
                   {h.ratio}:1
                 </div>
               </button>
@@ -1201,7 +1201,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
       {/* Asset Library */}
       <SidebarSection title="Asset Library" defaultOpen={false}>
-        <p style={{ fontSize: '0.82rem', color: 'var(--pl-muted, #7A756E)', marginBottom: '10px', lineHeight: 1.5 }}>
+        <p style={{ fontSize: '0.82rem', color: '#71717A', marginBottom: '10px', lineHeight: 1.5 }}>
           Dividers, illustrations & accents to add to your pages.
         </p>
         <AssetPicker
@@ -1230,14 +1230,14 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
         {/* Active stickers list with controls */}
         {(manifest.stickers?.length ?? 0) > 0 && (
           <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.3)', paddingTop: '10px' }}>
-            <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted, #7A756E)', marginBottom: '8px' }}>
+            <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
               Active ({manifest.stickers!.length})
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {manifest.stickers!.map((s, i) => (
                 <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', borderRadius: '12px', background: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
                   <span style={{ fontSize: '0.72rem', color: 'var(--pl-ink-soft, #3D3530)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'var(--pl-muted, #7A756E)' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: '#71717A' }}>
                     Size
                     <RangeSlider min={30} max={200} value={s.size} onChange={v => {
                       const updated = [...manifest.stickers!];
@@ -1245,7 +1245,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                       onChange({ ...manifest, stickers: updated });
                     }} />
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'var(--pl-muted)' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: '#71717A' }}>
                     Op.
                     <RangeSlider min={10} max={100} value={Math.round(s.opacity * 100)} onChange={v => {
                       const updated = [...manifest.stickers!];
@@ -1253,7 +1253,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                       onChange({ ...manifest, stickers: updated });
                     }} />
                   </label>
-                  <button onClick={() => onChange({ ...manifest, stickers: manifest.stickers!.filter((_, j) => j !== i) })} style={{ all: 'unset', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', padding: '2px' }}>✕</button>
+                  <button onClick={() => onChange({ ...manifest, stickers: manifest.stickers!.filter((_, j) => j !== i) })} style={{ all: 'unset', cursor: 'pointer', color: '#71717A', display: 'flex', padding: '2px' }}>✕</button>
                 </div>
               ))}
             </div>
@@ -1264,18 +1264,18 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       </>}
 
       {/* Live preview — compact, no extra nesting */}
-      <div style={{ borderRadius: '16px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(43,30,20,0.05)', border: '1px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' } as React.CSSProperties}>
+      <div style={{ borderRadius: '16px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' } as React.CSSProperties}>
         <div style={{ background: colors.background || '#faf9f6', padding: '14px' }}>
-          <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1rem', fontWeight: 700, color: colors.foreground || 'var(--pl-ink, var(--pl-ink-soft))', marginBottom: '3px' }}>
+          <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1rem', fontWeight: 700, color: colors.foreground || 'var(--pl-ink, #3F3F46)', marginBottom: '3px' }}>
             {manifest.chapters?.[0]?.title || 'Preview'}
           </div>
           <div style={{ color: colors.muted || '#8c8c8c', fontSize: '0.72rem', marginBottom: '8px' }}>The beginning of everything.</div>
           <div style={{ display: 'flex', gap: '6px' }}>
-            <div style={{ background: colors.accent || '#A3B18A', color: '#fff', padding: '3px 10px', borderRadius: '100px', fontSize: '0.65rem', fontWeight: 700 }}>RSVP</div>
-            <div style={{ background: colors.accentLight || '#f3e8d8', color: colors.accent || '#A3B18A', padding: '3px 10px', borderRadius: '100px', fontSize: '0.65rem', fontWeight: 600 }}>View Story</div>
+            <div style={{ background: colors.accent || '#71717A', color: '#fff', padding: '3px 10px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: 700 }}>RSVP</div>
+            <div style={{ background: colors.accentLight || '#f3e8d8', color: colors.accent || '#71717A', padding: '3px 10px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: 600 }}>View Story</div>
           </div>
         </div>
-        <div style={{ height: '3px', background: colors.accent || '#A3B18A' }} />
+        <div style={{ height: '3px', background: colors.accent || '#71717A' }} />
       </div>
     </div>
   );

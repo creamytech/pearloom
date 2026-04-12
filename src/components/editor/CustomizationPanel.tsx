@@ -47,8 +47,8 @@ function PickerGrid<T extends { id: string; name: string; preview: string }>({
             onClick={() => onChange(item.id)}
             style={{
               padding: '10px',
-              border: active ? '2px solid var(--pl-olive)' : '1px solid rgba(163,177,138,0.2)',
-              background: active ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.5)',
+              border: active ? '2px solid #18181B' : '1px solid rgba(24,24,27,0.1)',
+              background: active ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.5)',
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
               borderRadius: '12px',
@@ -61,18 +61,18 @@ function PickerGrid<T extends { id: string; name: string; preview: string }>({
           >
             {active && (
               <div style={{ position: 'absolute', top: '4px', right: '4px' }}>
-                <Check size={10} color="var(--pl-olive-deep)" />
+                <Check size={10} color="#18181B" />
               </div>
             )}
             <div style={{
               fontSize: panelText.chip,
               fontWeight: panelWeight.semibold,
-              color: 'var(--pl-ink)',
+              color: '#18181B',
               marginBottom: '2px',
             }}>
               {item.name}
             </div>
-            <div style={{ fontSize: panelText.meta, color: 'var(--pl-muted)' }}>
+            <div style={{ fontSize: panelText.meta, color: '#71717A' }}>
               {item.preview}
             </div>
           </button>
@@ -153,8 +153,8 @@ export function CustomizationPanel({ customization, onChange, names, accentColor
                   padding: '8px',
                   cursor: 'pointer',
                   textAlign: 'center',
-                  border: active ? '2px solid var(--pl-olive)' : '1px solid rgba(163,177,138,0.2)',
-                  background: active ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.5)',
+                  border: active ? '2px solid #18181B' : '1px solid rgba(24,24,27,0.1)',
+                  background: active ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.5)',
                   borderRadius: '12px',
                   transition: 'all 0.15s',
                 }}
@@ -165,7 +165,7 @@ export function CustomizationPanel({ customization, onChange, names, accentColor
                     __html: generateMonogram(initials, style.id, accentColor || '#C4A96A'),
                   }}
                 />
-                <div style={{ fontSize: panelText.meta, color: 'var(--pl-muted)', marginTop: '4px' }}>
+                <div style={{ fontSize: panelText.meta, color: '#71717A', marginTop: '4px' }}>
                   {style.name}
                 </div>
               </button>

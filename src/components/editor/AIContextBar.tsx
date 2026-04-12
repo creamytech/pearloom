@@ -46,7 +46,7 @@ export function AIContextBar() {
             backdropFilter: 'blur(16px) saturate(1.3)',
             WebkitBackdropFilter: 'blur(16px) saturate(1.3)',
             borderBottom: '1px solid rgba(0,0,0,0.05)',
-            boxShadow: '0 1px 4px rgba(43,30,20,0.03)',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
           }}
         >
           <div style={{
@@ -65,7 +65,7 @@ export function AIContextBar() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 width: 24, height: 24, borderRadius: 6, border: 'none',
                 background: 'transparent',
-                color: prevChapter ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
+                color: prevChapter ? '#3F3F46' : '#71717A',
                 cursor: prevChapter ? 'pointer' : 'not-allowed',
                 flexShrink: 0,
               }}
@@ -76,9 +76,9 @@ export function AIContextBar() {
             {/* Chapter breadcrumb */}
             <div style={{
               fontSize: '0.75rem', fontWeight: 600,
-              color: 'var(--pl-ink-soft)',
-              fontFamily: 'var(--pl-font-heading)',
-              fontStyle: 'italic',
+              color: '#3F3F46',
+              fontFamily: 'inherit',
+              
               letterSpacing: '-0.01em',
               maxWidth: '160px',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -97,7 +97,7 @@ export function AIContextBar() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 width: 24, height: 24, borderRadius: 6, border: 'none',
                 background: 'transparent',
-                color: nextChapter ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
+                color: nextChapter ? '#3F3F46' : '#71717A',
                 cursor: nextChapter ? 'pointer' : 'not-allowed',
                 flexShrink: 0,
               }}
@@ -129,7 +129,7 @@ export function AIContextBar() {
             {/* Chapter position indicator */}
             <span style={{
               fontSize: '0.65rem', fontWeight: 600,
-              color: 'var(--pl-muted)',
+              color: '#71717A',
               letterSpacing: '0.04em',
               flexShrink: 0,
             }}>
@@ -152,17 +152,17 @@ function AIActionPill({
       onClick={onClick}
       disabled={disabled}
       whileHover={!disabled ? {
-        backgroundColor: accent ? 'rgba(163,177,138,0.2)' : 'rgba(0,0,0,0.06)',
-        color: accent ? '#A3B18A' : 'var(--pl-ink-soft)',
+        backgroundColor: accent ? 'rgba(24,24,27,0.1)' : 'rgba(0,0,0,0.06)',
+        color: accent ? '#71717A' : '#3F3F46',
       } : {}}
       whileTap={!disabled ? { scale: 0.94 } : {}}
       transition={{ duration: 0.12 }}
       style={{
         display: 'flex', alignItems: 'center', gap: '4px',
-        padding: '3px 9px', borderRadius: '100px',
-        border: `1px solid ${accent ? 'rgba(163,177,138,0.2)' : 'rgba(0,0,0,0.06)'}`,
-        background: accent ? 'rgba(163,177,138,0.1)' : 'rgba(163,177,138,0.05)',
-        color: accent ? 'rgba(163,177,138,0.85)' : 'var(--pl-muted)',
+        padding: '3px 9px', borderRadius: '8px',
+        border: `1px solid ${accent ? 'rgba(24,24,27,0.1)' : 'rgba(0,0,0,0.06)'}`,
+        background: accent ? 'rgba(24,24,27,0.06)' : 'rgba(24,24,27,0.04)',
+        color: accent ? 'rgba(24,24,27,0.85)' : '#71717A',
         cursor: disabled ? 'not-allowed' : 'pointer',
         fontSize: '0.72rem', fontWeight: 700,
         opacity: disabled ? 0.5 : 1,

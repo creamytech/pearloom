@@ -40,15 +40,15 @@ function MenuItem({
         width: '100%', padding: '7px 12px', border: 'none', borderRadius: 8,
         background: 'transparent', cursor: 'pointer',
         fontSize: '0.88rem', fontWeight: 500,
-        color: danger ? '#ef4444' : 'var(--pl-ink)',
+        color: danger ? '#ef4444' : '#18181B',
         fontFamily: 'var(--pl-font-body)',
         transition: 'background 0.12s',
         textAlign: 'left',
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.background = danger ? 'rgba(239,68,68,0.08)' : 'rgba(163,177,138,0.12)'; }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = danger ? 'rgba(239,68,68,0.08)' : '#F4F4F5'; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
     >
-      <span style={{ width: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: danger ? '#ef4444' : 'var(--pl-muted)' }}>
+      <span style={{ width: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: danger ? '#ef4444' : '#71717A' }}>
         {icon}
       </span>
       {label}
@@ -119,7 +119,7 @@ export function ChapterContextMenu({
       <Divider />
 
       {/* Layout sub-items */}
-      <div style={{ padding: '4px 12px 2px', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)' }}>
+      <div style={{ padding: '4px 12px 2px', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A' }}>
         Layout
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, padding: '2px 4px 4px' }}>
@@ -131,8 +131,8 @@ export function ChapterContextMenu({
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
               padding: '6px 4px', border: 'none', borderRadius: 6, cursor: 'pointer',
-              background: currentLayout === opt.id ? 'rgba(163,177,138,0.15)' : 'transparent',
-              color: currentLayout === opt.id ? 'var(--pl-olive)' : 'var(--pl-muted)',
+              background: currentLayout === opt.id ? 'rgba(24,24,27,0.08)' : 'transparent',
+              color: currentLayout === opt.id ? '#18181B' : '#71717A',
               fontSize: '0.65rem', fontWeight: 600, transition: 'background 0.12s',
             }}
             onMouseEnter={(e) => { if (currentLayout !== opt.id) e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}

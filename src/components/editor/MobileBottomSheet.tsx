@@ -365,7 +365,7 @@ export function MobileBottomSheet({
               style={{
                 position: 'fixed',
                 inset: 0,
-                background: 'rgba(43,30,20,0.18)',
+                background: 'rgba(0,0,0,0.1)',
                 zIndex: 1199,
                 pointerEvents: showBackdrop ? 'auto' : 'none',
               }}
@@ -393,7 +393,7 @@ export function MobileBottomSheet({
                 backdropFilter: 'var(--pl-glass-blur)',
                 WebkitBackdropFilter: 'var(--pl-glass-blur)',
                 borderTop: '1px solid var(--pl-glass-light-border)',
-                boxShadow: '0 -4px 24px rgba(43,30,20,0.12)',
+                boxShadow: '0 -4px 24px rgba(0,0,0,0.08)',
                 overflow: 'hidden',
                 willChange: 'transform',
                 paddingBottom: 'env(safe-area-inset-bottom, 0px)',

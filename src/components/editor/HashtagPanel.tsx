@@ -77,7 +77,7 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
 
   const panelStyle: React.CSSProperties = {
     background: '#1E1B16',
-    border: '1px solid rgba(214,198,168,0.12)',
+    border: '1px solid rgba(24,24,27,0.06)',
     borderRadius: '0.875rem',
     padding: '1.25rem',
     display: 'flex',
@@ -98,7 +98,7 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
     gap: '0.45rem',
     fontSize: '0.85rem',
     fontWeight: 700,
-    color: 'var(--pl-ink-soft)',
+    color: '#3F3F46',
     letterSpacing: '0.02em',
   };
 
@@ -112,7 +112,7 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
     fontWeight: 700,
     cursor: generating ? 'not-allowed' : 'pointer',
     opacity: generating ? 0.7 : 1,
-    background: generating ? 'rgba(163,177,138,0.25)' : '#A3B18A',
+    background: generating ? 'rgba(24,24,27,0.12)' : '#71717A',
     color: '#1E1B16',
     border: 'none',
     transition: 'all 0.15s ease',
@@ -125,15 +125,15 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
     justifyContent: 'space-between',
     padding: '0.55rem 0.75rem',
     borderRadius: '0.55rem',
-    background: 'rgba(163,177,138,0.06)',
-    border: '1px solid rgba(163,177,138,0.12)',
+    background: '#F4F4F5',
+    border: '1px solid #F4F4F5',
     transition: 'background 0.15s ease',
   };
 
   const tagTextStyle: React.CSSProperties = {
     fontSize: '0.85rem',
     fontWeight: 600,
-    color: '#A3B18A',
+    color: '#71717A',
     fontFamily: 'monospace',
     letterSpacing: '0.01em',
   };
@@ -147,9 +147,9 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
     fontSize: '0.72rem',
     fontWeight: 600,
     cursor: 'pointer',
-    background: 'rgba(163,177,138,0.12)',
-    border: '1px solid rgba(163,177,138,0.2)',
-    color: 'var(--pl-muted)',
+    background: '#F4F4F5',
+    border: '1px solid rgba(24,24,27,0.1)',
+    color: '#71717A',
     transition: 'all 0.15s ease',
   };
 
@@ -159,7 +159,7 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
     gap: '0.3rem',
     fontSize: '0.78rem',
     fontWeight: 600,
-    color: 'var(--pl-muted)',
+    color: '#71717A',
     cursor: 'pointer',
     background: 'none',
     border: 'none',
@@ -175,7 +175,7 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
       {/* Header */}
       <div style={headerStyle}>
         <span style={labelStyle}>
-          <Tag size={16} style={{ color: 'var(--pl-olive)' }} />
+          <Tag size={16} style={{ color: '#18181B' }} />
           Wedding Hashtag
         </span>
         <button
@@ -236,9 +236,9 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
                       style={{
                         ...copyBtnStyle,
                         ...(isCopied ? {
-                          background: 'rgba(163,177,138,0.2)',
-                          color: '#A3B18A',
-                          borderColor: 'rgba(163,177,138,0.35)',
+                          background: 'rgba(24,24,27,0.1)',
+                          color: '#71717A',
+                          borderColor: '#E4E4E7',
                         } : {}),
                       }}
                       onClick={() => copyTag(tag)}
@@ -279,8 +279,8 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
         <p style={{
           margin: 0,
           fontSize: '0.8rem',
-          color: 'var(--pl-muted)',
-          fontStyle: 'italic',
+          color: '#71717A',
+          
           textAlign: 'center',
           paddingBottom: '0.25rem',
         }}>

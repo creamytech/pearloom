@@ -56,12 +56,12 @@ export function WeddingPartyEditor({ members, onChange }: WeddingPartyEditorProp
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '7px 10px', borderRadius: '8px',
     border: '1.5px solid rgba(255,255,255,0.25)', background: 'white',
-    fontSize: '0.82rem', color: 'var(--pl-ink)', outline: 'none',
+    fontSize: '0.82rem', color: '#18181B', outline: 'none',
   };
 
   const labelStyle: React.CSSProperties = {
     fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.1em',
-    textTransform: 'uppercase', color: 'var(--pl-muted)',
+    textTransform: 'uppercase', color: '#71717A',
     marginBottom: '4px', display: 'block',
   };
 
@@ -133,24 +133,24 @@ export function WeddingPartyEditor({ members, onChange }: WeddingPartyEditorProp
               >
                 <div style={{
                   width: '32px', height: '32px', borderRadius: '50%',
-                  background: 'var(--pl-olive-mist)',
+                  background: '#F4F4F5',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '0.82rem', fontWeight: 600, color: 'var(--pl-olive-deep)',
+                  fontSize: '0.82rem', fontWeight: 600, color: '#18181B',
                   flexShrink: 0,
                 }}>
                   {member.name ? member.name.charAt(0).toUpperCase() : '?'}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--pl-ink)' }}>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#18181B' }}>
                     {member.name || 'Unnamed'}
                   </div>
-                  <div style={{ fontSize: '0.62rem', color: 'var(--pl-olive)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  <div style={{ fontSize: '0.62rem', color: '#18181B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     {ROLES.find(r => r.value === member.role)?.label}
                   </div>
                 </div>
                 <button
                   onClick={(e) => { e.stopPropagation(); removeMember(member.id); }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', padding: '4px' }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#71717A', padding: '4px' }}
                 >
                   <Trash2 size={12} />
                 </button>

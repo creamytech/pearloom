@@ -48,7 +48,7 @@ function PropControl({
     WebkitBackdropFilter: 'blur(8px)',
     fontSize: '0.88rem',
     fontFamily: 'var(--pl-font-body)',
-    color: 'var(--pl-ink)',
+    color: '#18181B',
     outline: 'none',
     transition: 'border-color 0.2s, box-shadow 0.2s',
   };
@@ -58,7 +58,7 @@ function PropControl({
     fontWeight: 700,
     letterSpacing: '0.1em',
     textTransform: 'uppercase',
-    color: 'var(--pl-muted)',
+    color: '#71717A',
     marginBottom: '6px',
     display: 'flex',
     alignItems: 'center',
@@ -75,7 +75,7 @@ function PropControl({
             title={`Use binding: ${schema.bindingHint}`}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
-              color: isBinding ? 'var(--pl-olive)' : 'rgba(255,255,255,0.25)',
+              color: isBinding ? '#18181B' : 'rgba(255,255,255,0.25)',
               display: 'flex', alignItems: 'center',
               padding: '1px 4px', borderRadius: '4px',
               fontSize: '0.55rem',
@@ -146,7 +146,7 @@ function PropControl({
 
       {schema.type === 'color' && (
         <ColorPicker
-          value={strValue || '#A3B18A'}
+          value={strValue || '#71717A'}
           onChange={(color) => onChange(color)}
         />
       )}
@@ -180,7 +180,7 @@ function PropControl({
             ...inputStyle,
             fontFamily: 'monospace',
             fontSize: '0.82rem',
-            color: 'var(--pl-olive-deep)',
+            color: '#18181B',
           }}
           className="pl-focus-glow"
         />
@@ -189,7 +189,7 @@ function PropControl({
       {/* Description */}
       {schema.description && (
         <p style={{
-          fontSize: '0.68rem', color: 'var(--pl-muted)',
+          fontSize: '0.68rem', color: '#71717A',
           marginTop: '4px', lineHeight: 1.4,
         }}>
           {schema.description}
@@ -199,7 +199,7 @@ function PropControl({
       {/* Binding indicator */}
       {isBinding && (
         <p style={{
-          fontSize: '0.62rem', color: 'var(--pl-olive)',
+          fontSize: '0.62rem', color: '#18181B',
           marginTop: '3px', fontFamily: 'monospace',
           display: 'flex', alignItems: 'center', gap: '4px',
         }}>
@@ -226,7 +226,7 @@ export function BlockConfigEditor({ block, onChange }: BlockConfigEditorProps) {
       <div style={{
         padding: '20px',
         textAlign: 'center',
-        color: 'var(--pl-muted)',
+        color: '#71717A',
         fontSize: '0.85rem',
       }}>
         <Settings2 size={24} style={{ opacity: 0.3, marginBottom: '8px' }} />
@@ -261,22 +261,22 @@ export function BlockConfigEditor({ block, onChange }: BlockConfigEditorProps) {
       }}>
         <div style={{
           width: '36px', height: '36px', borderRadius: '10px',
-          background: 'var(--pl-olive-mist)',
+          background: '#F4F4F5',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <Settings2 size={16} color="var(--pl-olive-deep)" />
+          <Settings2 size={16} color="#18181B" />
         </div>
         <div>
           <h3 style={{
             fontSize: '1rem', fontWeight: 600,
-            fontFamily: 'var(--pl-font-heading)',
-            color: 'var(--pl-ink)',
+            fontFamily: 'inherit',
+            color: '#18181B',
             margin: 0,
           }}>
             {schema.label}
           </h3>
           <p style={{
-            fontSize: '0.68rem', color: 'var(--pl-muted)',
+            fontSize: '0.68rem', color: '#71717A',
             margin: 0,
           }}>
             {schema.description}
@@ -296,7 +296,7 @@ export function BlockConfigEditor({ block, onChange }: BlockConfigEditorProps) {
             <h4 style={{
               fontSize: '0.68rem', fontWeight: 800,
               letterSpacing: '0.1em', textTransform: 'uppercase',
-              color: 'var(--pl-ink-soft)',
+              color: '#3F3F46',
               marginBottom: '16px',
               paddingBottom: '8px',
               borderBottom: '1px solid rgba(255,255,255,0.2)',

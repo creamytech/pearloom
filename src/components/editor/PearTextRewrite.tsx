@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { PearIcon } from '@/components/icons/PearloomIcons';
 
-const OLIVE = 'var(--pl-olive, #A3B18A)';
+const OLIVE = '#18181B';
 
 const STYLE_OPTIONS = [
   { label: 'Shorter', value: 'shorter and more concise' },
@@ -185,12 +185,12 @@ export function PearTextRewrite({ onTextEdit }: PearTextRewriteProps) {
             alignItems: 'center',
             gap: '4px',
             padding: '4px 6px',
-            borderRadius: '100px',
+            borderRadius: '8px',
             background: 'rgba(250, 247, 242, 0.92)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
             border: '1px solid rgba(255,255,255,0.6)',
-            boxShadow: '0 4px 24px rgba(43,30,20,0.12), 0 1px 4px rgba(43,30,20,0.06)',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)',
             whiteSpace: 'nowrap',
           } as React.CSSProperties}
         >
@@ -218,7 +218,7 @@ export function PearTextRewrite({ onTextEdit }: PearTextRewriteProps) {
           {STYLE_OPTIONS.map((opt) => (
             <motion.button
               key={opt.label}
-              whileHover={{ scale: 1.05, backgroundColor: 'rgba(163,177,138,0.12)' }}
+              whileHover={{ scale: 1.05, backgroundColor: '#F4F4F5' }}
               whileTap={{ scale: 0.95 }}
               onClick={(e) => {
                 e.preventDefault();
@@ -231,9 +231,9 @@ export function PearTextRewrite({ onTextEdit }: PearTextRewriteProps) {
                 alignItems: 'center',
                 gap: '3px',
                 padding: '3px 8px',
-                borderRadius: '100px',
+                borderRadius: '8px',
                 border: 'none',
-                background: activeStyle === opt.value ? 'rgba(163,177,138,0.15)' : 'transparent',
+                background: activeStyle === opt.value ? 'rgba(24,24,27,0.08)' : 'transparent',
                 color: 'var(--pl-ink-soft, #3D3530)',
                 fontSize: '0.64rem',
                 fontWeight: 600,

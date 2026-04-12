@@ -50,8 +50,8 @@ const TAB_COMMANDS: Command[] = [
   { id: 'tab-canvas',  label: 'Build',    description: 'Drag-and-drop page builder',    icon: LayoutTemplate,     iconColor: '#a78bfa', group: 'Switch Tab', action: { type: 'tab', tab: 'canvas'  } },
   { id: 'tab-design',  label: 'Design',   description: 'Colors, fonts & patterns',      icon: Palette,            iconColor: '#ec4899', group: 'Switch Tab', action: { type: 'tab', tab: 'design'  } },
   { id: 'tab-details', label: 'Details',  description: 'Names, date & location',        icon: Settings,           iconColor: '#6b7280', group: 'Switch Tab', action: { type: 'tab', tab: 'details' } },
-  { id: 'tab-pages',   label: 'Pages',    description: 'Manage site pages',             icon: Globe,              iconColor: 'var(--pl-olive, #A3B18A)', group: 'Switch Tab', action: { type: 'tab', tab: 'pages'  } },
-  { id: 'tab-blocks',  label: 'AI',       description: 'AI-generated content blocks',   icon: Sparkles,           iconColor: 'var(--pl-olive, #A3B18A)', group: 'Switch Tab', action: { type: 'tab', tab: 'blocks' } },
+  { id: 'tab-pages',   label: 'Pages',    description: 'Manage site pages',             icon: Globe,              iconColor: '#18181B', group: 'Switch Tab', action: { type: 'tab', tab: 'pages'  } },
+  { id: 'tab-blocks',  label: 'AI',       description: 'AI-generated content blocks',   icon: Sparkles,           iconColor: '#18181B', group: 'Switch Tab', action: { type: 'tab', tab: 'blocks' } },
   { id: 'tab-voice',   label: 'Voice',    description: 'AI voice & TTS training',       icon: MessageCircleHeart, iconColor: '#f43f5e', group: 'Switch Tab', action: { type: 'tab', tab: 'voice'  } },
 ];
 
@@ -62,9 +62,9 @@ const DEVICE_COMMANDS: Command[] = [
 ];
 
 const ACTION_COMMANDS: Command[] = [
-  { id: 'add-chapter', label: 'Add new chapter',  description: 'Insert a blank chapter', icon: Plus,  iconColor: 'var(--pl-olive, #A3B18A)', group: 'Actions', action: { type: 'add-chapter' } },
+  { id: 'add-chapter', label: 'Add new chapter',  description: 'Insert a blank chapter', icon: Plus,  iconColor: '#18181B', group: 'Actions', action: { type: 'add-chapter' } },
   { id: 'preview',     label: 'Preview site',      description: 'Open live preview tab',  icon: Eye,   iconColor: '#38bdf8', group: 'Actions', shortcut: '⌘P', action: { type: 'preview'     } },
-  { id: 'publish',     label: 'Publish site',      description: 'Go live on pearloom.com',icon: Globe, iconColor: 'var(--pl-olive, #A3B18A)', group: 'Actions', action: { type: 'publish'     } },
+  { id: 'publish',     label: 'Publish site',      description: 'Go live on pearloom.com',icon: Globe, iconColor: '#18181B', group: 'Actions', action: { type: 'publish'     } },
   { id: 'undo',        label: 'Undo',              description: 'Undo last change',       icon: RotateCcw, iconColor: '#e2e8f0', group: 'Actions', shortcut: '⌘Z',  action: { type: 'undo' } },
   { id: 'redo',        label: 'Redo',              description: 'Redo last change',       icon: RotateCw,  iconColor: '#e2e8f0', group: 'Actions', shortcut: '⌘⇧Z', action: { type: 'redo' } },
 ];
@@ -102,7 +102,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
       label: ch.title || `Chapter ${i + 1}`,
       description: `Jump to chapter ${i + 1}`,
       icon: Hash,
-      iconColor: 'var(--pl-olive, #A3B18A)',
+      iconColor: '#18181B',
       group: 'Chapters',
       action: { type: 'chapter' as const, id: ch.id },
     })),
@@ -191,7 +191,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
               background: '#19160f',
               borderRadius: '16px',
               border: '1px solid rgba(0,0,0,0.06)',
-              boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(163,177,138,0.05)',
+              boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(24,24,27,0.04)',
               overflow: 'hidden',
             }}
           >
@@ -201,7 +201,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
               padding: '14px 16px',
               borderBottom: '1px solid rgba(0,0,0,0.05)',
             }}>
-              <Search size={16} color="var(--pl-ink-soft)" />
+              <Search size={16} color="#3F3F46" />
               <input
                 ref={inputRef}
                 value={query}
@@ -210,13 +210,13 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                 placeholder="Search actions, tabs, chapters…"
                 style={{
                   flex: 1, background: 'transparent', border: 'none', outline: 'none',
-                  color: 'var(--pl-ink)', fontSize: '0.95rem', fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
-                  caretColor: 'var(--pl-olive, #A3B18A)',
+                  color: '#18181B', fontSize: '0.95rem', fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
+                  caretColor: '#18181B',
                 }}
               />
               <kbd style={{
                 padding: '2px 6px', borderRadius: '4px', fontSize: '0.65rem',
-                background: 'rgba(0,0,0,0.05)', color: 'var(--pl-muted)',
+                background: 'rgba(0,0,0,0.05)', color: '#71717A',
                 border: '1px solid rgba(0,0,0,0.06)', fontFamily: 'inherit',
               }}>ESC</kbd>
             </div>
@@ -227,7 +227,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
               style={{ maxHeight: '400px', overflowY: 'auto', padding: '8px' }}
             >
               {flatFiltered.length === 0 ? (
-                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--pl-muted)', fontSize: '0.85rem' }}>
+                <div style={{ padding: '2rem', textAlign: 'center', color: '#71717A', fontSize: '0.85rem' }}>
                   No results for &ldquo;{query}&rdquo;
                 </div>
               ) : (
@@ -252,26 +252,26 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                           data-index={idx}
                           onClick={() => execute(cmd)}
                           onMouseEnter={() => setSelectedIndex(idx)}
-                          animate={{ background: isSelected ? 'rgba(163,177,138,0.12)' : 'transparent' }}
+                          animate={{ background: isSelected ? '#F4F4F5' : 'transparent' }}
                           transition={{ duration: 0.1 }}
                           style={{
                             display: 'flex', alignItems: 'center', gap: '12px',
                             width: '100%', padding: '9px 10px', borderRadius: '8px',
-                            border: isSelected ? '1px solid rgba(163,177,138,0.2)' : '1px solid transparent',
+                            border: isSelected ? '1px solid rgba(24,24,27,0.1)' : '1px solid transparent',
                             cursor: 'pointer', textAlign: 'left',
-                            background: isSelected ? 'rgba(163,177,138,0.12)' : 'transparent',
+                            background: isSelected ? '#F4F4F5' : 'transparent',
                             transition: 'border 0.1s',
                           }}
                         >
                           {/* Icon */}
                           <div style={{
                             width: '30px', height: '30px', borderRadius: '7px',
-                            background: 'rgba(163,177,138,0.06)',
+                            background: '#F4F4F5',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             flexShrink: 0,
                             border: '1px solid rgba(0,0,0,0.04)',
                           }}>
-                            <Icon size={14} color={cmd.iconColor || 'var(--pl-ink-soft)'} />
+                            <Icon size={14} color={cmd.iconColor || '#3F3F46'} />
                           </div>
 
                           {/* Text */}
@@ -280,7 +280,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                               {cmd.label}
                             </div>
                             {cmd.description && (
-                              <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', marginTop: '1px' }}>
+                              <div style={{ fontSize: '0.72rem', color: '#71717A', marginTop: '1px' }}>
                                 {cmd.description}
                               </div>
                             )}
@@ -290,14 +290,14 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                           {cmd.shortcut ? (
                             <kbd style={{
                               padding: '2px 7px', borderRadius: '5px', fontSize: '0.65rem',
-                              background: 'rgba(0,0,0,0.04)', color: 'var(--pl-muted)',
+                              background: 'rgba(0,0,0,0.04)', color: '#71717A',
                               border: '1px solid rgba(0,0,0,0.06)', fontFamily: 'inherit',
                               flexShrink: 0,
                             }}>
                               {cmd.shortcut}
                             </kbd>
                           ) : isSelected ? (
-                            <ArrowRight size={14} color="rgba(163,177,138,0.6)" />
+                            <ArrowRight size={14} color="#71717A" />
                           ) : null}
                         </motion.button>
                       );
@@ -317,10 +317,10 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                 <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <kbd style={{
                     padding: '1px 6px', borderRadius: '4px', fontSize: '0.6rem',
-                    background: 'rgba(0,0,0,0.04)', color: 'var(--pl-muted)',
+                    background: 'rgba(0,0,0,0.04)', color: '#71717A',
                     border: '1px solid rgba(0,0,0,0.06)',
                   }}>{key}</kbd>
-                  <span style={{ fontSize: '0.65rem', color: 'var(--pl-muted)' }}>{label}</span>
+                  <span style={{ fontSize: '0.65rem', color: '#71717A' }}>{label}</span>
                 </div>
               ))}
               <div style={{ flex: 1, textAlign: 'right', fontSize: '0.6rem', color: 'rgba(0,0,0,0.08)' }}>

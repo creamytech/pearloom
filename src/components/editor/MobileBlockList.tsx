@@ -40,7 +40,7 @@ interface BlockDef {
 }
 
 const BLOCK_CATALOGUE: BlockDef[] = [
-  { type: 'hero',      label: 'Hero',              icon: BlockHeroIcon,      description: 'Full-screen hero with names & cover photo',  color: 'var(--pl-olive, #A3B18A)', occasions: ALL_OCCASIONS },
+  { type: 'hero',      label: 'Hero',              icon: BlockHeroIcon,      description: 'Full-screen hero with names & cover photo',  color: '#18181B', occasions: ALL_OCCASIONS },
   { type: 'story',     label: 'Our Story',         icon: BlockStoryIcon,     description: 'Chapter timeline & photo narrative',          color: '#7c5cbf', occasions: ALL_OCCASIONS },
   { type: 'event',     label: 'Event Cards',       icon: BlockEventIcon,     description: 'Ceremony, reception & event details',         color: '#e8927a', occasions: ['wedding', 'engagement'] },
   { type: 'countdown', label: 'Countdown',         icon: BlockCountdownIcon, description: 'Live countdown to your big day',              color: '#4a9b8a', occasions: ['wedding', 'engagement', 'birthday'] },
@@ -185,7 +185,7 @@ export function MobileBlockList({ onSelectBlock, onScrollToBlock }: MobileBlockL
         fontWeight: 700,
         letterSpacing: '0.1em',
         textTransform: 'uppercase',
-        color: 'var(--pl-ink-soft)',
+        color: '#3F3F46',
       }}>
         Page Sections &middot; {blocks.length}
       </div>
@@ -233,7 +233,7 @@ export function MobileBlockList({ onSelectBlock, onScrollToBlock }: MobileBlockL
             borderRadius: 'var(--pl-radius-sm, 8px)',
             border: '2px dashed var(--pl-black-7, rgba(0,0,0,0.07))',
             background: 'transparent',
-            color: 'var(--pl-olive, #A3B18A)',
+            color: '#18181B',
             fontSize: 'var(--pl-text-sm, 13px)',
             fontWeight: 700,
             letterSpacing: '0.04em',
@@ -283,7 +283,7 @@ export function MobileBlockList({ onSelectBlock, onScrollToBlock }: MobileBlockL
               boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
             }}
           >
-            <span style={{ fontSize: 'var(--pl-text-sm, 13px)', fontWeight: 600, color: 'var(--pl-ink)' }}>
+            <span style={{ fontSize: 'var(--pl-text-sm, 13px)', fontWeight: 600, color: '#18181B' }}>
               Delete this section?
             </span>
             <div style={{ display: 'flex', gap: 16 }}>
@@ -297,7 +297,7 @@ export function MobileBlockList({ onSelectBlock, onScrollToBlock }: MobileBlockL
                   fontSize: 'var(--pl-text-sm, 13px)',
                   fontWeight: 600,
                   cursor: 'pointer',
-                  color: 'var(--pl-ink)',
+                  color: '#18181B',
                   minHeight: 44,
                   touchAction: 'manipulation',
                 }}
@@ -348,10 +348,10 @@ const MobileBlockCard = memo(function MobileBlockCard({
   const rowX = useMotionValue(0);
   const [isSwiping, setIsSwiping] = useState(false);
   const Icon = def?.icon || LayoutTemplate;
-  const color = def?.color || 'var(--pl-olive, #A3B18A)';
+  const color = def?.color || '#18181B';
 
   // Resolve color for inline styles (CSS vars need fallback for opacity calcs)
-  const colorHex = color.startsWith('var(') ? '#A3B18A' : color;
+  const colorHex = color.startsWith('var(') ? '#71717A' : color;
 
   return (
     <Reorder.Item
@@ -392,7 +392,7 @@ const MobileBlockCard = memo(function MobileBlockCard({
           {/* Toggle visibility zone */}
           <div style={{
             width: 60,
-            background: 'var(--pl-olive, #A3B18A)',
+            background: '#18181B',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -431,11 +431,11 @@ const MobileBlockCard = memo(function MobileBlockCard({
             height: 64,
             borderRadius: 'var(--pl-radius-sm, 8px)',
             background: isActive
-              ? 'var(--pl-olive-8, rgba(163,177,138,0.08))'
+              ? 'rgba(24,24,27,0.04)'
               : 'var(--pl-cream-card, #FFFCF7)',
             border: `1px solid var(--pl-black-4, rgba(0,0,0,0.04))`,
             borderLeft: isActive
-              ? '3px solid var(--pl-olive, #A3B18A)'
+              ? '3px solid #18181B'
               : '1px solid var(--pl-black-4, rgba(0,0,0,0.04))',
             cursor: 'pointer',
             position: 'relative',
@@ -608,7 +608,7 @@ function AddBlockSheet({
           position: 'fixed',
           inset: 0,
           zIndex: 300,
-          background: 'rgba(43,30,20,0.25)',
+          background: 'rgba(0,0,0,0.15)',
           WebkitTapHighlightColor: 'transparent',
         }}
       />
@@ -702,7 +702,7 @@ function AddBlockSheet({
             {catalogue.map(blockDef => {
               const alreadyAdded = existingTypes.has(blockDef.type);
               const Icon = blockDef.icon;
-              const colorHex = blockDef.color.startsWith('var(') ? '#A3B18A' : blockDef.color;
+              const colorHex = blockDef.color.startsWith('var(') ? '#71717A' : blockDef.color;
 
               return (
                 <motion.button

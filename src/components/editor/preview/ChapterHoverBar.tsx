@@ -37,7 +37,7 @@ function BarButton({
   onClick: (e: React.MouseEvent) => void;
   danger?: boolean;
 }) {
-  const color = danger ? '#fca5a5' : 'var(--pl-ink)';
+  const color = danger ? '#fca5a5' : '#18181B';
   return (
     <button
       aria-label={label}
@@ -86,7 +86,7 @@ export function ChapterHoverBar({
             position: 'absolute', top: 8, right: 8, zIndex: 20,
             display: 'flex', alignItems: 'center', gap: 2,
             padding: '3px 4px', borderRadius: 8,
-            background: 'rgba(109,89,122,0.92)',
+            background: '#18181B',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
             boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
@@ -105,7 +105,7 @@ export function ChapterHoverBar({
               <button
                 aria-label="Change layout"
                 onClick={(e) => e.stopPropagation()}
-                style={{ ...barBtnStyle, color: 'var(--pl-ink)' }}
+                style={{ ...barBtnStyle, color: '#18181B' }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.08)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
               >
@@ -116,7 +116,7 @@ export function ChapterHoverBar({
               {LAYOUT_OPTS.map((opt) => (
                 <DropdownMenuItem
                   key={opt.id}
-                  className={currentLayout === opt.id ? 'bg-[rgba(163,177,138,0.12)] text-[var(--pl-olive)]' : ''}
+                  className={currentLayout === opt.id ? 'bg-[#F4F4F5] text-[#18181B]' : ''}
                   onSelect={() => onLayoutChange(opt.id)}
                 >
                   <span style={{ width: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

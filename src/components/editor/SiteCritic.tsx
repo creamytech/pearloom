@@ -145,7 +145,7 @@ function analyzeManifest(manifest: StoryManifest, names: [string, string]): Sugg
 // ── Severity dot ─────────────────────────────────────────────
 
 function StatusDot({ level }: { level: SuggestionLevel }) {
-  const color = level === 'warning' ? '#D97706' : 'var(--pl-olive, #A3B18A)';
+  const color = level === 'warning' ? '#D97706' : '#18181B';
   return (
     <span
       style={{
@@ -193,12 +193,12 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
           background: 'rgba(255,255,255,0.55)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          borderLeft: '3px solid var(--pl-olive, #A3B18A)',
+          borderLeft: '3px solid #18181B',
           borderRadius: '12px',
           padding: '14px 16px',
           position: 'relative',
           border: '1px solid rgba(255,255,255,0.5)',
-          boxShadow: '0 2px 8px rgba(43,30,20,0.04)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
         } as React.CSSProperties}
       >
         {/* ── Header ──────────────────────────────────────── */}
@@ -220,10 +220,10 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
               border: 'none',
               cursor: 'pointer',
               padding: 0,
-              color: 'var(--pl-ink, #1A1A1A)',
+              color: '#18181B',
             }}
           >
-            <span style={{ color: 'var(--pl-olive, #A3B18A)', display: 'flex', alignItems: 'center' }}>
+            <span style={{ color: '#18181B', display: 'flex', alignItems: 'center' }}>
               <IconSparkle size={15} />
             </span>
             <span style={{ fontSize: '0.88rem', fontWeight: 700, letterSpacing: '-0.01em' }}>
@@ -233,8 +233,8 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
               style={{
                 fontSize: '0.7rem',
                 fontWeight: 600,
-                color: 'var(--pl-muted, #7A756E)',
-                background: 'rgba(163,177,138,0.13)',
+                color: '#71717A',
+                background: 'rgba(24,24,27,0.13)',
                 borderRadius: 10,
                 padding: '1px 7px',
                 marginLeft: 2,
@@ -242,7 +242,7 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
             >
               {suggestions.length}
             </span>
-            <span style={{ color: 'var(--pl-muted, #7A756E)', display: 'flex', alignItems: 'center', marginLeft: 2 }}>
+            <span style={{ color: '#71717A', display: 'flex', alignItems: 'center', marginLeft: 2 }}>
               {collapsed ? <IconChevronDown size={12} /> : <IconChevronUp size={12} />}
             </span>
           </button>
@@ -253,7 +253,7 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: 'var(--pl-muted, #7A756E)',
+              color: '#71717A',
               padding: 2,
               display: 'flex',
               alignItems: 'center',
@@ -279,10 +279,10 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
               >
                 <StatusDot level={s.level} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--pl-ink, #1A1A1A)', lineHeight: 1.3 }}>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#18181B', lineHeight: 1.3 }}>
                     {s.title}
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--pl-muted, #7A756E)', lineHeight: 1.45, marginTop: 2 }}>
+                  <div style={{ fontSize: '0.8rem', color: '#71717A', lineHeight: 1.45, marginTop: 2 }}>
                     {s.description}
                   </div>
                 </div>
@@ -292,7 +292,7 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
                     style={{
                       flexShrink: 0,
                       alignSelf: 'center',
-                      background: 'var(--pl-olive, #A3B18A)',
+                      background: '#18181B',
                       color: '#fff',
                       border: 'none',
                       borderRadius: 6,
@@ -317,7 +317,7 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  color: 'var(--pl-olive, #A3B18A)',
+                  color: '#18181B',
                   fontSize: '0.78rem',
                   fontWeight: 600,
                   padding: '4px 0 0',

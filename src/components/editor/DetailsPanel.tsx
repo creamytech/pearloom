@@ -43,7 +43,7 @@ function ConfirmDeleteButton({ onConfirm }: { onConfirm: () => void }) {
         background: confirming ? '#ef4444' : 'none',
         border: 'none',
         cursor: 'pointer',
-        color: confirming ? '#fff' : 'var(--pl-muted)',
+        color: confirming ? '#fff' : '#71717A',
         display: 'flex',
         alignItems: 'center',
         gap: '3px',
@@ -54,7 +54,7 @@ function ConfirmDeleteButton({ onConfirm }: { onConfirm: () => void }) {
         transition: 'all 0.15s',
       }}
       onMouseOver={e => { if (!confirming) (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
-      onMouseOut={e => { if (!confirming) (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
+      onMouseOut={e => { if (!confirming) (e.currentTarget as HTMLElement).style.color = '#71717A'; }}
     >
       {confirming ? 'Sure?' : <Trash2 size={11} />}
     </button>
@@ -290,7 +290,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       <div style={{
         borderRadius: '16px', marginBottom: '4px',
         background: isOpen ? 'rgba(255,255,255,0.15)' : 'transparent',
-        border: isOpen ? '1px solid rgba(163,177,138,0.2)' : '1px solid transparent',
+        border: isOpen ? '1px solid rgba(24,24,27,0.1)' : '1px solid transparent',
         transition: 'all 0.15s',
         position: 'relative', zIndex: isOpen ? 10 : 1,
       }}>
@@ -299,7 +299,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '12px', background: 'none', border: 'none', cursor: 'pointer',
-            color: isOpen ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
+            color: isOpen ? '#3F3F46' : '#71717A',
             borderRadius: '16px',
           }}
         >
@@ -314,7 +314,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               <span style={{
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 width: '16px', height: '16px', borderRadius: '50%',
-                background: 'var(--pl-olive, #A3B18A)', flexShrink: 0,
+                background: '#18181B', flexShrink: 0,
               }}>
                 <Check size={9} color="#fff" strokeWidth={3} />
               </span>
@@ -324,7 +324,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           <motion.div
             animate={{ rotate: isOpen ? 180 : 0 }}
             transition={{ duration: 0.2 }}
-            style={{ color: 'var(--pl-muted)', display: 'flex' }}
+            style={{ color: '#71717A', display: 'flex' }}
           >
             <ChevronDown size={13} />
           </motion.div>
@@ -357,10 +357,10 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         fontWeight: panelWeight.bold,
         letterSpacing: panelTracking.wider,
         textTransform: 'uppercase',
-        color: 'var(--pl-muted)',
+        color: '#71717A',
         whiteSpace: 'nowrap',
       }}>{label}</span>
-      <div style={{ flex: 1, height: '1px', background: 'rgba(163,177,138,0.2)' }} />
+      <div style={{ flex: 1, height: '1px', background: 'rgba(24,24,27,0.1)' }} />
     </div>
   );
 
@@ -389,18 +389,18 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         border: '1px solid rgba(255,255,255,0.15)',
       }}>
         <div style={{
-          flex: 1, height: '4px', borderRadius: '100px',
+          flex: 1, height: '4px', borderRadius: '8px',
           background: 'rgba(255,255,255,0.15)', overflow: 'hidden',
         }}>
           <div style={{
-            height: '100%', borderRadius: '100px',
-            background: 'var(--pl-olive, #A3B18A)',
+            height: '100%', borderRadius: '8px',
+            background: '#18181B',
             width: `${Math.round((filledCount / totalSections) * 100)}%`,
             transition: 'width 0.3s ease',
           }} />
         </div>
         <span style={{
-          fontSize: '0.7rem', fontWeight: 700, color: 'var(--pl-muted)',
+          fontSize: '0.7rem', fontWeight: 700, color: '#71717A',
           whiteSpace: 'nowrap',
         }}>
           {filledCount} of {totalSections} sections filled
@@ -418,10 +418,10 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
               padding: '5px 12px', margin: '0 12px 4px',
               borderRadius: '12px',
-              background: 'rgba(163,177,138,0.1)',
-              border: '1px solid rgba(163,177,138,0.2)',
+              background: 'rgba(24,24,27,0.06)',
+              border: '1px solid rgba(24,24,27,0.1)',
               fontSize: '0.68rem', fontWeight: 600,
-              color: 'var(--pl-olive, #A3B18A)',
+              color: '#18181B',
             }}
           >
             <Check size={10} /> Changes saved
@@ -482,17 +482,17 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         <div>
           <label style={lbl}>Venue</label>
           {logistics.venue ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(163,177,138,0.1)', border: '1px solid rgba(163,177,138,0.3)', borderRadius: '12px', padding: '12px' }}>
-              <LocationPinIcon size={13} color="var(--pl-olive, #A3B18A)" style={{ flexShrink: 0 }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(24,24,27,0.06)', border: '1px solid #E4E4E7', borderRadius: '12px', padding: '12px' }}>
+              <LocationPinIcon size={13} color="#18181B" style={{ flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--pl-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{logistics.venue}</div>
-                {logistics.venueAddress && <div style={{ fontSize: '0.75rem', color: 'var(--pl-ink-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px' }}>{logistics.venueAddress}</div>}
+                <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#18181B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{logistics.venue}</div>
+                {logistics.venueAddress && <div style={{ fontSize: '0.75rem', color: '#3F3F46', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px' }}>{logistics.venueAddress}</div>}
               </div>
               <button
                 onClick={() => upd({ venue: '', venueAddress: '', venuePlaceId: '' })}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', padding: '2px', flexShrink: 0, display: 'flex' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#71717A', padding: '2px', flexShrink: 0, display: 'flex' }}
                 onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
-                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = '#71717A'; }}
               >
                 <X size={13} />
               </button>
@@ -511,12 +511,12 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       <Section id="registry" label="Registry">
         {/* Registry enabled toggle */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-          <span style={{ fontSize: '0.88rem', color: 'var(--pl-ink)', fontWeight: 600 }}>Registry enabled</span>
+          <span style={{ fontSize: '0.88rem', color: '#18181B', fontWeight: 600 }}>Registry enabled</span>
           <button
             onClick={() => updRegistry({ enabled: !manifest.registry?.enabled })}
             style={{
-              width: '36px', height: '20px', borderRadius: '100px', flexShrink: 0,
-              background: manifest.registry?.enabled !== false ? 'var(--pl-olive, #A3B18A)' : 'rgba(255,255,255,0.2)',
+              width: '36px', height: '20px', borderRadius: '8px', flexShrink: 0,
+              background: manifest.registry?.enabled !== false ? '#18181B' : 'rgba(255,255,255,0.2)',
               border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
             }}
           >
@@ -559,8 +559,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 padding: '0 12px',
                 borderRadius: '12px',
                 border: 'none',
-                background: registryUrl.trim() ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.2)',
-                color: registryUrl.trim() ? '#fff' : 'var(--pl-muted)',
+                background: registryUrl.trim() ? '#18181B' : 'rgba(24,24,27,0.1)',
+                color: registryUrl.trim() ? '#fff' : '#71717A',
                 cursor: registryUrl.trim() && !registryImportLoading ? 'pointer' : 'default',
                 fontSize: '0.78rem',
                 fontWeight: 700,
@@ -578,18 +578,18 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           {registryImportResult && (
             <div style={{
               marginTop: '8px',
-              background: 'rgba(163,177,138,0.08)',
-              border: '1px solid rgba(163,177,138,0.2)',
+              background: 'rgba(24,24,27,0.04)',
+              border: '1px solid rgba(24,24,27,0.1)',
               borderRadius: '12px',
               padding: '12px',
             }}>
-              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)', marginBottom: '2px' }}>
+              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#18181B', marginBottom: '2px' }}>
                 {registryImportResult.name}
               </div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ fontSize: '0.72rem', color: '#71717A', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {registryImportResult.url}
               </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--pl-ink-soft)', marginBottom: '8px' }}>
+              <div style={{ fontSize: '0.75rem', color: '#3F3F46', marginBottom: '8px' }}>
                 {registryImportResult.note}
               </div>
               <button
@@ -599,7 +599,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                   padding: '6px 14px',
                   borderRadius: '12px',
                   border: 'none',
-                  background: 'var(--pl-olive, #A3B18A)',
+                  background: '#18181B',
                   color: '#fff',
                   cursor: 'pointer',
                   fontSize: '0.78rem',
@@ -614,14 +614,14 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px' }}>
           <label style={{ ...lbl, margin: 0 }}>Registry Links ({entries.length})</label>
-          <button onClick={addEntry} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
+          <button onClick={addEntry} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(24,24,27,0.08)', color: '#18181B', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
             <Plus size={10} /> Add Registry
           </button>
         </div>
         {entries.map((entry, i) => (
           <div key={i} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)' }}>Registry {i + 1}</span>
+              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#18181B' }}>Registry {i + 1}</span>
               <ConfirmDeleteButton onConfirm={() => delEntry(i)} />
             </div>
             <Field label="Store Name" value={entry.name} onChange={v => updEntry(i, { name: v })} placeholder="Williams Sonoma" />
@@ -629,7 +629,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             <Field label="Note (optional)" value={entry.note || ''} onChange={v => updEntry(i, { note: v })} placeholder="Our kitchen wishlist" />
           </div>
         ))}
-        {entries.length === 0 && <p style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', textAlign: 'center', padding: '0.5rem 0' }}>No registries yet</p>}
+        {entries.length === 0 && <p style={{ fontSize: '0.82rem', color: '#71717A', textAlign: 'center', padding: '0.5rem 0' }}>No registries yet</p>}
       </Section>
       </>}
 
@@ -654,19 +654,19 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 disabled={aiMealLoading}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px',
-                  borderRadius: '12px', border: '1px solid rgba(163,177,138,0.35)',
-                  background: aiMealLoading ? 'rgba(163,177,138,0.08)' : 'rgba(163,177,138,0.1)',
-                  color: 'var(--pl-olive, #A3B18A)', cursor: aiMealLoading ? 'wait' : 'pointer',
+                  borderRadius: '12px', border: '1px solid #E4E4E7',
+                  background: aiMealLoading ? 'rgba(24,24,27,0.04)' : 'rgba(24,24,27,0.06)',
+                  color: '#18181B', cursor: aiMealLoading ? 'wait' : 'pointer',
                   fontSize: '0.82rem', fontWeight: 700, opacity: aiMealLoading ? 0.6 : 1,
                   transition: 'background 0.18s',
                 }}
-                onMouseOver={e => { if (!aiMealLoading) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)'; }}
-                onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = aiMealLoading ? 'rgba(163,177,138,0.08)' : 'rgba(163,177,138,0.1)'; }}
+                onMouseOver={e => { if (!aiMealLoading) (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.1)'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = aiMealLoading ? 'rgba(24,24,27,0.04)' : 'rgba(24,24,27,0.06)'; }}
               >
                 <Sparkles size={10} />
                 {aiMealLoading ? 'Generating...' : 'Generate Menu with AI'}
               </button>
-              <button onClick={addMealOption} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
+              <button onClick={addMealOption} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(24,24,27,0.08)', color: '#18181B', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
                 <Plus size={10} /> Add Meal
               </button>
             </div>
@@ -680,21 +680,21 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           {/* AI-generated meal previews — accept/reject before adding */}
           {aiMealPreviews.length > 0 && (
             <div style={{ marginBottom: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#18181B', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                 AI Suggestions
               </span>
               {aiMealPreviews.map((meal, i) => (
                 <div key={i} style={{
-                  background: 'rgba(163,177,138,0.08)', border: '1px dashed rgba(163,177,138,0.3)',
+                  background: 'rgba(24,24,27,0.04)', border: '1px dashed #E4E4E7',
                   borderRadius: '12px', padding: '12px',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--pl-ink, #1A1A1A)', marginBottom: '3px' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#18181B', marginBottom: '3px' }}>
                         {meal.name}
                       </div>
                       {meal.description && (
-                        <p style={{ fontSize: '0.75rem', color: 'var(--pl-ink-soft, #4A4A4A)', lineHeight: 1.45, margin: '0 0 4px' }}>
+                        <p style={{ fontSize: '0.75rem', color: '#18181B', lineHeight: 1.45, margin: '0 0 4px' }}>
                           {meal.description}
                         </p>
                       )}
@@ -703,7 +703,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                           {meal.dietaryTags.map((tag, j) => (
                             <span key={j} style={{
                               padding: '1px 6px', borderRadius: '4px', fontSize: '0.65rem',
-                              fontWeight: 600, background: 'rgba(163,177,138,0.15)', color: 'var(--pl-olive, #A3B18A)',
+                              fontWeight: 600, background: 'rgba(24,24,27,0.08)', color: '#18181B',
                             }}>
                               {tag}
                             </span>
@@ -717,7 +717,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                         style={{
                           display: 'flex', alignItems: 'center', gap: '3px',
                           padding: '4px 8px', borderRadius: '6px', border: 'none',
-                          background: 'var(--pl-olive, #A3B18A)', color: '#fff',
+                          background: '#18181B', color: '#fff',
                           fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer',
                         }}
                       >
@@ -747,7 +747,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               {[1, 2, 3].map(i => (
                 <div key={i} style={{
                   borderRadius: '12px', padding: '12px',
-                  background: 'rgba(163,177,138,0.06)', border: '1px solid rgba(163,177,138,0.1)',
+                  background: '#F4F4F5', border: '1px solid rgba(24,24,27,0.06)',
                   animation: 'pl-meal-pulse 1.5s ease-in-out infinite',
                   animationDelay: `${i * 0.12}s`,
                 }}>
@@ -767,7 +767,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               border: '1px solid rgba(255,255,255,0.2)',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)' }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#18181B' }}>
                   <UtensilsCrossed size={10} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
                   Meal {i + 1}
                 </span>
@@ -791,9 +791,9 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                         }}
                         style={{
                           padding: '3px 8px', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 600,
-                          border: active ? '1px solid rgba(163,177,138,0.5)' : '1px solid rgba(255,255,255,0.3)',
-                          background: active ? 'rgba(163,177,138,0.2)' : 'rgba(255,255,255,0.15)',
-                          color: active ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-muted, #7A756E)',
+                          border: active ? '1px solid #A1A1AA' : '1px solid rgba(255,255,255,0.3)',
+                          background: active ? 'rgba(24,24,27,0.1)' : 'rgba(255,255,255,0.15)',
+                          color: active ? '#18181B' : '#71717A',
                           cursor: 'pointer', transition: 'all 0.15s',
                         }}
                       >
@@ -806,7 +806,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             </div>
           ))}
           {mealOptions.length === 0 && aiMealPreviews.length === 0 && !aiMealLoading && (
-            <p style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', textAlign: 'center', padding: '0.5rem 0' }}>
+            <p style={{ fontSize: '0.82rem', color: '#71717A', textAlign: 'center', padding: '0.5rem 0' }}>
               No meal options yet — add them manually or generate with AI
             </p>
           )}
@@ -858,17 +858,17 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               onClick={() => setShowHotelFinder(true)}
               style={{
                 display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px',
-                borderRadius: '12px', border: '1px solid rgba(163,177,138,0.35)',
-                background: 'rgba(163,177,138,0.1)', color: 'var(--pl-olive, #A3B18A)',
+                borderRadius: '12px', border: '1px solid #E4E4E7',
+                background: 'rgba(24,24,27,0.06)', color: '#18181B',
                 cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
                 transition: 'background 0.18s',
               }}
-              onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)'; }}
-              onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.1)'; }}
+              onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.1)'; }}
+              onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.06)'; }}
             >
               <MapPin size={10} /> Find Hotels Near Venue
             </button>
-            <button onClick={addHotel} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
+            <button onClick={addHotel} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(24,24,27,0.08)', color: '#18181B', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
               <Plus size={10} /> Add Hotel
             </button>
           </div>
@@ -876,7 +876,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         {(travel.hotels || []).map((hotel, i) => (
           <div key={i} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)' }}>Hotel {i + 1}</span>
+              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#18181B' }}>Hotel {i + 1}</span>
               <ConfirmDeleteButton onConfirm={() => delHotel(i)} />
             </div>
             <Field label="Hotel Name" value={hotel.name} onChange={v => updHotel(i, { name: v })} placeholder="Marriott Newport" />
@@ -888,7 +888,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         ))}
         {/* FIX #5: Empty state for hotels */}
         {(travel.hotels || []).length === 0 && (
-          <p style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', textAlign: 'center', padding: '0.5rem 0' }}>
+          <p style={{ fontSize: '0.82rem', color: '#71717A', textAlign: 'center', padding: '0.5rem 0' }}>
             No hotels yet — add manually or find nearby hotels
           </p>
         )}
@@ -903,22 +903,22 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             style={{
               display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px',
               borderRadius: '12px',
-              border: '1px solid rgba(163,177,138,0.4)',
+              border: '1px solid #E4E4E7',
               background: aiFaqLoading
-                ? 'rgba(163,177,138,0.08)'
-                : 'linear-gradient(135deg, rgba(163,177,138,0.15), rgba(196,169,106,0.1))',
-              color: 'var(--pl-olive, #A3B18A)', cursor: aiFaqLoading ? 'wait' : 'pointer',
+                ? 'rgba(24,24,27,0.04)'
+                : 'linear-gradient(135deg, rgba(24,24,27,0.08), rgba(196,169,106,0.1))',
+              color: '#18181B', cursor: aiFaqLoading ? 'wait' : 'pointer',
               fontSize: '0.78rem', fontWeight: 700, opacity: aiFaqLoading ? 0.6 : 1,
               transition: 'all 0.18s',
-              boxShadow: aiFaqLoading ? 'none' : '0 1px 4px rgba(163,177,138,0.15)',
+              boxShadow: aiFaqLoading ? 'none' : '0 1px 4px rgba(24,24,27,0.08)',
             }}
-            onMouseOver={e => { if (!aiFaqLoading) { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.25)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(163,177,138,0.2)'; } }}
-            onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = aiFaqLoading ? 'rgba(163,177,138,0.08)' : 'linear-gradient(135deg, rgba(163,177,138,0.15), rgba(196,169,106,0.1))'; (e.currentTarget as HTMLElement).style.boxShadow = aiFaqLoading ? 'none' : '0 1px 4px rgba(163,177,138,0.15)'; }}
+            onMouseOver={e => { if (!aiFaqLoading) { (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.12)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(24,24,27,0.1)'; } }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = aiFaqLoading ? 'rgba(24,24,27,0.04)' : 'linear-gradient(135deg, rgba(24,24,27,0.08), rgba(196,169,106,0.1))'; (e.currentTarget as HTMLElement).style.boxShadow = aiFaqLoading ? 'none' : '0 1px 4px rgba(24,24,27,0.08)'; }}
           >
             <Sparkles size={11} />
             {aiFaqLoading ? 'Pear is thinking...' : 'Ask Pear to write FAQs'}
           </button>
-          <button onClick={addFaq} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
+          <button onClick={addFaq} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(24,24,27,0.08)', color: '#18181B', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
             <Plus size={10} /> Add Question
           </button>
         </div>
@@ -936,7 +936,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             <Field label="Answer" value={faq.answer} onChange={v => updFaq(faq.id, { answer: v })} rows={2} placeholder="Yes, the venue has full accessibility…" />
           </div>
         ))}
-        {faqs.length === 0 && <p style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', textAlign: 'center', padding: '1rem 0' }}>No FAQs yet — add common guest questions</p>}
+        {faqs.length === 0 && <p style={{ fontSize: '0.82rem', color: '#71717A', textAlign: 'center', padding: '1rem 0' }}>No FAQs yet — add common guest questions</p>}
       </Section>
 
       <Section id="vibe" label="Site Vibe">
@@ -948,10 +948,10 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             rows={3}
             placeholder="intimate, golden hour, wildflower meadow..."
             style={{ ...inp, resize: 'vertical', lineHeight: 1.65 }}
-            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
+            onFocus={e => { e.currentTarget.style.borderColor = '#71717A'; }}
             onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
           />
-          <div style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', marginTop: '0.4rem', lineHeight: 1.5 }}>
+          <div style={{ fontSize: '0.82rem', color: '#71717A', marginTop: '0.4rem', lineHeight: 1.5 }}>
             Used by the AI when rewriting chapters and generating art.
           </div>
         </div>
@@ -971,7 +971,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               })}
               style={{
                 width: '40px', height: '22px', borderRadius: '11px',
-                background: (manifest.features?.guestbook ?? true) ? 'var(--pl-olive, #A3B18A)' : 'rgba(255,255,255,0.2)',
+                background: (manifest.features?.guestbook ?? true) ? '#18181B' : 'rgba(255,255,255,0.2)',
                 border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
                 flexShrink: 0,
               }}
@@ -999,7 +999,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               })}
               style={{
                 width: '40px', height: '22px', borderRadius: '11px',
-                background: (manifest.features?.liveUpdates ?? true) ? 'var(--pl-olive, #A3B18A)' : 'rgba(255,255,255,0.2)',
+                background: (manifest.features?.liveUpdates ?? true) ? '#18181B' : 'rgba(255,255,255,0.2)',
                 border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
                 flexShrink: 0,
               }}
@@ -1027,7 +1027,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               })}
               style={{
                 width: '40px', height: '22px', borderRadius: '11px',
-                background: (manifest.features?.photoWall ?? false) ? 'var(--pl-olive, #A3B18A)' : 'rgba(255,255,255,0.2)',
+                background: (manifest.features?.photoWall ?? false) ? '#18181B' : 'rgba(255,255,255,0.2)',
                 border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
                 flexShrink: 0,
               }}
@@ -1070,17 +1070,17 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               gap: '6px',
               padding: '9px 14px',
               borderRadius: '12px',
-              border: '1px solid rgba(163,177,138,0.35)',
-              background: 'rgba(163,177,138,0.1)',
-              color: 'var(--pl-olive, #A3B18A)',
+              border: '1px solid #E4E4E7',
+              background: 'rgba(24,24,27,0.06)',
+              color: '#18181B',
               cursor: 'pointer',
               fontSize: '0.82rem',
               fontWeight: 700,
               letterSpacing: '0.04em',
               transition: 'background 0.18s',
             }}
-            onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)'; }}
-            onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.1)'; }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.1)'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.06)'; }}
           >
             Export Program
           </button>
@@ -1116,15 +1116,15 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       <Section id="protection" label="Access & Protection">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
-            <span style={{ fontSize: '0.82rem', color: 'var(--pl-ink-soft)' }}>Coming Soon Mode</span>
+            <span style={{ fontSize: '0.82rem', color: '#3F3F46' }}>Coming Soon Mode</span>
             <input
               type="checkbox"
               checked={manifest.comingSoon?.enabled || false}
               onChange={e => onChange({ ...manifest, comingSoon: { ...(manifest.comingSoon || {}), enabled: e.target.checked } })}
-              style={{ width: '18px', height: '18px', accentColor: 'var(--pl-olive)' }}
+              style={{ width: '18px', height: '18px', accentColor: '#18181B' }}
             />
           </label>
-          <p style={{ fontSize: '0.7rem', color: 'var(--pl-muted)', margin: 0, lineHeight: 1.5 }}>
+          <p style={{ fontSize: '0.7rem', color: '#71717A', margin: 0, lineHeight: 1.5 }}>
             Shows a teaser page to visitors instead of the full site.
           </p>
           {manifest.comingSoon?.enabled && (
@@ -1143,7 +1143,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             placeholder="Leave blank for public access"
           />
           {manifest.sitePassword && (
-            <p style={{ fontSize: '0.68rem', color: 'var(--pl-olive)', margin: 0 }}>
+            <p style={{ fontSize: '0.68rem', color: '#18181B', margin: 0 }}>
               ✦ Visitors will need to enter this password to view your site
             </p>
           )}

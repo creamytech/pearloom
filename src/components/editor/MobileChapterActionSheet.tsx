@@ -49,7 +49,7 @@ function ActionBtn({
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
         padding: '10px 12px', borderRadius: 10, border: 'none',
         background: danger ? 'rgba(239,68,68,0.12)' : 'rgba(0,0,0,0.04)',
-        color: danger ? '#fca5a5' : 'var(--pl-ink)',
+        color: danger ? '#fca5a5' : '#18181B',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.35 : 1,
         minHeight: 44, minWidth: 44,
@@ -82,15 +82,15 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 const fieldStyle: React.CSSProperties = {
   width: '100%', padding: '12px 14px', borderRadius: 10,
   border: '1.5px solid rgba(0,0,0,0.06)',
-  background: 'rgba(163,177,138,0.05)',
-  color: 'var(--pl-ink)',
+  background: 'rgba(24,24,27,0.04)',
+  color: '#18181B',
   fontSize: 'max(16px, 1rem)', fontFamily: 'var(--pl-font-body)',
   outline: 'none', transition: 'border-color 0.15s',
 };
 
 const fieldFocusStyle: React.CSSProperties = {
-  borderColor: 'var(--pl-olive, #A3B18A)',
-  boxShadow: '0 0 0 3px rgba(163,177,138,0.15)',
+  borderColor: '#18181B',
+  boxShadow: '0 0 0 3px rgba(24,24,27,0.08)',
 };
 
 // ── Main Component ──────────────────────────────────────────────
@@ -148,7 +148,7 @@ export function MobileChapterActionSheet({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        style={{ position: 'fixed', inset: 0, background: 'rgba(43,30,20,0.08)', zIndex: 1200 }}
+        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.06)', zIndex: 1200 }}
       />
       <motion.div
         key="mobile-action-sheet"
@@ -175,7 +175,7 @@ export function MobileChapterActionSheet({
           borderRadius: '20px 20px 0 0',
           borderTop: '1px solid rgba(0,0,0,0.07)',
           display: 'flex', flexDirection: 'column',
-          boxShadow: '0 -12px 48px rgba(43,30,20,0.1)',
+          boxShadow: '0 -12px 48px rgba(0,0,0,0.06)',
           overflow: 'hidden',
         }}
       >
@@ -184,7 +184,7 @@ export function MobileChapterActionSheet({
           {/* Drag pill */}
           <div style={{
             width: 48, height: 4, borderRadius: 100,
-            background: 'rgba(214,198,168,0.35)',
+            background: '#A1A1AA',
             margin: '0 auto 12px',
           }} />
 
@@ -200,7 +200,7 @@ export function MobileChapterActionSheet({
                 width: 44, height: 44, borderRadius: 8, flexShrink: 0,
                 background: 'rgba(0,0,0,0.04)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'var(--pl-muted)', fontSize: '0.7rem', fontWeight: 700,
+                color: '#71717A', fontSize: '0.7rem', fontWeight: 700,
               }}>
                 {chapterIndex + 1}
               </div>
@@ -208,13 +208,13 @@ export function MobileChapterActionSheet({
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
                 fontSize: '0.95rem', fontWeight: 700,
-                color: 'var(--pl-ink)',
+                color: '#18181B',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                fontFamily: 'var(--pl-font-heading)',
+                fontFamily: 'inherit',
               }}>
                 {chapter.title || 'Untitled'}
               </div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--pl-ink-soft)' }}>
+              <div style={{ fontSize: '0.72rem', color: '#3F3F46' }}>
                 Chapter {chapterIndex + 1} of {chapterCount}
               </div>
             </div>
@@ -225,7 +225,7 @@ export function MobileChapterActionSheet({
                 width: 44, height: 44, borderRadius: 8, border: 'none',
                 background: 'rgba(0,0,0,0.06)', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'var(--pl-ink-soft)', flexShrink: 0,
+                color: '#3F3F46', flexShrink: 0,
               }}
             >
               <X size={16} />
@@ -296,11 +296,11 @@ export function MobileChapterActionSheet({
                   style={{
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                     padding: '10px 4px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                    background: chapter.layout === opt.id ? 'rgba(163,177,138,0.2)' : 'rgba(163,177,138,0.05)',
-                    color: chapter.layout === opt.id ? 'var(--pl-olive)' : 'var(--pl-ink-soft)',
+                    background: chapter.layout === opt.id ? 'rgba(24,24,27,0.1)' : 'rgba(24,24,27,0.04)',
+                    color: chapter.layout === opt.id ? '#18181B' : '#3F3F46',
                     fontSize: '0.75rem', fontWeight: 600,
                     minHeight: 44,
-                    outline: chapter.layout === opt.id ? '1.5px solid rgba(163,177,138,0.4)' : '1.5px solid transparent',
+                    outline: chapter.layout === opt.id ? '1.5px solid #E4E4E7' : '1.5px solid transparent',
                   }}
                 >
                   {opt.icon}
@@ -322,7 +322,7 @@ export function MobileChapterActionSheet({
               style={{
                 ...fieldStyle,
                 ...(focusedField === 'title' ? fieldFocusStyle : {}),
-                fontFamily: 'var(--pl-font-heading)',
+                fontFamily: 'inherit',
                 fontWeight: 700,
                 fontSize: '17px',
               }}
@@ -340,7 +340,7 @@ export function MobileChapterActionSheet({
               style={{
                 ...fieldStyle,
                 ...(focusedField === 'subtitle' ? fieldFocusStyle : {}),
-                fontStyle: 'italic',
+                
               }}
             />
           </div>

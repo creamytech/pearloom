@@ -94,8 +94,8 @@ export function PostWeddingBanner({ manifest, subdomain, onUpdate }: PostWedding
         transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
         style={{
           margin: '0.75rem 1rem 0',
-          background: 'linear-gradient(135deg, rgba(214,198,168,0.12) 0%, rgba(109,89,122,0.12) 100%)',
-          border: '1px solid rgba(214,198,168,0.2)',
+          background: 'linear-gradient(135deg, rgba(24,24,27,0.06) 0%, rgba(24,24,27,0.06) 100%)',
+          border: '1px solid rgba(24,24,27,0.08)',
           borderRadius: '1rem',
           padding: '1.5rem 2rem',
           display: 'flex',
@@ -112,11 +112,11 @@ export function PostWeddingBanner({ manifest, subdomain, onUpdate }: PostWedding
             position: 'absolute', top: '0.875rem', right: '0.875rem',
             background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--pl-muted)',
+            color: '#71717A',
             transition: 'color 0.2s',
           }}
-          onMouseOver={(e) => { e.currentTarget.style.color = 'rgba(214,198,168,0.8)'; }}
-          onMouseOut={(e) => { e.currentTarget.style.color = 'rgba(214,198,168,0.4)'; }}
+          onMouseOver={(e) => { e.currentTarget.style.color = '#71717A'; }}
+          onMouseOut={(e) => { e.currentTarget.style.color = '#A1A1AA'; }}
           aria-label="Dismiss"
         >
           <X size={15} />
@@ -125,12 +125,12 @@ export function PostWeddingBanner({ manifest, subdomain, onUpdate }: PostWedding
         {/* Icon */}
         <div style={{
           width: '44px', height: '44px', borderRadius: '50%',
-          background: 'rgba(214,198,168,0.12)',
-          border: '1px solid rgba(214,198,168,0.2)',
+          background: 'rgba(24,24,27,0.06)',
+          border: '1px solid rgba(24,24,27,0.08)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           flexShrink: 0,
         }}>
-          <Sparkles size={20} color="rgba(214,198,168,0.85)" />
+          <Sparkles size={20} color="#71717A" />
         </div>
 
         {/* Text */}
@@ -138,14 +138,14 @@ export function PostWeddingBanner({ manifest, subdomain, onUpdate }: PostWedding
           <h3 style={{
             margin: '0 0 0.3rem',
             fontSize: '0.95rem', fontWeight: 700,
-            color: 'var(--pl-ink)',
+            color: '#18181B',
             fontFamily: 'var(--pl-font-heading, Georgia, serif)',
           }}>
             Your wedding day has passed
           </h3>
           <p style={{
             margin: 0,
-            fontSize: '0.8rem', color: 'var(--pl-muted)', lineHeight: 1.5,
+            fontSize: '0.8rem', color: '#71717A', lineHeight: 1.5,
           }}>
             Transform your site into a permanent memory archive. The Loom will rewrite your story in past tense and highlight your most emotional moments.
           </p>
@@ -155,14 +155,14 @@ export function PostWeddingBanner({ manifest, subdomain, onUpdate }: PostWedding
         <motion.button
           onClick={handleActivate}
           disabled={loading}
-          whileHover={loading ? {} : { scale: 1.03, boxShadow: '0 6px 20px rgba(109,89,122,0.4)' }}
+          whileHover={loading ? {} : { scale: 1.03, boxShadow: '0 6px 20px rgba(0,0,0,0.15)' }}
           whileTap={loading ? {} : { scale: 0.97 }}
           style={{
             padding: '0.7rem 1.4rem',
             background: loading
-              ? 'rgba(109,89,122,0.3)'
-              : 'linear-gradient(135deg, #A3B18A 0%, #6D597A 100%)',
-            color: 'var(--pl-ink-soft)',
+              ? 'rgba(24,24,27,0.15)'
+              : 'linear-gradient(135deg, #71717A 0%, #6D597A 100%)',
+            color: '#3F3F46',
             border: 'none',
             borderRadius: '0.625rem',
             cursor: loading ? 'not-allowed' : 'pointer',

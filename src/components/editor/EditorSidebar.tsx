@@ -80,7 +80,7 @@ export function SidebarSection({
           width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
           padding: '10px 12px', borderRadius: 'var(--pl-radius-sm)', border: 'none',
           background: 'transparent', cursor: 'pointer',
-          color: 'var(--pl-ink-soft)',
+          color: '#3F3F46',
         }}
       >
         <ChevronRight
@@ -88,7 +88,7 @@ export function SidebarSection({
           style={{
             transform: open ? 'rotate(90deg)' : 'none',
             transition: 'transform 0.2s',
-            color: open ? '#18181B' : 'var(--pl-muted)',
+            color: open ? '#18181B' : '#71717A',
             flexShrink: 0,
           }}
         />
@@ -96,13 +96,13 @@ export function SidebarSection({
         <span style={{
           flex: 1, textAlign: 'left', fontSize: '0.6rem', fontWeight: 700,
           letterSpacing: '0.1em', textTransform: 'uppercase',
-          color: open ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
+          color: open ? '#3F3F46' : '#71717A',
         }}>
           {title}
         </span>
         {badge !== undefined && (
           <span style={{
-            fontSize: '0.58rem', padding: '2px 7px', borderRadius: '100px',
+            fontSize: '0.58rem', padding: '2px 7px', borderRadius: '8px',
             background: '#F4F4F5', color: '#18181B',
             fontWeight: 700,
           }}>
@@ -292,7 +292,7 @@ export function EditorSidebar({
                         transform: 'translateX(-50%)',
                         width: '24px',
                         height: '3px',
-                        borderRadius: '100px',
+                        borderRadius: '8px',
                         background: '#FFFFFF',
                       }}
                     />
@@ -335,7 +335,7 @@ export function EditorSidebar({
           title={collapsed ? 'Expand panel' : 'Collapse panel'}
           aria-label={collapsed ? 'Expand panel' : 'Collapse panel'}
           onClick={() => onCollapsedChange(!collapsed)}
-          whileHover={{ backgroundColor: 'rgba(255,255,255,0.08)', color: 'var(--pl-muted)', scale: 1.08 }}
+          whileHover={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#71717A', scale: 1.08 }}
           whileTap={{ scale: 0.88 }}
           transition={{ type: 'spring', stiffness: 420, damping: 22 }}
           style={{
@@ -392,7 +392,7 @@ export function EditorSidebar({
                   fontWeight: 500,
                   fontFamily: 'inherit',
                   letterSpacing: '-0.01em',
-                  color: 'var(--pl-ink)',
+                  color: '#18181B',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -406,7 +406,7 @@ export function EditorSidebar({
                 title={isAtMax ? 'Restore width' : 'Expand to full width'}
                 aria-label={isAtMax ? 'Restore panel width' : 'Expand panel to full width'}
                 onClick={handleExpandToggle}
-                whileHover={!isAtMax ? { backgroundColor: 'rgba(255,255,255,0.1)', color: 'var(--pl-muted)', scale: 1.12 } : { scale: 1.08 }}
+                whileHover={!isAtMax ? { backgroundColor: 'rgba(255,255,255,0.1)', color: '#71717A', scale: 1.12 } : { scale: 1.08 }}
                 whileTap={{ scale: 0.86 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 22 }}
                 style={{

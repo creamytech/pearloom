@@ -57,7 +57,7 @@ export function TypographyPairSelector({ value = 'serif-sans', onChange }: Typog
       <h4 style={{
         fontSize: '0.65rem', fontWeight: 700,
         letterSpacing: '0.12em', textTransform: 'uppercase',
-        color: 'var(--pl-muted)',
+        color: '#71717A',
         marginBottom: '8px',
       }}>
         Typography Pair
@@ -76,7 +76,7 @@ export function TypographyPairSelector({ value = 'serif-sans', onChange }: Typog
           cursor: 'pointer',
           fontSize: '0.88rem',
           fontFamily: 'var(--pl-font-body)',
-          color: 'var(--pl-ink)',
+          color: '#18181B',
         }}
       >
         <span>{selected.label}</span>
@@ -85,7 +85,7 @@ export function TypographyPairSelector({ value = 'serif-sans', onChange }: Typog
           style={{
             transform: open ? 'rotate(180deg)' : 'none',
             transition: 'transform 0.2s',
-            color: 'var(--pl-muted)',
+            color: '#71717A',
           }}
         />
       </button>
@@ -116,7 +116,7 @@ export function TypographyPairSelector({ value = 'serif-sans', onChange }: Typog
                   display: 'flex', flexDirection: 'column', gap: '2px',
                   padding: '10px 14px',
                   border: 'none',
-                  background: pair.id === value ? 'var(--pl-olive-mist)' : 'transparent',
+                  background: pair.id === value ? '#F4F4F5' : 'transparent',
                   cursor: 'pointer',
                   textAlign: 'left',
                   borderBottom: '1px solid rgba(0,0,0,0.04)',
@@ -132,13 +132,13 @@ export function TypographyPairSelector({ value = 'serif-sans', onChange }: Typog
                 <span style={{
                   fontSize: '0.82rem',
                   fontWeight: pair.id === value ? 600 : 500,
-                  color: pair.id === value ? 'var(--pl-olive-deep)' : 'var(--pl-ink)',
+                  color: pair.id === value ? '#18181B' : '#18181B',
                 }}>
                   {pair.label}
                 </span>
                 <span style={{
                   fontSize: '0.68rem',
-                  color: 'var(--pl-muted)',
+                  color: '#71717A',
                 }}>
                   {pair.preview.heading} + {pair.preview.body}
                 </span>

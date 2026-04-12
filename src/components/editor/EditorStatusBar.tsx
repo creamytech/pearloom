@@ -50,11 +50,11 @@ export function EditorStatusBar() {
       background: 'var(--pl-cream)',
       borderTop: '1px solid rgba(255,255,255,0.25)',
       fontSize: '0.65rem', fontWeight: 600,
-      color: 'var(--pl-muted)', letterSpacing: '0.03em',
+      color: '#71717A', letterSpacing: '0.03em',
       userSelect: 'none',
     }}>
       {/* Panel label */}
-      <span style={{ color: 'var(--pl-ink-soft)', fontWeight: 700 }}>
+      <span style={{ color: '#3F3F46', fontWeight: 700 }}>
         {TAB_LABEL[activeTab] ?? activeTab}
       </span>
 
@@ -87,15 +87,15 @@ export function EditorStatusBar() {
         <div style={{
           width: '6px', height: '6px', borderRadius: '50%',
           flexShrink: 0,
-          background: saveState === 'saved' ? '#A3B18A' : 'var(--pl-gold)',
+          background: saveState === 'saved' ? '#71717A' : 'var(--pl-gold)',
           boxShadow: saveState === 'saved'
-            ? '0 0 6px rgba(163,177,138,0.55)'
+            ? '0 0 6px rgba(24,24,27,0.55)'
             : '0 0 6px rgba(196,169,106,0.55)',
           transition: 'background 0.3s, box-shadow 0.3s',
         }} />
         <span style={{
           color: saveState === 'saved'
-            ? 'var(--pl-olive)'
+            ? '#18181B'
             : 'var(--pl-gold)',
           transition: 'color 0.3s',
         }}>

@@ -33,8 +33,8 @@ const STARTER_CHIPS = [
 
 // ── Colour tokens (inline styles using CSS vars + literals) ───
 const CREAM = '#FAF7F2';
-const OLIVE = 'var(--pl-olive, #A3B18A)';
-const PLUM  = 'var(--pl-plum, #6D597A)';
+const OLIVE = '#18181B';
+const PLUM  = '#71717A';
 const DARK  = 'var(--pl-ink-soft, #3D3530)';
 
 // ── Typing dots animation ──────────────────────────────────────
@@ -193,7 +193,7 @@ export function AIEditorChat({
               display: 'flex',
               flexDirection: 'column',
               overflow: 'hidden',
-              border: `1px solid rgba(163,177,138,0.3)`,
+              border: `1px solid #E4E4E7`,
             }}
           >
             {/* Header */}
@@ -315,7 +315,7 @@ export function AIEditorChat({
                       borderLeft: msg.role === 'ai' ? `3px solid ${PLUM}` : 'none',
                       boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
                       border: msg.role === 'ai'
-                        ? `1px solid rgba(109,89,122,0.2)`
+                        ? `1px solid rgba(24,24,27,0.1)`
                         : 'none',
                       borderLeftWidth: msg.role === 'ai' ? 3 : undefined,
                       borderLeftColor: msg.role === 'ai' ? PLUM : undefined,
@@ -331,7 +331,7 @@ export function AIEditorChat({
                 <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                   <div style={{
                     background: CREAM,
-                    border: `1px solid rgba(109,89,122,0.2)`,
+                    border: `1px solid rgba(24,24,27,0.1)`,
                     borderLeft: `3px solid ${PLUM}`,
                     borderRadius: '1rem 1rem 1rem 0.2rem',
                     boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
@@ -348,7 +348,7 @@ export function AIEditorChat({
             <div style={{
               flexShrink: 0,
               padding: '0.6rem',
-              borderTop: `1px solid rgba(163,177,138,0.2)`,
+              borderTop: `1px solid rgba(24,24,27,0.1)`,
               background: 'rgba(250,247,242,0.95)',
               display: 'flex',
               gap: '0.4rem',
@@ -365,9 +365,9 @@ export function AIEditorChat({
                   flex: 1,
                   padding: '0.5rem 0.75rem',
                   borderRadius: '0.6rem',
-                  border: `1px solid rgba(163,177,138,0.35)`,
+                  border: `1px solid #E4E4E7`,
                   background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(16px)',
-                  color: 'var(--pl-ink)',
+                  color: '#18181B',
                   fontSize: '0.82rem',
                   outline: 'none',
                   fontFamily: 'inherit',
@@ -375,11 +375,11 @@ export function AIEditorChat({
                   transition: 'border-color 0.15s, box-shadow 0.15s',
                 }}
                 onFocus={e => {
-                  e.currentTarget.style.borderColor = 'rgba(163,177,138,0.65)';
-                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)';
+                  e.currentTarget.style.borderColor = 'rgba(24,24,27,0.65)';
+                  e.currentTarget.style.boxShadow = '0 0 0 3px #F4F4F5';
                 }}
                 onBlur={e => {
-                  e.currentTarget.style.borderColor = 'rgba(163,177,138,0.35)';
+                  e.currentTarget.style.borderColor = '#E4E4E7';
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               />

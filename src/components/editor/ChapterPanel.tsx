@@ -21,7 +21,7 @@ import type { SectionStyleOverrides } from './SectionStyleEditor';
 const MOOD_PRESETS = [
   { id: 'romantic', label: 'Romantic', color: '#E8927A' },
   { id: 'nostalgic', label: 'Nostalgic', color: '#C4A96A' },
-  { id: 'joyful', label: 'Joyful', color: '#A3B18A' },
+  { id: 'joyful', label: 'Joyful', color: '#71717A' },
   { id: 'intimate', label: 'Intimate', color: '#6D597A' },
   { id: 'playful', label: 'Playful', color: '#7BA7BC' },
   { id: 'bittersweet', label: 'Bittersweet', color: '#8B7355' },

@@ -32,8 +32,8 @@ interface DesignAdvisorProps {
 const SEV = {
   error: { bg: 'rgba(248,81,73,0.10)', border: 'rgba(248,81,73,0.35)', icon: <IconError size={14} />, label: 'Accessibility issue', color: '#f87171' },
   warn:  { bg: 'rgba(234,179,8,0.08)',  border: 'rgba(234,179,8,0.30)',  icon: <IconWarn size={14} />,  label: 'Design tip',         color: '#fbbf24' },
-  tip:   { bg: 'rgba(163,177,138,0.10)',border: 'rgba(163,177,138,0.3)', icon: <IconTip size={14} />,   label: 'Suggestion',         color: '#A3B18A' },
-  ok:    { bg: 'rgba(163,177,138,0.08)',border: 'rgba(163,177,138,0.2)', icon: <IconCheck size={14} />, label: 'Looks great',        color: '#A3B18A' },
+  tip:   { bg: 'rgba(24,24,27,0.10)',border: '#E4E4E7', icon: <IconTip size={14} />,   label: 'Suggestion',         color: '#71717A' },
+  ok:    { bg: 'rgba(24,24,27,0.04)',border: 'rgba(24,24,27,0.1)', icon: <IconCheck size={14} />, label: 'Looks great',        color: '#71717A' },
 };
 
 function IssueCard({ severity, title, detail, onDismiss }: {
@@ -50,7 +50,7 @@ function IssueCard({ severity, title, detail, onDismiss }: {
       <span style={{ display: 'flex', alignItems: 'flex-start', paddingTop: '1px', color: s.color, flexShrink: 0 }}>{s.icon}</span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: '0.75rem', fontWeight: 800, color: s.color, marginBottom: '2px' }}>{title}</div>
-        <div style={{ fontSize: '0.7rem', color: 'var(--pl-ink-soft)', lineHeight: 1.55 }}>{detail}</div>
+        <div style={{ fontSize: '0.7rem', color: '#3F3F46', lineHeight: 1.55 }}>{detail}</div>
       </div>
       {onDismiss && (
         <button
@@ -58,7 +58,7 @@ function IssueCard({ severity, title, detail, onDismiss }: {
           style={{
             position: 'absolute', top: '6px', right: '6px',
             background: 'none', border: 'none', cursor: 'pointer',
-            color: 'var(--pl-muted)', padding: '2px',
+            color: '#71717A', padding: '2px',
             display: 'flex', alignItems: 'center',
           }}
           aria-label="Dismiss"
@@ -183,7 +183,7 @@ export function DesignAdvisor({ manifest }: DesignAdvisorProps) {
       <div style={{
         display: 'flex', alignItems: 'center', gap: '6px',
         fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
-        textTransform: 'uppercase', color: 'var(--pl-muted)',
+        textTransform: 'uppercase', color: '#71717A',
         marginBottom: '2px',
       }}>
         <IconPalette size={12} /> Design Advisor
@@ -281,11 +281,11 @@ export function DesignAdvisor({ manifest }: DesignAdvisorProps) {
         <div style={{
           display: 'flex', alignItems: 'center', gap: '8px',
           padding: '8px 10px', borderRadius: '8px',
-          background: 'rgba(163,177,138,0.05)',
-          border: '1px solid rgba(163,177,138,0.12)',
+          background: 'rgba(24,24,27,0.04)',
+          border: '1px solid #F4F4F5',
         }}>
-          <span style={{ animation: 'pl-spin 1s linear infinite', display: 'flex', alignItems: 'center', color: 'rgba(163,177,138,0.7)' }}><IconSparkle size={13} /></span>
-          <span style={{ fontSize: '0.7rem', color: 'var(--pl-muted)' }}>Analysing your palette…</span>
+          <span style={{ animation: 'pl-spin 1s linear infinite', display: 'flex', alignItems: 'center', color: '#71717A' }}><IconSparkle size={13} /></span>
+          <span style={{ fontSize: '0.7rem', color: '#71717A' }}>Analysing your palette…</span>
           <style>{`@keyframes pl-spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       )}

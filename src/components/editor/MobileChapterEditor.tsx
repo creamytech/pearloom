@@ -134,7 +134,7 @@ export function MobileChapterEditor({
             borderRadius: 20,
             border: 'none',
             background: 'rgba(0,0,0,0.05)',
-            color: 'var(--pl-ink-soft)',
+            color: '#3F3F46',
             cursor: 'pointer',
             fontSize: '0.85rem',
             fontWeight: 600,
@@ -153,11 +153,11 @@ export function MobileChapterEditor({
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
-            fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
-            fontStyle: 'italic',
+            fontFamily: 'inherit',
+            
             fontSize: '0.95rem',
             fontWeight: 600,
-            color: 'var(--pl-ink)',
+            color: '#18181B',
           }}
         >
           {chapter.title || 'Untitled'}
@@ -176,7 +176,7 @@ export function MobileChapterEditor({
               borderRadius: '50%',
               border: 'none',
               background: 'rgba(0,0,0,0.04)',
-              color: prevChapter ? 'rgba(214,198,168,0.7)' : 'rgba(0,0,0,0.07)',
+              color: prevChapter ? '#71717A' : 'rgba(0,0,0,0.07)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -196,7 +196,7 @@ export function MobileChapterEditor({
               borderRadius: '50%',
               border: 'none',
               background: 'rgba(0,0,0,0.04)',
-              color: nextChapter ? 'rgba(214,198,168,0.7)' : 'rgba(0,0,0,0.07)',
+              color: nextChapter ? '#71717A' : 'rgba(0,0,0,0.07)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -238,11 +238,11 @@ export function MobileChapterEditor({
                 borderBottom: '1px solid rgba(0,0,0,0.07)',
                 background: 'transparent',
                 outline: 'none',
-                fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
+                fontFamily: 'inherit',
                 fontSize: '1.5rem',
                 fontWeight: 700,
-                fontStyle: 'italic',
-                color: 'var(--pl-ink)',
+                
+                color: '#18181B',
                 padding: '4px 0 10px',
                 WebkitAppearance: 'none',
                 boxSizing: 'border-box',
@@ -264,10 +264,10 @@ export function MobileChapterEditor({
                 borderBottom: '1px solid rgba(0,0,0,0.06)',
                 background: 'transparent',
                 outline: 'none',
-                fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
+                fontFamily: 'inherit',
                 fontSize: '1.05rem',
-                fontStyle: 'italic',
-                color: 'var(--pl-muted)',
+                
+                color: '#71717A',
                 padding: '4px 0 10px',
                 WebkitAppearance: 'none',
                 boxSizing: 'border-box',
@@ -298,12 +298,12 @@ export function MobileChapterEditor({
                   gap: 5,
                   padding: '6px 12px',
                   borderRadius: 20,
-                  border: '1px solid rgba(163,177,138,0.35)',
-                  background: 'rgba(163,177,138,0.09)',
+                  border: '1px solid #E4E4E7',
+                  background: 'rgba(24,24,27,0.09)',
                   color:
                     isRewriting || isStreaming
-                      ? 'rgba(163,177,138,0.4)'
-                      : '#A3B18A',
+                      ? '#E4E4E7'
+                      : '#71717A',
                   cursor: isRewriting || isStreaming ? 'wait' : 'pointer',
                   fontSize: '0.78rem',
                   fontWeight: 700,
@@ -334,7 +334,7 @@ export function MobileChapterEditor({
                 fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
                 fontSize: '0.97rem',
                 lineHeight: 1.75,
-                color: 'var(--pl-ink-soft)',
+                color: '#3F3F46',
                 padding: '14px 16px',
                 boxSizing: 'border-box',
                 WebkitAppearance: 'none',
@@ -371,14 +371,14 @@ export function MobileChapterEditor({
                       padding: '12px 14px',
                       borderRadius: 13,
                       border: active
-                        ? '1px solid rgba(163,177,138,0.55)'
+                        ? '1px solid rgba(24,24,27,0.55)'
                         : '1px solid rgba(0,0,0,0.05)',
                       background: active
-                        ? 'rgba(163,177,138,0.13)'
-                        : 'rgba(163,177,138,0.04)',
+                        ? 'rgba(24,24,27,0.13)'
+                        : 'rgba(24,24,27,0.03)',
                       color: active
-                        ? '#A3B18A'
-                        : 'var(--pl-muted)',
+                        ? '#71717A'
+                        : '#71717A',
                       cursor: 'pointer',
                       minWidth: 68,
                       transition: 'all 0.15s',
@@ -424,8 +424,8 @@ export function MobileChapterEditor({
                 padding: '9px 14px',
                 borderRadius: 10,
                 border: '1px solid rgba(0,0,0,0.07)',
-                background: 'rgba(163,177,138,0.04)',
-                color: 'var(--pl-ink-soft)',
+                background: 'rgba(24,24,27,0.03)',
+                color: '#3F3F46',
                 fontSize: 'max(16px, 0.88rem)',
                 outline: 'none',
                 WebkitAppearance: 'none',
@@ -447,8 +447,8 @@ export function MobileChapterEditor({
                 padding: '9px 14px',
                 borderRadius: 10,
                 border: '1px solid rgba(0,0,0,0.07)',
-                background: 'rgba(163,177,138,0.04)',
-                color: 'var(--pl-ink-soft)',
+                background: 'rgba(24,24,27,0.03)',
+                color: '#3F3F46',
                 fontSize: 'max(16px, 0.88rem)',
                 outline: 'none',
                 WebkitAppearance: 'none',
@@ -482,6 +482,6 @@ const labelStyle: React.CSSProperties = {
   fontWeight: 800,
   letterSpacing: '0.14em',
   textTransform: 'uppercase',
-  color: 'var(--pl-muted)',
+  color: '#71717A',
   marginBottom: 8,
 };

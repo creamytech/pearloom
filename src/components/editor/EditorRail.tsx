@@ -70,7 +70,7 @@ function RailButton({ item, isActive, onClick }: { item: RailItem; isActive: boo
           alignItems: 'center', justifyContent: 'center',
           gap: '4px', border: 'none', borderRadius: '12px',
           background: isActive ? 'rgba(24,24,27,0.08)' : 'transparent',
-          color: isActive ? '#18181B' : 'var(--pl-muted)',
+          color: isActive ? '#18181B' : '#71717A',
           cursor: 'pointer', position: 'relative',
           transition: 'background 0.15s, color 0.15s',
         }}
@@ -152,7 +152,7 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
               alignItems: 'center', justifyContent: 'center',
               gap: '3px', border: 'none', borderRadius: '14px',
               background: moreOpen || isMoreActive ? 'rgba(24,24,27,0.08)' : 'transparent',
-              color: moreOpen || isMoreActive ? '#18181B' : 'var(--pl-muted)',
+              color: moreOpen || isMoreActive ? '#18181B' : '#71717A',
               cursor: 'pointer', transition: 'background 0.15s',
             }}
           >
@@ -187,7 +187,7 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
                 maxHeight: '400px', overflowY: 'auto',
               } as React.CSSProperties}
             >
-              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', padding: '4px 8px 6px', borderBottom: '1px solid rgba(43,30,20,0.04)', marginBottom: '2px' }}>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', padding: '4px 8px 6px', borderBottom: '1px solid rgba(0,0,0,0.03)', marginBottom: '2px' }}>
                 All Tools
               </div>
               {MORE_ITEMS.map(item => {
@@ -201,14 +201,14 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
                       display: 'flex', alignItems: 'center', gap: '10px',
                       padding: '8px 10px', borderRadius: '12px', border: 'none',
                       background: isActive ? 'rgba(24,24,27,0.08)' : 'transparent',
-                      color: isActive ? '#18181B' : 'var(--pl-ink-soft)',
+                      color: isActive ? '#18181B' : '#3F3F46',
                       cursor: 'pointer', fontSize: '0.78rem', fontWeight: isActive ? 600 : 400,
                       width: '100%', textAlign: 'left', transition: 'background 0.12s',
                     }}
-                    onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(43,30,20,0.03)'; }}
+                    onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.02)'; }}
                     onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                   >
-                    <Icon size={15} style={{ color: isActive ? '#18181B' : 'var(--pl-muted)', flexShrink: 0 }} />
+                    <Icon size={15} style={{ color: isActive ? '#18181B' : '#71717A', flexShrink: 0 }} />
                     {item.label}
                   </button>
                 );

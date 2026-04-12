@@ -60,7 +60,7 @@ const CATEGORY_OPTIONS: { value: VendorCategory; label: string; icon: string }[]
 
 const STATUS_OPTIONS: { value: VendorStatus; label: string; color: string; bg: string }[] = [
   { value: 'considering', label: 'Considering', color: 'rgba(255,255,255,0.45)', bg: 'rgba(0,0,0,0.05)' },
-  { value: 'booked',      label: 'Booked',      color: '#A3B18A',               bg: 'rgba(163,177,138,0.12)' },
+  { value: 'booked',      label: 'Booked',      color: '#71717A',               bg: '#F4F4F5' },
   { value: 'paid',        label: 'Paid',        color: '#6bcb77',               bg: 'rgba(107,203,119,0.12)' },
   { value: 'cancelled',   label: 'Cancelled',   color: '#f87171',               bg: 'rgba(248,113,113,0.12)' },
 ];
@@ -100,7 +100,7 @@ function StatusBadge({ status }: { status: VendorStatus }) {
     <span style={{
       fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.07em',
       textTransform: 'uppercase', color: meta.color, background: meta.bg,
-      padding: '2px 6px', borderRadius: '100px',
+      padding: '2px 6px', borderRadius: '8px',
       border: `1px solid ${meta.color}30`,
       whiteSpace: 'nowrap',
     }}>
@@ -113,7 +113,7 @@ function StatusBadge({ status }: { status: VendorStatus }) {
 
 const inputStyle: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box',
-  background: 'rgba(163,177,138,0.06)', border: '1px solid rgba(0,0,0,0.07)',
+  background: '#F4F4F5', border: '1px solid rgba(0,0,0,0.07)',
   borderRadius: '7px', color: '#fff', fontSize: '0.78rem',
   padding: '7px 10px', outline: 'none',
 };
@@ -313,7 +313,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
   // ── Render ─────────────────────────────────────────────────
   if (loading) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center', color: 'var(--pl-muted)', fontSize: '0.8rem' }}>
+      <div style={{ padding: '20px', textAlign: 'center', color: '#71717A', fontSize: '0.8rem' }}>
         Loading vendors…
       </div>
     );
@@ -330,7 +330,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
         <div style={{
           display: 'flex', alignItems: 'center', gap: '6px',
           fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
-          textTransform: 'uppercase', color: 'var(--pl-muted)',
+          textTransform: 'uppercase', color: '#71717A',
         }}>
           <Briefcase size={11} /> Vendors
         </div>
@@ -338,9 +338,9 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
           onClick={() => setShowForm(f => !f)}
           style={{
             display: 'flex', alignItems: 'center', gap: '4px',
-            background: showForm ? 'rgba(248,113,113,0.12)' : 'rgba(163,177,138,0.12)',
-            border: `1px solid ${showForm ? 'rgba(248,113,113,0.3)' : 'rgba(163,177,138,0.3)'}`,
-            borderRadius: '7px', color: showForm ? '#f87171' : '#A3B18A',
+            background: showForm ? 'rgba(248,113,113,0.12)' : '#F4F4F5',
+            border: `1px solid ${showForm ? 'rgba(248,113,113,0.3)' : '#E4E4E7'}`,
+            borderRadius: '7px', color: showForm ? '#f87171' : '#71717A',
             fontSize: '0.7rem', fontWeight: 700, padding: '4px 10px', cursor: 'pointer',
           }}
         >
@@ -360,7 +360,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
             <div style={{
               display: 'flex', flexDirection: 'column', gap: '8px',
               padding: '12px', borderRadius: '14px',
-              background: 'rgba(163,177,138,0.05)', border: '1px solid rgba(0,0,0,0.06)',
+              background: 'rgba(24,24,27,0.04)', border: '1px solid rgba(0,0,0,0.06)',
             }}>
               <input
                 style={inputStyle} placeholder="Vendor name *"
@@ -406,8 +406,8 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                 onClick={handleAdd}
                 disabled={saving || !formData.name.trim()}
                 style={{
-                  background: 'rgba(163,177,138,0.15)', border: '1px solid rgba(163,177,138,0.3)',
-                  borderRadius: '7px', color: '#A3B18A', fontSize: '0.75rem',
+                  background: 'rgba(24,24,27,0.08)', border: '1px solid #E4E4E7',
+                  borderRadius: '7px', color: '#71717A', fontSize: '0.75rem',
                   fontWeight: 700, padding: '8px', cursor: saving ? 'not-allowed' : 'pointer',
                   opacity: saving || !formData.name.trim() ? 0.5 : 1,
                 }}
@@ -426,16 +426,16 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
           gap: '6px', padding: '0 16px',
         }}>
           {[
-            { label: 'Total Budget', value: formatCents(totalCents), color: 'var(--pl-muted)' },
+            { label: 'Total Budget', value: formatCents(totalCents), color: '#71717A' },
             { label: 'Paid', value: formatCents(paidCents), color: '#6bcb77' },
-            { label: 'Remaining', value: formatCents(remainingCents), color: '#A3B18A' },
+            { label: 'Remaining', value: formatCents(remainingCents), color: '#71717A' },
           ].map(s => (
             <div key={s.label} style={{
               padding: '8px 10px', borderRadius: '8px',
               background: `${s.color}0d`, border: `1px solid ${s.color}22`,
               textAlign: 'center',
             }}>
-              <div style={{ fontSize: '0.6rem', color: 'var(--pl-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '3px' }}>
+              <div style={{ fontSize: '0.6rem', color: '#71717A', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '3px' }}>
                 {s.label}
               </div>
               <div style={{ fontSize: '0.88rem', fontWeight: 800, color: s.color }}>
@@ -451,8 +451,8 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
         {vendors.length === 0 ? (
           <div style={{
             padding: '12px', borderRadius: '8px',
-            background: 'rgba(163,177,138,0.04)', border: '1px solid rgba(0,0,0,0.06)',
-            fontSize: '0.73rem', color: 'var(--pl-muted)', textAlign: 'center',
+            background: 'rgba(24,24,27,0.03)', border: '1px solid rgba(0,0,0,0.06)',
+            fontSize: '0.73rem', color: '#71717A', textAlign: 'center',
           }}>
             No vendors yet. Click + Add to get started.
           </div>
@@ -465,7 +465,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                   // Edit inline form
                   <div style={{
                     padding: '10px', borderRadius: '8px',
-                    background: 'rgba(163,177,138,0.06)', border: '1px solid rgba(163,177,138,0.25)',
+                    background: '#F4F4F5', border: '1px solid rgba(24,24,27,0.12)',
                     display: 'flex', flexDirection: 'column', gap: '6px',
                   }}>
                     <input style={inputStyle} value={editData.name} onChange={e => setEditData(p => ({ ...p, name: e.target.value }))} placeholder="Name" />
@@ -480,10 +480,10 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                     <input style={inputStyle} value={editData.contactEmail} onChange={e => setEditData(p => ({ ...p, contactEmail: e.target.value }))} placeholder="Contact email" type="email" />
                     <input style={inputStyle} value={editData.amountCents} onChange={e => setEditData(p => ({ ...p, amountCents: e.target.value }))} placeholder="Amount" type="number" />
                     <div style={{ display: 'flex', gap: '6px' }}>
-                      <button onClick={saveEdit} disabled={saving} style={{ flex: 1, background: 'rgba(163,177,138,0.15)', border: '1px solid rgba(163,177,138,0.3)', borderRadius: '6px', color: '#A3B18A', fontSize: '0.72rem', fontWeight: 700, padding: '6px', cursor: 'pointer' }}>
+                      <button onClick={saveEdit} disabled={saving} style={{ flex: 1, background: 'rgba(24,24,27,0.08)', border: '1px solid #E4E4E7', borderRadius: '6px', color: '#71717A', fontSize: '0.72rem', fontWeight: 700, padding: '6px', cursor: 'pointer' }}>
                         <Check size={11} style={{ display: 'inline', marginRight: '4px' }} />Save
                       </button>
-                      <button onClick={() => setEditingId(null)} style={{ flex: 1, background: 'rgba(163,177,138,0.06)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '6px', color: 'rgba(255,255,255,0.45)', fontSize: '0.72rem', padding: '6px', cursor: 'pointer' }}>
+                      <button onClick={() => setEditingId(null)} style={{ flex: 1, background: '#F4F4F5', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '6px', color: 'rgba(255,255,255,0.45)', fontSize: '0.72rem', padding: '6px', cursor: 'pointer' }}>
                         Cancel
                       </button>
                     </div>
@@ -491,7 +491,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                 ) : (
                   <div style={{
                     padding: '10px 12px', borderRadius: '8px',
-                    background: 'rgba(163,177,138,0.05)', border: '1px solid rgba(0,0,0,0.06)',
+                    background: 'rgba(24,24,27,0.04)', border: '1px solid rgba(0,0,0,0.06)',
                     display: 'flex', flexDirection: 'column', gap: '5px',
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -501,7 +501,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
                           <StatusBadge status={v.status} />
                           {v.amount_cents ? (
-                            <span style={{ fontSize: '0.65rem', color: 'var(--pl-ink-soft)', fontWeight: 600 }}>
+                            <span style={{ fontSize: '0.65rem', color: '#3F3F46', fontWeight: 600 }}>
                               {formatCents(v.amount_cents)}
                             </span>
                           ) : null}
@@ -511,14 +511,14 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                         <button
                           onClick={() => draftEmail(v)}
                           title="Draft email"
-                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(163,177,138,0.06)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '6px', cursor: 'pointer', color: 'var(--pl-ink-soft)' }}
+                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F4F4F5', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '6px', cursor: 'pointer', color: '#3F3F46' }}
                         >
                           <Mail size={12} />
                         </button>
                         <button
                           onClick={() => startEdit(v)}
                           title="Edit"
-                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(163,177,138,0.06)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '6px', cursor: 'pointer', color: 'var(--pl-ink-soft)' }}
+                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F4F4F5', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '6px', cursor: 'pointer', color: '#3F3F46' }}
                         >
                           <Pencil size={12} />
                         </button>
@@ -543,12 +543,12 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                         >
                           <div style={{ marginTop: '6px', borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '8px' }}>
                             {emailLoading === v.id ? (
-                              <div style={{ fontSize: '0.7rem', color: 'var(--pl-muted)', textAlign: 'center', padding: '6px' }}>
+                              <div style={{ fontSize: '0.7rem', color: '#71717A', textAlign: 'center', padding: '6px' }}>
                                 Drafting email…
                               </div>
                             ) : (
                               <>
-                                <div style={{ fontSize: '0.65rem', color: 'var(--pl-muted)', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>
+                                <div style={{ fontSize: '0.65rem', color: '#71717A', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>
                                   Draft email
                                 </div>
                                 <textarea
@@ -557,11 +557,11 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                                   style={{
                                     ...inputStyle, minHeight: '80px', resize: 'vertical',
                                     fontSize: '0.72rem', lineHeight: 1.6,
-                                    color: 'var(--pl-ink)',
+                                    color: '#18181B',
                                   }}
                                   onClick={e => (e.target as HTMLTextAreaElement).select()}
                                 />
-                                <div style={{ fontSize: '0.63rem', color: 'var(--pl-muted)', marginTop: '3px' }}>
+                                <div style={{ fontSize: '0.63rem', color: '#71717A', marginTop: '3px' }}>
                                   Click to select all, then copy
                                 </div>
                               </>
@@ -585,9 +585,9 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
           disabled={timelineLoading}
           style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
-            background: timelineLoading ? 'rgba(163,177,138,0.07)' : 'rgba(163,177,138,0.12)',
-            border: '1px solid rgba(163,177,138,0.3)', borderRadius: '8px',
-            color: '#A3B18A', fontSize: '0.75rem', fontWeight: 700,
+            background: timelineLoading ? 'rgba(24,24,27,0.05)' : '#F4F4F5',
+            border: '1px solid #E4E4E7', borderRadius: '8px',
+            color: '#71717A', fontSize: '0.75rem', fontWeight: 700,
             padding: '9px', cursor: timelineLoading ? 'not-allowed' : 'pointer',
             opacity: timelineLoading ? 0.7 : 1,
           }}
@@ -607,7 +607,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
             {/* Vertical line */}
             <div style={{
               position: 'absolute', left: '20px', top: '8px', bottom: '8px',
-              width: '1px', background: 'rgba(163,177,138,0.2)',
+              width: '1px', background: 'rgba(24,24,27,0.1)',
             }} />
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
@@ -622,20 +622,20 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                   {/* Time badge */}
                   <div style={{
                     flexShrink: 0, width: '40px',
-                    background: 'rgba(163,177,138,0.15)', border: '1px solid rgba(163,177,138,0.3)',
+                    background: 'rgba(24,24,27,0.08)', border: '1px solid #E4E4E7',
                     borderRadius: '6px', padding: '3px 4px', textAlign: 'center',
-                    fontSize: '0.6rem', fontWeight: 800, color: '#A3B18A', lineHeight: 1.2,
+                    fontSize: '0.6rem', fontWeight: 800, color: '#71717A', lineHeight: 1.2,
                     position: 'relative', zIndex: 1,
                   }}>
                     {item.time}
                   </div>
                   {/* Description */}
                   <div style={{ paddingTop: '2px' }}>
-                    <div style={{ fontSize: '0.74rem', color: 'var(--pl-ink)', lineHeight: 1.4 }}>
+                    <div style={{ fontSize: '0.74rem', color: '#18181B', lineHeight: 1.4 }}>
                       {item.description}
                     </div>
                     {item.vendor && (
-                      <div style={{ fontSize: '0.64rem', color: '#A3B18A', marginTop: '2px', fontStyle: 'italic' }}>
+                      <div style={{ fontSize: '0.64rem', color: '#71717A', marginTop: '2px',  }}>
                         {item.vendor}
                       </div>
                     )}

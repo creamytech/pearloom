@@ -33,14 +33,14 @@ export const fontSize = {
 export const lbl: React.CSSProperties = {
   display: 'block', fontSize: fontSize.xs, fontWeight: 700,
   letterSpacing: '0.1em', textTransform: 'uppercase',
-  color: 'var(--pl-muted, #7A756E)', marginBottom: spacing.sm,
+  color: '#71717A', marginBottom: spacing.sm,
 };
 
 // ── Section heading (bigger than field labels) ────────────────
 export const sectionHeading: React.CSSProperties = {
   fontSize: fontSize.sm, fontWeight: 800,
   letterSpacing: '0.08em', textTransform: 'uppercase',
-  color: 'var(--pl-ink-soft, #4A4A4A)', marginBottom: spacing.md,
+  color: '#18181B', marginBottom: spacing.md,
 };
 
 // ── Shared input style — glass with white glow border ─────────
@@ -82,7 +82,7 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type }:
         style={{ ...inp, resize: 'vertical', lineHeight: 1.65 }}
         onFocus={focusStyle} onBlur={blurStyle}
       />
-      {hint && <p style={{ fontSize: fontSize['2xs'], color: 'var(--pl-muted)', marginTop: spacing.xs, lineHeight: 1.4 }}>{hint}</p>}
+      {hint && <p style={{ fontSize: fontSize['2xs'], color: '#71717A', marginTop: spacing.xs, lineHeight: 1.4 }}>{hint}</p>}
     </div>
   );
   return (
@@ -95,7 +95,7 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type }:
         style={inp}
         onFocus={focusStyle} onBlur={blurStyle}
       />
-      {hint && <p style={{ fontSize: fontSize['2xs'], color: 'var(--pl-muted)', marginTop: spacing.xs, lineHeight: 1.4 }}>{hint}</p>}
+      {hint && <p style={{ fontSize: fontSize['2xs'], color: '#71717A', marginTop: spacing.xs, lineHeight: 1.4 }}>{hint}</p>}
     </div>
   );
 }
@@ -132,9 +132,9 @@ export function ActionButton({ label, icon, onClick, variant = 'default', size =
   size?: 'sm' | 'md';
 }) {
   const colors = {
-    default: { bg: 'rgba(255,255,255,0.3)', border: 'rgba(255,255,255,0.25)', color: 'var(--pl-ink-soft)' },
+    default: { bg: 'rgba(255,255,255,0.3)', border: 'rgba(255,255,255,0.25)', color: '#3F3F46' },
     danger: { bg: 'rgba(248,113,113,0.08)', border: 'rgba(248,113,113,0.25)', color: '#e87a7a' },
-    accent: { bg: 'rgba(163,177,138,0.1)', border: 'rgba(163,177,138,0.3)', color: 'var(--pl-olive)' },
+    accent: { bg: 'rgba(24,24,27,0.06)', border: '#E4E4E7', color: '#18181B' },
   }[variant];
 
   const padding = size === 'sm' ? `${spacing.xs} ${spacing.sm}` : `${spacing.sm} ${spacing.md}`;
@@ -167,13 +167,13 @@ export function PillToggle({ label, value, onChange }: {
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: `${spacing.sm} 0`,
     }}>
-      <span style={{ fontSize: fontSize.sm, color: 'var(--pl-ink-soft)', fontWeight: 500 }}>{label}</span>
+      <span style={{ fontSize: fontSize.sm, color: '#3F3F46', fontWeight: 500 }}>{label}</span>
       <button
         onClick={() => onChange(!value)}
         style={{
-          width: '36px', height: '20px', borderRadius: '100px',
-          background: value ? 'var(--pl-olive, #A3B18A)' : 'rgba(255,255,255,0.3)',
-          border: value ? '1px solid rgba(163,177,138,0.5)' : '1px solid rgba(255,255,255,0.3)',
+          width: '36px', height: '20px', borderRadius: '8px',
+          background: value ? '#18181B' : 'rgba(255,255,255,0.3)',
+          border: value ? '1px solid #A1A1AA' : '1px solid rgba(255,255,255,0.3)',
           cursor: 'pointer', position: 'relative', transition: 'all 0.2s',
           touchAction: 'manipulation',
         }}
@@ -198,19 +198,19 @@ export function EmptyState({ icon, title, description, action, onAction }: {
     <div style={{
       padding: spacing.xl, textAlign: 'center',
       borderRadius: '12px',
-      border: '1.5px dashed rgba(163,177,138,0.25)',
+      border: '1.5px dashed rgba(24,24,27,0.12)',
       background: 'rgba(255,255,255,0.15)',
     }}>
       {icon && <div style={{ fontSize: '1.5rem', marginBottom: spacing.sm, opacity: 0.5 }}>{icon}</div>}
-      <div style={{ fontSize: fontSize.sm, fontWeight: 700, color: 'var(--pl-ink-soft)', marginBottom: spacing.xs }}>{title}</div>
-      {description && <div style={{ fontSize: fontSize.xs, color: 'var(--pl-muted)', lineHeight: 1.5 }}>{description}</div>}
+      <div style={{ fontSize: fontSize.sm, fontWeight: 700, color: '#3F3F46', marginBottom: spacing.xs }}>{title}</div>
+      {description && <div style={{ fontSize: fontSize.xs, color: '#71717A', lineHeight: 1.5 }}>{description}</div>}
       {action && onAction && (
         <button
           onClick={onAction}
           style={{
             marginTop: spacing.md, padding: `${spacing.sm} ${spacing.lg}`,
-            borderRadius: '100px', border: '1px solid rgba(163,177,138,0.3)',
-            background: 'rgba(163,177,138,0.08)', color: 'var(--pl-olive)',
+            borderRadius: '8px', border: '1px solid #E4E4E7',
+            background: 'rgba(24,24,27,0.04)', color: '#18181B',
             fontSize: fontSize.xs, fontWeight: 700, cursor: 'pointer',
             letterSpacing: '0.06em', touchAction: 'manipulation',
           }}

@@ -120,7 +120,7 @@ function auditManifest(manifest: StoryManifest): A11yIssue[] {
 const SEV_STYLE: Record<string, { bg: string; border: string; icon: React.ReactNode; color: string }> = {
   error: { bg: 'rgba(248,81,73,0.10)', border: 'rgba(248,81,73,0.35)', icon: <IconError size={14} />,  color: '#f87171' },
   warn:  { bg: 'rgba(234,179,8,0.08)',  border: 'rgba(234,179,8,0.30)',  icon: <IconWarn size={14} />,  color: '#fbbf24' },
-  tip:   { bg: 'rgba(163,177,138,0.10)',border: 'rgba(163,177,138,0.3)', icon: <IconTip size={14} />,   color: '#A3B18A' },
+  tip:   { bg: 'rgba(24,24,27,0.10)',border: '#E4E4E7', icon: <IconTip size={14} />,   color: '#71717A' },
 };
 
 interface AccessibilityAuditPanelProps {
@@ -140,7 +140,7 @@ export function AccessibilityAuditPanel({ manifest }: AccessibilityAuditPanelPro
       <div style={{
         display: 'flex', alignItems: 'center', gap: '6px',
         fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
-        textTransform: 'uppercase', color: 'var(--pl-muted)',
+        textTransform: 'uppercase', color: '#71717A',
         marginBottom: '2px',
       }}>
         <IconAccessibility size={12} /> Accessibility
@@ -160,14 +160,14 @@ export function AccessibilityAuditPanel({ manifest }: AccessibilityAuditPanelPro
             <span style={{ display: 'flex', alignItems: 'flex-start', paddingTop: '1px', color: s.color, flexShrink: 0 }}>{s.icon}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: '0.75rem', fontWeight: 800, color: s.color, marginBottom: '2px' }}>{issue.title}</div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--pl-ink-soft)', lineHeight: 1.55 }}>{issue.detail}</div>
+              <div style={{ fontSize: '0.7rem', color: '#3F3F46', lineHeight: 1.55 }}>{issue.detail}</div>
             </div>
             <button
               onClick={() => setDismissed(prev => new Set([...prev, issue.code]))}
               style={{
                 position: 'absolute', top: '6px', right: '6px',
                 background: 'none', border: 'none', cursor: 'pointer',
-                color: 'var(--pl-muted)', fontSize: '0.7rem', padding: '2px',
+                color: '#71717A', fontSize: '0.7rem', padding: '2px',
                 lineHeight: 1,
               }}
               aria-label="Dismiss"

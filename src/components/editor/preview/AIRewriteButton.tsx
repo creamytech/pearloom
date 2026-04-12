@@ -76,9 +76,9 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
         whileTap={{ scale: 0.9 }}
         style={{
           width: '24px', height: '24px', borderRadius: '50%',
-          background: 'rgba(163,177,138,0.15)', border: 'none',
+          background: 'rgba(24,24,27,0.08)', border: 'none',
           cursor: 'pointer', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', color: '#A3B18A',
+          justifyContent: 'center', color: '#71717A',
           transition: 'background 0.15s',
         }}
       >
@@ -100,7 +100,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
             }}
             onClick={e => e.stopPropagation()}
           >
-            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#A3B18A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#71717A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
               AI Rewrite
             </div>
 
@@ -112,11 +112,11 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
                   onClick={() => handleRewrite(s.id)}
                   disabled={loading}
                   style={{
-                    padding: '0.35rem 0.65rem', borderRadius: '100px',
-                    border: `1.5px solid ${activeStyle === s.id ? '#A3B18A' : 'rgba(0,0,0,0.08)'}`,
-                    background: activeStyle === s.id ? 'rgba(163,177,138,0.1)' : '#fff',
+                    padding: '0.35rem 0.65rem', borderRadius: '8px',
+                    border: `1.5px solid ${activeStyle === s.id ? '#71717A' : 'rgba(0,0,0,0.08)'}`,
+                    background: activeStyle === s.id ? 'rgba(24,24,27,0.06)' : '#fff',
                     fontSize: '0.78rem', fontWeight: 500, cursor: loading ? 'wait' : 'pointer',
-                    color: 'var(--pl-ink)', transition: 'all 0.15s',
+                    color: '#18181B', transition: 'all 0.15s',
                   }}
                 >
                   {s.label}
@@ -136,9 +136,9 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
             {result && !loading && (
               <div>
                 <div style={{
-                  padding: '0.6rem', borderRadius: '0.5rem', background: 'rgba(163,177,138,0.06)',
-                  border: '1px solid rgba(163,177,138,0.15)', fontSize: '0.85rem', lineHeight: 1.5,
-                  color: 'var(--pl-ink)', marginBottom: '0.5rem',
+                  padding: '0.6rem', borderRadius: '0.5rem', background: '#F4F4F5',
+                  border: '1px solid rgba(24,24,27,0.08)', fontSize: '0.85rem', lineHeight: 1.5,
+                  color: '#18181B', marginBottom: '0.5rem',
                 }}>
                   {result}
                 </div>
@@ -146,7 +146,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
                   <button
                     onClick={() => { setOpen(false); setResult(null); setActiveStyle(null); }}
                     style={{
-                      padding: '0.35rem 0.75rem', borderRadius: '100px',
+                      padding: '0.35rem 0.75rem', borderRadius: '8px',
                       border: '1px solid rgba(0,0,0,0.08)', background: '#fff',
                       fontSize: '0.78rem', cursor: 'pointer', color: '#9A9488',
                     }}
@@ -159,8 +159,8 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
                       setActiveStyle(null);
                     }}
                     style={{
-                      padding: '0.35rem 0.75rem', borderRadius: '100px',
-                      border: 'none', background: '#A3B18A', color: '#fff',
+                      padding: '0.35rem 0.75rem', borderRadius: '8px',
+                      border: 'none', background: '#71717A', color: '#fff',
                       fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
                     }}
                   >Use this</button>

@@ -145,7 +145,7 @@ export function GettingStartedChecklist() {
           backdropFilter: 'blur(32px) saturate(1.5)',
           WebkitBackdropFilter: 'blur(32px) saturate(1.5)',
           border: '1px solid rgba(255,255,255,0.5)',
-          boxShadow: '0 8px 36px rgba(43,30,20,0.12), 0 2px 8px rgba(43,30,20,0.04), inset 0 1px 0 rgba(255,255,255,0.4)',
+          boxShadow: '0 8px 36px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,0.4)',
           overflow: 'hidden',
           animation: 'pl-checklist-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) both',
           animationDelay: '0.3s',
@@ -172,9 +172,9 @@ export function GettingStartedChecklist() {
             </span>
             <span style={{
               fontSize: '0.62rem', fontWeight: 700,
-              color: 'var(--pl-olive, #A3B18A)',
-              background: 'rgba(163,177,138,0.12)',
-              padding: '2px 7px', borderRadius: '100px',
+              color: '#18181B',
+              background: '#F4F4F5',
+              padding: '2px 7px', borderRadius: '8px',
             }}>
               {completedCount}/{ITEMS.length}
             </span>
@@ -183,7 +183,7 @@ export function GettingStartedChecklist() {
             {collapsed && remaining > 0 && (
               <span style={{
                 width: '18px', height: '18px', borderRadius: '50%',
-                background: 'var(--pl-olive, #A3B18A)', color: '#fff',
+                background: '#18181B', color: '#fff',
                 fontSize: '0.58rem', fontWeight: 800,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 lineHeight: 1,
@@ -208,11 +208,11 @@ export function GettingStartedChecklist() {
         <div style={{
           height: '3px', background: 'rgba(0,0,0,0.04)',
           margin: '0 16px 0',
-          borderRadius: '100px', overflow: 'hidden',
+          borderRadius: '8px', overflow: 'hidden',
         }}>
           <div style={{
-            height: '100%', borderRadius: '100px',
-            background: 'linear-gradient(90deg, var(--pl-olive, #A3B18A), #8a9d72)',
+            height: '100%', borderRadius: '8px',
+            background: 'linear-gradient(90deg, #18181B, #8a9d72)',
             width: `${progressPct}%`,
             transition: 'width 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
             animation: 'pl-progress-fill 0.6s ease both',
@@ -269,7 +269,7 @@ export function GettingStartedChecklist() {
                     <div style={{
                       width: '18px', height: '18px', borderRadius: '6px', flexShrink: 0,
                       border: done ? 'none' : '1.5px solid rgba(0,0,0,0.15)',
-                      background: done ? 'var(--pl-olive, #A3B18A)' : 'rgba(255,255,255,0.5)',
+                      background: done ? '#18181B' : 'rgba(255,255,255,0.5)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       transition: 'all 0.2s',
                       animation: done ? 'pl-check-bounce 0.35s cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
@@ -297,22 +297,22 @@ export function GettingStartedChecklist() {
                       <button
                         onClick={() => handleGo(item)}
                         style={{
-                          padding: '3px 10px', borderRadius: '100px',
-                          border: '1px solid rgba(163,177,138,0.3)',
-                          background: 'rgba(163,177,138,0.08)',
-                          color: 'var(--pl-olive-deep, #6e8c5c)',
+                          padding: '3px 10px', borderRadius: '8px',
+                          border: '1px solid #E4E4E7',
+                          background: 'rgba(24,24,27,0.04)',
+                          color: '#18181B',
                           fontSize: '0.6rem', fontWeight: 700,
                           letterSpacing: '0.06em', textTransform: 'uppercase',
                           cursor: 'pointer',
                           transition: 'background 0.15s, border-color 0.15s',
                         }}
                         onMouseEnter={e => {
-                          e.currentTarget.style.background = 'rgba(163,177,138,0.18)';
-                          e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)';
+                          e.currentTarget.style.background = 'rgba(24,24,27,0.08)';
+                          e.currentTarget.style.borderColor = '#A1A1AA';
                         }}
                         onMouseLeave={e => {
-                          e.currentTarget.style.background = 'rgba(163,177,138,0.08)';
-                          e.currentTarget.style.borderColor = 'rgba(163,177,138,0.3)';
+                          e.currentTarget.style.background = 'rgba(24,24,27,0.04)';
+                          e.currentTarget.style.borderColor = '#E4E4E7';
                         }}
                       >
                         Go

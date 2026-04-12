@@ -130,7 +130,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
 
   if (loading) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center', color: 'var(--pl-muted)', fontSize: '0.8rem' }}>
+      <div style={{ padding: '20px', textAlign: 'center', color: '#71717A', fontSize: '0.8rem' }}>
         Loading seating…
       </div>
     );
@@ -145,7 +145,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
         <div style={{
           display: 'flex', alignItems: 'center', gap: '6px',
           fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
-          textTransform: 'uppercase', color: 'var(--pl-muted)',
+          textTransform: 'uppercase', color: '#71717A',
         }}>
           <LayoutGrid size={11} /> Seating Chart
         </div>
@@ -167,11 +167,11 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
           padding: '10px', borderRadius: '9px',
-          border: '1px solid rgba(163,177,138,0.3)',
+          border: '1px solid #E4E4E7',
           background: optimizing
-            ? 'rgba(163,177,138,0.06)'
-            : 'linear-gradient(135deg, rgba(163,177,138,0.18) 0%, rgba(143,200,122,0.12) 100%)',
-          color: optimizing ? 'rgba(163,177,138,0.5)' : '#A3B18A',
+            ? '#F4F4F5'
+            : 'linear-gradient(135deg, rgba(24,24,27,0.08) 0%, rgba(143,200,122,0.12) 100%)',
+          color: optimizing ? '#A1A1AA' : '#71717A',
           cursor: optimizing ? 'default' : 'pointer',
           fontSize: '0.78rem', fontWeight: 700,
           transition: 'all 0.15s',
@@ -183,7 +183,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
 
       {/* Optimize feedback */}
       {optimizeMsg && (
-        <p style={{ margin: '-6px 0 0', fontSize: '0.72rem', color: '#A3B18A', textAlign: 'center' }}>
+        <p style={{ margin: '-6px 0 0', fontSize: '0.72rem', color: '#71717A', textAlign: 'center' }}>
           {optimizeMsg}
         </p>
       )}
@@ -196,16 +196,16 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
         {[
-          { label: 'Tables', value: stats.tables, color: '#A3B18A' },
-          { label: 'Total seats', value: stats.totalSeats, color: 'var(--pl-muted)' },
-          { label: 'Assigned', value: stats.assignedSeats, color: '#A3B18A' },
-          { label: 'Unassigned', value: stats.unassignedGuests, color: stats.unassignedGuests > 0 ? '#fbbf24' : '#A3B18A' },
+          { label: 'Tables', value: stats.tables, color: '#71717A' },
+          { label: 'Total seats', value: stats.totalSeats, color: '#71717A' },
+          { label: 'Assigned', value: stats.assignedSeats, color: '#71717A' },
+          { label: 'Unassigned', value: stats.unassignedGuests, color: stats.unassignedGuests > 0 ? '#fbbf24' : '#71717A' },
         ].map(({ label, value, color }) => (
           <div key={label} style={{
             padding: '8px 10px', borderRadius: '9px',
             background: `${color}0d`, border: `1px solid ${color}20`,
           }}>
-            <div style={{ fontSize: '0.62rem', color: 'var(--pl-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>{label}</div>
+            <div style={{ fontSize: '0.62rem', color: '#71717A', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>{label}</div>
             <div style={{ fontSize: '1.1rem', fontWeight: 800, color }}>{value}</div>
           </div>
         ))}
@@ -215,13 +215,13 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
       {stats.totalSeats > 0 && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <span style={{ fontSize: '0.68rem', color: 'var(--pl-muted)' }}>Seat fill</span>
-            <span style={{ fontSize: '0.68rem', color: '#A3B18A', fontWeight: 700 }}>{fillPct}%</span>
+            <span style={{ fontSize: '0.68rem', color: '#71717A' }}>Seat fill</span>
+            <span style={{ fontSize: '0.68rem', color: '#71717A', fontWeight: 700 }}>{fillPct}%</span>
           </div>
           <div style={{ height: '5px', borderRadius: '3px', background: 'rgba(255,255,255,0.2)', overflow: 'hidden' }}>
             <div style={{
               height: '100%', width: `${fillPct}%`, borderRadius: '3px',
-              background: fillPct >= 90 ? '#f87171' : '#A3B18A',
+              background: fillPct >= 90 ? '#f87171' : '#71717A',
               transition: 'width 0.5s ease',
             }} />
           </div>
@@ -231,14 +231,14 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
       {/* Open full editor button */}
       <motion.button
         onClick={openFullEditor}
-        whileHover={{ scale: 1.02, borderColor: 'rgba(214,198,168,0.3)' }}
+        whileHover={{ scale: 1.02, borderColor: '#E4E4E7' }}
         whileTap={{ scale: 0.97 }}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
           padding: '10px', borderRadius: '9px',
-          border: '1px solid rgba(214,198,168,0.15)',
-          background: 'rgba(214,198,168,0.05)',
-          color: 'var(--pl-muted)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
+          border: '1px solid rgba(24,24,27,0.06)',
+          background: 'rgba(24,24,27,0.03)',
+          color: '#71717A', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
         }}
       >
         <LayoutGrid size={13} /> Open Full Seating Editor <ExternalLink size={11} />
@@ -255,16 +255,16 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
                 <div key={table.id} style={{
                   display: 'flex', alignItems: 'center', gap: '8px',
                   padding: '6px 8px', borderRadius: '7px',
-                  background: 'rgba(163,177,138,0.04)',
+                  background: 'rgba(24,24,27,0.03)',
                 }}>
-                  <ShapeIcon size={11} color={table.isReserved ? '#D6C6A8' : 'var(--pl-muted)'} />
+                  <ShapeIcon size={11} color={table.isReserved ? '#D6C6A8' : '#71717A'} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--pl-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#18181B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {table.label}
-                      {table.isReserved && <span style={{ color: 'var(--pl-muted)', marginLeft: '4px', fontSize: '0.62rem' }}>Reserved</span>}
+                      {table.isReserved && <span style={{ color: '#71717A', marginLeft: '4px', fontSize: '0.62rem' }}>Reserved</span>}
                     </div>
                   </div>
-                  <div style={{ fontSize: '0.68rem', color: assigned === table.capacity ? '#A3B18A' : 'var(--pl-muted)', flexShrink: 0 }}>
+                  <div style={{ fontSize: '0.68rem', color: assigned === table.capacity ? '#71717A' : '#71717A', flexShrink: 0 }}>
                     {assigned}/{table.capacity}
                   </div>
                 </div>
@@ -286,8 +286,8 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
                 display: 'flex', alignItems: 'center', gap: '8px',
                 padding: '7px 10px', borderRadius: '7px',
                 border: '1px solid rgba(255,255,255,0.2)',
-                background: 'rgba(163,177,138,0.04)',
-                color: 'var(--pl-ink-soft)', cursor: 'pointer', fontSize: '0.75rem',
+                background: 'rgba(24,24,27,0.03)',
+                color: '#3F3F46', cursor: 'pointer', fontSize: '0.75rem',
                 textAlign: 'left',
               }}
             >

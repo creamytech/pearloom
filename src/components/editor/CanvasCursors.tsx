@@ -21,7 +21,7 @@ interface CursorPosition {
 }
 
 const CURSOR_COLORS = [
-  '#A3B18A', '#6D597A', '#C4A96A', '#C45D3E',
+  '#71717A', '#6D597A', '#C4A96A', '#C45D3E',
   '#3a7ca8', '#d4829a', '#6a8f5a', '#c97c30',
 ];
 

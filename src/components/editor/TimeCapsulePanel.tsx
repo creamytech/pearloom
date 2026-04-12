@@ -221,7 +221,7 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
             >
               <div style={styles.capsuleInfo}>
                 <div style={styles.capsuleNames}>
-                  <span style={{ color: 'var(--pl-olive)' }}>◆</span>
+                  <span style={{ color: '#18181B' }}>◆</span>
                   <strong style={styles.capsuleNameText}>
                     From: {capsule.fromName} → To: {capsule.toName}
                   </strong>
@@ -276,7 +276,7 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
             style={styles.successBox}
           >
             <div style={styles.successTitle}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><MailCheck size={16} style={{ color: 'var(--pl-olive)' }} /> Letter sealed! It will be delivered on {formatDate(successInfo.date)}.</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><MailCheck size={16} style={{ color: '#18181B' }} /> Letter sealed! It will be delivered on {formatDate(successInfo.date)}.</span>
             </div>
             <div style={styles.successUrl}>
               <span style={styles.dimText}>Save this link — share it with each other:</span>
@@ -350,7 +350,7 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
           <div
             style={{
               ...styles.charCount,
-              color: charCount > 1800 ? '#c0856a' : 'rgba(214,198,168,0.45)',
+              color: charCount > 1800 ? '#c0856a' : '#A1A1AA',
             }}
           >
             {charCount} / 2000 characters
@@ -384,7 +384,7 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
 const styles: Record<string, React.CSSProperties> = {
   container: {
     background: '#1C1916',
-    color: 'var(--pl-ink)',
+    color: '#18181B',
     fontFamily: 'system-ui, -apple-system, sans-serif',
     padding: '24px',
     borderRadius: '12px',
@@ -395,7 +395,7 @@ const styles: Record<string, React.CSSProperties> = {
   // Header
   header: {
     marginBottom: '28px',
-    borderBottom: '1px solid rgba(214,198,168,0.12)',
+    borderBottom: '1px solid rgba(24,24,27,0.06)',
     paddingBottom: '20px',
   },
   headerTop: {
@@ -411,13 +411,13 @@ const styles: Record<string, React.CSSProperties> = {
     margin: 0,
     fontSize: '20px',
     fontWeight: 600,
-    color: 'var(--pl-muted)',
+    color: '#71717A',
     letterSpacing: '0.01em',
   },
   subtitle: {
     margin: '4px 0 0 32px',
     fontSize: '13px',
-    color: 'var(--pl-muted)',
+    color: '#71717A',
     lineHeight: 1.5,
   },
 
@@ -431,7 +431,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     letterSpacing: '0.08em',
     textTransform: 'uppercase',
-    color: 'var(--pl-muted)',
+    color: '#71717A',
   },
 
   // Capsule card
@@ -439,8 +439,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    background: 'rgba(214,198,168,0.06)',
-    border: '1px solid rgba(214,198,168,0.14)',
+    background: 'rgba(24,24,27,0.04)',
+    border: '1px solid rgba(24,24,27,0.06)',
     borderRadius: '8px',
     padding: '14px 16px',
     marginBottom: '10px',
@@ -457,12 +457,12 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '14px',
   },
   capsuleNameText: {
-    color: 'var(--pl-muted)',
+    color: '#71717A',
     fontWeight: 500,
   },
   capsuleMeta: {
     fontSize: '12px',
-    color: 'var(--pl-muted)',
+    color: '#71717A',
     paddingLeft: '24px',
   },
   capsuleStatus: {
@@ -477,9 +477,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   deleteBtn: {
     background: 'transparent',
-    border: '1px solid rgba(214,198,168,0.18)',
+    border: '1px solid rgba(24,24,27,0.08)',
     borderRadius: '6px',
-    color: 'var(--pl-muted)',
+    color: '#71717A',
     fontSize: '12px',
     padding: '5px 12px',
     cursor: 'pointer',
@@ -509,9 +509,9 @@ const styles: Record<string, React.CSSProperties> = {
   unlockLink: {
     fontFamily: 'monospace',
     fontSize: '13px',
-    color: 'var(--pl-muted)',
-    background: 'rgba(214,198,168,0.06)',
-    border: '1px solid rgba(214,198,168,0.14)',
+    color: '#71717A',
+    background: 'rgba(24,24,27,0.04)',
+    border: '1px solid rgba(24,24,27,0.06)',
     borderRadius: '4px',
     padding: '6px 10px',
     wordBreak: 'break-all',
@@ -535,13 +535,13 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 500,
     letterSpacing: '0.05em',
     textTransform: 'uppercase',
-    color: 'var(--pl-muted)',
+    color: '#71717A',
   },
   input: {
-    background: 'rgba(214,198,168,0.06)',
-    border: '1px solid rgba(214,198,168,0.18)',
+    background: 'rgba(24,24,27,0.04)',
+    border: '1px solid rgba(24,24,27,0.08)',
     borderRadius: '6px',
-    color: 'var(--pl-muted)',
+    color: '#71717A',
     fontSize: '14px',
     padding: '9px 12px',
     outline: 'none',
@@ -554,10 +554,10 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '12px',
   },
   select: {
-    background: 'rgba(214,198,168,0.06)',
-    border: '1px solid rgba(214,198,168,0.18)',
+    background: 'rgba(24,24,27,0.04)',
+    border: '1px solid rgba(24,24,27,0.08)',
     borderRadius: '6px',
-    color: 'var(--pl-muted)',
+    color: '#71717A',
     fontSize: '14px',
     padding: '9px 12px',
     outline: 'none',
@@ -565,12 +565,12 @@ const styles: Record<string, React.CSSProperties> = {
   },
   unlockPreview: {
     fontSize: '12px',
-    color: 'var(--pl-muted)',
-    fontStyle: 'italic',
+    color: '#71717A',
+    
   },
   textarea: {
-    background: 'rgba(214,198,168,0.04)',
-    border: '1px solid rgba(214,198,168,0.18)',
+    background: 'rgba(24,24,27,0.03)',
+    border: '1px solid rgba(24,24,27,0.08)',
     borderRadius: '8px',
     color: '#C8B89A',
     fontFamily: 'Georgia, serif',
@@ -604,7 +604,7 @@ const styles: Record<string, React.CSSProperties> = {
   // Seal button
   sealBtn: {
     background: 'linear-gradient(135deg, #8B7355 0%, #6B5A42 100%)',
-    border: '1px solid rgba(214,198,168,0.25)',
+    border: '1px solid rgba(24,24,27,0.1)',
     borderRadius: '8px',
     color: '#F0E8D8',
     fontSize: '14px',
@@ -618,7 +618,7 @@ const styles: Record<string, React.CSSProperties> = {
   // Misc
   dimText: {
     fontSize: '13px',
-    color: 'var(--pl-muted)',
-    fontStyle: 'italic',
+    color: '#71717A',
+    
   },
 };

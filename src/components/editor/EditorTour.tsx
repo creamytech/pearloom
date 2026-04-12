@@ -287,8 +287,8 @@ export function EditorTour({ onComplete }: { onComplete?: () => void }) {
               width: spotW + 4,
               height: spotH + 4,
               borderRadius: `${spotR + 2}px`,
-              border: '2px solid rgba(163,177,138,0.5)',
-              boxShadow: '0 0 20px rgba(163,177,138,0.25), inset 0 0 20px rgba(163,177,138,0.08)',
+              border: '2px solid #A1A1AA',
+              boxShadow: '0 0 20px rgba(24,24,27,0.12), inset 0 0 20px rgba(24,24,27,0.04)',
               pointerEvents: 'none',
               transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
@@ -308,7 +308,7 @@ export function EditorTour({ onComplete }: { onComplete?: () => void }) {
             backdropFilter: 'blur(32px) saturate(1.5)',
             WebkitBackdropFilter: 'blur(32px) saturate(1.5)',
             border: '1px solid rgba(255,255,255,0.5)',
-            boxShadow: '0 12px 48px rgba(43,30,20,0.18), 0 2px 8px rgba(43,30,20,0.06), inset 0 1px 0 rgba(255,255,255,0.4)',
+            boxShadow: '0 12px 48px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.4)',
             animation: transitioning ? 'pl-tour-card-exit 0.2s ease both' : 'pl-tour-card-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1) both',
             pointerEvents: 'auto',
             zIndex: 9001,
@@ -373,8 +373,8 @@ export function EditorTour({ onComplete }: { onComplete?: () => void }) {
                 style={{
                   width: i === step ? '18px' : '6px',
                   height: '6px',
-                  borderRadius: '100px',
-                  background: i === step ? 'var(--pl-olive, #A3B18A)' : i < step ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.1)',
+                  borderRadius: '8px',
+                  background: i === step ? '#18181B' : i < step ? '#18181B' : 'rgba(0,0,0,0.1)',
                   opacity: i <= step ? 1 : 0.5,
                   transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
                 }}
@@ -388,7 +388,7 @@ export function EditorTour({ onComplete }: { onComplete?: () => void }) {
               <button
                 onClick={handleBack}
                 style={{
-                  padding: '8px 18px', borderRadius: '100px',
+                  padding: '8px 18px', borderRadius: '8px',
                   border: '1px solid rgba(0,0,0,0.08)',
                   background: 'rgba(255,255,255,0.6)',
                   color: 'var(--pl-ink-soft, #5a4f42)',
@@ -404,8 +404,8 @@ export function EditorTour({ onComplete }: { onComplete?: () => void }) {
             <button
               onClick={handleNext}
               style={{
-                padding: '8px 22px', borderRadius: '100px', border: 'none',
-                background: 'var(--pl-olive-deep, #6e8c5c)',
+                padding: '8px 22px', borderRadius: '8px', border: 'none',
+                background: '#18181B',
                 color: '#fff', cursor: 'pointer',
                 fontSize: '0.75rem', fontWeight: 700,
                 letterSpacing: '0.04em',

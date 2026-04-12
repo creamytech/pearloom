@@ -91,12 +91,12 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
       <div style={{
         display: 'flex', alignItems: 'center', gap: '6px',
         fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
-        textTransform: 'uppercase', color: 'var(--pl-muted)',
+        textTransform: 'uppercase', color: '#71717A',
       }}>
         <Globe size={11} /> Translations
       </div>
 
-      <div style={{ fontSize: '0.75rem', color: 'var(--pl-ink-soft)', lineHeight: 1.55 }}>
+      <div style={{ fontSize: '0.75rem', color: '#3F3F46', lineHeight: 1.55 }}>
         Generate your story chapters in another language. Once created, guests switch
         language using the toolbar selector.
       </div>
@@ -109,21 +109,21 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
               <div key={locale.code} style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
                 padding: '7px 10px', borderRadius: '12px',
-                background: 'rgba(163,177,138,0.08)',
-                border: '1px solid rgba(163,177,138,0.2)',
+                background: 'rgba(24,24,27,0.04)',
+                border: '1px solid rgba(24,24,27,0.1)',
               }}>
                 <span style={{ fontSize: '1rem' }}>{locale.flag}</span>
-                <div style={{ flex: 1, fontSize: '0.78rem', fontWeight: 600, color: '#A3B18A' }}>
+                <div style={{ flex: 1, fontSize: '0.78rem', fontWeight: 600, color: '#71717A' }}>
                   {locale.label}
                 </div>
-                <Check size={11} color="#A3B18A" />
+                <Check size={11} color="#71717A" />
                 <button
                   onClick={() => handleGenerate(locale.code)}
                   disabled={generating === locale.code}
                   style={{
                     padding: '3px 8px', borderRadius: '5px',
-                    border: '1px solid rgba(214,198,168,0.15)',
-                    background: 'none', color: 'var(--pl-ink-soft)',
+                    border: '1px solid rgba(24,24,27,0.06)',
+                    background: 'none', color: '#3F3F46',
                     cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700,
                   }}
                   title="Regenerate"
@@ -135,7 +135,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                   style={{
                     padding: '3px', borderRadius: '5px',
                     border: 'none', background: 'none',
-                    color: 'var(--pl-muted)', cursor: 'pointer',
+                    color: '#71717A', cursor: 'pointer',
                   }}
                   title="Remove translation"
                 >
@@ -155,28 +155,28 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
               <motion.button
                 onClick={() => handleGenerate(locale.code)}
                 disabled={!!generating}
-                whileHover={{ backgroundColor: 'rgba(214,198,168,0.07)' }}
+                whileHover={{ backgroundColor: 'rgba(24,24,27,0.04)' }}
                 whileTap={{ scale: 0.97 }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '10px',
                   width: '100%', padding: '8px 10px', borderRadius: '12px',
                   border: '1px solid rgba(255,255,255,0.15)',
-                  background: 'rgba(163,177,138,0.04)',
+                  background: 'rgba(24,24,27,0.03)',
                   cursor: generating ? 'wait' : 'pointer',
                   textAlign: 'left',
                 }}
               >
                 <span style={{ fontSize: '1rem', flexShrink: 0 }}>{locale.flag}</span>
-                <span style={{ flex: 1, fontSize: '0.78rem', fontWeight: 600, color: 'var(--pl-ink-soft)' }}>
+                <span style={{ flex: 1, fontSize: '0.78rem', fontWeight: 600, color: '#3F3F46' }}>
                   {locale.label}
                 </span>
                 {generating === locale.code ? (
-                  <span style={{ fontSize: '0.7rem', color: '#A3B18A', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ fontSize: '0.7rem', color: '#71717A', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Loader2 size={11} style={{ animation: 'pl-spin 0.8s linear infinite' }} />
                     Translating…
                   </span>
                 ) : (
-                  <Sparkles size={11} color="rgba(214,198,168,0.35)" />
+                  <Sparkles size={11} color="#A1A1AA" />
                 )}
               </motion.button>
               {errors[locale.code] && (
@@ -193,7 +193,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
         <div style={{
           padding: '10px 12px', borderRadius: '12px',
           background: 'rgba(234,179,8,0.07)', border: '1px solid rgba(234,179,8,0.2)',
-          fontSize: '0.72rem', color: 'var(--pl-ink-soft)',
+          fontSize: '0.72rem', color: '#3F3F46',
         }}>
           Add story chapters before generating translations.
         </div>

@@ -21,7 +21,7 @@ import { IconMeal } from './EditorIcons';
 import type { Guest } from '@/types';
 
 const STATUS_COLOR: Record<string, string> = {
-  attending: '#A3B18A',
+  attending: '#71717A',
   declined:  '#f87171',
   pending:   '#D6C6A8',
 };
@@ -143,7 +143,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
       <div style={{
         display: 'flex', alignItems: 'center', gap: '6px',
         fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
-        textTransform: 'uppercase', color: 'var(--pl-muted)',
+        textTransform: 'uppercase', color: '#71717A',
       }}>
         <Users size={11} /> Guest List
       </div>
@@ -158,7 +158,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
               padding: '3px 9px', borderRadius: '20px', fontSize: '0.68rem', fontWeight: 700,
               border: `1px solid ${statusFilter === s ? (STATUS_COLOR[s] || '#D6C6A8') : 'rgba(0,0,0,0.06)'}`,
               background: statusFilter === s ? `${STATUS_COLOR[s] || '#D6C6A8'}1a` : 'transparent',
-              color: statusFilter === s ? (STATUS_COLOR[s] || '#D6C6A8') : 'var(--pl-ink-soft)',
+              color: statusFilter === s ? (STATUS_COLOR[s] || '#D6C6A8') : '#3F3F46',
               cursor: 'pointer',
             }}
           >
@@ -169,7 +169,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
 
       {/* Search box */}
       <div style={{ position: 'relative' }}>
-        <Search size={12} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--pl-muted)', pointerEvents: 'none' }} />
+        <Search size={12} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#71717A', pointerEvents: 'none' }} />
         <input
           value={query}
           onChange={e => setQuery(e.target.value)}
@@ -177,15 +177,15 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
           style={{
             width: '100%', padding: '7px 10px 7px 30px', borderRadius: '8px',
             border: '1px solid rgba(0,0,0,0.06)',
-            background: 'rgba(163,177,138,0.05)',
-            color: 'var(--pl-ink)', fontSize: '0.78rem',
+            background: 'rgba(24,24,27,0.04)',
+            color: '#18181B', fontSize: '0.78rem',
             outline: 'none', boxSizing: 'border-box',
           }}
         />
         {query && (
           <button onClick={() => setQuery('')} style={{
             position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
-            background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', padding: '2px',
+            background: 'none', border: 'none', cursor: 'pointer', color: '#71717A', padding: '2px',
           }}>
             <X size={11} />
           </button>
@@ -195,11 +195,11 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
       {/* Guest list */}
       <div style={{ maxHeight: '280px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '3px' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '12px', fontSize: '0.75rem', color: 'var(--pl-muted)' }}>
+          <div style={{ textAlign: 'center', padding: '12px', fontSize: '0.75rem', color: '#71717A' }}>
             Loading…
           </div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '12px', fontSize: '0.75rem', color: 'var(--pl-muted)' }}>
+          <div style={{ textAlign: 'center', padding: '12px', fontSize: '0.75rem', color: '#71717A' }}>
             {query ? 'No matches found' : 'No guests yet'}
           </div>
         ) : (
@@ -207,8 +207,8 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
             <div key={guest.id} style={{
               display: 'flex', alignItems: 'center', gap: '8px',
               padding: '6px 8px', borderRadius: '7px',
-              background: 'rgba(163,177,138,0.04)',
-              border: '1px solid rgba(163,177,138,0.06)',
+              background: 'rgba(24,24,27,0.03)',
+              border: '1px solid #F4F4F5',
             }}>
               <div style={{
                 width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0,
@@ -220,18 +220,18 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
                 {STATUS_ICON[guest.status] || '?'}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--pl-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#18181B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {guest.name}
                   {guest.plusOne && guest.plusOneName && (
-                    <span style={{ color: 'var(--pl-muted)', fontWeight: 400 }}> + {guest.plusOneName}</span>
+                    <span style={{ color: '#71717A', fontWeight: 400 }}> + {guest.plusOneName}</span>
                   )}
                 </div>
                 {guest.email && (
-                  <div style={{ fontSize: '0.62rem', color: 'var(--pl-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{guest.email}</div>
+                  <div style={{ fontSize: '0.62rem', color: '#71717A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{guest.email}</div>
                 )}
               </div>
               {guest.mealPreference && (
-                <div style={{ display: 'flex', alignItems: 'center', color: 'var(--pl-muted)', flexShrink: 0 }}><IconMeal size={11} /></div>
+                <div style={{ display: 'flex', alignItems: 'center', color: '#71717A', flexShrink: 0 }}><IconMeal size={11} /></div>
               )}
               <button
                 onClick={() => handleDelete(guest.id)}
@@ -255,8 +255,8 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
             style={{
               padding: '7px 10px', borderRadius: '7px',
               border: '1px solid rgba(0,0,0,0.06)',
-              background: 'rgba(163,177,138,0.05)',
-              color: 'var(--pl-ink)', fontSize: '0.78rem',
+              background: 'rgba(24,24,27,0.04)',
+              color: '#18181B', fontSize: '0.78rem',
               outline: 'none',
             }}
           />
@@ -268,8 +268,8 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
             style={{
               padding: '7px 10px', borderRadius: '7px',
               border: '1px solid rgba(0,0,0,0.06)',
-              background: 'rgba(163,177,138,0.05)',
-              color: 'var(--pl-ink)', fontSize: '0.78rem',
+              background: 'rgba(24,24,27,0.04)',
+              color: '#18181B', fontSize: '0.78rem',
               outline: 'none',
             }}
           />
@@ -278,8 +278,8 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
             disabled={adding || !addName.trim()}
             style={{
               padding: '7px', borderRadius: '7px',
-              border: 'none', background: addName.trim() ? 'rgba(163,177,138,0.2)' : 'rgba(163,177,138,0.06)',
-              color: addName.trim() ? '#A3B18A' : 'var(--pl-muted)',
+              border: 'none', background: addName.trim() ? 'rgba(24,24,27,0.1)' : '#F4F4F5',
+              color: addName.trim() ? '#71717A' : '#71717A',
               cursor: addName.trim() ? 'pointer' : 'default',
               fontSize: '0.78rem', fontWeight: 700,
             }}
@@ -292,7 +292,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
       {/* CSV Import */}
       <SidebarSection title="CSV Import" defaultOpen={false} icon={Upload}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ fontSize: '0.7rem', color: 'var(--pl-ink-soft)', lineHeight: 1.5 }}>
+          <div style={{ fontSize: '0.7rem', color: '#3F3F46', lineHeight: 1.5 }}>
             Upload a CSV with <code style={{ background: 'rgba(0,0,0,0.05)', padding: '1px 4px', borderRadius: '3px' }}>name,email</code> columns (up to 200 guests).
           </div>
           <input
@@ -308,8 +308,8 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               padding: '8px', borderRadius: '8px',
-              border: '1px dashed rgba(214,198,168,0.2)',
-              background: 'transparent', color: 'var(--pl-muted)',
+              border: '1px dashed rgba(24,24,27,0.08)',
+              background: 'transparent', color: '#71717A',
               cursor: csvLoading ? 'wait' : 'pointer', fontSize: '0.75rem', fontWeight: 700,
             }}
           >
@@ -319,8 +319,8 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
           {csvResult && (
             <div style={{
               fontSize: '0.7rem', padding: '6px 10px', borderRadius: '6px',
-              background: csvResult.includes('failed') ? 'rgba(248,81,73,0.1)' : 'rgba(163,177,138,0.1)',
-              color: csvResult.includes('failed') ? '#f87171' : '#A3B18A',
+              background: csvResult.includes('failed') ? 'rgba(248,81,73,0.1)' : 'rgba(24,24,27,0.06)',
+              color: csvResult.includes('failed') ? '#f87171' : '#71717A',
             }}>
               {csvResult}
             </div>

@@ -56,7 +56,7 @@ const labelStyle: React.CSSProperties = {
 
 const inputBase: React.CSSProperties = {
   width: '100%',
-  background: 'rgba(163,177,138,0.06)',
+  background: '#F4F4F5',
   border: '1px solid rgba(0,0,0,0.06)',
   borderRadius: '0.75rem',
   color: 'var(--pl-ink, #2B2B2B)',
@@ -184,8 +184,8 @@ export function GuestMessagingPanel() {
           style={{
             fontSize: '1.15rem',
             fontWeight: 500,
-            fontStyle: 'italic',
-            fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
+            
+            fontFamily: 'inherit',
             color: 'var(--pl-ink, #2B2B2B)',
             margin: '0 0 4px',
             display: 'flex',
@@ -193,7 +193,7 @@ export function GuestMessagingPanel() {
             gap: '8px',
           }}
         >
-          <Mail size={18} style={{ color: 'var(--pl-olive, #A3B18A)' }} />
+          <Mail size={18} style={{ color: '#18181B' }} />
           Guest Messages
         </h2>
         <p
@@ -206,7 +206,7 @@ export function GuestMessagingPanel() {
         >
           Send updates to guests who have RSVP'd
           {coupleName && (
-            <span style={{ fontStyle: 'italic' }}> — from {coupleName}</span>
+            <span style={{  }}> — from {coupleName}</span>
           )}
         </p>
       </div>
@@ -227,15 +227,15 @@ export function GuestMessagingPanel() {
                   transition={{ type: 'spring', stiffness: 400, damping: 22 }}
                   style={{
                     padding: '0.375rem 0.875rem',
-                    borderRadius: '100px',
+                    borderRadius: '8px',
                     border: isActive
-                      ? '1px solid rgba(163,177,138,0.5)'
+                      ? '1px solid #A1A1AA'
                       : '1px solid rgba(0,0,0,0.08)',
                     background: isActive
-                      ? 'rgba(163,177,138,0.2)'
+                      ? 'rgba(24,24,27,0.1)'
                       : 'rgba(255,255,255,0.6)',
                     color: isActive
-                      ? 'var(--pl-olive, #A3B18A)'
+                      ? '#18181B'
                       : 'var(--pl-ink-soft, #9A9488)',
                     fontSize: '0.78rem',
                     fontWeight: isActive ? 700 : 500,
@@ -267,7 +267,7 @@ export function GuestMessagingPanel() {
               ...inputBase,
             }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(163,177,138,0.4)';
+              e.currentTarget.style.borderColor = '#E4E4E7';
             }}
             onBlur={(e) => {
               e.currentTarget.style.borderColor = 'rgba(0,0,0,0.06)';
@@ -290,7 +290,7 @@ export function GuestMessagingPanel() {
               minHeight: '120px',
             }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(163,177,138,0.4)';
+              e.currentTarget.style.borderColor = '#E4E4E7';
             }}
             onBlur={(e) => {
               e.currentTarget.style.borderColor = 'rgba(0,0,0,0.06)';
@@ -312,9 +312,9 @@ export function GuestMessagingPanel() {
                 padding: '0.75rem 1rem',
                 borderRadius: '0.75rem',
                 background: sendResult.ok
-                  ? 'rgba(163,177,138,0.12)'
+                  ? '#F4F4F5'
                   : 'rgba(248,113,113,0.1)',
-                border: `1px solid ${sendResult.ok ? 'rgba(163,177,138,0.3)' : 'rgba(248,113,113,0.3)'}`,
+                border: `1px solid ${sendResult.ok ? '#E4E4E7' : 'rgba(248,113,113,0.3)'}`,
                 fontSize: '0.82rem',
                 color: sendResult.ok ? '#6B7F5B' : '#dc2626',
                 fontWeight: 500,
@@ -339,8 +339,8 @@ export function GuestMessagingPanel() {
             border: 'none',
             background:
               sending || !subject.trim() || !body.trim()
-                ? 'rgba(163,177,138,0.15)'
-                : 'linear-gradient(135deg, #A3B18A 0%, #8FA27A 100%)',
+                ? 'rgba(24,24,27,0.08)'
+                : 'linear-gradient(135deg, #71717A 0%, #8FA27A 100%)',
             color:
               sending || !subject.trim() || !body.trim()
                 ? 'rgba(154,148,136,0.5)'
@@ -359,7 +359,7 @@ export function GuestMessagingPanel() {
             boxShadow:
               sending || !subject.trim() || !body.trim()
                 ? 'none'
-                : '0 2px 12px rgba(163,177,138,0.25)',
+                : '0 2px 12px rgba(24,24,27,0.12)',
             transition: 'all 0.2s ease',
           }}
         >
@@ -389,8 +389,8 @@ export function GuestMessagingPanel() {
           style={{
             fontSize: '0.95rem',
             fontWeight: 500,
-            fontStyle: 'italic',
-            fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
+            
+            fontFamily: 'inherit',
             color: 'var(--pl-ink, #2B2B2B)',
             margin: '0 0 12px',
             display: 'flex',
@@ -398,7 +398,7 @@ export function GuestMessagingPanel() {
             gap: '6px',
           }}
         >
-          <Clock size={14} style={{ color: 'var(--pl-olive, #A3B18A)' }} />
+          <Clock size={14} style={{ color: '#18181B' }} />
           Sent Messages
         </h3>
 
@@ -407,7 +407,7 @@ export function GuestMessagingPanel() {
             style={{
               fontSize: '0.82rem',
               color: 'var(--pl-ink-soft, #9A9488)',
-              fontStyle: 'italic',
+              
             }}
           >
             Loading...
@@ -425,7 +425,7 @@ export function GuestMessagingPanel() {
             <Mail
               size={28}
               style={{
-                color: 'rgba(163,177,138,0.4)',
+                color: '#E4E4E7',
                 marginBottom: '8px',
               }}
             />
@@ -496,9 +496,9 @@ export function GuestMessagingPanel() {
                         <span
                           style={{
                             padding: '1px 8px',
-                            borderRadius: '100px',
-                            background: 'rgba(163,177,138,0.12)',
-                            color: 'var(--pl-olive, #A3B18A)',
+                            borderRadius: '8px',
+                            background: '#F4F4F5',
+                            color: '#18181B',
                             fontWeight: 600,
                             fontSize: '0.68rem',
                             letterSpacing: '0.03em',

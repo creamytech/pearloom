@@ -128,8 +128,8 @@ export function AnniversaryNudgePanel() {
         style={{
           margin: '0 0 20px',
           padding: '16px 18px',
-          background: 'rgba(163,177,138,0.08)',
-          border: '1px solid rgba(163,177,138,0.25)',
+          background: 'rgba(24,24,27,0.04)',
+          border: '1px solid rgba(24,24,27,0.12)',
           borderRadius: 12,
           position: 'relative',
         }}
@@ -144,7 +144,7 @@ export function AnniversaryNudgePanel() {
             right: 12,
             background: 'none',
             border: 'none',
-            color: 'var(--pl-muted)',
+            color: '#71717A',
             cursor: 'pointer',
             fontSize: 14,
             lineHeight: 1,
@@ -166,13 +166,13 @@ export function AnniversaryNudgePanel() {
             display: 'inline-block',
             marginBottom: 10,
             padding: '3px 10px',
-            background: 'rgba(163,177,138,0.15)',
-            border: '1px solid rgba(163,177,138,0.35)',
+            background: 'rgba(24,24,27,0.08)',
+            border: '1px solid #E4E4E7',
             borderRadius: 20,
             fontSize: '0.72rem',
             letterSpacing: '1.5px',
             textTransform: 'uppercase',
-            color: '#A3B18A',
+            color: '#71717A',
             fontFamily: 'Georgia, serif',
           }}
         >
@@ -185,7 +185,7 @@ export function AnniversaryNudgePanel() {
             animate={{ opacity: 1 }}
             style={{
               fontSize: '0.88rem',
-              color: '#A3B18A',
+              color: '#71717A',
               lineHeight: 1.6,
             }}
           >
@@ -197,7 +197,7 @@ export function AnniversaryNudgePanel() {
               style={{
                 margin: '0 0 12px',
                 fontSize: '0.88rem',
-                color: 'var(--pl-ink-soft)',
+                color: '#3F3F46',
                 lineHeight: 1.6,
               }}
             >
@@ -223,11 +223,11 @@ export function AnniversaryNudgePanel() {
               style={{
                 padding: '9px 18px',
                 background: loading
-                  ? 'rgba(163,177,138,0.08)'
-                  : 'rgba(163,177,138,0.15)',
-                border: '1px solid rgba(163,177,138,0.35)',
+                  ? 'rgba(24,24,27,0.04)'
+                  : 'rgba(24,24,27,0.08)',
+                border: '1px solid #E4E4E7',
                 borderRadius: 8,
-                color: loading ? 'rgba(163,177,138,0.5)' : '#A3B18A',
+                color: loading ? '#A1A1AA' : '#71717A',
                 fontSize: '0.78rem',
                 letterSpacing: '1.5px',
                 textTransform: 'uppercase',

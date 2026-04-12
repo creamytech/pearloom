@@ -118,8 +118,8 @@ export function SectionHoverToolbar() {
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
             border: '1px solid rgba(0,0,0,0.06)',
-            borderRadius: '100px',
-            boxShadow: '0 4px 24px rgba(43,30,20,0.1), 0 0 0 1px rgba(0,0,0,0.06)',
+            borderRadius: '8px',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.06)',
             overflow: 'visible',
             whiteSpace: 'nowrap',
           } as React.CSSProperties}
@@ -219,8 +219,8 @@ function ToolbarBtn({
       disabled={disabled}
       title={label}
       whileHover={!disabled ? {
-        backgroundColor: accent ? 'rgba(163,177,138,0.18)' : 'rgba(0,0,0,0.06)',
-        color: accent ? '#A3B18A' : 'var(--pl-ink)',
+        backgroundColor: accent ? 'rgba(24,24,27,0.08)' : 'rgba(0,0,0,0.06)',
+        color: accent ? '#71717A' : '#18181B',
       } : {}}
       whileTap={!disabled ? { scale: 0.9 } : {}}
       transition={{ duration: 0.1 }}
@@ -228,10 +228,10 @@ function ToolbarBtn({
         display: 'flex', alignItems: 'center', gap: '4px',
         padding: '0 10px', height: TOOLBAR_H,
         border: 'none', background: 'transparent', cursor: disabled ? 'not-allowed' : 'pointer',
-        color: accent ? 'rgba(163,177,138,0.8)' : 'var(--pl-ink-soft)',
+        color: accent ? '#71717A' : '#3F3F46',
         fontSize: '0.7rem', fontWeight: 700,
         opacity: disabled ? 0.5 : 1,
-        borderRadius: '100px',
+        borderRadius: '8px',
         letterSpacing: '0.01em',
       }}
     >
@@ -259,7 +259,7 @@ function DropdownItem({
         display: 'flex', alignItems: 'center', gap: '8px',
         width: '100%', padding: '7px 10px', borderRadius: '8px',
         border: 'none', background: 'transparent', cursor: 'pointer',
-        color: danger ? 'rgba(248,113,113,0.9)' : 'var(--pl-ink)',
+        color: danger ? 'rgba(248,113,113,0.9)' : '#18181B',
         fontSize: '0.75rem', fontWeight: 600, textAlign: 'left',
       }}
     >

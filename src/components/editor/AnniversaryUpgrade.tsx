@@ -46,7 +46,7 @@ export function AnniversaryBadge({ weddingDate }: { weddingDate?: string }) {
         zIndex: 9000,
         background: 'rgba(30,27,22,0.92)',
         backdropFilter: 'blur(8px)',
-        border: '1px solid rgba(163,177,138,0.35)',
+        border: '1px solid #E4E4E7',
         borderRadius: '2rem',
         padding: '0.5rem 1rem',
         display: 'flex',
@@ -56,7 +56,7 @@ export function AnniversaryBadge({ weddingDate }: { weddingDate?: string }) {
         pointerEvents: 'none',
       }}
     >
-      <Gem size={16} style={{ color: 'var(--pl-olive)' }} />
+      <Gem size={16} style={{ color: '#18181B' }} />
       <span
         style={{
           color: '#f5f0e8',
@@ -150,8 +150,8 @@ export function AnniversaryUpgrade({ manifest, onChange }: AnniversaryUpgradePro
   }
 
   const panelStyle: React.CSSProperties = {
-    background: 'rgba(163,177,138,0.08)',
-    border: '1px solid rgba(163,177,138,0.2)',
+    background: 'rgba(24,24,27,0.04)',
+    border: '1px solid rgba(24,24,27,0.1)',
     borderRadius: '0.875rem',
     padding: '1.25rem',
     marginTop: '1rem',

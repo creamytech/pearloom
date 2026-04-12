@@ -93,7 +93,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
 
   if (loading) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center', color: 'var(--pl-muted)', fontSize: '0.8rem' }}>
+      <div style={{ padding: '20px', textAlign: 'center', color: '#71717A', fontSize: '0.8rem' }}>
         Loading guests…
       </div>
     );
@@ -105,7 +105,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
       <div style={{
         display: 'flex', alignItems: 'center', gap: '6px',
         fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
-        textTransform: 'uppercase', color: 'var(--pl-muted)',
+        textTransform: 'uppercase', color: '#71717A',
       }}>
         <Mail size={11} /> Send Invitations
       </div>
@@ -114,7 +114,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
         <div style={{
           padding: '12px', borderRadius: '12px',
           background: 'rgba(234,179,8,0.07)', border: '1px solid rgba(234,179,8,0.2)',
-          fontSize: '0.75rem', color: 'var(--pl-ink-soft)',
+          fontSize: '0.75rem', color: '#3F3F46',
         }}>
           No guests with email addresses yet. Add guests with emails in the Guest List tab.
         </div>
@@ -128,13 +128,13 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
                 style={{
                   display: 'flex', alignItems: 'center', gap: '6px', padding: '5px 0',
                   background: 'none', border: 'none', cursor: 'pointer',
-                  fontSize: '0.7rem', color: 'var(--pl-ink-soft)', textAlign: 'left',
+                  fontSize: '0.7rem', color: '#3F3F46', textAlign: 'left',
                 }}
               >
                 {selected.size === guestsWithEmail.length ? (
-                  <Check size={11} color="#A3B18A" />
+                  <Check size={11} color="#71717A" />
                 ) : (
-                  <div style={{ width: '11px', height: '11px', borderRadius: '3px', border: '1px solid var(--pl-muted)' }} />
+                  <div style={{ width: '11px', height: '11px', borderRadius: '3px', border: '1px solid #71717A' }} />
                 )}
                 {selected.size === guestsWithEmail.length ? 'Deselect all' : 'Select all'}
               </button>
@@ -152,24 +152,24 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
                       style={{
                         display: 'flex', alignItems: 'center', gap: '8px',
                         padding: '6px 8px', borderRadius: '7px',
-                        background: isSelected ? 'rgba(163,177,138,0.08)' : 'rgba(163,177,138,0.03)',
-                        border: `1px solid ${isSelected ? 'rgba(163,177,138,0.2)' : 'transparent'}`,
+                        background: isSelected ? 'rgba(24,24,27,0.04)' : 'rgba(24,24,27,0.02)',
+                        border: `1px solid ${isSelected ? 'rgba(24,24,27,0.1)' : 'transparent'}`,
                         cursor: 'pointer', textAlign: 'left',
                       }}
                     >
                       <div style={{
                         width: '14px', height: '14px', borderRadius: '3px', flexShrink: 0,
-                        border: `1px solid ${isSelected ? '#A3B18A' : 'var(--pl-muted)'}`,
-                        background: isSelected ? '#A3B18A22' : 'transparent',
+                        border: `1px solid ${isSelected ? '#71717A' : '#71717A'}`,
+                        background: isSelected ? '#71717A22' : 'transparent',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>
-                        {isSelected && <Check size={8} color="#A3B18A" />}
+                        {isSelected && <Check size={8} color="#71717A" />}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '0.73rem', fontWeight: 600, color: 'var(--pl-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <div style={{ fontSize: '0.73rem', fontWeight: 600, color: '#18181B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {guest.name}
                         </div>
-                        <div style={{ fontSize: '0.62rem', color: 'var(--pl-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <div style={{ fontSize: '0.62rem', color: '#71717A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {guest.email}
                         </div>
                       </div>
@@ -182,7 +182,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
 
           {/* Message */}
           <div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>
+            <div style={{ fontSize: '0.68rem', color: '#71717A', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>
               Personal Message (optional)
             </div>
             <textarea
@@ -193,8 +193,8 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
               style={{
                 width: '100%', padding: '8px 10px', borderRadius: '12px',
                 border: '1px solid rgba(255,255,255,0.2)',
-                background: 'rgba(163,177,138,0.05)',
-                color: 'var(--pl-ink)', fontSize: '0.78rem',
+                background: 'rgba(24,24,27,0.04)',
+                color: '#18181B', fontSize: '0.78rem',
                 outline: 'none', resize: 'vertical', boxSizing: 'border-box',
                 lineHeight: 1.5,
               }}
@@ -207,7 +207,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
             style={{
               display: 'flex', alignItems: 'center', gap: '5px',
               background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: '0.7rem', color: 'var(--pl-muted)',
+              fontSize: '0.7rem', color: '#71717A',
               padding: '0',
             }}
           >
@@ -227,7 +227,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
                   background: '#FAF8F4',
                 }}
               >
-                <div style={{ padding: '16px', fontFamily: 'Georgia, serif', color: 'var(--pl-ink-soft)' }}>
+                <div style={{ padding: '16px', fontFamily: 'Georgia, serif', color: '#3F3F46' }}>
                   <div style={{ textAlign: 'center', marginBottom: '12px' }}>
                     <div style={{ fontSize: '0.9rem', fontWeight: 400, letterSpacing: '-0.01em' }}>{coupleDisplay}</div>
                     <div style={{ fontSize: '0.6rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#8A7A4A', marginTop: '3px' }}>Request the pleasure of your company</div>
@@ -237,7 +237,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
                     {message.trim() || 'We are delighted to invite you to celebrate our special day. Please visit our website for details and to RSVP.'}
                   </p>
                   <div style={{ textAlign: 'center' }}>
-                    <span style={{ display: 'inline-block', padding: '8px 20px', background: '#A3B18A', color: '#fff', borderRadius: '6px', fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.08em' }}>RSVP NOW →</span>
+                    <span style={{ display: 'inline-block', padding: '8px 20px', background: '#71717A', color: '#fff', borderRadius: '6px', fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.08em' }}>RSVP NOW →</span>
                   </div>
                 </div>
               </motion.div>
@@ -248,10 +248,10 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
           {result && (
             <div style={{
               padding: '10px 12px', borderRadius: '12px',
-              background: result.failed === 0 ? 'rgba(163,177,138,0.1)' : 'rgba(248,81,73,0.1)',
-              border: `1px solid ${result.failed === 0 ? 'rgba(163,177,138,0.3)' : 'rgba(248,81,73,0.3)'}`,
+              background: result.failed === 0 ? 'rgba(24,24,27,0.06)' : 'rgba(248,81,73,0.1)',
+              border: `1px solid ${result.failed === 0 ? '#E4E4E7' : 'rgba(248,81,73,0.3)'}`,
               fontSize: '0.75rem',
-              color: result.failed === 0 ? '#A3B18A' : '#f87171',
+              color: result.failed === 0 ? '#71717A' : '#f87171',
             }}>
               {result.failed === 0
                 ? `${result.sent} invitation${result.sent !== 1 ? 's' : ''} sent successfully`
@@ -268,8 +268,8 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
               padding: '11px', borderRadius: '10px', border: 'none',
-              background: selectedGuests.length > 0 ? 'rgba(163,177,138,0.25)' : 'rgba(163,177,138,0.06)',
-              color: selectedGuests.length > 0 ? '#A3B18A' : 'var(--pl-muted)',
+              background: selectedGuests.length > 0 ? 'rgba(24,24,27,0.12)' : '#F4F4F5',
+              color: selectedGuests.length > 0 ? '#71717A' : '#71717A',
               cursor: selectedGuests.length > 0 && !sending ? 'pointer' : 'default',
               fontSize: '0.82rem', fontWeight: 800,
             }}

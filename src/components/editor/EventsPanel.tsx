@@ -74,18 +74,18 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
               animate={{ opacity: 1, y: 0 }}
               style={{
                 textAlign: 'center', padding: '2rem 1rem',
-                borderRadius: '16px', border: '1.5px dashed rgba(163,177,138,0.25)',
+                borderRadius: '16px', border: '1.5px dashed rgba(24,24,27,0.12)',
                 background: 'rgba(255,255,255,0.25)',
               }}
             >
-              <CalendarHeartIcon size={24} style={{ opacity: 0.7, marginBottom: '8px', color: 'var(--pl-olive)' }} />
+              <CalendarHeartIcon size={24} style={{ opacity: 0.7, marginBottom: '8px', color: '#18181B' }} />
               <div style={{
-                fontSize: '0.85rem', fontWeight: panelWeight.semibold, fontStyle: 'italic',
-                fontFamily: 'var(--pl-font-heading)', color: 'var(--pl-muted)',
+                fontSize: '0.85rem', fontWeight: panelWeight.semibold, 
+                fontFamily: 'inherit', color: '#71717A',
               }}>
                 No events yet
               </div>
-              <div style={{ fontSize: panelText.chip, color: 'var(--pl-muted)', marginTop: '4px' }}>
+              <div style={{ fontSize: panelText.chip, color: '#71717A', marginTop: '4px' }}>
                 Add ceremony, reception, and more
               </div>
             </motion.div>
@@ -123,19 +123,19 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                     <div style={{
                       fontSize: panelText.body,
                       fontWeight: panelWeight.semibold,
-                      color: 'var(--pl-ink)',
+                      color: '#18181B',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {evt.name || 'Event'}
                     </div>
-                    <div style={{ fontSize: panelText.hint, color: 'var(--pl-muted)', marginTop: '1px' }}>
+                    <div style={{ fontSize: panelText.hint, color: '#71717A', marginTop: '1px' }}>
                       {evt.time}{evt.venue ? ` · ${evt.venue}` : ''}
                     </div>
                   </div>
                   <motion.div
                     animate={{ rotate: isExpanded ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
-                    style={{ color: 'var(--pl-muted)', display: 'flex' }}
+                    style={{ color: '#71717A', display: 'flex' }}
                   >
                     <ChevronDown size={13} />
                   </motion.div>
@@ -190,7 +190,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                           onClick={() => removeEvent(evt.id)}
                           style={{
                             alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px',
-                            padding: '5px 12px', borderRadius: '100px', border: 'none',
+                            padding: '5px 12px', borderRadius: '8px', border: 'none',
                             background: 'rgba(220,80,80,0.08)', color: '#d05050',
                             cursor: 'pointer',
                             fontSize: panelText.hint,
@@ -210,13 +210,13 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
           {/* Add event */}
           <motion.button
             onClick={addEvent}
-            whileHover={{ y: -1, borderColor: 'rgba(163,177,138,0.4)' }}
+            whileHover={{ y: -1, borderColor: '#E4E4E7' }}
             whileTap={{ scale: 0.98 }}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               padding: '10px', borderRadius: '14px',
-              border: '1.5px dashed rgba(163,177,138,0.25)',
-              background: 'transparent', color: 'var(--pl-olive)',
+              border: '1.5px dashed rgba(24,24,27,0.12)',
+              background: 'transparent', color: '#18181B',
               cursor: 'pointer',
               fontSize: panelText.chip,
               fontWeight: panelWeight.semibold,
@@ -236,7 +236,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                   flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
                   padding: '8px', borderRadius: '10px',
                   background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.25)',
-                  color: 'var(--pl-olive)',
+                  color: '#18181B',
                   fontSize: panelText.hint,
                   fontWeight: panelWeight.semibold,
                   textDecoration: 'none', transition: 'background 0.12s',
@@ -251,7 +251,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                   flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
                   padding: '8px', borderRadius: '10px',
                   background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.25)',
-                  color: 'var(--pl-ink-soft)',
+                  color: '#3F3F46',
                   fontSize: panelText.hint,
                   fontWeight: panelWeight.semibold,
                   textDecoration: 'none', transition: 'background 0.12s',

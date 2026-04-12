@@ -42,7 +42,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
       fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.12em',
-      textTransform: 'uppercase', color: 'var(--pl-muted)',
+      textTransform: 'uppercase', color: '#71717A',
       marginBottom: '8px', marginTop: '4px',
     }}>
       {children}
@@ -66,7 +66,7 @@ function SliderRow({
         max={max}
         suffix={unit !== 'temp' ? unit : ''}
       />
-      {hint && <div style={{ fontSize: '0.65rem', color: 'var(--pl-muted)', marginTop: '3px' }}>{hint}</div>}
+      {hint && <div style={{ fontSize: '0.65rem', color: '#71717A', marginTop: '3px' }}>{hint}</div>}
     </div>
   );
 }
@@ -80,9 +80,9 @@ function ToggleChip({
     <button
       onClick={onClick}
       style={{
-        padding: '6px 10px', borderRadius: '8px', border: `1px solid ${active ? (color ?? 'rgba(163,177,138,0.6)') : 'rgba(0,0,0,0.06)'}`,
-        background: active ? `${color ?? 'rgba(163,177,138,1)'}22` : 'rgba(163,177,138,0.05)',
-        color: active ? (color ?? 'rgba(163,177,138,1)') : 'var(--pl-ink-soft)',
+        padding: '6px 10px', borderRadius: '8px', border: `1px solid ${active ? (color ?? '#71717A') : 'rgba(0,0,0,0.06)'}`,
+        background: active ? `${color ?? '#18181B'}22` : 'rgba(24,24,27,0.04)',
+        color: active ? (color ?? '#18181B') : '#3F3F46',
         cursor: 'pointer', fontSize: '0.75rem', fontWeight: active ? 700 : 500,
         display: 'flex', alignItems: 'center', gap: '5px',
         transition: 'all 0.15s',
@@ -104,7 +104,7 @@ const MESH_PRESETS: Array<{ id: MeshPreset; label: string; colors: [string, stri
   { id: 'rose',      label: 'Rose',      colors: ['#FFAFCC', '#FFC8DD', '#CDB4DB'] },
   { id: 'champagne', label: 'Champagne', colors: ['#C9A87C', '#F5E6D0', '#E8C99A'] },
   { id: 'twilight',  label: 'Twilight',  colors: ['#2C1654', '#6B2FA0', '#C850C0'] },
-  { id: 'custom',    label: 'Accent',    colors: ['#A3B18A', '#A3B18A', '#A3B18A'] },
+  { id: 'custom',    label: 'Accent',    colors: ['#71717A', '#71717A', '#71717A'] },
 ];
 
 function MeshPresetPicker({ value, onChange }: { value: MeshPreset; onChange: (v: MeshPreset) => void }) {
@@ -119,8 +119,8 @@ function MeshPresetPicker({ value, onChange }: { value: MeshPreset; onChange: (v
             title={p.label}
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
-              padding: '6px 8px', borderRadius: '10px', border: `2px solid ${active ? 'rgba(163,177,138,0.8)' : 'transparent'}`,
-              background: active ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.05)',
+              padding: '6px 8px', borderRadius: '10px', border: `2px solid ${active ? '#71717A' : 'transparent'}`,
+              background: active ? '#F4F4F5' : 'rgba(24,24,27,0.04)',
               cursor: 'pointer', transition: 'all 0.15s',
             }}
           >
@@ -131,7 +131,7 @@ function MeshPresetPicker({ value, onChange }: { value: MeshPreset; onChange: (v
                 : `linear-gradient(135deg, ${p.colors[0]}, ${p.colors[1]}, ${p.colors[2]})`,
               opacity: p.id === 'none' ? 0.4 : 1,
             }} />
-            <span style={{ fontSize: '0.6rem', color: active ? 'rgba(163,177,138,1)' : 'rgba(255,255,255,0.45)', fontWeight: active ? 700 : 400 }}>
+            <span style={{ fontSize: '0.6rem', color: active ? '#18181B' : 'rgba(255,255,255,0.45)', fontWeight: active ? 700 : 400 }}>
               {p.label}
             </span>
           </button>
@@ -294,12 +294,12 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
           <div style={{ marginTop: '10px' }}>
             <SectionLabel>Color</SectionLabel>
             <ColorPicker
-              value={effects.cursorColor || accentColor || '#A3B18A'}
+              value={effects.cursorColor || accentColor || '#71717A'}
               onChange={(color) => set('cursorColor', color)}
             />
           </div>
         )}
-        <div style={{ marginTop: '8px', fontSize: '0.65rem', color: 'var(--pl-muted)' }}>
+        <div style={{ marginTop: '8px', fontSize: '0.65rem', color: '#71717A' }}>
           Only visible on desktop (mouse) devices
         </div>
       </EffectBlock>
@@ -320,9 +320,9 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
               onClick={() => set('sectionDivider', { ...divider, style: d.id })}
               style={{
                 padding: '6px 10px', borderRadius: '8px',
-                border: `1px solid ${divider.style === d.id ? 'rgba(163,177,138,0.6)' : 'rgba(0,0,0,0.06)'}`,
-                background: divider.style === d.id ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.05)',
-                color: divider.style === d.id ? 'rgba(163,177,138,1)' : 'var(--pl-ink-soft)',
+                border: `1px solid ${divider.style === d.id ? '#71717A' : 'rgba(0,0,0,0.06)'}`,
+                background: divider.style === d.id ? '#F4F4F5' : 'rgba(24,24,27,0.04)',
+                color: divider.style === d.id ? '#18181B' : '#3F3F46',
                 cursor: 'pointer', fontSize: '0.72rem', fontWeight: divider.style === d.id ? 700 : 400,
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
                 transition: 'all 0.15s',
@@ -343,9 +343,9 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
                 onClick={() => set('sectionDivider', { ...divider, style: d.id })}
                 style={{
                   padding: '6px 10px', borderRadius: '8px',
-                  border: `1px solid ${divider.style === d.id ? 'rgba(163,177,138,0.6)' : 'rgba(0,0,0,0.06)'}`,
-                  background: divider.style === d.id ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.05)',
-                  color: divider.style === d.id ? 'rgba(163,177,138,1)' : 'var(--pl-ink-soft)',
+                  border: `1px solid ${divider.style === d.id ? '#71717A' : 'rgba(0,0,0,0.06)'}`,
+                  background: divider.style === d.id ? '#F4F4F5' : 'rgba(24,24,27,0.04)',
+                  color: divider.style === d.id ? '#18181B' : '#3F3F46',
                   cursor: 'pointer', fontSize: '0.72rem', fontWeight: divider.style === d.id ? 700 : 400,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
                   transition: 'all 0.15s',
@@ -378,7 +378,7 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
                 onClick={() => set('sectionDivider', { ...divider, animated: !(divider.animated ?? true) })}
               />
             </div>
-            <div style={{ marginTop: '8px', fontSize: '0.65rem', color: 'var(--pl-muted)' }}>
+            <div style={{ marginTop: '8px', fontSize: '0.65rem', color: '#71717A' }}>
               Animations always respect the visitor&rsquo;s reduced-motion preference.
             </div>
           </div>
@@ -399,7 +399,7 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
             />
           ))}
         </div>
-        <div style={{ marginTop: '8px', fontSize: '0.65rem', color: 'var(--pl-muted)' }}>
+        <div style={{ marginTop: '8px', fontSize: '0.65rem', color: '#71717A' }}>
           Content sections animate in as visitors scroll down
         </div>
       </EffectBlock>
@@ -418,7 +418,7 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
             />
           ))}
         </div>
-        <div style={{ marginTop: '8px', fontSize: '0.65rem', color: 'var(--pl-muted)' }}>
+        <div style={{ marginTop: '8px', fontSize: '0.65rem', color: '#71717A' }}>
           Subtle material feel layered over the background
         </div>
       </EffectBlock>
@@ -439,7 +439,7 @@ function EffectBlock({
   const toggle = onToggleExpand ?? (() => setOpen(v => !v));
 
   return (
-    <div style={{ borderBottom: '1px solid rgba(163,177,138,0.15)' }}>
+    <div style={{ borderBottom: '1px solid rgba(24,24,27,0.08)' }}>
       <button
         onClick={toggle}
         style={{
@@ -450,7 +450,7 @@ function EffectBlock({
       >
         <span style={{
           display: 'flex', alignItems: 'center',
-          color: active ? 'var(--pl-olive)' : 'var(--pl-muted)',
+          color: active ? '#18181B' : '#71717A',
         }}>
           {icon}
         </span>
@@ -460,7 +460,7 @@ function EffectBlock({
           fontWeight: panelWeight.bold,
           letterSpacing: panelTracking.wider,
           textTransform: 'uppercase',
-          color: active ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
+          color: active ? '#3F3F46' : '#71717A',
         }}>
           {title}
         </span>
@@ -470,17 +470,17 @@ function EffectBlock({
             fontWeight: panelWeight.bold,
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
-            color: 'var(--pl-olive-deep)',
-            background: 'rgba(163,177,138,0.12)',
+            color: '#18181B',
+            background: '#F4F4F5',
             padding: '2px 7px',
-            borderRadius: '100px',
+            borderRadius: '8px',
           }}>
             ON
           </span>
         )}
         <span style={{
           display: 'flex', alignItems: 'center',
-          color: 'var(--pl-muted)',
+          color: '#71717A',
           transition: 'transform 0.2s',
           transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
         }}>

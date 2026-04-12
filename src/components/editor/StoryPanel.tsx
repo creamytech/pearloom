@@ -38,7 +38,7 @@ function getThumb(ch: Chapter) {
 // never fight each other; legacy `manifest.layoutFormat` values are
 // honored read-only via `resolveStoryLayout` for back-compat.
 const STYLES = [
-  { id: 'parallax', label: 'Parallax Scroll', desc: 'Full-bleed cinematic chapters that scroll past the camera', color: 'rgba(163,177,138,0.3)' },
+  { id: 'parallax', label: 'Parallax Scroll', desc: 'Full-bleed cinematic chapters that scroll past the camera', color: '#E4E4E7' },
   { id: 'filmstrip', label: 'Film Strip', desc: 'Horizontal photo strips with text below', color: 'rgba(60,50,70,0.4)' },
   { id: 'magazine', label: 'Magazine Spread', desc: 'Large hero photos with elegant text overlay', color: 'rgba(180,160,140,0.3)' },
   { id: 'timeline', label: 'Timeline Vine', desc: 'Vertical vine connecting alternating chapters', color: 'rgba(140,160,180,0.3)' },
@@ -68,7 +68,7 @@ function ChapterCard({
       dragListener={false}
       dragControls={controls}
       as="div"
-      whileDrag={{ scale: 1.03, zIndex: 50, boxShadow: '0 16px 40px rgba(43,30,20,0.12)' }}
+      whileDrag={{ scale: 1.03, zIndex: 50, boxShadow: '0 16px 40px rgba(0,0,0,0.08)' }}
       layout
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
@@ -81,18 +81,18 @@ function ChapterCard({
         whileHover={!isActive && !isConfirming ? { y: -1 } : {}}
         style={{
           borderRadius: '16px',
-          background: isConfirming ? 'rgba(248,113,113,0.04)' : isActive ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.25)',
+          background: isConfirming ? 'rgba(248,113,113,0.04)' : isActive ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.25)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          border: isConfirming ? '1.5px solid rgba(248,113,113,0.4)' : isActive ? '1.5px solid rgba(163,177,138,0.35)' : '1px solid rgba(255,255,255,0.3)',
+          border: isConfirming ? '1.5px solid rgba(248,113,113,0.4)' : isActive ? '1.5px solid #E4E4E7' : '1px solid rgba(255,255,255,0.3)',
           overflow: 'hidden',
           cursor: isConfirming ? 'default' : 'pointer',
           transition: 'all 0.2s',
           boxShadow: isConfirming
             ? '0 4px 16px rgba(248,113,113,0.08)'
             : isActive
-              ? '0 4px 16px rgba(163,177,138,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
-              : '0 1px 4px rgba(43,30,20,0.03), inset 0 1px 0 rgba(255,255,255,0.2)',
+              ? '0 4px 16px rgba(24,24,27,0.06), inset 0 1px 0 rgba(255,255,255,0.3)'
+              : '0 1px 4px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.2)',
         } as React.CSSProperties}
       >
         {/* Main row */}
@@ -100,7 +100,7 @@ function ChapterCard({
           {/* Drag handle */}
           <motion.div
             onPointerDown={e => { e.preventDefault(); e.stopPropagation(); controls.start(e); }}
-            whileHover={{ color: 'var(--pl-olive)' }}
+            whileHover={{ color: '#18181B' }}
             style={{
               cursor: 'grab', padding: '6px 4px', display: 'flex', alignItems: 'center',
               color: 'rgba(0,0,0,0.15)', touchAction: 'none', userSelect: 'none', flexShrink: 0,
@@ -112,10 +112,10 @@ function ChapterCard({
           {/* Chapter number */}
           <div style={{
             width: '24px', height: '24px', borderRadius: '12px', flexShrink: 0,
-            background: isActive ? 'var(--pl-olive)' : 'rgba(255,255,255,0.4)',
+            background: isActive ? '#18181B' : 'rgba(255,255,255,0.4)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '0.62rem', fontWeight: 800,
-            color: isActive ? 'white' : 'var(--pl-muted)',
+            color: isActive ? 'white' : '#71717A',
             border: isActive ? 'none' : '1px solid rgba(255,255,255,0.3)',
           }}>
             {index + 1}
@@ -136,22 +136,22 @@ function ChapterCard({
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
               fontSize: '0.85rem', fontWeight: 600,
-              fontFamily: 'var(--pl-font-heading)',
-              color: 'var(--pl-ink)',
+              fontFamily: 'inherit',
+              color: '#18181B',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               lineHeight: 1.3,
             }}>
               {chapter.title || 'Untitled'}
             </div>
             <div style={{
-              fontSize: '0.65rem', color: 'var(--pl-muted)', marginTop: '2px',
+              fontSize: '0.65rem', color: '#71717A', marginTop: '2px',
               display: 'flex', alignItems: 'center', gap: '4px',
             }}>
               <Clock size={9} style={{ opacity: 0.6 }} />
               {slugDate(chapter.date)}
               {chapter.layout && (
                 <span style={{
-                  background: 'rgba(163,177,138,0.1)', color: 'var(--pl-olive)',
+                  background: 'rgba(24,24,27,0.06)', color: '#18181B',
                   padding: '0 5px', borderRadius: '8px', fontSize: '0.55rem', fontWeight: 600,
                 }}>
                   {chapter.layout}
@@ -164,7 +164,7 @@ function ChapterCard({
           <motion.div
             animate={{ rotate: isExpanded ? 180 : 0 }}
             transition={{ duration: 0.2 }}
-            style={{ color: 'var(--pl-muted)', display: 'flex', padding: '4px' }}
+            style={{ color: '#71717A', display: 'flex', padding: '4px' }}
           >
             <ChevronDown size={14} />
           </motion.div>
@@ -179,7 +179,7 @@ function ChapterCard({
             whileTap={{ scale: 0.88 }}
             style={{
               padding: '6px', borderRadius: '12px', border: 'none',
-              background: 'transparent', color: 'var(--pl-muted)', cursor: 'pointer',
+              background: 'transparent', color: '#71717A', cursor: 'pointer',
               display: 'flex', flexShrink: 0, opacity: 0.6,
             }}
           >
@@ -213,7 +213,7 @@ function ChapterCard({
                     style={{
                       flex: 1, padding: '7px 12px', borderRadius: '10px',
                       border: '1px solid rgba(0,0,0,0.1)', background: 'rgba(255,255,255,0.5)',
-                      color: 'var(--pl-ink-soft)', fontSize: '0.75rem', fontWeight: 600,
+                      color: '#3F3F46', fontSize: '0.75rem', fontWeight: 600,
                       cursor: 'pointer', transition: 'background 0.15s',
                     }}
                   >
@@ -425,12 +425,12 @@ export function StoryPanel() {
             padding: '24px 16px', textAlign: 'center',
             borderRadius: '16px',
             background: 'rgba(255,255,255,0.15)',
-            border: '1px dashed rgba(163,177,138,0.25)',
+            border: '1px dashed rgba(24,24,27,0.12)',
           }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--pl-ink-soft)', marginBottom: '4px' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3F3F46', marginBottom: '4px' }}>
               No chapters yet
             </div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', lineHeight: 1.5 }}>
+            <div style={{ fontSize: '0.72rem', color: '#71717A', lineHeight: 1.5 }}>
               Add your first chapter to start telling your story.
             </div>
           </div>
@@ -439,14 +439,14 @@ export function StoryPanel() {
         {/* Add chapter */}
         <motion.button
           onClick={actions.addChapter}
-          whileHover={{ borderColor: 'rgba(163,177,138,0.5)', y: -1 }}
+          whileHover={{ borderColor: '#A1A1AA', y: -1 }}
           whileTap={{ scale: 0.98 }}
           style={{
             width: '100%', padding: '12px', marginTop: '6px',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            border: '1.5px dashed rgba(163,177,138,0.3)', borderRadius: '16px',
+            border: '1.5px dashed #E4E4E7', borderRadius: '16px',
             background: 'transparent', cursor: 'pointer',
-            color: 'var(--pl-olive)', fontSize: '0.75rem', fontWeight: 600,
+            color: '#18181B', fontSize: '0.75rem', fontWeight: 600,
             transition: 'all 0.15s',
           }}
         >

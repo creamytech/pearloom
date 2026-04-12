@@ -78,7 +78,7 @@ export function PanelChip({
     ? accentColor
       ? toDeepText(accentColor)
       : base.color
-    : 'var(--pl-ink-soft)';
+    : '#3F3F46';
 
   const radius = variant === 'pill' ? '100px' : panelChip.radius;
   const padding = size === 'sm' ? '6px 12px' : '8px 14px';
@@ -179,12 +179,12 @@ export function PanelChipGroup({
 
 /**
  * Convert a hex accent to a very soft translucent background that
- * matches the default `rgba(163,177,138,0.1)` formula used in the
+ * matches the default `rgba(24,24,27,0.06)` formula used in the
  * baseline chip style.
  */
 function toSoftBackground(hex: string): string {
   const rgb = hexToRgb(hex);
-  if (!rgb) return 'rgba(163,177,138,0.1)';
+  if (!rgb) return 'rgba(24,24,27,0.06)';
   return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0.12)`;
 }
 

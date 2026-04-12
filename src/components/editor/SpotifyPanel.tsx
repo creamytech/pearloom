@@ -95,9 +95,9 @@ export function SpotifyPanel() {
               width: '100%',
               padding: '9px 14px',
               borderRadius: '12px',
-              border: '1px solid rgba(163,177,138,0.35)',
-              background: loading ? 'rgba(163,177,138,0.06)' : 'rgba(163,177,138,0.12)',
-              color: loading ? 'rgba(163,177,138,0.5)' : 'var(--pl-olive, #A3B18A)',
+              border: '1px solid #E4E4E7',
+              background: loading ? '#F4F4F5' : '#F4F4F5',
+              color: loading ? '#A1A1AA' : '#18181B',
               cursor: loading ? 'not-allowed' : 'pointer',
               fontSize: '0.82rem',
               fontWeight: 700,
@@ -105,10 +105,10 @@ export function SpotifyPanel() {
               transition: 'background 0.18s',
             }}
             onMouseOver={e => {
-              if (!loading) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)';
+              if (!loading) (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.1)';
             }}
             onMouseOut={e => {
-              if (!loading) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.12)';
+              if (!loading) (e.currentTarget as HTMLElement).style.background = '#F4F4F5';
             }}
           >
             {loading ? (
@@ -142,7 +142,7 @@ export function SpotifyPanel() {
                     gap: '8px',
                     padding: '8px 10px',
                     borderRadius: '14px',
-                    background: 'rgba(163,177,138,0.04)',
+                    background: 'rgba(24,24,27,0.03)',
                     border: '1px solid rgba(255,255,255,0.15)',
                   }}
                 >
@@ -157,7 +157,7 @@ export function SpotifyPanel() {
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {song.title} · <span style={{ fontWeight: 400, color: 'var(--pl-ink-soft)' }}>{song.artist}</span>
+                      {song.title} · <span style={{ fontWeight: 400, color: '#3F3F46' }}>{song.artist}</span>
                     </div>
                     <span
                       style={{
@@ -167,9 +167,9 @@ export function SpotifyPanel() {
                         fontWeight: 700,
                         letterSpacing: '0.06em',
                         textTransform: 'uppercase',
-                        color: 'rgba(163,177,138,0.8)',
-                        background: 'rgba(163,177,138,0.12)',
-                        border: '1px solid rgba(163,177,138,0.2)',
+                        color: '#71717A',
+                        background: '#F4F4F5',
+                        border: '1px solid rgba(24,24,27,0.1)',
                         borderRadius: '4px',
                         padding: '1px 5px',
                       }}
@@ -190,7 +190,7 @@ export function SpotifyPanel() {
                       height: '26px',
                       borderRadius: '6px',
                       background: 'rgba(255,255,255,0.15)',
-                      color: 'var(--pl-ink-soft)',
+                      color: '#3F3F46',
                       flexShrink: 0,
                       textDecoration: 'none',
                       transition: 'background 0.15s, color 0.15s',
@@ -201,7 +201,7 @@ export function SpotifyPanel() {
                     }}
                     onMouseOut={e => {
                       (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.15)';
-                      (e.currentTarget as HTMLElement).style.color = 'var(--pl-ink-soft)';
+                      (e.currentTarget as HTMLElement).style.color = '#3F3F46';
                     }}
                   >
                     <ExternalLink size={11} />
@@ -212,7 +212,7 @@ export function SpotifyPanel() {
           )}
 
           {songs.length === 0 && !loading && !error && (
-            <p style={{ fontSize: '0.78rem', color: 'var(--pl-muted)', textAlign: 'center', margin: 0, padding: '0.5rem 0' }}>
+            <p style={{ fontSize: '0.78rem', color: '#71717A', textAlign: 'center', margin: 0, padding: '0.5rem 0' }}>
               Click the button to get 10 songs matched to your vibe
             </p>
           )}

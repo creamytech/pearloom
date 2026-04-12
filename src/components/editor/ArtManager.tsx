@@ -70,7 +70,7 @@ function ArtSlotCard({
             />
             {/* Hover overlay with actions */}
             <div style={{
-              position: 'absolute', inset: 0, background: 'rgba(43,30,20,0.1)',
+              position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.06)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
               opacity: 0, transition: 'opacity 0.2s ease',
             }}
@@ -85,8 +85,8 @@ function ArtSlotCard({
           </>
         ) : (
           <div style={{ textAlign: 'center', padding: '1.5rem' }}>
-            <Image size={24} style={{ color: 'var(--pl-muted)', marginBottom: '0.5rem' }} />
-            <p style={{ color: 'var(--pl-muted)', fontSize: text.sm, margin: 0 }}>No art generated</p>
+            <Image size={24} style={{ color: '#71717A', marginBottom: '0.5rem' }} />
+            <p style={{ color: '#71717A', fontSize: text.sm, margin: 0 }}>No art generated</p>
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginTop: '0.75rem', flexWrap: 'wrap' }}>
               <ActionButton icon={<Upload size={13} />} label="Upload" onClick={() => inputRef.current?.click()} />
               <ActionButton icon={isPickingGoogle ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <ImageIcon size={13} />} label="Google Photos" onClick={onGooglePhotos} disabled={isPickingGoogle} />

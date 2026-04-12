@@ -131,9 +131,9 @@ export function MobileContextPanel({
       }}>
         <div style={{
           width: 56, height: 56, borderRadius: '50%',
-          background: 'var(--pl-olive-8)',
+          background: 'rgba(24,24,27,0.04)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: 'var(--pl-olive)',
+          color: '#18181B',
         }}>
           <Sparkles size={24} />
         </div>
@@ -141,14 +141,14 @@ export function MobileContextPanel({
           <div style={{
             fontSize: 'var(--pl-text-md)',
             fontWeight: 700,
-            color: 'var(--pl-ink)',
+            color: '#18181B',
             marginBottom: 6,
           }}>
             Tap anything on your site to edit it
           </div>
           <div style={{
             fontSize: 'var(--pl-text-sm)',
-            color: 'var(--pl-muted)',
+            color: '#71717A',
             lineHeight: 1.5,
           }}>
             Select a section, photo, or text area in the preview above to see its settings here.
@@ -184,7 +184,7 @@ export function MobileContextPanel({
         }
         // No specific chapter — show chapter list hint
         return (
-          <div style={{ ...sectionPad, color: 'var(--pl-muted)', fontSize: 'var(--pl-text-sm)' }}>
+          <div style={{ ...sectionPad, color: '#71717A', fontSize: 'var(--pl-text-sm)' }}>
             Tap a specific chapter in the preview to edit it.
           </div>
         );
@@ -213,7 +213,7 @@ export function MobileContextPanel({
           <div style={sectionPad}>
             <div style={fieldStack}>
               {events.length === 0 && (
-                <div style={{ color: 'var(--pl-muted)', fontSize: 'var(--pl-text-sm)', lineHeight: 1.5 }}>
+                <div style={{ color: '#71717A', fontSize: 'var(--pl-text-sm)', lineHeight: 1.5 }}>
                   No events yet. Add your ceremony, reception, and more.
                 </div>
               )}
@@ -224,7 +224,7 @@ export function MobileContextPanel({
                   background: 'var(--pl-glass-light)',
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--pl-ink)' }}>{ev.name || `Event ${i + 1}`}</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#18181B' }}>{ev.name || `Event ${i + 1}`}</div>
                     <button
                       onClick={() => scheduleManifestUpdate({ events: events.filter(e => e.id !== ev.id) })}
                       style={{ background: 'none', border: 'none', color: '#e87171', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer', padding: '4px 8px', flexShrink: 0 }}
@@ -249,8 +249,8 @@ export function MobileContextPanel({
                 }}
                 style={{
                   width: '100%', padding: '12px', borderRadius: 10,
-                  border: '2px dashed rgba(163,177,138,0.3)', background: 'rgba(163,177,138,0.04)',
-                  color: 'var(--pl-olive)', fontSize: '0.82rem', fontWeight: 600,
+                  border: '2px dashed #E4E4E7', background: 'rgba(24,24,27,0.03)',
+                  color: '#18181B', fontSize: '0.82rem', fontWeight: 600,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 }}
               >+ Add Event</button>
@@ -334,7 +334,7 @@ export function MobileContextPanel({
 
       default:
         return (
-          <div style={{ ...sectionPad, color: 'var(--pl-muted)', fontSize: 'var(--pl-text-sm)' }}>
+          <div style={{ ...sectionPad, color: '#71717A', fontSize: 'var(--pl-text-sm)' }}>
             Settings for this section are not yet available.
           </div>
         );
@@ -348,9 +348,9 @@ export function MobileContextPanel({
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
           <div style={{
             width: 32, height: 32, borderRadius: 10,
-            background: 'var(--pl-olive-8)',
+            background: 'rgba(24,24,27,0.04)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--pl-olive)',
+            color: '#18181B',
             flexShrink: 0,
           }}>
             <SectionIcon size={15} />
@@ -359,7 +359,7 @@ export function MobileContextPanel({
             <div style={{
               fontSize: 'var(--pl-text-sm)',
               fontWeight: 700,
-              color: 'var(--pl-ink)',
+              color: '#18181B',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -368,7 +368,7 @@ export function MobileContextPanel({
             </div>
             <div style={{
               fontSize: 'var(--pl-text-2xs)',
-              color: 'var(--pl-muted)',
+              color: '#71717A',
               fontWeight: 600,
               letterSpacing: '0.06em',
               textTransform: 'uppercase',
@@ -473,8 +473,8 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
           style={{
             display: 'flex', alignItems: 'center', gap: 12,
             padding: '14px 16px', borderRadius: 12, cursor: 'pointer',
-            border: `1.5px dashed ${dragOver ? 'rgba(163,177,138,0.8)' : 'rgba(255,255,255,0.5)'}`,
-            background: dragOver ? 'rgba(163,177,138,0.08)' : 'rgba(255,255,255,0.35)',
+            border: `1.5px dashed ${dragOver ? '#71717A' : 'rgba(255,255,255,0.5)'}`,
+            background: dragOver ? 'rgba(24,24,27,0.04)' : 'rgba(255,255,255,0.35)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
             textAlign: 'left' as const, width: '100%',
@@ -482,15 +482,15 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
           }}
         >
           {uploading ? (
-            <Loader2 size={18} style={{ color: 'var(--pl-olive)', animation: 'spin 1s linear infinite' }} />
+            <Loader2 size={18} style={{ color: '#18181B', animation: 'spin 1s linear infinite' }} />
           ) : (
-            <Upload size={18} className="pl-dropzone-icon" style={{ color: 'var(--pl-olive)', transition: 'transform 0.2s ease' }} />
+            <Upload size={18} className="pl-dropzone-icon" style={{ color: '#18181B', transition: 'transform 0.2s ease' }} />
           )}
           <div>
-            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--pl-ink)' }}>
+            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#18181B' }}>
               {uploading ? 'Uploading...' : dragOver ? 'Drop image here' : 'Upload from Device'}
             </div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)' }}>
+            <div style={{ fontSize: '0.68rem', color: '#71717A' }}>
               JPG, PNG, or HEIC
             </div>
           </div>
@@ -519,10 +519,10 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
             <path d="M24 44L18.5 33.5H29.5L24 44Z" fill="#FBBC05"/>
           </svg>
           <div>
-            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--pl-ink)' }}>
+            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#18181B' }}>
               Google Photos
             </div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)' }}>
+            <div style={{ fontSize: '0.68rem', color: '#71717A' }}>
               Pick from your library
             </div>
           </div>
@@ -534,19 +534,19 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
           style={{
             display: 'flex', alignItems: 'center', gap: 12,
             padding: '14px 16px', borderRadius: 12, cursor: 'pointer',
-            border: '1.5px dashed rgba(163,177,138,0.4)',
-            background: 'rgba(163,177,138,0.08)',
+            border: '1.5px dashed #E4E4E7',
+            background: 'rgba(24,24,27,0.04)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
             textAlign: 'left' as const, width: '100%',
           }}
         >
-          <Image size={18} style={{ color: 'var(--pl-olive, #A3B18A)' }} />
+          <Image size={18} style={{ color: '#18181B' }} />
           <div>
-            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--pl-ink)' }}>
+            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#18181B' }}>
               Choose from Gallery
             </div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)' }}>
+            <div style={{ fontSize: '0.68rem', color: '#71717A' }}>
               Reuse photos from your sites
             </div>
           </div>
@@ -623,8 +623,8 @@ function HeroSettings({
                   padding: '10px 12px',
                   borderRadius: 10,
                   border: '1px solid var(--pl-black-6)',
-                  background: i === 0 ? 'var(--pl-olive-12)' : 'transparent',
-                  color: i === 0 ? 'var(--pl-olive)' : 'var(--pl-muted)',
+                  background: i === 0 ? 'rgba(24,24,27,0.06)' : 'transparent',
+                  color: i === 0 ? '#18181B' : '#71717A',
                   fontSize: 'var(--pl-text-sm)',
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -666,10 +666,10 @@ function ChapterSettings({
             placeholder="Chapter title..."
             style={{
               ...inp,
-              fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
+              fontFamily: 'inherit',
               fontSize: 'max(16px, 1.15rem)',
               fontWeight: 700,
-              fontStyle: 'italic',
+              
             }}
           />
         </div>
@@ -693,9 +693,9 @@ function ChapterSettings({
               style={{
                 display: 'flex', alignItems: 'center', gap: 5,
                 padding: '5px 10px', borderRadius: 16,
-                border: '1px solid var(--pl-olive-30)',
-                background: 'var(--pl-olive-8)',
-                color: isRewriting ? 'var(--pl-olive-40)' : 'var(--pl-olive)',
+                border: '1px solid rgba(24,24,27,0.15)',
+                background: 'rgba(24,24,27,0.04)',
+                color: isRewriting ? 'rgba(24,24,27,0.2)' : '#18181B',
                 cursor: isRewriting ? 'wait' : 'pointer',
                 fontSize: 'var(--pl-text-2xs)',
                 fontWeight: 700,
@@ -742,9 +742,9 @@ function ChapterSettings({
                     display: 'flex', flexDirection: 'column',
                     alignItems: 'center', gap: 5,
                     padding: '10px 12px', borderRadius: 10,
-                    border: active ? '1px solid var(--pl-olive-50)' : '1px solid var(--pl-black-6)',
-                    background: active ? 'var(--pl-olive-12)' : 'var(--pl-olive-5)',
-                    color: active ? 'var(--pl-olive)' : 'var(--pl-muted)',
+                    border: active ? '1px solid rgba(24,24,27,0.25)' : '1px solid var(--pl-black-6)',
+                    background: active ? 'rgba(24,24,27,0.06)' : 'rgba(24,24,27,0.03)',
+                    color: active ? '#18181B' : '#71717A',
                     cursor: 'pointer', minWidth: 72,
                     transition: 'all 0.15s',
                   }}
@@ -760,7 +760,7 @@ function ChapterSettings({
                   </span>
                   <span style={{
                     fontSize: '0.55rem', fontWeight: 500,
-                    color: active ? 'var(--pl-olive)' : 'var(--pl-muted)',
+                    color: active ? '#18181B' : '#71717A',
                     opacity: 0.75, lineHeight: 1.2,
                     textAlign: 'center', maxWidth: 80,
                   }}>
@@ -901,7 +901,7 @@ function DesignSettings({
   return (
     <div style={sectionPad}>
       <div style={fieldStack}>
-        <div style={{ fontSize: 'var(--pl-text-sm)', color: 'var(--pl-muted)', lineHeight: 1.5, marginBottom: 4 }}>
+        <div style={{ fontSize: 'var(--pl-text-sm)', color: '#71717A', lineHeight: 1.5, marginBottom: 4 }}>
           {section === 'nav' ? 'Customize the navigation bar.' : 'Customize the footer.'}
         </div>
 
@@ -938,13 +938,13 @@ function DesignSettings({
                     onClick={() => onUpdate({ pageMode: mode.id })}
                     style={{
                       padding: '10px 6px', borderRadius: 12, textAlign: 'center',
-                      border: active ? '2px solid var(--pl-olive)' : '1px solid rgba(0,0,0,0.06)',
-                      background: active ? 'rgba(163,177,138,0.08)' : 'rgba(255,255,255,0.75)',
+                      border: active ? '2px solid #18181B' : '1px solid rgba(0,0,0,0.06)',
+                      background: active ? 'rgba(24,24,27,0.04)' : 'rgba(255,255,255,0.75)',
                       cursor: 'pointer', transition: 'all 0.15s',
                     }}
                   >
-                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: active ? 'var(--pl-olive-deep)' : 'var(--pl-ink)' }}>{mode.label}</div>
-                    <div style={{ fontSize: '0.55rem', color: 'var(--pl-muted)', marginTop: 2 }}>{mode.desc}</div>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: active ? '#18181B' : '#18181B' }}>{mode.label}</div>
+                    <div style={{ fontSize: '0.55rem', color: '#71717A', marginTop: 2 }}>{mode.desc}</div>
                   </button>
                 );
               })}
@@ -965,13 +965,13 @@ function DesignSettings({
                     onClick={() => onUpdate({ navStyle: s.id as StoryManifest['navStyle'] })}
                     style={{
                       padding: '10px 6px', borderRadius: 10, textAlign: 'center',
-                      border: active ? '2px solid var(--pl-olive)' : '1px solid rgba(0,0,0,0.06)',
-                      background: active ? 'rgba(163,177,138,0.08)' : 'rgba(255,255,255,0.75)',
+                      border: active ? '2px solid #18181B' : '1px solid rgba(0,0,0,0.06)',
+                      background: active ? 'rgba(24,24,27,0.04)' : 'rgba(255,255,255,0.75)',
                       cursor: 'pointer', transition: 'all 0.15s',
                     }}
                   >
-                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: active ? 'var(--pl-olive-deep)' : 'var(--pl-ink)' }}>{s.label}</div>
-                    <div style={{ fontSize: '0.55rem', color: 'var(--pl-muted)', marginTop: 2 }}>{s.desc}</div>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: active ? '#18181B' : '#18181B' }}>{s.label}</div>
+                    <div style={{ fontSize: '0.55rem', color: '#71717A', marginTop: 2 }}>{s.desc}</div>
                   </button>
                 );
               })}
@@ -992,13 +992,13 @@ function DesignSettings({
                     onClick={() => onUpdate({ mobileNavStyle: s.id as StoryManifest['mobileNavStyle'] })}
                     style={{
                       padding: '10px 6px', borderRadius: 10, textAlign: 'center',
-                      border: active ? '2px solid var(--pl-olive)' : '1px solid rgba(0,0,0,0.06)',
-                      background: active ? 'rgba(163,177,138,0.08)' : 'rgba(255,255,255,0.75)',
+                      border: active ? '2px solid #18181B' : '1px solid rgba(0,0,0,0.06)',
+                      background: active ? 'rgba(24,24,27,0.04)' : 'rgba(255,255,255,0.75)',
                       cursor: 'pointer', transition: 'all 0.15s',
                     }}
                   >
-                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: active ? 'var(--pl-olive-deep)' : 'var(--pl-ink)' }}>{s.label}</div>
-                    <div style={{ fontSize: '0.55rem', color: 'var(--pl-muted)', marginTop: 2 }}>{s.desc}</div>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: active ? '#18181B' : '#18181B' }}>{s.label}</div>
+                    <div style={{ fontSize: '0.55rem', color: '#71717A', marginTop: 2 }}>{s.desc}</div>
                   </button>
                 );
               })}
@@ -1014,7 +1014,7 @@ function DesignSettings({
               type="range" min={0} max={100} step={5}
               value={manifest.navOpacity ?? 100}
               onChange={e => onUpdate({ navOpacity: Number(e.target.value) })}
-              style={{ width: '100%', accentColor: 'var(--pl-olive)' }}
+              style={{ width: '100%', accentColor: '#18181B' }}
             />
           </div>
         )}
@@ -1032,9 +1032,9 @@ function DesignSettings({
                     onClick={() => onUpdate({ navBackground: p.value || undefined })}
                     style={{
                       padding: '6px 12px', borderRadius: 8, fontSize: '0.68rem', fontWeight: 600,
-                      border: active ? '2px solid var(--pl-olive)' : '1px solid rgba(0,0,0,0.06)',
-                      background: active ? 'rgba(163,177,138,0.08)' : 'rgba(255,255,255,0.75)',
-                      color: active ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+                      border: active ? '2px solid #18181B' : '1px solid rgba(0,0,0,0.06)',
+                      background: active ? 'rgba(24,24,27,0.04)' : 'rgba(255,255,255,0.75)',
+                      color: active ? '#18181B' : '#71717A',
                       cursor: 'pointer', transition: 'all 0.15s',
                       display: 'flex', alignItems: 'center', gap: 4,
                     }}
@@ -1056,18 +1056,18 @@ function DesignSettings({
               onChange={e => onUpdate({ theme: { ...theme, colors: { ...colors, background: e.target.value } } })}
               style={{ width: 52, height: 44, padding: 3, borderRadius: 10, border: '1px solid rgba(0,0,0,0.08)', cursor: 'pointer', background: 'transparent', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
             />
-            <span style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', fontFamily: 'monospace' }}>{colors.background || '#FFFDF8'}</span>
+            <span style={{ fontSize: '0.72rem', color: '#71717A', fontFamily: 'monospace' }}>{colors.background || '#FFFDF8'}</span>
           </div>
         </div>
 
         <div>
           <label style={lbl}>Accent Color</label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <input type="color" value={colors.accent || '#A3B18A'}
+            <input type="color" value={colors.accent || '#71717A'}
               onChange={e => onUpdate({ theme: { ...theme, colors: { ...colors, accent: e.target.value } } })}
               style={{ width: 52, height: 44, padding: 3, borderRadius: 10, border: '1px solid rgba(0,0,0,0.08)', cursor: 'pointer', background: 'transparent', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
             />
-            <span style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', fontFamily: 'monospace' }}>{colors.accent || '#A3B18A'}</span>
+            <span style={{ fontSize: '0.72rem', color: '#71717A', fontFamily: 'monospace' }}>{colors.accent || '#71717A'}</span>
           </div>
         </div>
 
@@ -1200,7 +1200,7 @@ function RegistrySettings({
               border: '1px solid var(--pl-black-6)', background: 'var(--pl-glass-light)',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--pl-ink-soft)' }}>{entry.name || `Registry ${i + 1}`}</span>
+                <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#3F3F46' }}>{entry.name || `Registry ${i + 1}`}</span>
                 <button
                   onClick={() => {
                     const entries = (registry.entries || []).filter((_, j) => j !== i);
@@ -1229,8 +1229,8 @@ function RegistrySettings({
             }}
             style={{
               width: '100%', padding: '12px', borderRadius: 10,
-              border: '2px dashed rgba(163,177,138,0.3)', background: 'rgba(163,177,138,0.04)',
-              color: 'var(--pl-olive)', fontSize: '0.82rem', fontWeight: 600,
+              border: '2px dashed #E4E4E7', background: 'rgba(24,24,27,0.03)',
+              color: '#18181B', fontSize: '0.82rem', fontWeight: 600,
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}
           >+ Add Registry</button>
@@ -1290,7 +1290,7 @@ function TravelSettings({
               border: '1px solid var(--pl-black-6)', background: 'var(--pl-glass-light)',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--pl-ink-soft)' }}>Hotel {i + 1}</span>
+                <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#3F3F46' }}>Hotel {i + 1}</span>
                 <button
                   onClick={() => onUpdate({ travelInfo: { ...travel, hotels: (travel.hotels || []).filter((_, j) => j !== i) } })}
                   style={{ background: 'none', border: 'none', color: '#e87171', fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer' }}
@@ -1325,8 +1325,8 @@ function TravelSettings({
             onClick={() => onUpdate({ travelInfo: { ...travel, hotels: [...(travel.hotels || []), { name: '', address: '' }] } })}
             style={{
               width: '100%', padding: '12px', borderRadius: 10,
-              border: '2px dashed rgba(163,177,138,0.3)', background: 'rgba(163,177,138,0.04)',
-              color: 'var(--pl-olive)', fontSize: '0.82rem', fontWeight: 600,
+              border: '2px dashed #E4E4E7', background: 'rgba(24,24,27,0.03)',
+              color: '#18181B', fontSize: '0.82rem', fontWeight: 600,
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}
           >+ Add Hotel</button>
@@ -1364,7 +1364,7 @@ function FaqSettings({
     <div style={sectionPad}>
       <div style={fieldStack}>
         {faqs.length === 0 && (
-          <div style={{ color: 'var(--pl-muted)', fontSize: 'var(--pl-text-sm)', lineHeight: 1.5 }}>
+          <div style={{ color: '#71717A', fontSize: 'var(--pl-text-sm)', lineHeight: 1.5 }}>
             No FAQs yet. Add common questions your guests might have.
           </div>
         )}
@@ -1375,7 +1375,7 @@ function FaqSettings({
             background: 'var(--pl-glass-light)',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--pl-ink-soft)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Q{i + 1}</span>
+              <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#3F3F46', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Q{i + 1}</span>
               <button onClick={() => removeFaq(i)} style={{ background: 'none', border: 'none', color: '#e87171', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer', padding: '4px 8px' }}>Remove</button>
             </div>
             <Field
@@ -1398,8 +1398,8 @@ function FaqSettings({
           onClick={addFaq}
           style={{
             width: '100%', padding: '12px', borderRadius: 10,
-            border: '2px dashed rgba(163,177,138,0.3)', background: 'rgba(163,177,138,0.04)',
-            color: 'var(--pl-olive)', fontSize: '0.82rem', fontWeight: 600,
+            border: '2px dashed #E4E4E7', background: 'rgba(24,24,27,0.03)',
+            color: '#18181B', fontSize: '0.82rem', fontWeight: 600,
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
           }}
         >+ Add Question</button>
@@ -1565,7 +1565,7 @@ function BlockSettings({
               onClick={() => updateBlockConfig({ showCaptions: !config.showCaptions })}
               style={{
                 width: 44, height: 26, borderRadius: 13, border: 'none', cursor: 'pointer',
-                background: config.showCaptions ? 'var(--pl-olive)' : 'rgba(0,0,0,0.12)',
+                background: config.showCaptions ? '#18181B' : 'rgba(0,0,0,0.12)',
                 position: 'relative', transition: 'background 0.2s',
               }}
             >
@@ -1598,7 +1598,7 @@ function BlockSettings({
                 style={inp}
               />
               {!((config.date as string) || manifest.events?.[0]?.date || manifest.logistics?.date) && (
-                <p style={{ fontSize: '0.55rem', color: 'var(--pl-muted)', marginTop: '4px', lineHeight: 1.4 }}>This is when the countdown timer reaches zero</p>
+                <p style={{ fontSize: '0.55rem', color: '#71717A', marginTop: '4px', lineHeight: 1.4 }}>This is when the countdown timer reaches zero</p>
               )}
             </div>
             <Field
@@ -1701,9 +1701,9 @@ function SaveIndicator() {
             fontWeight: 700,
             letterSpacing: '0.08em',
             textTransform: 'uppercase' as const,
-            color: 'var(--pl-olive)',
-            background: 'var(--pl-olive-8)',
-            borderTop: '1px solid var(--pl-olive-20)',
+            color: '#18181B',
+            background: 'rgba(24,24,27,0.04)',
+            borderTop: '1px solid rgba(24,24,27,0.1)',
             zIndex: 3,
           }}
         >
@@ -1739,7 +1739,7 @@ const closeBtn: React.CSSProperties = {
   borderRadius: '50%',
   border: 'none',
   background: 'var(--pl-black-6)',
-  color: 'var(--pl-muted)',
+  color: '#71717A',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',

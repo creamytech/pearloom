@@ -153,7 +153,7 @@ export function MobileEditorSheet() {
     try {
       const el = previewRef.current?.querySelector(`[data-pe-section="${sectionId}"]`) as HTMLElement | null;
       if (el) {
-        el.style.outline = '2px solid var(--pl-olive)';
+        el.style.outline = '2px solid #18181B';
         el.style.outlineOffset = '-2px';
         el.style.transition = 'outline-color 0.6s ease';
         setTimeout(() => {
@@ -378,8 +378,8 @@ export function MobileEditorSheet() {
               padding: '8px 14px', marginBottom: 12,
               borderRadius: 'var(--pl-radius-full)',
               border: '1px solid var(--pl-black-6)',
-              background: 'var(--pl-olive-5)',
-              color: 'var(--pl-ink-soft)',
+              background: 'rgba(24,24,27,0.03)',
+              color: '#3F3F46',
               fontSize: 'var(--pl-text-sm)',
               fontWeight: 600, cursor: 'pointer',
             }}
@@ -410,8 +410,8 @@ export function MobileEditorSheet() {
                     padding: '8px 14px', marginBottom: 4,
                     borderRadius: 'var(--pl-radius-full)',
                     border: '1px solid var(--pl-black-6)',
-                    background: 'var(--pl-olive-5)',
-                    color: 'var(--pl-ink-soft)',
+                    background: 'rgba(24,24,27,0.03)',
+                    color: '#3F3F46',
                     fontSize: 'var(--pl-text-sm)',
                     fontWeight: 600, cursor: 'pointer',
                   }}
@@ -443,7 +443,7 @@ export function MobileEditorSheet() {
             <div style={{
               fontSize: 'var(--pl-text-2xs)', fontWeight: 800,
               letterSpacing: 'var(--pl-label-tracking)', textTransform: 'uppercase',
-              color: 'var(--pl-olive)', marginBottom: 12,
+              color: '#18181B', marginBottom: 12,
               fontVariant: 'small-caps',
             }}>
               Essentials
@@ -471,14 +471,14 @@ export function MobileEditorSheet() {
                 >
                   <div style={{
                     width: 40, height: 40, borderRadius: 'var(--pl-radius-xs)',
-                    background: 'var(--pl-olive-8)',
+                    background: 'rgba(24,24,27,0.04)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
-                    <tool.icon size={18} color="var(--pl-olive)" />
+                    <tool.icon size={18} color="#18181B" />
                   </div>
                   <span style={{
                     fontSize: 'var(--pl-text-xs)', fontWeight: 600,
-                    color: 'var(--pl-ink-soft)', textAlign: 'center',
+                    color: '#3F3F46', textAlign: 'center',
                     lineHeight: 1.2,
                   }}>
                     {tool.label}
@@ -497,7 +497,7 @@ export function MobileEditorSheet() {
             <div style={{
               fontSize: 'var(--pl-text-2xs)', fontWeight: 800,
               letterSpacing: 'var(--pl-label-tracking)', textTransform: 'uppercase',
-              color: 'var(--pl-olive)', marginBottom: 12,
+              color: '#18181B', marginBottom: 12,
               fontVariant: 'small-caps',
             }}>
               More Tools
@@ -525,14 +525,14 @@ export function MobileEditorSheet() {
                 >
                   <div style={{
                     width: 32, height: 32, borderRadius: 'var(--pl-radius-xs)',
-                    background: 'var(--pl-olive-8)',
+                    background: 'rgba(24,24,27,0.04)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
-                    <tool.icon size={14} color="var(--pl-olive)" />
+                    <tool.icon size={14} color="#18181B" />
                   </div>
                   <span style={{
                     fontSize: 'var(--pl-text-2xs)', fontWeight: 600,
-                    color: 'var(--pl-ink-soft)', textAlign: 'center',
+                    color: '#3F3F46', textAlign: 'center',
                     lineHeight: 1.2,
                   }}>
                     {tool.label}
@@ -575,7 +575,7 @@ export function MobileEditorSheet() {
           style={{
             width: 44, height: 44, borderRadius: 12,
             border: 'none', background: 'transparent',
-            color: 'var(--pl-ink-soft)',
+            color: '#3F3F46',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', flexShrink: 0,
           }}
@@ -586,10 +586,10 @@ export function MobileEditorSheet() {
         {/* Site name */}
         <div style={{
           flex: 1, minWidth: 0, textAlign: 'center',
-          fontFamily: 'var(--pl-font-heading)',
+          fontFamily: 'inherit',
           fontSize: 'var(--pl-text-md)', fontWeight: 700,
-          fontStyle: 'italic',
-          color: 'var(--pl-ink)',
+          
+          color: '#18181B',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {displayName}
@@ -604,8 +604,8 @@ export function MobileEditorSheet() {
             style={{
               width: 44, height: 44, borderRadius: 12,
               border: 'none',
-              background: showMenu ? 'var(--pl-olive-10)' : 'transparent',
-              color: 'var(--pl-ink-soft)',
+              background: showMenu ? 'rgba(24,24,27,0.06)' : 'transparent',
+              color: '#3F3F46',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer',
             }}
@@ -656,7 +656,7 @@ export function MobileEditorSheet() {
                         width: '100%', display: 'flex', alignItems: 'center', gap: 10,
                         padding: '10px 12px', border: 'none', borderRadius: 'var(--pl-radius-xs)',
                         background: 'transparent', cursor: item.disabled ? 'default' : 'pointer',
-                        color: item.disabled ? 'var(--pl-muted)' : 'var(--pl-ink-soft)',
+                        color: item.disabled ? '#71717A' : '#3F3F46',
                         fontSize: 'var(--pl-text-sm)', fontWeight: 600,
                         opacity: item.disabled ? 0.4 : 1,
                       }}
@@ -726,7 +726,7 @@ export function MobileEditorSheet() {
           sheetSnap === 0 ? (
             <div style={{
               padding: '0 16px 8px', textAlign: 'center',
-              fontSize: 'var(--pl-text-xs)', color: 'var(--pl-muted)',
+              fontSize: 'var(--pl-text-xs)', color: '#71717A',
               fontWeight: 600,
             }}>
               {activeSection
@@ -789,8 +789,8 @@ export function MobileEditorSheet() {
                   style={{
                     position: 'absolute', inset: '4px 8px',
                     borderRadius: 10,
-                    background: 'var(--pl-olive-15)',
-                    border: '1px solid var(--pl-olive-20)',
+                    background: 'rgba(24,24,27,0.08)',
+                    border: '1px solid rgba(24,24,27,0.1)',
                   }}
                   transition={{ type: 'spring', stiffness: 420, damping: 38 }}
                 />
@@ -799,12 +799,12 @@ export function MobileEditorSheet() {
                 size={18}
                 style={{
                   position: 'relative', zIndex: 1,
-                  color: isActive ? 'var(--pl-olive)' : 'var(--pl-olive-30)',
+                  color: isActive ? '#18181B' : 'rgba(24,24,27,0.15)',
                 }}
               />
               <span style={{
                 fontSize: 'var(--pl-text-xs)', fontWeight: 700,
-                color: isActive ? 'var(--pl-olive)' : 'var(--pl-olive-30)',
+                color: isActive ? '#18181B' : 'rgba(24,24,27,0.15)',
                 letterSpacing: '0.04em',
                 position: 'relative', zIndex: 1,
               }}>

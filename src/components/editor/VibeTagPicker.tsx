@@ -60,7 +60,7 @@ export function VibeTagPicker({ selectedTags, onChange }: VibeTagPickerProps) {
           Help others discover your vibe (shown in our wedding gallery)
         </span>
         <motion.span
-          animate={{ color: atMax ? '#A3B18A' : 'rgba(245,240,232,0.35)' }}
+          animate={{ color: atMax ? '#71717A' : 'rgba(245,240,232,0.35)' }}
           transition={{ duration: 0.25 }}
           style={{
             fontSize: '0.75rem',
@@ -125,13 +125,13 @@ export function VibeTagPicker({ selectedTags, onChange }: VibeTagPickerProps) {
                     fontSize: '0.78rem',
                     fontWeight: isSelected ? 600 : 400,
                     border: isSelected
-                      ? '1px solid rgba(163,177,138,0.6)'
+                      ? '1px solid #71717A'
                       : '1px solid rgba(0,0,0,0.08)',
                     background: isSelected
-                      ? 'rgba(163,177,138,0.22)'
+                      ? 'rgba(24,24,27,0.12)'
                       : 'transparent',
                     color: isSelected
-                      ? '#A3B18A'
+                      ? '#71717A'
                       : isDisabled
                       ? 'rgba(245,240,232,0.2)'
                       : 'rgba(245,240,232,0.7)',
@@ -153,7 +153,7 @@ export function VibeTagPicker({ selectedTags, onChange }: VibeTagPickerProps) {
                         style={{ display: 'inline-flex', flexShrink: 0, overflow: 'hidden' }}
                       >
                         <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                          <path d="M1.5 5L4 7.5L8.5 2.5" stroke="#A3B18A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M1.5 5L4 7.5L8.5 2.5" stroke="#71717A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       </motion.span>
                     )}

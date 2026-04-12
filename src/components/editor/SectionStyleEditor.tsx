@@ -78,10 +78,10 @@ export function SectionStyleEditor({
                 width: '28px', height: '28px', borderRadius: '50%',
                 background: color,
                 border: currentBg === color
-                  ? '2px solid var(--pl-olive, #A3B18A)'
+                  ? '2px solid #18181B'
                   : '1px solid rgba(0,0,0,0.08)',
                 cursor: 'pointer', flexShrink: 0,
-                boxShadow: currentBg === color ? '0 0 0 2px rgba(163,177,138,0.3)' : 'none',
+                boxShadow: currentBg === color ? '0 0 0 2px #E4E4E7' : 'none',
                 transition: 'all 0.15s',
               }}
             />
@@ -103,8 +103,8 @@ export function SectionStyleEditor({
             style={{
               flex: 1, padding: '7px 10px', borderRadius: '6px', border: 'none',
               cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
-              background: isDark ? 'var(--pl-plum, #6D597A)' : 'rgba(0,0,0,0.05)',
-              color: isDark ? '#fff' : 'var(--pl-ink-soft)',
+              background: isDark ? '#71717A' : 'rgba(0,0,0,0.05)',
+              color: isDark ? '#fff' : '#3F3F46',
               transition: 'all 0.15s',
               minHeight: '36px',
             }}
@@ -116,8 +116,8 @@ export function SectionStyleEditor({
             style={{
               flex: 1, padding: '7px 10px', borderRadius: '6px', border: 'none',
               cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
-              background: !isDark ? 'var(--pl-plum, #6D597A)' : 'rgba(0,0,0,0.05)',
-              color: !isDark ? '#fff' : 'var(--pl-ink-soft)',
+              background: !isDark ? '#71717A' : 'rgba(0,0,0,0.05)',
+              color: !isDark ? '#fff' : '#3F3F46',
               transition: 'all 0.15s',
               minHeight: '36px',
             }}
@@ -138,8 +138,8 @@ export function SectionStyleEditor({
               style={{
                 flex: 1, padding: '7px 6px', borderRadius: '6px', border: 'none',
                 cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
-                background: padding === opt.value ? 'var(--pl-plum, #6D597A)' : 'rgba(0,0,0,0.05)',
-                color: padding === opt.value ? '#fff' : 'var(--pl-ink-soft)',
+                background: padding === opt.value ? '#71717A' : 'rgba(0,0,0,0.05)',
+                color: padding === opt.value ? '#fff' : '#3F3F46',
                 transition: 'all 0.15s',
                 minHeight: '36px',
               }}
@@ -154,12 +154,12 @@ export function SectionStyleEditor({
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {/* Full bleed */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: '36px' }}>
-          <span style={{ fontSize: '0.85rem', color: 'var(--pl-ink)', fontWeight: 600 }}>Full bleed</span>
+          <span style={{ fontSize: '0.85rem', color: '#18181B', fontWeight: 600 }}>Full bleed</span>
           <button
             onClick={() => upd({ fullWidth: !currentOverrides.fullWidth })}
             style={{
-              width: '36px', height: '20px', borderRadius: '100px', flexShrink: 0,
-              background: currentOverrides.fullWidth ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.07)',
+              width: '36px', height: '20px', borderRadius: '8px', flexShrink: 0,
+              background: currentOverrides.fullWidth ? '#18181B' : 'rgba(0,0,0,0.07)',
               border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
             }}
           >
@@ -173,12 +173,12 @@ export function SectionStyleEditor({
         </div>
         {/* Divider before */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: '36px' }}>
-          <span style={{ fontSize: '0.85rem', color: 'var(--pl-ink)', fontWeight: 600 }}>Divider before</span>
+          <span style={{ fontSize: '0.85rem', color: '#18181B', fontWeight: 600 }}>Divider before</span>
           <button
             onClick={() => upd({ dividerBefore: !currentOverrides.dividerBefore })}
             style={{
-              width: '36px', height: '20px', borderRadius: '100px', flexShrink: 0,
-              background: currentOverrides.dividerBefore ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.07)',
+              width: '36px', height: '20px', borderRadius: '8px', flexShrink: 0,
+              background: currentOverrides.dividerBefore ? '#18181B' : 'rgba(0,0,0,0.07)',
               border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
             }}
           >
@@ -192,12 +192,12 @@ export function SectionStyleEditor({
         </div>
         {/* Divider after */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: '36px' }}>
-          <span style={{ fontSize: '0.85rem', color: 'var(--pl-ink)', fontWeight: 600 }}>Divider after</span>
+          <span style={{ fontSize: '0.85rem', color: '#18181B', fontWeight: 600 }}>Divider after</span>
           <button
             onClick={() => upd({ dividerAfter: !currentOverrides.dividerAfter })}
             style={{
-              width: '36px', height: '20px', borderRadius: '100px', flexShrink: 0,
-              background: currentOverrides.dividerAfter ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.07)',
+              width: '36px', height: '20px', borderRadius: '8px', flexShrink: 0,
+              background: currentOverrides.dividerAfter ? '#18181B' : 'rgba(0,0,0,0.07)',
               border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
             }}
           >

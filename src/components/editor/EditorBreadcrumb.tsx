@@ -37,7 +37,7 @@ export function EditorBreadcrumb() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="flex items-center gap-1.5 text-[0.72rem] font-medium"
-      style={{ color: 'var(--pl-muted)' }}
+      style={{ color: '#71717A' }}
     >
       <button
         onClick={() => dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' })}
@@ -53,7 +53,7 @@ export function EditorBreadcrumb() {
         onClick={() => dispatch({ type: 'SET_ACTIVE_TAB', tab: activeTab })}
         className="bg-transparent border-none cursor-pointer p-0 hover:text-white transition-colors"
         style={{
-          color: activeChapter ? 'inherit' : 'var(--pl-olive, #A3B18A)',
+          color: activeChapter ? 'inherit' : '#18181B',
           fontSize: 'inherit',
           fontWeight: activeChapter ? 'inherit' : 700,
         }}

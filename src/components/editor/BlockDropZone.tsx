@@ -50,8 +50,8 @@ export function BlockDropZone({ index, isDragging, onDrop }: BlockDropZoneProps)
               left: '16px', right: '16px',
               height: '3px',
               borderRadius: '2px',
-              background: 'var(--pl-olive)',
-              boxShadow: '0 0 8px rgba(163,177,138,0.4)',
+              background: '#18181B',
+              boxShadow: '0 0 8px #E4E4E7',
             }}
           />
         )}
@@ -63,8 +63,8 @@ export function BlockDropZone({ index, isDragging, onDrop }: BlockDropZoneProps)
           style={{
             position: 'absolute',
             padding: '3px 10px',
-            borderRadius: '100px',
-            background: 'var(--pl-olive-deep)',
+            borderRadius: '8px',
+            background: '#18181B',
             color: 'white',
             fontSize: '0.58rem',
             fontWeight: 700,

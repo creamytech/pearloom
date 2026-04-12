@@ -76,7 +76,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             style={{
               display: 'flex', alignItems: 'center', gap: '4px',
               padding: '4px 8px', borderRadius: '8px', border: 'none',
-              background: 'transparent', color: 'var(--pl-muted)',
+              background: 'transparent', color: '#71717A',
               cursor: 'pointer', fontSize: '0.72rem', fontWeight: 500,
             }}
           >
@@ -86,7 +86,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
 
         <span style={{
           fontSize: '0.82rem', fontWeight: 600,
-          color: 'var(--pl-ink-soft)',
+          color: '#3F3F46',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           maxWidth: '200px',
         }}>
@@ -134,12 +134,12 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
         {/* Save indicator */}
         <span style={{
           fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.06em',
-          color: saveState === 'saved' ? 'var(--pl-olive)' : '#fb923c',
+          color: saveState === 'saved' ? '#18181B' : '#fb923c',
           display: 'flex', alignItems: 'center', gap: '3px',
         }}>
           <span style={{
             width: '5px', height: '5px', borderRadius: '50%',
-            background: saveState === 'saved' ? 'var(--pl-olive)' : '#fb923c',
+            background: saveState === 'saved' ? '#18181B' : '#fb923c',
             animation: saveState === 'unsaved' ? 'pl-heartbeat 1.2s ease-in-out infinite' : 'none',
           }} />
           {!isMobile && (saveState === 'saved' ? 'Saved' : 'Unsaved')}
@@ -169,8 +169,8 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               style={{
                 display: 'flex', alignItems: 'center', gap: '5px',
                 padding: '6px 14px',
-                borderRadius: '100px', border: 'none',
-                background: shareCopied ? 'var(--pl-olive)' : 'var(--pl-olive-deep)',
+                borderRadius: '8px', border: 'none',
+                background: shareCopied ? '#18181B' : '#18181B',
                 color: '#fff', cursor: 'pointer',
                 fontSize: '0.65rem', fontWeight: 700,
                 letterSpacing: '0.06em', textTransform: 'uppercase',
@@ -186,7 +186,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
         {/* Draft / Live badge */}
         <span style={{
           display: 'inline-flex', alignItems: 'center', gap: '4px',
-          padding: '3px 10px', borderRadius: '100px',
+          padding: '3px 10px', borderRadius: '8px',
           fontSize: '0.58rem', fontWeight: 800,
           letterSpacing: '0.08em', textTransform: 'uppercase',
           background: publishedUrl
@@ -216,7 +216,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 borderRadius: '50%', border: '1px solid rgba(0,0,0,0.08)',
                 background: 'rgba(255,255,255,0.2)',
-                color: 'var(--pl-muted)',
+                color: '#71717A',
                 cursor: 'pointer',
                 fontSize: '0.68rem',
                 fontWeight: 700,
@@ -238,8 +238,8 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             style={{
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: isMobile ? '6px 14px' : '6px 18px',
-              borderRadius: '100px', border: 'none',
-              background: 'var(--pl-olive-deep)',
+              borderRadius: '8px', border: 'none',
+              background: '#18181B',
               color: '#fff', cursor: 'pointer',
               fontSize: '0.68rem', fontWeight: 700,
               letterSpacing: '0.08em', textTransform: 'uppercase',
@@ -247,7 +247,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               transition: 'box-shadow 0.25s ease',
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.boxShadow = '0 0 20px rgba(163,177,138,0.3), 0 2px 8px rgba(110,140,92,0.25)';
+              (e.currentTarget as HTMLElement).style.boxShadow = '0 0 20px #E4E4E7, 0 2px 8px rgba(110,140,92,0.25)';
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(110,140,92,0.25)';
@@ -281,7 +281,7 @@ function ToolBtn({ onClick, disabled, children }: {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         borderRadius: '8px', border: 'none',
         background: 'transparent',
-        color: disabled ? 'var(--pl-muted)' : 'var(--pl-ink-soft)',
+        color: disabled ? '#71717A' : '#3F3F46',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.35 : 1,
         transition: 'opacity 0.15s',

@@ -68,7 +68,7 @@ function HeroSection({
 }) {
   const bg = vibeSkin?.palette?.background || manifest.theme?.colors?.background || '#faf9f6';
   const fg = vibeSkin?.palette?.foreground || manifest.theme?.colors?.foreground || '#1a1a1a';
-  const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#A3B18A';
+  const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#71717A';
   const headingFont = vibeSkin?.fonts?.heading || manifest.theme?.fonts?.heading || 'Playfair Display';
   const bodyFont = vibeSkin?.fonts?.body || manifest.theme?.fonts?.body || 'Inter';
   const tagline = manifest.poetry?.heroTagline || 'A story of love and forever';
@@ -114,7 +114,7 @@ function HeroSection({
         <div style={{
           display: 'inline-block',
           fontSize: '11px', fontWeight: 800, letterSpacing: '0.25em',
-          textTransform: 'uppercase', color: coverPhoto ? 'var(--pl-ink)' : accent,
+          textTransform: 'uppercase', color: coverPhoto ? '#18181B' : accent,
           marginBottom: '16px', fontFamily: bodyFont,
         }}>
           {coupleNames[0]}{hasPair ? ` & ${coupleNames[1]}` : ''}
@@ -128,7 +128,7 @@ function HeroSection({
           {coupleNames[0]}{hasPair && (
             <>
               <br />
-              <span style={{ fontStyle: 'italic', fontWeight: 400 }}>&amp; {coupleNames[1]}</span>
+              <span style={{  fontWeight: 400 }}>&amp; {coupleNames[1]}</span>
             </>
           )}
         </h1>
@@ -157,9 +157,9 @@ function HeroSection({
         {manifest.logistics?.date && (
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '8px',
-            padding: '8px 20px', borderRadius: '100px',
+            padding: '8px 20px', borderRadius: '8px',
             background: coverPhoto ? 'rgba(0,0,0,0.07)' : `${accent}15`,
-            border: `1px solid ${coverPhoto ? 'var(--pl-muted)' : `${accent}35`}`,
+            border: `1px solid ${coverPhoto ? '#71717A' : `${accent}35`}`,
             fontSize: '13px', fontWeight: 600, color: coverPhoto ? '#fff' : accent, fontFamily: bodyFont,
           }}>
             {new Date(manifest.logistics.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
@@ -200,7 +200,7 @@ function ChapterCard({
   const [hovered, setHovered] = useState(false);
   const bg = vibeSkin?.palette?.card || manifest.theme?.colors?.cardBg || '#fff';
   const fg = vibeSkin?.palette?.foreground || manifest.theme?.colors?.foreground || '#1a1a1a';
-  const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#A3B18A';
+  const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#71717A';
   const muted = vibeSkin?.palette?.muted || manifest.theme?.colors?.muted || '#888';
   const headingFont = vibeSkin?.fonts?.heading || manifest.theme?.fonts?.heading || 'Playfair Display';
   const bodyFont = vibeSkin?.fonts?.body || manifest.theme?.fonts?.body || 'Inter';
@@ -259,7 +259,7 @@ function ChapterCard({
             onCancelEdit={onCancelEdit}
             onCommit={(v) => onCommitEdit(chapter.subtitle ? 'subtitle' : 'title', v)}
             tag="p"
-            style={{ fontFamily: `"${headingFont}", serif`, fontSize: '18px', fontStyle: 'italic', color: '#fff', lineHeight: 1.5, margin: 0 }}
+            style={{ fontFamily: `"${headingFont}", serif`, fontSize: '18px',  color: '#fff', lineHeight: 1.5, margin: 0 }}
           />
         </div>
       </div>
@@ -277,7 +277,7 @@ function ChapterCard({
             {chapter.mood || ''}
           </div>
           <InlineEditableText value={chapter.title} isEditing={isEditingField('title')} onStartEdit={() => onStartEdit('title')} onCancelEdit={onCancelEdit} onCommit={(v) => onCommitEdit('title', v)} tag="h2" style={titleStyle('36px', '#fff', { margin: '0 0 10px' })} />
-          <InlineEditableText value={chapter.description || ''} isEditing={isEditingField('description')} onStartEdit={() => onStartEdit('description')} onCancelEdit={onCancelEdit} onCommit={(v) => onCommitEdit('description', v)} tag="p" multiline style={{ ...descStyle, color: 'var(--pl-ink)', WebkitLineClamp: isEditingField('description') ? undefined : 3, display: isEditingField('description') ? 'block' : '-webkit-box', WebkitBoxOrient: 'vertical', overflow: isEditingField('description') ? 'visible' : 'hidden' } as React.CSSProperties} />
+          <InlineEditableText value={chapter.description || ''} isEditing={isEditingField('description')} onStartEdit={() => onStartEdit('description')} onCancelEdit={onCancelEdit} onCommit={(v) => onCommitEdit('description', v)} tag="p" multiline style={{ ...descStyle, color: '#18181B', WebkitLineClamp: isEditingField('description') ? undefined : 3, display: isEditingField('description') ? 'block' : '-webkit-box', WebkitBoxOrient: 'vertical', overflow: isEditingField('description') ? 'visible' : 'hidden' } as React.CSSProperties} />
         </div>
       </div>
     );
@@ -317,7 +317,7 @@ function ChapterCard({
       </div>
       <InlineEditableText value={chapter.title} isEditing={isEditingField('title')} onStartEdit={() => onStartEdit('title')} onCancelEdit={onCancelEdit} onCommit={(v) => onCommitEdit('title', v)} tag="h2" style={titleStyle('30px', fg)} />
       {chapter.subtitle && (
-        <InlineEditableText value={chapter.subtitle} isEditing={isEditingField('subtitle')} onStartEdit={() => onStartEdit('subtitle')} onCancelEdit={onCancelEdit} onCommit={(v) => onCommitEdit('subtitle', v)} tag="p" style={{ fontFamily: `"${headingFont}", Georgia, serif`, fontStyle: 'italic', fontSize: '16px', color: `${fg}88`, margin: '0 0 16px' }} />
+        <InlineEditableText value={chapter.subtitle} isEditing={isEditingField('subtitle')} onStartEdit={() => onStartEdit('subtitle')} onCancelEdit={onCancelEdit} onCommit={(v) => onCommitEdit('subtitle', v)} tag="p" style={{ fontFamily: `"${headingFont}", Georgia, serif`,  fontSize: '16px', color: `${fg}88`, margin: '0 0 16px' }} />
       )}
       <InlineEditableText value={chapter.description || ''} isEditing={isEditingField('description')} onStartEdit={() => onStartEdit('description')} onCancelEdit={onCancelEdit} onCommit={(v) => onCommitEdit('description', v)} tag="p" multiline style={descStyle} />
     </div>
@@ -361,7 +361,7 @@ export function PreviewPane({
 
   const containerWidth = DEVICE_WIDTHS[previewDevice];
   const bg = vibeSkin?.palette?.background || manifest.theme?.colors?.background || '#faf9f6';
-  const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#A3B18A';
+  const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#71717A';
   const chapters = useMemo(
     () => [...(manifest.chapters || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
     [manifest.chapters],
@@ -401,7 +401,7 @@ export function PreviewPane({
       }}>
         <span style={{
           fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em',
-          textTransform: 'uppercase', color: 'var(--pl-ink-soft)',
+          textTransform: 'uppercase', color: '#3F3F46',
         }}>
           Live Preview
         </span>
@@ -414,7 +414,7 @@ export function PreviewPane({
               style={{
                 padding: '4px 8px', borderRadius: '4px', border: 'none', cursor: 'pointer',
                 background: previewDevice === d ? 'rgba(255,255,255,0.14)' : 'transparent',
-                color: previewDevice === d ? '#fff' : 'var(--pl-muted)',
+                color: previewDevice === d ? '#fff' : '#71717A',
                 display: 'flex', alignItems: 'center', transition: 'all 0.15s',
               }}
             >
@@ -477,7 +477,7 @@ export function PreviewPane({
                 <div key={ch.id} style={{ opacity: draggingId === ch.id ? 0.35 : 1, transition: 'opacity 0.15s' }}>
                   {isSelected ? (
                     <div style={{
-                      outline: '2px solid var(--pl-plum, #6D597A)',
+                      outline: '2px solid #71717A',
                       outlineOffset: '-2px',
                       borderRadius: '4px',
                       position: 'relative',
@@ -503,7 +503,7 @@ export function PreviewPane({
             }}>
               <div style={{
                 fontFamily: vibeSkin?.fonts?.heading || manifest.theme?.fonts?.heading || 'Playfair Display',
-                fontSize: '18px', fontStyle: 'italic',
+                fontSize: '18px', 
                 color: `${vibeSkin?.palette?.foreground || '#1a1a1a'}60`,
               }}>
                 {manifest.poetry?.closingLine || (coupleNames[1] ? `${coupleNames[0]} & ${coupleNames[1]}` : coupleNames[0])}

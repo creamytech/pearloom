@@ -5,7 +5,7 @@
 // Canonical labeled form field for editor panels. Wraps a text
 // input / textarea / arbitrary children with the uppercase eyebrow
 // label style used everywhere else in the editor (0.62rem / 700 /
-// 0.1em tracking / var(--pl-muted)).
+// 0.1em tracking / #71717A).
 //
 // Intentionally thin — we don't own the input element because the
 // same wrapper is used for native inputs, selects, and custom
@@ -52,7 +52,7 @@ export function PanelField({
             fontWeight: panelWeight.bold,
             letterSpacing: panelTracking.wider,
             textTransform: 'uppercase',
-            color: 'var(--pl-muted)',
+            color: '#71717A',
             lineHeight: 1.4,
           }}
         >
@@ -65,7 +65,7 @@ export function PanelField({
           style={{
             fontSize: panelText.meta,
             lineHeight: 1.5,
-            color: error ? '#b91c1c' : 'var(--pl-muted)',
+            color: error ? '#b91c1c' : '#71717A',
             fontStyle: error ? 'normal' : 'italic',
           }}
         >

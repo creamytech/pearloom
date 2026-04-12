@@ -32,7 +32,7 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
         <span style={{
           fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.12em',
-          textTransform: 'uppercase', color: 'var(--pl-muted)',
+          textTransform: 'uppercase', color: '#71717A',
         }}>
           3 Alternatives
         </span>
@@ -40,7 +40,7 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
           onClick={onClose}
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            color: 'var(--pl-muted)', display: 'flex', padding: '4px',
+            color: '#71717A', display: 'flex', padding: '4px',
             borderRadius: '4px',
           }}
           aria-label="Close alternatives"
@@ -81,9 +81,9 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
             <span style={{
               fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
               textTransform: 'uppercase',
-              color: 'var(--pl-olive, #A3B18A)',
-              background: 'rgba(163,177,138,0.1)',
-              borderRadius: '100px',
+              color: '#18181B',
+              background: 'rgba(24,24,27,0.06)',
+              borderRadius: '8px',
               padding: '3px 8px',
               alignSelf: 'flex-start',
             }}>
@@ -107,17 +107,17 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
               style={{
                 padding: '8px 14px',
                 borderRadius: '7px',
-                border: '1px solid rgba(163,177,138,0.35)',
-                background: 'rgba(163,177,138,0.12)',
-                color: 'var(--pl-olive, #A3B18A)',
+                border: '1px solid #E4E4E7',
+                background: '#F4F4F5',
+                color: '#18181B',
                 fontSize: '0.8rem',
                 fontWeight: 700,
                 cursor: 'pointer',
                 letterSpacing: '0.03em',
                 transition: 'all 0.15s',
               }}
-              onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.22)'; }}
-              onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.12)'; }}
+              onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.12)'; }}
+              onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = '#F4F4F5'; }}
             >
               Use this version
             </button>

@@ -195,7 +195,7 @@ export function EditorWing({
                     fontSize: '0.92rem',
                     fontWeight: 600,
                     fontFamily: 'inherit',
-                    color: 'var(--pl-ink)',
+                    color: '#18181B',
                     margin: 0, lineHeight: 1.2,
                   }}>
                     {title}
@@ -205,7 +205,7 @@ export function EditorWing({
                       fontSize: '0.58rem', fontWeight: 600,
                       letterSpacing: '0.08em',
                       textTransform: 'uppercase',
-                      color: 'var(--pl-muted)',
+                      color: '#71717A',
                       display: 'block', marginTop: '2px',
                     }}>
                       {hint}
@@ -221,7 +221,7 @@ export function EditorWing({
                   background: meta.bg,
                   border: `1px solid ${meta.color}30`,
                   padding: '1px 6px',
-                  borderRadius: '100px',
+                  borderRadius: '8px',
                   lineHeight: '16px',
                   display: 'inline-block', marginTop: '6px',
                 }}>
@@ -261,7 +261,7 @@ export function EditorWing({
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   borderRadius: '8px', border: 'none',
                   background: 'transparent',
-                  color: 'var(--pl-muted)',
+                  color: '#71717A',
                   cursor: 'pointer',
                   flexShrink: 0,
                 }}

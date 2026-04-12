@@ -49,17 +49,17 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
         display: 'flex', alignItems: 'center', gap: '8px',
         marginBottom: '12px',
       }}>
-        <Code size={14} color="var(--pl-olive)" />
+        <Code size={14} color="#18181B" />
         <span style={{
           fontSize: '0.65rem', fontWeight: 700,
           letterSpacing: '0.1em', textTransform: 'uppercase',
-          color: 'var(--pl-olive-deep)',
+          color: '#18181B',
         }}>
           Custom CSS
         </span>
         <span style={{
           fontSize: '0.55rem', fontWeight: 600,
-          color: 'var(--pl-muted)',
+          color: '#71717A',
           padding: '2px 6px', borderRadius: '4px',
           background: 'rgba(255,255,255,0.2)',
         }}>
@@ -83,7 +83,7 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
           fontFamily: '"JetBrains Mono", "Fira Code", monospace',
           fontSize: '0.78rem',
           lineHeight: 1.6,
-          color: 'var(--pl-ink)',
+          color: '#18181B',
           resize: 'vertical',
           tabSize: 2,
         }}
@@ -123,7 +123,7 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
       </div>
 
       <p style={{
-        fontSize: '0.62rem', color: 'var(--pl-muted)',
+        fontSize: '0.62rem', color: '#71717A',
         marginTop: '8px', lineHeight: 1.4,
       }}>
         CSS is scoped to this block. Use <code style={{ fontSize: '0.58rem', background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '3px' }}>.block</code> to target the wrapper.

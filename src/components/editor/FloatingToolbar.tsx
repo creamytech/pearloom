@@ -57,13 +57,13 @@ export function FloatingToolbar() {
         alignItems: 'center',
         gap: '4px',
         padding: '6px 8px',
-        borderRadius: '100px',
+        borderRadius: '8px',
         pointerEvents: 'auto',
         background: 'rgba(250,247,242,0.78)',
         backdropFilter: 'blur(32px) saturate(1.5)',
         WebkitBackdropFilter: 'blur(32px) saturate(1.5)',
         border: '1px solid rgba(255,255,255,0.5)',
-        boxShadow: '0 4px 24px rgba(43,30,20,0.1), 0 1px 4px rgba(43,30,20,0.06)',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04)',
       } as React.CSSProperties}
     >
       {TOOLS.map((tool) => {
@@ -95,15 +95,15 @@ export function FloatingToolbar() {
                 width: isPrimary ? '44px' : 'auto',
                 height: isPrimary ? '44px' : 'auto',
                 background: isPrimary
-                  ? 'var(--pl-olive-deep)'
+                  ? '#18181B'
                   : isActive
-                    ? 'rgba(163,177,138,0.12)'
+                    ? '#F4F4F5'
                     : 'transparent',
                 color: isPrimary
                   ? '#fff'
                   : isActive
-                    ? 'var(--pl-olive-deep)'
-                    : 'var(--pl-muted)',
+                    ? '#18181B'
+                    : '#71717A',
                 opacity: ((tool.id === 'undo' && !state.canUndo) || (tool.id === 'redo' && !state.canRedo)) ? 0.35 : 1,
                 transition: 'background 0.15s, color 0.15s',
               }}

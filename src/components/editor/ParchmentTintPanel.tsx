@@ -42,7 +42,7 @@ export function ParchmentTintPanel({ currentTint = 'none', onApply }: ParchmentT
       <h4 style={{
         fontSize: '0.65rem', fontWeight: 700,
         letterSpacing: '0.12em', textTransform: 'uppercase',
-        color: 'var(--pl-muted)',
+        color: '#71717A',
         marginBottom: '12px',
       }}>
         Parchment Tint
@@ -61,7 +61,7 @@ export function ParchmentTintPanel({ currentTint = 'none', onApply }: ParchmentT
               width: '36px', height: '36px',
               borderRadius: '50%',
               border: selected === tint.id
-                ? '3px solid var(--pl-olive-deep)'
+                ? '3px solid #18181B'
                 : '2px solid rgba(255,255,255,0.25)',
               background: tint.color,
               cursor: 'pointer',
@@ -73,7 +73,7 @@ export function ParchmentTintPanel({ currentTint = 'none', onApply }: ParchmentT
             }}
           >
             {selected === tint.id && (
-              <Check size={14} strokeWidth={3} color="var(--pl-olive-deep)" />
+              <Check size={14} strokeWidth={3} color="#18181B" />
             )}
           </motion.button>
         ))}
@@ -82,14 +82,14 @@ export function ParchmentTintPanel({ currentTint = 'none', onApply }: ParchmentT
       {/* Selected label */}
       <p style={{
         fontSize: '0.78rem',
-        color: 'var(--pl-ink-soft)',
-        fontFamily: 'var(--pl-font-heading)',
-        fontStyle: 'italic',
+        color: '#3F3F46',
+        fontFamily: 'inherit',
+        
         marginBottom: '16px',
       }}>
         {TINTS.find(t => t.id === selected)?.label || 'None'}
         {selected !== 'none' && (
-          <span style={{ color: 'var(--pl-muted)', fontStyle: 'normal', fontSize: '0.68rem', marginLeft: '8px' }}>
+          <span style={{ color: '#71717A', fontStyle: 'normal', fontSize: '0.68rem', marginLeft: '8px' }}>
             Applied to all photos
           </span>
         )}

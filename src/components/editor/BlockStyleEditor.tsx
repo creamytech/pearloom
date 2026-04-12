@@ -46,15 +46,15 @@ export function BlockStyleEditor({ block, onChange }: BlockStyleEditorProps) {
   const labelStyle: React.CSSProperties = {
     fontSize: '0.62rem', fontWeight: 700,
     letterSpacing: '0.1em', textTransform: 'uppercase',
-    color: 'var(--pl-muted)',
+    color: '#71717A',
     marginBottom: '8px', display: 'block',
   };
 
   const pillBtnStyle = (active: boolean): React.CSSProperties => ({
     padding: '5px 10px', borderRadius: '6px',
-    border: active ? '1.5px solid var(--pl-olive)' : '1.5px solid rgba(255,255,255,0.25)',
-    background: active ? 'rgba(163,177,138,0.1)' : 'transparent',
-    color: active ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+    border: active ? '1.5px solid #18181B' : '1.5px solid rgba(255,255,255,0.25)',
+    background: active ? 'rgba(24,24,27,0.06)' : 'transparent',
+    color: active ? '#18181B' : '#71717A',
     fontSize: '0.72rem', fontWeight: 600,
     cursor: 'pointer', transition: 'all 0.15s',
   });
@@ -66,11 +66,11 @@ export function BlockStyleEditor({ block, onChange }: BlockStyleEditorProps) {
         marginBottom: '16px', paddingBottom: '12px',
         borderBottom: '1px solid rgba(255,255,255,0.25)',
       }}>
-        <Palette size={14} color="var(--pl-olive)" />
+        <Palette size={14} color="#18181B" />
         <span style={{
           fontSize: '0.7rem', fontWeight: 700,
           letterSpacing: '0.1em', textTransform: 'uppercase',
-          color: 'var(--pl-olive-deep)',
+          color: '#18181B',
         }}>
           Block Style
         </span>

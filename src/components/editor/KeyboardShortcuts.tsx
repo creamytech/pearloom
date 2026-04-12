@@ -80,7 +80,7 @@ const cardStyle: React.CSSProperties = {
   backdropFilter: 'blur(40px) saturate(1.6)',
   WebkitBackdropFilter: 'blur(40px) saturate(1.6)',
   border: '1px solid rgba(255,255,255,0.5)',
-  boxShadow: '0 24px 80px rgba(43,30,20,0.18), 0 8px 24px rgba(43,30,20,0.08), inset 0 1px 0 rgba(255,255,255,0.4)',
+  boxShadow: '0 24px 80px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.4)',
   animation: 'pl-kb-card-in 0.25s cubic-bezier(0.16,1,0.3,1) both',
 };
 
@@ -96,7 +96,7 @@ const closeButtonStyle: React.CSSProperties = {
   borderRadius: '8px',
   border: 'none',
   background: 'rgba(0,0,0,0.05)',
-  color: 'var(--pl-muted)',
+  color: '#71717A',
   cursor: 'pointer',
   transition: 'background 0.15s, color 0.15s',
 };
@@ -187,11 +187,11 @@ export function KeyboardShortcuts({ open, onClose }: KeyboardShortcutsProps) {
           style={closeButtonStyle}
           onMouseEnter={e => {
             (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.1)';
-            (e.currentTarget as HTMLElement).style.color = 'var(--pl-ink-soft)';
+            (e.currentTarget as HTMLElement).style.color = '#3F3F46';
           }}
           onMouseLeave={e => {
             (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.05)';
-            (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)';
+            (e.currentTarget as HTMLElement).style.color = '#71717A';
           }}
         >
           <X size={14} />
@@ -203,8 +203,8 @@ export function KeyboardShortcuts({ open, onClose }: KeyboardShortcutsProps) {
             width: '32px', height: '32px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             borderRadius: '10px',
-            background: 'rgba(163,177,138,0.12)',
-            color: 'var(--pl-olive, #6e8c5c)',
+            background: '#F4F4F5',
+            color: '#18181B',
           }}>
             <Keyboard size={17} />
           </div>

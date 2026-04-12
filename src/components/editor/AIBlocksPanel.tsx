@@ -42,7 +42,7 @@ const BLOCKS: BlockDef[] = [
     label: 'Venue & Logistics',
     icon: MapPin,
     description: 'Date, time, venue, address, parking, and shuttle info',
-    color: 'var(--pl-olive, #A3B18A)',
+    color: '#18181B',
     promptPlaceholder: 'The ceremony is at The Rosewood Estate in Newport, RI at 5pm...',
   },
   {
@@ -75,13 +75,13 @@ const BLOCKS: BlockDef[] = [
 const lbl: React.CSSProperties = {
   display: 'block', fontSize: '0.6rem', fontWeight: 800,
   letterSpacing: '0.16em', textTransform: 'uppercase',
-  color: 'var(--pl-muted)', marginBottom: '0.45rem',
+  color: '#71717A', marginBottom: '0.45rem',
 };
 
 const inp: React.CSSProperties = {
   width: '100%', padding: '0.65rem 0.8rem', borderRadius: '0.5rem',
-  border: '1px solid rgba(0,0,0,0.07)', background: 'rgba(163,177,138,0.06)',
-  color: 'var(--pl-ink)', fontSize: '0.82rem', outline: 'none', fontFamily: 'inherit',
+  border: '1px solid rgba(0,0,0,0.07)', background: '#F4F4F5',
+  color: '#18181B', fontSize: '0.82rem', outline: 'none', fontFamily: 'inherit',
   transition: 'border-color 0.15s', boxSizing: 'border-box',
 };
 
@@ -96,7 +96,7 @@ function MiniField({ label, value, onChange, placeholder, rows }: {
         value={value} onChange={e => onChange(e.target.value)}
         rows={rows} placeholder={placeholder}
         style={{ ...inp, resize: 'vertical', lineHeight: 1.55 }}
-        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)'; }}
+        onFocus={e => { e.currentTarget.style.borderColor = '#A1A1AA'; }}
         onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; }}
       />
     </div>
@@ -107,7 +107,7 @@ function MiniField({ label, value, onChange, placeholder, rows }: {
       <input
         value={value} onChange={e => onChange(e.target.value)}
         placeholder={placeholder} style={inp}
-        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)'; }}
+        onFocus={e => { e.currentTarget.style.borderColor = '#A1A1AA'; }}
         onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; }}
       />
     </div>
@@ -129,13 +129,13 @@ function EventsEditor({ events, onChange }: { events: WeddingEvent[]; onChange: 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {events.map(evt => (
-        <div key={evt.id} style={{ background: 'rgba(163,177,138,0.05)', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+        <div key={evt.id} style={{ background: 'rgba(24,24,27,0.04)', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
           <button
             onClick={() => setExpanded(expanded === evt.id ? null : evt.id)}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', padding: '10px 12px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-ink)', gap: '8px' }}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', padding: '10px 12px', background: 'none', border: 'none', cursor: 'pointer', color: '#18181B', gap: '8px' }}
           >
             <span style={{ flex: 1, fontSize: '0.78rem', fontWeight: 700, textAlign: 'left' }}>{evt.name || 'Event'}</span>
-            <span style={{ fontSize: '0.68rem', color: 'var(--pl-muted)' }}>{evt.time}</span>
+            <span style={{ fontSize: '0.68rem', color: '#71717A' }}>{evt.time}</span>
             {expanded === evt.id ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
           </button>
           <AnimatePresence>
@@ -159,7 +159,7 @@ function EventsEditor({ events, onChange }: { events: WeddingEvent[]; onChange: 
                   <MiniField label="Description" value={evt.description || ''} onChange={v => upd(evt.id, { description: v })} rows={2} />
                   <button
                     onClick={() => remove(evt.id)}
-                    style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', borderRadius: '5px', border: '1px solid rgba(109,89,122,0.2)', background: 'rgba(109,89,122,0.08)', color: 'var(--pl-plum, #6D597A)', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700 }}
+                    style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', borderRadius: '5px', border: '1px solid rgba(24,24,27,0.1)', background: 'rgba(24,24,27,0.05)', color: '#71717A', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700 }}
                   >
                     <Trash2 size={10} /> Remove
                   </button>
@@ -169,7 +169,7 @@ function EventsEditor({ events, onChange }: { events: WeddingEvent[]; onChange: 
           </AnimatePresence>
         </div>
       ))}
-      <button onClick={add} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', padding: '8px', borderRadius: '8px', border: '1px dashed rgba(0,0,0,0.08)', background: 'transparent', color: 'var(--pl-ink-soft)', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600 }}>
+      <button onClick={add} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', padding: '8px', borderRadius: '8px', border: '1px dashed rgba(0,0,0,0.08)', background: 'transparent', color: '#3F3F46', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600 }}>
         <Plus size={11} /> Add Event
       </button>
     </div>
@@ -189,16 +189,16 @@ function FaqEditor({ faqs, onChange }: { faqs: FaqItem[]; onChange: (f: FaqItem[
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {faqs.map((faq, i) => (
-        <div key={faq.id} style={{ background: 'rgba(163,177,138,0.05)', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.05)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <span style={{ fontSize: '0.6rem', color: 'var(--pl-muted)', fontWeight: 700, letterSpacing: '0.1em' }}>FAQ {i + 1}</span>
+        <div key={faq.id} style={{ background: 'rgba(24,24,27,0.04)', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.05)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <span style={{ fontSize: '0.6rem', color: '#71717A', fontWeight: 700, letterSpacing: '0.1em' }}>FAQ {i + 1}</span>
           <MiniField label="Question" value={faq.question} onChange={v => upd(faq.id, { question: v })} placeholder="What is the dress code?" />
           <MiniField label="Answer" value={faq.answer} onChange={v => upd(faq.id, { answer: v })} rows={2} placeholder="We'd love for you to..." />
-          <button onClick={() => remove(faq.id)} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 6px', borderRadius: '4px', border: 'none', background: 'rgba(109,89,122,0.08)', color: 'var(--pl-plum, #6D597A)', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700 }}>
+          <button onClick={() => remove(faq.id)} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 6px', borderRadius: '4px', border: 'none', background: 'rgba(24,24,27,0.05)', color: '#71717A', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700 }}>
             <X size={9} /> Remove
           </button>
         </div>
       ))}
-      <button onClick={add} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', padding: '8px', borderRadius: '8px', border: '1px dashed rgba(0,0,0,0.08)', background: 'transparent', color: 'var(--pl-ink-soft)', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600 }}>
+      <button onClick={add} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', padding: '8px', borderRadius: '8px', border: '1px dashed rgba(0,0,0,0.08)', background: 'transparent', color: '#3F3F46', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600 }}>
         <Plus size={11} /> Add FAQ
       </button>
     </div>
@@ -221,21 +221,21 @@ function TravelEditor({ travel, onChange }: { travel: TravelInfo; onChange: (t: 
       <MiniField label="Directions" value={travel.directions || ''} onChange={v => onChange({ ...travel, directions: v })} rows={2} placeholder="Take I-95 North to Exit 12..." />
       <MiniField label="Parking Info" value={travel.parkingInfo || ''} onChange={v => onChange({ ...travel, parkingInfo: v })} placeholder="Complimentary valet available" />
 
-      <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.8)', marginTop: '4px' }}>Hotels</div>
+      <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#71717A', marginTop: '4px' }}>Hotels</div>
       {(travel.hotels || []).map((h, i) => (
-        <div key={i} style={{ background: 'rgba(163,177,138,0.05)', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.05)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <span style={{ fontSize: '0.6rem', color: 'var(--pl-muted)', fontWeight: 700, letterSpacing: '0.1em' }}>Hotel {i + 1}</span>
+        <div key={i} style={{ background: 'rgba(24,24,27,0.04)', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.05)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <span style={{ fontSize: '0.6rem', color: '#71717A', fontWeight: 700, letterSpacing: '0.1em' }}>Hotel {i + 1}</span>
           <MiniField label="Hotel Name" value={h.name} onChange={v => updHotel(i, { name: v })} placeholder="The Marriott Newport" />
           <MiniField label="Address" value={h.address} onChange={v => updHotel(i, { address: v })} />
           <MiniField label="Group Rate" value={h.groupRate || ''} onChange={v => updHotel(i, { groupRate: v })} placeholder="$179/night with code SMITH2025" />
           <MiniField label="Booking URL" value={h.bookingUrl || ''} onChange={v => updHotel(i, { bookingUrl: v })} placeholder="https://..." />
           <MiniField label="Notes" value={h.notes || ''} onChange={v => updHotel(i, { notes: v })} placeholder="Our recommended hotel, 10 min from venue" />
-          <button onClick={() => removeHotel(i)} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 6px', borderRadius: '4px', border: 'none', background: 'rgba(109,89,122,0.08)', color: 'var(--pl-plum, #6D597A)', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700 }}>
+          <button onClick={() => removeHotel(i)} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 6px', borderRadius: '4px', border: 'none', background: 'rgba(24,24,27,0.05)', color: '#71717A', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700 }}>
             <X size={9} /> Remove
           </button>
         </div>
       ))}
-      <button onClick={addHotel} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', padding: '8px', borderRadius: '8px', border: '1px dashed rgba(0,0,0,0.08)', background: 'transparent', color: 'var(--pl-ink-soft)', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600 }}>
+      <button onClick={addHotel} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', padding: '8px', borderRadius: '8px', border: '1px dashed rgba(0,0,0,0.08)', background: 'transparent', color: '#3F3F46', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600 }}>
         <Plus size={11} /> Add Hotel
       </button>
     </div>
@@ -260,18 +260,18 @@ function RegistryEditor({ registry, onChange }: {
       <MiniField label="Cash Fund URL (Honeyfund, etc.)" value={registry.cashFundUrl || ''} onChange={v => onChange({ ...registry, cashFundUrl: v })} placeholder="https://www.honeyfund.com/..." />
       <MiniField label="Cash Fund Message" value={registry.cashFundMessage || ''} onChange={v => onChange({ ...registry, cashFundMessage: v })} placeholder="Contribute to our honeymoon in Italy" />
 
-      <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.8)', marginTop: '4px' }}>Registry Links</div>
+      <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#71717A', marginTop: '4px' }}>Registry Links</div>
       {entries.map((entry, i) => (
-        <div key={i} style={{ background: 'rgba(163,177,138,0.05)', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.05)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div key={i} style={{ background: 'rgba(24,24,27,0.04)', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.05)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <MiniField label="Store Name" value={entry.name} onChange={v => updEntry(i, { name: v })} placeholder="Zola" />
           <MiniField label="Registry URL" value={entry.url} onChange={v => updEntry(i, { url: v })} placeholder="https://www.zola.com/registry/..." />
           <MiniField label="Note" value={entry.note || ''} onChange={v => updEntry(i, { note: v })} placeholder="Our main registry..." />
-          <button onClick={() => removeEntry(i)} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 6px', borderRadius: '4px', border: 'none', background: 'rgba(109,89,122,0.08)', color: 'var(--pl-plum, #6D597A)', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700 }}>
+          <button onClick={() => removeEntry(i)} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 6px', borderRadius: '4px', border: 'none', background: 'rgba(24,24,27,0.05)', color: '#71717A', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700 }}>
             <X size={9} /> Remove
           </button>
         </div>
       ))}
-      <button onClick={addEntry} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', padding: '8px', borderRadius: '8px', border: '1px dashed rgba(0,0,0,0.08)', background: 'transparent', color: 'var(--pl-ink-soft)', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600 }}>
+      <button onClick={addEntry} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', padding: '8px', borderRadius: '8px', border: '1px dashed rgba(0,0,0,0.08)', background: 'transparent', color: '#3F3F46', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600 }}>
         <Plus size={11} /> Add Registry
       </button>
     </div>
@@ -314,7 +314,7 @@ function BlockCard({
     <motion.div
       layout
       style={{
-        background: 'rgba(163,177,138,0.05)', borderRadius: '12px',
+        background: 'rgba(24,24,27,0.04)', borderRadius: '12px',
         border: `1px solid ${isApplied ? `${block.color}50` : 'rgba(0,0,0,0.05)'}`,
         overflow: 'hidden',
         boxShadow: isApplied ? `0 0 0 1px ${block.color}30` : 'none',
@@ -337,18 +337,18 @@ function BlockCard({
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--pl-ink)' }}>{block.label}</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#18181B' }}>{block.label}</span>
             {isApplied && (
               <span style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: block.color, background: `${block.color}15`, padding: '2px 6px', borderRadius: '4px' }}>
                 Active
               </span>
             )}
           </div>
-          <div style={{ fontSize: '0.65rem', color: 'var(--pl-muted)', lineHeight: 1.4, marginTop: '2px' }}>
+          <div style={{ fontSize: '0.65rem', color: '#71717A', lineHeight: 1.4, marginTop: '2px' }}>
             {block.description}
           </div>
         </div>
-        {expanded ? <ChevronUp size={13} color="var(--pl-muted)" /> : <ChevronDown size={13} color="var(--pl-muted)" />}
+        {expanded ? <ChevronUp size={13} color="#71717A" /> : <ChevronDown size={13} color="#71717A" />}
       </button>
 
       {/* Expanded: AI prompt + Generate */}
@@ -388,7 +388,7 @@ function BlockCard({
                   background: isGenerating
                     ? 'rgba(0,0,0,0.04)'
                     : `linear-gradient(135deg, ${block.color}, ${block.color}cc)`,
-                  color: isGenerating ? 'var(--pl-ink-soft)' : '#fff',
+                  color: isGenerating ? '#3F3F46' : '#fff',
                   fontSize: '0.78rem', fontWeight: 700, cursor: isGenerating ? 'not-allowed' : 'pointer',
                   letterSpacing: '0.04em',
                 }}
@@ -423,7 +423,7 @@ function BlockCard({
 function SkeletonCard() {
   return (
     <div style={{
-      background: 'rgba(163,177,138,0.05)', borderRadius: '12px',
+      background: 'rgba(24,24,27,0.04)', borderRadius: '12px',
       border: '1px solid rgba(0,0,0,0.05)', padding: '12px',
       display: 'flex', flexDirection: 'column', gap: '8px',
       animation: 'skeletonPulse 1.4s ease-in-out infinite',
@@ -432,7 +432,7 @@ function SkeletonCard() {
         <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(0,0,0,0.06)' }} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '5px' }}>
           <div style={{ height: '11px', borderRadius: '4px', background: 'rgba(0,0,0,0.06)', width: '55%' }} />
-          <div style={{ height: '9px', borderRadius: '4px', background: 'rgba(163,177,138,0.06)', width: '80%' }} />
+          <div style={{ height: '9px', borderRadius: '4px', background: '#F4F4F5', width: '80%' }} />
         </div>
       </div>
     </div>
@@ -541,10 +541,10 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
       {/* Header with Regenerate button */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
         <div>
-          <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.8)', marginBottom: '0.3rem' }}>
+          <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#71717A', marginBottom: '0.3rem' }}>
             Auto-Fill Sections
           </div>
-          <p style={{ fontSize: '0.7rem', color: 'var(--pl-muted)', lineHeight: 1.5, margin: 0 }}>
+          <p style={{ fontSize: '0.7rem', color: '#71717A', lineHeight: 1.5, margin: 0 }}>
             Tell Pear about your events, venue, registry, or travel — Pear generates polished content for each section of your site.
           </p>
         </div>
@@ -553,9 +553,9 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
           style={{
             display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0,
             padding: '6px 10px', borderRadius: '7px',
-            border: '1px solid rgba(163,177,138,0.25)',
-            background: 'rgba(163,177,138,0.1)',
-            color: 'var(--pl-olive, #A3B18A)',
+            border: '1px solid rgba(24,24,27,0.12)',
+            background: 'rgba(24,24,27,0.06)',
+            color: '#18181B',
             fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer',
             transition: 'all 0.15s', whiteSpace: 'nowrap',
           }}
@@ -570,14 +570,14 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
           onClick={() => setActiveCategory('all')}
           style={{
             display: 'flex', alignItems: 'center', gap: '4px',
-            padding: '4px 10px', borderRadius: '100px', border: 'none', cursor: 'pointer',
+            padding: '4px 10px', borderRadius: '8px', border: 'none', cursor: 'pointer',
             background: activeCategory === 'all' ? '#5c6b3a' : 'rgba(0,0,0,0.05)',
             color: activeCategory === 'all' ? '#fff' : 'rgba(255,255,255,0.45)',
             fontSize: '0.65rem', fontWeight: 700, transition: 'all 0.15s',
           }}
         >
           All
-          <span style={{ background: activeCategory === 'all' ? 'var(--pl-muted)' : 'rgba(0,0,0,0.06)', padding: '1px 5px', borderRadius: '8px', fontSize: '0.62rem', fontWeight: 800 }}>
+          <span style={{ background: activeCategory === 'all' ? '#71717A' : 'rgba(0,0,0,0.06)', padding: '1px 5px', borderRadius: '8px', fontSize: '0.62rem', fontWeight: 800 }}>
             {BLOCKS.length}
           </span>
         </button>
@@ -591,16 +591,16 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
               onClick={() => setActiveCategory(isActive ? 'all' : block.id)}
               style={{
                 display: 'flex', alignItems: 'center', gap: '4px',
-                padding: '4px 9px', borderRadius: '100px', border: 'none', cursor: 'pointer',
+                padding: '4px 9px', borderRadius: '8px', border: 'none', cursor: 'pointer',
                 background: isActive ? block.color : 'rgba(0,0,0,0.05)',
-                color: isActive ? '#fff' : isDone ? block.color : 'var(--pl-ink-soft)',
+                color: isActive ? '#fff' : isDone ? block.color : '#3F3F46',
                 fontSize: '0.62rem', fontWeight: 700, transition: 'all 0.15s',
               }}
             >
-              <Icon size={10} color={isActive ? '#fff' : isDone ? block.color : 'var(--pl-ink-soft)'} />
+              <Icon size={10} color={isActive ? '#fff' : isDone ? block.color : '#3F3F46'} />
               {block.label}
               {isDone && (
-                <span style={{ background: isActive ? 'var(--pl-muted)' : `${block.color}25`, padding: '1px 4px', borderRadius: '6px', fontSize: '0.62rem', fontWeight: 800 }}>
+                <span style={{ background: isActive ? '#71717A' : `${block.color}25`, padding: '1px 4px', borderRadius: '6px', fontSize: '0.62rem', fontWeight: 800 }}>
                   <Check size={7} />
                 </span>
               )}
@@ -610,9 +610,9 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
       </div>
 
       {error && (
-        <div style={{ background: 'rgba(109,89,122,0.1)', border: '1px solid rgba(109,89,122,0.2)', borderRadius: '8px', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--pl-plum, #6D597A)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ background: 'rgba(24,24,27,0.06)', border: '1px solid rgba(24,24,27,0.1)', borderRadius: '8px', padding: '8px 12px', fontSize: '0.75rem', color: '#71717A', display: 'flex', alignItems: 'center', gap: '6px' }}>
           <X size={12} /> {error}
-          <button onClick={() => setError(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-plum, #6D597A)' }}><X size={10} /></button>
+          <button onClick={() => setError(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#71717A' }}><X size={10} /></button>
         </div>
       )}
 
@@ -636,10 +636,10 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
         <div style={{
           display: 'flex', alignItems: 'center', gap: '6px',
           padding: '8px 12px', borderRadius: '8px',
-          background: 'rgba(163,177,138,0.08)', border: '1px solid rgba(163,177,138,0.15)',
+          background: 'rgba(24,24,27,0.04)', border: '1px solid rgba(24,24,27,0.08)',
         }}>
           <Check size={12} color="#4ade80" />
-          <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)' }}>
+          <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#18181B' }}>
             {generatedCount} section{generatedCount > 1 ? 's' : ''} generated and added to your site
           </span>
         </div>
@@ -655,7 +655,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.22 }}
             style={{
-              background: 'rgba(163,177,138,0.04)', borderRadius: '12px',
+              background: 'rgba(24,24,27,0.03)', borderRadius: '12px',
               border: '1px solid rgba(0,0,0,0.06)', padding: '1rem',
             }}
           >
@@ -663,7 +663,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
               <span style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: BLOCKS.find(b => b.id === activeEdit)?.color }}>
                 Edit {BLOCKS.find(b => b.id === activeEdit)?.label}
               </span>
-              <button onClick={() => setActiveEdit(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex' }}>
+              <button onClick={() => setActiveEdit(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#71717A', display: 'flex' }}>
                 <X size={13} />
               </button>
             </div>

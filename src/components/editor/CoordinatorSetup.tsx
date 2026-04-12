@@ -6,9 +6,9 @@ import type { StoryManifest } from '@/types';
 
 const QUESTION_ICONS: Record<string, React.ReactNode> = {
   parking: <span style={{ fontSize: '13px' }}>•</span>,
-  shirt: <Shirt size={13} style={{ color: 'var(--pl-olive)' }} />,
-  clock: <Clock size={13} style={{ color: 'var(--pl-olive)' }} />,
-  bus: <Bus size={13} style={{ color: 'var(--pl-olive)' }} />,
+  shirt: <Shirt size={13} style={{ color: '#18181B' }} />,
+  clock: <Clock size={13} style={{ color: '#18181B' }} />,
+  bus: <Bus size={13} style={{ color: '#18181B' }} />,
 };
 
 const SUGGESTED_QUESTIONS = [
@@ -82,7 +82,7 @@ export default function CoordinatorSetup({ manifest, onChange }: CoordinatorSetu
       {/* Section header */}
       <div style={{ marginBottom: '6px' }}>
         <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Target size={16} style={{ color: 'var(--pl-olive)' }} /> Wedding Day Coordinator AI
+          <Target size={16} style={{ color: '#18181B' }} /> Wedding Day Coordinator AI
         </h3>
         <p style={{ fontSize: '13px', color: '#6b6058', margin: '4px 0 0 0', lineHeight: 1.5 }}>
           Guests can ask your coordinator anything — powered by the details you provide.
@@ -505,7 +505,7 @@ function PreviewCoordinator({ siteId, coupleNames, vibeSkin }: PreviewCoordinato
       </div>
 
       {/* Input */}
-      <div style={{ borderTop: '1px solid rgba(0,0,0,0.08)', padding: '12px 14px', display: 'flex', gap: '10px', alignItems: 'flex-end', backgroundColor: 'var(--pl-ink)' }}>
+      <div style={{ borderTop: '1px solid rgba(0,0,0,0.08)', padding: '12px 14px', display: 'flex', gap: '10px', alignItems: 'flex-end', backgroundColor: '#18181B' }}>
         <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Type a question..." rows={1}
           style={{ flex: 1, border: '1.5px solid rgba(0,0,0,0.12)', borderRadius: '12px', padding: '9px 13px', fontSize: '14px', fontFamily: 'inherit', resize: 'none', outline: 'none', backgroundColor: 'var(--pl-cream)', color: foreground, lineHeight: 1.5, maxHeight: '80px', overflowY: 'auto' }} />
         <button onClick={() => sendMessage(input)} disabled={loading || !input.trim()}

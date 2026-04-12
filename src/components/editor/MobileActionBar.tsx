@@ -181,11 +181,11 @@ export function MobileActionBar({
                 opacity: isDisabled(action) ? 0.35 : 1,
                 cursor: isDisabled(action) ? 'default' : 'pointer',
                 background: action.primary
-                  ? 'var(--pl-olive-15)'
+                  ? 'rgba(24,24,27,0.08)'
                   : 'transparent',
                 color: action.danger
                   ? '#EF4444'
-                  : 'var(--pl-olive)',
+                  : '#18181B',
               }}
             >
               <motion.div

@@ -98,7 +98,7 @@ function getContextualActions(manifest: StoryManifest, activeSection: string | n
 
 // ── Colour tokens ─────────────────────────────────────────────
 
-const OLIVE = 'var(--pl-olive, #A3B18A)';
+const OLIVE = '#18181B';
 
 // ── Status type ───────────────────────────────────────────────
 
@@ -601,8 +601,8 @@ export function AICommandBar() {
               background: 'rgba(250,247,242,0.95)',
               backdropFilter: 'blur(24px)',
               WebkitBackdropFilter: 'blur(24px)',
-              borderLeft: '1px solid rgba(163,177,138,0.15)',
-              boxShadow: '-8px 0 32px rgba(43,30,20,0.06)',
+              borderLeft: '1px solid rgba(24,24,27,0.08)',
+              boxShadow: '-8px 0 32px rgba(0,0,0,0.04)',
               overflow: 'hidden',
             } as React.CSSProperties}
           >
@@ -612,7 +612,7 @@ export function AICommandBar() {
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '14px 16px 12px',
-              borderBottom: '1px solid rgba(163,177,138,0.12)',
+              borderBottom: '1px solid #F4F4F5',
               background: 'rgba(255,255,255,0.08)',
               flexShrink: 0,
             }}>
@@ -621,16 +621,16 @@ export function AICommandBar() {
                 <span style={{
                   fontSize: '0.92rem',
                   fontWeight: 600,
-                  fontFamily: 'var(--pl-font-heading)',
-                  fontStyle: 'italic',
-                  color: 'var(--pl-ink)',
+                  fontFamily: 'inherit',
+                  
+                  color: '#18181B',
                 }}>Pear</span>
                 {/* Usage counter */}
                 {pearRemaining !== null && pearPlan === 'free' ? (
                   <span style={{
                     fontSize: '0.68rem',
                     fontWeight: 600,
-                    color: pearRemaining <= 3 ? '#b45309' : 'var(--pl-muted)',
+                    color: pearRemaining <= 3 ? '#b45309' : '#71717A',
                     background: pearRemaining <= 3 ? 'rgba(180,83,9,0.08)' : 'rgba(0,0,0,0.04)',
                     padding: '2px 8px',
                     borderRadius: 100,
@@ -643,7 +643,7 @@ export function AICommandBar() {
                     fontSize: '0.68rem',
                     fontWeight: 600,
                     color: OLIVE,
-                    background: 'rgba(163,177,138,0.1)',
+                    background: 'rgba(24,24,27,0.06)',
                     padding: '2px 8px',
                     borderRadius: 100,
                     fontFamily: 'var(--pl-font-body)',
@@ -662,7 +662,7 @@ export function AICommandBar() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   borderRadius: 8, border: 'none',
                   background: 'transparent',
-                  color: 'var(--pl-muted)',
+                  color: '#71717A',
                   cursor: 'pointer',
                   flexShrink: 0,
                 }}
@@ -688,16 +688,16 @@ export function AICommandBar() {
                   alignItems: 'flex-start',
                 }}>
                   {msg.role === 'pear' && (
-                    <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(163,177,138,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+                    <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(24,24,27,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
                       <PearIcon size={14} color={OLIVE} />
                     </div>
                   )}
                   <div style={{
                     maxWidth: '85%', padding: '10px 14px', borderRadius: 16,
                     fontSize: '0.84rem', lineHeight: 1.55, whiteSpace: 'pre-wrap',
-                    background: msg.role === 'user' ? 'rgba(163,177,138,0.12)' : 'rgba(255,255,255,0.7)',
+                    background: msg.role === 'user' ? '#F4F4F5' : 'rgba(255,255,255,0.7)',
                     color: 'var(--pl-ink-soft, #3D3530)',
-                    border: msg.role === 'pear' ? '1px solid rgba(163,177,138,0.1)' : 'none',
+                    border: msg.role === 'pear' ? '1px solid rgba(24,24,27,0.06)' : 'none',
                   }}>
                     {msg.text}
                     {/* Visual change preview — theme colors */}
@@ -710,7 +710,7 @@ export function AICommandBar() {
                     )}
                     {/* Visual change preview — events */}
                     {msg.action === 'update_events' && msg.data && typeof msg.data === 'object' && 'events' in msg.data && (
-                      <div style={{ marginTop: 6, fontSize: '0.72rem', color: 'var(--pl-muted)' }}>
+                      <div style={{ marginTop: 6, fontSize: '0.72rem', color: '#71717A' }}>
                         {((msg.data as { events: Array<{ name: string }> }).events).map((e, ei) => (
                           <div key={ei}>• {e.name}</div>
                         ))}
@@ -721,10 +721,10 @@ export function AICommandBar() {
               ))}
               {status === 'loading' && (
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(163,177,138,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(24,24,27,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <PearIcon size={14} color={OLIVE} />
                   </div>
-                  <div style={{ padding: '10px 14px', borderRadius: 16, background: 'rgba(255,255,255,0.7)', fontSize: '0.84rem', color: 'var(--pl-muted)' }}>
+                  <div style={{ padding: '10px 14px', borderRadius: 16, background: 'rgba(255,255,255,0.7)', fontSize: '0.84rem', color: '#71717A' }}>
                     <span style={{ animation: 'pulse 1.5s infinite' }}>Pear is thinking...</span>
                   </div>
                 </div>
@@ -739,7 +739,7 @@ export function AICommandBar() {
                 flexWrap: 'wrap',
                 gap: 6,
                 padding: '10px 16px',
-                borderTop: '1px solid rgba(163,177,138,0.08)',
+                borderTop: '1px solid rgba(24,24,27,0.04)',
                 flexShrink: 0,
                 width: '100%',
                 boxSizing: 'border-box',
@@ -751,8 +751,8 @@ export function AICommandBar() {
                     style={{
                       padding: '5px 12px',
                       borderRadius: 100,
-                      background: 'rgba(163,177,138,0.1)',
-                      border: '1px solid rgba(163,177,138,0.18)',
+                      background: 'rgba(24,24,27,0.06)',
+                      border: '1px solid rgba(24,24,27,0.08)',
                       color: OLIVE,
                       fontSize: '0.72rem',
                       fontWeight: 600,
@@ -763,12 +763,12 @@ export function AICommandBar() {
                       transition: 'background 0.15s, border-color 0.15s',
                     }}
                     onMouseEnter={e => {
-                      (e.target as HTMLElement).style.background = 'rgba(163,177,138,0.18)';
-                      (e.target as HTMLElement).style.borderColor = 'rgba(163,177,138,0.3)';
+                      (e.target as HTMLElement).style.background = 'rgba(24,24,27,0.08)';
+                      (e.target as HTMLElement).style.borderColor = '#E4E4E7';
                     }}
                     onMouseLeave={e => {
-                      (e.target as HTMLElement).style.background = 'rgba(163,177,138,0.1)';
-                      (e.target as HTMLElement).style.borderColor = 'rgba(163,177,138,0.18)';
+                      (e.target as HTMLElement).style.background = 'rgba(24,24,27,0.06)';
+                      (e.target as HTMLElement).style.borderColor = 'rgba(24,24,27,0.08)';
                     }}
                   >
                     {action.label}
@@ -797,7 +797,7 @@ export function AICommandBar() {
             {limitReached ? (
               <div style={{
                 padding: '20px 16px',
-                borderTop: '1px solid rgba(163,177,138,0.12)',
+                borderTop: '1px solid #F4F4F5',
                 background: 'rgba(255,255,255,0.06)',
                 flexShrink: 0,
                 display: 'flex',
@@ -815,7 +815,7 @@ export function AICommandBar() {
                 }}>
                   <div style={{
                     width: 36, height: 36, borderRadius: '50%',
-                    background: 'rgba(163,177,138,0.15)',
+                    background: 'rgba(24,24,27,0.08)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     flexShrink: 0,
                   }}>
@@ -824,9 +824,9 @@ export function AICommandBar() {
                   <div style={{
                     padding: '10px 14px', borderRadius: 16,
                     background: 'rgba(255,255,255,0.7)',
-                    border: '1px solid rgba(163,177,138,0.1)',
+                    border: '1px solid rgba(24,24,27,0.06)',
                     fontSize: '0.84rem', lineHeight: 1.55,
-                    color: 'var(--pl-ink-soft)',
+                    color: '#3F3F46',
                     fontFamily: 'var(--pl-font-body)',
                     textAlign: 'left',
                   }}>
@@ -842,7 +842,7 @@ export function AICommandBar() {
                   background: 'rgba(255,255,255,0.5)',
                   backdropFilter: 'blur(12px)',
                   WebkitBackdropFilter: 'blur(12px)',
-                  border: '1px solid rgba(163,177,138,0.15)',
+                  border: '1px solid rgba(24,24,27,0.08)',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -851,9 +851,9 @@ export function AICommandBar() {
                   <p style={{
                     fontSize: '0.82rem',
                     fontWeight: 600,
-                    color: 'var(--pl-ink)',
-                    fontFamily: 'var(--pl-font-heading)',
-                    fontStyle: 'italic',
+                    color: '#18181B',
+                    fontFamily: 'inherit',
+                    
                     margin: 0,
                   }}>
                     You&apos;ve used all 15 free Pear messages this month
@@ -868,7 +868,7 @@ export function AICommandBar() {
                       fontSize: '0.82rem', fontWeight: 700,
                       fontFamily: 'var(--pl-font-body)',
                       letterSpacing: '0.02em',
-                      boxShadow: '0 4px 16px rgba(163,177,138,0.35)',
+                      boxShadow: '0 4px 16px #E4E4E7',
                     }}
                   >
                     <Crown size={14} />
@@ -879,7 +879,7 @@ export function AICommandBar() {
                     style={{
                       background: 'none', border: 'none',
                       cursor: 'pointer', fontSize: '0.72rem',
-                      color: 'var(--pl-muted)',
+                      color: '#71717A',
                       fontFamily: 'var(--pl-font-body)',
                       textDecoration: 'underline',
                       textDecorationColor: 'rgba(0,0,0,0.15)',
@@ -897,7 +897,7 @@ export function AICommandBar() {
               alignItems: 'center',
               gap: 10,
               padding: '12px 16px 14px',
-              borderTop: '1px solid rgba(163,177,138,0.12)',
+              borderTop: '1px solid #F4F4F5',
               background: 'rgba(255,255,255,0.06)',
               flexShrink: 0,
             }}>
@@ -1011,7 +1011,7 @@ export function AICommandBar() {
                     style={{
                       position: 'absolute',
                       inset: 0,
-                      background: 'linear-gradient(90deg, transparent 0%, rgba(163,177,138,0.08) 50%, transparent 100%)',
+                      background: 'linear-gradient(90deg, transparent 0%, rgba(24,24,27,0.04) 50%, transparent 100%)',
                     }}
                   />
                 </motion.div>
@@ -1054,12 +1054,12 @@ export function AICommandBar() {
                   alignItems: 'center',
                   gap: '8px',
                   padding: '10px 20px',
-                  borderRadius: '100px',
+                  borderRadius: '8px',
                   background: 'rgba(255,255,255,0.75)',
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
-                  border: `1px solid rgba(163,177,138,0.35)`,
-                  boxShadow: '0 8px 32px rgba(43,30,20,0.1)',
+                  border: `1px solid #E4E4E7`,
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.06)',
                   cursor: 'pointer',
                   fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
                   fontSize: '0.82rem',
@@ -1105,7 +1105,7 @@ export function AICommandBar() {
                   backdropFilter: 'blur(24px)',
                   WebkitBackdropFilter: 'blur(24px)',
                   border: '1px solid rgba(255,255,255,0.6)',
-                  boxShadow: '0 8px 32px rgba(43,30,20,0.1)',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.06)',
                   overflow: 'hidden',
                   position: 'relative',
                 } as React.CSSProperties}
@@ -1132,7 +1132,7 @@ export function AICommandBar() {
                         style={{
                           position: 'absolute',
                           inset: 0,
-                          background: 'linear-gradient(90deg, transparent 0%, rgba(163,177,138,0.12) 50%, transparent 100%)',
+                          background: 'linear-gradient(90deg, transparent 0%, #F4F4F5 50%, transparent 100%)',
                         }}
                       />
                     </motion.div>
@@ -1144,7 +1144,7 @@ export function AICommandBar() {
                   <div style={{
                     maxHeight: '280px', overflowY: 'auto', padding: '12px 16px 4px',
                     display: 'flex', flexDirection: 'column', gap: '8px',
-                    borderBottom: '1px solid rgba(163,177,138,0.12)',
+                    borderBottom: '1px solid #F4F4F5',
                   }}>
                     {messages.map((msg, i) => (
                       <div key={i} style={{
@@ -1153,16 +1153,16 @@ export function AICommandBar() {
                         alignItems: 'flex-start',
                       }}>
                         {msg.role === 'pear' && (
-                          <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(163,177,138,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+                          <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(24,24,27,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
                             <PearIcon size={13} color={OLIVE} />
                           </div>
                         )}
                         <div style={{
                           maxWidth: '80%', padding: '8px 12px', borderRadius: '14px',
                           fontSize: '0.82rem', lineHeight: 1.5, whiteSpace: 'pre-wrap',
-                          background: msg.role === 'user' ? 'rgba(163,177,138,0.12)' : 'rgba(250,247,242,0.8)',
+                          background: msg.role === 'user' ? '#F4F4F5' : 'rgba(250,247,242,0.8)',
                           color: 'var(--pl-ink-soft, #3D3530)',
-                          border: msg.role === 'pear' ? '1px solid rgba(163,177,138,0.1)' : 'none',
+                          border: msg.role === 'pear' ? '1px solid rgba(24,24,27,0.06)' : 'none',
                         }}>
                           {msg.text}
                           {/* Visual change preview */}
@@ -1174,7 +1174,7 @@ export function AICommandBar() {
                             </div>
                           )}
                           {msg.action === 'update_events' && msg.data && typeof msg.data === 'object' && 'events' in msg.data && (
-                            <div style={{ marginTop: 6, fontSize: '0.72rem', color: 'var(--pl-muted)' }}>
+                            <div style={{ marginTop: 6, fontSize: '0.72rem', color: '#71717A' }}>
                               {((msg.data as { events: Array<{ name: string }> }).events).map((e, ei) => (
                                 <div key={ei}>• {e.name}</div>
                               ))}
@@ -1185,10 +1185,10 @@ export function AICommandBar() {
                     ))}
                     {status === 'loading' && (
                       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                        <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(163,177,138,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(24,24,27,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                           <PearIcon size={13} color={OLIVE} />
                         </div>
-                        <div style={{ padding: '8px 12px', borderRadius: 14, background: 'rgba(250,247,242,0.8)', fontSize: '0.82rem', color: 'var(--pl-muted)' }}>
+                        <div style={{ padding: '8px 12px', borderRadius: 14, background: 'rgba(250,247,242,0.8)', fontSize: '0.82rem', color: '#71717A' }}>
                           <span style={{ animation: 'pulse 1.5s infinite' }}>Pear is thinking...</span>
                         </div>
                       </div>
@@ -1333,9 +1333,9 @@ export function AICommandBar() {
                         onClick={() => handleQuickAction(action)}
                         style={{
                           padding: '5px 12px',
-                          borderRadius: '100px',
-                          background: 'rgba(163,177,138,0.1)',
-                          border: '1px solid rgba(163,177,138,0.18)',
+                          borderRadius: '8px',
+                          background: 'rgba(24,24,27,0.06)',
+                          border: '1px solid rgba(24,24,27,0.08)',
                           color: OLIVE,
                           fontSize: '0.72rem',
                           fontWeight: 600,
@@ -1346,12 +1346,12 @@ export function AICommandBar() {
                           transition: 'background 0.15s, border-color 0.15s',
                         }}
                         onMouseEnter={e => {
-                          (e.target as HTMLElement).style.background = 'rgba(163,177,138,0.18)';
-                          (e.target as HTMLElement).style.borderColor = 'rgba(163,177,138,0.3)';
+                          (e.target as HTMLElement).style.background = 'rgba(24,24,27,0.08)';
+                          (e.target as HTMLElement).style.borderColor = '#E4E4E7';
                         }}
                         onMouseLeave={e => {
-                          (e.target as HTMLElement).style.background = 'rgba(163,177,138,0.1)';
-                          (e.target as HTMLElement).style.borderColor = 'rgba(163,177,138,0.18)';
+                          (e.target as HTMLElement).style.background = 'rgba(24,24,27,0.06)';
+                          (e.target as HTMLElement).style.borderColor = 'rgba(24,24,27,0.08)';
                         }}
                       >
                         {action.label}

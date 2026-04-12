@@ -103,8 +103,8 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
             padding: '7px 10px', borderRadius: '8px',
-            border: '1px dashed rgba(214,198,168,0.2)',
-            background: 'transparent', color: 'var(--pl-muted)',
+            border: '1px dashed rgba(24,24,27,0.08)',
+            background: 'transparent', color: '#71717A',
             cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
             letterSpacing: '0.06em', textTransform: 'uppercase',
             width: '100%', justifyContent: 'center',
@@ -122,9 +122,9 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
             placeholder="Preset name…"
             style={{
               flex: 1, padding: '6px 10px', borderRadius: '7px',
-              border: '1px solid rgba(214,198,168,0.2)',
-              background: 'rgba(163,177,138,0.06)',
-              color: 'var(--pl-ink)', fontSize: '0.78rem',
+              border: '1px solid rgba(24,24,27,0.08)',
+              background: '#F4F4F5',
+              color: '#18181B', fontSize: '0.78rem',
               outline: 'none',
             }}
           />
@@ -133,8 +133,8 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
             disabled={!saveName.trim()}
             style={{
               padding: '6px 10px', borderRadius: '7px',
-              border: 'none', background: 'rgba(163,177,138,0.25)',
-              color: '#A3B18A', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem',
+              border: 'none', background: 'rgba(24,24,27,0.12)',
+              color: '#71717A', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem',
               opacity: saveName.trim() ? 1 : 0.4,
             }}
           >Save</button>
@@ -143,7 +143,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
             style={{
               padding: '6px 8px', borderRadius: '7px',
               border: 'none', background: 'rgba(0,0,0,0.04)',
-              color: 'var(--pl-ink-soft)', cursor: 'pointer', fontSize: '0.78rem',
+              color: '#3F3F46', cursor: 'pointer', fontSize: '0.78rem',
             }}
           >✕</button>
         </div>
@@ -151,7 +151,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
 
       {/* Presets list */}
       {presets.length === 0 ? (
-        <div style={{ padding: '10px', textAlign: 'center', fontSize: '0.7rem', color: 'var(--pl-muted)' }}>
+        <div style={{ padding: '10px', textAlign: 'center', fontSize: '0.7rem', color: '#71717A' }}>
           No saved presets yet
         </div>
       ) : (
@@ -163,15 +163,15 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
             style={{
               display: 'flex', alignItems: 'center', gap: '8px',
               padding: '8px 10px', borderRadius: '8px',
-              background: hoveredId === preset.id ? 'rgba(214,198,168,0.06)' : 'rgba(163,177,138,0.04)',
+              background: hoveredId === preset.id ? 'rgba(24,24,27,0.04)' : 'rgba(24,24,27,0.03)',
               border: '1px solid rgba(0,0,0,0.04)',
               transition: 'background 0.15s',
             }}
           >
-            <Bookmark size={12} color="rgba(214,198,168,0.45)" style={{ flexShrink: 0 }} />
+            <Bookmark size={12} color="#A1A1AA" style={{ flexShrink: 0 }} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--pl-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{preset.name}</div>
-              <div style={{ fontSize: '0.63rem', color: 'var(--pl-muted)' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#18181B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{preset.name}</div>
+              <div style={{ fontSize: '0.63rem', color: '#71717A' }}>
                 {new Date(preset.savedAt).toLocaleDateString()}
               </div>
             </div>
@@ -181,9 +181,9 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
               style={{
                 display: 'flex', alignItems: 'center', gap: '3px',
                 padding: '4px 8px', borderRadius: '6px',
-                border: '1px solid rgba(163,177,138,0.25)',
-                background: 'rgba(163,177,138,0.08)',
-                color: '#A3B18A', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700,
+                border: '1px solid rgba(24,24,27,0.12)',
+                background: 'rgba(24,24,27,0.04)',
+                color: '#71717A', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700,
                 flexShrink: 0,
               }}
             >
@@ -195,7 +195,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
               style={{
                 display: 'flex', padding: '4px', borderRadius: '5px',
                 border: 'none', background: 'none',
-                color: 'var(--pl-muted)', cursor: 'pointer',
+                color: '#71717A', cursor: 'pointer',
                 flexShrink: 0,
               }}
             >

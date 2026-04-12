@@ -52,7 +52,7 @@ const PRESET_THEMES: Array<VibeSkin & { name: string }> = [
       background: '#F7F3E9',
       foreground: '#2C2A1E',
       accent: '#6B8F55',
-      accent2: '#A3B18A',
+      accent2: '#71717A',
       card: '#FDFAF2',
       muted: '#8A8570',
       highlight: '#4E7440',
@@ -1200,7 +1200,7 @@ const PRESET_THEMES: Array<VibeSkin & { name: string }> = [
 const lbl: React.CSSProperties = {
   display: 'block', fontSize: '0.6rem', fontWeight: 800,
   letterSpacing: '0.16em', textTransform: 'uppercase',
-  color: 'var(--pl-muted)', marginBottom: '0.45rem',
+  color: '#71717A', marginBottom: '0.45rem',
 };
 
 export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) {
@@ -1268,9 +1268,9 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
                 WebkitBackdropFilter: 'blur(8px)',
                 outline: isSelected
                   ? '2px solid #6b7c3f'
-                  : isHovered ? '1px solid var(--pl-muted)' : '1px solid rgba(0,0,0,0.05)',
+                  : isHovered ? '1px solid #71717A' : '1px solid rgba(0,0,0,0.05)',
                 overflow: 'hidden',
-                boxShadow: isSelected ? '0 0 0 3px rgba(107,124,63,0.3)' : isHovered ? '0 4px 16px rgba(43,30,20,0.1)' : '0 1px 4px rgba(43,30,20,0.04)',
+                boxShadow: isSelected ? '0 0 0 3px rgba(107,124,63,0.3)' : isHovered ? '0 4px 16px rgba(0,0,0,0.06)' : '0 1px 4px rgba(0,0,0,0.03)',
                 transition: 'outline 0.15s, box-shadow 0.15s',
                 position: 'relative',
               }}
@@ -1287,18 +1287,18 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
               {/* Theme info */}
               <div style={{
                 padding: '6px 7px', textAlign: 'left',
-                background: isSelected ? 'rgba(163,177,138,0.12)' : 'transparent',
+                background: isSelected ? '#F4F4F5' : 'transparent',
               }}>
                 <div style={{
                   fontSize: '0.7rem', fontWeight: 700,
-                  color: isSelected ? '#b4c87a' : 'var(--pl-ink)',
+                  color: isSelected ? '#b4c87a' : '#18181B',
                   lineHeight: 1.3, marginBottom: '1px',
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>
                   {theme.name}
                 </div>
                 <div style={{
-                  fontSize: '0.6rem', color: 'var(--pl-muted)',
+                  fontSize: '0.6rem', color: '#71717A',
                   lineHeight: 1.3,
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>
@@ -1333,7 +1333,7 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
           padding: '9px 16px', borderRadius: '8px', border: 'none', cursor: pendingName ? 'pointer' : 'not-allowed',
           background: pendingName ? 'linear-gradient(135deg, #6b7c3f, #8a9e56)' : 'rgba(0,0,0,0.04)',
-          color: pendingName ? '#fff' : 'var(--pl-muted)',
+          color: pendingName ? '#fff' : '#71717A',
           fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.04em',
           transition: 'background 0.15s',
           opacity: pendingName ? 1 : 0.6,

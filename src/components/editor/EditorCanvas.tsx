@@ -319,7 +319,7 @@ export function EditorCanvas() {
             style={{
               width: frameWidth, maxWidth: '100%',
               borderRadius: 24, overflow: 'hidden',
-              boxShadow: '0 12px 48px rgba(43,30,20,0.12), 0 0 0 1px rgba(0,0,0,0.06)',
+              boxShadow: '0 12px 48px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.06)',
               minHeight: isPhone ? 780 : 600,
               background: 'var(--pl-cream)',
             }}
@@ -376,12 +376,12 @@ export function EditorCanvas() {
           style={{
             position: 'absolute', bottom: '80px', left: '50%', transform: 'translateX(-50%)',
             zIndex: 200, pointerEvents: 'none',
-            padding: '6px 16px', borderRadius: '100px',
+            padding: '6px 16px', borderRadius: '8px',
             background: 'rgba(250,247,242,0.92)',
             backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
             border: '1px solid rgba(255,255,255,0.5)',
-            boxShadow: '0 4px 16px rgba(43,30,20,0.1)',
-            fontSize: '0.72rem', fontWeight: 600, color: 'var(--pl-ink)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+            fontSize: '0.72rem', fontWeight: 600, color: '#18181B',
             whiteSpace: 'nowrap',
           } as React.CSSProperties}
         >
@@ -393,8 +393,8 @@ export function EditorCanvas() {
       {isPanning && (
         <div style={{
           position: 'absolute', top: '56px', left: '50%', transform: 'translateX(-50%)',
-          zIndex: 200, padding: '4px 12px', borderRadius: '100px',
-          background: 'var(--pl-olive)', color: 'white',
+          zIndex: 200, padding: '4px 12px', borderRadius: '8px',
+          background: '#18181B', color: 'white',
           fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
         }}>
           Panning — release Space to stop

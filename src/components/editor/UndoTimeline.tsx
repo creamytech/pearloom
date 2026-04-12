@@ -90,7 +90,7 @@ function TimelineEntry({
         width: '100%',
         padding: '8px 10px',
         borderRadius: '10px',
-        border: isCurrent ? '1.5px solid var(--pl-olive)' : '1.5px solid transparent',
+        border: isCurrent ? '1.5px solid #18181B' : '1.5px solid transparent',
         background: isCurrent ? 'rgba(110,140,92,0.1)' : 'transparent',
         cursor: 'pointer',
         textAlign: 'left',
@@ -112,8 +112,8 @@ function TimelineEntry({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: isCurrent ? 'var(--pl-olive)' : 'var(--pl-black-6)',
-          color: isCurrent ? '#fff' : 'var(--pl-ink-soft)',
+          background: isCurrent ? '#18181B' : 'var(--pl-black-6)',
+          color: isCurrent ? '#fff' : '#3F3F46',
           flexShrink: 0,
           transition: 'background 0.15s, color 0.15s',
         }}>
@@ -126,7 +126,7 @@ function TimelineEntry({
         <div style={{
           fontSize: 'var(--pl-text-sm)',
           fontWeight: isCurrent ? 650 : 500,
-          color: isCurrent ? 'var(--pl-olive-deep)' : 'var(--pl-ink-soft)',
+          color: isCurrent ? '#18181B' : '#3F3F46',
           lineHeight: 1.3,
           overflow: 'hidden',
           textOverflow: 'ellipsis',
@@ -136,7 +136,7 @@ function TimelineEntry({
         </div>
         <div style={{
           fontSize: 'var(--pl-text-2xs)',
-          color: 'var(--pl-muted)',
+          color: '#71717A',
           marginTop: '1px',
         }}>
           {timeAgo(entry.timestamp)}
@@ -153,7 +153,7 @@ function TimelineEntry({
             width: '6px',
             height: '6px',
             borderRadius: '50%',
-            background: 'var(--pl-olive)',
+            background: '#18181B',
             flexShrink: 0,
           }}
         />
@@ -245,13 +245,13 @@ export function UndoTimeline({ open, onClose }: UndoTimelinePopupProps) {
               borderBottom: '1px solid var(--pl-white-20)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Clock size={13} color="var(--pl-olive)" />
+                <Clock size={13} color="#18181B" />
                 <span style={{
                   fontSize: 'var(--pl-text-xs)',
                   fontWeight: 700,
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',
-                  color: 'var(--pl-olive-deep)',
+                  color: '#18181B',
                 }}>
                   Edit Timeline
                 </span>
@@ -259,7 +259,7 @@ export function UndoTimeline({ open, onClose }: UndoTimelinePopupProps) {
               <span style={{
                 fontSize: 'var(--pl-text-2xs)',
                 fontWeight: 600,
-                color: 'var(--pl-muted)',
+                color: '#71717A',
               }}>
                 {entries.length} {entries.length === 1 ? 'state' : 'states'}
               </span>
@@ -281,7 +281,7 @@ export function UndoTimeline({ open, onClose }: UndoTimelinePopupProps) {
                   padding: '24px 16px',
                   textAlign: 'center',
                   fontSize: 'var(--pl-text-sm)',
-                  color: 'var(--pl-muted)',
+                  color: '#71717A',
                 }}>
                   No actions yet
                 </div>
@@ -310,7 +310,7 @@ export function UndoTimeline({ open, onClose }: UndoTimelinePopupProps) {
               padding: '8px 14px',
               borderTop: '1px solid var(--pl-white-20)',
               fontSize: 'var(--pl-text-2xs)',
-              color: 'var(--pl-muted)',
+              color: '#71717A',
               textAlign: 'center',
               fontWeight: 500,
             }}>
@@ -370,7 +370,7 @@ export function UndoTimelinePanel() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'var(--pl-olive)',
+            background: '#18181B',
             color: '#fff',
           }}>
             <RotateCcw size={13} />
@@ -379,13 +379,13 @@ export function UndoTimelinePanel() {
             <div style={{
               fontSize: 'var(--pl-text-sm)',
               fontWeight: 650,
-              color: 'var(--pl-ink)',
+              color: '#18181B',
             }}>
               {entries.length} {entries.length === 1 ? 'state' : 'states'}
             </div>
             <div style={{
               fontSize: 'var(--pl-text-2xs)',
-              color: 'var(--pl-muted)',
+              color: '#71717A',
             }}>
               Position {currentIndex + 1} of {entries.length}
             </div>
@@ -406,7 +406,7 @@ export function UndoTimelinePanel() {
               borderRadius: '7px',
               border: 'none',
               background: state.canUndo ? 'var(--pl-black-6)' : 'transparent',
-              color: state.canUndo ? 'var(--pl-ink-soft)' : 'rgba(0,0,0,0.15)',
+              color: state.canUndo ? '#3F3F46' : 'rgba(0,0,0,0.15)',
               cursor: state.canUndo ? 'pointer' : 'default',
               display: 'flex',
               alignItems: 'center',
@@ -427,7 +427,7 @@ export function UndoTimelinePanel() {
               borderRadius: '7px',
               border: 'none',
               background: state.canRedo ? 'var(--pl-black-6)' : 'transparent',
-              color: state.canRedo ? 'var(--pl-ink-soft)' : 'rgba(0,0,0,0.15)',
+              color: state.canRedo ? '#3F3F46' : 'rgba(0,0,0,0.15)',
               cursor: state.canRedo ? 'pointer' : 'default',
               display: 'flex',
               alignItems: 'center',
@@ -446,7 +446,7 @@ export function UndoTimelinePanel() {
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
         border: '1px solid var(--pl-white-30)',
-        boxShadow: '0 2px 12px rgba(43,30,20,0.08)',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
@@ -464,13 +464,13 @@ export function UndoTimelinePanel() {
             fontWeight: 700,
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
-            color: 'var(--pl-olive-deep)',
+            color: '#18181B',
           }}>
             Action History
           </span>
           <span style={{
             fontSize: 'var(--pl-text-2xs)',
-            color: 'var(--pl-muted)',
+            color: '#71717A',
             fontWeight: 500,
           }}>
             Newest first
@@ -510,20 +510,20 @@ export function UndoTimelinePanel() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'var(--pl-muted)',
+                color: '#71717A',
               }}>
                 <Clock size={18} />
               </div>
               <div style={{
                 fontSize: 'var(--pl-text-sm)',
                 fontWeight: 600,
-                color: 'var(--pl-ink-soft)',
+                color: '#3F3F46',
               }}>
                 No actions yet
               </div>
               <div style={{
                 fontSize: 'var(--pl-text-2xs)',
-                color: 'var(--pl-muted)',
+                color: '#71717A',
                 lineHeight: 1.5,
                 maxWidth: '180px',
               }}>
@@ -562,7 +562,7 @@ export function UndoTimelinePanel() {
             padding: '10px 14px',
             borderRadius: '10px',
             border: '1px solid var(--pl-white-30)',
-            background: 'var(--pl-glass-dark-border)',
+            background: 'rgba(24,24,27,0.08)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
             cursor: 'pointer',
@@ -572,7 +572,7 @@ export function UndoTimelinePanel() {
             gap: '6px',
             fontSize: 'var(--pl-text-xs)',
             fontWeight: 600,
-            color: 'var(--pl-muted)',
+            color: '#71717A',
             transition: 'color 0.15s',
           } as React.CSSProperties}
         >
@@ -585,7 +585,7 @@ export function UndoTimelinePanel() {
       <div style={{
         textAlign: 'center',
         fontSize: 'var(--pl-text-2xs)',
-        color: 'var(--pl-muted)',
+        color: '#71717A',
         fontWeight: 500,
         paddingBottom: '8px',
       }}>

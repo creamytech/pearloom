@@ -71,14 +71,14 @@ export function MultiSelectToolbar({
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
           border: '1px solid rgba(0,0,0,0.06)',
-          boxShadow: '0 8px 32px rgba(43,30,20,0.12)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
         } as React.CSSProperties}
       >
         {/* Selection count */}
         <div style={{
           padding: '6px 12px',
           fontSize: '0.72rem', fontWeight: 700,
-          color: 'var(--pl-olive-deep)',
+          color: '#18181B',
           borderRight: '1px solid rgba(255,255,255,0.25)',
           marginRight: '4px',
         }}>
@@ -87,9 +87,9 @@ export function MultiSelectToolbar({
 
         {/* Actions */}
         {[
-          { icon: Copy, label: 'Duplicate', onClick: handleDuplicateAll, color: 'var(--pl-ink-soft)' },
-          { icon: EyeOff, label: 'Hide', onClick: handleHideAll, color: 'var(--pl-ink-soft)' },
-          { icon: Eye, label: 'Show', onClick: handleShowAll, color: 'var(--pl-olive)' },
+          { icon: Copy, label: 'Duplicate', onClick: handleDuplicateAll, color: '#3F3F46' },
+          { icon: EyeOff, label: 'Hide', onClick: handleHideAll, color: '#3F3F46' },
+          { icon: Eye, label: 'Show', onClick: handleShowAll, color: '#18181B' },
           { icon: Trash2, label: 'Delete', onClick: handleDeleteAll, color: 'var(--pl-warning)' },
         ].map((action) => (
           <motion.button
@@ -123,7 +123,7 @@ export function MultiSelectToolbar({
             width: '28px', height: '28px', borderRadius: '50%',
             border: '1px solid rgba(255,255,255,0.25)', background: 'transparent',
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--pl-muted)', marginLeft: '4px',
+            color: '#71717A', marginLeft: '4px',
           }}
         >
           <X size={12} />

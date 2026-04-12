@@ -74,10 +74,10 @@ export function SpacingHandle({ value, min = 16, max = 200, onChange }: SpacingH
           alignItems: 'center',
           gap: '8px',
           padding: '4px 12px',
-          borderRadius: '100px',
-          background: dragging ? 'var(--pl-olive)' : 'rgba(163,177,138,0.15)',
-          border: `1px solid ${dragging ? 'var(--pl-olive)' : 'rgba(163,177,138,0.3)'}`,
-          color: dragging ? 'white' : 'var(--pl-olive-deep)',
+          borderRadius: '8px',
+          background: dragging ? '#18181B' : 'rgba(24,24,27,0.08)',
+          border: `1px solid ${dragging ? '#18181B' : '#E4E4E7'}`,
+          color: dragging ? 'white' : '#18181B',
           pointerEvents: 'none',
         }}
       >
@@ -96,11 +96,11 @@ export function SpacingHandle({ value, min = 16, max = 200, onChange }: SpacingH
         <>
           <div style={{
             position: 'absolute', top: 0, left: '20%', right: '20%',
-            height: '1px', borderTop: '1px dashed rgba(163,177,138,0.3)',
+            height: '1px', borderTop: '1px dashed #E4E4E7',
           }} />
           <div style={{
             position: 'absolute', bottom: 0, left: '20%', right: '20%',
-            height: '1px', borderTop: '1px dashed rgba(163,177,138,0.3)',
+            height: '1px', borderTop: '1px dashed #E4E4E7',
           }} />
         </>
       )}

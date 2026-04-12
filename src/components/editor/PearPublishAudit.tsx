@@ -12,7 +12,7 @@ import { AlertTriangle, Info, Check, Loader2, X } from 'lucide-react';
 import { PearIcon } from '@/components/icons/PearloomIcons';
 import type { StoryManifest } from '@/types';
 
-const OLIVE = 'var(--pl-olive, #A3B18A)';
+const OLIVE = '#18181B';
 
 type IssueSeverity = 'warning' | 'info';
 
@@ -216,7 +216,7 @@ export function PearPublishAudit({ manifest, coupleNames, onProceed, onClose }: 
             WebkitBackdropFilter: 'blur(24px)',
             borderRadius: '20px',
             border: '1px solid rgba(255,255,255,0.5)',
-            boxShadow: '0 24px 80px rgba(43,30,20,0.18), 0 0 0 1px rgba(0,0,0,0.03)',
+            boxShadow: '0 24px 80px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.03)',
             maxWidth: '480px',
             width: '100%',
             maxHeight: '80vh',
@@ -231,8 +231,8 @@ export function PearPublishAudit({ manifest, coupleNames, onProceed, onClose }: 
                 width: '36px',
                 height: '36px',
                 borderRadius: '50%',
-                background: 'rgba(163,177,138,0.12)',
-                border: '1px solid rgba(163,177,138,0.25)',
+                background: '#F4F4F5',
+                border: '1px solid rgba(24,24,27,0.12)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -251,7 +251,7 @@ export function PearPublishAudit({ manifest, coupleNames, onProceed, onClose }: 
                   {autoProceed ? 'Your site looks great!' : "Pear's Pre-Publish Check"}
                 </h2>
                 {!autoProceed && (
-                  <p style={{ fontSize: '0.72rem', color: 'var(--pl-muted, #7A756E)', margin: '2px 0 0' }}>
+                  <p style={{ fontSize: '0.72rem', color: '#71717A', margin: '2px 0 0' }}>
                     {issues.length} {issues.length === 1 ? 'item' : 'items'} found before publishing
                   </p>
                 )}
@@ -273,7 +273,7 @@ export function PearPublishAudit({ manifest, coupleNames, onProceed, onClose }: 
                 background: 'rgba(0,0,0,0.04)',
               }}
             >
-              <X size={14} color="var(--pl-muted, #7A756E)" />
+              <X size={14} color="#71717A" />
             </motion.button>
           </div>
 
@@ -289,12 +289,12 @@ export function PearPublishAudit({ manifest, coupleNames, onProceed, onClose }: 
                 gap: '10px',
                 padding: '16px',
                 borderRadius: '14px',
-                background: 'rgba(163,177,138,0.1)',
-                border: '1px solid rgba(163,177,138,0.2)',
+                background: 'rgba(24,24,27,0.06)',
+                border: '1px solid rgba(24,24,27,0.1)',
               }}
             >
               <Check size={18} color={OLIVE} />
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--pl-ink)' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#18181B' }}>
                 Ready to publish! Proceeding...
               </span>
             </motion.div>
@@ -337,7 +337,7 @@ export function PearPublishAudit({ manifest, coupleNames, onProceed, onClose }: 
                     fontWeight: 700,
                     letterSpacing: '0.12em',
                     textTransform: 'uppercase',
-                    color: 'var(--pl-muted, #7A756E)',
+                    color: '#71717A',
                     marginBottom: '8px',
                   }}>
                     Suggestions
@@ -369,7 +369,7 @@ export function PearPublishAudit({ manifest, coupleNames, onProceed, onClose }: 
                     justifyContent: 'center',
                     gap: '6px',
                     padding: '10px 16px',
-                    borderRadius: '100px',
+                    borderRadius: '8px',
                     border: 'none',
                     background: OLIVE,
                     color: '#fff',
@@ -393,7 +393,7 @@ export function PearPublishAudit({ manifest, coupleNames, onProceed, onClose }: 
                   style={{
                     flex: 1,
                     padding: '10px 16px',
-                    borderRadius: '100px',
+                    borderRadius: '8px',
                     border: '1px solid rgba(0,0,0,0.08)',
                     background: 'rgba(0,0,0,0.03)',
                     color: 'var(--pl-ink-soft, #3D3530)',
@@ -432,7 +432,7 @@ function IssueRow({ issue, fixing, onFix }: { issue: AuditIssue; fixing: boolean
       {isWarning ? (
         <AlertTriangle size={14} color="#c48a3f" style={{ flexShrink: 0 }} />
       ) : (
-        <Info size={14} color="var(--pl-muted, #7A756E)" style={{ flexShrink: 0 }} />
+        <Info size={14} color="#71717A" style={{ flexShrink: 0 }} />
       )}
       <span style={{
         flex: 1,
@@ -453,8 +453,8 @@ function IssueRow({ issue, fixing, onFix }: { issue: AuditIssue; fixing: boolean
           alignItems: 'center',
           gap: '4px',
           padding: '4px 10px',
-          borderRadius: '100px',
-          border: `1px solid rgba(163,177,138,0.3)`,
+          borderRadius: '8px',
+          border: `1px solid #E4E4E7`,
           background: 'transparent',
           color: OLIVE,
           fontSize: '0.62rem',

@@ -355,7 +355,7 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
                     ? {
                         backgroundColor: entry.danger
                           ? 'rgba(248,113,113,0.08)'
-                          : 'var(--pl-olive-10)',
+                          : 'rgba(24,24,27,0.06)',
                       }
                     : {}
                 }
@@ -374,7 +374,7 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
                     ? 'rgba(0,0,0,0.2)'
                     : entry.danger
                       ? 'rgba(220,80,80,0.85)'
-                      : 'var(--pl-ink-soft)',
+                      : '#3F3F46',
                   fontSize: 'var(--pl-text-sm)',
                   fontWeight: 600,
                   textAlign: 'left',
@@ -388,7 +388,7 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
                     style={{
                       fontSize: 'var(--pl-text-2xs)',
                       fontWeight: 500,
-                      color: 'var(--pl-muted)',
+                      color: '#71717A',
                       letterSpacing: '0.04em',
                       opacity: 0.6,
                     }}

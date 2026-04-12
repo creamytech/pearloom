@@ -70,7 +70,7 @@ export function StickerOverlay({ stickers, onChange, containerRef }: StickerOver
             whileDrag={{ cursor: 'grabbing', scale: 1.1, zIndex: 50 }}
           >
             <div style={{ position: 'relative' }}>
-              <Comp size={s.size} color={s.color || 'rgba(163,177,138,0.8)'} width={s.size} height={s.size} />
+              <Comp size={s.size} color={s.color || '#71717A'} width={s.size} height={s.size} />
               {/* Controls */}
               <button
                 onClick={(e) => { e.stopPropagation(); removeSticker(s.id); }}
@@ -90,7 +90,7 @@ export function StickerOverlay({ stickers, onChange, containerRef }: StickerOver
                 style={{
                   position: 'absolute', bottom: -8, right: -8,
                   width: 18, height: 18, borderRadius: '50%',
-                  background: 'rgba(163,177,138,0.9)', border: 'none',
+                  background: '#18181B', border: 'none',
                   cursor: 'pointer', display: 'flex', alignItems: 'center',
                   justifyContent: 'center', color: '#fff', zIndex: 10,
                   pointerEvents: 'auto',

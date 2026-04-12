@@ -303,7 +303,7 @@ export default function CommunityMemoryModerate({
                     color: '#A8A8C0',
                     lineHeight: 1.6,
                     margin: '0 0 12px',
-                    fontStyle: 'italic',
+                    
                   }}
                 >
                   &ldquo;{memory.memoryText.length > 200

@@ -127,7 +127,7 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
           initial={{ width: 0 }}
           animate={{ width: '48px' }}
           transition={{ duration: 0.8, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          style={{ height: '2px', background: 'var(--pl-olive)', borderRadius: '2px', marginBottom: '2rem' }}
+          style={{ height: '2px', background: '#18181B', borderRadius: '2px', marginBottom: '2rem' }}
         />
 
         {/* Accent symbol */}
@@ -136,7 +136,7 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
           style={{
-            fontSize: '1.8rem', color: 'var(--pl-olive)', opacity: 0.6,
+            fontSize: '1.8rem', color: '#18181B', opacity: 0.6,
             marginBottom: '1.5rem',
           }}
         >
@@ -149,10 +149,10 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.9, ease: [0.16, 1, 0.3, 1] }}
           style={{
-            fontFamily: 'var(--pl-font-heading)',
+            fontFamily: 'inherit',
             fontSize: isReturning ? 'clamp(1.5rem, 4vw, 2.2rem)' : 'clamp(1.8rem, 5vw, 2.8rem)',
-            fontWeight: 400, fontStyle: 'italic',
-            color: 'var(--pl-ink-soft)',
+            fontWeight: 400, 
+            color: '#3F3F46',
             letterSpacing: '-0.02em',
             textAlign: 'center',
             margin: '0 0 0.75rem',
@@ -170,7 +170,7 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
             transition={{ duration: 0.6, delay: 1.2 }}
             style={{
               fontSize: '0.92rem', fontWeight: 600,
-              color: 'var(--pl-olive-deep)',
+              color: '#18181B',
               marginBottom: '0.5rem',
               letterSpacing: '0.02em',
             }}
@@ -186,7 +186,7 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
           transition={{ duration: 0.6, delay: 1.3, ease: [0.16, 1, 0.3, 1] }}
           style={{
             fontSize: '0.88rem',
-            color: 'var(--pl-muted)',
+            color: '#71717A',
             textAlign: 'center',
             lineHeight: 1.6,
             maxWidth: '320px',
@@ -213,12 +213,12 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
                 style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center',
                   padding: '8px 16px', borderRadius: '12px',
-                  background: 'rgba(163,177,138,0.08)',
-                  border: '1px solid rgba(163,177,138,0.15)',
+                  background: 'rgba(24,24,27,0.04)',
+                  border: '1px solid rgba(24,24,27,0.08)',
                 }}
               >
-                <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--pl-olive-deep)' }}>{s.value}</span>
-                <span style={{ fontSize: '0.6rem', fontWeight: 600, color: 'var(--pl-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{s.label}</span>
+                <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#18181B' }}>{s.value}</span>
+                <span style={{ fontSize: '0.6rem', fontWeight: 600, color: '#71717A', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{s.label}</span>
               </div>
             ))}
           </motion.div>
@@ -231,10 +231,10 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
           transition={{ duration: 2, delay: 1.8, repeat: Infinity, repeatDelay: 3 }}
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '8px 20px', borderRadius: '100px',
-            background: 'rgba(163,177,138,0.1)',
-            border: '1px solid rgba(163,177,138,0.2)',
-            color: 'var(--pl-olive-deep)',
+            padding: '8px 20px', borderRadius: '8px',
+            background: 'rgba(24,24,27,0.06)',
+            border: '1px solid rgba(24,24,27,0.1)',
+            color: '#18181B',
             fontSize: '0.72rem', fontWeight: 600,
             letterSpacing: '0.06em',
           }}

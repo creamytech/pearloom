@@ -158,7 +158,7 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
             }}>
               <h2 style={{
                 margin: 0,
-                fontFamily: 'var(--pl-font-heading)',
+                fontFamily: 'inherit',
                 fontStyle: 'normal',
                 fontSize: '0.95rem',
                 fontWeight: 600,
@@ -203,7 +203,7 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
                 background: 'rgba(255,255,255,0.75)',
                 border: '1px solid rgba(0,0,0,0.06)',
               }}>
-                <Search size={14} style={{ color: 'var(--pl-muted, #7A756E)', flexShrink: 0 }} />
+                <Search size={14} style={{ color: '#71717A', flexShrink: 0 }} />
                 <input
                   type="text"
                   value={filter}
@@ -261,17 +261,17 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
                     width: '56px',
                     height: '56px',
                     borderRadius: '16px',
-                    background: 'rgba(163,177,138,0.15)',
+                    background: 'rgba(24,24,27,0.08)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: '16px',
                   }}>
-                    <ImageIcon size={24} style={{ color: 'var(--pl-olive, #A3B18A)' }} />
+                    <ImageIcon size={24} style={{ color: '#18181B' }} />
                   </div>
                   <p style={{
                     fontSize: '0.88rem',
-                    color: 'var(--pl-muted, #7A756E)',
+                    color: '#71717A',
                     maxWidth: '280px',
                     lineHeight: 1.5,
                     margin: 0,

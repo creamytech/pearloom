@@ -142,14 +142,14 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
             padding: '18px 20px', borderBottom: '1px solid rgba(0,0,0,0.06)',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <MapPin size={16} style={{ color: 'var(--pl-olive, #A3B18A)' }} />
-              <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--pl-ink, #1A1A1A)', letterSpacing: '-0.01em' }}>
+              <MapPin size={16} style={{ color: '#18181B' }} />
+              <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#18181B', letterSpacing: '-0.01em' }}>
                 Find Hotels Near Venue
               </span>
             </div>
             <button onClick={onClose} style={{
               background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--pl-muted, #7A756E)', padding: '4px', display: 'flex',
+              color: '#71717A', padding: '4px', display: 'flex',
               borderRadius: '6px', transition: 'background 0.15s',
             }}
               onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.05)'; }}
@@ -161,7 +161,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
 
           {/* Search area */}
           <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
-            <label style={{ ...lbl, color: 'var(--pl-muted, #7A756E)' }}>Venue Address</label>
+            <label style={{ ...lbl, color: '#71717A' }}>Venue Address</label>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input
                 value={venueAddress}
@@ -170,13 +170,13 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                 style={{
                   flex: 1, padding: '10px 14px', borderRadius: '12px',
                   border: '1px solid rgba(0,0,0,0.1)', background: 'rgba(255,255,255,0.7)',
-                  fontSize: 'max(16px, 0.85rem)', color: 'var(--pl-ink, #1A1A1A)',
+                  fontSize: 'max(16px, 0.85rem)', color: '#18181B',
                   outline: 'none', fontFamily: 'inherit',
                   transition: 'border-color 0.15s, box-shadow 0.15s',
                 }}
                 onFocus={e => {
-                  e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)';
-                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)';
+                  e.currentTarget.style.borderColor = '#A1A1AA';
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(24,24,27,0.06)';
                 }}
                 onBlur={e => {
                   e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)';
@@ -189,14 +189,14 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                 disabled={loading}
                 style={{
                   padding: '10px 18px', borderRadius: '12px', border: 'none',
-                  background: loading ? 'rgba(163,177,138,0.4)' : 'var(--pl-olive, #A3B18A)',
+                  background: loading ? '#E4E4E7' : '#18181B',
                   color: '#fff', fontSize: '0.82rem', fontWeight: 700,
                   cursor: loading ? 'default' : 'pointer',
                   letterSpacing: '0.04em', whiteSpace: 'nowrap',
                   transition: 'background 0.15s, transform 0.1s',
                 }}
                 onMouseOver={e => { if (!loading) (e.currentTarget as HTMLElement).style.background = '#8fa47a'; }}
-                onMouseOut={e => { if (!loading) (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive, #A3B18A)'; }}
+                onMouseOut={e => { if (!loading) (e.currentTarget as HTMLElement).style.background = '#18181B'; }}
               >
                 {loading ? 'Searching...' : 'Find Hotels'}
               </button>
@@ -249,7 +249,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                       }}
                       onMouseOver={e => {
                         (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 20px rgba(0,0,0,0.06)';
-                        (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.25)';
+                        (e.currentTarget as HTMLElement).style.borderColor = 'rgba(24,24,27,0.12)';
                       }}
                       onMouseOut={e => {
                         (e.currentTarget as HTMLElement).style.boxShadow = 'none';
@@ -260,7 +260,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
                         <h3 style={{
                           fontFamily: 'var(--pl-font-heading, Georgia, serif)',
-                          fontSize: '1rem', fontWeight: 700, color: 'var(--pl-ink, #1A1A1A)',
+                          fontSize: '1rem', fontWeight: 700, color: '#18181B',
                           margin: 0, lineHeight: 1.3,
                         }}>
                           {hotel.name}
@@ -269,7 +269,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                           {/* Distance badge */}
                           <span style={{
                             padding: '3px 8px', borderRadius: '6px', fontSize: '0.7rem',
-                            fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--pl-muted, #7A756E)',
+                            fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: '#71717A',
                             whiteSpace: 'nowrap',
                           }}>
                             {hotel.distance}
@@ -287,7 +287,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
 
                       {/* Description */}
                       <p style={{
-                        fontSize: '0.82rem', color: 'var(--pl-ink-soft, #4A4A4A)',
+                        fontSize: '0.82rem', color: '#18181B',
                         lineHeight: 1.55, margin: '0 0 10px',
                       }}>
                         {hotel.description}
@@ -299,8 +299,8 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                           {hotel.amenities.map((amenity, j) => (
                             <span key={j} style={{
                               padding: '2px 7px', borderRadius: '4px', fontSize: '0.68rem',
-                              fontWeight: 600, background: 'rgba(163,177,138,0.1)',
-                              color: 'var(--pl-olive, #A3B18A)',
+                              fontWeight: 600, background: 'rgba(24,24,27,0.06)',
+                              color: '#18181B',
                             }}>
                               {amenity}
                             </span>
@@ -322,7 +322,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                               Group Rate Tip
                             </span>
                           </div>
-                          <p style={{ fontSize: '0.78rem', color: 'var(--pl-ink-soft, #4A4A4A)', lineHeight: 1.5, margin: 0 }}>
+                          <p style={{ fontSize: '0.78rem', color: '#18181B', lineHeight: 1.5, margin: 0 }}>
                             {hotel.groupRateTip}
                           </p>
                         </div>
@@ -336,13 +336,13 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                           style={{
                             display: 'flex', alignItems: 'center', gap: '5px',
                             padding: '7px 14px', borderRadius: '8px', border: 'none',
-                            background: isAdded ? 'rgba(163,177,138,0.15)' : 'var(--pl-olive, #A3B18A)',
-                            color: isAdded ? 'var(--pl-olive, #A3B18A)' : '#fff',
+                            background: isAdded ? 'rgba(24,24,27,0.08)' : '#18181B',
+                            color: isAdded ? '#18181B' : '#fff',
                             fontSize: '0.78rem', fontWeight: 700, cursor: isAdded ? 'default' : 'pointer',
                             letterSpacing: '0.03em', transition: 'background 0.15s',
                           }}
                           onMouseOver={e => { if (!isAdded) (e.currentTarget as HTMLElement).style.background = '#8fa47a'; }}
-                          onMouseOut={e => { if (!isAdded) (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive, #A3B18A)'; }}
+                          onMouseOut={e => { if (!isAdded) (e.currentTarget as HTMLElement).style.background = '#18181B'; }}
                         >
                           <Plus size={12} />
                           {isAdded ? 'Added' : 'Add to Site'}
@@ -356,7 +356,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                               display: 'flex', alignItems: 'center', gap: '5px',
                               padding: '7px 14px', borderRadius: '8px',
                               border: '1px solid rgba(0,0,0,0.08)', background: 'transparent',
-                              color: 'var(--pl-muted, #7A756E)', fontSize: '0.78rem',
+                              color: '#71717A', fontSize: '0.78rem',
                               fontWeight: 600, textDecoration: 'none',
                               transition: 'background 0.15s',
                             }}
@@ -378,7 +378,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
             {!loading && results.length === 0 && !error && (
               <div style={{
                 textAlign: 'center', padding: '40px 20px',
-                color: 'var(--pl-muted, #7A756E)',
+                color: '#71717A',
               }}>
                 <MapPin size={28} style={{ opacity: 0.3, marginBottom: '12px' }} />
                 <p style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '4px' }}>

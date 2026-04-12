@@ -18,9 +18,9 @@ import { buildSiteUrl, formatSiteDisplayUrl } from '@/lib/site-urls';
 
 // ── Card layout themes ────────────────────────────────────────
 const CARD_STYLES = [
-  { id: 'elegant',  label: 'Elegant',  bg: 'linear-gradient(135deg, #1a1410 0%, #2d2218 100%)', text: '#D6C6A8', accent: '#A3B18A' },
+  { id: 'elegant',  label: 'Elegant',  bg: 'linear-gradient(135deg, #1a1410 0%, #2d2218 100%)', text: '#D6C6A8', accent: '#71717A' },
   { id: 'romantic', label: 'Romantic', bg: 'linear-gradient(135deg, #1f0f14 0%, #2d1520 100%)', text: '#f0d8e0', accent: '#e87ab8' },
-  { id: 'minimal',  label: 'Minimal',  bg: 'linear-gradient(135deg, #faf8f4 0%, #f0ebe2 100%)', text: 'var(--pl-ink-soft)', accent: '#8A7A4A' },
+  { id: 'minimal',  label: 'Minimal',  bg: 'linear-gradient(135deg, #faf8f4 0%, #f0ebe2 100%)', text: '#3F3F46', accent: '#8A7A4A' },
   { id: 'garden',   label: 'Garden',   bg: 'linear-gradient(135deg, #0d1812 0%, #162412 100%)', text: '#D4E6C3', accent: '#7BB661' },
 ] as const;
 
@@ -87,14 +87,14 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
       <div style={{
         display: 'flex', alignItems: 'center', gap: '6px',
         fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
-        textTransform: 'uppercase', color: 'var(--pl-muted)',
+        textTransform: 'uppercase', color: '#71717A',
       }}>
         <Calendar size={11} /> Save the Date
       </div>
 
       {/* Style picker */}
       <div>
-        <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Card Style</div>
+        <div style={{ fontSize: '0.68rem', color: '#71717A', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Card Style</div>
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           {CARD_STYLES.map(s => (
             <button
@@ -114,7 +114,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
 
       {/* Custom message */}
       <div>
-        <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Message</div>
+        <div style={{ fontSize: '0.68rem', color: '#71717A', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Message</div>
         <input
           value={customMessage}
           onChange={e => setCustomMessage(e.target.value)}
@@ -122,8 +122,8 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
           style={{
             width: '100%', padding: '7px 10px', borderRadius: '7px',
             border: '1px solid rgba(255,255,255,0.2)',
-            background: 'rgba(163,177,138,0.05)',
-            color: 'var(--pl-ink)', fontSize: '0.78rem',
+            background: 'rgba(24,24,27,0.04)',
+            color: '#18181B', fontSize: '0.78rem',
             outline: 'none', boxSizing: 'border-box',
           }}
         />
@@ -131,7 +131,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
 
       {/* Card preview */}
       <div>
-        <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Preview</div>
+        <div style={{ fontSize: '0.68rem', color: '#71717A', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Preview</div>
         <div
           ref={cardRef}
           style={{
@@ -223,8 +223,8 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
           style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
             padding: '9px', borderRadius: '9px',
-            border: '1px solid rgba(163,177,138,0.3)',
-            background: 'rgba(163,177,138,0.1)', color: '#A3B18A',
+            border: '1px solid #E4E4E7',
+            background: 'rgba(24,24,27,0.06)', color: '#71717A',
             cursor: downloading ? 'wait' : 'pointer', fontSize: '0.75rem', fontWeight: 700,
           }}
         >
@@ -239,12 +239,12 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
           style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
             padding: '9px', borderRadius: '9px',
-            border: '1px solid rgba(214,198,168,0.2)',
-            background: 'rgba(214,198,168,0.07)', color: 'var(--pl-muted)',
+            border: '1px solid rgba(24,24,27,0.08)',
+            background: 'rgba(24,24,27,0.04)', color: '#71717A',
             cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
           }}
         >
-          {copied ? <Check size={13} color="#A3B18A" /> : <Link2 size={13} />}
+          {copied ? <Check size={13} color="#71717A" /> : <Link2 size={13} />}
           {copied ? 'Copied!' : 'Copy Link'}
         </motion.button>
       </div>
@@ -253,7 +253,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
         <div style={{
           padding: '8px 10px', borderRadius: '7px',
           background: 'rgba(234,179,8,0.07)', border: '1px solid rgba(234,179,8,0.2)',
-          fontSize: '0.7rem', color: 'var(--pl-ink-soft)',
+          fontSize: '0.7rem', color: '#3F3F46',
         }}>
           Add a ceremony or event with a date to see it on the card.
         </div>

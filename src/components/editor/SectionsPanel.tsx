@@ -173,13 +173,13 @@ export function SectionsPanel({ manifest, onChange }: {
               }}
             >
               {/* Drag handle */}
-              <GripVertical size={14} style={{ color: 'var(--pl-muted)', flexShrink: 0 }} />
+              <GripVertical size={14} style={{ color: '#71717A', flexShrink: 0 }} />
 
               {/* Icon + label */}
-              <BlockIcon size={16} style={{ flexShrink: 0, color: isHidden ? 'var(--pl-muted)' : 'var(--pl-olive)' }} />
+              <BlockIcon size={16} style={{ flexShrink: 0, color: isHidden ? '#71717A' : '#18181B' }} />
               <span style={{
                 flex: 1, fontSize: '0.82rem', fontWeight: 600,
-                color: isHidden ? 'var(--pl-muted)' : 'var(--pl-ink)',
+                color: isHidden ? '#71717A' : '#18181B',
                 textDecoration: isHidden ? 'line-through' : 'none',
               }}>
                 {meta.label}
@@ -193,7 +193,7 @@ export function SectionsPanel({ manifest, onChange }: {
                   style={{
                     all: 'unset', cursor: idx === 0 ? 'default' : 'pointer',
                     fontSize: '0.6rem', lineHeight: 1, padding: '2px',
-                    color: idx === 0 ? 'rgba(0,0,0,0.06)' : 'var(--pl-ink-soft)',
+                    color: idx === 0 ? 'rgba(0,0,0,0.06)' : '#3F3F46',
                   }}
                 >▲</button>
                 <button
@@ -202,7 +202,7 @@ export function SectionsPanel({ manifest, onChange }: {
                   style={{
                     all: 'unset', cursor: idx === blocks.length - 1 ? 'default' : 'pointer',
                     fontSize: '0.6rem', lineHeight: 1, padding: '2px',
-                    color: idx === blocks.length - 1 ? 'rgba(0,0,0,0.06)' : 'var(--pl-ink-soft)',
+                    color: idx === blocks.length - 1 ? 'rgba(0,0,0,0.06)' : '#3F3F46',
                   }}
                 >▼</button>
               </div>
@@ -213,7 +213,7 @@ export function SectionsPanel({ manifest, onChange }: {
                 style={{
                   all: 'unset', cursor: 'pointer', display: 'flex',
                   padding: '4px', borderRadius: '6px',
-                  color: isHidden ? 'var(--pl-muted)' : 'rgba(163,177,138,0.8)',
+                  color: isHidden ? '#71717A' : '#71717A',
                 }}
               >
                 {isHidden ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -257,16 +257,16 @@ export function SectionsPanel({ manifest, onChange }: {
                 style={{
                   display: 'flex', alignItems: 'center', gap: '5px',
                   padding: '6px 10px', borderRadius: '8px',
-                  border: '1px solid rgba(163,177,138,0.2)',
-                  background: 'rgba(163,177,138,0.04)',
-                  color: 'var(--pl-ink-soft)',
+                  border: '1px solid rgba(24,24,27,0.1)',
+                  background: 'rgba(24,24,27,0.03)',
+                  color: '#3F3F46',
                   fontSize: panelText.chip,
                   fontWeight: panelWeight.semibold,
                   cursor: 'pointer',
                   transition: 'all 0.15s',
                 }}
               >
-                <AddIcon size={13} style={{ color: 'var(--pl-olive)' }} />
+                <AddIcon size={13} style={{ color: '#18181B' }} />
                 <span>{meta.label}</span>
               </button>
             );
@@ -291,7 +291,7 @@ export function SectionsPanel({ manifest, onChange }: {
                     style={{
                       display: 'flex', alignItems: 'center', gap: '8px',
                       cursor: 'pointer',
-                      border: '1px solid rgba(163,177,138,0.2)',
+                      border: '1px solid rgba(24,24,27,0.1)',
                       textAlign: 'left', width: '100%',
                       padding: '8px 10px',
                       borderRadius: '10px',
@@ -303,16 +303,16 @@ export function SectionsPanel({ manifest, onChange }: {
                       <span style={{
                         fontSize: panelText.body,
                         fontWeight: panelWeight.semibold,
-                        color: 'var(--pl-ink)',
+                        color: '#18181B',
                         display: 'block',
                       }}>
                         {BLOCK_LABELS[s.type]?.label || s.type}
                       </span>
-                      <span style={{ fontSize: panelText.meta, color: 'var(--pl-muted)' }}>
+                      <span style={{ fontSize: panelText.meta, color: '#71717A' }}>
                         {s.reason}
                       </span>
                     </div>
-                    <Plus size={12} style={{ color: 'var(--pl-olive)', flexShrink: 0 }} />
+                    <Plus size={12} style={{ color: '#18181B', flexShrink: 0 }} />
                   </button>
                 );
               })}

@@ -63,11 +63,11 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
         marginBottom: '16px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Clock size={14} color="var(--pl-olive)" />
+          <Clock size={14} color="#18181B" />
           <span style={{
             fontSize: '0.7rem', fontWeight: 700,
             letterSpacing: '0.1em', textTransform: 'uppercase',
-            color: 'var(--pl-olive-deep)',
+            color: '#18181B',
           }}>
             Version History
           </span>
@@ -105,7 +105,7 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
                 style={{
                   flex: 1, padding: '6px 10px', borderRadius: '6px',
                   border: '1.5px solid rgba(255,255,255,0.25)', fontSize: '0.82rem',
-                  background: 'white', color: 'var(--pl-ink)',
+                  background: 'white', color: '#18181B',
                 }}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
               />
@@ -121,7 +121,7 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
       {snapshots.length === 0 ? (
         <div style={{
           textAlign: 'center', padding: '24px 12px',
-          color: 'var(--pl-muted)', fontSize: '0.82rem',
+          color: '#71717A', fontSize: '0.82rem',
         }}>
           <Clock size={20} style={{ opacity: 0.3, marginBottom: '8px' }} />
           <p>No snapshots saved yet.</p>
@@ -140,7 +140,7 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
                 padding: '10px 12px',
                 borderRadius: '10px',
                 border: '1px solid rgba(255,255,255,0.25)',
-                background: confirmRestore === snap.id ? 'rgba(163,177,138,0.08)' : 'white',
+                background: confirmRestore === snap.id ? 'rgba(24,24,27,0.04)' : 'white',
                 transition: 'background 0.15s',
               }}
             >
@@ -150,12 +150,12 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
                 <div>
                   <p style={{
                     fontSize: '0.82rem', fontWeight: 600,
-                    color: 'var(--pl-ink)', margin: 0,
+                    color: '#18181B', margin: 0,
                   }}>
                     {snap.label}
                   </p>
                   <p style={{
-                    fontSize: '0.68rem', color: 'var(--pl-muted)',
+                    fontSize: '0.68rem', color: '#71717A',
                     margin: '2px 0 0',
                   }}>
                     {timeAgo(snap.timestamp)}
@@ -180,7 +180,7 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
                           width: '28px', height: '28px', borderRadius: '6px',
                           border: '1px solid rgba(255,255,255,0.25)', background: 'transparent',
                           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: 'var(--pl-olive)',
+                          color: '#18181B',
                         }}
                       >
                         <RotateCcw size={12} />
@@ -192,7 +192,7 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
                           width: '28px', height: '28px', borderRadius: '6px',
                           border: '1px solid rgba(255,255,255,0.25)', background: 'transparent',
                           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: 'var(--pl-muted)',
+                          color: '#71717A',
                         }}
                       >
                         <Trash2 size={12} />

@@ -92,7 +92,7 @@ export function PanelSection({
         border: 'none',
         background: 'transparent',
         cursor: collapsible ? 'pointer' : 'default',
-        color: 'var(--pl-ink-soft)',
+        color: '#3F3F46',
         textAlign: 'left',
       }}
     >
@@ -102,7 +102,7 @@ export function PanelSection({
           style={{
             transform: isOpen ? 'rotate(90deg)' : 'none',
             transition: 'transform 0.2s',
-            color: isOpen ? '#18181B' : 'var(--pl-muted)',
+            color: isOpen ? '#18181B' : '#71717A',
             flexShrink: 0,
           }}
         />
@@ -116,7 +116,7 @@ export function PanelSection({
           fontWeight: 600,
           letterSpacing: '0.04em',
           textTransform: 'uppercase',
-          color: isOpen ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
+          color: isOpen ? '#3F3F46' : '#71717A',
         }}
       >
         {title}
@@ -126,7 +126,7 @@ export function PanelSection({
           style={{
             fontSize: panelText.meta,
             padding: '2px 7px',
-            borderRadius: '100px',
+            borderRadius: '8px',
             background: '#F4F4F5',
             color: '#18181B',
             fontWeight: panelWeight.bold,
@@ -151,7 +151,7 @@ export function PanelSection({
         <div
           style={{
             fontSize: panelText.hint,
-            color: 'var(--pl-muted)',
+            color: '#71717A',
             lineHeight: 1.5,
             margin: '-2px 0 2px',
           }}

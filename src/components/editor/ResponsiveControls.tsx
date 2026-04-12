@@ -101,7 +101,7 @@ export function ResponsiveControls<T>({
         {label && (
           <span style={{
             fontSize: 'var(--pl-text-sm)', fontWeight: 700,
-            color: 'var(--pl-ink-soft)',
+            color: '#3F3F46',
             letterSpacing: '0.06em',
             textTransform: 'uppercase' as const,
             marginRight: 'auto',
@@ -138,14 +138,14 @@ export function ResponsiveControls<T>({
                   width: '24px', height: '24px',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   borderRadius: '6px', border: 'none',
-                  background: isActive ? 'var(--pl-olive)' : 'transparent',
+                  background: isActive ? '#18181B' : 'transparent',
                   color: isActive
                     ? 'white'
                     : isLinked
-                      ? 'var(--pl-muted)'
+                      ? '#71717A'
                       : hasOverride
-                        ? 'var(--pl-olive-deep)'
-                        : 'var(--pl-muted)',
+                        ? '#18181B'
+                        : '#71717A',
                   cursor: isLinked ? 'default' : 'pointer',
                   opacity: isLinked ? 0.45 : 1,
                   transition: 'background 0.15s, color 0.15s, opacity 0.15s',
@@ -158,7 +158,7 @@ export function ResponsiveControls<T>({
                   <div style={{
                     position: 'absolute', bottom: '1px', right: '1px',
                     width: '4px', height: '4px', borderRadius: '50%',
-                    background: 'var(--pl-olive)',
+                    background: '#18181B',
                   }} />
                 )}
               </motion.button>
@@ -178,10 +178,10 @@ export function ResponsiveControls<T>({
             width: '26px', height: '26px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             borderRadius: '6px', border: '1px solid var(--pl-black-6)',
-            background: isLinked ? 'var(--pl-olive-15)' : 'var(--pl-white-20)',
+            background: isLinked ? 'rgba(24,24,27,0.08)' : 'var(--pl-white-20)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
-            color: isLinked ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+            color: isLinked ? '#18181B' : '#71717A',
             cursor: 'pointer',
             transition: 'background 0.15s, color 0.15s',
           } as React.CSSProperties}
@@ -214,10 +214,10 @@ export function ResponsiveControls<T>({
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: '4px',
               padding: '2px 8px',
-              borderRadius: '100px',
-              background: 'var(--pl-olive-mist)',
+              borderRadius: '8px',
+              background: '#F4F4F5',
               fontSize: 'var(--pl-text-2xs)', fontWeight: 700,
-              color: 'var(--pl-olive-deep)',
+              color: '#18181B',
               letterSpacing: '0.06em',
               textTransform: 'uppercase' as const,
             }}>

@@ -58,8 +58,8 @@ export function MessagingPanel({ manifest, siteId, subdomain }: MessagingPanelPr
             style={{
               width: '100%', padding: '10px 12px', borderRadius: 10,
               border: '1px solid rgba(0,0,0,0.06)',
-              background: 'rgba(163,177,138,0.06)',
-              color: 'var(--pl-ink)', fontSize: '0.88rem',
+              background: '#F4F4F5',
+              color: '#18181B', fontSize: '0.88rem',
               outline: 'none', boxSizing: 'border-box',
             }}
           />
@@ -81,8 +81,8 @@ export function MessagingPanel({ manifest, siteId, subdomain }: MessagingPanelPr
             style={{
               width: '100%', padding: '10px 12px', borderRadius: 10,
               border: '1px solid rgba(0,0,0,0.06)',
-              background: 'rgba(163,177,138,0.06)',
-              color: 'var(--pl-ink)', fontSize: '0.88rem',
+              background: '#F4F4F5',
+              color: '#18181B', fontSize: '0.88rem',
               outline: 'none', resize: 'vertical', boxSizing: 'border-box',
               fontFamily: 'inherit',
             }}
@@ -93,11 +93,11 @@ export function MessagingPanel({ manifest, siteId, subdomain }: MessagingPanelPr
           <div style={{
             padding: '10px 14px', borderRadius: 10,
             background: result.failed === 0
-              ? 'rgba(163,177,138,0.12)' : 'rgba(248,113,113,0.1)',
+              ? '#F4F4F5' : 'rgba(248,113,113,0.1)',
             border: `1px solid ${result.failed === 0
-              ? 'rgba(163,177,138,0.3)' : 'rgba(248,113,113,0.3)'}`,
+              ? '#E4E4E7' : 'rgba(248,113,113,0.3)'}`,
             fontSize: '0.82rem',
-            color: result.failed === 0 ? '#A3B18A' : '#f87171',
+            color: result.failed === 0 ? '#71717A' : '#f87171',
           }}>
             {result.failed === 0
               ? `Sent to ${result.sent} guest${result.sent !== 1 ? 's' : ''}`
@@ -108,14 +108,14 @@ export function MessagingPanel({ manifest, siteId, subdomain }: MessagingPanelPr
         <motion.button
           onClick={handleSend}
           disabled={sending || !subject.trim() || !body.trim()}
-          whileHover={{ backgroundColor: 'rgba(163,177,138,0.22)' }}
+          whileHover={{ backgroundColor: 'rgba(24,24,27,0.12)' }}
           whileTap={{ scale: 0.97 }}
           transition={{ duration: 0.13 }}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             padding: '12px', borderRadius: 12,
-            border: '1px solid rgba(163,177,138,0.3)',
-            background: 'rgba(163,177,138,0.12)', color: '#A3B18A',
+            border: '1px solid #E4E4E7',
+            background: '#F4F4F5', color: '#71717A',
             cursor: sending ? 'not-allowed' : 'pointer',
             fontSize: '0.85rem', fontWeight: 700,
             opacity: (sending || !subject.trim() || !body.trim()) ? 0.5 : 1,
