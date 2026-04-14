@@ -716,8 +716,15 @@ export function MobileEditorSheet() {
       </div>
 
       {/* ── Bottom Sheet ── */}
+      {/* Heavy tools benefit from a taller half-snap so their dense UIs
+          (e.g. seating chart, analytics) aren't cramped. Light/default tabs
+          keep the standard 50% half-snap. */}
       <MobileBottomSheet
-        snapPoints={[10, 50, 92]}
+        snapPoints={
+          moreToolOpen && ['seating', 'analytics', 'messaging', 'voice', 'invite', 'guests'].includes(moreToolOpen)
+            ? [10, 70, 92]
+            : [10, 50, 92]
+        }
         initialSnap={0}
         snap={sheetSnap}
         onSnapChange={setSheetSnap}

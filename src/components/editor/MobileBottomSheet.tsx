@@ -132,18 +132,34 @@ export function MobileBottomSheet({
   const contentRef = useRef<HTMLDivElement>(null);
   // Per-scrollKey scrollTop memory. Save on unmount (cleanup fires with the
   // outgoing key in closure), restore on commit for the incoming key.
-  const scrollMemoryRef = useRef<Map<string, number>>(new Map());
+  // Backed by sessionStorage so that switching tabs within a session preserves
+  // scroll positions but they don't persist across reloads indefinitely.
   useLayoutEffect(() => {
     const el = contentRef.current;
     if (!el || !scrollKey) return;
-    const saved = scrollMemoryRef.current.get(scrollKey) ?? 0;
+    // Guard for SSR — sessionStorage is only available in the browser.
+    if (typeof window === 'undefined') return;
+    let saved = 0;
+    try {
+      const raw = window.sessionStorage.getItem(`pl-mobile-scroll:${scrollKey}`);
+      if (raw != null) {
+        const n = parseInt(raw, 10);
+        if (!Number.isNaN(n)) saved = n;
+      }
+    } catch { /* storage unavailable — ignore */ }
     // Restore — browsers auto-clamp if incoming content is shorter.
     el.scrollTop = saved;
     return () => {
       // Cleanup runs with the *old* scrollKey in closure, which is exactly
       // what we want: save the position the user left behind.
+      if (typeof window === 'undefined') return;
       if (contentRef.current) {
-        scrollMemoryRef.current.set(scrollKey, contentRef.current.scrollTop);
+        try {
+          window.sessionStorage.setItem(
+            `pl-mobile-scroll:${scrollKey}`,
+            String(contentRef.current.scrollTop),
+          );
+        } catch { /* storage unavailable — ignore */ }
       }
     };
   }, [scrollKey]);
@@ -173,7 +189,20 @@ export function MobileBottomSheet({
     (index: SnapIndex) => {
       const target = snapYs[index];
       animate(y, target, SPRING);
-      setCurrentSnap(index);
+      setCurrentSnap((prev) => {
+        // Fire a light haptic tap only when the snap index actually changes,
+        // so we don't buzz on redundant calls (e.g. settling at current snap).
+        if (
+          prev !== index &&
+          typeof navigator !== 'undefined' &&
+          'vibrate' in navigator
+        ) {
+          try {
+            navigator.vibrate?.(4);
+          } catch { /* some browsers throw on vibrate — ignore */ }
+        }
+        return index;
+      });
       onSnapChange?.(index);
     },
     [snapYs, y, onSnapChange],
@@ -344,14 +373,52 @@ export function MobileBottomSheet({
 
   useEffect(() => {
     const handleFocusIn = (e: FocusEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
         // Expand to full so keyboard doesn't cover the input
         if (currentSnap < 2) animateToSnap(2);
+        // Scroll the focused input into view after the keyboard animates in.
+        if (target && typeof target.scrollIntoView === 'function') {
+          // Delay slightly so the sheet and keyboard have time to settle.
+          window.setTimeout(() => {
+            try {
+              target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            } catch { /* older browsers — ignore */ }
+          }, 250);
+        }
       }
     };
     document.addEventListener('focusin', handleFocusIn);
     return () => document.removeEventListener('focusin', handleFocusIn);
+  }, [currentSnap, animateToSnap]);
+
+  // ── Visual viewport keyboard tracking ─────────────────────────
+  // On mobile, when the on-screen keyboard appears, the visual viewport
+  // shrinks. If it shrinks substantially, force the sheet to its largest
+  // snap so the focused input sits above the keyboard.
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const handleVvResize = () => {
+      // Ratio < 0.8 indicates keyboard (or equivalent) is covering >20% of
+      // the layout viewport — treat that as "significantly shrunk".
+      const ratio = vv.height / window.innerHeight;
+      if (ratio < 0.8 && currentSnap < 2) {
+        animateToSnap(2);
+        // Bring the focused element into view if any.
+        const active = document.activeElement as HTMLElement | null;
+        if (active && typeof active.scrollIntoView === 'function') {
+          try {
+            active.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          } catch { /* ignore */ }
+        }
+      }
+    };
+    vv.addEventListener('resize', handleVvResize);
+    return () => vv.removeEventListener('resize', handleVvResize);
   }, [currentSnap, animateToSnap]);
 
   // ── Backdrop tap handler ──────────────────────────────────────
@@ -359,6 +426,31 @@ export function MobileBottomSheet({
   const handleBackdropTap = useCallback(() => {
     animateToSnap(0);
   }, [animateToSnap]);
+
+  // ── Scrim (tap on fully-expanded overlay collapses to smallest) ──
+
+  const handleScrimTap = useCallback(() => {
+    animateToSnap(0);
+  }, [animateToSnap]);
+
+  // ── Drag handle keyboard handler ─────────────────────────────
+
+  const handleHandleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const next = Math.min(2, currentSnap + 1) as SnapIndex;
+        if (next !== currentSnap) animateToSnap(next);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = Math.max(0, currentSnap - 1) as SnapIndex;
+        if (next !== currentSnap) animateToSnap(next);
+      }
+    },
+    [currentSnap, animateToSnap],
+  );
+
+  const currentSnapPercent = snapPoints[currentSnap];
 
   // ── Context value ─────────────────────────────────────────────
 
@@ -374,6 +466,7 @@ export function MobileBottomSheet({
   // ── Render ────────────────────────────────────────────────────
 
   const showBackdrop = currentSnap >= 1;
+  const showScrim = currentSnap === 2;
 
   return (
     <MobileSheetContext.Provider value={ctxValue}>
@@ -394,6 +487,25 @@ export function MobileBottomSheet({
                 background: 'rgba(0,0,0,0.1)',
                 zIndex: 1199,
                 pointerEvents: showBackdrop ? 'auto' : 'none',
+              }}
+            />
+
+            {/* Scrim — darker overlay when sheet is fully expanded. Rendered
+                as a sibling so it doesn't block pointer events on the sheet. */}
+            <motion.div
+              key="mobile-sheet-scrim"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: showScrim ? 1 : 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={handleScrimTap}
+              aria-hidden="true"
+              style={{
+                position: 'fixed',
+                inset: 0,
+                background: 'rgba(0,0,0,0.25)',
+                zIndex: 1198,
+                pointerEvents: showScrim ? 'auto' : 'none',
               }}
             />
 
@@ -431,6 +543,13 @@ export function MobileBottomSheet({
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
                 onPointerCancel={handlePointerUp}
+                onKeyDown={handleHandleKeyDown}
+                role="slider"
+                aria-label="Drag to resize sheet"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={currentSnapPercent}
+                tabIndex={0}
                 style={{
                   flexShrink: 0,
                   height: HANDLE_HEIGHT,
@@ -446,6 +565,7 @@ export function MobileBottomSheet({
               >
                 {showHandle && (
                   <div
+                    aria-hidden="true"
                     style={{
                       width: 48,
                       height: 5,
