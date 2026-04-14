@@ -486,8 +486,8 @@ export const BLOCK_SCHEMAS: Record<string, BlockSchema> = {
 
   photoWall: {
     type: 'photoWall',
-    label: 'Guest Photos',
-    description: 'Guest-uploaded photo wall',
+    label: 'Guest Photo Wall',
+    description: 'Live wall where guests upload photos during the wedding',
     icon: 'Camera',
     category: 'interaction',
     props: {
@@ -524,8 +524,8 @@ export const BLOCK_SCHEMAS: Record<string, BlockSchema> = {
 
   gallery: {
     type: 'gallery',
-    label: 'Gallery',
-    description: 'Community photo gallery with submissions',
+    label: 'Photo Collage',
+    description: 'Artistic collage layout from your curated photos',
     icon: 'Image',
     category: 'media',
     props: {

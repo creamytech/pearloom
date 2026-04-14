@@ -45,8 +45,8 @@ const BLOCK_LABELS: Record<string, string> = {
   faq: 'FAQ', countdown: 'Countdown', text: 'Text',
   quote: 'Quote', video: 'Video', map: 'Map',
   photos: 'Photos', guestbook: 'Guestbook', divider: 'Divider',
-  spotify: 'Music', quiz: 'Quiz', photoWall: 'Guest Photos',
-  hashtag: 'Hashtags', gallery: 'Gallery', vibeQuote: 'Vibe Quote',
+  spotify: 'Music', quiz: 'Quiz', photoWall: 'Guest Photo Wall',
+  hashtag: 'Hashtags', gallery: 'Photo Collage', vibeQuote: 'Vibe Quote',
   welcome: 'Welcome', footer: 'Footer', anniversary: 'Anniversary',
   weddingParty: 'Wedding Party',
 };

@@ -61,7 +61,7 @@ const BLOCK_CATALOGUE: BlockDef[] = [
   { type: 'registry',  label: 'Registry',          icon: BlockRegistryIcon,  description: 'Registry links & honeymoon fund',             color: '#c4774a', occasions: ['wedding', 'engagement', 'birthday'] },
   { type: 'travel',    label: 'Travel & Hotels',   icon: BlockTravelIcon,    description: 'Hotels, airports & directions',               color: '#4a7a9b', occasions: ['wedding', 'engagement'] },
   { type: 'faq',       label: 'FAQ',               icon: BlockFaqIcon,       description: 'Common guest questions & answers',            color: '#8b7a4a', occasions: ['wedding', 'engagement'] },
-  { type: 'photos',    label: 'Photo Wall',        icon: BlockPhotosIcon,    description: 'Guest photo gallery with uploads',            color: '#4a8b6a', occasions: ALL_OCCASIONS },
+  { type: 'photos',    label: 'Photo Gallery',     icon: BlockPhotosIcon,    description: 'Grid of your curated uploaded photos',         color: '#4a8b6a', occasions: ALL_OCCASIONS },
   { type: 'guestbook', label: 'Guestbook',         icon: BlockGuestbookIcon, description: 'Public guest wishes & AI highlights',         color: '#7a4a8b', occasions: ALL_OCCASIONS },
   { type: 'map',       label: 'Map',               icon: BlockMapIcon,       description: 'Embedded venue map',                          color: '#4a6a8b', occasions: ['wedding', 'engagement', 'anniversary'] },
   { type: 'quote',     label: 'Quote',             icon: BlockQuoteIcon,     description: 'Romantic quote or vow snippet',               color: '#8b4a6a', occasions: ALL_OCCASIONS },
@@ -72,8 +72,8 @@ const BLOCK_CATALOGUE: BlockDef[] = [
   { type: 'welcome',   label: 'Welcome',           icon: Heart,              description: 'Personal welcome statement from the couple',  color: '#c47a7a', occasions: ALL_OCCASIONS },
   { type: 'spotify',   label: 'Spotify Playlist',  icon: Music,              description: 'Embedded Spotify playlist for your guests',   color: '#1DB954', occasions: ALL_OCCASIONS },
   { type: 'hashtag',   label: 'Hashtag',           icon: Hash,               description: 'Social media hashtag for your event',         color: '#4a7a9b', occasions: ['wedding', 'engagement', 'birthday'] },
-  { type: 'photoWall', label: 'Photo Wall',        icon: ImageIcon,          description: 'Full-width photo mosaic display',             color: '#7a6a4a', occasions: ALL_OCCASIONS },
-  { type: 'gallery',   label: 'Gallery Grid',      icon: BlockPhotosIcon,    description: 'Photo gallery with lightbox viewing',         color: '#4a8b6a', occasions: ALL_OCCASIONS },
+  { type: 'photoWall', label: 'Guest Photo Wall',  icon: ImageIcon,          description: 'Live wall where guests upload photos',         color: '#7a6a4a', occasions: ALL_OCCASIONS },
+  { type: 'gallery',   label: 'Photo Collage',     icon: BlockPhotosIcon,    description: 'Artistic collage layout for curated photos',   color: '#4a8b6a', occasions: ALL_OCCASIONS },
   { type: 'quiz',      label: 'Couple Quiz',       icon: Sparkles,           description: 'Fun quiz about the couple for guests',        color: '#b88a4a', occasions: ['wedding', 'engagement', 'birthday'] },
   { type: 'weddingParty', label: 'Wedding Party',  icon: Users2,             description: 'Bridal party, groomsmen & roles',             color: '#7c5cbf', occasions: ['wedding', 'engagement'] },
   { type: 'anniversary', label: 'Anniversary',     icon: PartyPopper,        description: 'Anniversary milestones & memories',           color: '#c4774a', occasions: ['anniversary'] },
@@ -1169,7 +1169,7 @@ function BlockConfigPanel({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <MiniInput
               label="Section title"
-              value={String(block.config?.title || block.type === 'photoWall' ? 'Photo Wall' : 'Gallery')}
+              value={String(block.config?.title || (block.type === 'photoWall' ? 'Guest Photo Wall' : 'Photo Collage'))}
               onChange={v => updateBlockConfig({ title: v })}
               placeholder="Our Photos"
             />

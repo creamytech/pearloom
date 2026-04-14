@@ -222,8 +222,8 @@ const BLOCK_LABELS: Record<string, { label: string; color: string }> = {
   welcome:      { label: 'Welcome',          color: '#c47a7a' },
   spotify:      { label: 'Spotify Playlist', color: '#1DB954' },
   hashtag:      { label: 'Hashtag',          color: '#4a7a9b' },
-  photoWall:    { label: 'Photo Wall',       color: '#7a6a4a' },
-  gallery:      { label: 'Gallery Grid',     color: '#4a8b6a' },
+  photoWall:    { label: 'Guest Photo Wall', color: '#7a6a4a' },
+  gallery:      { label: 'Photo Collage',    color: '#4a8b6a' },
   quiz:         { label: 'Couple Quiz',      color: '#b88a4a' },
   weddingParty: { label: 'Wedding Party',    color: '#7c5cbf' },
   anniversary:  { label: 'Anniversary',      color: '#c4774a' },
@@ -1886,7 +1886,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           <section key={key} data-pe-section={block.type} style={{ padding: '4rem 2rem' }}>
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
               <h2 style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: safeFg }}>
-                {block.type === 'photoWall' ? 'Photo Wall' : 'Gallery'}
+                {block.type === 'photoWall' ? 'Guest Photo Wall' : 'Photo Collage'}
               </h2>
             </div>
             {photos.length > 0 ? (

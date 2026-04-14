@@ -324,10 +324,10 @@ export function MobileContextPanel({
         return <BlockSettings manifest={manifest} onUpdate={scheduleManifestUpdate} blockType="quiz" label="Couple Quiz" />;
 
       case 'photoWall':
-        return <BlockSettings manifest={manifest} onUpdate={scheduleManifestUpdate} blockType="photoWall" label="Photo Wall" />;
+        return <BlockSettings manifest={manifest} onUpdate={scheduleManifestUpdate} blockType="photoWall" label="Guest Photo Wall" />;
 
       case 'gallery':
-        return <BlockSettings manifest={manifest} onUpdate={scheduleManifestUpdate} blockType="gallery" label="Gallery" />;
+        return <BlockSettings manifest={manifest} onUpdate={scheduleManifestUpdate} blockType="gallery" label="Photo Collage" />;
 
       case 'footer':
         return <BlockSettings manifest={manifest} onUpdate={scheduleManifestUpdate} blockType="footer" label="Footer" />;
