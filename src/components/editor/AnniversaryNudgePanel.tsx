@@ -9,6 +9,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEditor } from '@/lib/editor-state';
+import {
+  panelText,
+  panelWeight,
+  panelTracking,
+  panelLineHeight,
+} from './panel';
 
 // ── Helpers ────────────────────────────────────────────────────
 
@@ -128,8 +134,8 @@ export function AnniversaryNudgePanel() {
         style={{
           margin: '0 0 20px',
           padding: '16px 18px',
-          background: 'rgba(24,24,27,0.04)',
-          border: '1px solid rgba(24,24,27,0.12)',
+          background: '#FAFAFA',
+          border: '1px solid #E4E4E7',
           borderRadius: 12,
           position: 'relative',
         }}
@@ -166,11 +172,11 @@ export function AnniversaryNudgePanel() {
             display: 'inline-block',
             marginBottom: 10,
             padding: '3px 10px',
-            background: 'rgba(24,24,27,0.08)',
+            background: '#F4F4F5',
             border: '1px solid #E4E4E7',
             borderRadius: 20,
-            fontSize: '0.65rem',
-            letterSpacing: '1.5px',
+            fontSize: panelText.hint,
+            letterSpacing: panelTracking.wider,
             textTransform: 'uppercase',
             color: '#71717A',
             fontFamily: 'Georgia, serif',
@@ -184,9 +190,9 @@ export function AnniversaryNudgePanel() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             style={{
-              fontSize: '0.8rem',
-              color: '#71717A',
-              lineHeight: 1.6,
+              fontSize: panelText.body,
+              color: '#3F3F46',
+              lineHeight: panelLineHeight.snug,
             }}
           >
             Chapter added! Scroll down to see it.
@@ -196,9 +202,9 @@ export function AnniversaryNudgePanel() {
             <p
               style={{
                 margin: '0 0 12px',
-                fontSize: '0.8rem',
+                fontSize: panelText.body,
                 color: '#3F3F46',
-                lineHeight: 1.6,
+                lineHeight: panelLineHeight.snug,
               }}
             >
               Add an anniversary chapter — a look back at the year and forward
@@ -209,8 +215,8 @@ export function AnniversaryNudgePanel() {
               <p
                 style={{
                   margin: '0 0 10px',
-                  fontSize: '0.8rem',
-                  color: '#c87070',
+                  fontSize: panelText.body,
+                  color: '#b34747',
                 }}
               >
                 {error}
@@ -222,14 +228,13 @@ export function AnniversaryNudgePanel() {
               disabled={loading}
               style={{
                 padding: '9px 18px',
-                background: loading
-                  ? 'rgba(24,24,27,0.04)'
-                  : 'rgba(24,24,27,0.08)',
-                border: '1px solid #E4E4E7',
+                background: loading ? '#F4F4F5' : '#18181B',
+                border: 'none',
                 borderRadius: 8,
-                color: loading ? '#A1A1AA' : '#71717A',
-                fontSize: '0.75rem',
-                letterSpacing: '1.5px',
+                color: loading ? '#71717A' : '#FFFFFF',
+                fontSize: panelText.body,
+                fontWeight: panelWeight.semibold,
+                letterSpacing: panelTracking.wider,
                 textTransform: 'uppercase',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 fontFamily: 'Georgia, serif',
