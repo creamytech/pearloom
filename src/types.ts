@@ -109,9 +109,11 @@ export interface StoryManifest {
   // AI-generated custom SVG logo icon (overrides logoIcon when present)
   logoSvg?: string;
   // Navigation bar style variant
-  navStyle?: 'glass' | 'minimal' | 'solid' | 'editorial' | 'floating';
+  navStyle?: 'glass' | 'minimal' | 'solid' | 'editorial' | 'floating' | 'centered' | 'sidebar' | 'command';
   // Mobile-specific nav style (independent from desktop)
-  mobileNavStyle?: 'classic' | 'compact-glass' | 'floating-pill' | 'bottom-tabs' | 'hidden';
+  mobileNavStyle?: 'classic' | 'compact-glass' | 'floating-pill' | 'bottom-tabs' | 'hidden' | 'floating-island';
+  // Custom page label overrides (page id → display text in nav)
+  pageLabels?: Record<string, string>;
   // Nav bar customization — opacity (0-100) and custom background color
   navOpacity?: number;
   navBackground?: string;

@@ -17,6 +17,8 @@ import { FocalPointOverlay } from './preview/FocalPointOverlay';
 import { CanvasChapterToolbar, type ChapterToolbarAction } from './preview/CanvasChapterToolbar';
 import { CanvasEventToolbar, type EventToolbarAction } from './preview/CanvasEventToolbar';
 import { CanvasFaqToolbar, type FaqToolbarAction } from './preview/CanvasFaqToolbar';
+import { CanvasSectionToolbar, type SectionToolbarAction } from './preview/CanvasSectionToolbar';
+import { CanvasRegistryToolbar, type RegistryToolbarAction } from './preview/CanvasRegistryToolbar';
 import type { BlockType, PageBlock } from '@/types';
 
 export function EditorCanvas() {
@@ -44,6 +46,16 @@ export function EditorCanvas() {
     faqId: string; rect: DOMRect; faqIndex: number; faqCount: number;
   } | null>(null);
   const faqLeaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [hoveredSection, setHoveredSection] = useState<{
+    section: string; label: string; rect: DOMRect;
+  } | null>(null);
+  const sectionLeaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [hoveredRegistry, setHoveredRegistry] = useState<{
+    registryId: string; registryIndex: number; rect: DOMRect;
+  } | null>(null);
+  const registryLeaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Spacebar to pan ─────────────────────────────────────
   useEffect(() => {
@@ -405,6 +417,79 @@ export function EditorCanvas() {
     void faqId; // consumed via index
   }, [hoveredFaq, manifest, actions, dispatch]);
 
+  // ── Section hover (footer / nav) ────────────────────────
+  const handleSectionToolbarAction = useCallback((action: SectionToolbarAction) => {
+    if (!hoveredSection) return;
+    const { section } = hoveredSection;
+    if (action === 'edit') {
+      if (section === 'footer') {
+        dispatch({ type: 'SET_ACTIVE_TAB', tab: 'details' });
+        dispatch({ type: 'SET_CONTEXT_SECTION', section: 'seo' });
+      } else if (section === 'nav') {
+        dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' });
+        dispatch({ type: 'SET_CONTEXT_SECTION', section: 'navigation' });
+      }
+    }
+  }, [hoveredSection, dispatch]);
+
+  useEffect(() => {
+    const cancelTimer = () => {
+      if (sectionLeaveTimerRef.current) { clearTimeout(sectionLeaveTimerRef.current); sectionLeaveTimerRef.current = null; }
+    };
+    const onHover = (e: Event) => { cancelTimer(); setHoveredSection((e as CustomEvent).detail); };
+    const onKeep = () => cancelTimer();
+    const onEnd = () => { sectionLeaveTimerRef.current = setTimeout(() => setHoveredSection(null), 200); };
+    window.addEventListener('pearloom-section-hover', onHover);
+    window.addEventListener('pearloom-section-hover-keep', onKeep);
+    window.addEventListener('pearloom-section-hover-end', onEnd);
+    return () => {
+      window.removeEventListener('pearloom-section-hover', onHover);
+      window.removeEventListener('pearloom-section-hover-keep', onKeep);
+      window.removeEventListener('pearloom-section-hover-end', onEnd);
+      if (sectionLeaveTimerRef.current) clearTimeout(sectionLeaveTimerRef.current);
+    };
+  }, []);
+
+  // ── Registry card hover toolbar ─────────────────────────
+  const handleRegistryToolbarAction = useCallback((action: RegistryToolbarAction) => {
+    if (!hoveredRegistry) return;
+    const { registryIndex } = hoveredRegistry;
+    if (action === 'edit') {
+      dispatch({ type: 'SET_ACTIVE_TAB', tab: 'details' });
+      dispatch({ type: 'SET_CONTEXT_SECTION', section: 'registry' });
+      return;
+    }
+    if (action === 'openLink') {
+      const reg = manifest.registry?.entries?.[registryIndex];
+      if (reg?.url) window.open(reg.url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    if (action === 'delete') {
+      const entries = [...(manifest.registry?.entries || [])];
+      entries.splice(registryIndex, 1);
+      actions.handleDesignChange({ ...manifest, registry: { ...(manifest.registry || { enabled: true }), entries } });
+      setHoveredRegistry(null);
+    }
+  }, [hoveredRegistry, manifest, actions, dispatch]);
+
+  useEffect(() => {
+    const cancelTimer = () => {
+      if (registryLeaveTimerRef.current) { clearTimeout(registryLeaveTimerRef.current); registryLeaveTimerRef.current = null; }
+    };
+    const onHover = (e: Event) => { cancelTimer(); setHoveredRegistry((e as CustomEvent).detail); };
+    const onKeep = () => cancelTimer();
+    const onEnd = () => { registryLeaveTimerRef.current = setTimeout(() => setHoveredRegistry(null), 200); };
+    window.addEventListener('pearloom-registry-hover', onHover);
+    window.addEventListener('pearloom-registry-hover-keep', onKeep);
+    window.addEventListener('pearloom-registry-hover-end', onEnd);
+    return () => {
+      window.removeEventListener('pearloom-registry-hover', onHover);
+      window.removeEventListener('pearloom-registry-hover-keep', onKeep);
+      window.removeEventListener('pearloom-registry-hover-end', onEnd);
+      if (registryLeaveTimerRef.current) clearTimeout(registryLeaveTimerRef.current);
+    };
+  }, []);
+
   // ── Focal point overlay ─────────────────────────────────
   useEffect(() => {
     const handler = (e: Event) => setFocalPoint((e as CustomEvent).detail);
@@ -589,6 +674,32 @@ export function EditorCanvas() {
             faqIndex={hoveredFaq.faqIndex}
             faqCount={hoveredFaq.faqCount}
             onAction={handleFaqToolbarAction}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Canvas section hover toolbar (footer / nav) */}
+      <AnimatePresence>
+        {hoveredSection && (
+          <CanvasSectionToolbar
+            key={hoveredSection.section}
+            rect={hoveredSection.rect}
+            label={hoveredSection.label}
+            keepEvent="pearloom-section-hover-keep"
+            onAction={handleSectionToolbarAction}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Canvas registry card hover toolbar */}
+      <AnimatePresence>
+        {hoveredRegistry && (
+          <CanvasRegistryToolbar
+            key={hoveredRegistry.registryId}
+            rect={hoveredRegistry.rect}
+            registryIndex={hoveredRegistry.registryIndex}
+            registryUrl={hoveredRegistry.registryId}
+            onAction={handleRegistryToolbarAction}
           />
         )}
       </AnimatePresence>

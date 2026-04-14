@@ -487,6 +487,8 @@ export function TravelSection({
                 {info.airports.map((airport, i) => (
                   <div
                     key={i}
+                    data-pe-editable="true"
+                    data-pe-path={`travelInfo.airports.${i}`}
                     style={{
                       padding: '0.5rem 1.1rem',
                       background: 'var(--pl-olive-mist)',

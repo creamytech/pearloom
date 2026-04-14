@@ -84,8 +84,8 @@ interface SiteNavProps {
   pages: SitePage[];
   logoIcon?: LogoIconId;
   logoSvg?: string;
-  navStyle?: 'glass' | 'minimal' | 'solid' | 'editorial' | 'floating';
-  mobileNavStyle?: 'classic' | 'compact-glass' | 'floating-pill' | 'bottom-tabs' | 'hidden';
+  navStyle?: 'glass' | 'minimal' | 'solid' | 'editorial' | 'floating' | 'centered' | 'sidebar' | 'command';
+  mobileNavStyle?: 'classic' | 'compact-glass' | 'floating-pill' | 'bottom-tabs' | 'hidden' | 'floating-island';
   navOpacity?: number;
   navBackground?: string;
   /** Render inline (not fixed) — used inside mobile editor preview */
@@ -93,6 +93,8 @@ interface SiteNavProps {
   currentPage?: string;
   /** When provided, overrides the default path-based href generation for page links. */
   pageHrefOverride?: (slug: string) => string;
+  /** Custom page label overrides (page id → display text) */
+  pageLabels?: Record<string, string>;
   user?: { name?: string | null; email?: string | null; image?: string | null };
   onGoToDashboard?: () => void;
   onStartNew?: () => void;
@@ -112,12 +114,14 @@ export function SiteNav({
   inline = false,
   currentPage,
   pageHrefOverride,
+  pageLabels,
   user,
   onGoToDashboard,
   onStartNew,
 }: SiteNavProps) {
   const [scrollY, setScrollY]         = useState(0);
   const [drawerOpen, setDrawer]       = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
   const [isDesktop, setIsDesktop]     = useState(false);
   const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
   const pathname = usePathname();
@@ -167,6 +171,7 @@ export function SiteNav({
   const isMobileHidden = !isDesktop && mobileNavStyle === 'hidden';
   const isMobilePill = !isDesktop && mobileNavStyle === 'floating-pill';
   const isMobileBottomTabs = !isDesktop && mobileNavStyle === 'bottom-tabs';
+  const isMobileFloatingIsland = !isDesktop && mobileNavStyle === 'floating-island';
 
   // ── Nav style classes ────────────────────────────────────────
   const navClassName = cn(
@@ -248,12 +253,15 @@ export function SiteNav({
           ) : (
             <LogoIcon iconId={logoIcon} size={18} color="var(--pl-olive)" />
           )}
-          <span className={cn(
-            'font-heading font-semibold text-[1rem] tracking-[-0.01em] whitespace-nowrap overflow-hidden text-ellipsis',
-            isDesktop
-              ? 'text-[var(--pl-ink-soft)] max-w-none'
-              : 'text-[var(--pl-ink-soft)] max-w-[200px] italic',
-          )}>
+          <span
+            className={cn(
+              'font-heading font-semibold text-[1rem] tracking-[-0.01em] whitespace-nowrap overflow-hidden text-ellipsis',
+              isDesktop
+                ? 'text-[var(--pl-ink-soft)] max-w-none'
+                : 'text-[var(--pl-ink-soft)] max-w-[200px] italic',
+            )}
+            {...(inline ? { 'data-pe-editable': 'true', 'data-pe-path': 'coupleNames.0' } : {})}
+          >
             {names[1]?.trim() ? `${names[0]} & ${names[1]}` : names[0]}
           </span>
         </>
@@ -266,6 +274,7 @@ export function SiteNav({
     <nav className="flex items-center gap-0.5 justify-center">
       {enabledPages.map((page) => {
         const active = isActive(page.slug);
+        const displayLabel = pageLabels?.[page.id] ?? page.label;
         return (
           <Link
             key={page.id}
@@ -279,7 +288,9 @@ export function SiteNav({
                 : 'text-[var(--pl-muted)] bg-transparent border-transparent hover:text-[var(--pl-ink)]',
             )}
           >
-            {page.label}
+            {inline ? (
+              <span data-pe-editable="true" data-pe-path={`pageLabels.${page.id}`}>{displayLabel}</span>
+            ) : displayLabel}
           </Link>
         );
       })}
@@ -502,6 +513,189 @@ export function SiteNav({
   );
 
   // ════════════════════════════════════════════════════════════════
+  // RENDER — new style variants: centered, sidebar, command
+  // ════════════════════════════════════════════════════════════════
+
+  // ── 'centered' nav style — two-row layout ────────────────────
+  if (navStyle === 'centered' && isDesktop && !isStudio) {
+    const centeredNav = (
+      <div
+        className={cn(inline ? 'sticky top-0 w-full' : 'fixed top-0 left-0 right-0', 'z-[100]')}
+        style={{
+          background: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 2px 12px rgba(43,30,20,0.04)',
+          ...(inline ? {} : { paddingTop: 'env(safe-area-inset-top,0px)' }),
+        }}
+        data-pe-section="nav" data-pe-label="Navigation"
+      >
+        {/* Row 1: logo */}
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '44px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+          {brandContent}
+        </div>
+        {/* Row 2: links + right actions */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '32px', gap: '0', position: 'relative' }}>
+          {desktopNav}
+          <div style={{ position: 'absolute', right: '24px', top: '50%', transform: 'translateY(-50%)' }}>
+            {user && <UserNav user={user} onDashboard={onGoToDashboard} />}
+          </div>
+        </div>
+      </div>
+    );
+    return (
+      <>
+        {inline ? centeredNav : (
+          <motion.div initial={{ y: -80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}>
+            {centeredNav}
+          </motion.div>
+        )}
+        {drawer}
+      </>
+    );
+  }
+
+  // ── 'sidebar' nav style — fixed left sidebar ─────────────────
+  if (navStyle === 'sidebar' && isDesktop && !isStudio) {
+    const sidebarEl = (
+      <div
+        style={{
+          position: inline ? 'sticky' : 'fixed',
+          top: 0, left: 0, bottom: 0, width: '240px',
+          zIndex: 100, display: 'flex', flexDirection: 'column',
+          background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+          borderRight: '1px solid rgba(0,0,0,0.05)', boxShadow: '4px 0 24px rgba(43,30,20,0.04)',
+          paddingTop: inline ? '0' : 'env(safe-area-inset-top,0px)',
+        }}
+        data-pe-section="nav" data-pe-label="Navigation"
+      >
+        {/* Logo row */}
+        <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+          {brandContent}
+        </div>
+        {/* Page links */}
+        <nav style={{ flex: 1, padding: '8px 0', overflowY: 'auto' }}>
+          {enabledPages.map((page) => {
+            const active = isActive(page.slug);
+            const displayLabel = pageLabels?.[page.id] ?? page.label;
+            return (
+              <Link
+                key={page.id}
+                href={getHref(page.slug)}
+                onClick={inline ? (e: React.MouseEvent) => e.preventDefault() : undefined}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '12px',
+                  padding: '10px 20px', textDecoration: 'none',
+                  color: active ? 'var(--pl-ink)' : 'var(--pl-muted)',
+                  fontFamily: 'var(--pl-font-body)', fontSize: '0.82rem', fontWeight: active ? 700 : 500,
+                  borderLeft: `3px solid ${active ? 'var(--pl-olive)' : 'transparent'}`,
+                  background: active ? 'rgba(163,177,138,0.07)' : 'transparent',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <PageIcon slug={page.slug} size={15} />
+                {inline ? (
+                  <span data-pe-editable="true" data-pe-path={`pageLabels.${page.id}`}>{displayLabel}</span>
+                ) : displayLabel}
+              </Link>
+            );
+          })}
+        </nav>
+        {/* User row */}
+        {user && (
+          <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+            <UserNav user={user} onDashboard={onGoToDashboard} />
+          </div>
+        )}
+      </div>
+    );
+    return <>{sidebarEl}{drawer}</>;
+  }
+
+  // ── 'command' nav style — ⌘K floating button + dialog ────────
+  if (navStyle === 'command' && !isStudio) {
+    return (
+      <>
+        {/* Floating ⌘K button — bottom right */}
+        <button
+          onClick={() => setCommandOpen(true)}
+          aria-label="Open navigation (⌘K)"
+          style={{
+            position: inline ? 'absolute' : 'fixed',
+            bottom: '24px', right: '24px', zIndex: 100,
+            display: 'flex', alignItems: 'center', gap: '6px',
+            padding: '8px 14px',
+            borderRadius: '10px', border: 'none',
+            background: 'rgba(24,24,27,0.88)',
+            backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+            color: 'rgba(255,255,255,0.9)',
+            fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.04em',
+            cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+            transition: 'background 0.15s',
+          }}
+        >
+          <span style={{ opacity: 0.6, fontSize: '0.65rem' }}>⌘K</span>
+          <span>Navigate</span>
+        </button>
+
+        {/* Command palette dialog */}
+        {commandOpen && (
+          <>
+            <div
+              onClick={() => setCommandOpen(false)}
+              style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                position: 'fixed', top: '20%', left: '50%', transform: 'translateX(-50%)',
+                zIndex: 9999, width: 'min(480px, 90vw)',
+                background: 'rgba(250,247,242,0.98)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+                borderRadius: '16px', border: '1px solid rgba(0,0,0,0.08)',
+                boxShadow: '0 16px 64px rgba(0,0,0,0.14)', overflow: 'hidden',
+              }}
+            >
+              <div style={{ padding: '16px', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--pl-muted)', marginBottom: '4px' }}>Navigate</div>
+                <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--pl-ink)', fontFamily: 'var(--pl-font-heading)', fontStyle: 'italic' }}>
+                  {names[1]?.trim() ? `${names[0]} & ${names[1]}` : names[0]}
+                </div>
+              </div>
+              <div style={{ padding: '8px' }}>
+                {enabledPages.map((page) => {
+                  const active = isActive(page.slug);
+                  const displayLabel = pageLabels?.[page.id] ?? page.label;
+                  return (
+                    <Link
+                      key={page.id}
+                      href={getHref(page.slug)}
+                      onClick={() => setCommandOpen(false)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '12px',
+                        padding: '10px 14px', borderRadius: '10px',
+                        textDecoration: 'none',
+                        color: active ? 'var(--pl-ink)' : 'var(--pl-muted)',
+                        background: active ? 'rgba(163,177,138,0.1)' : 'transparent',
+                        transition: 'background 0.12s',
+                        fontFamily: 'var(--pl-font-body)', fontSize: '0.88rem', fontWeight: active ? 700 : 500,
+                      }}
+                    >
+                      <PageIcon slug={page.slug} size={16} />
+                      <span style={{ flex: 1 }}>{displayLabel}</span>
+                      {active && <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--pl-olive)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Current</span>}
+                    </Link>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════
   // RENDER — two completely separate paths
   // ════════════════════════════════════════════════════════════════
 
@@ -510,7 +704,7 @@ export function SiteNav({
       {/* ── Nav bar ── */}
       {inline ? (
         /* INLINE PATH: plain <nav>, no Framer Motion, no motion.* */
-        <nav className={cn(navClassName, navBgClassName)} style={navInlineStyle}>
+        <nav className={cn(navClassName, navBgClassName)} style={navInlineStyle} data-pe-section="nav" data-pe-label="Navigation">
           {navInner}
         </nav>
       ) : (
@@ -641,6 +835,48 @@ export function SiteNav({
                     return lbl.length > 8 ? lbl.slice(0, 7) + '\u2026' : lbl;
                   })()}
                 </span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Floating Island mobile nav ── */}
+      {isMobileFloatingIsland && !inline && !isStudio && enabledPages.length > 0 && (
+        <div style={{
+          position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
+          zIndex: 99, display: 'flex', alignItems: 'center', gap: '2px',
+          padding: '4px 8px', borderRadius: '100px',
+          background: 'rgba(245,241,232,0.96)',
+          backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(0,0,0,0.07)',
+          boxShadow: '0 4px 24px rgba(43,30,20,0.1)',
+          paddingBottom: 'calc(4px + env(safe-area-inset-bottom, 0px))',
+        }}>
+          {enabledPages.slice(0, 5).map((page) => {
+            const active = isActive(page.slug);
+            return (
+              <Link
+                key={page.id}
+                href={getHref(page.slug)}
+                title={pageLabels?.[page.id] ?? page.label}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: active ? 'auto' : '36px', height: '36px',
+                  borderRadius: '100px',
+                  padding: active ? '0 12px' : '0',
+                  background: active ? 'var(--pl-olive)' : 'transparent',
+                  color: active ? '#fff' : 'rgba(0,0,0,0.45)',
+                  textDecoration: 'none', transition: 'all 0.2s ease',
+                  gap: '5px',
+                }}
+              >
+                <PageIcon slug={page.slug} size={16} />
+                {active && (
+                  <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                    {(pageLabels?.[page.id] ?? page.label).slice(0, 8)}
+                  </span>
+                )}
               </Link>
             );
           })}

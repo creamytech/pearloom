@@ -196,6 +196,8 @@ function RegistryCard({
       tabIndex={0}
       onFocus={handleFocus}
       onBlur={handleBlur}
+      data-pe-registry-id={entry.url}
+      data-pe-registry-index={index}
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}

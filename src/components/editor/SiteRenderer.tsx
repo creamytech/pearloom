@@ -979,6 +979,71 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     return () => el.removeEventListener('mouseover', onOver);
   }, [editMode, manifest.faqs]);
 
+  // ── Footer hover → emit event for toolbar ────────────────────────────────
+  useEffect(() => {
+    if (!editMode || !siteRef.current) return;
+    const el = siteRef.current;
+    let insideFooter = false;
+    const onOver = (e: MouseEvent) => {
+      const footerEl = (e.target as HTMLElement).closest('[data-pe-section="footer"]') as HTMLElement | null;
+      if (footerEl && !insideFooter) {
+        insideFooter = true;
+        window.dispatchEvent(new CustomEvent('pearloom-section-hover', {
+          detail: { section: 'footer', label: 'Footer', rect: footerEl.getBoundingClientRect() }
+        }));
+      } else if (!footerEl && insideFooter) {
+        insideFooter = false;
+        window.dispatchEvent(new CustomEvent('pearloom-section-hover-end', { detail: { section: 'footer' } }));
+      }
+    };
+    el.addEventListener('mouseover', onOver);
+    return () => el.removeEventListener('mouseover', onOver);
+  }, [editMode]);
+
+  // ── Nav hover → emit event for toolbar ───────────────────────────────────
+  useEffect(() => {
+    if (!editMode || !siteRef.current) return;
+    const el = siteRef.current;
+    let insideNav = false;
+    const onOver = (e: MouseEvent) => {
+      const navEl = (e.target as HTMLElement).closest('[data-pe-section="nav"]') as HTMLElement | null;
+      if (navEl && !insideNav) {
+        insideNav = true;
+        window.dispatchEvent(new CustomEvent('pearloom-section-hover', {
+          detail: { section: 'nav', label: 'Navigation', rect: navEl.getBoundingClientRect() }
+        }));
+      } else if (!navEl && insideNav) {
+        insideNav = false;
+        window.dispatchEvent(new CustomEvent('pearloom-section-hover-end', { detail: { section: 'nav' } }));
+      }
+    };
+    el.addEventListener('mouseover', onOver);
+    return () => el.removeEventListener('mouseover', onOver);
+  }, [editMode]);
+
+  // ── Registry card hover → emit event for toolbar ─────────────────────────
+  useEffect(() => {
+    if (!editMode || !siteRef.current) return;
+    const el = siteRef.current;
+    let currentRegistryId: string | null = null;
+    const onOver = (e: MouseEvent) => {
+      const cardEl = (e.target as HTMLElement).closest('[data-pe-registry-id]') as HTMLElement | null;
+      const id = cardEl ? cardEl.getAttribute('data-pe-registry-id') : null;
+      if (id === currentRegistryId) return;
+      currentRegistryId = id;
+      if (id && cardEl) {
+        const index = parseInt(cardEl.getAttribute('data-pe-registry-index') || '0');
+        window.dispatchEvent(new CustomEvent('pearloom-registry-hover', {
+          detail: { registryId: id, registryIndex: index, rect: cardEl.getBoundingClientRect() }
+        }));
+      } else {
+        window.dispatchEvent(new CustomEvent('pearloom-registry-hover-end'));
+      }
+    };
+    el.addEventListener('mouseover', onOver);
+    return () => el.removeEventListener('mouseover', onOver);
+  }, [editMode]);
+
   // ── Pear nudge: appears once per session on first empty section scroll ──
   const [pearNudgeSection, setPearNudgeSection] = useState<string | null>(null);
   const pearNudgeShownRef = useRef(false);
@@ -1170,7 +1235,19 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                 />
               </>
             )}
-            <StickerLayer stickers={manifest.stickers || []} accentColor={pal.accent} />
+            <StickerLayer
+              stickers={manifest.stickers || []}
+              accentColor={pal.accent}
+              editMode={editMode}
+              onMove={(index, x, y) => {
+                const stickers = [...(manifest.stickers || [])];
+                if (stickers[index]) {
+                  stickers[index] = { ...stickers[index], x, y };
+                  onTextEdit?.('__moveSticker__', JSON.stringify({ index, x, y }));
+                }
+              }}
+              onDelete={(index) => onTextEdit?.('__removeSticker__', String(index))}
+            />
           </div>
         );
       case 'story': {
@@ -1990,6 +2067,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               mobileNavStyle={manifest.mobileNavStyle}
               navOpacity={manifest.navOpacity}
               navBackground={manifest.navBackground}
+              pageLabels={manifest.pageLabels}
               inline={editMode}
               pageHrefOverride={(slug) => {
                 // In editor: scroll to section instead of navigating

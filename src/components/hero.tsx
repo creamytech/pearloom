@@ -510,7 +510,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               letterSpacing: '0.02em',
             }}
             data-pe-editable="true"
-            data-pe-field="heroTagline"
+            data-pe-path="poetry.heroTagline"
             data-pe-section="hero"
           >
             {heroTagline.split(' ').map((word, i) => (

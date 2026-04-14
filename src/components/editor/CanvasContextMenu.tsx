@@ -21,6 +21,7 @@ import {
   EyeOff,
   Settings,
   CheckSquare,
+  Palette,
 } from 'lucide-react';
 import { useEditor } from '@/lib/editor-state';
 
@@ -301,6 +302,17 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
       action: () => {
         const ids = state.chapters.map((c) => c.id);
         dispatch({ type: 'SET_SELECTED_BLOCKS', ids });
+        close();
+      },
+    },
+    { id: 'sep4', separator: true },
+    {
+      id: 'accent-color',
+      label: 'Change Accent Color',
+      icon: Palette,
+      action: () => {
+        dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' });
+        dispatch({ type: 'SET_CONTEXT_SECTION', section: 'palette' });
         close();
       },
     },

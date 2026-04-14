@@ -140,6 +140,42 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
       </div>
     ),
   },
+  {
+    id: 'centered', label: 'Centered', desc: 'Logo on top, links below — two rows',
+    preview: (
+      <div style={{ height: '100%', background: '#fff', position: 'relative' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '14px', background: '#fff', borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px', paddingTop: '1px' }}>
+          <div style={{ width: '14px', height: '2px', background: '#18181B', borderRadius: '1px', opacity: 0.55 }} />
+          <div style={{ display: 'flex', gap: '3px' }}>
+            {[0, 1, 2].map(i => <div key={i} style={{ width: '5px', height: '1px', background: '#71717A', borderRadius: '1px', opacity: 0.4 }} />)}
+          </div>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'sidebar', label: 'Sidebar', desc: 'Vertical left sidebar navigation',
+    preview: (
+      <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative', display: 'flex' }}>
+        <div style={{ width: '22%', height: '100%', background: '#fff', borderRight: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '4px', gap: '2px' }}>
+          <div style={{ width: '10px', height: '2px', background: '#18181B', borderRadius: '1px', opacity: 0.6 }} />
+          {[0, 1, 2].map(i => <div key={i} style={{ width: '8px', height: '1px', background: '#71717A', borderRadius: '1px', opacity: 0.3 }} />)}
+        </div>
+        <div style={{ flex: 1, background: 'var(--pl-cream)' }} />
+      </div>
+    ),
+  },
+  {
+    id: 'command', label: 'Command', desc: 'Hidden nav, ⌘K to open page menu',
+    preview: (
+      <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
+        <div style={{ position: 'absolute', bottom: '6px', right: '8px', padding: '2px 5px', borderRadius: '4px', background: '#18181B', display: 'flex', alignItems: 'center', gap: '2px' }}>
+          <div style={{ width: '6px', height: '6px', borderRadius: '1px', background: 'rgba(255,255,255,0.7)' }} />
+          <div style={{ width: '4px', height: '1px', background: 'rgba(255,255,255,0.4)', borderRadius: '1px' }} />
+        </div>
+      </div>
+    ),
+  },
 ];
 
 const MOBILE_NAV_STYLES: Array<{ id: string; label: string; desc: string }> = [
@@ -148,6 +184,7 @@ const MOBILE_NAV_STYLES: Array<{ id: string; label: string; desc: string }> = [
   { id: 'floating-pill', label: 'Floating Pill', desc: 'Centered pill-shaped nav' },
   { id: 'bottom-tabs', label: 'Bottom Tabs', desc: 'App-style tab bar at bottom' },
   { id: 'hidden', label: 'Hidden', desc: 'Floating hamburger button only' },
+  { id: 'floating-island', label: 'Floating Island', desc: 'Bottom-center pill with page links' },
 ];
 
 // ── Nav Customization Panel ───────────────────────────────────
