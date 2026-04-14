@@ -3,13 +3,14 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / editor/EditorWing.tsx
 //
-// Floating glass inspector — overlaid on top of the canvas
-// rather than pushing it. Matches the Stitch contextual
-// inspector pattern (Hero Section, Properties, etc.)
+// Docked editor inspector — claims its own width from the shell's
+// flex row so the canvas reflows beside it (no overlay stacking).
+// Left-edge resize handle adjusts the dock width; slides in/out
+// on open/close.
 // ─────────────────────────────────────────────────────────────
 
 import { useRef, useCallback, useState, useEffect } from 'react';
-import { motion, AnimatePresence, useDragControls } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check } from 'lucide-react';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
 import { TAB_TIER, TIER_META } from '@/lib/plan-tiers';
@@ -75,7 +76,6 @@ export function EditorWing({
   const { dispatch, state: editorState } = useEditor();
   const [panelW, setPanelW] = useState(DEFAULT_W);
   const [resizing, setResizing] = useState(false);
-  const dragControls = useDragControls();
   const dragStartX = useRef(0);
   const dragStartW = useRef(DEFAULT_W);
 
@@ -141,46 +141,36 @@ export function EditorWing({
   }, [resizing]);
 
   return (
-    <AnimatePresence>
+    <AnimatePresence initial={false}>
       {open && (
-        <motion.div
-          initial={{ opacity: 0, x: 30, scale: 0.96 }}
-          animate={{ opacity: 1, x: 0, scale: 1 }}
-          exit={{ opacity: 0, x: 30, scale: 0.96 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 35, mass: 0.8 }}
-          drag
-          dragControls={dragControls}
-          dragMomentum={false}
-          dragElastic={0}
-          dragListener={false}
+        <motion.aside
+          initial={{ width: 0, opacity: 0 }}
+          animate={{ width: panelW, opacity: 1 }}
+          exit={{ width: 0, opacity: 0 }}
+          transition={{
+            width: { type: 'spring', stiffness: 420, damping: 38 },
+            opacity: { duration: 0.14 },
+          }}
           style={{
-            position: 'absolute',
-            top: '48px',
-            right: '12px',
-            maxHeight: 'calc(100vh - 80px)',
-            height: '75vh',
-            width: panelW,
-            zIndex: 60,
+            position: 'relative',
+            flexShrink: 0,
+            height: '100%',
+            zIndex: 5,
             display: 'flex',
             flexDirection: 'column',
-            borderRadius: '12px',
             background: '#FFFFFF',
-            border: '1px solid #E4E4E7',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)',
+            borderLeft: '1px solid #E4E4E7',
             overflow: 'hidden',
           } as React.CSSProperties}
         >
-          {/* Panel header — drag handle */}
+          {/* Panel header */}
           <div
-            onPointerDown={(e) => dragControls.start(e)}
             style={{
               padding: '12px 14px 8px',
               borderBottom: '1px solid #E4E4E7',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               background: '#FAFAFA',
               flexShrink: 0,
-              cursor: 'grab',
-              touchAction: 'none',
             }}>
             <div style={{ minWidth: 0 }}>
               <AnimatePresence mode="popLayout">
@@ -285,63 +275,26 @@ export function EditorWing({
             {children}
           </div>
 
-          {/* Left-edge resize handle — visible on hover */}
+          {/* Left-edge resize handle — full height for easier grabbing */}
           <div
             onMouseDown={startResize}
-            className="group/resize"
+            aria-label="Resize panel"
             style={{
-              position: 'absolute', left: -4, top: 40, bottom: 40,
-              width: 8, cursor: 'col-resize', zIndex: 10,
+              position: 'absolute', left: -3, top: 0, bottom: 0,
+              width: 6, cursor: 'col-resize', zIndex: 10,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
             <div style={{
-              width: '3px', height: '40px', borderRadius: '3px',
-              background: 'rgba(24,24,27,0.12)',
-              transition: 'background 0.2s, height 0.2s',
+              width: '2px', height: '100%',
+              background: resizing ? 'rgba(24,24,27,0.22)' : 'transparent',
+              transition: 'background 0.15s',
             }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.25)'; (e.currentTarget as HTMLElement).style.height = '60px'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.12)'; (e.currentTarget as HTMLElement).style.height = '40px'; }}
+              onMouseEnter={e => { if (!resizing) (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.14)'; }}
+              onMouseLeave={e => { if (!resizing) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
             />
           </div>
-
-          {/* Bottom resize handle */}
-          <div
-            onMouseDown={(e) => {
-              e.preventDefault();
-              const startY = e.clientY;
-              const startH = e.currentTarget.parentElement?.getBoundingClientRect().height || 500;
-              const onMove = (ev: MouseEvent) => {
-                const newH = Math.max(300, Math.min(startH + (ev.clientY - startY), window.innerHeight - 80));
-                if (e.currentTarget.parentElement) {
-                  (e.currentTarget.parentElement as HTMLElement).style.height = `${newH}px`;
-                }
-              };
-              const onUp = () => {
-                window.removeEventListener('mousemove', onMove);
-                window.removeEventListener('mouseup', onUp);
-                document.body.style.cursor = '';
-              };
-              document.body.style.cursor = 'row-resize';
-              window.addEventListener('mousemove', onMove);
-              window.addEventListener('mouseup', onUp);
-            }}
-            style={{
-              position: 'absolute', bottom: -4, left: 40, right: 40,
-              height: 8, cursor: 'row-resize', zIndex: 10,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-          >
-            <div style={{
-              width: '40px', height: '3px', borderRadius: '3px',
-              background: 'rgba(24,24,27,0.12)',
-              transition: 'background 0.2s, width 0.2s',
-            }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.25)'; (e.currentTarget as HTMLElement).style.width = '60px'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.12)'; (e.currentTarget as HTMLElement).style.width = '40px'; }}
-            />
-          </div>
-        </motion.div>
+        </motion.aside>
       )}
     </AnimatePresence>
   );

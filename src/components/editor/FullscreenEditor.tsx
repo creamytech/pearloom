@@ -683,39 +683,35 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         />
       )}
 
-      {/* ── Edge-to-edge canvas with all panels floating ── */}
+      {/* ── Docked shell: toolbar on top, rail floats left, canvas + wing share the body row ── */}
 
-      {/* Canvas fills the entire screen */}
+      {/* Top bar — flex child, so body below can flex-fill */}
       {!state.isMobile && (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
-          <EditorCanvas />
-        </div>
-      )}
-
-      {/* Floating toolbar at top — glass overlay */}
-      {!state.isMobile && (
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 40 }}>
+        <div style={{ flexShrink: 0, zIndex: 40, position: 'relative' }}>
           <EditorToolbar onExit={onExit} />
           {/* AIContextBar removed — chapter actions now in inline canvas toolbar + panel */}
           <PostWeddingBanner manifest={manifest} subdomain={state.subdomain} onUpdate={(m) => { onChange(m); pushToPreview(m); }} />
         </div>
       )}
 
-      {/* Floating panels — all absolute, overlaid on canvas */}
+      {/* Body — flex row holding canvas and docked wing */}
       {!state.isMobile && (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 50, pointerEvents: 'none' }}>
-          {/* Glass navigation rail — left side */}
-          <div style={{ pointerEvents: 'auto' }}>
-            <EditorRail onOpen={() => setPanelOpen(true)} />
+        <div style={{
+          flex: 1, minHeight: 0,
+          display: 'flex', flexDirection: 'row',
+          position: 'relative',
+        }}>
+          {/* Canvas claims the remaining horizontal space */}
+          <div style={{ flex: 1, minWidth: 0, position: 'relative', zIndex: 1 }}>
+            <EditorCanvas />
           </div>
-          {/* Floating glass inspector — overlaid on canvas */}
-          <div style={{ pointerEvents: 'auto' }}>
-            <EditorWing
-              open={panelOpen}
-              onToggle={() => setPanelOpen(v => !v)}
-              activeTab={state.activeTab}
-              contentRef={contentPanelRef}
-            >
+          {/* Docked editor panel — reserves its own width from the row */}
+          <EditorWing
+            open={panelOpen}
+            onToggle={() => setPanelOpen(v => !v)}
+            activeTab={state.activeTab}
+            contentRef={contentPanelRef}
+          >
             <AnimatePresence mode="popLayout">
               <motion.div
                 key={state.activeTab}
@@ -878,10 +874,12 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
               </motion.div>
             </AnimatePresence>
           </EditorWing>
-          </div>
-
-          {/* Bottom toolbar removed — functions now in top bar + rail + inline canvas toolbar */}
         </div>
+      )}
+
+      {/* Navigation rail — floats over the canvas, independent of the body row */}
+      {!state.isMobile && (
+        <EditorRail onOpen={() => setPanelOpen(true)} />
       )}
 
       {/* Mobile */}
