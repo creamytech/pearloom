@@ -280,8 +280,39 @@ const SectionOverlay = React.memo(function SectionOverlay({
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
   const dragGhostRef = useRef<HTMLDivElement | null>(null);
   const dragStartY = useRef(0);
+  // Track listeners so a rapid re-drag tears down the previous session cleanly
+  const dragCleanupRef = useRef<(() => void) | null>(null);
+
+  // Tear down any prior drag session on unmount (prevents stale listeners
+  // when a block is removed mid-drag under rapid activity)
+  useEffect(() => {
+    return () => {
+      if (dragCleanupRef.current) {
+        dragCleanupRef.current();
+        dragCleanupRef.current = null;
+      }
+    };
+  }, []);
+
+  // Compute the closest drop index from the current pointer Y.
+  // Re-derived every call so rapid drags always see the live DOM.
+  const computeClosestDropIndex = useCallback((clientY: number) => {
+    const dropZones = document.querySelectorAll('[data-drop-index]');
+    let closestIdx = -1;
+    let closestDist = Infinity;
+    dropZones.forEach(zone => {
+      const zRect = zone.getBoundingClientRect();
+      const dist = Math.abs(clientY - (zRect.top + zRect.height / 2));
+      if (dist < closestDist) {
+        closestDist = dist;
+        closestIdx = parseInt(zone.getAttribute('data-drop-index') || '-1');
+      }
+    });
+    return closestIdx;
+  }, []);
 
   // Pointer-based smooth drag
   const handleDragStart = useCallback((e: React.PointerEvent) => {
@@ -292,8 +323,17 @@ const SectionOverlay = React.memo(function SectionOverlay({
 
     e.preventDefault();
     e.stopPropagation();
+
+    // If a prior drag session is somehow still active (rapid re-drag),
+    // clean it up first so state is never silently double-bound.
+    if (dragCleanupRef.current) {
+      dragCleanupRef.current();
+      dragCleanupRef.current = null;
+    }
+
     setIsDragging(true);
     dragStartY.current = e.clientY;
+    document.body.style.cursor = 'grabbing';
 
     // Create ghost
     const ghost = document.createElement('div');
@@ -325,47 +365,73 @@ const SectionOverlay = React.memo(function SectionOverlay({
         ghost.style.top = `${ev.clientY - 20}px`;
         ghost.style.left = `${ev.clientX - 60}px`;
       }
+      // Live drop indicator — re-derive from DOM every move
+      const idx = computeClosestDropIndex(ev.clientY);
+      setDropTargetIndex(idx >= 0 ? idx : null);
     };
 
-    const onUp = (ev: PointerEvent) => {
-      // Find which drop zone we're over
-      const dropZones = document.querySelectorAll('[data-drop-index]');
-      let closestIdx = -1;
-      let closestDist = Infinity;
-      dropZones.forEach(zone => {
-        const zRect = zone.getBoundingClientRect();
-        const dist = Math.abs(ev.clientY - (zRect.top + zRect.height / 2));
-        if (dist < closestDist) {
-          closestDist = dist;
-          closestIdx = parseInt(zone.getAttribute('data-drop-index') || '-1');
-        }
-      });
-
-      if (closestIdx >= 0 && closestIdx !== index && onBlockReorder) {
-        onBlockReorder(index, closestIdx);
-      }
-
-      // Cleanup
+    const cleanup = () => {
       ghost.remove();
       dragGhostRef.current = null;
       setIsDragging(false);
+      setDropTargetIndex(null);
+      document.body.style.cursor = '';
       if (wrapRef.current) {
         wrapRef.current.style.opacity = '1';
       }
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onCancel);
+      dragCleanupRef.current = null;
     };
 
+    const onUp = (ev: PointerEvent) => {
+      // Re-derive drop index at release time so rapid drags don't lose
+      // the final position if state updates were coalesced.
+      const closestIdx = computeClosestDropIndex(ev.clientY);
+      if (closestIdx >= 0 && closestIdx !== index && onBlockReorder) {
+        onBlockReorder(index, closestIdx);
+      }
+      cleanup();
+    };
+
+    const onCancel = () => cleanup();
+
+    dragCleanupRef.current = cleanup;
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
-  }, [editMode, index, blockType, color, def, onBlockReorder]);
+    window.addEventListener('pointercancel', onCancel);
+  }, [editMode, index, blockType, color, def, onBlockReorder, computeClosestDropIndex]);
 
   return (
     <div
       ref={wrapRef}
       data-block-id={blockId}
       className={isSelected ? 'pl-block-selected' : ''}
+      tabIndex={editMode ? 0 : -1}
+      role="button"
+      aria-label={`Edit ${blockType} block`}
       onClick={(e) => { e.stopPropagation(); onSectionClick?.(blockType, undefined, blockId); }}
+      onKeyDown={(e) => {
+        if (!editMode) return;
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        // Bail gracefully if the focus is inside an editable element within
+        // the block — let that element handle its own keys.
+        const target = e.target as HTMLElement | null;
+        if (target && target !== e.currentTarget) {
+          const tag = target.tagName;
+          if (
+            tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' ||
+            tag === 'BUTTON' || tag === 'A' ||
+            target.isContentEditable
+          ) {
+            return;
+          }
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        onSectionClick?.(blockType, undefined, blockId);
+      }}
       onContextMenu={(e) => {
         if (!editMode) return;
         e.preventDefault();
@@ -379,6 +445,29 @@ const SectionOverlay = React.memo(function SectionOverlay({
         isolation: 'isolate', // Contain z-index within each block — prevents hero from overlapping nav
       }}
     >
+      {/* Drop indicator — renders just above this block when it's the current
+          drop target during a pointer-drag reorder (item 97). Inserted into
+          the DOM between blocks via absolute positioning at the top edge. */}
+      {isDragging && dropTargetIndex !== null && dropTargetIndex === index && (
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute', left: 0, right: 0, top: -1,
+            height: 2, background: '#4a9b8a', zIndex: 99,
+            pointerEvents: 'none', borderRadius: 1,
+          }}
+        />
+      )}
+      {isDragging && dropTargetIndex !== null && dropTargetIndex === index + 1 && (
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute', left: 0, right: 0, bottom: -1,
+            height: 2, background: '#4a9b8a', zIndex: 99,
+            pointerEvents: 'none', borderRadius: 1,
+          }}
+        />
+      )}
       {/* Inline toolbar — selected only */}
       {editMode && isSelected && (
         <div style={{
@@ -393,9 +482,15 @@ const SectionOverlay = React.memo(function SectionOverlay({
           {/* Drag handle — grab to reorder */}
           <div
             onPointerDown={handleDragStart}
+            role="button"
+            aria-label="Drag to reorder block"
             style={{
-              cursor: 'grab', padding: '4px 2px', display: 'flex',
-              alignItems: 'center', color: 'rgba(0,0,0,0.2)',
+              cursor: isDragging ? 'grabbing' : 'grab',
+              // Ensure hit area is at least 24x24 (item 96)
+              minWidth: 24, minHeight: 24,
+              padding: '6px', display: 'flex',
+              alignItems: 'center', justifyContent: 'center',
+              color: 'rgba(0,0,0,0.2)',
               touchAction: 'none',
             }}
             title="Drag to reorder"
