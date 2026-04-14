@@ -9,7 +9,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Plus, X, Copy, Check, Download, Loader } from 'lucide-react';
-import { SidebarSection } from './EditorSidebar';
+import {
+  PanelRoot,
+  PanelSection,
+  panelText,
+  panelWeight,
+  panelTracking,
+  panelLineHeight,
+} from './panel';
 import { useEditor } from '@/lib/editor-state';
 import type { Guest } from '@/types';
 
@@ -54,19 +61,20 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
   return (
     <div style={{
       borderRadius: '12px',
-      border: '1px solid rgba(24,24,27,0.08)',
-      background: 'rgba(24,24,27,0.04)',
+      border: '1px solid #E4E4E7',
+      background: '#FAFAFA',
       overflow: 'hidden',
     }}>
       {/* Card header */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '8px 12px',
-        borderBottom: '1px solid rgba(0,0,0,0.04)',
-        background: '#FAFAFA',
+        borderBottom: '1px solid #E4E4E7',
+        background: '#FFFFFF',
       }}>
         <span style={{
-          fontSize: '0.75rem', fontWeight: 700,
+          fontSize: panelText.body,
+          fontWeight: panelWeight.bold,
           color: '#71717A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {note.guestName}
@@ -75,10 +83,13 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
           <button
             onClick={handleToggleEdit}
             style={{
-              fontSize: '0.65rem', fontWeight: 700, padding: '2px 7px',
-              borderRadius: '6px', border: '1px solid rgba(0,0,0,0.07)',
-              background: editing ? 'rgba(24,24,27,0.08)' : 'transparent',
-              color: editing ? '#71717A' : 'rgba(255,255,255,0.45)',
+              fontSize: panelText.hint,
+              fontWeight: panelWeight.bold,
+              padding: '2px 7px',
+              borderRadius: '6px',
+              border: '1px solid #E4E4E7',
+              background: editing ? '#F4F4F5' : 'transparent',
+              color: '#3F3F46',
               cursor: 'pointer',
             }}
           >
@@ -90,9 +101,9 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: '24px', height: '24px', borderRadius: '6px',
-              border: '1px solid rgba(0,0,0,0.07)',
-              background: copied ? 'rgba(24,24,27,0.08)' : 'transparent',
-              color: copied ? '#71717A' : 'rgba(255,255,255,0.45)',
+              border: '1px solid #E4E4E7',
+              background: copied ? '#F4F4F5' : 'transparent',
+              color: '#3F3F46',
               cursor: 'pointer',
             }}
           >
@@ -108,15 +119,22 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
             onChange={e => setDraft(e.target.value)}
             style={{
               width: '100%', minHeight: '90px', resize: 'vertical',
-              background: 'rgba(24,24,27,0.04)', border: '1px solid rgba(0,0,0,0.06)',
+              background: '#FFFFFF', border: '1px solid #E4E4E7',
               borderRadius: '6px', padding: '7px', color: '#18181B',
-              fontSize: '0.75rem', lineHeight: 1.6, fontFamily: 'inherit', outline: 'none',
+              fontSize: 'max(16px, 0.8rem)',
+              lineHeight: panelLineHeight.snug,
+              fontFamily: 'inherit', outline: 'none',
               boxSizing: 'border-box',
+              transition: 'border-color 0.15s, box-shadow 0.15s',
             }}
+            onFocus={e => { e.currentTarget.style.borderColor = '#18181B'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(24,24,27,0.12)'; }}
+            onBlur={e => { e.currentTarget.style.borderColor = '#E4E4E7'; e.currentTarget.style.boxShadow = 'none'; }}
           />
         ) : (
           <p style={{
-            margin: 0, fontSize: '0.75rem', lineHeight: 1.65,
+            margin: 0,
+            fontSize: panelText.body,
+            lineHeight: panelLineHeight.snug,
             color: '#18181B',
           }}>
             {draft}
@@ -250,36 +268,42 @@ export function ThankYouPanel() {
 
   // ── Render ────────────────────────────────────────────────────
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '4px 0' }}>
+    <PanelRoot>
 
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '6px',
-        fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em',
-        textTransform: 'uppercase', color: '#71717A',
-        padding: '0 16px',
+        padding: '2px 20px 0',
+        fontSize: panelText.label,
+        fontWeight: panelWeight.heavy,
+        letterSpacing: panelTracking.wider,
+        textTransform: 'uppercase',
+        color: '#71717A',
       }}>
         <Heart size={11} /> Thank-You Notes
       </div>
 
       {/* Instruction */}
       <p style={{
-        margin: '0 16px', fontSize: '0.75rem', lineHeight: 1.55,
-        color: 'rgba(255,255,255,0.45)',
+        margin: 0,
+        padding: '4px 20px 2px',
+        fontSize: panelText.body,
+        lineHeight: panelLineHeight.snug,
+        color: '#3F3F46',
       }}>
         Generate personalized thank-you notes for every guest. Add a gift or relationship hint for more specific notes.
       </p>
 
       {/* ── Guest list section ── */}
-      <SidebarSection title="Guest List" defaultOpen>
+      <PanelSection title="Guest List" icon={Heart} defaultOpen>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {entries.map((entry) => (
             <div
               key={entry.id}
               style={{
-                display: 'flex', flexDirection: 'column', gap: '4px',
+                display: 'flex', flexDirection: 'column', gap: '6px',
                 padding: '8px 10px', borderRadius: '8px',
-                border: '1px solid rgba(0,0,0,0.06)',
+                border: '1px solid #E4E4E7',
                 background: '#FAFAFA',
                 position: 'relative',
               }}
@@ -305,8 +329,11 @@ export function ThankYouPanel() {
                 value={entry.name}
                 onChange={e => updateEntry(entry.id, 'name', e.target.value)}
                 style={{
-                  background: 'transparent', border: 'none', borderBottom: '1px solid rgba(0,0,0,0.06)',
-                  color: '#18181B', fontSize: '0.75rem', fontWeight: 600,
+                  background: 'transparent', border: 'none',
+                  borderBottom: '1px solid #E4E4E7',
+                  color: '#18181B',
+                  fontSize: 'max(16px, 0.8rem)',
+                  fontWeight: panelWeight.semibold,
                   padding: '2px 0', outline: 'none', width: 'calc(100% - 20px)',
                   fontFamily: 'inherit',
                 }}
@@ -319,8 +346,10 @@ export function ThankYouPanel() {
                 value={entry.gift}
                 onChange={e => updateEntry(entry.id, 'gift', e.target.value)}
                 style={{
-                  background: 'transparent', border: 'none', borderBottom: '1px solid rgba(0,0,0,0.04)',
-                  color: '#3F3F46', fontSize: '0.65rem',
+                  background: 'transparent', border: 'none',
+                  borderBottom: '1px solid #E4E4E7',
+                  color: '#3F3F46',
+                  fontSize: 'max(16px, 0.8rem)',
                   padding: '2px 0', outline: 'none', width: '100%',
                   fontFamily: 'inherit',
                 }}
@@ -333,8 +362,10 @@ export function ThankYouPanel() {
                 value={entry.relationship}
                 onChange={e => updateEntry(entry.id, 'relationship', e.target.value)}
                 style={{
-                  background: 'transparent', border: 'none', borderBottom: '1px solid rgba(0,0,0,0.04)',
-                  color: '#3F3F46', fontSize: '0.65rem',
+                  background: 'transparent', border: 'none',
+                  borderBottom: '1px solid #E4E4E7',
+                  color: '#3F3F46',
+                  fontSize: 'max(16px, 0.8rem)',
                   padding: '2px 0', outline: 'none', width: '100%',
                   fontFamily: 'inherit',
                 }}
@@ -348,33 +379,32 @@ export function ThankYouPanel() {
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
               padding: '7px', borderRadius: '8px',
-              border: '1px dashed rgba(0,0,0,0.07)',
+              border: '1.5px dashed #E4E4E7',
               background: 'transparent',
-              color: '#71717A', cursor: 'pointer', fontSize: '0.65rem',
+              color: '#71717A', cursor: 'pointer',
+              fontSize: panelText.hint,
+              fontWeight: panelWeight.semibold,
             }}
           >
             <Plus size={12} /> Add guest
           </button>
         </div>
-      </SidebarSection>
 
-      {/* ── Generate button ── */}
-      <div style={{ padding: '0 16px' }}>
+        {/* Generate button */}
         <motion.button
           onClick={handleGenerate}
           disabled={!canGenerate}
-          whileHover={canGenerate ? { scale: 1.02 } : {}}
-          whileTap={canGenerate ? { scale: 0.97 } : {}}
+          whileHover={canGenerate ? { scale: 1.01 } : {}}
+          whileTap={canGenerate ? { scale: 0.98 } : {}}
           style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            padding: '11px', borderRadius: '12px',
-            border: '1px solid #E4E4E7',
-            background: canGenerate
-              ? 'linear-gradient(135deg, rgba(24,24,27,0.08) 0%, rgba(143,200,122,0.12) 100%)'
-              : 'rgba(24,24,27,0.04)',
-            color: canGenerate ? '#71717A' : '#71717A',
+            padding: '11px', borderRadius: '10px',
+            border: 'none',
+            background: canGenerate ? '#18181B' : '#F4F4F5',
+            color: canGenerate ? '#FFFFFF' : '#71717A',
             cursor: canGenerate ? 'pointer' : 'default',
-            fontSize: '0.75rem', fontWeight: 700,
+            fontSize: panelText.body,
+            fontWeight: panelWeight.bold,
             transition: 'all 0.15s',
           }}
         >
@@ -393,17 +423,19 @@ export function ThankYouPanel() {
 
         {error && (
           <p style={{
-            margin: '6px 0 0', fontSize: '0.65rem', color: '#f87171',
+            margin: 0,
+            fontSize: panelText.hint,
+            color: '#b34747',
             textAlign: 'center',
           }}>
             {error}
           </p>
         )}
-      </div>
+      </PanelSection>
 
       {/* ── Results section ── */}
       {notes.length > 0 && (
-        <SidebarSection title={`Generated Notes (${notes.length})`} defaultOpen>
+        <PanelSection title={`Generated Notes (${notes.length})`} icon={Check} defaultOpen>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {notes.map(note => (
               <NoteCard
@@ -417,23 +449,25 @@ export function ThankYouPanel() {
           {/* Export button */}
           <motion.button
             onClick={handleExport}
-            whileHover={{ scale: 1.02, borderColor: '#E4E4E7' }}
-            whileTap={{ scale: 0.97 }}
+            whileHover={{ scale: 1.01, borderColor: '#18181B' }}
+            whileTap={{ scale: 0.98 }}
             style={{
-              marginTop: '10px', width: '100%',
+              width: '100%',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
               padding: '10px', borderRadius: '8px',
-              border: '1px solid rgba(24,24,27,0.06)',
-              background: 'rgba(24,24,27,0.03)',
-              color: '#71717A', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
+              border: '1px solid #E4E4E7',
+              background: '#FAFAFA',
+              color: '#71717A', cursor: 'pointer',
+              fontSize: panelText.body,
+              fontWeight: panelWeight.bold,
             }}
           >
             <Download size={12} /> Export all as text
           </motion.button>
-        </SidebarSection>
+        </PanelSection>
       )}
 
       <style>{`@keyframes pl-spin { to { transform: rotate(360deg); } }`}</style>
-    </div>
+    </PanelRoot>
   );
 }
