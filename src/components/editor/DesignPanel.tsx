@@ -5,6 +5,29 @@ import { useEditor } from '@/lib/editor-state';
 import { RangeSlider } from '@/components/ui/range-slider';
 import { Loader2 } from 'lucide-react';
 import { lbl } from './editor-utils';
+import { panelText, panelWeight, panelTracking, panelLineHeight } from './panel';
+
+// ── Shared sub-label (used inside SidebarSection bodies) ──────
+// Matches the canonical PanelField/editor-utils lbl typography:
+// 0.6rem • 700 • #71717A • uppercase • 0.1em tracking.
+const SUB_LABEL: React.CSSProperties = {
+  display: 'block',
+  fontSize: panelText.label,
+  fontWeight: panelWeight.bold,
+  letterSpacing: panelTracking.wider,
+  textTransform: 'uppercase',
+  color: '#71717A',
+  marginBottom: '6px',
+  lineHeight: panelLineHeight.tight,
+};
+
+// Small muted helper text beneath a chip grid or picker
+const HINT_TEXT: React.CSSProperties = {
+  fontSize: panelText.meta,
+  color: '#71717A',
+  marginTop: '6px',
+  lineHeight: panelLineHeight.normal,
+};
 import { ColorPalettePanel } from './ColorPalettePanel';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import FontPicker from '@/components/dashboard/FontPicker';
@@ -137,9 +160,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
       {/* Page layout mode */}
       <div>
-        <div style={{ fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA', marginBottom: '6px' }}>
-          Site Layout
-        </div>
+        <div style={SUB_LABEL}>Site Layout</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
           {([
             { id: 'multi-page', label: 'Separate Pages', desc: 'Each section is its own page' },
@@ -172,9 +193,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
       {/* Logo icon picker */}
       <div>
-        <div style={{ fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA', marginBottom: '6px' }}>
-          Site Logo Icon
-        </div>
+        <div style={SUB_LABEL}>Site Logo Icon</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
           {LOGO_ICONS.map(({ id, label, Icon }) => {
             const isActive = currentLogo === id && !manifest.logoSvg;
@@ -222,9 +241,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
       {/* Desktop nav bar style */}
       <div>
-        <div style={{ fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA', marginBottom: '6px' }}>
-          Desktop Nav Style
-        </div>
+        <div style={SUB_LABEL}>Desktop Nav Style</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
           {NAV_STYLES.map(style => {
             const isActive = currentNavStyle === style.id;
@@ -261,9 +278,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
       {/* Mobile nav style */}
       <div>
-        <div style={{ fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA', marginBottom: '6px' }}>
-          Mobile Nav Style
-        </div>
+        <div style={SUB_LABEL}>Mobile Nav Style</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
           {MOBILE_NAV_STYLES.map(style => {
             const isActive = (manifest.mobileNavStyle || 'classic') === style.id;
@@ -300,7 +315,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
       {/* Nav opacity */}
       <div>
-        <div style={{ fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA', marginBottom: '6px' }}>
+        <div style={SUB_LABEL}>
           Nav Opacity — {manifest.navOpacity ?? 100}%
         </div>
         <input
@@ -319,9 +334,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
       {/* Nav background color */}
       <div>
-        <div style={{ fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA', marginBottom: '6px' }}>
-          Nav Background
-        </div>
+        <div style={SUB_LABEL}>Nav Background</div>
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           {[
             { label: 'Auto', value: '' },
@@ -614,19 +627,28 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', paddingBottom: '24px' }}>
 
       {/* ── Sub-tab switcher: Theme / Effects ── */}
-      <div style={{ display: 'flex', gap: '4px', padding: '0 0 8px', borderBottom: '1px solid #E4E4E7', marginBottom: '6px' }}>
+      <div style={{
+        display: 'flex', gap: '6px',
+        padding: '0 8px 10px',
+        borderBottom: '1px solid #E4E4E7',
+        marginBottom: '8px',
+      }}>
         {(['theme', 'effects'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setDesignTab(tab)}
             style={{
-              flex: 1, padding: '8px 0', borderRadius: '8px',
+              flex: 1, padding: '8px 0',
+              borderRadius: '8px',
               border: designTab === tab ? '1px solid #18181B' : '1px solid #E4E4E7',
               background: designTab === tab ? '#18181B' : '#FFFFFF',
               color: designTab === tab ? '#FFFFFF' : '#71717A',
-              fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer',
+              fontSize: panelText.chip,
+              fontWeight: panelWeight.semibold,
+              fontFamily: 'inherit',
+              cursor: 'pointer',
               transition: 'all 0.15s',
-              textTransform: 'capitalize',
+              lineHeight: panelLineHeight.tight,
             }}
           >
             {tab === 'theme' ? 'Theme' : 'Effects & Advanced'}
@@ -648,7 +670,13 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <PearIcon size={18} color="#18181B" />
-          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#18181B', fontFamily: 'inherit',  }}>
+          <span style={{
+            fontSize: panelText.itemTitle,
+            fontWeight: panelWeight.bold,
+            color: '#18181B',
+            fontFamily: 'inherit',
+            lineHeight: panelLineHeight.tight,
+          }}>
             Want Pear to review your design?
           </span>
         </div>
@@ -657,21 +685,32 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
           disabled={feedbackLoading}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            padding: '7px 14px', borderRadius: '8px',
+            padding: '8px 14px', borderRadius: '8px',
             border: 'none',
             background: feedbackLoading ? 'rgba(24,24,27,0.1)' : '#18181B',
             color: feedbackLoading ? '#3F3F46' : '#fff',
             cursor: feedbackLoading ? 'not-allowed' : 'pointer',
-            fontSize: '0.75rem', fontWeight: 700, transition: 'all 0.15s',
+            fontSize: panelText.body,
+            fontWeight: panelWeight.bold,
+            fontFamily: 'inherit',
+            transition: 'all 0.15s',
             boxShadow: feedbackLoading ? 'none' : '0 2px 8px #E4E4E7',
             width: '100%',
+            lineHeight: panelLineHeight.tight,
           }}
         >
           {feedbackLoading ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <PearIcon size={12} color="#fff" />}
           {feedbackLoading ? 'Analyzing design...' : 'Get Feedback'}
         </button>
         {feedbackError && (
-          <p style={{ fontSize: '0.65rem', color: '#e87a7a', margin: 0 }}>{feedbackError}</p>
+          <p style={{
+            fontSize: panelText.hint,
+            color: '#b91c1c',
+            margin: 0,
+            lineHeight: panelLineHeight.snug,
+          }}>
+            {feedbackError}
+          </p>
         )}
         {designFeedback && (
           <div style={{ marginTop: '2px' }}>
@@ -680,17 +719,26 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               style={{
                 display: 'flex', alignItems: 'center', gap: '4px',
                 background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.06em',
-                textTransform: 'uppercase', color: '#18181B',
+                fontSize: panelText.label,
+                fontWeight: panelWeight.bold,
+                letterSpacing: panelTracking.wider,
+                textTransform: 'uppercase',
+                color: '#18181B',
+                fontFamily: 'inherit',
               }}
             >
               {feedbackExpanded ? 'Hide' : 'Show'} Feedback
             </button>
             {feedbackExpanded && (
               <div style={{
-                marginTop: '6px', padding: '8px 10px', borderRadius: '10px',
-                background: '#F4F4F5', border: '1px solid #F4F4F5',
-                fontSize: '0.75rem', lineHeight: 1.6, color: 'var(--pl-ink-soft, #3D3530)',
+                marginTop: '8px',
+                padding: '10px 12px',
+                borderRadius: '10px',
+                background: '#F4F4F5',
+                border: '1px solid #E4E4E7',
+                fontSize: panelText.body,
+                lineHeight: 1.6,
+                color: '#3F3F46',
                 whiteSpace: 'pre-wrap',
               }}>
                 {designFeedback}
@@ -708,10 +756,17 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       }}>
         {vibeSkin?.tone && (
           <span style={{
-            fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.06em',
-            textTransform: 'uppercase', color: '#71717A',
-            background: 'rgba(24,24,27,0.08)', padding: '3px 10px', borderRadius: '8px',
-            border: '1px solid rgba(24,24,27,0.1)', flexShrink: 0,
+            fontSize: panelText.chip,
+            fontWeight: panelWeight.bold,
+            letterSpacing: panelTracking.wide,
+            textTransform: 'uppercase',
+            color: '#71717A',
+            background: 'rgba(24,24,27,0.08)',
+            padding: '3px 10px',
+            borderRadius: '100px',
+            border: '1px solid rgba(24,24,27,0.1)',
+            flexShrink: 0,
+            lineHeight: panelLineHeight.tight,
           }}>
             {vibeSkin.tone}
           </span>
@@ -721,14 +776,18 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
           onClick={handleRegenerateDesign}
           disabled={isRegenerating}
           style={{
-            display: 'flex', alignItems: 'center', gap: '5px',
-            padding: '5px 12px', borderRadius: '8px',
+            display: 'flex', alignItems: 'center', gap: '6px',
+            padding: '6px 12px', borderRadius: '8px',
             border: 'none',
             background: isRegenerating ? 'rgba(24,24,27,0.1)' : '#18181B',
             color: isRegenerating ? '#3F3F46' : '#fff',
             cursor: isRegenerating ? 'not-allowed' : 'pointer',
-            fontSize: '0.75rem', fontWeight: 700, transition: 'all 0.15s',
+            fontSize: panelText.body,
+            fontWeight: panelWeight.bold,
+            fontFamily: 'inherit',
+            transition: 'all 0.15s',
             boxShadow: isRegenerating ? 'none' : '0 2px 8px #E4E4E7',
+            lineHeight: panelLineHeight.tight,
           }}
         >
           {isRegenerating ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <DesignIcon size={12} />}
@@ -736,7 +795,14 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
         </button>
       </div>
       {regenError && (
-        <p style={{ fontSize: '0.75rem', color: '#e87a7a', marginTop: '-4px' }}>{regenError}</p>
+        <p style={{
+          fontSize: panelText.hint,
+          color: '#b91c1c',
+          marginTop: '-4px',
+          lineHeight: panelLineHeight.snug,
+        }}>
+          {regenError}
+        </p>
       )}
 
       {/* ── Writing Style — AI tone adjuster ── */}
@@ -997,10 +1063,13 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       {/* ── Story Layout — how chapters unfold on the page ── */}
       <SidebarSection title="Story Layout" defaultOpen={false}>
         <div>
-          <div style={{ fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA', marginBottom: '6px' }}>
-            Story Layout
-          </div>
-          <div style={{ fontSize: '0.65rem', color: '#71717A', lineHeight: 1.5, marginBottom: '12px' }}>
+          <div style={SUB_LABEL}>Story Layout</div>
+          <div style={{
+            fontSize: panelText.hint,
+            color: '#71717A',
+            lineHeight: panelLineHeight.normal,
+            marginBottom: '12px',
+          }}>
             How your chapters unfold on the page
           </div>
           <StoryLayoutPicker
@@ -1018,10 +1087,13 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
           {/* ── Date format — applies to chapter date labels ── */}
           <div style={{ marginTop: 20 }}>
-            <div style={{ fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA', marginBottom: '6px' }}>
-              Date format
-            </div>
-            <div style={{ fontSize: '0.65rem', color: '#71717A', lineHeight: 1.5, marginBottom: '10px' }}>
+            <div style={SUB_LABEL}>Date format</div>
+            <div style={{
+              fontSize: panelText.hint,
+              color: '#71717A',
+              lineHeight: panelLineHeight.normal,
+              marginBottom: '10px',
+            }}>
               How dates read on every chapter
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
