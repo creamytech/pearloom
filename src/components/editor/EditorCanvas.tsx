@@ -23,7 +23,38 @@ import { CanvasHeroEditBar } from './preview/CanvasHeroEditBar';
 import { CanvasInlineFormatBar, type TextFormat } from './preview/CanvasInlineFormatBar';
 import { BlockConfigPopover } from './preview/BlockConfigPopover';
 import { BLOCK_SCHEMAS } from '@/lib/block-engine/schema';
-import type { BlockType, PageBlock } from '@/types';
+import type { BlockType, PageBlock, Chapter } from '@/types';
+
+// ── Helpers ─────────────────────────────────────────────────
+// Clamp a dimension input (from any source) to a sane pixel range.
+// Rejects NaN / negative and enforces a max of 10000px.
+const MAX_DIMENSION_PX = 10000;
+function clampDimension(raw: unknown, fallback = 0): number {
+  const n = typeof raw === 'number' ? raw : parseInt(String(raw ?? ''), 10);
+  if (!Number.isFinite(n) || n < 0) return fallback;
+  return Math.min(n, MAX_DIMENSION_PX);
+}
+// Clamp a value to an inclusive range (e.g., 0-100 for sticker percent).
+function clampRange(raw: unknown, min: number, max: number, fallback = min): number {
+  const n = typeof raw === 'number' ? raw : parseFloat(String(raw ?? ''));
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(min, Math.min(max, n));
+}
+// Generate a stable unique ID. Uses crypto.randomUUID when available,
+// falling back to a time+random string for SSR / older browsers.
+function makeBlockId(prefix: string): string {
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return `${prefix}-${crypto.randomUUID()}`;
+    }
+  } catch {
+    // fall through to legacy path
+  }
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+// Max blocks per page (paste capacity guard).
+const MAX_BLOCKS_PER_PAGE = 60;
 
 export function EditorCanvas() {
   const { state, dispatch, manifest, coupleNames, actions } = useEditor();
@@ -33,6 +64,40 @@ export function EditorCanvas() {
   const zoom = previewZoom || 1;
   const [isPanning, setIsPanning] = useState(false);
   const [undoToast, setUndoToast] = useState<string | null>(null);
+  // Action attached to the current toast (e.g. "Undo" after chapter delete).
+  const [undoToastAction, setUndoToastAction] = useState<{ label: string; onClick: () => void } | null>(null);
+  const undoToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Keep a live reference to the current manifest so deferred callbacks
+  // (undo-toast handlers fired seconds later) always restore from the
+  // latest state rather than a stale closure snapshot.
+  const manifestRef = useRef(manifest);
+  useEffect(() => { manifestRef.current = manifest; }, [manifest]);
+
+  // Show a toast; optionally with an action (e.g. Undo). Actionable toasts
+  // linger for ~6s so the user has time to hit Undo.
+  const showUndoableToast = useCallback((
+    message: string,
+    onUndo?: () => void,
+    ms: number = 6000,
+  ) => {
+    if (undoToastTimerRef.current) clearTimeout(undoToastTimerRef.current);
+    setUndoToast(message);
+    setUndoToastAction(onUndo ? { label: 'Undo', onClick: onUndo } : null);
+    undoToastTimerRef.current = setTimeout(() => {
+      setUndoToast(null);
+      setUndoToastAction(null);
+    }, ms);
+  }, []);
+  const showPlainToast = useCallback((message: string, ms: number = 2500) => {
+    if (undoToastTimerRef.current) clearTimeout(undoToastTimerRef.current);
+    setUndoToast(message);
+    setUndoToastAction(null);
+    undoToastTimerRef.current = setTimeout(() => {
+      setUndoToast(null);
+      setUndoToastAction(null);
+    }, ms);
+  }, []);
+
   const [focalPoint, setFocalPoint] = useState<{
     chapterId: string; rect: DOMRect; x: number; y: number;
   } | null>(null);
@@ -179,7 +244,11 @@ export function EditorCanvas() {
       const { index, x, y } = JSON.parse(value);
       const stickers = [...(manifest.stickers || [])];
       if (stickers[index]) {
-        stickers[index] = { ...stickers[index], x, y };
+        // Sticker x/y are percentages 0-100 (% of canvas). Clamp to bounds so
+        // a sticker can never be dragged off-canvas.
+        const clampedX = clampRange(x, 0, 100, stickers[index].x);
+        const clampedY = clampRange(y, 0, 100, stickers[index].y);
+        stickers[index] = { ...stickers[index], x: clampedX, y: clampedY };
         actions.handleDesignChange({ ...manifest, stickers });
       }
       return;
@@ -199,11 +268,11 @@ export function EditorCanvas() {
       if (chapter) {
         const images = [...(chapter.images || [])];
         const newImg = {
-          id: images[imgIndex]?.id || `photo-${Date.now()}`,
+          id: images[imgIndex]?.id || makeBlockId('photo'),
           url: newUrl,
           alt: newAlt || images[imgIndex]?.alt || 'Photo',
-          width: images[imgIndex]?.width || 0,
-          height: images[imgIndex]?.height || 0,
+          width: clampDimension(images[imgIndex]?.width, 0),
+          height: clampDimension(images[imgIndex]?.height, 0),
         };
         if (append || imgIndex >= images.length) {
           images.push(newImg);
@@ -258,6 +327,28 @@ export function EditorCanvas() {
     }
   }, [manifest, actions]);
 
+  // Briefly highlight a block by id (outline flash ~1s) so the user can see
+  // where a paste / insert landed.
+  const [flashBlockId, setFlashBlockId] = useState<string | null>(null);
+  const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const highlightBlock = useCallback((blockId: string) => {
+    if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+    setFlashBlockId(blockId);
+    flashTimerRef.current = setTimeout(() => setFlashBlockId(null), 1000);
+  }, []);
+
+  // Ensure a rendered block is scrolled into view. Looks up the element by
+  // its data-block-id and smooth-scrolls it to center.
+  const scrollBlockIntoView = useCallback((blockId: string) => {
+    // Wait a frame for SiteRenderer to paint the new block.
+    requestAnimationFrame(() => {
+      const el = canvasRef.current?.querySelector<HTMLElement>(`[data-block-id="${blockId}"]`);
+      if (el && typeof el.scrollIntoView === 'function') {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  }, []);
+
   // ── Block actions from inline toolbar ─────────────────────
   const handleBlockAction = useCallback((action: 'moveUp' | 'moveDown' | 'duplicate' | 'delete' | 'toggleVisibility', blockId: string) => {
     const blocks = manifest.blocks || [];
@@ -273,7 +364,7 @@ export function EditorCanvas() {
         if (idx < updated.length - 1) [updated[idx], updated[idx + 1]] = [updated[idx + 1], updated[idx]];
         break;
       case 'duplicate': {
-        const dup = { ...blocks[idx], id: `${blocks[idx].type}-dup-${Date.now()}` };
+        const dup = { ...blocks[idx], id: makeBlockId(`${blocks[idx].type}-dup`) };
         updated.splice(idx + 1, 0, dup);
         break;
       }
@@ -284,6 +375,7 @@ export function EditorCanvas() {
         updated = updated.map(b => b.id === blockId ? { ...b, visible: !b.visible } : b);
         break;
     }
+    // Re-number order sequentially 0..n-1 so no duplicate indices survive.
     actions.handleDesignChange({ ...manifest, blocks: updated.map((b, i) => ({ ...b, order: i })) });
   }, [manifest, actions]);
 
@@ -293,6 +385,7 @@ export function EditorCanvas() {
     if (fromIdx === toIdx || fromIdx < 0 || toIdx < 0) return;
     const [moved] = blocks.splice(fromIdx, 1);
     blocks.splice(toIdx > fromIdx ? toIdx - 1 : toIdx, 0, moved);
+    // Re-number order sequentially so no duplicate indices survive the move.
     actions.handleDesignChange({ ...manifest, blocks: blocks.map((b, i) => ({ ...b, order: i })) });
   }, [manifest, actions]);
 
@@ -303,21 +396,31 @@ export function EditorCanvas() {
     const block = manifest.blocks?.find(b => b.id === blockId);
     if (block) {
       setClipboardBlock({ ...block });
-      setUndoToast('Copied: ' + (block.type || 'section'));
-      setTimeout(() => setUndoToast(null), 2000);
+      showPlainToast('Copied: ' + (block.type || 'section'), 2500);
     }
-  }, [manifest]);
+  }, [manifest, showPlainToast]);
 
   const handleBlockPaste = useCallback((position: number) => {
     if (!clipboardBlock) return;
     const blocks = [...(manifest.blocks || [])];
+    // Paste capacity guard — refuse to paste if we'd exceed the per-page limit.
+    if (blocks.length >= MAX_BLOCKS_PER_PAGE) {
+      showPlainToast(`Limit reached: max ${MAX_BLOCKS_PER_PAGE} blocks per page`, 2500);
+      return;
+    }
     const clampedPos = Math.max(0, Math.min(position, blocks.length));
-    const pasted = { ...clipboardBlock, id: `${clipboardBlock.type}-paste-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, config: clipboardBlock.config ? { ...clipboardBlock.config } : undefined };
+    const pasted = {
+      ...clipboardBlock,
+      id: makeBlockId(`${clipboardBlock.type}-paste`),
+      config: clipboardBlock.config ? { ...clipboardBlock.config } : undefined,
+    };
     blocks.splice(clampedPos, 0, pasted);
     actions.handleDesignChange({ ...manifest, blocks: blocks.map((b, i) => ({ ...b, order: i })) });
-    setUndoToast('Pasted: ' + (clipboardBlock.type || 'section'));
-    setTimeout(() => setUndoToast(null), 2000);
-  }, [manifest, clipboardBlock, actions]);
+    showPlainToast('Pasted: ' + (clipboardBlock.type || 'section'), 2500);
+    // Scroll to and briefly flash the newly pasted block.
+    scrollBlockIntoView(pasted.id);
+    highlightBlock(pasted.id);
+  }, [manifest, clipboardBlock, actions, scrollBlockIntoView, highlightBlock, showPlainToast]);
 
   // ── Chapter toolbar actions ─────────────────────────────
   const handleChapterToolbarAction = useCallback((action: ChapterToolbarAction) => {
@@ -347,7 +450,7 @@ export function EditorCanvas() {
 
     switch (action) {
       case 'duplicate': {
-        const dup = { ...chapters[idx], id: `chapter-dup-${Date.now()}` };
+        const dup = { ...chapters[idx], id: makeBlockId('chapter-dup') };
         chapters.splice(idx + 1, 0, dup);
         break;
       }
@@ -358,15 +461,29 @@ export function EditorCanvas() {
         if (idx < chapters.length - 1) [chapters[idx], chapters[idx + 1]] = [chapters[idx + 1], chapters[idx]];
         break;
       case 'delete': {
-        const name = chapters[idx]?.title || 'this chapter';
-        if (!confirm(`Delete "${name}"?`)) return;
+        // Optimistic delete with inline undo toast — replaces native confirm().
+        const removed = chapters[idx] as Chapter;
+        const removedIdx = idx;
         chapters.splice(idx, 1);
         setHoveredChapter(null);
-        break;
+        actions.handleDesignChange({ ...manifest, chapters });
+        showUndoableToast(
+          `Deleted "${removed.title || 'chapter'}"`,
+          () => {
+            // Re-insert into the latest manifest (guards against concurrent edits).
+            const latest = manifestRef.current;
+            const restored = [...(latest.chapters || [])];
+            if (restored.some(c => c.id === removed.id)) return; // already restored
+            const insertAt = Math.min(removedIdx, restored.length);
+            restored.splice(insertAt, 0, removed);
+            actions.handleDesignChange({ ...latest, chapters: restored });
+          },
+        );
+        return;
       }
     }
     actions.handleDesignChange({ ...manifest, chapters });
-  }, [hoveredChapter, manifest, actions, dispatch]);
+  }, [hoveredChapter, manifest, actions, dispatch, showUndoableToast]);
 
   // ── Event toolbar actions ───────────────────────────────
   const handleEventToolbarAction = useCallback((action: EventToolbarAction) => {
@@ -386,7 +503,7 @@ export function EditorCanvas() {
         if (eventIndex < events.length - 1) [events[eventIndex], events[eventIndex + 1]] = [events[eventIndex + 1], events[eventIndex]];
         break;
       case 'duplicate': {
-        const dup = { ...events[eventIndex], id: `event-dup-${Date.now()}` };
+        const dup = { ...events[eventIndex], id: makeBlockId('event-dup') };
         events.splice(eventIndex + 1, 0, dup);
         break;
       }
@@ -547,20 +664,38 @@ export function EditorCanvas() {
   }, [handleTextEdit]);
 
   useEffect(() => {
+    // Item 46: grace period on blur. Schedule a dismissal in 120ms and cancel
+    // it if a mousedown lands inside the format bar (keeps the bar alive
+    // while the user is clicking its buttons and stops flicker on accidental
+    // blurs). Cancel on re-focus too.
+    let blurTimer: ReturnType<typeof setTimeout> | null = null;
+    const clearBlurTimer = () => {
+      if (blurTimer) { clearTimeout(blurTimer); blurTimer = null; }
+    };
     const onFocus = (e: Event) => {
+      clearBlurTimer();
       const { path, rect } = (e as CustomEvent).detail;
       if (path && rect) setFocusedTextField({ path, rect });
       else setFocusedTextField(null);
     };
     const onBlur = () => {
-      // Brief delay so clicks on the format bar buttons register before it unmounts
-      setTimeout(() => setFocusedTextField(null), 150);
+      clearBlurTimer();
+      blurTimer = setTimeout(() => setFocusedTextField(null), 120);
+    };
+    const onMouseDown = (e: MouseEvent) => {
+      const target = e.target as Node | null;
+      if (!target) return;
+      const bar = document.querySelector('[data-pearloom-format-bar]');
+      if (bar && bar.contains(target)) clearBlurTimer();
     };
     window.addEventListener('pearloom-field-focus', onFocus);
     window.addEventListener('pearloom-field-blur', onBlur);
+    window.addEventListener('mousedown', onMouseDown, true);
     return () => {
       window.removeEventListener('pearloom-field-focus', onFocus);
       window.removeEventListener('pearloom-field-blur', onBlur);
+      window.removeEventListener('mousedown', onMouseDown, true);
+      clearBlurTimer();
     };
   }, []);
 
@@ -684,7 +819,7 @@ export function EditorCanvas() {
   const handleBlockDrop = useCallback((blockType: string, position: number) => {
     const blocks = manifest.blocks || [];
     const newBlock = {
-      id: `block-${blockType}-${Date.now()}`,
+      id: makeBlockId(`block-${blockType}`),
       type: blockType as BlockType,
       order: position,
       visible: true,
@@ -906,6 +1041,21 @@ export function EditorCanvas() {
         )}
       </div>
 
+      {/* Paste / insert highlight flash — outlined block for ~1s */}
+      {flashBlockId && (
+        <style>{`
+          [data-block-id="${flashBlockId}"] {
+            animation: pl-paste-flash 1s ease-out;
+            border-radius: 4px;
+          }
+          @keyframes pl-paste-flash {
+            0%   { box-shadow: 0 0 0 3px rgba(200, 120, 180, 0.9), 0 0 24px rgba(200, 120, 180, 0.35); }
+            60%  { box-shadow: 0 0 0 3px rgba(200, 120, 180, 0.5), 0 0 18px rgba(200, 120, 180, 0.18); }
+            100% { box-shadow: 0 0 0 0 rgba(200, 120, 180, 0);   }
+          }
+        `}</style>
+      )}
+
       {/* Undo toast */}
       {undoToast && (
         <motion.div
@@ -914,7 +1064,9 @@ export function EditorCanvas() {
           exit={{ opacity: 0, y: 20 }}
           style={{
             position: 'absolute', bottom: '80px', left: '50%', transform: 'translateX(-50%)',
-            zIndex: 200, pointerEvents: 'none',
+            zIndex: 200,
+            // Actionable toasts need pointer events so Undo is clickable.
+            pointerEvents: undoToastAction ? 'auto' : 'none',
             padding: '6px 16px', borderRadius: '8px',
             background: 'rgba(250,247,242,0.92)',
             backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
@@ -922,9 +1074,30 @@ export function EditorCanvas() {
             boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
             fontSize: '0.65rem', fontWeight: 600, color: '#18181B',
             whiteSpace: 'nowrap',
+            display: 'flex', alignItems: 'center', gap: '10px',
           } as React.CSSProperties}
         >
-          {undoToast}
+          <span>{undoToast}</span>
+          {undoToastAction && (
+            <button
+              type="button"
+              onClick={() => {
+                undoToastAction.onClick();
+                if (undoToastTimerRef.current) clearTimeout(undoToastTimerRef.current);
+                setUndoToast(null);
+                setUndoToastAction(null);
+              }}
+              style={{
+                border: 'none', background: 'transparent',
+                padding: '2px 8px', borderRadius: '6px',
+                fontSize: '0.65rem', fontWeight: 700,
+                color: '#7A3E62', cursor: 'pointer',
+                textTransform: 'uppercase', letterSpacing: '0.04em',
+              }}
+            >
+              {undoToastAction.label}
+            </button>
+          )}
         </motion.div>
       )}
 
