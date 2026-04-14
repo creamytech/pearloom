@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Eye, Command, Monitor, Tablet, Smartphone, Link } from 'lucide-react';
+import { ArrowLeft, Eye, Command, Monitor, Tablet, Smartphone, Link, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import {
   UndoIcon, RedoIcon, PublishIcon, SavedIcon, UnsavedIcon,
 } from '@/components/icons/EditorIcons';
@@ -150,6 +150,19 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
           <RichTooltip label="Preview your site" shortcut="⌘P" side="bottom">
             <ToolBtn onClick={actions.storePreviewForOpen}>
               <Eye size={13} />
+            </ToolBtn>
+          </RichTooltip>
+        )}
+
+        {/* Toggle side panel (focus mode) */}
+        {!isMobile && (
+          <RichTooltip
+            label={state.sidebarCollapsed ? 'Show panel' : 'Hide panel'}
+            shortcut="⌘\\"
+            side="bottom"
+          >
+            <ToolBtn onClick={() => dispatch({ type: 'TOGGLE_SIDEBAR_COLLAPSED' })}>
+              {state.sidebarCollapsed ? <PanelRightOpen size={13} /> : <PanelRightClose size={13} />}
             </ToolBtn>
           </RichTooltip>
         )}

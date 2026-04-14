@@ -91,7 +91,9 @@ interface FullscreenEditorProps {
 export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubdomain, onChange, onPublish, onExit }: FullscreenEditorProps) {
   const [state, dispatch] = useReducer(editorReducer, undefined, () => createInitialEditorState(manifest, initialSubdomain));
   const [previewKey] = useState(() => `${PREVIEW_KEY_PREFIX}-${Date.now()}`);
-  const [panelOpen, setPanelOpen] = useState(true);
+  // Panel open/collapsed lives in editor state (sidebarCollapsed) so the
+  // toolbar and keyboard shortcuts can toggle it without prop drilling.
+  const panelOpen = !state.sidebarCollapsed;
   // previewKey + iframeRef kept for mobile editor sheet + external preview window
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const contentPanelRef = useRef<HTMLDivElement>(null);
@@ -103,11 +105,6 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const [showPublishAudit, setShowPublishAudit] = useState(false);
   const auditPassedRef = useRef(false);
 
-  // ── Panel open/close tracking ────────────────────────────────
-  useEffect(() => {
-    // Direct DOM rendering auto-adjusts; no iframe resize needed
-    return () => {};
-  }, [panelOpen]);
 
   // ── History ──────────────────────────────────────────────────
   const historyRef = useRef<StoryManifest[]>([manifest]);
@@ -130,7 +127,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 
   // ── Auto-open panel on tab change ───────────────────────────
   useEffect(() => {
-    if (!state.isMobile) setPanelOpen(true);
+    if (!state.isMobile) dispatch({ type: 'SET_SIDEBAR_COLLAPSED', collapsed: false });
   }, [state.activeTab, state.isMobile]);
 
   // ── Sync chapters when manifest.chapters changes from parent ─
@@ -500,7 +497,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       if (mod && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
       if (mod && e.key === 'z' && e.shiftKey) { e.preventDefault(); redo(); return; }
       if (mod && e.key === 'y') { e.preventDefault(); redo(); return; }
-      if (mod && e.key === '\\') { e.preventDefault(); setPanelOpen((prev: boolean) => !prev); return; }
+      if (mod && e.key === '\\') { e.preventDefault(); dispatch({ type: 'TOGGLE_SIDEBAR_COLLAPSED' }); return; }
       // Cmd+P — preview in new tab
       if (mod && e.key === 'p') { e.preventDefault(); storePreviewForOpen(); return; }
       // Cmd+S — mark as saved
@@ -708,7 +705,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
           {/* Docked editor panel — reserves its own width from the row */}
           <EditorWing
             open={panelOpen}
-            onToggle={() => setPanelOpen(v => !v)}
+            onToggle={() => dispatch({ type: 'TOGGLE_SIDEBAR_COLLAPSED' })}
             activeTab={state.activeTab}
             contentRef={contentPanelRef}
           >
@@ -879,7 +876,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 
       {/* Navigation rail — floats over the canvas, independent of the body row */}
       {!state.isMobile && (
-        <EditorRail onOpen={() => setPanelOpen(true)} />
+        <EditorRail onOpen={() => dispatch({ type: 'SET_SIDEBAR_COLLAPSED', collapsed: false })} />
       )}
 
       {/* Mobile */}

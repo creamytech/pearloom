@@ -243,7 +243,7 @@ export function EditorWing({
               </AnimatePresence>
               <motion.button
                 onClick={onToggle}
-                title="Close panel"
+                title="Hide panel (⌘\)"
                 whileHover={{ backgroundColor: 'rgba(0,0,0,0.05)' }}
                 whileTap={{ scale: 0.88 }}
                 style={{
