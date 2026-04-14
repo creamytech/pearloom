@@ -21,6 +21,8 @@ import {
   getEventTypeColor,
   panelText,
   panelWeight,
+  panelTracking,
+  panelLineHeight,
 } from './panel';
 import type { StoryManifest, WeddingEvent } from '@/types';
 
@@ -80,12 +82,21 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
             >
               <CalendarHeartIcon size={22} style={{ opacity: 0.5, marginBottom: '8px', color: '#71717A' }} />
               <div style={{
-                fontSize: '0.75rem', fontWeight: 600,
-                color: '#3F3F46', marginBottom: '4px',
+                fontSize: panelText.itemTitle,
+                fontWeight: panelWeight.bold,
+                color: '#18181B',
+                fontFamily: 'inherit',
+                marginBottom: '4px',
+                lineHeight: panelLineHeight.tight,
               }}>
                 No events yet
               </div>
-              <div style={{ fontSize: '0.65rem', color: '#71717A' }}>
+              <div style={{
+                fontSize: panelText.hint,
+                color: '#71717A',
+                fontFamily: 'inherit',
+                lineHeight: panelLineHeight.snug,
+              }}>
                 Add ceremony, reception, and more
               </div>
             </motion.div>
@@ -121,21 +132,29 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                   }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
-                      fontSize: '0.78rem',
-                      fontWeight: 600,
+                      fontSize: panelText.itemTitle,
+                      fontWeight: panelWeight.semibold,
                       color: '#18181B',
+                      fontFamily: 'inherit',
+                      lineHeight: panelLineHeight.tight,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {evt.name || 'Event'}
                     </div>
-                    <div style={{ fontSize: '0.65rem', color: '#71717A', marginTop: '1px' }}>
+                    <div style={{
+                      fontSize: panelText.hint,
+                      color: '#71717A',
+                      fontFamily: 'inherit',
+                      marginTop: '2px',
+                      lineHeight: panelLineHeight.tight,
+                    }}>
                       {evt.time}{evt.venue ? ` · ${evt.venue}` : ''}
                     </div>
                   </div>
                   <motion.div
                     animate={{ rotate: isExpanded ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
-                    style={{ color: '#A1A1AA', display: 'flex' }}
+                    style={{ color: '#71717A', display: 'flex' }}
                   >
                     <ChevronDown size={13} />
                   </motion.div>
@@ -182,8 +201,14 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                         {/* Optional fields — collapsed by default */}
                         <details style={{ marginTop: '2px' }}>
                           <summary style={{
-                            fontSize: '0.6rem', fontWeight: 600, color: '#A1A1AA',
-                            cursor: 'pointer', padding: '4px 0', listStyle: 'none',
+                            fontSize: panelText.label,
+                            fontWeight: panelWeight.bold,
+                            letterSpacing: panelTracking.wider,
+                            textTransform: 'uppercase',
+                            color: '#71717A',
+                            fontFamily: 'inherit',
+                            lineHeight: panelLineHeight.tight,
+                            cursor: 'pointer', padding: '6px 0', listStyle: 'none',
                             display: 'flex', alignItems: 'center', gap: '4px',
                           }}>
                             <ChevronDown size={10} /> More details
@@ -204,11 +229,14 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                           style={{
                             alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px',
                             padding: '5px 10px', borderRadius: '6px',
-                            border: '1px solid rgba(239,68,68,0.2)',
-                            background: 'rgba(239,68,68,0.05)', color: '#e87a7a',
+                            border: '1px solid rgba(239,68,68,0.25)',
+                            background: 'rgba(239,68,68,0.06)',
+                            color: '#e87a7a',
                             cursor: 'pointer',
-                            fontSize: '0.65rem',
-                            fontWeight: 600,
+                            fontSize: panelText.hint,
+                            fontWeight: panelWeight.semibold,
+                            fontFamily: 'inherit',
+                            lineHeight: panelLineHeight.tight,
                           }}
                         >
                           <Trash2 size={10} /> Remove
@@ -224,7 +252,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
           {/* Add event */}
           <motion.button
             onClick={addEvent}
-            whileHover={{ y: -1, borderColor: '#A1A1AA' }}
+            whileHover={{ y: -1, borderColor: '#18181B' }}
             whileTap={{ scale: 0.98 }}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
@@ -232,8 +260,10 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
               border: '1.5px dashed #E4E4E7',
               background: '#FAFAFA', color: '#18181B',
               cursor: 'pointer',
-              fontSize: panelText.chip,
-              fontWeight: panelWeight.semibold,
+              fontSize: panelText.body,
+              fontWeight: panelWeight.bold,
+              fontFamily: 'inherit',
+              lineHeight: panelLineHeight.tight,
               transition: 'all 0.15s',
             }}
           >
@@ -248,11 +278,13 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                 download="event.ics"
                 style={{
                   flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-                  padding: '7px', borderRadius: '8px',
-                  background: '#FAFAFA', border: '1px solid #E4E4E7',
-                  color: '#3F3F46',
-                  fontSize: panelText.hint,
-                  fontWeight: panelWeight.semibold,
+                  padding: '8px', borderRadius: '8px',
+                  background: '#F4F4F5', border: '1px solid #E4E4E7',
+                  color: '#18181B',
+                  fontSize: panelText.body,
+                  fontWeight: panelWeight.bold,
+                  fontFamily: 'inherit',
+                  lineHeight: panelLineHeight.tight,
                   textDecoration: 'none', transition: 'background 0.12s',
                 }}
               >
