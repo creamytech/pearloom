@@ -81,9 +81,26 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      console.error('RSVP upsert error:', error);
-      // Graceful: confirm success even if table doesn't exist yet
-      return NextResponse.json({ success: true, guest: { name: guestName, status } });
+      console.error('[RSVP] Upsert failed:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        siteId,
+        guestName,
+      });
+      // Surface a clear error to the client so the guest knows their RSVP did not save.
+      // Postgres 42P01 = undefined_table — help operators diagnose missing schema quickly.
+      const isMissingTable = error.code === '42P01';
+      return NextResponse.json(
+        {
+          error: isMissingTable
+            ? 'RSVP storage is not set up yet. Please contact the site owner.'
+            : 'We could not save your RSVP. Please try again in a moment.',
+          code: error.code || null,
+        },
+        { status: isMissingTable ? 503 : 500 }
+      );
     }
 
     // Always log new RSVP responses
