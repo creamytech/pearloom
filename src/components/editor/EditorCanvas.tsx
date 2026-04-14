@@ -19,6 +19,7 @@ import { CanvasEventToolbar, type EventToolbarAction } from './preview/CanvasEve
 import { CanvasFaqToolbar, type FaqToolbarAction } from './preview/CanvasFaqToolbar';
 import { CanvasSectionToolbar, type SectionToolbarAction } from './preview/CanvasSectionToolbar';
 import { CanvasRegistryToolbar, type RegistryToolbarAction } from './preview/CanvasRegistryToolbar';
+import { CanvasHeroEditBar } from './preview/CanvasHeroEditBar';
 import type { BlockType, PageBlock } from '@/types';
 
 export function EditorCanvas() {
@@ -56,6 +57,9 @@ export function EditorCanvas() {
     registryId: string; registryIndex: number; rect: DOMRect;
   } | null>(null);
   const registryLeaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [hoveredHero, setHoveredHero] = useState<{ rect: DOMRect } | null>(null);
+  const heroLeaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Spacebar to pan ─────────────────────────────────────
   useEffect(() => {
@@ -143,8 +147,8 @@ export function EditorCanvas() {
       // Design/theme → design tab → theme section
       'design': { tab: 'design', contextSection: 'theme' },
       'theme': { tab: 'design', contextSection: 'theme' },
-      // Footer → details → couple section (footer settings)
-      'footer': { tab: 'details', contextSection: 'seo' },
+      // Footer → details → footer section (settings tab)
+      'footer': { tab: 'details', contextSection: 'footer' },
       // Guestbook → canvas with block selected
       'guestbook': { tab: 'canvas', selectBlock: true },
       // Spotify → spotify tab
@@ -424,7 +428,7 @@ export function EditorCanvas() {
     if (action === 'edit') {
       if (section === 'footer') {
         dispatch({ type: 'SET_ACTIVE_TAB', tab: 'details' });
-        dispatch({ type: 'SET_CONTEXT_SECTION', section: 'seo' });
+        dispatch({ type: 'SET_CONTEXT_SECTION', section: 'footer' });
       } else if (section === 'nav') {
         dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' });
         dispatch({ type: 'SET_CONTEXT_SECTION', section: 'navigation' });
@@ -487,6 +491,41 @@ export function EditorCanvas() {
       window.removeEventListener('pearloom-registry-hover-keep', onKeep);
       window.removeEventListener('pearloom-registry-hover-end', onEnd);
       if (registryLeaveTimerRef.current) clearTimeout(registryLeaveTimerRef.current);
+    };
+  }, []);
+
+  // ── Hero hover edit bar ──────────────────────────────────
+  const handleHeroStyleChange = useCallback((field: string, value: string) => {
+    if (value === '') {
+      // Clear the override (e.g. heroTextColorOverride)
+      const updated = { ...manifest } as unknown as Record<string, unknown>;
+      delete updated[field];
+      actions.handleDesignChange(updated as unknown as typeof manifest);
+    } else {
+      actions.handleDesignChange({ ...manifest, [field]: value });
+    }
+  }, [manifest, actions]);
+
+  const handleHeroFontClick = useCallback(() => {
+    dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' });
+    dispatch({ type: 'SET_CONTEXT_SECTION', section: 'typography' });
+  }, [dispatch]);
+
+  useEffect(() => {
+    const cancelTimer = () => {
+      if (heroLeaveTimerRef.current) { clearTimeout(heroLeaveTimerRef.current); heroLeaveTimerRef.current = null; }
+    };
+    const onHover = (e: Event) => { cancelTimer(); setHoveredHero((e as CustomEvent).detail); };
+    const onKeep = () => cancelTimer();
+    const onEnd = () => { heroLeaveTimerRef.current = setTimeout(() => setHoveredHero(null), 300); };
+    window.addEventListener('pearloom-hero-hover', onHover);
+    window.addEventListener('pearloom-hero-hover-keep', onKeep);
+    window.addEventListener('pearloom-hero-hover-end', onEnd);
+    return () => {
+      window.removeEventListener('pearloom-hero-hover', onHover);
+      window.removeEventListener('pearloom-hero-hover-keep', onKeep);
+      window.removeEventListener('pearloom-hero-hover-end', onEnd);
+      if (heroLeaveTimerRef.current) clearTimeout(heroLeaveTimerRef.current);
     };
   }, []);
 
@@ -700,6 +739,19 @@ export function EditorCanvas() {
             registryIndex={hoveredRegistry.registryIndex}
             registryUrl={hoveredRegistry.registryId}
             onAction={handleRegistryToolbarAction}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Hero inline edit bar */}
+      <AnimatePresence>
+        {hoveredHero && (
+          <CanvasHeroEditBar
+            rect={hoveredHero.rect}
+            manifest={manifest}
+            canvasRef={canvasRef}
+            onStyleChange={handleHeroStyleChange}
+            onFontClick={handleHeroFontClick}
           />
         )}
       </AnimatePresence>

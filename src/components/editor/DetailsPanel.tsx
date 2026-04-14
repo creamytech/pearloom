@@ -80,8 +80,17 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
   const [openSection, setOpenSection] = useState<string | null>(getDefaultSection);
 
   // Auto-open section from contextual click + scroll-to + highlight
+  // Also auto-switch the sub-tab (logistics / guests / settings) when needed
+  const SECTION_TAB_MAP: Record<string, 'logistics' | 'guests' | 'settings'> = {
+    couple: 'logistics', theday: 'logistics', registry: 'logistics',
+    rsvp: 'logistics', travel: 'logistics', faq: 'logistics',
+    vibe: 'logistics', seating: 'guests',
+    seo: 'settings', protection: 'settings', footer: 'settings',
+  };
   useEffect(() => {
     if (state.contextSection && state.activeTab === 'details') {
+      const targetTab = SECTION_TAB_MAP[state.contextSection];
+      if (targetTab) setDetailsTab(targetTab);
       setOpenSection(state.contextSection);
       // Scroll the section into view and apply highlight pulse
       requestAnimationFrame(() => {
@@ -278,7 +287,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
   }, []);
 
   // ── Section completion checks ──
-  type SectionId = 'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe' | 'seating' | 'seo' | 'protection';
+  type SectionId = 'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe' | 'seating' | 'seo' | 'protection' | 'footer';
   const sectionFilled: Record<SectionId, boolean> = {
     couple: !!(logistics.dresscode || logistics.notes),
     theday: !!(logistics.date || logistics.venue || (manifest.events?.length ?? 0) > 0),
@@ -290,6 +299,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
     seating: false, // Seating is advanced, not required
     seo: !!(manifest.seoTitle || manifest.seoDescription),
     protection: !!(manifest.sitePassword || manifest.comingSoon?.enabled),
+    footer: !!(manifest.poetry?.closingLine),
   };
   const filledCount = Object.values(sectionFilled).filter(Boolean).length;
   const totalSections = Object.keys(sectionFilled).length;
@@ -1408,6 +1418,30 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
 
       {/* ═══ Settings tier ═══ */}
       {detailsTab === 'settings' && <>
+      {/* ── Footer ── */}
+      <Section id="footer" label="Footer">
+        <Field
+          label="Closing Tagline"
+          value={manifest.poetry?.closingLine || ''}
+          onChange={v => onChange({ ...manifest, poetry: { heroTagline: '', rsvpIntro: '', ...(manifest.poetry || {}), closingLine: v } })}
+          placeholder="Together is our favourite place to be..."
+        />
+        <p style={{ fontSize: panelText.hint, color: '#71717A', fontFamily: 'inherit', margin: 0, lineHeight: panelLineHeight.normal }}>
+          Shown beneath your names in the footer.
+        </p>
+        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', paddingTop: '4px' }}>
+          <span style={{ fontSize: panelText.body, color: '#18181B', fontWeight: panelWeight.semibold, fontFamily: 'inherit', lineHeight: panelLineHeight.tight }}>
+            Show &ldquo;Made with Pearloom&rdquo;
+          </span>
+          <input
+            type="checkbox"
+            checked={manifest.watermark !== false}
+            onChange={e => onChange({ ...manifest, watermark: e.target.checked })}
+            style={{ width: '18px', height: '18px', accentColor: '#18181B' }}
+          />
+        </label>
+      </Section>
+
       {/* ── SEO & Sharing ── */}
       <Section id="seo" label="SEO & Sharing">
         <Field

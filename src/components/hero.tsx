@@ -27,6 +27,9 @@ interface HeroProps {
   heroTagline?: string; // from manifest.poetry?.heroTagline
   photos?: string[];
   editMode?: boolean;
+  heroBadgeStyle?: 'pill' | 'outlined' | 'card' | 'minimal';
+  heroCountdownStyle?: 'cards' | 'minimal' | 'large';
+  heroTextColorOverride?: string;
 }
 
 // Letter-by-letter staggered name reveal
@@ -79,7 +82,7 @@ function formatDateBadge(dateStr: string): string {
   } catch { return dateStr; }
 }
 
-export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhoto, weddingDate, vibeSkin, heroTagline, photos, editMode }: HeroProps) {
+export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhoto, weddingDate, vibeSkin, heroTagline, photos, editMode, heroBadgeStyle, heroCountdownStyle, heroTextColorOverride }: HeroProps) {
   const ref = useRef<HTMLDivElement>(null);
   const prefersReduced = useReducedMotion();
 
@@ -146,9 +149,11 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
     img.src = coverPhoto;
   }, [coverPhoto]);
 
-  // Text color: white on real photos (dark overlay guarantees readability), theme color on illustrations
-  const heroTextColor = hasPhoto && !isIllustratedHero ? '#ffffff' : 'var(--pl-ink)';
-  const heroSecondaryColor = hasPhoto ? 'rgba(255,255,255,0.8)' : 'var(--pl-olive)';
+  // Text color: override > auto (white on photos, theme ink on illustrated/no-photo hero)
+  const heroTextColor = heroTextColorOverride || (hasPhoto && !isIllustratedHero ? '#ffffff' : 'var(--pl-ink)');
+  const heroSecondaryColor = heroTextColorOverride
+    ? `${heroTextColorOverride}cc`
+    : hasPhoto ? 'rgba(255,255,255,0.8)' : 'var(--pl-olive)';
 
   return (
     <section
@@ -463,36 +468,60 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
           )}
         </h1>
 
-        {/* Date + venue pill badge */}
-        {hasBadge && (
-          <motion.div
-            initial={isEditor ? false : { opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 1.6 }}
-            style={{ marginTop: '3.5rem', display: 'flex', justifyContent: 'center' }}
-          >
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5em',
-              padding: '0.6rem 1.75rem',
-              borderRadius: '100px',
+        {/* Date + venue badge — style variants */}
+        {hasBadge && (() => {
+          const bs = heroBadgeStyle ?? 'pill';
+          const badgeStyles: Record<string, React.CSSProperties> = {
+            pill: {
+              display: 'inline-flex', alignItems: 'center', gap: '0.5em',
+              padding: '0.6rem 1.75rem', borderRadius: '100px',
               background: hasPhoto ? 'rgba(0,0,0,0.25)' : 'rgba(163,177,138,0.12)',
               backdropFilter: 'blur(16px)',
               border: hasPhoto ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(163,177,138,0.22)',
-              fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
-              fontWeight: 600,
-              letterSpacing: '0.15em',
-              textTransform: 'uppercase',
-              color: heroTextColor,
-              fontFamily: 'var(--pl-font-body)',
-            }}>
-              {badgeDateStr && <><span style={{ opacity: 0.5 }}>·</span> <span data-pe-badge-date="true">{formatDateBadge(badgeDateStr)}</span> </>}
-              {venue && <><span style={{ opacity: 0.5 }}>·</span> <span data-pe-badge-venue="true">{venue}</span> </>}
-              {(badgeDateStr || venue) && <span style={{ opacity: 0.5 }}>·</span>}
-            </span>
-          </motion.div>
-        )}
+            },
+            outlined: {
+              display: 'inline-flex', alignItems: 'center', gap: '0.5em',
+              padding: '0.55rem 1.5rem', borderRadius: '100px',
+              background: 'transparent',
+              border: `1.5px solid ${heroTextColor}`,
+            },
+            card: {
+              display: 'inline-flex', alignItems: 'center', gap: '0.75em',
+              padding: '0.75rem 2rem', borderRadius: '12px',
+              background: hasPhoto ? 'rgba(0,0,0,0.35)' : 'rgba(245,241,232,0.7)',
+              backdropFilter: 'blur(20px)',
+              border: 'none',
+              boxShadow: '0 2px 16px rgba(0,0,0,0.12)',
+            },
+            minimal: {
+              display: 'inline-flex', alignItems: 'center', gap: '0.6em',
+              padding: '0',
+              background: 'transparent', border: 'none',
+            },
+          };
+          return (
+            <motion.div
+              initial={isEditor ? false : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 1.6 }}
+              style={{ marginTop: '3.5rem', display: 'flex', justifyContent: 'center' }}
+            >
+              <span style={{
+                ...badgeStyles[bs],
+                fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
+                fontWeight: 600,
+                letterSpacing: '0.15em',
+                textTransform: 'uppercase',
+                color: heroTextColor,
+                fontFamily: 'var(--pl-font-body)',
+              }}>
+                {badgeDateStr && <><span style={{ opacity: 0.5 }}>·</span> <span data-pe-badge-date="true">{formatDateBadge(badgeDateStr)}</span> </>}
+                {venue && <><span style={{ opacity: 0.5 }}>·</span> <span data-pe-badge-venue="true">{venue}</span> </>}
+                {(badgeDateStr || venue) && <span style={{ opacity: 0.5 }}>·</span>}
+              </span>
+            </motion.div>
+          );
+        })()}
 
         {/* Poetry tagline — word-by-word stagger reveal */}
         {heroTagline && (
@@ -583,7 +612,11 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
 
         {/* Countdown widget — live ticker to wedding day */}
         {weddingDate && (
-          <CountdownWidget targetDate={weddingDate} onPhoto={!!coverPhoto} />
+          <CountdownWidget
+            targetDate={weddingDate}
+            onPhoto={!!coverPhoto}
+            countdownStyle={heroCountdownStyle}
+          />
         )}
       </motion.div>
 

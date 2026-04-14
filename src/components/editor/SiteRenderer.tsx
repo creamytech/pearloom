@@ -1021,6 +1021,27 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     return () => el.removeEventListener('mouseover', onOver);
   }, [editMode]);
 
+  // ── Hero hover → emit event for inline style edit bar ─────────────────────
+  useEffect(() => {
+    if (!editMode || !siteRef.current) return;
+    const el = siteRef.current;
+    let insideHero = false;
+    const onOver = (e: MouseEvent) => {
+      const heroEl = (e.target as HTMLElement).closest('[data-pe-section="hero"]') as HTMLElement | null;
+      if (heroEl && !insideHero) {
+        insideHero = true;
+        window.dispatchEvent(new CustomEvent('pearloom-hero-hover', {
+          detail: { rect: heroEl.getBoundingClientRect() }
+        }));
+      } else if (!heroEl && insideHero) {
+        insideHero = false;
+        window.dispatchEvent(new CustomEvent('pearloom-hero-hover-end'));
+      }
+    };
+    el.addEventListener('mouseover', onOver);
+    return () => el.removeEventListener('mouseover', onOver);
+  }, [editMode]);
+
   // ── Registry card hover → emit event for toolbar ─────────────────────────
   useEffect(() => {
     if (!editMode || !siteRef.current) return;
@@ -1192,6 +1213,9 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
               vibeSkin={vibeSkin}
               heroTagline={manifest.poetry?.heroTagline}
+              heroBadgeStyle={manifest.heroBadgeStyle}
+              heroCountdownStyle={manifest.heroCountdownStyle}
+              heroTextColorOverride={manifest.heroTextColorOverride}
               photos={
                 // Explicit slideshow photos take priority, then chapter first-photos
                 ((manifest as any).heroSlideshow?.length > 0
@@ -2174,7 +2198,16 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         >
           <div style={{ marginBottom: '0.5rem', fontSize: '1rem', opacity: 0.6 }}>{vibeSkin.accentSymbol || '♡'}</div>
           <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.5rem' }}>
-            {safeNames[0]}{safeNames[1] ? ` & ${safeNames[1]}` : ''}
+            <span
+              data-pe-editable={editMode ? 'true' : undefined}
+              data-pe-path="coupleNames.0"
+            >{safeNames[0]}</span>
+            {safeNames[1] ? (
+              <><span style={{ opacity: 0.5 }}> & </span><span
+                data-pe-editable={editMode ? 'true' : undefined}
+                data-pe-path="coupleNames.1"
+              >{safeNames[1]}</span></>
+            ) : null}
           </div>
           {manifest.poetry?.closingLine && (
             <div

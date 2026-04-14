@@ -152,6 +152,12 @@ export interface StoryManifest {
   privateGallery?: boolean;
   // Typography pair preset for the site
   typographyPair?: 'serif-sans' | 'mono-serif' | 'display-body' | 'editorial';
+  // Hero badge style (pill = default pill, outlined = border-only, card = card-style, minimal = text-only dots)
+  heroBadgeStyle?: 'pill' | 'outlined' | 'card' | 'minimal';
+  // Hero countdown widget style
+  heroCountdownStyle?: 'cards' | 'minimal' | 'large';
+  // Hero text color override (overrides automatic dark/light based on photo presence)
+  heroTextColorOverride?: string;
   /** Site customization options (borders, frames, transitions, etc.) */
   customization?: import("./types").SiteCustomization;
   /** Saved reusable components (symbols) */
