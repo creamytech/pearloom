@@ -17,6 +17,7 @@ import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Palette, Sparkles, MoreHorizontal, Copy, Trash2 } from 'lucide-react';
 import { useEditor } from '@/lib/editor-state';
+import { InlineStylePicker } from './InlineStylePicker';
 
 interface HoverRect {
   top: number;
@@ -38,7 +39,14 @@ export function SectionHoverToolbar() {
   const { isMobile, rewritingId } = state;
   const [hovered, setHovered] = useState<HoverState | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [styleOpen, setStyleOpen] = useState(false);
+  const [styleAnchor, setStyleAnchor] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const styleBtnRef = useRef<HTMLButtonElement>(null);
+  // Live ref so the message handler can read the current value without
+  // being recreated (mirrors the hideTimer pattern already in use).
+  const styleOpenRef = useRef(false);
+  useEffect(() => { styleOpenRef.current = styleOpen; }, [styleOpen]);
 
   // Listen for postMessage from iframe
   useEffect(() => {
@@ -49,6 +57,9 @@ export function SectionHoverToolbar() {
         setMoreOpen(false);
       }
       if (e.data?.type === 'SECTION_HOVER_OUT') {
+        // Don't collapse while the inline style picker is open — the user
+        // has moved their mouse off the section to interact with it.
+        if (styleOpenRef.current) return;
         // Small delay to allow moving mouse to toolbar
         hideTimer.current = setTimeout(() => {
           setHovered(null);
@@ -74,7 +85,17 @@ export function SectionHoverToolbar() {
 
   const handleStyle = () => {
     dispatch({ type: 'SET_ACTIVE_ID', id: hovered.chapterId });
-    dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' });
+    // Anchor the picker to the Style button's current viewport rect, so it
+    // stays in a predictable spot even if the toolbar re-positions.
+    const rect = styleBtnRef.current?.getBoundingClientRect();
+    if (rect) {
+      setStyleAnchor({ top: rect.top, left: rect.left, width: rect.width, height: rect.height });
+    }
+    setStyleOpen(true);
+  };
+  const closeStyle = () => {
+    setStyleOpen(false);
+    setStyleAnchor(null);
   };
   const handleAI = () => {
     if (hovered.chapterId) actions.handleAIRewrite(hovered.chapterId);
@@ -87,6 +108,7 @@ export function SectionHoverToolbar() {
   };
 
   return (
+    <>
     <AnimatePresence>
       {hovered && (
         <motion.div
@@ -97,6 +119,7 @@ export function SectionHoverToolbar() {
           transition={{ type: 'spring', stiffness: 500, damping: 32 }}
           onMouseEnter={() => { if (hideTimer.current) clearTimeout(hideTimer.current); }}
           onMouseLeave={() => {
+            if (styleOpenRef.current) return;
             hideTimer.current = setTimeout(() => {
               setHovered(null);
               setMoreOpen(false);
@@ -125,6 +148,7 @@ export function SectionHoverToolbar() {
             icon={<Palette size={12} />}
             label="Style"
             onClick={handleStyle}
+            btnRef={styleBtnRef}
           />
           <ToolbarDivider />
 
@@ -192,17 +216,44 @@ export function SectionHoverToolbar() {
         </motion.div>
       )}
     </AnimatePresence>
+
+    {/* Inline style picker — replaces right-panel switch.
+        Stays open independently of the toolbar hover lifecycle. */}
+    <AnimatePresence>
+      {styleOpen && styleAnchor && (
+        <InlineStylePicker
+          key="inline-style-picker"
+          anchor={styleAnchor}
+          onClose={closeStyle}
+          onMouseEnter={() => { if (hideTimer.current) clearTimeout(hideTimer.current); }}
+          onMouseLeave={() => {
+            // Let Escape/outside-click drive dismissal; mirror toolbar pattern
+            // by re-arming the hide timer for the toolbar itself.
+            hideTimer.current = setTimeout(() => {
+              if (!styleOpenRef.current) setHovered(null);
+            }, 180);
+          }}
+        />
+      )}
+    </AnimatePresence>
+    </>
   );
 }
 
 // ── Sub-components ─────────────────────────────────────────────
 function ToolbarBtn({
-  icon, label, onClick, disabled, accent,
+  icon, label, onClick, disabled, accent, btnRef,
 }: {
-  icon: React.ReactNode; label: string; onClick: () => void; disabled?: boolean; accent?: boolean;
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  accent?: boolean;
+  btnRef?: React.Ref<HTMLButtonElement>;
 }) {
   return (
     <motion.button
+      ref={btnRef}
       onClick={onClick}
       disabled={disabled}
       title={label}
