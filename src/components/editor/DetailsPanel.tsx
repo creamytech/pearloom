@@ -338,6 +338,66 @@ function WeddingPartyEditor({ manifest, onChange }: { manifest: StoryManifest; o
   );
 }
 
+// ── Collapsible FAQ row (Item #57) ────────────────────────────
+function FaqRow({ faq, onUpdate, onDelete }: {
+  faq: FaqItem;
+  onUpdate: (id: string, data: Partial<FaqItem>) => void;
+  onDelete: (id: string) => void;
+}) {
+  const [expanded, setExpanded] = useState(true);
+  return (
+    <div style={{
+      background: '#FAFAFA',
+      border: '1px solid #E4E4E7',
+      borderRadius: '10px', padding: '12px',
+      display: 'flex', flexDirection: 'column', gap: '8px',
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px' }}>
+        <button
+          onClick={() => setExpanded(v => !v)}
+          aria-expanded={expanded}
+          aria-label={expanded ? 'Collapse answer' : 'Expand answer'}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '4px',
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: '#71717A',
+            padding: '2px 4px',
+            borderRadius: '6px',
+            fontSize: panelText.hint,
+            fontWeight: panelWeight.semibold,
+            fontFamily: 'inherit',
+          }}
+        >
+          <motion.span
+            animate={{ rotate: expanded ? 0 : -90 }}
+            transition={{ duration: 0.15 }}
+            style={{ display: 'flex' }}
+          >
+            <ChevronDown size={12} />
+          </motion.span>
+          {expanded ? 'Hide answer' : 'Show answer'}
+        </button>
+        <ConfirmDeleteButton onConfirm={() => onDelete(faq.id)} />
+      </div>
+      <Field label="Question" value={faq.question} onChange={v => onUpdate(faq.id, { question: v })} placeholder="Is the venue wheelchair accessible?" />
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            key="answer"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <Field label="Answer" value={faq.answer} onChange={v => onUpdate(faq.id, { answer: v })} rows={2} placeholder="Yes, the venue has full accessibility…" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void; subdomain?: string }) {
   const { state } = useEditor();
   const [detailsTab, setDetailsTab] = useState<'logistics' | 'guests' | 'settings'>('logistics');
@@ -1358,9 +1418,9 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           <textarea value={travel.directions || ''} onChange={e => updTravel({ directions: e.target.value })} rows={2}
             placeholder="Take exit 14B off I-95…" style={{ ...inp, resize: 'vertical', lineHeight: 1.5 }} />
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px', flexWrap: 'wrap', gap: '6px', minWidth: 0 }}>
           <label style={{ ...lbl, margin: 0 }}>Hotels ({(travel.hotels || []).length})</label>
-          <div style={{ display: 'flex', gap: '6px' }}>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', minWidth: 0 }}>
             <button
               onClick={() => setShowHotelFinder(true)}
               style={{
@@ -1491,18 +1551,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           </p>
         )}
         {faqs.map(faq => (
-          <div key={faq.id} style={{
-            background: '#FAFAFA',
-            border: '1px solid #E4E4E7',
-            borderRadius: '10px', padding: '12px',
-            display: 'flex', flexDirection: 'column', gap: '8px',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <ConfirmDeleteButton onConfirm={() => delFaq(faq.id)} />
-            </div>
-            <Field label="Question" value={faq.question} onChange={v => updFaq(faq.id, { question: v })} placeholder="Is the venue wheelchair accessible?" />
-            <Field label="Answer" value={faq.answer} onChange={v => updFaq(faq.id, { answer: v })} rows={2} placeholder="Yes, the venue has full accessibility…" />
-          </div>
+          <FaqRow key={faq.id} faq={faq} onUpdate={updFaq} onDelete={delFaq} />
         ))}
         {faqs.length === 0 && (
           <p style={{

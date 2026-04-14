@@ -106,7 +106,14 @@ export function ChapterPanel({
           value={chapter.date ? chapter.date.slice(0, 10) : ''}
           onChange={(d) => upd({ date: d })}
         />
-        <Field label="Subtitle" value={chapter.subtitle || ''} onChange={v => upd({ subtitle: v })} placeholder="A quiet beginning" />
+        <Field
+          label="Subtitle"
+          value={chapter.subtitle || ''}
+          onChange={v => upd({ subtitle: v })}
+          placeholder="A quiet beginning"
+          maxLength={140}
+          showCount
+        />
       </div>
 
       <Divider />
@@ -222,6 +229,11 @@ export function ChapterPanel({
         <input
           value={chapter.mood || ''}
           onChange={e => upd({ mood: e.target.value })}
+          onBlur={e => {
+            // Item #52: strip special chars except spaces, hyphens, apostrophes
+            const cleaned = e.target.value.replace(/[^\p{L}\p{N}\s\-']/gu, '');
+            if (cleaned !== e.target.value) upd({ mood: cleaned });
+          }}
           placeholder="Or type a custom mood..."
           style={{
             ...inp,

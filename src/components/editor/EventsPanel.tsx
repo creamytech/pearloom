@@ -9,7 +9,7 @@
 import React, { useState } from 'react';
 import { DatePicker } from '@/components/ui/date-picker';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Plus, Trash2, ChevronDown, Calendar } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, Calendar, Copy } from 'lucide-react';
 import { CalendarHeartIcon } from '@/components/icons/PearloomIcons';
 import { Field } from './editor-utils';
 import { useEditor } from '@/lib/editor-state';
@@ -35,11 +35,52 @@ export const EVENT_TYPE_OPTS: Array<{ type: WeddingEvent['type']; label: string;
   { type: 'other',         label: 'Other',         color: eventTypeColors.other },
 ];
 
+// ── Time helpers (Item #59) ───────────────────────────────────
+// Parses human-friendly times ("5:00 PM", "17:00") into minutes-from-midnight.
+// Returns null when the string is empty or unparseable so callers can no-op.
+function parseTimeToMinutes(raw: string): number | null {
+  if (!raw) return null;
+  const s = raw.trim();
+  // 12-hour form: "5:00 PM", "5 pm", "12:30 am"
+  const twelve = /^(\d{1,2})(?::(\d{2}))?\s*([apAP])\.?\s*[mM]?\.?$/;
+  const m12 = s.match(twelve);
+  if (m12) {
+    let hr = parseInt(m12[1], 10);
+    const min = m12[2] ? parseInt(m12[2], 10) : 0;
+    const pm = m12[3].toLowerCase() === 'p';
+    if (hr === 12) hr = 0;
+    if (pm) hr += 12;
+    if (hr >= 24 || min >= 60) return null;
+    return hr * 60 + min;
+  }
+  // 24-hour form: "17:00"
+  const twentyFour = /^(\d{1,2}):(\d{2})$/;
+  const m24 = s.match(twentyFour);
+  if (m24) {
+    const hr = parseInt(m24[1], 10);
+    const min = parseInt(m24[2], 10);
+    if (hr >= 24 || min >= 60) return null;
+    return hr * 60 + min;
+  }
+  return null;
+}
+
+// Kept for future clamp-to-start+60 fallback behavior described in Item #59.
+export function formatMinutesTo12h(mins: number): string {
+  const h24 = Math.floor(mins / 60) % 24;
+  const min = mins % 60;
+  const pm = h24 >= 12;
+  const h12 = ((h24 + 11) % 12) + 1;
+  return `${h12}:${String(min).padStart(2, '0')} ${pm ? 'PM' : 'AM'}`;
+}
+
 export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const { state } = useEditor();
   const subdomain = state.subdomain;
   const events = manifest.events || [];
   const [expandedId, setExpandedId] = useState<string | null>(events[0]?.id || null);
+  // Item #59: track per-event end-time error state for inline feedback
+  const [endTimeErrors, setEndTimeErrors] = useState<Record<string, string>>({});
 
   const addEvent = () => {
     const newEvent: WeddingEvent = {
@@ -57,6 +98,48 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
   const removeEvent = (id: string) => {
     onChange({ ...manifest, events: events.filter(e => e.id !== id) });
     if (expandedId === id) setExpandedId(null);
+  };
+
+  // Item #60: duplicate an event; place copy immediately after original.
+  const duplicateEvent = (id: string) => {
+    const idx = events.findIndex(e => e.id === id);
+    if (idx < 0) return;
+    const original = events[idx];
+    const copy: WeddingEvent = {
+      ...original,
+      id: `event-${Date.now()}`,
+      name: `${original.name || 'Event'} (Copy)`,
+    };
+    const next = [...events];
+    next.splice(idx + 1, 0, copy);
+    onChange({ ...manifest, events: next });
+    setExpandedId(copy.id);
+  };
+
+  // Item #59: commit end time only if it's after start; otherwise surface error.
+  const commitEndTime = (evt: WeddingEvent, raw: string) => {
+    // Empty clears error + saves
+    if (!raw) {
+      updateEvent(evt.id, { endTime: '' });
+      setEndTimeErrors(prev => { const n = { ...prev }; delete n[evt.id]; return n; });
+      return;
+    }
+    const end = parseTimeToMinutes(raw);
+    const start = parseTimeToMinutes(evt.time || '');
+    if (end == null) {
+      // Unparseable end time — allow free-form text (many users type "11 PM onward")
+      // but clear any previous ordering error since we can't compare.
+      updateEvent(evt.id, { endTime: raw });
+      setEndTimeErrors(prev => { const n = { ...prev }; delete n[evt.id]; return n; });
+      return;
+    }
+    if (start != null && end <= start) {
+      // Block commit and show inline error
+      setEndTimeErrors(prev => ({ ...prev, [evt.id]: 'End time must be after start time' }));
+      return;
+    }
+    setEndTimeErrors(prev => { const n = { ...prev }; delete n[evt.id]; return n; });
+    updateEvent(evt.id, { endTime: raw });
   };
 
   return (
@@ -217,30 +300,74 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                             <Field label="Address" value={evt.address} onChange={v => updateEvent(evt.id, { address: v })} placeholder="123 Main St" />
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                               <Field label="Dress Code" value={evt.dressCode || ''} onChange={v => updateEvent(evt.id, { dressCode: v })} placeholder="Black Tie" />
-                              <Field label="End Time" value={evt.endTime || ''} onChange={v => updateEvent(evt.id, { endTime: v })} placeholder="11:00 PM" />
+                              <div>
+                                <Field
+                                  label="End Time"
+                                  value={evt.endTime || ''}
+                                  onChange={v => {
+                                    // Let users type freely; validate on blur.
+                                    updateEvent(evt.id, { endTime: v });
+                                  }}
+                                  onBlur={() => commitEndTime(evt, evt.endTime || '')}
+                                  placeholder="11:00 PM"
+                                />
+                                {endTimeErrors[evt.id] && (
+                                  <div
+                                    role="alert"
+                                    style={{
+                                      marginTop: '4px',
+                                      fontSize: panelText.hint,
+                                      color: '#ef4444',
+                                      fontFamily: 'inherit',
+                                      lineHeight: panelLineHeight.tight,
+                                    }}
+                                  >
+                                    {endTimeErrors[evt.id]}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                             <Field label="Description" value={evt.description || ''} onChange={v => updateEvent(evt.id, { description: v })} rows={2} placeholder="Brief description…" />
                           </div>
                         </details>
 
-                        {/* Remove */}
-                        <button
-                          onClick={() => removeEvent(evt.id)}
-                          style={{
-                            alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px',
-                            padding: '5px 10px', borderRadius: '6px',
-                            border: '1px solid rgba(239,68,68,0.25)',
-                            background: 'rgba(239,68,68,0.06)',
-                            color: '#e87a7a',
-                            cursor: 'pointer',
-                            fontSize: panelText.hint,
-                            fontWeight: panelWeight.semibold,
-                            fontFamily: 'inherit',
-                            lineHeight: panelLineHeight.tight,
-                          }}
-                        >
-                          <Trash2 size={10} /> Remove
-                        </button>
+                        {/* Actions row: Duplicate + Remove (Items #60 + existing) */}
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                          <button
+                            onClick={() => duplicateEvent(evt.id)}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: '4px',
+                              padding: '5px 10px', borderRadius: '6px',
+                              border: '1px solid #E4E4E7',
+                              background: '#F4F4F5',
+                              color: '#18181B',
+                              cursor: 'pointer',
+                              fontSize: panelText.hint,
+                              fontWeight: panelWeight.semibold,
+                              fontFamily: 'inherit',
+                              lineHeight: panelLineHeight.tight,
+                            }}
+                          >
+                            <Copy size={10} /> Duplicate
+                          </button>
+                          <button
+                            onClick={() => removeEvent(evt.id)}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: '4px',
+                              padding: '5px 10px', borderRadius: '6px',
+                              border: '1px solid rgba(239,68,68,0.25)',
+                              background: 'rgba(239,68,68,0.06)',
+                              color: '#e87a7a',
+                              cursor: 'pointer',
+                              fontSize: panelText.hint,
+                              fontWeight: panelWeight.semibold,
+                              fontFamily: 'inherit',
+                              lineHeight: panelLineHeight.tight,
+                            }}
+                          >
+                            <Trash2 size={10} /> Remove
+                          </button>
+                        </div>
                       </div>
                     </motion.div>
                   )}

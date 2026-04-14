@@ -148,7 +148,7 @@ function MoodChip({ mood, onSelect }: { mood?: string; onSelect: (m: string) => 
 // ── Chapter Card ──────────────────────────────────────────────
 function ChapterCard({
   chapter, index, isActive, isExpanded, onSelect, onDelete, onUpdate,
-  confirmDeleteId, onRequestDelete, onCancelDelete,
+  confirmDeleteId, onRequestDelete, onCancelDelete, registerRef,
 }: {
   chapter: Chapter; index: number; isActive: boolean; isExpanded: boolean;
   onSelect: () => void; onDelete: () => void;
@@ -156,10 +156,17 @@ function ChapterCard({
   confirmDeleteId: string | null;
   onRequestDelete: (id: string) => void;
   onCancelDelete: () => void;
+  registerRef?: (id: string, el: HTMLDivElement | null) => void;
 }) {
   const controls = useDragControls();
   const thumb = getThumb(chapter);
   const isConfirming = confirmDeleteId === chapter.id;
+  const rowRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (registerRef) registerRef(chapter.id, rowRef.current);
+    return () => { if (registerRef) registerRef(chapter.id, null); };
+  }, [chapter.id, registerRef]);
 
   return (
     <Reorder.Item
@@ -177,6 +184,7 @@ function ChapterCard({
       style={{ marginBottom: '8px' }}
     >
       <motion.div
+        ref={rowRef}
         onClick={isConfirming ? undefined : onSelect}
         whileHover={!isActive && !isConfirming ? { y: -1 } : {}}
         style={{
@@ -458,6 +466,21 @@ export function StoryPanel() {
   const [deletedChapter, setDeletedChapter] = useState<{ chapter: Chapter; index: number } | null>(null);
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // ── Auto-scroll active chapter row into view (Item #48) ──
+  const rowRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const registerRowRef = useCallback((id: string, el: HTMLDivElement | null) => {
+    if (el) rowRefs.current.set(id, el);
+    else rowRefs.current.delete(id);
+  }, []);
+
+  useEffect(() => {
+    if (!activeId) return;
+    const el = rowRefs.current.get(activeId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [activeId]);
+
   const handleDeleteChapter = useCallback((id: string) => {
     const idx = chapters.findIndex(ch => ch.id === id);
     const chapter = chapters[idx];
@@ -567,6 +590,7 @@ export function StoryPanel() {
                   confirmDeleteId={confirmDeleteId}
                   onRequestDelete={(id) => setConfirmDeleteId(id)}
                   onCancelDelete={() => setConfirmDeleteId(null)}
+                  registerRef={registerRowRef}
                 />
               ))}
             </AnimatePresence>

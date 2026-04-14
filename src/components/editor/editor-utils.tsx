@@ -72,10 +72,13 @@ const blurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | 
 };
 
 // ── Reusable form field — glass input with label ──────────────
-export function Field({ label, value, onChange, rows, placeholder, hint, type }: {
+export function Field({ label, value, onChange, rows, placeholder, hint, type, maxLength, showCount, onBlur: onBlurProp }: {
   label: string; value: string; onChange: (v: string) => void;
   rows?: number; placeholder?: string; hint?: string;
   type?: React.HTMLInputTypeAttribute;
+  maxLength?: number;
+  showCount?: boolean;
+  onBlur?: () => void;
 }) {
   if (rows) return (
     <div>
@@ -83,10 +86,21 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type }:
       <textarea
         value={value} onChange={e => onChange(e.target.value)} rows={rows}
         placeholder={placeholder}
+        maxLength={maxLength}
         style={{ ...inp, resize: 'vertical', lineHeight: 1.65 }}
-        onFocus={focusStyle} onBlur={blurStyle}
+        onFocus={focusStyle}
+        onBlur={e => { blurStyle(e); onBlurProp?.(); }}
       />
-      {hint && <p style={{ fontSize: fontSize['2xs'], color: '#71717A', marginTop: spacing.xs, lineHeight: 1.4 }}>{hint}</p>}
+      {(hint || (showCount && maxLength)) && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xs }}>
+          {hint ? <p style={{ fontSize: fontSize['2xs'], color: '#71717A', lineHeight: 1.4, margin: 0 }}>{hint}</p> : <span />}
+          {showCount && maxLength && (
+            <span style={{ fontSize: fontSize['2xs'], color: value.length >= maxLength ? '#ef4444' : '#A1A1AA', lineHeight: 1.4 }}>
+              {value.length}/{maxLength}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
   return (
@@ -96,10 +110,21 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type }:
         type={type}
         value={value} onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
+        maxLength={maxLength}
         style={inp}
-        onFocus={focusStyle} onBlur={blurStyle}
+        onFocus={focusStyle}
+        onBlur={e => { blurStyle(e); onBlurProp?.(); }}
       />
-      {hint && <p style={{ fontSize: fontSize['2xs'], color: '#71717A', marginTop: spacing.xs, lineHeight: 1.4 }}>{hint}</p>}
+      {(hint || (showCount && maxLength)) && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xs }}>
+          {hint ? <p style={{ fontSize: fontSize['2xs'], color: '#71717A', lineHeight: 1.4, margin: 0 }}>{hint}</p> : <span />}
+          {showCount && maxLength && (
+            <span style={{ fontSize: fontSize['2xs'], color: value.length >= maxLength ? '#ef4444' : '#A1A1AA', lineHeight: 1.4 }}>
+              {value.length}/{maxLength}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

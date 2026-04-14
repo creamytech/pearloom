@@ -63,6 +63,8 @@ export function ColorPicker({ value, onChange, label, className }: ColorPickerPr
   const [hsl, setHSL] = useState<[number, number, number]>(() => {
     try { return hexToHSL(value); } catch { return [140, 40, 55]; }
   });
+  // Item #55: swatch hover preview state
+  const [hoverSwatch, setHoverSwatch] = useState<{ color: string; x: number; y: number } | null>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -192,6 +194,11 @@ export function ColorPicker({ value, onChange, label, className }: ColorPickerPr
                 <button
                   key={color}
                   onClick={() => { onChange(color); setHexInput(color); try { setHSL(hexToHSL(color)); } catch {} }}
+                  onMouseEnter={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setHoverSwatch({ color, x: rect.left + rect.width / 2, y: rect.top });
+                  }}
+                  onMouseLeave={() => setHoverSwatch(null)}
                   className="w-5 h-5 rounded-md border cursor-pointer transition-transform hover:scale-110"
                   style={{
                     background: color,
@@ -202,6 +209,43 @@ export function ColorPicker({ value, onChange, label, className }: ColorPickerPr
                 />
               ))}
             </div>
+
+            {/* Item #55: hover preview tooltip */}
+            {hoverSwatch && typeof document !== 'undefined' && createPortal(
+              <div
+                style={{
+                  position: 'fixed',
+                  left: `${hoverSwatch.x}px`,
+                  top: `${hoverSwatch.y - 58}px`,
+                  transform: 'translateX(-50%)',
+                  zIndex: 10001,
+                  pointerEvents: 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '6px 8px',
+                  borderRadius: '8px',
+                  background: '#FFFFFF',
+                  border: '1px solid rgba(0,0,0,0.08)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                }}
+              >
+                <div
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '6px',
+                    background: hoverSwatch.color,
+                    border: '1px solid rgba(0,0,0,0.08)',
+                  }}
+                />
+                <span style={{ fontSize: '0.65rem', fontFamily: 'monospace', color: '#18181B' }}>
+                  {hoverSwatch.color}
+                </span>
+              </div>,
+              document.body,
+            )}
           </motion.div>
         )}
       </AnimatePresence>,
