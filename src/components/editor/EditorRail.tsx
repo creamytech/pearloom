@@ -34,21 +34,41 @@ const PRIMARY_ITEMS: RailItem[] = [
   { id: 'pages',    tab: 'pages',    Icon: FileText,     label: 'Pages',    description: 'Manage site pages', shortcut: '⌘5' },
 ];
 
-// Overflow tabs — shown in "More" popover
-const MORE_ITEMS: RailItem[] = [
-  { id: 'blocks',     tab: 'blocks',     Icon: Sparkles,     label: 'Pear' },
-  { id: 'guests',     tab: 'guests',     Icon: Users,        label: 'Guests' },
-  { id: 'messaging',  tab: 'messaging',  Icon: MessageSquare, label: 'Messages' },
-  { id: 'analytics',  tab: 'analytics',  Icon: BarChart2,    label: 'Analytics' },
-  { id: 'seating',    tab: 'seating',    Icon: Users,        label: 'Seating' },
-  { id: 'translate',  tab: 'translate',  Icon: Globe,        label: 'Translate' },
-  { id: 'spotify',    tab: 'spotify',    Icon: Music,        label: 'Music' },
-  { id: 'vendors',    tab: 'vendors',    Icon: ShoppingBag,  label: 'Vendors' },
-  { id: 'invite',     tab: 'invite',     Icon: Mail,         label: 'Invitations' },
-  { id: 'savethedate', tab: 'savethedate', Icon: Heart,      label: 'Save the Date' },
-  { id: 'thankyou',   tab: 'thankyou',   Icon: Heart,        label: 'Thank You' },
-  { id: 'voice',      tab: 'voice',      Icon: Sparkles,     label: 'Voice AI' },
-  { id: 'pages',      tab: 'pages',      Icon: FileText,     label: 'Pages' },
+// Secondary rail items — post-launch tools surfaced as first-class icons
+const SECONDARY_ITEMS: RailItem[] = [
+  { id: 'guests',    tab: 'guests',    Icon: Users,        label: 'Guests',    description: 'Guest list & RSVPs' },
+  { id: 'analytics', tab: 'analytics', Icon: BarChart2,   label: 'Analytics', description: 'Views, RSVPs & engagement' },
+  { id: 'messaging', tab: 'messaging', Icon: MessageSquare, label: 'Messages', description: 'Email your guests' },
+];
+
+type MoreGroup = { label: string; items: RailItem[] };
+
+// Overflow groups — shown in "More" popover, organized by category
+const MORE_GROUPS: MoreGroup[] = [
+  {
+    label: 'Content',
+    items: [
+      { id: 'blocks', tab: 'blocks', Icon: Sparkles,  label: 'Pear AI',   description: 'AI content suggestions' },
+      { id: 'voice',  tab: 'voice',  Icon: Sparkles,  label: 'Voice AI',  description: 'Personalized voice & tone' },
+    ],
+  },
+  {
+    label: 'Guests & Invitations',
+    items: [
+      { id: 'invite',   tab: 'invite',   Icon: Mail,  label: 'Invitations', description: 'Send bulk invites' },
+      { id: 'seating',  tab: 'seating',  Icon: Users, label: 'Seating',     description: 'Seating chart editor' },
+    ],
+  },
+  {
+    label: 'After the Wedding',
+    items: [
+      { id: 'savethedate', tab: 'savethedate', Icon: Heart,       label: 'Save the Date' },
+      { id: 'thankyou',    tab: 'thankyou',    Icon: Heart,       label: 'Thank You Notes' },
+      { id: 'spotify',     tab: 'spotify',     Icon: Music,       label: 'Music' },
+      { id: 'vendors',     tab: 'vendors',     Icon: ShoppingBag, label: 'Vendors' },
+      { id: 'translate',   tab: 'translate',   Icon: Globe,       label: 'Translate' },
+    ],
+  },
 ];
 
 function RailButton({ item, isActive, onClick }: { item: RailItem; isActive: boolean; onClick: () => void }) {
@@ -117,8 +137,10 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
     setMoreOpen(false);
   };
 
-  // Check if active tab is in the "more" overflow
-  const isMoreActive = MORE_ITEMS.some(item => item.tab === activeTab);
+  // Check if active tab is in secondary or overflow panels
+  const allMoreItems = MORE_GROUPS.flatMap(g => g.items);
+  const isMoreActive = allMoreItems.some(item => item.tab === activeTab) &&
+    !SECONDARY_ITEMS.some(item => item.tab === activeTab);
 
   return (
     <motion.div
@@ -136,6 +158,12 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
     >
       {/* Primary nav items */}
       {PRIMARY_ITEMS.map(item => (
+        <RailButton key={item.id} item={item} isActive={activeTab === item.tab} onClick={() => handleClick(item.tab)} />
+      ))}
+
+      {/* Secondary cluster: post-launch tools */}
+      <div style={{ width: '28px', height: '1px', background: '#E4E4E7', margin: '2px 0' }} />
+      {SECONDARY_ITEMS.map(item => (
         <RailButton key={item.id} item={item} isActive={activeTab === item.tab} onClick={() => handleClick(item.tab)} />
       ))}
 
@@ -187,32 +215,37 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
                 maxHeight: '400px', overflowY: 'auto',
               } as React.CSSProperties}
             >
-              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', padding: '4px 8px 6px', borderBottom: '1px solid rgba(0,0,0,0.03)', marginBottom: '2px' }}>
-                All Tools
-              </div>
-              {MORE_ITEMS.map(item => {
-                const Icon = item.Icon;
-                const isActive = activeTab === item.tab;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleClick(item.tab)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: '10px',
-                      padding: '8px 10px', borderRadius: '12px', border: 'none',
-                      background: isActive ? 'rgba(24,24,27,0.08)' : 'transparent',
-                      color: isActive ? '#18181B' : '#3F3F46',
-                      cursor: 'pointer', fontSize: '0.75rem', fontWeight: isActive ? 600 : 400,
-                      width: '100%', textAlign: 'left', transition: 'background 0.12s',
-                    }}
-                    onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.02)'; }}
-                    onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
-                  >
-                    <Icon size={15} style={{ color: isActive ? '#18181B' : '#71717A', flexShrink: 0 }} />
-                    {item.label}
-                  </button>
-                );
-              })}
+              {MORE_GROUPS.map((group, gi) => (
+                <div key={group.label}>
+                  {gi > 0 && <div style={{ height: '1px', background: '#F4F4F5', margin: '4px 0' }} />}
+                  <div style={{ fontSize: '0.52rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#A1A1AA', padding: '4px 10px 2px' }}>
+                    {group.label}
+                  </div>
+                  {group.items.map(item => {
+                    const Icon = item.Icon;
+                    const isActive = activeTab === item.tab;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => handleClick(item.tab)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '10px',
+                          padding: '7px 10px', borderRadius: '10px', border: 'none',
+                          background: isActive ? 'rgba(24,24,27,0.08)' : 'transparent',
+                          color: isActive ? '#18181B' : '#3F3F46',
+                          cursor: 'pointer', fontSize: '0.75rem', fontWeight: isActive ? 600 : 400,
+                          width: '100%', textAlign: 'left', transition: 'background 0.12s',
+                        }}
+                        onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.025)'; }}
+                        onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                      >
+                        <Icon size={15} style={{ color: isActive ? '#18181B' : '#71717A', flexShrink: 0 }} />
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
             </motion.div>
           )}
         </AnimatePresence>
