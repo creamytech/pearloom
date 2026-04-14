@@ -1033,7 +1033,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="stylesheet" href={fontUrl} />
 
-      <div style={{ ...siteVarsStyle, scrollBehavior: 'smooth' }}>
+      <div style={{ ...siteVarsStyle, scrollBehavior: 'smooth' }} className={manifest.navStyle === 'sidebar' ? 'lg:ml-60' : ''}>
         <SiteNav
           names={safeNames}
           pages={sitePages}

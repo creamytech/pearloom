@@ -2198,7 +2198,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       {/* CSS scoping — site content lives inside .pl-site-scope */}
       <div
         ref={siteRef}
-        className="pl-site-scope"
+        className={`pl-site-scope${manifest.navStyle === 'sidebar' ? ' lg:ml-60' : ''}`}
         onClick={handleSectionClick}
         style={{ position: 'relative', minHeight: '100%' }}
       >
