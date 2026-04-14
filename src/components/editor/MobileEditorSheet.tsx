@@ -722,6 +722,13 @@ export function MobileEditorSheet() {
         snap={sheetSnap}
         onSnapChange={setSheetSnap}
         open
+        scrollKey={
+          moreToolOpen
+            ? `more:${moreToolOpen}`
+            : activeTab === 'edit'
+            ? `edit:${activeSection ?? 'none'}:${activeChapterId ?? ''}:${activeEventId ?? ''}`
+            : activeTab
+        }
         header={
           sheetSnap === 0 ? (
             <div style={{

@@ -61,9 +61,11 @@ export function BlockConfigPopover({
   // Filter to schema props we know how to render. When we have no schema
   // at all OR no renderable fields, we still surface a minimal popover
   // so the user gets acknowledgement + a way to reach advanced settings.
-  const entries = schema
-    ? Object.entries(schema.props).filter(([, p]) => SUPPORTED_TYPES.has(p.type))
-    : [];
+  const allEntries = schema ? Object.entries(schema.props) : [];
+  const entries = allEntries.filter(([, p]) => SUPPORTED_TYPES.has(p.type));
+  const unsupportedLabels = allEntries
+    .filter(([, p]) => !SUPPORTED_TYPES.has(p.type))
+    .map(([, p]) => p.label);
   const isEmpty = entries.length === 0;
 
   const openCanvasPanel = () => {
@@ -182,6 +184,46 @@ export function BlockConfigPopover({
               onCommit={(v) => commit(key, v)}
             />
           ))}
+          {unsupportedLabels.length > 0 && (
+            <div
+              style={{
+                marginTop: 4,
+                padding: '8px 10px',
+                borderRadius: 8,
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px dashed rgba(255,255,255,0.12)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 8,
+              }}
+            >
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', lineHeight: 1.4 }}>
+                {unsupportedLabels.length === 1
+                  ? `"${unsupportedLabels[0]}" needs the full panel.`
+                  : `${unsupportedLabels.length} advanced fields need the full panel.`}
+              </div>
+              <button
+                type="button"
+                onClick={openCanvasPanel}
+                style={{
+                  flexShrink: 0,
+                  padding: '4px 8px',
+                  borderRadius: 6,
+                  background: 'rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(255,255,255,0.14)',
+                  color: 'rgba(255,255,255,0.92)',
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: '0.02em',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Open panel
+              </button>
+            </div>
+          )}
         </div>
       )}
     </motion.div>

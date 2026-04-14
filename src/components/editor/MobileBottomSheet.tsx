@@ -10,6 +10,7 @@ import {
   useState,
   useRef,
   useEffect,
+  useLayoutEffect,
   useCallback,
   useMemo,
   createContext,
@@ -38,6 +39,13 @@ export interface MobileBottomSheetProps {
   open?: boolean;
   /** Called when the sheet is dragged below the peek point (dismiss) */
   onClose?: () => void;
+  /**
+   * Optional key that identifies the current logical "tab" or view inside the
+   * sheet. When it changes, the sheet saves the current scrollTop against the
+   * previous key and restores scrollTop for the new key (default 0), so
+   * switching between tabs preserves per-tab scroll position.
+   */
+  scrollKey?: string;
 }
 
 type SnapIndex = 0 | 1 | 2;
@@ -108,6 +116,7 @@ export function MobileBottomSheet({
   showHandle = true,
   open = true,
   onClose,
+  scrollKey,
 }: MobileBottomSheetProps) {
   const [currentSnap, setCurrentSnap] = useState<SnapIndex>(initialSnap);
   const [vh, setVh] = useState<number>(typeof window !== 'undefined' ? window.innerHeight : 800);
@@ -121,6 +130,23 @@ export function MobileBottomSheet({
   const y = useMotionValue(snapYs[initialSnap]);
 
   const contentRef = useRef<HTMLDivElement>(null);
+  // Per-scrollKey scrollTop memory. Save on unmount (cleanup fires with the
+  // outgoing key in closure), restore on commit for the incoming key.
+  const scrollMemoryRef = useRef<Map<string, number>>(new Map());
+  useLayoutEffect(() => {
+    const el = contentRef.current;
+    if (!el || !scrollKey) return;
+    const saved = scrollMemoryRef.current.get(scrollKey) ?? 0;
+    // Restore — browsers auto-clamp if incoming content is shorter.
+    el.scrollTop = saved;
+    return () => {
+      // Cleanup runs with the *old* scrollKey in closure, which is exactly
+      // what we want: save the position the user left behind.
+      if (contentRef.current) {
+        scrollMemoryRef.current.set(scrollKey, contentRef.current.scrollTop);
+      }
+    };
+  }, [scrollKey]);
   const isDragging = useRef(false);
   const dragStartY = useRef(0);
   const dragStartMotionY = useRef(0);

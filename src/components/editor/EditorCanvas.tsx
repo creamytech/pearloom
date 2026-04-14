@@ -357,10 +357,13 @@ export function EditorCanvas() {
       case 'moveDown':
         if (idx < chapters.length - 1) [chapters[idx], chapters[idx + 1]] = [chapters[idx + 1], chapters[idx]];
         break;
-      case 'delete':
+      case 'delete': {
+        const name = chapters[idx]?.title || 'this chapter';
+        if (!confirm(`Delete "${name}"?`)) return;
         chapters.splice(idx, 1);
         setHoveredChapter(null);
         break;
+      }
     }
     actions.handleDesignChange({ ...manifest, chapters });
   }, [hoveredChapter, manifest, actions, dispatch]);
@@ -387,10 +390,13 @@ export function EditorCanvas() {
         events.splice(eventIndex + 1, 0, dup);
         break;
       }
-      case 'delete':
+      case 'delete': {
+        const name = events[eventIndex]?.name || 'this event';
+        if (!confirm(`Delete "${name}"?`)) return;
         events.splice(eventIndex, 1);
         setHoveredEvent(null);
         break;
+      }
     }
     actions.handleDesignChange({ ...manifest, events });
   }, [hoveredEvent, manifest, actions, dispatch]);
@@ -412,10 +418,14 @@ export function EditorCanvas() {
       case 'moveDown':
         if (faqIndex < faqs.length - 1) [faqs[faqIndex], faqs[faqIndex + 1]] = [faqs[faqIndex + 1], faqs[faqIndex]];
         break;
-      case 'delete':
+      case 'delete': {
+        const q = faqs[faqIndex]?.question || 'this FAQ';
+        const preview = q.length > 48 ? q.slice(0, 45) + '…' : q;
+        if (!confirm(`Delete "${preview}"?`)) return;
         faqs.splice(faqIndex, 1);
         setHoveredFaq(null);
         break;
+      }
     }
     actions.handleDesignChange({ ...manifest, faqs: faqs.map((f, i) => ({ ...f, order: i })) });
     void faqId; // consumed via index
@@ -470,6 +480,8 @@ export function EditorCanvas() {
     }
     if (action === 'delete') {
       const entries = [...(manifest.registry?.entries || [])];
+      const name = entries[registryIndex]?.name || 'this registry item';
+      if (!confirm(`Delete "${name}"?`)) return;
       entries.splice(registryIndex, 1);
       actions.handleDesignChange({ ...manifest, registry: { ...(manifest.registry || { enabled: true }), entries } });
       setHoveredRegistry(null);
