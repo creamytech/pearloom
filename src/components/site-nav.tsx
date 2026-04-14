@@ -124,6 +124,7 @@ export function SiteNav({
   const [commandOpen, setCommandOpen] = useState(false);
   const [isDesktop, setIsDesktop]     = useState(false);
   const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
+  const [moreSheetOpen, setMoreSheetOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -776,70 +777,178 @@ export function SiteNav({
 
       {/* ── Mobile bottom tab bar (shown for bottom-tabs style, or classic with 3+ pages) ── */}
       {!isDesktop && !isStudio && !inline && enabledPages.length > 0 && (mobileNavStyle === 'bottom-tabs' || (mobileNavStyle === 'classic' && enabledPages.length >= 3)) && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: 0, left: 0, right: 0,
-            zIndex: 99,
-            display: 'flex',
-            alignItems: 'stretch',
-            background: 'rgba(245,241,232,0.96)',
-            backdropFilter: 'blur(16px) saturate(1.6)',
-            WebkitBackdropFilter: 'blur(16px) saturate(1.6)',
-            borderTop: '1px solid rgba(0,0,0,0.06)',
-            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-            boxShadow: '0 -2px 16px rgba(0,0,0,0.04)',
-          }}
-        >
-          {enabledPages.slice(0, 5).map((page) => {
-            const active = isActive(page.slug);
-            return (
-              <Link
-                key={page.id}
-                href={getHref(page.slug)}
-                style={{
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '3px',
-                  padding: '8px 4px 6px',
-                  textDecoration: 'none',
-                  color: active ? 'var(--pl-olive)' : 'rgba(0,0,0,0.35)',
-                  transition: 'color 0.15s',
-                  position: 'relative',
-                }}
+        <>
+          <div
+            style={{
+              position: 'fixed',
+              bottom: 0, left: 0, right: 0,
+              zIndex: 99,
+              display: 'flex',
+              alignItems: 'stretch',
+              background: 'rgba(245,241,232,0.96)',
+              backdropFilter: 'blur(16px) saturate(1.6)',
+              WebkitBackdropFilter: 'blur(16px) saturate(1.6)',
+              borderTop: '1px solid rgba(0,0,0,0.06)',
+              paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+              boxShadow: '0 -2px 16px rgba(0,0,0,0.04)',
+            }}
+          >
+            {(() => {
+              const shortLabels: Record<string, string> = {
+                'Our Story': 'Story', 'Our Photos': 'Photos',
+                'Schedule': 'Events', 'Getting There': 'Travel',
+              };
+              const shortLabel = (label: string) => {
+                const lbl = shortLabels[label] || label;
+                return lbl.length > 8 ? lbl.slice(0, 7) + '\u2026' : lbl;
+              };
+              // Show first 4 + "More" if overflow, else show all (up to 5).
+              const hasOverflow = enabledPages.length > 5;
+              const visiblePages = hasOverflow ? enabledPages.slice(0, 4) : enabledPages.slice(0, 5);
+              const overflowPages = hasOverflow ? enabledPages.slice(4) : [];
+              const anyOverflowActive = overflowPages.some((p) => isActive(p.slug));
+              return (
+                <>
+                  {visiblePages.map((page) => {
+                    const active = isActive(page.slug);
+                    return (
+                      <Link
+                        key={page.id}
+                        href={getHref(page.slug)}
+                        style={{
+                          flex: 1,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '3px',
+                          padding: '8px 4px 6px',
+                          textDecoration: 'none',
+                          color: active ? 'var(--pl-olive)' : 'rgba(0,0,0,0.35)',
+                          transition: 'color 0.15s',
+                          position: 'relative',
+                        }}
+                      >
+                        {active && (
+                          <div style={{
+                            position: 'absolute', top: 0, left: '25%', right: '25%',
+                            height: '2px', borderRadius: '0 0 2px 2px',
+                            background: 'var(--pl-olive)',
+                          }} />
+                        )}
+                        <PageIcon slug={page.slug} size={18} />
+                        <span style={{
+                          fontSize: '0.58rem',
+                          fontWeight: active ? 700 : 600,
+                          letterSpacing: '0.04em',
+                          textTransform: 'uppercase',
+                          lineHeight: 1,
+                          color: 'inherit',
+                        }}>
+                          {shortLabel(page.label)}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                  {hasOverflow && (
+                    <button
+                      type="button"
+                      onClick={() => setMoreSheetOpen(true)}
+                      aria-label="More navigation options"
+                      style={{
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '3px',
+                        padding: '8px 4px 6px',
+                        border: 'none',
+                        background: 'transparent',
+                        cursor: 'pointer',
+                        color: anyOverflowActive ? 'var(--pl-olive)' : 'rgba(0,0,0,0.35)',
+                        transition: 'color 0.15s',
+                        position: 'relative',
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      {anyOverflowActive && (
+                        <div style={{
+                          position: 'absolute', top: 0, left: '25%', right: '25%',
+                          height: '2px', borderRadius: '0 0 2px 2px',
+                          background: 'var(--pl-olive)',
+                        }} />
+                      )}
+                      <Menu size={18} />
+                      <span style={{
+                        fontSize: '0.58rem',
+                        fontWeight: anyOverflowActive ? 700 : 600,
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                        lineHeight: 1,
+                        color: 'inherit',
+                      }}>
+                        More
+                      </span>
+                    </button>
+                  )}
+                </>
+              );
+            })()}
+          </div>
+
+          {/* Overflow sheet for pages beyond the first 4 */}
+          {enabledPages.length > 5 && (
+            <Sheet open={moreSheetOpen} onOpenChange={setMoreSheetOpen}>
+              <SheetContent
+                side="bottom"
+                className="rounded-t-2xl max-h-[70vh] overflow-auto"
+                style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))' }}
               >
-                {active && (
+                <div style={{ padding: '12px 8px 4px' }}>
                   <div style={{
-                    position: 'absolute', top: 0, left: '25%', right: '25%',
-                    height: '2px', borderRadius: '0 0 2px 2px',
-                    background: 'var(--pl-olive)',
-                  }} />
-                )}
-                <PageIcon slug={page.slug} size={18} />
-                <span style={{
-                  fontSize: '0.58rem',
-                  fontWeight: active ? 700 : 600,
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase',
-                  lineHeight: 1,
-                  color: 'inherit',
-                }}>
-                  {(() => {
-                    const shortLabels: Record<string, string> = {
-                      'Our Story': 'Story', 'Our Photos': 'Photos',
-                      'Schedule': 'Events', 'Getting There': 'Travel',
-                    };
-                    const lbl = shortLabels[page.label] || page.label;
-                    return lbl.length > 8 ? lbl.slice(0, 7) + '\u2026' : lbl;
-                  })()}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(0,0,0,0.45)',
+                    padding: '4px 12px 10px',
+                  }}>
+                    More pages
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {enabledPages.slice(4).map((page) => {
+                      const active = isActive(page.slug);
+                      return (
+                        <Link
+                          key={page.id}
+                          href={getHref(page.slug)}
+                          onClick={() => setMoreSheetOpen(false)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '14px 12px',
+                            borderRadius: '10px',
+                            textDecoration: 'none',
+                            color: active ? 'var(--pl-olive)' : 'var(--pl-ink)',
+                            background: active ? 'rgba(163,177,138,0.12)' : 'transparent',
+                            fontWeight: active ? 700 : 500,
+                          }}
+                        >
+                          <PageIcon slug={page.slug} size={20} />
+                          <span style={{ fontSize: '0.95rem' }}>
+                            {pageLabels?.[page.id] ?? page.label}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          )}
+        </>
       )}
 
       {/* ── Compact Glass mobile nav (frosted bottom bar: couple names + hamburger) ── */}
