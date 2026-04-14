@@ -13,7 +13,14 @@ import {
   Briefcase, Plus, Trash2, Pencil, Check, X, Wand2,
   DollarSign, Clock, Mail, Phone,
 } from 'lucide-react';
-import { SidebarSection } from './EditorSidebar';
+import {
+  PanelRoot,
+  PanelSection,
+  panelText,
+  panelWeight,
+  panelTracking,
+  panelLineHeight,
+} from './panel';
 import { useEditor } from '@/lib/editor-state';
 
 // ── Types ──────────────────────────────────────────────────────
@@ -59,10 +66,10 @@ const CATEGORY_OPTIONS: { value: VendorCategory; label: string; icon: string }[]
 ];
 
 const STATUS_OPTIONS: { value: VendorStatus; label: string; color: string; bg: string }[] = [
-  { value: 'considering', label: 'Considering', color: 'rgba(255,255,255,0.45)', bg: 'rgba(0,0,0,0.05)' },
-  { value: 'booked',      label: 'Booked',      color: '#71717A',               bg: '#F4F4F5' },
-  { value: 'paid',        label: 'Paid',        color: '#6bcb77',               bg: 'rgba(107,203,119,0.12)' },
-  { value: 'cancelled',   label: 'Cancelled',   color: '#f87171',               bg: 'rgba(248,113,113,0.12)' },
+  { value: 'considering', label: 'Considering', color: '#71717A',  bg: '#F4F4F5' },
+  { value: 'booked',      label: 'Booked',      color: '#71717A',  bg: '#F4F4F5' },
+  { value: 'paid',        label: 'Paid',        color: '#6bcb77',  bg: 'rgba(107,203,119,0.12)' },
+  { value: 'cancelled',   label: 'Cancelled',   color: '#b34747',  bg: 'rgba(239,68,68,0.06)' },
 ];
 
 function getCategoryIcon(category: VendorCategory): string {
@@ -98,8 +105,12 @@ function StatusBadge({ status }: { status: VendorStatus }) {
   const meta = getStatusMeta(status);
   return (
     <span style={{
-      fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.07em',
-      textTransform: 'uppercase', color: meta.color, background: meta.bg,
+      fontSize: panelText.label,
+      fontWeight: panelWeight.bold,
+      letterSpacing: panelTracking.wide,
+      textTransform: 'uppercase',
+      color: meta.color,
+      background: meta.bg,
       padding: '2px 6px', borderRadius: '8px',
       border: `1px solid ${meta.color}30`,
       whiteSpace: 'nowrap',
@@ -113,9 +124,12 @@ function StatusBadge({ status }: { status: VendorStatus }) {
 
 const inputStyle: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box',
-  background: '#F4F4F5', border: '1px solid rgba(0,0,0,0.07)',
-  borderRadius: '6px', color: '#fff', fontSize: '0.75rem',
+  background: '#FFFFFF', border: '1px solid #E4E4E7',
+  borderRadius: '6px', color: '#18181B',
+  fontSize: 'max(16px, 0.8rem)',
   padding: '6px 10px', outline: 'none',
+  fontFamily: 'inherit',
+  transition: 'border-color 0.15s, box-shadow 0.15s',
 };
 
 const selectStyle: React.CSSProperties = {
@@ -251,7 +265,6 @@ export function VendorPanel() {
         ? manifest.vibeString.slice(0, 40)
         : 'The couple';
 
-      // Use a simple inline prompt to Gemini via the ai-blocks endpoint
       const res = await fetch('/api/ai-blocks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -313,24 +326,27 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
   // ── Render ─────────────────────────────────────────────────
   if (loading) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center', color: '#71717A', fontSize: '0.8rem' }}>
+      <div style={{ padding: '20px', textAlign: 'center', color: '#71717A', fontSize: panelText.body }}>
         Loading vendors…
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '4px 0' }}>
+    <PanelRoot>
 
-      {/* Header */}
+      {/* ── Header row ── */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 16px',
+        padding: '2px 20px 0',
       }}>
         <div style={{
           display: 'flex', alignItems: 'center', gap: '6px',
-          fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em',
-          textTransform: 'uppercase', color: '#71717A',
+          fontSize: panelText.label,
+          fontWeight: panelWeight.heavy,
+          letterSpacing: panelTracking.wider,
+          textTransform: 'uppercase',
+          color: '#71717A',
         }}>
           <Briefcase size={11} /> Vendors
         </div>
@@ -338,29 +354,32 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
           onClick={() => setShowForm(f => !f)}
           style={{
             display: 'flex', alignItems: 'center', gap: '4px',
-            background: showForm ? 'rgba(248,113,113,0.12)' : '#F4F4F5',
-            border: `1px solid ${showForm ? 'rgba(248,113,113,0.3)' : '#E4E4E7'}`,
-            borderRadius: '6px', color: showForm ? '#f87171' : '#71717A',
-            fontSize: '0.7rem', fontWeight: 700, padding: '4px 10px', cursor: 'pointer',
+            background: showForm ? 'rgba(239,68,68,0.06)' : '#F4F4F5',
+            border: `1px solid ${showForm ? 'rgba(239,68,68,0.25)' : '#E4E4E7'}`,
+            borderRadius: '6px',
+            color: showForm ? '#b34747' : '#71717A',
+            fontSize: panelText.hint,
+            fontWeight: panelWeight.bold,
+            padding: '4px 10px', cursor: 'pointer',
           }}
         >
           {showForm ? <><X size={11} /> Cancel</> : <><Plus size={11} /> Add</>}
         </button>
       </div>
 
-      {/* Add form */}
+      {/* ── Add form ── */}
       <AnimatePresence>
         {showForm && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            style={{ overflow: 'hidden', padding: '0 16px' }}
+            style={{ overflow: 'hidden', padding: '0 8px' }}
           >
             <div style={{
               display: 'flex', flexDirection: 'column', gap: '8px',
-              padding: '12px', borderRadius: '8px',
-              background: 'rgba(24,24,27,0.04)', border: '1px solid rgba(0,0,0,0.06)',
+              padding: '12px', borderRadius: '10px',
+              background: '#FAFAFA', border: '1px solid #E4E4E7',
             }}>
               <input
                 style={inputStyle} placeholder="Vendor name *"
@@ -406,10 +425,15 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                 onClick={handleAdd}
                 disabled={saving || !formData.name.trim()}
                 style={{
-                  background: 'rgba(24,24,27,0.08)', border: '1px solid #E4E4E7',
-                  borderRadius: '6px', color: '#71717A', fontSize: '0.75rem',
-                  fontWeight: 700, padding: '8px', cursor: saving ? 'not-allowed' : 'pointer',
-                  opacity: saving || !formData.name.trim() ? 0.5 : 1,
+                  background: saving || !formData.name.trim() ? '#F4F4F5' : '#18181B',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: saving || !formData.name.trim() ? '#71717A' : '#FFFFFF',
+                  fontSize: panelText.body,
+                  fontWeight: panelWeight.bold,
+                  padding: '8px', cursor: saving ? 'not-allowed' : 'pointer',
+                  opacity: saving ? 0.7 : 1,
+                  transition: 'all 0.15s',
                 }}
               >
                 {saving ? 'Saving…' : 'Save Vendor'}
@@ -419,11 +443,11 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
         )}
       </AnimatePresence>
 
-      {/* Budget strip */}
+      {/* ── Budget strip ── */}
       {totalCents > 0 && (
         <div style={{
           display: 'grid', gridTemplateColumns: '1fr 1fr 1fr',
-          gap: '6px', padding: '0 16px',
+          gap: '6px', padding: '0 8px',
         }}>
           {[
             { label: 'Total Budget', value: formatCents(totalCents), color: '#71717A' },
@@ -435,10 +459,21 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
               background: `${s.color}0d`, border: `1px solid ${s.color}22`,
               textAlign: 'center',
             }}>
-              <div style={{ fontSize: '0.6rem', color: '#71717A', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '3px' }}>
+              <div style={{
+                fontSize: panelText.label,
+                color: '#71717A',
+                fontWeight: panelWeight.bold,
+                textTransform: 'uppercase',
+                letterSpacing: panelTracking.wide,
+                marginBottom: '3px',
+              }}>
                 {s.label}
               </div>
-              <div style={{ fontSize: '0.8rem', fontWeight: 800, color: s.color }}>
+              <div style={{
+                fontSize: panelText.itemTitle,
+                fontWeight: panelWeight.heavy,
+                color: s.color,
+              }}>
                 {s.value}
               </div>
             </div>
@@ -446,13 +481,13 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
         </div>
       )}
 
-      {/* Vendor list */}
-      <SidebarSection title={`Vendors (${vendors.length})`} defaultOpen>
+      {/* ── Vendor list ── */}
+      <PanelSection title={`Vendors (${vendors.length})`} icon={Briefcase} defaultOpen>
         {vendors.length === 0 ? (
           <div style={{
             padding: '12px', borderRadius: '8px',
-            background: 'rgba(24,24,27,0.03)', border: '1px solid rgba(0,0,0,0.06)',
-            fontSize: '0.65rem', color: '#71717A', textAlign: 'center',
+            background: '#FAFAFA', border: '1px solid #E4E4E7',
+            fontSize: panelText.hint, color: '#71717A', textAlign: 'center',
           }}>
             No vendors yet. Click + Add to get started.
           </div>
@@ -460,12 +495,11 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {vendors.map(v => (
               <div key={v.id}>
-                {/* Vendor row */}
                 {editingId === v.id ? (
-                  // Edit inline form
+                  /* Edit inline form */
                   <div style={{
                     padding: '10px', borderRadius: '8px',
-                    background: '#F4F4F5', border: '1px solid rgba(24,24,27,0.12)',
+                    background: '#F4F4F5', border: '1px solid #E4E4E7',
                     display: 'flex', flexDirection: 'column', gap: '6px',
                   }}>
                     <input style={inputStyle} value={editData.name} onChange={e => setEditData(p => ({ ...p, name: e.target.value }))} placeholder="Name" />
@@ -480,28 +514,47 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                     <input style={inputStyle} value={editData.contactEmail} onChange={e => setEditData(p => ({ ...p, contactEmail: e.target.value }))} placeholder="Contact email" type="email" />
                     <input style={inputStyle} value={editData.amountCents} onChange={e => setEditData(p => ({ ...p, amountCents: e.target.value }))} placeholder="Amount" type="number" />
                     <div style={{ display: 'flex', gap: '6px' }}>
-                      <button onClick={saveEdit} disabled={saving} style={{ flex: 1, background: 'rgba(24,24,27,0.08)', border: '1px solid #E4E4E7', borderRadius: '6px', color: '#71717A', fontSize: '0.65rem', fontWeight: 700, padding: '6px', cursor: 'pointer' }}>
+                      <button onClick={saveEdit} disabled={saving} style={{
+                        flex: 1, background: '#18181B', border: 'none',
+                        borderRadius: '6px', color: '#FFFFFF',
+                        fontSize: panelText.hint, fontWeight: panelWeight.bold,
+                        padding: '6px', cursor: 'pointer',
+                      }}>
                         <Check size={11} style={{ display: 'inline', marginRight: '4px' }} />Save
                       </button>
-                      <button onClick={() => setEditingId(null)} style={{ flex: 1, background: '#F4F4F5', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '6px', color: 'rgba(255,255,255,0.45)', fontSize: '0.65rem', padding: '6px', cursor: 'pointer' }}>
+                      <button onClick={() => setEditingId(null)} style={{
+                        flex: 1, background: '#FFFFFF', border: '1px solid #E4E4E7',
+                        borderRadius: '6px', color: '#71717A',
+                        fontSize: panelText.hint, padding: '6px', cursor: 'pointer',
+                      }}>
                         Cancel
                       </button>
                     </div>
                   </div>
                 ) : (
+                  /* Vendor row */
                   <div style={{
                     padding: '8px 10px', borderRadius: '8px',
-                    background: 'rgba(24,24,27,0.04)', border: '1px solid rgba(0,0,0,0.06)',
+                    background: '#FAFAFA', border: '1px solid #E4E4E7',
                     display: 'flex', flexDirection: 'column', gap: '5px',
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ fontSize: '1rem', flexShrink: 0 }}>{getCategoryIcon(v.category)}</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</div>
+                        <div style={{
+                          fontSize: panelText.body,
+                          fontWeight: panelWeight.bold,
+                          color: '#18181B',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>{v.name}</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
                           <StatusBadge status={v.status} />
                           {v.amount_cents ? (
-                            <span style={{ fontSize: '0.65rem', color: '#3F3F46', fontWeight: 600 }}>
+                            <span style={{
+                              fontSize: panelText.hint,
+                              color: '#3F3F46',
+                              fontWeight: panelWeight.semibold,
+                            }}>
                               {formatCents(v.amount_cents)}
                             </span>
                           ) : null}
@@ -511,21 +564,21 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                         <button
                           onClick={() => draftEmail(v)}
                           title="Draft email"
-                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F4F4F5', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '6px', cursor: 'pointer', color: '#3F3F46' }}
+                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F4F4F5', border: '1px solid #E4E4E7', borderRadius: '6px', cursor: 'pointer', color: '#3F3F46' }}
                         >
                           <Mail size={12} />
                         </button>
                         <button
                           onClick={() => startEdit(v)}
                           title="Edit"
-                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F4F4F5', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '6px', cursor: 'pointer', color: '#3F3F46' }}
+                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F4F4F5', border: '1px solid #E4E4E7', borderRadius: '6px', cursor: 'pointer', color: '#3F3F46' }}
                         >
                           <Pencil size={12} />
                         </button>
                         <button
                           onClick={() => handleDelete(v.id)}
                           title="Delete"
-                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: '6px', cursor: 'pointer', color: '#f87171' }}
+                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '6px', cursor: 'pointer', color: '#b34747' }}
                         >
                           <Trash2 size={12} />
                         </button>
@@ -541,14 +594,26 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                           exit={{ opacity: 0, height: 0 }}
                           style={{ overflow: 'hidden' }}
                         >
-                          <div style={{ marginTop: '6px', borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '8px' }}>
+                          <div style={{ marginTop: '6px', borderTop: '1px solid #E4E4E7', paddingTop: '8px' }}>
                             {emailLoading === v.id ? (
-                              <div style={{ fontSize: '0.7rem', color: '#71717A', textAlign: 'center', padding: '6px' }}>
+                              <div style={{
+                                fontSize: panelText.hint,
+                                color: '#71717A',
+                                textAlign: 'center',
+                                padding: '6px',
+                              }}>
                                 Drafting email…
                               </div>
                             ) : (
                               <>
-                                <div style={{ fontSize: '0.65rem', color: '#71717A', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>
+                                <div style={{
+                                  fontSize: panelText.label,
+                                  color: '#71717A',
+                                  marginBottom: '5px',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: panelTracking.wide,
+                                  fontWeight: panelWeight.bold,
+                                }}>
                                   Draft email
                                 </div>
                                 <textarea
@@ -556,12 +621,17 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                                   value={emailDraft[v.id] || ''}
                                   style={{
                                     ...inputStyle, minHeight: '80px', resize: 'vertical',
-                                    fontSize: '0.65rem', lineHeight: 1.6,
+                                    lineHeight: panelLineHeight.snug,
                                     color: '#18181B',
+                                    background: '#FFFFFF',
                                   }}
                                   onClick={e => (e.target as HTMLTextAreaElement).select()}
                                 />
-                                <div style={{ fontSize: '0.6rem', color: '#71717A', marginTop: '3px' }}>
+                                <div style={{
+                                  fontSize: panelText.meta,
+                                  color: '#71717A',
+                                  marginTop: '3px',
+                                }}>
                                   Click to select all, then copy
                                 </div>
                               </>
@@ -576,18 +646,20 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
             ))}
           </div>
         )}
-      </SidebarSection>
+      </PanelSection>
 
-      {/* Generate timeline */}
-      <SidebarSection title="Day-of Timeline" defaultOpen>
+      {/* ── Day-of timeline ── */}
+      <PanelSection title="Day-of Timeline" icon={Clock} defaultOpen>
         <button
           onClick={generateTimeline}
           disabled={timelineLoading}
           style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
-            background: timelineLoading ? 'rgba(24,24,27,0.05)' : '#F4F4F5',
+            background: '#F4F4F5',
             border: '1px solid #E4E4E7', borderRadius: '8px',
-            color: '#71717A', fontSize: '0.75rem', fontWeight: 700,
+            color: '#71717A',
+            fontSize: panelText.body,
+            fontWeight: panelWeight.bold,
             padding: '9px', cursor: timelineLoading ? 'not-allowed' : 'pointer',
             opacity: timelineLoading ? 0.7 : 1,
           }}
@@ -597,17 +669,24 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
         </button>
 
         {timelineError && (
-          <div style={{ fontSize: '0.7rem', color: '#f87171', marginTop: '6px', padding: '6px 8px', background: 'rgba(248,113,113,0.08)', borderRadius: '6px' }}>
+          <div style={{
+            fontSize: panelText.hint,
+            color: '#b34747',
+            padding: '6px 8px',
+            background: 'rgba(239,68,68,0.06)',
+            border: '1px solid rgba(239,68,68,0.25)',
+            borderRadius: '6px',
+          }}>
             {timelineError}
           </div>
         )}
 
         {timeline && timeline.length > 0 && (
-          <div style={{ marginTop: '12px', position: 'relative' }}>
+          <div style={{ position: 'relative' }}>
             {/* Vertical line */}
             <div style={{
               position: 'absolute', left: '20px', top: '8px', bottom: '8px',
-              width: '1px', background: 'rgba(24,24,27,0.1)',
+              width: '1px', background: '#E4E4E7',
             }} />
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
@@ -622,20 +701,30 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                   {/* Time badge */}
                   <div style={{
                     flexShrink: 0, width: '40px',
-                    background: 'rgba(24,24,27,0.08)', border: '1px solid #E4E4E7',
+                    background: '#F4F4F5', border: '1px solid #E4E4E7',
                     borderRadius: '6px', padding: '3px 4px', textAlign: 'center',
-                    fontSize: '0.6rem', fontWeight: 800, color: '#71717A', lineHeight: 1.2,
+                    fontSize: panelText.label,
+                    fontWeight: panelWeight.heavy,
+                    color: '#71717A', lineHeight: panelLineHeight.tight,
                     position: 'relative', zIndex: 1,
                   }}>
                     {item.time}
                   </div>
                   {/* Description */}
                   <div style={{ paddingTop: '2px' }}>
-                    <div style={{ fontSize: '0.74rem', color: '#18181B', lineHeight: 1.4 }}>
+                    <div style={{
+                      fontSize: panelText.body,
+                      color: '#18181B',
+                      lineHeight: panelLineHeight.snug,
+                    }}>
                       {item.description}
                     </div>
                     {item.vendor && (
-                      <div style={{ fontSize: '0.6rem', color: '#71717A', marginTop: '2px',  }}>
+                      <div style={{
+                        fontSize: panelText.hint,
+                        color: '#71717A',
+                        marginTop: '2px',
+                      }}>
                         {item.vendor}
                       </div>
                     )}
@@ -645,7 +734,8 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
             </div>
           </div>
         )}
-      </SidebarSection>
-    </div>
+      </PanelSection>
+
+    </PanelRoot>
   );
 }
