@@ -10,6 +10,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Send, Clock, ChevronDown, ChevronUp, Users } from 'lucide-react';
 import { useEditor } from '@/lib/editor-state';
+import {
+  PanelRoot,
+  PanelSection,
+  PanelChip,
+  panelText,
+  panelWeight,
+  panelTracking,
+  panelLineHeight,
+} from './panel';
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -33,38 +42,42 @@ const FILTERS: Array<{ value: RecipientFilter; label: string }> = [
   { value: 'pending', label: 'Pending' },
 ];
 
-// ── Styles (organic glass + olive accents) ───────────────────
-
-const glassCard: React.CSSProperties = {
-  background: '#FAFAFA',
-  borderRadius: '1rem',
-  border: '1px solid #E4E4E7',
-  boxShadow: '0 4px 24px rgba(62,52,42,0.06), 0 1px 4px rgba(62,52,42,0.04)',
-};
+// ── Shared styles ────────────────────────────────────────────
 
 const labelStyle: React.CSSProperties = {
   display: 'block',
-  fontSize: '0.65rem',
-  fontWeight: 700,
-  letterSpacing: '0.1em',
+  fontSize: panelText.label,
+  fontWeight: panelWeight.bold,
+  letterSpacing: panelTracking.wider,
   textTransform: 'uppercase',
-  color: 'rgba(154,148,136,0.8)',
-  marginBottom: '0.5rem',
+  color: '#71717A',
+  fontFamily: 'inherit',
+  lineHeight: panelLineHeight.tight,
+  marginBottom: '6px',
 };
 
 const inputBase: React.CSSProperties = {
   width: '100%',
-  background: '#F4F4F5',
-  border: '1px solid rgba(0,0,0,0.06)',
-  borderRadius: '0.75rem',
-  color: 'var(--pl-ink, #2B2B2B)',
-  padding: '0.75rem 1rem',
-  fontSize: '0.875rem',
+  background: '#FFFFFF',
+  border: '1px solid #E4E4E7',
+  borderRadius: '8px',
+  color: '#18181B',
+  padding: '10px 12px',
+  fontSize: 'max(16px, 0.8rem)',
   outline: 'none',
   boxSizing: 'border-box',
   fontFamily: 'inherit',
-  lineHeight: 1.6,
-  transition: 'border-color 0.15s ease',
+  lineHeight: panelLineHeight.normal,
+  transition: 'border-color 0.15s, box-shadow 0.15s',
+};
+
+const inputFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  e.currentTarget.style.borderColor = '#18181B';
+  e.currentTarget.style.boxShadow = '0 0 0 2px rgba(24,24,27,0.12)';
+};
+const inputBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  e.currentTarget.style.borderColor = '#E4E4E7';
+  e.currentTarget.style.boxShadow = 'none';
 };
 
 // ── Component ────────────────────────────────────────────────
@@ -164,283 +177,200 @@ export function GuestMessagingPanel() {
     return FILTERS.find((x) => x.value === f)?.label ?? f;
   }
 
+  const canSend = !sending && !!subject.trim() && !!body.trim();
+
   // ── Render ─────────────────────────────────────────────────
 
   return (
-    <div
-      style={{
-        padding: '20px 16px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px',
-        minHeight: '100%',
-      }}
-    >
-      {/* Header */}
-      <div>
-        <h2
-          style={{
-            fontSize: '1.15rem',
-            fontWeight: 500,
-            
-            fontFamily: 'inherit',
-            color: 'var(--pl-ink, #2B2B2B)',
-            margin: '0 0 4px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
-          <Mail size={18} style={{ color: '#18181B' }} />
-          Guest Messages
-        </h2>
-        <p
-          style={{
-            fontSize: '0.8rem',
-            color: 'var(--pl-ink-soft, #9A9488)',
-            margin: 0,
-            lineHeight: 1.5,
-          }}
-        >
-          Send updates to guests who have RSVP'd
-          {coupleName && (
-            <span style={{  }}> — from {coupleName}</span>
-          )}
-        </p>
-      </div>
-
-      {/* Compose card */}
-      <div style={{ ...glassCard, padding: '20px' }}>
-        {/* Recipient filter pills */}
-        <div style={{ marginBottom: '16px' }}>
-          <div style={labelStyle}>Send to</div>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {FILTERS.map((f) => {
-              const isActive = recipientFilter === f.value;
-              return (
-                <motion.button
-                  key={f.value}
-                  onClick={() => setRecipientFilter(f.value)}
-                  whileTap={{ scale: 0.94 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-                  style={{
-                    padding: '0.375rem 0.875rem',
-                    borderRadius: '8px',
-                    border: isActive
-                      ? '1px solid #A1A1AA'
-                      : '1px solid rgba(0,0,0,0.08)',
-                    background: isActive
-                      ? 'rgba(24,24,27,0.1)'
-                      : 'rgba(255,255,255,0.6)',
-                    color: isActive
-                      ? '#18181B'
-                      : 'var(--pl-ink-soft, #9A9488)',
-                    fontSize: '0.75rem',
-                    fontWeight: isActive ? 700 : 500,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                  }}
-                >
-                  {isActive && <Users size={11} />}
-                  {f.label}
-                </motion.button>
-              );
-            })}
+    <PanelRoot>
+      <PanelSection
+        title="Guest Messages"
+        icon={Mail}
+        hint={coupleName ? `Send updates to guests who RSVP'd — from ${coupleName}.` : "Send updates to guests who have RSVP'd."}
+        card={false}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {/* Recipient filter */}
+          <div>
+            <div style={labelStyle}>Send to</div>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              {FILTERS.map((f) => {
+                const isActive = recipientFilter === f.value;
+                return (
+                  <PanelChip
+                    key={f.value}
+                    active={isActive}
+                    onClick={() => setRecipientFilter(f.value)}
+                    size="sm"
+                    fullWidth={false}
+                  >
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      {isActive && <Users size={11} />}
+                      {f.label}
+                    </span>
+                  </PanelChip>
+                );
+              })}
+            </div>
           </div>
-        </div>
 
-        {/* Subject */}
-        <div style={{ marginBottom: '14px' }}>
-          <label style={labelStyle}>Subject</label>
-          <input
-            type="text"
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            placeholder="A message from us..."
-            disabled={sending}
-            style={{
-              ...inputBase,
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = '#E4E4E7';
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(0,0,0,0.06)';
-            }}
-          />
-        </div>
+          {/* Subject */}
+          <div>
+            <label style={labelStyle}>Subject</label>
+            <input
+              type="text"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder="A message from us..."
+              disabled={sending}
+              style={inputBase}
+              onFocus={inputFocus}
+              onBlur={inputBlur}
+            />
+          </div>
 
-        {/* Body */}
-        <div style={{ marginBottom: '16px' }}>
-          <label style={labelStyle}>Message</label>
-          <textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            placeholder={`Write a message to your ${recipientFilter === 'all' ? 'guests' : recipientFilter + ' guests'}...`}
-            rows={6}
-            disabled={sending}
-            style={{
-              ...inputBase,
-              resize: 'vertical',
-              minHeight: '120px',
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = '#E4E4E7';
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(0,0,0,0.06)';
-            }}
-          />
-        </div>
-
-        {/* Result feedback */}
-        <AnimatePresence>
-          {sendResult && (
-            <motion.div
-              key="result"
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.2 }}
+          {/* Body */}
+          <div>
+            <label style={labelStyle}>Message</label>
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder={`Write a message to your ${recipientFilter === 'all' ? 'guests' : recipientFilter + ' guests'}...`}
+              rows={6}
+              disabled={sending}
               style={{
-                marginBottom: '14px',
-                padding: '0.75rem 1rem',
-                borderRadius: '0.75rem',
-                background: sendResult.ok
-                  ? '#F4F4F5'
-                  : 'rgba(248,113,113,0.1)',
-                border: `1px solid ${sendResult.ok ? '#E4E4E7' : 'rgba(248,113,113,0.3)'}`,
-                fontSize: '0.8rem',
-                color: sendResult.ok ? '#6B7F5B' : '#dc2626',
-                fontWeight: 500,
+                ...inputBase,
+                resize: 'vertical',
+                minHeight: '120px',
               }}
-            >
-              {sendResult.text}
-            </motion.div>
-          )}
-        </AnimatePresence>
+              onFocus={inputFocus}
+              onBlur={inputBlur}
+            />
+          </div>
 
-        {/* Send button */}
-        <motion.button
-          onClick={handleSend}
-          disabled={sending || !subject.trim() || !body.trim()}
-          whileHover={!sending && subject.trim() && body.trim() ? { scale: 1.01 } : {}}
-          whileTap={!sending && subject.trim() && body.trim() ? { scale: 0.98 } : {}}
-          transition={{ type: 'spring', stiffness: 380, damping: 22 }}
-          style={{
-            width: '100%',
-            padding: '0.875rem',
-            borderRadius: '0.75rem',
-            border: 'none',
-            background:
-              sending || !subject.trim() || !body.trim()
-                ? 'rgba(24,24,27,0.08)'
-                : 'linear-gradient(135deg, #71717A 0%, #8FA27A 100%)',
-            color:
-              sending || !subject.trim() || !body.trim()
-                ? 'rgba(154,148,136,0.5)'
-                : 'white',
-            fontWeight: 700,
-            fontSize: '0.8rem',
-            letterSpacing: '0.02em',
-            cursor:
-              sending || !subject.trim() || !body.trim()
-                ? 'not-allowed'
-                : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            boxShadow:
-              sending || !subject.trim() || !body.trim()
-                ? 'none'
-                : '0 2px 12px rgba(24,24,27,0.12)',
-            transition: 'all 0.2s ease',
-          }}
-        >
-          {sending ? (
-            <>
-              <motion.span
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                style={{ display: 'inline-block' }}
+          {/* Result feedback */}
+          <AnimatePresence>
+            {sendResult && (
+              <motion.div
+                key="result"
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.2 }}
+                style={{
+                  padding: '10px 12px',
+                  borderRadius: '10px',
+                  background: sendResult.ok ? '#F4F4F5' : 'rgba(239,68,68,0.08)',
+                  border: `1px solid ${sendResult.ok ? '#E4E4E7' : 'rgba(239,68,68,0.25)'}`,
+                  fontSize: panelText.body,
+                  fontWeight: panelWeight.semibold,
+                  color: sendResult.ok ? '#3F3F46' : '#b34747',
+                  fontFamily: 'inherit',
+                  lineHeight: panelLineHeight.snug,
+                }}
               >
-                <Clock size={14} />
-              </motion.span>
-              Sending...
-            </>
-          ) : (
-            <>
-              <Send size={14} />
-              Send to {filterLabel(recipientFilter)}
-            </>
-          )}
-        </motion.button>
-      </div>
+                {sendResult.text}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-      {/* Sent messages history */}
-      <div>
-        <h3
-          style={{
-            fontSize: '0.9rem',
-            fontWeight: 500,
-            
-            fontFamily: 'inherit',
-            color: 'var(--pl-ink, #2B2B2B)',
-            margin: '0 0 12px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-        >
-          <Clock size={14} style={{ color: '#18181B' }} />
-          Sent Messages
-        </h3>
-
-        {loadingHistory && (
-          <p
+          {/* Send button */}
+          <motion.button
+            onClick={handleSend}
+            disabled={!canSend}
+            whileHover={canSend ? { y: -1 } : {}}
+            whileTap={canSend ? { scale: 0.98 } : {}}
+            transition={{ type: 'spring', stiffness: 380, damping: 22 }}
             style={{
-              fontSize: '0.8rem',
-              color: 'var(--pl-ink-soft, #9A9488)',
-              
+              width: '100%',
+              padding: '10px 12px',
+              borderRadius: '8px',
+              border: 'none',
+              background: canSend ? '#18181B' : '#E4E4E7',
+              color: canSend ? '#FFFFFF' : '#71717A',
+              fontWeight: panelWeight.bold,
+              fontSize: panelText.body,
+              fontFamily: 'inherit',
+              lineHeight: panelLineHeight.tight,
+              cursor: canSend ? 'pointer' : 'not-allowed',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              transition: 'all 0.15s',
             }}
           >
+            {sending ? (
+              <>
+                <motion.span
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                  style={{ display: 'inline-block' }}
+                >
+                  <Clock size={13} />
+                </motion.span>
+                Sending...
+              </>
+            ) : (
+              <>
+                <Send size={13} />
+                Send to {filterLabel(recipientFilter)}
+              </>
+            )}
+          </motion.button>
+        </div>
+      </PanelSection>
+
+      {/* Sent messages history */}
+      <PanelSection
+        title="Sent Messages"
+        icon={Clock}
+        badge={messages.length || undefined}
+        card={false}
+      >
+        {loadingHistory && (
+          <p style={{
+            fontSize: panelText.hint,
+            color: '#71717A',
+            fontFamily: 'inherit',
+            lineHeight: panelLineHeight.snug,
+            margin: 0,
+          }}>
             Loading...
           </p>
         )}
 
         {!loadingHistory && messages.length === 0 && (
-          <div
-            style={{
-              ...glassCard,
-              padding: '24px 20px',
-              textAlign: 'center',
-            }}
-          >
-            <Mail
-              size={28}
-              style={{
-                color: '#E4E4E7',
-                marginBottom: '8px',
-              }}
-            />
-            <p
-              style={{
-                fontSize: '0.8rem',
-                color: 'var(--pl-ink-soft, #9A9488)',
-                margin: 0,
-                lineHeight: 1.5,
-              }}
-            >
-              No messages sent yet. Compose your first message above.
-            </p>
+          <div style={{
+            padding: '20px 16px',
+            borderRadius: '12px',
+            border: '1.5px dashed #E4E4E7',
+            background: '#FAFAFA',
+            textAlign: 'center',
+          }}>
+            <Mail size={22} style={{ color: '#71717A', opacity: 0.5, marginBottom: '8px' }} />
+            <div style={{
+              fontSize: panelText.itemTitle,
+              fontWeight: panelWeight.bold,
+              color: '#18181B',
+              fontFamily: 'inherit',
+              marginBottom: '4px',
+              lineHeight: panelLineHeight.tight,
+            }}>
+              No messages sent yet
+            </div>
+            <div style={{
+              fontSize: panelText.hint,
+              color: '#71717A',
+              fontFamily: 'inherit',
+              lineHeight: panelLineHeight.snug,
+            }}>
+              Compose your first message above.
+            </div>
           </div>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <AnimatePresence initial={false}>
             {messages.map((msg) => {
               const isExpanded = expandedId === msg.id;
@@ -452,68 +382,63 @@ export function GuestMessagingPanel() {
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.2 }}
                   style={{
-                    ...glassCard,
+                    background: '#FFFFFF',
+                    border: '1px solid #E4E4E7',
+                    borderRadius: '10px',
                     padding: '10px 12px',
                     cursor: 'pointer',
+                    transition: 'all 0.15s',
                   }}
                   onClick={() => setExpandedId(isExpanded ? null : msg.id)}
                 >
-                  {/* Message header row */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      justifyContent: 'space-between',
-                      gap: '8px',
-                    }}
-                  >
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                  }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontSize: '0.8rem',
-                          fontWeight: 600,
-                          color: 'var(--pl-ink, #2B2B2B)',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
+                      <div style={{
+                        fontSize: panelText.itemTitle,
+                        fontWeight: panelWeight.semibold,
+                        color: '#18181B',
+                        fontFamily: 'inherit',
+                        lineHeight: panelLineHeight.tight,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}>
                         {msg.subject}
                       </div>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          marginTop: '4px',
-                          fontSize: '0.65rem',
-                          color: 'var(--pl-ink-soft, #9A9488)',
-                        }}
-                      >
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginTop: '4px',
+                        fontSize: panelText.hint,
+                        color: '#71717A',
+                        fontFamily: 'inherit',
+                        lineHeight: panelLineHeight.tight,
+                      }}>
                         <span>{formatDate(msg.sentAt)}</span>
-                        <span
-                          style={{
-                            padding: '1px 8px',
-                            borderRadius: '8px',
-                            background: '#F4F4F5',
-                            color: '#18181B',
-                            fontWeight: 600,
-                            fontSize: '0.65rem',
-                            letterSpacing: '0.03em',
-                          }}
-                        >
+                        <span style={{
+                          padding: '2px 8px',
+                          borderRadius: '100px',
+                          background: '#F4F4F5',
+                          color: '#18181B',
+                          fontWeight: panelWeight.bold,
+                          fontSize: panelText.chip,
+                          letterSpacing: panelTracking.wide,
+                        }}>
                           {filterLabel(msg.recipientFilter)}
                         </span>
                       </div>
                     </div>
-                    {isExpanded ? (
-                      <ChevronUp size={14} style={{ color: 'var(--pl-ink-soft, #9A9488)', flexShrink: 0, marginTop: '2px' }} />
-                    ) : (
-                      <ChevronDown size={14} style={{ color: 'var(--pl-ink-soft, #9A9488)', flexShrink: 0, marginTop: '2px' }} />
-                    )}
+                    {isExpanded
+                      ? <ChevronUp size={13} style={{ color: '#71717A', flexShrink: 0, marginTop: '2px' }} />
+                      : <ChevronDown size={13} style={{ color: '#71717A', flexShrink: 0, marginTop: '2px' }} />}
                   </div>
 
-                  {/* Expanded body */}
                   <AnimatePresence>
                     {isExpanded && (
                       <motion.div
@@ -523,17 +448,16 @@ export function GuestMessagingPanel() {
                         transition={{ duration: 0.2 }}
                         style={{ overflow: 'hidden' }}
                       >
-                        <div
-                          style={{
-                            marginTop: '12px',
-                            paddingTop: '12px',
-                            borderTop: '1px solid rgba(0,0,0,0.05)',
-                            fontSize: '0.8rem',
-                            lineHeight: 1.65,
-                            color: 'var(--pl-ink, #2B2B2B)',
-                            whiteSpace: 'pre-wrap',
-                          }}
-                        >
+                        <div style={{
+                          marginTop: '10px',
+                          paddingTop: '10px',
+                          borderTop: '1px solid #E4E4E7',
+                          fontSize: panelText.body,
+                          lineHeight: panelLineHeight.normal,
+                          color: '#18181B',
+                          fontFamily: 'inherit',
+                          whiteSpace: 'pre-wrap',
+                        }}>
                           {msg.body}
                         </div>
                       </motion.div>
@@ -544,20 +468,18 @@ export function GuestMessagingPanel() {
             })}
           </AnimatePresence>
         </div>
-      </div>
 
-      {/* Footer note */}
-      <p
-        style={{
-          fontSize: '0.65rem',
-          color: 'var(--pl-muted, #9A9488)',
+        <p style={{
+          fontSize: panelText.meta,
+          color: '#71717A',
+          fontFamily: 'inherit',
           textAlign: 'center',
-          margin: 0,
-          lineHeight: 1.5,
-        }}
-      >
-        Messages are sent via email to guests who provided their address during RSVP.
-      </p>
-    </div>
+          margin: '10px 0 0',
+          lineHeight: panelLineHeight.snug,
+        }}>
+          Messages are sent via email to guests who provided their address during RSVP.
+        </p>
+      </PanelSection>
+    </PanelRoot>
   );
 }
