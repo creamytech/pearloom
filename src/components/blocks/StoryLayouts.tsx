@@ -2092,6 +2092,7 @@ export function StorySection({
             data-pe-chapter={chapter.id}
             data-pe-section="chapter"
             data-pe-label={`Chapter ${chapterIndex + 1}`}
+            className="pe-chapter-wrap"
             initial={isNew ? { opacity: 0, y: 40, scale: 0.98 } : false}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{
@@ -2101,6 +2102,55 @@ export function StorySection({
             }}
             style={{ position: 'relative' }}
           >
+            {/* ── Inline photo replace button — editor only ── */}
+            {editable && (
+              <button
+                className="pe-photo-replace-btn"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  const btn = e.currentTarget as HTMLButtonElement;
+                  const chId = chapter.id;
+                  const hasPhoto = photos.length > 0;
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.accept = 'image/*';
+                  input.onchange = async (ev) => {
+                    const file = (ev.target as HTMLInputElement).files?.[0];
+                    if (!file) return;
+                    const prev = btn.innerHTML;
+                    btn.innerHTML = '<span style="opacity:0.7">Uploading…</span>';
+                    btn.disabled = true;
+                    try {
+                      const fd = new FormData();
+                      fd.append('file', file);
+                      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+                      const json = await res.json();
+                      if (json.url) {
+                        window.dispatchEvent(new CustomEvent('pearloom-photo-replaced', {
+                          detail: { chapterId: chId, imgIndex: 0, newUrl: json.url, newAlt: file.name, append: !hasPhoto },
+                        }));
+                      }
+                    } finally {
+                      btn.innerHTML = prev;
+                      btn.disabled = false;
+                    }
+                  };
+                  input.click();
+                }}
+                style={{
+                  position: 'absolute', top: '14px', right: '14px', zIndex: 20,
+                  padding: '5px 10px', borderRadius: '20px', border: 'none',
+                  background: 'rgba(24,24,27,0.72)', backdropFilter: 'blur(8px)',
+                  WebkitBackdropFilter: 'blur(8px)',
+                  color: '#fff', fontSize: '0.62rem', fontWeight: 600,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.18)', pointerEvents: 'auto',
+                  fontFamily: 'system-ui, sans-serif',
+                } as React.CSSProperties}
+              >
+                📷 {photos.length > 0 ? 'Replace Photo' : 'Add Photo'}
+              </button>
+            )}
             {icon && (
               <motion.div
                 aria-hidden="true"

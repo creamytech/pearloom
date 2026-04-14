@@ -8,7 +8,10 @@ import { PhotoReposition } from './PhotoReposition';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
 import { GalleryPicker } from './GalleryPicker';
 import { useEditor } from '@/lib/editor-state';
+import { layoutFormatToStoryLayout } from '@/components/blocks/StoryLayouts';
 import type { ChapterImage, Chapter } from '@/types';
+
+const SINGLE_PHOTO_LAYOUTS = new Set(['parallax', 'filmstrip', 'magazine', 'timeline']);
 
 // ── Smart Photo Placement Suggestion ─────────────────────────
 interface PlacementSuggestion {
@@ -83,6 +86,10 @@ export function ImageManager({
   const suggestionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevImageCount = useRef(images.length);
   const { manifest } = useEditor();
+
+  const resolvedLayout = manifest.storyLayout ||
+    (manifest.layoutFormat ? layoutFormatToStoryLayout(manifest.layoutFormat as Parameters<typeof layoutFormatToStoryLayout>[0]) : 'parallax');
+  const isSinglePhotoLayout = SINGLE_PHOTO_LAYOUTS.has(resolvedLayout);
 
   const showSuggestion = useCallback((s: PlacementSuggestion) => {
     setSuggestion(s);
@@ -189,6 +196,36 @@ export function ImageManager({
     setUploading(false);
   };
 
+  const handleReplacePhoto = async (files: FileList | null) => {
+    const file = files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const safeName = (file.name || 'photo.jpg').replace(/[^a-zA-Z0-9._-]/g, '_');
+      const safeFile = new File([file], safeName, { type: file.type || 'image/jpeg' });
+      const formData = new FormData();
+      formData.append('file', safeFile);
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (res.ok && data.publicUrl) {
+        const replaced: ChapterImage = {
+          id: images[0]?.id || `upload-${Date.now()}`,
+          url: data.publicUrl,
+          alt: file.name.replace(/\.\w+$/, ''),
+          width: 0, height: 0,
+        };
+        // Replace images[0], keep any additional images
+        onUpdate([replaced, ...images.slice(1)]);
+      } else {
+        setUploadError(data.error || `Upload failed (${res.status})`);
+      }
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Upload failed');
+    }
+    setUploading(false);
+  };
+
   const handleGenerateCaptions = async () => {
     if (!images.length) return;
     setGeneratingCaptions(true);
@@ -231,67 +268,111 @@ export function ImageManager({
     <div>
       {/* Header: label + source buttons */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-        <span style={{ fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA' }}>
-          Photos{images.length > 0 ? ` (${images.length})` : ''}
-        </span>
+        <div>
+          <span style={{ fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#A1A1AA' }}>
+            Photos{images.length > 0 ? ` (${images.length})` : ''}
+          </span>
+          {isSinglePhotoLayout && images.length > 0 && (
+            <span style={{ fontSize: '0.58rem', color: '#A3B18A', fontWeight: 600, marginLeft: '6px' }}>
+              · 1 used by layout
+            </span>
+          )}
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-          <button
-            onClick={() => pickGooglePhotos(handleGooglePhotosPicked)}
-            disabled={gpState !== 'idle' && gpState !== 'done' && gpState !== 'error'}
-            title="Pick from Google Photos"
-            style={{
-              display: 'flex', alignItems: 'center', gap: '3px',
-              padding: '3px 8px', borderRadius: '4px', border: '1px solid #E4E4E7',
-              background: '#fff', color: '#18181B',
-              fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer',
-              transition: 'all 0.15s',
-            }}
-          >
-            {gpState === 'waiting' || gpState === 'fetching' || gpState === 'creating'
-              ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} />
-              : <ImageIcon size={10} />}
-            {gpState === 'waiting' ? 'Picking…' : gpState === 'fetching' ? 'Loading…' : 'Google'}
-          </button>
-          <button
-            onClick={() => setGalleryOpen(true)}
-            title="Choose from Gallery"
-            style={{
-              display: 'flex', alignItems: 'center', gap: '3px',
-              padding: '3px 8px', borderRadius: '4px', border: '1px solid #E4E4E7',
-              background: '#fff', color: '#18181B',
-              fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer',
-              transition: 'all 0.15s',
-            }}
-          >
-            <LayoutGrid size={9} />
-            Gallery
-          </button>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '3px',
-              padding: '3px 8px', borderRadius: '4px', border: '1px solid #E4E4E7',
-              background: '#F4F4F5', color: '#18181B',
-              fontSize: '0.6rem', fontWeight: 600, cursor: uploading ? 'not-allowed' : 'pointer',
-              opacity: uploading ? 0.6 : 1,
-            }}
-          >
-            {uploading
-              ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} />
-              : <Upload size={10} />}
-            {uploading ? 'Uploading…' : 'Upload'}
-          </button>
+          {isSinglePhotoLayout && images.length >= 1 ? (
+            /* Single-photo layout: show Replace button only */
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              title="Replace the chapter photo"
+              style={{
+                display: 'flex', alignItems: 'center', gap: '3px',
+                padding: '3px 8px', borderRadius: '4px', border: '1px solid #E4E4E7',
+                background: '#F4F4F5', color: '#18181B',
+                fontSize: '0.6rem', fontWeight: 600, cursor: uploading ? 'not-allowed' : 'pointer',
+                opacity: uploading ? 0.6 : 1,
+              }}
+            >
+              {uploading ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : <Camera size={10} />}
+              {uploading ? 'Uploading…' : 'Replace'}
+            </button>
+          ) : (
+            /* Multi-photo layouts: show all add options */
+            <>
+              <button
+                onClick={() => pickGooglePhotos(handleGooglePhotosPicked)}
+                disabled={gpState !== 'idle' && gpState !== 'done' && gpState !== 'error'}
+                title="Pick from Google Photos"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '3px',
+                  padding: '3px 8px', borderRadius: '4px', border: '1px solid #E4E4E7',
+                  background: '#fff', color: '#18181B',
+                  fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {gpState === 'waiting' || gpState === 'fetching' || gpState === 'creating'
+                  ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} />
+                  : <ImageIcon size={10} />}
+                {gpState === 'waiting' ? 'Picking…' : gpState === 'fetching' ? 'Loading…' : 'Google'}
+              </button>
+              <button
+                onClick={() => setGalleryOpen(true)}
+                title="Choose from Gallery"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '3px',
+                  padding: '3px 8px', borderRadius: '4px', border: '1px solid #E4E4E7',
+                  background: '#fff', color: '#18181B',
+                  fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <LayoutGrid size={9} />
+                Gallery
+              </button>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '3px',
+                  padding: '3px 8px', borderRadius: '4px', border: '1px solid #E4E4E7',
+                  background: '#F4F4F5', color: '#18181B',
+                  fontSize: '0.6rem', fontWeight: 600, cursor: uploading ? 'not-allowed' : 'pointer',
+                  opacity: uploading ? 0.6 : 1,
+                }}
+              >
+                {uploading ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : <Upload size={10} />}
+                {uploading ? 'Uploading…' : 'Upload'}
+              </button>
+            </>
+          )}
         </div>
       </div>
+
+      {/* Info note for single-photo layouts */}
+      {isSinglePhotoLayout && images.length >= 1 && (
+        <div style={{
+          fontSize: '0.62rem', color: '#71717A', marginBottom: '8px',
+          padding: '6px 8px', borderRadius: '6px', background: '#F9F9F9',
+          border: '1px solid #F0F0F0', lineHeight: 1.4,
+        }}>
+          This layout uses 1 photo per chapter. Switch to <strong>Ken Burns</strong> or <strong>Bento Grid</strong> to show multiple photos.
+        </div>
+      )}
 
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        multiple
+        multiple={!isSinglePhotoLayout}
         style={{ display: 'none' }}
-        onChange={e => handleFileUpload(e.target.files)}
+        onChange={e => {
+          if (isSinglePhotoLayout && images.length >= 1) {
+            handleReplacePhoto(e.target.files);
+          } else {
+            handleFileUpload(e.target.files);
+          }
+        }}
       />
 
       <GalleryPicker

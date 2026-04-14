@@ -230,6 +230,30 @@ export function EditorCanvas() {
       return;
     }
 
+    if (path === '__replaceChapterPhoto__') {
+      const { chapterId, imgIndex, newUrl, newAlt, append } = JSON.parse(value) as {
+        chapterId: string; imgIndex: number; newUrl: string; newAlt?: string; append?: boolean;
+      };
+      const chapter = manifest.chapters?.find(c => c.id === chapterId);
+      if (chapter) {
+        const images = [...(chapter.images || [])];
+        const newImg = {
+          id: images[imgIndex]?.id || `photo-${Date.now()}`,
+          url: newUrl,
+          alt: newAlt || images[imgIndex]?.alt || 'Photo',
+          width: images[imgIndex]?.width || 0,
+          height: images[imgIndex]?.height || 0,
+        };
+        if (append || imgIndex >= images.length) {
+          images.push(newImg);
+        } else {
+          images[imgIndex] = newImg;
+        }
+        actions.updateChapter(chapterId, { images });
+      }
+      return;
+    }
+
     if (path.startsWith('__format:')) {
       // Inline text format: __format:manifest.path → value = JSON stringified format object
       const formatPath = path.slice('__format:'.length);

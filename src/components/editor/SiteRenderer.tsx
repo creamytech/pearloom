@@ -1099,6 +1099,17 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     return () => el.removeEventListener('mouseover', onOver);
   }, [editMode]);
 
+  // ── Chapter inline photo replace — forward event to onTextEdit ──────────
+  useEffect(() => {
+    if (!editMode) return;
+    const handler = (e: Event) => {
+      const { chapterId, imgIndex, newUrl, newAlt, append } = (e as CustomEvent).detail;
+      onTextEdit?.('__replaceChapterPhoto__', JSON.stringify({ chapterId, imgIndex, newUrl, newAlt, append }));
+    };
+    window.addEventListener('pearloom-photo-replaced', handler);
+    return () => window.removeEventListener('pearloom-photo-replaced', handler);
+  }, [editMode, onTextEdit]);
+
   // ── Pear nudge: appears once per session on first empty section scroll ──
   const [pearNudgeSection, setPearNudgeSection] = useState<string | null>(null);
   const pearNudgeShownRef = useRef(false);
@@ -2115,6 +2126,17 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       {/* Inline-edit visual states + section tooltips */}
       {editMode && (
         <style>{`
+          /* Chapter photo replace button — fade in on chapter hover */
+          .pe-chapter-wrap .pe-photo-replace-btn {
+            opacity: 0;
+            transform: translateY(-4px);
+            transition: opacity 0.18s ease, transform 0.18s ease;
+          }
+          .pe-chapter-wrap:hover .pe-photo-replace-btn {
+            opacity: 1;
+            transform: translateY(0);
+          }
+
           /* Hover hint: dotted underline on editable fields */
           [data-pe-editable="true"]:not([contenteditable="true"]):not(.pe-edit-primed):hover {
             text-decoration: underline;
