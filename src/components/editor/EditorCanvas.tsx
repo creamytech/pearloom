@@ -269,6 +269,34 @@ export function EditorCanvas() {
     setTimeout(() => setUndoToast(null), 2000);
   }, [manifest, clipboardBlock, actions]);
 
+  // ── Sidebar sync on inline text edit focus ───────────────
+  // When the user clicks into a text field on the canvas, route
+  // the sidebar to the relevant panel (story chapter, events, etc.)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { chapterId, field, path } = (e as CustomEvent).detail as {
+        chapterId: string | null; field: string | null; path: string | null;
+      };
+      if (chapterId) {
+        dispatch({ type: 'SET_ACTIVE_ID', id: chapterId });
+        dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
+        return;
+      }
+      if (path?.startsWith('events.')) {
+        dispatch({ type: 'SET_ACTIVE_TAB', tab: 'details' });
+        dispatch({ type: 'SET_CONTEXT_SECTION', section: 'events' });
+        return;
+      }
+      if (path?.startsWith('poetry.') || field === 'heroTagline') {
+        dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' });
+        dispatch({ type: 'SET_CONTEXT_SECTION', section: 'typography' });
+        return;
+      }
+    };
+    window.addEventListener('pearloom-field-focus', handler);
+    return () => window.removeEventListener('pearloom-field-focus', handler);
+  }, [dispatch]);
+
   // ── Block drop → insert at position ──────────────────────
   const handleBlockDrop = useCallback((blockType: string, position: number) => {
     const blocks = manifest.blocks || [];

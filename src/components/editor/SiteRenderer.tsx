@@ -695,6 +695,16 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); htmlEl.blur(); }
           if (e.key === 'Escape') htmlEl.blur();
         });
+
+        // Focus: tell the sidebar which chapter / section is being edited
+        htmlEl.addEventListener('focus', () => {
+          const chapterId = htmlEl.closest('[data-pe-chapter]')?.getAttribute('data-pe-chapter') ?? null;
+          const field = htmlEl.getAttribute('data-pe-field') ?? null;
+          const path = htmlEl.getAttribute('data-pe-path') ?? null;
+          window.dispatchEvent(new CustomEvent('pearloom-field-focus', {
+            detail: { chapterId, field, path }
+          }));
+        });
       });
     };
 
