@@ -12,9 +12,17 @@
 
 import { useRef, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Link2, Check, Calendar, Image } from 'lucide-react';
+import { Download, Link2, Check, Calendar, Image as ImageIcon } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import { buildSiteUrl, formatSiteDisplayUrl } from '@/lib/site-urls';
+import {
+  PanelRoot,
+  PanelSection,
+  panelText,
+  panelWeight,
+  panelTracking,
+  panelLineHeight,
+} from './panel';
 
 // ── Card layout themes ────────────────────────────────────────
 const CARD_STYLES = [
@@ -82,56 +90,71 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
   }, [subdomain]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '4px 0' }}>
-      {/* Header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '6px',
-        fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em',
-        textTransform: 'uppercase', color: '#71717A',
-      }}>
-        <Calendar size={11} /> Save the Date
-      </div>
+    <PanelRoot>
 
-      {/* Style picker */}
-      <div>
-        <div style={{ fontSize: '0.65rem', color: '#71717A', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Card Style</div>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          {CARD_STYLES.map(s => (
-            <button
-              key={s.id}
-              onClick={() => setCardStyle(s.id)}
-              style={{
-                padding: '5px 10px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 700,
-                border: `1px solid ${cardStyle === s.id ? s.accent : 'rgba(255,255,255,0.2)'}`,
-                background: cardStyle === s.id ? `${s.accent}22` : 'transparent',
-                color: cardStyle === s.id ? s.accent : 'rgba(255,255,255,0.45)',
-                cursor: 'pointer',
-              }}
-            >{s.label}</button>
-          ))}
+      {/* ── Card Style + Message ── */}
+      <PanelSection title="Customize" icon={ImageIcon} defaultOpen>
+
+        {/* Style picker */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div style={{
+            fontSize: panelText.label,
+            color: '#71717A',
+            textTransform: 'uppercase',
+            letterSpacing: panelTracking.wide,
+            fontWeight: panelWeight.bold,
+          }}>Card Style</div>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            {CARD_STYLES.map(s => (
+              <button
+                key={s.id}
+                onClick={() => setCardStyle(s.id)}
+                style={{
+                  padding: '5px 10px', borderRadius: '10px',
+                  fontSize: panelText.hint,
+                  fontWeight: panelWeight.bold,
+                  border: `1px solid ${cardStyle === s.id ? s.accent : '#E4E4E7'}`,
+                  background: cardStyle === s.id ? `${s.accent}22` : '#FFFFFF',
+                  color: cardStyle === s.id ? s.accent : '#71717A',
+                  cursor: 'pointer',
+                }}
+              >{s.label}</button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Custom message */}
-      <div>
-        <div style={{ fontSize: '0.65rem', color: '#71717A', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Message</div>
-        <input
-          value={customMessage}
-          onChange={e => setCustomMessage(e.target.value)}
-          placeholder="Please save the date"
-          style={{
-            width: '100%', padding: '6px 10px', borderRadius: '6px',
-            border: '1px solid #E4E4E7',
-            background: 'rgba(24,24,27,0.04)',
-            color: '#18181B', fontSize: '0.75rem',
-            outline: 'none', boxSizing: 'border-box',
-          }}
-        />
-      </div>
+        {/* Custom message */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+          <div style={{
+            fontSize: panelText.label,
+            color: '#71717A',
+            textTransform: 'uppercase',
+            letterSpacing: panelTracking.wide,
+            fontWeight: panelWeight.bold,
+          }}>Message</div>
+          <input
+            value={customMessage}
+            onChange={e => setCustomMessage(e.target.value)}
+            placeholder="Please save the date"
+            style={{
+              width: '100%', padding: '8px 10px', borderRadius: '8px',
+              border: '1px solid #E4E4E7',
+              background: '#FFFFFF',
+              color: '#18181B',
+              fontSize: 'max(16px, 0.8rem)',
+              outline: 'none', boxSizing: 'border-box',
+              fontFamily: 'inherit',
+              lineHeight: panelLineHeight.normal,
+              transition: 'border-color 0.15s, box-shadow 0.15s',
+            }}
+            onFocus={e => { e.currentTarget.style.borderColor = '#18181B'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(24,24,27,0.12)'; }}
+            onBlur={e => { e.currentTarget.style.borderColor = '#E4E4E7'; e.currentTarget.style.boxShadow = 'none'; }}
+          />
+        </div>
+      </PanelSection>
 
-      {/* Card preview */}
-      <div>
-        <div style={{ fontSize: '0.65rem', color: '#71717A', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Preview</div>
+      {/* ── Preview ── */}
+      <PanelSection title="Preview" icon={Calendar} defaultOpen>
         <div
           ref={cardRef}
           style={{
@@ -150,14 +173,14 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
             border: '1px solid #E4E4E7',
           }}
         >
-          {/* Decorative top line */}
+          {/* Decorative top/bottom lines */}
           <div style={{ position: 'absolute', top: '14px', left: '24px', right: '24px', height: '1px', background: `${style.accent}40` }} />
           <div style={{ position: 'absolute', bottom: '14px', left: '24px', right: '24px', height: '1px', background: `${style.accent}40` }} />
 
           {/* Save the date tagline */}
           <div style={{
             fontSize: '0.55rem', letterSpacing: '0.3em', textTransform: 'uppercase',
-            color: `${style.accent}aa`, fontWeight: 700, marginBottom: '8px',
+            color: `${style.accent}aa`, fontWeight: panelWeight.bold, marginBottom: '8px',
           }}>
             {message.toUpperCase()}
           </div>
@@ -170,7 +193,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
             color: style.text,
             letterSpacing: '-0.02em',
             textAlign: 'center',
-            lineHeight: 1.2,
+            lineHeight: panelLineHeight.tight,
             marginBottom: '10px',
           }}>
             {displayNames}
@@ -186,7 +209,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
           {date && (
             <div style={{
               fontSize: '0.65rem', color: `${style.text}cc`,
-              letterSpacing: '0.06em', textAlign: 'center', fontWeight: 500,
+              letterSpacing: '0.06em', textAlign: 'center', fontWeight: panelWeight.medium,
             }}>
               {date}
             </div>
@@ -211,53 +234,60 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
             {formatSiteDisplayUrl(subdomain)}
           </div>
         </div>
-      </div>
+      </PanelSection>
 
-      {/* Actions */}
-      <div style={{ display: 'flex', gap: '6px' }}>
-        <motion.button
-          onClick={handleDownload}
-          disabled={downloading}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.97 }}
-          style={{
-            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            padding: '9px', borderRadius: '8px',
-            border: '1px solid #E4E4E7',
-            background: 'rgba(24,24,27,0.06)', color: '#71717A',
-            cursor: downloading ? 'wait' : 'pointer', fontSize: '0.75rem', fontWeight: 700,
-          }}
-        >
-          <Download size={13} />
-          {downloading ? 'Saving…' : 'Download PNG'}
-        </motion.button>
+      {/* ── Share ── */}
+      <PanelSection title="Share" icon={Download} defaultOpen>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <motion.button
+            onClick={handleDownload}
+            disabled={downloading}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+              padding: '9px', borderRadius: '8px',
+              border: '1px solid #E4E4E7',
+              background: '#F4F4F5', color: '#71717A',
+              cursor: downloading ? 'wait' : 'pointer',
+              fontSize: panelText.body,
+              fontWeight: panelWeight.bold,
+            }}
+          >
+            <Download size={13} />
+            {downloading ? 'Saving…' : 'Download PNG'}
+          </motion.button>
 
-        <motion.button
-          onClick={handleCopyLink}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.97 }}
-          style={{
-            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            padding: '9px', borderRadius: '8px',
-            border: '1px solid rgba(24,24,27,0.08)',
-            background: 'rgba(24,24,27,0.04)', color: '#71717A',
-            cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
-          }}
-        >
-          {copied ? <Check size={13} color="#71717A" /> : <Link2 size={13} />}
-          {copied ? 'Copied!' : 'Copy Link'}
-        </motion.button>
-      </div>
-
-      {!mainEvent && (
-        <div style={{
-          padding: '8px 10px', borderRadius: '6px',
-          background: 'rgba(234,179,8,0.07)', border: '1px solid rgba(234,179,8,0.2)',
-          fontSize: '0.7rem', color: '#3F3F46',
-        }}>
-          Add a ceremony or event with a date to see it on the card.
+          <motion.button
+            onClick={handleCopyLink}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+              padding: '9px', borderRadius: '8px',
+              border: '1px solid #E4E4E7',
+              background: '#F4F4F5', color: '#71717A',
+              cursor: 'pointer',
+              fontSize: panelText.body,
+              fontWeight: panelWeight.bold,
+            }}
+          >
+            {copied ? <Check size={13} color="#71717A" /> : <Link2 size={13} />}
+            {copied ? 'Copied!' : 'Copy Link'}
+          </motion.button>
         </div>
-      )}
-    </div>
+
+        {!mainEvent && (
+          <div style={{
+            padding: '8px 10px', borderRadius: '8px',
+            background: 'rgba(234,179,8,0.07)', border: '1px solid rgba(234,179,8,0.2)',
+            fontSize: panelText.hint, color: '#3F3F46',
+          }}>
+            Add a ceremony or event with a date to see it on the card.
+          </div>
+        )}
+      </PanelSection>
+
+    </PanelRoot>
   );
 }
