@@ -221,7 +221,6 @@ function ChapterCard({
       chapterIndex={chapterIndex}
       chapterCount={chapterCount}
       currentLayout={chapter.layout}
-      onEditInSidebar={() => onClick?.()}
       onDuplicate={() => onDuplicate?.()}
       onDelete={() => onDelete?.()}
       onMove={(d) => onMove?.(d)}

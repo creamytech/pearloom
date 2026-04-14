@@ -78,7 +78,7 @@ export function CanvasFaqToolbar({ rect, faqIndex, faqCount, onAction }: CanvasF
         pointerEvents: 'auto',
       }}
     >
-      <ToolBtn icon={Pencil} label="Edit in sidebar" onClick={() => onAction('edit')} />
+      <ToolBtn icon={Pencil} label="Edit in panel" onClick={() => onAction('edit')} />
 
       {faqIndex > 0 && (
         <ToolBtn icon={ArrowUp} label="Move up" onClick={() => onAction('moveUp')} />

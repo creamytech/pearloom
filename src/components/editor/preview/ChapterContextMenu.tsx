@@ -112,7 +112,7 @@ export function ChapterContextMenu({
         fontFamily: 'var(--pl-font-body)',
       }}
     >
-      <MenuItem icon={<Pencil size={14} />} label="Edit in sidebar" onClick={act(() => onEditInSidebar(chapterId))} />
+      <MenuItem icon={<Pencil size={14} />} label="More settings" onClick={act(() => onEditInSidebar(chapterId))} />
       <Divider />
       <MenuItem icon={<Copy size={14} />} label="Duplicate" onClick={act(() => onDuplicate(chapterId))} />
       <MenuItem icon={<Trash2 size={14} />} label="Delete" onClick={act(() => onDelete(chapterId))} danger />

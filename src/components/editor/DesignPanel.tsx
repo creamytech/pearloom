@@ -41,10 +41,7 @@ import { DesignAdvisor } from './DesignAdvisor';
 import { AccessibilityAuditPanel } from './AccessibilityAuditPanel';
 import { CORNER_PRESETS, renderCornerSvg, type CornerPreset } from '@/lib/corner-presets';
 import {
-  StoryLayoutPicker,
-  resolveStoryLayout,
   CHAPTER_DATE_FORMATS,
-  type StoryLayoutType,
   type ChapterDateFormatKey,
 } from '@/components/blocks/StoryLayouts';
 import { Check, Navigation } from 'lucide-react';
@@ -1394,43 +1391,20 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
         <NavCustomizationPanel manifest={manifest} onChange={onChange} />
       </SidebarSection>
 
-      {/* ── Story Layout — how chapters unfold on the page ── */}
-      <SidebarSection title="Story Layout" defaultOpen={false}>
+      {/* ── Chapter Date Format — applies to chapter date labels ── */}
+      {/* Story-layout selection moved to the inline InlineStoryLayoutSwitcher. */}
+      <SidebarSection title="Chapter Date Format" defaultOpen={false}>
         <div>
-          <div style={SUB_LABEL}>Story Layout</div>
+          <div style={SUB_LABEL}>Date format</div>
           <div style={{
             fontSize: panelText.hint,
             color: '#71717A',
             lineHeight: panelLineHeight.normal,
-            marginBottom: '12px',
+            marginBottom: '10px',
           }}>
-            How your chapters unfold on the page
+            How dates read on every chapter
           </div>
-          <StoryLayoutPicker
-            // Canonical read path: prefer `storyLayout`, fall back to the
-            // legacy `layoutFormat` so existing drafts show the right
-            // selection until the user saves with the new field.
-            selected={resolveStoryLayout(manifest.storyLayout, manifest.layoutFormat)}
-            onSelect={(layout) => onChange({
-              ...manifest,
-              storyLayout: layout,
-              // Clear the legacy field so it can't silently override.
-              layoutFormat: undefined,
-            })}
-          />
-
-          {/* ── Date format — applies to chapter date labels ── */}
-          <div style={{ marginTop: 20 }}>
-            <div style={SUB_LABEL}>Date format</div>
-            <div style={{
-              fontSize: panelText.hint,
-              color: '#71717A',
-              lineHeight: panelLineHeight.normal,
-              marginBottom: '10px',
-            }}>
-              How dates read on every chapter
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {(Object.keys(CHAPTER_DATE_FORMATS) as ChapterDateFormatKey[]).map((key) => {
                 const preset = CHAPTER_DATE_FORMATS[key];
                 const isActive = (manifest.dateFormat || 'long') === key;
@@ -1475,7 +1449,6 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                   </button>
                 );
               })}
-            </div>
           </div>
         </div>
       </SidebarSection>

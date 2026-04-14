@@ -13,7 +13,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Pencil, LayoutGrid, Sparkles, Copy, ArrowUp, ArrowDown, Trash2, MoreHorizontal } from 'lucide-react';
+import { LayoutGrid, Sparkles, Copy, ArrowUp, ArrowDown, Trash2, MoreHorizontal } from 'lucide-react';
 
 export type ChapterToolbarAction =
   | 'edit'
@@ -115,8 +115,7 @@ export function CanvasChapterToolbar({ rect, chapterIndex, chapterCount, onActio
         pointerEvents: 'auto',
       }}
     >
-      {/* Primary actions */}
-      <ToolBtn icon={Pencil} label="Edit in sidebar" onClick={() => onAction('edit')} />
+      {/* Primary actions: Edit removed — chapters are now edited inline on the canvas. */}
 
       {/* Layout picker */}
       <div ref={layoutRef} style={{ position: 'relative' }}>

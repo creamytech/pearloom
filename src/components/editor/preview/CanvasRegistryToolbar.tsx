@@ -77,7 +77,7 @@ export function CanvasRegistryToolbar({ rect, onAction }: CanvasRegistryToolbarP
         pointerEvents: 'auto',
       }}
     >
-      <ToolBtn icon={Pencil} label="Edit in sidebar" onClick={() => onAction('edit')} />
+      <ToolBtn icon={Pencil} label="Edit in panel" onClick={() => onAction('edit')} />
       <ToolBtn icon={ExternalLink} label="Open link" onClick={() => onAction('openLink')} />
       <div style={{ width: '1px', height: '16px', background: 'rgba(255,255,255,0.12)', margin: '0 2px' }} />
       <ToolBtn icon={Trash2} label="Delete" danger onClick={() => onAction('delete')} />

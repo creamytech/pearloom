@@ -78,7 +78,7 @@ export function CanvasEventToolbar({ rect, eventIndex, eventCount, onAction }: C
         pointerEvents: 'auto',
       }}
     >
-      <ToolBtn icon={Pencil} label="Edit in sidebar" onClick={() => onAction('edit')} />
+      <ToolBtn icon={Pencil} label="Edit in panel" onClick={() => onAction('edit')} />
 
       {eventIndex > 0 && (
         <ToolBtn icon={ArrowUp} label="Move up" onClick={() => onAction('moveUp')} />

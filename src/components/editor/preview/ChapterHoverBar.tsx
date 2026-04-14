@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Pencil, Copy, Trash2, ArrowUp, ArrowDown, Sparkles, LayoutGrid,
+  Copy, Trash2, ArrowUp, ArrowDown, Sparkles, LayoutGrid,
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
@@ -14,7 +14,6 @@ interface ChapterHoverBarProps {
   chapterIndex: number;
   chapterCount: number;
   currentLayout?: string;
-  onEditInSidebar: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
   onMove: (direction: 'up' | 'down') => void;
@@ -67,7 +66,6 @@ export function ChapterHoverBar({
   chapterIndex,
   chapterCount,
   currentLayout,
-  onEditInSidebar,
   onDuplicate,
   onDelete,
   onMove,
@@ -94,7 +92,7 @@ export function ChapterHoverBar({
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <BarButton icon={<Pencil size={14} />} label="Edit in sidebar" onClick={onEditInSidebar} />
+          {/* Edit button removed — chapters are now edited inline on the canvas. */}
           <BarButton icon={<Copy size={14} />} label="Duplicate" onClick={onDuplicate} />
           <BarButton icon={<Trash2 size={14} />} label="Delete" onClick={onDelete} danger />
           <Sep />
