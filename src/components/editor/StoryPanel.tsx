@@ -48,13 +48,111 @@ const STYLES = [
   { id: 'bento', label: 'Bento Grid', desc: 'Multi-photo scrapbook grid with notes', color: 'rgba(30,30,60,0.6)' },
 ] as const;
 
+// ── Mood presets (mirrors ChapterPanel.tsx, kept local to avoid coupling) ─────
+const MOOD_PRESETS = [
+  { id: 'romantic',    label: 'Romantic',    color: '#E8927A' },
+  { id: 'nostalgic',   label: 'Nostalgic',   color: '#C4A96A' },
+  { id: 'joyful',      label: 'Joyful',      color: '#52525B' },
+  { id: 'intimate',    label: 'Intimate',    color: '#6D597A' },
+  { id: 'playful',     label: 'Playful',     color: '#7BA7BC' },
+  { id: 'bittersweet', label: 'Bittersweet', color: '#8B7355' },
+  { id: 'adventurous', label: 'Adventurous', color: '#4A9B8A' },
+  { id: 'dramatic',    label: 'Dramatic',    color: '#4A3060' },
+] as const;
+
+// ── Inline mood chip + popover ─────────────────────────────────
+function MoodChip({ mood, onSelect }: { mood?: string; onSelect: (m: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const activePreset = MOOD_PRESETS.find(m => m.id === mood?.toLowerCase());
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
+      <button
+        onClick={e => { e.stopPropagation(); setOpen(v => !v); }}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '5px',
+          padding: '3px 8px 3px 6px',
+          borderRadius: '8px', border: '1px solid #E4E4E7',
+          background: open ? '#F4F4F5' : '#FFFFFF',
+          cursor: 'pointer', transition: 'background 0.12s',
+        }}
+      >
+        <div style={{
+          width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0,
+          background: activePreset?.color ?? '#E4E4E7',
+        }} />
+        <span style={{
+          fontSize: panelText.hint,
+          fontWeight: panelWeight.semibold,
+          color: '#3F3F46',
+          whiteSpace: 'nowrap',
+        }}>
+          {activePreset?.label ?? 'Mood'}
+        </span>
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -4, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.97 }}
+            transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              position: 'absolute', bottom: 'calc(100% + 6px)', left: 0,
+              zIndex: 200,
+              background: '#FFFFFF',
+              border: '1px solid #E4E4E7',
+              borderRadius: '12px',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+              padding: '8px',
+              display: 'flex', flexWrap: 'wrap', gap: '5px',
+              width: '180px',
+            } as React.CSSProperties}
+          >
+            {MOOD_PRESETS.map(m => (
+              <button
+                key={m.id}
+                onClick={e => { e.stopPropagation(); onSelect(m.id); setOpen(false); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '4px',
+                  padding: '3px 7px', borderRadius: '6px', cursor: 'pointer',
+                  border: mood?.toLowerCase() === m.id ? `1.5px solid ${m.color}` : '1px solid #E4E4E7',
+                  background: mood?.toLowerCase() === m.id ? `${m.color}18` : 'transparent',
+                  transition: 'background 0.1s, border 0.1s',
+                }}
+              >
+                <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: m.color, flexShrink: 0 }} />
+                <span style={{ fontSize: panelText.hint, fontWeight: panelWeight.semibold, color: '#3F3F46', whiteSpace: 'nowrap' }}>
+                  {m.label}
+                </span>
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ── Chapter Card ──────────────────────────────────────────────
 function ChapterCard({
-  chapter, index, isActive, isExpanded, onSelect, onDelete,
+  chapter, index, isActive, isExpanded, onSelect, onDelete, onUpdate,
   confirmDeleteId, onRequestDelete, onCancelDelete,
 }: {
   chapter: Chapter; index: number; isActive: boolean; isExpanded: boolean;
   onSelect: () => void; onDelete: () => void;
+  onUpdate: (data: Partial<Chapter>) => void;
   confirmDeleteId: string | null;
   onRequestDelete: (id: string) => void;
   onCancelDelete: () => void;
@@ -189,6 +287,43 @@ function ChapterCard({
             <Trash2 size={12} />
           </motion.button>
         </div>
+
+        {/* Quick style footer — mood picker when card is active */}
+        <AnimatePresence>
+          {isActive && !isConfirming && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+              style={{ overflow: 'visible' }}
+            >
+              <div
+                onClick={e => e.stopPropagation()}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  padding: '6px 12px 8px',
+                  borderTop: '1px solid #F4F4F5',
+                }}
+              >
+                <span style={{
+                  fontSize: panelText.meta,
+                  fontWeight: panelWeight.bold,
+                  color: '#A1A1AA',
+                  textTransform: 'uppercase',
+                  letterSpacing: panelTracking.wider,
+                  flexShrink: 0,
+                }}>
+                  Mood
+                </span>
+                <MoodChip
+                  mood={chapter.mood}
+                  onSelect={m => onUpdate({ mood: m })}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Inline delete confirmation */}
         <AnimatePresence>
@@ -428,6 +563,7 @@ export function StoryPanel() {
                   isExpanded={activeId === ch.id}
                   onSelect={() => dispatch({ type: 'SET_ACTIVE_ID', id: activeId === ch.id ? null : ch.id })}
                   onDelete={() => handleDeleteChapter(ch.id)}
+                  onUpdate={(data) => actions.updateChapter(ch.id, data)}
                   confirmDeleteId={confirmDeleteId}
                   onRequestDelete={(id) => setConfirmDeleteId(id)}
                   onCancelDelete={() => setConfirmDeleteId(null)}
