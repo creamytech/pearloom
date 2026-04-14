@@ -67,9 +67,26 @@ function unproxyImageUrls(manifest: StoryManifest): StoryManifest {
   };
 }
 
+const DRAFT_STORAGE_PREFIX = 'pearloom:draft:';
+
 export default function EditorClient({ manifest: initialManifest, siteSlug, names }: EditorClientProps) {
   const router = useRouter();
-  const [manifest, setManifest] = useState<StoryManifest>(initialManifest);
+  const draftKey = `${DRAFT_STORAGE_PREFIX}${siteSlug}`;
+
+  // If a local draft exists with newer content than what the server returned, prefer it
+  const [manifest, setManifest] = useState<StoryManifest>(() => {
+    if (typeof window === 'undefined') return initialManifest;
+    try {
+      const raw = window.localStorage.getItem(draftKey);
+      if (!raw) return initialManifest;
+      const parsed = JSON.parse(raw) as { savedAt: number; manifest: StoryManifest };
+      // Only use draft if recent (<24h) — anything older is stale
+      if (Date.now() - parsed.savedAt < 24 * 60 * 60 * 1000 && parsed.manifest) {
+        return parsed.manifest;
+      }
+    } catch {}
+    return initialManifest;
+  });
   const [showPublish, setShowPublish] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -95,6 +112,18 @@ export default function EditorClient({ manifest: initialManifest, siteSlug, name
     hasPendingSave.current = true;
     setSaveStatus('saving');
 
+    // Write a local draft immediately on every change so nothing is lost on
+    // crash, tab close before debounce fires, or network failure.
+    try {
+      const saveable = unproxyImageUrls(stripArtForStorage(m));
+      window.localStorage.setItem(
+        draftKey,
+        JSON.stringify({ savedAt: Date.now(), manifest: saveable }),
+      );
+    } catch {
+      // localStorage quota or unavailable — ignore, network save is authoritative
+    }
+
     // Debounced auto-save — 2s after last change
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
@@ -110,6 +139,8 @@ export default function EditorClient({ manifest: initialManifest, siteSlug, name
           if (res.ok) {
             hasPendingSave.current = false;
             setSaveStatus('saved');
+            // Network save succeeded — clear the local draft backup
+            try { window.localStorage.removeItem(draftKey); } catch {}
             setTimeout(() => setSaveStatus('idle'), 2000);
           } else {
             console.error('[EditorClient] Auto-save failed:', res.status);
@@ -121,7 +152,7 @@ export default function EditorClient({ manifest: initialManifest, siteSlug, name
           setSaveStatus('error');
         });
     }, 2000);
-  }, [siteSlug, names]);
+  }, [siteSlug, names, draftKey]);
 
   return (
     <>
