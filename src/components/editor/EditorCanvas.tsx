@@ -8,12 +8,13 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Monitor, Tablet, Smartphone } from 'lucide-react';
 import { useEditor, type DeviceMode } from '@/lib/editor-state';
 import { SiteRenderer } from './SiteRenderer';
 import { PearTextRewrite } from './PearTextRewrite';
 import { FocalPointOverlay } from './preview/FocalPointOverlay';
+import { CanvasChapterToolbar, type ChapterToolbarAction } from './preview/CanvasChapterToolbar';
 import type { BlockType, PageBlock } from '@/types';
 
 export function EditorCanvas() {
@@ -27,6 +28,10 @@ export function EditorCanvas() {
   const [focalPoint, setFocalPoint] = useState<{
     chapterId: string; rect: DOMRect; x: number; y: number;
   } | null>(null);
+  const [hoveredChapter, setHoveredChapter] = useState<{
+    chapterId: string; rect: DOMRect; chapterIndex: number; chapterCount: number;
+  } | null>(null);
+  const hoverLeaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Spacebar to pan ─────────────────────────────────────
   useEffect(() => {
@@ -273,11 +278,84 @@ export function EditorCanvas() {
     setTimeout(() => setUndoToast(null), 2000);
   }, [manifest, clipboardBlock, actions]);
 
+  // ── Chapter toolbar actions ─────────────────────────────
+  const handleChapterToolbarAction = useCallback((action: ChapterToolbarAction) => {
+    if (!hoveredChapter) return;
+    const { chapterId } = hoveredChapter;
+
+    if (action === 'edit') {
+      dispatch({ type: 'SET_ACTIVE_ID', id: chapterId });
+      dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
+      return;
+    }
+    if (action === 'aiRewrite') {
+      window.dispatchEvent(new CustomEvent('pear-command', {
+        detail: { prompt: `Rewrite the story chapters with more vivid, emotional storytelling. Keep all names, dates, and facts the same. Use update_chapter for each.` }
+      }));
+      return;
+    }
+    if (typeof action === 'object' && 'layout' in action) {
+      actions.updateChapter(chapterId, { layout: action.layout } as Parameters<typeof actions.updateChapter>[1]);
+      return;
+    }
+
+    // Structural chapter operations (duplicate / move / delete)
+    const chapters = [...(manifest.chapters || [])];
+    const idx = chapters.findIndex(c => c.id === chapterId);
+    if (idx === -1) return;
+
+    switch (action) {
+      case 'duplicate': {
+        const dup = { ...chapters[idx], id: `chapter-dup-${Date.now()}` };
+        chapters.splice(idx + 1, 0, dup);
+        break;
+      }
+      case 'moveUp':
+        if (idx > 0) [chapters[idx - 1], chapters[idx]] = [chapters[idx], chapters[idx - 1]];
+        break;
+      case 'moveDown':
+        if (idx < chapters.length - 1) [chapters[idx], chapters[idx + 1]] = [chapters[idx + 1], chapters[idx]];
+        break;
+      case 'delete':
+        chapters.splice(idx, 1);
+        setHoveredChapter(null);
+        break;
+    }
+    actions.handleDesignChange({ ...manifest, chapters });
+  }, [hoveredChapter, manifest, actions, dispatch]);
+
   // ── Focal point overlay ─────────────────────────────────
   useEffect(() => {
     const handler = (e: Event) => setFocalPoint((e as CustomEvent).detail);
     window.addEventListener('pearloom-focal-point-start', handler);
     return () => window.removeEventListener('pearloom-focal-point-start', handler);
+  }, []);
+
+  // ── Chapter hover toolbar ────────────────────────────────
+  useEffect(() => {
+    const cancelTimer = () => {
+      if (hoverLeaveTimerRef.current) {
+        clearTimeout(hoverLeaveTimerRef.current);
+        hoverLeaveTimerRef.current = null;
+      }
+    };
+    const onHover = (e: Event) => {
+      cancelTimer();
+      setHoveredChapter((e as CustomEvent).detail);
+    };
+    const onHoverKeep = () => cancelTimer();
+    const onHoverEnd = () => {
+      hoverLeaveTimerRef.current = setTimeout(() => setHoveredChapter(null), 200);
+    };
+    window.addEventListener('pearloom-chapter-hover', onHover);
+    window.addEventListener('pearloom-chapter-hover-keep', onHoverKeep);
+    window.addEventListener('pearloom-chapter-hover-end', onHoverEnd);
+    return () => {
+      window.removeEventListener('pearloom-chapter-hover', onHover);
+      window.removeEventListener('pearloom-chapter-hover-keep', onHoverKeep);
+      window.removeEventListener('pearloom-chapter-hover-end', onHoverEnd);
+      if (hoverLeaveTimerRef.current) clearTimeout(hoverLeaveTimerRef.current);
+    };
   }, []);
 
   // ── Sidebar sync on inline text edit focus ───────────────
@@ -353,6 +431,19 @@ export function EditorCanvas() {
           onClose={() => setFocalPoint(null)}
         />
       )}
+
+      {/* Canvas chapter hover toolbar */}
+      <AnimatePresence>
+        {hoveredChapter && (
+          <CanvasChapterToolbar
+            key={hoveredChapter.chapterId}
+            rect={hoveredChapter.rect}
+            chapterIndex={hoveredChapter.chapterIndex}
+            chapterCount={hoveredChapter.chapterCount}
+            onAction={handleChapterToolbarAction}
+          />
+        )}
+      </AnimatePresence>
 
       {/* ── Canvas content — direct DOM rendering ── */}
       <div style={{

@@ -896,6 +896,37 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     return () => window.removeEventListener('keydown', handler);
   }, [editMode, selectedBlockId, hasClipboard, manifest, onBlockCopy, onBlockPaste, onBlockAction]);
 
+  // ── Chapter hover → emit event so EditorCanvas can show toolbar ─────────
+  useEffect(() => {
+    if (!editMode || !siteRef.current) return;
+    const el = siteRef.current;
+    let currentChapterId: string | null = null;
+
+    const onOver = (e: MouseEvent) => {
+      const chapterEl = (e.target as HTMLElement).closest('[data-pe-chapter]') as HTMLElement | null;
+      const id = chapterEl ? chapterEl.getAttribute('data-pe-chapter') : null;
+      if (id === currentChapterId) return; // same chapter, no change
+      currentChapterId = id;
+      if (id && chapterEl) {
+        const chapters = manifest.chapters || [];
+        const chapterIndex = chapters.findIndex(c => c.id === id);
+        window.dispatchEvent(new CustomEvent('pearloom-chapter-hover', {
+          detail: {
+            chapterId: id,
+            rect: chapterEl.getBoundingClientRect(),
+            chapterIndex,
+            chapterCount: chapters.length,
+          }
+        }));
+      } else {
+        window.dispatchEvent(new CustomEvent('pearloom-chapter-hover-end'));
+      }
+    };
+
+    el.addEventListener('mouseover', onOver);
+    return () => el.removeEventListener('mouseover', onOver);
+  }, [editMode, manifest.chapters]);
+
   // ── Pear nudge: appears once per session on first empty section scroll ──
   const [pearNudgeSection, setPearNudgeSection] = useState<string | null>(null);
   const pearNudgeShownRef = useRef(false);
