@@ -80,7 +80,18 @@ export function InlineStoryLayoutSwitcher() {
       }
 
       const next = computeAnchor(blockId);
-      if (next) setAnchor(next);
+      if (next) {
+        setAnchor(next);
+        return;
+      }
+      // DOM not yet painted (e.g. first click during a parent re-render).
+      // Retry on the next animation frame so the switcher never silently
+      // no-ops and force the user to click twice.
+      const id = blockId;
+      requestAnimationFrame(() => {
+        const retry = computeAnchor(id);
+        if (retry) setAnchor(retry);
+      });
     };
 
     window.addEventListener('pearloom-select-block', handler);
