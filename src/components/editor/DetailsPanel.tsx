@@ -3,12 +3,12 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useEditor } from '@/lib/editor-state';
 import { DatePicker } from '@/components/ui/date-picker';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, X, ChevronDown, Sparkles, MapPin, Check, UtensilsCrossed, Link, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
+import { Plus, Trash2, X, ChevronDown, Sparkles, MapPin, Check, UtensilsCrossed, Link, Loader2, GripVertical } from 'lucide-react';
 import { LocationPinIcon } from '@/components/icons/PearloomIcons';
 import { Field, lbl, inp } from './editor-utils';
 import { panelText, panelWeight, panelTracking, panelLineHeight } from './panel';
-import type { StoryManifest, FaqItem, TravelInfo, HotelBlock, MealOption } from '@/types';
+import type { StoryManifest, FaqItem, TravelInfo, HotelBlock, MealOption, WeddingPartyMember } from '@/types';
 import { VenueSearch } from '@/components/venue/VenueSearch';
 import type { VenuePartial } from '@/components/venue/VenueSearch';
 import { SeatingCanvas } from '@/components/seating/SeatingCanvas';
@@ -60,6 +60,277 @@ function ConfirmDeleteButton({ onConfirm }: { onConfirm: () => void }) {
     >
       {confirming ? 'Sure?' : <Trash2 size={11} />}
     </button>
+  );
+}
+
+// ── Wedding Party editor ──────────────────────────────────────
+// Compact list + inline-add form with drag-reorder.
+const ROLE_OPTIONS: Array<{ value: WeddingPartyMember['role']; label: string }> = [
+  { value: 'maid-of-honor', label: 'Maid of Honor' },
+  { value: 'best-man', label: 'Best Man' },
+  { value: 'bridesmaid', label: 'Bridesmaid' },
+  { value: 'groomsman', label: 'Groomsman' },
+  { value: 'flower-girl', label: 'Flower Girl' },
+  { value: 'ring-bearer', label: 'Ring Bearer' },
+  { value: 'officiant', label: 'Officiant' },
+  { value: 'parent', label: 'Parent' },
+  { value: 'grandparent', label: 'Grandparent' },
+  { value: 'bride', label: 'Bride' },
+  { value: 'groom', label: 'Groom' },
+  { value: 'other', label: 'Other' },
+];
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '—';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function roleLabel(m: WeddingPartyMember): string {
+  if (m.role === 'other' && m.customRole) return m.customRole;
+  return ROLE_OPTIONS.find(r => r.value === m.role)?.label || m.role;
+}
+
+function WeddingPartyMemberRow({ member, onUpdate, onDelete }: {
+  member: WeddingPartyMember;
+  onUpdate: (patch: Partial<WeddingPartyMember>) => void;
+  onDelete: () => void;
+}) {
+  const controls = useDragControls();
+  const [editing, setEditing] = useState(false);
+
+  return (
+    <Reorder.Item
+      value={member}
+      id={member.id}
+      dragListener={false}
+      dragControls={controls}
+      as="div"
+      whileDrag={{ scale: 1.02, zIndex: 50, boxShadow: '0 12px 28px rgba(0,0,0,0.08)' }}
+      layout
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -6 }}
+      transition={{ duration: 0.18 }}
+      style={{ marginBottom: '6px' }}
+    >
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '8px',
+        padding: '8px 10px',
+        borderRadius: '10px',
+        background: '#FFFFFF',
+        border: '1px solid #E4E4E7',
+      }}>
+        {/* Drag handle */}
+        <div
+          onPointerDown={(e) => controls.start(e)}
+          style={{ cursor: 'grab', color: '#A1A1AA', display: 'flex', alignItems: 'center', padding: '2px' }}
+          aria-label="Drag to reorder"
+        >
+          <GripVertical size={14} />
+        </div>
+        {/* Avatar */}
+        {member.photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={member.photo}
+            alt={member.name}
+            style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+          />
+        ) : (
+          <div style={{
+            width: 32, height: 32, borderRadius: '50%',
+            background: '#F4F4F5', color: '#52525B',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '0.72rem', fontWeight: 700, flexShrink: 0,
+          }}>
+            {initials(member.name)}
+          </div>
+        )}
+        {/* Name + role */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: panelText.body, fontWeight: panelWeight.semibold, color: '#18181B', lineHeight: panelLineHeight.tight, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {member.name || 'Untitled'}
+          </div>
+          <div style={{ fontSize: panelText.hint, color: '#71717A', lineHeight: panelLineHeight.tight }}>
+            {roleLabel(member)}
+          </div>
+        </div>
+        {/* Actions */}
+        <button
+          onClick={() => setEditing(e => !e)}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#71717A', fontSize: panelText.hint, padding: '3px 6px' }}
+        >
+          {editing ? 'Done' : 'Edit'}
+        </button>
+        <ConfirmDeleteButton onConfirm={onDelete} />
+      </div>
+      {editing && (
+        <div style={{
+          padding: '10px 10px 8px 42px',
+          display: 'flex', flexDirection: 'column', gap: '8px',
+        }}>
+          <Field
+            label="Name"
+            value={member.name}
+            onChange={v => onUpdate({ name: v })}
+            placeholder="Full name"
+          />
+          <div>
+            <label style={lbl}>Role</label>
+            <select
+              value={member.role}
+              onChange={e => onUpdate({ role: e.target.value as WeddingPartyMember['role'] })}
+              style={{ ...inp, cursor: 'pointer' }}
+            >
+              {ROLE_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+          {member.role === 'other' && (
+            <Field
+              label="Custom Role"
+              value={member.customRole || ''}
+              onChange={v => onUpdate({ customRole: v })}
+              placeholder="e.g. Officiant's Assistant"
+            />
+          )}
+          <Field
+            label="Photo URL (optional)"
+            value={member.photo || ''}
+            onChange={v => onUpdate({ photo: v })}
+            placeholder="https://..."
+          />
+        </div>
+      )}
+    </Reorder.Item>
+  );
+}
+
+function WeddingPartyEditor({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const members = manifest.weddingParty || [];
+  const [addingNew, setAddingNew] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newRole, setNewRole] = useState<WeddingPartyMember['role']>('bridesmaid');
+
+  const commit = (next: WeddingPartyMember[]) => {
+    onChange({ ...manifest, weddingParty: next.map((m, i) => ({ ...m, order: i })) });
+  };
+
+  const addMember = () => {
+    const name = newName.trim();
+    if (!name) return;
+    const member: WeddingPartyMember = {
+      id: `wp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      name,
+      role: newRole,
+      order: members.length,
+    };
+    commit([...members, member]);
+    setNewName('');
+    setAddingNew(false);
+  };
+
+  const updateMember = (id: string, patch: Partial<WeddingPartyMember>) => {
+    commit(members.map(m => m.id === id ? { ...m, ...patch } : m));
+  };
+
+  const deleteMember = (id: string) => {
+    commit(members.filter(m => m.id !== id));
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      {members.length > 0 && (
+        <Reorder.Group
+          axis="y"
+          values={members}
+          onReorder={(next) => commit(next as WeddingPartyMember[])}
+          as="div"
+          style={{ margin: 0, padding: 0 }}
+        >
+          <AnimatePresence initial={false}>
+            {members.map(m => (
+              <WeddingPartyMemberRow
+                key={m.id}
+                member={m}
+                onUpdate={(patch) => updateMember(m.id, patch)}
+                onDelete={() => deleteMember(m.id)}
+              />
+            ))}
+          </AnimatePresence>
+        </Reorder.Group>
+      )}
+      {addingNew ? (
+        <div style={{
+          padding: '10px', borderRadius: '10px',
+          background: '#FAFAFA', border: '1px solid #E4E4E7',
+          display: 'flex', flexDirection: 'column', gap: '8px',
+        }}>
+          <Field
+            label="Name"
+            value={newName}
+            onChange={setNewName}
+            placeholder="e.g. Sarah Chen"
+          />
+          <div>
+            <label style={lbl}>Role</label>
+            <select
+              value={newRole}
+              onChange={e => setNewRole(e.target.value as WeddingPartyMember['role'])}
+              style={{ ...inp, cursor: 'pointer' }}
+            >
+              {ROLE_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+          <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+            <button
+              onClick={() => { setAddingNew(false); setNewName(''); }}
+              style={{
+                padding: '6px 12px', borderRadius: '8px',
+                background: 'transparent', border: '1px solid #E4E4E7',
+                color: '#71717A', cursor: 'pointer',
+                fontSize: panelText.body, fontWeight: panelWeight.semibold, fontFamily: 'inherit',
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={addMember}
+              disabled={!newName.trim()}
+              style={{
+                padding: '6px 12px', borderRadius: '8px',
+                background: newName.trim() ? '#18181B' : '#A1A1AA', color: '#FFFFFF',
+                border: 'none', cursor: newName.trim() ? 'pointer' : 'not-allowed',
+                fontSize: panelText.body, fontWeight: panelWeight.bold, fontFamily: 'inherit',
+              }}
+            >
+              Add Member
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => setAddingNew(true)}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+            padding: '8px 12px', borderRadius: '10px',
+            background: 'transparent', border: '1px dashed #D4D4D8',
+            color: '#52525B', cursor: 'pointer',
+            fontSize: panelText.body, fontWeight: panelWeight.semibold, fontFamily: 'inherit',
+          }}
+          onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = '#FAFAFA'; }}
+          onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+        >
+          <Plus size={13} />
+          Add Member
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -1416,6 +1687,14 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           </button>
         </div>
       )}
+
+      {/* ── Wedding Party ── */}
+      <Section id="weddingParty" label="Wedding Party">
+        <p style={{ fontSize: panelText.hint, color: '#71717A', fontFamily: 'inherit', margin: '0 0 8px', lineHeight: panelLineHeight.normal }}>
+          Add bridesmaids, groomsmen, officiants, and other key people. Drag to reorder the list.
+        </p>
+        <WeddingPartyEditor manifest={manifest} onChange={onChange} />
+      </Section>
       </>}
 
       {/* ═══ Settings tier ═══ */}
