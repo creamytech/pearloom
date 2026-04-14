@@ -11,18 +11,22 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Search, Users, UserPlus, Upload, Check, X,
-  ChevronDown, Mail, Trash2,
+  Search, Users, UserPlus, Upload, X, Trash2,
 } from 'lucide-react';
 import { SidebarSection } from './EditorSidebar';
 import { IconMeal } from './EditorIcons';
+import {
+  panelText,
+  panelWeight,
+  panelTracking,
+  panelLineHeight,
+} from './panel';
 import type { Guest } from '@/types';
 
 const STATUS_COLOR: Record<string, string> = {
   attending: '#71717A',
-  declined:  '#f87171',
+  declined:  '#e87a7a',
   pending:   '#D6C6A8',
 };
 const STATUS_ICON: Record<string, string> = {
@@ -35,6 +39,30 @@ interface GuestSearchPanelProps {
   siteId: string;
 }
 
+const inputBase: React.CSSProperties = {
+  width: '100%',
+  padding: '10px 12px',
+  borderRadius: '8px',
+  border: '1px solid #E4E4E7',
+  background: '#FFFFFF',
+  color: '#18181B',
+  fontSize: 'max(16px, 0.8rem)',
+  outline: 'none',
+  boxSizing: 'border-box',
+  fontFamily: 'inherit',
+  lineHeight: panelLineHeight.tight,
+  transition: 'border-color 0.15s, box-shadow 0.15s',
+};
+
+const inputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+  e.currentTarget.style.borderColor = '#18181B';
+  e.currentTarget.style.boxShadow = '0 0 0 2px rgba(24,24,27,0.12)';
+};
+const inputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+  e.currentTarget.style.borderColor = '#E4E4E7';
+  e.currentTarget.style.boxShadow = 'none';
+};
+
 export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
   const [guests, setGuests] = useState<Guest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +72,6 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
   const [addName, setAddName] = useState('');
   const [addEmail, setAddEmail] = useState('');
   const [adding, setAdding] = useState(false);
-  const [addOpen, setAddOpen] = useState(false);
   // CSV import
   const fileRef = useRef<HTMLInputElement>(null);
   const [csvLoading, setCsvLoading] = useState(false);
@@ -89,7 +116,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
       if (res.ok) {
         const { guest } = await res.json();
         setGuests(prev => [...prev, guest]);
-        setAddName(''); setAddEmail(''); setAddOpen(false);
+        setAddName(''); setAddEmail('');
       }
     } catch {}
     setAdding(false);
@@ -142,103 +169,192 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '6px',
-        fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em',
-        textTransform: 'uppercase', color: '#71717A',
+        fontSize: panelText.label,
+        fontWeight: panelWeight.bold,
+        letterSpacing: panelTracking.wider,
+        textTransform: 'uppercase',
+        color: '#71717A',
+        fontFamily: 'inherit',
+        lineHeight: panelLineHeight.tight,
       }}>
-        <Users size={11} /> Guest List
+        <Users size={12} /> Guest List
       </div>
 
-      {/* Summary chips */}
-      <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-        {(['all', 'attending', 'declined', 'pending'] as const).map(s => (
-          <button
-            key={s}
-            onClick={() => setStatusFilter(s)}
-            style={{
-              padding: '3px 9px', borderRadius: '10px', fontSize: '0.65rem', fontWeight: 700,
-              border: `1px solid ${statusFilter === s ? (STATUS_COLOR[s] || '#D6C6A8') : 'rgba(0,0,0,0.06)'}`,
-              background: statusFilter === s ? `${STATUS_COLOR[s] || '#D6C6A8'}1a` : 'transparent',
-              color: statusFilter === s ? (STATUS_COLOR[s] || '#D6C6A8') : '#3F3F46',
-              cursor: 'pointer',
-            }}
-          >
-            {s === 'all' ? `All (${guests.length})` : `${s.charAt(0).toUpperCase() + s.slice(1)} (${counts[s as keyof typeof counts]})`}
-          </button>
-        ))}
+      {/* Status filter pills */}
+      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        {(['all', 'attending', 'declined', 'pending'] as const).map(s => {
+          const isActive = statusFilter === s;
+          const accent = STATUS_COLOR[s] || '#18181B';
+          return (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '100px',
+                fontSize: panelText.chip,
+                fontWeight: isActive ? panelWeight.bold : panelWeight.semibold,
+                fontFamily: 'inherit',
+                lineHeight: panelLineHeight.tight,
+                border: isActive
+                  ? `2px solid ${s === 'all' ? '#18181B' : accent}`
+                  : '1px solid #E4E4E7',
+                background: isActive
+                  ? (s === 'all' ? '#F4F4F5' : `${accent}15`)
+                  : '#FFFFFF',
+                color: isActive
+                  ? (s === 'all' ? '#18181B' : accent)
+                  : '#3F3F46',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+            >
+              {s === 'all' ? `All (${guests.length})` : `${s.charAt(0).toUpperCase() + s.slice(1)} (${counts[s as keyof typeof counts]})`}
+            </button>
+          );
+        })}
       </div>
 
       {/* Search box */}
       <div style={{ position: 'relative' }}>
-        <Search size={12} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#71717A', pointerEvents: 'none' }} />
+        <Search size={13} style={{
+          position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
+          color: '#71717A', pointerEvents: 'none',
+        }} />
         <input
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Search guests…"
-          style={{
-            width: '100%', padding: '7px 10px 7px 30px', borderRadius: '8px',
-            border: '1px solid rgba(0,0,0,0.06)',
-            background: 'rgba(24,24,27,0.04)',
-            color: '#18181B', fontSize: '0.75rem',
-            outline: 'none', boxSizing: 'border-box',
-          }}
+          style={{ ...inputBase, padding: '10px 12px 10px 34px' }}
+          onFocus={inputFocus}
+          onBlur={inputBlur}
         />
         {query && (
-          <button onClick={() => setQuery('')} style={{
-            position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
-            background: 'none', border: 'none', cursor: 'pointer', color: '#71717A', padding: '2px',
-          }}>
-            <X size={11} />
+          <button
+            onClick={() => setQuery('')}
+            style={{
+              position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
+              width: '24px', height: '24px', borderRadius: '6px', border: 'none',
+              background: 'transparent', cursor: 'pointer', color: '#71717A',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <X size={12} />
           </button>
         )}
       </div>
 
       {/* Guest list */}
-      <div style={{ maxHeight: '280px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+      <div style={{
+        maxHeight: '320px',
+        overflowY: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '4px',
+      }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '12px', fontSize: '0.75rem', color: '#71717A' }}>
+          <div style={{
+            textAlign: 'center', padding: '20px 12px',
+            fontSize: panelText.body, color: '#71717A',
+            fontFamily: 'inherit', lineHeight: panelLineHeight.snug,
+          }}>
             Loading…
           </div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '12px', fontSize: '0.75rem', color: '#71717A' }}>
-            {query ? 'No matches found' : 'No guests yet'}
+          <div style={{
+            textAlign: 'center',
+            padding: '20px 16px',
+            borderRadius: '12px',
+            border: '1.5px dashed #E4E4E7',
+            background: '#FAFAFA',
+          }}>
+            <Users size={22} style={{ color: '#71717A', opacity: 0.5, marginBottom: '8px' }} />
+            <div style={{
+              fontSize: panelText.itemTitle,
+              fontWeight: panelWeight.bold,
+              color: '#18181B',
+              fontFamily: 'inherit',
+              marginBottom: '4px',
+              lineHeight: panelLineHeight.tight,
+            }}>
+              {query ? 'No matches found' : 'No guests yet'}
+            </div>
+            <div style={{
+              fontSize: panelText.hint,
+              color: '#71717A',
+              fontFamily: 'inherit',
+              lineHeight: panelLineHeight.snug,
+            }}>
+              {query ? 'Try a different search.' : 'Add guests manually or import a CSV below.'}
+            </div>
           </div>
         ) : (
           filtered.map(guest => (
-            <div key={guest.id} style={{
-              display: 'flex', alignItems: 'center', gap: '8px',
-              padding: '6px 8px', borderRadius: '6px',
-              background: 'rgba(24,24,27,0.03)',
-              border: '1px solid #F4F4F5',
-            }}>
+            <div
+              key={guest.id}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '10px',
+                padding: '8px 10px',
+                borderRadius: '8px',
+                background: '#FFFFFF',
+                border: '1px solid #E4E4E7',
+                transition: 'all 0.15s',
+              }}
+            >
               <div style={{
-                width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0,
-                background: `${STATUS_COLOR[guest.status] || '#888'}22`,
+                width: '22px', height: '22px', borderRadius: '50%', flexShrink: 0,
+                background: `${STATUS_COLOR[guest.status] || '#71717A'}22`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.6rem', fontWeight: 800,
-                color: STATUS_COLOR[guest.status] || '#888',
+                fontSize: panelText.meta,
+                fontWeight: panelWeight.heavy,
+                color: STATUS_COLOR[guest.status] || '#71717A',
+                fontFamily: 'inherit',
               }}>
                 {STATUS_ICON[guest.status] || '?'}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#18181B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{
+                  fontSize: panelText.body,
+                  fontWeight: panelWeight.semibold,
+                  color: '#18181B',
+                  fontFamily: 'inherit',
+                  lineHeight: panelLineHeight.tight,
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>
                   {guest.name}
                   {guest.plusOne && guest.plusOneName && (
-                    <span style={{ color: '#71717A', fontWeight: 400 }}> + {guest.plusOneName}</span>
+                    <span style={{ color: '#71717A', fontWeight: panelWeight.regular }}> + {guest.plusOneName}</span>
                   )}
                 </div>
                 {guest.email && (
-                  <div style={{ fontSize: '0.6rem', color: '#71717A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{guest.email}</div>
+                  <div style={{
+                    fontSize: panelText.hint,
+                    color: '#71717A',
+                    fontFamily: 'inherit',
+                    lineHeight: panelLineHeight.tight,
+                    marginTop: '2px',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
+                    {guest.email}
+                  </div>
                 )}
               </div>
               {guest.mealPreference && (
-                <div style={{ display: 'flex', alignItems: 'center', color: '#71717A', flexShrink: 0 }}><IconMeal size={11} /></div>
+                <div style={{ display: 'flex', alignItems: 'center', color: '#71717A', flexShrink: 0 }}>
+                  <IconMeal size={12} />
+                </div>
               )}
               <button
                 onClick={() => handleDelete(guest.id)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,0.08)', padding: '2px', flexShrink: 0 }}
                 title="Remove guest"
+                style={{
+                  width: '24px', height: '24px', borderRadius: '6px', border: 'none',
+                  background: 'transparent', color: '#71717A', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0,
+                }}
               >
-                <Trash2 size={10} />
+                <Trash2 size={12} />
               </button>
             </div>
           ))
@@ -247,41 +363,37 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
 
       {/* Add guest */}
       <SidebarSection title="Add Guest" defaultOpen={false} icon={UserPlus}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <input
             value={addName}
             onChange={e => setAddName(e.target.value)}
             placeholder="Full name *"
-            style={{
-              padding: '6px 10px', borderRadius: '6px',
-              border: '1px solid rgba(0,0,0,0.06)',
-              background: 'rgba(24,24,27,0.04)',
-              color: '#18181B', fontSize: '0.75rem',
-              outline: 'none',
-            }}
+            style={inputBase}
+            onFocus={inputFocus}
+            onBlur={inputBlur}
           />
           <input
             value={addEmail}
             onChange={e => setAddEmail(e.target.value)}
             placeholder="Email (optional)"
             type="email"
-            style={{
-              padding: '6px 10px', borderRadius: '6px',
-              border: '1px solid rgba(0,0,0,0.06)',
-              background: 'rgba(24,24,27,0.04)',
-              color: '#18181B', fontSize: '0.75rem',
-              outline: 'none',
-            }}
+            style={inputBase}
+            onFocus={inputFocus}
+            onBlur={inputBlur}
           />
           <button
             onClick={handleAdd}
             disabled={adding || !addName.trim()}
             style={{
-              padding: '7px', borderRadius: '6px',
-              border: 'none', background: addName.trim() ? 'rgba(24,24,27,0.1)' : '#F4F4F5',
-              color: addName.trim() ? '#71717A' : '#71717A',
+              padding: '9px 12px', borderRadius: '8px', border: 'none',
+              background: addName.trim() ? '#18181B' : '#E4E4E7',
+              color: addName.trim() ? '#FFFFFF' : '#71717A',
               cursor: addName.trim() ? 'pointer' : 'default',
-              fontSize: '0.75rem', fontWeight: 700,
+              fontSize: panelText.body,
+              fontWeight: panelWeight.bold,
+              fontFamily: 'inherit',
+              lineHeight: panelLineHeight.tight,
+              transition: 'all 0.15s',
             }}
           >
             {adding ? 'Adding…' : '+ Add Guest'}
@@ -292,8 +404,19 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
       {/* CSV Import */}
       <SidebarSection title="CSV Import" defaultOpen={false} icon={Upload}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ fontSize: '0.7rem', color: '#3F3F46', lineHeight: 1.5 }}>
-            Upload a CSV with <code style={{ background: 'rgba(0,0,0,0.05)', padding: '1px 4px', borderRadius: '3px' }}>name,email</code> columns (up to 200 guests).
+          <div style={{
+            fontSize: panelText.hint,
+            color: '#3F3F46',
+            fontFamily: 'inherit',
+            lineHeight: panelLineHeight.snug,
+          }}>
+            Upload a CSV with <code style={{
+              background: '#F4F4F5',
+              padding: '1px 5px',
+              borderRadius: '4px',
+              fontSize: panelText.hint,
+              fontFamily: 'monospace',
+            }}>name,email</code> columns (up to 200 guests).
           </div>
           <input
             ref={fileRef}
@@ -307,20 +430,31 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
             disabled={csvLoading}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-              padding: '8px', borderRadius: '8px',
-              border: '1px dashed rgba(24,24,27,0.08)',
-              background: 'transparent', color: '#71717A',
-              cursor: csvLoading ? 'wait' : 'pointer', fontSize: '0.75rem', fontWeight: 700,
+              padding: '10px', borderRadius: '10px',
+              border: '1.5px dashed #E4E4E7',
+              background: '#FAFAFA', color: '#18181B',
+              cursor: csvLoading ? 'wait' : 'pointer',
+              fontSize: panelText.body,
+              fontWeight: panelWeight.bold,
+              fontFamily: 'inherit',
+              lineHeight: panelLineHeight.tight,
+              transition: 'all 0.15s',
             }}
           >
-            <Upload size={12} />
+            <Upload size={13} />
             {csvLoading ? 'Importing…' : 'Choose CSV file'}
           </button>
           {csvResult && (
             <div style={{
-              fontSize: '0.7rem', padding: '6px 10px', borderRadius: '6px',
-              background: csvResult.includes('failed') ? 'rgba(248,81,73,0.1)' : 'rgba(24,24,27,0.06)',
-              color: csvResult.includes('failed') ? '#f87171' : '#71717A',
+              fontSize: panelText.hint,
+              fontWeight: panelWeight.semibold,
+              padding: '8px 10px',
+              borderRadius: '8px',
+              background: csvResult.includes('failed') ? 'rgba(239,68,68,0.08)' : '#F4F4F5',
+              border: `1px solid ${csvResult.includes('failed') ? 'rgba(239,68,68,0.25)' : '#E4E4E7'}`,
+              color: csvResult.includes('failed') ? '#b34747' : '#3F3F46',
+              fontFamily: 'inherit',
+              lineHeight: panelLineHeight.snug,
             }}>
               {csvResult}
             </div>
