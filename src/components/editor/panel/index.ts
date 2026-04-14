@@ -16,6 +16,7 @@ export type { PanelFieldProps } from './PanelField';
 
 export {
   panelText,
+  panelLineHeight,
   panelWeight,
   panelTracking,
   panelSection,

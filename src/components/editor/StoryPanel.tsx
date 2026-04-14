@@ -18,6 +18,8 @@ import {
   PanelChip,
   panelText,
   panelWeight,
+  panelLineHeight,
+  panelTracking,
 } from './panel';
 import { Layout, BookOpen, Plus as PlusIcon } from 'lucide-react';
 import type { StoryManifest, Chapter } from '@/types';
@@ -108,7 +110,7 @@ function ChapterCard({
             width: '22px', height: '22px', borderRadius: '50%', flexShrink: 0,
             background: isActive ? '#18181B' : '#F4F4F5',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '0.58rem', fontWeight: 700,
+            fontSize: panelText.meta, fontWeight: panelWeight.bold,
             color: isActive ? '#FFFFFF' : '#71717A',
           }}>
             {index + 1}
@@ -128,24 +130,32 @@ function ChapterCard({
           {/* Title + meta */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
-              fontSize: '0.8rem', fontWeight: 600,
+              fontSize: panelText.itemTitle,
+              fontWeight: panelWeight.semibold,
               fontFamily: 'inherit',
               color: '#18181B',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              lineHeight: 1.3,
+              lineHeight: panelLineHeight.tight,
             }}>
               {chapter.title || 'Untitled'}
             </div>
             <div style={{
-              fontSize: '0.65rem', color: '#71717A', marginTop: '2px',
-              display: 'flex', alignItems: 'center', gap: '4px',
+              fontSize: panelText.hint,
+              color: '#71717A',
+              marginTop: '3px',
+              display: 'flex', alignItems: 'center', gap: '5px',
+              lineHeight: panelLineHeight.tight,
             }}>
               <Clock size={9} style={{ opacity: 0.6 }} />
               {slugDate(chapter.date)}
               {chapter.layout && (
                 <span style={{
                   background: '#F4F4F5', color: '#71717A',
-                  padding: '1px 5px', borderRadius: '4px', fontSize: '0.55rem', fontWeight: 600,
+                  padding: '1px 6px', borderRadius: '4px',
+                  fontSize: panelText.meta,
+                  fontWeight: panelWeight.semibold,
+                  letterSpacing: panelTracking.wide,
+                  textTransform: 'uppercase',
                 }}>
                   {chapter.layout}
                 </span>
@@ -196,7 +206,10 @@ function ChapterCard({
                 display: 'flex', flexDirection: 'column', gap: '8px',
               }}>
                 <div style={{
-                  fontSize: '0.75rem', color: '#b91c1c', fontWeight: 600, lineHeight: 1.4,
+                  fontSize: panelText.body,
+                  color: '#b91c1c',
+                  fontWeight: panelWeight.semibold,
+                  lineHeight: panelLineHeight.snug,
                 }}>
                   Delete &ldquo;{chapter.title || 'Untitled'}&rdquo;? This can&apos;t be undone.
                 </div>
@@ -204,9 +217,12 @@ function ChapterCard({
                   <button
                     onClick={e => { e.stopPropagation(); onCancelDelete(); }}
                     style={{
-                      flex: 1, padding: '6px 10px', borderRadius: '6px',
+                      flex: 1, padding: '7px 10px', borderRadius: '8px',
                       border: '1px solid #E4E4E7', background: '#FFFFFF',
-                      color: '#3F3F46', fontSize: '0.75rem', fontWeight: 600,
+                      color: '#3F3F46',
+                      fontSize: panelText.body,
+                      fontWeight: panelWeight.semibold,
+                      fontFamily: 'inherit',
                       cursor: 'pointer', transition: 'background 0.15s',
                     }}
                   >
@@ -215,9 +231,12 @@ function ChapterCard({
                   <button
                     onClick={e => { e.stopPropagation(); onDelete(); }}
                     style={{
-                      flex: 1, padding: '6px 10px', borderRadius: '6px',
+                      flex: 1, padding: '7px 10px', borderRadius: '8px',
                       border: 'none', background: '#ef4444',
-                      color: '#fff', fontSize: '0.75rem', fontWeight: 700,
+                      color: '#fff',
+                      fontSize: panelText.body,
+                      fontWeight: panelWeight.bold,
+                      fontFamily: 'inherit',
                       cursor: 'pointer', transition: 'background 0.15s',
                     }}
                   >
@@ -249,18 +268,26 @@ function UndoToast({ message, onUndo, onDismiss }: { message: string; onUndo: ()
       style={{
         position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
         zIndex: 9999, display: 'flex', alignItems: 'center', gap: '10px',
-        padding: '10px 16px', borderRadius: '8px',
+        padding: '10px 16px', borderRadius: '10px',
+        background: '#18181B',
         boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-        color: '#fff', fontSize: '0.8rem', fontWeight: 500,
+        color: '#fff',
+        fontSize: panelText.body,
+        fontWeight: panelWeight.medium,
+        fontFamily: 'inherit',
+        lineHeight: panelLineHeight.tight,
       } as React.CSSProperties}
     >
       <span>{message}</span>
       <button
         onClick={onUndo}
         style={{
-          padding: '4px 12px', borderRadius: '8px', border: 'none',
+          padding: '5px 12px', borderRadius: '6px', border: 'none',
           background: 'rgba(255,255,255,0.18)', color: '#fff',
-          fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer',
+          fontSize: panelText.hint,
+          fontWeight: panelWeight.bold,
+          fontFamily: 'inherit',
+          cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: '4px',
           transition: 'background 0.15s',
         }}
@@ -416,10 +443,20 @@ export function StoryPanel() {
             background: '#FAFAFA',
             border: '1.5px dashed #E4E4E7',
           }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#3F3F46', marginBottom: '4px' }}>
+            <div style={{
+              fontSize: panelText.body,
+              fontWeight: panelWeight.semibold,
+              color: '#3F3F46',
+              marginBottom: '4px',
+              lineHeight: panelLineHeight.tight,
+            }}>
               No chapters yet
             </div>
-            <div style={{ fontSize: '0.65rem', color: '#71717A', lineHeight: 1.5 }}>
+            <div style={{
+              fontSize: panelText.hint,
+              color: '#71717A',
+              lineHeight: panelLineHeight.normal,
+            }}>
               Add your first chapter to start telling your story.
             </div>
           </div>
@@ -435,7 +472,10 @@ export function StoryPanel() {
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
             border: '1.5px dashed #E4E4E7', borderRadius: '10px',
             background: '#FAFAFA', cursor: 'pointer',
-            color: '#18181B', fontSize: '0.72rem', fontWeight: 600,
+            color: '#18181B',
+            fontSize: panelText.body,
+            fontWeight: panelWeight.semibold,
+            fontFamily: 'inherit',
             transition: 'all 0.15s',
           }}
         >

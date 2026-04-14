@@ -16,14 +16,25 @@ export const panelText = {
   heading: '0.6rem',
   // FIELD LABELS — "Accent Color", "Font pairing" (uppercase)
   label: '0.6rem',
-  // Inline helper / description text under a heading or label
-  hint: '0.65rem',
+  // ITEM TITLES — chapter titles, event names, page names (Title Case)
+  itemTitle: '0.8rem',
   // Default body copy inside a panel section
   body: '0.75rem',
+  // Inline helper / description text under a heading or label
+  hint: '0.65rem',
   // Compact pill / chip text
   chip: '0.65rem',
   // Smallest meta — timestamps, counts, units
   meta: '0.55rem',
+} as const;
+
+// ── Line heights ─────────────────────────────────────────────
+// Standardized line heights for each text size so panels have
+// consistent vertical rhythm.
+export const panelLineHeight = {
+  tight: 1.2,      // headings, item titles
+  snug: 1.35,      // body copy
+  normal: 1.5,     // descriptive / hint text
 } as const;
 
 export const panelWeight = {
