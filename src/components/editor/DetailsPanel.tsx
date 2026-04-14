@@ -63,6 +63,10 @@ function ConfirmDeleteButton({ onConfirm }: { onConfirm: () => void }) {
   );
 }
 
+// Required poetry fields default to empty strings so edits always produce a
+// complete Poetry object (heroTagline/closingLine/rsvpIntro are non-optional).
+const POETRY_DEFAULTS = { heroTagline: '', closingLine: '', rsvpIntro: '' } as const;
+
 // ── Wedding Party editor ──────────────────────────────────────
 // Compact list + inline-add form with drag-reorder.
 const ROLE_OPTIONS: Array<{ value: WeddingPartyMember['role']; label: string }> = [
@@ -1715,7 +1719,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         <Field
           label="Hero Tagline"
           value={manifest.poetry?.heroTagline || ''}
-          onChange={v => onChange({ ...manifest, poetry: { ...(manifest.poetry || {}), heroTagline: v } })}
+          onChange={v => onChange({ ...manifest, poetry: { ...POETRY_DEFAULTS, ...(manifest.poetry || {}), heroTagline: v } })}
           placeholder="Two hearts, one story..."
           rows={2}
           hint="Appears beneath your names in the Hero section."
@@ -1723,7 +1727,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         <Field
           label="Welcome Statement"
           value={manifest.poetry?.welcomeStatement || ''}
-          onChange={v => onChange({ ...manifest, poetry: { ...(manifest.poetry || {}), welcomeStatement: v } })}
+          onChange={v => onChange({ ...manifest, poetry: { ...POETRY_DEFAULTS, ...(manifest.poetry || {}), welcomeStatement: v } })}
           placeholder="We're so glad you're here..."
           rows={3}
           hint="Shown in the welcome block at the top of the page."
@@ -1731,7 +1735,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         <Field
           label="RSVP Intro"
           value={manifest.poetry?.rsvpIntro || ''}
-          onChange={v => onChange({ ...manifest, poetry: { ...(manifest.poetry || {}), rsvpIntro: v } })}
+          onChange={v => onChange({ ...manifest, poetry: { ...POETRY_DEFAULTS, ...(manifest.poetry || {}), rsvpIntro: v } })}
           placeholder="Will you celebrate with us?"
           rows={2}
           hint="Heading above the RSVP form."
@@ -1739,7 +1743,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         <Field
           label="Closing Line"
           value={manifest.poetry?.closingLine || ''}
-          onChange={v => onChange({ ...manifest, poetry: { ...(manifest.poetry || {}), closingLine: v } })}
+          onChange={v => onChange({ ...manifest, poetry: { ...POETRY_DEFAULTS, ...(manifest.poetry || {}), closingLine: v } })}
           placeholder="Together is our favourite place to be..."
           rows={2}
           hint="Appears in the footer beneath your names."
