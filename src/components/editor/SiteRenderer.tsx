@@ -620,19 +620,41 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
   useEffect(() => {
     if (!editMode || !siteRef.current) return;
 
+    // Click-to-prime state: track elements waiting for second click
+    const primedEls = new Set<HTMLElement>();
+    const primedTimers = new Map<HTMLElement, ReturnType<typeof setTimeout>>();
+
+    function activateEditable(htmlEl: HTMLElement) {
+      htmlEl.contentEditable = 'true';
+      htmlEl.spellcheck = false;
+      htmlEl.style.outline = 'none';
+      htmlEl.style.cursor = 'text';
+      htmlEl.style.textDecoration = 'none';
+      htmlEl.style.boxShadow = '0 0 0 2px rgba(24,24,27,0.12)';
+      htmlEl.style.borderRadius = '4px';
+      htmlEl.style.background = 'rgba(255,255,255,0.08)';
+      htmlEl.focus();
+      const range = document.createRange();
+      range.selectNodeContents(htmlEl);
+      const sel = window.getSelection();
+      sel?.removeAllRanges();
+      sel?.addRange(range);
+    }
+
     const setupEditableElements = () => {
       if (!siteRef.current) return;
       siteRef.current.querySelectorAll('[data-pe-editable="true"]').forEach(el => {
         const htmlEl = el as HTMLElement;
         if (htmlEl.dataset.peSetup) return;
         htmlEl.dataset.peSetup = '1';
-        htmlEl.style.cursor = 'pointer';
+        // Show text cursor on hover so users know the field is editable
+        htmlEl.style.cursor = 'text';
 
-        // Hover: dotted underline hint
+        // Hover: clear underline hint that signals editability
         htmlEl.addEventListener('mouseenter', () => {
           if (htmlEl.contentEditable !== 'true') {
             htmlEl.style.textDecoration = 'underline';
-            htmlEl.style.textDecorationColor = '#E4E4E7';
+            htmlEl.style.textDecorationColor = 'rgba(24,24,27,0.3)';
             htmlEl.style.textUnderlineOffset = '4px';
             htmlEl.style.textDecorationStyle = 'dotted';
           }
@@ -643,24 +665,28 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           }
         });
 
-        // Double-click: enter edit mode
-        htmlEl.addEventListener('dblclick', (e) => {
+        // Single-click: prime on first click, activate on second click within 800ms
+        htmlEl.addEventListener('click', (e) => {
           e.stopPropagation();
-          htmlEl.contentEditable = 'true';
-          htmlEl.spellcheck = false;
-          htmlEl.style.outline = 'none';
-          htmlEl.style.cursor = 'text';
-          htmlEl.style.textDecoration = 'none';
-          htmlEl.style.boxShadow = '0 0 0 2px rgba(24,24,27,0.12)';
-          htmlEl.style.borderRadius = '4px';
-          htmlEl.style.background = 'rgba(255,255,255,0.1)';
-          htmlEl.focus();
-          // Select all text
-          const range = document.createRange();
-          range.selectNodeContents(htmlEl);
-          const sel = window.getSelection();
-          sel?.removeAllRanges();
-          sel?.addRange(range);
+          if (htmlEl.contentEditable === 'true') return;
+          if (primedEls.has(htmlEl)) {
+            // Second click — activate immediately
+            primedEls.delete(htmlEl);
+            clearTimeout(primedTimers.get(htmlEl));
+            primedTimers.delete(htmlEl);
+            htmlEl.classList.remove('pe-edit-primed');
+            activateEditable(htmlEl);
+          } else {
+            // First click — prime and wait for second
+            primedEls.add(htmlEl);
+            htmlEl.classList.add('pe-edit-primed');
+            const timer = setTimeout(() => {
+              primedEls.delete(htmlEl);
+              primedTimers.delete(htmlEl);
+              htmlEl.classList.remove('pe-edit-primed');
+            }, 800);
+            primedTimers.set(htmlEl, timer);
+          }
         });
 
         // Blur: exit edit mode and commit
@@ -1726,6 +1752,19 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       {/* Google Fonts */}
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="stylesheet" href={fontUrl} />
+
+      {/* Inline-edit visual states */}
+      {editMode && (
+        <style>{`
+          [data-pe-editable="true"].pe-edit-primed {
+            outline: 2px solid rgba(24,24,27,0.22) !important;
+            outline-offset: 3px !important;
+            border-radius: 4px !important;
+            background: rgba(24,24,27,0.04) !important;
+            transition: outline 0.1s ease, background 0.1s ease;
+          }
+        `}</style>
+      )}
 
       {/* CSS scoping — site content lives inside .pl-site-scope */}
       <div
