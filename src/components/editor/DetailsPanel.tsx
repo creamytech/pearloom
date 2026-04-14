@@ -379,6 +379,19 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
     }
   }, [state.contextSection, state.activeTab]);
 
+  // Scroll the `fieldFocus` target into view when it changes. Mirrors the
+  // DesignPanel behavior for structured-data fields (registry / travel /
+  // faq / footer) dispatched from EditorCanvas.handleSectionClick.
+  useEffect(() => {
+    if (!state.fieldFocus || state.activeTab !== 'details') return;
+    const field = state.fieldFocus;
+    const raf = requestAnimationFrame(() => {
+      const el = document.querySelector<HTMLElement>(`[data-field-focus="${field}"]`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [state.fieldFocus, state.activeTab]);
+
   const upd = (data: Partial<typeof logistics>) =>
     onChange({ ...manifest, logistics: { ...logistics, ...data } });
 
@@ -587,6 +600,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
     return (
       <div
         id={`pe-panel-section-${id}`}
+        data-field-focus={id}
         style={{
           borderRadius: '10px', marginBottom: '4px',
           background: isOpen ? '#FAFAFA' : 'transparent',

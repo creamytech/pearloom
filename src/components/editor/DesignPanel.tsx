@@ -792,6 +792,21 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
     }
   }, [state.contextSection, state.activeTab, dispatch]);
 
+  // Scroll the `fieldFocus` target into view when it changes. Fieldfocus is
+  // dispatched by EditorCanvas for structured-data-like sections (e.g.
+  // navigation, theme) so the field the user clicked is brought into view
+  // even when the panel scroll was far from it.
+  useEffect(() => {
+    if (!state.fieldFocus || state.activeTab !== 'design') return;
+    const field = state.fieldFocus;
+    // Run after paint so SidebarSection has a chance to expand first.
+    const raf = requestAnimationFrame(() => {
+      const el = document.querySelector<HTMLElement>(`[data-field-focus="${field}"]`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [state.fieldFocus, state.activeTab]);
+
   const handleRegenerateDesign = async () => {
     setIsRegenerating(true);
     setRegenError('');
@@ -1172,6 +1187,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       </SidebarSection>
 
       {/* ── Theme — presets ── */}
+      <div data-field-focus="theme">
       <SidebarSection title="Theme" defaultOpen={forceOpenSection === 'theme' || !forceOpenSection} key={forceOpenSection === 'theme' ? 'theme-open' : 'theme'}>
         <ThemeSwitcher
           currentVibeSkin={manifest.vibeSkin ?? ({} as VibeSkin)}
@@ -1179,6 +1195,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
           onApply={handleThemeApply}
         />
       </SidebarSection>
+      </div>
 
       {/* ── Page Background ── */}
       <SidebarSection title="Page Background" defaultOpen={false}>
@@ -1387,9 +1404,11 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       </SidebarSection>
 
       {/* ── Navigation — logo + nav style ── */}
+      <div data-field-focus="navigation">
       <SidebarSection title="Navigation" defaultOpen={forceOpenSection === 'navigation' || !forceOpenSection} key={forceOpenSection === 'navigation' ? 'nav-open' : 'nav'}>
         <NavCustomizationPanel manifest={manifest} onChange={onChange} />
       </SidebarSection>
+      </div>
 
       {/* ── Chapter Date Format — applies to chapter date labels ── */}
       {/* Story-layout selection moved to the inline InlineStoryLayoutSwitcher. */}

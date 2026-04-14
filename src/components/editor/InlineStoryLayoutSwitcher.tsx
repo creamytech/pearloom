@@ -147,7 +147,10 @@ export function InlineStoryLayoutSwitcher() {
         top: Math.max(anchor.top - STRIP_OFFSET, 8),
         left: anchor.left,
         transform: 'translateX(-50%)',
-        zIndex: 200,
+        // Sits just above other inline popovers (InlineStylePicker /
+        // BlockConfigPopover @ 160) but still well below the modal
+        // layer (1000+) so publish / tour / welcome sit on top.
+        zIndex: 170,
         pointerEvents: 'auto',
         maxWidth: `min(${Math.max(anchor.width - 24, 320)}px, calc(100vw - 32px))`,
         padding: '8px 10px',

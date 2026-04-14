@@ -19,6 +19,12 @@ import { Field, lbl, inp } from './editor-utils';
 import { ImageManager } from './ImageManager';
 import { GalleryPicker } from './GalleryPicker';
 import { PRESET_THEMES } from './ThemeSwitcher';
+import {
+  LAYOUT_OPTIONS,
+  MiniDiagram,
+  resolveStoryLayout,
+  type StoryLayoutType,
+} from '@/components/blocks/StoryLayouts';
 import type { VibeSkin } from '@/lib/vibe-engine';
 import type { Chapter, ChapterImage, WeddingEvent, FaqItem, StoryManifest } from '@/types';
 
@@ -185,6 +191,14 @@ export function MobileContextPanel({
                   onApply={(patch) => actions.handleDesignChange({ ...manifest, ...patch })}
                   onOpenFullPanel={() => dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' })}
                 />
+                {/* Story layout switcher — compact horizontal pill row that
+                    mirrors the desktop InlineStoryLayoutSwitcher. */}
+                <MobileStoryLayoutRow
+                  manifest={manifest}
+                  onApply={(type) =>
+                    actions.handleDesignChange({ ...manifest, storyLayout: type, layoutFormat: undefined })
+                  }
+                />
                 <ChapterSettings
                   chapter={chapter}
                   onUpdate={(data) => scheduleChapterUpdate(chapter.id, data)}
@@ -203,6 +217,12 @@ export function MobileContextPanel({
               manifest={manifest}
               onApply={(patch) => actions.handleDesignChange({ ...manifest, ...patch })}
               onOpenFullPanel={() => dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' })}
+            />
+            <MobileStoryLayoutRow
+              manifest={manifest}
+              onApply={(type) =>
+                actions.handleDesignChange({ ...manifest, storyLayout: type, layoutFormat: undefined })
+              }
             />
             <div style={{ ...sectionPad, color: '#71717A', fontSize: 'var(--pl-text-sm)' }}>
               Tap a specific chapter in the preview to edit it.
@@ -1714,6 +1734,105 @@ const MOBILE_ACCENT_SWATCH_NAMES = [
 
 const pickMobilePreset = (name: string) =>
   PRESET_THEMES.find((p) => p.name === name);
+
+// ── Mobile story-layout switcher ─────────────────────────────
+// Compact horizontal pill row that mirrors the desktop
+// InlineStoryLayoutSwitcher. Tapping a pill applies the layout
+// immediately via actions.handleDesignChange.
+function MobileStoryLayoutRow({
+  manifest,
+  onApply,
+}: {
+  manifest: StoryManifest;
+  onApply: (type: StoryLayoutType) => void;
+}) {
+  const active = resolveStoryLayout(manifest.storyLayout, manifest.layoutFormat);
+  return (
+    <div
+      style={{
+        padding: '10px 12px 12px',
+        borderBottom: '1px solid var(--pl-black-6)',
+        background: 'var(--pl-glass-light)',
+      }}
+    >
+      <div
+        style={{
+          fontSize: 'var(--pl-text-2xs)',
+          fontWeight: 700,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          color: '#71717A',
+          marginBottom: 8,
+        }}
+      >
+        Story layout
+      </div>
+      <div
+        role="toolbar"
+        aria-label="Story layout"
+        style={{
+          display: 'flex',
+          gap: 6,
+          overflowX: 'auto',
+          overflowY: 'hidden',
+          paddingBottom: 4,
+          WebkitOverflowScrolling: 'touch',
+        }}
+      >
+        {LAYOUT_OPTIONS.map((opt) => {
+          const isActive = opt.type === active;
+          return (
+            <button
+              key={opt.type}
+              type="button"
+              onClick={() => {
+                if (opt.type !== active) onApply(opt.type);
+              }}
+              title={opt.desc}
+              aria-pressed={isActive}
+              style={{
+                flex: '0 0 auto',
+                minWidth: 56,
+                width: 72,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'stretch',
+                gap: 4,
+                padding: 6,
+                borderRadius: 10,
+                background: isActive ? '#FFFFFF' : 'transparent',
+                border: '1px solid',
+                borderColor: isActive ? '#18181B' : 'rgba(24,24,27,0.08)',
+                boxShadow: isActive ? '0 0 0 2px rgba(24,24,27,0.12)' : 'none',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                color: '#18181B',
+                textAlign: 'center',
+              }}
+            >
+              <div style={{ width: '100%', pointerEvents: 'none' }}>
+                <MiniDiagram type={opt.type} />
+              </div>
+              <div
+                style={{
+                  fontSize: '0.62rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.02em',
+                  color: isActive ? '#18181B' : '#52525B',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {opt.label}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function QuickStyleSection({
   manifest,
