@@ -420,7 +420,10 @@ export function EditorCanvas() {
       {/* Focal point drag overlay — activated on chapter image click */}
       {focalPoint && (
         <FocalPointOverlay
-          {...focalPoint}
+          chapterId={focalPoint.chapterId}
+          rect={focalPoint.rect}
+          currentX={focalPoint.x}
+          currentY={focalPoint.y}
           onPositionChange={(x, y) =>
             actions.updateChapter(focalPoint.chapterId, { imagePosition: { x, y } })
           }
