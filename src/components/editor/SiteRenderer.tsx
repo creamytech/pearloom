@@ -769,7 +769,10 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     if (section) {
       const sectionId = section.getAttribute('data-pe-section') || '';
       const chapterId2 = section.getAttribute('data-pe-chapter') || undefined;
-      onSectionClick(sectionId, chapterId2);
+      // Item 93: forward blockId so empty-state CTAs can select the owning
+      // block (e.g. the empty gallery "+ Add photos" button).
+      const blockId2 = section.getAttribute('data-block-id') || undefined;
+      onSectionClick(sectionId, chapterId2, blockId2);
     }
   }, [editMode, onSectionClick]);
 
@@ -1723,11 +1726,26 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           }
         }
         if (!allPhotos.length) return editMode ? (
-          <section key={key} data-pe-section="photos" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
+          <section key={key} data-pe-section="photos" data-block-id={block.id} style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
             <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.75rem' }}><Camera size={28} style={{ color: '#71717A' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Photo Gallery</div>
-              <p style={{ fontSize: '0.8rem' }}>Add photos to your story chapters — they&apos;ll appear here</p>
+              <p style={{ fontSize: '0.8rem', marginBottom: '1rem' }}>Add photos to your story chapters — they&apos;ll appear here</p>
+              {/* Item 93: empty-state CTA — click bubbles to the section handler
+                  which selects the block and opens the block config popover so
+                  the user can find the image manager from there. */}
+              <button
+                type="button"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                  padding: '0.5rem 0.9rem', borderRadius: '999px',
+                  background: pal.accent, color: '#fff',
+                  border: 'none', fontSize: '0.75rem', fontWeight: 600,
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                + Add photos
+              </button>
             </div>
           </section>
         ) : null;
