@@ -370,22 +370,30 @@ function reduceInner(state: EditorState, action: EditorAction): EditorState {
 
 // ── Context ────────────────────────────────────────────────────
 
+// Item 2: options accepted by history-pushing actions. `coalesceKey` is
+// forwarded to PUSH_UNDO_ENTRY so that rapid per-keystroke text edits to the
+// same field collapse into a single undo entry within DESIGN_COALESCE_MS.
+export interface HistoryPushOpts {
+  coalesceKey?: string;
+  label?: string;
+}
+
 export interface EditorActions {
   // Chapter mutations
-  updateChapter: (id: string, data: Partial<Chapter>) => void;
+  updateChapter: (id: string, data: Partial<Chapter>, opts?: HistoryPushOpts) => void;
   deleteChapter: (id: string) => void;
   addChapter: () => void;
   handleReorder: (chapters: Chapter[]) => void;
 
   // Manifest mutations
-  syncManifest: (chapters: Chapter[]) => void;
-  handleDesignChange: (m: StoryManifest) => void;
+  syncManifest: (chapters: Chapter[], opts?: HistoryPushOpts) => void;
+  handleDesignChange: (m: StoryManifest, opts?: HistoryPushOpts) => void;
   handleChatManifestUpdate: (updates: Partial<StoryManifest>) => void;
 
   // History
   undo: () => void;
   redo: () => void;
-  pushHistory: (m: StoryManifest) => void;
+  pushHistory: (m: StoryManifest, opts?: HistoryPushOpts) => void;
 
   // Preview
   pushToPreview: (m: StoryManifest) => void;

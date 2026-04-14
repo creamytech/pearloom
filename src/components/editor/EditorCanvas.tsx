@@ -297,7 +297,9 @@ export function EditorCanvas() {
     if (path.startsWith('chapter:')) {
       const [, chapterId, field] = path.split(':');
       const chapter = manifest.chapters?.find(c => c.id === chapterId);
-      if (chapter) actions.updateChapter(chapterId, { [field]: value });
+      // Item 2: per-field coalesce key so rapid keystrokes on the same chapter
+      // field collapse into one undo step within DESIGN_COALESCE_MS (400ms).
+      if (chapter) actions.updateChapter(chapterId, { [field]: value }, { coalesceKey: `text:${path}` });
     } else if (path.startsWith('block-config:')) {
       // block-config:blockId:configKey — updates a block's config field
       const [, blockId, ...keyParts] = path.split(':');
@@ -306,7 +308,8 @@ export function EditorCanvas() {
       const idx = blocks.findIndex(b => b.id === blockId);
       if (idx !== -1) {
         blocks[idx] = { ...blocks[idx], config: { ...(blocks[idx].config || {}), [configKey]: value } };
-        actions.handleDesignChange({ ...manifest, blocks });
+        // Item 2: path is already `block-config:<id>:<key>` — use it as-is.
+        actions.handleDesignChange({ ...manifest, blocks }, { coalesceKey: path });
       }
     } else {
       // Manifest path edit (e.g., "events.0.name", "poetry.heroTagline", "vibeSkin.accentSymbol")
@@ -323,7 +326,9 @@ export function EditorCanvas() {
       }
       const lastKey = /^\d+$/.test(parts[parts.length - 1]) ? parseInt(parts[parts.length - 1]) : parts[parts.length - 1];
       (target as Record<string | number, unknown>)[lastKey] = value;
-      actions.handleDesignChange(updated);
+      // Item 2: plain text-field edits coalesce per-path so different fields
+      // still produce separate undo entries.
+      actions.handleDesignChange(updated, { coalesceKey: `text:${path}` });
     }
   }, [manifest, actions]);
 

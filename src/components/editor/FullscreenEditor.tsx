@@ -77,7 +77,7 @@ import {
   EditorContext, editorReducer, createInitialEditorState,
   storePreview, stripArtForStorage,
   PREVIEW_KEY_PREFIX, AUTOSAVE_KEY,
-  useEditor,
+  useEditor, DESIGN_COALESCE_MS,
   type EditorTab, type EditorActions,
 } from '@/lib/editor-state';
 
@@ -233,14 +233,37 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   }, [state.isDirty]);
 
   // ── History helpers ──────────────────────────────────────────
-  const pushHistory = useCallback((m: StoryManifest) => {
+  // Item 2: When `opts.coalesceKey` is provided AND it matches the previous
+  // push within DESIGN_COALESCE_MS (400ms), we replace the top entry instead
+  // of appending — so rapid text-edits to the same field collapse into one
+  // undo step. We also forward the key to PUSH_UNDO_ENTRY so `state.undoHistory`
+  // stays in sync with the manifest-ref stack.
+  const lastPushKeyRef = useRef<string | null>(null);
+  const lastPushAtRef = useRef<number>(0);
+  const pushHistory = useCallback((m: StoryManifest, opts?: { coalesceKey?: string; label?: string }) => {
+    const now = Date.now();
+    const coalesceKey = opts?.coalesceKey;
+    const canCoalesce =
+      !!coalesceKey &&
+      coalesceKey === lastPushKeyRef.current &&
+      now - lastPushAtRef.current < DESIGN_COALESCE_MS &&
+      historyRef.current.length > 0 &&
+      historyIndexRef.current === historyRef.current.length - 1;
+
     const stack = historyRef.current.slice(0, historyIndexRef.current + 1);
-    stack.push(m);
-    if (stack.length > 50) stack.shift();
+    if (canCoalesce) {
+      stack[stack.length - 1] = m;
+    } else {
+      stack.push(m);
+      if (stack.length > 50) stack.shift();
+    }
     historyRef.current = stack;
     historyIndexRef.current = stack.length - 1;
+    lastPushKeyRef.current = coalesceKey ?? null;
+    lastPushAtRef.current = now;
     dispatch({ type: 'SET_CAN_UNDO', can: stack.length > 1 });
     dispatch({ type: 'SET_CAN_REDO', can: false });
+    dispatch({ type: 'PUSH_UNDO_ENTRY', label: opts?.label || 'Edit', coalesceKey });
   }, []);
 
   // ── Push to preview (debounced) ──────────────────────────────
@@ -287,17 +310,19 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   }, [onChange, pushToPreview]);
 
   // ── Core actions ─────────────────────────────────────────────
-  const syncManifest = useCallback((newChapters: Chapter[]) => {
+  // Item 2: `opts` is forwarded to `pushHistory` so text-edit callers can
+  // coalesce rapid per-keystroke pushes on the same field into one undo step.
+  const syncManifest = useCallback((newChapters: Chapter[], opts?: { coalesceKey?: string; label?: string }) => {
     const m = { ...manifest, chapters: newChapters.map((ch, i) => ({ ...ch, order: i })) };
-    pushHistory(m);
+    pushHistory(m, opts);
     onChange(m);
     pushToPreview(m);
   }, [manifest, onChange, pushToPreview, pushHistory]);
 
-  const updateChapter = useCallback((id: string, data: Partial<Chapter>) => {
+  const updateChapter = useCallback((id: string, data: Partial<Chapter>, opts?: { coalesceKey?: string; label?: string }) => {
     const next = state.chapters.map(ch => ch.id === id ? { ...ch, ...data } : ch);
     dispatch({ type: 'SET_CHAPTERS', chapters: next });
-    syncManifest(next);
+    syncManifest(next, opts);
   }, [state.chapters, syncManifest]);
 
   const deleteChapter = useCallback((id: string) => {
@@ -320,8 +345,8 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     syncManifest(next);
   }, [state.chapters, syncManifest]);
 
-  const handleDesignChange = useCallback((m: StoryManifest) => {
-    pushHistory(m);
+  const handleDesignChange = useCallback((m: StoryManifest, opts?: { coalesceKey?: string; label?: string }) => {
+    pushHistory(m, opts);
     onChange(m);
     pushToPreview(m);
   }, [onChange, pushToPreview, pushHistory]);

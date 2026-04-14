@@ -190,7 +190,8 @@ export function MobileEditorSheet() {
     if (path.startsWith('chapter:')) {
       const [, chId, field] = path.split(':');
       const chapter = manifest.chapters?.find(c => c.id === chId);
-      if (chapter) actions.updateChapter(chId, { [field]: value });
+      // Item 2: coalesce rapid keystrokes on the same chapter field.
+      if (chapter) actions.updateChapter(chId, { [field]: value }, { coalesceKey: `text:${path}` });
     } else {
       const parts = path.split('.');
       const updated = JSON.parse(JSON.stringify(manifest));
@@ -204,7 +205,8 @@ export function MobileEditorSheet() {
       }
       const lastKey = /^\d+$/.test(parts[parts.length - 1]) ? parseInt(parts[parts.length - 1]) : parts[parts.length - 1];
       (target as Record<string | number, unknown>)[lastKey] = value;
-      actions.handleDesignChange(updated);
+      // Item 2: per-path coalesce key so different fields stay separate.
+      actions.handleDesignChange(updated, { coalesceKey: `text:${path}` });
     }
   }, [manifest, actions]);
 
