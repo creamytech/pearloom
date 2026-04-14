@@ -178,13 +178,24 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                   cursor: 'pointer', transition: 'all 0.15s',
                 }}
               >
-                <div style={{ fontSize: '0.72rem', fontWeight: 600, color: isActive ? '#18181B' : '#3F3F46' }}>{mode.label}</div>
-                <div style={{ fontSize: '0.58rem', color: '#71717A', marginTop: '2px' }}>{mode.desc}</div>
+                <div style={{
+                  fontSize: panelText.body,
+                  fontWeight: isActive ? panelWeight.bold : panelWeight.semibold,
+                  color: isActive ? '#18181B' : '#3F3F46',
+                  fontFamily: 'inherit',
+                  lineHeight: panelLineHeight.tight,
+                }}>{mode.label}</div>
+                <div style={{
+                  fontSize: panelText.meta,
+                  color: '#71717A',
+                  marginTop: '3px',
+                  lineHeight: panelLineHeight.normal,
+                }}>{mode.desc}</div>
               </button>
             );
           })}
         </div>
-        <div style={{ fontSize: '0.55rem', color: '#71717A', marginTop: '6px', lineHeight: 1.4 }}>
+        <div style={HINT_TEXT}>
           {(manifest.pageMode || 'multi-page') === 'multi-page'
             ? 'Guests navigate between pages like a real website. Best for sites with lots of content.'
             : 'All content on one page that guests scroll through. Great for minimal sites.'}
@@ -222,15 +233,29 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
           })}
         </div>
         {manifest.logoSvg && (
-          <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '0.6rem', color: '#18181B',  }}>
+          <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{
+              fontSize: panelText.hint,
+              fontWeight: panelWeight.semibold,
+              color: '#18181B',
+              fontFamily: 'inherit',
+              lineHeight: panelLineHeight.tight,
+            }}>
               ✦ Using AI-generated logo
             </span>
             <button
               onClick={() => onChange({ ...manifest, logoSvg: undefined })}
               style={{
-                fontSize: '0.55rem', color: '#71717A', background: '#FAFAFA',
-                border: 'none', borderRadius: '4px', padding: '2px 6px', cursor: 'pointer',
+                fontSize: panelText.meta,
+                fontWeight: panelWeight.semibold,
+                fontFamily: 'inherit',
+                color: '#71717A',
+                background: '#FAFAFA',
+                border: '1px solid #E4E4E7',
+                borderRadius: '6px',
+                padding: '3px 8px',
+                cursor: 'pointer',
+                lineHeight: panelLineHeight.tight,
               }}
             >
               Use icon instead
@@ -262,10 +287,13 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 <div style={{ height: '28px', overflow: 'hidden' }}>
                   {style.preview}
                 </div>
-                <div style={{ padding: '4px 6px', textAlign: 'center' }}>
+                <div style={{ padding: '5px 6px', textAlign: 'center' }}>
                   <div style={{
-                    fontSize: '0.58rem', fontWeight: 600,
+                    fontSize: panelText.chip,
+                    fontWeight: isActive ? panelWeight.bold : panelWeight.semibold,
                     color: isActive ? '#18181B' : '#71717A',
+                    fontFamily: 'inherit',
+                    lineHeight: panelLineHeight.tight,
                   }}>
                     {style.label}
                   </div>
@@ -297,13 +325,19 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 }}
               >
                 <div style={{
-                  fontSize: '0.6rem', fontWeight: 600,
+                  fontSize: panelText.hint,
+                  fontWeight: isActive ? panelWeight.bold : panelWeight.semibold,
                   color: isActive ? '#18181B' : '#3F3F46',
+                  fontFamily: 'inherit',
+                  lineHeight: panelLineHeight.tight,
                 }}>
                   {style.label}
                 </div>
                 <div style={{
-                  fontSize: '0.55rem', color: '#71717A', marginTop: '2px', lineHeight: 1.3,
+                  fontSize: panelText.meta,
+                  color: '#71717A',
+                  marginTop: '3px',
+                  lineHeight: panelLineHeight.normal,
                 }}>
                   {style.desc}
                 </div>
@@ -327,7 +361,14 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
           onChange={e => onChange({ ...manifest, navOpacity: Number(e.target.value) })}
           style={{ width: '100%', accentColor: '#18181B' }}
         />
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.55rem', color: '#71717A', marginTop: '2px' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          fontSize: panelText.meta,
+          color: '#71717A',
+          marginTop: '4px',
+          lineHeight: panelLineHeight.tight,
+        }}>
           <span>Transparent</span><span>Full</span>
         </div>
       </div>
@@ -350,11 +391,20 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 key={opt.label}
                 onClick={() => onChange({ ...manifest, navBackground: opt.value || undefined })}
                 style={{
-                  padding: '5px 10px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: 600,
+                  padding: '6px 11px',
+                  borderRadius: '100px',
+                  fontSize: panelText.chip,
+                  fontWeight: isActive ? panelWeight.bold : panelWeight.semibold,
+                  fontFamily: 'inherit',
                   border: isActive ? '2px solid #18181B' : '1px solid #E4E4E7',
-                  background: isActive ? 'rgba(24,24,27,0.05)' : '#FFFFFF',
+                  background: isActive ? '#F4F4F5' : '#FFFFFF',
                   color: isActive ? '#18181B' : '#71717A',
-                  cursor: 'pointer', transition: 'all 0.15s',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                  lineHeight: panelLineHeight.tight,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
                 }}
               >
                 {opt.value && opt.label !== 'Auto' && (
@@ -402,22 +452,35 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <p style={{ fontSize: '0.65rem', color: '#71717A', lineHeight: 1.5, margin: 0 }}>
+      <p style={{
+        fontSize: panelText.hint,
+        color: '#71717A',
+        lineHeight: panelLineHeight.normal,
+        margin: 0,
+      }}>
         Decorative corners for the hero and footer — personalized to your style.
       </p>
 
       {/* Category filter pills */}
-      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
         {categories.map(cat => (
           <button
             key={cat}
             onClick={() => setFilter(cat)}
             style={{
-              padding: '3px 10px', borderRadius: '8px', border: 'none',
-              fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em',
-              textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.15s',
-              background: filter === cat ? '#18181B' : 'rgba(255,255,255,0.2)',
-              color: filter === cat ? 'white' : '#71717A',
+              padding: '5px 11px',
+              borderRadius: '100px',
+              border: filter === cat ? '2px solid #18181B' : '1px solid #E4E4E7',
+              fontSize: panelText.meta,
+              fontWeight: panelWeight.bold,
+              fontFamily: 'inherit',
+              letterSpacing: panelTracking.wide,
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+              background: filter === cat ? '#18181B' : '#FFFFFF',
+              color: filter === cat ? '#FFFFFF' : '#71717A',
+              lineHeight: panelLineHeight.tight,
             }}
           >
             {cat}
@@ -456,7 +519,13 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
                   dangerouslySetInnerHTML={{ __html: previewSvg }}
                 />
               ) : (
-                <span style={{ fontSize: '0.6rem', color: '#71717A', fontWeight: 600 }}>None</span>
+                <span style={{
+                  fontSize: panelText.hint,
+                  color: '#71717A',
+                  fontWeight: panelWeight.semibold,
+                  fontFamily: 'inherit',
+                  lineHeight: panelLineHeight.tight,
+                }}>None</span>
               )}
               {active && (
                 <div style={{
@@ -469,9 +538,15 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
                 </div>
               )}
               <span style={{
-                position: 'absolute', bottom: '3px', left: 0, right: 0,
-                fontSize: '0.5rem', fontWeight: 700, color: '#71717A',
-                textAlign: 'center', letterSpacing: '0.03em',
+                position: 'absolute', bottom: '4px', left: 0, right: 0,
+                fontSize: panelText.meta,
+                fontWeight: panelWeight.bold,
+                color: '#71717A',
+                fontFamily: 'inherit',
+                textAlign: 'center',
+                letterSpacing: panelTracking.wide,
+                textTransform: 'uppercase',
+                lineHeight: panelLineHeight.tight,
               }}>
                 {preset.label}
               </span>
@@ -481,7 +556,15 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
       </div>
 
       {currentSvg && (
-        <p style={{ fontSize: '0.6rem', color: '#18181B', textAlign: 'center', margin: 0,  }}>
+        <p style={{
+          fontSize: panelText.hint,
+          fontWeight: panelWeight.semibold,
+          color: '#18181B',
+          fontFamily: 'inherit',
+          textAlign: 'center',
+          margin: 0,
+          lineHeight: panelLineHeight.normal,
+        }}>
           ✦ AI-generated corners will be replaced when you pick a preset
         </p>
       )}
@@ -808,7 +891,12 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       {/* ── Writing Style — AI tone adjuster ── */}
       <SidebarSection title="Writing Style" defaultOpen={false}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <p style={{ fontSize: '0.65rem', color: '#71717A', margin: 0, lineHeight: 1.5 }}>
+          <p style={{
+            fontSize: panelText.hint,
+            color: '#71717A',
+            margin: 0,
+            lineHeight: panelLineHeight.normal,
+          }}>
             Let Pear rewrite all your site copy to match a tone.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
@@ -823,7 +911,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '5px',
+                    gap: '6px',
                     padding: '9px 12px',
                     borderRadius: '8px',
                     border: isActive ? '2px solid #18181B' : '1px solid #E4E4E7',
@@ -831,15 +919,17 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                     cursor: toneLoading ? 'wait' : 'pointer',
                     opacity: toneLoading && !isActive ? 0.5 : 1,
                     transition: 'all 0.15s',
-                    fontSize: '0.72rem',
-                    fontWeight: 600,
+                    fontSize: panelText.body,
+                    fontWeight: isActive ? panelWeight.bold : panelWeight.semibold,
+                    fontFamily: 'inherit',
                     color: isActive ? '#FFFFFF' : '#3F3F46',
+                    lineHeight: panelLineHeight.tight,
                   }}
                 >
                   {isActive && toneLoading ? (
                     <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
                   ) : (
-                    <PearIcon size={12} color={isActive ? '#18181B' : '#71717A'} />
+                    <PearIcon size={12} color={isActive ? '#FFFFFF' : '#71717A'} />
                   )}
                   {tone}
                 </button>
@@ -854,10 +944,11 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               padding: '8px 12px',
               borderRadius: '10px',
               background: '#F4F4F5',
-              border: '1px solid #F4F4F5',
-              fontSize: '0.65rem',
-              fontWeight: 600,
+              border: '1px solid #E4E4E7',
+              fontSize: panelText.hint,
+              fontWeight: panelWeight.semibold,
               color: '#18181B',
+              lineHeight: panelLineHeight.tight,
             }}>
               <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
               Pear is adjusting your tone...
@@ -878,7 +969,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       {/* ── Page Background ── */}
       <SidebarSection title="Page Background" defaultOpen={false}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label style={{ display: 'block', fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#A1A1AA', marginBottom: '4px' }}>Background Color</label>
+          <label style={SUB_LABEL}>Background Color</label>
           <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
             {[
               { label: 'Theme', value: '' },
@@ -910,7 +1001,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               );
             })}
           </div>
-          <label style={{ display: 'block', fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#A1A1AA', marginBottom: '4px' }}>Background Pattern</label>
+          <label style={SUB_LABEL}>Background Pattern</label>
           <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
             {[
               { label: 'None', value: '' },
@@ -1002,7 +1093,13 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                   }} />
                 ))}
               </div>
-              <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#18181B' }}>
+              <div style={{
+                fontSize: panelText.hint,
+                fontWeight: panelWeight.bold,
+                color: '#18181B',
+                fontFamily: 'inherit',
+                lineHeight: panelLineHeight.tight,
+              }}>
                 {preset.name}
               </div>
             </button>
@@ -1046,9 +1143,29 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             onUpdate={(updates) => onChange({ ...manifest, ...updates })}
           />
         ) : (
-          <div style={{ padding: '1rem', textAlign: 'center', color: '#71717A', fontSize: '0.8rem' }}>
-            <p style={{ marginBottom: '0.75rem' }}>No AI art generated yet.</p>
-            <button onClick={handleRegenerateDesign} style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: '#18181B', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
+          <div style={{
+            padding: '16px',
+            textAlign: 'center',
+            color: '#71717A',
+            fontSize: panelText.body,
+            lineHeight: panelLineHeight.normal,
+          }}>
+            <p style={{ marginBottom: '10px', margin: '0 0 10px' }}>No AI art generated yet.</p>
+            <button
+              onClick={handleRegenerateDesign}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                background: '#18181B',
+                color: '#fff',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: panelText.body,
+                fontWeight: panelWeight.bold,
+                fontFamily: 'inherit',
+                lineHeight: panelLineHeight.tight,
+              }}
+            >
               Generate AI Art
             </button>
           </div>
@@ -1122,16 +1239,19 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                     aria-pressed={isActive}
                   >
                     <span style={{
-                      fontSize: '0.65rem',
-                      fontWeight: isActive ? 700 : 600,
-                      color: '#3F3F46',
+                      fontSize: panelText.body,
+                      fontWeight: isActive ? panelWeight.bold : panelWeight.semibold,
+                      color: '#18181B',
+                      fontFamily: 'inherit',
+                      lineHeight: panelLineHeight.tight,
                     }}>
                       {preset.label}
                     </span>
                     <span style={{
-                      fontSize: '0.65rem',
+                      fontSize: panelText.hint,
                       fontFamily: 'ui-monospace, SFMono-Regular, monospace',
                       color: '#71717A',
+                      lineHeight: panelLineHeight.tight,
                     }}>
                       {preset.example}
                     </span>
@@ -1183,8 +1303,18 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                   <div key={i} style={{ width: 16, height: 16, borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,0.08)' }} />
                 ))}
               </div>
-              <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#18181B' }}>{preset.name}</div>
-              <div style={{ fontSize: '0.58rem', color: '#71717A', lineHeight: 1.3 }}>{preset.description}</div>
+              <div style={{
+                fontSize: panelText.hint,
+                fontWeight: panelWeight.bold,
+                color: '#18181B',
+                fontFamily: 'inherit',
+                lineHeight: panelLineHeight.tight,
+              }}>{preset.name}</div>
+              <div style={{
+                fontSize: panelText.meta,
+                color: '#71717A',
+                lineHeight: panelLineHeight.normal,
+              }}>{preset.description}</div>
             </button>
           ))}
         </div>
@@ -1192,7 +1322,12 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
       {/* ── Dark Mode Preview ── */}
       <SidebarSection title="Dark Mode Preview" defaultOpen={false}>
-        <p style={{ fontSize: '0.65rem', color: '#71717A', marginBottom: '8px', lineHeight: 1.5 }}>
+        <p style={{
+          fontSize: panelText.hint,
+          color: '#71717A',
+          marginBottom: '8px',
+          lineHeight: panelLineHeight.normal,
+        }}>
           Preview how your site would look with inverted colors. Great for evening events.
         </p>
         <button
@@ -1203,21 +1338,32 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             handleThemeApply(darkSkin);
           }}
           style={{
-            width: '100%', padding: '8px 10px', borderRadius: '12px',
+            width: '100%',
+            padding: '10px 12px',
+            borderRadius: '10px',
             border: '1px solid rgba(255,255,255,0.3)',
             background: 'linear-gradient(135deg, #1a1520 0%, #252030 100%)',
-            color: '#F0E8D8', cursor: 'pointer',
-            fontSize: '0.75rem', fontWeight: 700,
+            color: '#F0E8D8',
+            cursor: 'pointer',
+            fontSize: panelText.body,
+            fontWeight: panelWeight.bold,
+            fontFamily: 'inherit',
+            lineHeight: panelLineHeight.tight,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
           }}
         >
-          <span style={{ fontSize: '1rem' }}>🌙</span> Apply Dark Mode
+          <span style={{ fontSize: '0.9rem' }}>🌙</span> Apply Dark Mode
         </button>
       </SidebarSection>
 
       {/* ── Typographic Scale ── */}
       <SidebarSection title="Type Scale" defaultOpen={false}>
-        <p style={{ fontSize: '0.65rem', color: '#71717A', marginBottom: '8px', lineHeight: 1.5 }}>
+        <p style={{
+          fontSize: panelText.hint,
+          color: '#71717A',
+          marginBottom: '8px',
+          lineHeight: panelLineHeight.normal,
+        }}>
           Set the mathematical ratio for font size hierarchy across your site.
         </p>
         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
@@ -1237,18 +1383,34 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                   });
                 }}
                 style={{
-                  flex: 1, minWidth: '70px', padding: '8px 6px', borderRadius: '12px',
+                  flex: 1, minWidth: '70px',
+                  padding: '9px 6px',
+                  borderRadius: '10px',
                   border: manifest.theme?.typeScale === scale
-                    ? '1.5px solid #18181B' : '1px solid rgba(255,255,255,0.25)',
+                    ? '2px solid #18181B' : '1px solid #E4E4E7',
                   background: manifest.theme?.typeScale === scale
-                    ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.3)',
-                  cursor: 'pointer', textAlign: 'center',
+                    ? '#F4F4F5' : '#FFFFFF',
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  transition: 'all 0.15s',
                 }}
               >
-                <div style={{ fontSize: '0.6rem', fontWeight: 700, color: '#18181B', textTransform: 'capitalize' }}>
+                <div style={{
+                  fontSize: panelText.hint,
+                  fontWeight: panelWeight.bold,
+                  color: '#18181B',
+                  fontFamily: 'inherit',
+                  textTransform: 'capitalize',
+                  lineHeight: panelLineHeight.tight,
+                }}>
                   {scale.replace('-', ' ')}
                 </div>
-                <div style={{ fontSize: '0.5rem', color: '#71717A' }}>
+                <div style={{
+                  fontSize: panelText.meta,
+                  color: '#71717A',
+                  marginTop: '2px',
+                  lineHeight: panelLineHeight.tight,
+                }}>
                   {h.ratio}:1
                 </div>
               </button>
