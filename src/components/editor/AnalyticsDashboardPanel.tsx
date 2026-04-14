@@ -7,7 +7,14 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState, useMemo } from 'react';
-import { SidebarSection } from './EditorSidebar';
+import {
+  PanelRoot,
+  PanelSection,
+  panelText,
+  panelWeight,
+  panelTracking,
+  panelLineHeight,
+} from './panel';
 import {
   BarChart2, Smartphone, Monitor, Users, TrendingUp,
   RefreshCw, Layers, Share2, Clock, Eye,
@@ -56,22 +63,6 @@ interface ShareStats {
   totalShares: number;
 }
 
-// ── Glass card wrapper ───────────────────────────────────────
-
-function GlassCard({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return (
-    <div style={{
-      padding: '14px 14px',
-      borderRadius: '10px',
-      background: 'rgba(255,255,255,0.045)',
-      border: '1px solid #E4E4E7',
-      ...style,
-    }}>
-      {children}
-    </div>
-  );
-}
-
 // ── Stat card ────────────────────────────────────────────────
 
 function StatCard({ icon: Icon, label, value, sub, color }: {
@@ -96,9 +87,24 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
         <Icon size={15} color={c} />
       </div>
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: '0.65rem', color: '#71717A', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>{label}</div>
-        <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fff', lineHeight: 1.2 }}>{value}</div>
-        {sub && <div style={{ fontSize: '0.65rem', color: '#71717A', marginTop: '1px' }}>{sub}</div>}
+        <div style={{
+          fontSize: panelText.hint,
+          color: '#71717A',
+          textTransform: 'uppercase',
+          letterSpacing: panelTracking.wider,
+          fontWeight: panelWeight.bold,
+        }}>{label}</div>
+        <div style={{
+          fontSize: '1.15rem',
+          fontWeight: panelWeight.heavy,
+          color: '#18181B',
+          lineHeight: panelLineHeight.tight,
+        }}>{value}</div>
+        {sub && <div style={{
+          fontSize: panelText.hint,
+          color: '#71717A',
+          marginTop: '1px',
+        }}>{sub}</div>}
       </div>
     </div>
   );
@@ -110,14 +116,28 @@ function ProgressBar({ label, value, total, color }: { label: string; value: num
   const pct = total > 0 ? Math.round((value / total) * 100) : 0;
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <div style={{ fontSize: '0.7rem', color: '#3F3F46', width: '64px', flexShrink: 0 }}>{label}</div>
-      <div style={{ flex: 1, height: '5px', borderRadius: '3px', background: 'rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+      <div style={{
+        fontSize: panelText.hint,
+        color: '#3F3F46',
+        width: '64px',
+        flexShrink: 0,
+      }}>{label}</div>
+      <div style={{
+        flex: 1, height: '5px', borderRadius: '3px',
+        background: '#F4F4F5',
+        overflow: 'hidden',
+      }}>
         <div style={{
           height: '100%', width: `${pct}%`, borderRadius: '3px',
           background: color, transition: 'width 0.6s ease',
         }} />
       </div>
-      <div style={{ fontSize: '0.7rem', color: '#3F3F46', width: '30px', textAlign: 'right' }}>{value}</div>
+      <div style={{
+        fontSize: panelText.hint,
+        color: '#3F3F46',
+        width: '30px',
+        textAlign: 'right',
+      }}>{value}</div>
     </div>
   );
 }
@@ -144,7 +164,7 @@ function RsvpRing({ attending, declined, pending, total }: RsvpStats) {
           {/* Background track */}
           <circle
             cx={size / 2} cy={size / 2} r={radius}
-            fill="none" stroke="rgba(255,255,255,0.06)"
+            fill="none" stroke="#E4E4E7"
             strokeWidth={strokeWidth}
           />
           {/* Pending arc (underneath) */}
@@ -155,7 +175,7 @@ function RsvpRing({ attending, declined, pending, total }: RsvpStats) {
             strokeDasharray={`${circumference} ${circumference}`}
             strokeDashoffset={0}
             strokeLinecap="round"
-            opacity={0.3}
+            opacity={0.5}
           />
           {/* Declined arc */}
           <circle
@@ -183,10 +203,19 @@ function RsvpRing({ attending, declined, pending, total }: RsvpStats) {
           position: 'absolute', inset: 0,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         }}>
-          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', lineHeight: 1 }}>
+          <div style={{
+            fontSize: '1.4rem',
+            fontWeight: panelWeight.heavy,
+            color: '#18181B',
+            lineHeight: 1,
+          }}>
             {total > 0 ? Math.round((attending / total) * 100) : 0}%
           </div>
-          <div style={{ fontSize: '0.58rem', color: '#71717A', marginTop: '2px' }}>
+          <div style={{
+            fontSize: panelText.meta,
+            color: '#71717A',
+            marginTop: '2px',
+          }}>
             responded
           </div>
         </div>
@@ -199,8 +228,9 @@ function RsvpRing({ attending, declined, pending, total }: RsvpStats) {
         <RsvpLegendItem icon={UserMinus} color="#D6C6A8" label="Pending" count={pending} />
         <div style={{
           marginTop: '4px', paddingTop: '6px',
-          borderTop: '1px solid rgba(255,255,255,0.06)',
-          fontSize: '0.65rem', color: '#71717A',
+          borderTop: '1px solid #E4E4E7',
+          fontSize: panelText.hint,
+          color: '#71717A',
         }}>
           {total} total invited
         </div>
@@ -219,8 +249,16 @@ function RsvpLegendItem({ icon: Icon, color, label, count }: {
         background: color, flexShrink: 0,
       }} />
       <Icon size={11} color={color} style={{ flexShrink: 0 }} />
-      <span style={{ fontSize: '0.7rem', color: '#3F3F46', flex: 1 }}>{label}</span>
-      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff' }}>{count}</span>
+      <span style={{
+        fontSize: panelText.hint,
+        color: '#3F3F46',
+        flex: 1,
+      }}>{label}</span>
+      <span style={{
+        fontSize: panelText.body,
+        fontWeight: panelWeight.bold,
+        color: '#18181B',
+      }}>{count}</span>
     </div>
   );
 }
@@ -248,9 +286,7 @@ function ViewsBarChart({ dailyViews }: { dailyViews: DailyView[] }) {
                 flex: 1,
                 height: `${heightPct}%`,
                 borderRadius: '4px 4px 1px 1px',
-                background: isToday
-                  ? '#18181B'
-                  : '#E4E4E7',
+                background: isToday ? '#18181B' : '#E4E4E7',
                 transition: 'height 0.6s ease, background 0.3s ease',
                 cursor: 'default',
                 position: 'relative',
@@ -265,10 +301,10 @@ function ViewsBarChart({ dailyViews }: { dailyViews: DailyView[] }) {
         {dailyViews.map((day, i) => (
           <div key={day.date} style={{
             flex: 1,
-            fontSize: '0.52rem',
+            fontSize: panelText.meta,
             color: i === dailyViews.length - 1 ? '#18181B' : '#71717A',
             textAlign: 'center',
-            fontWeight: i === dailyViews.length - 1 ? 700 : 400,
+            fontWeight: i === dailyViews.length - 1 ? panelWeight.bold : panelWeight.regular,
           }}>
             {i % 2 === 0 || i === dailyViews.length - 1 ? day.label : ''}
           </div>
@@ -277,10 +313,12 @@ function ViewsBarChart({ dailyViews }: { dailyViews: DailyView[] }) {
       {/* Summary line */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        fontSize: '0.6rem', color: '#71717A', marginTop: '2px',
+        fontSize: panelText.label,
+        color: '#71717A',
+        marginTop: '2px',
       }}>
         <span>Last 14 days</span>
-        <span style={{ color: '#fff', fontWeight: 700 }}>
+        <span style={{ color: '#18181B', fontWeight: panelWeight.bold }}>
           {dailyViews.reduce((s, d) => s + d.count, 0).toLocaleString()} total
         </span>
       </div>
@@ -322,22 +360,26 @@ function TopSectionsList({ sections }: { sections: SectionStat[] }) {
               {/* Rank badge */}
               <div style={{
                 width: '18px', height: '18px', borderRadius: '6px',
-                background: i === 0 ? 'rgba(24,24,27,0.08)' : 'rgba(255,255,255,0.04)',
+                background: '#F4F4F5',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.6rem', fontWeight: 800,
+                fontSize: panelText.label,
+                fontWeight: panelWeight.heavy,
                 color: i === 0 ? '#18181B' : '#71717A',
                 flexShrink: 0,
               }}>
                 {i + 1}
               </div>
               <span style={{
-                flex: 1, fontSize: '0.65rem', color: '#fff',
-                fontWeight: i === 0 ? 700 : 500,
+                flex: 1,
+                fontSize: panelText.hint,
+                color: '#18181B',
+                fontWeight: i === 0 ? panelWeight.bold : panelWeight.medium,
               }}>
                 {label}
               </span>
               <span style={{
-                fontSize: '0.65rem', fontWeight: 700,
+                fontSize: panelText.hint,
+                fontWeight: panelWeight.bold,
                 color: i === 0 ? '#18181B' : '#71717A',
               }}>
                 {sec.views.toLocaleString()}
@@ -346,7 +388,8 @@ function TopSectionsList({ sections }: { sections: SectionStat[] }) {
             {/* Bar indicator */}
             <div style={{
               height: '4px', borderRadius: '2px',
-              background: 'rgba(0,0,0,0.05)', overflow: 'hidden',
+              background: '#F4F4F5',
+              overflow: 'hidden',
               marginLeft: '26px',
             }}>
               <div style={{
@@ -393,8 +436,10 @@ function ActivityFeed({ events }: { events: ActivityEvent[] }) {
     return (
       <div style={{
         padding: '10px 12px', borderRadius: '10px',
-        background: '#F4F4F5', border: '1px solid #F4F4F5',
-        fontSize: '0.7rem', color: '#3F3F46', lineHeight: 1.6,
+        background: '#F4F4F5', border: '1px solid #E4E4E7',
+        fontSize: panelText.body,
+        color: '#3F3F46',
+        lineHeight: panelLineHeight.snug,
       }}>
         Activity will appear here as visitors interact with your site.
       </div>
@@ -412,7 +457,7 @@ function ActivityFeed({ events }: { events: ActivityEvent[] }) {
             {!isLast && (
               <div style={{
                 position: 'absolute', left: '9px', top: '22px', bottom: '0',
-                width: '1px', background: 'rgba(255,255,255,0.06)',
+                width: '1px', background: '#E4E4E7',
               }} />
             )}
             {/* Icon */}
@@ -426,10 +471,18 @@ function ActivityFeed({ events }: { events: ActivityEvent[] }) {
             </div>
             {/* Content */}
             <div style={{ flex: 1, paddingBottom: isLast ? '0' : '12px' }}>
-              <div style={{ fontSize: '0.7rem', color: '#fff', lineHeight: 1.45 }}>
+              <div style={{
+                fontSize: panelText.body,
+                color: '#18181B',
+                lineHeight: panelLineHeight.snug,
+              }}>
                 {ev.message}
               </div>
-              <div style={{ fontSize: '0.58rem', color: '#71717A', marginTop: '1px' }}>
+              <div style={{
+                fontSize: panelText.meta,
+                color: '#71717A',
+                marginTop: '1px',
+              }}>
                 {formatTime(ev.timestamp)}
               </div>
             </div>
@@ -448,21 +501,30 @@ function ShareStatsCard({ stats }: { stats: ShareStats }) {
       <div style={{
         display: 'flex', alignItems: 'center', gap: '12px',
         padding: '10px 12px', borderRadius: '12px',
-        background: 'rgba(24,24,27,0.05)', border: '1px solid rgba(24,24,27,0.08)',
+        background: '#FAFAFA', border: '1px solid #E4E4E7',
       }}>
         <div style={{
           width: '36px', height: '36px', borderRadius: '10px',
-          background: 'rgba(24,24,27,0.08)',
+          background: '#F4F4F5',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           flexShrink: 0,
         }}>
           <Share2 size={16} color="#6D597A" />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#fff', lineHeight: 1 }}>
+          <div style={{
+            fontSize: '1.3rem',
+            fontWeight: panelWeight.heavy,
+            color: '#18181B',
+            lineHeight: 1,
+          }}>
             {stats.totalShares.toLocaleString()}
           </div>
-          <div style={{ fontSize: '0.6rem', color: '#71717A', marginTop: '2px' }}>
+          <div style={{
+            fontSize: panelText.label,
+            color: '#71717A',
+            marginTop: '2px',
+          }}>
             total shares
           </div>
         </div>
@@ -471,19 +533,35 @@ function ShareStatsCard({ stats }: { stats: ShareStats }) {
       <div style={{ display: 'flex', gap: '8px' }}>
         <div style={{
           flex: 1, padding: '8px 10px', borderRadius: '8px',
-          background: 'rgba(255,255,255,0.03)', border: '1px solid #E4E4E7',
+          background: '#FAFAFA', border: '1px solid #E4E4E7',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#fff' }}>{stats.linkCopied}</div>
-          <div style={{ fontSize: '0.56rem', color: '#71717A', marginTop: '1px' }}>Link copied</div>
+          <div style={{
+            fontSize: '0.9rem',
+            fontWeight: panelWeight.heavy,
+            color: '#18181B',
+          }}>{stats.linkCopied}</div>
+          <div style={{
+            fontSize: panelText.meta,
+            color: '#71717A',
+            marginTop: '1px',
+          }}>Link copied</div>
         </div>
         <div style={{
           flex: 1, padding: '8px 10px', borderRadius: '8px',
-          background: 'rgba(255,255,255,0.03)', border: '1px solid #E4E4E7',
+          background: '#FAFAFA', border: '1px solid #E4E4E7',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#fff' }}>{stats.socialShares}</div>
-          <div style={{ fontSize: '0.56rem', color: '#71717A', marginTop: '1px' }}>Social shares</div>
+          <div style={{
+            fontSize: '0.9rem',
+            fontWeight: panelWeight.heavy,
+            color: '#18181B',
+          }}>{stats.socialShares}</div>
+          <div style={{
+            fontSize: panelText.meta,
+            color: '#71717A',
+            marginTop: '1px',
+          }}>Social shares</div>
         </div>
       </div>
     </div>
@@ -607,21 +685,27 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
 
   if (loading) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center', color: '#71717A', fontSize: '0.8rem' }}>
+      <div style={{ padding: '20px', textAlign: 'center', color: '#71717A', fontSize: panelText.body }}>
         Loading analytics…
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '4px 0' }}>
+    <PanelRoot>
 
       {/* ── Header ── */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '2px 20px 4px',
+      }}>
         <div style={{
           display: 'flex', alignItems: 'center', gap: '6px',
-          fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em',
-          textTransform: 'uppercase', color: '#71717A',
+          fontSize: panelText.label,
+          fontWeight: panelWeight.heavy,
+          letterSpacing: panelTracking.wider,
+          textTransform: 'uppercase',
+          color: '#71717A',
         }}>
           <BarChart2 size={11} /> Site Analytics
         </div>
@@ -630,7 +714,7 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
           disabled={refreshing}
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            color: 'rgba(255,255,255,0.28)', padding: '3px',
+            color: '#71717A', padding: '3px',
             display: 'flex', alignItems: 'center',
           }}
           title="Refresh"
@@ -640,7 +724,7 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
       </div>
 
       {/* ── Visit Stats ── */}
-      <SidebarSection title="Visitors" defaultOpen>
+      <PanelSection title="Visitors" icon={TrendingUp} defaultOpen>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <StatCard icon={TrendingUp} label="Total visits" value={(visits?.visits ?? 0).toLocaleString()} color="#71717A" />
           <StatCard icon={BarChart2} label="Today" value={visits?.today ?? 0} color="#D6C6A8" />
@@ -648,85 +732,91 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
 
         {/* Device breakdown */}
         {visits && visits.visits > 0 && (
-          <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <div style={{ fontSize: '0.65rem', color: '#71717A', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, marginBottom: '2px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{
+              fontSize: panelText.label,
+              color: '#71717A',
+              textTransform: 'uppercase',
+              letterSpacing: panelTracking.wide,
+              fontWeight: panelWeight.bold,
+              marginBottom: '2px',
+            }}>
               Device Split
             </div>
             <ProgressBar label={<><Smartphone size={9} style={{ display: 'inline' }} /> Mobile</>  as unknown as string} value={visits.mobile} total={visits.visits} color="#e87ab8" />
             <ProgressBar label={<><Monitor size={9} style={{ display: 'inline' }} /> Desktop</>  as unknown as string} value={visits.desktop} total={visits.visits} color="#71717A" />
-            <div style={{ fontSize: '0.65rem', color: '#71717A', marginTop: '2px' }}>
+            <div style={{ fontSize: panelText.hint, color: '#71717A', marginTop: '2px' }}>
               {devicePct}% of visitors are on mobile
             </div>
           </div>
         )}
-      </SidebarSection>
+      </PanelSection>
 
       {/* ── Views Over Time ── */}
-      <SidebarSection title="Views Over Time" defaultOpen>
-        <GlassCard>
-          <ViewsBarChart dailyViews={dailyViews} />
-        </GlassCard>
-      </SidebarSection>
+      <PanelSection title="Views Over Time" icon={BarChart2} defaultOpen>
+        <ViewsBarChart dailyViews={dailyViews} />
+      </PanelSection>
 
       {/* ── RSVP Progress ── */}
-      <SidebarSection title="RSVP Progress" defaultOpen>
-        <GlassCard>
-          <RsvpRing
-            attending={rsvp?.attending ?? 0}
-            declined={rsvp?.declined ?? 0}
-            pending={rsvp?.pending ?? 0}
-            total={rsvp?.total ?? 0}
-          />
-        </GlassCard>
+      <PanelSection title="RSVP Progress" icon={Users} defaultOpen>
+        <RsvpRing
+          attending={rsvp?.attending ?? 0}
+          declined={rsvp?.declined ?? 0}
+          pending={rsvp?.pending ?? 0}
+          total={rsvp?.total ?? 0}
+        />
 
         {rsvpConversionRate !== null && (
           <div style={{
-            marginTop: '10px', padding: '8px 10px', borderRadius: '8px',
-            background: 'rgba(24,24,27,0.05)', border: '1px solid rgba(24,24,27,0.08)',
-            fontSize: '0.7rem', color: '#3F3F46', lineHeight: 1.5,
+            padding: '8px 10px', borderRadius: '8px',
+            background: '#F4F4F5', border: '1px solid #E4E4E7',
+            fontSize: panelText.body,
+            color: '#3F3F46',
+            lineHeight: panelLineHeight.snug,
           }}>
-            <span style={{ color: '#71717A', fontWeight: 800 }}>{rsvpConversionRate}%</span> of visitors have RSVPed
+            <span style={{ color: '#71717A', fontWeight: panelWeight.heavy }}>{rsvpConversionRate}%</span>{' '}
+            of visitors have RSVPed
           </div>
         )}
-      </SidebarSection>
+      </PanelSection>
 
       {/* ── Most Viewed Sections ── */}
-      <SidebarSection title="Most Viewed Sections" defaultOpen>
-        <GlassCard>
-          {(!sections || sections.length === 0) ? (
-            <div style={{
-              fontSize: '0.7rem', color: '#3F3F46', lineHeight: 1.6,
-            }}>
-              Section analytics will appear once your site gets visitors.
-            </div>
-          ) : (
-            <TopSectionsList sections={sections} />
-          )}
-        </GlassCard>
-      </SidebarSection>
+      <PanelSection title="Most Viewed Sections" icon={Layers} defaultOpen>
+        {(!sections || sections.length === 0) ? (
+          <div style={{
+            fontSize: panelText.body,
+            color: '#3F3F46',
+            lineHeight: panelLineHeight.snug,
+          }}>
+            Section analytics will appear once your site gets visitors.
+          </div>
+        ) : (
+          <TopSectionsList sections={sections} />
+        )}
+      </PanelSection>
 
       {/* ── Recent Activity Feed ── */}
-      <SidebarSection title="Recent Activity" defaultOpen>
-        <GlassCard>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px',
-            fontSize: '0.6rem', color: '#71717A', fontWeight: 700,
-            textTransform: 'uppercase', letterSpacing: '0.08em',
-          }}>
-            <Clock size={9} /> Live feed
-          </div>
-          <ActivityFeed events={activity} />
-        </GlassCard>
-      </SidebarSection>
+      <PanelSection title="Recent Activity" icon={Clock} defaultOpen>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '6px',
+          marginBottom: '4px',
+          fontSize: panelText.label,
+          color: '#71717A',
+          fontWeight: panelWeight.bold,
+          textTransform: 'uppercase',
+          letterSpacing: panelTracking.wide,
+        }}>
+          <Clock size={9} /> Live feed
+        </div>
+        <ActivityFeed events={activity} />
+      </PanelSection>
 
       {/* ── Share Stats ── */}
-      <SidebarSection title="Share Stats" defaultOpen>
-        <GlassCard>
-          <ShareStatsCard stats={shareStats} />
-        </GlassCard>
-      </SidebarSection>
+      <PanelSection title="Share Stats" icon={Share2} defaultOpen>
+        <ShareStatsCard stats={shareStats} />
+      </PanelSection>
 
       <style>{`@keyframes pl-spin { to { transform: rotate(360deg); } }`}</style>
-    </div>
+    </PanelRoot>
   );
 }
