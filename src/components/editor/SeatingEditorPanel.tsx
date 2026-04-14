@@ -11,11 +11,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
-  LayoutGrid, ExternalLink, Plus, Users, Circle, Square,
+  LayoutGrid, ExternalLink, Plus, Circle, Square,
   RefreshCw, Sparkles,
 } from 'lucide-react';
 import { SidebarSection } from './EditorSidebar';
 import { useEditor } from '@/lib/editor-state';
+import {
+  panelText,
+  panelWeight,
+  panelTracking,
+  panelLineHeight,
+} from './panel';
 import type { SeatingTable, Guest } from '@/types';
 
 interface SeatingStats {
@@ -44,12 +50,23 @@ const TABLE_PRESETS: Array<{ label: string; shape: SeatingTable['shape']; capaci
   { label: 'Round (6)',       shape: 'round',       capacity: 6 },
   { label: 'Rectangular (8)', shape: 'rectangular', capacity: 8 },
   { label: 'Sweetheart (2)',  shape: 'rectangular', capacity: 2 },
-  { label: 'Banquet (16)',    shape: 'banquet',      capacity: 16 },
+  { label: 'Banquet (16)',    shape: 'banquet',     capacity: 16 },
 ];
 
 interface SeatingEditorPanelProps {
   siteId: string;
 }
+
+const eyebrowStyle: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', gap: '6px',
+  fontSize: panelText.label,
+  fontWeight: panelWeight.bold,
+  letterSpacing: panelTracking.wider,
+  textTransform: 'uppercase',
+  color: '#71717A',
+  fontFamily: 'inherit',
+  lineHeight: panelLineHeight.tight,
+};
 
 export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
   const { coupleNames } = useEditor();
@@ -130,7 +147,14 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
 
   if (loading) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center', color: '#71717A', fontSize: '0.8rem' }}>
+      <div style={{
+        padding: '20px',
+        textAlign: 'center',
+        color: '#71717A',
+        fontSize: panelText.body,
+        fontFamily: 'inherit',
+        lineHeight: panelLineHeight.snug,
+      }}>
         Loading seating…
       </div>
     );
@@ -142,17 +166,20 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '4px 0' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '6px',
-          fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em',
-          textTransform: 'uppercase', color: '#71717A',
-        }}>
-          <LayoutGrid size={11} /> Seating Chart
+        <div style={eyebrowStyle}>
+          <LayoutGrid size={12} /> Seating Chart
         </div>
         <button
           onClick={() => load(true)}
           disabled={refreshing}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.28)', padding: '3px', display: 'flex', alignItems: 'center' }}
+          title="Refresh"
+          style={{
+            width: '24px', height: '24px', borderRadius: '6px',
+            border: 'none', background: 'transparent',
+            color: '#71717A',
+            cursor: refreshing ? 'default' : 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
         >
           <RefreshCw size={12} style={{ animation: refreshing ? 'pl-spin 0.8s linear infinite' : 'none' }} />
         </button>
@@ -162,33 +189,50 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
       <motion.button
         onClick={handleAIArrange}
         disabled={optimizing}
-        whileHover={!optimizing ? { scale: 1.02 } : {}}
-        whileTap={!optimizing ? { scale: 0.97 } : {}}
+        whileHover={!optimizing ? { y: -1 } : {}}
+        whileTap={!optimizing ? { scale: 0.98 } : {}}
         style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
-          padding: '10px', borderRadius: '8px',
-          border: '1px solid #E4E4E7',
-          background: optimizing
-            ? '#F4F4F5'
-            : 'linear-gradient(135deg, rgba(24,24,27,0.08) 0%, rgba(143,200,122,0.12) 100%)',
-          color: optimizing ? '#A1A1AA' : '#71717A',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+          padding: '10px 12px',
+          borderRadius: '8px',
+          border: 'none',
+          background: optimizing ? '#E4E4E7' : '#18181B',
+          color: optimizing ? '#71717A' : '#FFFFFF',
           cursor: optimizing ? 'default' : 'pointer',
-          fontSize: '0.75rem', fontWeight: 700,
+          fontSize: panelText.body,
+          fontWeight: panelWeight.bold,
+          fontFamily: 'inherit',
+          lineHeight: panelLineHeight.tight,
           transition: 'all 0.15s',
         }}
       >
         <Sparkles size={13} style={{ animation: optimizing ? 'pl-spin 1s linear infinite' : 'none' }} />
-        {optimizing ? 'Optimizing…' : '✦ AI Arrange'}
+        {optimizing ? 'Optimizing…' : 'AI Arrange'}
       </motion.button>
 
       {/* Optimize feedback */}
       {optimizeMsg && (
-        <p style={{ margin: '-6px 0 0', fontSize: '0.65rem', color: '#71717A', textAlign: 'center' }}>
+        <p style={{
+          margin: '-6px 0 0',
+          fontSize: panelText.hint,
+          color: '#3F3F46',
+          fontFamily: 'inherit',
+          lineHeight: panelLineHeight.snug,
+          textAlign: 'center',
+        }}>
           {optimizeMsg}
         </p>
       )}
       {optimizeError && (
-        <p style={{ margin: '-6px 0 0', fontSize: '0.65rem', color: '#f87171', textAlign: 'center' }}>
+        <p style={{
+          margin: '-6px 0 0',
+          fontSize: panelText.hint,
+          color: '#b34747',
+          fontWeight: panelWeight.semibold,
+          fontFamily: 'inherit',
+          lineHeight: panelLineHeight.snug,
+          textAlign: 'center',
+        }}>
           {optimizeError}
         </p>
       )}
@@ -196,17 +240,38 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
         {[
-          { label: 'Tables', value: stats.tables, color: '#71717A' },
-          { label: 'Total seats', value: stats.totalSeats, color: '#71717A' },
-          { label: 'Assigned', value: stats.assignedSeats, color: '#71717A' },
-          { label: 'Unassigned', value: stats.unassignedGuests, color: stats.unassignedGuests > 0 ? '#fbbf24' : '#71717A' },
-        ].map(({ label, value, color }) => (
+          { label: 'Tables', value: stats.tables, accent: '#71717A' },
+          { label: 'Total seats', value: stats.totalSeats, accent: '#71717A' },
+          { label: 'Assigned', value: stats.assignedSeats, accent: '#71717A' },
+          { label: 'Unassigned', value: stats.unassignedGuests, accent: stats.unassignedGuests > 0 ? '#C97E3F' : '#71717A' },
+        ].map(({ label, value, accent }) => (
           <div key={label} style={{
-            padding: '8px 10px', borderRadius: '8px',
-            background: `${color}0d`, border: `1px solid ${color}20`,
+            padding: '10px 12px',
+            borderRadius: '10px',
+            background: '#FAFAFA',
+            border: '1px solid #E4E4E7',
           }}>
-            <div style={{ fontSize: '0.6rem', color: '#71717A', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>{label}</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 800, color }}>{value}</div>
+            <div style={{
+              fontSize: panelText.meta,
+              fontWeight: panelWeight.bold,
+              letterSpacing: panelTracking.wider,
+              textTransform: 'uppercase',
+              color: '#71717A',
+              fontFamily: 'inherit',
+              lineHeight: panelLineHeight.tight,
+            }}>
+              {label}
+            </div>
+            <div style={{
+              fontSize: '1.15rem',
+              fontWeight: panelWeight.heavy,
+              color: accent,
+              fontFamily: 'inherit',
+              lineHeight: panelLineHeight.tight,
+              marginTop: '4px',
+            }}>
+              {value}
+            </div>
           </div>
         ))}
       </div>
@@ -214,14 +279,38 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
       {/* Fill bar */}
       {stats.totalSeats > 0 && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <span style={{ fontSize: '0.65rem', color: '#71717A' }}>Seat fill</span>
-            <span style={{ fontSize: '0.65rem', color: '#71717A', fontWeight: 700 }}>{fillPct}%</span>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginBottom: '6px',
+          }}>
+            <span style={{
+              fontSize: panelText.hint,
+              color: '#71717A',
+              fontFamily: 'inherit',
+              lineHeight: panelLineHeight.tight,
+            }}>
+              Seat fill
+            </span>
+            <span style={{
+              fontSize: panelText.hint,
+              color: '#18181B',
+              fontWeight: panelWeight.bold,
+              fontFamily: 'inherit',
+              lineHeight: panelLineHeight.tight,
+            }}>
+              {fillPct}%
+            </span>
           </div>
-          <div style={{ height: '5px', borderRadius: '3px', background: '#FAFAFA', overflow: 'hidden' }}>
+          <div style={{
+            height: '6px',
+            borderRadius: '4px',
+            background: '#E4E4E7',
+            overflow: 'hidden',
+          }}>
             <div style={{
-              height: '100%', width: `${fillPct}%`, borderRadius: '3px',
-              background: fillPct >= 90 ? '#f87171' : '#71717A',
+              height: '100%', width: `${fillPct}%`, borderRadius: '4px',
+              background: fillPct >= 90 ? '#e87a7a' : '#18181B',
               transition: 'width 0.5s ease',
             }} />
           </div>
@@ -231,40 +320,84 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
       {/* Open full editor button */}
       <motion.button
         onClick={openFullEditor}
-        whileHover={{ scale: 1.02, borderColor: '#E4E4E7' }}
-        whileTap={{ scale: 0.97 }}
+        whileHover={{ y: -1 }}
+        whileTap={{ scale: 0.98 }}
         style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
-          padding: '10px', borderRadius: '8px',
-          border: '1px solid rgba(24,24,27,0.06)',
-          background: 'rgba(24,24,27,0.03)',
-          color: '#71717A', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+          padding: '10px 12px',
+          borderRadius: '8px',
+          border: '1px solid #E4E4E7',
+          background: '#F4F4F5',
+          color: '#18181B',
+          cursor: 'pointer',
+          fontSize: panelText.body,
+          fontWeight: panelWeight.bold,
+          fontFamily: 'inherit',
+          lineHeight: panelLineHeight.tight,
+          transition: 'all 0.15s',
         }}
       >
-        <LayoutGrid size={13} /> Open Full Seating Editor <ExternalLink size={11} />
+        <LayoutGrid size={13} /> Open Full Editor <ExternalLink size={11} />
       </motion.button>
 
       {/* Tables list */}
       {tables.length > 0 && (
         <SidebarSection title={`Tables (${tables.length})`} defaultOpen={false}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', maxHeight: '200px', overflowY: 'auto' }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+            maxHeight: '220px',
+            overflowY: 'auto',
+          }}>
             {tables.map(table => {
               const ShapeIcon = SHAPE_ICON[table.shape] || Circle;
               const assigned = (table.seats || []).filter(s => s.guestId).length;
+              const full = assigned === table.capacity;
               return (
-                <div key={table.id} style={{
-                  display: 'flex', alignItems: 'center', gap: '8px',
-                  padding: '6px 8px', borderRadius: '6px',
-                  background: 'rgba(24,24,27,0.03)',
-                }}>
-                  <ShapeIcon size={11} color={table.isReserved ? '#D6C6A8' : '#71717A'} />
+                <div
+                  key={table.id}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '10px',
+                    padding: '8px 10px',
+                    borderRadius: '8px',
+                    background: '#FFFFFF',
+                    border: '1px solid #E4E4E7',
+                  }}
+                >
+                  <ShapeIcon size={12} color={table.isReserved ? '#D6C6A8' : '#71717A'} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#18181B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{
+                      fontSize: panelText.body,
+                      fontWeight: panelWeight.semibold,
+                      color: '#18181B',
+                      fontFamily: 'inherit',
+                      lineHeight: panelLineHeight.tight,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
                       {table.label}
-                      {table.isReserved && <span style={{ color: '#71717A', marginLeft: '4px', fontSize: '0.6rem' }}>Reserved</span>}
+                      {table.isReserved && (
+                        <span style={{
+                          color: '#71717A',
+                          marginLeft: '6px',
+                          fontSize: panelText.meta,
+                          fontWeight: panelWeight.bold,
+                          letterSpacing: panelTracking.wide,
+                          textTransform: 'uppercase',
+                        }}>
+                          Reserved
+                        </span>
+                      )}
                     </div>
                   </div>
-                  <div style={{ fontSize: '0.65rem', color: assigned === table.capacity ? '#71717A' : '#71717A', flexShrink: 0 }}>
+                  <div style={{
+                    fontSize: panelText.hint,
+                    fontWeight: panelWeight.bold,
+                    color: full ? '#18181B' : '#71717A',
+                    fontFamily: 'inherit',
+                    lineHeight: panelLineHeight.tight,
+                    flexShrink: 0,
+                  }}>
                     {assigned}/{table.capacity}
                   </div>
                 </div>
@@ -276,22 +409,29 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
 
       {/* Add table */}
       <SidebarSection title="Add Table" defaultOpen={false} icon={Plus}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {TABLE_PRESETS.map(preset => (
             <button
               key={preset.label}
               onClick={() => handleAddTable(preset)}
               disabled={addingTable}
               style={{
-                display: 'flex', alignItems: 'center', gap: '8px',
-                padding: '6px 10px', borderRadius: '6px',
+                display: 'flex', alignItems: 'center', gap: '10px',
+                padding: '8px 10px',
+                borderRadius: '8px',
                 border: '1px solid #E4E4E7',
-                background: 'rgba(24,24,27,0.03)',
-                color: '#3F3F46', cursor: 'pointer', fontSize: '0.75rem',
+                background: '#FFFFFF',
+                color: '#18181B',
+                cursor: addingTable ? 'default' : 'pointer',
+                fontSize: panelText.body,
+                fontWeight: panelWeight.semibold,
+                fontFamily: 'inherit',
+                lineHeight: panelLineHeight.tight,
                 textAlign: 'left',
+                transition: 'all 0.15s',
               }}
             >
-              {preset.shape === 'round' ? <Circle size={11} /> : <Square size={11} />}
+              {preset.shape === 'round' ? <Circle size={12} color="#71717A" /> : <Square size={12} color="#71717A" />}
               {preset.label}
             </button>
           ))}
