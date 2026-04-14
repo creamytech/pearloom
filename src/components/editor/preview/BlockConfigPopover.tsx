@@ -12,6 +12,7 @@ import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { BLOCK_SCHEMAS, type PropSchema } from '@/lib/block-engine/schema';
+import { useEditor } from '@/lib/editor-state';
 import type { PageBlock } from '@/types';
 
 interface BlockConfigPopoverProps {
@@ -33,6 +34,7 @@ export function BlockConfigPopover({
 }: BlockConfigPopoverProps) {
   const schema = BLOCK_SCHEMAS[block.type];
   const popoverRef = useRef<HTMLDivElement>(null);
+  const { dispatch } = useEditor();
 
   // Outside-click & Escape dismiss
   useEffect(() => {
@@ -54,15 +56,24 @@ export function BlockConfigPopover({
   }, [onClose]);
 
   const canvasRect = canvasRef.current?.getBoundingClientRect();
-  if (!canvasRect || !schema) return null;
+  if (!canvasRect) return null;
 
-  // Filter to schema props we know how to render
-  const entries = Object.entries(schema.props).filter(([, p]) => SUPPORTED_TYPES.has(p.type));
-  if (entries.length === 0) return null;
+  // Filter to schema props we know how to render. When we have no schema
+  // at all OR no renderable fields, we still surface a minimal popover
+  // so the user gets acknowledgement + a way to reach advanced settings.
+  const entries = schema
+    ? Object.entries(schema.props).filter(([, p]) => SUPPORTED_TYPES.has(p.type))
+    : [];
+  const isEmpty = entries.length === 0;
+
+  const openCanvasPanel = () => {
+    dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
+    onClose();
+  };
 
   // Position: below the block, horizontally centered. Flip above if overflow.
   const popWidth = 320;
-  const popHeight = Math.min(520, 80 + entries.length * 72);
+  const popHeight = isEmpty ? 120 : Math.min(520, 80 + entries.length * 72);
   const centerX = rect.left - canvasRect.left + rect.width / 2 - popWidth / 2;
   const clampedX = Math.max(8, Math.min(centerX, canvasRect.width - popWidth - 8));
   const relTop = rect.bottom - canvasRect.top + 12;
@@ -111,10 +122,10 @@ export function BlockConfigPopover({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)' }}>
-            Block · {schema.label}
+            Block · {schema?.label ?? block.type}
           </div>
           <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>
-            {schema.description}
+            {schema?.description ?? 'No schema registered for this block type.'}
           </div>
         </div>
         <button
@@ -133,18 +144,46 @@ export function BlockConfigPopover({
         </button>
       </div>
 
-      {/* Fields */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {entries.map(([key, prop]) => (
-          <Field
-            key={key}
-            propKey={key}
-            prop={prop}
-            value={currentValue(key)}
-            onCommit={(v) => commit(key, v)}
-          />
-        ))}
-      </div>
+      {isEmpty ? (
+        /* Empty state — no schema or no editable fields. Give the user an
+           acknowledgement + a way to reach advanced settings. */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.72)', lineHeight: 1.4 }}>
+            No quick settings for this block. Use the right panel for advanced options.
+          </div>
+          <button
+            type="button"
+            onClick={openCanvasPanel}
+            style={{
+              alignSelf: 'flex-start',
+              padding: '6px 10px',
+              borderRadius: 6,
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.14)',
+              color: 'rgba(255,255,255,0.92)',
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.02em',
+              cursor: 'pointer',
+            }}
+          >
+            Open panel
+          </button>
+        </div>
+      ) : (
+        /* Fields */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {entries.map(([key, prop]) => (
+            <Field
+              key={key}
+              propKey={key}
+              prop={prop}
+              value={currentValue(key)}
+              onCommit={(v) => commit(key, v)}
+            />
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 }

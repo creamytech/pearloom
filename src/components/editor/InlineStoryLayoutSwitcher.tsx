@@ -16,6 +16,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useEditor } from '@/lib/editor-state';
 import {
   LAYOUT_OPTIONS,
@@ -160,7 +161,16 @@ export function InlineStoryLayoutSwitcher() {
         overflowY: 'hidden',
       }}
     >
-      <div
+      {/* Inner content keyed on blockId so switching between story blocks
+          remounts + fades in — avoids a jarring "frozen" re-anchor. The
+          outer fixed-position container stays stable. */}
+      <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={anchor.blockId}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.1, ease: 'linear' }}
         style={{
           display: 'flex',
           flexDirection: 'row',
@@ -232,7 +242,8 @@ export function InlineStoryLayoutSwitcher() {
             </button>
           );
         })}
-      </div>
+      </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

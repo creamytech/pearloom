@@ -15,7 +15,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Palette, Sparkles, MoreHorizontal, Copy, Trash2 } from 'lucide-react';
+import { Palette, Sparkles, MoreHorizontal, Copy, Trash2, ChevronDown, Loader2 } from 'lucide-react';
 import { useEditor } from '@/lib/editor-state';
 import { InlineStylePicker } from './InlineStylePicker';
 
@@ -72,6 +72,19 @@ export function SectionHoverToolbar() {
       window.removeEventListener('message', handler);
       if (hideTimer.current) clearTimeout(hideTimer.current);
     };
+  }, []);
+
+  // Escape dismisses the hover toolbar. Deferred to the child popover
+  // when it's open (InlineStylePicker already handles its own Escape).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (styleOpenRef.current) return; // let the picker close first
+      setHovered(null);
+      setMoreOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
   if (isMobile || !hovered) return null;
@@ -149,13 +162,17 @@ export function SectionHoverToolbar() {
             label="Style"
             onClick={handleStyle}
             btnRef={styleBtnRef}
+            isActive={styleOpen}
+            trailing={<ChevronDown size={9} />}
           />
           <ToolbarDivider />
 
           {/* AI Rewrite — with dropdown for modes */}
           <div style={{ position: 'relative' }}>
             <ToolbarBtn
-              icon={<Sparkles size={12} />}
+              icon={isRewriting
+                ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
+                : <Sparkles size={12} />}
               label={isRewriting ? 'Rewriting…' : 'AI Rewrite'}
               onClick={handleAI}
               disabled={isRewriting}
@@ -242,7 +259,7 @@ export function SectionHoverToolbar() {
 
 // ── Sub-components ─────────────────────────────────────────────
 function ToolbarBtn({
-  icon, label, onClick, disabled, accent, btnRef,
+  icon, label, onClick, disabled, accent, btnRef, isActive, trailing,
 }: {
   icon: React.ReactNode;
   label: string;
@@ -250,14 +267,21 @@ function ToolbarBtn({
   disabled?: boolean;
   accent?: boolean;
   btnRef?: React.Ref<HTMLButtonElement>;
+  /** When true, render the button in a pressed/active state (e.g. its
+   *  associated popover is open). */
+  isActive?: boolean;
+  /** Optional trailing element after the label (e.g. a chevron caret). */
+  trailing?: React.ReactNode;
 }) {
+  const baseColor = accent ? '#71717A' : '#3F3F46';
+  const activeColor = accent ? '#52525B' : '#09090B';
   return (
     <motion.button
       ref={btnRef}
       onClick={onClick}
       disabled={disabled}
       title={label}
-      whileHover={!disabled ? {
+      whileHover={!disabled && !isActive ? {
         backgroundColor: accent ? 'rgba(24,24,27,0.08)' : 'rgba(0,0,0,0.06)',
         color: accent ? '#71717A' : '#18181B',
       } : {}}
@@ -266,8 +290,10 @@ function ToolbarBtn({
       style={{
         display: 'flex', alignItems: 'center', gap: '4px',
         padding: '0 10px', height: TOOLBAR_H,
-        border: 'none', background: 'transparent', cursor: disabled ? 'not-allowed' : 'pointer',
-        color: accent ? '#71717A' : '#3F3F46',
+        border: 'none',
+        background: isActive ? 'rgba(0,0,0,0.08)' : 'transparent',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        color: isActive ? activeColor : baseColor,
         fontSize: '0.7rem', fontWeight: 700,
         opacity: disabled ? 0.5 : 1,
         borderRadius: '8px',
@@ -276,6 +302,7 @@ function ToolbarBtn({
     >
       {icon}
       <span>{label}</span>
+      {trailing}
     </motion.button>
   );
 }

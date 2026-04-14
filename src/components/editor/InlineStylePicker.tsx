@@ -12,6 +12,7 @@
 
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { ChevronRight } from 'lucide-react';
 import type { VibeSkin } from '@/lib/vibe-engine';
 import { useEditor } from '@/lib/editor-state';
 import { PRESET_THEMES } from './ThemeSwitcher';
@@ -162,7 +163,14 @@ export function InlineStylePicker({
       exit={{ opacity: 0, y: 4, scale: 0.97 }}
       transition={{ type: 'spring', stiffness: 480, damping: 32 }}
       onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      onMouseLeave={(e) => {
+        // Guard: if the mouse is moving to a child of the popover (e.g.
+        // onto a swatch button), don't arm the hide timer. Only treat
+        // this as a real "leave" when relatedTarget is outside popRef.
+        const related = e.relatedTarget as Node | null;
+        if (related && popRef.current?.contains(related)) return;
+        onMouseLeave?.();
+      }}
       onMouseDown={(e) => e.stopPropagation()}
       className="pl-panel-card"
       style={{
@@ -359,38 +367,51 @@ export function InlineStylePicker({
         })}
       </div>
 
-      {/* Escape hatch */}
-      <button
-        type="button"
-        onClick={openFullPanel}
+      {/* Escape hatch — visually separated from the swatches above with a
+          top border and small-caps label so it reads as the "go deeper"
+          row rather than just another swatch button. */}
+      <div
         style={{
-          display: 'block',
-          width: '100%',
-          marginTop: 6,
-          padding: '8px 10px',
-          borderRadius: 8,
-          background: 'transparent',
-          border: '1px solid rgba(255,255,255,0.12)',
-          color: 'rgba(255,255,255,0.78)',
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: '0.04em',
-          textTransform: 'uppercase',
-          cursor: 'pointer',
-          textAlign: 'center',
-          transition: 'background 120ms ease, color 120ms ease',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
-          e.currentTarget.style.color = 'rgba(255,255,255,0.95)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'transparent';
-          e.currentTarget.style.color = 'rgba(255,255,255,0.78)';
+          marginTop: 10,
+          paddingTop: 8,
+          borderTop: '1px solid rgba(255,255,255,0.08)',
         }}
       >
-        More options →
-      </button>
+        <button
+          type="button"
+          onClick={openFullPanel}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            gap: 4,
+            width: '100%',
+            padding: '6px 8px',
+            borderRadius: 8,
+            background: 'transparent',
+            border: 'none',
+            color: 'rgba(255,255,255,0.65)',
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            cursor: 'pointer',
+            textAlign: 'right',
+            transition: 'background 120ms ease, color 120ms ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
+            e.currentTarget.style.color = 'rgba(255,255,255,0.95)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.color = 'rgba(255,255,255,0.65)';
+          }}
+        >
+          <span>More options</span>
+          <ChevronRight size={12} />
+        </button>
+      </div>
     </motion.div>
   );
 }
