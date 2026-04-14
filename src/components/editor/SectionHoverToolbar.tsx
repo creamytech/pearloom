@@ -15,7 +15,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Pencil, Palette, Sparkles, MoreHorizontal, Copy, Trash2 } from 'lucide-react';
+import { Palette, Sparkles, MoreHorizontal, Copy, Trash2 } from 'lucide-react';
 import { useEditor } from '@/lib/editor-state';
 
 interface HoverRect {
@@ -72,10 +72,6 @@ export function SectionHoverToolbar() {
   const toolbarY = Math.max(0, hovered.rect.top - TOOLBAR_H - TOOLBAR_OFFSET);
   const toolbarCenterX = hovered.rect.left + hovered.rect.width / 2;
 
-  const handleEdit = () => {
-    dispatch({ type: 'SET_ACTIVE_ID', id: hovered.chapterId });
-    dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
-  };
   const handleStyle = () => {
     dispatch({ type: 'SET_ACTIVE_ID', id: hovered.chapterId });
     dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' });
@@ -124,14 +120,6 @@ export function SectionHoverToolbar() {
             whiteSpace: 'nowrap',
           } as React.CSSProperties}
         >
-          {/* Edit */}
-          <ToolbarBtn
-            icon={<Pencil size={12} />}
-            label="Edit"
-            onClick={handleEdit}
-          />
-          <ToolbarDivider />
-
           {/* Style */}
           <ToolbarBtn
             icon={<Palette size={12} />}

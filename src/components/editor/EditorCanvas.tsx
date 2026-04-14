@@ -122,111 +122,47 @@ export function EditorCanvas() {
   const isFramed = isPhone || isTablet;
   const frameWidth = isPhone ? 390 : isTablet ? 768 : undefined;
 
-  // ── Section click → open matching panel contextually ──────
+  // ── Section click → inline editing for creative sections, panel deep-link for structured-data ──
   const handleSectionClick = useCallback((sectionId: string, chapterId?: string, blockId?: string) => {
-    // Chapter-specific: open story tab with chapter selected
+    // Chapter-specific: select chapter for inline editing, do NOT force-switch tabs.
     if (chapterId) {
       dispatch({ type: 'SET_ACTIVE_ID', id: chapterId });
-      dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
       return;
     }
 
-    // Map every section type to the exact panel + sub-section
-    const sectionToTab: Record<string, { tab: string; selectBlock?: boolean; contextSection?: string }> = {
-      // Nav bar → design panel → navigation section
-      'nav': { tab: 'design', contextSection: 'navigation' },
-      'navigation': { tab: 'design', contextSection: 'navigation' },
-      // Hero → canvas with block selected
-      'hero': { tab: 'canvas', selectBlock: true },
-      // Story chapters → story tab
-      'story': { tab: 'story' },
-      'chapter': { tab: 'story' },
-      // Events & schedule → canvas with block selected (these are page blocks)
-      'events': { tab: 'canvas', selectBlock: true },
-      'schedule': { tab: 'canvas', selectBlock: true },
-      'event': { tab: 'canvas', selectBlock: true },
-      // RSVP → canvas with block selected
-      'rsvp': { tab: 'canvas', selectBlock: true },
-      // Countdown → canvas with block selected
-      'countdown': { tab: 'canvas', selectBlock: true },
-      // Registry → details → registry section
+    // Structured-data sections that legitimately live in side panels.
+    // Clicking these still deep-links to the relevant panel tab + sub-section.
+    const structuredDataSections: Record<string, { tab: string; contextSection?: string }> = {
       'registry': { tab: 'details', contextSection: 'registry' },
-      // Travel → details → travel section
       'travel': { tab: 'details', contextSection: 'travel' },
-      // FAQ → details → faq section
       'faq': { tab: 'details', contextSection: 'faq' },
-      // Design/theme → design tab → theme section
+      'footer': { tab: 'details', contextSection: 'footer' },
       'design': { tab: 'design', contextSection: 'theme' },
       'theme': { tab: 'design', contextSection: 'theme' },
-      // Footer → details → footer section (settings tab)
-      'footer': { tab: 'details', contextSection: 'footer' },
-      // Guestbook → canvas with block selected
-      'guestbook': { tab: 'canvas', selectBlock: true },
-      // Spotify → spotify tab
-      'spotify': { tab: 'spotify' },
-      // Photos/gallery → canvas with block selected
-      'photos': { tab: 'canvas', selectBlock: true },
-      'photoWall': { tab: 'canvas', selectBlock: true },
-      'gallery': { tab: 'canvas', selectBlock: true },
-      // Map → canvas with block selected
-      'map': { tab: 'canvas', selectBlock: true },
-      // Video → canvas with block selected
-      'video': { tab: 'canvas', selectBlock: true },
-      // Text/quote → canvas with block selected
-      'text': { tab: 'canvas', selectBlock: true },
-      'quote': { tab: 'canvas', selectBlock: true },
-      // Wedding party → story tab
-      'weddingParty': { tab: 'story' },
-      // Quiz → canvas
-      'quiz': { tab: 'canvas', selectBlock: true },
-      // Hashtag → canvas
-      'hashtag': { tab: 'canvas', selectBlock: true },
-      // Previously unmapped — all canvas blocks
-      'divider': { tab: 'canvas', selectBlock: true },
-      'storymap': { tab: 'canvas', selectBlock: true },
-      'vibeQuote': { tab: 'canvas', selectBlock: true },
-      'welcome': { tab: 'canvas', selectBlock: true },
-      'anniversary': { tab: 'canvas', selectBlock: true },
     };
 
-    const mapping = sectionToTab[sectionId];
-    if (mapping) {
-      dispatch({ type: 'SET_ACTIVE_TAB', tab: mapping.tab as import('@/lib/editor-state').EditorTab });
-      dispatch({ type: 'SET_CONTEXT_SECTION', section: mapping.contextSection || null });
-      // Briefly set fieldFocus so panels can scroll-to + highlight the relevant field
-      dispatch({ type: 'SET_FIELD_FOCUS', field: mapping.contextSection || sectionId });
+    const structured = structuredDataSections[sectionId];
+    if (structured) {
+      dispatch({ type: 'SET_ACTIVE_TAB', tab: structured.tab as import('@/lib/editor-state').EditorTab });
+      dispatch({ type: 'SET_CONTEXT_SECTION', section: structured.contextSection || null });
+      dispatch({ type: 'SET_FIELD_FOCUS', field: structured.contextSection || sectionId });
       setTimeout(() => dispatch({ type: 'SET_FIELD_FOCUS', field: null }), 1600);
-      if (mapping.selectBlock) {
-        // Set activeId directly for BlockConfigEditor
-        if (blockId) {
-          dispatch({ type: 'SET_ACTIVE_ID', id: blockId });
-        }
-        const blockType = sectionId === 'gallery' ? 'photos' : sectionId;
-        window.dispatchEvent(new CustomEvent('pearloom-select-block', { detail: { blockType, blockId } }));
-        // If this block type has a schema with supported props, open the floating config popover
-        if (blockId && BLOCK_SCHEMAS[blockType]) {
-          const el = canvasRef.current?.querySelector(`[data-block-id="${blockId}"]`);
-          const rect = el?.getBoundingClientRect();
-          if (rect) {
-            window.dispatchEvent(new CustomEvent('pearloom-block-config-open', {
-              detail: { blockId, blockType, rect },
-            }));
-          }
-        }
-      }
-    } else {
-      dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
-      dispatch({ type: 'SET_CONTEXT_SECTION', section: null });
-      if (blockId) dispatch({ type: 'SET_ACTIVE_ID', id: blockId });
-      window.dispatchEvent(new CustomEvent('pearloom-select-block', { detail: { blockType: sectionId, blockId } }));
-      if (blockId && BLOCK_SCHEMAS[sectionId]) {
-        const el = canvasRef.current?.querySelector(`[data-block-id="${blockId}"]`);
-        const rect = el?.getBoundingClientRect();
-        if (rect) {
-          window.dispatchEvent(new CustomEvent('pearloom-block-config-open', {
-            detail: { blockId, blockType: sectionId, rect },
-          }));
-        }
+      return;
+    }
+
+    // Creative sections: inline editing only. Select the block + open inline popover.
+    // No SET_ACTIVE_TAB — panels stay accessible from the sidebar but don't auto-open.
+    if (blockId) dispatch({ type: 'SET_ACTIVE_ID', id: blockId });
+    dispatch({ type: 'SET_CONTEXT_SECTION', section: null });
+    const blockType = sectionId === 'gallery' ? 'photos' : sectionId;
+    window.dispatchEvent(new CustomEvent('pearloom-select-block', { detail: { blockType, blockId } }));
+    if (blockId && BLOCK_SCHEMAS[blockType]) {
+      const el = canvasRef.current?.querySelector(`[data-block-id="${blockId}"]`);
+      const rect = el?.getBoundingClientRect();
+      if (rect) {
+        window.dispatchEvent(new CustomEvent('pearloom-block-config-open', {
+          detail: { blockId, blockType, rect },
+        }));
       }
     }
   }, [dispatch]);
