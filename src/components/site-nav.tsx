@@ -172,6 +172,7 @@ export function SiteNav({
   const isMobilePill = !isDesktop && mobileNavStyle === 'floating-pill';
   const isMobileBottomTabs = !isDesktop && mobileNavStyle === 'bottom-tabs';
   const isMobileFloatingIsland = !isDesktop && mobileNavStyle === 'floating-island';
+  const isMobileCompactGlass = !isDesktop && mobileNavStyle === 'compact-glass';
 
   // ── Nav style classes ────────────────────────────────────────
   const navClassName = cn(
@@ -185,7 +186,7 @@ export function SiteNav({
         : navStyle === 'floating'
           ? 'fixed top-3 left-4 right-4 rounded-full'
           : 'fixed top-0 left-0 right-0',
-    isMobileHidden && !isDesktop ? 'opacity-0 pointer-events-none lg:opacity-100 lg:pointer-events-auto' : '',
+    (isMobileHidden || isMobileCompactGlass) && !isDesktop ? 'opacity-0 pointer-events-none lg:opacity-100 lg:pointer-events-auto' : '',
     scrolled ? 'py-1.5 lg:py-2' : navStyle === 'floating' || isMobilePill ? 'py-1' : 'py-2 lg:py-4',
   );
 
@@ -838,6 +839,92 @@ export function SiteNav({
               </Link>
             );
           })}
+        </div>
+      )}
+
+      {/* ── Compact Glass mobile nav (frosted bottom bar: couple names + hamburger) ── */}
+      {isMobileCompactGlass && !inline && !isStudio && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 0, left: 0, right: 0,
+            zIndex: 99,
+            display: 'grid',
+            gridTemplateColumns: '44px 1fr 44px',
+            alignItems: 'center',
+            height: 'calc(56px + env(safe-area-inset-bottom, 0px))',
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+            background: 'rgba(255,255,255,0.85)',
+            backdropFilter: 'blur(20px) saturate(1.4)',
+            WebkitBackdropFilter: 'blur(20px) saturate(1.4)',
+            borderTop: '1px solid rgba(0,0,0,0.06)',
+            boxShadow: '0 -2px 16px rgba(43,30,20,0.05)',
+          }}
+          data-pe-section="nav"
+          data-pe-label="Navigation"
+        >
+          {/* Left: logo (small, tappable link home) */}
+          <Link
+            href={basePath}
+            onClick={inline ? (e: React.MouseEvent) => e.preventDefault() : undefined}
+            aria-label="Home"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 44, height: 44, color: 'var(--pl-olive)', textDecoration: 'none',
+            }}
+          >
+            {logoSvg ? (
+              <span
+                style={{ display: 'flex', width: 18, height: 18, color: 'var(--pl-olive)' }}
+                dangerouslySetInnerHTML={{
+                  __html: logoSvg
+                    .replace(/width="[^"]*"/, 'width="18"')
+                    .replace(/height="[^"]*"/, 'height="18"')
+                    .replace(/stroke="[^"]*"/g, 'stroke="currentColor"'),
+                }}
+              />
+            ) : (
+              <LogoIcon iconId={logoIcon} size={18} color="var(--pl-olive)" />
+            )}
+          </Link>
+
+          {/* Center: couple names */}
+          <div
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              minWidth: 0, padding: '0 8px',
+            }}
+          >
+            <span
+              className="font-heading italic"
+              style={{
+                fontSize: '0.95rem',
+                fontWeight: 600,
+                letterSpacing: '-0.01em',
+                color: 'var(--pl-ink-soft)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: '100%',
+              }}
+            >
+              {names[1]?.trim() ? `${names[0]} & ${names[1]}` : names[0]}
+            </span>
+          </div>
+
+          {/* Right: hamburger */}
+          <button
+            onClick={() => drawerOpen ? closeDrawer() : openDrawer()}
+            aria-label="Open navigation menu"
+            aria-expanded={drawerOpen}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 44, height: 44, border: 'none', background: 'transparent',
+              color: 'var(--pl-ink)', cursor: 'pointer',
+            }}
+          >
+            {drawerOpen ? <X size={21} /> : <Menu size={21} />}
+          </button>
         </div>
       )}
 
