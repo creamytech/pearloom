@@ -11,23 +11,24 @@ import { useEditor } from '@/lib/editor-state';
 
 const LS_DISMISSED_KEY = 'pearloom_checklist_dismissed';
 const LS_COLLAPSED_KEY = 'pearloom_checklist_collapsed';
-const LS_TOUR_KEY = 'pearloom_tour_completed';
 
 // ── Checklist item definitions ────────────────────────────────
 
 interface ChecklistItem {
   id: string;
   label: string;
+  /** Short label for the Go button */
+  actionLabel: string;
   /** Which tab (or 'publish') to navigate to */
   goAction: 'story' | 'design' | 'events' | 'publish';
 }
 
 const ITEMS: ChecklistItem[] = [
-  { id: 'headline',  label: 'Edit your headline',     goAction: 'story' },
-  { id: 'theme',     label: 'Choose a color theme',   goAction: 'design' },
-  { id: 'photo',     label: 'Add your first photo',   goAction: 'story' },
-  { id: 'date',      label: 'Set your event date',    goAction: 'events' },
-  { id: 'publish',   label: 'Publish your site',      goAction: 'publish' },
+  { id: 'headline', label: 'Edit your headline',    actionLabel: 'Story',   goAction: 'story'   },
+  { id: 'theme',    label: 'Choose a color theme',  actionLabel: 'Design',  goAction: 'design'  },
+  { id: 'photo',    label: 'Add your first photo',  actionLabel: 'Story',   goAction: 'story'   },
+  { id: 'date',     label: 'Set your event date',   actionLabel: 'Events',  goAction: 'events'  },
+  { id: 'publish',  label: 'Publish your site',     actionLabel: 'Publish', goAction: 'publish' },
 ];
 
 // ── Component ─────────────────────────────────────────────────
@@ -39,7 +40,6 @@ export function GettingStartedChecklist() {
   const [dismissed, setDismissed] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
-  const [tourDone, setTourDone] = useState(false);
   const celebrateTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // Check localStorage on mount
@@ -48,25 +48,10 @@ export function GettingStartedChecklist() {
       if (localStorage.getItem(LS_DISMISSED_KEY)) { setDismissed(true); return; }
       setDismissed(false);
       setCollapsed(localStorage.getItem(LS_COLLAPSED_KEY) === '1');
-      setTourDone(!!localStorage.getItem(LS_TOUR_KEY));
     } catch {
       setDismissed(false);
     }
   }, []);
-
-  // Poll tour completion (tour sets localStorage when done)
-  useEffect(() => {
-    if (tourDone) return;
-    const interval = setInterval(() => {
-      try {
-        if (localStorage.getItem(LS_TOUR_KEY)) {
-          setTourDone(true);
-          clearInterval(interval);
-        }
-      } catch {}
-    }, 500);
-    return () => clearInterval(interval);
-  }, [tourDone]);
 
   // Compute completion status from manifest
   const completionStatus = computeCompletion(manifest, state.publishedUrl);
@@ -105,8 +90,6 @@ export function GettingStartedChecklist() {
 
   // Don't render if permanently dismissed
   if (dismissed) return null;
-  // Don't render until tour is done
-  if (!tourDone) return null;
 
   const remaining = ITEMS.length - completedCount;
   const progressPct = (completedCount / ITEMS.length) * 100;
@@ -166,7 +149,7 @@ export function GettingStartedChecklist() {
               fontFamily: 'var(--pl-font-heading, Georgia, serif)',
               color: 'var(--pl-ink, #2b1e14)',
             }}>
-              Getting Started
+              Start here ✦
             </span>
             <span style={{
               fontSize: '0.6rem', fontWeight: 700,
@@ -313,7 +296,7 @@ export function GettingStartedChecklist() {
                           e.currentTarget.style.borderColor = '#E4E4E7';
                         }}
                       >
-                        Go
+                        {item.actionLabel}
                       </button>
                     )}
                   </div>
