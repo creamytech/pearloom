@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Eye, Command, Monitor, Tablet, Smartphone, Link, PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { ArrowLeft, Eye, Command, Monitor, Tablet, Smartphone, Link, PanelRightClose, PanelRightOpen, Loader2 } from 'lucide-react';
 import {
   UndoIcon, RedoIcon, PublishIcon, SavedIcon, UnsavedIcon,
 } from '@/components/icons/EditorIcons';
@@ -199,14 +199,9 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
           {!isMobile && (displayedSaveState === 'saved' ? 'Saved' : 'Unsaved')}
         </span>
 
-        {/* Preview */}
-        {!isMobile && (
-          <RichTooltip label="Preview your site" shortcut="⌘P" side="bottom">
-            <ToolBtn onClick={actions.storePreviewForOpen}>
-              <Eye size={13} />
-            </ToolBtn>
-          </RichTooltip>
-        )}
+        {/* Preview — item 104: brief 400ms loading state on click so users
+            see feedback before the new tab opens. */}
+        {!isMobile && <PreviewButton onClick={actions.storePreviewForOpen} />}
 
         {/* Toggle side panel (focus mode) */}
         {!isMobile && (
@@ -347,6 +342,33 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
     {/* Keyboard shortcuts modal */}
     <KeyboardShortcuts open={shortcutsOpen} onClose={closeShortcuts} />
     </>
+  );
+}
+
+// ── Preview button with brief loading state (item 104) ─────
+function PreviewButton({ onClick }: { onClick: () => void }) {
+  const [loading, setLoading] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
+  const handle = () => {
+    setLoading(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setLoading(false), 400);
+    onClick();
+  };
+  return (
+    <RichTooltip label="Preview your site" shortcut="⌘P" side="bottom">
+      <ToolBtn onClick={handle} disabled={loading}>
+        {loading ? (
+          <span role="status" aria-label="Opening preview" style={{ display: 'inline-flex', position: 'relative' }}>
+            <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
+            <span style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>Opening preview…</span>
+          </span>
+        ) : (
+          <Eye size={13} />
+        )}
+      </ToolBtn>
+    </RichTooltip>
   );
 }
 

@@ -21,6 +21,7 @@ import {
   panelTracking,
   panelLineHeight,
 } from './panel';
+import { makeId } from '@/lib/editor-ids';
 
 // ── Types ──────────────────────────────────────────────────────
 type BlockType = 'events' | 'venue' | 'registry' | 'travel' | 'faqs';
@@ -140,7 +141,7 @@ function EventsEditor({ events, onChange }: { events: WeddingEvent[]; onChange: 
     onChange(events.map(e => e.id === id ? { ...e, ...data } : e));
   const remove = (id: string) => onChange(events.filter(e => e.id !== id));
   const add = () => {
-    const id = `event-${Date.now()}`;
+    const id = makeId('event');
     onChange([...events, { id, name: 'New Event', type: 'other' as const, date: '', time: '', venue: '', address: '' }]);
     setExpanded(id);
   };
@@ -240,7 +241,7 @@ function FaqEditor({ faqs, onChange }: { faqs: FaqItem[]; onChange: (f: FaqItem[
     onChange(faqs.map(f => f.id === id ? { ...f, ...data } : f));
   const remove = (id: string) => onChange(faqs.filter(f => f.id !== id));
   const add = () => {
-    const id = `faq-${Date.now()}`;
+    const id = makeId('faq');
     onChange([...faqs, { id, question: '', answer: '', order: faqs.length }]);
   };
 

@@ -24,6 +24,8 @@ import {
   Palette,
 } from 'lucide-react';
 import { useEditor } from '@/lib/editor-state';
+import { ConfirmDialog } from './ConfirmDialog';
+import { logEditorError } from '@/lib/editor-log';
 
 // ---- Menu item type -------------------------------------------
 
@@ -60,6 +62,8 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [hoveredChapterId, setHoveredChapterId] = useState<string | null>(null);
+  // Accessible confirm dialog state — replaces native confirm() (item 83)
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   // Track which chapter the mouse is near (via postMessage from iframe)
   useEffect(() => {
@@ -155,7 +159,9 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
           try {
             const data = JSON.stringify(activeChapter);
             navigator.clipboard.writeText(data);
-          } catch {}
+          } catch (err) {
+            logEditorError('CanvasContextMenu: copy chapter to clipboard', err);
+          }
         }
         close();
       },
@@ -182,7 +188,9 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
             dispatch({ type: 'SET_ACTIVE_ID', id: newId });
             actions.syncManifest(next);
           }
-        } catch {}
+        } catch (err) {
+          logEditorError('CanvasContextMenu: paste chapter from clipboard', err);
+        }
         close();
       },
     },
@@ -219,8 +227,9 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
       danger: true,
       disabled: !activeChapter,
       action: () => {
-        if (activeChapter && confirm(`Delete "${activeChapter.title}"?`)) {
-          actions.deleteChapter(activeChapter.id);
+        if (activeChapter) {
+          // Defer delete until the ConfirmDialog confirms — item 83.
+          setPendingDeleteId(activeChapter.id);
         }
         close();
       },
@@ -353,7 +362,23 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
     },
   ];
 
+  const pendingChapter = pendingDeleteId
+    ? state.chapters.find(c => c.id === pendingDeleteId)
+    : null;
+
   return (
+    <>
+    <ConfirmDialog
+      open={!!pendingDeleteId}
+      title={pendingChapter ? `Delete "${pendingChapter.title}"?` : 'Delete chapter?'}
+      message="This cannot be undone."
+      confirmLabel="Delete"
+      onConfirm={() => {
+        if (pendingDeleteId) actions.deleteChapter(pendingDeleteId);
+        setPendingDeleteId(null);
+      }}
+      onCancel={() => setPendingDeleteId(null)}
+    />
     <AnimatePresence>
       {position && (
         <motion.div
@@ -449,5 +474,6 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
         </motion.div>
       )}
     </AnimatePresence>
+    </>
   );
 }

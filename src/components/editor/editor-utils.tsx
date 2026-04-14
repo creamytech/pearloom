@@ -72,14 +72,19 @@ const blurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | 
 };
 
 // ── Reusable form field — glass input with label ──────────────
-export function Field({ label, value, onChange, rows, placeholder, hint, type, maxLength, showCount, onBlur: onBlurProp }: {
+export function Field({ label, value, onChange, rows, placeholder, hint, type, maxLength, showCount, onBlur: onBlurProp, error }: {
   label: string; value: string; onChange: (v: string) => void;
   rows?: number; placeholder?: string; hint?: string;
   type?: React.HTMLInputTypeAttribute;
   maxLength?: number;
   showCount?: boolean;
   onBlur?: () => void;
+  /** Item 90: optional validation error — renders red hint + red border. */
+  error?: string | null;
 }) {
+  const errInpStyle: React.CSSProperties = error
+    ? { borderColor: '#f87171', boxShadow: '0 0 0 3px rgba(248,113,113,0.12)' }
+    : {};
   if (rows) return (
     <div>
       <label style={lbl}>{label}</label>
@@ -87,13 +92,16 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type, m
         value={value} onChange={e => onChange(e.target.value)} rows={rows}
         placeholder={placeholder}
         maxLength={maxLength}
-        style={{ ...inp, resize: 'vertical', lineHeight: 1.65 }}
+        aria-invalid={error ? true : undefined}
+        style={{ ...inp, ...errInpStyle, resize: 'vertical', lineHeight: 1.65 }}
         onFocus={focusStyle}
         onBlur={e => { blurStyle(e); onBlurProp?.(); }}
       />
-      {(hint || (showCount && maxLength)) && (
+      {(hint || error || (showCount && maxLength)) && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xs }}>
-          {hint ? <p style={{ fontSize: fontSize['2xs'], color: '#71717A', lineHeight: 1.4, margin: 0 }}>{hint}</p> : <span />}
+          {error
+            ? <p role="alert" style={{ fontSize: fontSize['2xs'], color: '#ef4444', lineHeight: 1.4, margin: 0 }}>{error}</p>
+            : hint ? <p style={{ fontSize: fontSize['2xs'], color: '#71717A', lineHeight: 1.4, margin: 0 }}>{hint}</p> : <span />}
           {showCount && maxLength && (
             <span style={{ fontSize: fontSize['2xs'], color: value.length >= maxLength ? '#ef4444' : '#A1A1AA', lineHeight: 1.4 }}>
               {value.length}/{maxLength}
@@ -111,13 +119,16 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type, m
         value={value} onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         maxLength={maxLength}
-        style={inp}
+        aria-invalid={error ? true : undefined}
+        style={{ ...inp, ...errInpStyle }}
         onFocus={focusStyle}
         onBlur={e => { blurStyle(e); onBlurProp?.(); }}
       />
-      {(hint || (showCount && maxLength)) && (
+      {(hint || error || (showCount && maxLength)) && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xs }}>
-          {hint ? <p style={{ fontSize: fontSize['2xs'], color: '#71717A', lineHeight: 1.4, margin: 0 }}>{hint}</p> : <span />}
+          {error
+            ? <p role="alert" style={{ fontSize: fontSize['2xs'], color: '#ef4444', lineHeight: 1.4, margin: 0 }}>{error}</p>
+            : hint ? <p style={{ fontSize: fontSize['2xs'], color: '#71717A', lineHeight: 1.4, margin: 0 }}>{hint}</p> : <span />}
           {showCount && maxLength && (
             <span style={{ fontSize: fontSize['2xs'], color: value.length >= maxLength ? '#ef4444' : '#A1A1AA', lineHeight: 1.4 }}>
               {value.length}/{maxLength}

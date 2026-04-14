@@ -13,6 +13,7 @@ import { Plus, Trash2, ChevronDown, Calendar, Copy } from 'lucide-react';
 import { CalendarHeartIcon } from '@/components/icons/PearloomIcons';
 import { Field } from './editor-utils';
 import { useEditor } from '@/lib/editor-state';
+import { makeId } from '@/lib/editor-ids';
 import {
   PanelRoot,
   PanelSection,
@@ -84,7 +85,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
 
   const addEvent = () => {
     const newEvent: WeddingEvent = {
-      id: `event-${Date.now()}`, name: 'New Event', type: 'other',
+      id: makeId('event'), name: 'New Event', type: 'other',
       date: new Date().toISOString().slice(0, 10), time: '5:00 PM', venue: '', address: '',
     };
     onChange({ ...manifest, events: [...events, newEvent] });
@@ -107,7 +108,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
     const original = events[idx];
     const copy: WeddingEvent = {
       ...original,
-      id: `event-${Date.now()}`,
+      id: makeId('event'),
       name: `${original.name || 'Event'} (Copy)`,
     };
     const next = [...events];
@@ -179,9 +180,27 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                 color: '#71717A',
                 fontFamily: 'inherit',
                 lineHeight: panelLineHeight.snug,
+                marginBottom: '12px',
               }}>
                 Add ceremony, reception, and more
               </div>
+              {/* Item 89: explicit CTA */}
+              <motion.button
+                onClick={addEvent}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  padding: '8px 14px', borderRadius: '8px',
+                  background: '#18181B', color: '#FAFAFA',
+                  border: 'none', cursor: 'pointer',
+                  fontSize: panelText.body,
+                  fontWeight: panelWeight.semibold,
+                  fontFamily: 'inherit',
+                }}
+              >
+                <Plus size={13} /> Add your first event
+              </motion.button>
             </motion.div>
           )}
 

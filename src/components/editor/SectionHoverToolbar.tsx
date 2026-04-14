@@ -18,6 +18,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Palette, Sparkles, MoreHorizontal, Copy, Trash2, ChevronDown, Loader2 } from 'lucide-react';
 import { useEditor } from '@/lib/editor-state';
 import { InlineStylePicker } from './InlineStylePicker';
+import { ConfirmDialog } from './ConfirmDialog';
+import { makeId } from '@/lib/editor-ids';
 
 interface HoverRect {
   top: number;
@@ -41,6 +43,8 @@ export function SectionHoverToolbar() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [styleOpen, setStyleOpen] = useState(false);
   const [styleAnchor, setStyleAnchor] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
+  // Accessible confirm dialog state (replaces native confirm() — item 83)
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const styleBtnRef = useRef<HTMLButtonElement>(null);
   // Live ref so the message handler can read the current value without
@@ -114,10 +118,12 @@ export function SectionHoverToolbar() {
     if (hovered.chapterId) actions.handleAIRewrite(hovered.chapterId);
   };
   const handleDelete = () => {
-    if (chapter && confirm(`Delete "${chapter.title}"?`)) {
-      actions.deleteChapter(hovered.chapterId);
-      setHovered(null);
-    }
+    if (chapter) setConfirmDelete(true);
+  };
+  const performDelete = () => {
+    if (hovered?.chapterId) actions.deleteChapter(hovered.chapterId);
+    setConfirmDelete(false);
+    setHovered(null);
   };
 
   return (
@@ -214,7 +220,7 @@ export function SectionHoverToolbar() {
                     label="Duplicate"
                     onClick={() => {
                       if (chapter) {
-                        const newChapter = { ...chapter, id: `ch-${Date.now()}`, title: `${chapter.title} (copy)` };
+                        const newChapter = { ...chapter, id: makeId('ch'), title: `${chapter.title} (copy)` };
                         dispatch({ type: 'SET_ACTIVE_ID', id: newChapter.id });
                       }
                       setMoreOpen(false);
@@ -253,6 +259,16 @@ export function SectionHoverToolbar() {
         />
       )}
     </AnimatePresence>
+
+    {/* Accessible delete confirm (item 83) */}
+    <ConfirmDialog
+      open={confirmDelete}
+      title={chapter ? `Delete "${chapter.title}"?` : 'Delete chapter?'}
+      message="This cannot be undone."
+      confirmLabel="Delete"
+      onConfirm={performDelete}
+      onCancel={() => setConfirmDelete(false)}
+    />
     </>
   );
 }

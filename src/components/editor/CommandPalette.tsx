@@ -11,8 +11,12 @@ import {
   AlignLeft, Calendar, Palette, Settings, Globe, Sparkles,
   MessageCircleHeart, Monitor, Tablet, Smartphone, Plus,
   Eye, RotateCcw, RotateCw, LayoutTemplate, Search, ArrowRight,
-  Hash,
+  Hash, Clock,
 } from 'lucide-react';
+import { logEditorError } from '@/lib/editor-log';
+
+const RECENTS_KEY = 'pl-cmd-palette-recents';
+const MAX_RECENTS = 5;
 
 export type CommandAction =
   | { type: 'tab'; tab: 'story' | 'events' | 'canvas' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' }
@@ -83,8 +87,24 @@ function fuzzyMatch(query: string, text: string): boolean {
 export function CommandPalette({ open, onClose, onAction, chapters, canUndo, canRedo }: CommandPaletteProps) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [recentIds, setRecentIds] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+
+  // Item 103: hydrate recent command IDs from localStorage on mount.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(RECENTS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          setRecentIds(parsed.filter((x: unknown): x is string => typeof x === 'string').slice(0, MAX_RECENTS));
+        }
+      }
+    } catch (err) {
+      logEditorError('CommandPalette: hydrate recents', err);
+    }
+  }, []);
 
   // Build full command list including chapters
   const allCommands: Command[] = [
@@ -108,11 +128,23 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
     })),
   ];
 
+  // Build "Recent" pseudo-group from recentIds when there's no query.
+  const recentCommands: Command[] = !query.trim()
+    ? recentIds
+        .map(id => {
+          const base = allCommands.find(c => c.id === id);
+          if (!base) return null;
+          // Re-stamp with "Recent" group + clock icon for visual affordance.
+          return { ...base, id: `recent-${base.id}`, group: 'Recent', icon: Clock, iconColor: '#71717A' } as Command;
+        })
+        .filter((c): c is Command => !!c)
+    : [];
+
   const filtered = query.trim()
     ? allCommands.filter(c => fuzzyMatch(query, c.label) || fuzzyMatch(query, c.description || '') || fuzzyMatch(query, c.group))
-    : allCommands;
+    : [...recentCommands, ...allCommands];
 
-  // Group by section
+  // Group by section — preserve insertion order (Recent first when present).
   const groups = filtered.reduce<Record<string, Command[]>>((acc, cmd) => {
     (acc[cmd.group] ||= []).push(cmd);
     return acc;
@@ -133,6 +165,18 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
   }, [query]);
 
   const execute = useCallback((cmd: Command) => {
+    // Item 103: persist last MAX_RECENTS command IDs (strip "recent-" prefix
+    // so re-selecting from the Recent group still dedupes).
+    const canonicalId = cmd.id.startsWith('recent-') ? cmd.id.slice('recent-'.length) : cmd.id;
+    setRecentIds(prev => {
+      const next = [canonicalId, ...prev.filter(id => id !== canonicalId)].slice(0, MAX_RECENTS);
+      try {
+        localStorage.setItem(RECENTS_KEY, JSON.stringify(next));
+      } catch (err) {
+        logEditorError('CommandPalette: persist recents', err);
+      }
+      return next;
+    });
     onAction(cmd.action);
     onClose();
   }, [onAction, onClose]);

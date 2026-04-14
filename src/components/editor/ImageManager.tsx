@@ -8,6 +8,7 @@ import { PhotoReposition } from './PhotoReposition';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
 import { GalleryPicker } from './GalleryPicker';
 import { useEditor } from '@/lib/editor-state';
+import { logEditorError } from '@/lib/editor-log';
 import { layoutFormatToStoryLayout } from '@/components/blocks/StoryLayouts';
 import type { ChapterImage, Chapter } from '@/types';
 
@@ -87,6 +88,18 @@ export function ImageManager({
   const prevImageCount = useRef(images.length);
   const { manifest } = useEditor();
 
+  // Item 86: Auto-dismiss upload errors after 6s (was instant / persistent).
+  // Manual × button clears immediately, see render below.
+  const uploadErrorTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!uploadError) return;
+    if (uploadErrorTimer.current) clearTimeout(uploadErrorTimer.current);
+    uploadErrorTimer.current = setTimeout(() => setUploadError(null), 6000);
+    return () => {
+      if (uploadErrorTimer.current) clearTimeout(uploadErrorTimer.current);
+    };
+  }, [uploadError]);
+
   const resolvedLayout = manifest.storyLayout ||
     (manifest.layoutFormat ? layoutFormatToStoryLayout(manifest.layoutFormat as Parameters<typeof layoutFormatToStoryLayout>[0]) : 'parallax');
   const isSinglePhotoLayout = SINGLE_PHOTO_LAYOUTS.has(resolvedLayout);
@@ -142,7 +155,11 @@ export function ImageManager({
             onUpdate(updated);
           }
         }
-      } catch { /* non-fatal — proxy URL still works for now */ }
+      } catch (err) {
+        // Non-fatal — proxy URL still works for now. Log via helper so we
+        // can diagnose mirror failures in the console (item 87).
+        logEditorError('ImageManager: mirror Google Photo to permanent storage', err);
+      }
     }
   };
 
@@ -616,14 +633,54 @@ export function ImageManager({
         )}
       </div>
 
-      {/* Upload error */}
+      {/* Upload error — auto-dismisses after 6s; × clears immediately (item 86) */}
       {(uploadError || gpError) && (
-        <div style={{
-          marginTop: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: '6px',
-          background: 'rgba(185,28,28,0.15)', border: '1px solid rgba(185,28,28,0.3)',
-          color: '#fca5a5', fontSize: '0.75rem', lineHeight: 1.4,
-        }}>
-          {uploadError ? `Upload failed: ${uploadError}` : gpError}
+        <div
+          role="alert"
+          style={{
+            marginTop: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: '6px',
+            background: 'rgba(185,28,28,0.15)', border: '1px solid rgba(185,28,28,0.3)',
+            color: '#fca5a5', fontSize: '0.75rem', lineHeight: 1.4,
+            display: 'flex', alignItems: 'flex-start', gap: '8px',
+          }}>
+          <span style={{ flex: 1 }}>
+            {uploadError ? `Upload failed: ${uploadError}` : gpError}
+          </span>
+          {uploadError && (
+            <button
+              type="button"
+              onClick={() => setUploadError(null)}
+              aria-label="Dismiss upload error"
+              style={{
+                flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: 18, height: 18, padding: 0, borderRadius: '50%',
+                border: 'none', background: 'rgba(0,0,0,0.2)', color: '#fca5a5',
+                cursor: 'pointer',
+              }}
+            >
+              <X size={10} />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Loading skeleton — shown during upload when no images exist yet (item 94) */}
+      {uploading && images.length === 0 && (
+        <div
+          aria-hidden="true"
+          style={{
+            marginTop: '0.5rem',
+            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px',
+          }}>
+          {[0, 1, 2].map(i => (
+            <div key={i} style={{
+              aspectRatio: '1', borderRadius: '8px',
+              background: 'linear-gradient(90deg, #F4F4F5 0%, #E4E4E7 50%, #F4F4F5 100%)',
+              backgroundSize: '200% 100%',
+              animation: 'pl-shimmer 1.4s linear infinite',
+            }} />
+          ))}
+          <style>{`@keyframes pl-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
         </div>
       )}
 

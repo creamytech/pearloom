@@ -15,6 +15,7 @@ import { SpacingHandle } from './SpacingHandle';
 import { BlockDropZone } from './BlockDropZone';
 import { useEditor } from '@/lib/editor-state';
 import { insertBlockAt } from '@/lib/block-engine/block-actions';
+import { makeId } from '@/lib/editor-ids';
 import { PanelRoot, PanelSection, PanelChip, panelText, panelWeight } from './panel';
 import {
   Eye, EyeOff, GripVertical, Plus, Trash2, Sparkles,
@@ -125,7 +126,7 @@ export function SectionsPanel({ manifest, onChange }: {
 
   const addBlock = (type: string) => {
     const newBlock: PageBlock = {
-      id: `${type}-${Date.now()}`,
+      id: makeId(type),
       type: type as PageBlock['type'],
       order: blocks.length,
       visible: true,

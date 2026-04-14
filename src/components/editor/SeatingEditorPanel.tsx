@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { SidebarSection } from './EditorSidebar';
 import { useEditor } from '@/lib/editor-state';
+import { logEditorError } from '@/lib/editor-log';
 import {
   panelText,
   panelWeight,
@@ -88,7 +89,9 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
         const { tables: t = [], guests: g = [] } = await res.json();
         setTables(t); setGuests(g);
       }
-    } catch {}
+    } catch (err) {
+      logEditorError('SeatingEditorPanel: load seating data', err);
+    }
     setLoading(false); setRefreshing(false);
   }, [siteId]);
 
@@ -113,7 +116,9 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
         }),
       });
       if (res.ok) await load(true);
-    } catch {}
+    } catch (err) {
+      logEditorError('SeatingEditorPanel: add table', err);
+    }
     setAddingTable(false);
   };
 

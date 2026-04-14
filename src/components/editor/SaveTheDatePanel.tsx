@@ -15,6 +15,7 @@ import { motion } from 'framer-motion';
 import { Download, Link2, Check, Calendar, Image as ImageIcon } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import { buildSiteUrl, formatSiteDisplayUrl } from '@/lib/site-urls';
+import { logEditorError } from '@/lib/editor-log';
 import {
   PanelRoot,
   PanelSection,
@@ -86,7 +87,9 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
       await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {}
+    } catch (err) {
+      logEditorError('SaveTheDatePanel: copy link to clipboard', err);
+    }
   }, [subdomain]);
 
   return (

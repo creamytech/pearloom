@@ -6,9 +6,11 @@
 // Delete All, Hide All, Show All, Duplicate All.
 // ─────────────────────────────────────────────────────────────
 
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, Eye, EyeOff, Copy, X } from 'lucide-react';
 import { deleteBlocks, toggleBlocksVisibility, duplicateBlock } from '@/lib/block-engine/block-actions';
+import { ConfirmDialog } from './ConfirmDialog';
 import type { PageBlock } from '@/types';
 
 interface MultiSelectToolbarProps {
@@ -24,12 +26,18 @@ export function MultiSelectToolbar({
   onUpdate,
   onClearSelection,
 }: MultiSelectToolbarProps) {
+  // Accessible confirm dialog state (replaces native confirm() — item 83)
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
   if (selectedIds.length < 2) return null;
 
   const handleDeleteAll = () => {
-    if (!confirm(`Delete ${selectedIds.length} blocks? This cannot be undone.`)) return;
+    setConfirmOpen(true);
+  };
+  const performDelete = () => {
     onUpdate(deleteBlocks(blocks, selectedIds));
     onClearSelection();
+    setConfirmOpen(false);
   };
 
   const handleHideAll = () => {
@@ -50,6 +58,15 @@ export function MultiSelectToolbar({
   };
 
   return (
+    <>
+    <ConfirmDialog
+      open={confirmOpen}
+      title={`Delete ${selectedIds.length} blocks?`}
+      message="This cannot be undone."
+      confirmLabel="Delete"
+      onConfirm={performDelete}
+      onCancel={() => setConfirmOpen(false)}
+    />
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -128,5 +145,6 @@ export function MultiSelectToolbar({
         </motion.button>
       </motion.div>
     </AnimatePresence>
+    </>
   );
 }

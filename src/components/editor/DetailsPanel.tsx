@@ -7,6 +7,7 @@ import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion
 import { Plus, Trash2, X, ChevronDown, Sparkles, MapPin, Check, UtensilsCrossed, Link, Loader2, GripVertical } from 'lucide-react';
 import { LocationPinIcon } from '@/components/icons/PearloomIcons';
 import { Field, lbl, inp } from './editor-utils';
+import { makeId } from '@/lib/editor-ids';
 import { panelText, panelWeight, panelTracking, panelLineHeight } from './panel';
 import type { StoryManifest, FaqItem, TravelInfo, HotelBlock, MealOption, WeddingPartyMember } from '@/types';
 import { VenueSearch } from '@/components/venue/VenueSearch';
@@ -227,7 +228,7 @@ function WeddingPartyEditor({ manifest, onChange }: { manifest: StoryManifest; o
     const name = newName.trim();
     if (!name) return;
     const member: WeddingPartyMember = {
-      id: `wp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      id: makeId('wp'),
       name,
       role: newRole,
       order: members.length,
@@ -458,7 +459,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
   // ── FAQ helpers ──
   const faqs = manifest.faqs || [];
   const addFaq = () => {
-    const newFaq: FaqItem = { id: `faq-${Date.now()}`, question: '', answer: '', order: faqs.length };
+    const newFaq: FaqItem = { id: makeId('faq'), question: '', answer: '', order: faqs.length };
     onChange({ ...manifest, faqs: [...faqs, newFaq] });
   };
   const updFaq = (id: string, data: Partial<FaqItem>) =>
@@ -486,7 +487,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       if (data.faqs && Array.isArray(data.faqs)) {
         const newFaqs: FaqItem[] = data.faqs.map(
           (faq: { id?: string; question: string; answer: string }, i: number) => ({
-            id: faq.id || `faq-${Date.now()}-${i}`,
+            id: faq.id || makeId('faq'),
             question: faq.question,
             answer: faq.answer,
             order: faqs.length + i,
@@ -573,7 +574,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
   // ── Meal option helpers ──
   const mealOptions = manifest.mealOptions || [];
   const addMealOption = () => {
-    const newMeal: MealOption = { id: `meal-${Date.now()}`, name: '', dietaryTags: [] };
+    const newMeal: MealOption = { id: makeId('meal'), name: '', dietaryTags: [] };
     onChange({ ...manifest, mealOptions: [...mealOptions, newMeal] });
   };
   const updMealOption = (i: number, data: Partial<MealOption>) =>
@@ -619,7 +620,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
   const acceptMealPreview = useCallback((meal: { name: string; description?: string; dietaryTags: string[] }) => {
     const validTags = ['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'nut-free', 'halal', 'kosher'] as const;
     const newMeal: MealOption = {
-      id: `meal-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      id: makeId('meal'),
       name: meal.name,
       description: meal.description,
       dietaryTags: (meal.dietaryTags || []).filter((t): t is MealOption['dietaryTags'][number] =>
@@ -950,7 +951,17 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             }} />
           </button>
         </div>
-        <Field label="Cash Fund URL" value={manifest.registry?.cashFundUrl || ''} onChange={v => updRegistry({ cashFundUrl: v })} placeholder="https://hitchd.com/..." />
+        <Field
+          label="Cash Fund URL"
+          value={manifest.registry?.cashFundUrl || ''}
+          onChange={v => updRegistry({ cashFundUrl: v })}
+          placeholder="https://hitchd.com/..."
+          error={(() => {
+            const v = (manifest.registry?.cashFundUrl || '').trim();
+            if (!v) return null;
+            try { new URL(v); return null; } catch { return 'Please enter a valid URL (include https://).'; }
+          })()}
+        />
         <Field label="Cash Fund Message" value={manifest.registry?.cashFundMessage || ''} onChange={v => updRegistry({ cashFundMessage: v })} placeholder="We are saving for our honeymoon!" />
         {/* ── Smart Registry Import ── */}
         <div style={{
@@ -1097,7 +1108,17 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               <ConfirmDeleteButton onConfirm={() => delEntry(i)} />
             </div>
             <Field label="Store Name" value={entry.name} onChange={v => updEntry(i, { name: v })} placeholder="Williams Sonoma" />
-            <Field label="Registry URL" value={entry.url} onChange={v => updEntry(i, { url: v })} placeholder="https://..." />
+            <Field
+              label="Registry URL"
+              value={entry.url}
+              onChange={v => updEntry(i, { url: v })}
+              placeholder="https://..."
+              error={(() => {
+                const v = (entry.url || '').trim();
+                if (!v) return null;
+                try { new URL(v); return null; } catch { return 'Please enter a valid URL (include https://).'; }
+              })()}
+            />
             <Field label="Note (optional)" value={entry.note || ''} onChange={v => updEntry(i, { note: v })} placeholder="Our kitchen wishlist" />
           </div>
         ))}

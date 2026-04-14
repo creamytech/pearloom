@@ -11,6 +11,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Bookmark, Trash2, Download, Plus } from 'lucide-react';
 import type { PageBlock } from '@/types';
+import { makeId } from '@/lib/editor-ids';
+import { logEditorError } from '@/lib/editor-log';
 
 const STORAGE_KEY = 'pl-block-presets-v1';
 
@@ -29,7 +31,8 @@ function loadPresets(): BlockPreset[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
-  } catch {
+  } catch (err) {
+    logEditorError('BlockPresets: load presets', err);
     return [];
   }
 }
@@ -37,7 +40,9 @@ function loadPresets(): BlockPreset[] {
 function savePresets(presets: BlockPreset[]): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(presets));
-  } catch {}
+  } catch (err) {
+    logEditorError('BlockPresets: save presets', err);
+  }
 }
 
 // ── Hook ─────────────────────────────────────────────────────
@@ -51,7 +56,7 @@ export function useBlockPresets(type: PageBlock['type']) {
 
   const savePreset = useCallback((name: string, block: PageBlock) => {
     const newPreset: BlockPreset = {
-      id: `preset-${Date.now()}`,
+      id: makeId('preset'),
       name: name.trim() || `${block.type} preset`,
       type: block.type,
       config: (block.config || {}) as Record<string, unknown>,

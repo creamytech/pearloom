@@ -616,9 +616,27 @@ export function StoryPanel() {
               fontSize: panelText.hint,
               color: '#71717A',
               lineHeight: panelLineHeight.normal,
+              marginBottom: '12px',
             }}>
               Add your first chapter to start telling your story.
             </div>
+            {/* Item 89: prominent CTA so empty state is actionable */}
+            <motion.button
+              onClick={actions.addChapter}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                padding: '8px 14px', borderRadius: '8px',
+                background: '#18181B', color: '#FAFAFA',
+                border: 'none', cursor: 'pointer',
+                fontSize: panelText.body,
+                fontWeight: panelWeight.semibold,
+                fontFamily: 'inherit',
+              }}
+            >
+              <Plus size={13} /> Add your first chapter
+            </motion.button>
           </div>
         )}
 

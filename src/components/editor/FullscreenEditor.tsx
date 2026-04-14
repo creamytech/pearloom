@@ -69,6 +69,8 @@ import {
   setBlockStyle, saveSnapshot, parseElementId,
   mapKeyToAction, applyBlockAction, type BlockStyleOverrides,
 } from '@/lib/block-engine';
+import { makeId } from '@/lib/editor-ids';
+import { logEditorError } from '@/lib/editor-log';
 
 // ── State ─────────────────────────────────────────────────────
 import {
@@ -134,6 +136,31 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
   }, []);
+
+  // ── Item 101: previewZoom persistence (localStorage) ─────────
+  // Hydrate on mount, save on change. Keep zoom between 0.25 and 2.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('pl-editor-preview-zoom');
+      if (raw) {
+        const z = parseFloat(raw);
+        if (!Number.isNaN(z) && z >= 0.25 && z <= 2) {
+          dispatch({ type: 'SET_PREVIEW_ZOOM', zoom: z });
+        }
+      }
+    } catch (err) {
+      logEditorError('FullscreenEditor: hydrate preview zoom', err);
+    }
+    // Only run on first mount — subsequent changes are driven by user actions.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    try {
+      localStorage.setItem('pl-editor-preview-zoom', String(state.previewZoom));
+    } catch (err) {
+      logEditorError('FullscreenEditor: persist preview zoom', err);
+    }
+  }, [state.previewZoom]);
 
   // ── Auto-open panel on tab change ───────────────────────────
   useEffect(() => {
@@ -281,7 +308,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   }, [state.chapters, state.activeId, syncManifest]);
 
   const addChapter = useCallback(() => {
-    const id = `ch-${Date.now()}`;
+    const id = makeId('ch');
     const newCh: Chapter = {
       id, date: new Date().toISOString(), title: 'New Chapter',
       subtitle: 'Add your subtitle', description: 'Write your story here…',
@@ -477,13 +504,19 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         setRecoveredDraft(saved.manifest);
         dispatch({ type: 'SET_DRAFT_BANNER', state: 'visible' });
       }
-    } catch {}
+    } catch (err) {
+      logEditorError('FullscreenEditor: draft recovery', err);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     const t = setTimeout(() => {
-      try { localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ manifest, savedAt: Date.now() })); } catch {}
+      try {
+        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ manifest, savedAt: Date.now() }));
+      } catch (err) {
+        logEditorError('FullscreenEditor: autosave draft', err);
+      }
     }, 1500);
     return () => clearTimeout(t);
   }, [manifest]);
@@ -533,7 +566,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       // Key comparisons use e.key which is affected by Shift → uppercase letters.
       if (mod && e.shiftKey && (e.key === 'C' || e.key === 'c')) {
         e.preventDefault();
-        const id = `ch-${Date.now()}`;
+        const id = makeId('ch');
         const newCh: Chapter = {
           id,
           date: new Date().toISOString(),
@@ -558,7 +591,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       if (mod && e.shiftKey && (e.key === 'E' || e.key === 'e')) {
         e.preventDefault();
         const newEvent = {
-          id: `evt-${Date.now()}`,
+          id: makeId('evt'),
           name: 'New Event',
           type: 'ceremony' as const,
           date: new Date().toISOString(),
@@ -605,7 +638,12 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         const clip = blockClipboardRef.current;
         if (clip && manifest.blocks) {
           e.preventDefault();
-          const newId = `${clip.type}-${Date.now()}`;
+          // Item 91: guard against ID collisions — makeId yields UUIDs but we
+          // still defensively check the manifest's existing IDs and regen if
+          // a collision is found (belt + suspenders for paste workflows).
+          const existingIds = new Set(manifest.blocks.map(b => b.id));
+          let newId = makeId(clip.type);
+          while (existingIds.has(newId)) newId = makeId(clip.type);
           const newBlock = {
             id: newId,
             type: clip.type as (typeof manifest.blocks)[number]['type'],
@@ -638,7 +676,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         if (!id) return;
         const original = chs.find(c => c.id === id);
         if (!original) return;
-        const copyId = `ch-${Date.now()}`;
+        const copyId = makeId('ch');
         const copy: Chapter = { ...original, id: copyId, title: `${original.title} (copy)`, order: (original.order ?? 0) + 0.5 };
         const next = [...chs, copy].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
         dispatch({ type: 'SET_CHAPTERS', chapters: next });
@@ -718,7 +756,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       syncManifest(newOrder);
     } else if (activeData?.type === 'block') {
       const layout = activeData.id.replace('block:', '') as Chapter['layout'];
-      const newId = `ch-${Date.now()}`;
+      const newId = makeId('ch');
       const newCh: Chapter = {
         id: newId, title: 'New Chapter', subtitle: '', description: 'Add your story here...',
         date: new Date().toISOString().slice(0, 10), images: [], location: null,
@@ -769,11 +807,16 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       onDragStart={handleCanvasDragStart}
       onDragEnd={handleCanvasDragEnd}
     >
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 1000,
-      display: 'flex', flexDirection: 'column',
-      background: 'var(--pl-cream)', fontFamily: 'var(--pl-font-body)',
-    }}>
+    <motion.div
+      // Item 100: subtle fade + y-offset entrance so the editor doesn't snap in.
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        display: 'flex', flexDirection: 'column',
+        background: 'var(--pl-cream)', fontFamily: 'var(--pl-font-body)',
+      }}>
       {/* Skip to canvas — visible only on keyboard focus. */}
       <a
         href="#pl-editor-canvas"
@@ -1122,7 +1165,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 
       {/* Inline story layout switcher — appears above a selected story section */}
       {!state.isMobile && <InlineStoryLayoutSwitcher />}
-    </div>
+    </motion.div>
     </DndContext>
     </EditorContext.Provider>
   );
@@ -1276,8 +1319,32 @@ function PublishModalInline() {
                 <p style={{ color: 'rgba(255,255,255,0.42)', marginBottom: '2rem', fontSize: '0.8rem' }}>Customize your site address — you can change it anytime.</p>
                 {publishError && (
                   <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+                    role="alert"
                     style={{ background: 'rgba(185,28,28,0.14)', border: '1px solid rgba(248,113,113,0.3)', color: '#fca5a5', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBottom: '1.25rem', fontSize: '0.8rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-                    <span style={{ flexShrink: 0 }}>⚠</span><span>{publishError}</span>
+                    <span style={{ flexShrink: 0 }}>⚠</span>
+                    <span style={{ flex: 1 }}>{publishError}</span>
+                    {/* Item 88: explicit Retry button so users don't have to
+                        re-click Publish after an error. */}
+                    <motion.button
+                      onClick={actions.handlePublishSubmit}
+                      disabled={isPublishing}
+                      whileHover={!isPublishing ? { scale: 1.05 } : {}}
+                      whileTap={!isPublishing ? { scale: 0.95 } : {}}
+                      style={{
+                        flexShrink: 0,
+                        padding: '2px 10px',
+                        borderRadius: '999px',
+                        background: 'rgba(248,113,113,0.18)',
+                        border: '1px solid rgba(248,113,113,0.4)',
+                        color: '#fca5a5',
+                        cursor: isPublishing ? 'not-allowed' : 'pointer',
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.02em',
+                      }}
+                    >
+                      {isPublishing ? 'Retrying…' : 'Retry'}
+                    </motion.button>
                   </motion.div>
                 )}
                 <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.05)', borderRadius: '0.85rem', border: '1px solid rgba(0,0,0,0.07)', overflow: 'hidden', marginBottom: '1.5rem', boxShadow: '0 2px 12px rgba(0,0,0,0.2) inset' }}>

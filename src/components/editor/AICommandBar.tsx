@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowUp, Check, Loader2, X, Crown } from 'lucide-react';
 import { PearIcon } from '@/components/icons/PearloomIcons';
 import { useEditor } from '@/lib/editor-state';
+import { makeId } from '@/lib/editor-ids';
 import type { StoryManifest, Chapter } from '@/types';
 
 // ── Quick action definitions ──────────────────────────────────
@@ -310,7 +311,7 @@ export function AICommandBar() {
         // Add blocks
         if (Array.isArray(actionData?.add)) {
           const newBlocks = (actionData.add as Array<{ type: string; config?: Record<string, unknown> }>).map((b, i) => ({
-            id: `ai-${b.type}-${Date.now()}-${i}`,
+            id: makeId(`ai-${b.type}`),
             type: b.type as import('@/types').BlockType,
             order: blocks.length + i,
             visible: true,
@@ -345,7 +346,7 @@ export function AICommandBar() {
             return d;
           };
           const newEvents = (actionData.events as Array<Record<string, unknown>>).map((e, i) => ({
-            id: `ai-event-${Date.now()}-${i}`,
+            id: makeId('ai-event'),
             name: (e.name as string) || 'Event',
             type: (e.type as string) || 'other',
             date: normalizeDate((e.date as string) || ''),
@@ -364,7 +365,7 @@ export function AICommandBar() {
       case 'update_faqs': {
         if (Array.isArray(actionData?.faqs)) {
           const newFaqs = (actionData.faqs as Array<{ question: string; answer: string }>).map((f, i) => ({
-            id: `ai-faq-${Date.now()}-${i}`,
+            id: makeId('ai-faq'),
             question: f.question,
             answer: f.answer,
             order: (manifest.faqs?.length || 0) + i,
@@ -917,10 +918,13 @@ export function AICommandBar() {
                   ) : status === 'loading' ? (
                     <motion.div
                       key="sp-loader"
+                      role="status"
+                      aria-label="Loading"
                       animate={{ rotate: 360 }}
                       transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                     >
                       <Loader2 size={16} color={OLIVE} />
+                      <span style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>Loading…</span>
                     </motion.div>
                   ) : (
                     <motion.div key="sp-sparkles">
@@ -1220,10 +1224,14 @@ export function AICommandBar() {
                       ) : status === 'loading' ? (
                         <motion.div
                           key="loader"
+                          role="status"
+                          aria-label="Loading"
                           animate={{ rotate: 360 }}
                           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                          style={{ position: 'relative' }}
                         >
                           <Loader2 size={16} color={OLIVE} />
+                          <span style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>Loading…</span>
                         </motion.div>
                       ) : (
                         <motion.div key="sparkles">

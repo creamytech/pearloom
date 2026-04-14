@@ -508,15 +508,29 @@ export function EditorCanvas() {
         break;
       }
       case 'delete': {
-        const name = events[eventIndex]?.name || 'this event';
-        if (!confirm(`Delete "${name}"?`)) return;
+        // Optimistic delete with inline undo toast — replaces native confirm().
+        const removed = events[eventIndex];
+        const removedIdx = eventIndex;
+        if (!removed) return;
         events.splice(eventIndex, 1);
         setHoveredEvent(null);
-        break;
+        actions.handleDesignChange({ ...manifest, events });
+        showUndoableToast(
+          `Deleted "${removed.name || 'event'}"`,
+          () => {
+            const latest = manifestRef.current;
+            const restored = [...(latest.events || [])];
+            if (restored.some(e => e.id === removed.id)) return;
+            const insertAt = Math.min(removedIdx, restored.length);
+            restored.splice(insertAt, 0, removed);
+            actions.handleDesignChange({ ...latest, events: restored });
+          },
+        );
+        return;
       }
     }
     actions.handleDesignChange({ ...manifest, events });
-  }, [hoveredEvent, manifest, actions, dispatch]);
+  }, [hoveredEvent, manifest, actions, dispatch, showUndoableToast]);
 
   // ── FAQ toolbar actions ─────────────────────────────────
   const handleFaqToolbarAction = useCallback((action: FaqToolbarAction) => {
@@ -536,17 +550,39 @@ export function EditorCanvas() {
         if (faqIndex < faqs.length - 1) [faqs[faqIndex], faqs[faqIndex + 1]] = [faqs[faqIndex + 1], faqs[faqIndex]];
         break;
       case 'delete': {
-        const q = faqs[faqIndex]?.question || 'this FAQ';
+        // Optimistic delete with inline undo toast — replaces native confirm().
+        const removed = faqs[faqIndex];
+        const removedIdx = faqIndex;
+        if (!removed) return;
+        const q = removed.question || 'this FAQ';
         const preview = q.length > 48 ? q.slice(0, 45) + '…' : q;
-        if (!confirm(`Delete "${preview}"?`)) return;
         faqs.splice(faqIndex, 1);
         setHoveredFaq(null);
-        break;
+        actions.handleDesignChange({
+          ...manifest,
+          faqs: faqs.map((f, i) => ({ ...f, order: i })),
+        });
+        showUndoableToast(
+          `Deleted "${preview}"`,
+          () => {
+            const latest = manifestRef.current;
+            const restored = [...(latest.faqs || [])];
+            if (restored.some(f => f.id === removed.id)) return;
+            const insertAt = Math.min(removedIdx, restored.length);
+            restored.splice(insertAt, 0, removed);
+            actions.handleDesignChange({
+              ...latest,
+              faqs: restored.map((f, i) => ({ ...f, order: i })),
+            });
+          },
+        );
+        void faqId;
+        return;
       }
     }
     actions.handleDesignChange({ ...manifest, faqs: faqs.map((f, i) => ({ ...f, order: i })) });
     void faqId; // consumed via index
-  }, [hoveredFaq, manifest, actions, dispatch]);
+  }, [hoveredFaq, manifest, actions, dispatch, showUndoableToast]);
 
   // ── Section hover (footer / nav) ────────────────────────
   const handleSectionToolbarAction = useCallback((action: SectionToolbarAction) => {
@@ -596,14 +632,29 @@ export function EditorCanvas() {
       return;
     }
     if (action === 'delete') {
+      // Optimistic delete with inline undo toast — replaces native confirm().
       const entries = [...(manifest.registry?.entries || [])];
-      const name = entries[registryIndex]?.name || 'this registry item';
-      if (!confirm(`Delete "${name}"?`)) return;
+      const removed = entries[registryIndex];
+      const removedIdx = registryIndex;
+      if (!removed) return;
       entries.splice(registryIndex, 1);
       actions.handleDesignChange({ ...manifest, registry: { ...(manifest.registry || { enabled: true }), entries } });
       setHoveredRegistry(null);
+      showUndoableToast(
+        `Deleted "${removed.name || 'registry item'}"`,
+        () => {
+          const latest = manifestRef.current;
+          const restored = [...(latest.registry?.entries || [])];
+          const insertAt = Math.min(removedIdx, restored.length);
+          restored.splice(insertAt, 0, removed);
+          actions.handleDesignChange({
+            ...latest,
+            registry: { ...(latest.registry || { enabled: true }), entries: restored },
+          });
+        },
+      );
     }
-  }, [hoveredRegistry, manifest, actions, dispatch]);
+  }, [hoveredRegistry, manifest, actions, dispatch, showUndoableToast]);
 
   useEffect(() => {
     const cancelTimer = () => {

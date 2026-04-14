@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { SidebarSection } from './EditorSidebar';
 import { IconMeal } from './EditorIcons';
+import { logEditorError } from '@/lib/editor-log';
 import {
   panelText,
   panelWeight,
@@ -85,7 +86,9 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
         const { guests: data = [] } = await res.json();
         setGuests(data);
       }
-    } catch {}
+    } catch (err) {
+      logEditorError('GuestSearchPanel: load guests', err);
+    }
     setLoading(false);
   }, [siteId]);
 
@@ -118,13 +121,15 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
         setGuests(prev => [...prev, guest]);
         setAddName(''); setAddEmail('');
       }
-    } catch {}
+    } catch (err) {
+      logEditorError('GuestSearchPanel: add guest', err);
+    }
     setAdding(false);
   };
 
   const handleDelete = async (id: string) => {
     setGuests(prev => prev.filter(g => g.id !== id));
-    try { await fetch(`/api/guests?id=${id}`, { method: 'DELETE' }); } catch {}
+    try { await fetch(`/api/guests?id=${id}`, { method: 'DELETE' }); } catch (err) { logEditorError('GuestSearchPanel: delete guest', err); }
   };
 
   const handleCsvImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -152,7 +157,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
             body: JSON.stringify({ siteId, name: row.name, email: row.email }),
           });
           if (res.ok) { added++; }
-        } catch {}
+        } catch (err) { logEditorError('GuestSearchPanel: CSV import row', err); }
       }
       setCsvResult(`Imported ${added} of ${rows.length} guests`);
       await load();

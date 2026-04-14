@@ -6,6 +6,7 @@ import { useEditor } from '@/lib/editor-state';
 import { RangeSlider } from '@/components/ui/range-slider';
 import { Loader2 } from 'lucide-react';
 import { lbl } from './editor-utils';
+import { makeId } from '@/lib/editor-ids';
 import { panelText, panelWeight, panelTracking, panelLineHeight } from './panel';
 
 // ── Shared sub-label (used inside SidebarSection bodies) ──────
@@ -1646,7 +1647,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
           }}
           onAddSticker={(asset) => {
             const newSticker: import('@/types').StickerItem = {
-              id: `sticker-${Date.now()}`,
+              id: makeId('sticker'),
               name: asset.name,
               type: asset.type as 'illustrations' | 'accents' | 'dividers',
               x: 20 + Math.random() * 60,

@@ -6,6 +6,7 @@ import { Gem } from 'lucide-react';
 import { Button } from '@/components/ui';
 import type { StoryManifest, Chapter } from '@/types';
 import { parseLocalDate } from '@/lib/date';
+import { makeId } from '@/lib/editor-ids';
 
 interface AnniversaryUpgradeProps {
   manifest: StoryManifest;
@@ -132,7 +133,7 @@ export function AnniversaryUpgrade({ manifest, onChange }: AnniversaryUpgradePro
   function handleAddChapter() {
     const idx = (manifest.chapters?.length ?? 0) + 1;
     const newChapter: Chapter = {
-      id: `__anniversary_${Date.now()}__`,
+      id: makeId('__anniversary'),
       date: new Date().toISOString().split('T')[0],
       title: 'New Anniversary Memory',
       subtitle: 'Another chapter in our story.',

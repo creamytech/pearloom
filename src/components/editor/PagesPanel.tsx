@@ -13,6 +13,7 @@ import {
 } from './panel';
 import type { StoryManifest } from '@/types';
 import { formatSiteDisplayUrl } from '@/lib/site-urls';
+import { makeId } from '@/lib/editor-ids';
 
 export type OccasionType = 'wedding' | 'anniversary' | 'engagement' | 'birthday' | 'story';
 
@@ -57,9 +58,9 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
     if (!newPageTitle.trim()) return;
     const slug = newPageTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     const newPage = {
-      id: `page-${Date.now()}`, slug,
+      id: makeId('page'), slug,
       title: newPageTitle.trim(), icon: '',
-      blocks: [{ id: `b-text-${Date.now()}`, type: 'text' as const, order: 0, visible: true }],
+      blocks: [{ id: makeId('b-text'), type: 'text' as const, order: 0, visible: true }],
       visible: true, order: customPages.length,
     };
     onChange({ ...manifest, customPages: [...customPages, newPage] });
