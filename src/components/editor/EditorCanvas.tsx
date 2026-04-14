@@ -21,6 +21,8 @@ import { CanvasSectionToolbar, type SectionToolbarAction } from './preview/Canva
 import { CanvasRegistryToolbar, type RegistryToolbarAction } from './preview/CanvasRegistryToolbar';
 import { CanvasHeroEditBar } from './preview/CanvasHeroEditBar';
 import { CanvasInlineFormatBar, type TextFormat } from './preview/CanvasInlineFormatBar';
+import { BlockConfigPopover } from './preview/BlockConfigPopover';
+import { BLOCK_SCHEMAS } from '@/lib/block-engine/schema';
 import type { BlockType, PageBlock } from '@/types';
 
 export function EditorCanvas() {
@@ -64,6 +66,10 @@ export function EditorCanvas() {
 
   const [focusedTextField, setFocusedTextField] = useState<{
     path: string; rect: DOMRect;
+  } | null>(null);
+
+  const [blockConfigPopover, setBlockConfigPopover] = useState<{
+    blockId: string; rect: DOMRect;
   } | null>(null);
 
   // ── Spacebar to pan ─────────────────────────────────────
@@ -197,12 +203,31 @@ export function EditorCanvas() {
         }
         const blockType = sectionId === 'gallery' ? 'photos' : sectionId;
         window.dispatchEvent(new CustomEvent('pearloom-select-block', { detail: { blockType, blockId } }));
+        // If this block type has a schema with supported props, open the floating config popover
+        if (blockId && BLOCK_SCHEMAS[blockType]) {
+          const el = canvasRef.current?.querySelector(`[data-block-id="${blockId}"]`);
+          const rect = el?.getBoundingClientRect();
+          if (rect) {
+            window.dispatchEvent(new CustomEvent('pearloom-block-config-open', {
+              detail: { blockId, blockType, rect },
+            }));
+          }
+        }
       }
     } else {
       dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
       dispatch({ type: 'SET_CONTEXT_SECTION', section: null });
       if (blockId) dispatch({ type: 'SET_ACTIVE_ID', id: blockId });
       window.dispatchEvent(new CustomEvent('pearloom-select-block', { detail: { blockType: sectionId, blockId } }));
+      if (blockId && BLOCK_SCHEMAS[sectionId]) {
+        const el = canvasRef.current?.querySelector(`[data-block-id="${blockId}"]`);
+        const rect = el?.getBoundingClientRect();
+        if (rect) {
+          window.dispatchEvent(new CustomEvent('pearloom-block-config-open', {
+            detail: { blockId, blockType: sectionId, rect },
+          }));
+        }
+      }
     }
   }, [dispatch]);
 
@@ -691,6 +716,22 @@ export function EditorCanvas() {
     return () => window.removeEventListener('pearloom-field-focus', handler);
   }, [dispatch]);
 
+  // ── Block config popover open/close ──────────────────────
+  useEffect(() => {
+    const onOpen = (e: Event) => {
+      const { blockId, rect } = (e as CustomEvent).detail ?? {};
+      if (!blockId || !rect) return;
+      setBlockConfigPopover({ blockId, rect });
+    };
+    const onClose = () => setBlockConfigPopover(null);
+    window.addEventListener('pearloom-block-config-open', onOpen);
+    window.addEventListener('pearloom-block-config-close', onClose);
+    return () => {
+      window.removeEventListener('pearloom-block-config-open', onOpen);
+      window.removeEventListener('pearloom-block-config-close', onClose);
+    };
+  }, []);
+
   // ── Block drop → insert at position ──────────────────────
   const handleBlockDrop = useCallback((blockType: string, position: number) => {
     const blocks = manifest.blocks || [];
@@ -830,6 +871,24 @@ export function EditorCanvas() {
             onChange={handleFormatChange}
           />
         )}
+      </AnimatePresence>
+
+      {/* Block config popover — anchored to a selected block with a schema */}
+      <AnimatePresence>
+        {blockConfigPopover && (() => {
+          const block = manifest.blocks?.find(b => b.id === blockConfigPopover.blockId);
+          if (!block) return null;
+          return (
+            <BlockConfigPopover
+              key={blockConfigPopover.blockId}
+              block={block}
+              rect={blockConfigPopover.rect}
+              canvasRef={canvasRef}
+              onTextEdit={handleTextEdit}
+              onClose={() => setBlockConfigPopover(null)}
+            />
+          );
+        })()}
       </AnimatePresence>
 
       {/* ── Canvas content — direct DOM rendering ── */}
