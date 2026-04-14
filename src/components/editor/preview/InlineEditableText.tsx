@@ -106,12 +106,23 @@ export function InlineEditableText({
 
   return createElement(tag, {
     className,
+    // Item 81: make inline-editable text reachable via keyboard. Pressing
+    // Enter on the focused element starts edit mode, mirroring double-click.
+    tabIndex: 0,
+    role: 'textbox',
+    'aria-label': placeholder ? `Edit ${placeholder}` : 'Edit text',
     style: {
       ...style,
       cursor: 'text',
       transition: 'outline-color 0.15s',
     },
     onDoubleClick: handleDoubleClick,
+    onKeyDown: (e: React.KeyboardEvent) => {
+      if ((e.key === 'Enter' || e.key === ' ') && !isEditing) {
+        e.preventDefault();
+        onStartEdit();
+      }
+    },
     title: 'Double-click to edit',
     children: displayValue,
   });

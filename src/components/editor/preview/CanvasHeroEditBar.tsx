@@ -64,11 +64,25 @@ export function CanvasHeroEditBar({
   const canvasRect = canvasRef.current?.getBoundingClientRect();
   if (!canvasRect) return null;
 
-  // Position bar horizontally centered at the bottom of the hero rect
-  const relBottom = rect.bottom - canvasRect.top - 56; // 56px above bottom edge
+  // Item 47: `rect` is the hero element's full getBoundingClientRect() which
+  // spans every wrapped tagline line, so anchoring to rect.bottom/rect.left
+  // already accounts for long taglines that push the hero taller.
+  // Position bar horizontally centered 56px above the hero's bottom edge.
   const barWidth = 520;
+  const barHeightApprox = 44; // approx for overflow check
+  let relBottom = rect.bottom - canvasRect.top - 56;
   const centerX = rect.left - canvasRect.left + rect.width / 2 - barWidth / 2;
   const clampedX = Math.max(8, Math.min(centerX, canvasRect.width - barWidth - 8));
+
+  // Item 44: if the bar would sit off the bottom of the viewport, flip it
+  // above the hero's bottom edge (still visually inside the hero).
+  const viewportH = typeof window !== 'undefined' ? window.innerHeight : 800;
+  const viewportBarBottom = rect.bottom - 56 + barHeightApprox;
+  if (viewportBarBottom > viewportH - 8) {
+    // Raise the bar so its bottom clears the viewport edge.
+    const delta = viewportBarBottom - (viewportH - 8);
+    relBottom = Math.max(8, relBottom - delta);
+  }
 
   const badgeStyle = manifest.heroBadgeStyle ?? 'pill';
   const cdStyle    = manifest.heroCountdownStyle ?? 'cards';
@@ -113,6 +127,8 @@ export function CanvasHeroEditBar({
           <button
             key={s.value}
             title={s.label}
+            aria-label={`Select color ${s.label} (${s.value})`}
+            aria-pressed={textColor === s.value}
             onClick={() => onStyleChange('heroTextColorOverride', s.value)}
             style={{
               ...PILL_BTN,

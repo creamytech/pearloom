@@ -40,6 +40,10 @@ export interface PropSchema {
   required?: boolean;
   /** Options for 'select' type */
   options?: Array<{ value: string; label: string }>;
+  /** Minimum value for 'number' type (inclusive) */
+  min?: number;
+  /** Maximum value for 'number' type (inclusive) */
+  max?: number;
   /** Binding hint — suggests a {{ variable }} the user can use */
   bindingHint?: string;
   /** Group for organizing props in the editor */

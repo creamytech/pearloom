@@ -8,12 +8,15 @@
 // Positioning mirrors CanvasHeroEditBar (absolute inside canvas).
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { HelpCircle, X } from 'lucide-react';
 import { BLOCK_SCHEMAS, type PropSchema } from '@/lib/block-engine/schema';
 import { useEditor } from '@/lib/editor-state';
 import type { PageBlock } from '@/types';
+
+const UNSUPPORTED_HINT =
+  'Image, rich text, and binding fields are edited in the side panel for better control.';
 
 interface BlockConfigPopoverProps {
   block: PageBlock;
@@ -34,6 +37,7 @@ export function BlockConfigPopover({
 }: BlockConfigPopoverProps) {
   const schema = BLOCK_SCHEMAS[block.type];
   const popoverRef = useRef<HTMLDivElement>(null);
+  const firstFieldRef = useRef<HTMLElement | null>(null);
   const { dispatch } = useEditor();
 
   // Outside-click & Escape dismiss
@@ -42,18 +46,30 @@ export function BlockConfigPopover({
       if (e.key === 'Escape') onClose();
     };
     const onClick = (e: MouseEvent) => {
+      // Ignore right/middle clicks — only primary button dismisses (item 41).
+      if (e.button !== 0) return;
       if (!popoverRef.current) return;
       if (!popoverRef.current.contains(e.target as Node)) onClose();
     };
     window.addEventListener('keydown', onKey);
-    // Delay outside-click listener so the opening click doesn't immediately dismiss
-    const t = setTimeout(() => window.addEventListener('mousedown', onClick), 0);
+    // Delay outside-click listener ~150ms so an accidental double-click on the
+    // opening element doesn't immediately dismiss the popover (item 41).
+    const t = setTimeout(() => window.addEventListener('mousedown', onClick), 150);
     return () => {
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('mousedown', onClick);
       clearTimeout(t);
     };
   }, [onClose]);
+
+  // Focus the first field on open (item 42). React's autoFocus can be flaky
+  // inside motion divs, so we schedule an explicit focus() after mount.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      firstFieldRef.current?.focus();
+    }, 40);
+    return () => clearTimeout(t);
+  }, []);
 
   const canvasRect = canvasRef.current?.getBoundingClientRect();
   if (!canvasRect) return null;
@@ -74,14 +90,28 @@ export function BlockConfigPopover({
   };
 
   // Position: below the block, horizontally centered. Flip above if overflow.
+  // Item 36: both `rect` and `canvasRect` come from getBoundingClientRect() so
+  // they are already viewport-relative. Subtracting `canvasRect.top` gives a
+  // coordinate relative to the canvas element — correct regardless of window
+  // scroll. If the canvas itself has internal scroll, we also add
+  // `canvasRef.current.scrollTop` because the popover is positioned absolute
+  // inside the canvas, whose children scroll with that offset.
   const popWidth = 320;
-  const popHeight = isEmpty ? 120 : Math.min(520, 80 + entries.length * 72);
+  const viewportH = typeof window !== 'undefined' ? window.innerHeight : 800;
+  // Item 37: clamp popover height to the viewport too, not just a fixed cap.
+  const rawHeight = isEmpty ? 120 : Math.min(520, 80 + entries.length * 72);
+  const popHeight = Math.min(rawHeight, viewportH - 32);
   const centerX = rect.left - canvasRect.left + rect.width / 2 - popWidth / 2;
   const clampedX = Math.max(8, Math.min(centerX, canvasRect.width - popWidth - 8));
-  const relTop = rect.bottom - canvasRect.top + 12;
-  const overflowsBelow = relTop + popHeight > canvasRect.height - 16;
-  const relAbove = rect.top - canvasRect.top - popHeight - 12;
-  const top = overflowsBelow && relAbove > 0 ? relAbove : relTop;
+  const scrollTop = canvasRef.current?.scrollTop ?? 0;
+  const relTop = rect.bottom - canvasRect.top + 12 + scrollTop;
+  const relAbove = rect.top - canvasRect.top - popHeight - 12 + scrollTop;
+  // Item 37/44: flip above if bottom of popover would exit the viewport.
+  const viewportBottomOfRelTop = rect.bottom + 12 + popHeight; // viewport coord
+  const overflowsViewport = viewportBottomOfRelTop > viewportH - 8;
+  const overflowsCanvas = relTop - scrollTop + popHeight > canvasRect.height - 16;
+  const shouldFlip = (overflowsViewport || overflowsCanvas) && relAbove > 0;
+  const top = shouldFlip ? relAbove : relTop;
 
   const currentValue = (key: string) => {
     const v = (block.config as Record<string, unknown> | undefined)?.[key];
@@ -105,7 +135,7 @@ export function BlockConfigPopover({
         top,
         left: clampedX,
         width: `${popWidth}px`,
-        maxHeight: '70vh',
+        maxHeight: `${popHeight}px`,
         overflowY: 'auto',
         zIndex: 160,
         borderRadius: '14px',
@@ -175,13 +205,14 @@ export function BlockConfigPopover({
       ) : (
         /* Fields */
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {entries.map(([key, prop]) => (
+          {entries.map(([key, prop], idx) => (
             <Field
               key={key}
               propKey={key}
               prop={prop}
               value={currentValue(key)}
               onCommit={(v) => commit(key, v)}
+              firstFieldRef={idx === 0 ? firstFieldRef : undefined}
             />
           ))}
           {unsupportedLabels.length > 0 && (
@@ -198,10 +229,21 @@ export function BlockConfigPopover({
                 gap: 8,
               }}
             >
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', lineHeight: 1.4 }}>
-                {unsupportedLabels.length === 1
-                  ? `"${unsupportedLabels[0]}" needs the full panel.`
-                  : `${unsupportedLabels.length} advanced fields need the full panel.`}
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', lineHeight: 1.4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span>
+                  {unsupportedLabels.length === 1
+                    ? `"${unsupportedLabels[0]}" needs the full panel.`
+                    : `${unsupportedLabels.length} advanced fields need the full panel.`}
+                </span>
+                {/* Item 38: explain why these fields are deferred to the panel. */}
+                <span
+                  role="img"
+                  aria-label={UNSUPPORTED_HINT}
+                  title={UNSUPPORTED_HINT}
+                  style={{ display: 'inline-flex', color: 'rgba(255,255,255,0.45)', cursor: 'help' }}
+                >
+                  <HelpCircle size={12} />
+                </span>
               </div>
               <button
                 type="button"
@@ -257,16 +299,45 @@ interface FieldProps {
   prop: PropSchema;
   value: unknown;
   onCommit: (value: string) => void;
+  firstFieldRef?: React.MutableRefObject<HTMLElement | null>;
 }
 
-function Field({ prop, value, onCommit }: FieldProps) {
+// Item 40: URL validation helper. Accepts empty strings (user cleared).
+function isValidUrl(raw: string): boolean {
+  if (!raw) return true;
+  if (!/^https?:\/\//i.test(raw)) {
+    // Still allow a valid absolute URL according to the WHATWG parser.
+    try {
+      new URL(raw);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  try {
+    new URL(raw);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function Field({ prop, value, onCommit, firstFieldRef }: FieldProps) {
   const strValue = value === undefined || value === null ? '' : String(value);
+  const [localValue, setLocalValue] = useState(strValue);
+  const [error, setError] = useState<string | null>(null);
+
+  // Keep local state in sync if the upstream value changes (e.g. after commit).
+  useEffect(() => {
+    setLocalValue(strValue);
+  }, [strValue]);
 
   if (prop.type === 'boolean') {
     const checked = value === true || value === 'true';
     return (
       <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
         <input
+          ref={(el) => { if (firstFieldRef) firstFieldRef.current = el; }}
           type="checkbox"
           checked={checked}
           onChange={(e) => onCommit(String(e.target.checked))}
@@ -282,6 +353,7 @@ function Field({ prop, value, onCommit }: FieldProps) {
       <div>
         <label style={LABEL_STYLE}>{prop.label}</label>
         <select
+          ref={(el) => { if (firstFieldRef) firstFieldRef.current = el; }}
           value={strValue || (prop.defaultValue as string) || ''}
           onChange={(e) => onCommit(e.target.value)}
           style={INPUT_STYLE}
@@ -301,6 +373,7 @@ function Field({ prop, value, onCommit }: FieldProps) {
       <div>
         <label style={LABEL_STYLE}>{prop.label}</label>
         <textarea
+          ref={(el) => { if (firstFieldRef) firstFieldRef.current = el; }}
           defaultValue={strValue}
           placeholder={prop.placeholder}
           onBlur={(e) => {
@@ -325,15 +398,52 @@ function Field({ prop, value, onCommit }: FieldProps) {
       ? 'date'
       : 'text';
 
+  // Item 40: validation logic used on change + blur.
+  const validate = (v: string): string | null => {
+    if (prop.type === 'url' && v.trim() && !isValidUrl(v.trim())) {
+      return 'Invalid URL';
+    }
+    if (prop.type === 'number' && v !== '') {
+      const n = Number(v);
+      if (Number.isNaN(n)) return 'Invalid number';
+      if (prop.min !== undefined && n < prop.min) return `Must be ≥ ${prop.min}`;
+      if (prop.max !== undefined && n > prop.max) return `Must be ≤ ${prop.max}`;
+    }
+    return null;
+  };
+
+  const hasError = error !== null;
+
   return (
     <div>
       <label style={LABEL_STYLE}>{prop.label}</label>
       <input
+        ref={(el) => { if (firstFieldRef) firstFieldRef.current = el; }}
         type={inputType}
-        defaultValue={strValue}
+        value={localValue}
         placeholder={prop.placeholder}
+        min={prop.type === 'number' ? prop.min : undefined}
+        max={prop.type === 'number' ? prop.max : undefined}
+        aria-invalid={hasError || undefined}
+        onChange={(e) => {
+          setLocalValue(e.target.value);
+          setError(validate(e.target.value));
+        }}
         onBlur={(e) => {
-          if (e.target.value !== strValue) onCommit(e.target.value);
+          const v = e.target.value;
+          const err = validate(v);
+          setError(err);
+          if (err) return; // Don't commit invalid values (item 40).
+          // Item 40: enforce number min/max by clamping on commit as a safety net.
+          let finalV = v;
+          if (prop.type === 'number' && v !== '') {
+            let n = Number(v);
+            if (prop.min !== undefined) n = Math.max(prop.min, n);
+            if (prop.max !== undefined) n = Math.min(prop.max, n);
+            finalV = String(n);
+            if (finalV !== v) setLocalValue(finalV);
+          }
+          if (finalV !== strValue) onCommit(finalV);
         }}
         onKeyDown={(e) => {
           if (e.key === 'Enter' && inputType !== 'text') {
@@ -343,9 +453,13 @@ function Field({ prop, value, onCommit }: FieldProps) {
         style={{
           ...INPUT_STYLE,
           ...(prop.type === 'color' ? { padding: 2, height: 32 } : {}),
+          ...(hasError ? { borderColor: '#ef4444' } : {}),
         }}
       />
-      {prop.description && (
+      {hasError && (
+        <div style={{ fontSize: 10, color: '#f87171', marginTop: 3 }}>{error}</div>
+      )}
+      {!hasError && prop.description && (
         <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 3 }}>{prop.description}</div>
       )}
     </div>

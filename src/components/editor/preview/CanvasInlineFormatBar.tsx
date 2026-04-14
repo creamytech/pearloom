@@ -8,6 +8,7 @@
 // Changes are saved to manifest.textFormats via __format: prefix.
 // ─────────────────────────────────────────────────────────────
 
+import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Bold, Italic, Type } from 'lucide-react';
 
@@ -69,14 +70,59 @@ export function CanvasInlineFormatBar({
   let top = elementRect.top - canvasRect.top - barHeight - gap;
   let left = elementRect.left - canvasRect.left + elementRect.width / 2 - barWidth / 2;
 
-  // Clamp within canvas
-  if (top < 8) top = elementRect.bottom - canvasRect.top + gap; // flip below if no room above
+  // Clamp within canvas — horizontal.
   left = Math.max(8, Math.min(left, canvasRect.width - barWidth - 8));
+
+  // Item 43/44: figure out whether the bar (when placed above) would overlap
+  // the element itself — it shouldn't, since we already subtract barHeight+gap,
+  // but if the element starts near the canvas top we need to flip below. And
+  // when we flip below, check that the bar doesn't exit the viewport; if so,
+  // pin it back above with clamping.
+  const viewportH = typeof window !== 'undefined' ? window.innerHeight : 800;
+  const viewportTopOfBar = elementRect.top - barHeight - gap;
+  const viewportBottomOfFlipped = elementRect.bottom + gap + barHeight;
+
+  const overlapsAbove = top < 8; // not enough room above
+  const flippedOverflowsViewport = viewportBottomOfFlipped > viewportH - 8;
+
+  if (overlapsAbove) {
+    if (!flippedOverflowsViewport) {
+      top = elementRect.bottom - canvasRect.top + gap; // flip below
+    } else {
+      // Item 44: both above and below overflow — clamp into viewport at the top.
+      top = Math.max(8, top);
+    }
+  } else if (viewportTopOfBar < 8 && !flippedOverflowsViewport) {
+    // Element's top is near the viewport top — safer to flip below.
+    top = elementRect.bottom - canvasRect.top + gap;
+  }
 
   const set = (patch: Partial<TextFormat>) => onChange(path, { ...format, ...patch });
 
   const activeSize = format.size ?? 'md';
   const activeColor = format.color ?? '';
+
+  // Item 45: Cmd/Ctrl+B for bold, Cmd/Ctrl+I for italic while the bar is up.
+  // We listen at the window level because the focused element may be a
+  // contenteditable inside the canvas (the bar itself is not focused).
+  const formatRef = useRef(format);
+  useEffect(() => { formatRef.current = format; }, [format]);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod) return;
+      const k = e.key.toLowerCase();
+      if (k === 'b') {
+        e.preventDefault();
+        onChange(path, { ...formatRef.current, bold: !formatRef.current.bold });
+      } else if (k === 'i') {
+        e.preventDefault();
+        onChange(path, { ...formatRef.current, italic: !formatRef.current.italic });
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [path, onChange]);
 
   return (
     <motion.div
@@ -84,6 +130,7 @@ export function CanvasInlineFormatBar({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -4 }}
       transition={{ type: 'spring', stiffness: 500, damping: 32 }}
+      data-pearloom-format-bar=""
       // Keep pointer events off the bar when not interacting
       onMouseDown={(e) => e.stopPropagation()}
       style={{
@@ -170,6 +217,8 @@ export function CanvasInlineFormatBar({
             key={c.value}
             onMouseDown={(e) => { e.preventDefault(); set({ color: activeColor === c.value ? '' : c.value }); }}
             title={c.label}
+            aria-label={`Select color ${c.label} (${c.value})`}
+            aria-pressed={activeColor === c.value}
             style={{
               ...BTN,
               width: '16px', height: '16px', borderRadius: '50%', padding: 0,
