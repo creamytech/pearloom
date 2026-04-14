@@ -1420,7 +1420,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.rsvpDecor) }}
               />
             )}
-            <PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} />
+            <PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} rsvpIntro={manifest.poetry?.rsvpIntro} editable={editMode} />
           </section>
         );
       case 'registry':
@@ -2313,7 +2313,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                 />
               </section>
               {manifest.events?.length ? <section id="schedule"><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></section> : null}
-              {manifest.events?.length ? <section id="rsvp"><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></section> : null}
+              {manifest.events?.length ? <section id="rsvp"><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} rsvpIntro={manifest.poetry?.rsvpIntro} editable={editMode} /></section> : null}
               {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? <section id="registry"><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></section> : null}
               {manifest.travelInfo ? <section id="travel"><TravelSection info={manifest.travelInfo} /></section> : null}
               {manifest.faqs?.length ? <section id="faq"><FaqSection faqs={manifest.faqs} /></section> : null}

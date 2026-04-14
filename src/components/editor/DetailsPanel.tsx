@@ -287,7 +287,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
   }, []);
 
   // ── Section completion checks ──
-  type SectionId = 'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe' | 'seating' | 'seo' | 'protection' | 'footer';
+  type SectionId = 'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe' | 'seating' | 'seo' | 'protection' | 'footer' | 'poetry' | 'weddingParty';
   const sectionFilled: Record<SectionId, boolean> = {
     couple: !!(logistics.dresscode || logistics.notes),
     theday: !!(logistics.date || logistics.venue || (manifest.events?.length ?? 0) > 0),
@@ -300,6 +300,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
     seo: !!(manifest.seoTitle || manifest.seoDescription),
     protection: !!(manifest.sitePassword || manifest.comingSoon?.enabled),
     footer: !!(manifest.poetry?.closingLine),
+    poetry: !!(manifest.poetry?.heroTagline || manifest.poetry?.closingLine || manifest.poetry?.rsvpIntro || manifest.poetry?.welcomeStatement),
+    weddingParty: (manifest.weddingParty?.length ?? 0) > 0,
   };
   const filledCount = Object.values(sectionFilled).filter(Boolean).length;
   const totalSections = Object.keys(sectionFilled).length;
@@ -1418,6 +1420,45 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
 
       {/* ═══ Settings tier ═══ */}
       {detailsTab === 'settings' && <>
+      {/* ── Poetry ── AI-generated lines, editable fallback for when inline edit isn't enough */}
+      <Section id="poetry" label="Poetry">
+        <p style={{ fontSize: panelText.hint, color: '#71717A', fontFamily: 'inherit', margin: '0 0 8px', lineHeight: panelLineHeight.normal }}>
+          AI-generated taglines that appear throughout your site. Edit inline on the canvas, or here if you prefer.
+        </p>
+        <Field
+          label="Hero Tagline"
+          value={manifest.poetry?.heroTagline || ''}
+          onChange={v => onChange({ ...manifest, poetry: { ...(manifest.poetry || {}), heroTagline: v } })}
+          placeholder="Two hearts, one story..."
+          rows={2}
+          hint="Appears beneath your names in the Hero section."
+        />
+        <Field
+          label="Welcome Statement"
+          value={manifest.poetry?.welcomeStatement || ''}
+          onChange={v => onChange({ ...manifest, poetry: { ...(manifest.poetry || {}), welcomeStatement: v } })}
+          placeholder="We're so glad you're here..."
+          rows={3}
+          hint="Shown in the welcome block at the top of the page."
+        />
+        <Field
+          label="RSVP Intro"
+          value={manifest.poetry?.rsvpIntro || ''}
+          onChange={v => onChange({ ...manifest, poetry: { ...(manifest.poetry || {}), rsvpIntro: v } })}
+          placeholder="Will you celebrate with us?"
+          rows={2}
+          hint="Heading above the RSVP form."
+        />
+        <Field
+          label="Closing Line"
+          value={manifest.poetry?.closingLine || ''}
+          onChange={v => onChange({ ...manifest, poetry: { ...(manifest.poetry || {}), closingLine: v } })}
+          placeholder="Together is our favourite place to be..."
+          rows={2}
+          hint="Appears in the footer beneath your names."
+        />
+      </Section>
+
       {/* ── Footer ── */}
       <Section id="footer" label="Footer">
         <Field

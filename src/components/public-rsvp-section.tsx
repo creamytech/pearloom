@@ -23,6 +23,8 @@ interface PublicRsvpSectionProps {
   rsvpIntro?: string;
   title?: string;
   mealOptions?: Array<{ id: string; name: string; dietaryTags?: string[] }>;
+  /** When true, renders the RSVP intro text as inline-editable (editor canvas only). */
+  editable?: boolean;
 }
 
 export function PublicRsvpSection({
@@ -32,6 +34,7 @@ export function PublicRsvpSection({
   rsvpIntro,
   title,
   mealOptions,
+  editable = false,
 }: PublicRsvpSectionProps) {
   const headingText = title || rsvpIntro || 'Join us';
 
@@ -157,6 +160,7 @@ export function PublicRsvpSection({
               marginBottom: '1.25rem',
               lineHeight: 1.05,
             }}
+            {...(editable ? { 'data-pe-editable': 'true', 'data-pe-path': 'poetry.rsvpIntro' } : {})}
           >
             {headingText}
           </h2>
