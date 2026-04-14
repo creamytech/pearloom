@@ -100,6 +100,9 @@ export interface EditorState {
   // Contextual section — tells panels which sub-section to auto-expand
   contextSection: string | null;
 
+  // Field focus — tells panels which specific field to scroll to + highlight
+  fieldFocus: string | null;
+
   // Undo history entries
   undoHistory: UndoHistoryEntry[];
   undoIndex: number;
@@ -152,6 +155,7 @@ export type EditorAction =
   | { type: 'SET_SELECTED_BLOCKS'; ids: string[] }
   | { type: 'TOGGLE_BLOCK_SELECTION'; id: string }
   | { type: 'SET_CONTEXT_SECTION'; section: string | null }
+  | { type: 'SET_FIELD_FOCUS'; field: string | null }
   | { type: 'PUSH_UNDO_ENTRY'; label: string }
   | { type: 'SET_UNDO_INDEX'; index: number }
   | { type: 'CLEAR_UNDO_HISTORY' }
@@ -249,6 +253,8 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
     }
     case 'SET_CONTEXT_SECTION':
       return { ...state, contextSection: action.section };
+    case 'SET_FIELD_FOCUS':
+      return { ...state, fieldFocus: action.field };
     case 'PUSH_UNDO_ENTRY': {
       const history = state.undoHistory.slice(0, state.undoIndex + 1);
       history.push({ label: action.label, timestamp: Date.now() });
@@ -378,6 +384,7 @@ export function createInitialEditorState(
     alternatesLoadingId: null,
     selectedBlockIds: [],
     contextSection: null,
+    fieldFocus: null,
     undoHistory: [{ label: 'Initial state', timestamp: Date.now() }],
     undoIndex: 0,
     canvasWidth: 1280,

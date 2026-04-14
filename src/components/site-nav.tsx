@@ -11,7 +11,7 @@
 // Drawer uses CSS @keyframes — works in both paths.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, useScroll, useSpring } from 'framer-motion';
 import { Menu, X, LayoutDashboard, Plus, LogOut } from 'lucide-react';
 import Link from 'next/link';
@@ -22,6 +22,7 @@ import type { SitePage, LogoIconId } from '@/types';
 import { layout } from '@/lib/design-tokens';
 import { UserNav } from '@/components/dashboard/user-nav';
 import { signOut } from 'next-auth/react';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import {
   PearIcon,
   CalendarHeartIcon,
@@ -41,26 +42,6 @@ import {
   BouquetIcon,
 } from '@/components/icons/PearloomIcons';
 import { cn } from '@/lib/cn';
-
-// ── Keyframe styles injected once ─────────────────────────────
-const DRAWER_KEYFRAMES = `
-@keyframes pl-drawer-slide-in {
-  from { transform: translateX(100%); }
-  to   { transform: translateX(0); }
-}
-@keyframes pl-drawer-slide-out {
-  from { transform: translateX(0); }
-  to   { transform: translateX(100%); }
-}
-@keyframes pl-backdrop-fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-@keyframes pl-backdrop-fade-out {
-  from { opacity: 1; }
-  to   { opacity: 0; }
-}
-`;
 
 // ── Icon helpers ──────────────────────────────────────────────
 
@@ -137,22 +118,9 @@ export function SiteNav({
 }: SiteNavProps) {
   const [scrollY, setScrollY]         = useState(0);
   const [drawerOpen, setDrawer]       = useState(false);
-  const [drawerClosing, setDrawerClosing] = useState(false);
   const [isDesktop, setIsDesktop]     = useState(false);
   const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
-  const drawerRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
-
-  // Inject keyframes once
-  const stylesInjected = useRef(false);
-  useEffect(() => {
-    if (stylesInjected.current) return;
-    stylesInjected.current = true;
-    const style = document.createElement('style');
-    style.textContent = DRAWER_KEYFRAMES;
-    document.head.appendChild(style);
-    return () => { document.head.removeChild(style); };
-  }, []);
 
   useEffect(() => {
     const check = () => setIsDesktop(window.innerWidth >= 1024);
@@ -170,12 +138,6 @@ export function SiteNav({
   useEffect(() => {
     setScrollY(sharedScroll.scrollY);
   }, [sharedScroll.scrollY]);
-
-  // Lock body scroll when drawer is open
-  useEffect(() => {
-    document.body.style.overflow = drawerOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
-  }, [drawerOpen]);
 
   // ── Derived state ────────────────────────────────────────────
   const atTop    = scrollY < 20;
@@ -198,20 +160,8 @@ export function SiteNav({
   const getHref = (slug: string) =>
     pageHrefOverride ? pageHrefOverride(slug) : (slug === '' ? basePath : `${basePath}/${slug}`);
 
-  // ── Drawer open/close with CSS animation ─────────────────────
-  const openDrawer = () => {
-    setDrawerClosing(false);
-    setDrawer(true);
-  };
-
-  const closeDrawer = () => {
-    setDrawerClosing(true);
-    // Wait for exit animation to finish
-    setTimeout(() => {
-      setDrawer(false);
-      setDrawerClosing(false);
-    }, 300);
-  };
+  const openDrawer  = () => setDrawer(true);
+  const closeDrawer = () => setDrawer(false);
 
   // ── Effective mobile style (hidden = no top bar) ──────────────
   const isMobileHidden = !isDesktop && mobileNavStyle === 'hidden';
@@ -375,7 +325,7 @@ export function SiteNav({
             'hover:bg-[rgba(0,0,0,0.05)] transition-colors duration-150',
           )}
         >
-          {drawerOpen && !drawerClosing ? <X size={21} /> : <Menu size={21} />}
+          {drawerOpen ? <X size={21} /> : <Menu size={21} />}
         </button>
       )}
     </div>
@@ -436,48 +386,13 @@ export function SiteNav({
     />
   ) : null;
 
-  // ── Drawer (CSS-animated, no Framer Motion) ──────────────────
-  const drawer = drawerOpen && (
-    <>
-      {/* Backdrop — always fixed to cover full viewport */}
-      <div
-        onClick={closeDrawer}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 9998,
-          backgroundColor: 'rgba(43,30,20,0.2)',
-          backdropFilter: 'blur(4px)',
-          WebkitBackdropFilter: 'blur(4px)',
-          animation: drawerClosing
-            ? 'pl-backdrop-fade-out 0.25s ease forwards'
-            : 'pl-backdrop-fade-in 0.15s ease forwards',
-        } as React.CSSProperties}
-      />
-
-      {/* Panel — always fixed to cover full viewport */}
-      <div
-        ref={drawerRef}
-        style={{
-          position: 'fixed',
-          top: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 9999,
-          width: 'min(280px, 100vw)',
-          display: 'flex',
-          flexDirection: 'column',
-          borderLeft: '1px solid rgba(0,0,0,0.05)',
-          boxShadow: '-16px 0 50px rgba(0,0,0,0.09)',
-          paddingBottom: inline ? '24px' : 'env(safe-area-inset-bottom, 24px)',
-          overflowY: 'auto',
-          background: 'rgba(245,241,232,0.98)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          animation: drawerClosing
-            ? 'pl-drawer-slide-out 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards'
-            : 'pl-drawer-slide-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-        } as React.CSSProperties}
+  // ── Drawer (Radix Sheet) ──────────────────────────────────────
+  const drawer = (
+    <Sheet open={drawerOpen} onOpenChange={setDrawer}>
+      <SheetContent
+        side="right"
+        hideClose
+        className="w-[min(280px,100vw)] overflow-y-auto flex flex-col p-0"
       >
         {/* Drawer header */}
         <div className={cn("flex items-center justify-between px-5 pb-4 border-b border-[rgba(0,0,0,0.06)] flex-shrink-0", inline ? "pt-5" : "pt-[calc(env(safe-area-inset-top,0px)+1.5rem)]")}>
@@ -582,8 +497,8 @@ export function SiteNav({
             Powered by Pearloom
           </p>
         </div>
-      </div>
-    </>
+      </SheetContent>
+    </Sheet>
   );
 
   // ════════════════════════════════════════════════════════════════
@@ -638,7 +553,7 @@ export function SiteNav({
             paddingTop: 'env(safe-area-inset-top, 0px)',
           }}
         >
-          {drawerOpen && !drawerClosing ? <X size={18} /> : <Menu size={18} />}
+          {drawerOpen ? <X size={18} /> : <Menu size={18} />}
         </button>
       )}
 

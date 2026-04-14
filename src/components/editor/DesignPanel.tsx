@@ -739,10 +739,19 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
     }
   };
 
-  // Auto-open section from contextual click
+  // Auto-open section from contextual click + scroll-to + highlight
   useEffect(() => {
     if (state.contextSection && state.activeTab === 'design') {
       setForceOpenSection(state.contextSection);
+      // Scroll the matching section into view with highlight pulse
+      requestAnimationFrame(() => {
+        const el = document.getElementById(`pe-panel-section-${state.contextSection}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          el.classList.add('pe-panel-field-highlight');
+          setTimeout(() => el.classList.remove('pe-panel-field-highlight'), 1600);
+        }
+      });
       // Clear after applying
       dispatch({ type: 'SET_CONTEXT_SECTION', section: null });
     }

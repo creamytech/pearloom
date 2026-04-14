@@ -15,6 +15,8 @@ import { SiteRenderer } from './SiteRenderer';
 import { PearTextRewrite } from './PearTextRewrite';
 import { FocalPointOverlay } from './preview/FocalPointOverlay';
 import { CanvasChapterToolbar, type ChapterToolbarAction } from './preview/CanvasChapterToolbar';
+import { CanvasEventToolbar, type EventToolbarAction } from './preview/CanvasEventToolbar';
+import { CanvasFaqToolbar, type FaqToolbarAction } from './preview/CanvasFaqToolbar';
 import type { BlockType, PageBlock } from '@/types';
 
 export function EditorCanvas() {
@@ -32,6 +34,16 @@ export function EditorCanvas() {
     chapterId: string; rect: DOMRect; chapterIndex: number; chapterCount: number;
   } | null>(null);
   const hoverLeaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [hoveredEvent, setHoveredEvent] = useState<{
+    eventId: string; rect: DOMRect; eventIndex: number; eventCount: number;
+  } | null>(null);
+  const eventLeaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [hoveredFaq, setHoveredFaq] = useState<{
+    faqId: string; rect: DOMRect; faqIndex: number; faqCount: number;
+  } | null>(null);
+  const faqLeaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Spacebar to pan ─────────────────────────────────────
   useEffect(() => {
@@ -154,6 +166,9 @@ export function EditorCanvas() {
     if (mapping) {
       dispatch({ type: 'SET_ACTIVE_TAB', tab: mapping.tab as import('@/lib/editor-state').EditorTab });
       dispatch({ type: 'SET_CONTEXT_SECTION', section: mapping.contextSection || null });
+      // Briefly set fieldFocus so panels can scroll-to + highlight the relevant field
+      dispatch({ type: 'SET_FIELD_FOCUS', field: mapping.contextSection || sectionId });
+      setTimeout(() => dispatch({ type: 'SET_FIELD_FOCUS', field: null }), 1600);
       if (mapping.selectBlock) {
         // Set activeId directly for BlockConfigEditor
         if (blockId) {
@@ -198,6 +213,16 @@ export function EditorCanvas() {
       const [, chapterId, field] = path.split(':');
       const chapter = manifest.chapters?.find(c => c.id === chapterId);
       if (chapter) actions.updateChapter(chapterId, { [field]: value });
+    } else if (path.startsWith('block-config:')) {
+      // block-config:blockId:configKey — updates a block's config field
+      const [, blockId, ...keyParts] = path.split(':');
+      const configKey = keyParts.join(':');
+      const blocks = [...(manifest.blocks || [])];
+      const idx = blocks.findIndex(b => b.id === blockId);
+      if (idx !== -1) {
+        blocks[idx] = { ...blocks[idx], config: { ...(blocks[idx].config || {}), [configKey]: value } };
+        actions.handleDesignChange({ ...manifest, blocks });
+      }
     } else {
       // Manifest path edit (e.g., "events.0.name", "poetry.heroTagline", "vibeSkin.accentSymbol")
       const parts = path.split('.');
@@ -324,6 +349,62 @@ export function EditorCanvas() {
     actions.handleDesignChange({ ...manifest, chapters });
   }, [hoveredChapter, manifest, actions, dispatch]);
 
+  // ── Event toolbar actions ───────────────────────────────
+  const handleEventToolbarAction = useCallback((action: EventToolbarAction) => {
+    if (!hoveredEvent) return;
+    const { eventIndex } = hoveredEvent;
+    const events = [...(manifest.events || [])];
+    if (action === 'edit') {
+      dispatch({ type: 'SET_ACTIVE_TAB', tab: 'details' });
+      dispatch({ type: 'SET_CONTEXT_SECTION', section: 'theday' });
+      return;
+    }
+    switch (action) {
+      case 'moveUp':
+        if (eventIndex > 0) [events[eventIndex - 1], events[eventIndex]] = [events[eventIndex], events[eventIndex - 1]];
+        break;
+      case 'moveDown':
+        if (eventIndex < events.length - 1) [events[eventIndex], events[eventIndex + 1]] = [events[eventIndex + 1], events[eventIndex]];
+        break;
+      case 'duplicate': {
+        const dup = { ...events[eventIndex], id: `event-dup-${Date.now()}` };
+        events.splice(eventIndex + 1, 0, dup);
+        break;
+      }
+      case 'delete':
+        events.splice(eventIndex, 1);
+        setHoveredEvent(null);
+        break;
+    }
+    actions.handleDesignChange({ ...manifest, events });
+  }, [hoveredEvent, manifest, actions, dispatch]);
+
+  // ── FAQ toolbar actions ─────────────────────────────────
+  const handleFaqToolbarAction = useCallback((action: FaqToolbarAction) => {
+    if (!hoveredFaq) return;
+    const { faqId, faqIndex } = hoveredFaq;
+    const faqs = [...(manifest.faqs || [])];
+    if (action === 'edit') {
+      dispatch({ type: 'SET_ACTIVE_TAB', tab: 'details' });
+      dispatch({ type: 'SET_CONTEXT_SECTION', section: 'faq' });
+      return;
+    }
+    switch (action) {
+      case 'moveUp':
+        if (faqIndex > 0) [faqs[faqIndex - 1], faqs[faqIndex]] = [faqs[faqIndex], faqs[faqIndex - 1]];
+        break;
+      case 'moveDown':
+        if (faqIndex < faqs.length - 1) [faqs[faqIndex], faqs[faqIndex + 1]] = [faqs[faqIndex + 1], faqs[faqIndex]];
+        break;
+      case 'delete':
+        faqs.splice(faqIndex, 1);
+        setHoveredFaq(null);
+        break;
+    }
+    actions.handleDesignChange({ ...manifest, faqs: faqs.map((f, i) => ({ ...f, order: i })) });
+    void faqId; // consumed via index
+  }, [hoveredFaq, manifest, actions, dispatch]);
+
   // ── Focal point overlay ─────────────────────────────────
   useEffect(() => {
     const handler = (e: Event) => setFocalPoint((e as CustomEvent).detail);
@@ -355,6 +436,44 @@ export function EditorCanvas() {
       window.removeEventListener('pearloom-chapter-hover-keep', onHoverKeep);
       window.removeEventListener('pearloom-chapter-hover-end', onHoverEnd);
       if (hoverLeaveTimerRef.current) clearTimeout(hoverLeaveTimerRef.current);
+    };
+  }, []);
+
+  // ── Event card hover toolbar ────────────────────────────────
+  useEffect(() => {
+    const cancelTimer = () => {
+      if (eventLeaveTimerRef.current) { clearTimeout(eventLeaveTimerRef.current); eventLeaveTimerRef.current = null; }
+    };
+    const onHover = (e: Event) => { cancelTimer(); setHoveredEvent((e as CustomEvent).detail); };
+    const onKeep = () => cancelTimer();
+    const onEnd = () => { eventLeaveTimerRef.current = setTimeout(() => setHoveredEvent(null), 200); };
+    window.addEventListener('pearloom-event-hover', onHover);
+    window.addEventListener('pearloom-event-hover-keep', onKeep);
+    window.addEventListener('pearloom-event-hover-end', onEnd);
+    return () => {
+      window.removeEventListener('pearloom-event-hover', onHover);
+      window.removeEventListener('pearloom-event-hover-keep', onKeep);
+      window.removeEventListener('pearloom-event-hover-end', onEnd);
+      if (eventLeaveTimerRef.current) clearTimeout(eventLeaveTimerRef.current);
+    };
+  }, []);
+
+  // ── FAQ item hover toolbar ───────────────────────────────────
+  useEffect(() => {
+    const cancelTimer = () => {
+      if (faqLeaveTimerRef.current) { clearTimeout(faqLeaveTimerRef.current); faqLeaveTimerRef.current = null; }
+    };
+    const onHover = (e: Event) => { cancelTimer(); setHoveredFaq((e as CustomEvent).detail); };
+    const onKeep = () => cancelTimer();
+    const onEnd = () => { faqLeaveTimerRef.current = setTimeout(() => setHoveredFaq(null), 200); };
+    window.addEventListener('pearloom-faq-hover', onHover);
+    window.addEventListener('pearloom-faq-hover-keep', onKeep);
+    window.addEventListener('pearloom-faq-hover-end', onEnd);
+    return () => {
+      window.removeEventListener('pearloom-faq-hover', onHover);
+      window.removeEventListener('pearloom-faq-hover-keep', onKeep);
+      window.removeEventListener('pearloom-faq-hover-end', onEnd);
+      if (faqLeaveTimerRef.current) clearTimeout(faqLeaveTimerRef.current);
     };
   }, []);
 
@@ -444,6 +563,32 @@ export function EditorCanvas() {
             chapterIndex={hoveredChapter.chapterIndex}
             chapterCount={hoveredChapter.chapterCount}
             onAction={handleChapterToolbarAction}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Canvas event card hover toolbar */}
+      <AnimatePresence>
+        {hoveredEvent && (
+          <CanvasEventToolbar
+            key={hoveredEvent.eventId}
+            rect={hoveredEvent.rect}
+            eventIndex={hoveredEvent.eventIndex}
+            eventCount={hoveredEvent.eventCount}
+            onAction={handleEventToolbarAction}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Canvas FAQ item hover toolbar */}
+      <AnimatePresence>
+        {hoveredFaq && (
+          <CanvasFaqToolbar
+            key={hoveredFaq.faqId}
+            rect={hoveredFaq.rect}
+            faqIndex={hoveredFaq.faqIndex}
+            faqCount={hoveredFaq.faqCount}
+            onAction={handleFaqToolbarAction}
           />
         )}
       </AnimatePresence>

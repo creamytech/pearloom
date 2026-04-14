@@ -114,6 +114,8 @@ function HotelCard({
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h4
+            data-pe-editable="true"
+            data-pe-path={`travelInfo.hotels.${index}.name`}
             style={{
               fontFamily: 'var(--pl-font-heading)',
               fontSize: '1.1rem',
@@ -168,6 +170,8 @@ function HotelCard({
               style={{ flexShrink: 0, marginTop: '0.2rem', opacity: 0.6 }}
             />
             <span
+              data-pe-editable="true"
+              data-pe-path={`travelInfo.hotels.${index}.address`}
               style={{
                 fontSize: '0.83rem',
                 color: 'var(--pl-muted)',

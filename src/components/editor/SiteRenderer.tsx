@@ -927,6 +927,58 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     return () => el.removeEventListener('mouseover', onOver);
   }, [editMode, manifest.chapters]);
 
+  // ── Event card hover → emit event for toolbar ────────────────────────────
+  useEffect(() => {
+    if (!editMode || !siteRef.current) return;
+    const el = siteRef.current;
+    let currentEventId: string | null = null;
+
+    const onOver = (e: MouseEvent) => {
+      const cardEl = (e.target as HTMLElement).closest('[data-pe-event-id]') as HTMLElement | null;
+      const id = cardEl ? cardEl.getAttribute('data-pe-event-id') : null;
+      if (id === currentEventId) return;
+      currentEventId = id;
+      if (id && cardEl) {
+        const index = parseInt(cardEl.getAttribute('data-pe-event-index') || '0');
+        const count = manifest.events?.length ?? 0;
+        window.dispatchEvent(new CustomEvent('pearloom-event-hover', {
+          detail: { eventId: id, eventIndex: index, eventCount: count, rect: cardEl.getBoundingClientRect() }
+        }));
+      } else {
+        window.dispatchEvent(new CustomEvent('pearloom-event-hover-end'));
+      }
+    };
+
+    el.addEventListener('mouseover', onOver);
+    return () => el.removeEventListener('mouseover', onOver);
+  }, [editMode, manifest.events]);
+
+  // ── FAQ item hover → emit event for toolbar ───────────────────────────────
+  useEffect(() => {
+    if (!editMode || !siteRef.current) return;
+    const el = siteRef.current;
+    let currentFaqId: string | null = null;
+
+    const onOver = (e: MouseEvent) => {
+      const itemEl = (e.target as HTMLElement).closest('[data-pe-faq-id]') as HTMLElement | null;
+      const id = itemEl ? itemEl.getAttribute('data-pe-faq-id') : null;
+      if (id === currentFaqId) return;
+      currentFaqId = id;
+      if (id && itemEl) {
+        const index = parseInt(itemEl.getAttribute('data-pe-faq-index') || '0');
+        const count = manifest.faqs?.length ?? 0;
+        window.dispatchEvent(new CustomEvent('pearloom-faq-hover', {
+          detail: { faqId: id, faqIndex: index, faqCount: count, rect: itemEl.getBoundingClientRect() }
+        }));
+      } else {
+        window.dispatchEvent(new CustomEvent('pearloom-faq-hover-end'));
+      }
+    };
+
+    el.addEventListener('mouseover', onOver);
+    return () => el.removeEventListener('mouseover', onOver);
+  }, [editMode, manifest.faqs]);
+
   // ── Pear nudge: appears once per session on first empty section scroll ──
   const [pearNudgeSection, setPearNudgeSection] = useState<string | null>(null);
   const pearNudgeShownRef = useRef(false);
@@ -1439,7 +1491,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               </div>
             ) : (
               <div className="pl-empty-gradient" style={{ padding: '3rem', textAlign: 'center', borderRadius: '1rem', border: '2px dashed #E4E4E7', color: '#71717A' }}>
-                <p data-pe-editable="true" data-pe-path={`blocks.${block.id}.config.url`} style={{ fontSize: '0.8rem' }}>
+                <p data-pe-editable="true" data-pe-path={`block-config:${block.id}:url`} style={{ fontSize: '0.8rem' }}>
                   {videoUrl || 'Paste a YouTube or Vimeo URL'}
                 </p>
               </div>
@@ -1510,7 +1562,11 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'hashtag':
         return (
           <section key={key} data-pe-section="hashtag" style={{ padding: '3rem 2rem', textAlign: 'center' }}>
-            <div style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontWeight: 600, color: safeAccent }}>
+            <div
+              data-pe-editable="true"
+              data-pe-path={`block-config:${block.id}:hashtag`}
+              style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontWeight: 600, color: safeAccent }}
+            >
               #{(blockCfg.hashtag as string) || `${names[0]}And${names[1]}`.replace(/\s/g, '')}
             </div>
             <p style={{ color: safeMuted, fontSize: '0.8rem', marginTop: '0.5rem' }}>Share your photos with our hashtag</p>
@@ -1849,7 +1905,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="stylesheet" href={fontUrl} />
 
-      {/* Inline-edit visual states */}
+      {/* Inline-edit visual states + section tooltips */}
       {editMode && (
         <style>{`
           [data-pe-editable="true"].pe-edit-primed {
@@ -1858,6 +1914,45 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             border-radius: 4px !important;
             background: rgba(24,24,27,0.04) !important;
             transition: outline 0.1s ease, background 0.1s ease;
+          }
+
+          /* Section label badge — shown on hover of any data-pe-section */
+          [data-pe-section] {
+            position: relative;
+          }
+          [data-pe-section]::before {
+            content: attr(data-pe-label);
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            z-index: 50;
+            padding: 2px 7px;
+            border-radius: 5px;
+            background: rgba(24,24,27,0.75);
+            color: #fff;
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            white-space: nowrap;
+            font-family: system-ui, sans-serif;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s ease;
+          }
+          [data-pe-section]:hover::before {
+            opacity: 1;
+          }
+
+          /* Panel field highlight pulse */
+          @keyframes pe-field-pulse {
+            0%   { box-shadow: 0 0 0 0 rgba(101,163,13,0.35); }
+            60%  { box-shadow: 0 0 0 6px rgba(101,163,13,0); }
+            100% { box-shadow: none; }
+          }
+          .pe-panel-field-highlight {
+            animation: pe-field-pulse 1.5s ease-out forwards;
+            border-radius: 6px;
           }
         `}</style>
       )}
@@ -1988,18 +2083,27 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         </main>
 
         {/* Footer */}
-        <footer onClick={(e) => { e.stopPropagation(); onSectionClick?.('footer'); }} style={{
-          cursor: editMode ? 'pointer' : 'default',
-          padding: '3rem 2rem', textAlign: 'center',
-          background: pal.foreground, color: `${pal.background}cc`,
-          fontSize: '0.75rem', letterSpacing: '0.05em', position: 'relative',
-        }}>
+        <footer
+          data-pe-section="footer"
+          data-pe-label="Footer"
+          onClick={(e) => { e.stopPropagation(); onSectionClick?.('footer'); }}
+          style={{
+            cursor: editMode ? 'pointer' : 'default',
+            padding: '3rem 2rem', textAlign: 'center',
+            background: pal.foreground, color: `${pal.background}cc`,
+            fontSize: '0.75rem', letterSpacing: '0.05em', position: 'relative',
+          }}
+        >
           <div style={{ marginBottom: '0.5rem', fontSize: '1rem', opacity: 0.6 }}>{vibeSkin.accentSymbol || '♡'}</div>
           <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.5rem' }}>
             {safeNames[0]}{safeNames[1] ? ` & ${safeNames[1]}` : ''}
           </div>
           {manifest.poetry?.closingLine && (
-            <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '0.75rem',  opacity: 0.45, maxWidth: '400px', margin: '0 auto 0.75rem' }}>
+            <div
+              data-pe-editable={editMode ? 'true' : undefined}
+              data-pe-path="poetry.closingLine"
+              style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '0.75rem', opacity: 0.45, maxWidth: '400px', margin: '0 auto 0.75rem' }}
+            >
               {manifest.poetry.closingLine}
             </div>
           )}

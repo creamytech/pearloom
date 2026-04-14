@@ -79,10 +79,19 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
   };
   const [openSection, setOpenSection] = useState<string | null>(getDefaultSection);
 
-  // Auto-open section from contextual click
+  // Auto-open section from contextual click + scroll-to + highlight
   useEffect(() => {
     if (state.contextSection && state.activeTab === 'details') {
       setOpenSection(state.contextSection);
+      // Scroll the section into view and apply highlight pulse
+      requestAnimationFrame(() => {
+        const el = document.getElementById(`pe-panel-section-${state.contextSection}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          el.classList.add('pe-panel-field-highlight');
+          setTimeout(() => el.classList.remove('pe-panel-field-highlight'), 1600);
+        }
+      });
     }
   }, [state.contextSection, state.activeTab]);
 
@@ -289,13 +298,16 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
     const isOpen = openSection === id;
     const isFilled = sectionFilled[id];
     return (
-      <div style={{
-        borderRadius: '10px', marginBottom: '4px',
-        background: isOpen ? '#FAFAFA' : 'transparent',
-        border: isOpen ? '1px solid #E4E4E7' : '1px solid transparent',
-        transition: 'all 0.15s',
-        position: 'relative', zIndex: isOpen ? 10 : 1,
-      }}>
+      <div
+        id={`pe-panel-section-${id}`}
+        style={{
+          borderRadius: '10px', marginBottom: '4px',
+          background: isOpen ? '#FAFAFA' : 'transparent',
+          border: isOpen ? '1px solid #E4E4E7' : '1px solid transparent',
+          transition: 'all 0.15s',
+          position: 'relative', zIndex: isOpen ? 10 : 1,
+        }}
+      >
         <button
           onClick={() => setOpenSection(isOpen ? null : id)}
           style={{
