@@ -774,6 +774,30 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       display: 'flex', flexDirection: 'column',
       background: 'var(--pl-cream)', fontFamily: 'var(--pl-font-body)',
     }}>
+      {/* Skip to canvas — visible only on keyboard focus. */}
+      <a
+        href="#pl-editor-canvas"
+        className="pl-skip-link"
+        style={{
+          position: 'absolute',
+          top: -40,
+          left: 8,
+          zIndex: 10000,
+          padding: '8px 12px',
+          background: 'var(--pl-ink, #18181B)',
+          color: 'var(--pl-cream, #FFF)',
+          borderRadius: 6,
+          fontSize: 14,
+          fontWeight: 600,
+          textDecoration: 'none',
+          transition: 'top 0.15s',
+        }}
+        onFocus={(e) => { e.currentTarget.style.top = '8px'; }}
+        onBlur={(e) => { e.currentTarget.style.top = '-40px'; }}
+      >
+        Skip to canvas
+      </a>
+
       {/* Command Palette */}
       <CommandPalette
         open={state.cmdPaletteOpen}
@@ -814,7 +838,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
           position: 'relative',
         }}>
           {/* Canvas claims the remaining horizontal space */}
-          <div style={{ flex: 1, minWidth: 0, position: 'relative', zIndex: 1 }}>
+          <div id="pl-editor-canvas" style={{ flex: 1, minWidth: 0, position: 'relative', zIndex: 1 }}>
             <EditorCanvas />
           </div>
           {/* Docked editor panel — reserves its own width from the row */}
