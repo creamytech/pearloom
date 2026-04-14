@@ -13,6 +13,7 @@ import { Monitor, Tablet, Smartphone } from 'lucide-react';
 import { useEditor, type DeviceMode } from '@/lib/editor-state';
 import { SiteRenderer } from './SiteRenderer';
 import { PearTextRewrite } from './PearTextRewrite';
+import { FocalPointOverlay } from './preview/FocalPointOverlay';
 import type { BlockType, PageBlock } from '@/types';
 
 export function EditorCanvas() {
@@ -23,6 +24,9 @@ export function EditorCanvas() {
   const zoom = previewZoom || 1;
   const [isPanning, setIsPanning] = useState(false);
   const [undoToast, setUndoToast] = useState<string | null>(null);
+  const [focalPoint, setFocalPoint] = useState<{
+    chapterId: string; rect: DOMRect; x: number; y: number;
+  } | null>(null);
 
   // ── Spacebar to pan ─────────────────────────────────────
   useEffect(() => {
@@ -269,6 +273,13 @@ export function EditorCanvas() {
     setTimeout(() => setUndoToast(null), 2000);
   }, [manifest, clipboardBlock, actions]);
 
+  // ── Focal point overlay ─────────────────────────────────
+  useEffect(() => {
+    const handler = (e: Event) => setFocalPoint((e as CustomEvent).detail);
+    window.addEventListener('pearloom-focal-point-start', handler);
+    return () => window.removeEventListener('pearloom-focal-point-start', handler);
+  }, []);
+
   // ── Sidebar sync on inline text edit focus ───────────────
   // When the user clicks into a text field on the canvas, route
   // the sidebar to the relevant panel (story chapter, events, etc.)
@@ -327,6 +338,21 @@ export function EditorCanvas() {
 
       {/* AI text rewrite floating pill — shows on text selection */}
       <PearTextRewrite onTextEdit={handleTextEdit} />
+
+      {/* Focal point drag overlay — activated on chapter image click */}
+      {focalPoint && (
+        <FocalPointOverlay
+          {...focalPoint}
+          onPositionChange={(x, y) =>
+            actions.updateChapter(focalPoint.chapterId, { imagePosition: { x, y } })
+          }
+          onCommit={(x, y) => {
+            actions.updateChapter(focalPoint.chapterId, { imagePosition: { x, y } });
+            setFocalPoint(null);
+          }}
+          onClose={() => setFocalPoint(null)}
+        />
+      )}
 
       {/* ── Canvas content — direct DOM rendering ── */}
       <div style={{

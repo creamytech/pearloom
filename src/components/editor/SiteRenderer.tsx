@@ -546,6 +546,26 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
 
     // Check sub-elements FIRST (most specific to least specific)
 
+    // Chapter image click → focal point drag overlay
+    const imgEl = (target.tagName === 'IMG'
+      ? target
+      : target.closest('img')) as HTMLImageElement | null;
+    if (imgEl && target.closest('[data-pe-chapter]')) {
+      const chapterEl = target.closest('[data-pe-chapter]') as HTMLElement;
+      const chapterId = chapterEl.getAttribute('data-pe-chapter') || '';
+      const chapter = manifest.chapters?.find(c => c.id === chapterId);
+      window.dispatchEvent(new CustomEvent('pearloom-focal-point-start', {
+        detail: {
+          chapterId,
+          rect: imgEl.getBoundingClientRect(),
+          x: chapter?.imagePosition?.x ?? 50,
+          y: chapter?.imagePosition?.y ?? 50,
+        }
+      }));
+      e.stopPropagation();
+      return;
+    }
+
     // Chapter click — inside timeline
     const chapter = target.closest('[data-pe-chapter]');
     if (chapter) {
