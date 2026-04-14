@@ -9,6 +9,7 @@ import {
   PanelInput,
   panelText,
   panelWeight,
+  panelLineHeight,
 } from './panel';
 import type { StoryManifest } from '@/types';
 import { formatSiteDisplayUrl } from '@/lib/site-urls';
@@ -102,6 +103,8 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                   fontSize: panelText.body,
                   fontWeight: panelWeight.semibold,
                   color: isHidden ? '#71717A' : '#18181B',
+                  fontFamily: 'inherit',
+                  lineHeight: panelLineHeight.tight,
                   textDecoration: isHidden ? 'line-through' : 'none',
                 }}>
                   {page.label}
@@ -113,8 +116,9 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                     title="Preview this page"
                     style={{
                       width: '24px', height: '24px', borderRadius: '6px', border: 'none',
-                      background: previewPage === page.slug ? 'rgba(24,24,27,0.1)' : 'transparent',
-                      color: '#71717A', cursor: 'pointer',
+                      background: previewPage === page.slug ? '#F4F4F5' : 'transparent',
+                      color: previewPage === page.slug ? '#18181B' : '#71717A',
+                      cursor: 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}
                   >
@@ -162,10 +166,17 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                   fontSize: panelText.body,
                   fontWeight: panelWeight.semibold,
                   color: '#18181B',
+                  fontFamily: 'inherit',
+                  lineHeight: panelLineHeight.tight,
                 }}>
                   {page.title}
                 </span>
-                <span style={{ fontSize: panelText.meta, color: '#71717A' }}>
+                <span style={{
+                  fontSize: panelText.meta,
+                  color: '#71717A',
+                  fontFamily: 'inherit',
+                  lineHeight: panelLineHeight.tight,
+                }}>
                   /{page.slug}
                 </span>
                 <button
@@ -187,16 +198,18 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
       <PanelSection title="Add Page" icon={Plus} defaultOpen={false}>
         <motion.button
           onClick={() => setShowAddPage(!showAddPage)}
-          whileHover={{ y: -1, borderColor: '#E4E4E7' }}
+          whileHover={{ y: -1, borderColor: '#18181B' }}
           whileTap={{ scale: 0.98 }}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            padding: '10px', borderRadius: '8px', width: '100%',
+            padding: '10px', borderRadius: '10px', width: '100%',
             border: '1.5px dashed #E4E4E7',
-            background: 'transparent', color: '#18181B',
+            background: '#FAFAFA', color: '#18181B',
             cursor: 'pointer',
-            fontSize: panelText.chip,
-            fontWeight: panelWeight.semibold,
+            fontSize: panelText.body,
+            fontWeight: panelWeight.bold,
+            fontFamily: 'inherit',
+            lineHeight: panelLineHeight.tight,
             transition: 'all 0.15s',
           }}
         >
@@ -222,11 +235,14 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                   <button
                     onClick={() => { setShowAddPage(false); setNewPageTitle(''); }}
                     style={{
-                      flex: 1, padding: '8px', borderRadius: '10px', border: 'none',
-                      background: '#F4F4F5', color: '#71717A',
+                      flex: 1, padding: '9px', borderRadius: '8px',
+                      border: '1px solid #E4E4E7',
+                      background: '#FFFFFF', color: '#71717A',
                       cursor: 'pointer',
-                      fontSize: panelText.chip,
+                      fontSize: panelText.body,
                       fontWeight: panelWeight.semibold,
+                      fontFamily: 'inherit',
+                      lineHeight: panelLineHeight.tight,
                     }}
                   >
                     Cancel
@@ -235,12 +251,14 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                     onClick={addCustomPage}
                     disabled={!newPageTitle.trim()}
                     style={{
-                      flex: 1, padding: '8px', borderRadius: '10px', border: 'none',
-                      background: newPageTitle.trim() ? '#18181B' : 'rgba(255,255,255,0.2)',
-                      color: newPageTitle.trim() ? 'white' : '#71717A',
+                      flex: 1, padding: '9px', borderRadius: '8px', border: 'none',
+                      background: newPageTitle.trim() ? '#18181B' : '#E4E4E7',
+                      color: newPageTitle.trim() ? '#FFFFFF' : '#71717A',
                       cursor: newPageTitle.trim() ? 'pointer' : 'default',
-                      fontSize: panelText.chip,
+                      fontSize: panelText.body,
                       fontWeight: panelWeight.bold,
+                      fontFamily: 'inherit',
+                      lineHeight: panelLineHeight.tight,
                     }}
                   >
                     Create
@@ -255,9 +273,10 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
           <div style={{
             fontSize: panelText.meta,
             color: '#71717A',
-            padding: '10px 4px 0',
+            fontFamily: 'inherit',
+            padding: '12px 4px 0',
             textAlign: 'center',
-            opacity: 0.6,
+            lineHeight: panelLineHeight.snug,
           }}>
             {formatSiteDisplayUrl(subdomain)}
           </div>
