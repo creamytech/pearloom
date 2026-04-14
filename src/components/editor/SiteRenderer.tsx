@@ -231,6 +231,33 @@ const BLOCK_LABELS: Record<string, { label: string; color: string }> = {
   footer:       { label: 'Footer',           color: '#7a7a7a' },
 };
 
+// ── Context menu primitives ────────────────────────────────────
+function ContextMenuItem({ label, icon, danger, onClick }: {
+  label: string; icon?: string; danger?: boolean; onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: '8px',
+        width: '100%', padding: '6px 10px', borderRadius: '8px',
+        border: 'none', textAlign: 'left', background: 'transparent',
+        cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500,
+        color: danger ? '#c0392b' : '#18181B', fontFamily: 'inherit',
+        transition: 'background 0.1s',
+      }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F4F4F5'; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+    >
+      {icon && <span style={{ width: '14px', textAlign: 'center', fontSize: '0.65rem', color: danger ? '#c0392b' : '#71717A', flexShrink: 0 }}>{icon}</span>}
+      {label}
+    </button>
+  );
+}
+function ContextMenuDivider() {
+  return <div style={{ height: '1px', background: '#F4F4F5', margin: '3px 0' }} />;
+}
+
 // ── Section Overlay — memoized, does NOT re-render when parent state changes ──
 const SectionOverlay = React.memo(function SectionOverlay({
   blockId, blockType, isSelected, index, total, editMode, children,
@@ -401,25 +428,43 @@ const SectionOverlay = React.memo(function SectionOverlay({
           <div style={{ position: 'fixed', inset: 0, zIndex: 9998 }} onClick={() => setShowMenu(false)} />
           <div style={{
             position: 'fixed', top: menuPos.y, left: menuPos.x, zIndex: 9999,
-            minWidth: '160px', padding: '4px',
-            background: 'rgba(250,247,242,0.95)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+            minWidth: '176px', padding: '4px',
+            background: '#FFFFFF',
             borderRadius: '12px', border: '1px solid #E4E4E7',
-            boxShadow: '0 12px 40px rgba(0,0,0,0.1)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.04)',
           } as React.CSSProperties}>
-            {[
-              ...(index > 0 ? [{ label: 'Move Up', action: () => onBlockAction?.('moveUp', blockId) }] : []),
-              ...(index < total - 1 ? [{ label: 'Move Down', action: () => onBlockAction?.('moveDown', blockId) }] : []),
-              { label: 'Duplicate', action: () => onBlockAction?.('duplicate', blockId) },
-              { label: 'Copy', action: () => onBlockCopy?.(blockId) },
-              ...(hasClipboard ? [{ label: 'Paste Below', action: () => onBlockPaste?.(index + 1) }] : []),
-              { label: 'Delete', action: () => onBlockAction?.('delete', blockId), danger: true },
-            ].map(item => (
-              <button key={item.label} onClick={() => { item.action(); setShowMenu(false); }}
-                style={{ display: 'block', width: '100%', padding: '6px 10px', borderRadius: '6px', border: 'none', textAlign: 'left', background: 'transparent', cursor: 'pointer', fontSize: '0.75rem', color: (item as { danger?: boolean }).danger ? '#d05050' : '#18181B' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.5)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
-              >{item.label}</button>
-            ))}
+            {/* Edit in sidebar — always first */}
+            <ContextMenuItem
+              label="Edit in sidebar"
+              icon="↗"
+              onClick={() => { onSectionClick?.(blockType, undefined, blockId); setShowMenu(false); }}
+            />
+            <ContextMenuDivider />
+            {/* Move / rearrange */}
+            {index > 0 && <ContextMenuItem label="Move up" icon="↑" onClick={() => { onBlockAction?.('moveUp', blockId); setShowMenu(false); }} />}
+            {index < total - 1 && <ContextMenuItem label="Move down" icon="↓" onClick={() => { onBlockAction?.('moveDown', blockId); setShowMenu(false); }} />}
+            <ContextMenuItem label="Duplicate" icon="⎘" onClick={() => { onBlockAction?.('duplicate', blockId); setShowMenu(false); }} />
+            <ContextMenuItem label="Copy" icon="⊡" onClick={() => { onBlockCopy?.(blockId); setShowMenu(false); }} />
+            {hasClipboard && <ContextMenuItem label="Paste below" icon="⊞" onClick={() => { onBlockPaste?.(index + 1); setShowMenu(false); }} />}
+            {/* AI rewrite for story blocks */}
+            {(blockType === 'story' || blockType === 'chapter') && (
+              <>
+                <ContextMenuDivider />
+                <ContextMenuItem
+                  label="AI rewrite"
+                  icon="✦"
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent('pear-command', {
+                      detail: { prompt: 'Rewrite the story chapters to better match the vibe and occasion. Keep names and dates. Use the update_chapter action for each.' }
+                    }));
+                    setShowMenu(false);
+                  }}
+                />
+              </>
+            )}
+            <ContextMenuDivider />
+            <ContextMenuItem label="Hide section" icon="○" onClick={() => { onBlockAction?.('toggleVisibility', blockId); setShowMenu(false); }} />
+            <ContextMenuItem label="Delete" icon="✕" danger onClick={() => { onBlockAction?.('delete', blockId); setShowMenu(false); }} />
           </div>
         </>
       )}
