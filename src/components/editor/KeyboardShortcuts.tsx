@@ -28,6 +28,7 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { keys: ['⌘', 'Z'], description: 'Undo' },
       { keys: ['⌘', '⇧', 'Z'], description: 'Redo' },
       { keys: ['⌘', 'S'], description: 'Save' },
+      { keys: ['⌘', '\\'], description: 'Toggle side panel' },
       { keys: ['?'], description: 'Keyboard shortcuts' },
       { keys: ['Esc'], description: 'Close panel' },
     ],
@@ -46,9 +47,12 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { keys: ['Double-click'], description: 'Edit text inline' },
       { keys: ['Drag handle'], description: 'Reorder blocks' },
       { keys: ['Space', 'drag'], description: 'Pan canvas' },
+      { keys: ['⌘', 'D'], description: 'Duplicate selected block' },
       { keys: ['⌘', 'C'], description: 'Copy block' },
       { keys: ['⌘', 'V'], description: 'Paste block' },
       { keys: ['Delete'], description: 'Delete selected block' },
+      { keys: ['⌘', '⇧', 'C'], description: 'Add chapter' },
+      { keys: ['⌘', '⇧', 'E'], description: 'Add event' },
     ],
   },
 ];
@@ -74,7 +78,9 @@ const cardStyle: React.CSSProperties = {
   maxWidth: '560px',
   maxHeight: '80vh',
   margin: '0 20px',
-  overflowY: 'auto',
+  display: 'flex',
+  flexDirection: 'column',
+  overflow: 'hidden',
   borderRadius: '10px',
   background: 'rgba(250,247,242,0.92)',
   backdropFilter: 'blur(40px) saturate(1.6)',
@@ -82,6 +88,15 @@ const cardStyle: React.CSSProperties = {
   border: '1px solid #E4E4E7',
   boxShadow: '0 24px 80px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.4)',
   animation: 'pl-kb-card-in 0.25s cubic-bezier(0.16,1,0.3,1) both',
+};
+
+// Item 72: inner scroll area so content doesn't clip on short viewports.
+// Header (~64px) + footer (~44px) ≈ 80px reserved above/below.
+const scrollAreaStyle: React.CSSProperties = {
+  overflowY: 'auto',
+  maxHeight: 'calc(80vh - 80px)',
+  flex: 1,
+  minHeight: 0,
 };
 
 const closeButtonStyle: React.CSSProperties = {
@@ -219,7 +234,8 @@ export function KeyboardShortcuts({ open, onClose }: KeyboardShortcutsProps) {
           </h2>
         </div>
 
-        {/* Shortcut groups */}
+        {/* Shortcut groups — scrolls if it overflows small viewports (item 72) */}
+        <div style={scrollAreaStyle}>
         <div style={{ padding: '0 28px 28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {SHORTCUT_GROUPS.map(group => (
             <div key={group.title}>
@@ -271,6 +287,7 @@ export function KeyboardShortcuts({ open, onClose }: KeyboardShortcutsProps) {
               </div>
             </div>
           ))}
+        </div>
         </div>
 
         {/* Footer hint */}

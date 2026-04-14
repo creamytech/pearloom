@@ -64,11 +64,24 @@ export function InlineEditableText({
       return;
     }
     if (e.key === 'Enter') {
-      if (multiline && e.shiftKey) return; // Allow Shift+Enter for newlines
+      // Item 69:
+      //  - Single-line: Enter blurs the input (which triggers onBlur → save).
+      //  - Multiline (textarea-like): Enter inserts a newline normally;
+      //    Cmd/Ctrl+Enter blurs + commits. Shift+Enter also inserts a newline
+      //    (kept for backward-compat with existing muscle memory).
+      if (multiline) {
+        if (e.metaKey || e.ctrlKey) {
+          e.preventDefault();
+          (ref.current as HTMLElement | null)?.blur();
+          return;
+        }
+        // plain Enter & Shift+Enter — let the browser insert a newline
+        return;
+      }
       e.preventDefault();
-      commit();
+      (ref.current as HTMLElement | null)?.blur();
     }
-  }, [commit, cancel, multiline]);
+  }, [cancel, multiline]);
 
   const handleBlur = useCallback(() => {
     if (isEditing) commit();

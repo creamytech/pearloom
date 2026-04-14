@@ -6,7 +6,7 @@
 // Everything else lives in the rail or inline on the canvas
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Eye, Command, Monitor, Tablet, Smartphone, Link, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import {
@@ -27,6 +27,45 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
 
+  // Item 12: Debounce save-state flicker. The underlying saveState can toggle
+  // rapidly between 'saved'/'unsaved' during typing + autosave cycles, causing
+  // the indicator dot to visually flicker. We memoize a "displayed" state with
+  // a 200ms floor so rapid toggles don't re-render.
+  const [displayedSaveState, setDisplayedSaveState] = useState(saveState);
+  const lastSaveFlipRef = useRef<number>(0);
+  const pendingSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    const now = Date.now();
+    const sinceLastFlip = now - lastSaveFlipRef.current;
+    if (sinceLastFlip >= 200) {
+      lastSaveFlipRef.current = now;
+      setDisplayedSaveState(saveState);
+    } else {
+      if (pendingSaveTimerRef.current) clearTimeout(pendingSaveTimerRef.current);
+      pendingSaveTimerRef.current = setTimeout(() => {
+        lastSaveFlipRef.current = Date.now();
+        setDisplayedSaveState(saveState);
+      }, 200 - sinceLastFlip);
+    }
+    return () => {
+      if (pendingSaveTimerRef.current) {
+        clearTimeout(pendingSaveTimerRef.current);
+        pendingSaveTimerRef.current = null;
+      }
+    };
+  }, [saveState]);
+
+  // Last undo label for descriptive tooltips (item 15)
+  const lastUndoLabel = state.undoHistory?.[state.undoIndex]?.label;
+  const nextRedoLabel = state.undoHistory?.[state.undoIndex + 1]?.label;
+
+  // Item 18: Publish pre-flight — disable when site has no content at all
+  // (no chapters, no events, no custom blocks). Uses manifest from useEditor().
+  const publishDisabled =
+    (manifest.chapters?.length ?? 0) === 0 &&
+    (manifest.events?.length ?? 0) === 0 &&
+    (manifest.blocks?.length ?? 0) === 0;
+
   const siteName = coupleNames[1]?.trim()
     ? `${coupleNames[0]} & ${coupleNames[1]}`
     : coupleNames[0] || 'Untitled Site';
@@ -37,7 +76,14 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
       // Ignore when typing in inputs/textareas
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return;
-      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+      // Item 71: Robust Shift+? detection. Some non-US keyboard layouts
+      // report e.key differently for '?' — accept e.code === 'Slash' + shift
+      // as a fallback so the shortcut works everywhere.
+      if (
+        e.key === '?' ||
+        (e.shiftKey && e.key === '/') ||
+        (e.shiftKey && e.code === 'Slash')
+      ) {
         e.preventDefault();
         setShortcutsOpen(prev => !prev);
       }
@@ -110,12 +156,20 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             );
           })}
           <div style={{ width: '1px', height: '16px', background: '#FAFAFA', margin: '0 4px' }} />
-          <RichTooltip label="Undo" shortcut="⌘Z" side="bottom">
+          <RichTooltip
+            label={canUndo && lastUndoLabel ? `Undo: ${lastUndoLabel}` : 'Undo'}
+            shortcut="⌘Z"
+            side="bottom"
+          >
             <ToolBtn onClick={actions.undo} disabled={!canUndo}>
               <UndoIcon size={13} />
             </ToolBtn>
           </RichTooltip>
-          <RichTooltip label="Redo" shortcut="⌘⇧Z" side="bottom">
+          <RichTooltip
+            label={canRedo && nextRedoLabel ? `Redo: ${nextRedoLabel}` : 'Redo'}
+            shortcut="⌘⇧Z"
+            side="bottom"
+          >
             <ToolBtn onClick={actions.redo} disabled={!canRedo}>
               <RedoIcon size={13} />
             </ToolBtn>
@@ -131,18 +185,18 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
 
       {/* Right: Save + Preview + Help + Publish */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-        {/* Save indicator */}
+        {/* Save indicator (uses debounced displayedSaveState to prevent flicker — item 12) */}
         <span style={{
           fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em',
-          color: saveState === 'saved' ? '#18181B' : '#fb923c',
+          color: displayedSaveState === 'saved' ? '#18181B' : '#fb923c',
           display: 'flex', alignItems: 'center', gap: '3px',
         }}>
           <span style={{
             width: '5px', height: '5px', borderRadius: '50%',
-            background: saveState === 'saved' ? '#18181B' : '#fb923c',
-            animation: saveState === 'unsaved' ? 'pl-heartbeat 1.2s ease-in-out infinite' : 'none',
+            background: displayedSaveState === 'saved' ? '#18181B' : '#fb923c',
+            animation: displayedSaveState === 'unsaved' ? 'pl-heartbeat 1.2s ease-in-out infinite' : 'none',
           }} />
-          {!isMobile && (saveState === 'saved' ? 'Saved' : 'Unsaved')}
+          {!isMobile && (displayedSaveState === 'saved' ? 'Saved' : 'Unsaved')}
         </span>
 
         {/* Preview */}
@@ -183,7 +237,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
                 display: 'flex', alignItems: 'center', gap: '5px',
                 padding: '6px 14px',
                 borderRadius: '8px', border: 'none',
-                background: shareCopied ? '#18181B' : '#18181B',
+                background: shareCopied ? '#4a9b8a' : '#18181B',
                 color: '#fff', cursor: 'pointer',
                 fontSize: '0.65rem', fontWeight: 700,
                 letterSpacing: '0.06em', textTransform: 'uppercase',
@@ -196,26 +250,34 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
           </RichTooltip>
         )}
 
-        {/* Draft / Live badge */}
-        <span style={{
-          display: 'inline-flex', alignItems: 'center', gap: '4px',
-          padding: '3px 10px', borderRadius: '8px',
-          fontSize: '0.58rem', fontWeight: 800,
-          letterSpacing: '0.08em', textTransform: 'uppercase',
-          background: publishedUrl
-            ? 'rgba(74,155,138,0.12)'
-            : 'rgba(251,146,60,0.12)',
-          color: publishedUrl
-            ? '#4a9b8a'
-            : '#fb923c',
-          border: `1px solid ${publishedUrl ? 'rgba(74,155,138,0.25)' : 'rgba(251,146,60,0.25)'}`,
-        }}>
+        {/* Draft / Live badge (item 17: explain what each state means) */}
+        <RichTooltip
+          label={publishedUrl
+            ? 'This site is live and visible to guests.'
+            : 'Draft — only you can see this site.'}
+          side="bottom"
+        >
           <span style={{
-            width: '5px', height: '5px', borderRadius: '50%',
-            background: publishedUrl ? '#4a9b8a' : '#fb923c',
-          }} />
-          {publishedUrl ? 'Live' : 'Draft'}
-        </span>
+            display: 'inline-flex', alignItems: 'center', gap: '4px',
+            padding: '3px 10px', borderRadius: '8px',
+            fontSize: '0.58rem', fontWeight: 800,
+            letterSpacing: '0.08em', textTransform: 'uppercase',
+            background: publishedUrl
+              ? 'rgba(74,155,138,0.12)'
+              : 'rgba(251,146,60,0.12)',
+            color: publishedUrl
+              ? '#4a9b8a'
+              : '#fb923c',
+            border: `1px solid ${publishedUrl ? 'rgba(74,155,138,0.25)' : 'rgba(251,146,60,0.25)'}`,
+            cursor: 'default',
+          }}>
+            <span style={{
+              width: '5px', height: '5px', borderRadius: '50%',
+              background: publishedUrl ? '#4a9b8a' : '#fb923c',
+            }} />
+            {publishedUrl ? 'Live' : 'Draft'}
+          </span>
+        </RichTooltip>
 
         {/* Help — Keyboard shortcuts */}
         {!isMobile && (
@@ -241,28 +303,38 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
           </RichTooltip>
         )}
 
-        {/* Publish */}
-        <RichTooltip label="Publish & share your site" side="bottom">
+        {/* Publish (item 18: pre-flight — disable when there's nothing to publish) */}
+        <RichTooltip
+          label={publishDisabled
+            ? 'Add a chapter, event, or block before publishing'
+            : 'Publish & share your site'}
+          side="bottom"
+        >
           <motion.button
-            onClick={() => dispatch({ type: 'OPEN_PUBLISH' })}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            className="pl-cta-pulse"
+            onClick={() => { if (!publishDisabled) dispatch({ type: 'OPEN_PUBLISH' }); }}
+            disabled={publishDisabled}
+            whileHover={!publishDisabled ? { scale: 1.03 } : {}}
+            whileTap={!publishDisabled ? { scale: 0.97 } : {}}
+            className={publishDisabled ? undefined : 'pl-cta-pulse'}
             style={{
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: isMobile ? '6px 14px' : '6px 18px',
               borderRadius: '8px', border: 'none',
-              background: '#18181B',
-              color: '#fff', cursor: 'pointer',
+              background: publishDisabled ? '#A1A1AA' : '#18181B',
+              color: '#fff',
+              cursor: publishDisabled ? 'not-allowed' : 'pointer',
+              opacity: publishDisabled ? 0.6 : 1,
               fontSize: '0.65rem', fontWeight: 700,
               letterSpacing: '0.08em', textTransform: 'uppercase',
-              boxShadow: '0 2px 8px rgba(110,140,92,0.25)',
+              boxShadow: publishDisabled ? 'none' : '0 2px 8px rgba(110,140,92,0.25)',
               transition: 'box-shadow 0.25s ease',
             }}
             onMouseEnter={(e) => {
+              if (publishDisabled) return;
               (e.currentTarget as HTMLElement).style.boxShadow = '0 0 20px #E4E4E7, 0 2px 8px rgba(110,140,92,0.25)';
             }}
             onMouseLeave={(e) => {
+              if (publishDisabled) return;
               (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(110,140,92,0.25)';
             }}
           >

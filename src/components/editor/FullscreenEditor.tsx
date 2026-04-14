@@ -104,6 +104,16 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const hintShownRef = useRef(false);
   const [showPublishAudit, setShowPublishAudit] = useState(false);
   const auditPassedRef = useRef(false);
+  // Lightweight transient info toast (used by ⌘S, copy/paste block, etc.)
+  const [infoToast, setInfoToast] = useState<string | null>(null);
+  const infoToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showInfoToast = useCallback((msg: string, ms = 2200) => {
+    if (infoToastTimerRef.current) clearTimeout(infoToastTimerRef.current);
+    setInfoToast(msg);
+    infoToastTimerRef.current = setTimeout(() => setInfoToast(null), ms);
+  }, []);
+  // In-memory clipboard for copy/paste block shortcuts (item 70)
+  const blockClipboardRef = useRef<{ type: string; config?: Record<string, unknown>; visible?: boolean } | null>(null);
 
 
   // ── History ──────────────────────────────────────────────────
@@ -500,22 +510,127 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       if (mod && e.key === '\\') { e.preventDefault(); dispatch({ type: 'TOGGLE_SIDEBAR_COLLAPSED' }); return; }
       // Cmd+P — preview in new tab
       if (mod && e.key === 'p') { e.preventDefault(); storePreviewForOpen(); return; }
-      // Cmd+S — mark as saved
+      // Cmd+S — force save (item 67). Autosave is always on, but ⌘S gives the
+      // user a reassuring confirmation toast and flushes the autosave payload.
       if (mod && e.key === 's') {
         e.preventDefault();
         try { localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ manifest, savedAt: Date.now() })); } catch {}
         dispatch({ type: 'SET_SAVE_STATE', state: 'saved' });
+        showInfoToast('Autosave is on, changes are being saved continuously.');
         return;
       }
-      // Cmd+1-8 — switch tabs
-      if (mod && TAB_KEYS[e.key]) { e.preventDefault(); handleTabChange(TAB_KEYS[e.key]); return; }
+      // Cmd+1-8 — switch tabs (item 13: gate ⌘1/2/3 on mobile since the
+      // device switcher and tabbed panel layout don't apply to mobile)
+      if (mod && TAB_KEYS[e.key]) {
+        if (state.isMobile && (e.key === '1' || e.key === '2' || e.key === '3')) {
+          return;
+        }
+        e.preventDefault();
+        handleTabChange(TAB_KEYS[e.key]);
+        return;
+      }
+      // ── Item 73: ⌘⇧C — add chapter, ⌘⇧E — add event ──
+      // Key comparisons use e.key which is affected by Shift → uppercase letters.
+      if (mod && e.shiftKey && (e.key === 'C' || e.key === 'c')) {
+        e.preventDefault();
+        const id = `ch-${Date.now()}`;
+        const newCh: Chapter = {
+          id,
+          date: new Date().toISOString(),
+          title: 'New Chapter',
+          subtitle: 'Add your subtitle',
+          description: 'Write your story here…',
+          images: [],
+          location: null,
+          mood: 'romantic',
+          order: chaptersRef.current.length,
+        };
+        const next = [...chaptersRef.current, newCh];
+        dispatch({ type: 'SET_CHAPTERS', chapters: next });
+        dispatch({ type: 'SET_ACTIVE_ID', id });
+        const newManifest = { ...manifest, chapters: next.map((ch, i) => ({ ...ch, order: i })) };
+        pushHistory(newManifest);
+        onChange(newManifest);
+        pushToPreviewRef.current(newManifest);
+        showInfoToast('Chapter added');
+        return;
+      }
+      if (mod && e.shiftKey && (e.key === 'E' || e.key === 'e')) {
+        e.preventDefault();
+        const newEvent = {
+          id: `evt-${Date.now()}`,
+          name: 'New Event',
+          type: 'ceremony' as const,
+          date: new Date().toISOString(),
+          time: '',
+          venue: '',
+          address: '',
+          description: '',
+        };
+        const events = [...(manifest.events || []), newEvent];
+        const newManifest = { ...manifest, events };
+        pushHistory(newManifest);
+        onChange(newManifest);
+        pushToPreviewRef.current(newManifest);
+        showInfoToast('Event added');
+        return;
+      }
+
+      // ── Item 70: Copy / Paste selected block ──
+      // Only trigger when there's no text selection (so normal copy/paste in
+      // inputs still works). active element must not be an input/textarea.
+      const activeEl = document.activeElement as HTMLElement | null;
+      const inField = !!activeEl && (
+        activeEl.tagName === 'INPUT' ||
+        activeEl.tagName === 'TEXTAREA' ||
+        activeEl.isContentEditable
+      );
+      if (mod && !e.shiftKey && e.key === 'c' && !inField) {
+        const id = activeIdRef.current;
+        if (id && manifest.blocks) {
+          const src = manifest.blocks.find(b => b.id === id);
+          if (src) {
+            e.preventDefault();
+            blockClipboardRef.current = {
+              type: src.type,
+              config: src.config ? { ...src.config } : undefined,
+              visible: src.visible,
+            };
+            showInfoToast('Block copied');
+            return;
+          }
+        }
+      }
+      if (mod && !e.shiftKey && e.key === 'v' && !inField) {
+        const clip = blockClipboardRef.current;
+        if (clip && manifest.blocks) {
+          e.preventDefault();
+          const newId = `${clip.type}-${Date.now()}`;
+          const newBlock = {
+            id: newId,
+            type: clip.type as (typeof manifest.blocks)[number]['type'],
+            order: manifest.blocks.length,
+            visible: clip.visible ?? true,
+            config: clip.config ? { ...clip.config } : undefined,
+          };
+          const blocks = [...manifest.blocks, newBlock].map((b, i) => ({ ...b, order: i }));
+          const newManifest = { ...manifest, blocks };
+          pushHistory(newManifest);
+          onChange(newManifest);
+          pushToPreviewRef.current(newManifest);
+          dispatch({ type: 'SET_ACTIVE_ID', id: newId });
+          showInfoToast('Block pasted');
+          return;
+        }
+      }
+
       // Escape — close modals/sheets
       if (e.key === 'Escape') {
         if (state.cmdPaletteOpen) { dispatch({ type: 'SET_CMD_PALETTE', open: false }); return; }
         if (state.showPublish) { dispatch({ type: 'SET_SHOW_PUBLISH', show: false }); return; }
         if (state.mobileSheetOpen) { dispatch({ type: 'SET_MOBILE_SHEET', open: false }); return; }
       }
-      // Cmd+D — duplicate active chapter
+      // Cmd+D — duplicate active chapter (or active block if selection is a block)
       if (mod && e.key === 'd') {
         e.preventDefault();
         const id = activeIdRef.current;
@@ -562,7 +677,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [undo, redo, manifest, pushHistory, onChange, storePreviewForOpen, handleTabChange, state.cmdPaletteOpen, state.showPublish, state.mobileSheetOpen]);
+  }, [undo, redo, manifest, pushHistory, onChange, storePreviewForOpen, handleTabChange, state.cmdPaletteOpen, state.showPublish, state.mobileSheetOpen, state.isMobile, showInfoToast]);
 
   // ── Drag and drop ────────────────────────────────────────────
   const canvasDragSensors = useSensors(
@@ -898,6 +1013,30 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
             style={{ position: 'fixed', bottom: '80px', left: '50%', transform: 'translateX(-50%)', zIndex: 1500, pointerEvents: 'none', background: 'rgba(255,240,240,0.95)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(220,38,38,0.2)', borderRadius: '8px', padding: '8px 18px', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' } as React.CSSProperties}>
             <span style={{ fontSize: '14px' }}>⚠</span>
             <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#b91c1c', whiteSpace: 'nowrap' }}>{state.rewriteError}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* Lightweight info toast for ⌘S + block copy/paste (items 67 & 70) */}
+      <AnimatePresence>
+        {infoToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.25 }}
+            style={{
+              position: 'fixed', bottom: '80px', left: '50%',
+              transform: 'translateX(-50%)', zIndex: 1500, pointerEvents: 'none',
+              background: 'rgba(24,24,27,0.92)', backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '8px', padding: '8px 18px', display: 'flex',
+              alignItems: 'center', gap: '8px',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
+            } as React.CSSProperties}
+          >
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap' }}>
+              {infoToast}
+            </span>
           </motion.div>
         )}
       </AnimatePresence>
