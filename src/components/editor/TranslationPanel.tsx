@@ -9,10 +9,17 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, Sparkles, Check, X, ChevronDown, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Globe, Sparkles, Check, X, Loader2 } from 'lucide-react';
 import type { StoryManifest } from '@/types';
-import { SidebarSection } from './EditorSidebar';
+import {
+  PanelRoot,
+  PanelSection,
+  panelText,
+  panelWeight,
+  panelTracking,
+  panelLineHeight,
+} from './panel';
 
 const LOCALES: Array<{ code: string; label: string; flag: string }> = [
   { code: 'es', label: 'Spanish',    flag: '🇪🇸' },
@@ -86,34 +93,50 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
   const hasDone = done.size > 0;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '4px 0' }}>
+    <PanelRoot>
+
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '6px',
-        fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em',
-        textTransform: 'uppercase', color: '#71717A',
+        padding: '2px 20px 0',
+        fontSize: panelText.label,
+        fontWeight: panelWeight.heavy,
+        letterSpacing: panelTracking.wider,
+        textTransform: 'uppercase',
+        color: '#71717A',
       }}>
         <Globe size={11} /> Translations
       </div>
 
-      <div style={{ fontSize: '0.75rem', color: '#3F3F46', lineHeight: 1.55 }}>
+      {/* Description */}
+      <div style={{
+        padding: '4px 20px 2px',
+        fontSize: panelText.body,
+        color: '#3F3F46',
+        lineHeight: panelLineHeight.snug,
+      }}>
         Generate your story chapters in another language. Once created, guests switch
         language using the toolbar selector.
       </div>
 
       {/* Active translations */}
       {hasDone && (
-        <SidebarSection title="Active" defaultOpen>
+        <PanelSection title="Active" icon={Check} defaultOpen>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {LOCALES.filter(l => done.has(l.code)).map(locale => (
               <div key={locale.code} style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
-                padding: '6px 10px', borderRadius: '12px',
-                background: 'rgba(24,24,27,0.04)',
-                border: '1px solid rgba(24,24,27,0.1)',
+                padding: '6px 10px', borderRadius: '10px',
+                background: '#FAFAFA',
+                border: '1px solid #E4E4E7',
               }}>
                 <span style={{ fontSize: '1rem' }}>{locale.flag}</span>
-                <div style={{ flex: 1, fontSize: '0.75rem', fontWeight: 600, color: '#71717A' }}>
+                <div style={{
+                  flex: 1,
+                  fontSize: panelText.body,
+                  fontWeight: panelWeight.semibold,
+                  color: '#3F3F46',
+                }}>
                   {locale.label}
                 </div>
                 <Check size={11} color="#71717A" />
@@ -122,9 +145,11 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                   disabled={generating === locale.code}
                   style={{
                     padding: '3px 8px', borderRadius: '6px',
-                    border: '1px solid rgba(24,24,27,0.06)',
+                    border: '1px solid #E4E4E7',
                     background: 'none', color: '#3F3F46',
-                    cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700,
+                    cursor: 'pointer',
+                    fontSize: panelText.hint,
+                    fontWeight: panelWeight.bold,
                   }}
                   title="Regenerate"
                 >
@@ -144,11 +169,11 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
               </div>
             ))}
           </div>
-        </SidebarSection>
+        </PanelSection>
       )}
 
-      {/* Add new language */}
-      <SidebarSection title={hasDone ? 'Add Language' : 'Choose Language'} defaultOpen={!hasDone}>
+      {/* Add / choose language */}
+      <PanelSection title={hasDone ? 'Add Language' : 'Choose Language'} icon={Globe} defaultOpen={!hasDone}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {LOCALES.filter(l => !done.has(l.code)).map(locale => (
             <div key={locale.code}>
@@ -159,19 +184,28 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                 whileTap={{ scale: 0.97 }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '10px',
-                  width: '100%', padding: '8px 10px', borderRadius: '12px',
+                  width: '100%', padding: '8px 10px', borderRadius: '10px',
                   border: '1px solid #E4E4E7',
-                  background: 'rgba(24,24,27,0.03)',
+                  background: '#FFFFFF',
                   cursor: generating ? 'wait' : 'pointer',
                   textAlign: 'left',
                 }}
               >
                 <span style={{ fontSize: '1rem', flexShrink: 0 }}>{locale.flag}</span>
-                <span style={{ flex: 1, fontSize: '0.75rem', fontWeight: 600, color: '#3F3F46' }}>
+                <span style={{
+                  flex: 1,
+                  fontSize: panelText.body,
+                  fontWeight: panelWeight.semibold,
+                  color: '#3F3F46',
+                }}>
                   {locale.label}
                 </span>
                 {generating === locale.code ? (
-                  <span style={{ fontSize: '0.7rem', color: '#71717A', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{
+                    fontSize: panelText.hint,
+                    color: '#71717A',
+                    display: 'flex', alignItems: 'center', gap: '4px',
+                  }}>
                     <Loader2 size={11} style={{ animation: 'pl-spin 0.8s linear infinite' }} />
                     Translating…
                   </span>
@@ -180,26 +214,31 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                 )}
               </motion.button>
               {errors[locale.code] && (
-                <div style={{ fontSize: '0.65rem', color: '#f87171', padding: '3px 10px' }}>
+                <div style={{
+                  fontSize: panelText.hint,
+                  color: '#b34747',
+                  padding: '3px 10px',
+                }}>
                   {errors[locale.code]}
                 </div>
               )}
             </div>
           ))}
         </div>
-      </SidebarSection>
+      </PanelSection>
 
       {chapters.length === 0 && (
         <div style={{
-          padding: '8px 10px', borderRadius: '12px',
+          margin: '0 8px',
+          padding: '8px 10px', borderRadius: '10px',
           background: 'rgba(234,179,8,0.07)', border: '1px solid rgba(234,179,8,0.2)',
-          fontSize: '0.65rem', color: '#3F3F46',
+          fontSize: panelText.hint, color: '#3F3F46',
         }}>
           Add story chapters before generating translations.
         </div>
       )}
 
       <style>{`@keyframes pl-spin { to { transform: rotate(360deg); } }`}</style>
-    </div>
+    </PanelRoot>
   );
 }
