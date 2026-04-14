@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useEditor } from '@/lib/editor-state';
 import { RangeSlider } from '@/components/ui/range-slider';
 import { Loader2 } from 'lucide-react';
@@ -876,8 +877,47 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
     ? Object.values(vibeSkin.palette).slice(0, 5)
     : [colors.background, colors.foreground, colors.accent, colors.accentLight, colors.muted].filter(Boolean);
 
+  // Save-feedback indicator (flashes "Changes saved" after every manifest change)
+  const [showSaved, setShowSaved] = useState(false);
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevManifestRef = useRef(manifest);
+  useEffect(() => {
+    if (prevManifestRef.current !== manifest && prevManifestRef.current !== null) {
+      setShowSaved(true);
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+      savedTimerRef.current = setTimeout(() => setShowSaved(false), 2000);
+    }
+    prevManifestRef.current = manifest;
+    return () => { if (savedTimerRef.current) clearTimeout(savedTimerRef.current); };
+  }, [manifest]);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', paddingBottom: '24px' }}>
+      {/* Auto-save indicator — flashes briefly after each edit */}
+      <AnimatePresence>
+        {showSaved && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+              padding: '6px 12px', margin: '0 12px 6px',
+              borderRadius: '100px',
+              background: '#F4F4F5',
+              border: '1px solid #E4E4E7',
+              fontSize: panelText.hint,
+              fontWeight: panelWeight.semibold,
+              fontFamily: 'inherit',
+              color: '#18181B',
+              lineHeight: panelLineHeight.tight,
+            }}
+          >
+            <Check size={10} /> Changes saved
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Sub-tab switcher: Theme / Effects ── */}
       <div style={{
