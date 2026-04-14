@@ -29,7 +29,7 @@ const HINT_TEXT: React.CSSProperties = {
   lineHeight: panelLineHeight.normal,
 };
 import { ColorPalettePanel } from './ColorPalettePanel';
-import { ThemeSwitcher } from './ThemeSwitcher';
+import { ThemeSwitcher, PRESET_THEMES } from './ThemeSwitcher';
 import FontPicker from '@/components/dashboard/FontPicker';
 import { AssetPicker } from '@/components/asset-library/AssetPicker';
 import { ArtManager } from './ArtManager';
@@ -572,12 +572,136 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
   );
 }
 
+// ── Quick Styles — 5 curated one-click theme presets ─────────
+// Maps to specific PRESET_THEMES entries by name.
+const QUICK_STYLES = [
+  { label: 'Romantic',  desc: 'Warm & floral',      themeName: 'Ivory Garden'      },
+  { label: 'Dramatic',  desc: 'Dark & luxurious',   themeName: 'Midnight Luxe'     },
+  { label: 'Garden',    desc: 'Fresh & botanical',  themeName: 'Forest Romance'    },
+  { label: 'Coastal',   desc: 'Breezy & minimal',   themeName: 'Coastal Breeze'    },
+  { label: 'Classic',   desc: 'Crisp & timeless',   themeName: 'Minimalist Modern' },
+] as const;
+
+type QuickStyleName = (typeof QUICK_STYLES)[number]['label'];
+
+function QuickStylesRow({
+  manifest,
+  onApply,
+  onHover,
+  onHoverEnd,
+}: {
+  manifest: StoryManifest;
+  onApply: (skin: VibeSkin) => void;
+  onHover: (skin: VibeSkin) => void;
+  onHoverEnd: () => void;
+}) {
+  const [hovered, setHovered] = useState<QuickStyleName | null>(null);
+
+  const handleHover = (qs: (typeof QUICK_STYLES)[number]) => {
+    const preset = PRESET_THEMES.find(t => t.name === qs.themeName);
+    if (!preset) return;
+    setHovered(qs.label);
+    onHover(preset);
+  };
+
+  const handleLeave = () => {
+    setHovered(null);
+    onHoverEnd();
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '4px 8px 12px' }}>
+      <div style={{
+        fontSize: panelText.label,
+        fontWeight: panelWeight.bold,
+        letterSpacing: panelTracking.wider,
+        textTransform: 'uppercase',
+        color: '#71717A',
+      }}>
+        Quick Styles
+      </div>
+      <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', scrollbarWidth: 'none' } as React.CSSProperties}>
+        {QUICK_STYLES.map(qs => {
+          const preset = PRESET_THEMES.find(t => t.name === qs.themeName);
+          if (!preset) return null;
+          const pal = preset.palette;
+          const isActive = manifest.vibeSkin?.tone === preset.tone &&
+            manifest.vibeSkin?.fonts?.heading === preset.fonts?.heading;
+          const isHov = hovered === qs.label;
+          const swatchColors = [pal.background, pal.accent, pal.card ?? pal.subtle, pal.foreground];
+          return (
+            <button
+              key={qs.label}
+              onMouseEnter={() => handleHover(qs)}
+              onMouseLeave={handleLeave}
+              onClick={() => { onApply(preset); handleLeave(); }}
+              style={{
+                flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
+                padding: '8px', borderRadius: '10px', cursor: 'pointer',
+                border: isActive ? '2px solid #18181B' : isHov ? '1.5px solid #3F3F46' : '1px solid #E4E4E7',
+                background: '#FFFFFF',
+                transition: 'border 0.12s',
+                minWidth: '58px',
+              }}
+            >
+              {/* 2×2 palette swatch */}
+              <div style={{
+                display: 'grid', gridTemplateColumns: '1fr 1fr',
+                width: '32px', height: '32px', borderRadius: '6px', overflow: 'hidden',
+                border: '1px solid rgba(0,0,0,0.06)',
+              }}>
+                {swatchColors.map((c, i) => (
+                  <div key={i} style={{ background: c || '#F4F4F5' }} />
+                ))}
+              </div>
+              <span style={{
+                fontSize: '0.6rem', fontWeight: panelWeight.semibold,
+                color: isActive ? '#18181B' : '#3F3F46',
+                whiteSpace: 'nowrap', lineHeight: 1,
+              }}>
+                {qs.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void; coupleNames?: [string, string] }) {
   const { state, dispatch } = useEditor();
   const [designTab, setDesignTab] = useState<'theme' | 'effects'>('theme');
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [regenError, setRegenError] = useState('');
   const [forceOpenSection, setForceOpenSection] = useState<string | null>(null);
+  const [hoverSkin, setHoverSkin] = useState<VibeSkin | null>(null);
+
+  // ── Hover preview: temporarily apply skin CSS vars to :root ──
+  useEffect(() => {
+    const skin = hoverSkin;
+    if (!skin) return;
+    const root = document.documentElement;
+    const vars: Record<string, string> = {
+      '--pl-cream': skin.palette.background,
+      '--pl-ink': skin.palette.foreground,
+      '--pl-olive': skin.palette.accent,
+      '--pl-muted': skin.palette.muted,
+      '--pl-cream-card': skin.palette.card ?? skin.palette.subtle ?? skin.palette.background,
+      '--pl-font-heading': `"${skin.fonts.heading}", serif`,
+    };
+    const prev: Record<string, string> = {};
+    for (const [k, v] of Object.entries(vars)) {
+      prev[k] = root.style.getPropertyValue(k);
+      root.style.setProperty(k, v);
+    }
+    return () => {
+      for (const [k, v] of Object.entries(prev)) {
+        if (v) root.style.setProperty(k, v);
+        else root.style.removeProperty(k);
+      }
+    };
+  }, [hoverSkin]);
 
   // ── AI Design Critic state ──
   const [designFeedback, setDesignFeedback] = useState<string | null>(null);
@@ -741,6 +865,13 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
       {/* ═══ Theme tier ═══ */}
       {designTab === 'theme' && <>
+      {/* ── Quick Styles row ── */}
+      <QuickStylesRow
+        manifest={manifest}
+        onApply={handleThemeApply}
+        onHover={setHoverSkin}
+        onHoverEnd={() => setHoverSkin(null)}
+      />
       {/* ── AI Design Critic ── */}
       <div className="pl-panel-section" style={{
         display: 'flex', flexDirection: 'column', gap: '10px',

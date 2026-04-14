@@ -29,7 +29,7 @@ const DEFAULT_LABELS: VibeSkin['sectionLabels'] = {
 };
 
 // ── 30 Hand-crafted preset themes ─────────────────────────────
-const PRESET_THEMES: Array<VibeSkin & { name: string }> = [
+export const PRESET_THEMES: Array<VibeSkin & { name: string }> = [
   // 1. Ivory Garden
   {
     name: 'Ivory Garden',
