@@ -20,6 +20,7 @@ import { CanvasFaqToolbar, type FaqToolbarAction } from './preview/CanvasFaqTool
 import { CanvasSectionToolbar, type SectionToolbarAction } from './preview/CanvasSectionToolbar';
 import { CanvasRegistryToolbar, type RegistryToolbarAction } from './preview/CanvasRegistryToolbar';
 import { CanvasHeroEditBar } from './preview/CanvasHeroEditBar';
+import { CanvasInlineFormatBar, type TextFormat } from './preview/CanvasInlineFormatBar';
 import type { BlockType, PageBlock } from '@/types';
 
 export function EditorCanvas() {
@@ -60,6 +61,10 @@ export function EditorCanvas() {
 
   const [hoveredHero, setHoveredHero] = useState<{ rect: DOMRect } | null>(null);
   const heroLeaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [focusedTextField, setFocusedTextField] = useState<{
+    path: string; rect: DOMRect;
+  } | null>(null);
 
   // ── Spacebar to pan ─────────────────────────────────────
   useEffect(() => {
@@ -225,6 +230,16 @@ export function EditorCanvas() {
       return;
     }
 
+    if (path.startsWith('__format:')) {
+      // Inline text format: __format:manifest.path → value = JSON stringified format object
+      const formatPath = path.slice('__format:'.length);
+      try {
+        const fmt = JSON.parse(value);
+        const formats = { ...(manifest.textFormats || {}), [formatPath]: fmt };
+        actions.handleDesignChange({ ...manifest, textFormats: formats });
+      } catch {}
+      return;
+    }
     if (path.startsWith('chapter:')) {
       const [, chapterId, field] = path.split(':');
       const chapter = manifest.chapters?.find(c => c.id === chapterId);
@@ -529,6 +544,29 @@ export function EditorCanvas() {
     };
   }, []);
 
+  // ── Inline text format bar ────────────────────────────────
+  const handleFormatChange = useCallback((path: string, format: TextFormat) => {
+    handleTextEdit('__format:' + path, JSON.stringify(format));
+  }, [handleTextEdit]);
+
+  useEffect(() => {
+    const onFocus = (e: Event) => {
+      const { path, rect } = (e as CustomEvent).detail;
+      if (path && rect) setFocusedTextField({ path, rect });
+      else setFocusedTextField(null);
+    };
+    const onBlur = () => {
+      // Brief delay so clicks on the format bar buttons register before it unmounts
+      setTimeout(() => setFocusedTextField(null), 150);
+    };
+    window.addEventListener('pearloom-field-focus', onFocus);
+    window.addEventListener('pearloom-field-blur', onBlur);
+    return () => {
+      window.removeEventListener('pearloom-field-focus', onFocus);
+      window.removeEventListener('pearloom-field-blur', onBlur);
+    };
+  }, []);
+
   // ── Focal point overlay ─────────────────────────────────
   useEffect(() => {
     const handler = (e: Event) => setFocalPoint((e as CustomEvent).detail);
@@ -752,6 +790,20 @@ export function EditorCanvas() {
             canvasRef={canvasRef}
             onStyleChange={handleHeroStyleChange}
             onFontClick={handleHeroFontClick}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Inline text format bar — shows on contenteditable focus */}
+      <AnimatePresence>
+        {focusedTextField && canvasRef.current && (
+          <CanvasInlineFormatBar
+            key={focusedTextField.path}
+            elementRect={focusedTextField.rect}
+            canvasRect={canvasRef.current.getBoundingClientRect()}
+            path={focusedTextField.path}
+            format={manifest.textFormats?.[focusedTextField.path] ?? {}}
+            onChange={handleFormatChange}
           />
         )}
       </AnimatePresence>

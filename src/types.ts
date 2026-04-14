@@ -152,6 +152,14 @@ export interface StoryManifest {
   privateGallery?: boolean;
   // Typography pair preset for the site
   typographyPair?: 'serif-sans' | 'mono-serif' | 'display-body' | 'editorial';
+  // Per-field inline text formatting overrides keyed by manifest path (e.g. "poetry.heroTagline")
+  textFormats?: Record<string, {
+    italic?: boolean;
+    bold?: boolean;
+    /** Relative size multiplier: sm=0.85em, md=1em(default), lg=1.2em, xl=1.5em */
+    size?: 'sm' | 'md' | 'lg' | 'xl';
+    color?: string;
+  }>;
   // Hero badge style (pill = default pill, outlined = border-only, card = card-style, minimal = text-only dots)
   heroBadgeStyle?: 'pill' | 'outlined' | 'card' | 'minimal';
   // Hero countdown widget style

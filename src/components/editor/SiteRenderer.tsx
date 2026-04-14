@@ -754,13 +754,14 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           }
         });
 
-        // Blur: exit edit mode and commit
+        // Blur: exit edit mode, commit, and hide format bar
         htmlEl.addEventListener('blur', () => {
           htmlEl.contentEditable = 'false';
           htmlEl.style.cursor = 'pointer';
           htmlEl.style.boxShadow = 'none';
           htmlEl.style.borderRadius = '';
           htmlEl.style.background = '';
+          window.dispatchEvent(new CustomEvent('pearloom-field-blur'));
 
           const path = htmlEl.getAttribute('data-pe-path');
           const chapterId = htmlEl.closest('[data-pe-chapter]')?.getAttribute('data-pe-chapter');
@@ -788,12 +789,13 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         });
 
         // Focus: tell the sidebar which chapter / section is being edited
+        // Also emit the element's rect so the inline format bar can position itself
         htmlEl.addEventListener('focus', () => {
           const chapterId = htmlEl.closest('[data-pe-chapter]')?.getAttribute('data-pe-chapter') ?? null;
           const field = htmlEl.getAttribute('data-pe-field') ?? null;
           const path = htmlEl.getAttribute('data-pe-path') ?? null;
           window.dispatchEvent(new CustomEvent('pearloom-field-focus', {
-            detail: { chapterId, field, path }
+            detail: { chapterId, field, path, rect: htmlEl.getBoundingClientRect() }
           }));
         });
       });
@@ -808,6 +810,22 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     observer.observe(siteRef.current, { childList: true, subtree: true });
     return () => { observer.disconnect(); cancelAnimationFrame(rafId); };
   }, [editMode, onTextEdit]);
+
+  // ── Apply textFormats to [data-pe-path] elements ──────────────
+  useEffect(() => {
+    if (!siteRef.current) return;
+    const formats = manifest.textFormats;
+    if (!formats) return;
+    const sizeMap: Record<string, string> = { sm: '0.85em', md: '1em', lg: '1.2em', xl: '1.5em' };
+    Object.entries(formats).forEach(([path, fmt]) => {
+      const el = siteRef.current?.querySelector(`[data-pe-path="${path}"]`) as HTMLElement | null;
+      if (!el) return;
+      el.style.fontStyle = fmt.italic ? 'italic' : '';
+      el.style.fontWeight = fmt.bold ? '700' : '';
+      el.style.fontSize = fmt.size ? sizeMap[fmt.size] : '';
+      el.style.color = fmt.color || '';
+    });
+  });
 
   // ── Make icon elements clickable for swap ──
   useEffect(() => {
