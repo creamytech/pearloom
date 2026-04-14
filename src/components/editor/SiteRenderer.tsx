@@ -278,6 +278,7 @@ const SectionOverlay = React.memo(function SectionOverlay({
   const wrapRef = useRef<HTMLDivElement>(null);
   const [showMenu, setShowMenu] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const dragGhostRef = useRef<HTMLDivElement | null>(null);
   const dragStartY = useRef(0);
@@ -410,13 +411,27 @@ const SectionOverlay = React.memo(function SectionOverlay({
             ...(index < total - 1 ? [{ icon: '↓', action: 'moveDown' as const, handler: () => onBlockAction?.('moveDown', blockId) }] : []),
             { icon: '⎘', action: 'copy' as const, handler: () => onBlockCopy?.(blockId) },
             { icon: '⧉', action: 'duplicate' as const, handler: () => onBlockAction?.('duplicate', blockId) },
-            { icon: '✕', action: 'delete' as const, handler: () => onBlockAction?.('delete', blockId), danger: true },
+            { icon: '✕', action: 'delete' as const, handler: () => setConfirmDelete(true), danger: true },
           ].map(a => (
             <button key={a.action} onClick={(e) => { e.stopPropagation(); a.handler(); }}
               title={a.action.charAt(0).toUpperCase() + a.action.slice(1)}
               style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: '6px', background: 'transparent', color: (a as { danger?: boolean }).danger ? '#d06060' : '#71717A', cursor: 'pointer', fontSize: '0.65rem' }}
             >{a.icon}</button>
           ))}
+          {/* Delete confirmation inline */}
+          {confirmDelete && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '4px' }} onClick={e => e.stopPropagation()}>
+              <span style={{ fontSize: '0.65rem', color: '#d06060', fontWeight: 600, whiteSpace: 'nowrap' }}>Delete?</span>
+              <button onClick={(e) => { e.stopPropagation(); onBlockAction?.('delete', blockId); setConfirmDelete(false); }}
+                style={{ padding: '2px 7px', borderRadius: '5px', border: 'none', background: '#d06060', color: '#fff', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700 }}>
+                Yes
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); setConfirmDelete(false); }}
+                style={{ padding: '2px 7px', borderRadius: '5px', border: 'none', background: '#F4F4F5', color: '#52525B', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 600 }}>
+                No
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -464,7 +479,7 @@ const SectionOverlay = React.memo(function SectionOverlay({
             )}
             <ContextMenuDivider />
             <ContextMenuItem label="Hide section" icon="○" onClick={() => { onBlockAction?.('toggleVisibility', blockId); setShowMenu(false); }} />
-            <ContextMenuItem label="Delete" icon="✕" danger onClick={() => { onBlockAction?.('delete', blockId); setShowMenu(false); }} />
+            <ContextMenuItem label="Delete" icon="✕" danger onClick={() => { setShowMenu(false); setConfirmDelete(true); onSectionClick?.(blockType, undefined, blockId); }} />
           </div>
         </>
       )}
@@ -563,13 +578,14 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
   const sitePages: SitePage[] = useMemo(() => {
     const hidden = new Set(manifest.hiddenPages || []);
     return [
-      { id: 'story', slug: 'our-story', label: vibeSkin.sectionLabels?.story || 'Our Story', enabled: !hidden.has('story'), order: 0 },
+      { id: 'story', slug: 'our-story', label: 'Our Story', enabled: !hidden.has('story'), order: 0 },
       ...(manifest.events?.length && !hidden.has('schedule') ? [{ id: 'schedule', slug: 'schedule', label: 'Schedule', enabled: true, order: 1 }] : []),
       ...(manifest.events?.length && !hidden.has('rsvp') ? [{ id: 'rsvp', slug: 'rsvp', label: 'RSVP', enabled: true, order: 2 }] : []),
       ...((manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) && !hidden.has('registry') ? [{ id: 'registry', slug: 'registry', label: 'Registry', enabled: true, order: 3 }] : []),
       ...((manifest.travelInfo?.hotels?.length || manifest.travelInfo?.airports?.length) && !hidden.has('travel') ? [{ id: 'travel', slug: 'travel', label: 'Travel', enabled: true, order: 4 }] : []),
       ...(manifest.faqs?.length && !hidden.has('faq') ? [{ id: 'faq', slug: 'faq', label: 'FAQ', enabled: true, order: 5 }] : []),
       ...(manifest.features?.guestbook && !hidden.has('guestbook') ? [{ id: 'guestbook', slug: 'guest-wishes', label: 'Guest Wishes', enabled: true, order: 6 }] : []),
+      ...(manifest.customPages?.filter(cp => !hidden.has(cp.id)).map((cp, i) => ({ id: cp.id, slug: cp.slug, label: cp.title, enabled: true, order: 100 + i })) || []),
     ];
   }, [manifest, vibeSkin]);
 
@@ -1277,19 +1293,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                 />
               </>
             )}
-            <StickerLayer
-              stickers={manifest.stickers || []}
-              accentColor={pal.accent}
-              editMode={editMode}
-              onMove={(index, x, y) => {
-                const stickers = [...(manifest.stickers || [])];
-                if (stickers[index]) {
-                  stickers[index] = { ...stickers[index], x, y };
-                  onTextEdit?.('__moveSticker__', JSON.stringify({ index, x, y }));
-                }
-              }}
-              onDelete={(index) => onTextEdit?.('__removeSticker__', String(index))}
-            />
+            {/* Stickers rendered globally at the site root — not inside hero */}
           </div>
         );
       case 'story': {
@@ -1488,8 +1492,14 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             </h2>
             {countdownDate ? (
               <LiveCountdown targetDate={countdownDate} accentColor={safeAccent} textColor={safeFg} mutedColor={safeMuted} headingFont={vibeSkin.fonts.heading} bodyFont={vibeSkin.fonts.body} />
+            ) : editMode ? (
+              <div className="pl-empty-gradient" style={{ padding: '2rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
+                <p style={{ fontSize: '0.8rem', marginBottom: '0.75rem' }}>Set a wedding date in Details → Events to activate the countdown</p>
+                <PearHelpButton label="Ask Pear to help" prompt={getPearPrompt('countdown date')} />
+                {pearNudgeSection === 'countdown' && <PearNudge prompt={getPearPrompt('countdown date')} onDismiss={dismissPearNudge} />}
+              </div>
             ) : (
-              <p style={{ color: safeMuted, fontSize: '0.9rem',  }}>Set a date in the countdown block settings</p>
+              <p style={{ color: safeMuted, fontSize: '0.9rem' }}>Set a date in the countdown block settings</p>
             )}
           </section>
         );
@@ -1534,17 +1544,53 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             </p>
           </section>
         );
-      case 'divider':
+      case 'divider': {
+        const divStyle = (blockCfg.style as string) || 'wave';
+        const divHeight = (blockCfg.height as number) || 60;
+        if (divStyle === 'line') {
+          return (
+            <section key={key} data-pe-section="divider" style={{ padding: `${Math.max(divHeight / 2, 20)}px 2rem` }}>
+              <div style={{ width: '100%', maxWidth: '400px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ flex: 1, height: '1px', background: pal.accent, opacity: 0.25 }} />
+                <span style={{ color: pal.accent, opacity: 0.45, fontSize: '1rem', lineHeight: 1 }}>{vibeSkin.accentSymbol || '✦'}</span>
+                <div style={{ flex: 1, height: '1px', background: pal.accent, opacity: 0.25 }} />
+              </div>
+            </section>
+          );
+        }
+        if (divStyle === 'dots') {
+          return (
+            <section key={key} data-pe-section="divider" style={{ padding: `${Math.max(divHeight / 2, 20)}px 2rem`, textAlign: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', alignItems: 'center' }}>
+                {[0.25, 0.5, 1, 0.5, 0.25].map((op, i) => (
+                  <div key={i} style={{ width: i === 2 ? '7px' : '5px', height: i === 2 ? '7px' : '5px', borderRadius: '50%', background: pal.accent, opacity: op }} />
+                ))}
+              </div>
+            </section>
+          );
+        }
+        if (divStyle === 'botanical') {
+          return (
+            <section key={key} data-pe-section="divider" style={{ padding: `${Math.max(divHeight / 2, 16)}px 2rem`, textAlign: 'center' }}>
+              {art.dividerPath ? (
+                <svg viewBox="0 0 200 50" style={{ width: '100%', maxWidth: '420px', height: `${divHeight}px` }} preserveAspectRatio="none">
+                  <path d={art.dividerPath} fill="none" stroke={pal.accent} strokeWidth="1.5" opacity="0.35" />
+                </svg>
+              ) : (
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', color: pal.accent, opacity: 0.4, fontSize: '1.1rem', letterSpacing: '0.25em' }}>
+                  🌿 {vibeSkin.accentSymbol || '✦'} 🌿
+                </div>
+              )}
+            </section>
+          );
+        }
+        // wave (default)
         return (
           <section key={key} data-pe-section="divider">
-            {art.dividerPath && (
-              <svg viewBox="0 0 200 50" style={{ width: '100%', height: '40px' }} preserveAspectRatio="none">
-                <path d={art.dividerPath} fill="none" stroke={pal.accent} strokeWidth="1" opacity="0.2" />
-              </svg>
-            )}
-            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={60} />
+            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={divHeight} />
           </section>
         );
+      }
       case 'photos': {
         const seen = new Set<string>();
         const allPhotos: Array<{ url: string; alt?: string }> = [];
@@ -1693,7 +1739,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         );
       case 'weddingParty':
         return (
-          <section key={key} data-pe-section="weddingParty" style={{ padding: '4rem 2rem', maxWidth: '900px', margin: '0 auto' }}>
+          <section key={key} data-pe-section="weddingParty" data-pe-empty-section={!(manifest.weddingParty?.length) ? 'weddingParty' : undefined} style={{ padding: '4rem 2rem', maxWidth: '900px', margin: '0 auto' }}>
             <h2 style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.6rem, 3vw, 2.4rem)', color: safeFg, textAlign: 'center', marginBottom: '2rem' }}>
               The Wedding Party
             </h2>
@@ -1709,6 +1755,12 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                   </div>
                 ))}
               </div>
+            ) : editMode ? (
+              <div className="pl-empty-gradient" style={{ padding: '2.5rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted, textAlign: 'center' }}>
+                <p style={{ fontSize: '0.8rem', marginBottom: '0.75rem' }}>Add wedding party members in the Story panel</p>
+                <PearHelpButton label="Ask Pear to add wedding party" prompt={getPearPrompt('wedding party')} />
+                {pearNudgeSection === 'weddingParty' && <PearNudge prompt={getPearPrompt('wedding party')} onDismiss={dismissPearNudge} />}
+              </div>
             ) : (
               <p style={{ textAlign: 'center', color: safeMuted }}>Add wedding party members in the Story panel</p>
             )}
@@ -1716,32 +1768,49 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         );
       case 'vibeQuote':
       case 'welcome': {
-        const statement = block.type === 'welcome' ? manifest.poetry?.welcomeStatement : (vibeSkin.dividerQuote || manifest.vibeString);
+        const isWelcome = block.type === 'welcome';
+        const statement = isWelcome ? manifest.poetry?.welcomeStatement : (vibeSkin.dividerQuote || manifest.vibeString);
         if (!statement) return editMode ? (
-          <section key={key} data-pe-section={block.type} style={{ padding: '3rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
+          <section key={key} data-pe-section={block.type} data-pe-empty-section={block.type} style={{ padding: '3rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
             <div className="pl-empty-gradient" style={{ padding: '2.5rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
-              <div style={{ marginBottom: '0.5rem' }}>{block.type === 'welcome' ? <Hand size={22} style={{ color: '#71717A' }} /> : <Sparkles size={22} style={{ color: '#71717A' }} />}</div>
-              <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1rem', color: safeFg, marginBottom: '0.25rem' }}>
-                {block.type === 'welcome' ? 'Welcome Message' : 'Vibe Quote'}
+              <div style={{ marginBottom: '0.5rem' }}>{isWelcome ? <Hand size={22} style={{ color: '#71717A' }} /> : <Sparkles size={22} style={{ color: '#71717A' }} />}</div>
+              <div style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: pal.accent, marginBottom: '0.5rem', opacity: 0.8 }}>
+                {isWelcome ? 'Welcome Block' : 'Mood Quote Block'}
               </div>
-              <p style={{ fontSize: '0.8rem' }}>Click to add {block.type === 'welcome' ? 'a welcome statement' : 'an atmospheric quote'}</p>
+              <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1rem', color: safeFg, marginBottom: '0.25rem' }}>
+                {isWelcome ? 'Add a Welcome Message' : 'Add an Atmospheric Quote'}
+              </div>
+              <p style={{ fontSize: '0.8rem', marginBottom: '0.75rem' }}>
+                {isWelcome ? 'A personal note welcoming guests to your site' : 'A short quote or lyric that sets the mood'}
+              </p>
+              <PearHelpButton label={isWelcome ? 'Ask Pear to write a welcome' : 'Ask Pear to find a quote'} prompt={getPearPrompt(isWelcome ? 'welcome message' : 'atmospheric vibe quote')} />
+              {pearNudgeSection === block.type && <PearNudge prompt={getPearPrompt(isWelcome ? 'welcome message' : 'atmospheric vibe quote')} onDismiss={dismissPearNudge} />}
             </div>
           </section>
         ) : null;
         return (
           <section key={key} data-pe-section={block.type} style={{ padding: '4rem 2rem', maxWidth: '700px', margin: '0 auto', textAlign: 'center' }}>
+            {/* Label badge — visible in edit mode to distinguish block types */}
+            {editMode && (
+              <div style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: pal.accent, opacity: 0.6, marginBottom: '1rem' }}>
+                {isWelcome ? '— Welcome —' : '— Mood Quote —'}
+              </div>
+            )}
             {/* Theme art: decorative accent above vibeQuote (not welcome) */}
-            {block.type === 'vibeQuote' && art.accentSvg && (
+            {!isWelcome && art.accentSvg && (
               <div
                 aria-hidden="true"
                 style={{ width: 60, height: 60, margin: '0 auto 0.75rem', opacity: 0.3 }}
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.accentSvg) }}
               />
             )}
-            <p data-pe-editable="true" data-pe-path={block.type === 'welcome' ? 'poetry.welcomeStatement' : 'poetry.dividerQuote'} style={{
-              fontFamily: `"${block.type === 'welcome' ? vibeSkin.fonts.body : vibeSkin.fonts.heading}", ${block.type === 'welcome' ? 'sans-serif' : 'serif'}`,
-              fontSize: block.type === 'welcome' ? '1.05rem' : 'clamp(1.2rem, 2.5vw, 1.8rem)',
-               fontWeight: 400, lineHeight: 1.7, color: safeFg, opacity: 0.75,
+            {isWelcome && (
+              <div style={{ fontSize: '1.5rem', color: pal.accent, opacity: 0.35, marginBottom: '0.75rem' }}>♡</div>
+            )}
+            <p data-pe-editable="true" data-pe-path={isWelcome ? 'poetry.welcomeStatement' : 'poetry.dividerQuote'} style={{
+              fontFamily: `"${isWelcome ? vibeSkin.fonts.body : vibeSkin.fonts.heading}", ${isWelcome ? 'sans-serif' : 'serif'}`,
+              fontSize: isWelcome ? '1.05rem' : 'clamp(1.2rem, 2.5vw, 1.8rem)',
+              fontWeight: 400, lineHeight: 1.7, color: safeFg, opacity: 0.75,
             }}>
               {statement}
             </p>
@@ -1772,11 +1841,15 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                   </div>
                 ))}
               </div>
+            ) : editMode ? (
+              <div className="pl-empty-gradient" style={{ padding: '2.5rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
+                <p style={{ fontSize: '0.8rem', marginBottom: '0.75rem' }}>Add quiz questions in the block settings</p>
+                <PearHelpButton label="Ask Pear to write quiz questions" prompt={getPearPrompt('couple quiz')} />
+                {pearNudgeSection === 'quiz' && <PearNudge prompt={getPearPrompt('couple quiz')} onDismiss={dismissPearNudge} />}
+              </div>
             ) : (
               <div style={{ padding: '2rem', borderRadius: '1rem', background: `${pal.accent}10`, border: `1px solid ${pal.accent}20` }}>
-                <p style={{ color: safeMuted,  }}>
-                  {editMode ? 'Add quiz questions in the block settings' : 'Quiz questions will appear here for your guests'}
-                </p>
+                <p style={{ color: safeMuted }}>Quiz questions will appear here for your guests</p>
               </div>
             )}
           </section>
@@ -1835,15 +1908,16 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       }
       case 'anniversary': {
         const annMilestones = (blockCfg.milestones as Array<{ label: string; date?: string; emoji?: string }>) || [];
+        const hasAnnMilestones = annMilestones.length > 0;
         const weddingDateStr = manifest.events?.[0]?.date || manifest.logistics?.date;
-        const defaultMilestones = annMilestones.length > 0 ? annMilestones : [
+        const defaultMilestones = hasAnnMilestones ? annMilestones : [
           { label: 'First Date', emoji: '✦', date: '' },
           { label: 'Engaged', emoji: '✦', date: '' },
           { label: weddingDateStr ? 'Wedding Day' : '1 Year', emoji: '✦', date: weddingDateStr || '' },
           { label: 'Today', emoji: '✦', date: new Date().toISOString().slice(0, 10) },
         ];
         return (
-          <section key={key} data-pe-section="anniversary" style={{ padding: '4rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
+          <section key={key} data-pe-section="anniversary" data-pe-empty-section={!hasAnnMilestones ? 'anniversary' : undefined} style={{ padding: '4rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
             <div style={{ fontSize: '2rem', color: pal.accent, opacity: 0.4, marginBottom: '1rem' }}>{vibeSkin.accentSymbol || '✦'}</div>
             <h2 data-pe-editable="true" data-pe-path="poetry.anniversaryTitle" style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: safeFg, marginBottom: '1.5rem' }}>
               {(blockCfg.title as string) || 'Anniversary Milestones'}
@@ -1857,12 +1931,19 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                 </div>
               ))}
             </div>
+            {!hasAnnMilestones && editMode && (
+              <div style={{ marginTop: '1.5rem' }}>
+                <PearHelpButton label="Ask Pear to add milestones" prompt={getPearPrompt('anniversary milestones')} />
+                {pearNudgeSection === 'anniversary' && <PearNudge prompt={getPearPrompt('anniversary milestones')} onDismiss={dismissPearNudge} />}
+              </div>
+            )}
           </section>
         );
       }
-      case 'storymap':
+      case 'storymap': {
+        const hasLocations = (manifest.chapters || []).some(c => c.location?.label);
         return (
-          <section key={key} data-pe-section="storymap" style={{ padding: '4rem 2rem', textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
+          <section key={key} data-pe-section="storymap" data-pe-empty-section={!hasLocations ? 'storymap' : undefined} style={{ padding: '4rem 2rem', textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
             <h2 data-pe-editable="true" data-pe-path="poetry.storymapTitle" style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: safeFg, marginBottom: '1rem' }}>
               Our Journey
             </h2>
@@ -1873,12 +1954,19 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                   📍 {ch.location!.label}
                 </div>
               ))}
-              {!(manifest.chapters || []).some(c => c.location?.label) && (
-                <p style={{ color: safeMuted,  }}>Add locations to your chapters to see them here</p>
+              {!hasLocations && (
+                editMode ? (
+                  <div className="pl-empty-gradient" style={{ width: '100%', padding: '2rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
+                    <p style={{ fontSize: '0.8rem', marginBottom: '0.75rem' }}>Add locations to your story chapters to see them here</p>
+                    <PearHelpButton label="Ask Pear to add locations" prompt={getPearPrompt('story map locations')} />
+                    {pearNudgeSection === 'storymap' && <PearNudge prompt={getPearPrompt('story map locations')} onDismiss={dismissPearNudge} />}
+                  </div>
+                ) : <p style={{ color: safeMuted }}>Add locations to your chapters to see them here</p>
               )}
             </div>
           </section>
         );
+      }
       default:
         // Unknown block type — show placeholder instead of nothing
         return (
@@ -2027,6 +2115,15 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       {/* Inline-edit visual states + section tooltips */}
       {editMode && (
         <style>{`
+          /* Hover hint: dotted underline on editable fields */
+          [data-pe-editable="true"]:not([contenteditable="true"]):not(.pe-edit-primed):hover {
+            text-decoration: underline;
+            text-decoration-style: dotted;
+            text-decoration-color: rgba(163,177,138,0.6);
+            text-underline-offset: 3px;
+            cursor: text;
+          }
+
           [data-pe-editable="true"].pe-edit-primed {
             outline: 2px solid rgba(24,24,27,0.22) !important;
             outline-offset: 3px !important;
@@ -2200,6 +2297,22 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               {manifest.faqs?.length ? <section id="faq"><FaqSection faqs={manifest.faqs} /></section> : null}
             </>
           )}
+
+          {/* Custom pages — user-created pages rendered as anchor sections */}
+          {manifest.customPages?.map(cp => (
+            <section key={cp.id} id={cp.id} data-pe-section={cp.id} style={{ position: 'relative' }}>
+              {cp.blocks?.length ? (
+                cp.blocks.filter(b => b.visible !== false).sort((a, b) => a.order - b.order).map(b => renderBlock(b))
+              ) : editMode ? (
+                <div style={{ padding: '4rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
+                  <div className="pl-empty-gradient" style={{ padding: '2.5rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: pal.muted || '#71717A' }}>
+                    <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: pal.foreground || pal.ink || '#18181B', marginBottom: '0.5rem' }}>{cp.icon} {cp.title}</div>
+                    <p style={{ fontSize: '0.8rem' }}>This custom page is empty. Add blocks from the Story panel.</p>
+                  </div>
+                </div>
+              ) : null}
+            </section>
+          ))}
         </main>
 
         {/* Footer */}
