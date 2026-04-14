@@ -30,17 +30,21 @@ export const fontSize = {
 } as const;
 
 // ── Shared label style ────────────────────────────────────────
+// Mirrors PanelField's label tokens so inputs built on editor-utils
+// look identical to those built on the new Panel primitives.
 export const lbl: React.CSSProperties = {
-  display: 'block', fontSize: fontSize.xs, fontWeight: 600,
-  letterSpacing: '0.04em', textTransform: 'uppercase',
-  color: '#A1A1AA', marginBottom: '4px',
+  display: 'block', fontSize: fontSize.xs, fontWeight: 700,
+  letterSpacing: '0.1em', textTransform: 'uppercase',
+  color: '#71717A', marginBottom: '6px',
+  lineHeight: 1.4,
 };
 
 // ── Section heading (bigger than field labels) ────────────────
 export const sectionHeading: React.CSSProperties = {
-  fontSize: fontSize.md, fontWeight: 600,
-  letterSpacing: '0.04em', textTransform: 'uppercase',
-  color: '#18181B', marginBottom: spacing.sm,
+  fontSize: fontSize.xs, fontWeight: 700,
+  letterSpacing: '0.1em', textTransform: 'uppercase',
+  color: '#3F3F46', marginBottom: spacing.sm,
+  lineHeight: 1.3,
 };
 
 // ── Shared input style ───────────────────────────────────────

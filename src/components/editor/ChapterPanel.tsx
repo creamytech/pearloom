@@ -12,6 +12,13 @@ import { Field, inp } from './editor-utils';
 import { ImageManager } from './ImageManager';
 import { SectionStyleEditor } from './SectionStyleEditor';
 import { AlternatesCarousel } from './AlternatesCarousel';
+import {
+  panelText,
+  panelWeight,
+  panelTracking,
+  panelLineHeight,
+  panelDivider,
+} from './panel';
 import type { Chapter } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
 import type { SectionStyleOverrides } from './SectionStyleEditor';
@@ -46,16 +53,21 @@ interface ChapterPanelProps {
 
 /** Lightweight divider between sections */
 function Divider() {
-  return <div style={{ height: '1px', background: '#F4F4F5', margin: '4px 0' }} />;
+  return <div style={{ height: '1px', background: panelDivider.color, margin: '4px 0' }} />;
 }
 
 /** Section label — just a small muted string, no card */
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <span style={{
-      fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em',
-      textTransform: 'uppercase', color: '#A1A1AA', display: 'block',
+      fontSize: panelText.label,
+      fontWeight: panelWeight.bold,
+      letterSpacing: panelTracking.wider,
+      textTransform: 'uppercase',
+      color: '#71717A',
+      display: 'block',
       marginBottom: '6px',
+      lineHeight: panelLineHeight.tight,
     }}>
       {children}
     </span>
@@ -79,9 +91,11 @@ export function ChapterPanel({
         placeholder="Chapter title"
         style={{
           ...inp,
-          fontSize: 'max(16px, 0.9rem)',
-          fontWeight: 600,
-          padding: '8px 10px',
+          fontSize: 'max(16px, 0.85rem)',
+          fontWeight: panelWeight.semibold,
+          fontFamily: 'inherit',
+          padding: '9px 11px',
+          lineHeight: panelLineHeight.tight,
         }}
       />
 
@@ -106,15 +120,19 @@ export function ChapterPanel({
               onClick={() => onAIRewrite(chapter.id)}
               disabled={isRewriting}
               style={{
-                display: 'flex', alignItems: 'center', gap: '3px',
-                padding: '3px 8px', borderRadius: '4px',
+                display: 'flex', alignItems: 'center', gap: '4px',
+                padding: '4px 9px', borderRadius: '6px',
                 border: '1px solid #E4E4E7', background: '#F4F4F5',
-                color: '#18181B', fontSize: '0.6rem', fontWeight: 600,
+                color: '#18181B',
+                fontSize: panelText.chip,
+                fontWeight: panelWeight.semibold,
+                fontFamily: 'inherit',
                 cursor: isRewriting ? 'not-allowed' : 'pointer',
                 opacity: isRewriting ? 0.5 : 1,
+                transition: 'background 0.15s',
               }}
             >
-              {isRewriting ? <Loader2 size={9} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={9} />}
+              {isRewriting ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={10} />}
               Rewrite
             </button>
             {onShowAlternates && (
@@ -122,15 +140,19 @@ export function ChapterPanel({
                 onClick={onShowAlternates}
                 disabled={isLoadingAlternates}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: '3px',
-                  padding: '3px 8px', borderRadius: '4px',
+                  display: 'flex', alignItems: 'center', gap: '4px',
+                  padding: '4px 9px', borderRadius: '6px',
                   border: '1px solid #E4E4E7', background: '#F4F4F5',
-                  color: '#18181B', fontSize: '0.6rem', fontWeight: 600,
+                  color: '#18181B',
+                  fontSize: panelText.chip,
+                  fontWeight: panelWeight.semibold,
+                  fontFamily: 'inherit',
                   cursor: isLoadingAlternates ? 'not-allowed' : 'pointer',
                   opacity: isLoadingAlternates ? 0.5 : 1,
+                  transition: 'background 0.15s',
                 }}
               >
-                {isLoadingAlternates ? <Loader2 size={9} style={{ animation: 'spin 1s linear infinite' }} /> : '✦'}
+                {isLoadingAlternates ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : '✦'}
                 Alts
               </button>
             )}
@@ -143,8 +165,13 @@ export function ChapterPanel({
           rows={3}
           placeholder="Write your memory here..."
           style={{
-            ...inp, resize: 'vertical', lineHeight: 1.6, minHeight: '80px',
-            fontSize: '0.8rem', padding: '8px 10px',
+            ...inp,
+            resize: 'vertical',
+            lineHeight: 1.55,
+            minHeight: '80px',
+            fontSize: 'max(16px, 0.8rem)',
+            fontFamily: 'inherit',
+            padding: '9px 11px',
             ...(streamingText != null ? { opacity: 0.85, cursor: 'default' } : {}),
           }}
         />
@@ -173,13 +200,17 @@ export function ChapterPanel({
                 key={m.id}
                 onClick={() => upd({ mood: m.label.toLowerCase() })}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: '5px',
-                  padding: '5px 10px', borderRadius: '8px',
-                  border: isActive ? `1.5px solid ${m.color}` : '1px solid #E4E4E7',
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  padding: '6px 11px', borderRadius: '100px',
+                  border: isActive ? `2px solid ${m.color}` : '1px solid #E4E4E7',
                   background: isActive ? `${m.color}1A` : '#FFFFFF',
-                  cursor: 'pointer', fontSize: '0.68rem', fontWeight: 600,
+                  cursor: 'pointer',
+                  fontSize: panelText.chip,
+                  fontWeight: isActive ? panelWeight.bold : panelWeight.semibold,
+                  fontFamily: 'inherit',
                   color: isActive ? m.color : '#3F3F46',
                   transition: 'all 0.15s',
+                  lineHeight: panelLineHeight.tight,
                 }}
               >
                 <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: m.color, flexShrink: 0 }} />
@@ -192,7 +223,13 @@ export function ChapterPanel({
           value={chapter.mood || ''}
           onChange={e => upd({ mood: e.target.value })}
           placeholder="Or type a custom mood..."
-          style={{ ...inp, fontSize: '0.65rem', padding: '5px 8px', minHeight: 'auto' }}
+          style={{
+            ...inp,
+            fontSize: 'max(16px, 0.75rem)',
+            fontFamily: 'inherit',
+            padding: '7px 10px',
+            minHeight: 'auto',
+          }}
         />
       </div>
 
