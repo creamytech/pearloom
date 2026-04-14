@@ -287,6 +287,41 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
       disabled: !activeChapter,
       action: () => {
         if (activeChapter) {
+          // Chapters are *creative* sections — per the no-auto-tab-switch
+          // pivot (commit 5f5521a) we inline-edit on canvas instead of
+          // force-switching to the Story panel. Select the block and fire
+          // the inline-popover events; the editor canvas listens for
+          // `pearloom-select-block` and `pearloom-block-config-open`.
+          dispatch({ type: 'SET_ACTIVE_ID', id: activeChapter.id });
+          const detail: { blockType: string; blockId: string } = {
+            blockType: 'chapter',
+            blockId: activeChapter.id,
+          };
+          window.dispatchEvent(new CustomEvent('pearloom-select-block', { detail }));
+          // Best-effort: anchor the popover to the chapter's DOM node if
+          // we can find it. If not, the select event alone still opens
+          // the inline toolbar / layout switcher.
+          const el = document.querySelector(`[data-block-id="${activeChapter.id}"]`);
+          const rect = el?.getBoundingClientRect();
+          if (rect) {
+            window.dispatchEvent(new CustomEvent('pearloom-block-config-open', {
+              detail: { ...detail, rect },
+            }));
+          }
+        }
+        close();
+      },
+    },
+    {
+      id: 'open-in-panel',
+      label: 'Open in panel \u2192',
+      icon: Settings,
+      disabled: !activeChapter,
+      action: () => {
+        // Opt-in escape hatch for users who prefer the full-width Story
+        // panel over inline editing. Explicit label so it's no longer the
+        // default behavior for right-click.
+        if (activeChapter) {
           dispatch({ type: 'SET_ACTIVE_ID', id: activeChapter.id });
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
         }

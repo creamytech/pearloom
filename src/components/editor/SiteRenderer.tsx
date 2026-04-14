@@ -1561,9 +1561,15 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         // Ensure the divider section is always tall enough to click on in the editor,
         // even when the visual variant renders very thin (e.g. a 1px line).
         const editMinHeight: React.CSSProperties = editMode ? { minHeight: 40 } : {};
+        // Surface the clickable hit-area with a subtle inset outline + faint
+        // wash on hover so users can see they can click a near-invisible
+        // divider in edit mode. Rule lives in globals.css and only applies
+        // when the class is present (edit mode only → no effect on
+        // published output).
+        const editHitClass = editMode ? 'pl-divider-edit-hit' : undefined;
         if (divStyle === 'line') {
           return (
-            <section key={key} data-pe-section="divider" data-block-id={block.id} style={{ padding: `${Math.max(divHeight / 2, 20)}px 2rem`, ...editMinHeight, display: 'flex', alignItems: 'center' }}>
+            <section key={key} data-pe-section="divider" data-block-id={block.id} className={editHitClass} style={{ padding: `${Math.max(divHeight / 2, 20)}px 2rem`, ...editMinHeight, display: 'flex', alignItems: 'center' }}>
               <div style={{ width: '100%', maxWidth: '400px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <div style={{ flex: 1, height: '1px', background: pal.accent, opacity: 0.25 }} />
                 <span style={{ color: pal.accent, opacity: 0.45, fontSize: '1rem', lineHeight: 1 }}>{vibeSkin.accentSymbol || '✦'}</span>
@@ -1574,7 +1580,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         }
         if (divStyle === 'dots') {
           return (
-            <section key={key} data-pe-section="divider" data-block-id={block.id} style={{ padding: `${Math.max(divHeight / 2, 20)}px 2rem`, textAlign: 'center', ...editMinHeight, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <section key={key} data-pe-section="divider" data-block-id={block.id} className={editHitClass} style={{ padding: `${Math.max(divHeight / 2, 20)}px 2rem`, textAlign: 'center', ...editMinHeight, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', alignItems: 'center' }}>
                 {[0.25, 0.5, 1, 0.5, 0.25].map((op, i) => (
                   <div key={i} style={{ width: i === 2 ? '7px' : '5px', height: i === 2 ? '7px' : '5px', borderRadius: '50%', background: pal.accent, opacity: op }} />
@@ -1585,7 +1591,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         }
         if (divStyle === 'botanical') {
           return (
-            <section key={key} data-pe-section="divider" data-block-id={block.id} style={{ padding: `${Math.max(divHeight / 2, 16)}px 2rem`, textAlign: 'center', ...editMinHeight }}>
+            <section key={key} data-pe-section="divider" data-block-id={block.id} className={editHitClass} style={{ padding: `${Math.max(divHeight / 2, 16)}px 2rem`, textAlign: 'center', ...editMinHeight }}>
               {art.dividerPath ? (
                 <svg viewBox="0 0 200 50" style={{ width: '100%', maxWidth: '420px', height: `${divHeight}px` }} preserveAspectRatio="none">
                   <path d={art.dividerPath} fill="none" stroke={pal.accent} strokeWidth="1.5" opacity="0.35" />
@@ -1601,7 +1607,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         // wave (default) — WaveDivider has a negative top-margin pulling it up,
         // so reserve guaranteed clickable height in edit mode.
         return (
-          <section key={key} data-pe-section="divider" data-block-id={block.id} style={{ ...editMinHeight }}>
+          <section key={key} data-pe-section="divider" data-block-id={block.id} className={editHitClass} style={{ ...editMinHeight }}>
             <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={divHeight} />
           </section>
         );

@@ -18,6 +18,8 @@ import { useEditor } from '@/lib/editor-state';
 import { Field, lbl, inp } from './editor-utils';
 import { ImageManager } from './ImageManager';
 import { GalleryPicker } from './GalleryPicker';
+import { PRESET_THEMES } from './ThemeSwitcher';
+import type { VibeSkin } from '@/lib/vibe-engine';
 import type { Chapter, ChapterImage, WeddingEvent, FaqItem, StoryManifest } from '@/types';
 
 // ── Section type → icon + display name mapping ──────────────
@@ -173,20 +175,39 @@ export function MobileContextPanel({
           const chapter = state.chapters.find(c => c.id === activeChapterId);
           if (chapter) {
             return (
-              <ChapterSettings
-                chapter={chapter}
-                onUpdate={(data) => scheduleChapterUpdate(chapter.id, data)}
-                onRewrite={() => actions.handleAIRewrite(chapter.id)}
-                isRewriting={state.rewritingId === chapter.id}
-              />
+              <>
+                {/* Quick style — mirrors desktop InlineStylePicker so mobile
+                    users can swap fonts / palette / accent without drilling
+                    into the Design panel. Positioned at the top of the
+                    chapter editor so it's instantly visible on open. */}
+                <QuickStyleSection
+                  manifest={manifest}
+                  onApply={(patch) => actions.handleDesignChange({ ...manifest, ...patch })}
+                  onOpenFullPanel={() => dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' })}
+                />
+                <ChapterSettings
+                  chapter={chapter}
+                  onUpdate={(data) => scheduleChapterUpdate(chapter.id, data)}
+                  onRewrite={() => actions.handleAIRewrite(chapter.id)}
+                  isRewriting={state.rewritingId === chapter.id}
+                />
+              </>
             );
           }
         }
-        // No specific chapter — show chapter list hint
+        // No specific chapter — still surface quick-style at the top so
+        // users can tweak the look even when they haven't picked a chapter.
         return (
-          <div style={{ ...sectionPad, color: '#71717A', fontSize: 'var(--pl-text-sm)' }}>
-            Tap a specific chapter in the preview to edit it.
-          </div>
+          <>
+            <QuickStyleSection
+              manifest={manifest}
+              onApply={(patch) => actions.handleDesignChange({ ...manifest, ...patch })}
+              onOpenFullPanel={() => dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' })}
+            />
+            <div style={{ ...sectionPad, color: '#71717A', fontSize: 'var(--pl-text-sm)' }}>
+              Tap a specific chapter in the preview to edit it.
+            </div>
+          </>
         );
       }
 
@@ -1652,6 +1673,341 @@ function BlockSettings({
           />
         )}
       </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Quick Style — mobile mirror of InlineStylePicker (desktop)
+// Same font-pair / palette / accent swatches, same preset data
+// (PRESET_THEMES), same manifest-write pattern (updates both
+// vibeSkin.* and theme.* so downstream consumers stay in sync).
+// ═══════════════════════════════════════════════════════════════
+
+// Curated subset — identical choices to InlineStylePicker so desktop
+// and mobile feel like the same feature.
+const MOBILE_FONT_SWATCH_NAMES = [
+  'Ivory Garden',
+  'Midnight Luxe',
+  'Coastal Breeze',
+  'Blush Editorial',
+  'Art Deco Glamour',
+];
+
+const MOBILE_PALETTE_SWATCH_NAMES = [
+  'Ivory Garden',
+  'Midnight Luxe',
+  'Coastal Breeze',
+  'Forest Romance',
+  'Blush Editorial',
+  'Golden Hour',
+];
+
+const MOBILE_ACCENT_SWATCH_NAMES = [
+  'Ivory Garden',
+  'Midnight Luxe',
+  'Blush Editorial',
+  'Coastal Breeze',
+  'Art Deco Glamour',
+  'Garden Party',
+];
+
+const pickMobilePreset = (name: string) =>
+  PRESET_THEMES.find((p) => p.name === name);
+
+function QuickStyleSection({
+  manifest,
+  onApply,
+  onOpenFullPanel,
+}: {
+  manifest: StoryManifest;
+  onApply: (patch: Partial<StoryManifest>) => void;
+  onOpenFullPanel: () => void;
+}) {
+  // ── Apply helpers — mirror InlineStylePicker.applyFonts/Palette/Accent.
+  // Both vibeSkin.* and theme.* are written so the manifest stays
+  // self-consistent across the engine and the renderer.
+  const applyFonts = (fonts: VibeSkin['fonts']) => {
+    if (!manifest) return;
+    onApply({
+      theme: { ...manifest.theme, fonts: { heading: fonts.heading, body: fonts.body } },
+      vibeSkin: manifest.vibeSkin
+        ? { ...manifest.vibeSkin, fonts: { ...manifest.vibeSkin.fonts, ...fonts } }
+        : manifest.vibeSkin,
+    });
+  };
+
+  const applyPalette = (palette: VibeSkin['palette']) => {
+    if (!manifest) return;
+    onApply({
+      vibeSkin: manifest.vibeSkin
+        ? { ...manifest.vibeSkin, palette: { ...manifest.vibeSkin.palette, ...palette } }
+        : manifest.vibeSkin,
+      theme: {
+        ...manifest.theme,
+        colors: {
+          ...manifest.theme.colors,
+          background: palette.background,
+          foreground: palette.foreground,
+          accent: palette.accent,
+          muted: palette.muted,
+        },
+      },
+    });
+  };
+
+  const applyAccent = (accent: string) => {
+    if (!manifest) return;
+    onApply({
+      vibeSkin: manifest.vibeSkin
+        ? {
+            ...manifest.vibeSkin,
+            palette: { ...manifest.vibeSkin.palette, accent },
+          }
+        : manifest.vibeSkin,
+      theme: {
+        ...manifest.theme,
+        colors: { ...manifest.theme.colors, accent },
+      },
+    });
+  };
+
+  return (
+    <div
+      style={{
+        padding: '14px 16px 12px',
+        borderBottom: '1px solid var(--pl-black-6)',
+        background: 'var(--pl-glass-light)',
+      }}
+    >
+      <div
+        style={{
+          fontSize: 'var(--pl-text-2xs)',
+          fontWeight: 700,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          color: '#71717A',
+          marginBottom: 8,
+        }}
+      >
+        Quick style
+      </div>
+
+      {/* Fonts */}
+      <QuickStyleLabel>Font pair</QuickStyleLabel>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
+        {MOBILE_FONT_SWATCH_NAMES.map((name) => {
+          const p = pickMobilePreset(name);
+          if (!p) return null;
+          const active =
+            manifest?.vibeSkin?.fonts?.heading === p.fonts.heading &&
+            manifest?.vibeSkin?.fonts?.body === p.fonts.body;
+          return (
+            <button
+              key={name}
+              type="button"
+              onClick={() => applyFonts(p.fonts)}
+              aria-label={`Apply ${name} fonts`}
+              style={{
+                display: 'flex',
+                alignItems: 'baseline',
+                justifyContent: 'space-between',
+                gap: 10,
+                minHeight: 44,
+                padding: '10px 12px',
+                borderRadius: 10,
+                background: active ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.6)',
+                border: active
+                  ? '1px solid rgba(24,24,27,0.25)'
+                  : '1px solid var(--pl-black-6)',
+                color: '#18181B',
+                cursor: 'pointer',
+                textAlign: 'left',
+                width: '100%',
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: `'${p.fonts.heading}', serif`,
+                  fontSize: 17,
+                  lineHeight: 1.1,
+                  letterSpacing: '0.01em',
+                  color: '#18181B',
+                }}
+              >
+                {p.fonts.heading}
+              </span>
+              <span
+                style={{
+                  fontFamily: `'${p.fonts.body}', sans-serif`,
+                  fontSize: 11,
+                  color: '#71717A',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {p.fonts.body}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Palette — 2-column grid of striped swatches */}
+      <QuickStyleLabel>Color palette</QuickStyleLabel>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+          gap: 8,
+          marginBottom: 12,
+        }}
+      >
+        {MOBILE_PALETTE_SWATCH_NAMES.map((name) => {
+          const p = pickMobilePreset(name);
+          if (!p) return null;
+          const active =
+            manifest?.vibeSkin?.palette?.background === p.palette.background &&
+            manifest?.vibeSkin?.palette?.accent === p.palette.accent;
+          const stripes: Array<{ color: string; key: string }> = [
+            { key: 'bg', color: p.palette.background },
+            { key: 'accent', color: p.palette.accent },
+            { key: 'accent2', color: p.palette.accent2 },
+            { key: 'ink', color: p.palette.ink },
+          ];
+          return (
+            <button
+              key={name}
+              type="button"
+              onClick={() => applyPalette(p.palette)}
+              aria-label={`Apply ${name} palette`}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+                minHeight: 56,
+                padding: 8,
+                borderRadius: 10,
+                background: active ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.6)',
+                border: active
+                  ? '1px solid rgba(24,24,27,0.25)'
+                  : '1px solid var(--pl-black-6)',
+                cursor: 'pointer',
+                textAlign: 'left',
+                width: '100%',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  height: 18,
+                  borderRadius: 5,
+                  overflow: 'hidden',
+                  border: '1px solid rgba(0,0,0,0.08)',
+                }}
+              >
+                {stripes.map((s) => (
+                  <div key={s.key} style={{ flex: 1, background: s.color }} />
+                ))}
+              </div>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: '#18181B',
+                  letterSpacing: '0.01em',
+                  lineHeight: 1.2,
+                }}
+              >
+                {name}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Accent — circular swatches, ≥44px hit area */}
+      <QuickStyleLabel>Accent color</QuickStyleLabel>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 6, justifyContent: 'space-between' }}>
+        {MOBILE_ACCENT_SWATCH_NAMES.map((name) => {
+          const p = pickMobilePreset(name);
+          if (!p) return null;
+          const active = manifest?.vibeSkin?.palette?.accent === p.palette.accent;
+          return (
+            <button
+              key={name}
+              type="button"
+              onClick={() => applyAccent(p.palette.accent)}
+              aria-label={`${name} accent`}
+              title={`${name} accent`}
+              style={{
+                flex: 1,
+                minWidth: 44,
+                minHeight: 44,
+                aspectRatio: '1 / 1',
+                borderRadius: '50%',
+                background: p.palette.accent,
+                border: active
+                  ? '2px solid #18181B'
+                  : '2px solid rgba(0,0,0,0.08)',
+                boxShadow: active
+                  ? '0 0 0 2px rgba(24,24,27,0.15)'
+                  : 'none',
+                cursor: 'pointer',
+                padding: 0,
+              }}
+            />
+          );
+        })}
+      </div>
+
+      {/* More options escape hatch → opens the full Design panel */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          marginTop: 6,
+        }}
+      >
+        <button
+          type="button"
+          onClick={onOpenFullPanel}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            padding: '8px 10px',
+            minHeight: 36,
+            borderRadius: 8,
+            background: 'transparent',
+            border: 'none',
+            color: '#71717A',
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            cursor: 'pointer',
+          }}
+        >
+          More options →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function QuickStyleLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: '0.10em',
+        textTransform: 'uppercase',
+        color: '#71717A',
+        marginBottom: 6,
+      }}
+    >
+      {children}
     </div>
   );
 }
