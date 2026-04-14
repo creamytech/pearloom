@@ -1072,8 +1072,12 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 onMouseOver={e => { if (!aiMealLoading) (e.currentTarget as HTMLElement).style.background = '#E4E4E7'; }}
                 onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = aiMealLoading ? '#FAFAFA' : '#F4F4F5'; }}
               >
-                <Sparkles size={10} />
-                {aiMealLoading ? 'Generating...' : 'Generate Menu with AI'}
+                {aiMealLoading ? (
+                  <Loader2 size={10} style={{ animation: 'spin 0.8s linear infinite' }} />
+                ) : (
+                  <Sparkles size={10} />
+                )}
+                {aiMealLoading ? 'Generating…' : 'Generate Menu with AI'}
               </button>
               <button onClick={addMealOption} style={{
                 display: 'flex', alignItems: 'center', gap: '4px',
@@ -1436,8 +1440,12 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             onMouseOver={e => { if (!aiFaqLoading) (e.currentTarget as HTMLElement).style.background = '#E4E4E7'; }}
             onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = aiFaqLoading ? '#FAFAFA' : '#F4F4F5'; }}
           >
-            <Sparkles size={11} />
-            {aiFaqLoading ? 'Pear is thinking...' : 'Ask Pear to write FAQs'}
+            {aiFaqLoading ? (
+              <Loader2 size={11} style={{ animation: 'spin 0.8s linear infinite' }} />
+            ) : (
+              <Sparkles size={11} />
+            )}
+            {aiFaqLoading ? 'Generating…' : 'Ask Pear to write FAQs'}
           </button>
           <button onClick={addFaq} style={{
             display: 'flex', alignItems: 'center', gap: '4px',
