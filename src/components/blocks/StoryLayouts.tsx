@@ -1580,7 +1580,7 @@ export type StoryLayoutType =
   | 'kenburns'
   | 'bento';
 
-const LAYOUT_OPTIONS: Array<{ type: StoryLayoutType; label: string; desc: string }> = [
+export const LAYOUT_OPTIONS: Array<{ type: StoryLayoutType; label: string; desc: string }> = [
   { type: 'parallax', label: 'Parallax', desc: 'Full-bleed photos with scroll depth' },
   { type: 'filmstrip', label: 'Film Strip', desc: 'Cinematic horizontal scroll' },
   { type: 'magazine', label: 'Magazine', desc: 'Editorial photo + text pairing' },
@@ -1590,7 +1590,7 @@ const LAYOUT_OPTIONS: Array<{ type: StoryLayoutType; label: string; desc: string
 ];
 
 // Mini-diagram renderers — abstract representations of each layout
-function MiniDiagram({ type }: { type: StoryLayoutType }) {
+export function MiniDiagram({ type }: { type: StoryLayoutType }) {
   const box: React.CSSProperties = {
     width: '100%',
     height: '72px',

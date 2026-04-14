@@ -62,6 +62,7 @@ import { trackPublish, trackEdit } from '@/lib/intelligence';
 import { WeddingPartyEditor } from './WeddingPartyEditor';
 import { EditorTour } from './EditorTour';
 import { GettingStartedChecklist } from './GettingStartedChecklist';
+import { InlineStoryLayoutSwitcher } from './InlineStoryLayoutSwitcher';
 import { PearPublishAudit } from './PearPublishAudit';
 import {
   duplicateBlock, deleteBlock, moveBlockUp, moveBlockDown,
@@ -960,6 +961,9 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       {/* Guided tour (first-time only) + Getting started checklist */}
       {!state.isMobile && <EditorTour />}
       {!state.isMobile && <GettingStartedChecklist />}
+
+      {/* Inline story layout switcher — appears above a selected story section */}
+      {!state.isMobile && <InlineStoryLayoutSwitcher />}
     </div>
     </DndContext>
     </EditorContext.Provider>
