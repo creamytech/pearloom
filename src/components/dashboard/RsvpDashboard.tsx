@@ -25,6 +25,7 @@ interface Guest {
   dietaryRestrictions?: string;
   message?: string;
   respondedAt?: string;
+  eventIds?: string[];
 }
 
 interface RsvpStats {
@@ -35,10 +36,16 @@ interface RsvpStats {
   total: number;
 }
 
+interface EventOption {
+  id: string;
+  name: string;
+}
+
 interface RsvpDashboardProps {
   siteId: string;
   initialStats: RsvpStats;
   initialGuests: Guest[];
+  initialEvents?: EventOption[];
   userEmail: string;
 }
 
@@ -213,10 +220,13 @@ export function RsvpDashboard({
   siteId,
   initialStats,
   initialGuests,
+  initialEvents = [],
 }: RsvpDashboardProps) {
   const useMock = false; // Never show mock data — show empty state instead
   const [guests, setGuests] = useState<Guest[]>(initialGuests);
   const [stats, setStats] = useState<RsvpStats>(initialStats);
+  const [events] = useState<EventOption[]>(initialEvents);
+  const [eventFilter, setEventFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [sortKey, setSortKey] = useState<SortKey>('respondedAt');
@@ -264,6 +274,9 @@ export function RsvpDashboard({
   const filtered = useMemo(() => {
     let list = [...guests];
     if (filter !== 'all') list = list.filter(g => g.status === filter);
+    if (eventFilter !== 'all') {
+      list = list.filter(g => Array.isArray(g.eventIds) && g.eventIds.includes(eventFilter));
+    }
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(g =>
@@ -283,7 +296,7 @@ export function RsvpDashboard({
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return list;
-  }, [guests, filter, search, sortKey, sortDir]);
+  }, [guests, filter, eventFilter, search, sortKey, sortDir]);
 
   // ── Exports ────────────────────────────────────────────────
 
@@ -467,6 +480,30 @@ export function RsvpDashboard({
               }}
             />
           </div>
+
+          {/* Event filter (only when multiple events) */}
+          {events.length > 1 && (
+            <select
+              value={eventFilter}
+              onChange={e => setEventFilter(e.target.value)}
+              aria-label="Filter by event"
+              style={{
+                padding: '0.55rem 0.75rem',
+                background: 'rgba(214,198,168,0.05)',
+                border: '1px solid rgba(214,198,168,0.12)',
+                borderRadius: '0.6rem',
+                color: 'var(--pl-ink-soft)',
+                fontSize: '0.84rem',
+                outline: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="all">All events</option>
+              {events.map(ev => (
+                <option key={ev.id} value={ev.id}>{ev.name}</option>
+              ))}
+            </select>
+          )}
 
           {/* Filter pills */}
           <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>

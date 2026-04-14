@@ -46,6 +46,7 @@ export async function GET(req: NextRequest) {
       dietaryRestrictions: row.dietary_restrictions,
       message: row.message,
       respondedAt: row.responded_at,
+      eventIds: Array.isArray(row.event_ids) ? row.event_ids : [],
     }));
 
     return NextResponse.json({ guests });

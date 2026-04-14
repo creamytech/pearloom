@@ -35,6 +35,12 @@ interface Guest {
   dietaryRestrictions?: string;
   message?: string;
   respondedAt?: string;
+  eventIds?: string[];
+}
+
+interface EventOption {
+  id: string;
+  name: string;
 }
 
 async function fetchRsvpData(siteId: string): Promise<{ stats: RsvpStats; guests: Guest[] }> {
@@ -56,6 +62,26 @@ async function fetchRsvpData(siteId: string): Promise<{ stats: RsvpStats; guests
       : { guests: [] };
 
   return { stats, guests: guestsData.guests || [] };
+}
+
+/** Extract a simple list of events from the user's site manifest for filtering. */
+async function fetchSiteEvents(targetSiteId: string): Promise<EventOption[]> {
+  try {
+    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const res = await fetch(`${baseUrl}/api/sites`, { cache: 'no-store' });
+    if (!res.ok) return [];
+    const data = await res.json();
+    const site = (data.sites || []).find((s: { id: string }) => s.id === targetSiteId);
+    const events = site?.manifest?.events;
+    if (!Array.isArray(events)) return [];
+    return events
+      .filter((e: unknown): e is { id: string; name?: string } =>
+        typeof e === 'object' && e !== null && typeof (e as { id?: unknown }).id === 'string'
+      )
+      .map(e => ({ id: e.id, name: e.name || 'Event' }));
+  } catch {
+    return [];
+  }
 }
 
 export default async function RsvpPage({
@@ -94,11 +120,14 @@ export default async function RsvpPage({
         guests: [],
       };
 
+  const events = resolvedSiteId ? await fetchSiteEvents(resolvedSiteId) : [];
+
   return (
     <RsvpDashboard
       siteId={resolvedSiteId}
       initialStats={stats}
       initialGuests={guests}
+      initialEvents={events}
       userEmail={session.user.email}
     />
   );
