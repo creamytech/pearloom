@@ -25,6 +25,12 @@ import { BlockConfigPopover } from './preview/BlockConfigPopover';
 import { BLOCK_SCHEMAS } from '@/lib/block-engine/schema';
 import type { BlockType, PageBlock, Chapter } from '@/types';
 
+// Block types that already ship a dedicated inline UI on the canvas
+// (e.g. InlineStoryLayoutSwitcher for 'story'). We suppress the generic
+// BlockConfigPopover for these so the user isn't hit with two overlapping
+// UIs for the same thing.
+const INLINE_UI_BLOCK_TYPES = new Set<string>(['story']);
+
 // ── Helpers ─────────────────────────────────────────────────
 // Clamp a dimension input (from any source) to a sane pixel range.
 // Rejects NaN / negative and enforces a max of 10000px.
@@ -221,7 +227,10 @@ export function EditorCanvas() {
     dispatch({ type: 'SET_CONTEXT_SECTION', section: null });
     const blockType = sectionId === 'gallery' ? 'photos' : sectionId;
     window.dispatchEvent(new CustomEvent('pearloom-select-block', { detail: { blockType, blockId } }));
-    if (blockId && BLOCK_SCHEMAS[blockType]) {
+    // Don't open the generic config popover for block types that ship a dedicated
+    // inline UI (e.g. 'story' → InlineStoryLayoutSwitcher). Showing both creates
+    // two overlapping dialogs for the same concepts.
+    if (blockId && BLOCK_SCHEMAS[blockType] && !INLINE_UI_BLOCK_TYPES.has(blockType)) {
       const el = canvasRef.current?.querySelector(`[data-block-id="${blockId}"]`);
       const rect = el?.getBoundingClientRect();
       if (rect) {
