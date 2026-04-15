@@ -1429,40 +1429,50 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               editMode={editMode}
             />
             {/* AI-generated corner flourish (takes priority over theme cornerSvg) */}
-            {vibeSkin.cornerFlourishSvg ? (
+            {vibeSkin.cornerFlourishSvg ? (() => {
+              // Pull per-slot overrides from manifest.artSettings.cornerFlourish
+              // so the user's tweaks from InlineArtHoverToolbar actually apply.
+              const cf = manifest.artSettings?.cornerFlourish ?? {};
+              const cfOpacity = cf.opacity ?? 0.7;
+              const cfScale   = cf.scale   ?? 1;
+              const cfColor   = cf.color;
+              return (
               <>
                 <InlineArtHoverToolbar
                   slot="cornerFlourishSvg"
                   label="Corner flourish"
                   editable={editMode}
+                  settings={cf}
                   style={{ position: 'absolute', top: 0, left: 0, width: 'min(28vw, 260px)', height: 'min(28vw, 260px)', zIndex: 2 }}
                 >
                   <motion.div
                     aria-hidden="true"
-                    initial={{ opacity: 0, scale: 0.85, rotate: -4 }}
-                    animate={{ opacity: 0.7, scale: 1, rotate: 0 }}
+                    initial={{ opacity: 0, scale: 0.85 * cfScale, rotate: -4 }}
+                    animate={{ opacity: cfOpacity, scale: cfScale, rotate: 0 }}
                     transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-                    style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
-                    dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.cornerFlourishSvg) }}
+                    style={{ width: '100%', height: '100%', pointerEvents: 'none', color: cfColor || undefined }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.cornerFlourishSvg!) }}
                   />
                 </InlineArtHoverToolbar>
                 <InlineArtHoverToolbar
                   slot="cornerFlourishSvg"
                   label="Corner flourish"
                   editable={editMode}
+                  settings={cf}
                   style={{ position: 'absolute', top: 0, right: 0, width: 'min(28vw, 260px)', height: 'min(28vw, 260px)', zIndex: 2, transform: 'scaleX(-1)' }}
                 >
                   <motion.div
                     aria-hidden="true"
-                    initial={{ opacity: 0, scale: 0.85, rotate: 4 }}
-                    animate={{ opacity: 0.7, scale: 1, rotate: 0 }}
+                    initial={{ opacity: 0, scale: 0.85 * cfScale, rotate: 4 }}
+                    animate={{ opacity: cfOpacity, scale: cfScale, rotate: 0 }}
                     transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-                    style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
-                    dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.cornerFlourishSvg) }}
+                    style={{ width: '100%', height: '100%', pointerEvents: 'none', color: cfColor || undefined }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.cornerFlourishSvg!) }}
                   />
                 </InlineArtHoverToolbar>
               </>
-            ) : art.cornerSvg && (
+              );
+            })() : art.cornerSvg && (
               <>
                 <div
                   aria-hidden="true"
