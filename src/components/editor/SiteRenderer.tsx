@@ -413,6 +413,17 @@ const SectionOverlay = React.memo(function SectionOverlay({
       role="button"
       aria-label={`Edit ${blockType} block`}
       onClick={(e) => {
+        // If the click landed on a more specific sub-element (a chapter
+        // inside the story block, an event card inside events, etc.),
+        // let it bubble up to the siteRef click handler which routes to
+        // the chapter/event/... handler. Stopping propagation here would
+        // force every click inside the block to be treated as a "select
+        // the whole block" action — which is why clicking a chapter was
+        // opening the story layout switcher.
+        const target = e.target as HTMLElement;
+        if (target.closest('[data-pe-chapter],[data-pe-event-id]')) {
+          return;
+        }
         e.stopPropagation();
         onSectionClick?.(blockType, undefined, blockId, { x: e.clientX, y: e.clientY });
       }}

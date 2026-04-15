@@ -57,6 +57,10 @@ export function PearTextRewrite({ onTextEdit, manifest }: PearTextRewriteProps) 
   const [activeStyle, setActiveStyle] = useState<string | null>(null);
   const pillRef = useRef<HTMLDivElement>(null);
   const ignoreNextSelection = useRef(false);
+  // Remember the DOM node that owns the active selection — we need it
+  // when the edit path is synthetic (`chapter:<id>:<field>`) and no
+  // plain [data-pe-path] attribute exists to query by.
+  const editableRef = useRef<HTMLElement | null>(null);
 
   // Current format for the focused path, sourced from the manifest.
   const currentFormat: TextFormat = (editPath && manifest?.textFormats?.[editPath]) || {};
@@ -92,9 +96,18 @@ export function PearTextRewrite({ onTextEdit, manifest }: PearTextRewriteProps) 
       return;
     }
 
-    // Path lives on data-pe-path (data-pe-editable is always "true").
-    const path = editableEl.getAttribute('data-pe-path');
+    // Resolve the manifest path the same way EditBridge does: prefer an
+    // explicit data-pe-path, else derive `chapter:<id>:<field>` from the
+    // enclosing chapter + field attribute (how StoryLayouts marks things).
+    const directPath = editableEl.getAttribute('data-pe-path');
+    const chapterEl = editableEl.closest('[data-pe-chapter]') as HTMLElement | null;
+    const chapterId = chapterEl?.getAttribute('data-pe-chapter') ?? null;
+    const field = editableEl.getAttribute('data-pe-field');
+    const path = directPath
+      || (chapterId && field ? `chapter:${chapterId}:${field}` : null);
     if (!path) return;
+
+    editableRef.current = editableEl;
 
     // Position above the selection
     const range = sel.getRangeAt(0);
@@ -176,10 +189,12 @@ export function PearTextRewrite({ onTextEdit, manifest }: PearTextRewriteProps) 
 
       if (rewritten) {
         // Replace selected text by updating the manifest via the edit path.
-        // Works against the live DOM node (data-pe-path locator) — pick the
-        // exact editable element so we don't accidentally target a different
-        // field that happens to contain the same text.
-        const editableEl = document.querySelector(`[data-pe-path="${editPath}"]`);
+        // Prefer the remembered editable element (works for both direct
+        // [data-pe-path] fields and chapter fields that only expose
+        // data-pe-chapter + data-pe-field). Fall back to a selector
+        // lookup if the node got detached.
+        const editableEl = editableRef.current
+          || document.querySelector(`[data-pe-path="${editPath}"]`);
         const fullText = editableEl?.textContent || '';
         const newText = fullText.replace(selectedText, rewritten);
         onTextEdit(editPath, newText);

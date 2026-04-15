@@ -140,8 +140,19 @@ export function InlineStoryLayoutSwitcher() {
       if (!target) return;
       // Clicks inside the switcher itself are fine.
       if (rootRef.current?.contains(target)) return;
-      // Clicks inside the story block are fine — they'll re-fire
-      // pearloom-select-block and keep us anchored.
+      // Clicks that land on a chapter (or other sub-actionable element)
+      // should dismiss — they're the user saying "I'm done picking a
+      // layout, now let me edit a chapter." Without this, the switcher
+      // would linger because chapter clicks don't re-fire the block
+      // selection event.
+      const el = target as Element;
+      const hitSubTarget = el.closest?.('[data-pe-chapter],[data-pe-event-id]');
+      if (hitSubTarget) {
+        setAnchor(null);
+        return;
+      }
+      // Clicks inside the story block's empty/frame areas keep us open
+      // (they'll re-fire pearloom-select-block and reposition).
       const storyEl = document.querySelector(`[data-block-id="${anchor.blockId}"]`);
       if (storyEl && storyEl.contains(target)) return;
       setAnchor(null);
