@@ -133,7 +133,6 @@ export function EditorCanvas() {
   const registryLeaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [hoveredHero, setHoveredHero] = useState<{ rect: DOMRect } | null>(null);
-  const heroLeaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [focusedTextField, setFocusedTextField] = useState<{
     path: string; rect: DOMRect;
@@ -710,21 +709,36 @@ export function EditorCanvas() {
     dispatch({ type: 'SET_CONTEXT_SECTION', section: 'typography' });
   }, [dispatch]);
 
+  const handleHeroFontsChange = useCallback((heading: string, body: string) => {
+    // Mirror DesignPanel.updateFonts so both theme.fonts and vibeSkin.fonts
+    // stay in sync — SiteRenderer reads from theme.fonts for inline styles.
+    const newFonts = { heading, body };
+    actions.handleDesignChange({
+      ...manifest,
+      theme: { ...manifest.theme, fonts: newFonts },
+      vibeSkin: manifest.vibeSkin ? {
+        ...manifest.vibeSkin,
+        fonts: { ...manifest.vibeSkin.fonts, ...newFonts },
+      } : manifest.vibeSkin,
+    });
+  }, [manifest, actions]);
+
   useEffect(() => {
-    const cancelTimer = () => {
-      if (heroLeaveTimerRef.current) { clearTimeout(heroLeaveTimerRef.current); heroLeaveTimerRef.current = null; }
+    // Hero edit bar is now click-to-open (see SiteRenderer hero click handler).
+    // It stays open until the user clicks outside both the hero and the bar.
+    const onHover = (e: Event) => { setHoveredHero((e as CustomEvent).detail); };
+    const onDocDown = (e: MouseEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (!t) return;
+      if (t.closest('[data-pe-section="hero"]')) return;
+      if (t.closest('[data-pe-hero-editbar]')) return;
+      setHoveredHero(null);
     };
-    const onHover = (e: Event) => { cancelTimer(); setHoveredHero((e as CustomEvent).detail); };
-    const onKeep = () => cancelTimer();
-    const onEnd = () => { heroLeaveTimerRef.current = setTimeout(() => setHoveredHero(null), 300); };
     window.addEventListener('pearloom-hero-hover', onHover);
-    window.addEventListener('pearloom-hero-hover-keep', onKeep);
-    window.addEventListener('pearloom-hero-hover-end', onEnd);
+    document.addEventListener('mousedown', onDocDown);
     return () => {
       window.removeEventListener('pearloom-hero-hover', onHover);
-      window.removeEventListener('pearloom-hero-hover-keep', onKeep);
-      window.removeEventListener('pearloom-hero-hover-end', onEnd);
-      if (heroLeaveTimerRef.current) clearTimeout(heroLeaveTimerRef.current);
+      document.removeEventListener('mousedown', onDocDown);
     };
   }, []);
 
@@ -1156,6 +1170,7 @@ export function EditorCanvas() {
             manifest={manifest}
             canvasRef={canvasRef}
             onStyleChange={handleHeroStyleChange}
+            onFontsChange={handleHeroFontsChange}
             onFontClick={handleHeroFontClick}
           />
         )}

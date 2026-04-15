@@ -1206,25 +1206,22 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     return () => el.removeEventListener('mouseover', onOver);
   }, [editMode]);
 
-  // ── Hero hover → emit event for inline style edit bar ─────────────────────
+  // ── Hero click → emit event for inline style edit bar ────────────────────
+  // Only opens on an explicit click on the hero section; dismissed when the
+  // user clicks outside both the hero and the bar itself (see EditorCanvas).
   useEffect(() => {
     if (!editMode || !siteRef.current) return;
     const el = siteRef.current;
-    let insideHero = false;
-    const onOver = (e: MouseEvent) => {
-      const heroEl = (e.target as HTMLElement).closest('[data-pe-section="hero"]') as HTMLElement | null;
-      if (heroEl && !insideHero) {
-        insideHero = true;
-        window.dispatchEvent(new CustomEvent('pearloom-hero-hover', {
-          detail: { rect: heroEl.getBoundingClientRect() }
-        }));
-      } else if (!heroEl && insideHero) {
-        insideHero = false;
-        window.dispatchEvent(new CustomEvent('pearloom-hero-hover-end'));
-      }
+    const onClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const heroEl = target.closest('[data-pe-section="hero"]') as HTMLElement | null;
+      if (!heroEl) return;
+      window.dispatchEvent(new CustomEvent('pearloom-hero-hover', {
+        detail: { rect: heroEl.getBoundingClientRect() }
+      }));
     };
-    el.addEventListener('mouseover', onOver);
-    return () => el.removeEventListener('mouseover', onOver);
+    el.addEventListener('click', onClick);
+    return () => el.removeEventListener('click', onClick);
   }, [editMode]);
 
   // ── Registry card hover → emit event for toolbar ─────────────────────────
