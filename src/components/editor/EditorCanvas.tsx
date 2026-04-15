@@ -16,6 +16,7 @@ import { PearTextRewrite } from './PearTextRewrite';
 import { SlashMenu } from './SlashMenu';
 import { UndoChip } from './UndoChip';
 import { SuggestionBadges } from './SuggestionBadges';
+import { MultiFieldSelect } from './MultiFieldSelect';
 import { FocalPointOverlay } from './preview/FocalPointOverlay';
 import { CanvasChapterToolbar, type ChapterToolbarAction } from './preview/CanvasChapterToolbar';
 import { CanvasEventToolbar, type EventToolbarAction } from './preview/CanvasEventToolbar';
@@ -1093,6 +1094,10 @@ export function EditorCanvas() {
       {/* Ambient AI suggestion badges — faint ✦ anchored to fields where
           Pear has a ready-made suggestion. Click opens the command bar. */}
       <SuggestionBadges />
+
+      {/* Multi-field select — shift/cmd-click editable fields to batch
+          bold / italic / AI rewrite / clear across multiple at once. */}
+      <MultiFieldSelect />
 
       {/* Focal point drag overlay — activated on chapter image click.
           Also surfaces alt text, replace, and AI caption actions so the
