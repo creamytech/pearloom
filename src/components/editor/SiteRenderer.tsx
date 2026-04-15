@@ -282,6 +282,25 @@ const SectionOverlay = React.memo(function SectionOverlay({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
+  // Hover state for the left-gutter universal action rail. Kept local so
+  // a pointer enter/leave doesn't ripple into parent renders.
+  const [railHover, setRailHover] = useState(false);
+
+  // Shared style for rail buttons — local helper so every button gets the
+  // same 24x24 hit box + hover treatment without a CSS dependency.
+  const railBtnStyle = (cursor: 'pointer' | 'grab' = 'pointer'): React.CSSProperties => ({
+    width: 24,
+    height: 24,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: 'none',
+    borderRadius: 6,
+    background: 'transparent',
+    color: '#71717A',
+    cursor,
+    touchAction: cursor === 'grab' ? 'none' : 'auto',
+  });
   const dragGhostRef = useRef<HTMLDivElement | null>(null);
   const dragStartY = useRef(0);
   // Track listeners so a rapid re-drag tears down the previous session cleanly
@@ -453,6 +472,8 @@ const SectionOverlay = React.memo(function SectionOverlay({
         setMenuPos({ x: e.clientX, y: e.clientY });
         setShowMenu(true);
       }}
+      onPointerEnter={() => { if (editMode) setRailHover(true); }}
+      onPointerLeave={() => setRailHover(false)}
       style={{
         position: 'relative',
         borderRadius: '4px',
@@ -483,6 +504,101 @@ const SectionOverlay = React.memo(function SectionOverlay({
           }}
         />
       )}
+      {/* Universal left-gutter action rail — appears on hover for any block.
+          Gives the user a persistent affordance without having to select
+          the block first. Stays hidden while the selected-state top bar is
+          showing so the two don't duplicate each other. */}
+      {editMode && railHover && !isSelected && !isDragging && (
+        <div
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            position: 'absolute',
+            top: 12,
+            left: -40,
+            zIndex: 90,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            padding: 4,
+            borderRadius: 10,
+            background: 'rgba(250,247,242,0.92)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid #E4E4E7',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+          } as React.CSSProperties}
+          aria-label={`${def?.label || blockType} actions`}
+        >
+          <button
+            onPointerDown={handleDragStart}
+            title="Drag to reorder"
+            aria-label="Drag to reorder"
+            style={railBtnStyle('grab')}
+          >
+            <GripVertical size={12} />
+          </button>
+          <button
+            onClick={() => onBlockAction?.('duplicate', blockId)}
+            title="Duplicate"
+            aria-label="Duplicate block"
+            style={railBtnStyle()}
+          >
+            <Copy size={12} />
+          </button>
+          <button
+            onClick={() => onBlockAction?.('toggleVisibility', blockId)}
+            title="Hide section"
+            aria-label="Hide section"
+            style={railBtnStyle()}
+          >
+            <EyeOff size={12} />
+          </button>
+          <button
+            onClick={() => setConfirmDelete(true)}
+            title="Delete"
+            aria-label="Delete block"
+            style={{ ...railBtnStyle(), color: '#d06060' }}
+          >
+            <Trash2 size={12} />
+          </button>
+          {confirmDelete && (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position: 'absolute',
+                left: '100%',
+                marginLeft: 6,
+                bottom: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: 4,
+                borderRadius: 8,
+                background: '#FFFFFF',
+                border: '1px solid #E4E4E7',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <span style={{ fontSize: '0.65rem', color: '#d06060', fontWeight: 600 }}>Delete?</span>
+              <button
+                onClick={() => { onBlockAction?.('delete', blockId); setConfirmDelete(false); }}
+                style={{ padding: '2px 7px', borderRadius: 5, border: 'none', background: '#d06060', color: '#fff', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700 }}
+              >
+                Yes
+              </button>
+              <button
+                onClick={() => setConfirmDelete(false)}
+                style={{ padding: '2px 7px', borderRadius: 5, border: 'none', background: '#F4F4F5', color: '#52525B', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 600 }}
+              >
+                No
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Inline toolbar — selected only */}
       {editMode && isSelected && (
         <div style={{
