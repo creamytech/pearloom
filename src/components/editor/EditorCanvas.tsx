@@ -14,6 +14,7 @@ import { useEditor, type DeviceMode } from '@/lib/editor-state';
 import { SiteRenderer } from './SiteRenderer';
 import { PearTextRewrite } from './PearTextRewrite';
 import { SlashMenu } from './SlashMenu';
+import { UndoChip } from './UndoChip';
 import { FocalPointOverlay } from './preview/FocalPointOverlay';
 import { CanvasChapterToolbar, type ChapterToolbarAction } from './preview/CanvasChapterToolbar';
 import { CanvasEventToolbar, type EventToolbarAction } from './preview/CanvasEventToolbar';
@@ -1083,6 +1084,10 @@ export function EditorCanvas() {
       {/* Slash-menu — Notion-style insert popover for editable text fields.
           Opens on "/" typed inside any [data-pe-editable][contenteditable]. */}
       <SlashMenu manifest={manifest} coupleNames={coupleNames ?? undefined} />
+
+      {/* Spatial undo chip — briefly appears near the last edit so the user
+          can revert without reaching for Cmd+Z. */}
+      <UndoChip />
 
       {/* Focal point drag overlay — activated on chapter image click */}
       {focalPoint && (
