@@ -1494,6 +1494,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               medallionSvg={vibeSkin.medallionSvg ? sanitizeSvg(vibeSkin.medallionSvg) : undefined}
               accentColor={pal.accent}
               dateFormat={chapterDateFormatOptions(manifest.dateFormat)}
+              artSettings={manifest.artSettings}
               // Only the editor preview marks text as editable so public
               // renders stay read-only.
               editable={editMode}
@@ -2511,6 +2512,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                   medallionSvg={vibeSkin.medallionSvg ? sanitizeSvg(vibeSkin.medallionSvg) : undefined}
                   accentColor={pal.accent}
                   dateFormat={chapterDateFormatOptions(manifest.dateFormat)}
+                  artSettings={manifest.artSettings}
                   editable={editMode}
                   transformUrl={(url) =>
                     url.includes('googleusercontent.com')

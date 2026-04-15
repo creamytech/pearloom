@@ -162,6 +162,27 @@ export interface StoryManifest {
     /** Font family override — pulled from a curated picklist in the editor. */
     fontFamily?: string;
   }>;
+  /**
+   * Per-slot overrides for AI-generated decorative art. Live at the top
+   * level (not inside vibeSkin) so a full vibeSkin regeneration doesn't
+   * nuke user tweaks. Keys map loosely to vibeSkin art slots.
+   */
+  artSettings?: {
+    sectionBorder?: {
+      opacity?: number;       // 0..1, default 0.5
+      scale?: number;         // 0.5..2, default 1 — affects height
+      color?: string;         // CSS color override, default inherits tint
+      /** Preset variant id from separator-presets.ts, overrides the AI svg when set. */
+      variant?: string;
+      /** Where separators appear inside the story block. */
+      placement?: 'between' | 'bookend' | 'top' | 'bottom' | 'none';
+    };
+    medallion?:        { opacity?: number; scale?: number; color?: string };
+    heroBlob?:         { opacity?: number; scale?: number; color?: string };
+    cornerFlourish?:   { opacity?: number; scale?: number; color?: string };
+    accentBlob?:       { opacity?: number; scale?: number; color?: string };
+    heroPattern?:      { opacity?: number; scale?: number; color?: string };
+  };
   // Hero badge style (pill = default pill, outlined = border-only, card = card-style, minimal = text-only dots)
   heroBadgeStyle?: 'pill' | 'outlined' | 'card' | 'minimal';
   // Hero countdown widget style

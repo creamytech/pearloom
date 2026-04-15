@@ -12,6 +12,7 @@ import { colors, radius, shadow, ease, text as textScale } from '@/lib/design-to
 import { formatLocalDate } from '@/lib/date';
 import { getImageBrightness, textColorForBrightness } from '@/lib/smart-features';
 import { InlineArtHoverToolbar } from '@/components/editor/InlineArtHoverToolbar';
+import { SEPARATOR_PRESETS } from '@/lib/separator-presets';
 
 // ── Shared Style Helpers ──────────────────────────────────────
 
@@ -1956,6 +1957,17 @@ export interface StorySectionProps {
   themeFonts?: { heading?: string; body?: string };
   /** VibeSkin cardStyle — override the default card appearance. */
   themeCardStyle?: CardStyle;
+  /** Per-slot art overrides from manifest.artSettings. */
+  artSettings?: {
+    sectionBorder?: {
+      opacity?: number;
+      scale?: number;
+      color?: string;
+      variant?: string;
+      placement?: 'between' | 'bookend' | 'top' | 'bottom' | 'none';
+    };
+    medallion?: { opacity?: number; scale?: number; color?: string };
+  };
 }
 
 // Default format used when no user preference is provided.
@@ -2029,9 +2041,39 @@ export function StorySection({
   editable,
   themeFonts,
   themeCardStyle,
+  artSettings,
 }: StorySectionProps) {
   const layoutType = resolveStoryLayout(storyLayout, layoutFormat);
   const tint = accentColor || '#18181B';
+
+  // Resolve per-slot overrides with sensible defaults.
+  const sb = artSettings?.sectionBorder ?? {};
+  const sbOpacity = sb.opacity ?? 0.5;
+  const sbScale = sb.scale ?? 1;
+  const sbColor = sb.color || tint;
+  const sbPlacement = sb.placement ?? 'between';
+  const sbVariantSvg = sb.variant
+    ? SEPARATOR_PRESETS.find(p => p.id === sb.variant)?.svg
+    : undefined;
+  const effectiveSeparatorSvg = sbVariantSvg || sectionBorderSvg;
+
+  // Should a separator render at a given position?
+  // - placement='between' → between each chapter (existing behavior)
+  // - placement='bookend' → before the first chapter AND after the last
+  // - placement='top'     → only before the first chapter
+  // - placement='bottom'  → only after the last chapter
+  // - placement='none'    → never
+  const shouldRenderSeparator = (pos: 'top' | 'between' | 'bottom'): boolean => {
+    if (!effectiveSeparatorSvg) return false;
+    switch (sbPlacement) {
+      case 'none':    return false;
+      case 'between': return pos === 'between';
+      case 'bookend': return pos === 'top' || pos === 'bottom';
+      case 'top':     return pos === 'top';
+      case 'bottom':  return pos === 'bottom';
+      default:        return pos === 'between';
+    }
+  };
 
   // Apply vibeSkin fonts and card style for this render pass.
   // These module-level variables are updated so all child layout
@@ -2075,6 +2117,32 @@ export function StorySection({
               color: tint,
             }}
             dangerouslySetInnerHTML={{ __html: medallionSvg }}
+          />
+        </InlineArtHoverToolbar>
+      )}
+      {/* Top-of-story separator (placement: top | bookend) */}
+      {shouldRenderSeparator('top') && (
+        <InlineArtHoverToolbar
+          slot="sectionBorderSvg"
+          label="Chapter divider"
+          editable={editable}
+          settings={sb}
+          style={{
+            width: 'min(520px, 80%)',
+            height: 32 * sbScale,
+            margin: '1.25rem auto 2.25rem',
+          }}
+        >
+          <div
+            aria-hidden="true"
+            style={{
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'none',
+              color: sbColor,
+              opacity: sbOpacity,
+            }}
+            dangerouslySetInnerHTML={{ __html: effectiveSeparatorSvg! }}
           />
         </InlineArtHoverToolbar>
       )}
@@ -2205,21 +2273,22 @@ export function StorySection({
               editable={editable}
               index={chapterIndex}
             />
-            {sectionBorderSvg && chapterIndex < chapters.length - 1 && (
+            {chapterIndex < chapters.length - 1 && shouldRenderSeparator('between') && (
               <InlineArtHoverToolbar
                 slot="sectionBorderSvg"
                 label="Chapter divider"
                 editable={editable}
+                settings={sb}
                 style={{
                   width: 'min(520px, 80%)',
-                  height: 32,
+                  height: 32 * sbScale,
                   margin: '2.5rem auto',
                 }}
               >
                 <motion.div
                   aria-hidden="true"
                   initial={isNew ? { opacity: 0, scaleX: 0.6 } : false}
-                  animate={{ opacity: 0.5, scaleX: 1 }}
+                  animate={{ opacity: sbOpacity, scaleX: 1 }}
                   transition={{
                     duration: 0.7,
                     delay: enterDelay + 0.3,
@@ -2229,15 +2298,41 @@ export function StorySection({
                     width: '100%',
                     height: '100%',
                     pointerEvents: 'none',
-                    color: tint,
+                    color: sbColor,
                   }}
-                  dangerouslySetInnerHTML={{ __html: sectionBorderSvg }}
+                  dangerouslySetInnerHTML={{ __html: effectiveSeparatorSvg! }}
                 />
               </InlineArtHoverToolbar>
             )}
           </motion.div>
         );
       })}
+      {/* Bottom-of-story separator (placement: bottom | bookend) */}
+      {shouldRenderSeparator('bottom') && (
+        <InlineArtHoverToolbar
+          slot="sectionBorderSvg"
+          label="Chapter divider"
+          editable={editable}
+          settings={sb}
+          style={{
+            width: 'min(520px, 80%)',
+            height: 32 * sbScale,
+            margin: '2.25rem auto 1.25rem',
+          }}
+        >
+          <div
+            aria-hidden="true"
+            style={{
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'none',
+              color: sbColor,
+              opacity: sbOpacity,
+            }}
+            dangerouslySetInnerHTML={{ __html: effectiveSeparatorSvg! }}
+          />
+        </InlineArtHoverToolbar>
+      )}
     </>
   );
 }

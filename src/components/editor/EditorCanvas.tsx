@@ -23,7 +23,7 @@ import { CanvasHeroEditBar } from './preview/CanvasHeroEditBar';
 import { CanvasInlineFormatBar, type TextFormat } from './preview/CanvasInlineFormatBar';
 import { BlockConfigPopover } from './preview/BlockConfigPopover';
 import { BLOCK_SCHEMAS } from '@/lib/block-engine/schema';
-import type { BlockType, PageBlock, Chapter } from '@/types';
+import type { BlockType, PageBlock, Chapter, StoryManifest } from '@/types';
 
 // Block types that already ship a dedicated inline UI on the canvas
 // (e.g. InlineStoryLayoutSwitcher for 'story'). We suppress the generic
@@ -893,7 +893,14 @@ export function EditorCanvas() {
   useEffect(() => {
     const onArtEdit = async (e: Event) => {
       const detail = (e as CustomEvent).detail as
-        | { slot: string; action: 'remove' | 'regenerate'; index?: number }
+        | {
+            slot: string;
+            action: 'remove' | 'regenerate' | 'set-setting' | 'set-variant';
+            index?: number;
+            settingKey?: string;
+            settingPatch?: Record<string, unknown>;
+            variantId?: string;
+          }
         | undefined;
       if (!detail || !manifestRef.current?.vibeSkin) return;
       const m = manifestRef.current;
@@ -906,6 +913,38 @@ export function EditorCanvas() {
           }),
         );
       };
+
+      // ── Set setting (opacity / scale / color / placement) ──
+      if (detail.action === 'set-setting' && detail.settingKey) {
+        const prev = (m.artSettings ?? {}) as Record<string, Record<string, unknown> | undefined>;
+        const prevForKey = prev[detail.settingKey] ?? {};
+        const nextForKey = { ...prevForKey, ...(detail.settingPatch ?? {}) };
+        // Drop empty string values so we fall back to theme defaults.
+        Object.keys(nextForKey).forEach(k => {
+          if (nextForKey[k] === '' || nextForKey[k] === null) delete nextForKey[k];
+        });
+        actions.handleDesignChange({
+          ...m,
+          artSettings: { ...m.artSettings, [detail.settingKey]: nextForKey } as StoryManifest['artSettings'],
+        });
+        done(true);
+        return;
+      }
+
+      // ── Set variant (preset SVG for the separator) ────────
+      if (detail.action === 'set-variant') {
+        const prev = (m.artSettings?.sectionBorder ?? {});
+        const variantId = detail.variantId || '';
+        actions.handleDesignChange({
+          ...m,
+          artSettings: {
+            ...m.artSettings,
+            sectionBorder: { ...prev, variant: variantId || undefined },
+          },
+        });
+        done(true);
+        return;
+      }
 
       // ── Remove ─────────────────────────────────────────────
       if (detail.action === 'remove') {
