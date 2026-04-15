@@ -1379,11 +1379,19 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         return (
           <div key={key} data-pe-section="hero" data-pe-label="Hero" style={{ position: 'relative', overflow: 'hidden', ...blockStyle }}>
             {/* AI-generated hero blob illustration — couple-specific motifs */}
-            {vibeSkin.heroBlobSvg && (
+            {vibeSkin.heroBlobSvg && (() => {
+              // Pull per-slot overrides from manifest.artSettings.heroBlob so
+              // opacity/scale/color tweaks from InlineArtHoverToolbar apply.
+              const hb = manifest.artSettings?.heroBlob ?? {};
+              const hbOpacity = hb.opacity ?? 0.78;
+              const hbScale   = hb.scale   ?? 1;
+              const hbColor   = hb.color;
+              return (
               <InlineArtHoverToolbar
                 slot="heroBlobSvg"
                 label="Hero overlay"
                 editable={editMode}
+                settings={hb}
                 style={{
                   position: 'absolute',
                   right: '-6%',
@@ -1397,18 +1405,20 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                 <motion.div
                   aria-hidden="true"
                   className="pear-svg-draw-in"
-                  initial={{ opacity: 0, scale: 0.92 }}
-                  animate={{ opacity: 0.78, scale: 1 }}
+                  initial={{ opacity: 0, scale: 0.92 * hbScale }}
+                  animate={{ opacity: hbOpacity, scale: hbScale }}
                   transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
                   style={{
                     width: '100%',
                     height: '100%',
                     pointerEvents: 'none',
+                    color: hbColor || undefined,
                   }}
-                  dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.heroBlobSvg) }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.heroBlobSvg!) }}
                 />
               </InlineArtHoverToolbar>
-            )}
+              );
+            })()}
             <Hero
               names={names}
               subtitle={manifest.chapters?.[0]?.subtitle || `${manifest.chapters?.length || 0} chapters of your love story`}
@@ -1531,20 +1541,28 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             {art.cornerSvg && (
               <div style={{ position: 'absolute', top: 0, left: '10%', right: '10%', height: '2px', background: `linear-gradient(90deg, transparent, ${pal.accent}40, transparent)` }} />
             )}
-            {vibeSkin.accentBlobSvg && (
+            {vibeSkin.accentBlobSvg && (() => {
+              // Pull per-slot overrides from manifest.artSettings.accentBlob.
+              const ab = manifest.artSettings?.accentBlob ?? {};
+              const abOpacity = ab.opacity ?? 0.16;
+              const abScale   = ab.scale   ?? 1;
+              const abColor   = ab.color;
+              return (
               <InlineArtHoverToolbar
                 slot="accentBlobSvg"
                 label="Events backdrop"
                 editable={editMode}
-                style={{ position: 'absolute', left: '-8%', bottom: '5%', width: '55%', height: '90%', zIndex: 0, opacity: 0.16 }}
+                settings={ab}
+                style={{ position: 'absolute', left: '-8%', bottom: '5%', width: '55%', height: '90%', zIndex: 0, opacity: abOpacity }}
               >
                 <div
                   aria-hidden="true"
-                  style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
-                  dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.accentBlobSvg) }}
+                  style={{ width: '100%', height: '100%', pointerEvents: 'none', transform: abScale !== 1 ? `scale(${abScale})` : undefined, transformOrigin: 'center', color: abColor || undefined }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.accentBlobSvg!) }}
                 />
               </InlineArtHoverToolbar>
-            )}
+              );
+            })()}
             {art.blockArt?.eventFrame && (
               <div
                 aria-hidden="true"

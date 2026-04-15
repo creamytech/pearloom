@@ -2094,11 +2094,18 @@ export function StorySection({
 
   return (
     <>
-      {medallionSvg && (
+      {medallionSvg && (() => {
+        // Pull per-slot overrides from manifest.artSettings.medallion.
+        const md = artSettings?.medallion ?? {};
+        const mdOpacity = md.opacity ?? 0.72;
+        const mdScale   = md.scale   ?? 1;
+        const mdColor   = md.color   ?? tint;
+        return (
         <InlineArtHoverToolbar
           slot="medallionSvg"
           label="Medallion"
           editable={editable}
+          settings={md}
           style={{
             width: 96,
             height: 96,
@@ -2107,19 +2114,20 @@ export function StorySection({
         >
           <motion.div
             aria-hidden="true"
-            initial={{ opacity: 0, scale: 0.85, rotate: -6 }}
-            animate={{ opacity: 0.72, scale: 1, rotate: 0 }}
+            initial={{ opacity: 0, scale: 0.85 * mdScale, rotate: -6 }}
+            animate={{ opacity: mdOpacity, scale: mdScale, rotate: 0 }}
             transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
             style={{
               width: '100%',
               height: '100%',
               pointerEvents: 'none',
-              color: tint,
+              color: mdColor,
             }}
             dangerouslySetInnerHTML={{ __html: medallionSvg }}
           />
         </InlineArtHoverToolbar>
-      )}
+        );
+      })()}
       {/* Top-of-story separator (placement: top | bookend) */}
       {shouldRenderSeparator('top') && (
         <InlineArtHoverToolbar
