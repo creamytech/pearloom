@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { colors, radius, shadow, ease, text as textScale } from '@/lib/design-tokens';
 import { formatLocalDate } from '@/lib/date';
 import { getImageBrightness, textColorForBrightness } from '@/lib/smart-features';
+import { InlineArtHoverToolbar } from '@/components/editor/InlineArtHoverToolbar';
 
 // ── Shared Style Helpers ──────────────────────────────────────
 
@@ -2052,20 +2053,30 @@ export function StorySection({
   return (
     <>
       {medallionSvg && (
-        <motion.div
-          aria-hidden="true"
-          initial={{ opacity: 0, scale: 0.85, rotate: -6 }}
-          animate={{ opacity: 0.72, scale: 1, rotate: 0 }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+        <InlineArtHoverToolbar
+          slot="medallionSvg"
+          label="Medallion"
+          editable={editable}
           style={{
             width: 96,
             height: 96,
             margin: '2rem auto 0',
-            pointerEvents: 'none',
-            color: tint,
           }}
-          dangerouslySetInnerHTML={{ __html: medallionSvg }}
-        />
+        >
+          <motion.div
+            aria-hidden="true"
+            initial={{ opacity: 0, scale: 0.85, rotate: -6 }}
+            animate={{ opacity: 0.72, scale: 1, rotate: 0 }}
+            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'none',
+              color: tint,
+            }}
+            dangerouslySetInnerHTML={{ __html: medallionSvg }}
+          />
+        </InlineArtHoverToolbar>
       )}
       {chapters.map((chapter, chapterIndex) => {
         const icon = chapterIcons[chapterIndex];
@@ -2152,24 +2163,35 @@ export function StorySection({
               </button>
             )}
             {icon && (
-              <motion.div
-                aria-hidden="true"
-                initial={isNew ? { opacity: 0, scale: 0.7 } : false}
-                animate={{ opacity: 0.85, scale: 1 }}
-                transition={{
-                  duration: 0.6,
-                  delay: enterDelay + 0.15,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
+              <InlineArtHoverToolbar
+                slot="chapterIcon"
+                index={chapterIndex}
+                label={`Chapter ${chapterIndex + 1} icon`}
+                editable={editable}
                 style={{
                   width: 56,
                   height: 56,
                   margin: '3rem auto 0.5rem',
-                  pointerEvents: 'none',
-                  color: tint,
                 }}
-                dangerouslySetInnerHTML={{ __html: icon }}
-              />
+              >
+                <motion.div
+                  aria-hidden="true"
+                  initial={isNew ? { opacity: 0, scale: 0.7 } : false}
+                  animate={{ opacity: 0.85, scale: 1 }}
+                  transition={{
+                    duration: 0.6,
+                    delay: enterDelay + 0.15,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    pointerEvents: 'none',
+                    color: tint,
+                  }}
+                  dangerouslySetInnerHTML={{ __html: icon }}
+                />
+              </InlineArtHoverToolbar>
             )}
             <StoryLayout
               type={layoutType}
@@ -2184,24 +2206,34 @@ export function StorySection({
               index={chapterIndex}
             />
             {sectionBorderSvg && chapterIndex < chapters.length - 1 && (
-              <motion.div
-                aria-hidden="true"
-                initial={isNew ? { opacity: 0, scaleX: 0.6 } : false}
-                animate={{ opacity: 0.5, scaleX: 1 }}
-                transition={{
-                  duration: 0.7,
-                  delay: enterDelay + 0.3,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
+              <InlineArtHoverToolbar
+                slot="sectionBorderSvg"
+                label="Chapter divider"
+                editable={editable}
                 style={{
                   width: 'min(520px, 80%)',
                   height: 32,
                   margin: '2.5rem auto',
-                  pointerEvents: 'none',
-                  color: tint,
                 }}
-                dangerouslySetInnerHTML={{ __html: sectionBorderSvg }}
-              />
+              >
+                <motion.div
+                  aria-hidden="true"
+                  initial={isNew ? { opacity: 0, scaleX: 0.6 } : false}
+                  animate={{ opacity: 0.5, scaleX: 1 }}
+                  transition={{
+                    duration: 0.7,
+                    delay: enterDelay + 0.3,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    pointerEvents: 'none',
+                    color: tint,
+                  }}
+                  dangerouslySetInnerHTML={{ __html: sectionBorderSvg }}
+                />
+              </InlineArtHoverToolbar>
             )}
           </motion.div>
         );

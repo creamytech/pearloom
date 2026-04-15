@@ -880,6 +880,114 @@ export function EditorCanvas() {
     };
   }, []);
 
+  // ── Inline art edit (remove / regenerate) — fired by InlineArtHoverToolbar ──
+  // Slot names map 1:1 onto vibeSkin fields except 'chapterIcon' which
+  // targets vibeSkin.chapterIcons[index]. Regenerate hits the existing
+  // /api/regenerate-design endpoint and cherry-picks the requested slot
+  // from the returned vibeSkin so other art is left untouched.
+  useEffect(() => {
+    const onArtEdit = async (e: Event) => {
+      const detail = (e as CustomEvent).detail as
+        | { slot: string; action: 'remove' | 'regenerate'; index?: number }
+        | undefined;
+      if (!detail || !manifestRef.current?.vibeSkin) return;
+      const m = manifestRef.current;
+      const skin = m.vibeSkin!;
+
+      const done = (ok: boolean) => {
+        window.dispatchEvent(
+          new CustomEvent('pearloom-art-edit-done', {
+            detail: { ...detail, ok },
+          }),
+        );
+      };
+
+      // ── Remove ─────────────────────────────────────────────
+      if (detail.action === 'remove') {
+        if (detail.slot === 'chapterIcon' && typeof detail.index === 'number') {
+          const icons = [...(skin.chapterIcons || [])];
+          icons.splice(detail.index, 1);
+          actions.handleDesignChange({ ...m, vibeSkin: { ...skin, chapterIcons: icons } });
+        } else {
+          actions.handleDesignChange({
+            ...m,
+            vibeSkin: { ...skin, [detail.slot]: undefined } as typeof skin,
+          });
+        }
+        showPlainToast('Art removed', 2000);
+        done(true);
+        return;
+      }
+
+      // ── Regenerate ─────────────────────────────────────────
+      try {
+        const names = coupleNames || [''] as unknown as [string, string];
+        const res = await fetch('/api/regenerate-design', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            vibeString: m.vibeString,
+            coupleNames: names,
+            chapters: m.chapters?.map((c) => ({
+              title: c.title,
+              subtitle: c.subtitle || '',
+              mood: c.mood || '',
+              location: c.location,
+              description: c.description || '',
+            })),
+            occasion: m.occasion,
+          }),
+        });
+        if (!res.ok) {
+          showPlainToast('Regeneration failed', 2500);
+          done(false);
+          return;
+        }
+        const data = await res.json();
+        const fresh = data.vibeSkin;
+        if (!fresh) {
+          showPlainToast('Regeneration returned nothing', 2500);
+          done(false);
+          return;
+        }
+        // Re-read the manifest — the user may have edited something else
+        // during the round-trip.
+        const latest = manifestRef.current!;
+        const latestSkin = latest.vibeSkin!;
+
+        if (detail.slot === 'chapterIcon' && typeof detail.index === 'number') {
+          const nextIcons = [...(latestSkin.chapterIcons || [])];
+          if (Array.isArray(fresh.chapterIcons) && fresh.chapterIcons[detail.index]) {
+            nextIcons[detail.index] = fresh.chapterIcons[detail.index];
+          } else {
+            showPlainToast('No new icon returned', 2500);
+            done(false);
+            return;
+          }
+          actions.handleDesignChange({ ...latest, vibeSkin: { ...latestSkin, chapterIcons: nextIcons } });
+        } else {
+          const value = fresh[detail.slot];
+          if (value == null) {
+            showPlainToast('No new art returned', 2500);
+            done(false);
+            return;
+          }
+          actions.handleDesignChange({
+            ...latest,
+            vibeSkin: { ...latestSkin, [detail.slot]: value } as typeof latestSkin,
+          });
+        }
+        showPlainToast('Art refreshed', 2000);
+        done(true);
+      } catch {
+        showPlainToast('Regeneration failed', 2500);
+        done(false);
+      }
+    };
+    window.addEventListener('pearloom-art-edit', onArtEdit);
+    return () => window.removeEventListener('pearloom-art-edit', onArtEdit);
+  }, [actions, coupleNames, showPlainToast]);
+
   // ── Block drop → insert at position ──────────────────────
   const handleBlockDrop = useCallback((blockType: string, position: number) => {
     const blocks = manifest.blocks || [];

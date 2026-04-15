@@ -33,6 +33,7 @@ import { StickerLayer } from '@/components/site-stickers/StickerLayer';
 import { ensureContrast, enforcePaletteContrast } from '@/lib/color-utils';
 import { smartBlockOrder } from '@/lib/smart-features';
 import { PearIcon } from '@/components/icons/PearloomIcons';
+import { InlineArtHoverToolbar } from './InlineArtHoverToolbar';
 import type { StoryManifest, SitePage, PageBlock, BlockType } from '@/types';
 
 // ── "Let Pear help" button for empty states ──
@@ -1330,24 +1331,34 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           <div key={key} data-pe-section="hero" data-pe-label="Hero" style={{ position: 'relative', overflow: 'hidden', ...blockStyle }}>
             {/* AI-generated hero blob illustration — couple-specific motifs */}
             {vibeSkin.heroBlobSvg && (
-              <motion.div
-                aria-hidden="true"
-                className="pear-svg-draw-in"
-                initial={{ opacity: 0, scale: 0.92 }}
-                animate={{ opacity: 0.78, scale: 1 }}
-                transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+              <InlineArtHoverToolbar
+                slot="heroBlobSvg"
+                label="Hero overlay"
+                editable={editMode}
                 style={{
                   position: 'absolute',
                   right: '-6%',
                   top: '8%',
                   width: 'min(560px, 46%)',
                   height: 'auto',
-                  pointerEvents: 'none',
                   zIndex: 2,
-                  mixBlendMode: 'multiply',
+                  mixBlendMode: 'multiply' as React.CSSProperties['mixBlendMode'],
                 }}
-                dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.heroBlobSvg) }}
-              />
+              >
+                <motion.div
+                  aria-hidden="true"
+                  className="pear-svg-draw-in"
+                  initial={{ opacity: 0, scale: 0.92 }}
+                  animate={{ opacity: 0.78, scale: 1 }}
+                  transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    pointerEvents: 'none',
+                  }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.heroBlobSvg) }}
+                />
+              </InlineArtHoverToolbar>
             )}
             <Hero
               names={names}
@@ -1371,22 +1382,36 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             {/* AI-generated corner flourish (takes priority over theme cornerSvg) */}
             {vibeSkin.cornerFlourishSvg ? (
               <>
-                <motion.div
-                  aria-hidden="true"
-                  initial={{ opacity: 0, scale: 0.85, rotate: -4 }}
-                  animate={{ opacity: 0.7, scale: 1, rotate: 0 }}
-                  transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-                  style={{ position: 'absolute', top: 0, left: 0, width: 'min(28vw, 260px)', height: 'min(28vw, 260px)', pointerEvents: 'none', zIndex: 2 }}
-                  dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.cornerFlourishSvg) }}
-                />
-                <motion.div
-                  aria-hidden="true"
-                  initial={{ opacity: 0, scale: 0.85, rotate: 4 }}
-                  animate={{ opacity: 0.7, scale: 1, rotate: 0 }}
-                  transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-                  style={{ position: 'absolute', top: 0, right: 0, width: 'min(28vw, 260px)', height: 'min(28vw, 260px)', pointerEvents: 'none', zIndex: 2, transform: 'scaleX(-1)' }}
-                  dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.cornerFlourishSvg) }}
-                />
+                <InlineArtHoverToolbar
+                  slot="cornerFlourishSvg"
+                  label="Corner flourish"
+                  editable={editMode}
+                  style={{ position: 'absolute', top: 0, left: 0, width: 'min(28vw, 260px)', height: 'min(28vw, 260px)', zIndex: 2 }}
+                >
+                  <motion.div
+                    aria-hidden="true"
+                    initial={{ opacity: 0, scale: 0.85, rotate: -4 }}
+                    animate={{ opacity: 0.7, scale: 1, rotate: 0 }}
+                    transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+                    style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.cornerFlourishSvg) }}
+                  />
+                </InlineArtHoverToolbar>
+                <InlineArtHoverToolbar
+                  slot="cornerFlourishSvg"
+                  label="Corner flourish"
+                  editable={editMode}
+                  style={{ position: 'absolute', top: 0, right: 0, width: 'min(28vw, 260px)', height: 'min(28vw, 260px)', zIndex: 2, transform: 'scaleX(-1)' }}
+                >
+                  <motion.div
+                    aria-hidden="true"
+                    initial={{ opacity: 0, scale: 0.85, rotate: 4 }}
+                    animate={{ opacity: 0.7, scale: 1, rotate: 0 }}
+                    transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+                    style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.cornerFlourishSvg) }}
+                  />
+                </InlineArtHoverToolbar>
               </>
             ) : art.cornerSvg && (
               <>
@@ -1447,11 +1472,18 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               <div style={{ position: 'absolute', top: 0, left: '10%', right: '10%', height: '2px', background: `linear-gradient(90deg, transparent, ${pal.accent}40, transparent)` }} />
             )}
             {vibeSkin.accentBlobSvg && (
-              <div
-                aria-hidden="true"
-                style={{ position: 'absolute', left: '-8%', bottom: '5%', width: '55%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.16 }}
-                dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.accentBlobSvg) }}
-              />
+              <InlineArtHoverToolbar
+                slot="accentBlobSvg"
+                label="Events backdrop"
+                editable={editMode}
+                style={{ position: 'absolute', left: '-8%', bottom: '5%', width: '55%', height: '90%', zIndex: 0, opacity: 0.16 }}
+              >
+                <div
+                  aria-hidden="true"
+                  style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.accentBlobSvg) }}
+                />
+              </InlineArtHoverToolbar>
             )}
             {art.blockArt?.eventFrame && (
               <div
