@@ -17,6 +17,7 @@ export interface TextFormat {
   italic?: boolean;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   color?: string;
+  fontFamily?: string;
 }
 
 interface CanvasInlineFormatBarProps {

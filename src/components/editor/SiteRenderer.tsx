@@ -946,6 +946,19 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     const formats = manifest.textFormats;
     if (!formats) return;
     const sizeMap: Record<string, string> = { sm: '0.85em', md: '1em', lg: '1.2em', xl: '1.5em' };
+    // Lazy-inject Google Fonts stylesheets for any font families chosen
+    // via the inline format pill, so a fresh page load actually renders
+    // the chosen face instead of silently falling back.
+    const needFonts = new Set<string>();
+    Object.values(formats).forEach(f => { if (f.fontFamily) needFonts.add(f.fontFamily); });
+    needFonts.forEach(name => {
+      const href = `https://fonts.googleapis.com/css2?family=${name.replace(/ /g, '+')}:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap`;
+      if (document.head.querySelector(`link[href="${href}"]`)) return;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      document.head.appendChild(link);
+    });
     Object.entries(formats).forEach(([path, fmt]) => {
       // Two path shapes exist:
       //  1. plain manifest path (poetry.heroTagline) → [data-pe-path=...]
@@ -969,6 +982,15 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       el.style.fontWeight = fmt.bold ? '700' : '';
       el.style.fontSize = fmt.size ? sizeMap[fmt.size] : '';
       el.style.color = fmt.color || '';
+      // `!important` not available here, but setProperty with priority is.
+      // Most chapter/hero text inlines a fontFamily via the heading font,
+      // so a plain style assignment can lose to specificity; setProperty
+      // with 'important' wins reliably.
+      if (fmt.fontFamily) {
+        el.style.setProperty('font-family', `"${fmt.fontFamily}", serif`, 'important');
+      } else {
+        el.style.removeProperty('font-family');
+      }
     });
   });
 

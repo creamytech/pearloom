@@ -12,12 +12,47 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Bold, Italic, Type } from 'lucide-react';
+import { Loader2, Bold, Italic, Type, ChevronDown } from 'lucide-react';
 import { PearIcon } from '@/components/icons/PearloomIcons';
 import type { TextFormat } from './preview/CanvasInlineFormatBar';
 import type { StoryManifest } from '@/types';
+import { buildSingleFontUrl } from '@/lib/font-catalog';
 
 const OLIVE = '#18181B';
+
+// Curated inline font list — small enough to fit a popover, broad enough
+// to cover serif / sans / display / script needs. Full catalog is still
+// reachable via the Design panel.
+const FONT_OPTIONS: string[] = [
+  'Playfair Display',
+  'Cormorant Garamond',
+  'Lora',
+  'Libre Baskerville',
+  'EB Garamond',
+  'Dancing Script',
+  'Great Vibes',
+  'Pinyon Script',
+  'Josefin Sans',
+  'DM Sans',
+  'Montserrat',
+  'Inter',
+  'Raleway',
+  'Open Sans',
+  'Lato',
+];
+
+// Track which <link>s we've injected so we don't thrash the DOM.
+const __injectedFontHrefs = new Set<string>();
+function ensureFontLoaded(name: string) {
+  if (typeof document === 'undefined') return;
+  const href = buildSingleFontUrl(name);
+  if (__injectedFontHrefs.has(href)) return;
+  __injectedFontHrefs.add(href);
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = href;
+  document.head.appendChild(link);
+}
 
 const STYLE_OPTIONS = [
   { label: 'Shorter', value: 'shorter and more concise' },
@@ -56,6 +91,7 @@ export function PearTextRewrite({ onTextEdit, manifest }: PearTextRewriteProps) 
   const [editPath, setEditPath] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeStyle, setActiveStyle] = useState<string | null>(null);
+  const [fontMenuOpen, setFontMenuOpen] = useState(false);
   const pillRef = useRef<HTMLDivElement>(null);
   const ignoreNextSelection = useRef(false);
   // Remember the DOM node that owns the active selection — we need it
@@ -65,6 +101,17 @@ export function PearTextRewrite({ onTextEdit, manifest }: PearTextRewriteProps) 
 
   // Current format for the focused path, sourced from the manifest.
   const currentFormat: TextFormat = (editPath && manifest?.textFormats?.[editPath]) || {};
+
+  // Preload the active font whenever the focused field changes so the
+  // menu button shows the real face instead of a fallback.
+  useEffect(() => {
+    if (currentFormat.fontFamily) ensureFontLoaded(currentFormat.fontFamily);
+  }, [currentFormat.fontFamily]);
+
+  // Close the font menu whenever we lose visibility.
+  useEffect(() => {
+    if (!visible) setFontMenuOpen(false);
+  }, [visible]);
 
   // ── Listen for text selection inside editable regions ──────
   const handleSelectionChange = useCallback(() => {
@@ -322,6 +369,101 @@ export function PearTextRewrite({ onTextEdit, manifest }: PearTextRewriteProps) 
           {/* ── Format section ──────────────────────────────── */}
           <div style={{ width: '1px', height: '16px', background: 'rgba(0,0,0,0.08)' }} />
 
+          {/* Font family picker (opens a small popover) */}
+          <div style={{ position: 'relative' }}>
+            <button
+              type="button"
+              title="Font family"
+              aria-haspopup="menu"
+              aria-expanded={fontMenuOpen}
+              onMouseDown={(e) => { e.preventDefault(); setFontMenuOpen(o => !o); }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '2px 6px',
+                height: 22,
+                borderRadius: 6,
+                border: currentFormat.fontFamily
+                  ? '1px solid rgba(24,24,27,0.2)'
+                  : '1px solid transparent',
+                background: currentFormat.fontFamily ? 'rgba(24,24,27,0.08)' : 'transparent',
+                color: OLIVE,
+                fontFamily: currentFormat.fontFamily
+                  ? `"${currentFormat.fontFamily}", serif`
+                  : 'inherit',
+                fontSize: 10,
+                fontWeight: 600,
+                cursor: 'pointer',
+                maxWidth: 120,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {currentFormat.fontFamily || 'Font'}
+              <ChevronDown size={10} />
+            </button>
+            {fontMenuOpen && (
+              <div
+                role="menu"
+                onMouseDown={(e) => e.preventDefault()}
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 4px)',
+                  left: 0,
+                  minWidth: 180,
+                  maxHeight: 240,
+                  overflowY: 'auto',
+                  padding: 4,
+                  borderRadius: 10,
+                  background: 'rgba(250,247,242,0.98)',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                  border: '1px solid #E4E4E7',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                  zIndex: 1,
+                }}
+              >
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    applyFormat({ fontFamily: '' });
+                    setFontMenuOpen(false);
+                  }}
+                  style={fontMenuItemStyle(!currentFormat.fontFamily)}
+                >
+                  Default
+                </button>
+                {FONT_OPTIONS.map(f => {
+                  const on = currentFormat.fontFamily === f;
+                  return (
+                    <button
+                      key={f}
+                      type="button"
+                      onMouseEnter={() => ensureFontLoaded(f)}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        ensureFontLoaded(f);
+                        applyFormat({ fontFamily: f });
+                        setFontMenuOpen(false);
+                      }}
+                      style={{
+                        ...fontMenuItemStyle(on),
+                        fontFamily: `"${f}", serif`,
+                      }}
+                    >
+                      {f}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div style={{ width: '1px', height: '16px', background: 'rgba(0,0,0,0.08)' }} />
+
           {/* Bold */}
           <FormatBtn
             title="Bold"
@@ -429,6 +571,23 @@ export function PearTextRewrite({ onTextEdit, manifest }: PearTextRewriteProps) 
     </AnimatePresence>,
     document.body,
   );
+}
+
+// Shared style for font-picker menu items.
+function fontMenuItemStyle(active: boolean): React.CSSProperties {
+  return {
+    display: 'block',
+    width: '100%',
+    textAlign: 'left',
+    padding: '5px 8px',
+    borderRadius: 6,
+    border: 'none',
+    background: active ? 'rgba(24,24,27,0.08)' : 'transparent',
+    color: OLIVE,
+    fontSize: 12,
+    fontWeight: 500,
+    cursor: 'pointer',
+  };
 }
 
 // ── Small format button ────────────────────────────────────
