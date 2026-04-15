@@ -92,6 +92,12 @@ export function PearTextRewrite({ onTextEdit, manifest }: PearTextRewriteProps) 
   const [loading, setLoading] = useState(false);
   const [activeStyle, setActiveStyle] = useState<string | null>(null);
   const [fontMenuOpen, setFontMenuOpen] = useState(false);
+  // Variant compare — when the user triggers a rewrite we ask for 3
+  // distinct variants and show them side-by-side instead of replacing
+  // text immediately. User picks one (or regenerates / cancels).
+  const [variants, setVariants] = useState<string[] | null>(null);
+  const [variantStyle, setVariantStyle] = useState<string | null>(null);
+  const [variantIdx, setVariantIdx] = useState(0);
   const pillRef = useRef<HTMLDivElement>(null);
   const ignoreNextSelection = useRef(false);
   // Remember the DOM node that owns the active selection — we need it
@@ -206,12 +212,15 @@ export function PearTextRewrite({ onTextEdit, manifest }: PearTextRewriteProps) 
     };
   }, [visible]);
 
-  // ── Rewrite handler ───────────────────────────────────────
+  // ── Rewrite handler (generates 3 variants for compare) ────
   const handleRewrite = useCallback(async (style: string) => {
     if (!editPath || !selectedText || loading) return;
 
     setLoading(true);
     setActiveStyle(style);
+    setVariantStyle(style);
+    setVariants(null);
+    setVariantIdx(0);
     ignoreNextSelection.current = true;
 
     try {
@@ -222,7 +231,7 @@ export function PearTextRewrite({ onTextEdit, manifest }: PearTextRewriteProps) 
           messages: [
             {
               role: 'user',
-              content: `Rewrite this text to be ${style}: "${selectedText}". Return ONLY the rewritten text with no quotes, no explanation, no extra formatting. Just the rewritten text.`,
+              content: `Rewrite this text to be ${style}: "${selectedText}". Give me exactly 3 DISTINCT variants that differ from each other in tone, phrasing, or rhythm. Return ONLY the 3 variants, one per line, no numbers, no bullets, no quotes, no extra explanation. Each variant should be a complete rewrite of the original, not a continuation.`,
             },
           ],
           manifest: {},
@@ -233,31 +242,60 @@ export function PearTextRewrite({ onTextEdit, manifest }: PearTextRewriteProps) 
       if (!res.ok) throw new Error('Rewrite failed');
 
       const data = await res.json();
-      const rewritten = data.reply?.trim() || data.message?.trim();
+      const raw: string = data.reply || data.message || '';
+      const parsed = raw
+        .split(/\r?\n/)
+        .map(line => line.replace(/^\s*[-*•\d.)]+\s*/, '').replace(/^["']|["']$/g, '').trim())
+        .filter(Boolean)
+        .slice(0, 3);
 
-      if (rewritten) {
-        // Replace selected text by updating the manifest via the edit path.
-        // Prefer the remembered editable element (works for both direct
-        // [data-pe-path] fields and chapter fields that only expose
-        // data-pe-chapter + data-pe-field). Fall back to a selector
-        // lookup if the node got detached.
-        const editableEl = editableRef.current
-          || document.querySelector(`[data-pe-path="${editPath}"]`);
-        const fullText = editableEl?.textContent || '';
-        const newText = fullText.replace(selectedText, rewritten);
-        onTextEdit(editPath, newText);
-
-        // Clear selection
-        window.getSelection()?.removeAllRanges();
-        setVisible(false);
+      if (parsed.length === 0) {
+        // Graceful fallback: treat the whole response as a single variant.
+        setVariants([raw.trim()].filter(Boolean));
+      } else {
+        setVariants(parsed);
       }
     } catch (err) {
       console.error('[PearTextRewrite] Rewrite failed:', err);
+      setVariants([]);
     } finally {
       setLoading(false);
       setActiveStyle(null);
     }
-  }, [editPath, selectedText, loading, onTextEdit]);
+  }, [editPath, selectedText, loading]);
+
+  // Commit a single variant to the manifest and close the pill.
+  const acceptVariant = useCallback((text: string) => {
+    if (!editPath || !text) return;
+    const editableEl = editableRef.current
+      || document.querySelector(`[data-pe-path="${editPath}"]`);
+    const fullText = editableEl?.textContent || '';
+    const newText = fullText.replace(selectedText, text);
+    onTextEdit(editPath, newText);
+    window.getSelection()?.removeAllRanges();
+    setVariants(null);
+    setVariantStyle(null);
+    setVisible(false);
+  }, [editPath, selectedText, onTextEdit]);
+
+  const cancelVariants = useCallback(() => {
+    setVariants(null);
+    setVariantStyle(null);
+    setVariantIdx(0);
+  }, []);
+
+  // Keyboard nav while variants are showing — ↑/↓ to move, Enter to accept, Esc to cancel.
+  useEffect(() => {
+    if (!variants || variants.length === 0) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowDown') { e.preventDefault(); setVariantIdx(i => Math.min(variants.length - 1, i + 1)); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); setVariantIdx(i => Math.max(0, i - 1)); }
+      else if (e.key === 'Enter') { e.preventDefault(); acceptVariant(variants[variantIdx]); }
+      else if (e.key === 'Escape') { e.preventDefault(); cancelVariants(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [variants, variantIdx, acceptVariant, cancelVariants]);
 
   // ── Format change — writes through the __format: protocol ──
   const applyFormat = useCallback((patch: Partial<TextFormat>) => {
@@ -566,6 +604,140 @@ export function PearTextRewrite({ onTextEdit, manifest }: PearTextRewriteProps) 
               </button>
             )}
           </div>
+        </motion.div>
+      )}
+
+      {/* Variant compare panel — shown after a rewrite returns 3 options.
+          Positioned just below the pill so the user can see original + choices. */}
+      {variants && variants.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -4, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -4, scale: 0.97 }}
+          transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+          onMouseDown={(e) => e.stopPropagation()}
+          style={{
+            position: 'fixed',
+            top: position.top + 48,
+            left: position.left,
+            transform: 'translateX(-50%)',
+            width: 360,
+            maxHeight: 420,
+            overflowY: 'auto',
+            zIndex: 9999,
+            padding: 10,
+            borderRadius: 12,
+            background: 'rgba(250, 247, 242, 0.98)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: '1px solid #E4E4E7',
+            boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
+          }}
+        >
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '2px 4px 8px',
+          }}>
+            <div style={{
+              fontSize: 9, fontWeight: 700, letterSpacing: '0.12em',
+              textTransform: 'uppercase', color: '#71717A',
+            }}>
+              Pick a variant · {variantStyle?.split(' ')[0] ?? ''}
+            </div>
+            <div style={{ display: 'flex', gap: 4 }}>
+              <button
+                type="button"
+                onMouseDown={(e) => { e.preventDefault(); if (variantStyle) handleRewrite(variantStyle); }}
+                disabled={loading}
+                title="Regenerate variants"
+                style={{
+                  fontSize: 10, fontWeight: 600,
+                  padding: '3px 8px', borderRadius: 6,
+                  border: '1px solid #E4E4E7', background: '#fff',
+                  color: '#3F3F46', cursor: loading ? 'wait' : 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                {loading ? '…' : 'Regenerate'}
+              </button>
+              <button
+                type="button"
+                onMouseDown={(e) => { e.preventDefault(); cancelVariants(); }}
+                title="Cancel (Esc)"
+                style={{
+                  fontSize: 10, fontWeight: 600,
+                  padding: '3px 8px', borderRadius: 6,
+                  border: '1px solid #E4E4E7', background: '#fff',
+                  color: '#3F3F46', cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {variants.map((v, i) => {
+              const selected = i === variantIdx;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onMouseEnter={() => setVariantIdx(i)}
+                  onMouseDown={(e) => { e.preventDefault(); acceptVariant(v); }}
+                  style={{
+                    textAlign: 'left',
+                    padding: '8px 10px',
+                    borderRadius: 8,
+                    border: selected ? '1.5px solid #A3B18A' : '1px solid #E4E4E7',
+                    background: selected ? 'rgba(163,177,138,0.1)' : '#fff',
+                    color: '#18181B',
+                    fontFamily: 'inherit',
+                    fontSize: 12,
+                    lineHeight: 1.4,
+                    cursor: 'pointer',
+                    transition: 'all 0.12s',
+                  }}
+                >
+                  <div style={{
+                    fontSize: 9, fontWeight: 700, letterSpacing: '0.08em',
+                    textTransform: 'uppercase', color: '#A3B18A',
+                    marginBottom: 4,
+                  }}>
+                    Variant {i + 1}{selected ? ' · ↵ to accept' : ''}
+                  </div>
+                  <div>{v}</div>
+                </button>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Loading placeholder — keeps the area reserved while variants stream. */}
+      {loading && !variants && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          style={{
+            position: 'fixed',
+            top: position.top + 48,
+            left: position.left,
+            transform: 'translateX(-50%)',
+            zIndex: 9999,
+            padding: '10px 14px',
+            borderRadius: 10,
+            background: 'rgba(250, 247, 242, 0.98)',
+            border: '1px solid #E4E4E7',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+            display: 'flex', alignItems: 'center', gap: 8,
+            fontSize: 11, color: '#52525B', fontFamily: 'inherit',
+          }}
+        >
+          <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
+          Drafting 3 variants…
         </motion.div>
       )}
     </AnimatePresence>,
