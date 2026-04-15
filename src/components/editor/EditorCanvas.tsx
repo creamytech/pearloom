@@ -15,6 +15,7 @@ import { SiteRenderer } from './SiteRenderer';
 import { PearTextRewrite } from './PearTextRewrite';
 import { SlashMenu } from './SlashMenu';
 import { UndoChip } from './UndoChip';
+import { SuggestionBadges } from './SuggestionBadges';
 import { FocalPointOverlay } from './preview/FocalPointOverlay';
 import { CanvasChapterToolbar, type ChapterToolbarAction } from './preview/CanvasChapterToolbar';
 import { CanvasEventToolbar, type EventToolbarAction } from './preview/CanvasEventToolbar';
@@ -1088,6 +1089,10 @@ export function EditorCanvas() {
       {/* Spatial undo chip — briefly appears near the last edit so the user
           can revert without reaching for Cmd+Z. */}
       <UndoChip />
+
+      {/* Ambient AI suggestion badges — faint ✦ anchored to fields where
+          Pear has a ready-made suggestion. Click opens the command bar. */}
+      <SuggestionBadges />
 
       {/* Focal point drag overlay — activated on chapter image click */}
       {focalPoint && (
