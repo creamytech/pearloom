@@ -29,7 +29,7 @@ import type { BlockType, PageBlock, Chapter, StoryManifest } from '@/types';
 // (e.g. InlineStoryLayoutSwitcher for 'story'). We suppress the generic
 // BlockConfigPopover for these so the user isn't hit with two overlapping
 // UIs for the same thing.
-const INLINE_UI_BLOCK_TYPES = new Set<string>(['story']);
+const INLINE_UI_BLOCK_TYPES = new Set<string>(['story', 'hero']);
 
 // ── Helpers ─────────────────────────────────────────────────
 // Clamp a dimension input (from any source) to a sane pixel range.
