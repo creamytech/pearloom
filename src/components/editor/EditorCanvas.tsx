@@ -13,6 +13,7 @@ import { Monitor, Tablet, Smartphone } from 'lucide-react';
 import { useEditor, type DeviceMode } from '@/lib/editor-state';
 import { SiteRenderer } from './SiteRenderer';
 import { PearTextRewrite } from './PearTextRewrite';
+import { SlashMenu } from './SlashMenu';
 import { FocalPointOverlay } from './preview/FocalPointOverlay';
 import { CanvasChapterToolbar, type ChapterToolbarAction } from './preview/CanvasChapterToolbar';
 import { CanvasEventToolbar, type EventToolbarAction } from './preview/CanvasEventToolbar';
@@ -1078,6 +1079,10 @@ export function EditorCanvas() {
           hosts inline format controls (bold / italic / size / color) so
           the user sees every text affordance in one place. */}
       <PearTextRewrite onTextEdit={handleTextEdit} manifest={manifest} />
+
+      {/* Slash-menu — Notion-style insert popover for editable text fields.
+          Opens on "/" typed inside any [data-pe-editable][contenteditable]. */}
+      <SlashMenu manifest={manifest} coupleNames={coupleNames ?? undefined} />
 
       {/* Focal point drag overlay — activated on chapter image click */}
       {focalPoint && (
