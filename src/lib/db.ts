@@ -767,7 +767,7 @@ export async function deleteSiteInvite(id: string): Promise<void> {
 /**
  * Get all published sites for sitemap generation.
  */
-export async function getPublishedSites(): Promise<Array<{ domain: string; created_at: string; updated_at?: string }>> {
+export async function getPublishedSites(): Promise<Array<{ domain: string; created_at: string; updated_at?: string; occasion?: string }>> {
   const supabase = getSupabase();
   try {
     const { data, error } = await supabase
@@ -784,11 +784,15 @@ export async function getPublishedSites(): Promise<Array<{ domain: string; creat
         const comingSoon = manifest.comingSoon as { enabled?: boolean } | undefined;
         return !comingSoon?.enabled;
       })
-      .map((row: Record<string, string>) => ({
-        domain: row.subdomain,
-        created_at: row.created_at,
-        updated_at: row.updated_at,
-      }));
+      .map((row: Record<string, unknown>) => {
+        const manifest = row.ai_manifest as Record<string, unknown> | null;
+        return {
+          domain: row.subdomain as string,
+          created_at: row.created_at as string,
+          updated_at: row.updated_at as string | undefined,
+          occasion: (manifest?.occasion as string | undefined),
+        };
+      });
   } catch {
     return [];
   }

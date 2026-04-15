@@ -94,7 +94,12 @@ export async function POST(req: NextRequest) {
     const host = req.headers.get('host') || 'localhost:3000';
     const origin = process.env.NEXT_PUBLIC_SITE_URL
       || (host.includes('localhost') ? `http://${host}` : `https://${host}`);
-    const finalUrl = buildSiteUrl(cleanSubdomain, '', origin);
+    const finalUrl = buildSiteUrl(
+      cleanSubdomain,
+      '',
+      origin,
+      (persistManifest as { occasion?: string } | null)?.occasion,
+    );
 
     // Generate a preview token and store it alongside the published site
     let previewToken: string | null = null;

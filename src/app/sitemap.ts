@@ -40,7 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const sites = await getPublishedSites();
     for (const site of sites) {
       entries.push({
-        url: buildSiteUrl(site.domain),
+        url: buildSiteUrl(site.domain, '', undefined, site.occasion),
         lastModified: new Date(site.updated_at || site.created_at),
         changeFrequency: 'weekly',
         priority: 0.6,

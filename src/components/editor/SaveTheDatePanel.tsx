@@ -82,7 +82,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
   }, [subdomain]);
 
   const handleCopyLink = useCallback(async () => {
-    const url = buildSiteUrl(subdomain);
+    const url = buildSiteUrl(subdomain, '', undefined, manifest.occasion);
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
@@ -90,7 +90,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
     } catch (err) {
       logEditorError('SaveTheDatePanel: copy link to clipboard', err);
     }
-  }, [subdomain]);
+  }, [subdomain, manifest.occasion]);
 
   return (
     <PanelRoot>
@@ -234,7 +234,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
             fontSize: '0.5rem', color: `${style.accent}80`,
             letterSpacing: '0.12em', textTransform: 'lowercase',
           }}>
-            {formatSiteDisplayUrl(subdomain)}
+            {formatSiteDisplayUrl(subdomain, '', manifest.occasion)}
           </div>
         </div>
       </PanelSection>

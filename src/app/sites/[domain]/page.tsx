@@ -96,7 +96,7 @@ export async function generateMetadata(
     : deriveVibeSkin(manifest?.vibeString || '');
   const tagline = manifest?.poetry?.heroTagline || siteConfig.tagline || vibeString || '';
 
-  const siteUrl = buildSiteUrl(domain);
+  const siteUrl = buildSiteUrl(domain, '', undefined, manifest?.occasion);
 
   // Build themed OG image URL with full palette & font info
   const ogUrl = new URL('/api/og', siteUrl);
@@ -196,7 +196,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     : occasion === 'birthday' ? 'SocialEvent'
     : occasion === 'story' ? 'Event'
     : 'SocialEvent';
-  const canonicalUrl = buildSiteUrl(domain);
+  const canonicalUrl = buildSiteUrl(domain, '', undefined, manifest?.occasion);
   const vibeString = manifest.vibeString || '';
   const heroTagline = manifest.poetry?.heroTagline || '';
   const jsonLdDesc = heroTagline

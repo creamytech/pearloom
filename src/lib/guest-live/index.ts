@@ -77,15 +77,15 @@ export interface GuestCheckIn {
 /**
  * Generate a QR code URL for guest check-in at the venue.
  */
-export function getCheckInQrUrl(siteId: string): string {
-  return buildSiteUrl(siteId, '/live?checkin=true');
+export function getCheckInQrUrl(siteId: string, occasion?: string): string {
+  return buildSiteUrl(siteId, '/live?checkin=true', undefined, occasion);
 }
 
 /**
  * Generate the big screen display URL.
  */
-export function getBigScreenUrl(siteId: string): string {
-  return buildSiteUrl(siteId, '/live?mode=bigscreen');
+export function getBigScreenUrl(siteId: string, occasion?: string): string {
+  return buildSiteUrl(siteId, '/live?mode=bigscreen', undefined, occasion);
 }
 
 // ── Live Timeline ────────────────────────────────────────────

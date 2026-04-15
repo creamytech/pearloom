@@ -1413,14 +1413,14 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
             <PearBackground color="var(--pl-olive, #A3B18A)" opacity={0.055} size={110} />
           </div>
           <div style={{ position: 'relative', zIndex: 1 }}>
-          <p style={sectionHeading}><Globe size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.4rem' }} />Your Site URL<Tooltip text="This becomes your site URL: pearloom.com/sites/yourname" /></p>
+          <p style={sectionHeading}><Globe size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.4rem' }} />Your Site URL<Tooltip text={`This becomes your site URL: pearloom.com/${occasion || 'wedding'}/yourname`} /></p>
           <p style={{ fontSize: '0.85rem', color: 'var(--pl-muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
             This is where your site will live. You can always change it later.
           </p>
           <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid rgba(255,255,255,0.4)', borderRadius: '12px', overflow: 'hidden', transition: 'border-color 0.2s', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } as React.CSSProperties}
             onFocus={() => {}} onBlur={() => {}}>
             <div style={{ padding: '0.85rem 0.4rem 0.85rem 1rem', background: 'rgba(0,0,0,0.03)', color: 'var(--pl-muted)', fontWeight: 500, borderRight: '1px solid rgba(0,0,0,0.08)', whiteSpace: 'nowrap', fontSize: '0.9rem' }}>
-              pearloom.com/sites/
+              pearloom.com/{occasion || 'wedding'}/
             </div>
             <input
               value={subdomain}
@@ -1433,7 +1433,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
           </div>
           {subdomain && (
             <p style={{ fontSize: '0.8rem', color: 'var(--pl-olive)', marginTop: '0.5rem', fontWeight: 500 }}>
-              {formatSiteDisplayUrl(subdomain)}
+              {formatSiteDisplayUrl(subdomain, '', occasion)}
             </p>
           )}
           {/* Availability status */}
@@ -1691,7 +1691,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                   <div style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', fontStyle: 'italic' }}>No date set</div>
                 )}
                 <div style={{ fontSize: '0.78rem', color: 'var(--pl-olive)', fontFamily: 'ui-monospace, monospace', fontWeight: 600 }}>
-                  {formatSiteDisplayUrl(finalSlug)}
+                  {formatSiteDisplayUrl(finalSlug, '', occasion)}
                 </div>
               </div>
             </>,
@@ -1907,7 +1907,9 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                   {formatSiteDisplayUrl(
                     isBirthday
                       ? `${name1.toLowerCase().replace(/[^a-z0-9]/g, '') || 'birthday'}-birthday`
-                      : slugFromNames(name1, name2)
+                      : slugFromNames(name1, name2),
+                    '',
+                    occasion,
                   )}
                 </span>
               </p>

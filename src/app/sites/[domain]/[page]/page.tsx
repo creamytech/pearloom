@@ -73,7 +73,7 @@ export async function generateMetadata(
 
   const pageTitle = `${coupleTitle} · ${pageMeta.title}`;
   const fullTitle = `${pageTitle} | Pearloom`;
-  const siteUrl = buildSiteUrl(domain, `/${page}`);
+  const siteUrl = buildSiteUrl(domain, `/${page}`, undefined, manifest?.occasion);
 
   return {
     metadataBase: new URL('https://pearloom.com'),
@@ -141,7 +141,11 @@ export default async function SiteSubPage(
     { id: 'faq',      slug: 'faq',      label: 'FAQ',      enabled: !!(manifest.faqs?.length) && !hiddenPages.has('faq'),              order: 6 },
   ].filter(p => p.enabled) as import('@/types').SitePage[];
 
-  const basePath = `/sites/${domain}`;
+  // Use the occasion-prefixed canonical path when available so in-site
+  // nav links match the URL in the browser bar.
+  const basePath = manifest.occasion
+    ? `/${manifest.occasion}/${domain}`
+    : `/sites/${domain}`;
 
   // Page header shared across sub-pages
   const PageHeader = ({ title, subtitle }: { title: string; subtitle?: string }) => (

@@ -808,6 +808,8 @@ function RsvpPageContent({ domain }: { domain: string }) {
       });
   }, [domain]);
 
+  // We don't have the manifest here, so emit the legacy `/sites/{domain}`
+  // URL. The proxy rewrites either form transparently.
   const siteUrl = formatSiteDisplayUrl(domain);
   const list = guests ?? [];
 

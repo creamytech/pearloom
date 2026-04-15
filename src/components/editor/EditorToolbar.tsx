@@ -221,7 +221,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
           <RichTooltip label="Copy site link" side="bottom">
             <motion.button
               onClick={async () => {
-                const url = buildSiteUrl(subdomain);
+                const url = buildSiteUrl(subdomain, '', undefined, manifest?.occasion);
                 try { await navigator.clipboard.writeText(url); } catch {}
                 setShareCopied(true);
                 setTimeout(() => setShareCopied(false), 2000);

@@ -282,7 +282,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const [genStep, setGenStep] = useState(0);
   /** Raw server pass number (0..7). Drives the dynamic ticker. */
   const [genPass, setGenPass] = useState(0);
-  const [completedData, setCompletedData] = useState<{ manifest: any; names: [string, string]; subdomain: string } | null>(null);
+  const [completedData, setCompletedData] = useState<{ manifest: any; names: [string, string]; subdomain: string; occasion?: string } | null>(null);
   const [genProgress, setGenProgress] = useState(0); // 0-100
   const inputRef = useRef<HTMLInputElement>(null);
   const collectedRef = useRef(collected);
@@ -1093,7 +1093,11 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
 
   // ── Celebration / Confirmation screen ────────────────────
   if (phase === 'complete' && completedData) {
-    const siteUrl = formatSiteDisplayUrl(completedData.subdomain);
+    const siteUrl = formatSiteDisplayUrl(
+      completedData.subdomain,
+      '',
+      completedData.occasion || completedData.manifest?.occasion,
+    );
     const displayNames = completedData.names[1]
       ? `${completedData.names[0]} & ${completedData.names[1]}`
       : completedData.names[0];

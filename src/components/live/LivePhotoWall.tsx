@@ -178,7 +178,7 @@ export function LivePhotoWall({ domain, manifest, names }: LivePhotoWallProps) {
       </div>
 
       {/* QR Overlay */}
-      <LiveQROverlay domain={domain} />
+      <LiveQROverlay domain={domain} occasion={manifest?.occasion} />
 
       <style>{`
         @media (max-width: 900px) {

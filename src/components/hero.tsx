@@ -172,58 +172,10 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
         background: 'var(--pl-cream)',
       }}
     >
-      {/* ── Corner Flourish Decorations (personalized SVG art) ── */}
-      {vibeSkin?.cornerFlourishSvg && (
-        <>
-          {/* Top-left corner */}
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute', top: 0, left: 0, zIndex: 2,
-              width: 'min(35vw, 280px)', height: 'min(35vw, 280px)',
-              pointerEvents: 'none',
-              opacity: 0.7,
-            }}
-            dangerouslySetInnerHTML={{ __html: vibeSkin.cornerFlourishSvg }}
-          />
-          {/* Top-right corner (mirrored) */}
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute', top: 0, right: 0, zIndex: 2,
-              width: 'min(35vw, 280px)', height: 'min(35vw, 280px)',
-              pointerEvents: 'none',
-              opacity: 0.7,
-              transform: 'scaleX(-1)',
-            }}
-            dangerouslySetInnerHTML={{ __html: vibeSkin.cornerFlourishSvg }}
-          />
-          {/* Bottom-left corner (flipped vertically) */}
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute', bottom: 0, left: 0, zIndex: 2,
-              width: 'min(30vw, 240px)', height: 'min(30vw, 240px)',
-              pointerEvents: 'none',
-              opacity: 0.5,
-              transform: 'scaleY(-1)',
-            }}
-            dangerouslySetInnerHTML={{ __html: vibeSkin.cornerFlourishSvg }}
-          />
-          {/* Bottom-right corner (flipped both) */}
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute', bottom: 0, right: 0, zIndex: 2,
-              width: 'min(30vw, 240px)', height: 'min(30vw, 240px)',
-              pointerEvents: 'none',
-              opacity: 0.5,
-              transform: 'scale(-1, -1)',
-            }}
-            dangerouslySetInnerHTML={{ __html: vibeSkin.cornerFlourishSvg }}
-          />
-        </>
-      )}
+      {/* Corner flourishes are rendered + wired to the inline editor by
+          the SiteRenderer wrapper (see cornerFlourishSvg toolbar block).
+          Keeping them here would duplicate the art and bypass the
+          editor's edit/remove controls — so we intentionally omit them. */}
 
       {/* ── Visual Backdrop ── */}
       {(coverPhoto || photoList.length > 0) ? (

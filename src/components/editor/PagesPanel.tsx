@@ -279,7 +279,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
             textAlign: 'center',
             lineHeight: panelLineHeight.snug,
           }}>
-            {formatSiteDisplayUrl(subdomain)}
+            {formatSiteDisplayUrl(subdomain, '', occasion)}
           </div>
         )}
       </PanelSection>

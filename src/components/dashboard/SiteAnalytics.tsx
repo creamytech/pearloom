@@ -175,7 +175,7 @@ export function SiteAnalytics({ manifest, coupleNames, onEdit, onShare }: SiteAn
   const previewHref = manifest.previewToken
     ? `/preview/${manifest.previewToken}`
     : manifest.subdomain
-      ? buildSiteUrl(manifest.subdomain)
+      ? buildSiteUrl(manifest.subdomain, '', undefined, manifest.occasion)
       : undefined;
 
   return (

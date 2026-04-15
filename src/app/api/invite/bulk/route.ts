@@ -19,6 +19,8 @@ interface BulkInviteRequest {
   coupleNames?: string[];
   guests: Array<{ name: string; email: string }>;
   message?: string;
+  /** Occasion slug — enables Zola-style URLs in the sent emails. */
+  occasion?: string;
 }
 
 function buildEmailHtml(
@@ -97,7 +99,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
   }
 
-  const { siteId, subdomain, coupleNames = [], guests, message } = body;
+  const { siteId, subdomain, coupleNames = [], guests, message, occasion } = body;
   if (!siteId || !subdomain || !Array.isArray(guests) || guests.length === 0) {
     return NextResponse.json({ error: 'siteId, subdomain, and guests[] required' }, { status: 400 });
   }
@@ -111,7 +113,7 @@ export async function POST(req: NextRequest) {
   const toSend = validGuests.slice(0, 500);
 
   const coupleDisplay = coupleNames.filter(Boolean).join(' & ') || 'The Couple';
-  const siteUrl = buildSiteUrl(subdomain);
+  const siteUrl = buildSiteUrl(subdomain, '', undefined, occasion);
   const defaultMessage = message?.trim() || `We are delighted to invite you to celebrate our special day. Please visit our website for details and to RSVP.`;
 
   const resendKey = process.env.RESEND_API_KEY;

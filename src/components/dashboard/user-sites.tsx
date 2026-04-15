@@ -236,7 +236,7 @@ function OverflowMenu({ site, onShare, onDelete, isCopied, isDeleting }: {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                window.open(getSiteUrlStatic(site.domain), '_blank');
+                window.open(getSiteUrlStatic(site.domain, site.manifest?.occasion), '_blank');
                 setOpen(false);
               }}
               className="w-full flex items-center gap-3 px-4 py-3 text-[0.82rem] text-[var(--pl-ink)] hover:bg-black/[0.03] transition-colors text-left"
@@ -266,8 +266,8 @@ function OverflowMenu({ site, onShare, onDelete, isCopied, isDeleting }: {
 
 // ── Static helper for site URL (used in OverflowMenu) ────────
 
-function getSiteUrlStatic(domain: string) {
-  return buildSiteUrl(domain);
+function getSiteUrlStatic(domain: string, occasion?: string) {
+  return buildSiteUrl(domain, '', undefined, occasion);
 }
 
 // ── Types ──────────────────────────────────────────────────────
@@ -355,12 +355,12 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
     }
   };
 
-  const getSiteUrl = (domain: string) => getSiteUrlStatic(domain);
+  const getSiteUrl = (site: UserSite) => getSiteUrlStatic(site.domain, site.manifest?.occasion);
 
   const handleCopyUrl = async (site: UserSite, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await navigator.clipboard.writeText(getSiteUrl(site.domain));
+      await navigator.clipboard.writeText(getSiteUrl(site));
       setCopiedId(site.id);
       setTimeout(() => setCopiedId(null), 2000);
     } catch { /* silent */ }

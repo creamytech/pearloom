@@ -80,6 +80,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
           subdomain,
           coupleNames,
           message,
+          occasion: manifest.occasion,
           guests: selectedGuests.map(g => ({ name: g.name, email: g.email! })),
         }),
       });

@@ -11,6 +11,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Bold, Italic, Type } from 'lucide-react';
+import { InlineColorCustomButton } from './InlineColorCustomButton';
 
 export interface TextFormat {
   bold?: boolean;
@@ -63,7 +64,7 @@ export function CanvasInlineFormatBar({
   format,
   onChange,
 }: CanvasInlineFormatBarProps) {
-  const barWidth = 360;
+  const barWidth = 384;
   const barHeight = 38;
   const gap = 6; // px above element
 
@@ -231,6 +232,14 @@ export function CanvasInlineFormatBar({
             }}
           />
         ))}
+        {/* Custom-color picker — opens a popover with hue/sat/light + hex. */}
+        <InlineColorCustomButton
+          value={activeColor}
+          onChange={(hex) => set({ color: hex })}
+          size={16}
+          presetActive={!!activeColor && COLOR_SWATCHES.some(s => s.value.toLowerCase() === activeColor.toLowerCase())}
+          title="Custom color"
+        />
         {/* Clear color button */}
         {activeColor && (
           <button

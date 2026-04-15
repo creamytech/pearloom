@@ -88,6 +88,8 @@ export function PublishModal({
   const [error, setError] = useState<string | null>(null);
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  // Zola-style URL prefix: pearloom.com/wedding/…, pearloom.com/birthday/…
+  const occasionPrefix = (manifest?.occasion || 'wedding') as string;
 
   const handleSubdomainChange = (val: string) => {
     const clean = val.toLowerCase().replace(/[^a-z0-9-]/g, '');
@@ -274,7 +276,7 @@ export function PublishModal({
               Your site will be at
             </div>
             <div className="text-[1.15rem] font-bold text-[var(--pl-ink)] tracking-tight">
-              <span className="text-[var(--pl-olive)] opacity-60">pearloom.com/sites/</span>{subdomain || '...'}
+              <span className="text-[var(--pl-olive)] opacity-60">pearloom.com/{occasionPrefix}/</span>{subdomain || '...'}
             </div>
           </div>
 
@@ -293,7 +295,7 @@ export function PublishModal({
                 onChange={(e) => handleSubdomainChange(e.target.value)}
                 placeholder="sarah-and-james"
                 disabled={isPublishing}
-                prefix="pearloom.com/sites/"
+                prefix={`pearloom.com/${occasionPrefix}/`}
               />
             </div>
           )}

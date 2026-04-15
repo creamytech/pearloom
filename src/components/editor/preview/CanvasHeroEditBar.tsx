@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Type, Calendar, Hash, Palette, ChevronDown, Check, ExternalLink } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import { buildSingleFontUrl } from '@/lib/font-catalog';
+import { InlineColorCustomButton } from './InlineColorCustomButton';
 
 interface CanvasHeroEditBarProps {
   rect: DOMRect;
@@ -184,7 +185,15 @@ export function CanvasHeroEditBar({
             }}
           />
         ))}
-        {textColor && !COLOR_SWATCHES.find(s => s.value === textColor) && (
+        {/* Custom-color picker — any hex / HSL. */}
+        <InlineColorCustomButton
+          value={textColor}
+          onChange={(hex) => onStyleChange('heroTextColorOverride', hex)}
+          size={18}
+          presetActive={!!textColor && COLOR_SWATCHES.some(s => s.value.toLowerCase() === textColor.toLowerCase())}
+          title="Custom text color"
+        />
+        {textColor && (
           <button
             title="Clear color override"
             onClick={() => onStyleChange('heroTextColorOverride', '')}

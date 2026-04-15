@@ -208,7 +208,7 @@ export function generateJsonLd(
     '@context': 'https://schema.org',
     '@type': eventType,
     name: `${displayName}'s ${occasion === 'wedding' ? 'Wedding' : occasion === 'birthday' ? 'Birthday' : 'Celebration'}`,
-    url: buildSiteUrl(domain),
+    url: buildSiteUrl(domain, '', undefined, occasion),
     description: manifest.poetry?.heroTagline || manifest.vibeString || '',
   };
 

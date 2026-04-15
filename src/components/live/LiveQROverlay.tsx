@@ -2,16 +2,19 @@
 
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
+import { buildSiteUrl } from '@/lib/site-urls';
 
 interface LiveQROverlayProps {
   domain: string;
+  /** Occasion for Zola-style URLs; falls back to legacy when omitted. */
+  occasion?: string;
 }
 
-export function LiveQROverlay({ domain }: LiveQROverlayProps) {
+export function LiveQROverlay({ domain, occasion }: LiveQROverlayProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    const url = `https://pearloom.com/sites/${domain}`;
+    const url = buildSiteUrl(domain, '', 'https://pearloom.com', occasion);
     QRCode.toDataURL(url, {
       width: 120,
       margin: 1,
@@ -19,7 +22,7 @@ export function LiveQROverlay({ domain }: LiveQROverlayProps) {
     })
       .then(setQrDataUrl)
       .catch(console.error);
-  }, [domain]);
+  }, [domain, occasion]);
 
   return (
     <div

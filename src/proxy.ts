@@ -72,6 +72,26 @@ function getRootDomain(): string {
   return 'pearloom.com'; // safe default
 }
 
+// ── Occasion-based canonical URLs ───────────────────────────
+//
+// Published sites now live at `/{occasion}/{slug}` (Zola-style).
+// For example: pearloom.com/wedding/scott, pearloom.com/birthday/ana.
+//
+// We keep the internal route tree rooted at `/sites/{slug}` and
+// simply REWRITE (not redirect) from the occasion-prefixed URL
+// so the browser bar shows the pretty path while the existing
+// SiteRenderer logic at /sites/[domain] does the actual work.
+//
+// The legacy `/sites/{slug}` URL is preserved as a permanent
+// fallback for already-shared links.
+const OCCASION_SEGMENTS = new Set([
+  'wedding',
+  'anniversary',
+  'engagement',
+  'birthday',
+  'story',
+]);
+
 // ── Proxy entry point ───────────────────────────────────────
 
 export function proxy(req: NextRequest) {
@@ -94,6 +114,20 @@ export function proxy(req: NextRequest) {
     const res = NextResponse.rewrite(destination);
     applySecurityHeaders(res, pathname);
     return res;
+  }
+
+  // ── Occasion-based URL rewrite ─────────────────────────────
+  // `/wedding/scott` → `/sites/scott` (URL bar stays on the pretty path).
+  // Only rewrites when the first segment is a known occasion so we
+  // don't collide with /dashboard, /editor, /api, /preview, etc.
+  {
+    const occMatch = pathname.match(/^\/([^/]+)\/([^/]+)(\/.*)?$/);
+    if (occMatch && OCCASION_SEGMENTS.has(occMatch[1])) {
+      const slug = occMatch[2];
+      const rest = occMatch[3] ?? '';
+      const dest = `/sites/${slug}${rest}${searchParams ? `?${searchParams}` : ''}`;
+      return rewrite(new URL(dest, req.url));
+    }
   }
 
   // ── Localhost dev: rewrite subdomain.localhost:PORT → treat as subdomain.rootDomain ──
