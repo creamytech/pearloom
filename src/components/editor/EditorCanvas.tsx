@@ -17,6 +17,7 @@ import { SlashMenu } from './SlashMenu';
 import { UndoChip } from './UndoChip';
 import { SuggestionBadges } from './SuggestionBadges';
 import { MultiFieldSelect } from './MultiFieldSelect';
+import { ScopeBubble } from './ScopeBubble';
 import { FocalPointOverlay } from './preview/FocalPointOverlay';
 import { CanvasChapterToolbar, type ChapterToolbarAction } from './preview/CanvasChapterToolbar';
 import { CanvasEventToolbar, type EventToolbarAction } from './preview/CanvasEventToolbar';
@@ -1098,6 +1099,10 @@ export function EditorCanvas() {
       {/* Multi-field select — shift/cmd-click editable fields to batch
           bold / italic / AI rewrite / clear across multiple at once. */}
       <MultiFieldSelect />
+
+      {/* Scope bubble — press Escape in an editable field to zoom out to
+          the enclosing block, then the section. */}
+      <ScopeBubble />
 
       {/* Focal point drag overlay — activated on chapter image click.
           Also surfaces alt text, replace, and AI caption actions so the
