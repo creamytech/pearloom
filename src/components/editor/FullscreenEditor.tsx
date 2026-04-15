@@ -390,8 +390,15 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       case 'publish': dispatch({ type: 'OPEN_PUBLISH' }); break;
       case 'undo': undo(); break;
       case 'redo': redo(); break;
+      case 'pear':
+        // Forward to the AI command bar via the same channel empty-state
+        // buttons and ambient suggestion badges use.
+        window.dispatchEvent(new CustomEvent('pear-command', {
+          detail: { prompt: action.prompt },
+        }));
+        break;
     }
-  }, [addChapter, handleTabChange, storePreviewForOpen, undo, redo]);
+  }, [addChapter, handleTabChange, storePreviewForOpen, undo, redo, dispatch]);
 
   // ── AI Rewrite ───────────────────────────────────────────────
   const cancelAIRewrite = useCallback(() => {
@@ -874,6 +881,12 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         chapters={state.chapters.map(c => ({ id: c.id, title: c.title || '' }))}
         canUndo={state.canUndo}
         canRedo={state.canRedo}
+        contextHints={{
+          activeChapterId: state.activeId,
+          activeChapterTitle: state.chapters.find(c => c.id === state.activeId)?.title || null,
+          selectedBlockCount: state.selectedBlockIds.length,
+          focusedFieldPath: state.fieldFocus,
+        }}
       />
 
       {/* Draft Recovery Banner */}

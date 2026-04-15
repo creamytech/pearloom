@@ -26,7 +26,9 @@ export type CommandAction =
   | { type: 'preview' }
   | { type: 'publish' }
   | { type: 'undo' }
-  | { type: 'redo' };
+  | { type: 'redo' }
+  // Contextual AI command — fires a Pear prompt.
+  | { type: 'pear'; prompt: string };
 
 interface Command {
   id: string;
@@ -46,6 +48,15 @@ interface CommandPaletteProps {
   chapters: { id: string; title: string }[];
   canUndo: boolean;
   canRedo: boolean;
+  /** Current editing context. When present and no query is active, the
+   *  palette prepends an "In context" group with commands tailored to
+   *  whatever the user is currently working on. */
+  contextHints?: {
+    activeChapterId?: string | null;
+    activeChapterTitle?: string | null;
+    selectedBlockCount?: number;
+    focusedFieldPath?: string | null;
+  };
 }
 
 const TAB_COMMANDS: Command[] = [
@@ -73,6 +84,60 @@ const ACTION_COMMANDS: Command[] = [
   { id: 'redo',        label: 'Redo',              description: 'Redo last change',       icon: RotateCw,  iconColor: '#e2e8f0', group: 'Actions', shortcut: '⌘⇧Z', action: { type: 'redo' } },
 ];
 
+// Derive a prompt-style instruction from a data-pe-path value so AI
+// rewrites target the right manifest field. Paths look like
+// "chapters.2.description" or "logistics.venue".
+function describePath(path: string): string {
+  const parts = path.split('.');
+  if (parts[0] === 'chapters' && parts.length >= 3) {
+    return `chapter ${parts[1]} ${parts.slice(2).join(' ')}`;
+  }
+  return parts.join(' ');
+}
+
+function buildContextCommands(hints: NonNullable<CommandPaletteProps['contextHints']>): Command[] {
+  const list: Command[] = [];
+  const { activeChapterId, activeChapterTitle, selectedBlockCount = 0, focusedFieldPath } = hints;
+
+  if (focusedFieldPath) {
+    list.push({
+      id: 'ctx-rewrite-field',
+      label: 'AI rewrite this field',
+      description: `Pear will polish the ${describePath(focusedFieldPath)} in place`,
+      icon: Sparkles,
+      iconColor: '#A3B18A',
+      group: 'In context',
+      action: { type: 'pear', prompt: `Rewrite the ${describePath(focusedFieldPath)} to match the site's tone. Keep names and dates exact.` },
+    });
+  }
+
+  if (activeChapterId && activeChapterTitle) {
+    list.push({
+      id: `ctx-rewrite-chapter-${activeChapterId}`,
+      label: `AI rewrite "${activeChapterTitle}"`,
+      description: 'Polish this chapter while keeping facts intact',
+      icon: Sparkles,
+      iconColor: '#A3B18A',
+      group: 'In context',
+      action: { type: 'pear', prompt: `Rewrite the "${activeChapterTitle}" chapter with warmer, more evocative prose. Keep names, dates, and the core storyline. Use the update_chapter action on chapter ${activeChapterId}.` },
+    });
+  }
+
+  if (selectedBlockCount > 0) {
+    list.push({
+      id: 'ctx-delete-selected',
+      label: `Delete ${selectedBlockCount} selected block${selectedBlockCount === 1 ? '' : 's'}`,
+      description: 'Remove selected blocks from the canvas',
+      icon: RotateCcw,
+      iconColor: '#d06060',
+      group: 'In context',
+      action: { type: 'pear', prompt: `Delete the ${selectedBlockCount} currently selected blocks from the canvas.` },
+    });
+  }
+
+  return list;
+}
+
 function fuzzyMatch(query: string, text: string): boolean {
   const q = query.toLowerCase();
   const t = text.toLowerCase();
@@ -84,7 +149,7 @@ function fuzzyMatch(query: string, text: string): boolean {
   return qi === q.length;
 }
 
-export function CommandPalette({ open, onClose, onAction, chapters, canUndo, canRedo }: CommandPaletteProps) {
+export function CommandPalette({ open, onClose, onAction, chapters, canUndo, canRedo, contextHints }: CommandPaletteProps) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [recentIds, setRecentIds] = useState<string[]>([]);
@@ -140,9 +205,16 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
         .filter((c): c is Command => !!c)
     : [];
 
+  // Contextual commands — tailored to whatever the user is currently
+  // working on. Only surface when no query is active so they don't crowd
+  // out search results.
+  const contextCommands: Command[] = !query.trim() && contextHints
+    ? buildContextCommands(contextHints)
+    : [];
+
   const filtered = query.trim()
     ? allCommands.filter(c => fuzzyMatch(query, c.label) || fuzzyMatch(query, c.description || '') || fuzzyMatch(query, c.group))
-    : [...recentCommands, ...allCommands];
+    : [...contextCommands, ...recentCommands, ...allCommands];
 
   // Group by section — preserve insertion order (Recent first when present).
   const groups = filtered.reduce<Record<string, Command[]>>((acc, cmd) => {
