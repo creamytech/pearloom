@@ -194,7 +194,12 @@ export function EditorCanvas() {
   const frameWidth = isPhone ? 390 : isTablet ? 768 : undefined;
 
   // ── Section click → inline editing for creative sections, panel deep-link for structured-data ──
-  const handleSectionClick = useCallback((sectionId: string, chapterId?: string, blockId?: string) => {
+  const handleSectionClick = useCallback((
+    sectionId: string,
+    chapterId?: string,
+    blockId?: string,
+    clickPos?: { x: number; y: number },
+  ) => {
     // Chapter-specific: select chapter for inline editing, do NOT force-switch tabs.
     if (chapterId) {
       dispatch({ type: 'SET_ACTIVE_ID', id: chapterId });
@@ -226,7 +231,7 @@ export function EditorCanvas() {
     if (blockId) dispatch({ type: 'SET_ACTIVE_ID', id: blockId });
     dispatch({ type: 'SET_CONTEXT_SECTION', section: null });
     const blockType = sectionId === 'gallery' ? 'photos' : sectionId;
-    window.dispatchEvent(new CustomEvent('pearloom-select-block', { detail: { blockType, blockId } }));
+    window.dispatchEvent(new CustomEvent('pearloom-select-block', { detail: { blockType, blockId, clickPos } }));
     // Don't open the generic config popover for block types that ship a dedicated
     // inline UI (e.g. 'story' → InlineStoryLayoutSwitcher). Showing both creates
     // two overlapping dialogs for the same concepts.
@@ -1016,8 +1021,10 @@ export function EditorCanvas() {
     >
       {/* Device switcher moved to toolbar */}
 
-      {/* AI text rewrite floating pill — shows on text selection */}
-      <PearTextRewrite onTextEdit={handleTextEdit} />
+      {/* AI text rewrite floating pill — shows on text selection. Also
+          hosts inline format controls (bold / italic / size / color) so
+          the user sees every text affordance in one place. */}
+      <PearTextRewrite onTextEdit={handleTextEdit} manifest={manifest} />
 
       {/* Focal point drag overlay — activated on chapter image click */}
       {focalPoint && (

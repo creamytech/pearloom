@@ -30,6 +30,13 @@ interface Anchor {
   top: number;   // viewport-space px (for position: fixed)
   left: number;  // viewport-space px, centered
   width: number; // rect width for sizing the strip
+  // Origin point of the triggering click (viewport-space). When present
+  // the switcher anchors near the click rather than the block's top
+  // edge — feels more like a contextual menu than a banner. Falls back
+  // to the block top when missing (keyboard activation, programmatic
+  // selection).
+  clickX?: number;
+  clickY?: number;
 }
 
 export function InlineStoryLayoutSwitcher() {
@@ -39,8 +46,13 @@ export function InlineStoryLayoutSwitcher() {
 
   const activeLayout = resolveStoryLayout(manifest.storyLayout, manifest.layoutFormat);
 
-  // Compute fresh anchor rect from a known block id.
-  const computeAnchor = useCallback((blockId: string): Anchor | null => {
+  // Compute fresh anchor rect from a known block id. Carries through
+  // any click-origin coordinates so the switcher can anchor to the
+  // user's actual click rather than the block top.
+  const computeAnchor = useCallback((
+    blockId: string,
+    clickPos?: { x: number; y: number },
+  ): Anchor | null => {
     const el = document.querySelector<HTMLElement>(`[data-block-id="${blockId}"]`);
     if (!el) return null;
     const rect = el.getBoundingClientRect();
@@ -49,6 +61,8 @@ export function InlineStoryLayoutSwitcher() {
       top: rect.top,
       left: rect.left + rect.width / 2,
       width: rect.width,
+      clickX: clickPos?.x,
+      clickY: clickPos?.y,
     };
   }, []);
 
@@ -56,7 +70,7 @@ export function InlineStoryLayoutSwitcher() {
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail as
-        | { blockType?: string; blockId?: string }
+        | { blockType?: string; blockId?: string; clickPos?: { x: number; y: number } }
         | undefined;
       if (!detail) return;
 
@@ -79,7 +93,7 @@ export function InlineStoryLayoutSwitcher() {
         return;
       }
 
-      const next = computeAnchor(blockId);
+      const next = computeAnchor(blockId, detail.clickPos);
       if (next) {
         setAnchor(next);
         return;
@@ -88,8 +102,9 @@ export function InlineStoryLayoutSwitcher() {
       // Retry on the next animation frame so the switcher never silently
       // no-ops and force the user to click twice.
       const id = blockId;
+      const cp = detail.clickPos;
       requestAnimationFrame(() => {
-        const retry = computeAnchor(id);
+        const retry = computeAnchor(id, cp);
         if (retry) setAnchor(retry);
       });
     };
@@ -99,6 +114,10 @@ export function InlineStoryLayoutSwitcher() {
   }, [computeAnchor]);
 
   // ── Reposition on scroll/resize while visible ─────────────────
+  // Note: we *don't* try to track the click origin through scroll —
+  // the original page-space click is long gone once the user scrolls.
+  // Fall back to block-top anchoring in that case so the strip doesn't
+  // drift into nonsense coordinates.
   useEffect(() => {
     if (!anchor) return;
     const reposition = () => {
@@ -144,9 +163,16 @@ export function InlineStoryLayoutSwitcher() {
     });
   };
 
-  // Position: centered above the story block, offset upward so it
-  // hovers clear of the block's top edge.
+  // Position: prefer anchoring near the user's click — feels like a
+  // contextual menu rather than a banner pinned to the block top.
+  // Falls back to the block's top edge when no click origin is
+  // available (keyboard activation, reposition after scroll).
   const STRIP_OFFSET = 64;
+  const useClick = anchor.clickX != null && anchor.clickY != null;
+  const topPx = useClick
+    ? Math.max((anchor.clickY as number) - STRIP_OFFSET, 8)
+    : Math.max(anchor.top - STRIP_OFFSET, 8);
+  const leftPx = useClick ? (anchor.clickX as number) : anchor.left;
 
   return (
     <div
@@ -155,8 +181,8 @@ export function InlineStoryLayoutSwitcher() {
       aria-label="Story layout"
       style={{
         position: 'fixed',
-        top: Math.max(anchor.top - STRIP_OFFSET, 8),
-        left: anchor.left,
+        top: topPx,
+        left: leftPx,
         transform: 'translateX(-50%)',
         // Sits just above other inline popovers (InlineStylePicker /
         // BlockConfigPopover @ 160) but still well below the modal
