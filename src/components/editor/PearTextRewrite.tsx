@@ -10,6 +10,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Bold, Italic, Type } from 'lucide-react';
 import { PearIcon } from '@/components/icons/PearloomIcons';
@@ -221,7 +222,13 @@ export function PearTextRewrite({ onTextEdit, manifest }: PearTextRewriteProps) 
   const activeSize = currentFormat.size ?? 'md';
   const activeColor = currentFormat.color ?? '';
 
-  return (
+  // Portal to document.body so we escape `#pl-editor-canvas`'s stacking
+  // context (it has zIndex:1 relative to its panel sibling, which would
+  // otherwise clip our fixed-position pill behind the right-side editor
+  // panel).
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
       {visible && (
         <motion.div
@@ -419,7 +426,8 @@ export function PearTextRewrite({ onTextEdit, manifest }: PearTextRewriteProps) 
           </div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
 

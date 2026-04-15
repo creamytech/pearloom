@@ -947,7 +947,23 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     if (!formats) return;
     const sizeMap: Record<string, string> = { sm: '0.85em', md: '1em', lg: '1.2em', xl: '1.5em' };
     Object.entries(formats).forEach(([path, fmt]) => {
-      const el = siteRef.current?.querySelector(`[data-pe-path="${path}"]`) as HTMLElement | null;
+      // Two path shapes exist:
+      //  1. plain manifest path (poetry.heroTagline) → [data-pe-path=...]
+      //  2. synthetic chapter path (chapter:<id>:<field>) → chapter section
+      //     + data-pe-field (how StoryLayouts marks chapter text; no
+      //     data-pe-path attribute is emitted).
+      let el: HTMLElement | null = null;
+      if (path.startsWith('chapter:')) {
+        const [, chapterId, field] = path.split(':');
+        const chapterEl = siteRef.current?.querySelector(
+          `[data-pe-chapter="${chapterId}"]`,
+        );
+        el = chapterEl?.querySelector<HTMLElement>(
+          `[data-pe-field="${field}"]`,
+        ) ?? null;
+      } else {
+        el = siteRef.current?.querySelector(`[data-pe-path="${path}"]`) as HTMLElement | null;
+      }
       if (!el) return;
       el.style.fontStyle = fmt.italic ? 'italic' : '';
       el.style.fontWeight = fmt.bold ? '700' : '';
