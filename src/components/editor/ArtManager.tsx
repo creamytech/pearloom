@@ -2,19 +2,40 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/editor/ArtManager.tsx
-// Manage AI-generated art surfaces: hero art, ambient background,
-// art strip. Replace with upload, regenerate with AI, or remove.
+// Manage AI-generated art surfaces.
+//
+// Two categories of art live in the VibeSkin:
+//   1. Raster art (hero, ambient, art strip) — uploadable, regenerable,
+//      replaceable with Google Photos.
+//   2. Decorative SVGs (hero blob, corner flourish, chapter divider,
+//      medallion, ambient pattern, per-chapter icons) — regenerable or
+//      removable. Historically these were baked at site-create time with
+//      no editor-surface; this component exposes them so couples can
+//      curate or strip back the generated ornamentation.
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Image, RefreshCw, Trash2, Upload, Loader2, Sparkles, ImageIcon } from 'lucide-react';
+import { Image, Trash2, Upload, Loader2, Sparkles, ImageIcon } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
+import { sanitizeSvg } from '@/lib/sanitize-svg';
 import { colors as C, text, card } from '@/lib/design-tokens';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
 
 type ArtSlot = 'heroArtDataUrl' | 'ambientArtDataUrl' | 'artStripDataUrl';
+
+// SVG-only decorative slots generated alongside raster art by the vibe engine.
+// These render as dangerouslySetInnerHTML elements sprinkled through the site
+// (hero blob, corner flourishes, chapter dividers, etc.) and have never been
+// user-editable until now.
+type SvgSlot =
+  | 'heroBlobSvg'
+  | 'cornerFlourishSvg'
+  | 'accentBlobSvg'
+  | 'heroPatternSvg'
+  | 'sectionBorderSvg'
+  | 'medallionSvg';
 
 interface ArtManagerProps {
   manifest: StoryManifest;
@@ -26,6 +47,15 @@ const ART_SLOTS: { key: ArtSlot; label: string; desc: string; aspect: string }[]
   { key: 'heroArtDataUrl', label: 'Hero Art', desc: 'The main painted illustration behind your story header', aspect: '16/9' },
   { key: 'ambientArtDataUrl', label: 'Ambient Background', desc: 'Subtle painted texture behind your chapters', aspect: '16/9' },
   { key: 'artStripDataUrl', label: 'Art Strip', desc: 'Horizontal botanical divider between sections', aspect: '8/1' },
+];
+
+const SVG_SLOTS: { key: SvgSlot; label: string; desc: string; aspect: string }[] = [
+  { key: 'heroBlobSvg',        label: 'Hero Overlay',      desc: 'Large illustrated motif layered on top of the hero',        aspect: '5/7' },
+  { key: 'cornerFlourishSvg',  label: 'Corner Flourish',   desc: 'Decorative corner ornament framing the hero',               aspect: '1/1' },
+  { key: 'accentBlobSvg',      label: 'Events Backdrop',   desc: 'Organic shape behind the events section',                   aspect: '3/2' },
+  { key: 'heroPatternSvg',     label: 'Ambient Pattern',   desc: 'Repeating motif used as the site-wide background pattern',  aspect: '1/1' },
+  { key: 'sectionBorderSvg',   label: 'Chapter Divider',   desc: 'Ornamental strip drawn between chapters',                   aspect: '10/1' },
+  { key: 'medallionSvg',       label: 'Story Medallion',   desc: 'Circular ornament shown at the start of your story',       aspect: '1/1' },
 ];
 
 function ArtSlotCard({
@@ -118,6 +148,180 @@ function ArtSlotCard({
   );
 }
 
+function SvgSlotCard({
+  slot,
+  svg,
+  onRegenerate,
+  onRemove,
+  isRegenerating,
+}: {
+  slot: typeof SVG_SLOTS[number];
+  svg?: string;
+  onRegenerate: () => void;
+  onRemove: () => void;
+  isRegenerating: boolean;
+}) {
+  const safe = svg ? sanitizeSvg(svg) : null;
+
+  return (
+    <div style={{
+      background: card.bg, borderRadius: card.radius, border: card.border,
+      boxShadow: card.shadow, overflow: 'hidden',
+    }}>
+      {/* Preview area — light background so coloured SVG strokes read clearly */}
+      <div style={{
+        aspectRatio: slot.aspect, background: '#FAF7F2', position: 'relative',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        overflow: 'hidden', padding: '10px',
+      }}>
+        {safe ? (
+          <>
+            <div
+              aria-hidden
+              style={{
+                width: '100%', height: '100%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: C.ink,
+              }}
+              dangerouslySetInnerHTML={{ __html: safe }}
+            />
+            <div style={{
+              position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.04)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+              opacity: 0, transition: 'opacity 0.2s ease',
+            }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '0'; }}
+            >
+              <ActionButton
+                icon={isRegenerating ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={14} />}
+                label="Regenerate"
+                onClick={onRegenerate}
+                disabled={isRegenerating}
+              />
+              <ActionButton icon={<Trash2 size={14} />} label="Remove" onClick={onRemove} danger />
+            </div>
+          </>
+        ) : (
+          <div style={{ textAlign: 'center' }}>
+            <Image size={22} style={{ color: '#71717A', marginBottom: '0.4rem' }} />
+            <p style={{ color: '#71717A', fontSize: text.sm, margin: 0 }}>Removed</p>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginTop: '0.6rem' }}>
+              <ActionButton
+                icon={isRegenerating ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={13} />}
+                label="Generate"
+                onClick={onRegenerate}
+                disabled={isRegenerating}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+      <div style={{ padding: '0.75rem 1rem' }}>
+        <div style={{ fontSize: text.sm, fontWeight: 600, color: C.ink, marginBottom: '0.15rem' }}>{slot.label}</div>
+        <div style={{ fontSize: text.xs, color: C.muted, lineHeight: 1.4 }}>{slot.desc}</div>
+      </div>
+    </div>
+  );
+}
+
+function ChapterIconsCard({
+  icons,
+  onRegenerate,
+  onRemoveAll,
+  onRemoveOne,
+  isRegenerating,
+}: {
+  icons: string[];
+  onRegenerate: () => void;
+  onRemoveAll: () => void;
+  onRemoveOne: (index: number) => void;
+  isRegenerating: boolean;
+}) {
+  return (
+    <div style={{
+      background: card.bg, borderRadius: card.radius, border: card.border,
+      boxShadow: card.shadow, padding: '0.9rem 1rem',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', marginBottom: '0.5rem' }}>
+        <div>
+          <div style={{ fontSize: text.sm, fontWeight: 600, color: C.ink }}>Chapter Icons</div>
+          <div style={{ fontSize: text.xs, color: C.muted, lineHeight: 1.4 }}>
+            One small illustration drawn above each chapter.
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: '0.35rem' }}>
+          <ActionButton
+            icon={isRegenerating ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={13} />}
+            label="Regen"
+            onClick={onRegenerate}
+            disabled={isRegenerating}
+          />
+          {icons.length > 0 && (
+            <ActionButton icon={<Trash2 size={13} />} label="Clear" onClick={onRemoveAll} danger />
+          )}
+        </div>
+      </div>
+      {icons.length === 0 ? (
+        <p style={{ color: '#71717A', fontSize: text.xs, margin: '0.4rem 0 0' }}>No chapter icons.</p>
+      ) : (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))',
+          gap: '0.5rem', marginTop: '0.4rem',
+        }}>
+          {icons.map((svg, i) => {
+            const safe = sanitizeSvg(svg);
+            return (
+              <div
+                key={i}
+                style={{
+                  position: 'relative',
+                  aspectRatio: '1/1',
+                  background: '#FAF7F2',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(0,0,0,0.05)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '6px', color: C.ink,
+                }}
+                onMouseEnter={e => {
+                  const btn = (e.currentTarget as HTMLElement).querySelector('.pl-chapter-icon-remove') as HTMLElement | null;
+                  if (btn) btn.style.opacity = '1';
+                }}
+                onMouseLeave={e => {
+                  const btn = (e.currentTarget as HTMLElement).querySelector('.pl-chapter-icon-remove') as HTMLElement | null;
+                  if (btn) btn.style.opacity = '0';
+                }}
+              >
+                <div
+                  aria-hidden
+                  style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  dangerouslySetInnerHTML={{ __html: safe }}
+                />
+                <button
+                  className="pl-chapter-icon-remove"
+                  onClick={e => { e.stopPropagation(); onRemoveOne(i); }}
+                  aria-label={`Remove chapter icon ${i + 1}`}
+                  style={{
+                    position: 'absolute', top: 2, right: 2,
+                    width: 18, height: 18, borderRadius: '50%',
+                    background: 'rgba(220,60,60,0.92)', color: '#fff',
+                    border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    opacity: 0, transition: 'opacity 0.15s ease',
+                  }}
+                >
+                  <Trash2 size={10} />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ActionButton({
   icon, label, onClick, disabled, danger,
 }: {
@@ -146,6 +350,7 @@ function ActionButton({
 
 export function ArtManager({ manifest, coupleNames, onUpdate }: ArtManagerProps) {
   const [regenerating, setRegenerating] = useState<ArtSlot | null>(null);
+  const [regeneratingSvg, setRegeneratingSvg] = useState<SvgSlot | 'chapterIcons' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { pick: pickGooglePhotos, state: gpState, error: gpError } = useGooglePhotosPicker();
 
@@ -258,6 +463,67 @@ export function ArtManager({ manifest, coupleNames, onUpdate }: ArtManagerProps)
     onUpdate({ vibeSkin: updatedSkin });
   };
 
+  // ── SVG slot handlers ─────────────────────────────────────────
+  // Re-hit /api/regenerate-design and cherry-pick just the requested slot
+  // from the returned vibeSkin so we don't clobber unrelated art.
+  const handleSvgRegenerate = async (slot: SvgSlot | 'chapterIcons') => {
+    setRegeneratingSvg(slot);
+    try {
+      const names = coupleNames || (manifest as any).coupleNames || ['', ''];
+      const res = await fetch('/api/regenerate-design', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vibeString: manifest.vibeString,
+          coupleNames: names,
+          chapters: manifest.chapters?.map(c => ({
+            title: c.title, subtitle: c.subtitle || '', mood: c.mood || '',
+            location: c.location, description: c.description || '',
+          })),
+          occasion: manifest.occasion,
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        const msg = errData.error || `Regeneration failed (${res.status})`;
+        setError(msg);
+        setTimeout(() => setError(null), 5000);
+        return;
+      }
+      const data = await res.json();
+      const next = data.vibeSkin?.[slot];
+      if (next == null || (Array.isArray(next) && next.length === 0)) {
+        setError('Regeneration returned nothing — try again');
+        setTimeout(() => setError(null), 3000);
+        return;
+      }
+      onUpdate({ vibeSkin: { ...manifest.vibeSkin!, [slot]: next } });
+    } catch (err) {
+      console.error('[ArtManager] SVG regenerate failed:', err);
+      setError(err instanceof Error ? err.message : 'Regeneration failed');
+      setTimeout(() => setError(null), 3000);
+    } finally {
+      setRegeneratingSvg(null);
+    }
+  };
+
+  const handleSvgRemove = (slot: SvgSlot) => {
+    if (!manifest.vibeSkin) return;
+    onUpdate({ vibeSkin: { ...manifest.vibeSkin, [slot]: undefined } });
+  };
+
+  const handleChapterIconsRemoveAll = () => {
+    if (!manifest.vibeSkin) return;
+    onUpdate({ vibeSkin: { ...manifest.vibeSkin, chapterIcons: [] } });
+  };
+
+  const handleChapterIconRemoveOne = (index: number) => {
+    if (!manifest.vibeSkin) return;
+    const icons = [...(manifest.vibeSkin.chapterIcons || [])];
+    icons.splice(index, 1);
+    onUpdate({ vibeSkin: { ...manifest.vibeSkin, chapterIcons: icons } });
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {(error || gpError) && (
@@ -290,6 +556,32 @@ export function ArtManager({ manifest, coupleNames, onUpdate }: ArtManagerProps)
         />
       ))}
 
+      {/* Decorative SVG art — hero overlay, chapter dividers, icons, etc. */}
+      <div style={{ marginTop: '0.75rem', marginBottom: '0.25rem' }}>
+        <h3 style={{ fontSize: text.md, fontWeight: 700, color: C.ink, marginBottom: '0.25rem' }}>Decorative Details</h3>
+        <p style={{ fontSize: text.sm, color: C.muted, lineHeight: 1.5 }}>
+          Small AI-generated illustrations sprinkled through the site — corner flourishes, chapter dividers, and more. Regenerate for a fresh take or remove any you don&apos;t want.
+        </p>
+      </div>
+
+      {SVG_SLOTS.map(slot => (
+        <SvgSlotCard
+          key={slot.key}
+          slot={slot}
+          svg={manifest.vibeSkin?.[slot.key] as string | undefined}
+          onRegenerate={() => handleSvgRegenerate(slot.key)}
+          onRemove={() => handleSvgRemove(slot.key)}
+          isRegenerating={regeneratingSvg === slot.key}
+        />
+      ))}
+
+      <ChapterIconsCard
+        icons={manifest.vibeSkin?.chapterIcons || []}
+        onRegenerate={() => handleSvgRegenerate('chapterIcons')}
+        onRemoveAll={handleChapterIconsRemoveAll}
+        onRemoveOne={handleChapterIconRemoveOne}
+        isRegenerating={regeneratingSvg === 'chapterIcons'}
+      />
     </div>
   );
 }
