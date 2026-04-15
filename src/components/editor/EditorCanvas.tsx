@@ -1094,23 +1094,66 @@ export function EditorCanvas() {
           Pear has a ready-made suggestion. Click opens the command bar. */}
       <SuggestionBadges />
 
-      {/* Focal point drag overlay — activated on chapter image click */}
-      {focalPoint && (
-        <FocalPointOverlay
-          chapterId={focalPoint.chapterId}
-          rect={focalPoint.rect}
-          currentX={focalPoint.x}
-          currentY={focalPoint.y}
-          onPositionChange={(x, y) =>
-            actions.updateChapter(focalPoint.chapterId, { imagePosition: { x, y } })
-          }
-          onCommit={(x, y) => {
-            actions.updateChapter(focalPoint.chapterId, { imagePosition: { x, y } });
-            setFocalPoint(null);
-          }}
-          onClose={() => setFocalPoint(null)}
-        />
-      )}
+      {/* Focal point drag overlay — activated on chapter image click.
+          Also surfaces alt text, replace, and AI caption actions so the
+          user has every photo affordance in one place. */}
+      {focalPoint && (() => {
+        const chapter = manifest.chapters?.find(c => c.id === focalPoint.chapterId);
+        const imgIdx = chapter?.heroPhotoIndex ?? 0;
+        const img = chapter?.images?.[imgIdx];
+        const updateImage = (patch: { alt?: string; url?: string; caption?: string }) => {
+          if (!chapter || !img) return;
+          const images = [...(chapter.images ?? [])];
+          images[imgIdx] = { ...images[imgIdx], ...patch };
+          actions.updateChapter(chapter.id, { images });
+        };
+        const handleReplace = () => {
+          if (!chapter) return;
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = 'image/*';
+          input.onchange = () => {
+            const file = input.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+              const dataUrl = reader.result as string;
+              if (dataUrl) updateImage({ url: dataUrl });
+            };
+            reader.readAsDataURL(file);
+          };
+          input.click();
+        };
+        const handleAICaption = () => {
+          if (!chapter) return;
+          window.dispatchEvent(new CustomEvent('pear-command', {
+            detail: {
+              prompt: `Write a short, poetic 4-8 word caption for the cover photo of the "${chapter.title}" chapter. Use update_chapter on chapter ${chapter.id} to set images[${imgIdx}].caption.`,
+            },
+          }));
+          setFocalPoint(null);
+        };
+        return (
+          <FocalPointOverlay
+            chapterId={focalPoint.chapterId}
+            rect={focalPoint.rect}
+            currentX={focalPoint.x}
+            currentY={focalPoint.y}
+            onPositionChange={(x, y) =>
+              actions.updateChapter(focalPoint.chapterId, { imagePosition: { x, y } })
+            }
+            onCommit={(x, y) => {
+              actions.updateChapter(focalPoint.chapterId, { imagePosition: { x, y } });
+              setFocalPoint(null);
+            }}
+            onClose={() => setFocalPoint(null)}
+            currentAlt={img?.alt}
+            onAltChange={img ? (alt) => updateImage({ alt }) : undefined}
+            onReplace={img ? handleReplace : undefined}
+            onAICaption={chapter ? handleAICaption : undefined}
+          />
+        );
+      })()}
 
       {/* Canvas chapter hover toolbar */}
       <AnimatePresence>

@@ -15,7 +15,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X } from 'lucide-react';
+import { Check, X, Sparkles, Tag, RefreshCw } from 'lucide-react';
 
 export interface FocalPointOverlayProps {
   chapterId: string;
@@ -30,6 +30,15 @@ export interface FocalPointOverlayProps {
   /** Called on pointerup — commits the final position */
   onCommit: (x: number, y: number) => void;
   onClose: () => void;
+  /** Current alt text (optional) — shown in the alt editor popover. */
+  currentAlt?: string;
+  /** Called when user commits a new alt text. */
+  onAltChange?: (alt: string) => void;
+  /** Called when user clicks Replace — host typically opens a file picker. */
+  onReplace?: () => void;
+  /** Called when user clicks ✦ AI caption — host typically dispatches a
+   *  Pear command with a tailored prompt. */
+  onAICaption?: () => void;
 }
 
 function clamp(v: number, lo: number, hi: number) {
@@ -44,9 +53,15 @@ export function FocalPointOverlay({
   onPositionChange,
   onCommit,
   onClose,
+  currentAlt,
+  onAltChange,
+  onReplace,
+  onAICaption,
 }: FocalPointOverlayProps) {
   const [posX, setPosX] = useState(currentX);
   const [posY, setPosY] = useState(currentY);
+  const [altEditorOpen, setAltEditorOpen] = useState(false);
+  const [altDraft, setAltDraft] = useState(currentAlt ?? '');
   const isDragging = useRef(false);
   const rafRef = useRef<number | null>(null);
 
@@ -172,6 +187,135 @@ export function FocalPointOverlay({
           onPointerDown={e => e.stopPropagation()}
         >
           <span style={{ opacity: 0.7 }}>Click or drag to set focal point</span>
+
+          {/* Extended photo actions — alt, replace, AI caption. Rendered
+              inline so the user sees every image affordance at once. */}
+          {(onAICaption || onAltChange || onReplace) && (
+            <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.2)' }} />
+          )}
+          {onAICaption && (
+            <button
+              onClick={e => { e.stopPropagation(); onAICaption(); }}
+              title="AI caption"
+              aria-label="AI caption"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: '24px', height: '24px', borderRadius: '6px',
+                border: 'none', background: 'rgba(255,255,255,0.1)',
+                color: '#fff', cursor: 'pointer',
+              }}
+            >
+              <Sparkles size={11} />
+            </button>
+          )}
+          {onAltChange && (
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  setAltDraft(currentAlt ?? '');
+                  setAltEditorOpen(v => !v);
+                }}
+                title="Edit alt text"
+                aria-label="Edit alt text"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: '24px', height: '24px', borderRadius: '6px',
+                  border: 'none',
+                  background: altEditorOpen ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.1)',
+                  color: '#fff', cursor: 'pointer',
+                }}
+              >
+                <Tag size={11} />
+              </button>
+              <AnimatePresence>
+                {altEditorOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 6 }}
+                    transition={{ duration: 0.14 }}
+                    onPointerDown={e => e.stopPropagation()}
+                    onClick={e => e.stopPropagation()}
+                    style={{
+                      position: 'absolute',
+                      bottom: 'calc(100% + 10px)',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: 280,
+                      padding: 10,
+                      borderRadius: 10,
+                      background: '#FFFFFF',
+                      border: '1px solid #E4E4E7',
+                      boxShadow: '0 8px 28px rgba(0,0,0,0.18)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 8,
+                      color: '#18181B',
+                    }}
+                  >
+                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#71717A' }}>
+                      Alt text
+                    </div>
+                    <input
+                      value={altDraft}
+                      onChange={e => setAltDraft(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          onAltChange(altDraft);
+                          setAltEditorOpen(false);
+                        } else if (e.key === 'Escape') {
+                          setAltEditorOpen(false);
+                        }
+                      }}
+                      placeholder="Describe the photo for accessibility…"
+                      autoFocus
+                      style={{
+                        width: '100%',
+                        padding: '7px 9px',
+                        borderRadius: 6,
+                        border: '1px solid #E4E4E7',
+                        fontSize: 12,
+                        fontFamily: 'inherit',
+                        color: '#18181B',
+                        outline: 'none',
+                      }}
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
+                      <button
+                        onClick={() => setAltEditorOpen(false)}
+                        style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#F4F4F5', color: '#52525B', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => { onAltChange(altDraft); setAltEditorOpen(false); }}
+                        style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#18181B', color: '#fff', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+          {onReplace && (
+            <button
+              onClick={e => { e.stopPropagation(); onReplace(); }}
+              title="Replace photo"
+              aria-label="Replace photo"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: '24px', height: '24px', borderRadius: '6px',
+                border: 'none', background: 'rgba(255,255,255,0.1)',
+                color: '#fff', cursor: 'pointer',
+              }}
+            >
+              <RefreshCw size={11} />
+            </button>
+          )}
+
           <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.2)' }} />
           <button
             onClick={e => { e.stopPropagation(); onCommit(posX, posY); onClose(); }}
