@@ -18,6 +18,7 @@ import { UndoChip } from './UndoChip';
 import { SuggestionBadges } from './SuggestionBadges';
 import { MultiFieldSelect } from './MultiFieldSelect';
 import { ScopeBubble } from './ScopeBubble';
+import { ResponsivePreviewFrame } from './ResponsivePreviewFrame';
 import { FocalPointOverlay } from './preview/FocalPointOverlay';
 import { CanvasChapterToolbar, type ChapterToolbarAction } from './preview/CanvasChapterToolbar';
 import { CanvasEventToolbar, type EventToolbarAction } from './preview/CanvasEventToolbar';
@@ -195,7 +196,15 @@ export function EditorCanvas() {
   const isPhone = device === 'mobile';
   const isTablet = device === 'tablet';
   const isFramed = isPhone || isTablet;
-  const frameWidth = isPhone ? 390 : isTablet ? 768 : undefined;
+  const defaultFrameWidth = isPhone ? 390 : isTablet ? 768 : 1280;
+
+  // User-adjustable frame width. Resets to the device default whenever the
+  // device preset changes so switching Phone ↔ Tablet always lands on the
+  // canonical size, but free-drag within a device persists.
+  const [resizedFrameWidth, setResizedFrameWidth] = useState(defaultFrameWidth);
+  useEffect(() => {
+    setResizedFrameWidth(defaultFrameWidth);
+  }, [defaultFrameWidth]);
 
   // ── Section click → inline editing for creative sections, panel deep-link for structured-data ──
   const handleSectionClick = useCallback((
@@ -1286,19 +1295,12 @@ export function EditorCanvas() {
         overflow: 'auto',
       }}>
         {isFramed ? (
-          /* Device frame (tablet/phone) */
-          <motion.div
-            key={device}
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: 'spring', stiffness: 340, damping: 32 }}
-            style={{
-              width: frameWidth, maxWidth: '100%',
-              borderRadius: 24, overflow: 'hidden',
-              boxShadow: '0 12px 48px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.06)',
-              minHeight: isPhone ? 780 : 600,
-              background: 'var(--pl-cream)',
-            }}
+          /* Device frame (tablet/phone) — resizable with ruler overlay. */
+          <ResponsivePreviewFrame
+            width={resizedFrameWidth}
+            onWidthChange={setResizedFrameWidth}
+            minHeight={isPhone ? 780 : 600}
+            framed
           >
             <SiteRenderer
               manifest={manifest}
@@ -1314,7 +1316,7 @@ export function EditorCanvas() {
               hasClipboard={!!clipboardBlock}
               editMode
             />
-          </motion.div>
+          </ResponsivePreviewFrame>
         ) : (
           /* Desktop — full bleed with zoom support, padded for toolbar */
           <div ref={scrollContainerRef} style={{
