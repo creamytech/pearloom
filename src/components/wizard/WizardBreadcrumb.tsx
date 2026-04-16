@@ -143,131 +143,198 @@ export function WizardBreadcrumb({
     activeIdx >= 0 ? activeIdx + 1 : STEPS.length,
   );
 
-  const chipColors = dark
+  const palette = dark
     ? {
-        idle: 'rgba(255,255,255,0.08)',
-        idleBorder: 'rgba(255,255,255,0.14)',
-        idleText: 'rgba(250,247,242,0.7)',
-        done: 'rgba(163,177,138,0.22)',
-        doneBorder: 'rgba(163,177,138,0.5)',
-        doneText: '#FAF7F2',
-        active: 'rgba(163,177,138,0.55)',
-        activeBorder: 'rgba(163,177,138,0.85)',
-        activeText: '#FFFFFF',
+        rule: 'rgba(184,147,90,0.55)',
+        eyebrow: 'rgba(212,175,55,0.85)',
+        folio: 'rgba(212,175,55,0.75)',
+        folioIdle: 'rgba(255,255,255,0.35)',
+        label: 'rgba(250,247,242,0.85)',
+        labelIdle: 'rgba(250,247,242,0.45)',
+        value: '#FAF7F2',
+        activeBg: 'rgba(212,175,55,0.18)',
+        activeBorder: 'rgba(212,175,55,0.65)',
+        activeFolio: '#F0D484',
+        doneValue: 'rgba(250,247,242,0.92)',
+        accent: 'rgba(212,175,55,0.85)',
       }
     : {
-        idle: 'rgba(255,255,255,0.4)',
-        idleBorder: 'rgba(163,177,138,0.15)',
-        idleText: 'var(--pl-muted)',
-        done: 'rgba(255,255,255,0.7)',
-        doneBorder: 'rgba(163,177,138,0.35)',
-        doneText: 'var(--pl-ink-soft)',
-        active: 'var(--pl-olive, #A3B18A)',
-        activeBorder: 'var(--pl-olive-deep, #7D9B6A)',
-        activeText: '#FFFFFF',
+        rule: 'rgba(184,147,90,0.45)',
+        eyebrow: 'rgba(184,147,90,0.85)',
+        folio: 'rgba(184,147,90,0.85)',
+        folioIdle: 'rgba(184,147,90,0.35)',
+        label: 'var(--pl-ink, #18181B)',
+        labelIdle: 'rgba(82,82,91,0.55)',
+        value: 'var(--pl-ink, #18181B)',
+        activeBg: 'rgba(184,147,90,0.14)',
+        activeBorder: 'rgba(184,147,90,0.65)',
+        activeFolio: 'rgba(184,147,90,1)',
+        doneValue: 'var(--pl-ink, #18181B)',
+        accent: 'rgba(184,147,90,0.95)',
       };
 
   return (
     <div
       style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: 6,
-        justifyContent: 'center',
-        padding: '0 4px 6px',
-        maxWidth: 520,
+        width: '100%',
+        maxWidth: 680,
         margin: '0 auto',
+        paddingBottom: 10,
       }}
     >
-      <AnimatePresence>
-        {visibleSteps.map((step, i) => {
-          const value = step.display(collected);
-          const isActive = step.currentStepMatch.includes(currentStep);
-          const isDone = !!value && !isActive;
-          // Empty state: pure "upcoming" chip (only used for the
-          // current step when it has no value yet).
-          const isIdle = !isDone && !isActive;
+      {/* Eyebrow kicker */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '0 4px 8px',
+      }}>
+        <span style={{
+          fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: '0.32em',
+          textTransform: 'uppercase',
+          color: palette.eyebrow,
+        }}>
+          Issue · step {String(activeIdx + 1).padStart(2, '0')} / {String(STEPS.length).padStart(2, '0')}
+        </span>
+        <span style={{ flex: 1, height: 1, background: palette.rule }} />
+      </div>
 
-          const palette = isActive ? {
-            bg: chipColors.active,
-            border: chipColors.activeBorder,
-            color: chipColors.activeText,
-          } : isDone ? {
-            bg: chipColors.done,
-            border: chipColors.doneBorder,
-            color: chipColors.doneText,
-          } : {
-            bg: chipColors.idle,
-            border: chipColors.idleBorder,
-            color: chipColors.idleText,
-          };
+      {/* Breadcrumb rail */}
+      <div
+        role="list"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${visibleSteps.length}, minmax(0, 1fr))`,
+          gap: 4,
+          padding: 2,
+        }}
+      >
+        <AnimatePresence>
+          {visibleSteps.map((step, i) => {
+            const value = step.display(collected);
+            const isActive = step.currentStepMatch.includes(currentStep);
+            const isDone = !!value && !isActive;
+            const isIdle = !isDone && !isActive;
+            const folioNum = String(i + 1).padStart(2, '0');
 
-          return (
-            <motion.button
-              key={step.key}
-              type="button"
-              layout
-              initial={{ opacity: 0, y: -4, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              transition={{
-                duration: 0.25,
-                delay: i * 0.03,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-              onClick={() => {
-                if (isDone) onEditField(step.key);
-              }}
-              disabled={!isDone}
-              aria-label={
-                isDone
-                  ? `Edit ${step.label}: ${value}`
-                  : isActive
-                  ? `Current step: ${step.label}`
-                  : step.label
-              }
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-                padding: '5px 10px',
-                borderRadius: 100,
-                background: palette.bg,
-                border: `1px solid ${palette.border}`,
-                color: palette.color,
-                fontSize: '0.65rem',
-                fontWeight: isActive ? 700 : 600,
-                fontFamily: 'inherit',
-                letterSpacing: '0.02em',
-                cursor: isDone ? 'pointer' : 'default',
-                transition: 'background 0.18s, border-color 0.18s, color 0.18s',
-                minHeight: 26,
-                whiteSpace: 'nowrap',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
-              }}
-            >
-              {isDone && <Check size={9} strokeWidth={3} />}
-              <span style={{ opacity: isIdle ? 0.7 : 1 }}>
-                {value || step.label}
-              </span>
-              {isDone && (
-                <span
-                  aria-hidden="true"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    marginLeft: 2,
-                    opacity: 0.6,
-                  }}
-                >
-                  <X size={9} strokeWidth={3} />
+            return (
+              <motion.button
+                key={step.key}
+                type="button"
+                role="listitem"
+                layout
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{
+                  duration: 0.3,
+                  delay: i * 0.04,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                onClick={() => { if (isDone) onEditField(step.key); }}
+                disabled={!isDone}
+                aria-label={
+                  isDone
+                    ? `Edit ${step.label}: ${value}`
+                    : isActive
+                    ? `Current step: ${step.label}`
+                    : step.label
+                }
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  justifyContent: 'space-between',
+                  gap: 4,
+                  padding: '8px 10px 10px',
+                  borderRadius: 2,
+                  border: `1px solid ${isActive ? palette.activeBorder : 'transparent'}`,
+                  background: isActive ? palette.activeBg : 'transparent',
+                  borderTop: `1.5px solid ${isActive ? palette.activeBorder : isDone ? palette.accent : palette.rule}`,
+                  boxShadow: isActive ? '0 0 0 3px rgba(184,147,90,0.14)' : 'none',
+                  cursor: isDone ? 'pointer' : 'default',
+                  textAlign: 'left',
+                  transition: 'background 180ms cubic-bezier(0.22,1,0.36,1), box-shadow 180ms ease, border-color 180ms ease',
+                  minHeight: 56,
+                  position: 'relative',
+                  fontFamily: 'inherit',
+                }}
+              >
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  width: '100%',
+                }}>
+                  <span style={{
+                    fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                    fontSize: 8.5,
+                    fontWeight: 700,
+                    letterSpacing: '0.24em',
+                    color: isActive ? palette.activeFolio : isDone ? palette.folio : palette.folioIdle,
+                    lineHeight: 1,
+                  }}>
+                    № {folioNum}
+                  </span>
+                  {isDone && (
+                    <span aria-hidden="true" style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      color: palette.accent,
+                    }}>
+                      <Check size={9} strokeWidth={3} />
+                    </span>
+                  )}
+                  <span style={{
+                    flex: 1,
+                    fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                    fontSize: 8.5,
+                    fontWeight: 700,
+                    letterSpacing: '0.22em',
+                    textTransform: 'uppercase',
+                    color: isIdle ? palette.labelIdle : palette.label,
+                    lineHeight: 1,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}>
+                    {step.label}
+                  </span>
+                  {isDone && (
+                    <span aria-hidden="true" style={{
+                      opacity: 0.55,
+                      color: palette.label,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                    }}>
+                      <X size={9} strokeWidth={3} />
+                    </span>
+                  )}
+                </div>
+                <span style={{
+                  fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
+                  fontStyle: 'italic',
+                  fontSize: '0.85rem',
+                  fontWeight: 400,
+                  lineHeight: 1.15,
+                  color: isActive ? palette.value : isDone ? palette.doneValue : palette.labelIdle,
+                  letterSpacing: '-0.003em',
+                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  width: '100%',
+                }}>
+                  {value || (isActive ? 'in progress…' : '—')}
                 </span>
-              )}
-            </motion.button>
-          );
-        })}
-      </AnimatePresence>
+              </motion.button>
+            );
+          })}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
