@@ -116,18 +116,19 @@ function WeddingPartyMemberRow({ member, onUpdate, onDelete }: {
       }}
     >
       <div style={{
-        display: 'flex', alignItems: 'center', gap: '8px',
-        padding: '8px 10px',
-        borderRadius: '10px',
+        display: 'flex', alignItems: 'center', gap: '10px',
+        padding: '10px 12px',
+        borderRadius: '2px',
         background: 'var(--pl-chrome-surface)',
         border: '1px solid var(--pl-chrome-border)',
+        borderLeft: '2px solid color-mix(in srgb, var(--pl-chrome-accent) 45%, transparent)',
       }}>
         {/* Drag handle — dnd-kit keyboard accessible */}
         <div
           {...handleProps}
           style={{
             ...handleProps.style,
-            color: '#A1A1AA',
+            color: 'var(--pl-chrome-text-faint)',
             display: 'flex',
             alignItems: 'center',
             padding: '2px',
@@ -136,37 +137,70 @@ function WeddingPartyMemberRow({ member, onUpdate, onDelete }: {
         >
           <GripVertical size={14} />
         </div>
-        {/* Avatar */}
+        {/* Signature plate */}
         {member.photo ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={member.photo}
             alt={member.name}
-            style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+            style={{
+              width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', flexShrink: 0,
+              border: '1px solid color-mix(in srgb, var(--pl-chrome-accent) 35%, transparent)',
+            }}
           />
         ) : (
           <div style={{
-            width: 32, height: 32, borderRadius: '50%',
-            background: 'var(--pl-chrome-bg)', color: '#52525B',
+            width: 34, height: 34, borderRadius: '50%',
+            background: 'color-mix(in srgb, var(--pl-chrome-accent) 8%, transparent)',
+            color: 'var(--pl-chrome-accent)',
+            border: '1px solid color-mix(in srgb, var(--pl-chrome-accent) 35%, transparent)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '0.72rem', fontWeight: 700, flexShrink: 0,
+            fontFamily: 'var(--pl-font-heading, "Fraunces", Georgia, serif)',
+            fontStyle: 'italic',
+            fontSize: '0.92rem', fontWeight: 500, flexShrink: 0,
+            letterSpacing: '-0.02em',
           }}>
             {initials(member.name)}
           </div>
         )}
         {/* Name + role */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: panelText.body, fontWeight: panelWeight.semibold, color: 'var(--pl-chrome-text)', lineHeight: panelLineHeight.tight, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{
+            fontFamily: 'var(--pl-font-heading, "Fraunces", Georgia, serif)',
+            fontStyle: 'italic',
+            fontSize: '0.94rem',
+            fontWeight: 400,
+            letterSpacing: '-0.01em',
+            color: 'var(--pl-chrome-text)',
+            lineHeight: 1.15,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
             {member.name || 'Untitled'}
           </div>
-          <div style={{ fontSize: panelText.hint, color: 'var(--pl-chrome-text-muted)', lineHeight: panelLineHeight.tight }}>
+          <div style={{
+            fontFamily: 'var(--pl-font-mono, monospace)',
+            fontSize: '0.5rem',
+            fontWeight: 700,
+            letterSpacing: '0.24em',
+            textTransform: 'uppercase',
+            color: 'var(--pl-chrome-text-faint)',
+            lineHeight: 1.2,
+            marginTop: 3,
+          }}>
             {roleLabel(member)}
           </div>
         </div>
         {/* Actions */}
         <button
           onClick={() => setEditing(e => !e)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-chrome-text-muted)', fontSize: panelText.hint, padding: '3px 6px' }}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: editing ? 'var(--pl-chrome-accent)' : 'var(--pl-chrome-text-muted)',
+            fontFamily: 'var(--pl-font-mono, monospace)',
+            fontSize: '0.5rem', fontWeight: 700,
+            letterSpacing: '0.22em', textTransform: 'uppercase',
+            padding: '3px 6px',
+          }}
         >
           {editing ? 'Done' : 'Edit'}
         </button>
@@ -294,10 +328,12 @@ function WeddingPartyEditor({ manifest, onChange }: { manifest: StoryManifest; o
             <button
               onClick={() => { setAddingNew(false); setNewName(''); }}
               style={{
-                padding: '6px 12px', borderRadius: '8px',
+                padding: '6px 14px', borderRadius: '2px',
                 background: 'transparent', border: '1px solid var(--pl-chrome-border)',
                 color: 'var(--pl-chrome-text-muted)', cursor: 'pointer',
-                fontSize: panelText.body, fontWeight: panelWeight.semibold, fontFamily: 'inherit',
+                fontFamily: 'var(--pl-font-mono, monospace)',
+                fontSize: '0.54rem', fontWeight: 700,
+                letterSpacing: '0.22em', textTransform: 'uppercase',
               }}
             >
               Cancel
@@ -306,13 +342,17 @@ function WeddingPartyEditor({ manifest, onChange }: { manifest: StoryManifest; o
               onClick={addMember}
               disabled={!newName.trim()}
               style={{
-                padding: '6px 12px', borderRadius: '8px',
-                background: newName.trim() ? '#18181B' : '#A1A1AA', color: '#FFFFFF',
+                padding: '6px 14px', borderRadius: '2px',
+                background: newName.trim() ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-border)',
+                color: newName.trim() ? 'var(--pl-chrome-bg)' : 'var(--pl-chrome-text-faint)',
                 border: 'none', cursor: newName.trim() ? 'pointer' : 'not-allowed',
-                fontSize: panelText.body, fontWeight: panelWeight.bold, fontFamily: 'inherit',
+                fontFamily: 'var(--pl-font-mono, monospace)',
+                fontSize: '0.54rem', fontWeight: 700,
+                letterSpacing: '0.22em', textTransform: 'uppercase',
+                boxShadow: newName.trim() ? '0 0 0 3px rgba(184,147,90,0.18)' : 'none',
               }}
             >
-              Add Member
+              Add member →
             </button>
           </div>
         </div>
@@ -320,17 +360,29 @@ function WeddingPartyEditor({ manifest, onChange }: { manifest: StoryManifest; o
         <button
           onClick={() => setAddingNew(true)}
           style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            padding: '8px 12px', borderRadius: '10px',
-            background: 'transparent', border: '1px dashed #D4D4D8',
-            color: '#52525B', cursor: 'pointer',
-            fontSize: panelText.body, fontWeight: panelWeight.semibold, fontFamily: 'inherit',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            padding: '10px 12px', borderRadius: '2px',
+            background: 'color-mix(in srgb, var(--pl-chrome-accent) 3%, transparent)',
+            border: '1px dashed color-mix(in srgb, var(--pl-chrome-accent) 50%, transparent)',
+            color: 'var(--pl-chrome-accent)', cursor: 'pointer',
+            fontFamily: 'var(--pl-font-mono, monospace)',
+            fontSize: '0.54rem', fontWeight: 700,
+            letterSpacing: '0.24em', textTransform: 'uppercase',
+            transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
           }}
-          onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = '#FAFAFA'; }}
-          onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+          onMouseOver={e => {
+            (e.currentTarget as HTMLElement).style.background =
+              'color-mix(in srgb, var(--pl-chrome-accent) 8%, transparent)';
+            (e.currentTarget as HTMLElement).style.borderStyle = 'solid';
+          }}
+          onMouseOut={e => {
+            (e.currentTarget as HTMLElement).style.background =
+              'color-mix(in srgb, var(--pl-chrome-accent) 3%, transparent)';
+            (e.currentTarget as HTMLElement).style.borderStyle = 'dashed';
+          }}
         >
-          <Plus size={13} />
-          Add Member
+          <Plus size={12} />
+          Add member
         </button>
       )}
     </div>
@@ -338,18 +390,21 @@ function WeddingPartyEditor({ manifest, onChange }: { manifest: StoryManifest; o
 }
 
 // ── Collapsible FAQ row (Item #57) ────────────────────────────
-function FaqRow({ faq, onUpdate, onDelete }: {
+function FaqRow({ faq, onUpdate, onDelete, index }: {
   faq: FaqItem;
   onUpdate: (id: string, data: Partial<FaqItem>) => void;
   onDelete: (id: string) => void;
+  index?: number;
 }) {
   const [expanded, setExpanded] = useState(true);
   return (
     <div style={{
       background: 'var(--pl-chrome-bg)',
       border: '1px solid var(--pl-chrome-border)',
-      borderRadius: '10px', padding: '12px',
-      display: 'flex', flexDirection: 'column', gap: '8px',
+      borderRadius: '2px',
+      borderTop: '2px solid color-mix(in srgb, var(--pl-chrome-accent) 45%, transparent)',
+      padding: '12px 14px 14px',
+      display: 'flex', flexDirection: 'column', gap: '10px',
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px' }}>
         <button
@@ -357,24 +412,29 @@ function FaqRow({ faq, onUpdate, onDelete }: {
           aria-expanded={expanded}
           aria-label={expanded ? 'Collapse answer' : 'Expand answer'}
           style={{
-            display: 'flex', alignItems: 'center', gap: '4px',
+            display: 'flex', alignItems: 'center', gap: '6px',
             background: 'none', border: 'none', cursor: 'pointer',
             color: 'var(--pl-chrome-text-muted)',
             padding: '2px 4px',
-            borderRadius: '6px',
-            fontSize: panelText.hint,
-            fontWeight: panelWeight.semibold,
-            fontFamily: 'inherit',
+            borderRadius: '2px',
+            fontFamily: 'var(--pl-font-mono, monospace)',
+            fontSize: '0.5rem', fontWeight: 700,
+            letterSpacing: '0.24em', textTransform: 'uppercase',
           }}
         >
+          {index !== undefined && (
+            <span style={{ color: 'var(--pl-chrome-accent)' }}>
+              № {String(index + 1).padStart(2, '0')}
+            </span>
+          )}
           <motion.span
             animate={{ rotate: expanded ? 0 : -90 }}
             transition={{ duration: 0.15 }}
             style={{ display: 'flex' }}
           >
-            <ChevronDown size={12} />
+            <ChevronDown size={11} />
           </motion.span>
-          {expanded ? 'Hide answer' : 'Show answer'}
+          {expanded ? 'Collapse' : 'Expand'}
         </button>
         <ConfirmDeleteButton onConfirm={() => onDelete(faq.id)} />
       </div>
@@ -1565,8 +1625,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             {aiFaqError}
           </p>
         )}
-        {faqs.map(faq => (
-          <FaqRow key={faq.id} faq={faq} onUpdate={updFaq} onDelete={delFaq} />
+        {faqs.map((faq, i) => (
+          <FaqRow key={faq.id} faq={faq} onUpdate={updFaq} onDelete={delFaq} index={i} />
         ))}
         {faqs.length === 0 && (
           <p style={{

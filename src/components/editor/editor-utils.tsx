@@ -30,45 +30,72 @@ export const fontSize = {
 } as const;
 
 // ── Shared label style ────────────────────────────────────────
-// Mirrors PanelField's label tokens so inputs built on editor-utils
-// look identical to those built on the new Panel primitives.
+// Editorial eyebrow — mono, uppercase, tracked to 0.22em. Reads as
+// the masthead/dossier kicker that labels each field.
 export const lbl: React.CSSProperties = {
-  display: 'block', fontSize: fontSize.xs, fontWeight: 700,
-  letterSpacing: '0.1em', textTransform: 'uppercase',
-  color: 'var(--pl-chrome-text-muted)', marginBottom: '6px',
-  lineHeight: 1.4,
+  display: 'block',
+  fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+  fontSize: fontSize.xs,
+  fontWeight: 700,
+  letterSpacing: '0.22em',
+  textTransform: 'uppercase',
+  color: 'var(--pl-chrome-text-faint)',
+  marginBottom: '8px',
+  lineHeight: 1.2,
 };
 
 // ── Section heading (bigger than field labels) ────────────────
 export const sectionHeading: React.CSSProperties = {
-  fontSize: fontSize.xs, fontWeight: 700,
-  letterSpacing: '0.1em', textTransform: 'uppercase',
-  color: 'var(--pl-chrome-text-soft)', marginBottom: spacing.sm,
+  fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+  fontSize: fontSize.xs,
+  fontWeight: 700,
+  letterSpacing: '0.22em',
+  textTransform: 'uppercase',
+  color: 'var(--pl-chrome-text-soft)',
+  marginBottom: spacing.sm,
   lineHeight: 1.3,
 };
 
 // ── Shared input style ───────────────────────────────────────
+// Editorial ledger line — thin bottom rule on a near-transparent
+// surface that promotes to a heavier gold hairline on focus. Keeps
+// input chrome whisper-thin so the typed value dominates.
 export const inp: React.CSSProperties = {
-  width: '100%', padding: '8px 10px',
-  borderRadius: '6px',
-  border: '1px solid var(--pl-chrome-border)',
-  background: 'var(--pl-chrome-surface)',
+  width: '100%',
+  padding: '9px 4px 8px',
+  borderRadius: '2px',
+  border: '1px solid transparent',
+  borderBottom: '1px solid var(--pl-chrome-border)',
+  background: 'color-mix(in srgb, var(--pl-chrome-accent) 3%, transparent)',
   color: 'var(--pl-chrome-text)',
-  fontSize: 'max(16px, 0.8rem)',
-  outline: 'none', fontFamily: 'inherit',
-  transition: 'border-color 0.15s, box-shadow 0.15s',
+  fontSize: 'max(16px, 0.82rem)',
+  fontFamily: 'var(--pl-font-body, system-ui, sans-serif)',
+  outline: 'none',
+  transition:
+    'border-color 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.18s ease, background 0.18s ease',
   boxSizing: 'border-box',
   minHeight: '36px',
 };
 
 // ── Focus/blur handlers ──────────────────────────────────────
-const focusStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-  e.currentTarget.style.borderColor = 'var(--pl-chrome-accent)';
-  e.currentTarget.style.boxShadow = 'var(--pl-chrome-focus)';
+// On focus the bottom rule thickens to a gold hairline, and a
+// subtle gold wash lifts the paper. Top/side borders stay invisible
+// so the input reads as a notebook-margin line.
+const focusStyle = (
+  e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+) => {
+  e.currentTarget.style.borderBottomColor = 'var(--pl-chrome-accent)';
+  e.currentTarget.style.borderBottomWidth = '1.5px';
+  e.currentTarget.style.background =
+    'color-mix(in srgb, var(--pl-chrome-accent) 6%, transparent)';
 };
-const blurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-  e.currentTarget.style.borderColor = 'var(--pl-chrome-border)';
-  e.currentTarget.style.boxShadow = 'none';
+const blurStyle = (
+  e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+) => {
+  e.currentTarget.style.borderBottomColor = 'var(--pl-chrome-border)';
+  e.currentTarget.style.borderBottomWidth = '1px';
+  e.currentTarget.style.background =
+    'color-mix(in srgb, var(--pl-chrome-accent) 3%, transparent)';
 };
 
 // ── Reusable form field — glass input with label ──────────────
@@ -85,6 +112,26 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type, m
   const errInpStyle: React.CSSProperties = error
     ? { borderColor: 'var(--pl-chrome-danger)', boxShadow: '0 0 0 3px rgba(139,74,106,0.14)' }
     : {};
+  // Textarea keeps a bordered card so multi-line writing stays contained
+  const textareaStyle: React.CSSProperties = {
+    ...inp,
+    ...errInpStyle,
+    padding: '10px 12px',
+    border: '1px solid var(--pl-chrome-border)',
+    borderRadius: '4px',
+    background: 'color-mix(in srgb, var(--pl-chrome-accent) 3%, var(--pl-chrome-bg))',
+    resize: 'vertical',
+    lineHeight: 1.65,
+  };
+  const textareaFocus = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+    e.currentTarget.style.borderColor = 'var(--pl-chrome-accent)';
+    e.currentTarget.style.borderBottomWidth = '1px';
+    e.currentTarget.style.boxShadow = 'inset 0 -2px 0 rgba(184,147,90,0.35)';
+  };
+  const textareaBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+    e.currentTarget.style.borderColor = 'var(--pl-chrome-border)';
+    e.currentTarget.style.boxShadow = 'none';
+  };
   if (rows) return (
     <div>
       <label style={lbl}>{label}</label>
@@ -93,17 +140,17 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type, m
         placeholder={placeholder}
         maxLength={maxLength}
         aria-invalid={error ? true : undefined}
-        style={{ ...inp, ...errInpStyle, resize: 'vertical', lineHeight: 1.65 }}
-        onFocus={focusStyle}
-        onBlur={e => { blurStyle(e); onBlurProp?.(); }}
+        style={textareaStyle}
+        onFocus={textareaFocus}
+        onBlur={e => { textareaBlur(e); onBlurProp?.(); }}
       />
       {(hint || error || (showCount && maxLength)) && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xs }}>
           {error
             ? <p role="alert" style={{ fontSize: fontSize['2xs'], color: 'var(--pl-chrome-danger)', lineHeight: 1.4, margin: 0 }}>{error}</p>
-            : hint ? <p style={{ fontSize: fontSize['2xs'], color: 'var(--pl-chrome-text-muted)', lineHeight: 1.4, margin: 0 }}>{hint}</p> : <span />}
+            : hint ? <p style={{ fontSize: fontSize['2xs'], color: 'var(--pl-chrome-text-muted)', lineHeight: 1.4, margin: 0, fontStyle: 'italic' }}>{hint}</p> : <span />}
           {showCount && maxLength && (
-            <span style={{ fontSize: fontSize['2xs'], color: value.length >= maxLength ? 'var(--pl-chrome-danger)' : 'var(--pl-chrome-text-faint)', lineHeight: 1.4 }}>
+            <span style={{ fontFamily: 'var(--pl-font-mono, monospace)', fontSize: fontSize['2xs'], letterSpacing: '0.14em', color: value.length >= maxLength ? 'var(--pl-chrome-danger)' : 'var(--pl-chrome-text-faint)', lineHeight: 1.4 }}>
               {value.length}/{maxLength}
             </span>
           )}
@@ -128,9 +175,9 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type, m
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xs }}>
           {error
             ? <p role="alert" style={{ fontSize: fontSize['2xs'], color: 'var(--pl-chrome-danger)', lineHeight: 1.4, margin: 0 }}>{error}</p>
-            : hint ? <p style={{ fontSize: fontSize['2xs'], color: 'var(--pl-chrome-text-muted)', lineHeight: 1.4, margin: 0 }}>{hint}</p> : <span />}
+            : hint ? <p style={{ fontSize: fontSize['2xs'], color: 'var(--pl-chrome-text-muted)', lineHeight: 1.4, margin: 0, fontStyle: 'italic' }}>{hint}</p> : <span />}
           {showCount && maxLength && (
-            <span style={{ fontSize: fontSize['2xs'], color: value.length >= maxLength ? 'var(--pl-chrome-danger)' : 'var(--pl-chrome-text-faint)', lineHeight: 1.4 }}>
+            <span style={{ fontFamily: 'var(--pl-font-mono, monospace)', fontSize: fontSize['2xs'], letterSpacing: '0.14em', color: value.length >= maxLength ? 'var(--pl-chrome-danger)' : 'var(--pl-chrome-text-faint)', lineHeight: 1.4 }}>
               {value.length}/{maxLength}
             </span>
           )}
@@ -140,22 +187,26 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type, m
   );
 }
 
-// ── Field group — visual card container for related fields ────
+// ── Field group — editorial specimen for related fields ───────
+// Gold hairline top rule + mono eyebrow + breathable interior, so
+// stacked fields read as a bound folio rather than a boxed form.
 export function FieldGroup({ title, children, columns }: {
   title?: string; children: React.ReactNode; columns?: number;
 }) {
   return (
     <div style={{
-      padding: spacing.md,
-      borderRadius: '12px',
+      position: 'relative',
+      padding: `${spacing.md} ${spacing.md} ${spacing.md}`,
+      borderRadius: '2px',
       background: 'var(--pl-chrome-surface-2)',
       border: '1px solid var(--pl-chrome-border)',
+      borderTop: '2px solid color-mix(in srgb, var(--pl-chrome-accent) 55%, transparent)',
       display: 'flex', flexDirection: 'column',
       gap: spacing.lg,
     }}>
       {title && <div style={sectionHeading}>{title}</div>}
       {columns ? (
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: spacing.sm }}>
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: spacing.md }}>
           {children}
         </div>
       ) : children}
@@ -163,7 +214,10 @@ export function FieldGroup({ title, children, columns }: {
   );
 }
 
-// ── Inline action button — consistent across panels ──────────
+// ── Inline action button — editorial mono-caps ───────────────
+// Mono uppercase label, tight rectangular shape (2px radius), gold
+// halo around accent/default variants on hover. Reads like a
+// press-proof stamp next to the fields it governs.
 export function ActionButton({ label, icon, onClick, variant = 'default', size = 'sm' }: {
   label: string;
   icon?: React.ReactNode;
@@ -172,23 +226,43 @@ export function ActionButton({ label, icon, onClick, variant = 'default', size =
   size?: 'sm' | 'md';
 }) {
   const colors = {
-    default: { bg: 'var(--pl-chrome-surface)', border: 'var(--pl-chrome-border)', color: 'var(--pl-chrome-text-soft)' },
-    danger: { bg: 'rgba(139,74,106,0.10)', border: 'var(--pl-chrome-danger)', color: 'var(--pl-chrome-danger)' },
+    default: { bg: 'transparent', border: 'var(--pl-chrome-border)', color: 'var(--pl-chrome-text-soft)' },
+    danger: { bg: 'rgba(139,74,106,0.08)', border: 'var(--pl-chrome-danger)', color: 'var(--pl-chrome-danger)' },
     accent: { bg: 'var(--pl-chrome-accent-soft)', border: 'var(--pl-chrome-accent)', color: 'var(--pl-chrome-accent)' },
   }[variant];
 
-  const padding = size === 'sm' ? `${spacing.xs} ${spacing.sm}` : `${spacing.sm} ${spacing.md}`;
+  const padding = size === 'sm' ? `5px 11px` : `8px 14px`;
 
   return (
     <button
       onClick={onClick}
+      onMouseEnter={(e) => {
+        if (variant === 'accent') {
+          (e.currentTarget as HTMLButtonElement).style.boxShadow =
+            '0 0 0 3px rgba(184,147,90,0.18)';
+        } else if (variant === 'default') {
+          (e.currentTarget as HTMLButtonElement).style.borderColor =
+            'var(--pl-chrome-accent)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
+        if (variant === 'default') {
+          (e.currentTarget as HTMLButtonElement).style.borderColor =
+            'var(--pl-chrome-border)';
+        }
+      }}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: spacing.xs,
-        padding, borderRadius: '8px', cursor: 'pointer',
+        padding, borderRadius: '2px', cursor: 'pointer',
         border: `1px solid ${colors.border}`,
         background: colors.bg, color: colors.color,
-        fontSize: size === 'sm' ? fontSize.xs : fontSize.sm,
-        fontWeight: 600, transition: 'all 0.15s',
+        fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+        fontSize: size === 'sm' ? '0.54rem' : '0.62rem',
+        fontWeight: 700,
+        letterSpacing: '0.22em',
+        textTransform: 'uppercase',
+        transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
         touchAction: 'manipulation',
       }}
     >
@@ -199,6 +273,8 @@ export function ActionButton({ label, icon, onClick, variant = 'default', size =
 }
 
 // ── Pill toggle — for on/off options ─────────────────────────
+// Label in Fraunces italic, state stamped in mono (ON/OFF), switch
+// rendered as a rectangular ledger toggle with a gold puck.
 export function PillToggle({ label, value, onChange }: {
   label: string; value: boolean; onChange: (v: boolean) => void;
 }) {
@@ -206,57 +282,124 @@ export function PillToggle({ label, value, onChange }: {
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: `${spacing.sm} 0`,
+      gap: spacing.md,
     }}>
-      <span style={{ fontSize: fontSize.sm, color: 'var(--pl-chrome-text-soft)', fontWeight: 500 }}>{label}</span>
-      <button
-        onClick={() => onChange(!value)}
-        style={{
-          width: '36px', height: '20px', borderRadius: '8px',
-          background: value ? 'var(--pl-chrome-accent)' : 'var(--pl-chrome-surface-2)',
-          border: `1px solid ${value ? 'var(--pl-chrome-accent)' : 'var(--pl-chrome-border)'}`,
-          cursor: 'pointer', position: 'relative', transition: 'all 0.2s',
-          touchAction: 'manipulation',
-        }}
-      >
+      <span style={{
+        fontFamily: 'var(--pl-font-heading, "Fraunces", Georgia, serif)',
+        fontStyle: 'italic',
+        fontSize: '0.92rem',
+        letterSpacing: '-0.005em',
+        color: 'var(--pl-chrome-text)',
+        fontWeight: 400,
+      }}>{label}</span>
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: spacing.sm }}>
         <span style={{
-          position: 'absolute', top: '2px', left: value ? '18px' : '2px',
-          width: '14px', height: '14px', borderRadius: '50%',
-          background: 'var(--pl-chrome-accent-ink)',
-          transition: 'left 0.2s', display: 'block',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.18)',
-        }} />
-      </button>
+          fontFamily: 'var(--pl-font-mono, monospace)',
+          fontSize: '0.46rem',
+          fontWeight: 700,
+          letterSpacing: '0.28em',
+          textTransform: 'uppercase',
+          color: value ? 'var(--pl-chrome-accent)' : 'var(--pl-chrome-text-faint)',
+          transition: 'color 0.18s ease',
+        }}>{value ? 'On' : 'Off'}</span>
+        <button
+          onClick={() => onChange(!value)}
+          aria-pressed={value}
+          style={{
+            width: '40px', height: '18px', borderRadius: '2px',
+            background: value
+              ? 'color-mix(in srgb, var(--pl-chrome-accent) 22%, transparent)'
+              : 'var(--pl-chrome-surface-2)',
+            border: `1px solid ${value ? 'var(--pl-chrome-accent)' : 'var(--pl-chrome-border)'}`,
+            cursor: 'pointer', position: 'relative',
+            transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+            touchAction: 'manipulation',
+            padding: 0,
+          }}
+        >
+          <span style={{
+            position: 'absolute', top: '2px', left: value ? '22px' : '2px',
+            width: '12px', height: '12px', borderRadius: '1px',
+            background: value ? 'var(--pl-chrome-accent)' : 'var(--pl-chrome-text-faint)',
+            transition: 'left 0.22s cubic-bezier(0.22, 1, 0.36, 1), background 0.22s ease',
+            display: 'block',
+            boxShadow: value ? '0 0 0 2px rgba(184,147,90,0.22)' : 'none',
+          }} />
+        </button>
+      </div>
     </div>
   );
 }
 
-// ── Empty state — for sections with no content yet ───────────
+// ── Empty state — dashed-gold editorial specimen ─────────────
+// Tiny "Blank" folio kicker + Fraunces italic title + optional
+// mono-cap action stamped with a gold halo.
 export function EmptyState({ icon, title, description, action, onAction }: {
   icon?: string; title: string; description?: string;
   action?: string; onAction?: () => void;
 }) {
   return (
     <div style={{
-      padding: spacing.xl, textAlign: 'center',
-      borderRadius: '12px',
-      border: '1.5px dashed var(--pl-chrome-border)',
-      background: 'var(--pl-chrome-surface-2)',
+      position: 'relative',
+      padding: `${spacing.xl} ${spacing.lg}`, textAlign: 'center',
+      borderRadius: '2px',
+      border: '1px dashed color-mix(in srgb, var(--pl-chrome-accent) 45%, transparent)',
+      background: 'color-mix(in srgb, var(--pl-chrome-accent) 3%, transparent)',
     }}>
-      {icon && <div style={{ fontSize: '1.5rem', marginBottom: spacing.sm, opacity: 0.5 }}>{icon}</div>}
-      <div style={{ fontSize: fontSize.sm, fontWeight: 700, color: 'var(--pl-chrome-text-soft)', marginBottom: spacing.xs }}>{title}</div>
-      {description && <div style={{ fontSize: fontSize.xs, color: 'var(--pl-chrome-text-muted)', lineHeight: 1.5 }}>{description}</div>}
+      <div style={{
+        fontFamily: 'var(--pl-font-mono, monospace)',
+        fontSize: '0.46rem',
+        fontWeight: 700,
+        letterSpacing: '0.3em',
+        textTransform: 'uppercase',
+        color: 'var(--pl-chrome-accent)',
+        marginBottom: spacing.sm,
+      }}>Blank folio</div>
+      {icon && <div style={{ fontSize: '1.4rem', marginBottom: spacing.xs, opacity: 0.6 }}>{icon}</div>}
+      <div style={{
+        fontFamily: 'var(--pl-font-heading, "Fraunces", Georgia, serif)',
+        fontStyle: 'italic',
+        fontSize: '1.05rem',
+        fontWeight: 400,
+        color: 'var(--pl-chrome-text)',
+        letterSpacing: '-0.01em',
+        lineHeight: 1.15,
+        marginBottom: description ? spacing.xs : 0,
+      }}>{title}</div>
+      {description && <div style={{
+        fontSize: fontSize.xs,
+        color: 'var(--pl-chrome-text-muted)',
+        lineHeight: 1.55,
+        maxWidth: '32ch',
+        margin: '0 auto',
+      }}>{description}</div>}
       {action && onAction && (
         <button
           onClick={onAction}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.boxShadow =
+              '0 0 0 3px rgba(184,147,90,0.2)';
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
+          }}
           style={{
-            marginTop: spacing.md, padding: `${spacing.sm} ${spacing.lg}`,
-            borderRadius: '8px', border: '1px solid var(--pl-chrome-accent)',
-            background: 'var(--pl-chrome-accent-soft)', color: 'var(--pl-chrome-accent)',
-            fontSize: fontSize.xs, fontWeight: 700, cursor: 'pointer',
-            letterSpacing: '0.06em', touchAction: 'manipulation',
+            marginTop: spacing.md,
+            padding: `7px 14px`,
+            borderRadius: '2px',
+            border: '1px solid var(--pl-chrome-accent)',
+            background: 'var(--pl-chrome-accent-soft)',
+            color: 'var(--pl-chrome-accent)',
+            fontFamily: 'var(--pl-font-mono, monospace)',
+            fontSize: '0.54rem', fontWeight: 700,
+            cursor: 'pointer',
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+            touchAction: 'manipulation',
           }}
         >
-          {action}
+          {action} →
         </button>
       )}
     </div>
