@@ -284,12 +284,12 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            transition={{ duration: 0.16 }}
             onClick={onClose}
             style={{
               position: 'fixed', inset: 0, zIndex: 2000,
-              background: 'rgba(0,0,0,0.65)',
-              backdropFilter: 'blur(8px)',
+              background: 'rgba(22,16,6,0.62)',
+              backdropFilter: 'blur(10px)',
             }}
           />
 
@@ -298,64 +298,166 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
             initial={{ opacity: 0, scale: 0.96, y: -12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -8 }}
-            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
             style={{
-              position: 'fixed', top: '18vh', left: '50%',
+              position: 'fixed', top: '16vh', left: '50%',
               transform: 'translateX(-50%)',
-              width: '100%', maxWidth: '580px',
+              width: '100%', maxWidth: '600px',
               zIndex: 2001,
-              background: '#19160f',
-              borderRadius: '10px',
-              border: '1px solid rgba(0,0,0,0.06)',
-              boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(24,24,27,0.04)',
+              background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
+              borderRadius: 2,
+              borderTop: '2px solid rgba(184,147,90,0.55)',
+              borderLeft: '1px solid rgba(184,147,90,0.22)',
+              borderRight: '1px solid rgba(184,147,90,0.22)',
+              borderBottom: '1px solid rgba(184,147,90,0.22)',
+              boxShadow: '0 32px 80px rgba(22,16,6,0.45), 0 2px 10px rgba(22,16,6,0.12)',
               overflow: 'hidden',
             }}
           >
-            {/* Search input */}
+            {/* Masthead */}
             <div style={{
-              display: 'flex', alignItems: 'center', gap: '12px',
-              padding: '10px 12px',
-              borderBottom: '1px solid rgba(0,0,0,0.05)',
+              padding: '14px 18px 10px',
+              borderBottom: '1px solid rgba(184,147,90,0.28)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 6,
             }}>
-              <Search size={16} color="#3F3F46" />
-              <input
-                ref={inputRef}
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Search actions, tabs, chapters…"
-                style={{
-                  flex: 1, background: 'transparent', border: 'none', outline: 'none',
-                  color: '#18181B', fontSize: '0.9rem', fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
-                  caretColor: '#18181B',
-                }}
-              />
-              <kbd style={{
-                padding: '2px 6px', borderRadius: '4px', fontSize: '0.65rem',
-                background: 'rgba(0,0,0,0.05)', color: '#71717A',
-                border: '1px solid rgba(0,0,0,0.06)', fontFamily: 'inherit',
-              }}>ESC</kbd>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+                <span style={{
+                  fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                  fontSize: 9,
+                  fontWeight: 700,
+                  letterSpacing: '0.32em',
+                  textTransform: 'uppercase',
+                  color: 'rgba(184,147,90,0.85)',
+                }}>
+                  The Index · ⌘K
+                </span>
+                <span style={{
+                  fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                  fontSize: 8.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.24em',
+                  color: 'rgba(184,147,90,0.55)',
+                }}>
+                  № 00
+                </span>
+              </div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                paddingTop: 4,
+              }}>
+                <Search size={15} color="rgba(120,90,40,0.85)" strokeWidth={1.8} />
+                <input
+                  ref={inputRef}
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Search the ledger…"
+                  style={{
+                    flex: 1,
+                    background: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    color: '#18181B',
+                    fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
+                    fontStyle: 'italic',
+                    fontSize: '1.15rem',
+                    fontWeight: 400,
+                    letterSpacing: '-0.005em',
+                    caretColor: 'rgba(184,147,90,1)',
+                    paddingBottom: 4,
+                    borderBottom: '1.5px solid rgba(184,147,90,0.45)',
+                    fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                  }}
+                />
+                <kbd style={{
+                  padding: '3px 8px',
+                  borderRadius: 2,
+                  fontSize: 9,
+                  fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                  fontWeight: 700,
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  background: 'rgba(255,252,245,0.7)',
+                  color: '#52525B',
+                  border: '1px solid rgba(184,147,90,0.28)',
+                  boxShadow: 'inset 0 -1px 0 rgba(184,147,90,0.18)',
+                }}>ESC</kbd>
+              </div>
             </div>
 
             {/* Results */}
             <div
               ref={listRef}
-              style={{ maxHeight: '400px', overflowY: 'auto', padding: '8px' }}
+              style={{
+                maxHeight: '420px',
+                overflowY: 'auto',
+                padding: '10px 10px 14px',
+                background: 'rgba(255,252,245,0.35)',
+              }}
             >
               {flatFiltered.length === 0 ? (
-                <div style={{ padding: '2rem', textAlign: 'center', color: '#71717A', fontSize: '0.8rem' }}>
-                  No results for &ldquo;{query}&rdquo;
+                <div style={{
+                  margin: '18px 8px',
+                  padding: '32px 16px',
+                  textAlign: 'center',
+                  border: '1px dashed rgba(184,147,90,0.45)',
+                  borderRadius: 2,
+                  background: 'rgba(255,252,245,0.55)',
+                }}>
+                  <div style={{
+                    fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                    fontSize: 9,
+                    fontWeight: 700,
+                    letterSpacing: '0.28em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(184,147,90,0.85)',
+                    marginBottom: 8,
+                  }}>
+                    Blank folio · № 00
+                  </div>
+                  <div style={{
+                    fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
+                    fontStyle: 'italic',
+                    fontSize: '1.1rem',
+                    color: '#18181B',
+                    fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                  }}>
+                    No results for “{query}”.
+                  </div>
                 </div>
               ) : (
                 Object.entries(groups).map(([groupName, cmds]) => (
-                  <div key={groupName}>
+                  <div key={groupName} style={{ marginBottom: 6 }}>
                     {/* Group label */}
                     <div style={{
-                      padding: '6px 10px 4px',
-                      fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.15em',
-                      textTransform: 'uppercase', color: 'rgba(255,255,255,0.22)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: '10px 10px 6px',
                     }}>
-                      {groupName}
+                      <span style={{
+                        fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                        fontSize: 9,
+                        fontWeight: 700,
+                        letterSpacing: '0.28em',
+                        textTransform: 'uppercase',
+                        color: 'rgba(184,147,90,0.85)',
+                      }}>
+                        {groupName}
+                      </span>
+                      <span style={{
+                        flex: 1,
+                        height: 1,
+                        background: 'rgba(184,147,90,0.28)',
+                      }} />
                     </div>
 
                     {cmds.map(cmd => {
@@ -368,35 +470,81 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                           data-index={idx}
                           onClick={() => execute(cmd)}
                           onMouseEnter={() => setSelectedIndex(idx)}
-                          animate={{ background: isSelected ? '#F4F4F5' : 'transparent' }}
-                          transition={{ duration: 0.1 }}
+                          animate={{
+                            background: isSelected
+                              ? 'rgba(184,147,90,0.12)'
+                              : 'transparent',
+                          }}
+                          transition={{ duration: 0.14 }}
                           style={{
-                            display: 'flex', alignItems: 'center', gap: '12px',
-                            width: '100%', padding: '9px 10px', borderRadius: '8px',
-                            border: isSelected ? '1px solid rgba(24,24,27,0.1)' : '1px solid transparent',
-                            cursor: 'pointer', textAlign: 'left',
-                            background: isSelected ? '#F4F4F5' : 'transparent',
-                            transition: 'border 0.1s',
+                            display: 'grid',
+                            gridTemplateColumns: '26px 32px 1fr auto',
+                            alignItems: 'center',
+                            gap: '10px',
+                            width: '100%',
+                            padding: '9px 10px',
+                            borderRadius: 2,
+                            border: 'none',
+                            boxShadow: isSelected ? 'inset 2px 0 0 rgba(184,147,90,0.75)' : 'none',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            background: isSelected ? 'rgba(184,147,90,0.12)' : 'transparent',
+                            transition: 'box-shadow 180ms cubic-bezier(0.22,1,0.36,1)',
+                            position: 'relative',
                           }}
                         >
+                          {/* Folio */}
+                          <span style={{
+                            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                            fontSize: 8.5,
+                            fontWeight: 700,
+                            letterSpacing: '0.22em',
+                            color: isSelected ? 'rgba(184,147,90,1)' : 'rgba(184,147,90,0.5)',
+                            textAlign: 'right',
+                            paddingRight: 2,
+                          }}>
+                            {String(idx + 1).padStart(2, '0')}
+                          </span>
                           {/* Icon */}
                           <div style={{
-                            width: '30px', height: '30px', borderRadius: '6px',
-                            background: '#F4F4F5',
+                            width: '30px', height: '30px', borderRadius: 2,
+                            background: isSelected ? 'rgba(184,147,90,0.20)' : 'rgba(255,252,245,0.65)',
+                            border: isSelected
+                              ? '1px solid rgba(184,147,90,0.55)'
+                              : '1px solid rgba(184,147,90,0.18)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             flexShrink: 0,
-                            border: '1px solid rgba(0,0,0,0.04)',
+                            transition: 'background 180ms ease, border-color 180ms ease',
                           }}>
-                            <Icon size={14} color={cmd.iconColor || '#3F3F46'} />
+                            <Icon size={14} color={isSelected ? 'rgba(120,90,40,1)' : '#3F3F46'} strokeWidth={1.8} />
                           </div>
 
                           {/* Text */}
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff', lineHeight: 1.2 }}>
+                          <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <div style={{
+                              fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
+                              fontStyle: 'italic',
+                              fontSize: '0.95rem',
+                              fontWeight: 400,
+                              color: '#18181B',
+                              lineHeight: 1.1,
+                              letterSpacing: '-0.003em',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}>
                               {cmd.label}
                             </div>
                             {cmd.description && (
-                              <div style={{ fontSize: '0.65rem', color: '#71717A', marginTop: '1px' }}>
+                              <div style={{
+                                fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                                fontSize: 9,
+                                color: '#71717A',
+                                letterSpacing: '0.04em',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}>
                                 {cmd.description}
                               </div>
                             )}
@@ -405,16 +553,23 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                           {/* Shortcut or arrow */}
                           {cmd.shortcut ? (
                             <kbd style={{
-                              padding: '2px 7px', borderRadius: '6px', fontSize: '0.65rem',
-                              background: 'rgba(0,0,0,0.04)', color: '#71717A',
-                              border: '1px solid rgba(0,0,0,0.06)', fontFamily: 'inherit',
+                              padding: '3px 8px',
+                              borderRadius: 2,
+                              fontSize: 9,
+                              fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                              fontWeight: 700,
+                              letterSpacing: '0.18em',
+                              textTransform: 'uppercase',
+                              background: 'rgba(255,252,245,0.7)',
+                              color: '#52525B',
+                              border: '1px solid rgba(184,147,90,0.28)',
                               flexShrink: 0,
                             }}>
                               {cmd.shortcut}
                             </kbd>
                           ) : isSelected ? (
-                            <ArrowRight size={14} color="#71717A" />
-                          ) : null}
+                            <ArrowRight size={13} color="rgba(120,90,40,1)" strokeWidth={1.8} />
+                          ) : <span />}
                         </motion.button>
                       );
                     })}
@@ -425,22 +580,46 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
 
             {/* Footer hint */}
             <div style={{
-              padding: '8px 16px',
-              borderTop: '1px solid rgba(0,0,0,0.04)',
-              display: 'flex', gap: '16px', alignItems: 'center',
+              padding: '10px 18px',
+              borderTop: '1px solid rgba(184,147,90,0.28)',
+              background: 'rgba(248,244,236,0.7)',
+              display: 'flex',
+              gap: '18px',
+              alignItems: 'center',
             }}>
               {[['↑↓', 'navigate'], ['↵', 'select'], ['esc', 'close']].map(([key, label]) => (
-                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <kbd style={{
-                    padding: '1px 6px', borderRadius: '4px', fontSize: '0.6rem',
-                    background: 'rgba(0,0,0,0.04)', color: '#71717A',
-                    border: '1px solid rgba(0,0,0,0.06)',
+                    padding: '2px 7px',
+                    borderRadius: 2,
+                    fontSize: 8.5,
+                    fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                    fontWeight: 700,
+                    letterSpacing: '0.18em',
+                    textTransform: 'uppercase',
+                    background: 'rgba(255,252,245,0.85)',
+                    color: '#52525B',
+                    border: '1px solid rgba(184,147,90,0.28)',
                   }}>{key}</kbd>
-                  <span style={{ fontSize: '0.65rem', color: '#71717A' }}>{label}</span>
+                  <span style={{
+                    fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                    fontSize: 8.5,
+                    fontWeight: 700,
+                    letterSpacing: '0.22em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(82,82,91,0.85)',
+                  }}>{label}</span>
                 </div>
               ))}
-              <div style={{ flex: 1, textAlign: 'right', fontSize: '0.6rem', color: 'rgba(0,0,0,0.08)' }}>
-                ⌘K to toggle
+              <div style={{
+                flex: 1,
+                textAlign: 'right',
+                fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
+                fontStyle: 'italic',
+                fontSize: 11,
+                color: 'rgba(184,147,90,0.85)',
+              }}>
+                ⌘K · toggle
               </div>
             </div>
           </motion.div>
