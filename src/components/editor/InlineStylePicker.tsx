@@ -181,21 +181,55 @@ export function InlineStylePicker({
         maxHeight: '70vh',
         overflowY: 'auto',
         zIndex: 160,
-        borderRadius: 14,
-        background: 'rgba(24,24,27,0.94)',
-        backdropFilter: 'blur(18px) saturate(1.4)',
-        WebkitBackdropFilter: 'blur(18px) saturate(1.4)',
-        border: '1px solid rgba(255,255,255,0.1)',
-        boxShadow: '0 12px 48px rgba(0,0,0,0.45)',
-        color: 'rgba(255,255,255,0.92)',
-        padding: '12px 14px 12px',
+        borderRadius: 2,
+        background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
+        backdropFilter: 'blur(14px)',
+        WebkitBackdropFilter: 'blur(14px)',
+        borderTop: '2px solid rgba(184,147,90,0.55)',
+        borderLeft: '1px solid rgba(184,147,90,0.22)',
+        borderRight: '1px solid rgba(184,147,90,0.22)',
+        borderBottom: '1px solid rgba(184,147,90,0.22)',
+        boxShadow: '0 20px 48px rgba(28,22,10,0.22), 0 2px 10px rgba(28,22,10,0.06)',
+        color: '#18181B',
+        padding: '14px 16px 14px',
         fontFamily: 'var(--pl-font-body, inherit)',
       } as React.CSSProperties}
     >
+      {/* Masthead */}
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2,
+        paddingBottom: 10,
+        marginBottom: 12,
+        borderBottom: '1px solid rgba(184,147,90,0.28)',
+      }}>
+        <span style={{
+          fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: '0.28em',
+          textTransform: 'uppercase',
+          color: 'rgba(184,147,90,0.85)',
+        }}>
+          Specimen · style
+        </span>
+        <span style={{
+          fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
+          fontStyle: 'italic',
+          fontSize: 18,
+          lineHeight: 1.1,
+          fontWeight: 400,
+          color: '#18181B',
+          fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+        }}>
+          Dress the page.
+        </span>
+      </div>
       {/* Fonts */}
       <SectionLabel>Font pair</SectionLabel>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
-        {FONT_SWATCH_NAMES.map((name) => {
+        {FONT_SWATCH_NAMES.map((name, idx) => {
           const p = pickPreset(name);
           if (!p) return null;
           const active =
@@ -208,35 +242,49 @@ export function InlineStylePicker({
               onClick={() => applyFonts(p.fonts)}
               title={`Apply ${name} fonts`}
               style={{
-                display: 'flex',
+                display: 'grid',
+                gridTemplateColumns: '22px 1fr auto',
                 alignItems: 'baseline',
-                justifyContent: 'space-between',
                 gap: 10,
-                padding: '7px 10px',
-                borderRadius: 8,
-                background: active ? 'rgba(255,255,255,0.10)' : 'transparent',
+                padding: '8px 10px',
+                borderRadius: 2,
+                background: active ? 'rgba(184,147,90,0.12)' : 'rgba(255,252,245,0.55)',
                 border: active
-                  ? '1px solid rgba(255,255,255,0.18)'
-                  : '1px solid rgba(255,255,255,0.06)',
-                color: 'rgba(255,255,255,0.92)',
+                  ? '1px solid rgba(184,147,90,0.65)'
+                  : '1px solid rgba(184,147,90,0.18)',
+                color: '#18181B',
                 cursor: 'pointer',
                 textAlign: 'left',
-                transition: 'background 120ms ease, border-color 120ms ease',
+                boxShadow: active ? '0 0 0 2px rgba(184,147,90,0.14)' : 'none',
+                transition: 'background 180ms cubic-bezier(0.22,1,0.36,1), border-color 180ms ease, box-shadow 180ms ease',
               }}
               onMouseEnter={(e) => {
-                if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
+                if (!active) e.currentTarget.style.background = 'rgba(184,147,90,0.08)';
               }}
               onMouseLeave={(e) => {
-                if (!active) e.currentTarget.style.background = 'transparent';
+                if (!active) e.currentTarget.style.background = 'rgba(255,252,245,0.55)';
               }}
             >
               <span
                 style={{
+                  fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                  fontSize: 9,
+                  fontWeight: 700,
+                  letterSpacing: '0.22em',
+                  color: active ? 'rgba(184,147,90,0.95)' : 'rgba(184,147,90,0.55)',
+                  alignSelf: 'center',
+                }}
+              >
+                {String(idx + 1).padStart(2, '0')}
+              </span>
+              <span
+                style={{
                   fontFamily: `'${p.fonts.heading}', serif`,
+                  fontStyle: 'italic',
                   fontSize: 16,
                   lineHeight: 1.1,
                   letterSpacing: '0.01em',
-                  color: 'rgba(255,255,255,0.96)',
+                  color: '#18181B',
                 }}
               >
                 {p.fonts.heading}
@@ -244,9 +292,10 @@ export function InlineStylePicker({
               <span
                 style={{
                   fontFamily: `'${p.fonts.body}', sans-serif`,
-                  fontSize: 10,
-                  color: 'rgba(255,255,255,0.55)',
+                  fontSize: 9.5,
+                  color: '#52525B',
                   whiteSpace: 'nowrap',
+                  letterSpacing: '0.04em',
                 }}
               >
                 {p.fonts.body}
@@ -266,7 +315,7 @@ export function InlineStylePicker({
           marginBottom: 12,
         }}
       >
-        {PALETTE_SWATCH_NAMES.map((name) => {
+        {PALETTE_SWATCH_NAMES.map((name, idx) => {
           const p = pickPreset(name);
           if (!p) return null;
           const active = manifest?.vibeSkin?.palette?.background === p.palette.background
@@ -286,31 +335,46 @@ export function InlineStylePicker({
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 4,
-                padding: 6,
-                borderRadius: 8,
-                background: active ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.03)',
+                gap: 5,
+                padding: 7,
+                borderRadius: 2,
+                background: active ? 'rgba(184,147,90,0.12)' : 'rgba(255,252,245,0.55)',
                 border: active
-                  ? '1px solid rgba(255,255,255,0.22)'
-                  : '1px solid rgba(255,255,255,0.08)',
+                  ? '1px solid rgba(184,147,90,0.65)'
+                  : '1px solid rgba(184,147,90,0.18)',
                 cursor: 'pointer',
                 textAlign: 'left',
-                transition: 'background 120ms ease, border-color 120ms ease',
+                boxShadow: active ? '0 0 0 2px rgba(184,147,90,0.14)' : 'none',
+                transition: 'background 180ms cubic-bezier(0.22,1,0.36,1), border-color 180ms ease, box-shadow 180ms ease',
+                position: 'relative',
               }}
               onMouseEnter={(e) => {
-                if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.07)';
+                if (!active) e.currentTarget.style.background = 'rgba(184,147,90,0.08)';
               }}
               onMouseLeave={(e) => {
-                if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                if (!active) e.currentTarget.style.background = 'rgba(255,252,245,0.55)';
               }}
             >
+              <span style={{
+                position: 'absolute',
+                top: 4,
+                right: 6,
+                fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                fontSize: 7.5,
+                fontWeight: 700,
+                letterSpacing: '0.22em',
+                color: active ? 'rgba(184,147,90,0.95)' : 'rgba(184,147,90,0.45)',
+              }}>
+                № {String(idx + 1).padStart(2, '0')}
+              </span>
               <div
                 style={{
                   display: 'flex',
-                  height: 16,
-                  borderRadius: 4,
+                  height: 18,
+                  borderRadius: 1,
                   overflow: 'hidden',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(184,147,90,0.18)',
+                  marginTop: 10,
                 }}
               >
                 {stripes.map((s) => (
@@ -319,10 +383,12 @@ export function InlineStylePicker({
               </div>
               <span
                 style={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  color: 'rgba(255,255,255,0.8)',
-                  letterSpacing: '0.01em',
+                  fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
+                  fontStyle: 'italic',
+                  fontSize: 11,
+                  fontWeight: 400,
+                  color: '#18181B',
+                  letterSpacing: '0.005em',
                   lineHeight: 1.2,
                 }}
               >
@@ -350,18 +416,18 @@ export function InlineStylePicker({
               style={{
                 flex: 1,
                 aspectRatio: '1 / 1',
-                borderRadius: '50%',
+                borderRadius: 2,
                 background: p.palette.accent,
                 border: active
-                  ? '2px solid rgba(255,255,255,0.95)'
-                  : '2px solid rgba(255,255,255,0.15)',
-                boxShadow: active ? '0 0 0 2px rgba(255,255,255,0.25)' : 'none',
+                  ? '1.5px solid #18181B'
+                  : '1px solid rgba(184,147,90,0.28)',
+                boxShadow: active ? '0 0 0 3px rgba(184,147,90,0.35)' : 'none',
                 cursor: 'pointer',
                 padding: 0,
-                transition: 'transform 120ms ease, border-color 120ms ease',
+                transition: 'transform 180ms cubic-bezier(0.22,1,0.36,1), box-shadow 180ms ease',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.08)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1.0)'; }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
             />
           );
         })}
@@ -372,9 +438,9 @@ export function InlineStylePicker({
           row rather than just another swatch button. */}
       <div
         style={{
-          marginTop: 10,
-          paddingTop: 8,
-          borderTop: '1px solid rgba(255,255,255,0.08)',
+          marginTop: 14,
+          paddingTop: 10,
+          borderTop: '1px solid rgba(184,147,90,0.28)',
         }}
       >
         <button
@@ -383,32 +449,42 @@ export function InlineStylePicker({
           style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'flex-end',
-            gap: 4,
+            justifyContent: 'space-between',
+            gap: 6,
             width: '100%',
-            padding: '6px 8px',
-            borderRadius: 8,
+            padding: '9px 12px',
+            borderRadius: 2,
             background: 'transparent',
-            border: 'none',
-            color: 'rgba(255,255,255,0.65)',
+            border: '1px dashed rgba(184,147,90,0.55)',
+            color: '#18181B',
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
             fontSize: 10,
             fontWeight: 700,
-            letterSpacing: '0.08em',
+            letterSpacing: '0.22em',
             textTransform: 'uppercase',
             cursor: 'pointer',
-            textAlign: 'right',
-            transition: 'background 120ms ease, color 120ms ease',
+            textAlign: 'left',
+            transition: 'background 180ms cubic-bezier(0.22,1,0.36,1), border-color 180ms ease, color 180ms ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
-            e.currentTarget.style.color = 'rgba(255,255,255,0.95)';
+            e.currentTarget.style.background = 'rgba(184,147,90,0.10)';
+            e.currentTarget.style.borderColor = 'rgba(184,147,90,0.75)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.color = 'rgba(255,255,255,0.65)';
+            e.currentTarget.style.borderColor = 'rgba(184,147,90,0.55)';
           }}
         >
-          <span>More options</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{
+              fontSize: 9,
+              letterSpacing: '0.28em',
+              color: 'rgba(184,147,90,0.95)',
+            }}>
+              →
+            </span>
+            <span>Open Design panel</span>
+          </span>
           <ChevronRight size={12} />
         </button>
       </div>
@@ -420,12 +496,13 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div
       style={{
-        fontSize: 10,
+        fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+        fontSize: 9,
         fontWeight: 700,
-        letterSpacing: '0.10em',
+        letterSpacing: '0.26em',
         textTransform: 'uppercase',
-        color: 'rgba(255,255,255,0.5)',
-        marginBottom: 6,
+        color: 'rgba(184,147,90,0.85)',
+        marginBottom: 7,
       }}
     >
       {children}
