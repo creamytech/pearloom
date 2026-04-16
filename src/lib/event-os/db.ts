@@ -238,6 +238,101 @@ export async function searchVendors(opts: {
   return (data ?? []) as Vendor[];
 }
 
+// ── Vendor bookings ───────────────────────────────────────────
+
+export interface VendorBooking {
+  id: string;
+  site_id: string;
+  event_id: string | null;
+  vendor_id: string;
+  owner_email: string;
+  status: 'inquiry' | 'proposal_sent' | 'accepted' | 'deposit_paid' | 'paid' | 'completed' | 'cancelled' | string;
+  total_cents: number | null;
+  deposit_cents: number | null;
+  pearloom_fee_cents: number | null;
+  proposal_url: string | null;
+  contract_url: string | null;
+  stripe_payment_intent_id: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function createVendorBooking(b: {
+  site_id: string;
+  event_id?: string | null;
+  vendor_id: string;
+  owner_email: string;
+  total_cents?: number | null;
+  deposit_cents?: number | null;
+  notes?: string | null;
+}): Promise<VendorBooking> {
+  const { pearloomFeeCents } = await import('./pricing');
+  const pearloomFee = pearloomFeeCents(b.total_cents);
+  const { data, error } = await admin()
+    .from('vendor_bookings')
+    .insert({
+      site_id: b.site_id,
+      event_id: b.event_id ?? null,
+      vendor_id: b.vendor_id,
+      owner_email: b.owner_email,
+      total_cents: b.total_cents ?? null,
+      deposit_cents: b.deposit_cents ?? null,
+      pearloom_fee_cents: pearloomFee,
+      notes: b.notes ?? null,
+      status: 'inquiry',
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data as VendorBooking;
+}
+
+export async function listVendorBookings(siteId: string, limit = 50): Promise<VendorBooking[]> {
+  const { data, error } = await admin()
+    .from('vendor_bookings')
+    .select('*')
+    .eq('site_id', siteId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []) as VendorBooking[];
+}
+
+export async function getVendorBooking(id: string): Promise<VendorBooking | null> {
+  const { data } = await admin()
+    .from('vendor_bookings')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+  return (data as VendorBooking) ?? null;
+}
+
+export async function updateVendorBooking(id: string, patch: Partial<VendorBooking>): Promise<void> {
+  const { error } = await admin()
+    .from('vendor_bookings')
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) throw error;
+}
+
+export async function getVendor(id: string): Promise<(Vendor & { stripe_account_id: string | null; contact_email: string }) | null> {
+  const { data } = await admin()
+    .from('vendors')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+  return (data as (Vendor & { stripe_account_id: string | null; contact_email: string })) ?? null;
+}
+
+export async function updateVendorStripeAccount(vendorId: string, stripeAccountId: string): Promise<void> {
+  const { error } = await admin()
+    .from('vendors')
+    .update({ stripe_account_id: stripeAccountId })
+    .eq('id', vendorId);
+  if (error) throw error;
+}
+
 // ── Director sessions ─────────────────────────────────────────
 
 export interface DirectorSession {

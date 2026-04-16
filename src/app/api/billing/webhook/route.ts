@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { updateUserPlan, downgradeUserPlan } from '@/lib/db';
 import { recordPurchase } from '@/lib/marketplace';
+import { updateVendorBooking } from '@/lib/event-os/db';
 
 export const runtime = 'nodejs';
 
@@ -36,8 +37,24 @@ export async function POST(req: NextRequest) {
       // Check if this is a marketplace purchase (has itemId metadata)
       const itemId = session.metadata?.itemId;
       const itemType = session.metadata?.itemType;
+      const kind = session.metadata?.kind;
+      const bookingId = session.metadata?.bookingId;
 
-      if (itemId && itemType && email) {
+      if (kind === 'vendor_booking' && bookingId) {
+        // Vendor booking deposit paid — flip status
+        try {
+          const pi = typeof session.payment_intent === 'string'
+            ? session.payment_intent
+            : session.payment_intent?.toString();
+          await updateVendorBooking(bookingId, {
+            status: 'deposit_paid',
+            stripe_payment_intent_id: pi ?? null,
+          });
+          console.log('[Stripe] Vendor booking deposit paid:', bookingId);
+        } catch (err) {
+          console.error('[Stripe] Failed to update vendor booking:', err);
+        }
+      } else if (itemId && itemType && email) {
         // Marketplace item purchase — record ownership
         try {
           await recordPurchase({

@@ -22,6 +22,7 @@ import { getGuestByToken } from '@/lib/event-os/db';
 import { getOrGeneratePersonalization } from '@/lib/event-os/personalize';
 import type { StoryManifest } from '@/types';
 import { PersonalGuestHero } from '@/components/guest-experience/PersonalGuestHero';
+import { VoiceToastRecorder } from '@/components/guest-experience/VoiceToastRecorder';
 
 export const metadata: Metadata = {
   title: "You're Invited | Pearloom",
@@ -191,7 +192,13 @@ export default async function PersonalGuestPage({
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <VoiceToastRecorder
+          token={token}
+          accent={theme?.accent ?? '#A3B18A'}
+          headingFont={headingFont}
+        />
+
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '2rem' }}>
           <a
             href={`/rsvp?site=${site.subdomain}&g=${token}`}
             style={{

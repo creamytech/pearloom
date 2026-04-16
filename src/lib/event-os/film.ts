@@ -22,8 +22,10 @@
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { generateJson, cached } from '@/lib/claude';
+import { env } from '@/lib/env';
 import type { StoryManifest } from '@/types';
 import type { PearloomGuest, RelationshipEdge, VoiceToast } from './db';
+import { synthesizeVoiceLine } from './voice';
 
 function admin(): SupabaseClient {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -258,6 +260,7 @@ export async function advanceFilmJob(jobId: string): Promise<void> {
   if (job.status === 'ready' || job.status === 'failed') return;
 
   try {
+    // Stage 1: Gather
     if (job.status === 'queued') {
       await setStatus(jobId, 'gathering');
     }
@@ -266,8 +269,13 @@ export async function advanceFilmJob(jobId: string): Promise<void> {
     if (!sources.manifest) throw new Error('Site has no manifest yet');
     if (sources.guests.length === 0) throw new Error('No guests on file');
 
+    // Stage 2: Script
     await setStatus(jobId, 'scripting');
     const script = await writeScript(sources);
+
+    // Stage 3: VO — synthesize narration for each scene (best effort).
+    // If ELEVENLABS_API_KEY is not set, scenes keep their text-only copy.
+    const voScenes = await synthesizeScenes(jobId, script);
 
     await setStatus(jobId, 'rendering', {
       script: script.scenes.map((s) => `[${s.id}] ${s.voiceover}`).join('\n\n'),
@@ -275,16 +283,170 @@ export async function advanceFilmJob(jobId: string): Promise<void> {
       metadata: {
         ...(job.metadata ?? {}),
         script,
+        scenes: voScenes,
         sourceCounts: {
           guests: sources.guests.length,
           edges: sources.edges.length,
           toasts: sources.toasts.length,
           photos: sources.photoUrls.length,
         },
+        photoUrls: sources.photoUrls.slice(0, 80),
       },
     });
+
+    // Stage 4: Render — either hand off to an external worker via
+    // webhook, or (if no worker is configured) mark the job ready
+    // with the storyboard artifact. A real ffmpeg renderer lives
+    // outside Next.js and calls POST /api/film/render-complete when
+    // it uploads the final MP4.
+    const dispatched = await dispatchRenderer(jobId);
+    if (!dispatched) {
+      // No external worker: finalize as a storyboard (text + VO clips).
+      await setStatus(jobId, 'ready');
+    }
   } catch (err) {
     await setStatus(jobId, 'failed', { error: String(err).slice(0, 500) });
     throw err;
   }
+}
+
+// ── Stage 3 helper: per-scene VO ────────────────────────────────
+
+export interface RenderableScene {
+  id: string;
+  voiceover: string;
+  photoGuidance: string;
+  durationSeconds: number;
+  voUrl: string | null;
+  voDurationSeconds: number | null;
+  calloutGuestIds?: string[];
+}
+
+async function synthesizeScenes(jobId: string, script: FilmScript): Promise<RenderableScene[]> {
+  const out: RenderableScene[] = [];
+  for (const scene of script.scenes) {
+    try {
+      const vo = await synthesizeVoiceLine({
+        text: scene.voiceover,
+        keyPrefix: `film/${jobId}/${scene.id}`,
+      });
+      out.push({
+        ...scene,
+        voUrl: vo?.url ?? null,
+        voDurationSeconds: vo?.durationSeconds ?? null,
+      });
+    } catch (err) {
+      console.error(`[film] VO failed for scene ${scene.id}`, err);
+      out.push({ ...scene, voUrl: null, voDurationSeconds: null });
+    }
+  }
+  return out;
+}
+
+// ── Stage 4 helper: webhook dispatch ────────────────────────────
+// Returns true when an external renderer was notified; false
+// when the pipeline should self-finalize.
+
+async function dispatchRenderer(jobId: string): Promise<boolean> {
+  const url = env.FILM_RENDERER_WEBHOOK_URL;
+  if (!url) return false;
+
+  const job = await getFilmJob(jobId);
+  if (!job) return false;
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(env.FILM_RENDERER_WEBHOOK_SECRET
+          ? { Authorization: `Bearer ${env.FILM_RENDERER_WEBHOOK_SECRET}` }
+          : {}),
+      },
+      body: JSON.stringify({
+        jobId,
+        siteId: job.site_id,
+        callbackUrl: `${env.SITE_URL}/api/film/render-complete`,
+        metadata: job.metadata,
+      }),
+    });
+    if (!res.ok) {
+      const detail = await res.text().catch(() => '');
+      console.error(`[film] renderer webhook ${res.status}:`, detail.slice(0, 200));
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('[film] renderer webhook failed', err);
+    return false;
+  }
+}
+
+/**
+ * Called by an external renderer (or the cron job) once the MP4
+ * has been rendered and uploaded. Flips the job to 'ready'.
+ */
+export async function completeFilmRender(opts: {
+  jobId: string;
+  outputUrl: string;
+  durationSeconds?: number;
+}): Promise<void> {
+  await setStatus(opts.jobId, 'ready', {
+    output_url: opts.outputUrl,
+    ...(opts.durationSeconds ? { duration_seconds: Math.round(opts.durationSeconds) } : {}),
+  });
+}
+
+export async function failFilmRender(jobId: string, reason: string): Promise<void> {
+  await setStatus(jobId, 'failed', { error: reason.slice(0, 500) });
+}
+
+/**
+ * Cron entry point — find jobs that look stuck and try to
+ * re-dispatch them to the renderer. Safe to call every few
+ * minutes; bounded at 5 jobs per tick to stay within a
+ * serverless timeout budget.
+ */
+export async function reapStuckFilmJobs(): Promise<{ advanced: number; redispatched: number }> {
+  const sb = admin();
+  const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+
+  // 1) jobs that crashed mid-gather/script — re-run advanceFilmJob
+  const { data: unfinished } = await sb
+    .from('post_event_films')
+    .select('id')
+    .in('status', ['queued', 'gathering', 'scripting'])
+    .lt('started_at', fiveMinAgo)
+    .limit(5);
+
+  let advanced = 0;
+  for (const row of unfinished ?? []) {
+    try {
+      await advanceFilmJob(row.id);
+      advanced++;
+    } catch {
+      /* setStatus already recorded the error */
+    }
+  }
+
+  // 2) jobs stuck in 'rendering' — poke the renderer again
+  const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+  const { data: rendering } = await sb
+    .from('post_event_films')
+    .select('id')
+    .eq('status', 'rendering')
+    .lt('started_at', tenMinAgo)
+    .limit(5);
+
+  let redispatched = 0;
+  for (const row of rendering ?? []) {
+    try {
+      const ok = await dispatchRenderer(row.id);
+      if (ok) redispatched++;
+    } catch {
+      /* non-fatal */
+    }
+  }
+
+  return { advanced, redispatched };
 }

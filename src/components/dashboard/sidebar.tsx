@@ -4,11 +4,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Image, Settings, Store, Plus, HelpCircle, ChevronRight, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Image, Settings, Store, Plus, HelpCircle, ChevronRight, Sparkles, Megaphone } from 'lucide-react';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/director', label: 'Director', icon: Sparkles },
+  { href: '/dashboard/day-of', label: 'Day-of', icon: Megaphone },
   { href: '/dashboard/gallery', label: 'Gallery', icon: Image },
   { href: '/marketplace', label: 'Marketplace', icon: Store },
   { href: '/dashboard/profile', label: 'Settings', icon: Settings },

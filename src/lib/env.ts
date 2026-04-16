@@ -51,6 +51,19 @@ export const env = {
 
   // App
   SITE_URL: optional('NEXT_PUBLIC_SITE_URL', 'http://localhost:3000'),
+
+  // Voice (post-event film)
+  ELEVENLABS_API_KEY: optional('ELEVENLABS_API_KEY'),
+  ELEVENLABS_VOICE_ID: optional('ELEVENLABS_VOICE_ID', '21m00Tcm4TlvDq8ikWAM'),
+
+  // External film render worker (receives a webhook when a job
+  // enters the 'rendering' stage). If absent, the film completes
+  // with a storyboard artifact only — Stage 4 is a no-op.
+  FILM_RENDERER_WEBHOOK_URL: optional('FILM_RENDERER_WEBHOOK_URL'),
+  FILM_RENDERER_WEBHOOK_SECRET: optional('FILM_RENDERER_WEBHOOK_SECRET'),
+
+  // Cron auth
+  CRON_SECRET: optional('CRON_SECRET'),
 } as const;
 
 // ─────────────────────────────────────────────────────────────
