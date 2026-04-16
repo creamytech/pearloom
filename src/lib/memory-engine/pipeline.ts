@@ -9,6 +9,13 @@ import { GEMINI_PRO, GEMINI_API_BASE, log, logWarn, logError, geminiRetryFetch }
 import { fetchClusterImages } from './image-fetcher';
 import { buildPrompt } from './prompts';
 import { critiqueAndRefineChapters, generatePoetryPass } from './passes';
+import {
+  corePassClaude,
+  critiqueChaptersClaude,
+  poetryPassClaude,
+  extractCoupleProfileClaude,
+  useClaudeForStory,
+} from './claude-passes';
 
 export async function generateStoryManifest(
   clusters: PhotoCluster[],
@@ -38,29 +45,62 @@ export async function generateStoryManifest(
     parts.push(...imageParts);
   }
 
-  // Pass 1 uses Gemini 3.1 Pro — core storytelling is the most important creative pass
-  log('[Memory Engine] Pass 1: Sending to Gemini 3.1 Pro (core storytelling)...');
-  const res = await geminiRetryFetch(`${GEMINI_PRO}?key=${apiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts }],
-      generationConfig: {
-        responseMimeType: 'application/json',
-        temperature: 0.85,
-        maxOutputTokens: 16384,
-        topP: 0.95,
-      },
-    }),
-  });
-
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Gemini API error ${res.status}: ${errText}`);
+  // Pass 1 — core storytelling.
+  // Prefer Claude Opus 4.7 when ANTHROPIC_API_KEY is set (cheaper w/ prompt caching,
+  // stronger long-form literary voice). Falls back to Gemini 3.1 Pro otherwise.
+  const claudeStoryEnabled = useClaudeForStory();
+  let rawText: string;
+  if (claudeStoryEnabled) {
+    log('[Memory Engine] Pass 1: Sending to Claude Opus 4.7 (core storytelling)...');
+    try {
+      const result = await corePassClaude(clusters, vibeString, coupleNames, {
+        occasion,
+        eventDate,
+        photoCount,
+        layoutFormat,
+      });
+      rawText = result.raw;
+    } catch (err) {
+      logWarn('[Memory Engine] Claude Pass 1 failed — falling back to Gemini:', err);
+      const fallback = await geminiRetryFetch(`${GEMINI_PRO}?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts }],
+          generationConfig: {
+            responseMimeType: 'application/json',
+            temperature: 0.85,
+            maxOutputTokens: 16384,
+            topP: 0.95,
+          },
+        }),
+      });
+      if (!fallback.ok) throw new Error(`Gemini fallback ${fallback.status}: ${await fallback.text()}`);
+      const data = await fallback.json();
+      rawText = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}';
+    }
+  } else {
+    log('[Memory Engine] Pass 1: Sending to Gemini 3.1 Pro (core storytelling)...');
+    const res = await geminiRetryFetch(`${GEMINI_PRO}?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.85,
+          maxOutputTokens: 16384,
+          topP: 0.95,
+        },
+      }),
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Gemini API error ${res.status}: ${errText}`);
+    }
+    const data = await res.json();
+    rawText = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}';
   }
-
-  const data = await res.json();
-  let rawText: string = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}';
 
   // â”€â”€ Robust JSON extraction â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // 1. Strip leading/trailing whitespace
@@ -252,19 +292,29 @@ export async function generateStoryManifest(
   const chaptersSnapshot = manifest.chapters;
 
   const [pass12Result, pass15Result, pass4Result] = await Promise.allSettled([
-    // Pass 1.2: Chapter quality gate (Flash — scoring/judgment)
-    critiqueAndRefineChapters(chaptersSnapshot, vibeString, coupleNames, apiKey, occasion, clusterNotes),
-    // Pass 1.5: Couple DNA extraction (Lite — lightweight)
-    // Include clusterNotes so user-entered traits (e.g. "loves horses") flow into the illustration prompt
-    extractCoupleProfile(
-      vibeString,
-      chaptersSnapshot.map(c => ({ title: c.title, description: c.description, mood: c.mood })),
-      apiKey,
-      occasion,
-      clusterNotes
-    ),
-    // Pass 4: Poetry (Flash — only needs chapters + vibe, no design context needed)
-    generatePoetryPass(manifest.vibeString, coupleNames, chaptersSnapshot, apiKey, occasion),
+    // Pass 1.2: Chapter quality gate
+    claudeStoryEnabled
+      ? critiqueChaptersClaude(chaptersSnapshot, vibeString, coupleNames, occasion, clusterNotes)
+      : critiqueAndRefineChapters(chaptersSnapshot, vibeString, coupleNames, apiKey, occasion, clusterNotes),
+    // Pass 1.5: Couple DNA extraction
+    claudeStoryEnabled
+      ? extractCoupleProfileClaude(
+          vibeString,
+          chaptersSnapshot.map(c => ({ title: c.title, description: c.description, mood: c.mood })),
+          occasion,
+          clusterNotes
+        )
+      : extractCoupleProfile(
+          vibeString,
+          chaptersSnapshot.map(c => ({ title: c.title, description: c.description, mood: c.mood })),
+          apiKey,
+          occasion,
+          clusterNotes
+        ),
+    // Pass 4: Poetry (welcome + tagline + closing)
+    claudeStoryEnabled
+      ? poetryPassClaude(manifest.vibeString, coupleNames, chaptersSnapshot, occasion)
+      : generatePoetryPass(manifest.vibeString, coupleNames, chaptersSnapshot, apiKey, occasion),
   ]);
 
   if (pass12Result.status === 'fulfilled') {

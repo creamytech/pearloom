@@ -9,7 +9,6 @@
 import { motion, useScroll, useTransform, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
 import { CountdownWidget } from '@/components/countdown-widget';
-import { VibeParticles } from '@/components/vibe/VibeParticles';
 
 import type { VibeSkin } from '@/lib/vibe-engine';
 import { parseLocalDate } from '@/lib/date';
@@ -307,9 +306,6 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(43,30,20,0.04) 1.2px, transparent 0)',
             backgroundSize: '32px 32px',
           }} />
-
-          {/* Vibe ambient particles */}
-          {vibeSkin && <VibeParticles particle={vibeSkin.particle} />}
 
           {/* Subtle accent orb — bottom-right, no cover photo only */}
           <motion.div

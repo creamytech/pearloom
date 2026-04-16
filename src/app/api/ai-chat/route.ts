@@ -8,6 +8,7 @@ import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkPearGate, pearHeaders, PEAR_MONTHLY_LIMIT } from '@/lib/rate-limit';
+import { generate, cached, textFrom, parseJsonFromText } from '@/lib/claude';
 import type { StoryManifest } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -129,6 +130,30 @@ async function callGemini(prompt: string, apiKey: string): Promise<string> {
   return raw.replace(/^```json?\n?/, '').replace(/\n?```$/, '').trim();
 }
 
+// ── Claude call (preferred) ───────────────────────────────────────
+// The full SYSTEM_PROMPT is injected as a cached block so repeat
+// turns within the editor cost ~10% of the tokens.
+async function callClaude(systemPrompt: string, contextBlock: string, message: string): Promise<string> {
+  const msg = await generate({
+    tier: 'sonnet',
+    temperature: 0.7,
+    maxTokens: 2048,
+    system: [cached(systemPrompt, '1h')],
+    messages: [
+      {
+        role: 'user',
+        content: `${contextBlock}\n\nUser request: ${message}\n\nRespond with ONLY a single JSON object: { action, data, reply }. No markdown fences, no prose.`,
+      },
+    ],
+  });
+  return textFrom(msg).trim();
+}
+
+function claudeEnabled(): boolean {
+  if (process.env.PEARLOOM_CLAUDE_CHAT === 'off') return false;
+  return Boolean(process.env.ANTHROPIC_API_KEY);
+}
+
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
@@ -141,8 +166,9 @@ export async function POST(req: NextRequest) {
   if (blocked) return blocked;
 
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
-  if (!apiKey) {
-    return Response.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
+  const useClaude = claudeEnabled();
+  if (!useClaude && !apiKey) {
+    return Response.json({ error: 'No AI provider configured (set ANTHROPIC_API_KEY or GEMINI_API_KEY)' }, { status: 500 });
   }
 
   try {
@@ -221,23 +247,42 @@ ACTIVE CHAPTER: ${activeChapter ? `[${activeChapter.id}] "${activeChapter.title}
 `.trim();
 
     const safeMessage = message.trim().replace(/["`]/g, "'");
-    const fullPrompt = `${SYSTEM_PROMPT}\n\n${contextBlock}\n\nUser request: ${safeMessage}`;
 
-    const raw = await callGemini(fullPrompt, apiKey);
+    let raw: string;
+    try {
+      if (useClaude) {
+        raw = await callClaude(SYSTEM_PROMPT, contextBlock, safeMessage);
+      } else {
+        const fullPrompt = `${SYSTEM_PROMPT}\n\n${contextBlock}\n\nUser request: ${safeMessage}`;
+        raw = await callGemini(fullPrompt, apiKey!);
+      }
+    } catch (err) {
+      // If Claude times out / fails, fall back to Gemini when possible
+      if (useClaude && apiKey) {
+        const fullPrompt = `${SYSTEM_PROMPT}\n\n${contextBlock}\n\nUser request: ${safeMessage}`;
+        raw = await callGemini(fullPrompt, apiKey);
+      } else {
+        throw err;
+      }
+    }
 
     let parsed: { action: string; data: unknown; reply: string };
     try {
       parsed = JSON.parse(raw);
     } catch {
-      const match = raw.match(/\{[\s\S]*\}/);
-      if (!match) {
-        return Response.json({
-          action: 'message',
-          data: null,
-          reply: raw.slice(0, 500) || 'I had trouble understanding that. Could you rephrase?',
-        });
+      try {
+        parsed = parseJsonFromText(raw);
+      } catch {
+        const match = raw.match(/\{[\s\S]*\}/);
+        if (!match) {
+          return Response.json({
+            action: 'message',
+            data: null,
+            reply: raw.slice(0, 500) || 'I had trouble understanding that. Could you rephrase?',
+          });
+        }
+        parsed = JSON.parse(match[0]);
       }
-      parsed = JSON.parse(match[0]);
     }
 
     const ALLOWED_ACTIONS = new Set([

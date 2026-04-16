@@ -29,9 +29,10 @@ export const env = {
   NEXTAUTH_SECRET: optional('NEXTAUTH_SECRET'),
   NEXTAUTH_URL: optional('NEXTAUTH_URL'),
 
-  // AI — accept either key name
+  // AI — Gemini is used for image/SVG art; Claude for story + agents.
   GOOGLE_AI_KEY: optional('GOOGLE_AI_KEY'),
   GEMINI_API_KEY: optional('GEMINI_API_KEY'),
+  ANTHROPIC_API_KEY: optional('ANTHROPIC_API_KEY'),
 
   // Billing
   STRIPE_SECRET_KEY: optional('STRIPE_SECRET_KEY'),
@@ -76,9 +77,14 @@ export function validateEnv() {
     if (!process.env[name]) missing.push(name);
   }
 
-  // AI key: require at least one of GOOGLE_AI_KEY or GEMINI_API_KEY
+  // AI keys: Gemini for art (required); Claude for story/agents (strongly recommended)
   if (!process.env.GOOGLE_AI_KEY && !process.env.GEMINI_API_KEY) {
-    missing.push('GOOGLE_AI_KEY or GEMINI_API_KEY');
+    missing.push('GOOGLE_AI_KEY or GEMINI_API_KEY (needed for AI art generation)');
+  }
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.warn(
+      '[env] ANTHROPIC_API_KEY is not set — Claude story generation, Pear chat, and the Event Director will fall back to Gemini.'
+    );
   }
 
   if (missing.length > 0) {

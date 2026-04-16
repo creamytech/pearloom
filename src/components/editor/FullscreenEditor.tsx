@@ -36,7 +36,7 @@ import { PagesPanel } from './PagesPanel';
 import { AIBlocksPanel } from './AIBlocksPanel';
 import { VoiceTrainerPanel } from './VoiceTrainerPanel';
 import { CanvasEditor } from './CanvasEditor';
-// import { AIEditorChat } from './AIEditorChat';
+import { AIEditorChat } from './AIEditorChat';
 import { AIContextBar } from './AIContextBar';
 import { AICommandBar } from './AICommandBar';
 import { GuestMessagingPanel } from './GuestMessagingPanel';
@@ -1186,8 +1186,16 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         )}
       </DragOverlay>
 
-      {/* AI Chat — disabled: broken on mobile and takes up space */}
-      {/* <AIEditorChat manifest={manifest} activeChapterId={state.activeId} onUpdateChapter={updateChapter} onUpdateManifest={handleChatManifestUpdate} /> */}
+      {/* AI Chat — Pear (Claude-powered). Hidden on small screens to avoid
+          covering the command bar; the AICommandBar below is the mobile entry. */}
+      <div className="hidden md:block">
+        <AIEditorChat
+          manifest={manifest}
+          activeChapterId={state.activeId}
+          onUpdateChapter={updateChapter}
+          onUpdateManifest={handleChatManifestUpdate}
+        />
+      </div>
 
       {/* Inline AI Command Bar — floating pill, visible on desktop + mobile */}
       <AICommandBar />

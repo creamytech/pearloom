@@ -11,6 +11,7 @@ import { HowItWorks } from './marketing/HowItWorks';
 import { TheLoomShowcase } from './marketing/TheLoomShowcase';
 import { BlockTypesGrid } from './marketing/BlockTypesGrid';
 import { GuestExperience } from './marketing/GuestExperience';
+import { EventOSShowcase } from './marketing/EventOSShowcase';
 import { EditorShowcase } from './marketing/EditorShowcase';
 import { PricingPreview } from './marketing/PricingPreview';
 import { Testimonials } from './marketing/Testimonials';
@@ -275,6 +276,9 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
 
       {/* ══════════════ BLOCK TYPES ══════════════ */}
       <BlockTypesGrid />
+
+      {/* ══════════════ EVENT OS ══════════════ */}
+      <EventOSShowcase />
 
       {/* ══════════════ PLATFORM FEATURES ══════════════ */}
       <GuestExperience />
