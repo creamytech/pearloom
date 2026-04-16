@@ -407,34 +407,51 @@ function PaletteMiniPreview({ colors: c }: { colors: string[] }) {
 
   return (
     <div style={{
-      width: '100%', height: '80px', borderRadius: '6px',
+      width: '100%', height: 96, borderRadius: 2,
       background: bg, overflow: 'hidden', position: 'relative',
-      border: '1px solid rgba(0,0,0,0.06)',
+      border: '1px solid rgba(184,147,90,0.38)',
+      borderTop: '1.5px solid rgba(184,147,90,0.7)',
     }}>
-      {/* Hero photo placeholder */}
+      {/* Hero photo plate */}
       <div style={{
-        position: 'absolute', top: 0, left: 0, width: '45%', height: '100%',
-        background: accent2, opacity: 0.35,
+        position: 'absolute', top: 0, left: 0, width: '42%', height: '100%',
+        background: `linear-gradient(135deg, ${accent2} 0%, ${accent} 100%)`,
+        opacity: 0.82,
       }} />
-      {/* Content area */}
+      {/* Eyebrow kicker on plate */}
       <div style={{
-        position: 'absolute', top: '12px', left: '52%', right: '10px',
-        display: 'flex', flexDirection: 'column', gap: '5px',
+        position: 'absolute', top: 8, left: 8,
+        fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+        fontSize: 6.5, fontWeight: 700,
+        letterSpacing: '0.22em',
+        color: 'rgba(250,247,242,0.85)',
       }}>
-        {/* Title */}
-        <div style={{ height: '5px', width: '80%', background: fg, borderRadius: '2px', opacity: 0.85 }} />
-        <div style={{ height: '3px', width: '55%', background: fg, borderRadius: '1px', opacity: 0.3 }} />
-        <div style={{ height: '3px', width: '65%', background: fg, borderRadius: '1px', opacity: 0.3 }} />
-        {/* CTA button */}
+        № 01 · Cover
+      </div>
+      {/* Content area — mock masthead + body lines */}
+      <div style={{
+        position: 'absolute', top: 12, left: '48%', right: 12,
+        display: 'flex', flexDirection: 'column', gap: 5,
+      }}>
+        <div style={{ height: 6, width: '82%', background: fg, opacity: 0.88 }} />
+        <div style={{ height: 2.5, width: '60%', background: fg, opacity: 0.3 }} />
+        <div style={{ height: 2.5, width: '70%', background: fg, opacity: 0.3 }} />
+        <div style={{ height: 2.5, width: '48%', background: fg, opacity: 0.3 }} />
+        {/* CTA plate */}
         <div style={{
-          marginTop: '4px', height: '12px', width: '48px', borderRadius: '3px',
+          marginTop: 4, height: 12, width: 54,
           background: accent,
+          border: `1px solid ${fg}`,
+          opacity: 0.95,
         }} />
       </div>
-      {/* Color strip at bottom */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, display: 'flex', height: '3px' }}>
+      {/* Colophon strip at bottom — no gaps */}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, display: 'flex', height: 5 }}>
         {c.slice(0, 4).map((color, i) => (
-          <div key={i} style={{ flex: 1, background: color }} />
+          <div key={i} style={{
+            flex: 1, background: color,
+            borderRight: i < Math.min(c.length, 4) - 1 ? '1px solid rgba(184,147,90,0.35)' : 'none',
+          }} />
         ))}
       </div>
     </div>
@@ -452,31 +469,33 @@ export function ColorPaletteCard({ palettes, onSelect }: ColorPaletteCardProps) 
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: '10px',
+        gap: 10,
         width: '100%',
       }}
     >
       {palettes.slice(0, 3).map((palette, idx) => {
         const isSelected = selectedIndex === idx;
+        const folio = String(idx + 1).padStart(2, '0');
 
         return (
           <motion.button
             key={palette.name}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.06, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ delay: idx * 0.07, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             style={{
               position: 'relative',
-              borderRadius: '10px',
-              padding: '12px',
-              border: isSelected ? '2px solid #18181B' : `1px solid ${GLASS_BORDER}`,
-              background: isSelected ? '#F4F4F5' : '#FFFFFF',
+              borderRadius: 2,
+              padding: 14,
+              border: isSelected ? '1px solid rgba(184,147,90,0.75)' : '1px solid rgba(184,147,90,0.28)',
+              borderTop: isSelected ? '1.5px solid rgba(184,147,90,0.95)' : '1.5px solid rgba(184,147,90,0.55)',
+              background: isSelected ? 'rgba(184,147,90,0.12)' : 'rgba(250,247,242,0.78)',
               cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              boxShadow: isSelected ? OLIVE_GLOW : 'none',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px',
+              transition: 'all 220ms cubic-bezier(0.22,1,0.36,1)',
+              boxShadow: isSelected ? '0 0 0 3px rgba(184,147,90,0.2)' : '0 1px 2px rgba(22,16,6,0.04)',
+              display: 'grid',
+              gridTemplateColumns: '1fr',
+              gap: 12,
               textAlign: 'left',
               fontFamily: 'inherit',
             }}
@@ -485,63 +504,94 @@ export function ColorPaletteCard({ palettes, onSelect }: ColorPaletteCardProps) 
               onSelect({ name: palette.name, colors: palette.colors });
             }}
             onMouseEnter={(e) => {
-              if (!isSelected) (e.currentTarget as HTMLElement).style.borderColor = '#18181B';
+              if (!isSelected) {
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.6)';
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 10px rgba(22,16,6,0.08)';
+              }
             }}
             onMouseLeave={(e) => {
-              if (!isSelected) (e.currentTarget as HTMLElement).style.borderColor = GLASS_BORDER;
+              if (!isSelected) {
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.28)';
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 2px rgba(22,16,6,0.04)';
+              }
             }}
           >
-            {/* Selected checkmark */}
-            {isSelected && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                style={{
-                  position: 'absolute', top: '8px', right: '8px', zIndex: 2,
-                  width: '20px', height: '20px', borderRadius: '6px',
-                  background: '#18181B',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}
-              >
-                <CheckIcon size={10} color="white" />
-              </motion.div>
-            )}
+            {/* Folio kicker row */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+            }}>
+              <span style={{
+                fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                fontSize: 9, fontWeight: 700,
+                letterSpacing: '0.3em', textTransform: 'uppercase',
+                color: isSelected ? 'rgba(184,147,90,0.95)' : 'rgba(184,147,90,0.7)',
+                lineHeight: 1,
+              }}>
+                Plate № {folio}
+              </span>
+              <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.28)' }} />
+              {isSelected && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    width: 18, height: 18, borderRadius: 2,
+                    background: '#18181B',
+                    border: '1px solid rgba(184,147,90,0.65)',
+                  }}
+                >
+                  <CheckIcon size={10} color="#F0D484" />
+                </motion.span>
+              )}
+            </div>
 
             {/* Mini site preview */}
             <PaletteMiniPreview colors={palette.colors} />
 
-            {/* Palette info row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              {/* Color swatches */}
-              <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
-                {palette.colors.slice(0, 5).map((color, i) => (
-                  <div key={i} style={{
-                    width: '16px', height: '16px', borderRadius: '4px',
-                    background: color, border: '1px solid rgba(0,0,0,0.06)',
-                  }} />
-                ))}
-              </div>
+            {/* Swatch ribbon — no gaps, editorial paint chip */}
+            <div style={{
+              display: 'flex',
+              border: '1px solid rgba(184,147,90,0.42)',
+              flexShrink: 0,
+            }}>
+              {palette.colors.slice(0, 5).map((color, i) => (
+                <div key={i} style={{
+                  flex: 1, height: 26,
+                  background: color,
+                  borderRight: i < Math.min(palette.colors.length, 5) - 1 ? '1px solid rgba(184,147,90,0.3)' : 'none',
+                }} />
+              ))}
+            </div>
 
-              {/* Name + description */}
-              <div style={{ flex: 1, minWidth: 0 }}>
+            {/* Name + description */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr',
+              gap: 3,
+            }}>
+              <span style={{
+                fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
+                fontStyle: 'italic',
+                fontSize: '1.05rem', fontWeight: 400,
+                color: '#18181B', lineHeight: 1.1,
+                letterSpacing: '-0.006em',
+                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+              }}>
+                {palette.name}
+              </span>
+              {palette.description && (
                 <span style={{
-                  display: 'block',
-                  fontSize: '0.8rem', fontWeight: 600,
-                  color: '#18181B', lineHeight: 1.3,
+                  fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                  fontSize: 8.5, fontWeight: 700,
+                  letterSpacing: '0.22em', textTransform: 'uppercase',
+                  color: isSelected ? 'rgba(184,147,90,0.95)' : 'rgba(82,82,91,0.7)',
+                  lineHeight: 1.35,
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}>
-                  {palette.name}
+                  {palette.description}
                 </span>
-                {palette.description && (
-                  <span style={{
-                    display: 'block',
-                    fontSize: '0.65rem', color: '#A1A1AA',
-                    lineHeight: 1.3, marginTop: '1px',
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>
-                    {palette.description}
-                  </span>
-                )}
-              </div>
+              )}
             </div>
           </motion.button>
         );
