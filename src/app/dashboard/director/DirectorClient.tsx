@@ -183,68 +183,93 @@ function SitePicker() {
             gap: 16,
           }}
         >
-          {sites.map((s) => {
+          {sites.map((s, i) => {
             const label = s.names?.filter(Boolean).join(' & ') || s.domain;
             return (
               <button
                 key={s.id}
                 onClick={() => router.push(`/dashboard/director?site=${s.id}`)}
                 style={{
-                  display: 'block',
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  gap: 14,
                   textAlign: 'left',
                   width: '100%',
-                  padding: 20,
+                  padding: '22px 22px 20px',
                   background: 'var(--pl-cream-card)',
-                  border: '1px solid var(--pl-divider)',
-                  borderRadius: 'var(--pl-radius-lg)',
+                  border: '1px solid rgba(14,13,11,0.09)',
+                  borderRadius: 10,
                   cursor: 'pointer',
-                  transition:
-                    'transform var(--pl-dur-fast) var(--pl-ease-spring), border-color var(--pl-dur-fast) var(--pl-ease-out), box-shadow var(--pl-dur-fast) var(--pl-ease-out)',
-                  boxShadow: 'var(--pl-shadow-sm)',
+                  transition: 'transform 0.18s cubic-bezier(0.22,1,0.36,1), border-color 0.18s, box-shadow 0.24s',
                   color: 'var(--pl-ink)',
                   fontFamily: 'inherit',
+                  overflow: 'hidden',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.borderColor = 'var(--pl-olive)';
-                  e.currentTarget.style.boxShadow = 'var(--pl-shadow-md)';
+                  e.currentTarget.style.borderColor = 'rgba(184,147,90,0.55)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(14,13,11,0.04), 0 14px 36px rgba(14,13,11,0.10), 0 0 0 3px rgba(184,147,90,0.10)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.borderColor = 'var(--pl-divider)';
-                  e.currentTarget.style.boxShadow = 'var(--pl-shadow-sm)';
+                  e.currentTarget.style.borderColor = 'rgba(14,13,11,0.09)';
+                  e.currentTarget.style.boxShadow = 'none';
                 }}
               >
-                <div
-                  className="pl-overline"
-                  style={{ marginBottom: 8, fontSize: '0.58rem' }}
-                >
-                  {s.domain}
+                <span style={{
+                  position: 'absolute', top: 0, left: 16, right: 16,
+                  height: 1, background: 'rgba(184,147,90,0.45)',
+                }} />
+                <div style={{
+                  display: 'flex', justifyContent: 'space-between',
+                  alignItems: 'baseline', width: '100%',
+                }}>
+                  <span style={{
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.56rem', fontWeight: 700,
+                    letterSpacing: '0.26em', textTransform: 'uppercase',
+                    color: 'var(--pl-olive)',
+                  }}>
+                    № {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span style={{
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.5rem', fontWeight: 600,
+                    letterSpacing: '0.06em',
+                    color: 'rgba(14,13,11,0.45)',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    maxWidth: '60%',
+                  }}>
+                    {s.domain}
+                  </span>
                 </div>
-                <div
-                  style={{
-                    fontFamily: 'var(--pl-font-display)',
-                    fontSize: '1.2rem',
-                    color: 'var(--pl-ink)',
-                    fontStyle: 'italic',
-                    fontVariationSettings: '"opsz" 144, "SOFT" 60, "WONK" 1',
-                    marginBottom: 12,
-                    letterSpacing: '-0.01em',
-                  }}
-                >
+                <div style={{
+                  fontFamily: 'var(--pl-font-display)',
+                  fontStyle: 'italic',
+                  fontWeight: 400,
+                  fontSize: '1.7rem',
+                  lineHeight: 1.05,
+                  letterSpacing: '-0.005em',
+                  color: 'var(--pl-ink)',
+                }}>
                   {label}
                 </div>
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    fontSize: '0.78rem',
-                    color: 'var(--pl-olive)',
-                    fontWeight: 600,
-                  }}
-                >
-                  Open director <ChevronRight size={13} />
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '6px 10px',
+                  borderRadius: 4,
+                  background: 'rgba(184,147,90,0.10)',
+                  border: '1px solid rgba(184,147,90,0.35)',
+                  fontFamily: 'var(--pl-font-mono)',
+                  fontSize: '0.48rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.26em',
+                  textTransform: 'uppercase',
+                  color: 'var(--pl-gold)',
+                }}>
+                  Open director <ChevronRight size={10} strokeWidth={2.4} />
                 </div>
               </button>
             );
@@ -336,50 +361,62 @@ function DirectorBody({ siteId }: { siteId: string }) {
 
   return (
     <div>
-      {/* Editorial header */}
-      <div
-        style={{
-          marginBottom: 28,
-          paddingBottom: 20,
-          borderBottom: '1px solid var(--pl-divider)',
-        }}
-      >
-        <div className="pl-overline" style={{ marginBottom: 12 }}>
-          AI · Director
+      {/* Editorial masthead */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+          <span style={{
+            fontFamily: 'var(--pl-font-mono)',
+            fontSize: '0.52rem', fontWeight: 700,
+            letterSpacing: '0.32em', textTransform: 'uppercase',
+            color: 'var(--pl-olive)',
+          }}>
+            The Script · AI Director
+          </span>
+          <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.45)' }} />
         </div>
-        <h1
-          className="pl-display"
-          style={{
-            margin: 0,
-            fontSize: 'clamp(1.8rem, 3.2vw, 2.4rem)',
-            color: 'var(--pl-ink)',
-            lineHeight: 1.05,
-            letterSpacing: '-0.02em',
-          }}
-        >
-          Your AI planner.
+        <h1 style={{
+          margin: 0,
+          fontFamily: 'var(--pl-font-display)',
+          fontStyle: 'italic',
+          fontWeight: 400,
+          fontSize: 'clamp(2.2rem, 4.8vw, 3.2rem)',
+          lineHeight: 1.02,
+          letterSpacing: '-0.01em',
+          color: 'var(--pl-ink)',
+        }}>
+          Your planner
         </h1>
-        <div
-          style={{
+        {(state.targetCity || state.targetDate || typeof state.budgetCents === 'number' || typeof state.guestCountEstimate === 'number') && (
+          <div style={{
+            marginTop: 14,
+            padding: '10px 16px',
+            background: 'var(--pl-cream-card)',
+            border: '1px solid rgba(184,147,90,0.30)',
+            borderRadius: 8,
             display: 'flex',
-            gap: 10,
+            gap: 18,
             flexWrap: 'wrap',
-            marginTop: 10,
-            fontSize: '0.82rem',
-            color: 'var(--pl-muted)',
-          }}
-        >
-          {state.targetCity && <span>{state.targetCity}</span>}
-          {state.targetDate && (
-            <span>· {new Date(state.targetDate).toLocaleDateString()}</span>
-          )}
-          {typeof state.budgetCents === 'number' && (
-            <span>· ${(state.budgetCents / 100).toLocaleString()} budget</span>
-          )}
-          {typeof state.guestCountEstimate === 'number' && (
-            <span>· {state.guestCountEstimate} guests</span>
-          )}
-        </div>
+            fontFamily: 'var(--pl-font-mono)',
+            fontSize: '0.54rem',
+            fontWeight: 700,
+            letterSpacing: '0.20em',
+            textTransform: 'uppercase',
+            color: 'rgba(14,13,11,0.60)',
+          }}>
+            {state.targetCity && (
+              <span><span style={{ color: 'rgba(14,13,11,0.40)' }}>City · </span>{state.targetCity}</span>
+            )}
+            {state.targetDate && (
+              <span><span style={{ color: 'rgba(14,13,11,0.40)' }}>Date · </span>{new Date(state.targetDate).toLocaleDateString()}</span>
+            )}
+            {typeof state.budgetCents === 'number' && (
+              <span><span style={{ color: 'rgba(14,13,11,0.40)' }}>Budget · </span>${(state.budgetCents / 100).toLocaleString()}</span>
+            )}
+            {typeof state.guestCountEstimate === 'number' && (
+              <span><span style={{ color: 'rgba(14,13,11,0.40)' }}>Guests · </span>{state.guestCountEstimate}</span>
+            )}
+          </div>
+        )}
       </div>
 
       <div
@@ -430,108 +467,203 @@ function DirectorBody({ siteId }: { siteId: string }) {
                 start. I&apos;ll take it from there.
               </div>
             )}
-            {state.conversation.map((m, i) => (
-              <div
-                key={i}
-                style={{
-                  alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
-                  maxWidth: m.role === 'user' ? '80%' : '88%',
-                  background:
-                    m.role === 'user' ? 'var(--pl-ink)' : 'var(--pl-olive-mist)',
-                  color:
-                    m.role === 'user' ? 'var(--pl-cream)' : 'var(--pl-ink)',
-                  padding: '12px 14px',
-                  borderRadius:
-                    m.role === 'user'
-                      ? '14px 14px 4px 14px'
-                      : '14px 14px 14px 4px',
-                  fontSize: '0.94rem',
-                  lineHeight: 1.55,
-                }}
-              >
+            {state.conversation.map((m, i) => {
+              const isUser = m.role === 'user';
+              return (
                 <div
-                  className="pl-overline"
+                  key={i}
                   style={{
-                    marginBottom: 6,
-                    fontSize: '0.58rem',
-                    opacity: 0.6,
-                    color: m.role === 'user' ? 'var(--pl-cream)' : undefined,
+                    alignSelf: isUser ? 'flex-end' : 'flex-start',
+                    maxWidth: isUser ? '82%' : '90%',
+                    width: 'auto',
                   }}
                 >
-                  {m.role === 'user' ? 'You' : 'Director'}
+                  <div style={{
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.46rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.30em',
+                    textTransform: 'uppercase',
+                    color: isUser ? 'var(--pl-ink-soft)' : 'var(--pl-gold)',
+                    marginBottom: 6,
+                    paddingLeft: isUser ? 0 : 14,
+                    paddingRight: isUser ? 14 : 0,
+                    textAlign: isUser ? 'right' : 'left',
+                  }}>
+                    {isUser ? 'You · reply' : 'Director · scripted'}
+                  </div>
+                  <div style={{
+                    position: 'relative',
+                    padding: isUser ? '13px 16px' : '14px 16px 14px 18px',
+                    background: isUser ? 'var(--pl-ink)' : 'var(--pl-cream-card)',
+                    color: isUser ? 'var(--pl-cream)' : 'var(--pl-ink)',
+                    border: isUser ? 'none' : '1px solid rgba(184,147,90,0.35)',
+                    borderRadius: isUser
+                      ? '10px 10px 2px 10px'
+                      : '2px 10px 10px 10px',
+                    fontFamily: 'var(--pl-font-body)',
+                    fontSize: '0.92rem',
+                    lineHeight: 1.55,
+                    whiteSpace: 'pre-wrap',
+                    boxShadow: isUser
+                      ? '0 2px 6px rgba(14,13,11,0.12)'
+                      : '0 1px 3px rgba(14,13,11,0.04), 0 0 0 3px rgba(184,147,90,0.06)',
+                  }}>
+                    {!isUser && (
+                      <span style={{
+                        position: 'absolute', left: 0, top: 10, bottom: 10,
+                        width: 2, background: 'var(--pl-gold)',
+                      }} />
+                    )}
+                    {m.content}
+                  </div>
                 </div>
-                <div style={{ whiteSpace: 'pre-wrap' }}>{m.content}</div>
-              </div>
-            ))}
+              );
+            })}
             {sending && (
-              <div
-                style={{
-                  alignSelf: 'flex-start',
-                  padding: '10px 14px',
-                  background: 'var(--pl-olive-mist)',
-                  borderRadius: '14px 14px 14px 4px',
-                  fontSize: '0.9rem',
-                  color: 'var(--pl-muted)',
-                  fontStyle: 'italic',
+              <div style={{ alignSelf: 'flex-start', maxWidth: '90%' }}>
+                <div style={{
+                  fontFamily: 'var(--pl-font-mono)',
+                  fontSize: '0.46rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.30em',
+                  textTransform: 'uppercase',
+                  color: 'var(--pl-gold)',
+                  marginBottom: 6,
+                  paddingLeft: 14,
+                }}>
+                  Director · composing
+                </div>
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 10,
+                  padding: '12px 16px',
+                  background: 'var(--pl-cream-card)',
+                  border: '1px solid rgba(184,147,90,0.35)',
+                  borderRadius: '2px 10px 10px 10px',
                   fontFamily: 'var(--pl-font-display)',
-                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                }}
-              >
-                Thinking…
+                  fontStyle: 'italic',
+                  fontSize: '0.95rem',
+                  color: 'var(--pl-ink-soft)',
+                  position: 'relative',
+                }}>
+                  <span style={{
+                    position: 'absolute', left: 0, top: 10, bottom: 10,
+                    width: 2, background: 'var(--pl-gold)',
+                  }} />
+                  <span style={{ display: 'inline-flex', gap: 3 }}>
+                    <span className="pl-ty-dot" style={{ animationDelay: '0s' }}>·</span>
+                    <span className="pl-ty-dot" style={{ animationDelay: '0.15s' }}>·</span>
+                    <span className="pl-ty-dot" style={{ animationDelay: '0.30s' }}>·</span>
+                  </span>
+                  thinking
+                </div>
               </div>
             )}
           </div>
-          <div
-            style={{
-              display: 'flex',
-              gap: 8,
-              padding: 12,
-              borderTop: '1px solid var(--pl-divider-soft)',
-              background: 'var(--pl-cream-deep)',
-            }}
-          >
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about venues, budget splits, vendors, timelines…"
-              rows={2}
-              style={{
-                flex: 1,
-                resize: 'none',
-                border: '1px solid var(--pl-divider)',
-                borderRadius: 'var(--pl-radius-md)',
-                padding: '10px 14px',
-                fontFamily: 'var(--pl-font-body)',
-                fontSize: '0.92rem',
-                outline: 'none',
-                background: 'var(--pl-cream-card)',
-                color: 'var(--pl-ink)',
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-                  e.preventDefault();
-                  void send();
-                }
-              }}
-            />
-            <button
-              type="button"
-              onClick={() => void send()}
-              disabled={sending || !input.trim()}
-              style={{
-                background: input.trim() ? 'var(--pl-ink)' : 'var(--pl-divider)',
-                color: input.trim() ? 'var(--pl-cream)' : 'var(--pl-muted)',
-                border: 'none',
-                borderRadius: 'var(--pl-radius-md)',
-                padding: '0 18px',
-                fontWeight: 600,
-                fontSize: '0.86rem',
-                cursor: sending || !input.trim() ? 'not-allowed' : 'pointer',
-                transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
-              }}
-            >
-              {sending ? '…' : 'Send'}
-            </button>
+          {/* Editorial composer */}
+          <div style={{
+            position: 'relative',
+            padding: 14,
+            borderTop: '1px solid rgba(184,147,90,0.35)',
+            background: 'var(--pl-cream-deep)',
+          }}>
+            {/* Mono compose kicker */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              marginBottom: 8,
+            }}>
+              <span style={{
+                fontFamily: 'var(--pl-font-mono)',
+                fontSize: '0.46rem', fontWeight: 700,
+                letterSpacing: '0.28em', textTransform: 'uppercase',
+                color: 'var(--pl-olive)',
+              }}>
+                Compose · your reply
+              </span>
+              <span style={{ flex: 1, height: 1, background: 'rgba(14,13,11,0.10)' }} />
+              <span style={{
+                fontFamily: 'var(--pl-font-mono)',
+                fontSize: '0.46rem', fontWeight: 700,
+                letterSpacing: '0.22em', textTransform: 'uppercase',
+                color: 'rgba(14,13,11,0.40)',
+              }}>
+                ⌘↵ to send
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask about venues, budget splits, vendors, timelines…"
+                rows={2}
+                style={{
+                  flex: 1,
+                  resize: 'none',
+                  border: '1px solid rgba(14,13,11,0.15)',
+                  borderRadius: 8,
+                  padding: '10px 14px',
+                  fontFamily: 'var(--pl-font-body)',
+                  fontSize: '0.92rem',
+                  lineHeight: 1.5,
+                  outline: 'none',
+                  background: 'var(--pl-cream-card)',
+                  color: 'var(--pl-ink)',
+                  transition: 'border-color 0.18s, box-shadow 0.18s',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(184,147,90,0.55)';
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,147,90,0.10)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(14,13,11,0.15)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                    e.preventDefault();
+                    void send();
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => void send()}
+                disabled={sending || !input.trim()}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  background: input.trim() ? 'var(--pl-ink)' : 'rgba(14,13,11,0.10)',
+                  color: input.trim() ? 'var(--pl-cream)' : 'rgba(14,13,11,0.40)',
+                  border: '1px solid',
+                  borderColor: input.trim() ? 'var(--pl-ink)' : 'rgba(14,13,11,0.10)',
+                  borderRadius: 8,
+                  padding: '11px 18px',
+                  fontFamily: 'var(--pl-font-mono)',
+                  fontSize: '0.56rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.26em',
+                  textTransform: 'uppercase',
+                  cursor: sending || !input.trim() ? 'not-allowed' : 'pointer',
+                  boxShadow: input.trim() ? '0 0 0 3px rgba(184,147,90,0.18)' : 'none',
+                  transition: 'background 0.18s, box-shadow 0.18s',
+                  alignSelf: 'stretch',
+                }}
+              >
+                {sending ? 'Sending' : 'Send →'}
+              </button>
+            </div>
+            <style jsx>{`
+              @keyframes pl-ty {
+                0%, 80%, 100% { opacity: 0.25; }
+                40% { opacity: 1; }
+              }
+              :global(.pl-ty-dot) {
+                display: inline-block;
+                animation: pl-ty 1.2s infinite ease-in-out;
+                font-weight: 700;
+                transform: scale(1.8);
+                line-height: 1;
+              }
+            `}</style>
           </div>
           {error && (
             <div
@@ -605,31 +737,71 @@ function DirectorBody({ siteId }: { siteId: string }) {
                   gap: 8,
                 }}
               >
-                {state.checklist.map((c) => (
+                {state.checklist.map((c, i) => (
                   <li
                     key={c.id}
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      fontSize: '0.88rem',
+                      display: 'grid',
+                      gridTemplateColumns: '22px 16px 1fr auto',
+                      alignItems: 'baseline',
+                      columnGap: 8,
+                      paddingBottom: 8,
+                      borderBottom: i < state.checklist.length - 1 ? '1px dotted rgba(14,13,11,0.10)' : 'none',
+                      fontSize: '0.86rem',
                       lineHeight: 1.45,
                       color: 'var(--pl-ink)',
                     }}
                   >
-                    <input
-                      type="checkbox"
-                      defaultChecked={c.done}
-                      readOnly
-                      style={{ marginRight: 8, accentColor: 'var(--pl-olive)' }}
-                    />
-                    <span style={{ flex: 1 }}>{c.label}</span>
+                    <span style={{
+                      fontFamily: 'var(--pl-font-mono)',
+                      fontSize: '0.5rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.18em',
+                      color: 'rgba(14,13,11,0.40)',
+                    }}>
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span
+                      style={{
+                        position: 'relative',
+                        width: 12,
+                        height: 12,
+                        border: '1.5px solid',
+                        borderColor: c.done ? 'var(--pl-olive)' : 'rgba(14,13,11,0.30)',
+                        borderRadius: 2,
+                        background: c.done ? 'var(--pl-olive)' : 'var(--pl-cream-card)',
+                        display: 'inline-block',
+                        alignSelf: 'center',
+                      }}
+                    >
+                      {c.done && (
+                        <span style={{
+                          position: 'absolute',
+                          top: '50%', left: '50%',
+                          transform: 'translate(-50%, -55%)',
+                          color: 'var(--pl-cream)',
+                          fontSize: '0.62rem',
+                          lineHeight: 1,
+                          fontWeight: 800,
+                        }}>✓</span>
+                      )}
+                    </span>
+                    <span style={{
+                      fontFamily: 'var(--pl-font-body)',
+                      color: c.done ? 'rgba(14,13,11,0.45)' : 'var(--pl-ink)',
+                      textDecoration: c.done ? 'line-through' : 'none',
+                    }}>
+                      {c.label}
+                    </span>
                     {c.due && (
-                      <span
-                        style={{
-                          color: 'var(--pl-muted)',
-                          fontSize: '0.76rem',
-                        }}
-                      >
+                      <span style={{
+                        fontFamily: 'var(--pl-font-mono)',
+                        fontSize: '0.5rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.18em',
+                        textTransform: 'uppercase',
+                        color: 'var(--pl-gold)',
+                      }}>
                         {c.due}
                       </span>
                     )}
@@ -670,31 +842,57 @@ function DirectorBody({ siteId }: { siteId: string }) {
                   <li
                     key={i}
                     style={{
+                      paddingBottom: 10,
+                      borderBottom: i < state.shortlist.length - 1 ? '1px dotted rgba(14,13,11,0.10)' : 'none',
                       fontSize: '0.88rem',
                       lineHeight: 1.45,
                     }}
                   >
-                    <div style={{ fontWeight: 600, color: 'var(--pl-ink)' }}>
-                      {v.category}
+                    <div style={{
+                      display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 2,
+                    }}>
+                      <span style={{
+                        fontFamily: 'var(--pl-font-mono)',
+                        fontSize: '0.5rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.22em',
+                        textTransform: 'uppercase',
+                        color: 'var(--pl-olive)',
+                      }}>
+                        № {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <span style={{
+                        fontFamily: 'var(--pl-font-mono)',
+                        fontSize: '0.5rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.20em',
+                        textTransform: 'uppercase',
+                        color: 'rgba(14,13,11,0.55)',
+                      }}>
+                        {v.category}
+                      </span>
+                    </div>
+                    <div style={{
+                      fontFamily: 'var(--pl-font-display)',
+                      fontStyle: 'italic',
+                      fontWeight: 400,
+                      fontSize: '1rem',
+                      lineHeight: 1.15,
+                      color: 'var(--pl-ink)',
+                      marginBottom: v.note ? 4 : 2,
+                    }}>
+                      {v.vendorId}
                     </div>
                     {v.note && (
-                      <div
-                        style={{
-                          fontSize: '0.82rem',
-                          color: 'var(--pl-ink-soft)',
-                        }}
-                      >
+                      <div style={{
+                        fontFamily: 'var(--pl-font-body)',
+                        fontSize: '0.78rem',
+                        color: 'var(--pl-ink-soft)',
+                        lineHeight: 1.5,
+                      }}>
                         {v.note}
                       </div>
                     )}
-                    <div
-                      style={{
-                        fontSize: '0.72rem',
-                        color: 'var(--pl-muted)',
-                      }}
-                    >
-                      {v.vendorId}
-                    </div>
                   </li>
                 ))}
               </ul>
