@@ -424,13 +424,13 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     }
   }, [freeformText, freeformLoading]);
 
-  // v5 design system — solid surfaces, no glass
+  // Editorial tokens — cream paper, gold hairlines, ink text
   const textColor = '#18181B';
-  const mutedColor = '#71717A';
-  const inputBg = '#FFFFFF';
-  const inputBorder = '1px solid #E4E4E7';
+  const mutedColor = '#52525B';
+  const inputBg = 'rgba(250,247,242,0.65)';
+  const inputBorder = '1px solid rgba(184,147,90,0.38)';
   const ghostBg = 'transparent';
-  const ghostBorder = '1px solid #E4E4E7';
+  const ghostBorder = '1px solid rgba(184,147,90,0.45)';
 
   // NOTE: we no longer auto-open the Google Photos browser on
   // the photos step — the user now picks between drag-and-drop
@@ -1160,60 +1160,114 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const hasFirstName = !!(collected.names?.[0] && !collected.names?.[1]);
 
 
+  // Step folio number (01..NN) for the editorial masthead.
+  const stepFolio = String(Math.max(1, stepIndex(step) + 1)).padStart(2, '0');
+  const stepTotal = String(TOTAL_STEPS).padStart(2, '0');
+
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', background: '#FAFAFA', overflowY: 'auto' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)', overflowY: 'auto' }}>
       {/* Focus + interaction styles */}
       <style>{`
-        .pear-input:focus-visible { box-shadow: 0 0 0 2px rgba(24,24,27,0.15) !important; outline: none; }
-        .pear-btn:focus-visible { box-shadow: 0 0 0 2px rgba(24,24,27,0.15) !important; outline: none; }
+        .pear-input:focus-visible { box-shadow: 0 0 0 2px rgba(184,147,90,0.35) !important; outline: none; border-color: rgba(184,147,90,0.75) !important; }
+        .pear-btn:focus-visible { box-shadow: 0 0 0 2px rgba(184,147,90,0.35) !important; outline: none; }
         .pear-btn:active { transform: scale(0.97); }
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
 
-      {/* Subtle radial gradient background */}
+      {/* Editorial paper grain: faint cross-rule texture */}
       <div aria-hidden="true" style={{
         position: 'absolute', inset: 0, pointerEvents: 'none',
-        background: 'radial-gradient(ellipse at 50% 30%, rgba(228,228,231,0.4) 0%, transparent 70%)',
+        background: 'radial-gradient(ellipse at 50% 20%, rgba(212,175,55,0.08) 0%, transparent 55%), radial-gradient(ellipse at 80% 80%, rgba(184,147,90,0.06) 0%, transparent 60%)',
       }} />
 
-      {/* Back button */}
+      {/* Back chip — editorial mono-cap */}
       <button
         onClick={onBack}
+        className="pear-btn"
         style={{
-          position: 'fixed', top: 20, left: 20, zIndex: 20,
-          display: 'flex', alignItems: 'center', gap: 6,
-          padding: '8px 14px', borderRadius: 8,
-          background: '#FFFFFF', border: '1px solid #E4E4E7',
-          fontSize: '0.8rem', fontWeight: 600, color: '#3F3F46', cursor: 'pointer',
+          position: 'fixed', top: 22, left: 22, zIndex: 20,
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          padding: '9px 14px 9px 12px',
+          borderRadius: 2,
+          background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
+          border: '1px solid rgba(184,147,90,0.35)',
+          borderTop: '1.5px solid rgba(184,147,90,0.7)',
+          fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+          fontSize: 10, fontWeight: 700, letterSpacing: '0.24em', textTransform: 'uppercase',
+          color: '#18181B', cursor: 'pointer',
+          boxShadow: '0 2px 10px rgba(22,16,6,0.08)',
+          transition: 'background 180ms ease, border-color 180ms ease, box-shadow 180ms ease',
+        }}
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLElement).style.background = '#F5EFE3';
+          (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.65)';
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLElement).style.background = 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)';
+          (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.35)';
         }}
       >
-        <ArrowLeft size={14} />
-        Back
+        <ArrowLeft size={12} strokeWidth={2.4} />
+        Return
       </button>
 
       {/* ── Single centered card ── */}
       <div style={{
         position: 'relative', zIndex: 10,
-        width: '100%', maxWidth: 560, padding: '80px 20px 40px',
+        width: '100%', maxWidth: 620, padding: '80px 20px 48px',
       }}>
+        {/* Masthead above the card */}
         <div style={{
-          background: '#FFFFFF', borderRadius: 12,
-          border: '1px solid #E4E4E7',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
-          overflow: step === 'venue' || step === 'photo-review' ? 'visible' : 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 4px 12px',
+          gap: 12,
         }}>
-          {/* Progress bar — thin line at top of card */}
-          <div style={{ height: 3, background: '#F4F4F5', borderRadius: '12px 12px 0 0', overflow: 'hidden' }}>
+          <span style={{
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            fontSize: 9.5,
+            fontWeight: 700,
+            letterSpacing: '0.34em',
+            textTransform: 'uppercase',
+            color: 'rgba(184,147,90,0.9)',
+          }}>
+            The Pearloom · Atelier · Vol. {new Date().getFullYear()}
+          </span>
+          <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.42)' }} />
+          <span style={{
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            fontSize: 9.5,
+            fontWeight: 700,
+            letterSpacing: '0.3em',
+            textTransform: 'uppercase',
+            color: 'rgba(184,147,90,0.9)',
+          }}>
+            № {stepFolio} / {stepTotal}
+          </span>
+        </div>
+
+        <div style={{
+          background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
+          borderRadius: 2,
+          border: '1px solid rgba(184,147,90,0.28)',
+          borderTop: '2px solid rgba(184,147,90,0.65)',
+          boxShadow: '0 24px 60px rgba(22,16,6,0.14), 0 2px 8px rgba(22,16,6,0.06)',
+          overflow: step === 'venue' || step === 'photo-review' ? 'visible' : 'hidden',
+          position: 'relative',
+        }}>
+          {/* Progress rule — gold bar under the top rule */}
+          <div style={{ height: 2, background: 'rgba(184,147,90,0.14)', overflow: 'hidden' }}>
             <motion.div
               animate={{ width: `${progressPct}%` }}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              style={{ height: '100%', background: '#18181B', borderRadius: 2 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              style={{ height: '100%', background: 'linear-gradient(90deg, rgba(184,147,90,0.9), rgba(212,175,55,0.95))' }}
             />
           </div>
 
           {/* Card content */}
-          <div style={{ padding: step === 'photo-review' ? 0 : '28px 28px 24px' }}>
-            {/* Step header — title + description */}
+          <div style={{ padding: step === 'photo-review' ? 0 : '28px 30px 26px' }}>
+            {/* Step header — mono kicker + italic Fraunces title */}
             {step !== 'photo-review' && (
               <AnimatePresence mode="wait">
                 <motion.div
@@ -1221,16 +1275,44 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                  style={{ marginBottom: 20 }}
+                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ marginBottom: 22 }}
                 >
+                  <div style={{
+                    fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                    fontSize: 9.5,
+                    fontWeight: 700,
+                    letterSpacing: '0.32em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(184,147,90,0.95)',
+                    marginBottom: 10,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                  }}>
+                    <span>Chapter № {stepFolio} · {step.replace(/-/g, ' ')}</span>
+                    <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.28)' }} />
+                  </div>
                   <h2 style={{
-                    fontSize: '1.25rem', fontWeight: 600, color: '#18181B',
-                    margin: '0 0 4px', letterSpacing: '-0.01em',
+                    fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
+                    fontStyle: 'italic',
+                    fontSize: '1.75rem',
+                    fontWeight: 400,
+                    color: '#18181B',
+                    margin: '0 0 6px',
+                    letterSpacing: '-0.012em',
+                    lineHeight: 1.08,
+                    fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
                   }}>
                     {stepTitle}
                   </h2>
-                  <p style={{ fontSize: '0.82rem', color: '#71717A', margin: 0, lineHeight: 1.5 }}>
+                  <p style={{
+                    fontSize: '0.82rem',
+                    color: '#52525B',
+                    margin: 0,
+                    lineHeight: 1.55,
+                    fontFamily: 'var(--pl-font-body, inherit)',
+                  }}>
                     {stepDesc}
                   </p>
                 </motion.div>
