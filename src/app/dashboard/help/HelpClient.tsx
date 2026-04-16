@@ -17,7 +17,6 @@ import {
   MessageCircle,
   ChevronDown,
 } from 'lucide-react';
-import { PageCard } from '@/components/shell';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
 
 interface FaqEntry {
@@ -103,168 +102,358 @@ export default function HelpClient() {
     );
   }, [query]);
 
+  const year = new Date().getFullYear();
+
   return (
     <DashboardShell eyebrow="Help · Docs" contentMaxWidth={980}>
-            {/* Editorial hero */}
-            <div
+            {/* Editorial masthead */}
+            <header
               style={{
-                marginBottom: 36,
-                paddingBottom: 28,
+                position: 'relative',
+                marginBottom: 40,
+                paddingBottom: 32,
                 borderBottom: '1px solid var(--pl-divider)',
               }}
             >
               <div
-                className="pl-overline"
-                style={{ marginBottom: 14, display: 'inline-flex', gap: 12 }}
-              >
-                <span
-                  style={{
-                    width: 18,
-                    height: 1,
-                    background: 'var(--pl-gold)',
-                    alignSelf: 'center',
-                  }}
-                />
-                Pearloom · Help
-              </div>
-              <h1
-                className="pl-display"
                 style={{
-                  margin: 0,
-                  fontSize: 'clamp(2rem, 4.2vw, 3.2rem)',
-                  color: 'var(--pl-ink)',
-                  lineHeight: 1.02,
-                  letterSpacing: '-0.02em',
-                  maxWidth: '18ch',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 2,
+                  background:
+                    'linear-gradient(90deg, var(--pl-gold) 0%, rgba(184,147,90,0) 40%)',
+                }}
+              />
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  justifyContent: 'space-between',
+                  gap: 24,
+                  flexWrap: 'wrap',
+                  paddingTop: 18,
                 }}
               >
-                Answers, gently{' '}
-                <em
+                <div style={{ flex: 1, minWidth: 260 }}>
+                  <div
+                    style={{
+                      fontFamily: 'var(--pl-font-mono)',
+                      fontSize: '0.5rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.28em',
+                      textTransform: 'uppercase',
+                      color: 'var(--pl-olive)',
+                      marginBottom: 18,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 10,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 22,
+                        height: 1,
+                        background: 'var(--pl-gold)',
+                      }}
+                    />
+                    The Manual · Help · Vol. {year}
+                  </div>
+                  <h1
+                    className="pl-display"
+                    style={{
+                      margin: 0,
+                      fontSize: 'clamp(2.4rem, 5.2vw, 3.6rem)',
+                      color: 'var(--pl-ink)',
+                      lineHeight: 1.02,
+                      letterSpacing: '-0.01em',
+                      fontStyle: 'italic',
+                      fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                    }}
+                  >
+                    How can we help?
+                  </h1>
+                  <p
+                    style={{
+                      margin: '18px 0 0',
+                      maxWidth: '58ch',
+                      color: 'var(--pl-ink-soft)',
+                      fontSize: 'clamp(0.96rem, 1.2vw, 1.06rem)',
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    Host-facing docs — not the public FAQ. For anything a search
+                    can&apos;t solve, our team answers every email inside a day.
+                  </p>
+                </div>
+                <div
                   style={{
-                    color: 'var(--pl-olive)',
-                    fontStyle: 'italic',
-                    fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: 0,
+                    border: '1px solid var(--pl-divider)',
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    minWidth: 220,
                   }}
                 >
-                  indexed.
-                </em>
-              </h1>
-              <p
-                style={{
-                  margin: '14px 0 0',
-                  maxWidth: '56ch',
-                  color: 'var(--pl-ink-soft)',
-                  fontSize: 'clamp(0.96rem, 1.2vw, 1.06rem)',
-                  lineHeight: 1.6,
-                }}
-              >
-                Host-facing docs — not the public FAQ. For anything a search
-                can&apos;t solve, our team answers every email inside a day.
-              </p>
+                  <Dossier kicker="Entries" value={String(FAQ.length).padStart(2, '0')} />
+                  <Dossier
+                    kicker="Reply · sla"
+                    value="< 1 day"
+                    divider
+                  />
+                </div>
+              </div>
 
-              {/* Search */}
-              <div style={{ marginTop: 28, maxWidth: 480 }}>
+              {/* Concordance search */}
+              <div style={{ marginTop: 32, maxWidth: 540 }}>
+                <div
+                  style={{
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.48rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.28em',
+                    textTransform: 'uppercase',
+                    color: 'var(--pl-olive)',
+                    marginBottom: 8,
+                  }}
+                >
+                  Search · concordance
+                </div>
                 <label
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 10,
-                    padding: '12px 16px',
+                    gap: 12,
+                    padding: '14px 18px',
                     background: 'var(--pl-cream-card)',
                     border: '1px solid var(--pl-divider)',
-                    borderRadius: 'var(--pl-radius-full)',
-                    boxShadow: 'var(--pl-shadow-sm)',
+                    borderRadius: 2,
+                    boxShadow: 'inset 0 -2px 0 rgba(184,147,90,0.22)',
+                    transition: 'box-shadow 300ms cubic-bezier(0.22, 1, 0.36, 1)',
+                  }}
+                  onFocusCapture={(e) => {
+                    (e.currentTarget as HTMLLabelElement).style.boxShadow =
+                      'inset 0 -2px 0 rgba(184,147,90,0.9)';
+                  }}
+                  onBlurCapture={(e) => {
+                    (e.currentTarget as HTMLLabelElement).style.boxShadow =
+                      'inset 0 -2px 0 rgba(184,147,90,0.22)';
                   }}
                 >
-                  <Search size={15} color="var(--pl-muted)" />
+                  <Search size={15} color="var(--pl-olive)" />
                   <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search help…"
+                    placeholder="Look up a question…"
                     style={{
                       flex: 1,
                       border: 'none',
                       background: 'transparent',
                       outline: 'none',
-                      fontSize: '0.92rem',
-                      fontFamily: 'var(--pl-font-body)',
+                      fontSize: '0.98rem',
+                      fontFamily: 'var(--pl-font-display)',
+                      fontStyle: 'italic',
                       color: 'var(--pl-ink)',
                     }}
                   />
+                  {query && (
+                    <span
+                      style={{
+                        fontFamily: 'var(--pl-font-mono)',
+                        fontSize: '0.5rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.22em',
+                        textTransform: 'uppercase',
+                        color: 'var(--pl-muted)',
+                      }}
+                    >
+                      {visible.length} / {FAQ.length}
+                    </span>
+                  )}
                 </label>
               </div>
-            </div>
+            </header>
 
-            {/* Quick actions row */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                gap: 14,
-                marginBottom: 36,
-              }}
+            {/* Three-column dossier: shortcuts to help surfaces */}
+            <section
+              style={{ marginBottom: 44 }}
+              aria-label="Quick routes"
             >
-              <QuickTile
-                href="/dashboard/director"
-                icon={<Sparkles size={16} />}
-                eyebrow="AI · Director"
-                title="Ask the planner"
-                description="Budgets, vendors, timelines."
-                accent="olive"
-              />
-              <QuickTile
-                href="mailto:help@pearloom.com"
-                icon={<Mail size={16} />}
-                eyebrow="Email · &lt; 1 day"
-                title="Write the team"
-                description="help@pearloom.com"
-                accent="gold"
-              />
-              <QuickTile
-                href="#shortcuts"
-                icon={<Keyboard size={16} />}
-                eyebrow="Editor"
-                title="Keyboard shortcuts"
-                description="Jump faster."
-                accent="plum"
-              />
-            </div>
-
-            {/* FAQ */}
-            <div id="faq" style={{ marginBottom: 48 }}>
               <div
-                className="pl-overline"
-                style={{ marginBottom: 14, fontSize: '0.62rem' }}
+                style={{
+                  fontFamily: 'var(--pl-font-mono)',
+                  fontSize: '0.48rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.28em',
+                  textTransform: 'uppercase',
+                  color: 'var(--pl-olive)',
+                  marginBottom: 14,
+                }}
               >
-                Common questions
+                Folio · three routes
+              </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                  gap: 0,
+                  border: '1px solid var(--pl-divider)',
+                  borderTop: '2px solid var(--pl-gold)',
+                  borderRadius: 2,
+                  background: 'var(--pl-cream-card)',
+                  overflow: 'hidden',
+                }}
+              >
+                <QuickTile
+                  index={1}
+                  href="/dashboard/director"
+                  icon={<Sparkles size={14} />}
+                  eyebrow="AI · Director"
+                  title="Ask the planner"
+                  description="Budgets, vendors, timelines."
+                  accent="olive"
+                />
+                <QuickTile
+                  index={2}
+                  href="mailto:help@pearloom.com"
+                  icon={<Mail size={14} />}
+                  eyebrow="Email · < 1 day"
+                  title="Write the team"
+                  description="help@pearloom.com"
+                  accent="gold"
+                  divider
+                />
+                <QuickTile
+                  index={3}
+                  href="#shortcuts"
+                  icon={<Keyboard size={14} />}
+                  eyebrow="Editor · keys"
+                  title="Keyboard shortcuts"
+                  description="Jump faster."
+                  accent="plum"
+                  divider
+                />
+              </div>
+            </section>
+
+            {/* FAQ ledger */}
+            <section id="faq" style={{ marginBottom: 56 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  justifyContent: 'space-between',
+                  marginBottom: 20,
+                  paddingBottom: 12,
+                  borderBottom: '1px solid var(--pl-divider)',
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      fontFamily: 'var(--pl-font-mono)',
+                      fontSize: '0.48rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.28em',
+                      textTransform: 'uppercase',
+                      color: 'var(--pl-olive)',
+                      marginBottom: 6,
+                    }}
+                  >
+                    Chapter I · Entries
+                  </div>
+                  <h2
+                    style={{
+                      margin: 0,
+                      fontFamily: 'var(--pl-font-display)',
+                      fontStyle: 'italic',
+                      fontVariationSettings:
+                        '"opsz" 144, "SOFT" 80, "WONK" 1',
+                      fontSize: '1.7rem',
+                      letterSpacing: '-0.01em',
+                      color: 'var(--pl-ink)',
+                    }}
+                  >
+                    Common questions
+                  </h2>
+                </div>
+                <span
+                  style={{
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.52rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.24em',
+                    textTransform: 'uppercase',
+                    color: 'var(--pl-muted)',
+                  }}
+                >
+                  № 01—{String(FAQ.length).padStart(2, '0')}
+                </span>
               </div>
               <div
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 10,
+                  gap: 0,
+                  borderTop: '1px solid var(--pl-divider)',
                 }}
               >
                 {visible.length === 0 ? (
                   <div
                     style={{
-                      padding: 32,
+                      position: 'relative',
+                      padding: '48px 24px',
                       textAlign: 'center',
-                      color: 'var(--pl-muted)',
-                      fontSize: '0.92rem',
-                      fontStyle: 'italic',
-                      fontFamily: 'var(--pl-font-display)',
-                      fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                      border: '1px dashed var(--pl-divider)',
-                      borderRadius: 'var(--pl-radius-lg)',
+                      border: '1px dashed rgba(184,147,90,0.45)',
+                      borderTop: 'none',
+                      background:
+                        'repeating-linear-gradient(135deg, transparent 0, transparent 12px, rgba(184,147,90,0.04) 12px, rgba(184,147,90,0.04) 13px)',
                     }}
                   >
-                    Nothing matches &ldquo;{query}&rdquo;. Try emailing us instead.
+                    <div
+                      style={{
+                        fontFamily: 'var(--pl-font-mono)',
+                        fontSize: '0.5rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.28em',
+                        textTransform: 'uppercase',
+                        color: 'var(--pl-gold)',
+                        marginBottom: 10,
+                      }}
+                    >
+                      № 00 · Null result
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: 'var(--pl-font-display)',
+                        fontStyle: 'italic',
+                        fontVariationSettings:
+                          '"opsz" 144, "SOFT" 80, "WONK" 1',
+                        fontSize: '1.3rem',
+                        color: 'var(--pl-ink)',
+                        letterSpacing: '-0.01em',
+                      }}
+                    >
+                      Nothing matches &ldquo;{query}&rdquo;.
+                    </div>
+                    <div
+                      style={{
+                        marginTop: 8,
+                        fontSize: '0.9rem',
+                        color: 'var(--pl-ink-soft)',
+                      }}
+                    >
+                      Try emailing us — we answer every one.
+                    </div>
                   </div>
                 ) : (
                   visible.map((f, i) => (
                     <FaqRow
                       key={f.q}
+                      index={i}
                       entry={f}
                       open={openIdx === i}
                       onToggle={() => setOpenIdx(openIdx === i ? null : i)}
@@ -272,111 +461,267 @@ export default function HelpClient() {
                   ))
                 )}
               </div>
-            </div>
+            </section>
 
-            {/* Shortcuts */}
-            <div id="shortcuts" style={{ marginBottom: 48 }}>
-              <PageCard
-                eyebrow="Editor shortcuts"
-                title="Keys that save the day"
-                padding="md"
-                accent="plum"
+            {/* Shortcuts ledger */}
+            <section id="shortcuts" style={{ marginBottom: 56 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  justifyContent: 'space-between',
+                  marginBottom: 20,
+                  paddingBottom: 12,
+                  borderBottom: '1px solid var(--pl-divider)',
+                }}
               >
+                <div>
+                  <div
+                    style={{
+                      fontFamily: 'var(--pl-font-mono)',
+                      fontSize: '0.48rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.28em',
+                      textTransform: 'uppercase',
+                      color: 'var(--pl-olive)',
+                      marginBottom: 6,
+                    }}
+                  >
+                    Chapter II · Keyboard
+                  </div>
+                  <h2
+                    style={{
+                      margin: 0,
+                      fontFamily: 'var(--pl-font-display)',
+                      fontStyle: 'italic',
+                      fontVariationSettings:
+                        '"opsz" 144, "SOFT" 80, "WONK" 1',
+                      fontSize: '1.7rem',
+                      letterSpacing: '-0.01em',
+                      color: 'var(--pl-ink)',
+                    }}
+                  >
+                    Keys that save the day
+                  </h2>
+                </div>
+                <span
+                  style={{
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.52rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.24em',
+                    textTransform: 'uppercase',
+                    color: 'var(--pl-muted)',
+                  }}
+                >
+                  № {String(SHORTCUTS.length).padStart(2, '0')}
+                </span>
+              </div>
+              <div
+                style={{
+                  border: '1px solid var(--pl-divider)',
+                  borderTop: '2px solid var(--pl-gold)',
+                  borderRadius: 2,
+                  background: 'var(--pl-cream-card)',
+                  overflow: 'hidden',
+                }}
+              >
+                {/* Column header */}
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                    gridTemplateColumns: '44px 1fr 1fr',
                     gap: 12,
+                    padding: '10px 18px',
+                    borderBottom: '1px solid var(--pl-divider)',
+                    background: 'var(--pl-cream-deep)',
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.46rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.28em',
+                    textTransform: 'uppercase',
+                    color: 'var(--pl-muted)',
                   }}
                 >
-                  {SHORTCUTS.map((s) => (
-                    <div
-                      key={s.label}
+                  <span>№</span>
+                  <span>Combination</span>
+                  <span>Action</span>
+                </div>
+                {SHORTCUTS.map((s, i) => (
+                  <div
+                    key={s.label}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '44px 1fr 1fr',
+                      gap: 12,
+                      alignItems: 'center',
+                      padding: '14px 18px',
+                      borderBottom:
+                        i === SHORTCUTS.length - 1
+                          ? 'none'
+                          : '1px solid var(--pl-divider)',
+                    }}
+                  >
+                    <span
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 12,
-                        padding: '10px 12px',
-                        background: 'var(--pl-cream-deep)',
-                        borderRadius: 'var(--pl-radius-md)',
-                        fontSize: '0.88rem',
+                        fontFamily: 'var(--pl-font-mono)',
+                        fontSize: '0.54rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.22em',
+                        color: 'var(--pl-gold)',
                       }}
                     >
-                      <div
-                        style={{
-                          display: 'inline-flex',
-                          gap: 4,
-                          flexShrink: 0,
-                        }}
-                      >
-                        {s.keys.map((k) => (
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <div style={{ display: 'inline-flex', gap: 5, flexWrap: 'wrap' }}>
+                      {s.keys.map((k, ki) => (
+                        <span key={`${k}-${ki}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                           <kbd
-                            key={k}
                             style={{
-                              padding: '3px 8px',
+                              padding: '4px 9px',
                               fontFamily: 'var(--pl-font-mono)',
-                              fontSize: '0.74rem',
-                              background: 'var(--pl-cream-card)',
+                              fontSize: '0.72rem',
+                              fontWeight: 600,
+                              background: 'var(--pl-cream-deep)',
                               border: '1px solid var(--pl-divider)',
-                              borderRadius: 6,
+                              borderBottom: '2px solid var(--pl-divider)',
+                              borderRadius: 3,
                               color: 'var(--pl-ink)',
-                              minWidth: 20,
+                              minWidth: 22,
                               textAlign: 'center',
+                              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)',
                             }}
                           >
                             {k}
                           </kbd>
-                        ))}
-                      </div>
-                      <span style={{ color: 'var(--pl-ink-soft)' }}>
-                        {s.label}
-                      </span>
+                          {ki < s.keys.length - 1 && (
+                            <span
+                              style={{
+                                fontFamily: 'var(--pl-font-mono)',
+                                fontSize: '0.58rem',
+                                color: 'var(--pl-muted)',
+                              }}
+                            >
+                              +
+                            </span>
+                          )}
+                        </span>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </PageCard>
-            </div>
+                    <span
+                      style={{
+                        fontFamily: 'var(--pl-font-display)',
+                        fontStyle: 'italic',
+                        fontVariationSettings:
+                          '"opsz" 144, "SOFT" 80, "WONK" 1',
+                        fontSize: '0.98rem',
+                        color: 'var(--pl-ink-soft)',
+                        letterSpacing: '-0.005em',
+                      }}
+                    >
+                      {s.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </section>
 
-            {/* Still stuck */}
-            <PageCard
-              variant="inset"
-              padding="lg"
-              style={{ textAlign: 'center' }}
+            {/* Colophon: still stuck */}
+            <section
+              style={{
+                position: 'relative',
+                padding: '44px 28px',
+                border: '1px dashed rgba(184,147,90,0.5)',
+                borderRadius: 2,
+                textAlign: 'center',
+                background:
+                  'radial-gradient(ellipse at top, rgba(184,147,90,0.06), transparent 70%)',
+              }}
             >
-              <div style={{ maxWidth: 460, margin: '0 auto' }}>
+              {/* Corner folio marks */}
+              <span
+                style={{
+                  position: 'absolute',
+                  top: 10,
+                  left: 12,
+                  fontFamily: 'var(--pl-font-mono)',
+                  fontSize: '0.46rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.28em',
+                  textTransform: 'uppercase',
+                  color: 'var(--pl-gold)',
+                }}
+              >
+                Colophon · III
+              </span>
+              <span
+                style={{
+                  position: 'absolute',
+                  top: 10,
+                  right: 12,
+                  fontFamily: 'var(--pl-font-mono)',
+                  fontSize: '0.46rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.28em',
+                  textTransform: 'uppercase',
+                  color: 'var(--pl-gold)',
+                }}
+              >
+                № 03
+              </span>
+              <div style={{ maxWidth: 520, margin: '0 auto' }}>
                 <span
                   style={{
                     display: 'inline-flex',
-                    width: 48,
-                    height: 48,
+                    width: 60,
+                    height: 60,
                     borderRadius: '50%',
-                    background: 'var(--pl-olive-mist)',
+                    background: 'var(--pl-cream-card)',
+                    border: '1px solid rgba(184,147,90,0.5)',
+                    boxShadow: '0 0 0 4px rgba(184,147,90,0.08)',
                     color: 'var(--pl-olive)',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginBottom: 14,
+                    marginBottom: 18,
                   }}
                 >
-                  <MessageCircle size={20} />
+                  <MessageCircle size={22} />
                 </span>
+                <div
+                  style={{
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.48rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.3em',
+                    textTransform: 'uppercase',
+                    color: 'var(--pl-olive)',
+                    marginBottom: 10,
+                  }}
+                >
+                  A postscript
+                </div>
                 <h3
                   style={{
                     fontFamily: 'var(--pl-font-display)',
-                    fontSize: '1.4rem',
+                    fontSize: '2rem',
                     margin: 0,
                     color: 'var(--pl-ink)',
                     fontStyle: 'italic',
-                    fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                    fontVariationSettings:
+                      '"opsz" 144, "SOFT" 80, "WONK" 1',
+                    letterSpacing: '-0.01em',
+                    lineHeight: 1.05,
                   }}
                 >
                   Still stuck?
                 </h3>
                 <p
                   style={{
-                    margin: '8px 0 18px',
+                    margin: '12px auto 22px',
                     color: 'var(--pl-ink-soft)',
-                    fontSize: '0.94rem',
-                    lineHeight: 1.55,
+                    fontSize: '0.98rem',
+                    lineHeight: 1.6,
+                    maxWidth: '46ch',
                   }}
                 >
                   We answer every email personally. Usually within a few hours —
@@ -387,41 +732,105 @@ export default function HelpClient() {
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: 8,
-                    padding: '10px 20px',
+                    gap: 10,
+                    padding: '12px 22px',
                     background: 'var(--pl-ink)',
                     color: 'var(--pl-cream)',
-                    borderRadius: 'var(--pl-radius-full)',
+                    borderRadius: 2,
                     textDecoration: 'none',
-                    fontSize: '0.88rem',
-                    fontWeight: 600,
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.62rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.24em',
+                    textTransform: 'uppercase',
+                    boxShadow: '0 0 0 3px rgba(184,147,90,0.18)',
+                    transition: 'transform 300ms cubic-bezier(0.22, 1, 0.36, 1)',
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLAnchorElement).style.transform =
+                      'translateY(-2px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLAnchorElement).style.transform =
+                      'translateY(0)';
                   }}
                 >
-                  <Mail size={14} />
-                  help@pearloom.com
+                  <Mail size={13} />
+                  help@pearloom.com →
                 </a>
               </div>
-            </PageCard>
+            </section>
     </DashboardShell>
   );
 }
 
 // ─── Subcomponents ──────────────────────────────────────────
 
+function Dossier({
+  kicker,
+  value,
+  divider,
+}: {
+  kicker: string;
+  value: string;
+  divider?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        padding: '14px 16px',
+        borderLeft: divider ? '1px solid var(--pl-divider)' : 'none',
+        background: 'var(--pl-cream-card)',
+      }}
+    >
+      <div
+        style={{
+          fontFamily: 'var(--pl-font-mono)',
+          fontSize: '0.46rem',
+          fontWeight: 700,
+          letterSpacing: '0.28em',
+          textTransform: 'uppercase',
+          color: 'var(--pl-muted)',
+          marginBottom: 6,
+        }}
+      >
+        {kicker}
+      </div>
+      <div
+        style={{
+          fontFamily: 'var(--pl-font-display)',
+          fontStyle: 'italic',
+          fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+          fontSize: '1.3rem',
+          color: 'var(--pl-ink)',
+          letterSpacing: '-0.01em',
+          lineHeight: 1,
+        }}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
 function QuickTile({
+  index,
   href,
   icon,
   eyebrow,
   title,
   description,
   accent,
+  divider,
 }: {
+  index: number;
   href: string;
   icon: React.ReactNode;
   eyebrow: string;
   title: string;
   description: string;
   accent: 'olive' | 'gold' | 'plum';
+  divider?: boolean;
 }) {
   const accentColor =
     accent === 'olive'
@@ -429,82 +838,121 @@ function QuickTile({
       : accent === 'gold'
         ? 'var(--pl-gold)'
         : 'var(--pl-plum)';
-  const tint =
-    accent === 'olive'
-      ? 'var(--pl-olive-mist)'
-      : accent === 'gold'
-        ? 'color-mix(in oklab, var(--pl-gold) 12%, transparent)'
-        : 'color-mix(in oklab, var(--pl-plum) 10%, transparent)';
   return (
     <Link
       href={href}
       style={{
         position: 'relative',
         display: 'block',
-        padding: 18,
+        padding: '22px 20px 20px',
         background: 'var(--pl-cream-card)',
-        border: '1px solid var(--pl-divider)',
-        borderRadius: 'var(--pl-radius-lg)',
+        borderLeft: divider ? '1px solid var(--pl-divider)' : 'none',
         textDecoration: 'none',
         transition:
-          'transform var(--pl-dur-fast) var(--pl-ease-spring), box-shadow var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
+          'background 240ms cubic-bezier(0.22, 1, 0.36, 1), transform 240ms cubic-bezier(0.22, 1, 0.36, 1)',
         overflow: 'hidden',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = 'var(--pl-shadow-md)';
-        e.currentTarget.style.borderColor = accentColor;
+        (e.currentTarget as HTMLAnchorElement).style.background =
+          'var(--pl-cream-deep)';
+        const arrow = e.currentTarget.querySelector(
+          '[data-arrow]',
+        ) as HTMLSpanElement | null;
+        if (arrow) arrow.style.transform = 'translateX(4px)';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = 'none';
-        e.currentTarget.style.borderColor = 'var(--pl-divider)';
+        (e.currentTarget as HTMLAnchorElement).style.background =
+          'var(--pl-cream-card)';
+        const arrow = e.currentTarget.querySelector(
+          '[data-arrow]',
+        ) as HTMLSpanElement | null;
+        if (arrow) arrow.style.transform = 'translateX(0)';
       }}
     >
-      <span
+      <div
         style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 2,
-          background: accentColor,
-        }}
-      />
-      <span
-        style={{
-          display: 'inline-flex',
+          display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          width: 32,
-          height: 32,
-          borderRadius: '50%',
-          background: tint,
-          color: accentColor,
-          marginBottom: 12,
+          justifyContent: 'space-between',
+          marginBottom: 14,
         }}
       >
-        {icon}
-      </span>
+        <span
+          style={{
+            fontFamily: 'var(--pl-font-mono)',
+            fontSize: '0.5rem',
+            fontWeight: 700,
+            letterSpacing: '0.26em',
+            color: 'var(--pl-gold)',
+          }}
+        >
+          № {String(index).padStart(2, '0')}
+        </span>
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 28,
+            height: 28,
+            borderRadius: 2,
+            background: 'var(--pl-cream-deep)',
+            border: `1px solid ${accentColor}`,
+            color: accentColor,
+          }}
+        >
+          {icon}
+        </span>
+      </div>
       <div
-        className="pl-overline"
-        style={{ marginBottom: 4, fontSize: '0.58rem' }}
+        style={{
+          fontFamily: 'var(--pl-font-mono)',
+          fontSize: '0.46rem',
+          fontWeight: 700,
+          letterSpacing: '0.28em',
+          textTransform: 'uppercase',
+          color: 'var(--pl-olive)',
+          marginBottom: 8,
+        }}
       >
         {eyebrow}
       </div>
       <div
         style={{
           fontFamily: 'var(--pl-font-display)',
-          fontSize: '1.05rem',
+          fontStyle: 'italic',
+          fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+          fontSize: '1.35rem',
           color: 'var(--pl-ink)',
           letterSpacing: '-0.01em',
-          marginBottom: 4,
+          marginBottom: 6,
+          lineHeight: 1.05,
         }}
       >
         {title}
       </div>
-      <div style={{ fontSize: '0.82rem', color: 'var(--pl-muted)' }}>
-        {description}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
+          fontSize: '0.82rem',
+          color: 'var(--pl-ink-soft)',
+        }}
+      >
+        <span>{description}</span>
+        <span
+          data-arrow
+          style={{
+            fontFamily: 'var(--pl-font-mono)',
+            fontSize: '0.72rem',
+            color: accentColor,
+            transition: 'transform 240ms cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+        >
+          →
+        </span>
       </div>
     </Link>
   );
@@ -512,70 +960,155 @@ function QuickTile({
 
 function FaqRow({
   entry,
+  index,
   open,
   onToggle,
 }: {
   entry: FaqEntry;
+  index: number;
   open: boolean;
   onToggle: () => void;
 }) {
   return (
-    <div
+    <article
       style={{
-        background: 'var(--pl-cream-card)',
-        border: '1px solid var(--pl-divider)',
-        borderRadius: 'var(--pl-radius-lg)',
-        overflow: 'hidden',
-        transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out)',
-        borderColor: open ? 'var(--pl-olive)' : 'var(--pl-divider)',
+        position: 'relative',
+        background: open ? 'var(--pl-cream-card)' : 'transparent',
+        borderBottom: '1px solid var(--pl-divider)',
+        transition: 'background 240ms cubic-bezier(0.22, 1, 0.36, 1)',
       }}
     >
+      {/* Gold vertical accent when open */}
+      {open && (
+        <span
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            bottom: 0,
+            width: 2,
+            background: 'var(--pl-gold)',
+          }}
+        />
+      )}
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={open}
         style={{
           width: '100%',
-          display: 'flex',
+          display: 'grid',
+          gridTemplateColumns: '48px 1fr auto',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 14,
-          padding: '16px 20px',
+          gap: 16,
+          padding: '20px 22px',
           background: 'transparent',
           border: 'none',
           cursor: 'pointer',
           textAlign: 'left',
           color: 'var(--pl-ink)',
           fontFamily: 'inherit',
-          fontSize: '0.98rem',
-          fontWeight: 500,
-          letterSpacing: '-0.005em',
         }}
       >
-        <span>{entry.q}</span>
-        <ChevronDown
-          size={16}
+        <span
           style={{
-            flexShrink: 0,
-            color: 'var(--pl-muted)',
-            transition: 'transform var(--pl-dur-fast) var(--pl-ease-out)',
-            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+            fontFamily: 'var(--pl-font-mono)',
+            fontSize: '0.54rem',
+            fontWeight: 700,
+            letterSpacing: '0.22em',
+            color: open ? 'var(--pl-gold)' : 'var(--pl-muted)',
+            transition: 'color 240ms cubic-bezier(0.22, 1, 0.36, 1)',
           }}
-        />
+        >
+          {String(index + 1).padStart(2, '0')}
+        </span>
+        <span
+          style={{
+            fontFamily: 'var(--pl-font-display)',
+            fontStyle: 'italic',
+            fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+            fontSize: '1.15rem',
+            letterSpacing: '-0.005em',
+            color: 'var(--pl-ink)',
+            lineHeight: 1.3,
+          }}
+        >
+          {entry.q}
+        </span>
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 28,
+            height: 28,
+            borderRadius: '50%',
+            border: '1px solid var(--pl-divider)',
+            background: open ? 'var(--pl-ink)' : 'transparent',
+            color: open ? 'var(--pl-cream)' : 'var(--pl-muted)',
+            transition:
+              'transform 320ms cubic-bezier(0.22, 1, 0.36, 1), background 240ms, color 240ms',
+            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+            flexShrink: 0,
+          }}
+        >
+          <ChevronDown size={14} />
+        </span>
       </button>
       {open && (
         <div
           style={{
-            padding: '0 20px 18px',
-            color: 'var(--pl-ink-soft)',
-            fontSize: '0.92rem',
-            lineHeight: 1.6,
-            maxWidth: '64ch',
+            display: 'grid',
+            gridTemplateColumns: '48px 1fr',
+            gap: 16,
+            padding: '0 22px 22px',
           }}
         >
-          {entry.a}
+          <span />
+          <div>
+            <p
+              style={{
+                margin: 0,
+                color: 'var(--pl-ink-soft)',
+                fontSize: '0.96rem',
+                lineHeight: 1.65,
+                maxWidth: '62ch',
+              }}
+            >
+              {entry.a}
+            </p>
+            {entry.tags.length > 0 && (
+              <div
+                style={{
+                  marginTop: 14,
+                  display: 'inline-flex',
+                  gap: 6,
+                  flexWrap: 'wrap',
+                }}
+              >
+                {entry.tags.map((t) => (
+                  <span
+                    key={t}
+                    style={{
+                      padding: '4px 10px',
+                      fontFamily: 'var(--pl-font-mono)',
+                      fontSize: '0.5rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.22em',
+                      textTransform: 'uppercase',
+                      color: 'var(--pl-olive)',
+                      background: 'var(--pl-olive-mist)',
+                      borderRadius: 2,
+                    }}
+                  >
+                    # {t}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
-    </div>
+    </article>
   );
 }
