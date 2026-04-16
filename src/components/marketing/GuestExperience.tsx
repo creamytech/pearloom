@@ -90,9 +90,9 @@ export function GuestExperience() {
       ref={ref}
       id="features"
       style={{
-        background: C.cream,
+        background: 'var(--pl-cream)',
         padding: `${sectionPadding.y} ${sectionPadding.x}`,
-        borderTop: `1px solid ${C.divider}`,
+        borderTop: '1px solid var(--pl-divider)',
       }}
     >
       <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
@@ -114,12 +114,12 @@ export function GuestExperience() {
             </p>
             <h2
               className="font-heading font-bold tracking-tight leading-[1.1]"
-              style={{ fontSize: 'clamp(2rem,3.5vw,2.75rem)', color: C.ink, marginBottom: '1rem' }}
+              style={{ fontSize: 'clamp(2rem,3.5vw,2.75rem)', color: 'var(--pl-ink)', marginBottom: '1rem' }}
             >
               Everything built in.{' '}
               <em style={{ color: C.plum, fontStyle: 'italic' }}>Nothing bolted on.</em>
             </h2>
-            <p style={{ fontSize: text.base, color: C.muted, lineHeight: 1.75, maxWidth: '340px' }}>
+            <p style={{ fontSize: text.base, color: 'var(--pl-muted)', lineHeight: 1.75, maxWidth: '340px' }}>
               Guest RSVPs, seating charts, photo sharing, and thank-you notes — every detail of your celebration, all in one place.
             </p>
           </motion.div>
@@ -176,8 +176,8 @@ export function GuestExperience() {
                 transition={{ delay: gi * 0.08 + 0.3, duration: 0.55 }}
                 whileHover={{ y: -4, boxShadow: '0 8px 32px rgba(43,30,20,0.08)', transition: { duration: 0.2 } }}
                 style={{
-                  background: '#FFFFFF',
-                  border: `1px solid ${C.divider}`,
+                  background: 'var(--pl-cream-card)',
+                  border: '1px solid var(--pl-divider)',
                   borderRadius: '12px',
                   padding: '1.5rem',
                   boxShadow: '0 1px 4px rgba(43,30,20,0.04)',
@@ -225,7 +225,7 @@ export function GuestExperience() {
                         }}>
                           <ItemIcon size={13} color={group.accent} />
                         </div>
-                        <span style={{ fontSize: text.sm, color: C.ink, fontWeight: 500 }}>
+                        <span style={{ fontSize: text.sm, color: 'var(--pl-ink)', fontWeight: 500 }}>
                           {item.label}
                         </span>
                       </motion.div>

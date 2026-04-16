@@ -65,7 +65,7 @@ const SECTIONS: NavSection[] = [
     label: 'Account',
     links: [
       { href: '/dashboard/profile', label: 'Settings', icon: Settings },
-      { href: '/faq', label: 'Help', icon: HelpCircle },
+      { href: '/dashboard/help', label: 'Help', icon: HelpCircle },
     ],
   },
 ];

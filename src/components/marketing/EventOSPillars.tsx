@@ -214,7 +214,7 @@ export function EventOSPillars() {
           Pearloom gives you the entire event.
         </p>
         <a
-          href="#tour"
+          href="#editor"
           style={{
             display: 'inline-flex',
             alignItems: 'center',

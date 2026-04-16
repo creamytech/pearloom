@@ -101,9 +101,9 @@ export function PricingPreview() {
       ref={ref}
       id="pricing"
       style={{
-        background: C.deep,
+        background: 'var(--pl-cream-deep)',
         padding: `${sectionPadding.y} ${sectionPadding.x}`,
-        borderTop: `1px solid ${C.divider}`,
+        borderTop: '1px solid var(--pl-divider)',
       }}
     >
       <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
@@ -133,13 +133,13 @@ export function PricingPreview() {
                 <div
                   style={{
                     borderRadius: '14px',
-                    background: '#FFFFFF',
+                    background: 'var(--pl-cream-card)',
                     border: isHighlighted
                       ? `2.5px solid ${tier.accent}`
-                      : card.border,
+                      : '1px solid var(--pl-divider)',
                     boxShadow: isHighlighted
                       ? `0 12px 40px ${tier.accent}30, 0 4px 12px ${tier.accent}18`
-                      : card.shadow,
+                      : 'var(--pl-shadow-sm)',
                     padding: '1.75rem',
                     display: 'flex',
                     flexDirection: 'column',
@@ -190,12 +190,12 @@ export function PricingPreview() {
                     <span style={{
                       fontFamily: 'var(--font-heading)',
                       fontSize: '2.8rem', fontWeight: 700, lineHeight: 1,
-                      color: C.ink,
+                      color: 'var(--pl-ink)',
                       letterSpacing: '-0.02em',
                     }}>
                       {tier.price}
                     </span>
-                    <span style={{ fontSize: text.sm, color: C.muted, paddingBottom: '2px' }}>
+                    <span style={{ fontSize: text.sm, color: 'var(--pl-muted)', paddingBottom: '2px' }}>
                       {tier.period}
                     </span>
                   </div>
@@ -211,7 +211,7 @@ export function PricingPreview() {
 
                   {/* Description */}
                   <p style={{
-                    fontSize: text.sm, color: C.muted,
+                    fontSize: text.sm, color: 'var(--pl-muted)',
                     lineHeight: 1.65, marginBottom: '1.5rem',
                   }}>
                     {tier.desc}
@@ -245,7 +245,7 @@ export function PricingPreview() {
                   </button>
 
                   {/* Divider */}
-                  <div style={{ height: '1px', background: C.divider, marginBottom: '1.5rem' }} />
+                  <div style={{ height: '1px', background: 'var(--pl-divider)', marginBottom: '1.5rem' }} />
 
                   {/* Feature list */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
@@ -257,7 +257,7 @@ export function PricingPreview() {
                             <span style={{
                               fontSize: '0.66rem', fontWeight: 700,
                               letterSpacing: '0.07em', textTransform: 'uppercase',
-                              color: C.muted,
+                              color: 'var(--pl-muted)',
                             }}>
                               {f}
                             </span>
@@ -272,7 +272,7 @@ export function PricingPreview() {
                               }}>
                                 <Check size={9} color={tier.accent} strokeWidth={3} />
                               </div>
-                              <span style={{ fontSize: text.sm, color: C.dark, lineHeight: 1.5 }}>
+                              <span style={{ fontSize: text.sm, color: 'var(--pl-ink-soft)', lineHeight: 1.5 }}>
                                 {f}
                               </span>
                             </>
@@ -295,7 +295,7 @@ export function PricingPreview() {
           style={{
             textAlign: 'center',
             fontSize: '0.75rem',
-            color: C.muted,
+            color: 'var(--pl-muted)',
             marginTop: '2rem',
             letterSpacing: '0.01em',
             lineHeight: 1.6,

@@ -57,7 +57,7 @@ export function FAQSection() {
     <section
       ref={ref}
       id="faq"
-      style={{ background: C.cream, padding: `${sectionPadding.y} ${sectionPadding.x}` }}
+      style={{ background: 'var(--pl-cream)', padding: `${sectionPadding.y} ${sectionPadding.x}` }}
     >
       <div style={{ maxWidth: layout.narrowWidth, margin: '0 auto' }}>
         <SectionHeader
@@ -73,9 +73,9 @@ export function FAQSection() {
           className="p-5 sm:p-8"
           style={{
             borderRadius: card.radius,
-            background: card.bg,
-            border: card.border,
-            boxShadow: card.shadow,
+            background: 'var(--pl-cream-card)',
+            border: '1px solid var(--pl-divider)',
+            boxShadow: 'var(--pl-shadow-sm)',
           }}
         >
           <Accordion type="single" collapsible defaultValue="faq-0">

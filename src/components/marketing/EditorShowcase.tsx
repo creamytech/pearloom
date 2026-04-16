@@ -52,16 +52,16 @@ function EditorMockup() {
       className="relative"
       style={{
         borderRadius: card.radius,
-        border: card.border,
+        border: '1px solid var(--pl-divider)',
         boxShadow: '0 25px 80px rgba(43,30,20,0.12), 0 8px 24px rgba(43,30,20,0.06)',
-        background: card.bg,
+        background: 'var(--pl-cream-card)',
         overflow: 'hidden',
       }}
     >
       {/* Browser chrome */}
       <div
         className="flex items-center justify-between px-5 py-3"
-        style={{ borderBottom: card.border, background: 'rgba(250,247,242,0.8)' }}
+        style={{ borderBottom: '1px solid var(--pl-divider)', background: 'color-mix(in oklab, var(--pl-cream-card) 80%, transparent)' }}
       >
         <div className="flex items-center gap-3">
           <div className="flex gap-1.5">
@@ -74,7 +74,7 @@ function EditorMockup() {
             <span className="font-semibold" style={{ fontSize: text.xs }}>
               Emma & James
             </span>
-            <span style={{ fontSize: text.xs, color: C.muted }}>
+            <span style={{ fontSize: text.xs, color: 'var(--pl-muted)' }}>
               / Story / Our Beginning
             </span>
           </div>
@@ -90,13 +90,13 @@ function EditorMockup() {
       </div>
 
       {/* Body */}
-      <div className="flex" style={{ minHeight: 340, maxHeight: 480, height: 'clamp(340px, 45vw, 440px)', background: C.cream }}>
+      <div className="flex" style={{ minHeight: 340, maxHeight: 480, height: 'clamp(340px, 45vw, 440px)', background: 'var(--pl-cream)' }}>
         {/* Sidebar */}
         <div
           className="w-[200px] p-4 flex-shrink-0 hidden sm:block"
-          style={{ borderRight: card.border, background: card.bg }}
+          style={{ borderRight: '1px solid var(--pl-divider)', background: 'var(--pl-cream-card)' }}
         >
-          <div className="font-bold tracking-[0.12em] uppercase mb-3" style={{ fontSize: text.xs, color: C.muted }}>
+          <div className="font-bold tracking-[0.12em] uppercase mb-3" style={{ fontSize: text.xs, color: 'var(--pl-muted)' }}>
             Chapters
           </div>
           {['Our Beginning', 'The Proposal', 'Wedding Day', 'Photo Gallery'].map((ch, i) => (
@@ -106,7 +106,7 @@ function EditorMockup() {
               style={{
                 fontSize: text.sm,
                 background: i === 0 ? `${C.olive}1A` : 'transparent',
-                color: i === 0 ? C.ink : C.muted,
+                color: i === 0 ? 'var(--pl-ink)' : 'var(--pl-muted)',
                 fontWeight: i === 0 ? 600 : 400,
               }}
             >
@@ -115,7 +115,7 @@ function EditorMockup() {
             </div>
           ))}
 
-          <div className="font-bold tracking-[0.12em] uppercase mt-5 mb-2" style={{ fontSize: text.xs, color: C.muted }}>
+          <div className="font-bold tracking-[0.12em] uppercase mt-5 mb-2" style={{ fontSize: text.xs, color: 'var(--pl-muted)' }}>
             Add Block
           </div>
           <div className="grid grid-cols-2 gap-1.5">
@@ -123,7 +123,7 @@ function EditorMockup() {
               <div
                 key={b}
                 className="text-center py-2 rounded-md font-medium cursor-pointer transition-all duration-150 hover:scale-[1.02]"
-                style={{ fontSize: text.xs, background: `${C.divider}66`, color: C.muted }}
+                style={{ fontSize: text.xs, background: 'color-mix(in oklab, var(--pl-divider) 40%, transparent)', color: 'var(--pl-muted)' }}
               >
                 {b}
               </div>
@@ -151,18 +151,18 @@ function EditorMockup() {
 
           <div
             className="w-full max-w-[340px] rounded-xl p-6 text-center relative"
-            style={{ background: card.bg, border: card.border, boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
+            style={{ background: 'var(--pl-cream-card)', border: '1px solid var(--pl-divider)', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
           >
             <div className="font-bold tracking-[0.16em] uppercase mb-2" style={{ fontSize: text.xs, color: C.olive }}>
               Chapter 1
             </div>
             <div
               className="font-heading text-[1.2rem] font-bold italic mb-3"
-              style={{ color: C.ink }}
+              style={{ color: 'var(--pl-ink)' }}
             >
               Our Beginning
             </div>
-            <div className="leading-relaxed text-left" style={{ fontSize: text.sm, color: C.muted, minHeight: '2.5rem' }}>
+            <div className="leading-relaxed text-left" style={{ fontSize: text.sm, color: 'var(--pl-muted)', minHeight: '2.5rem' }}>
               {storyText.slice(0, typingIdx)}
               <motion.span
                 animate={{ opacity: [1, 0] }}
@@ -203,7 +203,7 @@ export function EditorShowcase() {
       ref={ref}
       id="editor"
       className="relative overflow-hidden"
-      style={{ background: C.cream, padding: `${sectionPadding.y} ${sectionPadding.x}` }}
+      style={{ background: 'var(--pl-cream)', padding: `${sectionPadding.y} ${sectionPadding.x}` }}
     >
       <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
         {/* Header */}
@@ -256,7 +256,7 @@ export function EditorShowcase() {
                         >
                           <Icon size={13} style={{ color: C.olive }} />
                         </div>
-                        <span className="font-medium" style={{ fontSize: text.sm, color: C.dark }}>
+                        <span className="font-medium" style={{ fontSize: text.sm, color: 'var(--pl-ink-soft)' }}>
                           {f.label}
                         </span>
                       </div>

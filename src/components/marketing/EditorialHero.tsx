@@ -14,6 +14,7 @@ interface EditorialHeroProps {
 }
 
 const ROTATING_NOUN = ['wedding', 'anniversary', 'memorial', 'birthday', 'reunion', 'milestone'];
+const LONGEST_NOUN = ROTATING_NOUN.reduce((a, b) => (b.length > a.length ? b : a));
 
 export function EditorialHero({ onGetStarted }: EditorialHeroProps) {
   const [nounIdx, setNounIdx] = useState(0);
@@ -93,8 +94,8 @@ export function EditorialHero({ onGetStarted }: EditorialHeroProps) {
             }}
           >
             One calm command center for every{' '}
-            <span style={{ position: 'relative', display: 'inline-block', minWidth: '7ch' }}>
-              <AnimatePresence mode="wait">
+            <span style={{ position: 'relative', display: 'inline-block', verticalAlign: 'baseline' }}>
+              <AnimatePresence mode="wait" initial={false}>
                 <motion.em
                   key={ROTATING_NOUN[nounIdx]}
                   initial={{ opacity: 0, y: 12, filter: 'blur(6px)' }}
@@ -102,19 +103,32 @@ export function EditorialHero({ onGetStarted }: EditorialHeroProps) {
                   exit={{ opacity: 0, y: -12, filter: 'blur(6px)' }}
                   transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                   style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    whiteSpace: 'nowrap',
                     fontFamily: 'var(--pl-font-display)',
                     fontStyle: 'italic',
                     color: 'var(--pl-olive)',
                     fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                    display: 'inline-block',
                   }}
                 >
-                  {ROTATING_NOUN[nounIdx]}
+                  {ROTATING_NOUN[nounIdx]}.
                 </motion.em>
               </AnimatePresence>
-              <span style={{ visibility: 'hidden' }}>{ROTATING_NOUN[nounIdx]}</span>
+              {/* Sizes the inline slot to the longest word so the line never reflows. */}
+              <span
+                aria-hidden
+                style={{
+                  visibility: 'hidden',
+                  whiteSpace: 'nowrap',
+                  fontFamily: 'var(--pl-font-display)',
+                  fontStyle: 'italic',
+                }}
+              >
+                {LONGEST_NOUN}.
+              </span>
             </span>
-            .
           </h1>
 
           <p

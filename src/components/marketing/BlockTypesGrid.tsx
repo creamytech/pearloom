@@ -64,9 +64,9 @@ export function BlockTypesGrid() {
     <section
       ref={ref}
       style={{
-        background: C.deep,
+        background: 'var(--pl-cream-deep)',
         padding: `${sectionPadding.y} ${sectionPadding.x}`,
-        borderTop: `1px solid ${C.divider}`,
+        borderTop: '1px solid var(--pl-divider)',
       }}
     >
       <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
@@ -85,9 +85,9 @@ export function BlockTypesGrid() {
                 key={b.name}
                 className={`pl-enter pl-enter-d${i + 1} rounded-[20px] p-6 md:p-8 flex flex-col items-center text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(43,30,20,0.1)]`}
                 style={{
-                  background: 'rgba(255,255,255,0.85)',
-                  border: '1px solid rgba(0,0,0,0.06)',
-                  boxShadow: '0 4px_20px rgba(43,30,20,0.06)',
+                  background: 'color-mix(in oklab, var(--pl-cream-card) 92%, transparent)',
+                  border: '1px solid var(--pl-divider)',
+                  boxShadow: 'var(--pl-shadow-sm)',
                 }}
               >
                 <div className="mb-4">
@@ -101,13 +101,13 @@ export function BlockTypesGrid() {
                 </div>
                 <div
                   className="font-heading italic text-[1.3rem] font-semibold mb-2"
-                  style={{ color: C.ink }}
+                  style={{ color: 'var(--pl-ink)' }}
                 >
                   {b.name}
                 </div>
                 <div
                   className="text-[0.88rem] leading-relaxed"
-                  style={{ color: C.muted, maxWidth: '280px' }}
+                  style={{ color: 'var(--pl-muted)', maxWidth: '280px' }}
                 >
                   {b.desc}
                 </div>
@@ -125,17 +125,17 @@ export function BlockTypesGrid() {
                 key={b.name}
                 className={`pl-enter pl-enter-d${Math.min(i + 1, 8)} rounded-[14px] p-4 flex flex-col items-center text-center transition-all duration-200 hover:-translate-y-0.5 cursor-default`}
                 style={{
-                  background: 'rgba(255,255,255,0.7)',
-                  border: '1px solid rgba(0,0,0,0.04)',
+                  background: 'color-mix(in oklab, var(--pl-cream-card) 78%, transparent)',
+                  border: '1px solid var(--pl-divider-soft)',
                 }}
               >
                 <div className="mb-2">
                   <IconCircle icon={Icon} accent={b.accent} size={40} iconSize={18} />
                 </div>
-                <div className="font-semibold mb-0.5" style={{ fontSize: text.md, color: C.ink }}>
+                <div className="font-semibold mb-0.5" style={{ fontSize: text.md, color: 'var(--pl-ink)' }}>
                   {b.name}
                 </div>
-                <div className="leading-snug" style={{ fontSize: text.sm, color: C.muted }}>
+                <div className="leading-snug" style={{ fontSize: text.sm, color: 'var(--pl-muted)' }}>
                   {b.desc}
                 </div>
               </div>

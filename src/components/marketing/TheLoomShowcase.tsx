@@ -78,7 +78,7 @@ export function TheLoomShowcase() {
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7, delay: 0.18 }}
           className="font-body max-w-[460px] mb-16"
-          style={{ fontSize: text.md, color: 'var(--pl-ink-soft)', lineHeight: 1.75 }}
+          style={{ fontSize: text.md, color: C.darkText, lineHeight: 1.75 }}
         >
           Seven AI passes read your photos, understand your vibe, and thread together a site that&rsquo;s unmistakably yours.
         </motion.p>

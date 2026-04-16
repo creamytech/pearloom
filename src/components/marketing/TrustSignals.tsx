@@ -25,8 +25,8 @@ export function TrustSignals() {
       ref={ref}
       style={{
         padding: `${sectionPadding.y} ${sectionPadding.x}`,
-        background: C.cream,
-        borderTop: `1px solid ${C.divider}`,
+        background: 'var(--pl-cream)',
+        borderTop: '1px solid var(--pl-divider)',
       }}
     >
       <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
@@ -39,7 +39,7 @@ export function TrustSignals() {
         >
           <p
             className="text-[0.62rem] font-bold uppercase tracking-[0.16em] mb-6"
-            style={{ color: C.muted }}
+            style={{ color: 'var(--pl-muted)' }}
           >
             Works with the tools you already use
           </p>
@@ -48,7 +48,7 @@ export function TrustSignals() {
               <span
                 key={name}
                 className="text-[0.82rem] font-semibold tracking-wide"
-                style={{ color: C.muted, opacity: 0.6 }}
+                style={{ color: 'var(--pl-muted)', opacity: 0.6 }}
               >
                 {name}
               </span>
@@ -65,8 +65,8 @@ export function TrustSignals() {
                 key={item.label}
                 className={`pl-enter pl-enter-d${i + 1} rounded-[16px] p-5 text-center flex flex-col items-center`}
                 style={{
-                  background: 'rgba(255,255,255,0.6)',
-                  border: '1px solid rgba(0,0,0,0.04)',
+                  background: 'color-mix(in oklab, var(--pl-cream-card) 70%, transparent)',
+                  border: '1px solid var(--pl-divider-soft)',
                 }}
               >
                 <div
@@ -77,13 +77,13 @@ export function TrustSignals() {
                 </div>
                 <div
                   className="font-semibold mb-1"
-                  style={{ fontSize: text.md, color: C.ink }}
+                  style={{ fontSize: text.md, color: 'var(--pl-ink)' }}
                 >
                   {item.label}
                 </div>
                 <div
                   className="leading-snug"
-                  style={{ fontSize: text.sm, color: C.muted }}
+                  style={{ fontSize: text.sm, color: 'var(--pl-muted)' }}
                 >
                   {item.desc}
                 </div>

@@ -18,7 +18,7 @@ export function HowItWorks() {
     <section
       ref={ref}
       id="how-it-works"
-      style={{ background: C.cream, padding: `${sectionPadding.y} ${sectionPadding.x}` }}
+      style={{ background: 'var(--pl-cream)', padding: `${sectionPadding.y} ${sectionPadding.x}` }}
     >
       <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
         {/* Heading */}
@@ -33,7 +33,7 @@ export function HowItWorks() {
           </p>
           <h2
             className="font-heading font-bold italic tracking-tight"
-            style={{ fontSize: 'clamp(2rem,4vw,3rem)', color: C.ink }}
+            style={{ fontSize: 'clamp(2rem,4vw,3rem)', color: 'var(--pl-ink)' }}
           >
             Live in minutes.
           </h2>
@@ -54,8 +54,8 @@ export function HowItWorks() {
                 className="relative"
               >
                 <motion.div
-                  className="flex flex-col items-center text-center px-6 py-8 rounded-2xl bg-white border border-[var(--pl-divider)] cursor-default"
-                  style={{ boxShadow: '0 2px 8px rgba(43,30,20,0.04)' }}
+                  className="flex flex-col items-center text-center px-6 py-8 rounded-2xl border border-[var(--pl-divider)] cursor-default"
+                  style={{ background: 'var(--pl-cream-card)', boxShadow: '0 2px 8px rgba(43,30,20,0.04)' }}
                   whileHover={{
                     y: -4,
                     boxShadow: '0 8px 32px rgba(43,30,20,0.08)',
@@ -71,13 +71,13 @@ export function HowItWorks() {
                   </div>
                   <h3
                     className="font-heading font-semibold italic mb-2"
-                    style={{ fontSize: '1.2rem', color: C.ink }}
+                    style={{ fontSize: '1.2rem', color: 'var(--pl-ink)' }}
                   >
                     {s.title}
                   </h3>
                   <p
                     className="font-body"
-                    style={{ fontSize: '0.9rem', color: C.muted, lineHeight: 1.6 }}
+                    style={{ fontSize: '0.9rem', color: 'var(--pl-muted)', lineHeight: 1.6 }}
                   >
                     {s.body}
                   </p>

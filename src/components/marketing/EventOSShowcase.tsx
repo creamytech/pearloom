@@ -30,7 +30,7 @@ const FEATURES = [
     body: 'Every invite links to a personal microsite — their seat, chapters they star in, travel tips from their home city, and a hero written for them by name. No one else in the industry does this.',
     accent: C.plum,
     cta: 'See how it works',
-    href: '#guest-experience',
+    href: '#features',
   },
   {
     eyebrow: 'The Post-Event Film',
@@ -60,7 +60,7 @@ export function EventOSShowcase() {
     <section
       id="event-os"
       className="relative py-28 px-6"
-      style={{ background: C.cream }}
+      style={{ background: 'var(--pl-cream)' }}
     >
       <div className="max-w-6xl mx-auto">
         <motion.div
@@ -78,11 +78,11 @@ export function EventOSShowcase() {
           </div>
           <h2
             className="font-heading text-4xl md:text-5xl leading-tight mb-4"
-            style={{ color: C.ink, letterSpacing: '-0.01em' }}
+            style={{ color: 'var(--pl-ink)', letterSpacing: '-0.01em' }}
           >
             Not just a site. An entire celebration, end to end.
           </h2>
-          <p className="text-lg leading-relaxed" style={{ color: C.inkSoft }}>
+          <p className="text-lg leading-relaxed" style={{ color: 'var(--pl-ink-soft)' }}>
             The website was the easy part. We planned the celebration too —
             vendors, seating, travel, personalization, and the film you&apos;ll
             watch on every anniversary.
@@ -103,8 +103,8 @@ export function EventOSShowcase() {
               href={f.href}
               className="group relative block rounded-2xl p-8 no-underline overflow-hidden transition-shadow hover:shadow-xl"
               style={{
-                background: '#FFFFFF',
-                border: `1px solid ${C.deep}`,
+                background: 'var(--pl-cream-card)',
+                border: '1px solid var(--pl-divider)',
               }}
             >
               <div
@@ -120,13 +120,13 @@ export function EventOSShowcase() {
               </div>
               <h3
                 className="font-heading text-2xl leading-tight mb-3"
-                style={{ color: C.ink, letterSpacing: '-0.01em' }}
+                style={{ color: 'var(--pl-ink)', letterSpacing: '-0.01em' }}
               >
                 {f.title}
               </h3>
               <p
                 className="text-[0.95rem] leading-[1.65] mb-6"
-                style={{ color: C.inkSoft }}
+                style={{ color: 'var(--pl-ink-soft)' }}
               >
                 {f.body}
               </p>
