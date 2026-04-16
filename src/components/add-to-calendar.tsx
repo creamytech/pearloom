@@ -7,7 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import React from 'react';
-import { Calendar, Download } from 'lucide-react';
+import { Calendar, Download, ExternalLink } from 'lucide-react';
 
 interface AddToCalendarProps {
   eventName: string;
@@ -67,6 +67,11 @@ function toICalDate(dt: Date): string {
   return `${dt.getFullYear()}${pad(dt.getMonth() + 1)}${pad(dt.getDate())}T${pad(dt.getHours())}${pad(dt.getMinutes())}00`;
 }
 
+/** Format date for Outlook web (live.com): ISO 8601 string. */
+function toOutlookDate(dt: Date): string {
+  return dt.toISOString().replace(/\.\d{3}Z$/, 'Z');
+}
+
 export function AddToCalendar({
   eventName,
   date,
@@ -98,6 +103,19 @@ export function AddToCalendar({
     details: desc,
   });
   const googleUrl = `https://calendar.google.com/calendar/render?${googleParams.toString()}`;
+
+  // ── Outlook (Office 365 / Outlook.com) deep link ──
+  const outlookParams = new URLSearchParams({
+    path: '/calendar/action/compose',
+    rru: 'addevent',
+    subject: eventName,
+    body: desc,
+    startdt: toOutlookDate(start),
+    enddt: toOutlookDate(end),
+    location,
+  });
+  const outlookUrl = `https://outlook.live.com/calendar/0/deeplink/compose?${outlookParams.toString()}`;
+  const office365Url = `https://outlook.office.com/calendar/0/deeplink/compose?${outlookParams.toString()}`;
 
   // ── iCal (.ics) data URI ──
   const icsContent = [
@@ -170,6 +188,15 @@ export function AddToCalendar({
           background: rgba(43,30,20,0.08);
           box-shadow: 0 2px 8px rgba(43,30,20,0.06);
         }
+        .pl-cal-btn--outlook {
+          background: rgba(0,114,198,0.08);
+          color: #0072C6;
+          border: 1px solid rgba(0,114,198,0.18);
+        }
+        .pl-cal-btn--outlook:hover {
+          background: rgba(0,114,198,0.16);
+          box-shadow: 0 2px 8px rgba(0,114,198,0.18);
+        }
       `}</style>
       <div className="pl-add-to-cal">
         <a
@@ -182,10 +209,27 @@ export function AddToCalendar({
           Google Calendar
         </a>
         <a
+          href={outlookUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="pl-cal-btn pl-cal-btn--outlook"
+          aria-label="Add event to Outlook.com"
+          onClick={(e) => {
+            // Hold ⇧ Shift to open the Office 365 (work / school) variant.
+            if (e.shiftKey) {
+              e.preventDefault();
+              window.open(office365Url, '_blank', 'noopener,noreferrer');
+            }
+          }}
+        >
+          <ExternalLink size={11} />
+          Outlook
+        </a>
+        <a
           href={icsDataUri}
           download={`${eventName.replace(/\s+/g, '-').toLowerCase()}.ics`}
           className="pl-cal-btn pl-cal-btn--ical"
-          aria-label="Download event to Apple Calendar"
+          aria-label="Download .ics for Apple Calendar / iPhone"
         >
           <Download size={11} />
           Apple Calendar

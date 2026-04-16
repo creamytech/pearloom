@@ -4,6 +4,7 @@ import { Resend } from 'resend';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { checkPlanAccess } from '@/lib/plan-gate';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,6 +35,18 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Plan gate: bulk messaging is an Atelier (pro) feature
+  const planAccess = await checkPlanAccess('pro');
+  if (!planAccess.allowed) {
+    return NextResponse.json({
+      error: 'plan_required',
+      requiredPlan: planAccess.requiredPlan,
+      currentPlan: planAccess.currentPlan,
+      upgradeUrl: planAccess.upgradeUrl,
+      message: 'Upgrade to Atelier to send guest messages.',
+    }, { status: 402 });
   }
 
   // Rate limit: 3 sends per hour per user

@@ -1629,10 +1629,15 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
         </div>
       </SidebarSection>
 
-      {/* Design Health — advisors collapsed at bottom */}
+      {/* Accessibility — promoted to its own first-class section so issues
+          surface immediately without needing to expand a "Design Health" group. */}
+      <SidebarSection title="Accessibility" defaultOpen={true}>
+        <AccessibilityAuditPanel manifest={manifest} />
+      </SidebarSection>
+
+      {/* Design Health — color/typography advisors */}
       <SidebarSection title="Design Health" defaultOpen={false}>
         <DesignAdvisor manifest={manifest} />
-        <AccessibilityAuditPanel manifest={manifest} />
       </SidebarSection>
 
       {/* Asset Library */}

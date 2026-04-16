@@ -270,6 +270,20 @@ export async function POST(req: NextRequest) {
       photoNotes,
       storyLayout,
       songUrl,
+      // Occasion-specific context (anniversary / birthday / engagement)
+      anniversaryYears,
+      anniversaryMilestone,
+      originalDate,
+      coupleEvolution,
+      birthdayAge,
+      isSurprise,
+      birthdayPassions,
+      birthdayTribute,
+      proposalStory,
+      proposalDate,
+      weddingTimeline,
+      ringDetails,
+      venueAesthetic,
     }: {
       photos: GooglePhotoMetadata[];
       clusters?: PhotoCluster[];
@@ -298,6 +312,19 @@ export async function POST(req: NextRequest) {
       photoNotes?: Record<string, { note?: string; location?: string; date?: string }>;
       storyLayout?: 'parallax' | 'filmstrip' | 'magazine' | 'timeline' | 'kenburns' | 'bento';
       songUrl?: string;
+      anniversaryYears?: string;
+      anniversaryMilestone?: string;
+      originalDate?: string;
+      coupleEvolution?: string;
+      birthdayAge?: string;
+      isSurprise?: boolean;
+      birthdayPassions?: string;
+      birthdayTribute?: string;
+      proposalStory?: string;
+      proposalDate?: string;
+      weddingTimeline?: string;
+      ringDetails?: string;
+      venueAesthetic?: string;
     } = body;
 
     if (!photos?.length) {
@@ -406,9 +433,37 @@ export async function POST(req: NextRequest) {
       ? enrichedClusters
       : [{ photos: [], location: null, startDate: eventDate || new Date().toISOString(), endDate: eventDate || new Date().toISOString() }] as PhotoCluster[];
 
+    // Synthesize occasion-specific context into the vibe string so the AI
+    // weaves these details into chapter copy instead of dropping them.
+    const occasionContext: string[] = [];
+    if (occasion === 'anniversary') {
+      if (anniversaryYears) occasionContext.push(`Celebrating ${anniversaryYears} years together.`);
+      if (anniversaryMilestone) occasionContext.push(`Milestone: ${anniversaryMilestone}.`);
+      if (originalDate) occasionContext.push(`Originally married on ${originalDate}.`);
+      if (coupleEvolution) occasionContext.push(`How they've grown: ${coupleEvolution}`);
+    }
+    if (occasion === 'birthday') {
+      if (birthdayAge) occasionContext.push(`Turning ${birthdayAge}.`);
+      if (isSurprise) occasionContext.push('This is a surprise party — keep details warm but discreet.');
+      if (birthdayPassions) occasionContext.push(`Passions: ${birthdayPassions}`);
+      if (birthdayTribute) occasionContext.push(`Tribute notes from loved ones: ${birthdayTribute}`);
+    }
+    if (occasion === 'engagement') {
+      if (proposalStory) occasionContext.push(`Proposal: ${proposalStory}`);
+      if (proposalDate) occasionContext.push(`Proposal date: ${proposalDate}.`);
+      if (weddingTimeline) occasionContext.push(`Wedding timeline: ${weddingTimeline}.`);
+      if (ringDetails) occasionContext.push(`Ring details: ${ringDetails}`);
+    }
+    if (venueAesthetic) occasionContext.push(`Venue aesthetic: ${venueAesthetic}`);
+
+    const baseVibe = vibeString || `${occasion || 'celebration'} ${names[0]} ${names[1] || ''}`.trim();
+    const enrichedVibe = occasionContext.length > 0
+      ? `${baseVibe}\n\nADDITIONAL CONTEXT:\n${occasionContext.join('\n')}`
+      : baseVibe;
+
     const manifest = await generateStoryManifest(
       clustersForGeneration,
-      vibeString || `${occasion || 'celebration'} ${names[0]} ${names[1] || ''}`.trim(),
+      enrichedVibe,
       names,
       apiKey,
       session.accessToken,
@@ -506,16 +561,35 @@ export async function POST(req: NextRequest) {
     manifest.faqs = [];
 
     // ── Initialize blocks: occasion-aware defaults.
-    // Hero + Story are always shown. Remaining blocks are shown/hidden based on occasion.
+    // Hero + Story are always shown. Remaining blocks are auto-revealed based
+    // on what the user supplied during the wizard so they don't have to manually
+    // toggle every relevant section after generation.
     {
       const blocks = getDefaultBlocks(occasion ?? 'story', events.length > 0, !!eventDate);
-      manifest.blocks = blocks as typeof manifest.blocks;
+      const hasEvents = events.length > 0;
+      const hasDate = !!eventDate;
+      const hasRsvp = !!rsvpDeadline;
+      const hasRegistry = !!cashFundUrl;
+      const revealed = new Set<string>();
+      if (hasEvents) revealed.add('event');
+      if (hasDate)   revealed.add('countdown');
+      if (hasRsvp)   revealed.add('rsvp');
+      if (hasRegistry) revealed.add('registry');
+      manifest.blocks = blocks.map((b) =>
+        revealed.has(b.type) ? { ...b, visible: true } : b
+      ) as typeof manifest.blocks;
     }
 
-    // Hide all sub-pages from nav by default — users enable them in the editor.
-    // This prevents nav links to empty schedule/rsvp/travel/faq pages appearing
-    // on freshly generated sites before the user has filled in that content.
-    manifest.hiddenPages = ['schedule', 'rsvp', 'travel', 'faq', 'registry'];
+    // Hide sub-pages by default, then unhide the ones backed by user-supplied data
+    // so generated sites don't ship with dead nav links to empty pages, but DO ship
+    // with nav for pages the couple actually filled in.
+    {
+      const hidden = new Set<string>(['schedule', 'rsvp', 'travel', 'faq', 'registry']);
+      if (events.length > 0) hidden.delete('schedule');
+      if (rsvpDeadline)      hidden.delete('rsvp');
+      if (cashFundUrl)       hidden.delete('registry');
+      manifest.hiddenPages = Array.from(hidden);
+    }
 
     // Set top-level logistics fields from user-supplied details
     if (dresscode) {
@@ -523,6 +597,16 @@ export async function POST(req: NextRequest) {
     }
     if (guestNotes) {
       manifest.logistics = { ...(manifest.logistics ?? {}), notes: guestNotes };
+    }
+
+    // Stash raw occasion-specific fields on the manifest so editor surfaces and
+    // future regenerations can re-use them without re-asking the user.
+    if (occasionContext.length > 0) {
+      (manifest as unknown as Record<string, unknown>)._occasionDetails = {
+        anniversaryYears, anniversaryMilestone, originalDate, coupleEvolution,
+        birthdayAge, isSurprise, birthdayPassions, birthdayTribute,
+        proposalStory, proposalDate, weddingTimeline, ringDetails, venueAesthetic,
+      };
     }
 
     // Map actual photo URLs + REAL locations into generated chapters.

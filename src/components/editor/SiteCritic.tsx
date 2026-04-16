@@ -8,7 +8,7 @@
 // are client-side (no API calls). Shown after site generation.
 // ─────────────────────────────────────────────────────────────
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { StoryManifest } from '@/types';
 import { IconSparkle, IconWarn, IconClose, IconChevronDown, IconChevronUp } from './EditorIcons';
@@ -168,14 +168,72 @@ const MAX_VISIBLE = 5;
 // ── Component ────────────────────────────────────────────────
 
 export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProps) {
-  const suggestions = useMemo(
+  const ruleSuggestions = useMemo(
     () => analyzeManifest(manifest, coupleNames),
     [manifest, coupleNames],
   );
 
+  const [aiSuggestions, setAiSuggestions] = useState<Suggestion[] | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [showAll, setShowAll] = useState(false);
+
+  // Debounce AI critique requests so rapid edits don't spam the model.
+  const lastFetchKey = useRef<string>('');
+  useEffect(() => {
+    const key = JSON.stringify({
+      tagline: manifest.poetry?.heroTagline,
+      date: manifest.logistics?.date,
+      rsvp: manifest.logistics?.rsvpDeadline,
+      eventCount: manifest.events?.length ?? 0,
+      chapterCount: manifest.chapters?.length ?? 0,
+      faqCount: manifest.faqs?.length ?? 0,
+      registry: !!manifest.registry?.enabled,
+    });
+    if (key === lastFetchKey.current) return;
+    lastFetchKey.current = key;
+
+    const ctrl = new AbortController();
+    const timer = setTimeout(async () => {
+      setAiLoading(true);
+      try {
+        const res = await fetch('/api/pear-critique', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ manifest, coupleNames }),
+          signal: ctrl.signal,
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as { suggestions?: Suggestion[] };
+        if (Array.isArray(data.suggestions) && data.suggestions.length > 0) {
+          setAiSuggestions(data.suggestions);
+        } else {
+          setAiSuggestions([]);
+        }
+      } catch {
+        // network or abort — keep rule-based fallback
+      } finally {
+        setAiLoading(false);
+      }
+    }, 1200);
+
+    return () => {
+      clearTimeout(timer);
+      ctrl.abort();
+    };
+  }, [manifest, coupleNames]);
+
+  // Merge: prefer AI when present, dedupe by id, keep rules as fallback.
+  const suggestions = useMemo(() => {
+    if (aiSuggestions === null) return ruleSuggestions;
+    const seen = new Set<string>(aiSuggestions.map(s => s.id));
+    const merged = [...aiSuggestions];
+    for (const s of ruleSuggestions) {
+      if (!seen.has(s.id)) merged.push(s);
+    }
+    return merged.slice(0, 10);
+  }, [aiSuggestions, ruleSuggestions]);
 
   if (suggestions.length === 0 || dismissed) return null;
 
@@ -225,7 +283,7 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
               <IconSparkle size={15} />
             </span>
             <span style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '-0.01em' }}>
-              AI Review
+              {aiLoading ? 'Pear is reading…' : 'AI Review'}
             </span>
             <span
               style={{

@@ -85,6 +85,9 @@ export async function GET(req: NextRequest) {
   const accentRaw = searchParams.get('accent') || 'A3B18A';
   const headingFont = (searchParams.get('heading') || 'Playfair Display').slice(0, 60);
   const symbol   = (searchParams.get('symbol') || '✦').slice(0, 4);
+  // Couple photo (cover image). Allowed protocols: https only.
+  const photoRaw = searchParams.get('photo') || '';
+  const photoUrl = photoRaw.startsWith('https://') ? photoRaw.slice(0, 1024) : '';
 
   // Normalize colors — ensure they have # prefix
   const bg     = bgRaw.startsWith('#') ? bgRaw : `#${bgRaw}`;
@@ -142,6 +145,38 @@ export async function GET(req: NextRequest) {
           overflow: 'hidden',
         }}
       >
+        {/* Couple photo as soft full-bleed background — preserves the
+            invitation feel by sitting behind a tinted overlay. */}
+        {photoUrl && (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={photoUrl}
+              alt=""
+              width={1200}
+              height={630}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                opacity: 0.85,
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: isLight
+                  ? `linear-gradient(180deg, ${bg}d0 0%, ${bg}c0 100%)`
+                  : `linear-gradient(180deg, ${bg}c0 0%, ${bg}d8 100%)`,
+                display: 'flex',
+              }}
+            />
+          </>
+        )}
+
         {/* Subtle accent-colored border/frame — inset */}
         <div
           style={{

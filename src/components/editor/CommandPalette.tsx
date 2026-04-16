@@ -71,9 +71,9 @@ const TAB_COMMANDS: Command[] = [
 ];
 
 const DEVICE_COMMANDS: Command[] = [
-  { id: 'device-desktop', label: 'Desktop view', description: 'Full-width preview',  icon: Monitor,     iconColor: '#94a3b8', group: 'Device', shortcut: '⌘1', action: { type: 'device', mode: 'desktop' } },
-  { id: 'device-tablet',  label: 'Tablet view',  description: '768px preview',       icon: Tablet,      iconColor: '#94a3b8', group: 'Device', shortcut: '⌘2', action: { type: 'device', mode: 'tablet'  } },
-  { id: 'device-mobile',  label: 'Mobile view',  description: '390px preview',       icon: Smartphone,  iconColor: '#94a3b8', group: 'Device', shortcut: '⌘3', action: { type: 'device', mode: 'mobile'  } },
+  { id: 'device-desktop', label: 'Desktop view', description: 'Full-width preview',  icon: Monitor,     iconColor: '#94a3b8', group: 'Device', shortcut: '⌘⌥1', action: { type: 'device', mode: 'desktop' } },
+  { id: 'device-tablet',  label: 'Tablet view',  description: '768px preview',       icon: Tablet,      iconColor: '#94a3b8', group: 'Device', shortcut: '⌘⌥2', action: { type: 'device', mode: 'tablet'  } },
+  { id: 'device-mobile',  label: 'Mobile view',  description: '390px preview',       icon: Smartphone,  iconColor: '#94a3b8', group: 'Device', shortcut: '⌘⌥3', action: { type: 'device', mode: 'mobile'  } },
 ];
 
 const ACTION_COMMANDS: Command[] = [

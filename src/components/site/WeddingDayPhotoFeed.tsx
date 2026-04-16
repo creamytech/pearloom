@@ -9,6 +9,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { VibeSkin } from '@/lib/vibe-engine';
+import { getSupabaseBrowser } from '@/lib/supabase-realtime';
 
 interface WeddingDayPhoto {
   id: string;
@@ -52,12 +53,36 @@ export function WeddingDayPhotoFeed({ siteId, vibeSkin }: WeddingDayPhotoFeedPro
     }
   }, [siteId]);
 
-  // Initial fetch + polling every 30s
+  // Initial fetch + Realtime subscription (with polling fallback).
   useEffect(() => {
     fetchPhotos();
+
+    const sb = getSupabaseBrowser();
+    if (sb) {
+      const channel = sb
+        .channel(`wedding-day-${siteId}`)
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'wedding_day_photos', filter: `site_id=eq.${siteId}` },
+          () => { fetchPhotos(); },
+        )
+        .subscribe();
+      const onFocus = () => fetchPhotos();
+      window.addEventListener('focus', onFocus);
+      return () => {
+        sb.removeChannel(channel);
+        window.removeEventListener('focus', onFocus);
+      };
+    }
+
     const timer = setInterval(fetchPhotos, POLL_INTERVAL_MS);
-    return () => clearInterval(timer);
-  }, [fetchPhotos]);
+    const onFocus = () => fetchPhotos();
+    window.addEventListener('focus', onFocus);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [fetchPhotos, siteId]);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0] ?? null;

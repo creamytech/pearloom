@@ -202,6 +202,43 @@ export function AICommandBar() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length]);
 
+  // ── Refresh usage / clear limit gate when user returns from upgrade ──
+  // After a successful Stripe checkout, the user lands back in the editor
+  // (often via window focus). Re-poll /api/ai-usage so the upgrade unlocks
+  // Pear without requiring a hard reload.
+  useEffect(() => {
+    let cancelled = false;
+    const refresh = async () => {
+      try {
+        const res = await fetch('/api/ai-usage', { cache: 'no-store' });
+        if (!res.ok || cancelled) return;
+        const data = (await res.json()) as { plan?: string; unlimited?: boolean; remaining?: number };
+        const plan = (data.plan ?? 'free').toLowerCase();
+        if (data.unlimited) {
+          setPearPlan(plan);
+          setPearRemaining(null);
+          setLimitReached(false);
+        } else if (typeof data.remaining === 'number') {
+          setPearPlan(plan);
+          setPearRemaining(data.remaining);
+          if (data.remaining > 0) setLimitReached(false);
+        }
+      } catch {
+        // Network hiccup — leave state untouched.
+      }
+    };
+    refresh();
+    const onVisibility = () => { if (document.visibilityState === 'visible') refresh(); };
+    const onFocus = () => refresh();
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('focus', onFocus);
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, []);
+
   // ── Intro message on first open ──────────────────────────
   useEffect(() => {
     if (expanded && messages.length === 0) {

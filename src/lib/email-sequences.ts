@@ -131,12 +131,24 @@ function emailLayout(content: string, themeColors?: EmailThemeColors): string {
   const headingStack = `'${t.headingFont}',Georgia,serif`;
   const bodyStack = `'${t.bodyFont}',Georgia,'Times New Roman',serif`;
 
+  // Inject Google Fonts so Apple Mail / Outlook (Mac) and webmail clients
+  // render the couple's chosen fonts. Web-safe fallbacks above keep
+  // Gmail / Outlook (Win) — which strip <link>s — looking sane.
+  const fontFamilies = [t.headingFont, t.bodyFont]
+    .filter((f, i, a) => a.indexOf(f) === i)
+    .map(f => `family=${encodeURIComponent(f).replace(/%20/g, '+')}:wght@400;600;700`)
+    .join('&');
+  const fontHref = `https://fonts.googleapis.com/css2?${fontFamilies}&display=swap`;
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pearloom</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="${fontHref}" rel="stylesheet">
 </head>
 <body style="margin:0;padding:0;background-color:${t.background};font-family:${bodyStack};-webkit-font-smoothing:antialiased">
   <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:${t.background};padding:40px 16px">

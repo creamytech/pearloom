@@ -36,9 +36,10 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
   {
     title: 'Navigation',
     shortcuts: [
-      { keys: ['⌘', '1'], description: 'Desktop view' },
-      { keys: ['⌘', '2'], description: 'Tablet view' },
-      { keys: ['⌘', '3'], description: 'Mobile view' },
+      { keys: ['⌘', '1–8'], description: 'Switch tabs' },
+      { keys: ['⌘', '⌥', '1'], description: 'Desktop view' },
+      { keys: ['⌘', '⌥', '2'], description: 'Tablet view' },
+      { keys: ['⌘', '⌥', '3'], description: 'Mobile view' },
     ],
   },
   {

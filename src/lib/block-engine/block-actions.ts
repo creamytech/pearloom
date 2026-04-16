@@ -146,9 +146,27 @@ export function getBlockStyle(block: PageBlock): BlockStyleOverrides {
 // ── Version snapshots ────────────────────────────────────────
 
 const MAX_SNAPSHOTS = 20;
-const STORAGE_KEY = 'pearloom-version-snapshots';
+const LEGACY_KEY = 'pearloom-version-snapshots';
 
-export function saveSnapshot(manifest: StoryManifest, label: string): VersionSnapshot {
+function storageKey(siteId?: string): string {
+  return siteId ? `pearloom-version-snapshots:${siteId}` : LEGACY_KEY;
+}
+
+// One-time migration: legacy global snapshots → first-seen siteId bucket.
+function migrateLegacy(siteId?: string) {
+  if (!siteId || typeof localStorage === 'undefined') return;
+  try {
+    const legacy = localStorage.getItem(LEGACY_KEY);
+    if (!legacy) return;
+    const target = storageKey(siteId);
+    if (!localStorage.getItem(target)) {
+      localStorage.setItem(target, legacy);
+    }
+    localStorage.removeItem(LEGACY_KEY);
+  } catch {}
+}
+
+export function saveSnapshot(manifest: StoryManifest, label: string, siteId?: string): VersionSnapshot {
   const snapshot: VersionSnapshot = {
     id: `snap-${Date.now()}`,
     timestamp: Date.now(),
@@ -157,17 +175,19 @@ export function saveSnapshot(manifest: StoryManifest, label: string): VersionSna
   };
 
   try {
-    const existing = loadSnapshots();
+    migrateLegacy(siteId);
+    const existing = loadSnapshots(siteId);
     const updated = [snapshot, ...existing].slice(0, MAX_SNAPSHOTS);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    localStorage.setItem(storageKey(siteId), JSON.stringify(updated));
   } catch {}
 
   return snapshot;
 }
 
-export function loadSnapshots(): VersionSnapshot[] {
+export function loadSnapshots(siteId?: string): VersionSnapshot[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    migrateLegacy(siteId);
+    const raw = localStorage.getItem(storageKey(siteId));
     if (!raw) return [];
     return JSON.parse(raw) as VersionSnapshot[];
   } catch {
@@ -175,16 +195,16 @@ export function loadSnapshots(): VersionSnapshot[] {
   }
 }
 
-export function restoreSnapshot(snapshotId: string): StoryManifest | null {
-  const snapshots = loadSnapshots();
+export function restoreSnapshot(snapshotId: string, siteId?: string): StoryManifest | null {
+  const snapshots = loadSnapshots(siteId);
   const snap = snapshots.find(s => s.id === snapshotId);
   return snap?.manifest || null;
 }
 
-export function deleteSnapshot(snapshotId: string): void {
+export function deleteSnapshot(snapshotId: string, siteId?: string): void {
   try {
-    const existing = loadSnapshots();
+    const existing = loadSnapshots(siteId);
     const updated = existing.filter(s => s.id !== snapshotId);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    localStorage.setItem(storageKey(siteId), JSON.stringify(updated));
   } catch {}
 }

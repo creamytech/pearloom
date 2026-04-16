@@ -10,9 +10,39 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Check, Search, X, Sparkles } from 'lucide-react';
 import { SITE_TEMPLATES, searchTemplates, type SiteTemplate } from '@/lib/templates/wedding-templates';
+import { COLOR_THEMES, type ColorTheme } from '@/lib/templates/color-themes';
 import { generateCardIllustration } from '@/lib/card-illustrations';
 import { getThemeArt } from '@/lib/theme-art';
 import { Button } from '@/components/ui/button';
+
+// Wrap a ColorTheme as a minimal SiteTemplate so users can launch a fresh
+// site from a pure palette. Hero + story blocks ship visible; everything else
+// is added on demand from the editor.
+function paletteToTemplate(theme: ColorTheme): SiteTemplate {
+  return {
+    id: `palette-${theme.id}`,
+    name: theme.name,
+    tagline: theme.description,
+    description: theme.description,
+    previewGradient: theme.previewGradient,
+    occasions: theme.occasions,
+    tags: theme.tags,
+    popularity: 50,
+    blocks: [
+      { id: `hero-${theme.id}`,  type: 'hero',  order: 0, visible: true },
+      { id: `story-${theme.id}`, type: 'story', order: 1, visible: true },
+    ],
+    theme: { colors: theme.colors, fonts: theme.fonts },
+    vibeString: theme.description,
+    layoutFormat: 'magazine',
+    poetry: {
+      heroTagline: theme.description,
+      closingLine: 'Thank you for being part of our story.',
+      rsvpIntro: 'We can\u2019t wait to celebrate with you.',
+      welcomeStatement: 'Welcome to our celebration.',
+    },
+  };
+}
 
 interface TemplateGalleryProps {
   onSelect: (template: SiteTemplate) => void;
@@ -31,6 +61,7 @@ const FILTERS = [
 export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGalleryProps) {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState(occasion || 'all');
+  const [mode, setMode] = useState<'templates' | 'palettes'>('templates');
   const [selected, setSelected] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
@@ -40,7 +71,26 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
       ? [...SITE_TEMPLATES].sort((a, b) => b.popularity - a.popularity)
       : SITE_TEMPLATES.filter(t => t.occasions.includes(filter));
 
+  const palettes = (() => {
+    const q = search.trim().toLowerCase();
+    const base = filter === 'all'
+      ? COLOR_THEMES
+      : COLOR_THEMES.filter((p) => p.occasions.includes(filter));
+    if (!q) return base;
+    return base.filter((p) =>
+      p.name.toLowerCase().includes(q) ||
+      p.description.toLowerCase().includes(q) ||
+      p.tags.some((t) => t.includes(q))
+    );
+  })();
+
   const handleApply = () => {
+    if (mode === 'palettes') {
+      const id = selected?.startsWith('palette-') ? selected.slice('palette-'.length) : selected;
+      const palette = COLOR_THEMES.find((p) => p.id === id);
+      if (palette) onSelect(paletteToTemplate(palette));
+      return;
+    }
     const template = SITE_TEMPLATES.find(t => t.id === selected);
     if (template) onSelect(template);
   };
@@ -190,6 +240,44 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
                 }}
               />
             </div>
+            <div
+              role="tablist"
+              aria-label="Gallery mode"
+              style={{
+                display: 'inline-flex',
+                padding: 3,
+                borderRadius: 999,
+                border: '1px solid var(--pl-divider)',
+                background: 'var(--pl-cream-card)',
+              }}
+            >
+              {(['templates', 'palettes'] as const).map((m) => {
+                const active = mode === m;
+                return (
+                  <button
+                    key={m}
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => { setMode(m); setSelected(null); }}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: 999,
+                      border: 'none',
+                      fontSize: '0.7rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      cursor: 'pointer',
+                      background: active ? 'var(--pl-ink)' : 'transparent',
+                      color: active ? 'var(--pl-cream)' : 'var(--pl-ink-soft)',
+                      transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
+                    }}
+                  >
+                    {m === 'templates' ? 'Templates' : 'Palettes'}
+                  </button>
+                );
+              })}
+            </div>
             <div className="flex gap-1.5 overflow-x-auto pb-1 -mb-1 scrollbar-hide">
               {FILTERS.map((f) => {
                 const active = filter === f.id;
@@ -223,7 +311,117 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
 
         {/* Template grid */}
         <div className="flex-1 overflow-auto" style={{ padding: 'clamp(16px, 3vw, 28px)' }}>
-          {templates.length === 0 ? (
+          {mode === 'palettes' ? (
+            palettes.length === 0 ? (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '60px 20px',
+                  color: 'var(--pl-muted)',
+                  fontFamily: 'var(--pl-font-display)',
+                  fontStyle: 'italic',
+                  fontSize: '0.96rem',
+                }}
+              >
+                No palettes match your search.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {palettes.map((palette, i) => {
+                  const id = `palette-${palette.id}`;
+                  const isSelected = selected === id;
+                  const isHovered = hoveredId === id;
+                  return (
+                    <motion.button
+                      key={id}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.04, duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+                      onClick={() => setSelected(isSelected ? null : id)}
+                      onMouseEnter={() => setHoveredId(id)}
+                      onMouseLeave={() => setHoveredId(null)}
+                      className="text-left"
+                      style={{
+                        borderRadius: 14,
+                        overflow: 'hidden',
+                        border: isSelected
+                          ? '1.5px solid var(--pl-olive)'
+                          : '1px solid var(--pl-divider)',
+                        boxShadow: isSelected
+                          ? '0 0 0 3px color-mix(in oklab, var(--pl-olive) 18%, transparent), 0 8px 28px color-mix(in oklab, var(--pl-ink) 14%, transparent)'
+                          : isHovered
+                            ? '0 8px 24px color-mix(in oklab, var(--pl-ink) 12%, transparent)'
+                            : '0 1px 3px color-mix(in oklab, var(--pl-ink) 4%, transparent)',
+                        background: 'var(--pl-cream-card)',
+                        cursor: 'pointer',
+                        transition: 'box-shadow var(--pl-dur-mid) var(--pl-ease-out), border-color var(--pl-dur-mid) var(--pl-ease-out), transform var(--pl-dur-mid) var(--pl-ease-out)',
+                        transform: isHovered ? 'translateY(-3px)' : 'none',
+                      } as React.CSSProperties}
+                    >
+                      <div
+                        style={{
+                          height: 140,
+                          background: palette.previewGradient,
+                          position: 'relative',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {isSelected && (
+                          <div
+                            style={{
+                              position: 'absolute', top: 10, right: 10,
+                              width: 24, height: 24, borderRadius: '50%',
+                              background: 'var(--pl-olive)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              boxShadow: '0 4px 12px color-mix(in oklab, var(--pl-olive) 30%, transparent)',
+                            }}
+                          >
+                            <Check size={13} color="white" strokeWidth={3} />
+                          </div>
+                        )}
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, display: 'flex', height: 6, zIndex: 3 }}>
+                          {[palette.colors.background, palette.colors.accent, palette.colors.accentLight, palette.colors.muted, palette.colors.foreground].map((c, ci) => (
+                            <div key={ci} style={{ flex: 1, background: c }} />
+                          ))}
+                        </div>
+                      </div>
+                      <div style={{ padding: '14px 16px 16px' }}>
+                        <h3 style={{
+                          fontFamily: 'var(--pl-font-display)',
+                          fontSize: '1rem', fontWeight: 500,
+                          letterSpacing: '-0.01em', color: 'var(--pl-ink)',
+                          margin: '0 0 4px',
+                        }}>
+                          {palette.name}
+                        </h3>
+                        <p style={{
+                          fontSize: '0.74rem', color: 'var(--pl-ink-soft)',
+                          margin: 0, lineHeight: 1.45,
+                          fontFamily: 'var(--pl-font-display)', fontStyle: 'italic',
+                        }}>
+                          {palette.description}
+                        </p>
+                        <div className="flex gap-1 mt-3 flex-wrap">
+                          {palette.tags.slice(0, 3).map((tag) => (
+                            <span key={tag} style={{
+                              fontSize: '0.55rem', fontWeight: 600,
+                              letterSpacing: '0.12em', textTransform: 'uppercase',
+                              padding: '2px 8px', borderRadius: 999,
+                              background: 'color-mix(in oklab, var(--pl-ink) 6%, transparent)',
+                              color: 'var(--pl-ink-soft)',
+                              fontFamily: 'var(--pl-font-mono)',
+                            }}>
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            )
+          ) : templates.length === 0 ? (
             <div
               style={{
                 textAlign: 'center',
@@ -420,8 +618,12 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
             }}
           >
             {selected
-              ? `"${SITE_TEMPLATES.find(t => t.id === selected)?.name}" selected.`
-              : `${templates.length} templates ready.`
+              ? mode === 'palettes'
+                ? `"${COLOR_THEMES.find((p) => `palette-${p.id}` === selected)?.name}" palette selected.`
+                : `"${SITE_TEMPLATES.find(t => t.id === selected)?.name}" selected.`
+              : mode === 'palettes'
+                ? `${palettes.length} palettes ready.`
+                : `${templates.length} templates ready.`
             }
           </p>
           <Button
@@ -431,7 +633,7 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
             onClick={handleApply}
             icon={<ArrowRight size={14} />}
           >
-            Use this template
+            {mode === 'palettes' ? 'Use this palette' : 'Use this template'}
           </Button>
         </div>
       </motion.div>

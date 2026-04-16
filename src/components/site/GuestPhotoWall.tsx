@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, X, Upload } from 'lucide-react';
 import type { VibeSkin } from '@/lib/vibe-engine';
 import type { GuestPhoto } from '@/types';
+import { getSupabaseBrowser } from '@/lib/supabase-realtime';
 
 export interface GuestPhotoWallProps {
   siteId: string;
@@ -47,9 +48,34 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
   useEffect(() => {
     if (!enabled) return;
     fetchPhotos();
+
+    // Prefer Supabase Realtime when configured; fall back to polling.
+    const sb = getSupabaseBrowser();
+    if (sb) {
+      const channel = sb
+        .channel(`guest-photos-${siteId}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'guest_photos', filter: `site_id=eq.${siteId}` },
+          () => { fetchPhotos(); },
+        )
+        .subscribe();
+      const onFocus = () => fetchPhotos();
+      window.addEventListener('focus', onFocus);
+      return () => {
+        sb.removeChannel(channel);
+        window.removeEventListener('focus', onFocus);
+      };
+    }
+
     const interval = setInterval(fetchPhotos, 30_000);
-    return () => clearInterval(interval);
-  }, [enabled, fetchPhotos]);
+    const onFocus = () => fetchPhotos();
+    window.addEventListener('focus', onFocus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [enabled, fetchPhotos, siteId]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

@@ -91,21 +91,34 @@ export function RelationshipGraphPanel({ siteId }: { siteId: string }) {
   };
 
   const acceptProposed = async (e: InferredEdge) => {
-    if (!e.fromGuestId || !e.toGuestId) return;
-    await fetch('/api/relationships', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        siteId,
-        from_guest_id: e.fromGuestId,
-        to_guest_id: e.toGuestId,
-        kind: e.kind,
-        closeness: e.closeness,
-        story: e.story,
-      }),
-    });
-    setProposed((list) => list.filter((x) => x !== e));
-    await refresh();
+    if (!e.fromGuestId || !e.toGuestId) {
+      setError('Match this proposal to known guests before saving.');
+      return;
+    }
+    try {
+      const res = await fetch('/api/relationships', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId,
+          from_guest_id: e.fromGuestId,
+          to_guest_id: e.toGuestId,
+          kind: e.kind,
+          closeness: e.closeness,
+          story: e.story,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || `Couldn't save edge (${res.status}).`);
+        return;
+      }
+      setError(null);
+      setProposed((list) => list.filter((x) => x !== e));
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Network error saving edge.');
+    }
   };
 
   const labelFor = (id: string | null) => (id && guestMap[id]) || id || '?';

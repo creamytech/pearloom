@@ -185,8 +185,17 @@ export async function POST(req: NextRequest) {
     const activeChapter = manifest?.chapters?.find(c => c.id === activeChapterId) ?? null;
 
     const chapterSummaries = (manifest?.chapters ?? [])
-      .map(c => `  [${c.id}] "${c.title}" — ${c.description?.slice(0, 120) ?? '(no description)'}`)
+      .map(c => {
+        const imgs = (c.images ?? []).slice(0, 2).map(i => i.url).filter(Boolean);
+        const imgPart = imgs.length ? ` | photos: ${imgs.length} (${imgs.join(' ')})` : ' | photos: 0';
+        return `  [${c.id}] "${c.title}" — ${c.description?.slice(0, 200) ?? '(no description)'}${imgPart}`;
+      })
       .join('\n');
+
+    const heroPhotos = [
+      manifest?.coverPhoto,
+      ...(manifest?.heroSlideshow ?? []),
+    ].filter((u): u is string => typeof u === 'string' && u.length > 0).slice(0, 5);
 
     const blockSummaries = (manifest?.blocks ?? [])
       .map(b => `  [${b.id}] ${b.type} (${b.visible ? 'visible' : 'hidden'})${b.config?.title ? ` — "${b.config.title}"` : ''}`)
@@ -225,8 +234,12 @@ LOGISTICS:
 - Dress code: ${manifest?.logistics?.dresscode ?? '(not set)'}
 
 THEME:
-- Colors: bg=${colors?.background ?? '?'}, fg=${colors?.foreground ?? '?'}, accent=${colors?.accent ?? '?'}, accentLight=${colors?.accentLight ?? '?'}, muted=${colors?.muted ?? '?'}
+- Palette: bg=${colors?.background ?? '?'}, fg=${colors?.foreground ?? '?'}, accent=${colors?.accent ?? '?'}, accentLight=${colors?.accentLight ?? '?'}, muted=${colors?.muted ?? '?'}, cardBg=${colors?.cardBg ?? '?'}
 - Fonts: heading="${fonts?.heading ?? '?'}", body="${fonts?.body ?? '?'}"
+- Story layout: ${manifest?.storyLayout ?? 'default'}
+
+HERO MEDIA (${heroPhotos.length}):
+${heroPhotos.length ? heroPhotos.map((u, i) => `  ${i + 1}. ${u}`).join('\n') : '  (no hero photos uploaded)'}
 
 CHAPTERS (${manifest?.chapters?.length ?? 0}):
 ${chapterSummaries || '  (none)'}
@@ -291,6 +304,25 @@ ACTIVE CHAPTER: ${activeChapter ? `[${activeChapter.id}] "${activeChapter.title}
       'update_registry', 'message',
     ]);
     const action = ALLOWED_ACTIONS.has(parsed.action) ? parsed.action : 'message';
+
+    // Whitelist block.type strings on update_blocks so a hallucinated
+    // type ("hero-v2", "section") can't reach the editor and crash render.
+    const ALLOWED_BLOCK_TYPES = new Set([
+      'hero', 'story', 'countdown', 'event', 'rsvp', 'registry',
+      'travel', 'faq', 'photos', 'guestbook', 'text', 'divider',
+      'video', 'quote', 'map', 'spotify', 'quiz', 'storymap',
+      'hashtag', 'photoWall', 'gallery', 'vibeQuote', 'welcome',
+      'footer', 'anniversary', 'weddingParty',
+    ]);
+    if (action === 'update_blocks' && parsed.data && typeof parsed.data === 'object') {
+      const d = parsed.data as { add?: Array<{ type?: unknown; config?: unknown }>; remove?: unknown[]; update?: unknown[] };
+      if (Array.isArray(d.add)) {
+        d.add = d.add.filter(
+          (b) => b && typeof b === 'object' && typeof b.type === 'string' && ALLOWED_BLOCK_TYPES.has(b.type),
+        );
+      }
+      parsed.data = d;
+    }
 
     const responseBody = {
       action,

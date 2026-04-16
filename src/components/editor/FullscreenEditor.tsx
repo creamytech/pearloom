@@ -584,9 +584,18 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         showInfoToast('Autosave is on, changes are being saved continuously.');
         return;
       }
+      // Cmd+Alt+1/2/3 — switch preview device (desktop/tablet/mobile)
+      if (mod && e.altKey && (e.key === '1' || e.key === '2' || e.key === '3' || e.code === 'Digit1' || e.code === 'Digit2' || e.code === 'Digit3')) {
+        if (state.isMobile) return;
+        e.preventDefault();
+        const digit = e.key === '1' || e.code === 'Digit1' ? '1' : e.key === '2' || e.code === 'Digit2' ? '2' : '3';
+        const mode = digit === '1' ? 'desktop' : digit === '2' ? 'tablet' : 'mobile';
+        dispatch({ type: 'SET_DEVICE', device: mode });
+        return;
+      }
       // Cmd+1-8 — switch tabs (item 13: gate ⌘1/2/3 on mobile since the
       // device switcher and tabbed panel layout don't apply to mobile)
-      if (mod && TAB_KEYS[e.key]) {
+      if (mod && !e.altKey && TAB_KEYS[e.key]) {
         if (state.isMobile && (e.key === '1' || e.key === '2' || e.key === '3')) {
           return;
         }
@@ -1009,6 +1018,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                     />
                     <VersionHistoryPanel
                       manifest={manifest}
+                      siteId={state.subdomain}
                       onRestore={(restored) => {
                         onChange(restored);
                         pushToPreview(restored);

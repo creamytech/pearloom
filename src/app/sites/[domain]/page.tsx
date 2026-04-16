@@ -109,6 +109,12 @@ export async function generateMetadata(
   ogUrl.searchParams.set('accent', vibeSkin.palette.accent.replace('#', ''));
   ogUrl.searchParams.set('heading', vibeSkin.fonts.heading);
   ogUrl.searchParams.set('symbol', vibeSkin.accentSymbol || '✦');
+  // Include the couple's cover photo so social shares show their face,
+  // not just a card. Only forward absolute https URLs (Satori restriction).
+  const ogPhotoCandidate = manifest?.coverPhoto || manifest?.chapters?.[0]?.images?.[0]?.url || '';
+  if (ogPhotoCandidate.startsWith('https://')) {
+    ogUrl.searchParams.set('photo', ogPhotoCandidate);
+  }
 
   return {
     metadataBase: new URL('https://pearloom.com'),

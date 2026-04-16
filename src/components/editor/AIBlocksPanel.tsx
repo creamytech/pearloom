@@ -678,8 +678,11 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
       });
 
       if (!res.ok) {
-        const { error: err } = await res.json();
-        throw new Error(err || 'Generation failed');
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 402 && data?.error === 'plan_required') {
+          throw new Error(data.message || 'Upgrade to Atelier to generate AI blocks.');
+        }
+        throw new Error(data.error || 'Generation failed');
       }
 
       const { data } = await res.json();

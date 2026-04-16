@@ -15,6 +15,8 @@ import type { StoryManifest } from '@/types';
 interface VersionHistoryPanelProps {
   manifest: StoryManifest;
   onRestore: (manifest: StoryManifest) => void;
+  /** Site identifier so snapshots are scoped per-site instead of globally. */
+  siteId?: string;
 }
 
 function timeAgo(timestamp: number): string {
@@ -25,26 +27,26 @@ function timeAgo(timestamp: number): string {
   return `${Math.floor(seconds / 86400)}d ago`;
 }
 
-export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanelProps) {
+export function VersionHistoryPanel({ manifest, onRestore, siteId }: VersionHistoryPanelProps) {
   const [snapshots, setSnapshots] = useState<VersionSnapshot[]>([]);
   const [saveLabel, setSaveLabel] = useState('');
   const [showSave, setShowSave] = useState(false);
   const [confirmRestore, setConfirmRestore] = useState<string | null>(null);
 
   useEffect(() => {
-    setSnapshots(loadSnapshots());
-  }, []);
+    setSnapshots(loadSnapshots(siteId));
+  }, [siteId]);
 
   const handleSave = () => {
     const label = saveLabel.trim() || `Snapshot ${new Date().toLocaleTimeString()}`;
-    saveSnapshot(manifest, label);
-    setSnapshots(loadSnapshots());
+    saveSnapshot(manifest, label, siteId);
+    setSnapshots(loadSnapshots(siteId));
     setSaveLabel('');
     setShowSave(false);
   };
 
   const handleRestore = (id: string) => {
-    const restored = restoreSnapshot(id);
+    const restored = restoreSnapshot(id, siteId);
     if (restored) {
       onRestore(restored);
       setConfirmRestore(null);
@@ -52,8 +54,8 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
   };
 
   const handleDelete = (id: string) => {
-    deleteSnapshot(id);
-    setSnapshots(loadSnapshots());
+    deleteSnapshot(id, siteId);
+    setSnapshots(loadSnapshots(siteId));
   };
 
   return (
