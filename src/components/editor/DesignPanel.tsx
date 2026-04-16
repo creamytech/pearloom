@@ -7,7 +7,7 @@ import { RangeSlider } from '@/components/ui/range-slider';
 import { Loader2 } from 'lucide-react';
 import { lbl } from './editor-utils';
 import { makeId } from '@/lib/editor-ids';
-import { panelText, panelWeight, panelTracking, panelLineHeight } from './panel';
+import { panelText, panelWeight, panelTracking, panelLineHeight, panelFont } from './panel';
 
 // ── Shared sub-label (used inside SidebarSection bodies) ──────
 // Matches the canonical PanelField/editor-utils lbl typography:
@@ -187,61 +187,121 @@ const MOBILE_NAV_STYLES: Array<{ id: string; label: string; desc: string }> = [
 ];
 
 // ── Nav Customization Panel ───────────────────────────────────
+// Editorial rebuild — numbered specimen cards, Fraunces italic
+// display names, mono eyebrows, gold hairline on active state,
+// custom opacity rail with tick marks + big italic readout.
 function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const currentLogo = manifest.logoIcon || 'pear';
   const currentNavStyle = manifest.navStyle || 'glass';
   const accent = manifest.vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#71717A';
+  const num2 = (n: number) => String(n + 1).padStart(2, '0');
+
+  // Reusable specimen-card style (preview on top, eyebrow + italic label below)
+  const specimenCard = (isActive: boolean, variant: 'preview' | 'text'): React.CSSProperties => ({
+    display: 'flex', flexDirection: 'column',
+    borderRadius: '10px', overflow: 'hidden', position: 'relative',
+    border: isActive
+      ? '1px solid var(--pl-chrome-accent)'
+      : '1px solid var(--pl-chrome-border)',
+    background: isActive ? 'var(--pl-chrome-accent-soft)' : 'var(--pl-chrome-surface)',
+    cursor: 'pointer', padding: 0,
+    boxShadow: isActive ? '0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 16%, transparent)' : 'none',
+    transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+    textAlign: 'left',
+    minHeight: variant === 'preview' ? '82px' : '62px',
+  });
+
+  const cardNumber = (isActive: boolean): React.CSSProperties => ({
+    position: 'absolute', top: '6px', left: '8px',
+    fontFamily: panelFont.mono,
+    fontSize: '0.52rem', letterSpacing: panelTracking.widest,
+    fontWeight: panelWeight.bold,
+    color: isActive ? 'var(--pl-chrome-accent-ink)' : 'var(--pl-chrome-text-faint)',
+    opacity: 0.9,
+    zIndex: 2,
+  });
+
+  const cardDisplayName = (isActive: boolean): React.CSSProperties => ({
+    fontFamily: panelFont.display,
+    fontStyle: 'italic',
+    fontSize: '0.82rem',
+    fontWeight: panelWeight.regular,
+    color: isActive ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-soft)',
+    lineHeight: panelLineHeight.tight,
+    letterSpacing: '-0.005em',
+  });
+
+  const cardEyebrow: React.CSSProperties = {
+    fontFamily: panelFont.mono,
+    fontSize: '0.5rem',
+    letterSpacing: panelTracking.widest,
+    textTransform: 'uppercase',
+    color: 'var(--pl-chrome-text-muted)',
+    marginTop: '3px',
+    lineHeight: panelLineHeight.snug,
+  };
+
+  const opacity = manifest.navOpacity ?? 100;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      {/* Page layout mode */}
-      <div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+
+      {/* ── Site Layout — two large numbered editorial cards ──────── */}
+      <section>
         <div style={SUB_LABEL}>Site Layout</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
           {([
-            { id: 'multi-page', label: 'Separate Pages', desc: 'Each section is its own page' },
-            { id: 'single-scroll', label: 'Single Scroll', desc: 'Everything on one long page' },
-          ] as const).map(mode => {
+            { id: 'multi-page', label: 'Separate Pages', desc: 'Distinct routes, nav-driven' },
+            { id: 'single-scroll', label: 'Single Scroll', desc: 'One long editorial page' },
+          ] as const).map((mode, i) => {
             const isActive = (manifest.pageMode || 'multi-page') === mode.id;
             return (
               <button
                 key={mode.id}
                 onClick={() => onChange({ ...manifest, pageMode: mode.id })}
-                style={{
-                  padding: '10px 8px', borderRadius: '8px', textAlign: 'center',
-                  border: isActive ? '2px solid #18181B' : '1px solid #E4E4E7',
-                  background: isActive ? 'rgba(24,24,27,0.04)' : '#FFFFFF',
-                  cursor: 'pointer', transition: 'all 0.15s',
-                }}
+                style={{ ...specimenCard(isActive, 'text'), padding: '14px 12px 12px' }}
               >
-                <div style={{
-                  fontSize: panelText.body,
-                  fontWeight: isActive ? panelWeight.bold : panelWeight.semibold,
-                  color: isActive ? '#18181B' : '#3F3F46',
-                  fontFamily: 'inherit',
-                  lineHeight: panelLineHeight.tight,
-                }}>{mode.label}</div>
-                <div style={{
-                  fontSize: panelText.meta,
-                  color: 'var(--pl-chrome-text-muted)',
-                  marginTop: '3px',
-                  lineHeight: panelLineHeight.normal,
-                }}>{mode.desc}</div>
+                <span style={cardNumber(isActive)}>№ {num2(i)}</span>
+                {isActive && (
+                  <span style={{
+                    position: 'absolute', top: '8px', right: '10px',
+                    width: '6px', height: '6px', borderRadius: '50%',
+                    background: 'var(--pl-chrome-accent)',
+                    boxShadow: '0 0 0 2px color-mix(in srgb, var(--pl-chrome-accent) 30%, transparent)',
+                  }} />
+                )}
+                <div style={{ marginTop: '14px' }}>
+                  <div style={cardDisplayName(isActive)}>{mode.label}</div>
+                  <div style={cardEyebrow}>{mode.desc}</div>
+                </div>
               </button>
             );
           })}
         </div>
-        <div style={HINT_TEXT}>
+        <p style={{
+          ...HINT_TEXT, fontFamily: panelFont.body,
+          fontStyle: 'italic', marginTop: '10px',
+          borderLeft: '1px solid var(--pl-chrome-accent)',
+          paddingLeft: '8px',
+        }}>
           {(manifest.pageMode || 'multi-page') === 'multi-page'
-            ? 'Guests navigate between pages like a real website. Best for sites with lots of content.'
-            : 'All content on one page that guests scroll through. Great for minimal sites.'}
-        </div>
-      </div>
+            ? 'Guests navigate between pages — best for rich sites with many sections.'
+            : 'All content lives on one scrolling page — elegant for minimal sites.'}
+        </p>
+      </section>
 
-      {/* Logo icon picker */}
-      <div>
+      {/* ── Logo picker — two-row named chip grid ─────────────────── */}
+      <section>
         <div style={SUB_LABEL}>Site Logo Icon</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(7, 1fr)',
+          gap: '4px',
+          padding: '8px',
+          background: 'var(--pl-chrome-bg)',
+          borderRadius: '10px',
+          border: '1px solid var(--pl-chrome-border)',
+        }}>
           {LOGO_ICONS.map(({ id, label, Icon }) => {
             const isActive = currentLogo === id && !manifest.logoSvg;
             return (
@@ -250,212 +310,321 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 onClick={() => onChange({ ...manifest, logoIcon: id, logoSvg: undefined })}
                 title={label}
                 style={{
-                  aspectRatio: '1',
-                  borderRadius: '10px',
-                  border: isActive ? '2px solid #18181B' : '1px solid #E4E4E7',
-                  background: isActive ? 'rgba(24,24,27,0.05)' : '#FFFFFF',
+                  display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center',
+                  gap: '3px', padding: '7px 2px',
+                  borderRadius: '6px',
+                  border: '1px solid transparent',
+                  background: isActive
+                    ? 'var(--pl-chrome-accent-soft)'
+                    : 'transparent',
+                  boxShadow: isActive
+                    ? 'inset 0 0 0 1px var(--pl-chrome-accent)'
+                    : 'none',
                   cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 0,
-                  transition: 'all 0.15s',
-                  position: 'relative',
+                  transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
                 }}
               >
-                <Icon size={18} color={isActive ? accent : '#71717A'} />
+                <Icon size={18} color={isActive ? accent : 'var(--pl-chrome-text-soft)' as unknown as string} />
+                <span style={{
+                  fontFamily: panelFont.display,
+                  fontStyle: 'italic',
+                  fontSize: '0.56rem',
+                  color: isActive ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-faint)',
+                  lineHeight: 1,
+                  letterSpacing: '0.01em',
+                }}>
+                  {label}
+                </span>
               </button>
             );
           })}
         </div>
         {manifest.logoSvg && (
-          <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{
+            marginTop: '10px',
+            padding: '8px 10px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            background: 'var(--pl-chrome-accent-soft)',
+            border: '1px solid color-mix(in srgb, var(--pl-chrome-accent) 40%, transparent)',
+            borderRadius: '8px',
+          }}>
             <span style={{
-              fontSize: panelText.hint,
-              fontWeight: panelWeight.semibold,
-              color: 'var(--pl-chrome-text)',
-              fontFamily: 'inherit',
-              lineHeight: panelLineHeight.tight,
+              fontFamily: panelFont.mono,
+              fontSize: '0.56rem',
+              letterSpacing: panelTracking.wider,
+              textTransform: 'uppercase',
+              color: 'var(--pl-chrome-accent-ink)',
             }}>
-              ✦ Using AI-generated logo
+              ✦ AI-Generated Logo Active
             </span>
             <button
               onClick={() => onChange({ ...manifest, logoSvg: undefined })}
               style={{
-                fontSize: panelText.meta,
-                fontWeight: panelWeight.semibold,
-                fontFamily: 'inherit',
-                color: 'var(--pl-chrome-text-muted)',
-                background: 'var(--pl-chrome-bg)',
+                fontFamily: panelFont.body,
+                fontStyle: 'italic',
+                fontSize: '0.66rem',
+                color: 'var(--pl-chrome-text)',
+                background: 'transparent',
                 border: '1px solid var(--pl-chrome-border)',
                 borderRadius: '6px',
-                padding: '3px 8px',
+                padding: '3px 10px',
                 cursor: 'pointer',
-                lineHeight: panelLineHeight.tight,
               }}
             >
-              Use icon instead
+              Revert to icon
             </button>
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Desktop nav bar style */}
-      <div>
+      {/* ── Desktop Nav Style — numbered specimen cards ───────────── */}
+      <section>
         <div style={SUB_LABEL}>Desktop Nav Style</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-          {NAV_STYLES.map(style => {
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+          {NAV_STYLES.map((style, i) => {
             const isActive = currentNavStyle === style.id;
             return (
               <button
                 key={style.id}
                 onClick={() => onChange({ ...manifest, navStyle: style.id as StoryManifest['navStyle'] })}
-                style={{
-                  display: 'flex', flexDirection: 'column',
-                  borderRadius: '8px', overflow: 'hidden',
-                  border: isActive ? '2px solid #18181B' : '1px solid #E4E4E7',
-                  background: isActive ? 'rgba(24,24,27,0.04)' : '#FFFFFF',
-                  cursor: 'pointer', padding: 0,
-                  boxShadow: isActive ? '0 2px 6px rgba(24,24,27,0.1)' : 'none',
-                  transition: 'all 0.15s',
-                }}
+                style={specimenCard(isActive, 'preview')}
               >
-                <div style={{ height: '28px', overflow: 'hidden' }}>
+                <span style={cardNumber(isActive)}>№ {num2(i)}</span>
+                {isActive && (
+                  <span style={{
+                    position: 'absolute', top: '8px', right: '10px',
+                    width: '6px', height: '6px', borderRadius: '50%',
+                    background: 'var(--pl-chrome-accent)',
+                    boxShadow: '0 0 0 2px color-mix(in srgb, var(--pl-chrome-accent) 30%, transparent)',
+                    zIndex: 2,
+                  }} />
+                )}
+                <div style={{
+                  height: '44px',
+                  borderBottom: '1px solid var(--pl-chrome-border)',
+                  position: 'relative', overflow: 'hidden',
+                }}>
                   {style.preview}
                 </div>
-                <div style={{ padding: '5px 6px', textAlign: 'center' }}>
+                <div style={{ padding: '8px 10px 10px' }}>
+                  <div style={cardDisplayName(isActive)}>{style.label}</div>
+                  <div style={cardEyebrow}>{style.desc}</div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ── Mobile Nav Style — numbered text-only cards ───────────── */}
+      <section>
+        <div style={SUB_LABEL}>Mobile Nav Style</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+          {MOBILE_NAV_STYLES.map((style, i) => {
+            const isActive = (manifest.mobileNavStyle || 'classic') === style.id;
+            return (
+              <button
+                key={style.id}
+                onClick={() => onChange({ ...manifest, mobileNavStyle: style.id as StoryManifest['mobileNavStyle'] })}
+                style={{ ...specimenCard(isActive, 'text'), padding: '14px 12px 12px' }}
+              >
+                <span style={cardNumber(isActive)}>№ {num2(i)}</span>
+                {isActive && (
+                  <span style={{
+                    position: 'absolute', top: '8px', right: '10px',
+                    width: '6px', height: '6px', borderRadius: '50%',
+                    background: 'var(--pl-chrome-accent)',
+                    boxShadow: '0 0 0 2px color-mix(in srgb, var(--pl-chrome-accent) 30%, transparent)',
+                  }} />
+                )}
+                <div style={{ marginTop: '12px' }}>
+                  <div style={cardDisplayName(isActive)}>{style.label}</div>
+                  <div style={cardEyebrow}>{style.desc}</div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ── Nav Opacity — custom rail with tick marks + italic readout ─ */}
+      <section>
+        <div style={{
+          display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+          marginBottom: '10px',
+        }}>
+          <div style={SUB_LABEL}>Nav Opacity</div>
+          <div style={{
+            fontFamily: panelFont.display,
+            fontStyle: 'italic',
+            fontSize: '1.1rem',
+            fontWeight: panelWeight.regular,
+            color: 'var(--pl-chrome-text)',
+            lineHeight: 1,
+          }}>
+            {opacity}
+            <span style={{
+              fontFamily: panelFont.mono,
+              fontSize: '0.56rem',
+              fontStyle: 'normal',
+              letterSpacing: panelTracking.wider,
+              color: 'var(--pl-chrome-text-muted)',
+              marginLeft: '2px',
+            }}>%</span>
+          </div>
+        </div>
+        <div style={{ position: 'relative', padding: '8px 0 4px' }}>
+          {/* Track background */}
+          <div style={{
+            position: 'absolute', top: '14px', left: 0, right: 0,
+            height: '2px', background: 'var(--pl-chrome-border)',
+            borderRadius: '1px',
+          }} />
+          {/* Filled portion */}
+          <div style={{
+            position: 'absolute', top: '14px', left: 0,
+            width: `${opacity}%`, height: '2px',
+            background: 'var(--pl-chrome-accent)',
+            borderRadius: '1px',
+          }} />
+          {/* Tick marks */}
+          <div style={{
+            position: 'absolute', top: '10px', left: 0, right: 0,
+            display: 'flex', justifyContent: 'space-between',
+            pointerEvents: 'none',
+          }}>
+            {[0, 25, 50, 75, 100].map(t => (
+              <div key={t} style={{
+                width: '1px', height: '10px',
+                background: opacity >= t ? 'var(--pl-chrome-accent)' : 'var(--pl-chrome-border)',
+              }} />
+            ))}
+          </div>
+          <input
+            type="range"
+            min={0} max={100} step={5}
+            value={opacity}
+            onChange={e => onChange({ ...manifest, navOpacity: Number(e.target.value) })}
+            style={{
+              width: '100%', margin: 0, padding: 0,
+              WebkitAppearance: 'none', appearance: 'none',
+              background: 'transparent',
+              height: '24px',
+              cursor: 'pointer',
+              position: 'relative', zIndex: 2,
+            }}
+            className="pl-nav-opacity-range"
+          />
+          <style jsx>{`
+            .pl-nav-opacity-range::-webkit-slider-thumb {
+              -webkit-appearance: none;
+              appearance: none;
+              width: 16px;
+              height: 16px;
+              border-radius: 50%;
+              background: var(--pl-chrome-surface);
+              border: 2px solid var(--pl-chrome-accent);
+              box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+              cursor: grab;
+              transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+            }
+            .pl-nav-opacity-range::-webkit-slider-thumb:hover { transform: scale(1.15); }
+            .pl-nav-opacity-range::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.25); }
+            .pl-nav-opacity-range::-moz-range-thumb {
+              width: 16px;
+              height: 16px;
+              border-radius: 50%;
+              background: var(--pl-chrome-surface);
+              border: 2px solid var(--pl-chrome-accent);
+              box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+              cursor: grab;
+            }
+          `}</style>
+          <div style={{
+            display: 'flex', justifyContent: 'space-between',
+            fontFamily: panelFont.mono,
+            fontSize: '0.5rem',
+            letterSpacing: panelTracking.widest,
+            textTransform: 'uppercase',
+            color: 'var(--pl-chrome-text-faint)',
+            marginTop: '2px',
+          }}>
+            <span>Sheer</span>
+            <span>Half</span>
+            <span>Full</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Nav Background — editorial pill group with hex labels ──── */}
+      <section>
+        <div style={SUB_LABEL}>Nav Background</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+          {[
+            { label: 'Auto', value: '', hex: '— default' },
+            { label: 'White', value: 'rgba(255,255,255,0.9)', hex: '#FFFFFF' },
+            { label: 'Cream', value: 'rgba(245,241,232,0.92)', hex: '#F5F1E8' },
+            { label: 'Dark', value: 'rgba(28,28,28,0.85)', hex: '#1C1C1C' },
+            { label: 'Black', value: 'rgba(0,0,0,0.7)', hex: '#000000' },
+            { label: 'Accent', value: accent, hex: accent.toUpperCase() },
+          ].map(opt => {
+            const isActive = (manifest.navBackground || '') === opt.value;
+            const swatchColor = opt.value || 'transparent';
+            return (
+              <button
+                key={opt.label}
+                onClick={() => onChange({ ...manifest, navBackground: opt.value || undefined })}
+                style={{
+                  display: 'flex', flexDirection: 'column',
+                  alignItems: 'flex-start', gap: '6px',
+                  padding: '10px 10px 9px',
+                  borderRadius: '8px',
+                  border: isActive
+                    ? '1px solid var(--pl-chrome-accent)'
+                    : '1px solid var(--pl-chrome-border)',
+                  background: isActive ? 'var(--pl-chrome-accent-soft)' : 'var(--pl-chrome-surface)',
+                  boxShadow: isActive ? '0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 14%, transparent)' : 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                  textAlign: 'left',
+                }}
+              >
+                <span style={{
+                  display: 'inline-block',
+                  width: '100%', height: '14px',
+                  borderRadius: '4px',
+                  background: opt.value
+                    ? swatchColor
+                    : 'repeating-linear-gradient(45deg, var(--pl-chrome-border) 0, var(--pl-chrome-border) 3px, transparent 3px, transparent 6px)',
+                  border: '1px solid color-mix(in srgb, var(--pl-chrome-text) 8%, transparent)',
+                }} />
+                <div style={{ width: '100%' }}>
                   <div style={{
-                    fontSize: panelText.chip,
-                    fontWeight: isActive ? panelWeight.bold : panelWeight.semibold,
-                    color: isActive ? '#18181B' : '#71717A',
-                    fontFamily: 'inherit',
-                    lineHeight: panelLineHeight.tight,
+                    fontFamily: panelFont.display,
+                    fontStyle: 'italic',
+                    fontSize: '0.72rem',
+                    color: isActive ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-soft)',
+                    lineHeight: 1.1,
                   }}>
-                    {style.label}
+                    {opt.label}
+                  </div>
+                  <div style={{
+                    fontFamily: panelFont.mono,
+                    fontSize: '0.48rem',
+                    letterSpacing: panelTracking.wider,
+                    textTransform: 'uppercase',
+                    color: 'var(--pl-chrome-text-faint)',
+                    marginTop: '2px',
+                  }}>
+                    {opt.hex}
                   </div>
                 </div>
               </button>
             );
           })}
         </div>
-      </div>
-
-      {/* Mobile nav style */}
-      <div>
-        <div style={SUB_LABEL}>Mobile Nav Style</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-          {MOBILE_NAV_STYLES.map(style => {
-            const isActive = (manifest.mobileNavStyle || 'classic') === style.id;
-            return (
-              <button
-                key={style.id}
-                onClick={() => onChange({ ...manifest, mobileNavStyle: style.id as StoryManifest['mobileNavStyle'] })}
-                style={{
-                  display: 'flex', flexDirection: 'column',
-                  borderRadius: '8px',
-                  border: isActive ? '2px solid #18181B' : '1px solid #E4E4E7',
-                  background: isActive ? 'rgba(24,24,27,0.04)' : '#FFFFFF',
-                  cursor: 'pointer', padding: '8px 6px',
-                  transition: 'all 0.15s',
-                  textAlign: 'center',
-                }}
-              >
-                <div style={{
-                  fontSize: panelText.hint,
-                  fontWeight: isActive ? panelWeight.bold : panelWeight.semibold,
-                  color: isActive ? '#18181B' : '#3F3F46',
-                  fontFamily: 'inherit',
-                  lineHeight: panelLineHeight.tight,
-                }}>
-                  {style.label}
-                </div>
-                <div style={{
-                  fontSize: panelText.meta,
-                  color: 'var(--pl-chrome-text-muted)',
-                  marginTop: '3px',
-                  lineHeight: panelLineHeight.normal,
-                }}>
-                  {style.desc}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Nav opacity */}
-      <div>
-        <div style={SUB_LABEL}>
-          Nav Opacity — {manifest.navOpacity ?? 100}%
-        </div>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          step={5}
-          value={manifest.navOpacity ?? 100}
-          onChange={e => onChange({ ...manifest, navOpacity: Number(e.target.value) })}
-          style={{ width: '100%', accentColor: '#18181B' }}
-        />
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          fontSize: panelText.meta,
-          color: 'var(--pl-chrome-text-muted)',
-          marginTop: '4px',
-          lineHeight: panelLineHeight.tight,
-        }}>
-          <span>Transparent</span><span>Full</span>
-        </div>
-      </div>
-
-      {/* Nav background color */}
-      <div>
-        <div style={SUB_LABEL}>Nav Background</div>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          {[
-            { label: 'Auto', value: '' },
-            { label: 'White', value: 'rgba(255,255,255,0.9)' },
-            { label: 'Cream', value: 'rgba(245,241,232,0.92)' },
-            { label: 'Dark', value: 'rgba(28,28,28,0.85)' },
-            { label: 'Black', value: 'rgba(0,0,0,0.7)' },
-            { label: 'Accent', value: accent },
-          ].map(opt => {
-            const isActive = (manifest.navBackground || '') === opt.value;
-            return (
-              <button
-                key={opt.label}
-                onClick={() => onChange({ ...manifest, navBackground: opt.value || undefined })}
-                style={{
-                  padding: '6px 11px',
-                  borderRadius: '100px',
-                  fontSize: panelText.chip,
-                  fontWeight: isActive ? panelWeight.bold : panelWeight.semibold,
-                  fontFamily: 'inherit',
-                  border: isActive ? '2px solid #18181B' : '1px solid #E4E4E7',
-                  background: isActive ? '#F4F4F5' : '#FFFFFF',
-                  color: isActive ? '#18181B' : '#71717A',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
-                  lineHeight: panelLineHeight.tight,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-              >
-                {opt.value && opt.label !== 'Auto' && (
-                  <span style={{
-                    display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%',
-                    background: opt.value, border: '1px solid rgba(0,0,0,0.1)',
-                    marginRight: '4px', verticalAlign: 'middle',
-                  }} />
-                )}
-                {opt.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      </section>
     </div>
   );
 }
@@ -487,46 +656,77 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <p style={{
-        fontSize: panelText.hint,
-        color: 'var(--pl-chrome-text-muted)',
-        lineHeight: panelLineHeight.normal,
-        margin: 0,
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      {/* Editorial intro — Fraunces italic + gold rule */}
+      <div style={{
+        borderLeft: '1px solid var(--pl-chrome-accent)',
+        paddingLeft: '10px',
       }}>
-        Decorative corners for the hero and footer — personalized to your style.
-      </p>
-
-      {/* Category filter pills */}
-      <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-        {categories.map(cat => (
-          <button
-            key={cat}
-            onClick={() => setFilter(cat)}
-            style={{
-              padding: '5px 11px',
-              borderRadius: '100px',
-              border: filter === cat ? '2px solid #18181B' : '1px solid #E4E4E7',
-              fontSize: panelText.meta,
-              fontWeight: panelWeight.bold,
-              fontFamily: 'inherit',
-              letterSpacing: panelTracking.wide,
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-              transition: 'all 0.15s',
-              background: filter === cat ? '#18181B' : '#FFFFFF',
-              color: filter === cat ? '#FFFFFF' : '#71717A',
-              lineHeight: panelLineHeight.tight,
-            }}
-          >
-            {cat}
-          </button>
-        ))}
+        <div style={{
+          fontFamily: panelFont.mono,
+          fontSize: '0.5rem',
+          letterSpacing: panelTracking.widest,
+          textTransform: 'uppercase',
+          color: 'var(--pl-chrome-accent-ink)',
+          marginBottom: '3px',
+        }}>
+          Figure · Ornament
+        </div>
+        <p style={{
+          fontFamily: panelFont.display,
+          fontStyle: 'italic',
+          fontSize: '0.82rem',
+          color: 'var(--pl-chrome-text)',
+          lineHeight: panelLineHeight.snug,
+          margin: 0,
+        }}>
+          Decorative corners for hero and footer.
+        </p>
       </div>
 
-      {/* Preset grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-        {filtered.map(preset => {
+      {/* Category filter — quiet mono tabs with count */}
+      <div style={{ display: 'flex', gap: '0', borderBottom: '1px solid var(--pl-chrome-border)', overflowX: 'auto', scrollbarWidth: 'none' } as React.CSSProperties}>
+        {categories.map(cat => {
+          const count = cat === 'all' ? CORNER_PRESETS.length : CORNER_PRESETS.filter(p => p.category === cat).length;
+          const isActive = filter === cat;
+          return (
+            <button
+              key={cat}
+              onClick={() => setFilter(cat)}
+              style={{
+                padding: '8px 10px 10px',
+                fontFamily: panelFont.mono,
+                fontSize: '0.54rem',
+                fontWeight: panelWeight.bold,
+                letterSpacing: panelTracking.widest,
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                background: 'transparent',
+                border: 'none',
+                borderBottom: isActive
+                  ? '1px solid var(--pl-chrome-accent)'
+                  : '1px solid transparent',
+                marginBottom: '-1px',
+                color: isActive ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-muted)',
+                display: 'inline-flex', alignItems: 'baseline', gap: '4px',
+                transition: 'color 0.18s, border-color 0.18s',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <span>{cat}</span>
+              <span style={{
+                fontSize: '0.44rem',
+                color: 'var(--pl-chrome-text-faint)',
+                fontWeight: panelWeight.regular,
+              }}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Preset grid — numbered specimen tiles */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+        {filtered.map((preset, i) => {
           const active = isActive(preset);
           const previewSvg = preset.svg ? renderCornerSvg(preset, accent) : '';
           return (
@@ -536,53 +736,73 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
               title={preset.label}
               style={{
                 position: 'relative',
-                aspectRatio: '1',
+                display: 'flex', flexDirection: 'column',
                 borderRadius: '10px',
-                border: active ? '2px solid #18181B' : '1px solid #E4E4E7',
-                background: active ? 'rgba(24,24,27,0.04)' : '#FFFFFF',
+                border: active
+                  ? '1px solid var(--pl-chrome-accent)'
+                  : '1px solid var(--pl-chrome-border)',
+                background: active ? 'var(--pl-chrome-accent-soft)' : 'var(--pl-chrome-surface)',
+                boxShadow: active ? '0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 14%, transparent)' : 'none',
                 cursor: 'pointer',
                 overflow: 'hidden',
-                transition: 'all 0.15s',
+                transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
                 padding: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
               }}
             >
-              {previewSvg ? (
-                <div
-                  style={{ width: '80%', height: '80%' }}
-                  dangerouslySetInnerHTML={{ __html: previewSvg }}
-                />
-              ) : (
-                <span style={{
-                  fontSize: panelText.hint,
-                  color: 'var(--pl-chrome-text-muted)',
-                  fontWeight: panelWeight.semibold,
-                  fontFamily: 'inherit',
-                  lineHeight: panelLineHeight.tight,
-                }}>None</span>
-              )}
-              {active && (
-                <div style={{
-                  position: 'absolute', top: '4px', right: '4px',
-                  width: '16px', height: '16px', borderRadius: '50%',
-                  background: 'var(--pl-chrome-text)', display: 'flex',
-                  alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Check size={9} color="white" strokeWidth={3} />
-                </div>
-              )}
+              {/* Number marker */}
               <span style={{
-                position: 'absolute', bottom: '4px', left: 0, right: 0,
-                fontSize: panelText.meta,
+                position: 'absolute', top: '5px', left: '7px',
+                fontFamily: panelFont.mono,
+                fontSize: '0.46rem',
+                letterSpacing: panelTracking.widest,
                 fontWeight: panelWeight.bold,
-                color: 'var(--pl-chrome-text-muted)',
-                fontFamily: 'inherit',
+                color: active ? 'var(--pl-chrome-accent-ink)' : 'var(--pl-chrome-text-faint)',
+                zIndex: 2,
+              }}>
+                № {String(i + 1).padStart(2, '0')}
+              </span>
+              {active && (
+                <span style={{
+                  position: 'absolute', top: '6px', right: '7px',
+                  width: '6px', height: '6px', borderRadius: '50%',
+                  background: 'var(--pl-chrome-accent)',
+                  boxShadow: '0 0 0 2px color-mix(in srgb, var(--pl-chrome-accent) 30%, transparent)',
+                  zIndex: 2,
+                }} />
+              )}
+              {/* Preview plate */}
+              <div style={{
+                aspectRatio: '1',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                borderBottom: '1px solid var(--pl-chrome-border)',
+                background: active
+                  ? 'color-mix(in srgb, var(--pl-chrome-surface) 70%, var(--pl-chrome-accent-soft))'
+                  : 'var(--pl-chrome-bg)',
+              }}>
+                {previewSvg ? (
+                  <div
+                    style={{ width: '72%', height: '72%' }}
+                    dangerouslySetInnerHTML={{ __html: previewSvg }}
+                  />
+                ) : (
+                  <span style={{
+                    fontFamily: panelFont.display,
+                    fontStyle: 'italic',
+                    fontSize: '0.72rem',
+                    color: 'var(--pl-chrome-text-muted)',
+                  }}>none</span>
+                )}
+              </div>
+              {/* Name plate */}
+              <span style={{
+                display: 'block',
+                padding: '6px 6px 7px',
+                fontFamily: panelFont.display,
+                fontStyle: 'italic',
+                fontSize: '0.66rem',
+                color: active ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-soft)',
                 textAlign: 'center',
-                letterSpacing: panelTracking.wide,
-                textTransform: 'uppercase',
-                lineHeight: panelLineHeight.tight,
+                lineHeight: 1.15,
               }}>
                 {preset.label}
               </span>
@@ -592,17 +812,20 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
       </div>
 
       {currentSvg && (
-        <p style={{
-          fontSize: panelText.hint,
-          fontWeight: panelWeight.semibold,
-          color: 'var(--pl-chrome-text)',
-          fontFamily: 'inherit',
+        <div style={{
+          padding: '8px 10px',
+          background: 'var(--pl-chrome-accent-soft)',
+          border: '1px solid color-mix(in srgb, var(--pl-chrome-accent) 35%, transparent)',
+          borderRadius: '8px',
+          fontFamily: panelFont.mono,
+          fontSize: '0.54rem',
+          letterSpacing: panelTracking.wider,
+          textTransform: 'uppercase',
+          color: 'var(--pl-chrome-accent-ink)',
           textAlign: 'center',
-          margin: 0,
-          lineHeight: panelLineHeight.normal,
         }}>
-          ✦ AI-generated corners will be replaced when you pick a preset
-        </p>
+          ✦ AI corners are active — picking a preset replaces them
+        </div>
       )}
     </div>
   );
@@ -646,25 +869,61 @@ function QuickStylesRow({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '4px 8px 12px' }}>
+    <div style={{
+      display: 'flex', flexDirection: 'column', gap: '10px',
+      padding: '12px 12px 14px',
+    }}>
+      {/* Editorial heading — eyebrow + italic kicker */}
       <div style={{
-        fontSize: panelText.label,
-        fontWeight: panelWeight.bold,
-        letterSpacing: panelTracking.wider,
-        textTransform: 'uppercase',
-        color: 'var(--pl-chrome-text-muted)',
+        display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+        borderBottom: '1px solid var(--pl-chrome-accent)',
+        paddingBottom: '6px',
       }}>
-        Quick Styles
+        <div>
+          <div style={{
+            fontFamily: panelFont.mono,
+            fontSize: '0.5rem',
+            letterSpacing: panelTracking.widest,
+            textTransform: 'uppercase',
+            color: 'var(--pl-chrome-accent-ink)',
+            marginBottom: '2px',
+          }}>
+            Collection № 01
+          </div>
+          <div style={{
+            fontFamily: panelFont.display,
+            fontStyle: 'italic',
+            fontSize: '0.92rem',
+            color: 'var(--pl-chrome-text)',
+            lineHeight: 1.1,
+          }}>
+            Curated Styles
+          </div>
+        </div>
+        <div style={{
+          fontFamily: panelFont.mono,
+          fontSize: '0.48rem',
+          letterSpacing: panelTracking.wider,
+          color: 'var(--pl-chrome-text-faint)',
+        }}>
+          {QUICK_STYLES.length} looks
+        </div>
       </div>
-      <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', scrollbarWidth: 'none' } as React.CSSProperties}>
-        {QUICK_STYLES.map(qs => {
+
+      {/* Horizontal specimen cards — wider, numbered, italic labels */}
+      <div style={{
+        display: 'flex', gap: '8px',
+        overflowX: 'auto', scrollbarWidth: 'none',
+        paddingBottom: '2px', marginLeft: '-2px', marginRight: '-2px',
+        paddingLeft: '2px', paddingRight: '2px',
+      } as React.CSSProperties}>
+        {QUICK_STYLES.map((qs, i) => {
           const preset = PRESET_THEMES.find(t => t.name === qs.themeName);
           if (!preset) return null;
           const pal = preset.palette;
           const isActive = manifest.vibeSkin?.tone === preset.tone &&
             manifest.vibeSkin?.fonts?.heading === preset.fonts?.heading;
           const isHov = hovered === qs.label;
-          const swatchColors = [pal.background, pal.accent, pal.card ?? pal.subtle, pal.foreground];
           return (
             <button
               key={qs.label}
@@ -672,31 +931,82 @@ function QuickStylesRow({
               onMouseLeave={handleLeave}
               onClick={() => { onApply(preset); handleLeave(); }}
               style={{
-                flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
-                padding: '8px', borderRadius: '10px', cursor: 'pointer',
-                border: isActive ? '2px solid #18181B' : isHov ? '1.5px solid #3F3F46' : '1px solid #E4E4E7',
-                background: 'var(--pl-chrome-surface)',
-                transition: 'border 0.12s',
-                minWidth: '58px',
+                flexShrink: 0,
+                display: 'flex', flexDirection: 'column',
+                width: '108px',
+                padding: 0, cursor: 'pointer',
+                borderRadius: '10px', overflow: 'hidden',
+                border: isActive
+                  ? '1px solid var(--pl-chrome-accent)'
+                  : isHov
+                    ? '1px solid var(--pl-chrome-border-strong)'
+                    : '1px solid var(--pl-chrome-border)',
+                background: isActive ? 'var(--pl-chrome-accent-soft)' : 'var(--pl-chrome-surface)',
+                boxShadow: isActive
+                  ? '0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 14%, transparent)'
+                  : isHov
+                    ? '0 2px 8px rgba(0,0,0,0.06)'
+                    : 'none',
+                transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                transform: isHov ? 'translateY(-1px)' : 'none',
+                position: 'relative',
+                textAlign: 'left',
               }}
             >
-              {/* 2×2 palette swatch */}
+              {/* 4-stripe vertical palette bar — magazine swatch */}
               <div style={{
-                display: 'grid', gridTemplateColumns: '1fr 1fr',
-                width: '32px', height: '32px', borderRadius: '6px', overflow: 'hidden',
-                border: '1px solid rgba(0,0,0,0.06)',
+                display: 'flex',
+                width: '100%', height: '48px',
+                borderBottom: '1px solid var(--pl-chrome-border)',
+                position: 'relative',
               }}>
-                {swatchColors.map((c, i) => (
-                  <div key={i} style={{ background: c || '#F4F4F5' }} />
-                ))}
+                <div style={{ flex: 2, background: pal.background || 'var(--pl-chrome-bg)' }} />
+                <div style={{ flex: 1, background: pal.card ?? pal.subtle ?? 'var(--pl-chrome-bg)' }} />
+                <div style={{ flex: 1, background: pal.accent || 'var(--pl-chrome-accent)' }} />
+                <div style={{ flex: 1, background: pal.foreground || 'var(--pl-chrome-text)' }} />
+                {/* Number */}
+                <span style={{
+                  position: 'absolute', top: '5px', left: '7px',
+                  fontFamily: panelFont.mono,
+                  fontSize: '0.46rem',
+                  letterSpacing: panelTracking.widest,
+                  fontWeight: panelWeight.bold,
+                  color: 'rgba(255,255,255,0.88)',
+                  textShadow: '0 1px 2px rgba(0,0,0,0.35)',
+                }}>
+                  № {String(i + 1).padStart(2, '0')}
+                </span>
+                {isActive && (
+                  <span style={{
+                    position: 'absolute', top: '6px', right: '7px',
+                    width: '7px', height: '7px', borderRadius: '50%',
+                    background: '#fff',
+                    boxShadow: '0 0 0 2px var(--pl-chrome-accent), 0 1px 3px rgba(0,0,0,0.2)',
+                  }} />
+                )}
               </div>
-              <span style={{
-                fontSize: '0.6rem', fontWeight: panelWeight.semibold,
-                color: isActive ? '#18181B' : '#3F3F46',
-                whiteSpace: 'nowrap', lineHeight: 1,
-              }}>
-                {qs.label}
-              </span>
+              {/* Label plate */}
+              <div style={{ padding: '7px 8px 8px' }}>
+                <div style={{
+                  fontFamily: panelFont.display,
+                  fontStyle: 'italic',
+                  fontSize: '0.76rem',
+                  color: isActive ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-soft)',
+                  lineHeight: 1.1,
+                }}>
+                  {qs.label}
+                </div>
+                <div style={{
+                  fontFamily: panelFont.mono,
+                  fontSize: '0.46rem',
+                  letterSpacing: panelTracking.wider,
+                  textTransform: 'uppercase',
+                  color: 'var(--pl-chrome-text-faint)',
+                  marginTop: '2px',
+                }}>
+                  {qs.desc}
+                </div>
+              </div>
             </button>
           );
         })}
