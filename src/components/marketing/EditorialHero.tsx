@@ -190,7 +190,7 @@ export function EditorialHero({ onGetStarted }: EditorialHeroProps) {
               </svg>
             </button>
             <a
-              href="#tour"
+              href="#editor"
               style={{
                 color: 'var(--pl-ink-soft)',
                 fontSize: '0.92rem',

@@ -88,12 +88,12 @@ export function PropertiesPanel({ manifest, onChange }: PropertiesPanelProps) {
               <div style={{
                 fontSize: panelText.body,
                 fontWeight: panelWeight.semibold,
-                color: '#18181B',
+                color: 'var(--pl-chrome-text)',
                 marginBottom: '2px',
               }}>
                 Hand-curated with Pearloom
               </div>
-              <div style={{ fontSize: panelText.hint, color: '#71717A' }}>
+              <div style={{ fontSize: panelText.hint, color: 'var(--pl-chrome-text-muted)' }}>
                 Show subtle watermark on published site
               </div>
             </div>
@@ -109,18 +109,18 @@ export function PropertiesPanel({ manifest, onChange }: PropertiesPanelProps) {
               {manifest.privateGallery ? (
                 <Lock size={14} className="text-[var(--pl-warning)]" style={{ flexShrink: 0 }} />
               ) : (
-                <Unlock size={14} className="text-[#18181B]" style={{ flexShrink: 0 }} />
+                <Unlock size={14} style={{ color: 'var(--pl-chrome-text)', flexShrink: 0 }} />
               )}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                   fontSize: panelText.body,
                   fontWeight: panelWeight.semibold,
-                  color: '#18181B',
+                  color: 'var(--pl-chrome-text)',
                   marginBottom: '2px',
                 }}>
                   Private Gallery
                 </div>
-                <div style={{ fontSize: panelText.hint, color: '#71717A' }}>
+                <div style={{ fontSize: panelText.hint, color: 'var(--pl-chrome-text-muted)' }}>
                   {manifest.privateGallery ? 'Photos hidden from visitors' : 'Photos visible to all visitors'}
                 </div>
               </div>

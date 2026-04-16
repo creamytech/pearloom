@@ -52,7 +52,7 @@ export function PanelField({
             fontWeight: panelWeight.bold,
             letterSpacing: panelTracking.wider,
             textTransform: 'uppercase',
-            color: '#71717A',
+            color: 'var(--pl-chrome-text-muted)',
             lineHeight: 1.4,
           }}
         >
@@ -65,7 +65,7 @@ export function PanelField({
           style={{
             fontSize: panelText.meta,
             lineHeight: 1.5,
-            color: error ? '#b91c1c' : '#71717A',
+            color: error ? 'var(--pl-chrome-danger)' : 'var(--pl-chrome-text-muted)',
             fontStyle: error ? 'normal' : 'italic',
           }}
         >
@@ -85,10 +85,10 @@ export const panelInputStyle: CSSProperties = {
   width: '100%',
   padding: '8px 10px',
   borderRadius: '6px',
-  background: '#FFFFFF',
-  border: '1px solid #E4E4E7',
+  background: 'var(--pl-chrome-surface)',
+  border: '1px solid var(--pl-chrome-border)',
   fontSize: 'max(16px, 0.8rem)', // 16px min keeps iOS from zoom-in
-  color: '#18181B',
+  color: 'var(--pl-chrome-text)',
   fontFamily: 'inherit',
   outline: 'none',
   transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
@@ -123,11 +123,11 @@ export function PanelInput({
       disabled={disabled}
       style={panelInputStyle}
       onFocus={(e) => {
-        e.currentTarget.style.borderColor = '#18181B';
-        e.currentTarget.style.boxShadow = '0 0 0 2px rgba(24,24,27,0.12)';
+        e.currentTarget.style.borderColor = 'var(--pl-chrome-accent)';
+        e.currentTarget.style.boxShadow = 'var(--pl-chrome-focus)';
       }}
       onBlur={(e) => {
-        e.currentTarget.style.borderColor = '#E4E4E7';
+        e.currentTarget.style.borderColor = 'var(--pl-chrome-border)';
         e.currentTarget.style.boxShadow = 'none';
       }}
     />
@@ -157,11 +157,11 @@ export function PanelTextarea({
       disabled={disabled}
       style={{ ...panelInputStyle, resize: 'vertical', minHeight: 60 }}
       onFocus={(e) => {
-        e.currentTarget.style.borderColor = '#18181B';
-        e.currentTarget.style.boxShadow = '0 0 0 2px rgba(24,24,27,0.12)';
+        e.currentTarget.style.borderColor = 'var(--pl-chrome-accent)';
+        e.currentTarget.style.boxShadow = 'var(--pl-chrome-focus)';
       }}
       onBlur={(e) => {
-        e.currentTarget.style.borderColor = '#E4E4E7';
+        e.currentTarget.style.borderColor = 'var(--pl-chrome-border)';
         e.currentTarget.style.boxShadow = 'none';
       }}
     />

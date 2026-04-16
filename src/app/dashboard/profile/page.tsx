@@ -7,9 +7,7 @@
 
 import { useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import Link from 'next/link';
 import {
-  ArrowLeft,
   Mail,
   Shield,
   Trash2,
@@ -20,8 +18,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { DashboardSidebar } from '@/components/dashboard/sidebar';
-import { PageCard, ThemeToggle } from '@/components/shell';
+import { PageCard } from '@/components/shell';
+import { DashboardShell } from '@/components/dashboard/DashboardShell';
 import { downloadFile } from '@/lib/guest-services';
 
 export default function ProfilePage() {
@@ -87,87 +85,7 @@ export default function ProfilePage() {
     .toUpperCase();
 
   return (
-    <div
-      style={{
-        minHeight: '100dvh',
-        display: 'flex',
-        flexDirection: 'column',
-        background: 'var(--pl-cream)',
-      }}
-    >
-      <header
-        style={{
-          height: 60,
-          flexShrink: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 clamp(16px, 4vw, 32px)',
-          borderBottom: '1px solid var(--pl-divider)',
-          background: 'color-mix(in oklab, var(--pl-cream) 88%, transparent)',
-          backdropFilter: 'saturate(140%) blur(14px)',
-          WebkitBackdropFilter: 'saturate(140%) blur(14px)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 10,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <Link
-            href="/dashboard"
-            style={{
-              fontFamily: 'var(--pl-font-display)',
-              fontSize: '1.05rem',
-              color: 'var(--pl-ink)',
-              textDecoration: 'none',
-              letterSpacing: '-0.01em',
-            }}
-          >
-            Pearloom
-          </Link>
-          <span
-            style={{
-              fontFamily: 'var(--pl-font-mono)',
-              fontSize: '0.62rem',
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              color: 'var(--pl-muted)',
-            }}
-          >
-            Account
-          </span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <ThemeToggle />
-          <Link
-            href="/dashboard"
-            style={{
-              fontSize: '0.78rem',
-              color: 'var(--pl-muted)',
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            <ArrowLeft size={12} /> Back
-          </Link>
-        </div>
-      </header>
-
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <div className="hidden md:block">
-          <DashboardSidebar />
-        </div>
-
-        <main style={{ flex: 1, overflow: 'auto' }}>
-          <div
-            style={{
-              maxWidth: 720,
-              margin: '0 auto',
-              padding: 'clamp(24px, 4vh, 48px) clamp(16px, 4vw, 40px)',
-            }}
-          >
+    <DashboardShell eyebrow="Account" contentMaxWidth={720}>
             {/* Editorial header */}
             <div
               style={{
@@ -625,9 +543,6 @@ export default function ProfilePage() {
                 </Button>
               </div>
             </div>
-          </div>
-        </main>
-      </div>
-    </div>
+    </DashboardShell>
   );
 }

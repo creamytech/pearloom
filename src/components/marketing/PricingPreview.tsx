@@ -92,9 +92,18 @@ const TIERS: Tier[] = [
   },
 ];
 
-export function PricingPreview() {
+interface PricingPreviewProps {
+  onGetStarted?: () => void;
+}
+
+export function PricingPreview({ onGetStarted }: PricingPreviewProps = {}) {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.08 });
+
+  const handleTierClick = () => {
+    if (onGetStarted) onGetStarted();
+    else if (typeof window !== 'undefined') window.location.hash = 'try';
+  };
 
   return (
     <section
@@ -219,6 +228,7 @@ export function PricingPreview() {
 
                   {/* CTA */}
                   <button
+                    onClick={handleTierClick}
                     style={{
                       width: '100%',
                       padding: '11px 16px',

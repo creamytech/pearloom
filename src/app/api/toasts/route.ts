@@ -16,6 +16,7 @@ import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import { uploadToR2 } from '@/lib/r2';
 import { getGuestByToken, listVoiceToasts } from '@/lib/event-os/db';
+import { isSoftEmptyError } from '@/lib/event-os/soft-empty';
 import { generate, CLAUDE_HAIKU, textFrom } from '@/lib/claude';
 
 export const dynamic = 'force-dynamic';
@@ -143,6 +144,9 @@ export async function GET(req: NextRequest) {
     const toasts = await listVoiceToasts(siteId);
     return NextResponse.json({ toasts });
   } catch (err) {
+    if (isSoftEmptyError(err)) {
+      return NextResponse.json({ toasts: [] });
+    }
     return NextResponse.json(
       { error: 'List failed', detail: String(err).slice(0, 200) },
       { status: 500 }

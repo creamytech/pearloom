@@ -15,6 +15,7 @@ import {
   getVendor,
   listVendorBookings,
 } from '@/lib/event-os/db';
+import { isSoftEmptyError } from '@/lib/event-os/soft-empty';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,6 +63,9 @@ export async function GET(req: NextRequest) {
     const hydrated = bookings.map((b) => ({ ...b, vendor: byId[b.vendor_id] ?? null }));
     return NextResponse.json({ bookings: hydrated });
   } catch (err) {
+    if (isSoftEmptyError(err)) {
+      return NextResponse.json({ bookings: [] });
+    }
     return NextResponse.json(
       { error: 'List failed', detail: String(err).slice(0, 200) },
       { status: 500 },

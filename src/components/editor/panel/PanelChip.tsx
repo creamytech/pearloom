@@ -78,7 +78,7 @@ export function PanelChip({
     ? accentColor
       ? toDeepText(accentColor)
       : base.color
-    : '#3F3F46';
+    : 'var(--pl-chrome-text-soft)';
 
   const radius = variant === 'pill' ? '100px' : panelChip.radius;
   const padding = size === 'sm' ? '6px 12px' : '8px 14px';

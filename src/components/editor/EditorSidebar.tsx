@@ -73,14 +73,14 @@ export function SidebarSection({
     <div className="pl-panel-section" style={{ marginBottom: '2px', padding: '0' }}>
       <motion.button
         onClick={() => setOpen(!open)}
-        whileHover={{ backgroundColor: 'rgba(24,24,27,0.04)' }}
+        whileHover={{ backgroundColor: 'var(--pl-chrome-accent-soft)' }}
         whileTap={{ scale: 0.97 }}
         transition={{ type: 'spring', stiffness: 400, damping: 22 }}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
           padding: '8px 10px', borderRadius: 'var(--pl-radius-sm)', border: 'none',
           background: 'transparent', cursor: 'pointer',
-          color: '#3F3F46',
+          color: 'var(--pl-chrome-text-soft)',
         }}
       >
         <ChevronRight
@@ -88,22 +88,22 @@ export function SidebarSection({
           style={{
             transform: open ? 'rotate(90deg)' : 'none',
             transition: 'transform 0.2s',
-            color: open ? '#18181B' : '#71717A',
+            color: open ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-muted)',
             flexShrink: 0,
           }}
         />
-        {Icon && <Icon size={12} color="#18181B" />}
+        {Icon && <Icon size={12} color="var(--pl-chrome-text)" />}
         <span style={{
           flex: 1, textAlign: 'left', fontSize: '0.65rem', fontWeight: 600,
           letterSpacing: '0.04em', textTransform: 'uppercase',
-          color: open ? '#3F3F46' : '#71717A',
+          color: open ? 'var(--pl-chrome-text-soft)' : 'var(--pl-chrome-text-muted)',
         }}>
           {title}
         </span>
         {badge !== undefined && (
           <span style={{
             fontSize: '0.58rem', padding: '2px 7px', borderRadius: '8px',
-            background: '#F4F4F5', color: '#18181B',
+            background: 'var(--pl-chrome-surface-2)', color: 'var(--pl-chrome-text)',
             fontWeight: 700,
           }}>
             {badge}
@@ -211,8 +211,8 @@ export function EditorSidebar({
           width: '64px',
           flexShrink: 0,
           height: '100%',
-          background: '#18181B',
-          borderRight: '1px solid rgba(255,255,255,0.08)',
+          background: 'var(--pl-chrome-rail)',
+          borderRight: '1px solid var(--pl-chrome-rail-divider)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -235,7 +235,7 @@ export function EditorSidebar({
                   style={{
                     width: '28px',
                     height: '1px',
-                    background: 'rgba(255,255,255,0.08)',
+                    background: 'var(--pl-chrome-rail-divider)',
                     margin: '4px 0',
                     flexShrink: 0,
                   }}
@@ -252,7 +252,7 @@ export function EditorSidebar({
                     if (collapsed) onCollapsedChange(false);
                   }
                 }}
-                whileHover={!(isActive && !collapsed) ? { backgroundColor: 'rgba(255,255,255,0.1)', scale: 1.04 } : { scale: 1.02 }}
+                whileHover={!(isActive && !collapsed) ? { backgroundColor: 'var(--pl-chrome-rail-hover)', scale: 1.04 } : { scale: 1.02 }}
                 whileTap={{ scale: 0.88 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 22 }}
                 style={{
@@ -270,9 +270,9 @@ export function EditorSidebar({
                   margin: '1px 4px',
                   position: 'relative',
                   background: isActive && !collapsed
-                    ? 'rgba(255,255,255,0.15)'
+                    ? 'var(--pl-chrome-rail-active)'
                     : 'transparent',
-                  color: isActive && !collapsed ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.4)',
+                  color: isActive && !collapsed ? 'var(--pl-chrome-rail-ink)' : 'var(--pl-chrome-rail-ink-muted)',
                   boxSizing: 'border-box',
                 }}
               >
@@ -293,7 +293,7 @@ export function EditorSidebar({
                         width: '24px',
                         height: '3px',
                         borderRadius: '8px',
-                        background: '#FFFFFF',
+                        background: 'var(--pl-chrome-rail-ink)',
                       }}
                     />
                   )}
@@ -304,7 +304,7 @@ export function EditorSidebar({
                 >
                   <Icon
                     size={16}
-                    color={isActive && !collapsed ? '#FFFFFF' : 'rgba(255,255,255,0.35)'}
+                    color={isActive && !collapsed ? 'var(--pl-chrome-rail-ink)' : 'var(--pl-chrome-rail-ink-faint)'}
                   />
                 </motion.div>
                 {/* Micro-label */}
@@ -314,7 +314,7 @@ export function EditorSidebar({
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',
                   lineHeight: 1,
-                  color: isActive && !collapsed ? '#FFFFFF' : 'rgba(255,255,255,0.3)',
+                  color: isActive && !collapsed ? 'var(--pl-chrome-rail-ink)' : 'var(--pl-chrome-rail-ink-faint)',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -335,7 +335,7 @@ export function EditorSidebar({
           title={collapsed ? 'Expand panel' : 'Collapse panel'}
           aria-label={collapsed ? 'Expand panel' : 'Collapse panel'}
           onClick={() => onCollapsedChange(!collapsed)}
-          whileHover={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#71717A', scale: 1.08 }}
+          whileHover={{ backgroundColor: 'var(--pl-chrome-rail-hover)', color: 'var(--pl-chrome-rail-ink-muted)', scale: 1.08 }}
           whileTap={{ scale: 0.88 }}
           transition={{ type: 'spring', stiffness: 420, damping: 22 }}
           style={{
@@ -349,7 +349,7 @@ export function EditorSidebar({
             borderRadius: '6px',
             margin: '2px',
             background: 'transparent',
-            color: 'rgba(255,255,255,0.25)',
+            color: 'var(--pl-chrome-rail-ink-faint)',
           }}
         >
           {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
@@ -365,8 +365,8 @@ export function EditorSidebar({
           transition: isResizing ? 'none' : 'width 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
           display: 'flex',
           flexDirection: 'column',
-          background: '#18181B',
-          borderRight: collapsed ? 'none' : '1px solid rgba(255,255,255,0.08)',
+          background: 'var(--pl-chrome-bg)',
+          borderRight: collapsed ? 'none' : '1px solid var(--pl-chrome-border)',
           position: 'relative',
         }}
       >
@@ -380,9 +380,9 @@ export function EditorSidebar({
                 display: 'flex',
                 alignItems: 'center',
                 padding: '0 10px 0 14px',
-                borderBottom: '1px solid rgba(255,255,255,0.1)',
+                borderBottom: '1px solid var(--pl-chrome-border)',
                 gap: '8px',
-                background: 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%)',
+                background: 'var(--pl-chrome-surface)',
               }}
             >
               <span
@@ -392,7 +392,7 @@ export function EditorSidebar({
                   fontWeight: 500,
                   fontFamily: 'inherit',
                   letterSpacing: '-0.01em',
-                  color: '#18181B',
+                  color: 'var(--pl-chrome-text)',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -406,7 +406,7 @@ export function EditorSidebar({
                 title={isAtMax ? 'Restore width' : 'Expand to full width'}
                 aria-label={isAtMax ? 'Restore panel width' : 'Expand panel to full width'}
                 onClick={handleExpandToggle}
-                whileHover={!isAtMax ? { backgroundColor: 'rgba(255,255,255,0.1)', color: '#71717A', scale: 1.12 } : { scale: 1.08 }}
+                whileHover={!isAtMax ? { backgroundColor: 'var(--pl-chrome-accent-soft)', color: 'var(--pl-chrome-text)', scale: 1.12 } : { scale: 1.08 }}
                 whileTap={{ scale: 0.86 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 22 }}
                 style={{
@@ -418,8 +418,8 @@ export function EditorSidebar({
                   border: 'none',
                   cursor: 'pointer',
                   borderRadius: '4px',
-                  background: isAtMax ? 'rgba(255,255,255,0.12)' : 'transparent',
-                  color: isAtMax ? '#FFFFFF' : 'rgba(255,255,255,0.25)',
+                  background: isAtMax ? 'var(--pl-chrome-accent-soft)' : 'transparent',
+                  color: isAtMax ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-muted)',
                   fontSize: '14px',
                   lineHeight: 1,
                   flexShrink: 0,
@@ -447,8 +447,8 @@ export function EditorSidebar({
               <div
                 style={{
                   flexShrink: 0,
-                  borderTop: '1px solid rgba(255,255,255,0.08)',
-                  background: '#1C1916',
+                  borderTop: '1px solid var(--pl-chrome-border)',
+                  background: 'var(--pl-chrome-surface-2)',
                 }}
               >
                 {footer}
@@ -476,7 +476,7 @@ export function EditorSidebar({
             alignItems: 'center',
             justifyContent: 'center',
             background: isResizing || isResizeHover
-              ? 'rgba(255,255,255,0.05)'
+              ? 'var(--pl-chrome-accent-soft)'
               : 'transparent',
             transition: 'background 0.15s',
           }}
@@ -488,8 +488,8 @@ export function EditorSidebar({
               height: '40px',
               borderRadius: '1px',
               background: isResizing || isResizeHover
-                ? 'rgba(255,255,255,0.5)'
-                : 'rgba(255,255,255,0.1)',
+                ? 'var(--pl-chrome-accent)'
+                : 'var(--pl-chrome-border)',
               transition: 'background 0.15s',
               pointerEvents: 'none',
             }}

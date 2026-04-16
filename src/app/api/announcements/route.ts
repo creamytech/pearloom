@@ -13,6 +13,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import { listAnnouncements, postAnnouncement, getGuestByToken } from '@/lib/event-os/db';
+import { isSoftEmptyError } from '@/lib/event-os/soft-empty';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,6 +59,9 @@ export async function GET(req: NextRequest) {
     const filtered = guestToken ? list.filter((a) => a.sent_at) : list;
     return NextResponse.json({ announcements: filtered });
   } catch (err) {
+    if (isSoftEmptyError(err)) {
+      return NextResponse.json({ announcements: [] });
+    }
     return NextResponse.json(
       { error: 'List failed', detail: String(err).slice(0, 200) },
       { status: 500 }

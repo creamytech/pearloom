@@ -462,7 +462,7 @@ export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPage
       </section>
 
       {/* ── Pricing ───────────────────────────────────────────── */}
-      <PricingPreview />
+      <PricingPreview onGetStarted={openAuth} />
 
       {/* ── Trust signals ─────────────────────────────────────── */}
       <TrustSignals />

@@ -431,13 +431,20 @@ function BlockCard({
       draggable
       onDragStart={(e) => {
         e.dataTransfer.setData('pearloom/block-type', block.type);
+        e.dataTransfer.setData('text/plain', block.type);
         e.dataTransfer.effectAllowed = 'copy';
         setDragging(true);
         onDragType?.(block.type);
+        // Broadcast so the canvas DropZones pulse across the whole page
+        // and not just the zone the cursor hovers.
+        window.dispatchEvent(
+          new CustomEvent('pearloom-palette-drag-start', { detail: { type: block.type } })
+        );
       }}
       onDragEnd={() => {
         setDragging(false);
         onDragType?.(null);
+        window.dispatchEvent(new CustomEvent('pearloom-palette-drag-end'));
       }}
       onClick={onInsert}
       title={block.description}
@@ -448,8 +455,8 @@ function BlockCard({
         gap: 8,
         padding: '12px 12px 11px',
         borderRadius: 10,
-        border: `1px solid ${existing ? `${block.color}40` : '#E4E4E7'}`,
-        background: dragging ? `${block.color}12` : '#FFFFFF',
+        border: `1px solid ${existing ? `${block.color}40` : 'var(--pl-chrome-border)'}`,
+        background: dragging ? `${block.color}12` : 'var(--pl-chrome-surface)',
         cursor: 'grab',
         textAlign: 'left',
         transition: 'transform 0.15s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.15s, background-color 0.15s',

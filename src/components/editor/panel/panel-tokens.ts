@@ -54,16 +54,16 @@ export const panelTracking = {
 
 // ── Section chrome ───────────────────────────────────────────
 //
-// These are the ONE canonical values for an editor panel card. They
-// are hand-coded (not `var(--pl-radius-md)`) so the editor chrome
-// never inherits the user's site-level `elementShape` (arch, pill,
-// etc). PanelSection inlines these; local `Section` helpers in
-// panels like ChapterPanel should pull from here too.
+// Canonical values for an editor panel card. These bind to the
+// chrome-only token layer (--pl-chrome-*) in globals.css so dark
+// mode works without touching the user's site theme. Corner radius
+// is hand-coded so the editor UI never inherits site-level
+// `elementShape` (arch/pill/etc).
 export const panelSection = {
-  /** Section card background — solid white. */
-  cardBg: '#FFFFFF',
-  /** Section card border — neutral zinc. */
-  cardBorder: '1px solid #E4E4E7',
+  /** Section card background. */
+  cardBg: 'var(--pl-chrome-surface)',
+  /** Section card border. */
+  cardBorder: '1px solid var(--pl-chrome-border)',
   /** Section card corner radius — 12px, never theme-driven. */
   cardRadius: '12px',
   /** Default inner padding. */
@@ -75,23 +75,21 @@ export const panelSection = {
 } as const;
 
 // ── Chip / selector states ────────────────────────────────────
-// This is the single source of truth for "selected" vs
-// "unselected" picker tiles across every panel. PanelChip consumes
-// these values directly.
+// Selected vs unselected picker tiles. Consumed by PanelChip.
 
 export const panelChip = {
   inactive: {
-    border: '1px solid #E4E4E7',
-    background: '#FFFFFF',
-    color: '#71717A',
+    border: '1px solid var(--pl-chrome-border)',
+    background: 'var(--pl-chrome-surface)',
+    color: 'var(--pl-chrome-text-muted)',
   },
   active: {
-    border: '2px solid #18181B',
-    background: '#F4F4F5',
-    color: '#18181B',
+    border: '2px solid var(--pl-chrome-accent)',
+    background: 'var(--pl-chrome-accent-soft)',
+    color: 'var(--pl-chrome-text)',
   },
   hover: {
-    borderColor: '#18181B',
+    borderColor: 'var(--pl-chrome-border-strong)',
   },
   radius: '8px',
   padding: '8px 14px',
@@ -100,8 +98,8 @@ export const panelChip = {
 
 // ── Divider style ────────────────────────────────────────────
 export const panelDivider = {
-  color: '#E4E4E7',
-  line: '1px solid #E4E4E7',
+  color: 'var(--pl-chrome-border)',
+  line: '1px solid var(--pl-chrome-border)',
   gapY: '12px',
 } as const;
 

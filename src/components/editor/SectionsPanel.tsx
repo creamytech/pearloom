@@ -169,8 +169,8 @@ export function SectionsPanel({ manifest, onChange }: {
                 display: 'flex', alignItems: 'center', gap: '6px',
                 padding: '6px 8px',
                 borderRadius: '6px',
-                background: isSelected ? '#F4F4F5' : '#FFFFFF',
-                border: isSelected ? '1px solid #18181B' : '1px solid #E4E4E7',
+                background: isSelected ? 'var(--pl-chrome-accent-soft)' : 'var(--pl-chrome-surface)',
+                border: isSelected ? '1px solid var(--pl-chrome-accent)' : '1px solid var(--pl-chrome-border)',
                 opacity: isHidden ? 0.45 : 1,
                 cursor: 'grab',
                 touchAction: 'none',
@@ -178,12 +178,12 @@ export function SectionsPanel({ manifest, onChange }: {
               }}
             >
               {/* Drag handle */}
-              <GripVertical size={12} style={{ color: '#A1A1AA', flexShrink: 0 }} />
+              <GripVertical size={12} style={{ color: 'var(--pl-chrome-text-faint)', flexShrink: 0 }} />
 
               {/* Label */}
               <span style={{
                 flex: 1, fontSize: '0.75rem', fontWeight: 500,
-                color: isHidden ? '#A1A1AA' : '#18181B',
+                color: isHidden ? 'var(--pl-chrome-text-faint)' : 'var(--pl-chrome-text)',
                 textDecoration: isHidden ? 'line-through' : 'none',
               }}>
                 {meta.label}
@@ -196,7 +196,7 @@ export function SectionsPanel({ manifest, onChange }: {
                 style={{
                   all: 'unset', cursor: 'pointer', display: 'flex',
                   padding: '3px', borderRadius: '4px',
-                  color: isHidden ? '#A1A1AA' : '#71717A',
+                  color: isHidden ? 'var(--pl-chrome-text-faint)' : 'var(--pl-chrome-text-muted)',
                 }}
               >
                 {isHidden ? <EyeOff size={13} /> : <Eye size={13} />}
@@ -210,7 +210,7 @@ export function SectionsPanel({ manifest, onChange }: {
                   style={{
                     all: 'unset', cursor: 'pointer', display: 'flex',
                     padding: '3px', borderRadius: '4px',
-                    color: '#A1A1AA',
+                    color: 'var(--pl-chrome-text-faint)',
                   }}
                 >
                   <Trash2 size={11} />
@@ -225,8 +225,11 @@ export function SectionsPanel({ manifest, onChange }: {
       </PanelSection>
 
       {/* Add section — lives in its own collapsible section so the
-          chip grid doesn't visually compete with the block list. */}
-      <PanelSection title="Add Section" icon={Plus} defaultOpen={false}>
+          chip grid doesn't visually compete with the block list.
+          Each chip is both click-to-add AND draggable onto the canvas.
+          HTML5 dataTransfer populates `pearloom/block-type` so the
+          canvas DropZones in SiteRenderer can intercept it. */}
+      <PanelSection title="Add Section" icon={Plus} defaultOpen hint="Click to append, or drag onto the canvas to drop between sections.">
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
           {ADDABLE_TYPES.map(type => {
             const meta = BLOCK_LABELS[type] || { label: type };
@@ -236,21 +239,42 @@ export function SectionsPanel({ manifest, onChange }: {
                 key={type}
                 onClick={() => addBlock(type)}
                 draggable
-                onDragStart={() => setDraggingType(type)}
-                onDragEnd={() => setDraggingType(null)}
+                onDragStart={(e) => {
+                  setDraggingType(type);
+                  // Canvas DropZones read 'pearloom/block-type' to decide
+                  // whether to accept the drop and which block to insert.
+                  try {
+                    e.dataTransfer.setData('pearloom/block-type', type);
+                    e.dataTransfer.setData('text/plain', type);
+                    e.dataTransfer.effectAllowed = 'copy';
+                  } catch {
+                    // Some browsers throw on unknown MIME during dragstart;
+                    // swallow and fall back to the local draggingType state.
+                  }
+                  // Broadcast so the canvas can show a full-bleed "drop
+                  // anywhere to add" hint, even over empty regions.
+                  window.dispatchEvent(
+                    new CustomEvent('pearloom-palette-drag-start', { detail: { type } })
+                  );
+                }}
+                onDragEnd={() => {
+                  setDraggingType(null);
+                  window.dispatchEvent(new CustomEvent('pearloom-palette-drag-end'));
+                }}
+                title={`Click to append ${meta.label}, or drag onto the canvas`}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '5px',
                   padding: '6px 10px', borderRadius: '8px',
-                  border: '1px solid rgba(24,24,27,0.1)',
-                  background: 'rgba(24,24,27,0.03)',
-                  color: '#3F3F46',
+                  border: '1px solid var(--pl-chrome-border)',
+                  background: 'var(--pl-chrome-surface)',
+                  color: 'var(--pl-chrome-text-soft)',
                   fontSize: panelText.chip,
                   fontWeight: panelWeight.semibold,
-                  cursor: 'pointer',
+                  cursor: 'grab',
                   transition: 'all 0.15s',
                 }}
               >
-                <AddIcon size={13} style={{ color: '#18181B' }} />
+                <AddIcon size={13} style={{ color: 'var(--pl-chrome-text)' }} />
                 <span>{meta.label}</span>
               </button>
             );
@@ -275,11 +299,11 @@ export function SectionsPanel({ manifest, onChange }: {
                     style={{
                       display: 'flex', alignItems: 'center', gap: '8px',
                       cursor: 'pointer',
-                      border: '1px solid rgba(24,24,27,0.1)',
+                      border: '1px solid var(--pl-chrome-border)',
                       textAlign: 'left', width: '100%',
                       padding: '8px 10px',
                       borderRadius: '10px',
-                      background: '#FFFFFF',
+                      background: 'var(--pl-chrome-surface)',
                     }}
                   >
                     <SuggestIcon size={14} style={{ color: 'var(--pl-gold)', flexShrink: 0 }} />
@@ -287,16 +311,16 @@ export function SectionsPanel({ manifest, onChange }: {
                       <span style={{
                         fontSize: panelText.body,
                         fontWeight: panelWeight.semibold,
-                        color: '#18181B',
+                        color: 'var(--pl-chrome-text)',
                         display: 'block',
                       }}>
                         {BLOCK_LABELS[s.type]?.label || s.type}
                       </span>
-                      <span style={{ fontSize: panelText.meta, color: '#71717A' }}>
+                      <span style={{ fontSize: panelText.meta, color: 'var(--pl-chrome-text-muted)' }}>
                         {s.reason}
                       </span>
                     </div>
-                    <Plus size={12} style={{ color: '#18181B', flexShrink: 0 }} />
+                    <Plus size={12} style={{ color: 'var(--pl-chrome-text)', flexShrink: 0 }} />
                   </button>
                 );
               })}

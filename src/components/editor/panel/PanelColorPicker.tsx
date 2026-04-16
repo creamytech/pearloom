@@ -58,7 +58,7 @@ export function PanelColorPicker({
             minHeight: 36,
             borderRadius: 6,
             background: hex,
-            border: '1px solid #E4E4E7',
+            border: '1px solid var(--pl-chrome-border)',
             boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.35)',
             cursor: disabled ? 'not-allowed' : 'pointer',
             flex: '0 0 36px',
@@ -92,11 +92,11 @@ export function PanelColorPicker({
             letterSpacing: '0.02em',
           }}
           onFocus={(e) => {
-            e.currentTarget.style.borderColor = '#18181B';
-            e.currentTarget.style.boxShadow = '0 0 0 2px rgba(24,24,27,0.12)';
+            e.currentTarget.style.borderColor = 'var(--pl-chrome-accent)';
+            e.currentTarget.style.boxShadow = 'var(--pl-chrome-focus)';
           }}
           onBlur={(e) => {
-            e.currentTarget.style.borderColor = '#E4E4E7';
+            e.currentTarget.style.borderColor = 'var(--pl-chrome-border)';
             e.currentTarget.style.boxShadow = 'none';
           }}
         />
@@ -123,7 +123,7 @@ export function PanelColorPicker({
                   height: 20,
                   borderRadius: 4,
                   background: pn,
-                  border: active ? '2px solid #18181B' : '1px solid #E4E4E7',
+                  border: active ? '2px solid var(--pl-chrome-accent)' : '1px solid var(--pl-chrome-border)',
                   cursor: disabled ? 'not-allowed' : 'pointer',
                   padding: 0,
                 }}

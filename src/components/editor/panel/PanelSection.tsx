@@ -42,10 +42,12 @@ export interface PanelSectionProps {
 }
 
 // One hard-coded radius for ALL editor panel chrome so site-level
-// elementShape overrides (arch / pill / etc) can't leak in.
+// elementShape overrides (arch / pill / etc) can't leak in. Colors
+// use the chrome token layer so the panel inverts cleanly with
+// [data-theme='dark'] without touching the canvas.
 const PANEL_RADIUS = '12px';
-const PANEL_CARD_BG = '#FFFFFF';
-const PANEL_CARD_BORDER = '1px solid #E4E4E7';
+const PANEL_CARD_BG = 'var(--pl-chrome-surface)';
+const PANEL_CARD_BORDER = '1px solid var(--pl-chrome-border)';
 
 /**
  * A single collapsible section with:
@@ -76,7 +78,7 @@ export function PanelSection({
     <motion.button
       type="button"
       onClick={collapsible ? () => setOpen((v) => !v) : undefined}
-      whileHover={collapsible ? { backgroundColor: 'rgba(24,24,27,0.04)' } : undefined}
+      whileHover={collapsible ? { backgroundColor: 'var(--pl-chrome-accent-soft)' } : undefined}
       whileTap={collapsible ? { scale: 0.99 } : undefined}
       transition={{ type: 'spring', stiffness: 400, damping: 22 }}
       style={{
@@ -84,15 +86,12 @@ export function PanelSection({
         display: 'flex',
         alignItems: 'center',
         gap: '8px',
-        // The header is flush with the card's rounded top when closed
-        // and keeps that same radius when open — the body extends the
-        // same card downward, so it's one continuous surface.
         padding: card ? '10px 12px' : '8px 10px',
         borderRadius: card ? `${PANEL_RADIUS} ${PANEL_RADIUS} 0 0` : '8px',
         border: 'none',
         background: 'transparent',
         cursor: collapsible ? 'pointer' : 'default',
-        color: '#3F3F46',
+        color: 'var(--pl-chrome-text-soft)',
         textAlign: 'left',
       }}
     >
@@ -102,12 +101,12 @@ export function PanelSection({
           style={{
             transform: isOpen ? 'rotate(90deg)' : 'none',
             transition: 'transform 0.2s',
-            color: isOpen ? '#18181B' : '#71717A',
+            color: isOpen ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-muted)',
             flexShrink: 0,
           }}
         />
       )}
-      {Icon && <Icon size={12} color="#18181B" />}
+      {Icon && <Icon size={12} color="var(--pl-chrome-text)" />}
       <span
         style={{
           flex: 1,
@@ -116,7 +115,7 @@ export function PanelSection({
           fontWeight: 600,
           letterSpacing: '0.04em',
           textTransform: 'uppercase',
-          color: isOpen ? '#3F3F46' : '#71717A',
+          color: isOpen ? 'var(--pl-chrome-text-soft)' : 'var(--pl-chrome-text-muted)',
         }}
       >
         {title}
@@ -127,8 +126,8 @@ export function PanelSection({
             fontSize: panelText.meta,
             padding: '2px 7px',
             borderRadius: '8px',
-            background: '#F4F4F5',
-            color: '#18181B',
+            background: 'var(--pl-chrome-surface-2)',
+            color: 'var(--pl-chrome-text)',
             fontWeight: panelWeight.bold,
           }}
         >

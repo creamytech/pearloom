@@ -1455,6 +1455,28 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
   // ── Block drop zone ──
   const [dropTargetIdx, setDropTargetIdx] = useState<number | null>(null);
 
+  // Global drag state — surfaces every DropZone the instant the user
+  // starts dragging a palette chip (from SectionsPanel). Listens for
+  // the `pearloom-palette-drag-start/end` events the palette emits so
+  // we don't require the user to hover each zone to discover it.
+  const [paletteDragType, setPaletteDragType] = useState<string | null>(null);
+  useEffect(() => {
+    const onStart = (e: Event) => {
+      const detail = (e as CustomEvent<{ type?: string }>).detail;
+      setPaletteDragType(detail?.type ?? 'block');
+    };
+    const onEnd = () => setPaletteDragType(null);
+    window.addEventListener('pearloom-palette-drag-start', onStart);
+    window.addEventListener('pearloom-palette-drag-end', onEnd);
+    // Safety net: if the drag is cancelled outside the window, drop state
+    window.addEventListener('dragend', onEnd);
+    return () => {
+      window.removeEventListener('pearloom-palette-drag-start', onStart);
+      window.removeEventListener('pearloom-palette-drag-end', onEnd);
+      window.removeEventListener('dragend', onEnd);
+    };
+  }, []);
+
   // ── Render block by type — memoized to prevent re-render on hover ──
   const renderBlock = useCallback((block: PageBlock) => {
     const blockCfg = block.config || {};
@@ -2380,7 +2402,10 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
   const DropZone = ({ index }: { index: number }) => {
     const [hovered, setHoveredZone] = useState(false);
     const isDropTarget = dropTargetIdx === index;
-    const showLine = hovered || isDropTarget;
+    // A palette drag anywhere on the page should preview every zone so the
+    // user never has to guess where a drop is legal.
+    const paletteDragging = !!paletteDragType;
+    const showLine = hovered || isDropTarget || paletteDragging;
 
     return (
       <div
@@ -2408,25 +2433,50 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         onMouseLeave={() => setHoveredZone(false)}
         style={{
           position: 'relative',
-          height: showLine ? '24px' : '8px',
+          height: isDropTarget ? '48px' : (paletteDragging ? '28px' : (showLine ? '24px' : '8px')),
           transition: 'height 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
+          // Widen the hit zone during a palette drag so users don't have
+          // to hit a 1px hairline to insert.
+          zIndex: paletteDragging ? 2 : 1,
         }}
       >
         {/* Line */}
         {showLine && (
           <div style={{
             position: 'absolute', left: '5%', right: '5%', top: '50%', transform: 'translateY(-50%)',
-            height: isDropTarget ? '3px' : '1px',
-            background: isDropTarget ? '#18181B' : '#E4E4E7',
+            height: isDropTarget ? '3px' : (paletteDragging ? '2px' : '1px'),
+            background: isDropTarget
+              ? 'var(--pl-chrome-accent)'
+              : (paletteDragging ? 'var(--pl-chrome-accent-soft)' : 'var(--pl-chrome-border)'),
             borderRadius: '2px',
             transition: 'all 0.15s',
-            boxShadow: isDropTarget ? '0 0 12px #E4E4E7' : 'none',
+            boxShadow: isDropTarget ? '0 0 12px var(--pl-chrome-accent-soft)' : 'none',
+            // Subtle pulse so the zones are visible during a drag but
+            // don't shout; pure chromeline when idle.
+            animation: paletteDragging && !isDropTarget ? 'pl-dropzone-pulse 1.6s ease-in-out infinite' : undefined,
           }} />
         )}
 
+        {/* Drop-target badge: while actively hovered during a palette drag
+            we pop a "Drop here" pill so the insertion point is unmistakable. */}
+        {isDropTarget && paletteDragging && (
+          <div style={{
+            position: 'absolute', zIndex: 6,
+            padding: '4px 10px', borderRadius: '999px',
+            background: 'var(--pl-chrome-accent)',
+            color: 'var(--pl-chrome-accent-ink)',
+            fontSize: '0.6rem', fontWeight: 700,
+            letterSpacing: '0.08em', textTransform: 'uppercase',
+            boxShadow: '0 6px 18px rgba(0,0,0,0.18)',
+            pointerEvents: 'none',
+          }}>
+            Drop here
+          </div>
+        )}
+
         {/* + button */}
-        {editMode && hovered && !isDropTarget && (
+        {editMode && hovered && !isDropTarget && !paletteDragging && (
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -2435,24 +2485,24 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             style={{
               position: 'relative', zIndex: 10,
               width: '28px', height: '28px', borderRadius: '50%',
-              border: '1.5px solid #E4E4E7',
-              background: '#FFFFFF',
+              border: '1.5px solid var(--pl-chrome-border)',
+              background: 'var(--pl-chrome-surface)',
               backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-              color: '#18181B',
+              color: 'var(--pl-chrome-text)',
               cursor: 'pointer', fontSize: '1rem', fontWeight: 300,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              boxShadow: 'var(--pl-chrome-shadow)',
               transition: 'all 0.15s',
             } as React.CSSProperties}
             onMouseEnter={e => {
-              (e.currentTarget as HTMLElement).style.background = '#18181B';
-              (e.currentTarget as HTMLElement).style.color = 'white';
-              (e.currentTarget as HTMLElement).style.borderColor = '#18181B';
+              (e.currentTarget as HTMLElement).style.background = 'var(--pl-chrome-accent)';
+              (e.currentTarget as HTMLElement).style.color = 'var(--pl-chrome-accent-ink)';
+              (e.currentTarget as HTMLElement).style.borderColor = 'var(--pl-chrome-accent)';
             }}
             onMouseLeave={e => {
-              (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.85)';
-              (e.currentTarget as HTMLElement).style.color = '#18181B';
-              (e.currentTarget as HTMLElement).style.borderColor = '#E4E4E7';
+              (e.currentTarget as HTMLElement).style.background = 'var(--pl-chrome-surface)';
+              (e.currentTarget as HTMLElement).style.color = 'var(--pl-chrome-text)';
+              (e.currentTarget as HTMLElement).style.borderColor = 'var(--pl-chrome-border)';
             }}
           >
             +
@@ -2466,13 +2516,13 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             <div style={{
               position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)',
               zIndex: 99, padding: '8px', minWidth: '200px', maxHeight: '320px', overflowY: 'auto',
-              background: 'rgba(250,247,242,0.95)',
+              background: 'var(--pl-chrome-surface)',
               backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-              borderRadius: '8px', border: '1px solid #E4E4E7',
-              boxShadow: '0 12px 40px rgba(0,0,0,0.08)',
+              borderRadius: '8px', border: '1px solid var(--pl-chrome-border)',
+              boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
               display: 'flex', flexDirection: 'column', gap: '2px',
             } as React.CSSProperties}>
-              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717A', padding: '4px 8px' }}>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-chrome-text-muted)', padding: '4px 8px' }}>
                 Add Section
               </div>
               {Object.entries(BLOCK_LABELS).map(([type, def]) => (
@@ -2483,10 +2533,10 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                     display: 'flex', alignItems: 'center', gap: '8px',
                     padding: '6px 10px', borderRadius: '8px', border: 'none',
                     background: 'transparent', cursor: 'pointer', textAlign: 'left',
-                    fontSize: '0.75rem', color: '#18181B',
+                    fontSize: '0.75rem', color: 'var(--pl-chrome-text)',
                     transition: 'background 0.1s', width: '100%',
                   }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.5)'; }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--pl-chrome-accent-soft)'; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                 >
                   <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: def.color, flexShrink: 0 }} />

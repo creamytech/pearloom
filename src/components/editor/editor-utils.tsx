@@ -35,7 +35,7 @@ export const fontSize = {
 export const lbl: React.CSSProperties = {
   display: 'block', fontSize: fontSize.xs, fontWeight: 700,
   letterSpacing: '0.1em', textTransform: 'uppercase',
-  color: '#71717A', marginBottom: '6px',
+  color: 'var(--pl-chrome-text-muted)', marginBottom: '6px',
   lineHeight: 1.4,
 };
 
@@ -43,7 +43,7 @@ export const lbl: React.CSSProperties = {
 export const sectionHeading: React.CSSProperties = {
   fontSize: fontSize.xs, fontWeight: 700,
   letterSpacing: '0.1em', textTransform: 'uppercase',
-  color: '#3F3F46', marginBottom: spacing.sm,
+  color: 'var(--pl-chrome-text-soft)', marginBottom: spacing.sm,
   lineHeight: 1.3,
 };
 
@@ -51,9 +51,9 @@ export const sectionHeading: React.CSSProperties = {
 export const inp: React.CSSProperties = {
   width: '100%', padding: '8px 10px',
   borderRadius: '6px',
-  border: '1px solid #E4E4E7',
-  background: '#FFFFFF',
-  color: '#18181B',
+  border: '1px solid var(--pl-chrome-border)',
+  background: 'var(--pl-chrome-surface)',
+  color: 'var(--pl-chrome-text)',
   fontSize: 'max(16px, 0.8rem)',
   outline: 'none', fontFamily: 'inherit',
   transition: 'border-color 0.15s, box-shadow 0.15s',
@@ -63,11 +63,11 @@ export const inp: React.CSSProperties = {
 
 // ── Focus/blur handlers ──────────────────────────────────────
 const focusStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-  e.currentTarget.style.borderColor = '#18181B';
-  e.currentTarget.style.boxShadow = '0 0 0 2px rgba(24,24,27,0.12)';
+  e.currentTarget.style.borderColor = 'var(--pl-chrome-accent)';
+  e.currentTarget.style.boxShadow = 'var(--pl-chrome-focus)';
 };
 const blurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-  e.currentTarget.style.borderColor = '#E4E4E7';
+  e.currentTarget.style.borderColor = 'var(--pl-chrome-border)';
   e.currentTarget.style.boxShadow = 'none';
 };
 
@@ -83,7 +83,7 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type, m
   error?: string | null;
 }) {
   const errInpStyle: React.CSSProperties = error
-    ? { borderColor: '#f87171', boxShadow: '0 0 0 3px rgba(248,113,113,0.12)' }
+    ? { borderColor: 'var(--pl-chrome-danger)', boxShadow: '0 0 0 3px rgba(139,74,106,0.14)' }
     : {};
   if (rows) return (
     <div>
@@ -100,10 +100,10 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type, m
       {(hint || error || (showCount && maxLength)) && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xs }}>
           {error
-            ? <p role="alert" style={{ fontSize: fontSize['2xs'], color: '#ef4444', lineHeight: 1.4, margin: 0 }}>{error}</p>
-            : hint ? <p style={{ fontSize: fontSize['2xs'], color: '#71717A', lineHeight: 1.4, margin: 0 }}>{hint}</p> : <span />}
+            ? <p role="alert" style={{ fontSize: fontSize['2xs'], color: 'var(--pl-chrome-danger)', lineHeight: 1.4, margin: 0 }}>{error}</p>
+            : hint ? <p style={{ fontSize: fontSize['2xs'], color: 'var(--pl-chrome-text-muted)', lineHeight: 1.4, margin: 0 }}>{hint}</p> : <span />}
           {showCount && maxLength && (
-            <span style={{ fontSize: fontSize['2xs'], color: value.length >= maxLength ? '#ef4444' : '#A1A1AA', lineHeight: 1.4 }}>
+            <span style={{ fontSize: fontSize['2xs'], color: value.length >= maxLength ? 'var(--pl-chrome-danger)' : 'var(--pl-chrome-text-faint)', lineHeight: 1.4 }}>
               {value.length}/{maxLength}
             </span>
           )}
@@ -127,10 +127,10 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type, m
       {(hint || error || (showCount && maxLength)) && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xs }}>
           {error
-            ? <p role="alert" style={{ fontSize: fontSize['2xs'], color: '#ef4444', lineHeight: 1.4, margin: 0 }}>{error}</p>
-            : hint ? <p style={{ fontSize: fontSize['2xs'], color: '#71717A', lineHeight: 1.4, margin: 0 }}>{hint}</p> : <span />}
+            ? <p role="alert" style={{ fontSize: fontSize['2xs'], color: 'var(--pl-chrome-danger)', lineHeight: 1.4, margin: 0 }}>{error}</p>
+            : hint ? <p style={{ fontSize: fontSize['2xs'], color: 'var(--pl-chrome-text-muted)', lineHeight: 1.4, margin: 0 }}>{hint}</p> : <span />}
           {showCount && maxLength && (
-            <span style={{ fontSize: fontSize['2xs'], color: value.length >= maxLength ? '#ef4444' : '#A1A1AA', lineHeight: 1.4 }}>
+            <span style={{ fontSize: fontSize['2xs'], color: value.length >= maxLength ? 'var(--pl-chrome-danger)' : 'var(--pl-chrome-text-faint)', lineHeight: 1.4 }}>
               {value.length}/{maxLength}
             </span>
           )}
@@ -148,8 +148,8 @@ export function FieldGroup({ title, children, columns }: {
     <div style={{
       padding: spacing.md,
       borderRadius: '12px',
-      background: '#FAFAFA',
-      border: '1px solid #E4E4E7',
+      background: 'var(--pl-chrome-surface-2)',
+      border: '1px solid var(--pl-chrome-border)',
       display: 'flex', flexDirection: 'column',
       gap: spacing.lg,
     }}>
@@ -172,9 +172,9 @@ export function ActionButton({ label, icon, onClick, variant = 'default', size =
   size?: 'sm' | 'md';
 }) {
   const colors = {
-    default: { bg: 'rgba(255,255,255,0.3)', border: 'rgba(255,255,255,0.25)', color: '#3F3F46' },
-    danger: { bg: 'rgba(248,113,113,0.08)', border: 'rgba(248,113,113,0.25)', color: '#e87a7a' },
-    accent: { bg: 'rgba(24,24,27,0.06)', border: '#E4E4E7', color: '#18181B' },
+    default: { bg: 'var(--pl-chrome-surface)', border: 'var(--pl-chrome-border)', color: 'var(--pl-chrome-text-soft)' },
+    danger: { bg: 'rgba(139,74,106,0.10)', border: 'var(--pl-chrome-danger)', color: 'var(--pl-chrome-danger)' },
+    accent: { bg: 'var(--pl-chrome-accent-soft)', border: 'var(--pl-chrome-accent)', color: 'var(--pl-chrome-accent)' },
   }[variant];
 
   const padding = size === 'sm' ? `${spacing.xs} ${spacing.sm}` : `${spacing.sm} ${spacing.md}`;
@@ -207,22 +207,23 @@ export function PillToggle({ label, value, onChange }: {
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: `${spacing.sm} 0`,
     }}>
-      <span style={{ fontSize: fontSize.sm, color: '#3F3F46', fontWeight: 500 }}>{label}</span>
+      <span style={{ fontSize: fontSize.sm, color: 'var(--pl-chrome-text-soft)', fontWeight: 500 }}>{label}</span>
       <button
         onClick={() => onChange(!value)}
         style={{
           width: '36px', height: '20px', borderRadius: '8px',
-          background: value ? '#18181B' : 'rgba(255,255,255,0.3)',
-          border: value ? '1px solid #A1A1AA' : '1px solid rgba(255,255,255,0.3)',
+          background: value ? 'var(--pl-chrome-accent)' : 'var(--pl-chrome-surface-2)',
+          border: `1px solid ${value ? 'var(--pl-chrome-accent)' : 'var(--pl-chrome-border)'}`,
           cursor: 'pointer', position: 'relative', transition: 'all 0.2s',
           touchAction: 'manipulation',
         }}
       >
         <span style={{
           position: 'absolute', top: '2px', left: value ? '18px' : '2px',
-          width: '14px', height: '14px', borderRadius: '50%', background: '#fff',
+          width: '14px', height: '14px', borderRadius: '50%',
+          background: 'var(--pl-chrome-accent-ink)',
           transition: 'left 0.2s', display: 'block',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.18)',
         }} />
       </button>
     </div>
@@ -238,19 +239,19 @@ export function EmptyState({ icon, title, description, action, onAction }: {
     <div style={{
       padding: spacing.xl, textAlign: 'center',
       borderRadius: '12px',
-      border: '1.5px dashed #E4E4E7',
-      background: '#FAFAFA',
+      border: '1.5px dashed var(--pl-chrome-border)',
+      background: 'var(--pl-chrome-surface-2)',
     }}>
       {icon && <div style={{ fontSize: '1.5rem', marginBottom: spacing.sm, opacity: 0.5 }}>{icon}</div>}
-      <div style={{ fontSize: fontSize.sm, fontWeight: 700, color: '#3F3F46', marginBottom: spacing.xs }}>{title}</div>
-      {description && <div style={{ fontSize: fontSize.xs, color: '#71717A', lineHeight: 1.5 }}>{description}</div>}
+      <div style={{ fontSize: fontSize.sm, fontWeight: 700, color: 'var(--pl-chrome-text-soft)', marginBottom: spacing.xs }}>{title}</div>
+      {description && <div style={{ fontSize: fontSize.xs, color: 'var(--pl-chrome-text-muted)', lineHeight: 1.5 }}>{description}</div>}
       {action && onAction && (
         <button
           onClick={onAction}
           style={{
             marginTop: spacing.md, padding: `${spacing.sm} ${spacing.lg}`,
-            borderRadius: '8px', border: '1px solid #E4E4E7',
-            background: 'rgba(24,24,27,0.04)', color: '#18181B',
+            borderRadius: '8px', border: '1px solid var(--pl-chrome-accent)',
+            background: 'var(--pl-chrome-accent-soft)', color: 'var(--pl-chrome-accent)',
             fontSize: fontSize.xs, fontWeight: 700, cursor: 'pointer',
             letterSpacing: '0.06em', touchAction: 'manipulation',
           }}

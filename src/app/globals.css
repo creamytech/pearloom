@@ -221,6 +221,34 @@
   --input:                   var(--pl-divider);
   --ring:                    var(--pl-olive);
   --radius:                  var(--pl-radius-md);
+
+  /* Editor chrome — isolated from the user's site theme.
+     These are the ONLY tokens panels should bind to, so panel
+     visuals stay constant no matter what theme the site is on. */
+  --pl-chrome-bg:             #F5EFE2;
+  --pl-chrome-surface:        #FBF7EE;
+  --pl-chrome-surface-2:      #F0E9D8;
+  --pl-chrome-border:         #D8CFB8;
+  --pl-chrome-border-strong:  #B8AC8E;
+  --pl-chrome-text:           #0E0D0B;
+  --pl-chrome-text-soft:      #3A332C;
+  --pl-chrome-text-muted:     #7A6F5C;
+  --pl-chrome-text-faint:     #A89F8B;
+  --pl-chrome-accent:         #7A8B4A;
+  --pl-chrome-accent-soft:    rgba(122,139,74,0.12);
+  --pl-chrome-accent-ink:     #FBF7EE;
+  --pl-chrome-danger:         #8B4A6A;
+  --pl-chrome-success:        #7A8B4A;
+  --pl-chrome-focus:          0 0 0 2px rgba(122,139,74,0.35);
+  --pl-chrome-shadow:         0 1px 3px rgba(14,13,11,0.06), 0 1px 2px rgba(14,13,11,0.04);
+  /* Rail: the permanent dark icon column at the editor's left edge */
+  --pl-chrome-rail:           #18181B;
+  --pl-chrome-rail-ink:       #FBF7EE;
+  --pl-chrome-rail-ink-muted: rgba(251,247,238,0.55);
+  --pl-chrome-rail-ink-faint: rgba(251,247,238,0.30);
+  --pl-chrome-rail-hover:     rgba(251,247,238,0.08);
+  --pl-chrome-rail-active:    rgba(251,247,238,0.15);
+  --pl-chrome-rail-divider:   rgba(251,247,238,0.08);
 }
 
 /* ─── DARK (Editorial Midnight) ─── */
@@ -294,6 +322,32 @@
 
   --primary-foreground:      #0D0B07;
   --destructive-foreground:  #0D0B07;
+
+  /* Editor chrome — dark variant. */
+  --pl-chrome-bg:             #15110A;
+  --pl-chrome-surface:        #1F1A12;
+  --pl-chrome-surface-2:      #272015;
+  --pl-chrome-border:         #2F2819;
+  --pl-chrome-border-strong:  #3F3726;
+  --pl-chrome-text:           #F1EBDC;
+  --pl-chrome-text-soft:      #D4CDBC;
+  --pl-chrome-text-muted:     #9A9080;
+  --pl-chrome-text-faint:     #6B6452;
+  --pl-chrome-accent:         #A4B57A;
+  --pl-chrome-accent-soft:    rgba(164,181,122,0.14);
+  --pl-chrome-accent-ink:     #0D0B07;
+  --pl-chrome-danger:         #C46A6A;
+  --pl-chrome-success:        #A4B57A;
+  --pl-chrome-focus:          0 0 0 2px rgba(164,181,122,0.40);
+  --pl-chrome-shadow:         0 1px 3px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.30);
+  /* Rail stays near-black to anchor the dark theme too */
+  --pl-chrome-rail:           #0A0806;
+  --pl-chrome-rail-ink:       #F1EBDC;
+  --pl-chrome-rail-ink-muted: rgba(241,235,220,0.55);
+  --pl-chrome-rail-ink-faint: rgba(241,235,220,0.28);
+  --pl-chrome-rail-hover:     rgba(241,235,220,0.08);
+  --pl-chrome-rail-active:    rgba(241,235,220,0.14);
+  --pl-chrome-rail-divider:   rgba(241,235,220,0.08);
 }
 
 /* ─── Cross-theme base ─── */
@@ -366,6 +420,13 @@ body {
 @keyframes pl-pop-in {
   from { opacity: 0; transform: scale(0.7); }
   to   { opacity: 1; transform: scale(1); }
+}
+
+/* Dropzone pulse — used by SiteRenderer DropZone while a palette chip
+   is being dragged so every legal insertion point breathes gently. */
+@keyframes pl-dropzone-pulse {
+  0%, 100% { opacity: 0.55; transform: translateY(-50%) scaleY(1); }
+  50%      { opacity: 1;    transform: translateY(-50%) scaleY(1.4); }
 }
 
 /* Shake on error */

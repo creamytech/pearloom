@@ -11,9 +11,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Sparkles, ChevronRight } from 'lucide-react';
-import { DashboardSidebar } from '@/components/dashboard/sidebar';
-import { PageCard, EmptyState, ThemeToggle, SkeletonCard } from '@/components/shell';
+import { Sparkles, ChevronRight } from 'lucide-react';
+import { PageCard, EmptyState, SkeletonCard } from '@/components/shell';
+import { DashboardShell } from '@/components/dashboard/DashboardShell';
 
 interface Msg {
   role: 'user' | 'assistant';
@@ -54,98 +54,9 @@ interface SiteSummary {
 
 export function DirectorClient({ siteId }: { siteId: string }) {
   return (
-    <div
-      style={{
-        minHeight: '100dvh',
-        display: 'flex',
-        flexDirection: 'column',
-        background: 'var(--pl-cream)',
-      }}
-    >
-      <DirectorHeader />
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <div className="hidden md:block">
-          <DashboardSidebar />
-        </div>
-        <main style={{ flex: 1, overflow: 'auto' }}>
-          <div
-            style={{
-              maxWidth: 1280,
-              margin: '0 auto',
-              padding: 'clamp(24px, 4vh, 48px) clamp(16px, 4vw, 40px)',
-            }}
-          >
-            {siteId ? <DirectorBody siteId={siteId} /> : <SitePicker />}
-          </div>
-        </main>
-      </div>
-    </div>
-  );
-}
-
-// ── Editorial page header (shared between picker + chat) ──────
-
-function DirectorHeader() {
-  return (
-    <header
-      style={{
-        height: 60,
-        flexShrink: 0,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 clamp(16px, 4vw, 32px)',
-        borderBottom: '1px solid var(--pl-divider)',
-        background: 'color-mix(in oklab, var(--pl-cream) 88%, transparent)',
-        backdropFilter: 'saturate(140%) blur(14px)',
-        WebkitBackdropFilter: 'saturate(140%) blur(14px)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 10,
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <Link
-          href="/dashboard"
-          style={{
-            fontFamily: 'var(--pl-font-display)',
-            fontSize: '1.05rem',
-            color: 'var(--pl-ink)',
-            textDecoration: 'none',
-            letterSpacing: '-0.01em',
-          }}
-        >
-          Pearloom
-        </Link>
-        <span
-          style={{
-            fontFamily: 'var(--pl-font-mono)',
-            fontSize: '0.62rem',
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-            color: 'var(--pl-muted)',
-          }}
-        >
-          AI · Director
-        </span>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <ThemeToggle />
-        <Link
-          href="/dashboard"
-          style={{
-            fontSize: '0.78rem',
-            color: 'var(--pl-muted)',
-            textDecoration: 'none',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-          }}
-        >
-          <ArrowLeft size={12} /> Back
-        </Link>
-      </div>
-    </header>
+    <DashboardShell eyebrow="AI · Director" contentMaxWidth={1280}>
+      {siteId ? <DirectorBody siteId={siteId} /> : <SitePicker />}
+    </DashboardShell>
   );
 }
 

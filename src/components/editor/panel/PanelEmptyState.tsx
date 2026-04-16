@@ -50,9 +50,9 @@ export function PanelEmptyState({
         justifyContent: 'center',
         textAlign: 'center',
         padding: '24px 16px',
-        border: '1px dashed #E4E4E7',
+        border: '1px dashed var(--pl-chrome-border)',
         borderRadius: '10px',
-        background: '#FAFAFA',
+        background: 'var(--pl-chrome-surface-2)',
         gap: 10,
       }}
     >
@@ -62,7 +62,7 @@ export function PanelEmptyState({
           style={{
             fontSize: 24,
             lineHeight: 1,
-            color: '#A1A1AA',
+            color: 'var(--pl-chrome-text-faint)',
             filter: 'grayscale(1)',
             opacity: 0.85,
           }}
@@ -76,7 +76,7 @@ export function PanelEmptyState({
           fontSize: panelText.itemTitle,
           fontWeight: panelWeight.semibold,
           lineHeight: panelLineHeight.tight,
-          color: '#27272A',
+          color: 'var(--pl-chrome-text)',
         }}
       >
         {title}
@@ -88,7 +88,7 @@ export function PanelEmptyState({
             margin: 0,
             fontSize: panelText.hint,
             lineHeight: panelLineHeight.normal,
-            color: '#71717A',
+            color: 'var(--pl-chrome-text-muted)',
             maxWidth: 260,
           }}
         >
@@ -107,9 +107,9 @@ export function PanelEmptyState({
                 fontWeight: panelWeight.semibold,
                 padding: '7px 14px',
                 borderRadius: 8,
-                border: '1px solid #18181B',
-                background: '#18181B',
-                color: '#fff',
+                border: '1px solid var(--pl-chrome-accent)',
+                background: 'var(--pl-chrome-accent)',
+                color: 'var(--pl-chrome-accent-ink)',
                 cursor: 'pointer',
               }}
             >
@@ -125,9 +125,9 @@ export function PanelEmptyState({
                 fontWeight: panelWeight.medium,
                 padding: '7px 12px',
                 borderRadius: 8,
-                border: '1px solid #E4E4E7',
-                background: '#FFFFFF',
-                color: '#3F3F46',
+                border: '1px solid var(--pl-chrome-border)',
+                background: 'var(--pl-chrome-surface)',
+                color: 'var(--pl-chrome-text-soft)',
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',

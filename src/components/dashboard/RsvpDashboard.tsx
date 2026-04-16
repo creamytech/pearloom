@@ -22,6 +22,7 @@ import {
   EmptyState,
   type Column,
 } from '@/components/shell';
+import { DashboardShell } from './DashboardShell';
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -329,18 +330,9 @@ export function RsvpDashboard({
   ];
 
   return (
-    <div
-      style={{
-        background: 'var(--pl-cream)',
-        color: 'var(--pl-ink)',
-        padding: 'clamp(20px, 4vw, 40px)',
-        minHeight: '100vh',
-      }}
-    >
+    <DashboardShell eyebrow="Guests · RSVP">
       <div
         style={{
-          maxWidth: 1180,
-          margin: '0 auto',
           display: 'flex',
           flexDirection: 'column',
           gap: 32,
@@ -627,7 +619,7 @@ export function RsvpDashboard({
           </motion.div>
         )}
       </div>
-    </div>
+    </DashboardShell>
   );
 }
 

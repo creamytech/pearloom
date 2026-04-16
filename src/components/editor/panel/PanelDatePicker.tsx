@@ -47,11 +47,11 @@ export function PanelDatePicker({
         ...style,
       }}
       onFocus={(e) => {
-        e.currentTarget.style.borderColor = '#18181B';
-        e.currentTarget.style.boxShadow = '0 0 0 2px rgba(24,24,27,0.12)';
+        e.currentTarget.style.borderColor = 'var(--pl-chrome-accent)';
+        e.currentTarget.style.boxShadow = 'var(--pl-chrome-focus)';
       }}
       onBlur={(e) => {
-        e.currentTarget.style.borderColor = '#E4E4E7';
+        e.currentTarget.style.borderColor = 'var(--pl-chrome-border)';
         e.currentTarget.style.boxShadow = 'none';
       }}
     />
