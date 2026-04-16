@@ -216,49 +216,69 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
           position: 'fixed',
           top: anchor.top,
           left: anchor.left,
-          width: 280,
-          maxHeight: 340,
+          width: 296,
+          maxHeight: 360,
           overflowY: 'auto',
-          background: 'color-mix(in oklab, var(--pl-cream-card) 96%, transparent)',
-          backdropFilter: 'saturate(160%) blur(18px)',
-          WebkitBackdropFilter: 'saturate(160%) blur(18px)',
-          border: '1px solid var(--pl-divider)',
-          borderRadius: 12,
-          boxShadow: '0 20px 48px color-mix(in oklab, var(--pl-ink) 18%, transparent), 0 2px 6px color-mix(in oklab, var(--pl-ink) 10%, transparent)',
+          background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
+          backdropFilter: 'saturate(160%) blur(16px)',
+          WebkitBackdropFilter: 'saturate(160%) blur(16px)',
+          borderTop: '2px solid rgba(184,147,90,0.55)',
+          borderLeft: '1px solid rgba(184,147,90,0.22)',
+          borderRight: '1px solid rgba(184,147,90,0.22)',
+          borderBottom: '1px solid rgba(184,147,90,0.22)',
+          borderRadius: 2,
+          boxShadow: '0 20px 48px rgba(28,22,10,0.24), 0 2px 8px rgba(28,22,10,0.06)',
           zIndex: 9999,
-          padding: 8,
+          padding: '10px 10px 8px',
           fontFamily: 'var(--pl-font-body)',
         }}
       >
         <div
           style={{
-            display: 'flex',
-            alignItems: 'baseline',
-            justifyContent: 'space-between',
-            padding: '4px 10px 8px',
-            borderBottom: '1px solid var(--pl-divider)',
-            marginBottom: 6,
+            display: 'grid',
+            gridTemplateColumns: '1fr auto',
+            alignItems: 'end',
+            gap: 10,
+            padding: '2px 8px 8px',
+            borderBottom: '1px solid rgba(184,147,90,0.28)',
+            marginBottom: 8,
           }}
         >
-          <span
-            style={{
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <span style={{
+              fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+              fontSize: 8.5,
+              fontWeight: 700,
+              letterSpacing: '0.28em',
+              textTransform: 'uppercase',
+              color: 'rgba(184,147,90,0.85)',
+            }}>
+              Slash · compose
+            </span>
+            <span style={{
               fontFamily: 'var(--pl-font-display)',
               fontStyle: 'italic',
-              fontVariationSettings: '"opsz" 14, "WONK" 1',
-              fontSize: '0.78rem',
+              fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+              fontSize: '1.05rem',
+              lineHeight: 1.05,
               color: 'var(--pl-ink)',
-              fontWeight: 500,
-            }}
-          >
-            Insert
-          </span>
+              fontWeight: 400,
+            }}>
+              Insert…
+            </span>
+          </div>
           {query && (
             <span
               style={{
                 fontFamily: 'var(--pl-font-mono)',
-                fontSize: '0.62rem',
-                letterSpacing: '0.04em',
-                color: 'var(--pl-muted)',
+                fontSize: '0.6rem',
+                letterSpacing: '0.12em',
+                color: 'rgba(184,147,90,0.95)',
+                padding: '3px 8px',
+                border: '1px solid rgba(184,147,90,0.35)',
+                borderRadius: 2,
+                background: 'rgba(255,252,245,0.7)',
+                textTransform: 'uppercase',
               }}
             >
               /{query}
@@ -269,15 +289,31 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
         {filteredItems.length === 0 ? (
           <div
             style={{
-              padding: '18px 10px',
+              padding: '22px 10px',
               fontSize: 12,
               color: 'var(--pl-muted)',
               textAlign: 'center',
               fontFamily: 'var(--pl-font-display)',
               fontStyle: 'italic',
+              border: '1px dashed rgba(184,147,90,0.45)',
+              borderRadius: 2,
+              background: 'rgba(255,252,245,0.45)',
             }}
           >
-            No matches
+            <span style={{
+              display: 'block',
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: 9,
+              fontWeight: 700,
+              letterSpacing: '0.28em',
+              textTransform: 'uppercase',
+              color: 'rgba(184,147,90,0.85)',
+              fontStyle: 'normal',
+              marginBottom: 4,
+            }}>
+              Blank folio
+            </span>
+            No matches.
           </div>
         ) : (
           filteredItems.map((item, idx) => {
@@ -290,24 +326,38 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
                 onMouseDown={(e) => { e.preventDefault(); insertSelected(item); }}
                 onMouseEnter={() => setSelectedIdx(idx)}
                 style={{
-                  display: 'flex',
+                  display: 'grid',
+                  gridTemplateColumns: '26px 30px 1fr auto',
                   alignItems: 'center',
                   gap: 10,
                   width: '100%',
-                  padding: '8px 10px',
-                  borderRadius: 8,
+                  padding: '9px 10px',
+                  borderRadius: 2,
                   border: 'none',
                   background: selected
-                    ? 'color-mix(in oklab, var(--pl-olive) 14%, transparent)'
+                    ? 'rgba(184,147,90,0.12)'
                     : 'transparent',
-                  color: selected ? 'var(--pl-ink)' : 'var(--pl-ink-soft)',
+                  color: 'var(--pl-ink)',
                   cursor: 'pointer',
                   textAlign: 'left',
                   fontFamily: 'inherit',
                   fontSize: 12,
-                  transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
+                  position: 'relative',
+                  transition: 'background 180ms cubic-bezier(0.22,1,0.36,1)',
+                  boxShadow: selected ? 'inset 2px 0 0 rgba(184,147,90,0.75)' : 'none',
                 }}
               >
+                <span style={{
+                  fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                  fontSize: 8.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.22em',
+                  color: selected ? 'rgba(184,147,90,1)' : 'rgba(184,147,90,0.5)',
+                  textAlign: 'right',
+                  paddingRight: 2,
+                }}>
+                  {String(idx + 1).padStart(2, '0')}
+                </span>
                 <div
                   style={{
                     display: 'flex',
@@ -315,32 +365,44 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
                     justifyContent: 'center',
                     width: 28,
                     height: 28,
-                    borderRadius: 7,
+                    borderRadius: 2,
                     background: selected
-                      ? 'color-mix(in oklab, var(--pl-olive) 22%, transparent)'
-                      : 'color-mix(in oklab, var(--pl-ink) 6%, transparent)',
+                      ? 'rgba(184,147,90,0.20)'
+                      : 'rgba(255,252,245,0.65)',
+                    border: selected
+                      ? '1px solid rgba(184,147,90,0.55)'
+                      : '1px solid rgba(184,147,90,0.18)',
                     flexShrink: 0,
-                    transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
+                    transition: 'background 180ms ease, border-color 180ms ease',
                   }}
                 >
                   <item.Icon
                     size={13}
-                    color={selected ? 'var(--pl-olive)' : 'var(--pl-ink-soft)'}
+                    color={selected ? 'rgba(120,90,40,1)' : 'var(--pl-ink-soft)'}
                   />
                 </div>
-                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <div style={{ fontWeight: 600, lineHeight: 1.2 }}>{item.label}</div>
+                <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <div style={{
+                    fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
+                    fontStyle: 'italic',
+                    fontSize: '0.88rem',
+                    fontWeight: 400,
+                    lineHeight: 1.15,
+                    color: 'var(--pl-ink)',
+                  }}>
+                    {item.label}
+                  </div>
                   {item.hint && (
                     <div
                       style={{
-                        fontSize: 10,
-                        color: 'var(--pl-muted)',
+                        fontSize: 9.5,
+                        color: 'rgba(82,82,91,0.9)',
                         lineHeight: 1.3,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                         fontFamily: 'var(--pl-font-mono)',
-                        letterSpacing: '0.02em',
+                        letterSpacing: '0.04em',
                       }}
                     >
                       {item.hint}
@@ -352,9 +414,12 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
                     style={{
                       fontFamily: 'var(--pl-font-mono)',
                       fontSize: 9,
-                      letterSpacing: '0.08em',
-                      color: 'var(--pl-muted)',
+                      fontWeight: 700,
+                      letterSpacing: '0.18em',
+                      textTransform: 'uppercase',
+                      color: 'rgba(184,147,90,0.95)',
                       flexShrink: 0,
+                      paddingLeft: 4,
                     }}
                   >
                     ↵
