@@ -8,8 +8,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowLeft, Download, Image as ImageIcon, Grid, List, Upload, Loader2 } from 'lucide-react';
+import { ArrowLeft, Image as ImageIcon, Upload, Loader2 } from 'lucide-react';
 import { DashboardSidebar } from '@/components/dashboard/sidebar';
+import { ThemeToggle } from '@/components/shell';
 
 interface PhotoItem {
   id: string;
@@ -106,20 +107,72 @@ export default function GalleryPage() {
   }, []);
 
   return (
-    <div className="min-h-dvh flex flex-col bg-[var(--pl-cream)]">
-      {/* Dashboard header */}
-      <header className="h-14 shrink-0 flex items-center justify-between px-4 md:px-6 border-b border-[var(--pl-divider)] bg-white/80 backdrop-blur-md z-10">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="font-heading italic text-[1.05rem] font-semibold text-[var(--pl-ink-soft)] no-underline hover:opacity-75 transition-opacity">
+    <div
+      style={{
+        minHeight: '100dvh',
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'var(--pl-cream)',
+      }}
+    >
+      <header
+        style={{
+          height: 60,
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 clamp(16px, 4vw, 32px)',
+          borderBottom: '1px solid var(--pl-divider)',
+          background: 'color-mix(in oklab, var(--pl-cream) 88%, transparent)',
+          backdropFilter: 'saturate(140%) blur(14px)',
+          WebkitBackdropFilter: 'saturate(140%) blur(14px)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <Link
+            href="/dashboard"
+            style={{
+              fontFamily: 'var(--pl-font-display)',
+              fontSize: '1.05rem',
+              color: 'var(--pl-ink)',
+              textDecoration: 'none',
+              letterSpacing: '-0.01em',
+            }}
+          >
             Pearloom
           </Link>
-          <span className="hidden sm:block text-[0.6rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-muted)]">
+          <span
+            style={{
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.62rem',
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--pl-muted)',
+            }}
+          >
             Gallery
           </span>
         </div>
-        <Link href="/dashboard" className="text-[0.72rem] text-[var(--pl-muted)] no-underline flex items-center gap-1 hover:text-[var(--pl-ink)] transition-colors">
-          <ArrowLeft size={12} /> Back to Dashboard
-        </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <ThemeToggle />
+          <Link
+            href="/dashboard"
+            style={{
+              fontSize: '0.78rem',
+              color: 'var(--pl-muted)',
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <ArrowLeft size={12} /> Back
+          </Link>
+        </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
@@ -129,33 +182,117 @@ export default function GalleryPage() {
         </div>
 
         {/* Main content */}
-        <main className="flex-1 overflow-auto p-4 md:p-8">
-        {/* Header */}
-        <div className="mb-6 flex items-end justify-between gap-4 flex-wrap">
+        <main className="flex-1 overflow-auto">
+          <div
+            style={{
+              maxWidth: 1180,
+              margin: '0 auto',
+              padding: 'clamp(24px, 4vh, 48px) clamp(16px, 4vw, 40px)',
+            }}
+          >
+        {/* Editorial header */}
+        <div
+          style={{
+            marginBottom: 32,
+            paddingBottom: 24,
+            borderBottom: '1px solid var(--pl-divider)',
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'space-between',
+            gap: 24,
+            flexWrap: 'wrap',
+          }}
+        >
           <div>
-            <h1 className="font-heading italic text-[clamp(1.4rem,3vw,2rem)] text-[var(--pl-ink)]">
-              Photo Gallery
+            <div className="pl-overline" style={{ marginBottom: 14 }}>
+              Gallery · Every frame
+            </div>
+            <h1
+              className="pl-display"
+              style={{
+                margin: 0,
+                fontSize: 'clamp(1.8rem, 3.2vw, 2.4rem)',
+                color: 'var(--pl-ink)',
+                lineHeight: 1.05,
+              }}
+            >
+              {photos.length > 0 ? (
+                <>
+                  {photos.length.toLocaleString()}{' '}
+                  <em
+                    style={{
+                      fontStyle: 'italic',
+                      color: 'var(--pl-olive)',
+                      fontVariationSettings:
+                        '"opsz" 144, "SOFT" 80, "WONK" 1',
+                    }}
+                  >
+                    moments
+                  </em>
+                  .
+                </>
+              ) : (
+                <>
+                  Every{' '}
+                  <em
+                    style={{
+                      fontStyle: 'italic',
+                      color: 'var(--pl-olive)',
+                      fontVariationSettings:
+                        '"opsz" 144, "SOFT" 80, "WONK" 1',
+                    }}
+                  >
+                    frame
+                  </em>
+                  .
+                </>
+              )}
             </h1>
-            <p className="text-[0.82rem] text-[var(--pl-muted)]">
-              {photos.length} photos across all your sites
+            <p
+              style={{
+                margin: '8px 0 0',
+                color: 'var(--pl-muted)',
+                fontSize: '0.95rem',
+                lineHeight: 1.55,
+                maxWidth: '52ch',
+              }}
+            >
+              Every photo from every site, in one room. Upload new ones and
+              they go straight into your next celebration.
             </p>
           </div>
           <div>
             <button
               onClick={() => uploadRef.current?.click()}
               disabled={uploading}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-white text-[0.75rem] font-bold uppercase tracking-[0.08em] no-underline transition-opacity"
               style={{
-                background: 'var(--pl-olive-deep, #6B7F5E)',
-                opacity: uploading ? 0.6 : 1,
-                cursor: uploading ? 'not-allowed' : 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '10px 18px',
+                borderRadius: 'var(--pl-radius-full)',
+                background: 'var(--pl-ink)',
+                color: 'var(--pl-cream)',
                 border: 'none',
+                fontFamily: 'var(--pl-font-mono)',
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                cursor: uploading ? 'not-allowed' : 'pointer',
+                opacity: uploading ? 0.6 : 1,
+                transition: 'transform 150ms, opacity 150ms',
               }}
             >
-              {uploading
-                ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
-                : <Upload size={14} />}
-              {uploading ? 'Uploading...' : 'Upload Photos'}
+              {uploading ? (
+                <Loader2
+                  size={14}
+                  style={{ animation: 'spin 1s linear infinite' }}
+                />
+              ) : (
+                <Upload size={14} />
+              )}
+              {uploading ? 'Uploading…' : 'Upload photos'}
             </button>
             <input
               ref={uploadRef}
@@ -176,16 +313,69 @@ export default function GalleryPage() {
             ))}
           </div>
         ) : photos.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="w-16 h-16 rounded-2xl bg-[var(--pl-olive-mist)] flex items-center justify-center mx-auto mb-4">
-              <ImageIcon size={28} className="text-[var(--pl-olive)]" />
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '80px 20px',
+              border: '1px dashed var(--pl-divider)',
+              borderRadius: 'var(--pl-radius-lg)',
+              background: 'var(--pl-cream-deep)',
+            }}
+          >
+            <div
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: 18,
+                background: 'var(--pl-olive-mist)',
+                margin: '0 auto 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <ImageIcon size={26} style={{ color: 'var(--pl-olive)' }} />
             </div>
-            <h3 className="font-heading italic text-xl text-[var(--pl-ink)] mb-2">No photos yet</h3>
-            <p className="text-[0.88rem] text-[var(--pl-muted)] max-w-[360px] mx-auto mb-6">
+            <h3
+              style={{
+                fontFamily: 'var(--pl-font-display)',
+                fontStyle: 'italic',
+                fontSize: '1.3rem',
+                color: 'var(--pl-ink)',
+                margin: '0 0 6px',
+              }}
+            >
+              No photos yet
+            </h3>
+            <p
+              style={{
+                fontSize: '0.88rem',
+                color: 'var(--pl-muted)',
+                maxWidth: 360,
+                margin: '0 auto 22px',
+              }}
+            >
               Create a site and upload photos to see them here.
             </p>
-            <Link href="/dashboard" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--pl-olive-deep)] text-white text-[0.75rem] font-bold uppercase tracking-[0.08em] no-underline">
-              Create a Site
+            <Link
+              href="/dashboard"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '10px 18px',
+                borderRadius: 'var(--pl-radius-full)',
+                background: 'var(--pl-ink)',
+                color: 'var(--pl-cream)',
+                textDecoration: 'none',
+                fontFamily: 'var(--pl-font-mono)',
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Create a site
             </Link>
           </div>
         ) : (
@@ -214,6 +404,7 @@ export default function GalleryPage() {
             ))}
           </div>
         )}
+          </div>
         </main>
       </div>
     </div>

@@ -72,74 +72,205 @@ function TemplatePersonalizeModal({ template, onConfirm, onClose }: {
         initial={{ opacity: 0, y: 20, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-        className="relative w-full max-w-[440px] bg-white rounded-xl border border-[#E4E4E7] shadow-[0_16px_48px_rgba(0,0,0,0.12)] overflow-hidden"
+        className="relative w-full max-w-[460px] overflow-hidden"
+        style={{
+          background: 'var(--pl-cream-card)',
+          border: '1px solid var(--pl-divider)',
+          borderRadius: 'var(--pl-radius-lg)',
+          boxShadow: 'var(--pl-shadow-lg)',
+        }}
       >
+        {/* Accent strip */}
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 2,
+            background: 'var(--pl-olive)',
+            opacity: 0.9,
+          }}
+        />
+
         {/* Header */}
-        <div className="px-6 pt-6 pb-4 border-b border-[#E4E4E7]">
-          <p className="text-[0.65rem] font-semibold tracking-[0.06em] uppercase text-[#A1A1AA] mb-1">
-            Template: {template.name}
+        <div
+          style={{
+            padding: '28px 28px 18px',
+            borderBottom: '1px solid var(--pl-divider-soft)',
+          }}
+        >
+          <p className="pl-overline" style={{ marginBottom: 10 }}>
+            Template · {template.name}
           </p>
-          <h2 className="text-xl font-semibold text-[#18181B] leading-tight">
-            Personalize your site
+          <h2
+            style={{
+              margin: 0,
+              fontFamily: 'var(--pl-font-display)',
+              fontWeight: 500,
+              fontSize: '1.5rem',
+              lineHeight: 1.15,
+              letterSpacing: '-0.01em',
+              color: 'var(--pl-ink)',
+            }}
+          >
+            Personalize your{' '}
+            <em
+              style={{
+                fontStyle: 'italic',
+                color: 'var(--pl-olive)',
+                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+              }}
+            >
+              site
+            </em>
+            .
           </h2>
-          <p className="text-[0.82rem] text-[#71717A] mt-1">
+          <p
+            style={{
+              margin: '6px 0 0',
+              fontSize: '0.86rem',
+              color: 'var(--pl-muted)',
+              lineHeight: 1.5,
+            }}
+          >
             Tell us who this celebration is for.
           </p>
         </div>
 
         {/* Form */}
-        <div className="px-6 py-5 flex flex-col gap-4">
+        <div
+          style={{
+            padding: '22px 28px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 18,
+          }}
+        >
           {/* Occasion */}
           <div>
-            <label className="block text-[0.68rem] font-semibold text-[#71717A] mb-2">
+            <label
+              className="pl-overline"
+              style={{ display: 'block', marginBottom: 10 }}
+            >
               Occasion
             </label>
             <div className="flex flex-wrap gap-2">
-              {OCCASIONS.map(o => (
-                <button
-                  key={o.id}
-                  onClick={() => setOccasion(o.id)}
-                  className="px-4 py-2 rounded-md border text-[0.78rem] font-medium transition-all cursor-pointer"
-                  style={{
-                    background: occasion === o.id ? '#18181B' : 'transparent',
-                    color: occasion === o.id ? 'white' : '#71717A',
-                    borderColor: occasion === o.id ? '#18181B' : '#E4E4E7',
-                  }}
-                >
-                  {o.label}
-                </button>
-              ))}
+              {OCCASIONS.map((o) => {
+                const active = occasion === o.id;
+                return (
+                  <button
+                    key={o.id}
+                    onClick={() => setOccasion(o.id)}
+                    style={{
+                      padding: '8px 14px',
+                      borderRadius: 'var(--pl-radius-full)',
+                      border: '1px solid',
+                      borderColor: active
+                        ? 'var(--pl-ink)'
+                        : 'var(--pl-divider)',
+                      background: active ? 'var(--pl-ink)' : 'transparent',
+                      color: active
+                        ? 'var(--pl-cream)'
+                        : 'var(--pl-ink-soft)',
+                      fontSize: '0.78rem',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      transition: 'all 150ms',
+                    }}
+                  >
+                    {o.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* Names */}
-          <div className={occasion === 'birthday' ? 'grid grid-cols-1 gap-3' : 'grid grid-cols-2 gap-3'}>
+          <div
+            className={
+              occasion === 'birthday' ? 'grid grid-cols-1 gap-3' : 'grid grid-cols-2 gap-3'
+            }
+          >
             <div>
-              <label className="block text-[0.68rem] font-semibold text-[#71717A] mb-1.5">
-                {occasion === 'birthday' ? "Birthday Person's Name"
-                  : occasion === 'wedding' ? "Bride's Name"
-                  : 'First Name'}
+              <label
+                className="pl-overline"
+                style={{ display: 'block', marginBottom: 8 }}
+              >
+                {occasion === 'birthday'
+                  ? "Birthday person"
+                  : occasion === 'wedding'
+                  ? 'First partner'
+                  : 'First name'}
               </label>
               <input
                 autoFocus
                 value={name1}
-                onChange={e => setName1(e.target.value)}
-                placeholder={occasion === 'birthday' ? 'Their name'
-                  : occasion === 'wedding' ? 'e.g. Alex'
-                  : 'First name'}
-                className="w-full px-3 py-2.5 rounded-md border border-[#E4E4E7] text-[max(16px,0.88rem)] text-[#18181B] bg-white outline-none focus:border-[#A1A1AA] focus:shadow-[0_0_0_2px_rgba(24,24,27,0.08)] transition-all"
+                onChange={(e) => setName1(e.target.value)}
+                placeholder={
+                  occasion === 'birthday'
+                    ? 'Their name'
+                    : occasion === 'wedding'
+                    ? 'e.g. Alex'
+                    : 'First name'
+                }
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: 'var(--pl-radius-sm)',
+                  border: '1px solid var(--pl-divider)',
+                  background: 'var(--pl-cream)',
+                  color: 'var(--pl-ink)',
+                  fontSize: 'max(16px, 0.9rem)',
+                  outline: 'none',
+                  transition: 'border-color 150ms, box-shadow 150ms',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--pl-olive)';
+                  e.currentTarget.style.boxShadow =
+                    '0 0 0 2px color-mix(in oklab, var(--pl-olive) 20%, transparent)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--pl-divider)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               />
             </div>
             {occasion !== 'birthday' && (
               <div>
-                <label className="block text-[0.68rem] font-semibold text-[#71717A] mb-1.5">
-                  {occasion === 'wedding' ? "Groom's Name" : 'Second Name'}
+                <label
+                  className="pl-overline"
+                  style={{ display: 'block', marginBottom: 8 }}
+                >
+                  {occasion === 'wedding' ? 'Second partner' : 'Second name'}
                 </label>
                 <input
                   value={name2}
-                  onChange={e => setName2(e.target.value)}
-                  placeholder={occasion === 'wedding' ? 'e.g. Jordan' : 'Second name'}
-                  className="w-full px-3 py-2.5 rounded-md border border-[#E4E4E7] text-[max(16px,0.88rem)] text-[#18181B] bg-white outline-none focus:border-[#A1A1AA] focus:shadow-[0_0_0_2px_rgba(24,24,27,0.08)] transition-all"
+                  onChange={(e) => setName2(e.target.value)}
+                  placeholder={
+                    occasion === 'wedding' ? 'e.g. Jordan' : 'Second name'
+                  }
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: 'var(--pl-radius-sm)',
+                    border: '1px solid var(--pl-divider)',
+                    background: 'var(--pl-cream)',
+                    color: 'var(--pl-ink)',
+                    fontSize: 'max(16px, 0.9rem)',
+                    outline: 'none',
+                    transition: 'border-color 150ms, box-shadow 150ms',
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--pl-olive)';
+                    e.currentTarget.style.boxShadow =
+                      '0 0 0 2px color-mix(in oklab, var(--pl-olive) 20%, transparent)';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--pl-divider)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
                 />
               </div>
             )}
@@ -147,22 +278,52 @@ function TemplatePersonalizeModal({ template, onConfirm, onClose }: {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-[#E4E4E7] flex justify-between items-center bg-[#FAFAFA]">
+        <div
+          style={{
+            padding: '16px 28px',
+            borderTop: '1px solid var(--pl-divider-soft)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            background: 'var(--pl-cream-deep)',
+          }}
+        >
           <button
             onClick={onClose}
-            className="px-4 py-2 text-[0.82rem] text-[#71717A] bg-transparent border-none cursor-pointer hover:text-[#18181B] transition-colors"
+            style={{
+              padding: '8px 14px',
+              fontSize: '0.82rem',
+              color: 'var(--pl-muted)',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+            }}
           >
             Cancel
           </button>
           <button
-            onClick={() => canSubmit && onConfirm([name1.trim(), name2.trim()] as [string, string], occasion)}
+            onClick={() =>
+              canSubmit &&
+              onConfirm([name1.trim(), name2.trim()] as [string, string], occasion)
+            }
             disabled={!canSubmit}
-            className="px-6 py-2.5 rounded-md text-[0.82rem] font-semibold text-white border-none cursor-pointer transition-all"
             style={{
-              background: canSubmit ? '#18181B' : '#D4D4D8',
+              padding: '10px 20px',
+              borderRadius: 'var(--pl-radius-full)',
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.72rem',
+              fontWeight: 700,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: 'var(--pl-cream)',
+              background: canSubmit ? 'var(--pl-ink)' : 'var(--pl-muted)',
+              border: 'none',
+              cursor: canSubmit ? 'pointer' : 'not-allowed',
+              opacity: canSubmit ? 1 : 0.5,
+              transition: 'all 150ms',
             }}
           >
-            Start Building
+            Start building
           </button>
         </div>
       </motion.div>
