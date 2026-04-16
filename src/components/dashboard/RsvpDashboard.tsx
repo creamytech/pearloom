@@ -1,16 +1,27 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// Pearloom / components/dashboard/RsvpDashboard.tsx
-// Real-time RSVP guest management dashboard for couples.
+// RsvpDashboard — Wave C rebuild.
+// • Editorial layout (cream surface, design tokens)
+// • Mobile-first via ResponsiveTable (no horizontal scroll)
+// • StatTile row · filter pills · search · CSV export
+// • All hex codes replaced with var(--pl-*) tokens
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Users, Check, X, Clock, Download, Copy, Search,
-  ChevronUp, ChevronDown, RefreshCw, QrCode, Mail,
+  RefreshCw, Mail, QrCode,
 } from 'lucide-react';
+import {
+  StatTile,
+  PageCard,
+  Button,
+  ResponsiveTable,
+  EmptyState,
+  type Column,
+} from '@/components/shell';
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -49,72 +60,30 @@ interface RsvpDashboardProps {
   userEmail: string;
 }
 
-type SortKey = 'name' | 'status' | 'respondedAt';
-type SortDir = 'asc' | 'desc';
 type FilterStatus = 'all' | 'attending' | 'declined' | 'pending';
 
-// ── Constants & Helpers ────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────
 
-const MOCK_GUESTS: Guest[] = [
-  {
-    id: 'mock-1', name: 'Emma Thompson', email: 'emma@example.com',
-    status: 'attending', plusOne: true, plusOneName: 'James Thompson',
-    mealPreference: 'Chicken', dietaryRestrictions: 'None',
-    respondedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-  },
-  {
-    id: 'mock-2', name: 'Michael Chen', email: 'mchen@example.com',
-    status: 'attending', plusOne: false,
-    mealPreference: 'Fish', dietaryRestrictions: 'Shellfish allergy',
-    respondedAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-  },
-  {
-    id: 'mock-3', name: 'Sophia Rodriguez', email: 'sophia.r@example.com',
-    status: 'declined', plusOne: false,
-    respondedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-  {
-    id: 'mock-4', name: 'Oliver Williams', email: 'o.williams@example.com',
-    status: 'pending', plusOne: true,
-  },
-  {
-    id: 'mock-5', name: 'Ava Johnson', email: 'ava.j@example.com',
-    status: 'attending', plusOne: false,
-    mealPreference: 'Vegan', dietaryRestrictions: 'Gluten-free',
-    respondedAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-];
-
-const MOCK_STATS: RsvpStats = {
-  attending: 4, confirmed: 3, declined: 1, pending: 1, total: 5,
-};
-
-const STATUS_CONFIG = {
+const STATUS_PILL: Record<Guest['status'], { label: string; bg: string; color: string; border: string }> = {
   attending: {
     label: 'Attending',
-    icon: Check,
-    color: '#A3B18A',
-    bg: 'rgba(163,177,138,0.12)',
-    border: 'rgba(163,177,138,0.25)',
-    dot: '#A3B18A',
+    bg: 'color-mix(in oklab, var(--pl-olive) 12%, transparent)',
+    color: 'var(--pl-olive)',
+    border: 'color-mix(in oklab, var(--pl-olive) 25%, transparent)',
   },
   declined: {
     label: 'Declined',
-    icon: X,
-    color: '#E07070',
-    bg: 'rgba(224,112,112,0.10)',
-    border: 'rgba(224,112,112,0.22)',
-    dot: '#E07070',
+    bg: 'color-mix(in oklab, var(--pl-plum) 12%, transparent)',
+    color: 'var(--pl-plum)',
+    border: 'color-mix(in oklab, var(--pl-plum) 25%, transparent)',
   },
   pending: {
     label: 'Pending',
-    icon: Clock,
-    color: '#D4A96A',
-    bg: 'rgba(212,169,106,0.10)',
-    border: 'rgba(212,169,106,0.22)',
-    dot: '#D4A96A',
+    bg: 'color-mix(in oklab, var(--pl-gold) 14%, transparent)',
+    color: 'var(--pl-gold)',
+    border: 'color-mix(in oklab, var(--pl-gold) 28%, transparent)',
   },
-} as const;
+};
 
 function formatDate(iso?: string): string {
   if (!iso) return '—';
@@ -144,77 +113,41 @@ function buildCsv(guests: Guest[]): string {
   return [header.join(','), ...rows].join('\n');
 }
 
-// ── Sub-components ─────────────────────────────────────────────
+// ── StatusPill ────────────────────────────────────────────────
 
-function StatCard({
-  icon: Icon, label, value, color, delay,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: number;
-  color: string;
-  delay: number;
-}) {
+function StatusPill({ status }: { status: Guest['status'] }) {
+  const cfg = STATUS_PILL[status];
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.4 }}
+    <span
       style={{
-        flex: '1 1 0',
-        minWidth: 0,
-        background: 'rgba(214,198,168,0.05)',
-        border: '1px solid rgba(214,198,168,0.1)',
-        borderRadius: '1rem',
-        padding: '1.25rem 1.5rem',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.5rem',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: '3px 10px',
+        borderRadius: 'var(--pl-radius-full)',
+        fontSize: '0.74rem',
+        fontWeight: 600,
+        color: cfg.color,
+        background: cfg.bg,
+        border: `1px solid ${cfg.border}`,
+        letterSpacing: '0.02em',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <div style={{
-          width: 32, height: 32, borderRadius: '50%',
-          background: `${color}18`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <Icon size={16} color={color} />
-        </div>
-        <span style={{ fontSize: '0.75rem', color: 'var(--pl-muted)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-          {label}
-        </span>
-      </div>
-      <div style={{ fontSize: '2.25rem', fontWeight: 700, color: 'var(--pl-ink-soft)', lineHeight: 1 }}>
-        {value}
-      </div>
-    </motion.div>
-  );
-}
-
-function StatusBadge({ status }: { status: Guest['status'] }) {
-  const cfg = STATUS_CONFIG[status];
-  const Icon = cfg.icon;
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-      padding: '0.2rem 0.65rem', borderRadius: '999px',
-      fontSize: '0.75rem', fontWeight: 600,
-      color: cfg.color, background: cfg.bg, border: `1px solid ${cfg.border}`,
-    }}>
-      <Icon size={11} />
+      <span
+        aria-hidden
+        style={{
+          width: 6,
+          height: 6,
+          borderRadius: '50%',
+          background: cfg.color,
+        }}
+      />
       {cfg.label}
     </span>
   );
 }
 
-function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey; sortDir: SortDir }) {
-  if (col !== sortKey) return <ChevronUp size={12} style={{ opacity: 0.25 }} />;
-  return sortDir === 'asc'
-    ? <ChevronUp size={12} style={{ color: '#A3B18A' }} />
-    : <ChevronDown size={12} style={{ color: '#A3B18A' }} />;
-}
-
-// ── Main Component ─────────────────────────────────────────────
+// ── Main ───────────────────────────────────────────────────────
 
 export function RsvpDashboard({
   siteId,
@@ -222,21 +155,16 @@ export function RsvpDashboard({
   initialGuests,
   initialEvents = [],
 }: RsvpDashboardProps) {
-  const useMock = false; // Never show mock data — show empty state instead
   const [guests, setGuests] = useState<Guest[]>(initialGuests);
   const [stats, setStats] = useState<RsvpStats>(initialStats);
   const [events] = useState<EventOption[]>(initialEvents);
   const [eventFilter, setEventFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterStatus>('all');
-  const [sortKey, setSortKey] = useState<SortKey>('respondedAt');
-  const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [refreshing, setRefreshing] = useState(false);
   const [refreshed, setRefreshed] = useState(false);
   const [copiedEmails, setCopiedEmails] = useState(false);
   const [exportedCsv, setExportedCsv] = useState(false);
-
-  // ── Refresh ────────────────────────────────────────────────
 
   const refresh = useCallback(async () => {
     if (!siteId) return;
@@ -260,17 +188,6 @@ export function RsvpDashboard({
     }
   }, [siteId]);
 
-  // ── Sort / Filter ──────────────────────────────────────────
-
-  const handleSort = (key: SortKey) => {
-    if (key === sortKey) {
-      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortKey(key);
-      setSortDir('asc');
-    }
-  };
-
   const filtered = useMemo(() => {
     let list = [...guests];
     if (filter !== 'all') list = list.filter(g => g.status === filter);
@@ -285,20 +202,9 @@ export function RsvpDashboard({
         (g.mealPreference || '').toLowerCase().includes(q)
       );
     }
-    list.sort((a, b) => {
-      let va: string, vb: string;
-      if (sortKey === 'name') { va = a.name; vb = b.name; }
-      else if (sortKey === 'status') { va = a.status; vb = b.status; }
-      else {
-        va = a.respondedAt || ''; vb = b.respondedAt || '';
-      }
-      const cmp = va < vb ? -1 : va > vb ? 1 : 0;
-      return sortDir === 'asc' ? cmp : -cmp;
-    });
+    list.sort((a, b) => (b.respondedAt || '').localeCompare(a.respondedAt || ''));
     return list;
-  }, [guests, filter, eventFilter, search, sortKey, sortDir]);
-
-  // ── Exports ────────────────────────────────────────────────
+  }, [guests, filter, eventFilter, search]);
 
   const exportCsv = () => {
     const csv = buildCsv(guests);
@@ -323,76 +229,10 @@ export function RsvpDashboard({
     setTimeout(() => setCopiedEmails(false), 2000);
   };
 
-  // ── Styles ─────────────────────────────────────────────────
+  const responseRate = stats.total > 0
+    ? Math.round(((stats.attending + stats.declined) / stats.total) * 100)
+    : 0;
 
-  const root: React.CSSProperties = {
-    minHeight: '100vh',
-    background: '#1C1916',
-    color: 'var(--pl-ink-soft)',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    padding: '2rem',
-  };
-
-  const headingStyle: React.CSSProperties = {
-    fontSize: '1.75rem',
-    fontWeight: 700,
-    color: 'var(--pl-ink-soft)',
-    margin: 0,
-    letterSpacing: '-0.02em',
-  };
-
-  const subStyle: React.CSSProperties = {
-    fontSize: '0.9rem',
-    color: 'var(--pl-muted)',
-    margin: 0,
-  };
-
-  const thStyle: React.CSSProperties = {
-    padding: '0.75rem 1rem',
-    textAlign: 'left',
-    fontSize: '0.7rem',
-    fontWeight: 600,
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase',
-    color: 'var(--pl-muted)',
-    background: 'rgba(214,198,168,0.03)',
-    userSelect: 'none',
-    cursor: 'pointer',
-  };
-
-  const tdStyle: React.CSSProperties = {
-    padding: '0.875rem 1rem',
-    fontSize: '0.85rem',
-    color: 'var(--pl-ink-soft)',
-    borderTop: '1px solid rgba(214,198,168,0.06)',
-    verticalAlign: 'middle',
-  };
-
-  const pillBase: React.CSSProperties = {
-    display: 'inline-flex', alignItems: 'center',
-    padding: '0.35rem 0.9rem', borderRadius: '999px',
-    fontSize: '0.78rem', fontWeight: 600,
-    cursor: 'pointer', transition: 'all 0.15s ease', border: '1px solid transparent',
-  };
-
-  const btnStyle: React.CSSProperties = {
-    display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-    padding: '0.5rem 1.1rem', borderRadius: '0.6rem',
-    fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
-    background: 'rgba(214,198,168,0.08)',
-    border: '1px solid rgba(214,198,168,0.15)',
-    color: 'var(--pl-ink-soft)',
-    transition: 'all 0.15s ease',
-  };
-
-  const accentBtnStyle: React.CSSProperties = {
-    ...btnStyle,
-    background: '#A3B18A',
-    color: '#1C1916',
-    border: '1px solid #A3B18A',
-  };
-
-  // Search-filtered guests (before status filter) — used for pill badge counts
   const searchFilteredGuests = useMemo(() => {
     if (!search.trim()) return guests;
     const q = search.toLowerCase();
@@ -412,101 +252,283 @@ export function RsvpDashboard({
 
   const isEmpty = guests.length === 0;
 
-  return (
-    <div style={root}>
-      <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+  // ── Columns for ResponsiveTable ───────────────────────────────
 
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-            <h1 style={headingStyle}>RSVP Dashboard</h1>
-            <p style={subStyle}>
+  const columns: Column<Guest>[] = [
+    {
+      key: 'name',
+      label: 'Guest',
+      render: (g) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span style={{ fontWeight: 600, color: 'var(--pl-ink)' }}>{g.name}</span>
+          {g.email && (
+            <a
+              href={`mailto:${g.email}`}
+              style={{ color: 'var(--pl-muted)', textDecoration: 'none', fontSize: '0.78rem' }}
+            >
+              {g.email}
+            </a>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (g) => <StatusPill status={g.status} />,
+    },
+    {
+      key: 'meal',
+      label: 'Meal',
+      render: (g) => (
+        <span style={{ color: g.mealPreference ? 'var(--pl-ink)' : 'var(--pl-divider)' }}>
+          {g.mealPreference || '—'}
+        </span>
+      ),
+      hideMobile: true,
+    },
+    {
+      key: 'plusOne',
+      label: '+1',
+      render: (g) =>
+        g.plusOne ? (
+          <span style={{ color: 'var(--pl-olive)', fontWeight: 600 }}>
+            +1{g.plusOneName ? ` · ${g.plusOneName}` : ''}
+          </span>
+        ) : (
+          <span style={{ color: 'var(--pl-divider)' }}>—</span>
+        ),
+      hideMobile: true,
+    },
+    {
+      key: 'dietary',
+      label: 'Dietary',
+      render: (g) => (
+        <span style={{ color: g.dietaryRestrictions ? 'var(--pl-ink-soft)' : 'var(--pl-divider)' }}>
+          {g.dietaryRestrictions || '—'}
+        </span>
+      ),
+      hideMobile: true,
+    },
+    {
+      key: 'respondedAt',
+      label: 'Replied',
+      align: 'right',
+      render: (g) => (
+        <span
+          style={{
+            color: 'var(--pl-muted)',
+            fontFamily: 'var(--pl-font-mono)',
+            fontSize: '0.78rem',
+          }}
+        >
+          {formatDate(g.respondedAt)}
+        </span>
+      ),
+    },
+  ];
+
+  return (
+    <div
+      style={{
+        background: 'var(--pl-cream)',
+        color: 'var(--pl-ink)',
+        padding: 'clamp(20px, 4vw, 40px)',
+        minHeight: '100vh',
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 1180,
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 32,
+        }}
+      >
+        {/* Editorial header */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'space-between',
+            gap: 24,
+            flexWrap: 'wrap',
+            paddingBottom: 24,
+            borderBottom: '1px solid var(--pl-divider)',
+          }}
+        >
+          <div>
+            <div className="pl-overline" style={{ marginBottom: 14 }}>
+              Guests · RSVP
+            </div>
+            <h1
+              className="pl-display"
+              style={{
+                margin: 0,
+                fontSize: 'clamp(1.8rem, 3.2vw, 2.4rem)',
+                color: 'var(--pl-ink)',
+                lineHeight: 1.05,
+              }}
+            >
+              Who's coming.
+            </h1>
+            <p
+              style={{
+                margin: '8px 0 0',
+                color: 'var(--pl-muted)',
+                fontSize: '0.92rem',
+                lineHeight: 1.5,
+              }}
+            >
               {guests.length === 0
-                ? 'Share your site to start collecting responses'
-                : `Managing responses for site ${siteId || '—'}`}
+                ? 'Share your site to start collecting responses.'
+                : `${guests.length} invited · ${responseRate}% responded`}
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-            <button
-              style={btnStyle}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={refresh}
               disabled={refreshing}
-              aria-label="Refresh data"
+              leftIcon={<RefreshCw size={13} style={{ animation: refreshing ? 'pl-spin 1s linear infinite' : 'none' }} />}
             >
-              <RefreshCw size={14} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
-              {refreshed ? 'Updated!' : 'Refresh'}
-            </button>
-            <button style={btnStyle} onClick={copyEmails} aria-label="Copy attending guest emails">
-              <Mail size={14} />
-              {copiedEmails ? 'Copied!' : 'Copy Emails'}
-            </button>
-            <button style={accentBtnStyle} onClick={exportCsv}>
-              <Download size={14} />
-              {exportedCsv ? 'Exported!' : 'Export CSV'}
-            </button>
+              {refreshed ? 'Updated' : 'Refresh'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={copyEmails}
+              leftIcon={copiedEmails ? <Check size={13} /> : <Mail size={13} />}
+            >
+              {copiedEmails ? 'Copied' : 'Copy emails'}
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={exportCsv}
+              leftIcon={<Download size={13} />}
+            >
+              {exportedCsv ? 'Exported' : 'Export CSV'}
+            </Button>
           </div>
         </div>
 
-        {/* Stats bar */}
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          <StatCard icon={Users} label="Total Invited" value={stats.total || guests.length} color="#A3B18A" delay={0} />
-          <StatCard icon={Check} label="Attending" value={stats.attending} color="#A3B18A" delay={0.05} />
-          <StatCard icon={X} label="Declined" value={stats.declined} color="#E07070" delay={0.1} />
-          <StatCard icon={Clock} label="Awaiting Reply" value={stats.pending} color="#D4A96A" delay={0.15} />
+        {/* Stats row */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: 14,
+          }}
+        >
+          <StatTile
+            accent="olive"
+            icon={<Users size={14} />}
+            label="Total invited"
+            value={stats.total || guests.length}
+            hint="across all events"
+          />
+          <StatTile
+            accent="olive"
+            icon={<Check size={14} />}
+            label="Attending"
+            value={stats.attending}
+            trend={stats.attending > 0 ? { dir: 'up', label: `${responseRate}% responded` } : undefined}
+            hint="confirmed yes"
+          />
+          <StatTile
+            accent="plum"
+            icon={<X size={14} />}
+            label="Declined"
+            value={stats.declined}
+            hint="sent regrets"
+          />
+          <StatTile
+            accent="gold"
+            icon={<Clock size={14} />}
+            label="Pending"
+            value={stats.pending}
+            hint="awaiting reply"
+          />
         </div>
 
         {/* Controls */}
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: 14,
+            flexWrap: 'wrap',
+            alignItems: 'center',
+          }}
+        >
           {/* Search */}
-          <div style={{
-            position: 'relative', flex: '1 1 220px', maxWidth: 340,
-          }}>
-            <Search size={14} style={{
-              position: 'absolute', left: '0.75rem', top: '50%',
-              transform: 'translateY(-50%)', color: 'var(--pl-muted)',
-            }} />
+          <div style={{ position: 'relative', flex: '1 1 220px', maxWidth: 340 }}>
+            <Search
+              size={14}
+              style={{
+                position: 'absolute',
+                left: 12,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: 'var(--pl-muted)',
+                pointerEvents: 'none',
+              }}
+            />
             <input
               type="text"
               placeholder="Search guests…"
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={(e) => setSearch(e.target.value)}
               style={{
-                width: '100%', padding: '0.6rem 0.75rem 0.6rem 2.25rem',
-                background: 'rgba(214,198,168,0.05)',
-                border: '1px solid rgba(214,198,168,0.12)',
-                borderRadius: '0.6rem',
-                color: 'var(--pl-ink-soft)', fontSize: '0.84rem',
-                outline: 'none', boxSizing: 'border-box',
+                width: '100%',
+                padding: '9px 12px 9px 36px',
+                background: 'var(--pl-cream-card)',
+                border: '1px solid var(--pl-divider)',
+                borderRadius: 'var(--pl-radius-md)',
+                color: 'var(--pl-ink)',
+                fontSize: '0.88rem',
+                fontFamily: 'inherit',
+                outline: 'none',
+                boxSizing: 'border-box',
+                transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out)',
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = 'var(--pl-olive)';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = 'var(--pl-divider)';
               }}
             />
           </div>
 
-          {/* Event filter (only when multiple events) */}
           {events.length > 1 && (
             <select
               value={eventFilter}
-              onChange={e => setEventFilter(e.target.value)}
+              onChange={(e) => setEventFilter(e.target.value)}
               aria-label="Filter by event"
               style={{
-                padding: '0.55rem 0.75rem',
-                background: 'rgba(214,198,168,0.05)',
-                border: '1px solid rgba(214,198,168,0.12)',
-                borderRadius: '0.6rem',
-                color: 'var(--pl-ink-soft)',
-                fontSize: '0.84rem',
-                outline: 'none',
+                padding: '9px 14px',
+                background: 'var(--pl-cream-card)',
+                border: '1px solid var(--pl-divider)',
+                borderRadius: 'var(--pl-radius-md)',
+                color: 'var(--pl-ink)',
+                fontSize: '0.86rem',
+                fontFamily: 'inherit',
                 cursor: 'pointer',
+                outline: 'none',
               }}
             >
               <option value="all">All events</option>
-              {events.map(ev => (
+              {events.map((ev) => (
                 <option key={ev.id} value={ev.id}>{ev.name}</option>
               ))}
             </select>
           )}
 
           {/* Filter pills */}
-          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {filterPills.map(({ key, label, count }) => {
               const active = filter === key;
               return (
@@ -514,18 +536,34 @@ export function RsvpDashboard({
                   key={key}
                   onClick={() => setFilter(key)}
                   style={{
-                    ...pillBase,
-                    background: active ? '#A3B18A' : 'rgba(214,198,168,0.06)',
-                    color: active ? '#1C1916' : 'rgba(214,198,168,0.7)',
-                    border: `1px solid ${active ? '#A3B18A' : 'rgba(214,198,168,0.12)'}`,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '7px 14px',
+                    borderRadius: 'var(--pl-radius-full)',
+                    background: active ? 'var(--pl-ink)' : 'var(--pl-cream-card)',
+                    color: active ? 'var(--pl-cream)' : 'var(--pl-ink-soft)',
+                    border: '1px solid',
+                    borderColor: active ? 'var(--pl-ink)' : 'var(--pl-divider)',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
                   }}
                 >
                   {label}
-                  <span style={{
-                    marginLeft: '0.35rem', fontSize: '0.7rem',
-                    background: active ? 'rgba(28,25,22,0.2)' : 'rgba(214,198,168,0.1)',
-                    borderRadius: '999px', padding: '0.05rem 0.45rem',
-                  }}>
+                  <span
+                    style={{
+                      fontSize: '0.7rem',
+                      padding: '1px 6px',
+                      borderRadius: 'var(--pl-radius-full)',
+                      background: active
+                        ? 'color-mix(in oklab, var(--pl-cream) 20%, transparent)'
+                        : 'var(--pl-cream)',
+                      color: active ? 'var(--pl-cream)' : 'var(--pl-muted)',
+                      fontWeight: 700,
+                    }}
+                  >
                     {count}
                   </span>
                 </button>
@@ -534,178 +572,64 @@ export function RsvpDashboard({
           </div>
         </div>
 
-        {/* Table */}
+        {/* Table or empty */}
         {isEmpty ? (
-          <EmptyState />
+          <PageCard padding="none" variant="ghost">
+            <EmptyState
+              size="hero"
+              icon={<QrCode size={28} />}
+              eyebrow="No RSVPs yet"
+              title="Share your site to start collecting"
+              description="Send your link or share your QR code with guests. Their responses will appear here in real time."
+            />
+          </PageCard>
         ) : (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            style={{
-              background: 'rgba(214,198,168,0.03)',
-              border: '1px solid rgba(214,198,168,0.1)',
-              borderRadius: '1rem',
-              overflow: 'hidden',
-            }}
+            transition={{ delay: 0.15 }}
           >
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
-                <thead>
-                  <tr>
-                    {([
-                      { key: 'name' as SortKey, label: 'Name' },
-                      { key: null, label: 'Email' },
-                      { key: 'status' as SortKey, label: 'Status' },
-                      { key: null, label: 'Meal' },
-                      { key: null, label: 'Plus-ones' },
-                      { key: null, label: 'Dietary Notes' },
-                      { key: 'respondedAt' as SortKey, label: 'Response Date' },
-                    ] as Array<{ key: SortKey | null; label: string }>).map(col => (
-                      <th
-                        key={col.label}
-                        style={{ ...thStyle, ...(col.key ? {} : { cursor: 'default' }) }}
-                        onClick={() => col.key && handleSort(col.key)}
-                        aria-sort={
-                          col.key && col.key === sortKey
-                            ? sortDir === 'asc' ? 'ascending' : 'descending'
-                            : undefined
-                        }
-                      >
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                          {col.label}
-                          {col.key && <SortIcon col={col.key} sortKey={sortKey} sortDir={sortDir} />}
-                        </span>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  <AnimatePresence initial={false}>
-                    {filtered.map((guest, i) => (
-                      <motion.tr
-                        key={guest.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ delay: i * 0.02 }}
-                        style={{
-                          transition: 'background 0.15s ease',
-                        }}
-                        onMouseEnter={e => {
-                          (e.currentTarget as HTMLTableRowElement).style.background =
-                            'rgba(214,198,168,0.04)';
-                        }}
-                        onMouseLeave={e => {
-                          (e.currentTarget as HTMLTableRowElement).style.background = '';
-                        }}
-                      >
-                        <td style={{ ...tdStyle, fontWeight: 600, color: 'var(--pl-ink-soft)' }}>
-                          {guest.name}
-                        </td>
-                        <td style={tdStyle}>
-                          {guest.email
-                            ? <a href={`mailto:${guest.email}`} style={{ color: 'var(--pl-muted)', textDecoration: 'none' }}>{guest.email}</a>
-                            : <span style={{ color: 'var(--pl-divider)' }}>—</span>}
-                        </td>
-                        <td style={tdStyle}>
-                          <StatusBadge status={guest.status} />
-                        </td>
-                        <td style={tdStyle}>
-                          {guest.mealPreference || <span style={{ color: 'var(--pl-divider)' }}>—</span>}
-                        </td>
-                        <td style={tdStyle}>
-                          {guest.plusOne
-                            ? <span style={{ color: '#A3B18A' }}>+1{guest.plusOneName ? ` (${guest.plusOneName})` : ''}</span>
-                            : <span style={{ color: 'var(--pl-divider)' }}>—</span>}
-                        </td>
-                        <td style={tdStyle}>
-                          {guest.dietaryRestrictions || <span style={{ color: 'var(--pl-divider)' }}>—</span>}
-                        </td>
-                        <td style={{ ...tdStyle, color: 'var(--pl-muted)', fontSize: '0.8rem' }}>
-                          {formatDate(guest.respondedAt)}
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </AnimatePresence>
-                  {filtered.length === 0 && (
-                    <tr>
-                      <td colSpan={7} style={{ ...tdStyle, textAlign: 'center', padding: '2.5rem', color: 'var(--pl-muted)' }}>
-                        No guests match your filters
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Footer */}
-            <div style={{
-              padding: '0.75rem 1.25rem',
-              borderTop: '1px solid rgba(214,198,168,0.06)',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              fontSize: '0.75rem', color: 'var(--pl-muted)',
-            }}>
-              <span>Showing {filtered.length} of {guests.length} guests</span>
-            </div>
+            <PageCard padding="none" accent="olive">
+              <ResponsiveTable
+                columns={columns}
+                rows={filtered}
+                getRowKey={(g) => g.id}
+                mobileTitle={(g) => g.name}
+                mobileSubtitle={(g) => g.email || formatDate(g.respondedAt)}
+                empty={
+                  <div
+                    style={{
+                      padding: 40,
+                      textAlign: 'center',
+                      color: 'var(--pl-muted)',
+                      fontSize: '0.92rem',
+                    }}
+                  >
+                    No guests match your filters.
+                  </div>
+                }
+              />
+              <div
+                style={{
+                  padding: '14px 22px',
+                  background: 'var(--pl-cream-deep)',
+                  borderTop: '1px solid var(--pl-divider)',
+                  fontFamily: 'var(--pl-font-mono)',
+                  fontSize: '0.66rem',
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  color: 'var(--pl-muted)',
+                }}
+              >
+                Showing {filtered.length} of {guests.length} guests
+              </div>
+            </PageCard>
           </motion.div>
         )}
       </div>
-
-      <style>{`
-        
-        input::placeholder { color: rgba(214,198,168,0.3); }
-        input:focus { border-color: rgba(163,177,138,0.4) !important; }
-      `}</style>
     </div>
   );
 }
 
-// ── Empty State ────────────────────────────────────────────────
-
-function EmptyState() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      style={{
-        background: 'rgba(214,198,168,0.03)',
-        border: '1px solid rgba(214,198,168,0.1)',
-        borderRadius: '1rem',
-        padding: '4rem 2rem',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '1.25rem',
-        textAlign: 'center',
-      }}
-    >
-      <div style={{
-        width: 64, height: 64, borderRadius: '50%',
-        background: 'rgba(163,177,138,0.1)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <Users size={28} color="#A3B18A" />
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <h2 style={{ margin: 0, color: 'var(--pl-ink-soft)', fontSize: '1.25rem', fontWeight: 600 }}>
-          No RSVPs yet
-        </h2>
-        <p style={{ margin: 0, color: 'var(--pl-muted)', fontSize: '0.9rem', maxWidth: 380 }}>
-          Share your wedding site or QR code so guests can start responding. Their answers will appear here in real time.
-        </p>
-      </div>
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '0.5rem',
-        padding: '0.65rem 1.25rem',
-        background: 'rgba(163,177,138,0.08)',
-        border: '1px solid rgba(163,177,138,0.18)',
-        borderRadius: '0.75rem',
-        color: '#A3B18A', fontSize: '0.85rem', fontWeight: 600,
-      }}>
-        <QrCode size={16} />
-        Share your QR code to start collecting RSVPs
-      </div>
-    </motion.div>
-  );
-}
+// Suppress unused imports
+void Copy;

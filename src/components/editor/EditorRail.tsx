@@ -1,80 +1,118 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// Pearloom / editor/EditorRail.tsx
-// Floating glass navigation rail — primary + overflow tabs
+// EditorRail — Wave D rebuild.
+// Collapses the legacy 16-tab rail into 4 editorial workspaces:
+//   Build · Style · Grow · Ship
+// Each workspace icon expands to a contextual flyout listing its
+// sub-tabs. Drives the existing tab state machine — no migration
+// of `editor-state` required.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Palette, LayoutGrid, BookOpen, CalendarDays, Sparkles, Settings,
-  MoreHorizontal, Users, MessageSquare, BarChart2, Globe,
-  Music, ShoppingBag, Mail, Heart, FileText, X,
+  Hammer, Palette, Megaphone, Rocket,
+  BookOpen, CalendarDays, FileText, LayoutGrid, Sparkles, Mic,
+  Type as TypeIcon, Image as ImageIcon, Brush,
+  Users, Mail, MessageSquare, Heart, Music, ShoppingBag,
+  BarChart2, Globe, History, Settings,
 } from 'lucide-react';
-import { ElegantHeartIcon } from '@/components/icons/PearloomIcons';
-import { RichTooltip } from '@/components/ui/tooltip';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
 import { TAB_TIER, TIER_META, type PlanTier } from '@/lib/plan-tiers';
 import { isPlanSufficient } from '@/lib/plan-gate';
 
-type RailItem = {
+// ── Types ───────────────────────────────────────────────────────
+
+interface SubTab {
   id: string;
   tab: EditorTab;
   Icon: React.ElementType;
   label: string;
   description?: string;
   shortcut?: string;
-};
+}
 
-// Primary tabs — always visible on the rail
-const PRIMARY_ITEMS: RailItem[] = [
-  { id: 'design',   tab: 'design',   Icon: Palette,      label: 'Design',   description: 'Colors, fonts & visual style', shortcut: '⌘3' },
-  { id: 'sections', tab: 'canvas',   Icon: LayoutGrid,   label: 'Layout',   description: 'Add & arrange page sections', shortcut: '⌘8' },
-  { id: 'story',    tab: 'story',    Icon: BookOpen,     label: 'Chapters', description: 'Your love story timeline', shortcut: '⌘1' },
-  { id: 'events',   tab: 'events',   Icon: CalendarDays, label: 'Events',   description: 'Ceremony, reception & more', shortcut: '⌘2' },
-  { id: 'pages',    tab: 'pages',    Icon: FileText,     label: 'Pages',    description: 'Manage site pages', shortcut: '⌘5' },
-];
+interface Workspace {
+  id: 'build' | 'style' | 'grow' | 'ship';
+  label: string;
+  Icon: React.ElementType;
+  defaultTab: EditorTab;
+  description: string;
+  tabs: SubTab[];
+}
 
-// Secondary rail items — post-launch tools surfaced as first-class icons
-const SECONDARY_ITEMS: RailItem[] = [
-  { id: 'guests',    tab: 'guests',    Icon: Users,        label: 'Guests',    description: 'Guest list & RSVPs' },
-  { id: 'analytics', tab: 'analytics', Icon: BarChart2,   label: 'Analytics', description: 'Views, RSVPs & engagement' },
-  { id: 'messaging', tab: 'messaging', Icon: MessageSquare, label: 'Messages', description: 'Email your guests' },
-];
+// ── 4 workspaces ────────────────────────────────────────────────
 
-type MoreGroup = { label: string; items: RailItem[] };
-
-// Overflow groups — shown in "More" popover, organized by category
-const MORE_GROUPS: MoreGroup[] = [
+const WORKSPACES: Workspace[] = [
   {
-    label: 'Content',
-    items: [
-      { id: 'blocks', tab: 'blocks', Icon: Sparkles,  label: 'Pear AI',   description: 'AI content suggestions' },
-      { id: 'voice',  tab: 'voice',  Icon: Sparkles,  label: 'Voice AI',  description: 'Personalized voice & tone' },
+    id: 'build',
+    label: 'Build',
+    Icon: Hammer,
+    defaultTab: 'story',
+    description: 'Words, sections, structure',
+    tabs: [
+      { id: 'story',    tab: 'story',    Icon: BookOpen,     label: 'Chapters',    description: 'Your love story timeline', shortcut: '⌘1' },
+      { id: 'events',   tab: 'events',   Icon: CalendarDays, label: 'Events',      description: 'Ceremony, reception, more', shortcut: '⌘2' },
+      { id: 'pages',    tab: 'pages',    Icon: FileText,     label: 'Pages',       description: 'Manage all site pages', shortcut: '⌘5' },
+      { id: 'sections', tab: 'canvas',   Icon: LayoutGrid,   label: 'Sections',    description: 'Add & arrange sections', shortcut: '⌘8' },
+      { id: 'voice',    tab: 'voice',    Icon: Mic,          label: 'Voice & tone', description: 'How Pear sounds like you' },
     ],
   },
   {
-    label: 'Guests & Invitations',
-    items: [
-      { id: 'invite',   tab: 'invite',   Icon: Mail,  label: 'Invitations', description: 'Send bulk invites' },
-      { id: 'seating',  tab: 'seating',  Icon: Users, label: 'Seating',     description: 'Seating chart editor' },
+    id: 'style',
+    label: 'Style',
+    Icon: Palette,
+    defaultTab: 'design',
+    description: 'Color, type, motion',
+    tabs: [
+      { id: 'design',     tab: 'design',     Icon: Brush,     label: 'Theme',       description: 'Palette · radius · vibe', shortcut: '⌘3' },
+      { id: 'blocks',     tab: 'blocks',     Icon: Sparkles,  label: 'Pear blocks', description: 'AI section presets' },
+      { id: 'components', tab: 'components', Icon: TypeIcon,  label: 'Components',  description: 'Saved blocks & motifs' },
     ],
   },
   {
-    label: 'After the Wedding',
-    items: [
-      { id: 'savethedate', tab: 'savethedate', Icon: Heart,       label: 'Save the Date' },
-      { id: 'thankyou',    tab: 'thankyou',    Icon: Heart,       label: 'Thank You Notes' },
-      { id: 'spotify',     tab: 'spotify',     Icon: Music,       label: 'Music' },
-      { id: 'vendors',     tab: 'vendors',     Icon: ShoppingBag, label: 'Vendors' },
-      { id: 'translate',   tab: 'translate',   Icon: Globe,       label: 'Translate' },
+    id: 'grow',
+    label: 'Grow',
+    Icon: Megaphone,
+    defaultTab: 'guests',
+    description: 'Reach guests, fill the room',
+    tabs: [
+      { id: 'guests',      tab: 'guests',      Icon: Users,        label: 'Guests',      description: 'Guest list & RSVPs' },
+      { id: 'invite',      tab: 'invite',      Icon: Mail,         label: 'Invitations', description: 'Send bulk invites' },
+      { id: 'messaging',   tab: 'messaging',   Icon: MessageSquare,label: 'Messages',    description: 'Email your guests' },
+      { id: 'seating',     tab: 'seating',     Icon: Users,        label: 'Seating',     description: 'Seating chart' },
+      { id: 'savethedate', tab: 'savethedate', Icon: Heart,        label: 'Save the Date' },
+      { id: 'thankyou',    tab: 'thankyou',    Icon: Heart,        label: 'Thank-you notes' },
+      { id: 'spotify',     tab: 'spotify',     Icon: Music,        label: 'Music' },
+      { id: 'vendors',     tab: 'vendors',     Icon: ShoppingBag,  label: 'Vendors' },
+    ],
+  },
+  {
+    id: 'ship',
+    label: 'Ship',
+    Icon: Rocket,
+    defaultTab: 'analytics',
+    description: 'Polish, publish, measure',
+    tabs: [
+      { id: 'analytics', tab: 'analytics', Icon: BarChart2, label: 'Analytics', description: 'Views & engagement' },
+      { id: 'translate', tab: 'translate', Icon: Globe,     label: 'Translate', description: 'Multi-language sites' },
+      { id: 'history',   tab: 'history',   Icon: History,   label: 'History',   description: 'Versions & rollback' },
+      { id: 'details',   tab: 'details',   Icon: Settings,  label: 'Settings',  description: 'Site-wide preferences' },
     ],
   },
 ];
 
-// Resolve the user's plan from session or a body data-attribute fallback.
+// ── Utilities ───────────────────────────────────────────────────
+
+function findWorkspaceForTab(tab: EditorTab): Workspace['id'] {
+  for (const ws of WORKSPACES) {
+    if (ws.tabs.some((t) => t.tab === tab) || ws.defaultTab === tab) return ws.id;
+  }
+  return 'build';
+}
+
 function useUserPlan(): string {
   const { data: session } = useSession();
   const sessionPlan = (session as Record<string, unknown> | null)?.plan;
@@ -86,386 +124,379 @@ function useUserPlan(): string {
   return 'free';
 }
 
-function RailButton({
-  item,
+// ── Workspace pill ──────────────────────────────────────────────
+
+function WorkspacePill({
+  workspace,
   isActive,
-  locked,
-  lockedTierLabel,
-  onClick,
+  isOpen,
+  onToggle,
 }: {
-  item: RailItem;
+  workspace: Workspace;
   isActive: boolean;
-  locked?: boolean;
-  lockedTierLabel?: string;
-  onClick: () => void;
+  isOpen: boolean;
+  onToggle: () => void;
 }) {
-  const Icon = item.Icon;
-  const description = locked && lockedTierLabel
-    ? `${lockedTierLabel} plan required`
-    : item.description;
+  const Icon = workspace.Icon;
   return (
-    <RichTooltip
-      label={item.label}
-      description={description}
-      shortcut={item.shortcut}
-      side="right"
+    <button
+      onClick={onToggle}
+      aria-label={workspace.label}
+      aria-expanded={isOpen}
+      style={{
+        position: 'relative',
+        width: 44,
+        height: 44,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 3,
+        border: 'none',
+        borderRadius: 12,
+        background: isActive
+          ? 'var(--pl-olive-mist)'
+          : isOpen
+          ? 'color-mix(in oklab, var(--pl-olive) 6%, transparent)'
+          : 'transparent',
+        color: isActive || isOpen ? 'var(--pl-ink)' : 'var(--pl-ink-soft)',
+        cursor: 'pointer',
+        transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
+      }}
     >
-      <motion.button
-        onClick={onClick}
-        className="pl-rail-btn"
-        whileHover={{ backgroundColor: 'rgba(24,24,27,0.08)' }}
-        whileTap={{ scale: 0.88 }}
+      {isActive && (
+        <motion.span
+          layoutId="rail-active-workspace"
+          aria-hidden
+          style={{
+            position: 'absolute',
+            left: -6,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: 3,
+            height: 22,
+            borderRadius: 'var(--pl-radius-full)',
+            background: 'var(--pl-olive)',
+          }}
+          transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+        />
+      )}
+      <Icon size={17} strokeWidth={isActive ? 2.2 : 1.7} />
+      <span
         style={{
-          width: '38px', height: '38px',
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          gap: '4px', border: 'none', borderRadius: '12px',
-          background: isActive ? 'rgba(24,24,27,0.08)' : 'transparent',
-          color: isActive ? '#18181B' : '#71717A',
-          cursor: 'pointer', position: 'relative',
-          transition: 'background 0.15s, color 0.15s',
-          opacity: locked ? 0.55 : 1,
+          fontFamily: 'var(--pl-font-mono)',
+          fontSize: '0.55rem',
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          lineHeight: 1,
+          fontWeight: 700,
         }}
       >
-        {isActive && (
-          <motion.div
-            layoutId="rail-active"
-            style={{
-              position: 'absolute', left: '-4px', top: '50%', transform: 'translateY(-50%)',
-              width: '3px', height: '20px', borderRadius: '0 3px 3px 0',
-              background: '#18181B',
-            }}
-            transition={{ type: 'spring', stiffness: 700, damping: 38, mass: 0.6 }}
-          />
-        )}
-        <Icon size={18} strokeWidth={isActive ? 2.2 : 1.8} />
-        <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', lineHeight: 1, userSelect: 'none' }}>
-          {item.label}
-        </span>
-      </motion.button>
-    </RichTooltip>
+        {workspace.label}
+      </span>
+    </button>
   );
 }
+
+// ── Flyout panel ────────────────────────────────────────────────
+
+function WorkspaceFlyout({
+  workspace,
+  activeTab,
+  onPick,
+  onClose,
+  lockMap,
+}: {
+  workspace: Workspace;
+  activeTab: EditorTab;
+  onPick: (tab: EditorTab) => void;
+  onClose: () => void;
+  lockMap: Record<string, { locked: boolean; tierLabel?: string }>;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -8, scale: 0.98 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: -8, scale: 0.98 }}
+      transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+      style={{
+        position: 'absolute',
+        left: 64,
+        top: 0,
+        width: 268,
+        background: 'var(--pl-cream-card)',
+        border: '1px solid var(--pl-divider)',
+        borderRadius: 14,
+        padding: 8,
+        boxShadow: 'var(--pl-shadow-xl)',
+        zIndex: 60,
+      }}
+      onMouseLeave={onClose}
+    >
+      {/* Header */}
+      <div
+        style={{
+          padding: '10px 12px 12px',
+          borderBottom: '1px solid var(--pl-divider-soft)',
+          marginBottom: 6,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: 'var(--pl-font-mono)',
+            fontSize: '0.62rem',
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--pl-muted)',
+            marginBottom: 4,
+          }}
+        >
+          Workspace
+        </div>
+        <div
+          style={{
+            fontFamily: 'var(--pl-font-display)',
+            fontSize: '1.1rem',
+            color: 'var(--pl-ink)',
+            letterSpacing: '-0.014em',
+            fontVariationSettings: '"opsz" 144, "SOFT" 50',
+          }}
+        >
+          {workspace.label}
+        </div>
+        <div
+          style={{
+            color: 'var(--pl-muted)',
+            fontSize: '0.78rem',
+            marginTop: 2,
+          }}
+        >
+          {workspace.description}
+        </div>
+      </div>
+
+      {/* Items */}
+      <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 1 }}>
+        {workspace.tabs.map((sub) => {
+          const lock = lockMap[sub.tab];
+          const Icon = sub.Icon;
+          const isActive = activeTab === sub.tab;
+          return (
+            <li key={sub.id}>
+              <button
+                onClick={() => !lock?.locked && onPick(sub.tab)}
+                disabled={lock?.locked}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '24px 1fr auto',
+                  gap: 12,
+                  alignItems: 'center',
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: isActive ? 'var(--pl-olive-mist)' : 'transparent',
+                  border: 'none',
+                  borderRadius: 'var(--pl-radius-md)',
+                  textAlign: 'left',
+                  cursor: lock?.locked ? 'not-allowed' : 'pointer',
+                  opacity: lock?.locked ? 0.55 : 1,
+                  transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive && !lock?.locked) {
+                    e.currentTarget.style.background = 'color-mix(in oklab, var(--pl-olive) 5%, transparent)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                <Icon size={16} style={{ color: isActive ? 'var(--pl-olive)' : 'var(--pl-ink-soft)' }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
+                  <span
+                    style={{
+                      fontSize: '0.86rem',
+                      fontWeight: isActive ? 600 : 500,
+                      color: 'var(--pl-ink)',
+                    }}
+                  >
+                    {sub.label}
+                  </span>
+                  {sub.description && (
+                    <span
+                      style={{
+                        fontSize: '0.7rem',
+                        color: 'var(--pl-muted)',
+                        lineHeight: 1.3,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {sub.description}
+                    </span>
+                  )}
+                </div>
+                {lock?.locked ? (
+                  <span
+                    style={{
+                      fontSize: '0.6rem',
+                      letterSpacing: '0.14em',
+                      textTransform: 'uppercase',
+                      color: 'var(--pl-gold)',
+                      fontWeight: 700,
+                      fontFamily: 'var(--pl-font-mono)',
+                    }}
+                  >
+                    {lock.tierLabel}
+                  </span>
+                ) : sub.shortcut ? (
+                  <kbd
+                    style={{
+                      fontFamily: 'var(--pl-font-mono)',
+                      fontSize: '0.62rem',
+                      padding: '2px 6px',
+                      background: 'var(--pl-cream-deep)',
+                      border: '1px solid var(--pl-divider)',
+                      borderRadius: 4,
+                      color: 'var(--pl-muted)',
+                    }}
+                  >
+                    {sub.shortcut}
+                  </kbd>
+                ) : null}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </motion.div>
+  );
+}
+
+// ── Main rail ───────────────────────────────────────────────────
 
 export function EditorRail({ onOpen }: { onOpen?: () => void }) {
   const { state, actions } = useEditor();
   const activeTab = state.activeTab;
   const currentPlan = useUserPlan();
-  const [moreOpen, setMoreOpen] = useState(false);
-  const moreRef = useRef<HTMLDivElement>(null);
-  const popoverRef = useRef<HTMLDivElement>(null);
-  const popoverScrollRef = useRef<HTMLDivElement>(null);
-  const [scrolledToBottom, setScrolledToBottom] = useState(true);
-  const [canScroll, setCanScroll] = useState(false);
+  const [openWorkspace, setOpenWorkspace] = useState<Workspace['id'] | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
 
-  // Close "More" popover on outside click
+  // Collapse flyout on outside click / Escape
   useEffect(() => {
-    if (!moreOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
+    if (!openWorkspace) return;
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpenWorkspace(null);
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [moreOpen]);
-
-  // Item 19 + 20: Escape closes popover; focus trap on Tab cycling.
-  useEffect(() => {
-    if (!moreOpen) return;
-    const getFocusables = (): HTMLElement[] => {
-      const root = popoverRef.current;
-      if (!root) return [];
-      return Array.from(
-        root.querySelectorAll<HTMLElement>(
-          'button:not([disabled]),[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])',
-        ),
-      ).filter(el => !el.hasAttribute('data-focus-skip'));
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenWorkspace(null);
     };
-
-    // Focus first focusable element after the popover mounts.
-    const focusTimer = window.setTimeout(() => {
-      const focusables = getFocusables();
-      focusables[0]?.focus();
-    }, 0);
-
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        setMoreOpen(false);
-        return;
-      }
-      if (e.key !== 'Tab') return;
-      const focusables = getFocusables();
-      if (focusables.length === 0) return;
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-      const active = document.activeElement as HTMLElement | null;
-      if (e.shiftKey) {
-        if (active === first || !popoverRef.current?.contains(active)) {
-          e.preventDefault();
-          last.focus();
-        }
-      } else {
-        if (active === last || !popoverRef.current?.contains(active)) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    };
-    document.addEventListener('keydown', handler);
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
     return () => {
-      window.clearTimeout(focusTimer);
-      document.removeEventListener('keydown', handler);
+      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onKey);
     };
-  }, [moreOpen]);
+  }, [openWorkspace]);
 
-  // Item 26: track scroll position within the popover to toggle bottom fade.
-  useEffect(() => {
-    if (!moreOpen) return;
-    const el = popoverScrollRef.current;
-    if (!el) return;
-    const update = () => {
-      const overflow = el.scrollHeight - el.clientHeight;
-      setCanScroll(overflow > 1);
-      setScrolledToBottom(overflow <= 1 || el.scrollTop + el.clientHeight >= el.scrollHeight - 1);
-    };
-    update();
-    el.addEventListener('scroll', update, { passive: true });
-    return () => { el.removeEventListener('scroll', update); };
-  }, [moreOpen]);
-
-  const handleClick = (tab: EditorTab) => {
-    actions.handleTabChange(tab);
-    onOpen?.();
-    setMoreOpen(false);
-  };
-
-  // Check if active tab is in secondary or overflow panels
-  const allMoreItems = MORE_GROUPS.flatMap(g => g.items);
-  const isMoreActive = allMoreItems.some(item => item.tab === activeTab) &&
-    !SECONDARY_ITEMS.some(item => item.tab === activeTab);
-
-  // Item 24: compute lock state + tier label per tab.
-  const tabLockInfo = useMemo(() => {
+  const lockMap = useMemo(() => {
     const info: Record<string, { locked: boolean; tierLabel?: string }> = {};
-    const allTabs: EditorTab[] = [
-      ...PRIMARY_ITEMS.map(i => i.tab),
-      ...SECONDARY_ITEMS.map(i => i.tab),
-      ...allMoreItems.map(i => i.tab),
-    ];
-    for (const tab of allTabs) {
-      const tier = TAB_TIER[tab] as PlanTier | undefined;
-      if (!tier) { info[tab] = { locked: false }; continue; }
-      const ok = isPlanSufficient(currentPlan, tier);
-      info[tab] = { locked: !ok, tierLabel: TIER_META[tier].label };
+    for (const ws of WORKSPACES) {
+      for (const t of ws.tabs) {
+        const tier = TAB_TIER[t.tab] as PlanTier | undefined;
+        if (!tier) {
+          info[t.tab] = { locked: false };
+          continue;
+        }
+        const ok = isPlanSufficient(currentPlan, tier);
+        info[t.tab] = { locked: !ok, tierLabel: TIER_META[tier].label };
+      }
     }
     return info;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPlan]);
+
+  const activeWorkspace = findWorkspaceForTab(activeTab);
+
+  const handlePick = (tab: EditorTab) => {
+    actions.handleTabChange(tab);
+    onOpen?.();
+    setOpenWorkspace(null);
+  };
+
+  const handleToggle = (wsId: Workspace['id']) => {
+    if (openWorkspace === wsId) {
+      // Same workspace clicked: navigate to its default tab and close
+      const ws = WORKSPACES.find((w) => w.id === wsId);
+      if (ws) handlePick(ws.defaultTab);
+    } else {
+      setOpenWorkspace(wsId);
+    }
+  };
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: -20 }}
+      ref={ref}
+      initial={{ opacity: 0, x: -16 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.2, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ delay: 0.18, duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
       style={{
-        position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
-        zIndex: 50, display: 'flex', flexDirection: 'column', alignItems: 'center',
-        gap: '4px', padding: '8px 6px', borderRadius: '12px',
-        background: '#FFFFFF',
-        border: '1px solid #E4E4E7',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+        position: 'absolute',
+        left: 12,
+        top: '50%',
+        transform: 'translateY(-50%)',
+        zIndex: 50,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 4,
+        padding: 8,
+        borderRadius: 16,
+        background: 'var(--pl-cream-card)',
+        border: '1px solid var(--pl-divider)',
+        boxShadow: 'var(--pl-shadow-md)',
       }}
     >
-      {/* Item 80: focus-visible outline for keyboard nav. */}
-      <style>{`
-        .pl-rail-btn:focus { outline: none; }
-        .pl-rail-btn:focus-visible { outline: 2px solid #4a9b8a; outline-offset: 2px; }
-        .pl-rail-more-item:focus { outline: none; }
-        .pl-rail-more-item:focus-visible { outline: 2px solid #4a9b8a; outline-offset: 2px; }
-      `}</style>
-
-      {/* Primary nav items */}
-      {PRIMARY_ITEMS.map(item => {
-        const lock = tabLockInfo[item.tab];
-        return (
-          <RailButton
-            key={item.id}
-            item={item}
-            isActive={activeTab === item.tab}
-            locked={lock?.locked}
-            lockedTierLabel={lock?.tierLabel}
-            onClick={() => handleClick(item.tab)}
-          />
-        );
-      })}
-
-      {/* Item 23: secondary cluster divider — small-caps TOOLS label with inset rules. */}
+      {/* Wordmark dot */}
       <div
         style={{
-          display: 'flex', alignItems: 'center', gap: '3px',
-          width: '100%', padding: '4px 0 2px', userSelect: 'none',
+          width: 28,
+          height: 28,
+          borderRadius: 8,
+          background: 'var(--pl-ink)',
+          color: 'var(--pl-cream)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: 6,
+          fontFamily: 'var(--pl-font-display)',
+          fontSize: '0.72rem',
+          fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
         }}
-        aria-hidden="true"
       >
-        <span style={{ flex: 1, height: '1px', background: '#E4E4E7' }} />
-        <span style={{
-          fontSize: '0.42rem', fontWeight: 700, letterSpacing: '0.12em',
-          textTransform: 'uppercase', color: '#A1A1AA', lineHeight: 1,
-        }}>Tools</span>
-        <span style={{ flex: 1, height: '1px', background: '#E4E4E7' }} />
+        P
       </div>
-      {SECONDARY_ITEMS.map(item => {
-        const lock = tabLockInfo[item.tab];
-        return (
-          <RailButton
-            key={item.id}
-            item={item}
-            isActive={activeTab === item.tab}
-            locked={lock?.locked}
-            lockedTierLabel={lock?.tierLabel}
-            onClick={() => handleClick(item.tab)}
-          />
-        );
-      })}
 
-      {/* More button + popover */}
-      <div ref={moreRef} style={{ position: 'relative' }}>
-        <RichTooltip label="More tools" description="All editor panels & features" side="right">
-          <motion.button
-            onClick={() => setMoreOpen(!moreOpen)}
-            className="pl-rail-btn"
-            whileHover={{ backgroundColor: 'rgba(24,24,27,0.08)' }}
-            whileTap={{ scale: 0.88 }}
-            style={{
-              width: '44px', height: '44px',
-              display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'center',
-              gap: '3px', border: 'none', borderRadius: '8px',
-              background: moreOpen || isMoreActive ? 'rgba(24,24,27,0.08)' : 'transparent',
-              color: moreOpen || isMoreActive ? '#18181B' : '#71717A',
-              cursor: 'pointer', transition: 'background 0.15s',
-              position: 'relative',
-            }}
-          >
-            <MoreHorizontal size={18} />
-            <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', lineHeight: 1, userSelect: 'none' }}>
-              More
-            </span>
-            {/* Item 22: pulse when visible (reuse existing global pl-dot-pulse). */}
-            {isMoreActive && !moreOpen && (
-              <div
-                className="pl-dot-pulse"
-                style={{ position: 'absolute', top: '6px', right: '6px', width: '6px', height: '6px', borderRadius: '50%', background: '#18181B' }}
+      {WORKSPACES.map((ws) => (
+        <div key={ws.id} style={{ position: 'relative' }}>
+          <WorkspacePill
+            workspace={ws}
+            isActive={ws.id === activeWorkspace}
+            isOpen={openWorkspace === ws.id}
+            onToggle={() => handleToggle(ws.id)}
+          />
+          <AnimatePresence>
+            {openWorkspace === ws.id && (
+              <WorkspaceFlyout
+                workspace={ws}
+                activeTab={activeTab}
+                onPick={handlePick}
+                onClose={() => setOpenWorkspace(null)}
+                lockMap={lockMap}
               />
             )}
-          </motion.button>
-        </RichTooltip>
-
-        {/* Popover */}
-        <AnimatePresence>
-          {moreOpen && (
-            <motion.div
-              ref={popoverRef}
-              role="dialog"
-              aria-label="More tools"
-              initial={{ opacity: 0, x: -8, scale: 0.95 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: -8, scale: 0.95 }}
-              transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              style={{
-                position: 'absolute', left: 'calc(100% + 12px)', top: '50%', transform: 'translateY(-50%)',
-                width: '200px',
-                background: '#FFFFFF',
-                borderRadius: '12px',
-                border: '1px solid #E4E4E7',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)',
-                zIndex: 100,
-              } as React.CSSProperties}
-            >
-              <div
-                ref={popoverScrollRef}
-                style={{
-                  display: 'flex', flexDirection: 'column', gap: '4px',
-                  padding: '8px',
-                  maxHeight: '400px', overflowY: 'auto',
-                  borderRadius: '12px',
-                }}
-              >
-                {MORE_GROUPS.map((group, gi) => (
-                  <div key={group.label}>
-                    {gi > 0 && <div style={{ height: '1px', background: '#F4F4F5', margin: '4px 0' }} />}
-                    <div style={{ fontSize: '0.52rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#A1A1AA', padding: '4px 10px 2px' }}>
-                      {group.label}
-                    </div>
-                    {group.items.map(item => {
-                      const Icon = item.Icon;
-                      const isActive = activeTab === item.tab;
-                      const lock = tabLockInfo[item.tab];
-                      const locked = lock?.locked;
-                      const lockedLabel = lock?.tierLabel;
-                      const button = (
-                        <button
-                          key={item.id}
-                          onClick={() => handleClick(item.tab)}
-                          className="pl-rail-more-item"
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: '10px',
-                            padding: '7px 10px', borderRadius: '10px', border: 'none',
-                            background: isActive ? 'rgba(24,24,27,0.08)' : 'transparent',
-                            color: isActive ? '#18181B' : '#3F3F46',
-                            cursor: 'pointer', fontSize: '0.75rem', fontWeight: isActive ? 600 : 400,
-                            width: '100%', textAlign: 'left', transition: 'background 0.12s',
-                            opacity: locked ? 0.55 : 1,
-                          }}
-                          onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.025)'; }}
-                          onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
-                        >
-                          <Icon size={15} style={{ color: isActive ? '#18181B' : '#71717A', flexShrink: 0 }} />
-                          {item.label}
-                        </button>
-                      );
-                      if (locked && lockedLabel) {
-                        return (
-                          <RichTooltip
-                            key={item.id}
-                            label={item.label}
-                            description={`${lockedLabel} plan required`}
-                            side="right"
-                          >
-                            {button}
-                          </RichTooltip>
-                        );
-                      }
-                      return button;
-                    })}
-                  </div>
-                ))}
-              </div>
-              {/* Item 26: bottom scroll-fade affordance — only when content overflows and user hasn't reached the bottom. */}
-              {canScroll && !scrolledToBottom && (
-                <div
-                  aria-hidden="true"
-                  style={{
-                    position: 'absolute', left: 0, right: 0, bottom: 0,
-                    height: '36px', borderRadius: '0 0 12px 12px',
-                    pointerEvents: 'none',
-                    background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 70%, rgba(255,255,255,1) 100%)',
-                  }}
-                />
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      <div style={{ flex: 1, minHeight: '12px' }} />
-
-      {/* Settings at bottom */}
-      <RailButton
-        item={{ id: 'details', tab: 'details', Icon: Settings, label: 'Settings', description: 'Site details & configuration' }}
-        isActive={activeTab === 'details'}
-        onClick={() => handleClick('details')}
-      />
+          </AnimatePresence>
+        </div>
+      ))}
     </motion.div>
   );
 }

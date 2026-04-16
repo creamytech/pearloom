@@ -101,10 +101,11 @@ export function ResponsiveControls<T>({
         {label && (
           <span style={{
             fontSize: 'var(--pl-text-sm)', fontWeight: 700,
-            color: '#3F3F46',
-            letterSpacing: '0.06em',
+            color: 'var(--pl-ink-soft)',
+            letterSpacing: '0.1em',
             textTransform: 'uppercase' as const,
             marginRight: 'auto',
+            fontFamily: 'var(--pl-font-mono)',
           }}>
             {label}
           </span>
@@ -112,11 +113,11 @@ export function ResponsiveControls<T>({
 
         {/* Device toggles */}
         <div style={{
-          display: 'flex', alignItems: 'center', gap: '1px',
-          padding: '2px',
-          borderRadius: '8px',
-          background: '#FFFFFF',
-          border: '1px solid var(--pl-black-4)',
+          display: 'flex', alignItems: 'center', gap: 1,
+          padding: 2,
+          borderRadius: 8,
+          background: 'var(--pl-cream-card)',
+          border: '1px solid var(--pl-divider)',
         } as React.CSSProperties}>
           {DEVICE_LIST.map(({ mode, Icon, label: deviceLabel }) => {
             const isActive = editingDevice === mode && !isLinked;
@@ -133,30 +134,29 @@ export function ResponsiveControls<T>({
                 whileTap={!isLinked ? { scale: 0.9 } : {}}
                 transition={{ type: 'spring', stiffness: 400, damping: 22 }}
                 style={{
-                  width: '24px', height: '24px',
+                  width: 24, height: 24,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  borderRadius: '6px', border: 'none',
-                  background: isActive ? '#18181B' : 'transparent',
+                  borderRadius: 6, border: 'none',
+                  background: isActive ? 'var(--pl-ink)' : 'transparent',
                   color: isActive
-                    ? 'white'
+                    ? 'var(--pl-cream)'
                     : isLinked
-                      ? '#71717A'
+                      ? 'var(--pl-muted)'
                       : hasOverride
-                        ? '#18181B'
-                        : '#71717A',
+                        ? 'var(--pl-olive)'
+                        : 'var(--pl-muted)',
                   cursor: isLinked ? 'default' : 'pointer',
-                  opacity: isLinked ? 0.45 : 1,
-                  transition: 'background 0.15s, color 0.15s, opacity 0.15s',
+                  opacity: isLinked ? 0.5 : 1,
+                  transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out), opacity var(--pl-dur-fast) var(--pl-ease-out)',
                   position: 'relative',
                 }}
               >
                 <Icon size={12} />
-                {/* Dot indicator for overrides */}
                 {hasOverride && !isActive && (
                   <div style={{
-                    position: 'absolute', bottom: '1px', right: '1px',
-                    width: '4px', height: '4px', borderRadius: '50%',
-                    background: '#18181B',
+                    position: 'absolute', bottom: 1, right: 1,
+                    width: 4, height: 4, borderRadius: '50%',
+                    background: 'var(--pl-olive)',
                   }} />
                 )}
               </motion.button>
@@ -173,13 +173,16 @@ export function ResponsiveControls<T>({
           whileTap={{ scale: 0.88 }}
           transition={{ type: 'spring', stiffness: 400, damping: 22 }}
           style={{
-            width: '26px', height: '26px',
+            width: 26, height: 26,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            borderRadius: '6px', border: '1px solid var(--pl-black-6)',
-            background: isLinked ? 'rgba(24,24,27,0.08)' : 'var(--pl-white-20)',
-            color: isLinked ? '#18181B' : '#71717A',
+            borderRadius: 6,
+            border: `1px solid ${isLinked ? 'var(--pl-divider)' : 'color-mix(in oklab, var(--pl-olive) 40%, transparent)'}`,
+            background: isLinked
+              ? 'color-mix(in oklab, var(--pl-ink) 6%, transparent)'
+              : 'color-mix(in oklab, var(--pl-olive) 12%, transparent)',
+            color: isLinked ? 'var(--pl-ink-soft)' : 'var(--pl-olive)',
             cursor: 'pointer',
-            transition: 'background 0.15s, color 0.15s',
+            transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
           } as React.CSSProperties}
         >
           <AnimatePresence mode="popLayout">
@@ -208,14 +211,17 @@ export function ResponsiveControls<T>({
             style={{ overflow: 'hidden' }}
           >
             <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: '4px',
-              padding: '2px 8px',
-              borderRadius: '8px',
-              background: '#F4F4F5',
-              fontSize: 'var(--pl-text-2xs)', fontWeight: 700,
-              color: '#18181B',
-              letterSpacing: '0.06em',
+              display: 'inline-flex', alignItems: 'center', gap: 5,
+              padding: '3px 10px',
+              borderRadius: 999,
+              background: 'color-mix(in oklab, var(--pl-olive) 12%, transparent)',
+              fontSize: 'var(--pl-text-2xs)',
+              fontWeight: 700,
+              color: 'var(--pl-olive)',
+              letterSpacing: '0.12em',
               textTransform: 'uppercase' as const,
+              fontFamily: 'var(--pl-font-mono)',
+              border: '1px solid color-mix(in oklab, var(--pl-olive) 24%, transparent)',
             }}>
               {DEVICE_LIST.find(d => d.mode === editingDevice)?.Icon &&
                 (() => {

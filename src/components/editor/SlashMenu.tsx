@@ -208,41 +208,75 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
     <AnimatePresence>
       <motion.div
         data-pe-slash-menu="true"
-        initial={{ opacity: 0, y: -4 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -4 }}
-        transition={{ duration: 0.12 }}
+        initial={{ opacity: 0, y: -6, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: -6, scale: 0.98 }}
+        transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
         style={{
           position: 'fixed',
           top: anchor.top,
           left: anchor.left,
-          width: 260,
-          maxHeight: 320,
+          width: 280,
+          maxHeight: 340,
           overflowY: 'auto',
-          background: 'rgba(24,24,27,0.96)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 10,
-          boxShadow: '0 12px 40px rgba(0,0,0,0.45)',
+          background: 'color-mix(in oklab, var(--pl-cream-card) 96%, transparent)',
+          backdropFilter: 'saturate(160%) blur(18px)',
+          WebkitBackdropFilter: 'saturate(160%) blur(18px)',
+          border: '1px solid var(--pl-divider)',
+          borderRadius: 12,
+          boxShadow: '0 20px 48px color-mix(in oklab, var(--pl-ink) 18%, transparent), 0 2px 6px color-mix(in oklab, var(--pl-ink) 10%, transparent)',
           zIndex: 9999,
-          padding: 6,
-          fontFamily: 'inherit',
+          padding: 8,
+          fontFamily: 'var(--pl-font-body)',
         }}
       >
-        <div style={{
-          fontSize: 9, fontWeight: 700, letterSpacing: '0.12em',
-          textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)',
-          padding: '4px 8px 6px',
-        }}>
-          Insert {query && `· "${query}"`}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            justifyContent: 'space-between',
+            padding: '4px 10px 8px',
+            borderBottom: '1px solid var(--pl-divider)',
+            marginBottom: 6,
+          }}
+        >
+          <span
+            style={{
+              fontFamily: 'var(--pl-font-display)',
+              fontStyle: 'italic',
+              fontVariationSettings: '"opsz" 14, "WONK" 1',
+              fontSize: '0.78rem',
+              color: 'var(--pl-ink)',
+              fontWeight: 500,
+            }}
+          >
+            Insert
+          </span>
+          {query && (
+            <span
+              style={{
+                fontFamily: 'var(--pl-font-mono)',
+                fontSize: '0.62rem',
+                letterSpacing: '0.04em',
+                color: 'var(--pl-muted)',
+              }}
+            >
+              /{query}
+            </span>
+          )}
         </div>
 
         {filteredItems.length === 0 ? (
-          <div style={{
-            padding: '14px 10px', fontSize: 12,
-            color: 'rgba(255,255,255,0.4)', textAlign: 'center',
-          }}>
+          <div
+            style={{
+              padding: '18px 10px',
+              fontSize: 12,
+              color: 'var(--pl-muted)',
+              textAlign: 'center',
+              fontFamily: 'var(--pl-font-display)',
+              fontStyle: 'italic',
+            }}
+          >
             No matches
           </div>
         ) : (
@@ -252,8 +286,7 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
               <button
                 key={item.id}
                 type="button"
-                // Use onMouseDown so the click fires before the editable
-                // field loses focus (blur would commit and clear state).
+                // onMouseDown fires before the editable loses focus.
                 onMouseDown={(e) => { e.preventDefault(); insertSelected(item); }}
                 onMouseEnter={() => setSelectedIdx(idx)}
                 style={{
@@ -262,37 +295,71 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
                   gap: 10,
                   width: '100%',
                   padding: '8px 10px',
-                  borderRadius: 7,
+                  borderRadius: 8,
                   border: 'none',
-                  background: selected ? 'rgba(163,177,138,0.18)' : 'transparent',
-                  color: selected ? '#FAF7F2' : 'rgba(255,255,255,0.8)',
+                  background: selected
+                    ? 'color-mix(in oklab, var(--pl-olive) 14%, transparent)'
+                    : 'transparent',
+                  color: selected ? 'var(--pl-ink)' : 'var(--pl-ink-soft)',
                   cursor: 'pointer',
                   textAlign: 'left',
                   fontFamily: 'inherit',
                   fontSize: 12,
-                  transition: 'background 0.1s',
+                  transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
                 }}
               >
-                <div style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  width: 26, height: 26, borderRadius: 6,
-                  background: 'rgba(255,255,255,0.06)', flexShrink: 0,
-                }}>
-                  <item.Icon size={13} color={selected ? '#A3B18A' : 'rgba(255,255,255,0.7)'} />
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 28,
+                    height: 28,
+                    borderRadius: 7,
+                    background: selected
+                      ? 'color-mix(in oklab, var(--pl-olive) 22%, transparent)'
+                      : 'color-mix(in oklab, var(--pl-ink) 6%, transparent)',
+                    flexShrink: 0,
+                    transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
+                  }}
+                >
+                  <item.Icon
+                    size={13}
+                    color={selected ? 'var(--pl-olive)' : 'var(--pl-ink-soft)'}
+                  />
                 </div>
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <div style={{ fontWeight: 600, lineHeight: 1.2 }}>{item.label}</div>
                   {item.hint && (
-                    <div style={{
-                      fontSize: 10,
-                      color: 'rgba(255,255,255,0.45)',
-                      lineHeight: 1.3,
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
+                    <div
+                      style={{
+                        fontSize: 10,
+                        color: 'var(--pl-muted)',
+                        lineHeight: 1.3,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        fontFamily: 'var(--pl-font-mono)',
+                        letterSpacing: '0.02em',
+                      }}
+                    >
                       {item.hint}
                     </div>
                   )}
                 </div>
+                {selected && (
+                  <span
+                    style={{
+                      fontFamily: 'var(--pl-font-mono)',
+                      fontSize: 9,
+                      letterSpacing: '0.08em',
+                      color: 'var(--pl-muted)',
+                      flexShrink: 0,
+                    }}
+                  >
+                    ↵
+                  </span>
+                )}
               </button>
             );
           })

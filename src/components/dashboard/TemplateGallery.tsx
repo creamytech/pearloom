@@ -54,8 +54,14 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50"
         onClick={onClose}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'color-mix(in oklab, var(--pl-ink) 50%, transparent)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+        }}
       />
 
       {/* Gallery */}
@@ -64,23 +70,89 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 20 }}
         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-        className="relative z-10 w-full max-w-[900px] max-h-[85vh] flex flex-col rounded-xl bg-white border border-[#E4E4E7] shadow-[0_16px_48px_rgba(0,0,0,0.12)]"
+        className="relative z-10 w-full max-w-[960px] max-h-[88vh] flex flex-col"
+        style={{
+          borderRadius: 16,
+          background: 'var(--pl-cream-card)',
+          border: '1px solid var(--pl-divider)',
+          boxShadow: '0 24px 64px color-mix(in oklab, var(--pl-ink) 20%, transparent)',
+          overflow: 'hidden',
+        }}
       >
         {/* Header */}
-        <div className="shrink-0 px-6 pt-6 pb-4 border-b border-[#E4E4E7]">
-          <div className="flex items-center justify-between mb-4">
+        <div
+          style={{
+            flexShrink: 0,
+            padding: '24px 28px 18px',
+            borderBottom: '1px solid var(--pl-divider)',
+            background: 'color-mix(in oklab, var(--pl-cream) 50%, transparent)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18 }}>
             <div>
-              <h2 className="text-[1.2rem] font-semibold text-[#18181B] m-0">
-                Choose a Template
+              <span
+                style={{
+                  display: 'inline-block',
+                  fontFamily: 'var(--pl-font-mono)',
+                  fontSize: '0.6rem',
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  color: 'var(--pl-muted)',
+                  marginBottom: 6,
+                }}
+              >
+                Start somewhere
+              </span>
+              <h2
+                style={{
+                  fontFamily: 'var(--pl-font-display)',
+                  fontSize: 'clamp(1.6rem, 2.4vw, 2rem)',
+                  lineHeight: 1.05,
+                  letterSpacing: '-0.02em',
+                  color: 'var(--pl-ink)',
+                  margin: 0,
+                  fontWeight: 400,
+                  fontVariationSettings: '"opsz" 32, "SOFT" 70, "WONK" 1',
+                }}
+              >
+                Pick a <em style={{ fontStyle: 'italic', color: 'var(--pl-olive)' }}>template</em>.
               </h2>
-              <p className="text-[0.78rem] text-[#71717A] mt-1">
-                Pick a starting point — every template is fully customizable.
+              <p
+                style={{
+                  fontSize: '0.85rem',
+                  color: 'var(--pl-ink-soft)',
+                  margin: '8px 0 0',
+                  maxWidth: 460,
+                  lineHeight: 1.5,
+                }}
+              >
+                Every template is a fully composed starting point — typography, palette, and pacing already in tune. You'll customize freely from there.
               </p>
             </div>
             <button
               onClick={onClose}
-              className="w-9 h-9 rounded-md border border-[#E4E4E7] bg-transparent cursor-pointer flex items-center justify-center text-[#71717A] hover:text-[#18181B] hover:border-[#18181B] transition-colors"
               aria-label="Close template gallery"
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 999,
+                border: '1px solid var(--pl-divider)',
+                background: 'var(--pl-cream-card)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--pl-muted)',
+                transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--pl-ink)';
+                e.currentTarget.style.color = 'var(--pl-ink)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--pl-divider)';
+                e.currentTarget.style.color = 'var(--pl-muted)';
+              }}
             >
               <X size={16} />
             </button>
@@ -88,78 +160,123 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
 
           {/* Search + Filters */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div className="flex-1 min-w-0 flex items-center gap-2 px-3 py-2 rounded-md border border-[#E4E4E7] bg-white">
-              <Search size={14} className="text-[#A1A1AA] flex-shrink-0" />
+            <div
+              style={{
+                flex: 1,
+                minWidth: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '8px 12px',
+                borderRadius: 999,
+                border: '1px solid var(--pl-divider)',
+                background: 'var(--pl-cream-card)',
+              }}
+            >
+              <Search size={13} style={{ color: 'var(--pl-muted)', flexShrink: 0 }} />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search templates..."
-                className="flex-1 bg-transparent border-none outline-none text-[max(16px,0.85rem)] text-[#18181B] placeholder:text-[#A1A1AA]"
+                placeholder="Search by mood, theme, or palette…"
+                style={{
+                  flex: 1,
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  fontSize: 'max(16px, 0.85rem)',
+                  color: 'var(--pl-ink)',
+                  fontFamily: 'var(--pl-font-body)',
+                }}
               />
             </div>
             <div className="flex gap-1.5 overflow-x-auto pb-1 -mb-1 scrollbar-hide">
-              {FILTERS.map((f) => (
-                <button
-                  key={f.id}
-                  onClick={() => { setFilter(f.id); setSearch(''); }}
-                  className={`px-3 py-1.5 rounded-md text-[0.72rem] font-semibold border cursor-pointer transition-all whitespace-nowrap flex-shrink-0 ${
-                    filter === f.id
-                      ? 'bg-[#18181B] text-white border-[#18181B]'
-                      : 'bg-white text-[#71717A] border-[#E4E4E7] hover:text-[#18181B] hover:border-[#18181B]'
-                  }`}
-                >
-                  {f.label}
-                </button>
-              ))}
+              {FILTERS.map((f) => {
+                const active = filter === f.id;
+                return (
+                  <button
+                    key={f.id}
+                    onClick={() => { setFilter(f.id); setSearch(''); }}
+                    style={{
+                      padding: '7px 14px',
+                      borderRadius: 999,
+                      fontSize: '0.7rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      border: `1px solid ${active ? 'var(--pl-ink)' : 'var(--pl-divider)'}`,
+                      background: active ? 'var(--pl-ink)' : 'var(--pl-cream-card)',
+                      color: active ? 'var(--pl-cream)' : 'var(--pl-ink-soft)',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                      transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
+                    }}
+                  >
+                    {f.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
 
         {/* Template grid */}
-        <div className="flex-1 overflow-auto p-4 md:p-6">
+        <div className="flex-1 overflow-auto" style={{ padding: 'clamp(16px, 3vw, 28px)' }}>
           {templates.length === 0 ? (
-            <div className="text-center py-12 text-[#71717A]">
-              <p className="text-[0.92rem]">No templates match your search.</p>
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '60px 20px',
+                color: 'var(--pl-muted)',
+                fontFamily: 'var(--pl-font-display)',
+                fontStyle: 'italic',
+                fontSize: '0.96rem',
+              }}
+            >
+              No templates match your search.
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {templates.map((template, i) => {
                 const isSelected = selected === template.id;
                 const isHovered = hoveredId === template.id;
                 return (
                   <motion.button
                     key={template.id}
-                    initial={{ opacity: 0, y: 16 }}
+                    initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05, duration: 0.3 }}
+                    transition={{ delay: i * 0.04, duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
                     onClick={() => setSelected(isSelected ? null : template.id)}
                     onMouseEnter={() => setHoveredId(template.id)}
                     onMouseLeave={() => setHoveredId(null)}
                     className="text-left"
                     style={{
-                      borderRadius: '12px',
+                      borderRadius: 14,
                       overflow: 'hidden',
-                      border: isSelected ? '2px solid #18181B' : '1px solid #E4E4E7',
+                      border: isSelected
+                        ? '1.5px solid var(--pl-olive)'
+                        : '1px solid var(--pl-divider)',
                       boxShadow: isSelected
-                        ? '0 0 0 1px #18181B'
-                        : '0 1px 3px rgba(0,0,0,0.04)',
-                      background: '#FFFFFF',
+                        ? '0 0 0 3px color-mix(in oklab, var(--pl-olive) 18%, transparent), 0 8px 28px color-mix(in oklab, var(--pl-ink) 14%, transparent)'
+                        : isHovered
+                          ? '0 8px 24px color-mix(in oklab, var(--pl-ink) 12%, transparent)'
+                          : '0 1px 3px color-mix(in oklab, var(--pl-ink) 4%, transparent)',
+                      background: 'var(--pl-cream-card)',
                       cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      transform: isHovered ? 'translateY(-2px)' : 'none',
+                      transition: 'box-shadow var(--pl-dur-mid) var(--pl-ease-out), border-color var(--pl-dur-mid) var(--pl-ease-out), transform var(--pl-dur-mid) var(--pl-ease-out)',
+                      transform: isHovered ? 'translateY(-3px)' : 'none',
                     } as React.CSSProperties}
                   >
                     {/* Custom SVG art preview */}
                     <div
                       style={{
-                        height: '120px',
+                        height: 140,
                         background: template.theme.colors.background,
                         position: 'relative',
                         overflow: 'hidden',
                       }}
                     >
-                      {/* Bold scene illustration */}
                       <div
                         style={{ position: 'absolute', inset: 0, zIndex: 0 }}
                         dangerouslySetInnerHTML={{ __html: generateCardIllustration(template.id, {
@@ -170,22 +287,54 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
                         }) }}
                       />
 
-                      {/* Selected checkmark */}
                       {isSelected && (
-                        <div className="absolute top-3 right-3 w-6 h-6 rounded-md bg-[#18181B] flex items-center justify-center" style={{ zIndex: 5 }}>
-                          <Check size={14} color="white" strokeWidth={3} />
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: 10,
+                            right: 10,
+                            width: 24,
+                            height: 24,
+                            borderRadius: '50%',
+                            background: 'var(--pl-olive)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 5,
+                            boxShadow: '0 4px 12px color-mix(in oklab, var(--pl-olive) 30%, transparent)',
+                          }}
+                        >
+                          <Check size={13} color="white" strokeWidth={3} />
                         </div>
                       )}
 
-                      {/* Popularity badge */}
                       {template.popularity >= 90 && (
-                        <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-[#E4E4E7] text-[0.55rem] font-semibold uppercase tracking-[0.06em] text-[#18181B]" style={{ zIndex: 5 }}>
-                          <Sparkles size={9} /> Popular
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: 10,
+                            left: 10,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            padding: '3px 9px',
+                            borderRadius: 999,
+                            background: 'color-mix(in oklab, var(--pl-cream-card) 92%, transparent)',
+                            border: '1px solid var(--pl-divider)',
+                            fontSize: '0.55rem',
+                            fontWeight: 700,
+                            letterSpacing: '0.12em',
+                            textTransform: 'uppercase',
+                            color: 'var(--pl-ink)',
+                            backdropFilter: 'blur(6px)',
+                            zIndex: 5,
+                          }}
+                        >
+                          <Sparkles size={9} /> Editor's pick
                         </div>
                       )}
 
-                      {/* Color palette strip */}
-                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, display: 'flex', height: '2px', zIndex: 3 }}>
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, display: 'flex', height: 3, zIndex: 3 }}>
                         {[template.theme.colors.accent, template.theme.colors.accentLight, template.theme.colors.muted].map((c, ci) => (
                           <div key={ci} style={{ flex: 1, background: c }} />
                         ))}
@@ -193,26 +342,49 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
                     </div>
 
                     {/* Info */}
-                    <div style={{ padding: '12px 14px' }}>
-                      <h3 style={{
-                        fontSize: '0.88rem',
-                        fontWeight: 600,
-                        color: 'var(--pl-ink)',
-                        margin: '0 0 2px',
-                      }}>
+                    <div style={{ padding: '14px 16px 16px' }}>
+                      <h3
+                        style={{
+                          fontFamily: 'var(--pl-font-display)',
+                          fontSize: '1rem',
+                          fontWeight: 500,
+                          letterSpacing: '-0.01em',
+                          color: 'var(--pl-ink)',
+                          margin: '0 0 4px',
+                          fontVariationSettings: '"opsz" 18, "SOFT" 60',
+                        }}
+                      >
                         {template.name}
                       </h3>
-                      <p style={{
-                        fontSize: '0.72rem',
-                        color: 'var(--pl-muted)',
-                        margin: 0,
-                        lineHeight: 1.4,
-                      }}>
+                      <p
+                        style={{
+                          fontSize: '0.74rem',
+                          color: 'var(--pl-ink-soft)',
+                          margin: 0,
+                          lineHeight: 1.45,
+                          fontFamily: 'var(--pl-font-display)',
+                          fontStyle: 'italic',
+                          fontVariationSettings: '"opsz" 12',
+                        }}
+                      >
                         {template.tagline}
                       </p>
-                      <div className="flex gap-1 mt-2 flex-wrap">
+                      <div className="flex gap-1 mt-3 flex-wrap">
                         {template.tags.slice(0, 3).map(tag => (
-                          <span key={tag} className="text-[0.55rem] font-semibold uppercase tracking-[0.06em] px-1.5 py-0.5 rounded-md bg-[#F4F4F5] text-[#71717A]">
+                          <span
+                            key={tag}
+                            style={{
+                              fontSize: '0.55rem',
+                              fontWeight: 600,
+                              letterSpacing: '0.12em',
+                              textTransform: 'uppercase',
+                              padding: '2px 8px',
+                              borderRadius: 999,
+                              background: 'color-mix(in oklab, var(--pl-ink) 6%, transparent)',
+                              color: 'var(--pl-ink-soft)',
+                              fontFamily: 'var(--pl-font-mono)',
+                            }}
+                          >
                             {tag}
                           </span>
                         ))}
@@ -226,11 +398,30 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
         </div>
 
         {/* Footer — apply button */}
-        <div className="shrink-0 px-6 py-4 border-t border-[#E4E4E7] flex items-center justify-between">
-          <p className="text-[0.75rem] text-[#71717A]">
+        <div
+          style={{
+            flexShrink: 0,
+            padding: '16px 28px',
+            borderTop: '1px solid var(--pl-divider)',
+            background: 'color-mix(in oklab, var(--pl-cream) 60%, transparent)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 16,
+          }}
+        >
+          <p
+            style={{
+              fontSize: '0.78rem',
+              color: 'var(--pl-ink-soft)',
+              margin: 0,
+              fontFamily: 'var(--pl-font-display)',
+              fontStyle: selected ? 'italic' : 'normal',
+            }}
+          >
             {selected
-              ? `"${SITE_TEMPLATES.find(t => t.id === selected)?.name}" selected`
-              : `${templates.length} templates available`
+              ? `"${SITE_TEMPLATES.find(t => t.id === selected)?.name}" selected.`
+              : `${templates.length} templates ready.`
             }
           </p>
           <Button
@@ -240,7 +431,7 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
             onClick={handleApply}
             icon={<ArrowRight size={14} />}
           >
-            Use This Template
+            Use this template
           </Button>
         </div>
       </motion.div>

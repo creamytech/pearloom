@@ -3,91 +3,95 @@
 @tailwind utilities;
 
 /* ═══════════════════════════════════════════════════════════════
-   PEARLOOM — DESIGN SYSTEM v5
-   Professional minimal — zinc neutrals, solid surfaces, DM Sans
-   Single source of truth: CSS vars → Tailwind config → components
+   PEARLOOM — DESIGN SYSTEM v6 · EDITORIAL MODERNISM
+   Fraunces (display) + Geist (body). Warm paper / deep olive /
+   gold leaf / oxblood. Full dark mode. One source of truth.
    ═══════════════════════════════════════════════════════════════ */
 
-/* ─── Design Tokens ─── */
-:root {
-  /* ── Core Palette ── */
-  --pl-cream:        #FAFAFA;   /* Zinc-50 — main background           */
-  --pl-cream-deep:   #F4F4F5;   /* Zinc-100 — alternating sections     */
-  --pl-cream-card:   #FFFFFF;   /* Cards / elevated surfaces            */
-  --pl-ink:          #18181B;   /* Zinc-900 — body text                */
-  --pl-ink-soft:     #27272A;   /* Zinc-800 — headings on light        */
-  --pl-muted:        #71717A;   /* Zinc-500 — secondary text           */
-  --pl-divider:      #E4E4E7;   /* Zinc-200 — borders, separators      */
+/* ─── LIGHT (Editorial Paper) ─── */
+:root,
+[data-theme='light'] {
+  /* ── Core surfaces ── */
+  --pl-cream:        #F5EFE2;   /* warm paper                          */
+  --pl-cream-deep:   #EBE3D2;   /* alternating sections                */
+  --pl-cream-card:   #FBF7EE;   /* elevated cards on cream             */
+  --pl-ink:          #0E0D0B;   /* warm rich black                     */
+  --pl-ink-soft:     #3A332C;   /* secondary headings                  */
+  --pl-muted:        #6F6557;   /* secondary text (WCAG AA on cream)   */
+  --pl-divider:      #D8CFB8;   /* warm tan border                     */
+  --pl-divider-soft: #E5DCC4;   /* near-invisible separators           */
 
-  /* ── Brand Accents ── */
-  --pl-olive:        #18181B;   /* Zinc-900 — primary actions          */
-  --pl-olive-hover:  #27272A;   /* Zinc-800 — hover                    */
-  --pl-olive-deep:   #09090B;   /* Zinc-950 — pressed / active         */
-  --pl-olive-mist:   #F4F4F5;   /* Zinc-100 — badge backgrounds        */
-  --pl-gold:         #A1A1AA;   /* Zinc-400 — secondary accent         */
-  --pl-gold-mist:    rgba(161,161,170,0.12);
-  --pl-plum:         #52525B;   /* Zinc-600 — tertiary accent          */
-  --pl-plum-mist:    rgba(82,82,91,0.10);
+  /* ── Brand: olive · gold leaf · oxblood ── */
+  --pl-olive:        #5C6B3F;   /* deep editorial olive — primary      */
+  --pl-olive-hover:  #4A5731;
+  --pl-olive-deep:   #363F22;
+  --pl-olive-mist:   #E0DDC9;
+  --pl-gold:         #B8935A;   /* gold leaf accent                    */
+  --pl-gold-mist:    rgba(184,147,90,0.10);
+  --pl-plum:         #7A2D2D;   /* oxblood — destructive/state         */
+  --pl-plum-mist:    rgba(122,45,45,0.10);
 
-  /* ── Dark surfaces (editor, generation, loom) ── */
-  --pl-dark-bg:      #09090B;
-  --pl-dark-card:    rgba(255,255,255,0.06);
-  --pl-dark-border:  rgba(255,255,255,0.10);
-  --pl-dark-text:    rgba(250,250,250,0.75);
-  --pl-dark-heading: #FAFAFA;
+  /* ── Authoring/dark surfaces (editor chrome on dark canvas) ── */
+  --pl-dark-bg:      #0D0B07;
+  --pl-dark-card:    rgba(245,239,226,0.06);
+  --pl-dark-border:  rgba(245,239,226,0.10);
+  --pl-dark-text:    rgba(241,235,220,0.75);
+  --pl-dark-heading: #F1EBDC;
 
   /* ── Semantic states ── */
-  --pl-warning:      #DC2626;   /* Red-600 — warning actions              */
-  --pl-warning-mist: rgba(220,38,38,0.08);
-  --pl-success:      #16A34A;   /* Green-600 — success actions            */
-  --pl-success-mist: rgba(22,163,74,0.08);
+  --pl-warning:      #A14A2C;   /* burnt orange (editorial)            */
+  --pl-warning-mist: rgba(161,74,44,0.10);
+  --pl-success:      #5C6B3F;   /* same as olive — calm success        */
+  --pl-success-mist: rgba(92,107,63,0.10);
 
-  /* ── Glass (v5: solid surfaces — glass vars kept for compat) ── */
-  --pl-glass:             #FFFFFF;
-  --pl-glass-border:      #E4E4E7;
-  --pl-glass-light:       #FFFFFF;
-  --pl-glass-light-border: #E4E4E7;
-  --pl-glass-heavy:       #FFFFFF;
-  --pl-glass-dark:        #18181B;
-  --pl-glass-dark-border: rgba(255,255,255,0.10);
-  --pl-glass-shadow:      0 1px 3px rgba(0,0,0,0.04);
-  --pl-glass-shadow-lg:   0 4px 24px rgba(0,0,0,0.08);
-  --pl-glass-blur:        none;
-  --pl-glass-blur-sm:     none;
-  --pl-glass-blur-lg:     none;
+  /* ── Surface utility (used by floating chrome) ── */
+  --pl-glass:             rgba(251,247,238,0.92);
+  --pl-glass-border:      var(--pl-divider);
+  --pl-glass-light:       rgba(251,247,238,0.86);
+  --pl-glass-light-border: var(--pl-divider);
+  --pl-glass-heavy:       #FBF7EE;
+  --pl-glass-dark:        #0E0D0B;
+  --pl-glass-dark-border: rgba(245,239,226,0.10);
+  --pl-glass-shadow:      0 1px 3px rgba(40,28,12,0.06), 0 1px 2px rgba(40,28,12,0.04);
+  --pl-glass-shadow-lg:   0 12px 40px rgba(40,28,12,0.10), 0 24px 60px rgba(40,28,12,0.06);
+  --pl-glass-blur:        14px;
+  --pl-glass-blur-sm:     8px;
+  --pl-glass-blur-lg:     20px;
 
-  /* ── Primary opacity scale (zinc-based) ── */
-  --pl-olive-5:   rgba(24,24,27,0.05);
-  --pl-olive-8:   rgba(24,24,27,0.08);
-  --pl-olive-10:  rgba(24,24,27,0.10);
-  --pl-olive-12:  rgba(24,24,27,0.12);
-  --pl-olive-15:  rgba(24,24,27,0.15);
-  --pl-olive-20:  rgba(24,24,27,0.20);
-  --pl-olive-30:  rgba(24,24,27,0.30);
-  --pl-olive-40:  rgba(24,24,27,0.40);
-  --pl-olive-50:  rgba(24,24,27,0.50);
+  /* ── Primary opacity scale (olive-based for true brand wash) ── */
+  --pl-olive-5:   rgba(92,107,63,0.05);
+  --pl-olive-8:   rgba(92,107,63,0.08);
+  --pl-olive-10:  rgba(92,107,63,0.10);
+  --pl-olive-12:  rgba(92,107,63,0.12);
+  --pl-olive-15:  rgba(92,107,63,0.15);
+  --pl-olive-20:  rgba(92,107,63,0.20);
+  --pl-olive-30:  rgba(92,107,63,0.30);
+  --pl-olive-40:  rgba(92,107,63,0.40);
+  --pl-olive-50:  rgba(92,107,63,0.50);
 
-  /* ── Neutral opacity scale ── */
-  --pl-black-4:   rgba(0,0,0,0.04);
-  --pl-black-6:   rgba(0,0,0,0.06);
-  --pl-black-7:   rgba(0,0,0,0.07);
-  --pl-black-10:  rgba(0,0,0,0.10);
-  --pl-white-20:  rgba(255,255,255,0.20);
-  --pl-white-30:  rgba(255,255,255,0.30);
-  --pl-white-50:  rgba(255,255,255,0.50);
-  --pl-white-70:  rgba(255,255,255,0.70);
-  --pl-white-90:  rgba(255,255,255,0.90);
+  /* ── Neutral opacity scale (warm) ── */
+  --pl-black-4:   rgba(14,13,11,0.04);
+  --pl-black-6:   rgba(14,13,11,0.06);
+  --pl-black-7:   rgba(14,13,11,0.07);
+  --pl-black-10:  rgba(14,13,11,0.10);
+  --pl-white-20:  rgba(251,247,238,0.20);
+  --pl-white-30:  rgba(251,247,238,0.30);
+  --pl-white-50:  rgba(251,247,238,0.50);
+  --pl-white-70:  rgba(251,247,238,0.70);
+  --pl-white-90:  rgba(251,247,238,0.90);
 
-  /* ── Typography Scale (1.2 minor third ratio) ── */
-  --pl-text-2xs:  0.58rem;   /* 9.3px  — micro labels          */
-  --pl-text-xs:   0.65rem;   /* 10.4px — tiny hints             */
-  --pl-text-sm:   0.72rem;   /* 11.5px — small labels           */
-  --pl-text-base: 0.82rem;   /* 13.1px — body text              */
-  --pl-text-md:   0.88rem;   /* 14.1px — card titles            */
-  --pl-text-lg:   1rem;      /* 16px   — section headers        */
-  --pl-text-xl:   1.2rem;    /* 19.2px — panel titles           */
-  --pl-text-2xl:  1.44rem;   /* 23px   — page titles            */
-  --pl-text-3xl:  1.73rem;   /* 27.7px — hero secondary         */
+  /* ── Typography scale (perfect-fourth, 1.25) ── */
+  --pl-text-2xs:  0.66rem;   /* 10.5px — micro labels                  */
+  --pl-text-xs:   0.74rem;   /* 11.8px — tiny hints                    */
+  --pl-text-sm:   0.82rem;   /* 13.1px — small labels                  */
+  --pl-text-base: 0.92rem;   /* 14.7px — body text                     */
+  --pl-text-md:   1rem;      /* 16px   — card titles                   */
+  --pl-text-lg:   1.13rem;   /* 18px   — section headers               */
+  --pl-text-xl:   1.32rem;   /* 21px   — panel titles                  */
+  --pl-text-2xl:  1.6rem;    /* 25.6px — page titles                   */
+  --pl-text-3xl:  clamp(2rem, 4vw, 2.6rem);
+  --pl-text-display: clamp(2.8rem, 6vw, 4.6rem);   /* hero display     */
+  --pl-text-marquee: clamp(4rem, 12vw, 9rem);      /* large editorial   */
 
   /* ── Icon sizes ── */
   --pl-icon-xs:   12px;
@@ -96,36 +100,39 @@
   --pl-icon-lg:   20px;
   --pl-icon-xl:   24px;
 
-  /* ── Typography ── */
-  --pl-font-heading: "DM Sans", system-ui, -apple-system, sans-serif;
-  --pl-font-body:    "DM Sans", system-ui, -apple-system, sans-serif;
-  --pl-font-label:   0.68rem;
-  --pl-label-tracking: 0.06em;
+  /* ── Typography families (fed by next/font in layout.tsx) ── */
+  --pl-font-display: var(--font-fraunces, 'Fraunces'), 'Cormorant Garamond', Georgia, serif;
+  --pl-font-heading: var(--font-fraunces, 'Fraunces'), Georgia, serif;
+  --pl-font-body:    var(--font-geist, 'Geist'), system-ui, -apple-system, sans-serif;
+  --pl-font-mono:    var(--font-geist-mono, 'Geist Mono'), 'JetBrains Mono', ui-monospace, monospace;
+  --pl-font-label:   0.7rem;
+  --pl-label-tracking: 0.14em;
 
-  /* ── Border Radius ── */
-  --pl-radius-xs:  0.25rem;    /* 4px  — tight chips                  */
-  --pl-radius-sm:  0.375rem;   /* 6px  — inputs, small cards          */
-  --pl-radius-md:  0.5rem;     /* 8px  — cards, panels, buttons       */
-  --pl-radius-lg:  0.75rem;    /* 12px — large cards, modals          */
-  --pl-radius-xl:  1rem;       /* 16px — hero elements                */
-  --pl-radius-full: 100px;     /* Pill — badges, chips                */
+  /* ── Border radius (editorial = restrained, not blobby) ── */
+  --pl-radius-xs:  0.25rem;
+  --pl-radius-sm:  0.375rem;
+  --pl-radius-md:  0.5rem;
+  --pl-radius-lg:  0.75rem;
+  --pl-radius-xl:  1rem;
+  --pl-radius-2xl: 1.5rem;
+  --pl-radius-full: 100px;
 
-  /* ── Shadows (neutral) ── */
-  --pl-shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
-  --pl-shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
-  --pl-shadow-md: 0 4px 16px rgba(0,0,0,0.06);
-  --pl-shadow-lg: 0 8px 32px rgba(0,0,0,0.08);
-  --pl-shadow-xl: 0 16px 48px rgba(0,0,0,0.10);
-  --pl-shadow-focus: 0 0 0 2px rgba(24,24,27,0.15);
+  /* ── Shadows (warm, paper-shadow) ── */
+  --pl-shadow-xs: 0 1px 2px rgba(40,28,12,0.05);
+  --pl-shadow-sm: 0 1px 3px rgba(40,28,12,0.06), 0 1px 2px rgba(40,28,12,0.04);
+  --pl-shadow-md: 0 4px 16px rgba(40,28,12,0.08), 0 2px 6px rgba(40,28,12,0.05);
+  --pl-shadow-lg: 0 8px 32px rgba(40,28,12,0.10), 0 4px 12px rgba(40,28,12,0.06);
+  --pl-shadow-xl: 0 16px 48px rgba(40,28,12,0.12), 0 8px 20px rgba(40,28,12,0.08);
+  --pl-shadow-focus: 0 0 0 3px rgba(92,107,63,0.22);
 
   /* ── Card standard ── */
-  --pl-card-radius:  var(--pl-radius-md);
+  --pl-card-radius:  var(--pl-radius-lg);
   --pl-card-bg:      var(--pl-cream-card);
   --pl-card-border:  1px solid var(--pl-divider);
   --pl-card-shadow:  var(--pl-shadow-sm);
   --pl-card-shadow-hover: var(--pl-shadow-md);
 
-  /* ── Spacing (4px base) ── */
+  /* ── Spacing scale ── */
   --space-1:  4px;
   --space-2:  8px;
   --space-3:  12px;
@@ -139,7 +146,7 @@
   --space-20: 80px;
   --space-24: 96px;
 
-  /* ── Z-index ── */
+  /* ── Z-index scale ── */
   --z-dropdown: 50;
   --z-sticky:   100;
   --z-overlay:  200;
@@ -147,11 +154,24 @@
   --z-toast:    400;
   --z-max:      500;
 
-  /* ── Gradients ── */
-  --pl-gradient-page:   linear-gradient(180deg, #F4F4F5 0%, var(--pl-cream) 40%);
-  --pl-gradient-warm:   linear-gradient(135deg, #F4F4F5 0%, #FAFAFA 50%, #F4F4F5 100%);
-  --pl-gradient-hero:   radial-gradient(ellipse at 50% 0%, #F4F4F5 0%, var(--pl-cream) 55%);
+  /* ── Motion tokens (one source) ── */
+  --pl-ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+  --pl-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --pl-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --pl-dur-instant: 100ms;
+  --pl-dur-fast:    180ms;
+  --pl-dur-base:    280ms;
+  --pl-dur-slow:    480ms;
+  --pl-dur-glacial: 800ms;
+
+  /* ── Gradients (warm paper layered with olive) ── */
+  --pl-gradient-page:   linear-gradient(180deg, var(--pl-cream-deep) 0%, var(--pl-cream) 38%);
+  --pl-gradient-warm:   linear-gradient(135deg, var(--pl-cream-deep) 0%, var(--pl-cream) 50%, var(--pl-cream-deep) 100%);
+  --pl-gradient-hero:   radial-gradient(ellipse at 50% 0%, var(--pl-cream-deep) 0%, var(--pl-cream) 55%);
   --pl-gradient-section: linear-gradient(180deg, var(--pl-cream) 0%, var(--pl-cream-deep) 50%, var(--pl-cream) 100%);
+  --pl-gradient-olive:  linear-gradient(135deg, var(--pl-olive) 0%, var(--pl-olive-deep) 100%);
+  --pl-gradient-gold:   linear-gradient(135deg, var(--pl-gold) 0%, #8C6E3D 100%);
+  --pl-grain:           url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.32 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 
   /* ── Legacy aliases (keep so editor components still compile) ── */
   --eg-bg:           var(--pl-cream);
@@ -180,27 +200,154 @@
   --eg-shadow-lg:    var(--pl-shadow-lg);
   --eg-shadow-xl:    var(--pl-shadow-xl);
 
-  /* ── shadcn/ui standard CSS variables (mapped to --pl-* tokens) ── */
+  /* ── shadcn/ui standard variables ── */
   --background:              var(--pl-cream);
   --foreground:              var(--pl-ink);
-  --card:                    #ffffff;
+  --card:                    var(--pl-cream-card);
   --card-foreground:         var(--pl-ink);
-  --popover:                 #ffffff;
+  --popover:                 var(--pl-cream-card);
   --popover-foreground:      var(--pl-ink);
   --primary:                 var(--pl-olive);
-  --primary-foreground:      #ffffff;
+  --primary-foreground:      var(--pl-cream-card);
   --secondary:               var(--pl-olive-mist);
   --secondary-foreground:    var(--pl-ink);
   --muted:                   var(--pl-cream-deep);
   --muted-foreground:        var(--pl-muted);
   --accent:                  var(--pl-olive-mist);
   --accent-foreground:       var(--pl-ink);
-  --destructive:             #DC2626;
-  --destructive-foreground:  #ffffff;
+  --destructive:             var(--pl-plum);
+  --destructive-foreground:  var(--pl-cream-card);
   --border:                  var(--pl-divider);
   --input:                   var(--pl-divider);
   --ring:                    var(--pl-olive);
   --radius:                  var(--pl-radius-md);
+}
+
+/* ─── DARK (Editorial Midnight) ─── */
+[data-theme='dark'] {
+  --pl-cream:        #0D0B07;
+  --pl-cream-deep:   #15110A;
+  --pl-cream-card:   #1A1610;
+  --pl-ink:          #F1EBDC;
+  --pl-ink-soft:     #D4CDBC;
+  --pl-muted:        #8A8275;
+  --pl-divider:      #2A241A;
+  --pl-divider-soft: #1F1A12;
+
+  --pl-olive:        #A4B57A;
+  --pl-olive-hover:  #B8C98F;
+  --pl-olive-deep:   #8A9A60;
+  --pl-olive-mist:   #1F2014;
+  --pl-gold:         #D4B373;
+  --pl-gold-mist:    rgba(212,179,115,0.10);
+  --pl-plum:         #C46A6A;
+  --pl-plum-mist:    rgba(196,106,106,0.10);
+
+  --pl-warning:      #D67852;
+  --pl-warning-mist: rgba(214,120,82,0.12);
+  --pl-success:      #A4B57A;
+  --pl-success-mist: rgba(164,181,122,0.12);
+
+  --pl-glass:             rgba(26,22,16,0.86);
+  --pl-glass-border:      rgba(245,239,226,0.10);
+  --pl-glass-light:       rgba(26,22,16,0.78);
+  --pl-glass-light-border: rgba(245,239,226,0.10);
+  --pl-glass-heavy:       #1A1610;
+  --pl-glass-dark:        #0D0B07;
+  --pl-glass-dark-border: rgba(245,239,226,0.06);
+  --pl-glass-shadow:      0 1px 3px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.30);
+  --pl-glass-shadow-lg:   0 12px 40px rgba(0,0,0,0.55), 0 24px 60px rgba(0,0,0,0.40);
+
+  --pl-olive-5:   rgba(164,181,122,0.05);
+  --pl-olive-8:   rgba(164,181,122,0.08);
+  --pl-olive-10:  rgba(164,181,122,0.10);
+  --pl-olive-12:  rgba(164,181,122,0.12);
+  --pl-olive-15:  rgba(164,181,122,0.15);
+  --pl-olive-20:  rgba(164,181,122,0.20);
+  --pl-olive-30:  rgba(164,181,122,0.30);
+  --pl-olive-40:  rgba(164,181,122,0.40);
+  --pl-olive-50:  rgba(164,181,122,0.50);
+
+  --pl-black-4:   rgba(241,235,220,0.04);
+  --pl-black-6:   rgba(241,235,220,0.06);
+  --pl-black-7:   rgba(241,235,220,0.07);
+  --pl-black-10:  rgba(241,235,220,0.10);
+  --pl-white-20:  rgba(13,11,7,0.20);
+  --pl-white-30:  rgba(13,11,7,0.30);
+  --pl-white-50:  rgba(13,11,7,0.50);
+  --pl-white-70:  rgba(13,11,7,0.70);
+  --pl-white-90:  rgba(13,11,7,0.90);
+
+  --pl-shadow-xs: 0 1px 2px rgba(0,0,0,0.40);
+  --pl-shadow-sm: 0 1px 3px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.30);
+  --pl-shadow-md: 0 4px 16px rgba(0,0,0,0.50), 0 2px 6px rgba(0,0,0,0.35);
+  --pl-shadow-lg: 0 8px 32px rgba(0,0,0,0.55), 0 4px 12px rgba(0,0,0,0.40);
+  --pl-shadow-xl: 0 16px 48px rgba(0,0,0,0.60), 0 8px 20px rgba(0,0,0,0.45);
+  --pl-shadow-focus: 0 0 0 3px rgba(164,181,122,0.32);
+
+  --pl-gradient-page:   linear-gradient(180deg, #15110A 0%, #0D0B07 38%);
+  --pl-gradient-warm:   linear-gradient(135deg, #15110A 0%, #0D0B07 50%, #15110A 100%);
+  --pl-gradient-hero:   radial-gradient(ellipse at 50% 0%, #1A1610 0%, #0D0B07 55%);
+  --pl-gradient-section: linear-gradient(180deg, #0D0B07 0%, #15110A 50%, #0D0B07 100%);
+  --pl-gradient-olive:  linear-gradient(135deg, var(--pl-olive) 0%, #6E8050 100%);
+  --pl-gradient-gold:   linear-gradient(135deg, var(--pl-gold) 0%, #A88456 100%);
+
+  --primary-foreground:      #0D0B07;
+  --destructive-foreground:  #0D0B07;
+}
+
+/* ─── Cross-theme base ─── */
+html { color-scheme: light dark; }
+[data-theme='light'] html { color-scheme: light; }
+[data-theme='dark']  html { color-scheme: dark; }
+
+body {
+  background: var(--pl-cream);
+  color: var(--pl-ink);
+  font-family: var(--pl-font-body);
+  transition: background-color var(--pl-dur-base) var(--pl-ease-out),
+              color var(--pl-dur-base) var(--pl-ease-out);
+}
+
+/* Editorial display rule — apply via .pl-display class */
+.pl-display {
+  font-family: var(--pl-font-display);
+  font-weight: 400;
+  font-variation-settings: "opsz" 144, "SOFT" 50, "WONK" 0;
+  letter-spacing: -0.02em;
+  line-height: 0.96;
+}
+.pl-display-italic {
+  font-family: var(--pl-font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-variation-settings: "opsz" 144, "SOFT" 80, "WONK" 1;
+}
+
+/* Editorial small caps / overline */
+.pl-overline {
+  font-family: var(--pl-font-body);
+  font-size: var(--pl-text-2xs);
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--pl-muted);
+}
+
+/* Grain overlay — apply to surfaces for that paper texture */
+.pl-grain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--pl-grain);
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 0;
+}
+[data-theme='dark'] .pl-grain::before {
+  mix-blend-mode: screen;
+  opacity: 0.18;
 }
 
 /* ─── Micro-animation utilities ─── */
@@ -1343,4 +1490,72 @@ button:hover > .pl-palette-swatches > div {
   50%  { transform: translateY(-4px) scale(1.02); }
   70%  { transform: translateY(-6px) scale(1.03); }
   100% { transform: translateY(0) scale(1); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   v6 utility keyframes — used by shell primitives
+   ═══════════════════════════════════════════════════════════════ */
+
+@keyframes pl-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes pl-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pl-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.pl-rise { animation: pl-rise var(--pl-dur-base) var(--pl-ease-out) both; }
+.pl-rise-d1 { animation-delay: 60ms; }
+.pl-rise-d2 { animation-delay: 120ms; }
+.pl-rise-d3 { animation-delay: 180ms; }
+.pl-rise-d4 { animation-delay: 240ms; }
+.pl-rise-d5 { animation-delay: 300ms; }
+.pl-rise-d6 { animation-delay: 360ms; }
+
+/* Editorial drop cap */
+.pl-dropcap::first-letter {
+  font-family: var(--pl-font-display);
+  font-weight: 500;
+  font-style: italic;
+  font-size: 4.6em;
+  float: left;
+  line-height: 0.86;
+  margin: 0.06em 0.08em 0 -0.04em;
+  color: var(--pl-olive);
+  font-variation-settings: "opsz" 144, "SOFT" 80, "WONK" 1;
+}
+
+/* Hairline divider with editorial dot in the middle */
+.pl-rule {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--pl-divider);
+}
+.pl-rule::before, .pl-rule::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--pl-divider);
+}
+.pl-rule-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--pl-gold);
+}
+
+/* respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

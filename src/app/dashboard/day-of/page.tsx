@@ -3,9 +3,10 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / app/dashboard/day-of/page.tsx
 //
-// Event Ops hub — announcements composer + voice-toast moderation
-// for a selected site. The two features below are the host-side
-// counterparts to what guests see on /g/{token}.
+// Event Ops hub — announcements composer, voice-toast moderation,
+// and vendor bookings for a selected site. Wave C rewire: uses
+// shared shell primitives (SiteSelector, PageCard) and design
+// tokens instead of inline hex.
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
@@ -15,6 +16,8 @@ import { DashboardSidebar } from '@/components/dashboard/sidebar';
 import { AnnouncementsPanel } from '@/components/dashboard/AnnouncementsPanel';
 import { VoiceToastsPanel } from '@/components/dashboard/VoiceToastsPanel';
 import { VendorBookingsPanel } from '@/components/dashboard/VendorBookingsPanel';
+import { PageCard, SiteSelector, EmptyState, ThemeToggle } from '@/components/shell';
+import type { SiteOption } from '@/components/shell';
 
 interface SiteSummary {
   id: string;
@@ -46,121 +49,217 @@ export default function DayOfPage() {
     })();
   }, []);
 
+  const siteOptions: SiteOption[] = sites.map((s) => ({
+    id: s.id,
+    label: s.names?.filter(Boolean).join(' & ') || s.domain,
+    subdomain: s.domain,
+  }));
+
   return (
-    <div className="min-h-dvh flex flex-col bg-[var(--pl-cream)]">
-      <header className="h-14 shrink-0 flex items-center justify-between px-4 md:px-6 border-b border-[var(--pl-divider)] bg-white/80 backdrop-blur-md z-10">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="font-heading italic text-[1.05rem] font-semibold text-[var(--pl-ink-soft)] no-underline hover:opacity-75 transition-opacity">
+    <div
+      style={{
+        minHeight: '100dvh',
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'var(--pl-cream)',
+      }}
+    >
+      <header
+        style={{
+          height: 60,
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 clamp(16px, 4vw, 32px)',
+          borderBottom: '1px solid var(--pl-divider)',
+          background: 'color-mix(in oklab, var(--pl-cream) 88%, transparent)',
+          backdropFilter: 'saturate(140%) blur(14px)',
+          WebkitBackdropFilter: 'saturate(140%) blur(14px)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <Link
+            href="/dashboard"
+            style={{
+              fontFamily: 'var(--pl-font-display)',
+              fontSize: '1.05rem',
+              color: 'var(--pl-ink)',
+              textDecoration: 'none',
+              letterSpacing: '-0.01em',
+            }}
+          >
             Pearloom
           </Link>
-          <span className="hidden sm:block text-[0.6rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-muted)]">
-            Event Ops
+          <span
+            style={{
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.62rem',
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--pl-muted)',
+            }}
+          >
+            Event ops
           </span>
         </div>
-        <Link href="/dashboard" className="text-[0.72rem] text-[var(--pl-muted)] no-underline flex items-center gap-1 hover:text-[var(--pl-ink)] transition-colors">
-          <ArrowLeft size={12} /> Back
-        </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <ThemeToggle />
+          <Link
+            href="/dashboard"
+            style={{
+              fontSize: '0.78rem',
+              color: 'var(--pl-muted)',
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <ArrowLeft size={12} /> Back
+          </Link>
+        </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         <div className="hidden md:block">
           <DashboardSidebar />
         </div>
 
-        <main className="flex-1 overflow-auto">
-          <div style={{ maxWidth: 1100, margin: '0 auto', padding: '2rem 1.25rem' }}>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <h1 className="font-heading italic" style={{
-                fontSize: 'clamp(1.5rem, 3vw, 2.1rem)',
-                color: 'var(--pl-ink)',
-                margin: 0,
-                marginBottom: '0.35rem',
-              }}>
-                Day-of coordination
-              </h1>
-              <p style={{ color: 'var(--pl-muted)', fontSize: '0.88rem', margin: 0 }}>
-                Send announcements and review guest voice toasts — in one place.
-              </p>
+        <main style={{ flex: 1, overflow: 'auto' }}>
+          <div
+            style={{
+              maxWidth: 1180,
+              margin: '0 auto',
+              padding: 'clamp(24px, 4vh, 48px) clamp(16px, 4vw, 40px)',
+            }}
+          >
+            {/* Editorial header */}
+            <div
+              style={{
+                marginBottom: 32,
+                display: 'flex',
+                alignItems: 'flex-end',
+                justifyContent: 'space-between',
+                gap: 24,
+                flexWrap: 'wrap',
+                paddingBottom: 24,
+                borderBottom: '1px solid var(--pl-divider)',
+              }}
+            >
+              <div>
+                <div className="pl-overline" style={{ marginBottom: 14 }}>
+                  Day-of · Coordination
+                </div>
+                <h1
+                  className="pl-display"
+                  style={{
+                    margin: 0,
+                    fontSize: 'clamp(1.8rem, 3.2vw, 2.4rem)',
+                    color: 'var(--pl-ink)',
+                    lineHeight: 1.05,
+                  }}
+                >
+                  Run the room.
+                </h1>
+                <p
+                  style={{
+                    margin: '8px 0 0',
+                    color: 'var(--pl-muted)',
+                    fontSize: '0.95rem',
+                    lineHeight: 1.55,
+                    maxWidth: '52ch',
+                  }}
+                >
+                  Send announcements, moderate voice toasts, and track vendor bookings — one calm room.
+                </p>
+              </div>
+
+              {sites.length > 0 && (
+                <div style={{ minWidth: 240 }}>
+                  <SiteSelector
+                    options={siteOptions}
+                    value={selected}
+                    onChange={setSelected}
+                  />
+                </div>
+              )}
             </div>
 
             {loading ? (
-              <div style={{ opacity: 0.6, fontSize: '0.9rem' }}>Loading sites…</div>
-            ) : sites.length === 0 ? (
-              <div style={{
-                padding: '2rem',
-                background: '#FFFFFF',
-                border: '1px solid #EEE8DC',
-                borderRadius: '0.75rem',
-                textAlign: 'center',
-              }}>
-                <p style={{ margin: 0, marginBottom: '0.75rem' }}>No sites yet.</p>
-                <Link href="/dashboard" style={{ color: 'var(--pl-olive)' }}>
-                  Create one →
-                </Link>
+              <div
+                style={{
+                  padding: 48,
+                  textAlign: 'center',
+                  color: 'var(--pl-muted)',
+                  fontSize: '0.92rem',
+                }}
+              >
+                Loading sites…
               </div>
-            ) : (
-              <>
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '0.7rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
-                    color: 'var(--pl-muted)',
-                    marginBottom: '0.35rem',
-                  }}>
-                    Site
-                  </label>
-                  <select
-                    value={selected}
-                    onChange={(e) => setSelected(e.target.value)}
+            ) : sites.length === 0 ? (
+              <EmptyState
+                size="hero"
+                eyebrow="No sites yet"
+                title="Create one to start coordinating"
+                description="The day-of room comes alive once you have a site with guests, vendors, and a date."
+                actions={
+                  <Link
+                    href="/dashboard"
                     style={{
-                      padding: '0.55rem 0.75rem',
-                      border: '1px solid var(--pl-divider)',
-                      borderRadius: '0.5rem',
-                      fontSize: '0.9rem',
-                      fontFamily: 'inherit',
-                      background: '#FFFFFF',
-                      minWidth: 260,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '10px 18px',
+                      background: 'var(--pl-ink)',
+                      color: 'var(--pl-cream)',
+                      borderRadius: 'var(--pl-radius-full)',
+                      textDecoration: 'none',
+                      fontSize: '0.86rem',
+                      fontWeight: 600,
                     }}
                   >
-                    {sites.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.names?.join(' & ') || s.domain}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div style={{
+                    Create a site
+                  </Link>
+                }
+              />
+            ) : (
+              <div
+                style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-                  gap: '1.25rem',
+                  gap: 20,
                   alignItems: 'start',
-                }}>
-                  <div style={{
-                    background: 'var(--pl-cream)',
-                    border: '1px solid var(--pl-divider)',
-                    borderRadius: '0.85rem',
-                  }}>
-                    {selected && <AnnouncementsPanel siteId={selected} />}
-                  </div>
-                  <div style={{
-                    background: 'var(--pl-cream)',
-                    border: '1px solid var(--pl-divider)',
-                    borderRadius: '0.85rem',
-                  }}>
-                    {selected && <VoiceToastsPanel siteId={selected} />}
-                  </div>
-                  <div style={{
-                    background: 'var(--pl-cream)',
-                    border: '1px solid var(--pl-divider)',
-                    borderRadius: '0.85rem',
-                  }}>
-                    {selected && <VendorBookingsPanel siteId={selected} />}
-                  </div>
-                </div>
-              </>
+                }}
+              >
+                <PageCard
+                  title="Announcements"
+                  eyebrow="Push to guests"
+                  padding="none"
+                  accent="olive"
+                >
+                  {selected && <AnnouncementsPanel siteId={selected} />}
+                </PageCard>
+                <PageCard
+                  title="Voice toasts"
+                  eyebrow="Moderate · Approve"
+                  padding="none"
+                  accent="gold"
+                >
+                  {selected && <VoiceToastsPanel siteId={selected} />}
+                </PageCard>
+                <PageCard
+                  title="Vendor bookings"
+                  eyebrow="Deposits · Timeline"
+                  padding="none"
+                  accent="plum"
+                >
+                  {selected && <VendorBookingsPanel siteId={selected} />}
+                </PageCard>
+              </div>
             )}
           </div>
         </main>

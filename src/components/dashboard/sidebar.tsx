@@ -1,18 +1,73 @@
 'use client';
 
+// ─────────────────────────────────────────────────────────────
+// DashboardSidebar — Wave C rebuild.
+// • Regrouped: Build · Run Event · Grow · Account (was: flat)
+// • Design tokens (no hardcoded zinc)
+// • Editorial knotted-ring mark instead of "P" tile
+// • Theme-aware (works on light + dark)
+// ─────────────────────────────────────────────────────────────
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Image, Settings, Store, Plus, HelpCircle, ChevronRight, Sparkles, Megaphone } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Image as ImageIcon,
+  Settings,
+  Store,
+  Plus,
+  HelpCircle,
+  Sparkles,
+  Megaphone,
+  Users,
+  BarChart3,
+  CalendarRange,
+} from 'lucide-react';
 
-const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/director', label: 'Director', icon: Sparkles },
-  { href: '/dashboard/day-of', label: 'Day-of', icon: Megaphone },
-  { href: '/dashboard/gallery', label: 'Gallery', icon: Image },
-  { href: '/marketplace', label: 'Marketplace', icon: Store },
-  { href: '/dashboard/profile', label: 'Settings', icon: Settings },
+interface NavLink {
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  badge?: string;
+}
+
+interface NavSection {
+  label: string;
+  links: NavLink[];
+}
+
+const SECTIONS: NavSection[] = [
+  {
+    label: 'Build',
+    links: [
+      { href: '/dashboard', label: 'Sites', icon: LayoutDashboard },
+      { href: '/dashboard/director', label: 'Director', icon: Sparkles },
+    ],
+  },
+  {
+    label: 'Run event',
+    links: [
+      { href: '/dashboard/day-of', label: 'Day-of', icon: Megaphone },
+      { href: '/dashboard/rsvp', label: 'Guests · RSVP', icon: Users },
+      { href: '/dashboard/gallery', label: 'Gallery', icon: ImageIcon },
+    ],
+  },
+  {
+    label: 'Grow',
+    links: [
+      { href: '/marketplace', label: 'Marketplace', icon: Store },
+      { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
+    ],
+  },
+  {
+    label: 'Account',
+    links: [
+      { href: '/dashboard/profile', label: 'Settings', icon: Settings },
+      { href: '/faq', label: 'Help', icon: HelpCircle },
+    ],
+  },
 ];
 
 interface DashboardSidebarProps {
@@ -25,24 +80,47 @@ export function DashboardSidebar({ onNewSite }: DashboardSidebarProps = {}) {
 
   return (
     <aside
-      className="shrink-0 min-h-0 h-full flex flex-col border-r border-[#E4E4E7] bg-white transition-[width] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
-      style={{ width: expanded ? 200 : 56 }}
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => setExpanded(false)}
+      style={{
+        width: expanded ? 232 : 64,
+        flexShrink: 0,
+        height: '100%',
+        minHeight: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'var(--pl-cream-card)',
+        borderRight: '1px solid var(--pl-divider)',
+        transition: 'width var(--pl-dur-base) var(--pl-ease-out)',
+      }}
     >
-      {/* Logo mark */}
-      <div className="h-12 flex items-center px-4 border-b border-[#E4E4E7] shrink-0">
-        <div className="w-6 h-6 rounded-md bg-[#18181B] flex items-center justify-center shrink-0">
-          <span className="text-white text-[0.6rem] font-bold leading-none">P</span>
-        </div>
+      {/* Wordmark */}
+      <div
+        style={{
+          height: 60,
+          padding: '0 18px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          borderBottom: '1px solid var(--pl-divider)',
+          flexShrink: 0,
+        }}
+      >
+        <PearloomMark />
         <AnimatePresence>
           {expanded && (
             <motion.span
-              initial={{ opacity: 0, width: 0 }}
-              animate={{ opacity: 1, width: 'auto' }}
-              exit={{ opacity: 0, width: 0 }}
-              transition={{ duration: 0.15 }}
-              className="ml-3 text-sm font-semibold text-[#18181B] whitespace-nowrap overflow-hidden"
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -8 }}
+              transition={{ duration: 0.18 }}
+              style={{
+                fontFamily: 'var(--pl-font-display)',
+                fontSize: '1.05rem',
+                color: 'var(--pl-ink)',
+                letterSpacing: '-0.01em',
+                fontVariationSettings: '"opsz" 144, "SOFT" 50',
+              }}
             >
               Pearloom
             </motion.span>
@@ -50,104 +128,58 @@ export function DashboardSidebar({ onNewSite }: DashboardSidebarProps = {}) {
         </AnimatePresence>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 py-2 px-2 space-y-0.5">
-        {NAV_ITEMS.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 rounded-md min-h-[36px] text-[0.82rem] transition-colors no-underline relative ${
-                expanded ? 'px-3' : 'justify-center px-0'
-              } ${
-                isActive
-                  ? 'bg-[#F4F4F5] text-[#18181B] font-medium'
-                  : 'text-[#71717A] hover:text-[#18181B] hover:bg-[#F4F4F5]'
-              }`}
-            >
-              {isActive && (
-                <motion.div
-                  layoutId="sidebar-active"
-                  className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-[#18181B]"
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                />
-              )}
-              <item.icon size={16} className="shrink-0" />
-              <AnimatePresence>
-                {expanded && (
-                  <motion.span
-                    initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: 'auto' }}
-                    exit={{ opacity: 0, width: 0 }}
-                    transition={{ duration: 0.15 }}
-                    className="whitespace-nowrap overflow-hidden"
-                  >
-                    {item.label}
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </Link>
-          );
-        })}
-
-        <div className="pt-2 mt-2 border-t border-[#E4E4E7]">
-          <Link
-            href="/faq"
-            className={`flex items-center gap-3 rounded-md min-h-[36px] text-[0.82rem] text-[#A1A1AA] hover:text-[#71717A] transition-colors no-underline ${
-              expanded ? 'px-3' : 'justify-center px-0'
-            }`}
-          >
-            <HelpCircle size={16} className="shrink-0" />
-            <AnimatePresence>
-              {expanded && (
-                <motion.span
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: 'auto' }}
-                  exit={{ opacity: 0, width: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className="whitespace-nowrap overflow-hidden"
-                >
-                  Help
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </Link>
-        </div>
+      {/* Nav */}
+      <nav
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '14px 8px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 18,
+        }}
+      >
+        {SECTIONS.map((section) => (
+          <SectionGroup key={section.label} label={section.label} expanded={expanded}>
+            {section.links.map((link) => (
+              <SidebarLink
+                key={link.href}
+                link={link}
+                expanded={expanded}
+                active={
+                  link.href === '/dashboard'
+                    ? pathname === '/dashboard'
+                    : pathname?.startsWith(link.href) ?? false
+                }
+              />
+            ))}
+          </SectionGroup>
+        ))}
       </nav>
 
-      {/* New site CTA */}
-      <div className="px-2 pb-3">
+      {/* CTA */}
+      <div style={{ padding: '0 10px 14px', flexShrink: 0 }}>
         {onNewSite ? (
-          <button
-            onClick={onNewSite}
-            className={`flex items-center justify-center gap-2 w-full min-h-[36px] rounded-md bg-[#18181B] text-white text-[0.75rem] font-semibold border-none cursor-pointer hover:bg-[#27272A] transition-colors ${
-              expanded ? 'px-3' : 'px-0'
-            }`}
-          >
-            <Plus size={14} className="shrink-0" />
-            <AnimatePresence>
-              {expanded && (
-                <motion.span
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: 'auto' }}
-                  exit={{ opacity: 0, width: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className="whitespace-nowrap overflow-hidden"
-                >
-                  New Site
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </button>
+          <CtaButton onClick={onNewSite} expanded={expanded} />
         ) : (
           <Link
             href="/dashboard"
-            className={`flex items-center justify-center gap-2 w-full min-h-[36px] rounded-md bg-[#18181B] text-white text-[0.75rem] font-semibold no-underline hover:bg-[#27272A] transition-colors ${
-              expanded ? 'px-3' : 'px-0'
-            }`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: '10px 12px',
+              background: 'var(--pl-ink)',
+              color: 'var(--pl-cream)',
+              borderRadius: 'var(--pl-radius-md)',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+              transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
+            }}
           >
-            <Plus size={14} className="shrink-0" />
+            <Plus size={14} />
             <AnimatePresence>
               {expanded && (
                 <motion.span
@@ -155,9 +187,9 @@ export function DashboardSidebar({ onNewSite }: DashboardSidebarProps = {}) {
                   animate={{ opacity: 1, width: 'auto' }}
                   exit={{ opacity: 0, width: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="whitespace-nowrap overflow-hidden"
+                  style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}
                 >
-                  New Site
+                  New site
                 </motion.span>
               )}
             </AnimatePresence>
@@ -167,3 +199,204 @@ export function DashboardSidebar({ onNewSite }: DashboardSidebarProps = {}) {
     </aside>
   );
 }
+
+// ─────────────────────────────────────────────────────────────
+
+function SectionGroup({
+  label,
+  expanded,
+  children,
+}: {
+  label: string;
+  expanded: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.15 }}
+            style={{
+              padding: '4px 14px 8px',
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.62rem',
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--pl-muted)',
+              overflow: 'hidden',
+            }}
+          >
+            {label}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {children}
+    </div>
+  );
+}
+
+function SidebarLink({
+  link,
+  active,
+  expanded,
+}: {
+  link: NavLink;
+  active: boolean;
+  expanded: boolean;
+}) {
+  const Icon = link.icon;
+  return (
+    <Link
+      href={link.href}
+      title={!expanded ? link.label : undefined}
+      style={{
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: expanded ? '8px 12px' : '8px 0',
+        justifyContent: expanded ? 'flex-start' : 'center',
+        margin: '0 4px',
+        borderRadius: 'var(--pl-radius-md)',
+        minHeight: 36,
+        background: active ? 'var(--pl-olive-mist)' : 'transparent',
+        color: active ? 'var(--pl-ink)' : 'var(--pl-ink-soft)',
+        textDecoration: 'none',
+        fontSize: '0.86rem',
+        fontWeight: active ? 600 : 500,
+        letterSpacing: '-0.005em',
+        transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
+      }}
+      onMouseEnter={(e) => {
+        if (!active) {
+          e.currentTarget.style.background = 'color-mix(in oklab, var(--pl-olive) 6%, transparent)';
+          e.currentTarget.style.color = 'var(--pl-ink)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!active) {
+          e.currentTarget.style.background = 'transparent';
+          e.currentTarget.style.color = 'var(--pl-ink-soft)';
+        }
+      }}
+    >
+      {active && (
+        <motion.span
+          layoutId="dashboard-sidebar-active"
+          aria-hidden
+          style={{
+            position: 'absolute',
+            left: -4,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: 3,
+            height: 18,
+            borderRadius: 'var(--pl-radius-full)',
+            background: 'var(--pl-olive)',
+          }}
+          transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+        />
+      )}
+      <Icon size={16} style={{ flexShrink: 0 }} />
+      <AnimatePresence>
+        {expanded && (
+          <motion.span
+            initial={{ opacity: 0, width: 0 }}
+            animate={{ opacity: 1, width: 'auto' }}
+            exit={{ opacity: 0, width: 0 }}
+            transition={{ duration: 0.15 }}
+            style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}
+          >
+            {link.label}
+          </motion.span>
+        )}
+      </AnimatePresence>
+      {expanded && link.badge && (
+        <span
+          style={{
+            marginLeft: 'auto',
+            fontSize: '0.62rem',
+            padding: '1px 6px',
+            background: 'var(--pl-gold)',
+            color: 'var(--pl-ink)',
+            borderRadius: 'var(--pl-radius-full)',
+            fontWeight: 700,
+            letterSpacing: '0.04em',
+          }}
+        >
+          {link.badge}
+        </span>
+      )}
+    </Link>
+  );
+}
+
+function CtaButton({ onClick, expanded }: { onClick: () => void; expanded: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        width: '100%',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        padding: '10px 12px',
+        background: 'var(--pl-ink)',
+        color: 'var(--pl-cream)',
+        border: 'none',
+        borderRadius: 'var(--pl-radius-md)',
+        fontFamily: 'var(--pl-font-body)',
+        fontSize: '0.8rem',
+        fontWeight: 600,
+        cursor: 'pointer',
+        transition: 'transform var(--pl-dur-fast) var(--pl-ease-spring), background var(--pl-dur-fast) var(--pl-ease-out)',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = 'color-mix(in oklab, var(--pl-ink) 88%, var(--pl-olive))';
+        e.currentTarget.style.transform = 'translateY(-1px)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = 'var(--pl-ink)';
+        e.currentTarget.style.transform = 'translateY(0)';
+      }}
+    >
+      <Plus size={14} />
+      <AnimatePresence>
+        {expanded && (
+          <motion.span
+            initial={{ opacity: 0, width: 0 }}
+            animate={{ opacity: 1, width: 'auto' }}
+            exit={{ opacity: 0, width: 0 }}
+            transition={{ duration: 0.15 }}
+            style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}
+          >
+            New site
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </button>
+  );
+}
+
+function PearloomMark() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden fill="none" style={{ flexShrink: 0 }}>
+      <circle cx="12" cy="12" r="9" stroke="var(--pl-ink)" strokeWidth="1.4" />
+      <path
+        d="M12 3c2.5 4 2.5 14 0 18M3 12c4-2.5 14-2.5 18 0"
+        stroke="var(--pl-olive)"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        opacity="0.7"
+      />
+    </svg>
+  );
+}
+
+// Suppress unused imports kept for potential expansion
+void CalendarRange;

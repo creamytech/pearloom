@@ -210,21 +210,21 @@ export function EditorWing({
             zIndex: 5,
             display: 'flex',
             flexDirection: 'column',
-            background: '#FFFFFF',
-            borderLeft: '1px solid #E4E4E7',
+            background: 'var(--pl-cream-card)',
+            borderLeft: '1px solid var(--pl-divider)',
             overflow: 'hidden',
           } as React.CSSProperties}
         >
           {/* Panel header */}
           <div
             style={{
-              padding: '12px 14px 8px',
-              borderBottom: '1px solid #E4E4E7',
+              padding: '14px 16px 12px',
+              borderBottom: '1px solid var(--pl-divider)',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              background: '#FAFAFA',
+              background: 'color-mix(in oklab, var(--pl-cream) 60%, transparent)',
               flexShrink: 0,
             }}>
-            {/* FIX #35: Fixed min-height prevents layout jump during title swap */}
+            {/* Fixed min-height prevents layout jump during title swap */}
             <div style={{ minWidth: 0, minHeight: 42 }}>
               <AnimatePresence mode="popLayout">
                 <motion.div
@@ -235,21 +235,27 @@ export function EditorWing({
                   transition={{ duration: 0.14 }}
                 >
                   <h3 style={{
-                    fontSize: '0.9rem',
-                    fontWeight: 600,
-                    fontFamily: 'inherit',
-                    color: '#18181B',
-                    margin: 0, lineHeight: 1.2,
+                    fontFamily: 'var(--pl-font-display)',
+                    fontSize: '1rem',
+                    fontWeight: 500,
+                    letterSpacing: '-0.01em',
+                    color: 'var(--pl-ink)',
+                    margin: 0,
+                    lineHeight: 1.15,
+                    fontVariationSettings: '"opsz" 18, "SOFT" 80',
                   }}>
                     {title}
                   </h3>
                   {hint && (
                     <span style={{
-                      fontSize: '0.58rem', fontWeight: 600,
-                      letterSpacing: '0.08em',
+                      fontSize: '0.58rem',
+                      fontWeight: 600,
+                      letterSpacing: '0.14em',
                       textTransform: 'uppercase',
-                      color: '#71717A',
-                      display: 'block', marginTop: '2px',
+                      color: 'var(--pl-muted)',
+                      display: 'block',
+                      marginTop: 4,
+                      fontFamily: 'var(--pl-font-mono)',
                     }}>
                       {hint}
                     </span>
@@ -258,15 +264,18 @@ export function EditorWing({
               </AnimatePresence>
               {meta && (
                 <span style={{
-                  fontSize: '0.55rem', fontWeight: 700,
-                  letterSpacing: '0.07em', textTransform: 'uppercase',
+                  fontSize: '0.55rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
                   color: meta.color,
                   background: meta.bg,
                   border: `1px solid ${meta.color}30`,
-                  padding: '1px 6px',
-                  borderRadius: '8px',
+                  padding: '2px 8px',
+                  borderRadius: 999,
                   lineHeight: '16px',
-                  display: 'inline-block', marginTop: '6px',
+                  display: 'inline-block',
+                  marginTop: 8,
                 }}>
                   {meta.label}
                 </span>
@@ -278,8 +287,7 @@ export function EditorWing({
               aria-label="Panel actions"
               style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}
             >
-              {/* FIX #33: Save-state indicator — orange pulse when unsaved,
-                  green check chip when saved (AnimatePresence swap) */}
+              {/* Save-state indicator */}
               <AnimatePresence mode="wait">
                 {editorState.saveState === 'unsaved' ? (
                   <motion.span
@@ -293,8 +301,8 @@ export function EditorWing({
                       display: 'inline-block',
                       width: 8, height: 8,
                       borderRadius: '50%',
-                      background: '#fb923c',
-                      boxShadow: '0 0 0 0 rgba(251,146,60,0.6)',
+                      background: 'var(--pl-gold)',
+                      boxShadow: '0 0 0 0 color-mix(in oklab, var(--pl-gold) 60%, transparent)',
                       animation: 'pl-wing-pulse 1.4s ease-out infinite',
                     }}
                   />
@@ -306,30 +314,30 @@ export function EditorWing({
                     exit={{ opacity: 0, scale: 0.8 }}
                     transition={{ duration: 0.18 }}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: '3px',
-                      fontSize: '0.58rem', fontWeight: 600,
-                      color: '#16a34a',
-                      padding: '2px 6px',
-                      borderRadius: '4px',
-                      background: 'rgba(22,163,74,0.10)',
+                      display: 'flex', alignItems: 'center', gap: 4,
+                      fontSize: '0.58rem', fontWeight: 700,
+                      letterSpacing: '0.1em', textTransform: 'uppercase',
+                      color: 'var(--pl-olive)',
+                      padding: '3px 8px',
+                      borderRadius: 999,
+                      background: 'color-mix(in oklab, var(--pl-olive) 14%, transparent)',
                     }}
                   >
                     <Check size={9} /> Saved
                   </motion.span>
                 ) : null}
               </AnimatePresence>
-              {/* FIX #31: RichTooltip replaces plain title attribute */}
               <RichTooltip label="Hide panel" shortcut="⌘\" side="bottom">
                 <motion.button
                   onClick={onToggle}
-                  whileHover={{ backgroundColor: 'rgba(0,0,0,0.05)' }}
-                  whileTap={{ scale: 0.88 }}
+                  whileHover={{ backgroundColor: 'color-mix(in oklab, var(--pl-ink) 6%, transparent)' }}
+                  whileTap={{ scale: 0.9 }}
                   style={{
-                    width: '28px', height: '28px',
+                    width: 28, height: 28,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    borderRadius: '8px', border: 'none',
+                    borderRadius: 8, border: 'none',
                     background: 'transparent',
-                    color: '#71717A',
+                    color: 'var(--pl-muted)',
                     cursor: 'pointer',
                     flexShrink: 0,
                   }}
@@ -372,23 +380,23 @@ export function EditorWing({
               className="pl-wing-resize-bar"
               style={{
                 width: '2px', height: '100%',
-                background: resizing ? 'rgba(24,24,27,0.22)' : 'transparent',
+                background: resizing
+                  ? 'color-mix(in oklab, var(--pl-olive) 50%, transparent)'
+                  : 'transparent',
                 transition: 'background 0.15s',
                 pointerEvents: 'none',
               }}
             />
           </div>
 
-          {/* Pulse keyframes for the unsaved-dot animation (FIX #33)
-              + hover affordance on the resize handle (FIX #28). */}
           <style>{`
             @keyframes pl-wing-pulse {
-              0%   { box-shadow: 0 0 0 0 rgba(251,146,60,0.55); }
-              70%  { box-shadow: 0 0 0 6px rgba(251,146,60,0); }
-              100% { box-shadow: 0 0 0 0 rgba(251,146,60,0); }
+              0%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--pl-gold) 55%, transparent); }
+              70%  { box-shadow: 0 0 0 6px color-mix(in oklab, var(--pl-gold) 0%, transparent); }
+              100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--pl-gold) 0%, transparent); }
             }
             .pl-wing-resize[data-resizing="false"]:hover .pl-wing-resize-bar {
-              background: rgba(24,24,27,0.14);
+              background: color-mix(in oklab, var(--pl-olive) 28%, transparent);
             }
           `}</style>
         </motion.aside>

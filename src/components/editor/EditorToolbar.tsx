@@ -1,18 +1,26 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// Pearloom / EditorToolbar.tsx — Ultra-minimal top bar
-// Just: Exit ← | Page name | Save status | Publish
-// Everything else lives in the rail or inline on the canvas
+// Pearloom / EditorToolbar.tsx — Editorial top bar
+// Wave D: canvas-first chrome. 44px tall, design-token driven,
+// light/dark via [data-theme]. Integrates ThemeToggle.
+//
+// Layout: Exit · Site name · | · device switcher · undo/redo · ⌘K
+//         · save · preview · panel · share · status · theme · ?
+//         · Publish
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Eye, Command, Monitor, Tablet, Smartphone, Link, PanelRightClose, PanelRightOpen, Loader2 } from 'lucide-react';
 import {
-  UndoIcon, RedoIcon, PublishIcon, SavedIcon, UnsavedIcon,
+  ArrowLeft, Eye, Command, Monitor, Tablet, Smartphone, Link as LinkIcon,
+  PanelRightClose, PanelRightOpen, Loader2,
+} from 'lucide-react';
+import {
+  UndoIcon, RedoIcon,
 } from '@/components/icons/EditorIcons';
 import { RichTooltip } from '@/components/ui/tooltip';
+import { ThemeToggle } from '@/components/shell';
 import { buildSiteUrl } from '@/lib/site-urls';
 import { useEditor } from '@/lib/editor-state';
 import { KeyboardShortcuts } from './KeyboardShortcuts';
@@ -27,10 +35,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
 
-  // Item 12: Debounce save-state flicker. The underlying saveState can toggle
-  // rapidly between 'saved'/'unsaved' during typing + autosave cycles, causing
-  // the indicator dot to visually flicker. We memoize a "displayed" state with
-  // a 200ms floor so rapid toggles don't re-render.
+  // Debounce save-state flicker (200ms floor on toggles).
   const [displayedSaveState, setDisplayedSaveState] = useState(saveState);
   const lastSaveFlipRef = useRef<number>(0);
   const pendingSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -55,12 +60,10 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
     };
   }, [saveState]);
 
-  // Last undo label for descriptive tooltips (item 15)
   const lastUndoLabel = state.undoHistory?.[state.undoIndex]?.label;
   const nextRedoLabel = state.undoHistory?.[state.undoIndex + 1]?.label;
 
-  // Item 18: Publish pre-flight — disable when site has no content at all
-  // (no chapters, no events, no custom blocks). Uses manifest from useEditor().
+  // Pre-flight: disable publish when nothing exists to publish.
   const publishDisabled =
     (manifest.chapters?.length ?? 0) === 0 &&
     (manifest.events?.length ?? 0) === 0 &&
@@ -68,17 +71,13 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
 
   const siteName = coupleNames[1]?.trim()
     ? `${coupleNames[0]} & ${coupleNames[1]}`
-    : coupleNames[0] || 'Untitled Site';
+    : coupleNames[0] || 'Untitled site';
 
-  // Global Shift+/ (?) listener to open shortcuts modal
+  // Shift+/ opens shortcuts; some keyboards report differently — accept code.
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      // Ignore when typing in inputs/textareas
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return;
-      // Item 71: Robust Shift+? detection. Some non-US keyboard layouts
-      // report e.key differently for '?' — accept e.code === 'Slash' + shift
-      // as a fallback so the shortcut works everywhere.
       if (
         e.key === '?' ||
         (e.shiftKey && e.key === '/') ||
@@ -102,250 +101,345 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
 
   return (
     <>
-    <div style={{
-      height: '40px', flexShrink: 0,
-      display: 'flex', alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '0 12px',
-      background: '#FFFFFF',
-      borderBottom: '1px solid #E4E4E7',
-      zIndex: 10,
-    } as React.CSSProperties}>
+      <div
+        style={{
+          height: 44,
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 14px',
+          background: 'color-mix(in oklab, var(--pl-cream) 92%, transparent)',
+          backdropFilter: 'saturate(140%) blur(14px)',
+          WebkitBackdropFilter: 'saturate(140%) blur(14px)',
+          borderBottom: '1px solid var(--pl-divider)',
+          zIndex: 10,
+          position: 'relative',
+        }}
+      >
+        {/* Left: exit + wordmark + site name */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+          <RichTooltip label="Back to dashboard" shortcut="Esc" side="bottom">
+            <motion.button
+              onClick={onExit}
+              whileHover={{ x: -2 }}
+              whileTap={{ scale: 0.94 }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '6px 10px',
+                borderRadius: 8,
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--pl-muted)',
+                cursor: 'pointer',
+              }}
+            >
+              <ArrowLeft size={14} />
+            </motion.button>
+          </RichTooltip>
 
-      {/* Left: Exit + Site name */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-        <RichTooltip label="Exit editor" side="bottom">
-          <motion.button
-            onClick={onExit}
-            whileHover={{ x: -2 }}
-            whileTap={{ scale: 0.92 }}
+          <span
             style={{
-              display: 'flex', alignItems: 'center', gap: '4px',
-              padding: '4px 8px', borderRadius: '8px', border: 'none',
-              background: 'transparent', color: '#71717A',
-              cursor: 'pointer', fontSize: '0.65rem', fontWeight: 500,
+              fontFamily: 'var(--pl-font-display)',
+              fontSize: '0.92rem',
+              fontWeight: 500,
+              letterSpacing: '-0.01em',
+              color: 'var(--pl-ink)',
+              fontVariationSettings: '"opsz" 14, "SOFT" 60',
             }}
           >
-            <ArrowLeft size={14} />
-          </motion.button>
-        </RichTooltip>
+            Pearloom
+          </span>
 
-        <span style={{
-          fontSize: '0.8rem', fontWeight: 600,
-          color: '#3F3F46',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          maxWidth: '200px',
-        }}>
-          {siteName}
-        </span>
-      </div>
+          <span
+            style={{
+              width: 1,
+              height: 16,
+              background: 'var(--pl-divider)',
+              margin: '0 4px',
+            }}
+          />
 
-      {/* Center: Device switcher + Undo/Redo + Cmd+K */}
-      {!isMobile && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2px', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
-          {/* Device switcher */}
-          {(['desktop', 'tablet', 'mobile'] as const).map(mode => {
-            const Icon = mode === 'desktop' ? Monitor : mode === 'tablet' ? Tablet : Smartphone;
-            const tip = deviceTooltips[mode];
-            return (
-              <RichTooltip key={mode} label={tip.label} shortcut={tip.shortcut} side="bottom">
-                <ToolBtn onClick={() => dispatch({ type: 'SET_DEVICE', device: mode })}>
-                  <Icon size={13} style={{ opacity: state.device === mode ? 1 : 0.4 }} />
-                </ToolBtn>
-              </RichTooltip>
-            );
-          })}
-          <div style={{ width: '1px', height: '16px', background: '#FAFAFA', margin: '0 4px' }} />
+          <span
+            style={{
+              fontSize: '0.78rem',
+              fontWeight: 500,
+              color: 'var(--pl-ink-soft)',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              maxWidth: 220,
+              fontFamily: 'var(--pl-font-display)',
+              fontStyle: 'italic',
+              fontVariationSettings: '"opsz" 12, "WONK" 1',
+            }}
+          >
+            {siteName}
+          </span>
+        </div>
+
+        {/* Center: device + undo/redo + ⌘K */}
+        {!isMobile && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              position: 'absolute',
+              left: '50%',
+              transform: 'translateX(-50%)',
+            }}
+          >
+            {(['desktop', 'tablet', 'mobile'] as const).map((mode) => {
+              const Icon = mode === 'desktop' ? Monitor : mode === 'tablet' ? Tablet : Smartphone;
+              const tip = deviceTooltips[mode];
+              const active = state.device === mode;
+              return (
+                <RichTooltip key={mode} label={tip.label} shortcut={tip.shortcut} side="bottom">
+                  <ToolBtn onClick={() => dispatch({ type: 'SET_DEVICE', device: mode })} active={active}>
+                    <Icon size={13} />
+                  </ToolBtn>
+                </RichTooltip>
+              );
+            })}
+
+            <Divider />
+
+            <RichTooltip
+              label={canUndo && lastUndoLabel ? `Undo: ${lastUndoLabel}` : 'Undo'}
+              shortcut="⌘Z"
+              side="bottom"
+            >
+              <ToolBtn onClick={actions.undo} disabled={!canUndo}>
+                <UndoIcon size={13} />
+              </ToolBtn>
+            </RichTooltip>
+            <RichTooltip
+              label={canRedo && nextRedoLabel ? `Redo: ${nextRedoLabel}` : 'Redo'}
+              shortcut="⌘⇧Z"
+              side="bottom"
+            >
+              <ToolBtn onClick={actions.redo} disabled={!canRedo}>
+                <RedoIcon size={13} />
+              </ToolBtn>
+            </RichTooltip>
+
+            <Divider />
+
+            <RichTooltip label="Quick actions" shortcut="⌘K" side="bottom">
+              <ToolBtn onClick={() => dispatch({ type: 'SET_CMD_PALETTE', open: true })}>
+                <Command size={12} />
+              </ToolBtn>
+            </RichTooltip>
+          </div>
+        )}
+
+        {/* Right: save · preview · panel · share · status · theme · ? · Publish */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          <SaveDot state={displayedSaveState} hideLabel={isMobile} />
+
+          {!isMobile && <PreviewButton onClick={actions.storePreviewForOpen} />}
+
+          {!isMobile && (
+            <RichTooltip
+              label={state.sidebarCollapsed ? 'Show panel' : 'Hide panel'}
+              shortcut="⌘\\"
+              side="bottom"
+            >
+              <ToolBtn onClick={() => dispatch({ type: 'TOGGLE_SIDEBAR_COLLAPSED' })}>
+                {state.sidebarCollapsed ? <PanelRightOpen size={13} /> : <PanelRightClose size={13} />}
+              </ToolBtn>
+            </RichTooltip>
+          )}
+
+          {!isMobile && subdomain && (
+            <RichTooltip label="Copy site link" side="bottom">
+              <motion.button
+                onClick={async () => {
+                  const url = buildSiteUrl(subdomain, '', undefined, manifest?.occasion);
+                  try {
+                    await navigator.clipboard.writeText(url);
+                  } catch {}
+                  setShareCopied(true);
+                  setTimeout(() => setShareCopied(false), 2000);
+                }}
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.96 }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  padding: '6px 12px',
+                  borderRadius: 999,
+                  border: '1px solid var(--pl-divider)',
+                  background: shareCopied
+                    ? 'color-mix(in oklab, var(--pl-olive) 18%, transparent)'
+                    : 'var(--pl-cream-card)',
+                  color: shareCopied ? 'var(--pl-olive)' : 'var(--pl-ink-soft)',
+                  cursor: 'pointer',
+                  fontSize: '0.66rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.04em',
+                  transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
+                }}
+              >
+                <LinkIcon size={11} />
+                {shareCopied ? 'Copied' : 'Share'}
+              </motion.button>
+            </RichTooltip>
+          )}
+
           <RichTooltip
-            label={canUndo && lastUndoLabel ? `Undo: ${lastUndoLabel}` : 'Undo'}
-            shortcut="⌘Z"
+            label={publishedUrl
+              ? 'Live — guests can see this site.'
+              : 'Draft — only you can see this site.'}
             side="bottom"
           >
-            <ToolBtn onClick={actions.undo} disabled={!canUndo}>
-              <UndoIcon size={13} />
-            </ToolBtn>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '4px 9px',
+                borderRadius: 999,
+                fontSize: '0.58rem',
+                fontWeight: 700,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                background: publishedUrl
+                  ? 'color-mix(in oklab, var(--pl-olive) 12%, transparent)'
+                  : 'color-mix(in oklab, var(--pl-gold) 14%, transparent)',
+                color: publishedUrl ? 'var(--pl-olive)' : 'var(--pl-gold)',
+                border: `1px solid ${
+                  publishedUrl
+                    ? 'color-mix(in oklab, var(--pl-olive) 28%, transparent)'
+                    : 'color-mix(in oklab, var(--pl-gold) 32%, transparent)'
+                }`,
+                cursor: 'default',
+              }}
+            >
+              <span
+                style={{
+                  width: 5,
+                  height: 5,
+                  borderRadius: '50%',
+                  background: publishedUrl ? 'var(--pl-olive)' : 'var(--pl-gold)',
+                }}
+              />
+              {publishedUrl ? 'Live' : 'Draft'}
+            </span>
           </RichTooltip>
+
+          {!isMobile && <ThemeToggle size="sm" />}
+
+          {!isMobile && (
+            <RichTooltip label="Keyboard shortcuts" shortcut="?" side="bottom">
+              <motion.button
+                onClick={() => setShortcutsOpen(true)}
+                whileHover={{ scale: 1.06 }}
+                whileTap={{ scale: 0.92 }}
+                style={{
+                  width: 28,
+                  height: 28,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
+                  border: '1px solid var(--pl-divider)',
+                  background: 'var(--pl-cream-card)',
+                  color: 'var(--pl-muted)',
+                  cursor: 'pointer',
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  fontFamily: 'var(--pl-font-display)',
+                  fontStyle: 'italic',
+                  fontVariationSettings: '"opsz" 12',
+                }}
+              >
+                ?
+              </motion.button>
+            </RichTooltip>
+          )}
+
           <RichTooltip
-            label={canRedo && nextRedoLabel ? `Redo: ${nextRedoLabel}` : 'Redo'}
-            shortcut="⌘⇧Z"
+            label={publishDisabled
+              ? 'Add a chapter, event, or block before publishing'
+              : 'Publish & share your site'}
             side="bottom"
           >
-            <ToolBtn onClick={actions.redo} disabled={!canRedo}>
-              <RedoIcon size={13} />
-            </ToolBtn>
-          </RichTooltip>
-          <div style={{ width: '1px', height: '16px', background: '#FAFAFA', margin: '0 4px' }} />
-          <RichTooltip label="Quick actions" shortcut="⌘K" side="bottom">
-            <ToolBtn onClick={() => dispatch({ type: 'SET_CMD_PALETTE', open: true })}>
-              <Command size={12} />
-            </ToolBtn>
+            <motion.button
+              onClick={() => {
+                if (!publishDisabled) dispatch({ type: 'OPEN_PUBLISH' });
+              }}
+              disabled={publishDisabled}
+              whileHover={!publishDisabled ? { y: -1 } : {}}
+              whileTap={!publishDisabled ? { scale: 0.97 } : {}}
+              className={publishDisabled ? undefined : 'pl-cta-pulse'}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: isMobile ? '6px 14px' : '7px 18px',
+                borderRadius: 999,
+                border: 'none',
+                background: publishDisabled ? 'var(--pl-muted-soft, var(--pl-divider))' : 'var(--pl-ink)',
+                color: publishDisabled ? 'var(--pl-muted)' : 'var(--pl-cream)',
+                cursor: publishDisabled ? 'not-allowed' : 'pointer',
+                opacity: publishDisabled ? 0.6 : 1,
+                fontSize: '0.66rem',
+                fontWeight: 700,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                boxShadow: publishDisabled
+                  ? 'none'
+                  : '0 2px 12px color-mix(in oklab, var(--pl-olive) 30%, transparent)',
+                transition: 'box-shadow 0.25s ease, transform 0.2s ease',
+              }}
+            >
+              Publish
+            </motion.button>
           </RichTooltip>
         </div>
-      )}
-
-      {/* Right: Save + Preview + Help + Publish */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-        {/* Save indicator (uses debounced displayedSaveState to prevent flicker — item 12) */}
-        <span style={{
-          fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em',
-          color: displayedSaveState === 'saved' ? '#18181B' : '#fb923c',
-          display: 'flex', alignItems: 'center', gap: '3px',
-        }}>
-          <span style={{
-            width: '5px', height: '5px', borderRadius: '50%',
-            background: displayedSaveState === 'saved' ? '#18181B' : '#fb923c',
-            animation: displayedSaveState === 'unsaved' ? 'pl-heartbeat 1.2s ease-in-out infinite' : 'none',
-          }} />
-          {!isMobile && (displayedSaveState === 'saved' ? 'Saved' : 'Unsaved')}
-        </span>
-
-        {/* Preview — item 104: brief 400ms loading state on click so users
-            see feedback before the new tab opens. */}
-        {!isMobile && <PreviewButton onClick={actions.storePreviewForOpen} />}
-
-        {/* Toggle side panel (focus mode) */}
-        {!isMobile && (
-          <RichTooltip
-            label={state.sidebarCollapsed ? 'Show panel' : 'Hide panel'}
-            shortcut="⌘\\"
-            side="bottom"
-          >
-            <ToolBtn onClick={() => dispatch({ type: 'TOGGLE_SIDEBAR_COLLAPSED' })}>
-              {state.sidebarCollapsed ? <PanelRightOpen size={13} /> : <PanelRightClose size={13} />}
-            </ToolBtn>
-          </RichTooltip>
-        )}
-
-        {/* Share */}
-        {!isMobile && subdomain && (
-          <RichTooltip label="Copy site link" side="bottom">
-            <motion.button
-              onClick={async () => {
-                const url = buildSiteUrl(subdomain, '', undefined, manifest?.occasion);
-                try { await navigator.clipboard.writeText(url); } catch {}
-                setShareCopied(true);
-                setTimeout(() => setShareCopied(false), 2000);
-              }}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '5px',
-                padding: '6px 14px',
-                borderRadius: '8px', border: 'none',
-                background: shareCopied ? '#4a9b8a' : '#18181B',
-                color: '#fff', cursor: 'pointer',
-                fontSize: '0.65rem', fontWeight: 700,
-                letterSpacing: '0.06em', textTransform: 'uppercase',
-                transition: 'background 0.2s',
-              }}
-            >
-              <Link size={12} />
-              {shareCopied ? 'Link copied!' : 'Share'}
-            </motion.button>
-          </RichTooltip>
-        )}
-
-        {/* Draft / Live badge (item 17: explain what each state means) */}
-        <RichTooltip
-          label={publishedUrl
-            ? 'This site is live and visible to guests.'
-            : 'Draft — only you can see this site.'}
-          side="bottom"
-        >
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: '4px',
-            padding: '3px 10px', borderRadius: '8px',
-            fontSize: '0.58rem', fontWeight: 800,
-            letterSpacing: '0.08em', textTransform: 'uppercase',
-            background: publishedUrl
-              ? 'rgba(74,155,138,0.12)'
-              : 'rgba(251,146,60,0.12)',
-            color: publishedUrl
-              ? '#4a9b8a'
-              : '#fb923c',
-            border: `1px solid ${publishedUrl ? 'rgba(74,155,138,0.25)' : 'rgba(251,146,60,0.25)'}`,
-            cursor: 'default',
-          }}>
-            <span style={{
-              width: '5px', height: '5px', borderRadius: '50%',
-              background: publishedUrl ? '#4a9b8a' : '#fb923c',
-            }} />
-            {publishedUrl ? 'Live' : 'Draft'}
-          </span>
-        </RichTooltip>
-
-        {/* Help — Keyboard shortcuts */}
-        {!isMobile && (
-          <RichTooltip label="Keyboard shortcuts" shortcut="?" side="bottom">
-            <motion.button
-              onClick={() => setShortcutsOpen(true)}
-              whileHover={{ scale: 1.1, background: '#FFFFFF' }}
-              whileTap={{ scale: 0.88 }}
-              style={{
-                width: '26px', height: '26px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                borderRadius: '50%', border: '1px solid rgba(0,0,0,0.08)',
-                background: '#FAFAFA',
-                color: '#71717A',
-                cursor: 'pointer',
-                fontSize: '0.65rem',
-                fontWeight: 700,
-                transition: 'border-color 0.15s',
-              }}
-            >
-              <span style={{ lineHeight: 1, marginTop: '-1px' }}>?</span>
-            </motion.button>
-          </RichTooltip>
-        )}
-
-        {/* Publish (item 18: pre-flight — disable when there's nothing to publish) */}
-        <RichTooltip
-          label={publishDisabled
-            ? 'Add a chapter, event, or block before publishing'
-            : 'Publish & share your site'}
-          side="bottom"
-        >
-          <motion.button
-            onClick={() => { if (!publishDisabled) dispatch({ type: 'OPEN_PUBLISH' }); }}
-            disabled={publishDisabled}
-            whileHover={!publishDisabled ? { scale: 1.03 } : {}}
-            whileTap={!publishDisabled ? { scale: 0.97 } : {}}
-            className={publishDisabled ? undefined : 'pl-cta-pulse'}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '5px',
-              padding: isMobile ? '6px 14px' : '6px 18px',
-              borderRadius: '8px', border: 'none',
-              background: publishDisabled ? '#A1A1AA' : '#18181B',
-              color: '#fff',
-              cursor: publishDisabled ? 'not-allowed' : 'pointer',
-              opacity: publishDisabled ? 0.6 : 1,
-              fontSize: '0.65rem', fontWeight: 700,
-              letterSpacing: '0.08em', textTransform: 'uppercase',
-              boxShadow: publishDisabled ? 'none' : '0 2px 8px rgba(110,140,92,0.25)',
-              transition: 'box-shadow 0.25s ease',
-            }}
-            onMouseEnter={(e) => {
-              if (publishDisabled) return;
-              (e.currentTarget as HTMLElement).style.boxShadow = '0 0 20px #E4E4E7, 0 2px 8px rgba(110,140,92,0.25)';
-            }}
-            onMouseLeave={(e) => {
-              if (publishDisabled) return;
-              (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(110,140,92,0.25)';
-            }}
-          >
-            Publish
-          </motion.button>
-        </RichTooltip>
       </div>
-    </div>
 
-    {/* Keyboard shortcuts modal */}
-    <KeyboardShortcuts open={shortcutsOpen} onClose={closeShortcuts} />
+      <KeyboardShortcuts open={shortcutsOpen} onClose={closeShortcuts} />
     </>
   );
 }
 
-// ── Preview button with brief loading state (item 104) ─────
+// ── Save dot ────────────────────────────────────────────────
+function SaveDot({ state, hideLabel }: { state: 'saved' | 'unsaved'; hideLabel?: boolean }) {
+  const saved = state === 'saved';
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 5,
+        fontSize: '0.6rem',
+        fontWeight: 700,
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+        color: saved ? 'var(--pl-ink-soft)' : 'var(--pl-gold)',
+      }}
+    >
+      <span
+        style={{
+          width: 5,
+          height: 5,
+          borderRadius: '50%',
+          background: saved ? 'var(--pl-olive)' : 'var(--pl-gold)',
+          animation: saved ? 'none' : 'pl-heartbeat 1.2s ease-in-out infinite',
+        }}
+      />
+      {!hideLabel && (saved ? 'Saved' : 'Unsaved')}
+    </span>
+  );
+}
+
+// ── Preview button with brief loading state ──────────────────
 function PreviewButton({ onClick }: { onClick: () => void }) {
   const [loading, setLoading] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -362,7 +456,9 @@ function PreviewButton({ onClick }: { onClick: () => void }) {
         {loading ? (
           <span role="status" aria-label="Opening preview" style={{ display: 'inline-flex', position: 'relative' }}>
             <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
-            <span style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>Opening preview…</span>
+            <span style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>
+              Opening preview…
+            </span>
           </span>
         ) : (
           <Eye size={13} />
@@ -372,29 +468,55 @@ function PreviewButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-// ── Tiny tool button ────────────────────────────────────────
-function ToolBtn({ onClick, disabled, children }: {
-  onClick: () => void; disabled?: boolean;
+// ── Tool button ──────────────────────────────────────────────
+function ToolBtn({
+  onClick, disabled, active, children,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  active?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <motion.button
       onClick={onClick}
       disabled={disabled}
-      whileHover={!disabled ? { scale: 1.1, background: '#FFFFFF' } : {}}
-      whileTap={!disabled ? { scale: 0.88 } : {}}
+      whileHover={!disabled ? { scale: 1.06 } : {}}
+      whileTap={!disabled ? { scale: 0.9 } : {}}
       style={{
-        width: '30px', height: '30px',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        borderRadius: '8px', border: 'none',
-        background: 'transparent',
-        color: disabled ? '#71717A' : '#3F3F46',
+        width: 28,
+        height: 28,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 8,
+        border: 'none',
+        background: active ? 'color-mix(in oklab, var(--pl-olive) 14%, transparent)' : 'transparent',
+        color: disabled
+          ? 'var(--pl-muted)'
+          : active
+            ? 'var(--pl-olive)'
+            : 'var(--pl-ink-soft)',
         cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.35 : 1,
-        transition: 'opacity 0.15s',
+        opacity: disabled ? 0.4 : 1,
+        transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
       }}
     >
       {children}
     </motion.button>
+  );
+}
+
+// ── Vertical divider ─────────────────────────────────────────
+function Divider() {
+  return (
+    <span
+      style={{
+        width: 1,
+        height: 16,
+        background: 'var(--pl-divider)',
+        margin: '0 4px',
+      }}
+    />
   );
 }

@@ -1,20 +1,25 @@
 'use client';
 
+// ─────────────────────────────────────────────────────────────
+// Landing — Wave B editorial recompose.
+// Order: Hero → Social proof → Event OS pillars → Live demo
+//      → Seat-to-Story → Editor → The Loom → Occasions
+//      → Testimonials → Pricing → Trust → FAQ → CTA → Footer
+// ─────────────────────────────────────────────────────────────
+
 import { useRef, useState } from 'react';
-import { motion, useInView, AnimatePresence, type Variants } from 'framer-motion';
-import { ArrowRight, Menu, X, Sparkles, ChevronRight } from 'lucide-react';
+import { motion, useInView, type Variants } from 'framer-motion';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { AuthModal } from '@/components/auth/AuthModal';
 
-import { MarketingHero } from './marketing/MarketingHero';
+import { MarketingNav } from './marketing/MarketingNav';
+import { EditorialHero } from './marketing/EditorialHero';
+import { EventOSPillars } from './marketing/EventOSPillars';
 import { SocialProofBar } from './marketing/SocialProofBar';
-import { HowItWorks } from './marketing/HowItWorks';
 import { TheLoomShowcase } from './marketing/TheLoomShowcase';
-import { BlockTypesGrid } from './marketing/BlockTypesGrid';
 import { GuestExperience } from './marketing/GuestExperience';
-import { EventOSShowcase } from './marketing/EventOSShowcase';
 import { EditorShowcase } from './marketing/EditorShowcase';
 import { PricingPreview } from './marketing/PricingPreview';
-import { Testimonials } from './marketing/Testimonials';
 import { FAQSection } from './marketing/FAQSection';
 import { TrustSignals } from './marketing/TrustSignals';
 import { MarketingFooter } from './marketing/MarketingFooter';
@@ -30,104 +35,21 @@ interface LandingPageProps {
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 16 },
   show: (i = 0) => ({
-    opacity: 1, y: 0,
+    opacity: 1,
+    y: 0,
     transition: { duration: 0.5, ease: EASE, delay: i * 0.08 },
   }),
 };
 
-// ── Data ──────────────────────────────────────────────────────
+// ─── Data ─────────────────────────────────────────────────────
 
 const OCCASIONS = [
-  { num: '01', label: 'Weddings', tagline: 'From first look to forever', accent: C.plum },
-  { num: '02', label: 'Engagements', tagline: 'They said yes. Now tell the world.', accent: C.olive },
-  { num: '03', label: 'Anniversaries', tagline: 'Years together, still writing chapters', accent: C.gold },
-  { num: '04', label: 'Birthdays', tagline: 'Every year a new story', accent: C.plum },
-  { num: '05', label: 'Any Celebration', tagline: 'If it matters, it deserves a site', accent: C.olive },
+  { num: '01', label: 'Weddings', tagline: 'From first look to forever', accent: 'var(--pl-plum)' },
+  { num: '02', label: 'Engagements', tagline: 'They said yes. Now tell the world.', accent: 'var(--pl-olive)' },
+  { num: '03', label: 'Anniversaries', tagline: 'Years together, still writing chapters', accent: 'var(--pl-gold)' },
+  { num: '04', label: 'Birthdays', tagline: 'Every year a new story', accent: 'var(--pl-plum)' },
+  { num: '05', label: 'Reunions & memorials', tagline: 'For the people you keep close', accent: 'var(--pl-olive)' },
 ];
-
-// ── Try It Live Playground ─────────────────────────────────────
-function TryItLivePlayground({ onGetStarted }: { onGetStarted: () => void }) {
-  const [name1, setName1] = useState('Sarah');
-  const [name2, setName2] = useState('Alex');
-
-  const display = name1 && name2
-    ? `${name1} & ${name2}`
-    : name1 || name2 || 'Your Names';
-
-  return (
-    <div>
-      {/* Input row */}
-      <div className="flex gap-3 mb-6 w-full max-w-[400px] mx-auto">
-        <input
-          type="text"
-          value={name1}
-          onChange={(e) => setName1(e.target.value)}
-          placeholder="First name"
-          className="flex-1 min-w-0 px-4 py-3 rounded-xl border border-[rgba(0,0,0,0.08)] bg-white text-[var(--pl-ink)] text-[max(16px,0.9rem)] font-body outline-none focus:border-[var(--pl-olive)] transition-colors"
-        />
-        <input
-          type="text"
-          value={name2}
-          onChange={(e) => setName2(e.target.value)}
-          placeholder="Partner's name"
-          className="flex-1 min-w-0 px-4 py-3 rounded-xl border border-[rgba(0,0,0,0.08)] bg-white text-[var(--pl-ink)] text-[max(16px,0.9rem)] font-body outline-none focus:border-[var(--pl-olive)] transition-colors"
-        />
-      </div>
-
-      {/* Live preview card */}
-      <motion.div
-        layout
-        className="rounded-2xl overflow-hidden mx-auto w-full max-w-[400px]"
-        style={{
-          background: 'linear-gradient(145deg, #faf9f6 0%, #f0ece4 100%)',
-          border: '1px solid rgba(0,0,0,0.06)',
-          boxShadow: '0 12px 48px rgba(43,30,20,0.10), 0 0 0 1px rgba(0,0,0,0.02)',
-        }}
-      >
-        {/* Hero image placeholder */}
-        <div
-          style={{
-            height: 160,
-            background: 'linear-gradient(135deg, rgba(163,177,138,0.15) 0%, rgba(196,169,106,0.1) 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            position: 'relative', overflow: 'hidden',
-          }}
-        >
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: 'radial-gradient(circle at 30% 50%, rgba(163,177,138,0.2) 0%, transparent 60%)',
-          }} />
-          <motion.h3
-            key={display}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="font-heading text-[clamp(1.6rem,4vw,2.2rem)] font-semibold italic tracking-[-0.02em] relative z-10"
-            style={{ color: '#3D3530' }}
-          >
-            {display}
-          </motion.h3>
-        </div>
-        {/* Mini sections */}
-        <div className="p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-[2px] rounded-full" style={{ background: C.olive, opacity: 0.5 }} />
-            <span className="text-[0.6rem] font-bold tracking-[0.15em] uppercase" style={{ color: C.olive }}>Our Story</span>
-            <div className="flex-1 h-[2px] rounded-full" style={{ background: C.olive, opacity: 0.2 }} />
-          </div>
-          <div className="space-y-2 mb-4">
-            <div className="h-2 rounded-full bg-[rgba(0,0,0,0.06)] w-[90%]" />
-            <div className="h-2 rounded-full bg-[rgba(0,0,0,0.04)] w-[70%]" />
-            <div className="h-2 rounded-full bg-[rgba(0,0,0,0.03)] w-[50%]" />
-          </div>
-          <Button variant="accent" size="sm" onClick={onGetStarted} className="w-full">
-            Create yours free <ArrowRight size={14} />
-          </Button>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
 
 const TESTIMONIALS = [
   {
@@ -141,387 +63,594 @@ const TESTIMONIALS = [
     event: 'Anniversary',
   },
   {
-    quote: "Everyone asked who designed the site. I said \u201cPearloom and me in half an hour.\u201d",
+    quote: 'Everyone asked who designed the site. I said "Pearloom and me in half an hour."',
     name: 'Liam T.',
     event: 'Birthday',
   },
 ];
 
+// ─── Inline live-demo (kept from prior version) ───────────────
+function TryItLivePlayground({ onGetStarted }: { onGetStarted: () => void }) {
+  const [name1, setName1] = useState('Sarah');
+  const [name2, setName2] = useState('Alex');
+
+  const display = name1 && name2 ? `${name1} & ${name2}` : name1 || name2 || 'Your Names';
+
+  return (
+    <div>
+      <div className="flex gap-3 mb-6 w-full max-w-[400px] mx-auto">
+        <input
+          type="text"
+          value={name1}
+          onChange={(e) => setName1(e.target.value)}
+          placeholder="First name"
+          className="flex-1 min-w-0 px-4 py-3 rounded-xl border border-[var(--pl-divider)] bg-[var(--pl-cream-card)] text-[var(--pl-ink)] text-[max(16px,0.9rem)] font-body outline-none focus:border-[var(--pl-olive)] transition-colors"
+        />
+        <input
+          type="text"
+          value={name2}
+          onChange={(e) => setName2(e.target.value)}
+          placeholder="Partner's name"
+          className="flex-1 min-w-0 px-4 py-3 rounded-xl border border-[var(--pl-divider)] bg-[var(--pl-cream-card)] text-[var(--pl-ink)] text-[max(16px,0.9rem)] font-body outline-none focus:border-[var(--pl-olive)] transition-colors"
+        />
+      </div>
+
+      <motion.div
+        layout
+        className="rounded-2xl overflow-hidden mx-auto w-full max-w-[400px]"
+        style={{
+          background: 'var(--pl-cream-card)',
+          border: '1px solid var(--pl-divider)',
+          boxShadow: 'var(--pl-shadow-lg)',
+        }}
+      >
+        <div
+          style={{
+            height: 160,
+            background:
+              'radial-gradient(circle at 30% 50%, color-mix(in oklab, var(--pl-olive) 22%, transparent) 0%, transparent 60%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <motion.h3
+            key={display}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="font-heading text-[clamp(1.6rem,4vw,2.2rem)] font-medium italic tracking-[-0.02em] relative z-10"
+            style={{ color: 'var(--pl-ink)', fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}
+          >
+            {display}
+          </motion.h3>
+        </div>
+        <div className="p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-[2px] rounded-full" style={{ background: 'var(--pl-olive)', opacity: 0.5 }} />
+            <span className="text-[0.6rem] font-bold tracking-[0.18em] uppercase" style={{ color: 'var(--pl-olive)' }}>
+              Our Story
+            </span>
+            <div className="flex-1 h-[2px] rounded-full" style={{ background: 'var(--pl-olive)', opacity: 0.18 }} />
+          </div>
+          <div className="space-y-2 mb-4">
+            <div className="h-2 rounded-full bg-[var(--pl-divider)] w-[90%]" />
+            <div className="h-2 rounded-full bg-[var(--pl-divider-soft)] w-[70%]" />
+            <div className="h-2 rounded-full bg-[var(--pl-divider-soft)] w-[50%]" />
+          </div>
+          <Button variant="accent" size="sm" onClick={onGetStarted} className="w-full">
+            Create yours free <ArrowRight size={14} />
+          </Button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════
-export function LandingPage({ handleSignIn, status }: LandingPageProps) {
+export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPageProps) {
+  void _handleSignIn;
   const occasionRef = useRef<HTMLElement>(null);
   const testRef = useRef<HTMLElement>(null);
   const ctaRef = useRef<HTMLElement>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  // Wrap handleSignIn to show modal instead of direct Google sign-in
   const openAuth = () => setShowAuthModal(true);
 
   const occasionInView = useInView(occasionRef, { once: true, amount: 0.08 });
   const testInView = useInView(testRef, { once: true, amount: 0.1 });
   const ctaInView = useInView(ctaRef, { once: true, amount: 0.3 });
 
-  const NAV_LINKS = ['How it works', 'The Loom', 'Features', 'Pricing', 'FAQ'];
-
   return (
-    <div className="bg-[var(--pl-cream)] min-h-dvh font-body text-[var(--pl-ink)] overflow-x-hidden">
+    <div
+      className="min-h-dvh font-body overflow-x-hidden"
+      style={{ background: 'var(--pl-cream)', color: 'var(--pl-ink)' }}
+    >
+      {/* ── Nav (editorial, theme-aware) ───────────────────────── */}
+      <MarketingNav onGetStarted={openAuth} />
 
-      {/* ══════════════ NAV — dark band ══════════════ */}
-      <nav className="sticky top-0 z-[100] bg-[var(--pl-ink)] flex items-center justify-between px-[clamp(1.25rem,5vw,3.5rem)] h-[68px]">
-        <span className="font-heading text-xl font-bold italic text-white tracking-[-0.01em]">
-          Pearloom
-        </span>
+      {/* ── Hero ───────────────────────────────────────────────── */}
+      <EditorialHero onGetStarted={openAuth} />
 
-        <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 gap-8">
-          {NAV_LINKS.map(label => (
-            <a
-              key={label}
-              href={`#${label.toLowerCase().replace(/ /g, '-')}`}
-              className="text-[0.85rem] font-medium text-white/75 no-underline tracking-[0.03em] transition-colors duration-200 hover:text-white"
-            >
-              {label}
-            </a>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Button
-            variant="accent"
-            size="sm"
-            onClick={openAuth}
-            className="hidden sm:inline-flex"
-          >
-            Get Started Free
-          </Button>
-          <button
-            className="md:hidden bg-transparent border-0 cursor-pointer p-1.5 text-white/70 flex items-center justify-center hover:text-white transition-colors"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
-        </div>
-      </nav>
-
-      {/* ══════════════ MOBILE MENU ══════════════ */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="md:hidden fixed inset-0 z-[998] bg-black/60 backdrop-blur-sm"
-              onClick={() => setMobileMenuOpen(false)}
-            />
-            <motion.div
-              initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
-              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-              className="md:hidden fixed top-0 right-0 bottom-0 w-[min(82vw,340px)] z-[999] bg-[var(--pl-ink)] flex flex-col shadow-[-12px_0_50px_rgba(0,0,0,0.3)]"
-            >
-              <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
-                <span className="font-heading text-xl font-bold italic text-white">
-                  Pearloom
-                </span>
-                <button
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="bg-transparent border-0 cursor-pointer p-1.5 text-white/70 hover:text-white transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="flex-1 p-4 flex flex-col gap-1 overflow-y-auto">
-                {NAV_LINKS.map((label, i) => (
-                  <a
-                    key={label}
-                    href={`#${label.toLowerCase().replace(/ /g, '-')}`}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`pl-enter pl-enter-d${Math.min(i + 1, 8)} text-[1.05rem] font-semibold text-white/75 no-underline px-4 py-3.5 rounded-xl flex items-center justify-between hover:bg-white/08 hover:text-white transition-all duration-150`}
-                  >
-                    {label}
-                    <ChevronRight size={15} className="opacity-40" />
-                  </a>
-                ))}
-              </div>
-              <div className="p-5 border-t border-white/10">
-                <Button
-                  variant="accent"
-                  size="lg"
-                  className="w-full justify-center"
-                  onClick={() => { setMobileMenuOpen(false); openAuth(); }}
-                  icon={<Sparkles size={15} />}
-                >
-                  Get Started Free
-                </Button>
-                <p className="text-center mt-3 text-[0.75rem] text-white/60 tracking-wider">
-                  No credit card required
-                </p>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* ══════════════ HERO ══════════════ */}
-      <MarketingHero handleSignIn={openAuth} status={status} />
-
-      {/* ══════════════ SOCIAL PROOF ══════════════ */}
+      {/* ── Social proof — slim band ───────────────────────────── */}
       <SocialProofBar />
 
-      {/* ══════════════ HOW IT WORKS ══════════════ */}
-      <HowItWorks />
+      {/* ── Event OS — the actual pitch ────────────────────────── */}
+      <EventOSPillars />
 
-      {/* ══════════════ THE LOOM ══════════════ */}
-      <TheLoomShowcase />
-
-      {/* ══════════════ BLOCK TYPES ══════════════ */}
-      <BlockTypesGrid />
-
-      {/* ══════════════ EVENT OS ══════════════ */}
-      <EventOSShowcase />
-
-      {/* ══════════════ PLATFORM FEATURES ══════════════ */}
-      <GuestExperience />
-
-      {/* ══════════════ EDITOR ══════════════ */}
-      <EditorShowcase />
-
-      {/* ══════════════ TRY IT LIVE ══════════════ */}
-      <section className="py-[clamp(3rem,6vw,5rem)] px-[clamp(1.25rem,5vw,4rem)] bg-[var(--pl-cream-deep)]">
-        <div className="max-w-[680px] mx-auto text-center">
-          <motion.p
-            initial="hidden" whileInView="show" viewport={{ once: true }}
-            variants={fadeUp} custom={0}
-            className="text-[0.72rem] font-bold tracking-[0.2em] uppercase mb-4"
-            style={{ color: C.olive }}
+      {/* ── Try it live ────────────────────────────────────────── */}
+      <section
+        id="try"
+        style={{
+          padding: 'clamp(80px, 12vh, 140px) clamp(20px, 5vw, 64px)',
+          background: 'var(--pl-cream)',
+        }}
+      >
+        <div style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
+          <motion.div
+            className="pl-overline"
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            variants={fadeUp}
+            custom={0}
+            style={{ marginBottom: 18 }}
           >
-            Try it now
-          </motion.p>
+            Try it now · no signup
+          </motion.div>
           <motion.h2
-            initial="hidden" whileInView="show" viewport={{ once: true }}
-            variants={fadeUp} custom={1}
-            className="font-heading text-[clamp(2rem,5vw,3rem)] font-bold italic tracking-[-0.03em] mb-3 leading-tight"
-            style={{ color: C.ink }}
+            className="pl-display"
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            variants={fadeUp}
+            custom={1}
+            style={{
+              margin: '0 0 14px',
+              fontSize: 'clamp(2rem, 4.5vw, 3rem)',
+              color: 'var(--pl-ink)',
+              lineHeight: 1.05,
+            }}
           >
-            See your names come alive
+            Type your names. Watch the cover{' '}
+            <em
+              style={{
+                fontFamily: 'var(--pl-font-display)',
+                fontStyle: 'italic',
+                color: 'var(--pl-gold)',
+                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+              }}
+            >
+              breathe.
+            </em>
           </motion.h2>
           <motion.p
-            initial="hidden" whileInView="show" viewport={{ once: true }}
-            variants={fadeUp} custom={2}
-            className="text-[var(--pl-muted)] text-[1rem] mb-10 max-w-[420px] mx-auto leading-relaxed"
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            variants={fadeUp}
+            custom={2}
+            style={{
+              color: 'var(--pl-muted)',
+              fontSize: '1rem',
+              maxWidth: 460,
+              margin: '0 auto 36px',
+              lineHeight: 1.55,
+            }}
           >
-            Type your names below and watch the preview update instantly.
+            A miniature of the cover-builder. The real one has hundreds of cover compositions, swappable typography, and a Pear assistant whispering ideas.
           </motion.p>
 
           <motion.div
-            initial="hidden" whileInView="show" viewport={{ once: true }}
-            variants={fadeUp} custom={3}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            variants={fadeUp}
+            custom={3}
           >
             <TryItLivePlayground onGetStarted={openAuth} />
           </motion.div>
         </div>
       </section>
 
-      {/* ══════════════ OCCASIONS — numbered list on dark bg ══════════════ */}
+      {/* ── Seat-to-Story (guest experience) ──────────────────── */}
+      <GuestExperience />
+
+      {/* ── Editor showcase ───────────────────────────────────── */}
+      <EditorShowcase />
+
+      {/* ── The Loom (Pear narrative) ─────────────────────────── */}
+      <TheLoomShowcase />
+
+      {/* ── Occasions — numbered editorial list on dark bg ────── */}
       <section
         id="occasions"
         ref={occasionRef}
-        className="bg-[var(--pl-ink)] py-[clamp(3rem,6vw,6rem)] px-[clamp(1.25rem,5vw,4rem)]"
+        style={{
+          background: 'var(--pl-ink)',
+          padding: 'clamp(80px, 12vh, 140px) clamp(20px, 5vw, 64px)',
+        }}
       >
-        <div className="max-w-[1100px] mx-auto">
-          {/* Header */}
-          <div className="mb-14">
-            <motion.p
+        <div style={{ maxWidth: 1180, margin: '0 auto' }}>
+          <div style={{ marginBottom: 56, maxWidth: 640 }}>
+            <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={occasionInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6 }}
-              className="text-[0.72rem] font-bold tracking-[0.2em] uppercase text-[var(--pl-gold)] mb-4"
+              style={{
+                fontFamily: 'var(--pl-font-mono)',
+                fontSize: '0.66rem',
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                color: 'var(--pl-gold)',
+                marginBottom: 18,
+              }}
             >
               Every occasion
-            </motion.p>
+            </motion.div>
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               animate={occasionInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.75, delay: 0.08 }}
-              className="font-heading text-[clamp(2rem,5vw,3.5rem)] font-bold italic text-white leading-[1.1] tracking-[-0.03em] max-w-[600px]"
+              transition={{ duration: 0.7, delay: 0.08 }}
+              className="pl-display"
+              style={{
+                margin: 0,
+                fontSize: 'clamp(2rem, 5vw, 3.4rem)',
+                color: 'var(--pl-cream)',
+                lineHeight: 1.05,
+              }}
             >
-              Whatever you&rsquo;re celebrating, it deserves a beautiful home.
+              Whatever you’re celebrating, it deserves a{' '}
+              <em
+                style={{
+                  fontFamily: 'var(--pl-font-display)',
+                  fontStyle: 'italic',
+                  color: 'var(--pl-gold)',
+                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                }}
+              >
+                home.
+              </em>
             </motion.h2>
           </div>
 
-          {/* Numbered rows */}
-          <div className="flex flex-col divide-y divide-white/[0.07]">
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             {OCCASIONS.map((o, i) => (
-              <motion.div
+              <motion.a
                 key={o.label}
+                href="#try"
                 custom={i}
                 variants={fadeUp}
                 initial="hidden"
                 animate={occasionInView ? 'show' : 'hidden'}
-                className="group flex flex-col sm:flex-row items-start sm:items-center gap-6 py-8 transition-all duration-300 hover:bg-white/[0.02] px-2 rounded-xl -mx-2"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '90px 1fr auto',
+                  alignItems: 'center',
+                  gap: 28,
+                  padding: '28px 4px',
+                  borderTop: '1px solid color-mix(in oklab, var(--pl-cream) 12%, transparent)',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  transition: 'background var(--pl-dur-base) var(--pl-ease-out), padding var(--pl-dur-base) var(--pl-ease-out)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'color-mix(in oklab, var(--pl-cream) 4%, transparent)';
+                  e.currentTarget.style.paddingLeft = '14px';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.paddingLeft = '4px';
+                }}
               >
-                {/* Number */}
                 <span
-                  className="font-heading text-[3.5rem] font-bold italic leading-none flex-shrink-0 w-24 text-right hidden sm:block transition-colors duration-300"
-                  style={{ color: `${o.accent}35`, WebkitTextStroke: `1px ${o.accent}30` }}
+                  className="pl-display-italic"
+                  style={{
+                    fontSize: '2.6rem',
+                    color: o.accent,
+                    opacity: 0.55,
+                    lineHeight: 1,
+                    fontVariationSettings: '"opsz" 144, "SOFT" 50, "WONK" 1',
+                  }}
                 >
                   {o.num}
                 </span>
-
-                {/* Accent dot (mobile) */}
-                <span
-                  className="sm:hidden w-2 h-2 rounded-full flex-shrink-0 mt-2"
-                  style={{ background: o.accent }}
-                />
-
-                {/* Content */}
-                <div className="flex-1 sm:border-l sm:pl-8 transition-all duration-300" style={{ borderColor: `${o.accent}25` }}>
+                <div>
                   <div
-                    className="text-[0.72rem] font-bold tracking-[0.16em] uppercase mb-2 transition-colors duration-300 group-hover:opacity-100"
-                    style={{ color: o.accent }}
+                    style={{
+                      fontFamily: 'var(--pl-font-mono)',
+                      fontSize: '0.66rem',
+                      letterSpacing: '0.2em',
+                      textTransform: 'uppercase',
+                      color: o.accent,
+                      marginBottom: 8,
+                    }}
                   >
                     {o.label}
                   </div>
-                  <div className="font-heading text-[1.3rem] font-semibold italic text-white leading-snug">
+                  <div
+                    className="pl-display"
+                    style={{
+                      fontSize: 'clamp(1.2rem, 2.2vw, 1.6rem)',
+                      color: 'var(--pl-cream)',
+                      lineHeight: 1.2,
+                    }}
+                  >
                     {o.tagline}
                   </div>
                 </div>
-
-                {/* Arrow */}
-                <ArrowRight
-                  size={18}
-                  className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1"
-                  style={{ color: o.accent }}
-                />
-              </motion.div>
+                <ArrowRight size={18} style={{ color: o.accent, opacity: 0.7 }} />
+              </motion.a>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ══════════════ TESTIMONIALS — floating pull quotes ══════════════ */}
+      {/* ── Testimonials — editorial pull-quotes ──────────────── */}
       <section
         ref={testRef}
-        className="bg-[var(--pl-cream)] py-[clamp(3rem,6vw,6rem)] px-[clamp(1.25rem,5vw,4rem)] border-t border-[var(--pl-divider)]"
+        style={{
+          background: 'var(--pl-cream)',
+          padding: 'clamp(80px, 12vh, 140px) clamp(20px, 5vw, 64px)',
+        }}
       >
-        <div className="max-w-[1100px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
-          {TESTIMONIALS.map((t, i) => (
-            <motion.div
-              key={t.name}
-              custom={i}
-              variants={fadeUp}
-              initial="hidden"
-              animate={testInView ? 'show' : 'hidden'}
-              className="flex flex-col"
-            >
-              <div
-                className="font-heading text-[5rem] leading-[0.7] mb-5 select-none italic"
-                style={{ color: C.gold, opacity: 0.35 }}
-                aria-hidden
+        <div style={{ maxWidth: 1180, margin: '0 auto' }}>
+          <div className="pl-overline" style={{ marginBottom: 56 }}>
+            What hosts have said
+          </div>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: 56,
+            }}
+          >
+            {TESTIMONIALS.map((t, i) => (
+              <motion.figure
+                key={t.name}
+                custom={i}
+                variants={fadeUp}
+                initial="hidden"
+                animate={testInView ? 'show' : 'hidden'}
+                style={{ margin: 0, display: 'flex', flexDirection: 'column' }}
               >
-                &ldquo;
-              </div>
-              <blockquote
-                className="font-heading italic font-medium leading-[1.55] flex-1 mb-5"
-                style={{ fontSize: 'clamp(1.05rem,1.6vw,1.2rem)', color: C.ink }}
-              >
-                {t.quote}
-              </blockquote>
-              <p className="text-[0.72rem] font-bold tracking-[0.1em] uppercase text-[var(--pl-muted)]">
-                — {t.name} &nbsp;&middot;&nbsp; {t.event}
-              </p>
-            </motion.div>
-          ))}
+                <div
+                  className="pl-display-italic"
+                  style={{
+                    fontSize: '5rem',
+                    lineHeight: 0.7,
+                    color: 'var(--pl-gold)',
+                    opacity: 0.4,
+                    marginBottom: 16,
+                    fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                  }}
+                  aria-hidden
+                >
+                  &ldquo;
+                </div>
+                <blockquote
+                  className="pl-display-italic"
+                  style={{
+                    margin: 0,
+                    fontSize: 'clamp(1.05rem,1.5vw,1.2rem)',
+                    color: 'var(--pl-ink)',
+                    lineHeight: 1.5,
+                    fontVariationSettings: '"opsz" 144, "SOFT" 60, "WONK" 0',
+                    flex: 1,
+                  }}
+                >
+                  {t.quote}
+                </blockquote>
+                <figcaption
+                  style={{
+                    marginTop: 22,
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.66rem',
+                    letterSpacing: '0.18em',
+                    textTransform: 'uppercase',
+                    color: 'var(--pl-muted)',
+                  }}
+                >
+                  — {t.name} · {t.event}
+                </figcaption>
+              </motion.figure>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ══════════════ PRICING ══════════════ */}
+      {/* ── Pricing ───────────────────────────────────────────── */}
       <PricingPreview />
 
-      {/* ══════════════ FAQ ══════════════ */}
-      <FAQSection />
-
-      {/* ══════════════ TRUST SIGNALS ══════════════ */}
+      {/* ── Trust signals ─────────────────────────────────────── */}
       <TrustSignals />
 
-      {/* ══════════════ FINAL CTA — split layout ══════════════ */}
+      {/* ── FAQ ───────────────────────────────────────────────── */}
+      <FAQSection />
+
+      {/* ── Final CTA ─────────────────────────────────────────── */}
       <section
         ref={ctaRef}
-        className="relative bg-[var(--pl-ink)] overflow-hidden py-[clamp(4rem,8vw,7rem)] px-[clamp(1.5rem,5vw,4rem)]"
+        style={{
+          position: 'relative',
+          background: 'var(--pl-ink)',
+          padding: 'clamp(80px, 12vh, 140px) clamp(20px, 5vw, 64px)',
+          overflow: 'hidden',
+        }}
       >
-        {/* Decorative circles — hidden on mobile to prevent overlay issues */}
-        <div className="hidden md:block absolute -bottom-32 -left-32 w-[500px] h-[500px] rounded-full border border-white/[0.04] pointer-events-none" />
-        <div className="hidden md:block absolute -bottom-20 -left-20 w-[340px] h-[340px] rounded-full border border-[var(--pl-gold)]/[0.08] pointer-events-none" />
-        <div className="hidden md:block absolute top-10 right-10 w-[200px] h-[200px] rounded-full border border-[var(--pl-plum)]/[0.12] pointer-events-none" />
-
-        <div className="max-w-[1100px] mx-auto flex flex-col lg:flex-row items-center gap-16 relative z-10">
-          {/* Left — text */}
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'radial-gradient(ellipse 60% 50% at 80% 0%, color-mix(in oklab, var(--pl-gold) 16%, transparent) 0%, transparent 60%)',
+          }}
+        />
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 1,
+            maxWidth: 1180,
+            margin: '0 auto',
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 0.8fr)',
+            gap: 64,
+            alignItems: 'center',
+          }}
+          className="pl-cta-grid"
+        >
           <motion.div
-            className="flex-1"
-            initial={{ opacity: 0, x: -30 }}
+            initial={{ opacity: 0, x: -20 }}
             animate={ctaInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.7 }}
           >
-            <p className="text-[0.72rem] font-bold tracking-[0.2em] uppercase text-[var(--pl-gold)] mb-5">
-              Start free today
-            </p>
-            <h2 className="font-heading text-[clamp(2.2rem,5vw,3.75rem)] font-bold italic text-white tracking-[-0.035em] leading-[1.08] mb-6">
-              Your moment is already beautiful.
-              <br />
-              <span style={{ color: C.gold }}>Let&rsquo;s give it a home.</span>
+            <div
+              style={{
+                fontFamily: 'var(--pl-font-mono)',
+                fontSize: '0.66rem',
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                color: 'var(--pl-gold)',
+                marginBottom: 18,
+              }}
+            >
+              Edition 06 — Now open
+            </div>
+            <h2
+              className="pl-display"
+              style={{
+                margin: 0,
+                fontSize: 'clamp(2.2rem, 5vw, 3.6rem)',
+                color: 'var(--pl-cream)',
+                lineHeight: 1.05,
+                maxWidth: '14ch',
+              }}
+            >
+              The day is coming.{' '}
+              <em
+                style={{
+                  fontFamily: 'var(--pl-font-display)',
+                  fontStyle: 'italic',
+                  color: 'var(--pl-gold)',
+                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                }}
+              >
+                Be ready.
+              </em>
             </h2>
-            <p className="text-[1rem] text-white/70 leading-[1.8] max-w-[440px]">
-              Weddings, birthdays, anniversaries, reunions &mdash; whatever you&rsquo;re celebrating,
-              Pearloom and The Loom make it unforgettable.
+            <p
+              style={{
+                marginTop: 22,
+                color: 'color-mix(in oklab, var(--pl-cream) 75%, transparent)',
+                fontSize: '1.05rem',
+                lineHeight: 1.6,
+                maxWidth: '46ch',
+              }}
+            >
+              One workspace for the site, the day-of, and the film. Free forever on small events. Live in five minutes.
             </p>
           </motion.div>
 
-          {/* Right — CTA card */}
           <motion.div
-            className="flex-shrink-0 w-full lg:w-[360px]"
-            initial={{ opacity: 0, x: 30 }}
+            initial={{ opacity: 0, x: 20 }}
             animate={ctaInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.15 }}
+            transition={{ duration: 0.7, delay: 0.12 }}
           >
             <Card
               variant="dark"
               padding="none"
-              className="p-10 border-white/[0.1] shadow-[0_32px_80px_rgba(0,0,0,0.4)]"
+              className="p-10 border-white/[0.1]"
+              style={{ boxShadow: '0 32px 80px rgba(0,0,0,0.4)' }}
             >
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6" style={{ background: `${C.gold}22`, border: `1px solid ${C.gold}30` }}>
-                <Sparkles size={24} style={{ color: C.gold }} />
+              <div
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: 14,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'color-mix(in oklab, var(--pl-gold) 22%, transparent)',
+                  border: '1px solid color-mix(in oklab, var(--pl-gold) 30%, transparent)',
+                  marginBottom: 22,
+                }}
+              >
+                <Sparkles size={22} style={{ color: 'var(--pl-gold)' }} />
               </div>
-              <h3 className="font-heading text-[1.5rem] font-semibold italic text-white mb-2 leading-tight">
-                Create your first site
+              <h3
+                className="pl-display"
+                style={{
+                  margin: 0,
+                  color: 'var(--pl-cream)',
+                  fontSize: '1.5rem',
+                  lineHeight: 1.15,
+                }}
+              >
+                Begin your first plate
               </h3>
-              <p className="text-[0.85rem] text-white/70 leading-relaxed mb-8">
-                Answer a few questions. The Loom builds something extraordinary.
+              <p
+                style={{
+                  marginTop: 8,
+                  color: 'color-mix(in oklab, var(--pl-cream) 70%, transparent)',
+                  fontSize: '0.9rem',
+                  lineHeight: 1.55,
+                }}
+              >
+                Three questions. Pear drafts the rest. You take it from there.
               </p>
               <Button
                 variant="gold"
                 size="lg"
-                className="w-full justify-center bg-[var(--pl-gold)] text-[var(--pl-ink)] hover:bg-[#d4b87a] border-0 shadow-[0_4px_24px_rgba(196,169,106,0.35)] text-[1rem] py-3.5"
+                className="w-full justify-center mt-7 text-[1rem] py-3.5"
+                style={{
+                  background: 'var(--pl-gold)',
+                  color: 'var(--pl-ink)',
+                  border: 0,
+                  boxShadow: '0 4px 24px color-mix(in oklab, var(--pl-gold) 35%, transparent)',
+                }}
                 onClick={openAuth}
                 disabled={status === 'loading'}
               >
-                Begin Your Story <ArrowRight size={16} strokeWidth={2.2} />
+                Start weaving — free <ArrowRight size={16} strokeWidth={2.2} />
               </Button>
-              <p className="text-center mt-3 text-[0.8rem] text-white/65 tracking-[0.02em]">
-                Takes less than 2 minutes
-              </p>
-              <p className="text-center mt-1 text-[0.68rem] text-white/50 tracking-[0.08em]">
-                Free to start &nbsp;&middot;&nbsp; No credit card &nbsp;&middot;&nbsp; Live in minutes
+              <p
+                style={{
+                  textAlign: 'center',
+                  marginTop: 10,
+                  fontFamily: 'var(--pl-font-mono)',
+                  fontSize: '0.66rem',
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  color: 'color-mix(in oklab, var(--pl-cream) 55%, transparent)',
+                }}
+              >
+                No card · 5-min setup
               </p>
             </Card>
           </motion.div>
         </div>
+
+        <style jsx>{`
+          @media (max-width: 880px) {
+            :global(.pl-cta-grid) {
+              grid-template-columns: 1fr !important;
+              gap: 36px !important;
+            }
+          }
+        `}</style>
       </section>
 
-      {/* ══════════════ FOOTER ══════════════ */}
+      {/* ── Footer ────────────────────────────────────────────── */}
       <MarketingFooter />
 
-      {/* Auth Modal */}
+      {/* ── Auth modal ─────────────────────────────────────────── */}
       <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
   );
 }
+
+// Suppress unused `C` import — colors module kept for legacy components
+void C;

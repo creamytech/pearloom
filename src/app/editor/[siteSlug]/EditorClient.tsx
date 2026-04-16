@@ -175,21 +175,27 @@ export default function EditorClient({ manifest: initialManifest, siteSlug, name
             bottom: 'calc(60px + env(safe-area-inset-bottom, 0px) + 8px)',
             left: '50%',
             transform: 'translateX(-50%)',
-            padding: '6px 14px',
-            borderRadius: '100px',
-            fontSize: '0.72rem',
-            fontWeight: 600,
-            letterSpacing: '0.04em',
+            padding: '7px 16px',
+            borderRadius: 999,
+            fontSize: '0.7rem',
+            fontWeight: 700,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
             zIndex: 9998,
             pointerEvents: 'none',
-            background: saveStatus === 'error' ? 'rgba(220,60,60,0.9)' : 'rgba(0,0,0,0.75)',
-            color: '#fff',
-            backdropFilter: 'blur(8px)',
+            background:
+              saveStatus === 'error'
+                ? 'color-mix(in oklab, var(--pl-plum) 92%, transparent)'
+                : 'color-mix(in oklab, var(--pl-ink) 88%, transparent)',
+            color: 'var(--pl-cream)',
+            backdropFilter: 'saturate(140%) blur(10px)',
+            WebkitBackdropFilter: 'saturate(140%) blur(10px)',
             transition: 'opacity 0.3s',
             opacity: 1,
+            boxShadow: '0 8px 24px color-mix(in oklab, var(--pl-ink) 18%, transparent)',
           }}
         >
-          {saveStatus === 'saving' && 'Saving...'}
+          {saveStatus === 'saving' && 'Saving…'}
           {saveStatus === 'saved' && 'Saved'}
           {saveStatus === 'error' && 'Save failed — check connection'}
         </div>

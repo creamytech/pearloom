@@ -593,17 +593,17 @@ export function AICommandBar() {
               position: 'fixed',
               top: 52,
               right: 0,
-              width: 380,
+              width: 400,
               height: 'calc(100vh - 52px)',
               zIndex: 150,
               display: 'flex',
               flexDirection: 'column',
               borderRadius: '16px 0 0 16px',
-              background: 'rgba(250,247,242,0.95)',
-              backdropFilter: 'blur(24px)',
-              WebkitBackdropFilter: 'blur(24px)',
-              borderLeft: '1px solid rgba(24,24,27,0.08)',
-              boxShadow: '-8px 0 32px rgba(0,0,0,0.04)',
+              background: 'color-mix(in oklab, var(--pl-cream-card) 96%, transparent)',
+              backdropFilter: 'saturate(160%) blur(24px)',
+              WebkitBackdropFilter: 'saturate(160%) blur(24px)',
+              borderLeft: '1px solid var(--pl-divider)',
+              boxShadow: '-12px 0 36px color-mix(in oklab, var(--pl-ink) 10%, transparent)',
               overflow: 'hidden',
             } as React.CSSProperties}
           >
@@ -612,58 +612,95 @@ export function AICommandBar() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              padding: '14px 16px 12px',
-              borderBottom: '1px solid #F4F4F5',
-              background: 'rgba(255,255,255,0.08)',
+              padding: '16px 18px 14px',
+              borderBottom: '1px solid var(--pl-divider)',
+              background: 'color-mix(in oklab, var(--pl-cream) 50%, transparent)',
               flexShrink: 0,
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <PearIcon size={20} color={OLIVE} />
-                <span style={{
-                  fontSize: '0.9rem',
-                  fontWeight: 600,
-                  fontFamily: 'inherit',
-                  
-                  color: '#18181B',
-                }}>Pear</span>
-                {/* Usage counter */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    background: 'color-mix(in oklab, var(--pl-olive) 18%, transparent)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <PearIcon size={16} color="var(--pl-olive)" />
+                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.05 }}>
+                  <span
+                    style={{
+                      fontFamily: 'var(--pl-font-display)',
+                      fontStyle: 'italic',
+                      fontVariationSettings: '"opsz" 18, "WONK" 1',
+                      fontSize: '1rem',
+                      fontWeight: 500,
+                      color: 'var(--pl-ink)',
+                      letterSpacing: '-0.01em',
+                    }}
+                  >
+                    Pear
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: 'var(--pl-font-mono)',
+                      fontSize: '0.55rem',
+                      letterSpacing: '0.18em',
+                      textTransform: 'uppercase',
+                      color: 'var(--pl-muted)',
+                      marginTop: 2,
+                    }}
+                  >
+                    Your editor
+                  </span>
+                </div>
                 {pearRemaining !== null && pearPlan === 'free' ? (
                   <span style={{
-                    fontSize: '0.65rem',
-                    fontWeight: 600,
-                    color: pearRemaining <= 3 ? '#b45309' : '#71717A',
-                    background: pearRemaining <= 3 ? 'rgba(180,83,9,0.08)' : 'rgba(0,0,0,0.04)',
-                    padding: '2px 8px',
-                    borderRadius: 100,
-                    fontFamily: 'var(--pl-font-body)',
+                    fontSize: '0.6rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    color: pearRemaining <= 3 ? 'var(--pl-plum)' : 'var(--pl-muted)',
+                    background: pearRemaining <= 3
+                      ? 'color-mix(in oklab, var(--pl-plum) 12%, transparent)'
+                      : 'color-mix(in oklab, var(--pl-ink) 6%, transparent)',
+                    padding: '3px 9px',
+                    borderRadius: 999,
+                    fontFamily: 'var(--pl-font-mono)',
+                    marginLeft: 4,
                   }}>
                     {15 - pearRemaining}/15
                   </span>
                 ) : pearPlan !== 'free' ? (
                   <span style={{
                     fontSize: '0.65rem',
-                    fontWeight: 600,
-                    color: OLIVE,
-                    background: 'rgba(24,24,27,0.06)',
-                    padding: '2px 8px',
-                    borderRadius: 100,
-                    fontFamily: 'var(--pl-font-body)',
+                    fontWeight: 700,
+                    color: 'var(--pl-olive)',
+                    background: 'color-mix(in oklab, var(--pl-olive) 14%, transparent)',
+                    padding: '3px 10px',
+                    borderRadius: 999,
+                    fontFamily: 'var(--pl-font-mono)',
+                    marginLeft: 4,
                   }}>
-                    {'\u221E'}
+                    ∞
                   </span>
                 ) : null}
               </div>
               <motion.button
                 onClick={close}
                 title="Close panel"
-                whileHover={{ backgroundColor: 'rgba(0,0,0,0.05)' }}
-                whileTap={{ scale: 0.88 }}
+                whileHover={{ backgroundColor: 'color-mix(in oklab, var(--pl-ink) 6%, transparent)' }}
+                whileTap={{ scale: 0.9 }}
                 style={{
                   width: 28, height: 28,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   borderRadius: 8, border: 'none',
                   background: 'transparent',
-                  color: '#71717A',
+                  color: 'var(--pl-muted)',
                   cursor: 'pointer',
                   flexShrink: 0,
                 }}
@@ -689,16 +726,28 @@ export function AICommandBar() {
                   alignItems: 'flex-start',
                 }}>
                   {msg.role === 'pear' && (
-                    <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(24,24,27,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
-                      <PearIcon size={14} color={OLIVE} />
+                    <div style={{
+                      width: 26, height: 26,
+                      borderRadius: '50%',
+                      background: 'color-mix(in oklab, var(--pl-olive) 16%, transparent)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0, marginTop: 2,
+                    }}>
+                      <PearIcon size={13} color="var(--pl-olive)" />
                     </div>
                   )}
                   <div style={{
-                    maxWidth: '85%', padding: '8px 10px', borderRadius: 16,
-                    fontSize: '0.8rem', lineHeight: 1.55, whiteSpace: 'pre-wrap',
-                    background: msg.role === 'user' ? '#F4F4F5' : 'rgba(255,255,255,0.7)',
-                    color: 'var(--pl-ink-soft, #3D3530)',
-                    border: msg.role === 'pear' ? '1px solid rgba(24,24,27,0.06)' : 'none',
+                    maxWidth: '85%',
+                    padding: '10px 12px',
+                    borderRadius: 14,
+                    fontSize: '0.82rem',
+                    lineHeight: 1.55,
+                    whiteSpace: 'pre-wrap',
+                    background: msg.role === 'user'
+                      ? 'var(--pl-ink)'
+                      : 'color-mix(in oklab, var(--pl-cream-card) 80%, transparent)',
+                    color: msg.role === 'user' ? 'var(--pl-cream)' : 'var(--pl-ink-soft)',
+                    border: msg.role === 'pear' ? '1px solid var(--pl-divider)' : 'none',
                   }}>
                     {msg.text}
                     {/* Visual change preview — theme colors */}

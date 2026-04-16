@@ -288,46 +288,97 @@ export default function DashboardClient() {
       borderRadius: '0.75rem',
     }}>
       {status === 'loading' ? (
-        /* Issue 1: Show a branded loading state instead of blank screen while auth loads */
-        <div className="min-h-dvh flex flex-col items-center justify-center bg-[#FAFAFA]">
+        /* Branded loading state */
+        <div
+          className="min-h-dvh flex flex-col items-center justify-center"
+          style={{ background: 'var(--pl-cream)' }}
+        >
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col items-center gap-3"
           >
-            <div className="w-10 h-10 rounded-lg bg-[#18181B] flex items-center justify-center">
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                background: 'var(--pl-ink)',
+                color: 'var(--pl-cream)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
               >
-                <Plus size={16} className="text-white" />
+                <Plus size={16} />
               </motion.div>
             </div>
-            <span className="text-[0.85rem] font-medium text-[#71717A]">Loading your studio…</span>
+            <span
+              style={{
+                fontFamily: 'var(--pl-font-display)',
+                fontStyle: 'italic',
+                fontSize: '0.95rem',
+                color: 'var(--pl-muted)',
+                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+              }}
+            >
+              Loading your studio…
+            </span>
           </motion.div>
         </div>
       ) : state.step === 'dashboard' ? (
         /* ── Dashboard: own layout with sidebar, no SiteNav ── */
-        <div className="min-h-dvh flex flex-col bg-[#FAFAFA]">
-          {/* Dashboard top bar — minimal solid bar */}
-          <header className="h-12 shrink-0 flex items-center justify-between px-4 md:px-6 border-b border-[#E4E4E7] bg-white z-10">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-[#18181B] flex items-center justify-center md:hidden">
-                <span className="text-white text-[0.6rem] font-bold leading-none">P</span>
-              </div>
-              <span className="text-[0.85rem] font-semibold text-[#18181B] md:hidden">
+        <div className="min-h-dvh flex flex-col" style={{ background: 'var(--pl-cream)' }}>
+          {/* Dashboard top bar — editorial */}
+          <header
+            className="shrink-0 flex items-center justify-between"
+            style={{
+              height: 60,
+              padding: '0 clamp(16px, 4vw, 32px)',
+              background: 'color-mix(in oklab, var(--pl-cream) 88%, transparent)',
+              backdropFilter: 'saturate(140%) blur(14px)',
+              WebkitBackdropFilter: 'saturate(140%) blur(14px)',
+              borderBottom: '1px solid var(--pl-divider)',
+              position: 'sticky',
+              top: 0,
+              zIndex: 10,
+            }}
+          >
+            <div className="flex items-center gap-2 md:hidden">
+              <span
+                style={{
+                  fontFamily: 'var(--pl-font-display)',
+                  fontSize: '1.05rem',
+                  color: 'var(--pl-ink)',
+                  letterSpacing: '-0.01em',
+                }}
+              >
                 Pearloom
               </span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 ml-auto">
               <button
                 onClick={() => goTo('pear-crafts')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[0.75rem] font-semibold text-white bg-[#18181B] border-none cursor-pointer hover:bg-[#27272A] transition-colors md:hidden"
+                className="flex items-center gap-1.5 md:hidden"
+                style={{
+                  padding: '8px 14px',
+                  background: 'var(--pl-ink)',
+                  color: 'var(--pl-cream)',
+                  borderRadius: 'var(--pl-radius-full)',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
                 aria-label="Create new site"
               >
                 <Plus size={14} />
-                <span className="hidden sm:inline">New Site</span>
+                <span className="hidden sm:inline">New site</span>
               </button>
               {session?.user && (
                 <UserNav user={session.user} onDashboard={() => goTo('dashboard')} />
