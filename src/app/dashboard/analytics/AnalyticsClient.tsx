@@ -258,7 +258,7 @@ export default function AnalyticsClient() {
                   />
                 </div>
 
-                {/* Section breakdown */}
+                {/* Section breakdown — ranked editorial ledger */}
                 <PageCard
                   title="Top sections"
                   eyebrow="Engagement · By block"
@@ -277,16 +277,32 @@ export default function AnalyticsClient() {
                       description="As soon as guests land, the top blocks will surface here."
                     />
                   ) : (
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 12,
-                      }}
-                    >
-                      {topSections.map((s) => {
-                        const pct =
-                          maxViews > 0 ? (s.views / maxViews) * 100 : 0;
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      {/* Mono column rule header */}
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '28px 1fr auto auto',
+                        alignItems: 'center',
+                        columnGap: 16,
+                        paddingBottom: 10,
+                        marginBottom: 6,
+                        borderBottom: '1px solid rgba(184,147,90,0.40)',
+                        fontFamily: 'var(--pl-font-mono)',
+                        fontSize: '0.46rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.28em',
+                        textTransform: 'uppercase',
+                        color: 'rgba(14,13,11,0.55)',
+                      }}>
+                        <span>Rank</span>
+                        <span>Section</span>
+                        <span style={{ textAlign: 'right' }}>Views</span>
+                        <span style={{ textAlign: 'right', minWidth: 72 }}>Avg dwell</span>
+                      </div>
+
+                      {topSections.map((s, i) => {
+                        const pct = maxViews > 0 ? (s.views / maxViews) * 100 : 0;
+                        const isTop = i === 0;
                         return (
                           <div
                             key={s.sectionId}
@@ -294,58 +310,81 @@ export default function AnalyticsClient() {
                               display: 'flex',
                               flexDirection: 'column',
                               gap: 6,
+                              padding: '10px 0 12px',
+                              borderBottom: i < topSections.length - 1 ? '1px dotted rgba(14,13,11,0.10)' : 'none',
                             }}
                           >
-                            <div
-                              style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                gap: 12,
-                                fontSize: '0.88rem',
+                            <div style={{
+                              display: 'grid',
+                              gridTemplateColumns: '28px 1fr auto auto',
+                              alignItems: 'baseline',
+                              columnGap: 16,
+                            }}>
+                              {/* Rank folio */}
+                              <span style={{
+                                fontFamily: 'var(--pl-font-mono)',
+                                fontSize: '0.58rem',
+                                fontWeight: 700,
+                                letterSpacing: '0.2em',
+                                color: isTop ? 'var(--pl-gold)' : 'rgba(14,13,11,0.45)',
+                              }}>
+                                № {String(i + 1).padStart(2, '0')}
+                              </span>
+                              {/* Italic section name */}
+                              <span style={{
+                                fontFamily: 'var(--pl-font-display)',
+                                fontStyle: 'italic',
+                                fontWeight: 400,
+                                fontSize: '1.05rem',
+                                lineHeight: 1.1,
                                 color: 'var(--pl-ink)',
-                              }}
-                            >
-                              <span
-                                style={{
-                                  fontFamily: 'var(--pl-font-display)',
-                                  fontWeight: 500,
-                                  letterSpacing: '-0.005em',
-                                }}
-                              >
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}>
                                 {prettySectionId(s.sectionId)}
                               </span>
-                              <span
-                                style={{
-                                  color: 'var(--pl-muted)',
-                                  fontFamily: 'var(--pl-font-mono)',
-                                  fontSize: '0.76rem',
-                                  letterSpacing: '0.05em',
-                                }}
-                              >
-                                {s.views.toLocaleString()} views ·{' '}
+                              {/* Views */}
+                              <span style={{
+                                fontFamily: 'var(--pl-font-mono)',
+                                fontSize: '0.78rem',
+                                fontWeight: 600,
+                                color: 'var(--pl-ink)',
+                                textAlign: 'right',
+                              }}>
+                                {s.views.toLocaleString()}
+                              </span>
+                              {/* Dwell */}
+                              <span style={{
+                                fontFamily: 'var(--pl-font-mono)',
+                                fontSize: '0.62rem',
+                                fontWeight: 600,
+                                letterSpacing: '0.12em',
+                                color: 'rgba(14,13,11,0.55)',
+                                textAlign: 'right',
+                                minWidth: 72,
+                              }}>
                                 {formatDuration(s.avgDurationMs)}
                               </span>
                             </div>
-                            <div
-                              style={{
-                                height: 6,
-                                background: 'var(--pl-cream-deep)',
-                                borderRadius: 999,
-                                overflow: 'hidden',
-                              }}
-                            >
-                              <div
-                                style={{
-                                  width: `${pct}%`,
-                                  height: '100%',
-                                  background:
-                                    'linear-gradient(90deg, var(--pl-olive), var(--pl-gold))',
-                                  borderRadius: 999,
-                                  transition:
-                                    'width var(--pl-dur-slow) var(--pl-ease-out)',
-                                }}
-                              />
+                            {/* Meter — gold hairline rail, filled portion thicker */}
+                            <div style={{
+                              marginLeft: 44,
+                              position: 'relative',
+                              height: 2,
+                              background: 'rgba(14,13,11,0.06)',
+                              overflow: 'visible',
+                            }}>
+                              <div style={{
+                                position: 'absolute',
+                                left: 0, top: -1,
+                                width: `${pct}%`,
+                                height: 4,
+                                background: isTop
+                                  ? 'linear-gradient(90deg, var(--pl-gold), #D4B072)'
+                                  : 'var(--pl-olive)',
+                                transition: 'width 0.7s cubic-bezier(0.22, 1, 0.36, 1)',
+                              }} />
                             </div>
                           </div>
                         );

@@ -123,22 +123,24 @@ function StatusPill({ status }: { status: Guest['status'] }) {
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 6,
-        padding: '3px 10px',
-        borderRadius: 'var(--pl-radius-full)',
-        fontSize: '0.74rem',
-        fontWeight: 600,
+        gap: 7,
+        padding: '3px 10px 3px 9px',
+        borderRadius: 3,
+        fontFamily: 'var(--pl-font-mono)',
+        fontSize: '0.52rem',
+        fontWeight: 700,
+        letterSpacing: '0.22em',
+        textTransform: 'uppercase',
         color: cfg.color,
         background: cfg.bg,
         border: `1px solid ${cfg.border}`,
-        letterSpacing: '0.02em',
       }}
     >
       <span
         aria-hidden
         style={{
-          width: 6,
-          height: 6,
+          width: 5,
+          height: 5,
           borderRadius: '50%',
           background: cfg.color,
         }}
@@ -338,47 +340,111 @@ export function RsvpDashboard({
           gap: 32,
         }}
       >
-        {/* Editorial header */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'space-between',
-            gap: 24,
-            flexWrap: 'wrap',
-            paddingBottom: 24,
-            borderBottom: '1px solid var(--pl-divider)',
-          }}
-        >
-          <div>
-            <div className="pl-overline" style={{ marginBottom: 14 }}>
-              Guests · RSVP
-            </div>
-            <h1
-              className="pl-display"
-              style={{
-                margin: 0,
-                fontSize: 'clamp(1.8rem, 3.2vw, 2.4rem)',
-                color: 'var(--pl-ink)',
-                lineHeight: 1.05,
-              }}
-            >
-              Who's coming.
-            </h1>
-            <p
-              style={{
-                margin: '8px 0 0',
-                color: 'var(--pl-muted)',
-                fontSize: '0.92rem',
-                lineHeight: 1.5,
-              }}
-            >
-              {guests.length === 0
-                ? 'Share your site to start collecting responses.'
-                : `${guests.length} invited · ${responseRate}% responded`}
-            </p>
+        {/* Editorial masthead */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Mono ruled header strip */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.52rem', fontWeight: 700,
+              letterSpacing: '0.32em', textTransform: 'uppercase',
+              color: 'var(--pl-olive)',
+            }}>
+              The Ledger · Guests
+            </span>
+            <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.45)' }} />
+            <span style={{
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.52rem', fontWeight: 700,
+              letterSpacing: '0.28em', textTransform: 'uppercase',
+              color: 'rgba(14,13,11,0.55)',
+            }}>
+              {guests.length} invited
+            </span>
           </div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-end',
+              justifyContent: 'space-between',
+              gap: 24,
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{ maxWidth: 600 }}>
+              <h1 style={{
+                margin: 0,
+                fontFamily: 'var(--pl-font-display)',
+                fontStyle: 'italic',
+                fontWeight: 400,
+                fontSize: 'clamp(2.4rem, 5.2vw, 3.6rem)',
+                lineHeight: 1.02,
+                letterSpacing: '-0.01em',
+                color: 'var(--pl-ink)',
+              }}>
+                Who&apos;s coming
+              </h1>
+              <p style={{
+                margin: '12px 0 0',
+                fontFamily: 'var(--pl-font-body)',
+                fontSize: '0.85rem',
+                lineHeight: 1.55,
+                color: 'var(--pl-ink-soft)',
+                maxWidth: 440,
+              }}>
+                {guests.length === 0
+                  ? 'Share your site to start collecting responses — they\u2019ll post here as they arrive.'
+                  : `A live register of every reply received. ${responseRate}% of invited have responded.`}
+              </p>
+            </div>
+
+            {/* Response-rate ratio block — editorial "by the numbers" */}
+            {guests.length > 0 && (
+              <div style={{
+                display: 'flex', alignItems: 'stretch',
+                border: '1px solid rgba(184,147,90,0.40)',
+                borderRadius: 10,
+                overflow: 'hidden',
+                background: 'var(--pl-cream-card)',
+              }}>
+                <div style={{
+                  padding: '10px 16px',
+                  borderRight: '1px solid rgba(14,13,11,0.08)',
+                  display: 'flex', flexDirection: 'column', gap: 2, minWidth: 72, alignItems: 'center',
+                }}>
+                  <span style={{
+                    fontFamily: 'var(--pl-font-mono)', fontSize: '0.46rem', fontWeight: 700,
+                    letterSpacing: '0.26em', textTransform: 'uppercase', color: 'rgba(14,13,11,0.50)',
+                  }}>Replied</span>
+                  <span style={{
+                    fontFamily: 'var(--pl-font-display)', fontStyle: 'italic',
+                    fontSize: '1.6rem', lineHeight: 1, color: 'var(--pl-ink)',
+                  }}>{stats.attending + stats.declined}</span>
+                </div>
+                <div style={{
+                  padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 2, minWidth: 72, alignItems: 'center',
+                  background: 'rgba(184,147,90,0.06)',
+                }}>
+                  <span style={{
+                    fontFamily: 'var(--pl-font-mono)', fontSize: '0.46rem', fontWeight: 700,
+                    letterSpacing: '0.26em', textTransform: 'uppercase', color: 'var(--pl-gold)',
+                  }}>Rate</span>
+                  <span style={{
+                    fontFamily: 'var(--pl-font-display)', fontStyle: 'italic',
+                    fontSize: '1.6rem', lineHeight: 1, color: 'var(--pl-gold)',
+                  }}>{responseRate}%</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Action row — mono-labeled editorial buttons under a hairline */}
+          <div style={{
+            paddingTop: 16,
+            borderTop: '1px solid rgba(14,13,11,0.08)',
+            display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end',
+          }}>
             <Button
               variant="outline"
               size="sm"
@@ -519,8 +585,13 @@ export function RsvpDashboard({
             </select>
           )}
 
-          {/* Filter pills */}
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {/* Filter tabs — editorial mono with gold underline */}
+          <div style={{
+            display: 'flex',
+            gap: 2,
+            flexWrap: 'wrap',
+            borderBottom: '1px solid rgba(14,13,11,0.08)',
+          }}>
             {filterPills.map(({ key, label, count }) => {
               const active = filter === key;
               return (
@@ -528,36 +599,45 @@ export function RsvpDashboard({
                   key={key}
                   onClick={() => setFilter(key)}
                   style={{
+                    position: 'relative',
                     display: 'inline-flex',
-                    alignItems: 'center',
+                    alignItems: 'baseline',
                     gap: 8,
-                    padding: '7px 14px',
-                    borderRadius: 'var(--pl-radius-full)',
-                    background: active ? 'var(--pl-ink)' : 'var(--pl-cream-card)',
-                    color: active ? 'var(--pl-cream)' : 'var(--pl-ink-soft)',
-                    border: '1px solid',
-                    borderColor: active ? 'var(--pl-ink)' : 'var(--pl-divider)',
-                    fontSize: '0.78rem',
-                    fontWeight: 600,
+                    padding: '9px 16px 11px',
+                    background: 'transparent',
+                    border: 'none',
                     cursor: 'pointer',
-                    transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.54rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.24em',
+                    textTransform: 'uppercase',
+                    color: active ? 'var(--pl-ink)' : 'rgba(14,13,11,0.45)',
+                    transition: 'color 0.18s cubic-bezier(0.22,1,0.36,1)',
                   }}
+                  onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = 'var(--pl-ink-soft)'; }}
+                  onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = 'rgba(14,13,11,0.45)'; }}
                 >
-                  {label}
-                  <span
-                    style={{
-                      fontSize: '0.7rem',
-                      padding: '1px 6px',
-                      borderRadius: 'var(--pl-radius-full)',
-                      background: active
-                        ? 'color-mix(in oklab, var(--pl-cream) 20%, transparent)'
-                        : 'var(--pl-cream)',
-                      color: active ? 'var(--pl-cream)' : 'var(--pl-muted)',
-                      fontWeight: 700,
-                    }}
-                  >
-                    {count}
+                  <span>{label}</span>
+                  <span style={{
+                    fontSize: '0.48rem',
+                    color: active ? 'var(--pl-gold)' : 'rgba(14,13,11,0.35)',
+                    letterSpacing: '0.12em',
+                  }}>
+                    {String(count).padStart(2, '0')}
                   </span>
+                  {active && (
+                    <motion.span
+                      layoutId="rsvp-tab-underline"
+                      style={{
+                        position: 'absolute',
+                        left: 12, right: 12, bottom: -1,
+                        height: 2,
+                        background: 'var(--pl-gold)',
+                        borderRadius: 1,
+                      }}
+                    />
+                  )}
                 </button>
               );
             })}

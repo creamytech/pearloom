@@ -150,50 +150,74 @@ export default function ProfilePage() {
                 }
                 accent="olive"
               >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 14,
-                    marginBottom: 20,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: '50%',
-                      background: 'var(--pl-olive-mist)',
-                      color: 'var(--pl-olive-deep)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontFamily: 'var(--pl-font-display)',
-                      fontSize: '1.2rem',
-                      fontWeight: 600,
-                      border: '1px solid var(--pl-divider)',
-                    }}
-                  >
+                {/* Editorial signature plate — gold-hairline framed monogram */}
+                <div style={{
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 18,
+                  padding: '16px 18px',
+                  marginBottom: 22,
+                  background: 'var(--pl-cream-deep)',
+                  borderRadius: 10,
+                  border: '1px solid rgba(14,13,11,0.08)',
+                  overflow: 'hidden',
+                }}>
+                  <span style={{
+                    position: 'absolute', top: 0, left: '14px', right: '14px',
+                    height: 1, background: 'rgba(184,147,90,0.50)',
+                  }} />
+                  <div style={{
+                    position: 'relative',
+                    width: 56, height: 56,
+                    borderRadius: '50%',
+                    background: 'var(--pl-cream-card)',
+                    color: 'var(--pl-ink)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontFamily: 'var(--pl-font-display)',
+                    fontStyle: 'italic',
+                    fontSize: '1.7rem',
+                    fontWeight: 400,
+                    lineHeight: 1,
+                    border: '1px solid rgba(184,147,90,0.55)',
+                    boxShadow: '0 0 0 4px rgba(184,147,90,0.10)',
+                    flexShrink: 0,
+                  }}>
                     {initial}
                   </div>
-                  <div>
-                    <div
-                      style={{
-                        fontSize: '0.95rem',
-                        fontWeight: 600,
-                        color: 'var(--pl-ink)',
-                      }}
-                    >
-                      {session?.user?.name || 'User'}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '0.8rem',
-                        color: 'var(--pl-muted)',
-                      }}
-                    >
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <span style={{
+                      display: 'block',
+                      fontFamily: 'var(--pl-font-mono)',
+                      fontSize: '0.48rem', fontWeight: 700,
+                      letterSpacing: '0.28em', textTransform: 'uppercase',
+                      color: 'var(--pl-olive)',
+                      marginBottom: 4,
+                    }}>
+                      Author · signed in
+                    </span>
+                    <span style={{
+                      display: 'block',
+                      fontFamily: 'var(--pl-font-display)',
+                      fontStyle: 'italic',
+                      fontWeight: 400,
+                      fontSize: '1.35rem',
+                      lineHeight: 1.05,
+                      color: 'var(--pl-ink)',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
+                      {session?.user?.name || 'Untitled author'}
+                    </span>
+                    <span style={{
+                      display: 'block',
+                      marginTop: 3,
+                      fontFamily: 'var(--pl-font-mono)',
+                      fontSize: '0.66rem',
+                      letterSpacing: '0.06em',
+                      color: 'rgba(14,13,11,0.55)',
+                    }}>
                       {session?.user?.email}
-                    </div>
+                    </span>
                   </div>
                 </div>
 
@@ -284,51 +308,83 @@ export default function ProfilePage() {
                 }
                 accent="gold"
               >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: 18,
-                    gap: 16,
-                  }}
-                >
+                {/* Subscription ledger specimen */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr auto',
+                  gap: 20,
+                  marginBottom: 20,
+                  padding: '18px 20px',
+                  background: 'var(--pl-cream-deep)',
+                  border: '1px solid rgba(184,147,90,0.30)',
+                  borderRadius: 10,
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}>
+                  <span style={{
+                    position: 'absolute', top: 0, left: '16px', right: '16px',
+                    height: 1, background: 'rgba(184,147,90,0.55)',
+                  }} />
                   <div>
-                    <div
-                      style={{
-                        fontSize: '0.88rem',
-                        color: 'var(--pl-ink-soft)',
-                      }}
-                    >
-                      Free forever. Create unlimited sites with core blocks.
-                    </div>
-                    <div
-                      style={{
-                        marginTop: 6,
-                        fontSize: '0.78rem',
-                        color: 'var(--pl-muted)',
-                      }}
-                    >
-                      Upgrade to unlock every block, unlimited guests, and the
-                      full event OS.
-                    </div>
-                  </div>
-                  <span
-                    style={{
-                      padding: '4px 10px',
-                      borderRadius: 'var(--pl-radius-full)',
-                      background: 'var(--pl-olive-mist)',
-                      color: 'var(--pl-olive-deep)',
+                    <span style={{
+                      display: 'block',
                       fontFamily: 'var(--pl-font-mono)',
-                      fontSize: '0.62rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.18em',
-                      textTransform: 'uppercase',
-                      flexShrink: 0,
-                    }}
-                  >
-                    Free
-                  </span>
+                      fontSize: '0.48rem', fontWeight: 700,
+                      letterSpacing: '0.28em', textTransform: 'uppercase',
+                      color: 'var(--pl-gold)',
+                      marginBottom: 8,
+                    }}>
+                      Current tier · Vol. 00
+                    </span>
+                    <span style={{
+                      display: 'block',
+                      fontFamily: 'var(--pl-font-display)',
+                      fontStyle: 'italic',
+                      fontWeight: 400,
+                      fontSize: '1.8rem',
+                      lineHeight: 1,
+                      color: 'var(--pl-ink)',
+                      marginBottom: 10,
+                    }}>
+                      Reader
+                    </span>
+                    <p style={{
+                      margin: 0,
+                      fontFamily: 'var(--pl-font-body)',
+                      fontSize: '0.8rem',
+                      lineHeight: 1.55,
+                      color: 'var(--pl-ink-soft)',
+                      maxWidth: 360,
+                    }}>
+                      Free forever — unlimited sites with the core chapter set. Atelier unlocks every block, every guest, and the full event OS.
+                    </p>
+                  </div>
+                  <div style={{
+                    alignSelf: 'flex-start',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                    padding: '10px 14px',
+                    borderLeft: '1px dashed rgba(184,147,90,0.45)',
+                    minWidth: 92,
+                  }}>
+                    <span style={{
+                      fontFamily: 'var(--pl-font-mono)',
+                      fontSize: '0.46rem', fontWeight: 700,
+                      letterSpacing: '0.28em', textTransform: 'uppercase',
+                      color: 'rgba(14,13,11,0.50)',
+                    }}>
+                      Price
+                    </span>
+                    <span style={{
+                      fontFamily: 'var(--pl-font-display)',
+                      fontStyle: 'italic',
+                      fontWeight: 400,
+                      fontSize: '1.6rem',
+                      lineHeight: 1,
+                      color: 'var(--pl-olive)',
+                    }}>
+                      Free
+                    </span>
+                  </div>
                 </div>
 
                 <Button
