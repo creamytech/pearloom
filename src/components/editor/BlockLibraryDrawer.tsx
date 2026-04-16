@@ -2,17 +2,15 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / editor/BlockLibraryDrawer.tsx
-// The canonical "insert a block" surface — a persistent drawer
-// that slides out from the left of the canvas with:
-//   • category tabs (Story · Logistics · Gifts · Guests · Media · Structure)
-//   • live search
-//   • draggable block cards that work with CanvasEditor's existing
-//     `pearloom/block-type` drop listener
-//   • tap-to-insert as a keyboard-accessible fallback
+// Editorial-chrome block palette.
 //
-// Wires into the editor's `pear-command` event so the AI can prompt
-// guests to "tap to add a Registry section" and the drawer opens
-// focused on the right block.
+// A persistent left drawer of draggable block cards. Fully bound
+// to --pl-chrome-* tokens so it flips between light and dark.
+// Keeps its original wiring:
+//   • sets `pearloom/block-type` on the DataTransfer so the
+//     SiteRenderer DropZones can accept it onto the live canvas
+//   • broadcasts `pearloom-palette-drag-start/end` so every drop
+//     zone pulses as soon as drag begins
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -30,6 +28,8 @@ import {
   MessageSquareQuote,
   Users2,
   Footprints,
+  Check,
+  GripVertical,
 } from 'lucide-react';
 import {
   BlockHeroIcon, BlockStoryIcon, BlockEventIcon, BlockCountdownIcon,
@@ -45,11 +45,18 @@ import {
   type OccasionTag,
 } from '@/lib/block-catalogue';
 import type { BlockType } from '@/types';
-import { panelText, panelWeight, panelTracking } from './panel';
+import {
+  panelFont,
+  panelText,
+  panelWeight,
+  panelTracking,
+  panelLineHeight,
+} from './panel';
 
-// Resolve the lucide/EditorIcon component for each block type. Keeping
-// this table here (not in the catalogue) lets the catalogue stay pure
-// data and avoids a circular dep on component-level icons.
+// ── Iconography ──────────────────────────────────────────────
+// The catalogue stays pure data; we resolve components here so
+// the drawer can swap in brand-specific block icons without the
+// catalogue growing a JSX dependency.
 const BLOCK_ICONS: Record<BlockType, React.ElementType> = {
   hero: BlockHeroIcon,
   story: BlockStoryIcon,
@@ -80,23 +87,18 @@ const BLOCK_ICONS: Record<BlockType, React.ElementType> = {
 };
 
 export interface BlockLibraryDrawerProps {
-  /** Controls visibility — let the parent own open state. */
   open: boolean;
-  /** Called when the user tries to close the drawer (Esc / overlay / X). */
   onClose: () => void;
-  /** User's occasion; filters the catalogue. Defaults to wedding. */
   occasion?: OccasionTag;
-  /** Types already present on the canvas — rendered with a check badge. */
   existingTypes?: Set<BlockType>;
-  /** Called when a block is inserted via tap/enter. */
   onInsert: (type: BlockType) => void;
-  /**
-   * Fires as the user drags a block card. The parent can highlight
-   * drop zones while non-null. The card also writes the type to the
-   * native `DataTransfer` so existing `drop` handlers keep working.
-   */
+  /** Highlight the canvas drop zones while a card is being dragged. */
   onDragType?: (type: BlockType | null) => void;
 }
+
+const DRAWER_WIDTH = 'min(440px, 92vw)';
+const ACCENT_TINT = (pct: number) =>
+  `color-mix(in srgb, var(--pl-chrome-accent) ${pct}%, transparent)`;
 
 export function BlockLibraryDrawer({
   open,
@@ -110,7 +112,6 @@ export function BlockLibraryDrawer({
   const [search, setSearch] = useState('');
   const searchRef = useRef<HTMLInputElement | null>(null);
 
-  // Esc to close. Focus search when opened.
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -136,11 +137,21 @@ export function BlockLibraryDrawer({
     );
   }, [occasion, activeCat, search]);
 
+  const catCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: 0 };
+    for (const cat of BLOCK_CATEGORIES) counts[cat.id] = 0;
+    for (const b of BLOCK_CATALOGUE) {
+      if (!b.occasions.includes(occasion)) continue;
+      counts.all += 1;
+      counts[b.category] = (counts[b.category] || 0) + 1;
+    }
+    return counts;
+  }, [occasion]);
+
   return (
     <AnimatePresence>
       {open && (
         <>
-          {/* Click-off overlay — click anywhere outside to close */}
           <motion.div
             key="overlay"
             initial={{ opacity: 0 }}
@@ -151,19 +162,19 @@ export function BlockLibraryDrawer({
             style={{
               position: 'fixed',
               inset: 0,
-              background: 'rgba(9,9,11,0.35)',
+              background:
+                'color-mix(in srgb, var(--pl-chrome-ink, #09090B) 38%, transparent)',
               zIndex: 200,
-              backdropFilter: 'blur(3px)',
-              WebkitBackdropFilter: 'blur(3px)',
+              backdropFilter: 'blur(4px) saturate(120%)',
+              WebkitBackdropFilter: 'blur(4px) saturate(120%)',
             }}
           />
 
-          {/* Drawer */}
           <motion.aside
             key="drawer"
-            initial={{ x: -420, opacity: 0 }}
+            initial={{ x: -440, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            exit={{ x: -420, opacity: 0 }}
+            exit={{ x: -440, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 380, damping: 36 }}
             role="dialog"
             aria-label="Block library"
@@ -172,123 +183,196 @@ export function BlockLibraryDrawer({
               top: 0,
               bottom: 0,
               left: 0,
-              width: 'min(420px, 92vw)',
+              width: DRAWER_WIDTH,
               zIndex: 201,
-              background: '#FFFFFF',
-              borderRight: '1px solid #E4E4E7',
-              boxShadow: '24px 0 80px -24px rgba(0,0,0,0.25)',
+              background: 'var(--pl-chrome-bg)',
+              borderRight: '1px solid var(--pl-chrome-border)',
+              boxShadow:
+                '24px 0 64px -24px color-mix(in srgb, var(--pl-chrome-ink, #09090B) 32%, transparent)',
               display: 'flex',
               flexDirection: 'column',
               overflow: 'hidden',
+              color: 'var(--pl-chrome-text)',
             }}
           >
-            {/* Header */}
-            <div
+            {/* ── Header ──────────────────────────────────────── */}
+            <header
               style={{
-                padding: '14px 16px',
-                borderBottom: '1px solid #E4E4E7',
+                padding: '18px 20px 16px',
                 display: 'flex',
-                alignItems: 'center',
-                gap: 10,
+                flexDirection: 'column',
+                gap: 6,
+                borderBottom: '1px solid var(--pl-chrome-border)',
+                background:
+                  'linear-gradient(180deg, ' +
+                  ACCENT_TINT(5) +
+                  ', transparent)',
+                position: 'relative',
               }}
             >
-              <LayoutGrid size={16} color="#18181B" />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 10,
+                }}
+              >
+                <span
                   style={{
-                    fontSize: panelText.heading,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 7,
+                    fontFamily: panelFont.mono,
+                    fontSize: panelText.meta,
                     fontWeight: panelWeight.bold,
                     letterSpacing: panelTracking.widest,
                     textTransform: 'uppercase',
-                    color: '#71717A',
+                    color: 'var(--pl-chrome-text-faint)',
                   }}
                 >
+                  <LayoutGrid size={11} strokeWidth={1.75} color="var(--pl-chrome-accent)" />
                   Block library
-                </div>
-                <div
+                </span>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  aria-label="Close block library"
                   style={{
-                    fontSize: panelText.itemTitle,
-                    fontWeight: panelWeight.semibold,
-                    color: '#18181B',
+                    width: 28,
+                    height: 28,
+                    borderRadius: '50%',
+                    border: '1px solid var(--pl-chrome-border)',
+                    background: 'var(--pl-chrome-surface)',
+                    color: 'var(--pl-chrome-text-muted)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = 'var(--pl-chrome-text)';
+                    e.currentTarget.style.borderColor = 'var(--pl-chrome-accent)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = 'var(--pl-chrome-text-muted)';
+                    e.currentTarget.style.borderColor = 'var(--pl-chrome-border)';
                   }}
                 >
-                  Drag onto the canvas or tap to insert
-                </div>
+                  <X size={13} strokeWidth={1.75} />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label="Close block library"
+              <h2
                 style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 8,
-                  border: '1px solid #E4E4E7',
-                  background: '#FAFAFA',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
+                  margin: 0,
+                  fontFamily: panelFont.display,
+                  fontStyle: 'italic',
+                  fontWeight: panelWeight.regular,
+                  fontSize: '1.45rem',
+                  letterSpacing: '-0.018em',
+                  lineHeight: panelLineHeight.tight,
+                  color: 'var(--pl-chrome-text)',
                 }}
               >
-                <X size={14} color="#52525B" />
-              </button>
-            </div>
-
-            {/* Search */}
-            <div style={{ padding: '10px 12px', borderBottom: '1px solid #F4F4F5' }}>
-              <div
+                Drop a section onto the canvas
+              </h2>
+              <p
                 style={{
-                  position: 'relative',
+                  margin: 0,
+                  fontFamily: panelFont.body,
+                  fontSize: panelText.hint,
+                  color: 'var(--pl-chrome-text-muted)',
+                  lineHeight: panelLineHeight.snug,
+                  maxWidth: 340,
+                }}
+              >
+                Drag a card into any preview dropzone, or press{' '}
+                <kbd style={kbdStyle}>Enter</kbd> on a focused card to insert at the bottom.
+              </p>
+            </header>
+
+            {/* ── Search ──────────────────────────────────────── */}
+            <div
+              style={{
+                padding: '14px 18px 10px',
+                borderBottom: '1px solid var(--pl-chrome-border-soft, var(--pl-chrome-border))',
+              }}
+            >
+              <label
+                style={{
                   display: 'flex',
                   alignItems: 'center',
+                  gap: 10,
+                  padding: '10px 12px',
+                  borderRadius: 10,
+                  border: '1px solid var(--pl-chrome-border)',
+                  background: 'var(--pl-chrome-surface)',
+                  transition: 'border-color 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--pl-chrome-accent)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--pl-chrome-border)';
                 }}
               >
-                <Search size={12} color="#A1A1AA" style={{ position: 'absolute', left: 10 }} />
+                <Search size={12} strokeWidth={1.75} color="var(--pl-chrome-text-faint)" />
                 <input
                   ref={searchRef}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search blocks\u2026"
+                  placeholder="Search blocks — hero, RSVP, map…"
                   style={{
-                    width: '100%',
-                    padding: '8px 10px 8px 30px',
-                    borderRadius: 8,
-                    border: '1px solid #E4E4E7',
-                    background: '#FAFAFA',
-                    fontSize: 'max(16px, 0.8rem)',
+                    flex: 1,
+                    padding: 0,
+                    background: 'transparent',
+                    border: 'none',
                     outline: 'none',
-                    color: '#18181B',
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = '#18181B';
-                    e.currentTarget.style.boxShadow = '0 0 0 2px rgba(24,24,27,0.12)';
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = '#E4E4E7';
-                    e.currentTarget.style.boxShadow = 'none';
+                    fontFamily: panelFont.body,
+                    fontSize: 'max(16px, 0.82rem)',
+                    color: 'var(--pl-chrome-text)',
+                    lineHeight: 1.4,
                   }}
                 />
-              </div>
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch('')}
+                    aria-label="Clear search"
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'var(--pl-chrome-text-muted)',
+                      cursor: 'pointer',
+                      padding: 2,
+                      lineHeight: 0,
+                    }}
+                  >
+                    <X size={11} strokeWidth={1.75} />
+                  </button>
+                )}
+              </label>
             </div>
 
-            {/* Category tabs */}
+            {/* ── Category tabs ───────────────────────────────── */}
             <div
               role="tablist"
               aria-label="Block categories"
               style={{
                 display: 'flex',
-                gap: 6,
-                padding: '10px 12px',
-                borderBottom: '1px solid #F4F4F5',
+                gap: 4,
+                padding: '10px 14px',
+                borderBottom: '1px solid var(--pl-chrome-border-soft, var(--pl-chrome-border))',
                 overflowX: 'auto',
-                scrollbarWidth: 'thin',
+                scrollbarWidth: 'none',
               }}
             >
               <CategoryTab
                 active={activeCat === 'all'}
                 onClick={() => setActiveCat('all')}
                 label="All"
+                count={catCounts.all}
               />
               {BLOCK_CATEGORIES.map((c) => (
                 <CategoryTab
@@ -296,81 +380,100 @@ export function BlockLibraryDrawer({
                   active={activeCat === c.id}
                   onClick={() => setActiveCat(c.id)}
                   label={c.label}
+                  count={catCounts[c.id] || 0}
                 />
               ))}
             </div>
 
-            {/* Block grid */}
+            {/* ── Grid ────────────────────────────────────────── */}
             <div
               style={{
                 flex: 1,
                 overflowY: 'auto',
-                padding: '12px',
+                padding: '16px 14px 18px',
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
                 gap: 10,
                 alignContent: 'start',
+                background: 'var(--pl-chrome-bg)',
               }}
             >
               {filtered.length === 0 ? (
                 <div
                   style={{
                     gridColumn: '1 / -1',
-                    padding: '32px 16px',
+                    padding: '36px 18px',
                     textAlign: 'center',
-                    fontSize: panelText.body,
-                    color: '#71717A',
+                    borderRadius: 12,
+                    border: '1px dashed ' + ACCENT_TINT(22),
+                    background: ACCENT_TINT(3),
                   }}
                 >
-                  No blocks match &ldquo;{search}&rdquo;
+                  <div
+                    style={{
+                      fontFamily: panelFont.display,
+                      fontStyle: 'italic',
+                      fontSize: panelText.itemTitle,
+                      color: 'var(--pl-chrome-text)',
+                      marginBottom: 6,
+                      letterSpacing: '-0.012em',
+                    }}
+                  >
+                    No blocks match &ldquo;{search}&rdquo;
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: panelFont.body,
+                      fontSize: panelText.hint,
+                      color: 'var(--pl-chrome-text-muted)',
+                    }}
+                  >
+                    Try a different keyword or switch category.
+                  </div>
                 </div>
               ) : (
-                filtered.map((b) => (
+                filtered.map((b, i) => (
                   <BlockCard
                     key={b.type}
+                    index={i}
                     block={b}
                     existing={!!existingTypes?.has(b.type)}
-                    onInsert={() => { onInsert(b.type); onClose(); }}
+                    onInsert={() => {
+                      onInsert(b.type);
+                      onClose();
+                    }}
                     onDragType={onDragType}
                   />
                 ))
               )}
             </div>
 
-            {/* Footer hint */}
-            <div
+            {/* ── Footer ──────────────────────────────────────── */}
+            <footer
               style={{
-                padding: '10px 14px',
-                borderTop: '1px solid #F4F4F5',
-                fontSize: panelText.meta,
-                color: '#A1A1AA',
-                letterSpacing: panelTracking.wider,
-                textTransform: 'uppercase',
-                fontWeight: panelWeight.semibold,
+                padding: '12px 18px',
+                borderTop: '1px solid var(--pl-chrome-border)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: 8,
+                fontFamily: panelFont.mono,
+                fontSize: panelText.meta,
+                letterSpacing: panelTracking.widest,
+                textTransform: 'uppercase',
+                color: 'var(--pl-chrome-text-faint)',
+                background: ACCENT_TINT(3),
               }}
             >
-              <span>Drag onto canvas</span>
-              <span>
-                <kbd
-                  style={{
-                    padding: '1px 5px',
-                    borderRadius: 4,
-                    background: '#F4F4F5',
-                    border: '1px solid #E4E4E7',
-                    fontSize: 10,
-                    fontFamily: 'ui-monospace, Menlo, monospace',
-                    color: '#3F3F46',
-                  }}
-                >
-                  Esc
-                </kbd>
-                &nbsp; to close
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <GripVertical size={10} strokeWidth={1.75} color="var(--pl-chrome-accent)" />
+                Drag to canvas
               </span>
-            </div>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <kbd style={kbdStyle}>Esc</kbd>
+                close
+              </span>
+            </footer>
           </motion.aside>
         </>
       )}
@@ -378,14 +481,29 @@ export function BlockLibraryDrawer({
   );
 }
 
+// ── Sub-components ────────────────────────────────────────────
+
+const kbdStyle: React.CSSProperties = {
+  padding: '2px 6px',
+  borderRadius: 4,
+  background: 'var(--pl-chrome-surface)',
+  border: '1px solid var(--pl-chrome-border)',
+  color: 'var(--pl-chrome-text-muted)',
+  fontFamily: panelFont.mono,
+  fontSize: 10,
+  letterSpacing: panelTracking.wider,
+};
+
 function CategoryTab({
   active,
   onClick,
   label,
+  count,
 }: {
   active: boolean;
   onClick: () => void;
   label: string;
+  count: number;
 }) {
   return (
     <button
@@ -394,49 +512,94 @@ function CategoryTab({
       aria-selected={active}
       onClick={onClick}
       style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
         whiteSpace: 'nowrap',
-        padding: '6px 11px',
+        padding: '7px 12px',
         borderRadius: 999,
-        border: active ? '1px solid #18181B' : '1px solid #E4E4E7',
-        background: active ? '#18181B' : '#FFFFFF',
-        color: active ? '#FFFFFF' : '#3F3F46',
-        fontSize: panelText.chip,
-        fontWeight: panelWeight.semibold,
-        letterSpacing: panelTracking.wide,
+        border: active ? '1px solid var(--pl-chrome-accent)' : '1px solid var(--pl-chrome-border)',
+        background: active ? 'var(--pl-chrome-accent)' : 'transparent',
+        color: active ? 'var(--pl-chrome-accent-ink)' : 'var(--pl-chrome-text-soft)',
+        fontFamily: panelFont.mono,
+        fontSize: panelText.meta,
+        fontWeight: panelWeight.bold,
+        letterSpacing: panelTracking.widest,
+        textTransform: 'uppercase',
         cursor: 'pointer',
+        lineHeight: 1,
+        transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+      }}
+      onMouseEnter={(e) => {
+        if (active) return;
+        e.currentTarget.style.borderColor = 'var(--pl-chrome-accent)';
+        e.currentTarget.style.color = 'var(--pl-chrome-text)';
+      }}
+      onMouseLeave={(e) => {
+        if (active) return;
+        e.currentTarget.style.borderColor = 'var(--pl-chrome-border)';
+        e.currentTarget.style.color = 'var(--pl-chrome-text-soft)';
       }}
     >
       {label}
+      <span
+        style={{
+          fontSize: 9,
+          padding: '1px 6px',
+          borderRadius: 99,
+          background: active
+            ? 'color-mix(in srgb, var(--pl-chrome-accent-ink) 16%, transparent)'
+            : 'var(--pl-chrome-surface)',
+          color: active ? 'var(--pl-chrome-accent-ink)' : 'var(--pl-chrome-text-muted)',
+          fontWeight: panelWeight.bold,
+          letterSpacing: panelTracking.wider,
+          lineHeight: 1,
+        }}
+      >
+        {count}
+      </span>
     </button>
   );
 }
 
 function BlockCard({
   block,
+  index,
   existing,
   onInsert,
   onDragType,
 }: {
   block: BlockDef;
+  index: number;
   existing: boolean;
   onInsert: () => void;
   onDragType?: (type: BlockType | null) => void;
 }) {
   const Icon = BLOCK_ICONS[block.type];
   const [dragging, setDragging] = useState(false);
+  const [hovered, setHovered] = useState(false);
+
+  const accent = block.color;
+  const baseBorder = existing
+    ? `color-mix(in srgb, ${accent} 38%, transparent)`
+    : 'var(--pl-chrome-border)';
 
   return (
-    <button
+    <motion.button
       type="button"
       draggable
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: Math.min(index, 12) * 0.018, ease: [0.22, 1, 0.36, 1] }}
       onDragStart={(e) => {
-        e.dataTransfer.setData('pearloom/block-type', block.type);
-        e.dataTransfer.setData('text/plain', block.type);
-        e.dataTransfer.effectAllowed = 'copy';
+        const dt = (e as unknown as DragEvent).dataTransfer;
+        if (dt) {
+          dt.setData('pearloom/block-type', block.type);
+          dt.setData('text/plain', block.type);
+          dt.effectAllowed = 'copy';
+        }
         setDragging(true);
         onDragType?.(block.type);
-        // Broadcast so the canvas DropZones pulse across the whole page
-        // and not just the zone the cursor hovers.
         window.dispatchEvent(
           new CustomEvent('pearloom-palette-drag-start', { detail: { type: block.type } })
         );
@@ -447,87 +610,130 @@ function BlockCard({
         window.dispatchEvent(new CustomEvent('pearloom-palette-drag-end'));
       }}
       onClick={onInsert}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       title={block.description}
       style={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-start',
-        gap: 8,
-        padding: '12px 12px 11px',
-        borderRadius: 10,
-        border: `1px solid ${existing ? `${block.color}40` : 'var(--pl-chrome-border)'}`,
-        background: dragging ? `${block.color}12` : 'var(--pl-chrome-surface)',
-        cursor: 'grab',
+        gap: 9,
+        padding: '14px 14px 13px',
+        borderRadius: 12,
+        border: `1px solid ${hovered || dragging ? accent : baseBorder}`,
+        background: dragging
+          ? `color-mix(in srgb, ${accent} 14%, var(--pl-chrome-surface))`
+          : hovered
+          ? `color-mix(in srgb, ${accent} 6%, var(--pl-chrome-surface))`
+          : 'var(--pl-chrome-surface)',
+        cursor: dragging ? 'grabbing' : 'grab',
         textAlign: 'left',
         transition: 'transform 0.15s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.15s, background-color 0.15s',
-        transform: dragging ? 'scale(0.96)' : 'scale(1)',
+        transform: dragging ? 'scale(0.97)' : hovered ? 'translateY(-1px)' : 'translateY(0)',
         position: 'relative',
-      }}
-      onMouseEnter={(e) => {
-        if (dragging) return;
-        e.currentTarget.style.borderColor = block.color;
-        e.currentTarget.style.background = `${block.color}0c`;
-      }}
-      onMouseLeave={(e) => {
-        if (dragging) return;
-        e.currentTarget.style.borderColor = existing ? `${block.color}40` : '#E4E4E7';
-        e.currentTarget.style.background = '#FFFFFF';
+        overflow: 'hidden',
+        color: 'var(--pl-chrome-text)',
+        boxShadow: hovered
+          ? `0 10px 24px -16px color-mix(in srgb, ${accent} 50%, transparent)`
+          : 'none',
       }}
     >
+      {/* Gold index in the corner */}
+      <span
+        style={{
+          position: 'absolute',
+          top: 10,
+          right: 12,
+          fontFamily: panelFont.mono,
+          fontSize: 9,
+          fontWeight: panelWeight.bold,
+          letterSpacing: panelTracking.widest,
+          color: 'var(--pl-chrome-text-faint)',
+          lineHeight: 1,
+        }}
+      >
+        {String(index + 1).padStart(2, '0')}
+      </span>
+
       <div
         style={{
-          width: 34,
-          height: 34,
-          borderRadius: 8,
-          background: `${block.color}20`,
-          border: `1px solid ${block.color}30`,
+          width: 38,
+          height: 38,
+          borderRadius: 10,
+          background: `color-mix(in srgb, ${accent} 18%, transparent)`,
+          border: `1px solid color-mix(in srgb, ${accent} 32%, transparent)`,
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'center',
+          flexShrink: 0,
         }}
       >
-        <Icon size={16} color={block.color} />
+        <Icon size={17} color={accent} />
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%' }}>
-        <span
-          style={{
-            fontSize: panelText.body,
-            fontWeight: panelWeight.semibold,
-            color: '#18181B',
-            lineHeight: 1.25,
-            flex: 1,
-          }}
-        >
-          {block.label}
-        </span>
-        {existing && (
-          <span
-            aria-label="Already on canvas"
-            title="Already on canvas"
-            style={{
-              fontSize: 9,
-              fontWeight: panelWeight.bold,
-              letterSpacing: panelTracking.widest,
-              padding: '2px 6px',
-              borderRadius: 10,
-              background: `${block.color}18`,
-              color: block.color,
-              textTransform: 'uppercase',
-            }}
-          >
-            Added
-          </span>
-        )}
-      </div>
-      <span
+
+      <div
         style={{
+          fontFamily: panelFont.display,
+          fontStyle: 'italic',
+          fontSize: '1.04rem',
+          fontWeight: panelWeight.regular,
+          color: 'var(--pl-chrome-text)',
+          letterSpacing: '-0.014em',
+          lineHeight: panelLineHeight.tight,
+        }}
+      >
+        {block.label}
+      </div>
+
+      <div
+        style={{
+          fontFamily: panelFont.body,
           fontSize: panelText.hint,
-          lineHeight: 1.4,
-          color: '#71717A',
+          lineHeight: panelLineHeight.snug,
+          color: 'var(--pl-chrome-text-muted)',
         }}
       >
         {block.description}
-      </span>
-    </button>
+      </div>
+
+      {existing && (
+        <span
+          aria-label="Already on canvas"
+          title="Already on canvas"
+          style={{
+            marginTop: 2,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            fontFamily: panelFont.mono,
+            fontSize: 9,
+            fontWeight: panelWeight.bold,
+            letterSpacing: panelTracking.widest,
+            textTransform: 'uppercase',
+            padding: '3px 8px',
+            borderRadius: 999,
+            background: `color-mix(in srgb, ${accent} 16%, transparent)`,
+            color: accent,
+            lineHeight: 1,
+          }}
+        >
+          <Check size={9} strokeWidth={2.25} /> Added
+        </span>
+      )}
+
+      {/* Hairline at bottom only visible on hover */}
+      <span
+        aria-hidden
+        style={{
+          position: 'absolute',
+          left: 14,
+          right: 14,
+          bottom: 10,
+          height: 1,
+          background: `color-mix(in srgb, ${accent} ${hovered ? 42 : 0}%, transparent)`,
+          transition: 'background 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+        }}
+      />
+    </motion.button>
   );
 }

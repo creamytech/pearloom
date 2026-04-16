@@ -18,7 +18,7 @@ const SUB_LABEL: React.CSSProperties = {
   fontWeight: panelWeight.bold,
   letterSpacing: panelTracking.wider,
   textTransform: 'uppercase',
-  color: '#71717A',
+  color: 'var(--pl-chrome-text-muted)',
   marginBottom: '6px',
   lineHeight: panelLineHeight.tight,
 };
@@ -26,7 +26,7 @@ const SUB_LABEL: React.CSSProperties = {
 // Small muted helper text beneath a chip grid or picker
 const HINT_TEXT: React.CSSProperties = {
   fontSize: panelText.meta,
-  color: '#71717A',
+  color: 'var(--pl-chrome-text-muted)',
   marginTop: '6px',
   lineHeight: panelLineHeight.normal,
 };
@@ -81,8 +81,8 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
       <div style={{ height: '100%', background: 'linear-gradient(135deg, rgba(24,24,27,0.08), rgba(196,169,106,0.1))', position: 'relative' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', background: 'rgba(255,255,255,0.7)', /* blur removed */ borderBottom: '1px solid rgba(255,255,255,0.5)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
-            <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#18181B' }} />
-            <div style={{ width: '12px', height: '2px', background: '#18181B', borderRadius: '1px', opacity: 0.6 }} />
+            <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--pl-chrome-text)' }} />
+            <div style={{ width: '12px', height: '2px', background: 'var(--pl-chrome-text)', borderRadius: '1px', opacity: 0.6 }} />
           </div>
         </div>
       </div>
@@ -94,7 +94,7 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
       <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', borderBottom: '1px solid rgba(255,255,255,0.3)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
-            <div style={{ width: '12px', height: '2px', background: '#18181B', borderRadius: '1px', opacity: 0.4 }} />
+            <div style={{ width: '12px', height: '2px', background: 'var(--pl-chrome-text)', borderRadius: '1px', opacity: 0.4 }} />
           </div>
         </div>
       </div>
@@ -106,8 +106,8 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
       <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
-            <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#18181B' }} />
-            <div style={{ width: '12px', height: '2px', background: '#18181B', borderRadius: '1px', opacity: 0.5 }} />
+            <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--pl-chrome-text)' }} />
+            <div style={{ width: '12px', height: '2px', background: 'var(--pl-chrome-text)', borderRadius: '1px', opacity: 0.5 }} />
           </div>
         </div>
       </div>
@@ -118,7 +118,7 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
     preview: (
       <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '14px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1px', paddingTop: '2px' }}>
-          <div style={{ width: '16px', height: '2.5px', background: '#18181B', borderRadius: '1px', opacity: 0.5 }} />
+          <div style={{ width: '16px', height: '2.5px', background: 'var(--pl-chrome-text)', borderRadius: '1px', opacity: 0.5 }} />
           <div style={{ display: 'flex', gap: '4px' }}>
             {[0, 1, 2].map(i => <div key={i} style={{ width: '6px', height: '1.5px', background: '#71717A', borderRadius: '1px', opacity: 0.5 }} />)}
           </div>
@@ -132,8 +132,8 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
       <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
         <div style={{ position: 'absolute', top: '3px', left: '15%', right: '15%', height: '8px', background: 'rgba(255,255,255,0.9)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.25)', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
-            <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#18181B' }} />
-            <div style={{ width: '10px', height: '1.5px', background: '#18181B', borderRadius: '1px', opacity: 0.4 }} />
+            <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--pl-chrome-text)' }} />
+            <div style={{ width: '10px', height: '1.5px', background: 'var(--pl-chrome-text)', borderRadius: '1px', opacity: 0.4 }} />
           </div>
         </div>
       </div>
@@ -144,7 +144,7 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
     preview: (
       <div style={{ height: '100%', background: '#fff', position: 'relative' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '14px', background: '#fff', borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px', paddingTop: '1px' }}>
-          <div style={{ width: '14px', height: '2px', background: '#18181B', borderRadius: '1px', opacity: 0.55 }} />
+          <div style={{ width: '14px', height: '2px', background: 'var(--pl-chrome-text)', borderRadius: '1px', opacity: 0.55 }} />
           <div style={{ display: 'flex', gap: '3px' }}>
             {[0, 1, 2].map(i => <div key={i} style={{ width: '5px', height: '1px', background: '#71717A', borderRadius: '1px', opacity: 0.4 }} />)}
           </div>
@@ -157,7 +157,7 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
     preview: (
       <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative', display: 'flex' }}>
         <div style={{ width: '22%', height: '100%', background: '#fff', borderRight: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '4px', gap: '2px' }}>
-          <div style={{ width: '10px', height: '2px', background: '#18181B', borderRadius: '1px', opacity: 0.6 }} />
+          <div style={{ width: '10px', height: '2px', background: 'var(--pl-chrome-text)', borderRadius: '1px', opacity: 0.6 }} />
           {[0, 1, 2].map(i => <div key={i} style={{ width: '8px', height: '1px', background: '#71717A', borderRadius: '1px', opacity: 0.3 }} />)}
         </div>
         <div style={{ flex: 1, background: 'var(--pl-cream)' }} />
@@ -168,7 +168,7 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
     id: 'command', label: 'Command', desc: 'Hidden nav, ⌘K to open page menu',
     preview: (
       <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
-        <div style={{ position: 'absolute', bottom: '6px', right: '8px', padding: '2px 5px', borderRadius: '4px', background: '#18181B', display: 'flex', alignItems: 'center', gap: '2px' }}>
+        <div style={{ position: 'absolute', bottom: '6px', right: '8px', padding: '2px 5px', borderRadius: '4px', background: 'var(--pl-chrome-text)', display: 'flex', alignItems: 'center', gap: '2px' }}>
           <div style={{ width: '6px', height: '6px', borderRadius: '1px', background: 'rgba(255,255,255,0.7)' }} />
           <div style={{ width: '4px', height: '1px', background: 'rgba(255,255,255,0.4)', borderRadius: '1px' }} />
         </div>
@@ -223,7 +223,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 }}>{mode.label}</div>
                 <div style={{
                   fontSize: panelText.meta,
-                  color: '#71717A',
+                  color: 'var(--pl-chrome-text-muted)',
                   marginTop: '3px',
                   lineHeight: panelLineHeight.normal,
                 }}>{mode.desc}</div>
@@ -273,7 +273,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
             <span style={{
               fontSize: panelText.hint,
               fontWeight: panelWeight.semibold,
-              color: '#18181B',
+              color: 'var(--pl-chrome-text)',
               fontFamily: 'inherit',
               lineHeight: panelLineHeight.tight,
             }}>
@@ -285,9 +285,9 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 fontSize: panelText.meta,
                 fontWeight: panelWeight.semibold,
                 fontFamily: 'inherit',
-                color: '#71717A',
-                background: '#FAFAFA',
-                border: '1px solid #E4E4E7',
+                color: 'var(--pl-chrome-text-muted)',
+                background: 'var(--pl-chrome-bg)',
+                border: '1px solid var(--pl-chrome-border)',
                 borderRadius: '6px',
                 padding: '3px 8px',
                 cursor: 'pointer',
@@ -371,7 +371,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 </div>
                 <div style={{
                   fontSize: panelText.meta,
-                  color: '#71717A',
+                  color: 'var(--pl-chrome-text-muted)',
                   marginTop: '3px',
                   lineHeight: panelLineHeight.normal,
                 }}>
@@ -401,7 +401,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
           display: 'flex',
           justifyContent: 'space-between',
           fontSize: panelText.meta,
-          color: '#71717A',
+          color: 'var(--pl-chrome-text-muted)',
           marginTop: '4px',
           lineHeight: panelLineHeight.tight,
         }}>
@@ -490,7 +490,7 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       <p style={{
         fontSize: panelText.hint,
-        color: '#71717A',
+        color: 'var(--pl-chrome-text-muted)',
         lineHeight: panelLineHeight.normal,
         margin: 0,
       }}>
@@ -557,7 +557,7 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
               ) : (
                 <span style={{
                   fontSize: panelText.hint,
-                  color: '#71717A',
+                  color: 'var(--pl-chrome-text-muted)',
                   fontWeight: panelWeight.semibold,
                   fontFamily: 'inherit',
                   lineHeight: panelLineHeight.tight,
@@ -567,7 +567,7 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
                 <div style={{
                   position: 'absolute', top: '4px', right: '4px',
                   width: '16px', height: '16px', borderRadius: '50%',
-                  background: '#18181B', display: 'flex',
+                  background: 'var(--pl-chrome-text)', display: 'flex',
                   alignItems: 'center', justifyContent: 'center',
                 }}>
                   <Check size={9} color="white" strokeWidth={3} />
@@ -577,7 +577,7 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
                 position: 'absolute', bottom: '4px', left: 0, right: 0,
                 fontSize: panelText.meta,
                 fontWeight: panelWeight.bold,
-                color: '#71717A',
+                color: 'var(--pl-chrome-text-muted)',
                 fontFamily: 'inherit',
                 textAlign: 'center',
                 letterSpacing: panelTracking.wide,
@@ -595,7 +595,7 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
         <p style={{
           fontSize: panelText.hint,
           fontWeight: panelWeight.semibold,
-          color: '#18181B',
+          color: 'var(--pl-chrome-text)',
           fontFamily: 'inherit',
           textAlign: 'center',
           margin: 0,
@@ -652,7 +652,7 @@ function QuickStylesRow({
         fontWeight: panelWeight.bold,
         letterSpacing: panelTracking.wider,
         textTransform: 'uppercase',
-        color: '#71717A',
+        color: 'var(--pl-chrome-text-muted)',
       }}>
         Quick Styles
       </div>
@@ -675,7 +675,7 @@ function QuickStylesRow({
                 flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
                 padding: '8px', borderRadius: '10px', cursor: 'pointer',
                 border: isActive ? '2px solid #18181B' : isHov ? '1.5px solid #3F3F46' : '1px solid #E4E4E7',
-                background: '#FFFFFF',
+                background: 'var(--pl-chrome-surface)',
                 transition: 'border 0.12s',
                 minWidth: '58px',
               }}
@@ -918,12 +918,12 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
               padding: '6px 12px', margin: '0 12px 6px',
               borderRadius: '100px',
-              background: '#F4F4F5',
-              border: '1px solid #E4E4E7',
+              background: 'var(--pl-chrome-bg)',
+              border: '1px solid var(--pl-chrome-border)',
               fontSize: panelText.hint,
               fontWeight: panelWeight.semibold,
               fontFamily: 'inherit',
-              color: '#18181B',
+              color: 'var(--pl-chrome-text)',
               lineHeight: panelLineHeight.tight,
             }}
           >
@@ -974,8 +974,8 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       {/* ── AI Design Critic ── */}
       <div className="pl-panel-section" style={{
         display: 'flex', flexDirection: 'column', gap: '10px',
-        background: '#FFFFFF',
-        border: '1px solid #E4E4E7',
+        background: 'var(--pl-chrome-surface)',
+        border: '1px solid var(--pl-chrome-border)',
         borderRadius: '12px',
         padding: '14px',
         marginBottom: '2px',
@@ -986,7 +986,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
           <span style={{
             fontSize: panelText.itemTitle,
             fontWeight: panelWeight.bold,
-            color: '#18181B',
+            color: 'var(--pl-chrome-text)',
             fontFamily: 'inherit',
             lineHeight: panelLineHeight.tight,
           }}>
@@ -1036,7 +1036,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                 fontWeight: panelWeight.bold,
                 letterSpacing: panelTracking.wider,
                 textTransform: 'uppercase',
-                color: '#18181B',
+                color: 'var(--pl-chrome-text)',
                 fontFamily: 'inherit',
               }}
             >
@@ -1047,11 +1047,11 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                 marginTop: '8px',
                 padding: '10px 12px',
                 borderRadius: '10px',
-                background: '#F4F4F5',
-                border: '1px solid #E4E4E7',
+                background: 'var(--pl-chrome-bg)',
+                border: '1px solid var(--pl-chrome-border)',
                 fontSize: panelText.body,
                 lineHeight: 1.6,
-                color: '#3F3F46',
+                color: 'var(--pl-chrome-text-soft)',
                 whiteSpace: 'pre-wrap',
               }}>
                 {designFeedback}
@@ -1073,7 +1073,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             fontWeight: panelWeight.bold,
             letterSpacing: panelTracking.wide,
             textTransform: 'uppercase',
-            color: '#71717A',
+            color: 'var(--pl-chrome-text-muted)',
             background: 'rgba(24,24,27,0.08)',
             padding: '3px 10px',
             borderRadius: '100px',
@@ -1123,7 +1123,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <p style={{
             fontSize: panelText.hint,
-            color: '#71717A',
+            color: 'var(--pl-chrome-text-muted)',
             margin: 0,
             lineHeight: panelLineHeight.normal,
           }}>
@@ -1173,11 +1173,11 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               gap: '6px',
               padding: '8px 12px',
               borderRadius: '10px',
-              background: '#F4F4F5',
-              border: '1px solid #E4E4E7',
+              background: 'var(--pl-chrome-bg)',
+              border: '1px solid var(--pl-chrome-border)',
               fontSize: panelText.hint,
               fontWeight: panelWeight.semibold,
-              color: '#18181B',
+              color: 'var(--pl-chrome-text)',
               lineHeight: panelLineHeight.tight,
             }}>
               <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
@@ -1270,7 +1270,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
       {/* ── Wedding Palettes — curated presets ── */}
       <SidebarSection title="Wedding Palettes" defaultOpen={false}>
-        <p style={{ fontSize: '0.65rem', color: '#71717A', lineHeight: 1.5, margin: '0 0 8px' }}>
+        <p style={{ fontSize: '0.65rem', color: 'var(--pl-chrome-text-muted)', lineHeight: 1.5, margin: '0 0 8px' }}>
           One-click curated palettes designed for weddings.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
@@ -1310,7 +1310,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                 display: 'flex', flexDirection: 'column', gap: '8px',
                 padding: '10px', borderRadius: '12px', cursor: 'pointer',
                 border: '1px solid rgba(255,255,255,0.25)',
-                background: '#FFFFFF',
+                background: 'var(--pl-chrome-surface)',
                 textAlign: 'left', transition: 'all 0.15s',
               }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#A1A1AA'; }}
@@ -1328,7 +1328,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               <div style={{
                 fontSize: panelText.hint,
                 fontWeight: panelWeight.bold,
-                color: '#18181B',
+                color: 'var(--pl-chrome-text)',
                 fontFamily: 'inherit',
                 lineHeight: panelLineHeight.tight,
               }}>
@@ -1378,7 +1378,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
           <div style={{
             padding: '16px',
             textAlign: 'center',
-            color: '#71717A',
+            color: 'var(--pl-chrome-text-muted)',
             fontSize: panelText.body,
             lineHeight: panelLineHeight.normal,
           }}>
@@ -1388,7 +1388,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               style={{
                 padding: '8px 16px',
                 borderRadius: '8px',
-                background: '#18181B',
+                background: 'var(--pl-chrome-text)',
                 color: '#fff',
                 border: 'none',
                 cursor: 'pointer',
@@ -1418,7 +1418,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
           <div style={SUB_LABEL}>Date format</div>
           <div style={{
             fontSize: panelText.hint,
-            color: '#71717A',
+            color: 'var(--pl-chrome-text-muted)',
             lineHeight: panelLineHeight.normal,
             marginBottom: '10px',
           }}>
@@ -1452,7 +1452,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                     <span style={{
                       fontSize: panelText.body,
                       fontWeight: isActive ? panelWeight.bold : panelWeight.semibold,
-                      color: '#18181B',
+                      color: 'var(--pl-chrome-text)',
                       fontFamily: 'inherit',
                       lineHeight: panelLineHeight.tight,
                     }}>
@@ -1461,7 +1461,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                     <span style={{
                       fontSize: panelText.hint,
                       fontFamily: 'ui-monospace, SFMono-Regular, monospace',
-                      color: '#71717A',
+                      color: 'var(--pl-chrome-text-muted)',
                       lineHeight: panelLineHeight.tight,
                     }}>
                       {preset.example}
@@ -1502,7 +1502,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                 display: 'flex', flexDirection: 'column', gap: '6px',
                 padding: '10px', borderRadius: '12px', cursor: 'pointer',
                 border: '1px solid rgba(255,255,255,0.25)',
-                background: '#FFFFFF',
+                background: 'var(--pl-chrome-surface)',
                 textAlign: 'left', transition: 'all 0.15s',
               }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#A1A1AA'; }}
@@ -1516,13 +1516,13 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               <div style={{
                 fontSize: panelText.hint,
                 fontWeight: panelWeight.bold,
-                color: '#18181B',
+                color: 'var(--pl-chrome-text)',
                 fontFamily: 'inherit',
                 lineHeight: panelLineHeight.tight,
               }}>{preset.name}</div>
               <div style={{
                 fontSize: panelText.meta,
-                color: '#71717A',
+                color: 'var(--pl-chrome-text-muted)',
                 lineHeight: panelLineHeight.normal,
               }}>{preset.description}</div>
             </button>
@@ -1534,7 +1534,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       <SidebarSection title="Dark Mode Preview" defaultOpen={false}>
         <p style={{
           fontSize: panelText.hint,
-          color: '#71717A',
+          color: 'var(--pl-chrome-text-muted)',
           marginBottom: '8px',
           lineHeight: panelLineHeight.normal,
         }}>
@@ -1570,7 +1570,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       <SidebarSection title="Type Scale" defaultOpen={false}>
         <p style={{
           fontSize: panelText.hint,
-          color: '#71717A',
+          color: 'var(--pl-chrome-text-muted)',
           marginBottom: '8px',
           lineHeight: panelLineHeight.normal,
         }}>
@@ -1608,7 +1608,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                 <div style={{
                   fontSize: panelText.hint,
                   fontWeight: panelWeight.bold,
-                  color: '#18181B',
+                  color: 'var(--pl-chrome-text)',
                   fontFamily: 'inherit',
                   textTransform: 'capitalize',
                   lineHeight: panelLineHeight.tight,
@@ -1617,7 +1617,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                 </div>
                 <div style={{
                   fontSize: panelText.meta,
-                  color: '#71717A',
+                  color: 'var(--pl-chrome-text-muted)',
                   marginTop: '2px',
                   lineHeight: panelLineHeight.tight,
                 }}>
@@ -1642,7 +1642,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
       {/* Asset Library */}
       <SidebarSection title="Asset Library" defaultOpen={false}>
-        <p style={{ fontSize: '0.8rem', color: '#71717A', marginBottom: '10px', lineHeight: 1.5 }}>
+        <p style={{ fontSize: '0.8rem', color: 'var(--pl-chrome-text-muted)', marginBottom: '10px', lineHeight: 1.5 }}>
           Dividers, illustrations & accents to add to your pages.
         </p>
         <AssetPicker
@@ -1671,12 +1671,12 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
         {/* Active stickers list with controls */}
         {(manifest.stickers?.length ?? 0) > 0 && (
           <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.3)', paddingTop: '10px' }}>
-            <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>
+            <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-chrome-text-muted)', marginBottom: '8px' }}>
               Active ({manifest.stickers!.length})
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {manifest.stickers!.map((s, i) => (
-                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', borderRadius: '8px', background: '#FAFAFA', border: '1px solid #E4E4E7' }}>
+                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', borderRadius: '8px', background: 'var(--pl-chrome-bg)', border: '1px solid var(--pl-chrome-border)' }}>
                   <span style={{ fontSize: '0.72rem', color: 'var(--pl-ink-soft, #3D3530)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'var(--pl-muted, #7A756E)' }}>
                     Size
@@ -1686,7 +1686,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                       onChange({ ...manifest, stickers: updated });
                     }} />
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: '#71717A' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'var(--pl-chrome-text-muted)' }}>
                     Op.
                     <RangeSlider min={10} max={100} value={Math.round(s.opacity * 100)} onChange={v => {
                       const updated = [...manifest.stickers!];
@@ -1694,7 +1694,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                       onChange({ ...manifest, stickers: updated });
                     }} />
                   </label>
-                  <button onClick={() => onChange({ ...manifest, stickers: manifest.stickers!.filter((_, j) => j !== i) })} style={{ all: 'unset', cursor: 'pointer', color: '#71717A', display: 'flex', padding: '2px' }}>✕</button>
+                  <button onClick={() => onChange({ ...manifest, stickers: manifest.stickers!.filter((_, j) => j !== i) })} style={{ all: 'unset', cursor: 'pointer', color: 'var(--pl-chrome-text-muted)', display: 'flex', padding: '2px' }}>✕</button>
                 </div>
               ))}
             </div>
@@ -1705,7 +1705,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       </>}
 
       {/* Live preview — compact, no extra nesting */}
-      <div style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: '1px solid #E4E4E7', background: '#FFFFFF' }}>
+      <div style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: '1px solid var(--pl-chrome-border)', background: 'var(--pl-chrome-surface)' }}>
         <div style={{ background: colors.background || '#faf9f6', padding: '14px' }}>
           <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1rem', fontWeight: 700, color: colors.foreground || 'var(--pl-ink, #3F3F46)', marginBottom: '3px' }}>
             {manifest.chapters?.[0]?.title || 'Preview'}

@@ -14,7 +14,7 @@ import {
 import type { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import { motion } from 'framer-motion';
 import { Globe, Mail, Copy, Check, Phone, MessageCircle } from 'lucide-react';
-import type { StoryManifest, Chapter } from '@/types';
+import type { StoryManifest, Chapter, BlockType } from '@/types';
 import type { CommandAction } from './CommandPalette';
 
 // ── Extracted components ──────────────────────────────────────
@@ -53,6 +53,7 @@ import { PropertiesPanel } from './PropertiesPanel';
 import { BlockConfigEditor } from './BlockConfigEditor';
 import { BlockStyleEditor } from './BlockStyleEditor';
 import { VersionHistoryPanel } from './VersionHistoryPanel';
+import { BlockLibraryDrawer } from './BlockLibraryDrawer';
 import { CustomCSSEditor } from './CustomCSSEditor';
 import { CustomizationPanel } from './CustomizationPanel';
 import { ComponentLibrary } from './ComponentLibrary';
@@ -106,6 +107,8 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const hintShownRef = useRef(false);
   const [showPublishAudit, setShowPublishAudit] = useState(false);
   const auditPassedRef = useRef(false);
+  // Block library drawer — persistent left palette for drag-to-canvas.
+  const [blockLibraryOpen, setBlockLibraryOpen] = useState(false);
   // Lightweight transient info toast (used by ⌘S, copy/paste block, etc.)
   const [infoToast, setInfoToast] = useState<string | null>(null);
   const infoToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -397,6 +400,36 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     pushToPreview(m);
   }, [onChange, pushToPreview, pushHistory]);
 
+  // Append a block of a given type to the canvas. Used by the
+  // library drawer's tap-to-insert fallback.
+  const handleInsertBlockFromLibrary = useCallback((type: BlockType) => {
+    const blocks = manifest.blocks || [];
+    const newBlock = {
+      id: `block-${type}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      type,
+      order: blocks.length,
+      visible: true,
+    };
+    const next = { ...manifest, blocks: [...blocks, newBlock] };
+    handleDesignChange(next, { coalesceKey: `insert-block:${type}`, label: `Insert ${type}` });
+    // Select the new block so the inspector focuses on it.
+    dispatch({ type: 'SET_ACTIVE_ID', id: newBlock.id });
+    showInfoToast(`Inserted ${type}`);
+  }, [manifest, handleDesignChange, showInfoToast]);
+
+  // Allow any part of the editor (rail, command palette, slash menu) to
+  // open the library drawer by dispatching a CustomEvent.
+  useEffect(() => {
+    const open = () => setBlockLibraryOpen(true);
+    const close = () => setBlockLibraryOpen(false);
+    window.addEventListener('pearloom-open-library', open);
+    window.addEventListener('pearloom-close-library', close);
+    return () => {
+      window.removeEventListener('pearloom-open-library', open);
+      window.removeEventListener('pearloom-close-library', close);
+    };
+  }, []);
+
   const handleChatManifestUpdate = useCallback((updates: Partial<StoryManifest>) => {
     const next = { ...manifest, ...updates };
     pushHistory(next);
@@ -647,6 +680,12 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         }
         e.preventDefault();
         handleTabChange(TAB_KEYS[e.key]);
+        return;
+      }
+      // ⌘⇧A / Ctrl+Shift+A — open the block library drawer
+      if (mod && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+        e.preventDefault();
+        setBlockLibraryOpen((v) => !v);
         return;
       }
       // ── Item 73: ⌘⇧C — add chapter, ⌘⇧E — add event ──
@@ -1292,6 +1331,16 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 
       {/* Publish Modal */}
       <PublishModalInline />
+
+      {/* Block library drawer — slides in from the left of the canvas.
+          Cards are native-draggable; drops land in SiteRenderer DropZones. */}
+      <BlockLibraryDrawer
+        open={blockLibraryOpen}
+        onClose={() => setBlockLibraryOpen(false)}
+        occasion={manifest.occasion === 'birthday' ? 'birthday' : 'wedding'}
+        existingTypes={new Set((manifest.blocks || []).map(b => b.type as BlockType))}
+        onInsert={handleInsertBlockFromLibrary}
+      />
 
       {/* Drag Overlay */}
       <DragOverlay dropAnimation={null}>

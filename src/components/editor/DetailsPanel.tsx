@@ -119,8 +119,8 @@ function WeddingPartyMemberRow({ member, onUpdate, onDelete }: {
         display: 'flex', alignItems: 'center', gap: '8px',
         padding: '8px 10px',
         borderRadius: '10px',
-        background: '#FFFFFF',
-        border: '1px solid #E4E4E7',
+        background: 'var(--pl-chrome-surface)',
+        border: '1px solid var(--pl-chrome-border)',
       }}>
         {/* Drag handle — dnd-kit keyboard accessible */}
         <div
@@ -147,7 +147,7 @@ function WeddingPartyMemberRow({ member, onUpdate, onDelete }: {
         ) : (
           <div style={{
             width: 32, height: 32, borderRadius: '50%',
-            background: '#F4F4F5', color: '#52525B',
+            background: 'var(--pl-chrome-bg)', color: '#52525B',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '0.72rem', fontWeight: 700, flexShrink: 0,
           }}>
@@ -156,17 +156,17 @@ function WeddingPartyMemberRow({ member, onUpdate, onDelete }: {
         )}
         {/* Name + role */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: panelText.body, fontWeight: panelWeight.semibold, color: '#18181B', lineHeight: panelLineHeight.tight, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: panelText.body, fontWeight: panelWeight.semibold, color: 'var(--pl-chrome-text)', lineHeight: panelLineHeight.tight, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {member.name || 'Untitled'}
           </div>
-          <div style={{ fontSize: panelText.hint, color: '#71717A', lineHeight: panelLineHeight.tight }}>
+          <div style={{ fontSize: panelText.hint, color: 'var(--pl-chrome-text-muted)', lineHeight: panelLineHeight.tight }}>
             {roleLabel(member)}
           </div>
         </div>
         {/* Actions */}
         <button
           onClick={() => setEditing(e => !e)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#71717A', fontSize: panelText.hint, padding: '3px 6px' }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-chrome-text-muted)', fontSize: panelText.hint, padding: '3px 6px' }}
         >
           {editing ? 'Done' : 'Edit'}
         </button>
@@ -269,7 +269,7 @@ function WeddingPartyEditor({ manifest, onChange }: { manifest: StoryManifest; o
       {addingNew ? (
         <div style={{
           padding: '10px', borderRadius: '10px',
-          background: '#FAFAFA', border: '1px solid #E4E4E7',
+          background: 'var(--pl-chrome-bg)', border: '1px solid var(--pl-chrome-border)',
           display: 'flex', flexDirection: 'column', gap: '8px',
         }}>
           <Field
@@ -295,8 +295,8 @@ function WeddingPartyEditor({ manifest, onChange }: { manifest: StoryManifest; o
               onClick={() => { setAddingNew(false); setNewName(''); }}
               style={{
                 padding: '6px 12px', borderRadius: '8px',
-                background: 'transparent', border: '1px solid #E4E4E7',
-                color: '#71717A', cursor: 'pointer',
+                background: 'transparent', border: '1px solid var(--pl-chrome-border)',
+                color: 'var(--pl-chrome-text-muted)', cursor: 'pointer',
                 fontSize: panelText.body, fontWeight: panelWeight.semibold, fontFamily: 'inherit',
               }}
             >
@@ -346,8 +346,8 @@ function FaqRow({ faq, onUpdate, onDelete }: {
   const [expanded, setExpanded] = useState(true);
   return (
     <div style={{
-      background: '#FAFAFA',
-      border: '1px solid #E4E4E7',
+      background: 'var(--pl-chrome-bg)',
+      border: '1px solid var(--pl-chrome-border)',
       borderRadius: '10px', padding: '12px',
       display: 'flex', flexDirection: 'column', gap: '8px',
     }}>
@@ -359,7 +359,7 @@ function FaqRow({ faq, onUpdate, onDelete }: {
           style={{
             display: 'flex', alignItems: 'center', gap: '4px',
             background: 'none', border: 'none', cursor: 'pointer',
-            color: '#71717A',
+            color: 'var(--pl-chrome-text-muted)',
             padding: '2px 4px',
             borderRadius: '6px',
             fontSize: panelText.hint,
@@ -690,7 +690,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               <span style={{
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 width: '16px', height: '16px', borderRadius: '50%',
-                background: '#18181B', flexShrink: 0,
+                background: 'var(--pl-chrome-text)', flexShrink: 0,
               }}>
                 <Check size={9} color="#fff" strokeWidth={3} />
               </span>
@@ -700,7 +700,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           <motion.div
             animate={{ rotate: isOpen ? 180 : 0 }}
             transition={{ duration: 0.2 }}
-            style={{ color: '#71717A', display: 'flex' }}
+            style={{ color: 'var(--pl-chrome-text-muted)', display: 'flex' }}
           >
             <ChevronDown size={13} />
           </motion.div>
@@ -733,7 +733,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         fontWeight: panelWeight.bold,
         letterSpacing: panelTracking.wider,
         textTransform: 'uppercase',
-        color: '#71717A',
+        color: 'var(--pl-chrome-text-muted)',
         fontFamily: 'inherit',
         whiteSpace: 'nowrap',
         lineHeight: panelLineHeight.tight,
@@ -762,8 +762,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         display: 'flex', alignItems: 'center', gap: '8px',
         padding: '8px 10px', marginBottom: '4px',
         borderRadius: '10px',
-        background: '#FAFAFA',
-        border: '1px solid #E4E4E7',
+        background: 'var(--pl-chrome-bg)',
+        border: '1px solid var(--pl-chrome-border)',
       }}>
         <div style={{
           flex: 1, height: '4px', borderRadius: '8px',
@@ -771,7 +771,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         }}>
           <div style={{
             height: '100%', borderRadius: '8px',
-            background: '#18181B',
+            background: 'var(--pl-chrome-text)',
             width: `${Math.round((filledCount / totalSections) * 100)}%`,
             transition: 'width 0.3s ease',
           }} />
@@ -779,7 +779,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         <span style={{
           fontSize: panelText.hint,
           fontWeight: panelWeight.bold,
-          color: '#71717A',
+          color: 'var(--pl-chrome-text-muted)',
           fontFamily: 'inherit',
           whiteSpace: 'nowrap',
           lineHeight: panelLineHeight.tight,
@@ -798,12 +798,12 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
               padding: '6px 12px', margin: '0 12px 4px',
               borderRadius: '100px',
-              background: '#F4F4F5',
-              border: '1px solid #E4E4E7',
+              background: 'var(--pl-chrome-bg)',
+              border: '1px solid var(--pl-chrome-border)',
               fontSize: panelText.hint,
               fontWeight: panelWeight.semibold,
               fontFamily: 'inherit',
-              color: '#18181B',
+              color: 'var(--pl-chrome-text)',
               lineHeight: panelLineHeight.tight,
             }}
           >
@@ -876,8 +876,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           {logistics.venue ? (
             <div style={{
               display: 'flex', alignItems: 'center', gap: '10px',
-              background: '#F4F4F5',
-              border: '1px solid #E4E4E7',
+              background: 'var(--pl-chrome-bg)',
+              border: '1px solid var(--pl-chrome-border)',
               borderRadius: '10px',
               padding: '12px',
             }}>
@@ -886,7 +886,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 <div style={{
                   fontSize: panelText.itemTitle,
                   fontWeight: panelWeight.bold,
-                  color: '#18181B',
+                  color: 'var(--pl-chrome-text)',
                   fontFamily: 'inherit',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   lineHeight: panelLineHeight.tight,
@@ -894,7 +894,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 {logistics.venueAddress && (
                   <div style={{
                     fontSize: panelText.body,
-                    color: '#3F3F46',
+                    color: 'var(--pl-chrome-text-soft)',
                     fontFamily: 'inherit',
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     marginTop: '3px',
@@ -904,7 +904,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               </div>
               <button
                 onClick={() => upd({ venue: '', venueAddress: '', venuePlaceId: '' })}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#71717A', padding: '2px', flexShrink: 0, display: 'flex' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-chrome-text-muted)', padding: '2px', flexShrink: 0, display: 'flex' }}
                 onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
                 onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = '#71717A'; }}
               >
@@ -927,7 +927,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
           <span style={{
             fontSize: panelText.body,
-            color: '#18181B',
+            color: 'var(--pl-chrome-text)',
             fontWeight: panelWeight.semibold,
             fontFamily: 'inherit',
             lineHeight: panelLineHeight.snug,
@@ -961,10 +961,10 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         <Field label="Cash Fund Message" value={manifest.registry?.cashFundMessage || ''} onChange={v => updRegistry({ cashFundMessage: v })} placeholder="We are saving for our honeymoon!" />
         {/* ── Smart Registry Import ── */}
         <div style={{
-          background: '#FAFAFA',
+          background: 'var(--pl-chrome-bg)',
           borderRadius: '10px',
           padding: '12px',
-          border: '1px solid #E4E4E7',
+          border: '1px solid var(--pl-chrome-border)',
           marginTop: '4px',
         }}>
           <label style={{ ...lbl, marginBottom: '6px' }}>
@@ -1014,15 +1014,15 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           {registryImportResult && (
             <div style={{
               marginTop: '8px',
-              background: '#F4F4F5',
-              border: '1px solid #E4E4E7',
+              background: 'var(--pl-chrome-bg)',
+              border: '1px solid var(--pl-chrome-border)',
               borderRadius: '10px',
               padding: '12px',
             }}>
               <div style={{
                 fontSize: panelText.itemTitle,
                 fontWeight: panelWeight.bold,
-                color: '#18181B',
+                color: 'var(--pl-chrome-text)',
                 fontFamily: 'inherit',
                 marginBottom: '3px',
                 lineHeight: panelLineHeight.tight,
@@ -1031,7 +1031,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               </div>
               <div style={{
                 fontSize: panelText.hint,
-                color: '#71717A',
+                color: 'var(--pl-chrome-text-muted)',
                 fontFamily: 'inherit',
                 marginBottom: '3px',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -1041,7 +1041,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               </div>
               <div style={{
                 fontSize: panelText.body,
-                color: '#3F3F46',
+                color: 'var(--pl-chrome-text-soft)',
                 fontFamily: 'inherit',
                 marginBottom: '10px',
                 lineHeight: panelLineHeight.snug,
@@ -1055,7 +1055,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                   padding: '6px 14px',
                   borderRadius: '8px',
                   border: 'none',
-                  background: '#18181B',
+                  background: 'var(--pl-chrome-text)',
                   color: '#fff',
                   cursor: 'pointer',
                   fontSize: panelText.body,
@@ -1075,8 +1075,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           <button onClick={addEntry} style={{
             display: 'flex', alignItems: 'center', gap: '4px',
             padding: '5px 10px', borderRadius: '8px',
-            border: '1px solid #E4E4E7',
-            background: '#F4F4F5', color: '#18181B',
+            border: '1px solid var(--pl-chrome-border)',
+            background: 'var(--pl-chrome-bg)', color: 'var(--pl-chrome-text)',
             cursor: 'pointer',
             fontSize: panelText.body,
             fontWeight: panelWeight.bold,
@@ -1088,8 +1088,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         </div>
         {entries.map((entry, i) => (
           <div key={i} style={{
-            background: '#FAFAFA',
-            border: '1px solid #E4E4E7',
+            background: 'var(--pl-chrome-bg)',
+            border: '1px solid var(--pl-chrome-border)',
             borderRadius: '10px', padding: '12px',
             display: 'flex', flexDirection: 'column', gap: '8px',
           }}>
@@ -1097,7 +1097,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               <span style={{
                 fontSize: panelText.itemTitle,
                 fontWeight: panelWeight.bold,
-                color: '#18181B',
+                color: 'var(--pl-chrome-text)',
                 fontFamily: 'inherit',
                 lineHeight: panelLineHeight.tight,
               }}>Registry {i + 1}</span>
@@ -1121,7 +1121,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         {entries.length === 0 && (
           <p style={{
             fontSize: panelText.body,
-            color: '#71717A',
+            color: 'var(--pl-chrome-text-muted)',
             fontFamily: 'inherit',
             textAlign: 'center',
             padding: '8px 0',
@@ -1154,9 +1154,9 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 style={{
                   display: 'flex', alignItems: 'center', gap: '4px',
                   padding: '5px 10px',
-                  borderRadius: '8px', border: '1px solid #E4E4E7',
+                  borderRadius: '8px', border: '1px solid var(--pl-chrome-border)',
                   background: aiMealLoading ? '#FAFAFA' : '#F4F4F5',
-                  color: '#18181B', cursor: aiMealLoading ? 'wait' : 'pointer',
+                  color: 'var(--pl-chrome-text)', cursor: aiMealLoading ? 'wait' : 'pointer',
                   fontSize: panelText.body,
                   fontWeight: panelWeight.bold,
                   fontFamily: 'inherit',
@@ -1177,8 +1177,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               <button onClick={addMealOption} style={{
                 display: 'flex', alignItems: 'center', gap: '4px',
                 padding: '5px 10px', borderRadius: '8px',
-                border: '1px solid #E4E4E7',
-                background: '#F4F4F5', color: '#18181B',
+                border: '1px solid var(--pl-chrome-border)',
+                background: 'var(--pl-chrome-bg)', color: 'var(--pl-chrome-text)',
                 cursor: 'pointer',
                 fontSize: panelText.body,
                 fontWeight: panelWeight.bold,
@@ -1207,7 +1207,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               <span style={{
                 fontSize: panelText.label,
                 fontWeight: panelWeight.bold,
-                color: '#3F3F46',
+                color: 'var(--pl-chrome-text-soft)',
                 letterSpacing: panelTracking.wider,
                 textTransform: 'uppercase',
                 fontFamily: 'inherit',
@@ -1217,7 +1217,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               </span>
               {aiMealPreviews.map((meal, i) => (
                 <div key={i} style={{
-                  background: '#FAFAFA',
+                  background: 'var(--pl-chrome-bg)',
                   border: '1px dashed #E4E4E7',
                   borderRadius: '10px', padding: '12px',
                 }}>
@@ -1226,7 +1226,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                       <div style={{
                         fontSize: panelText.itemTitle,
                         fontWeight: panelWeight.bold,
-                        color: '#18181B',
+                        color: 'var(--pl-chrome-text)',
                         fontFamily: 'inherit',
                         marginBottom: '3px',
                         lineHeight: panelLineHeight.tight,
@@ -1236,7 +1236,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                       {meal.description && (
                         <p style={{
                           fontSize: panelText.body,
-                          color: '#3F3F46',
+                          color: 'var(--pl-chrome-text-soft)',
                           fontFamily: 'inherit',
                           lineHeight: panelLineHeight.snug,
                           margin: '0 0 6px',
@@ -1252,8 +1252,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                               fontSize: panelText.chip,
                               fontWeight: panelWeight.semibold,
                               fontFamily: 'inherit',
-                              background: '#F4F4F5',
-                              color: '#3F3F46',
+                              background: 'var(--pl-chrome-bg)',
+                              color: 'var(--pl-chrome-text-soft)',
                               lineHeight: panelLineHeight.tight,
                             }}>
                               {tag}
@@ -1268,7 +1268,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                         style={{
                           display: 'flex', alignItems: 'center', gap: '3px',
                           padding: '4px 8px', borderRadius: '6px', border: 'none',
-                          background: '#18181B', color: '#fff',
+                          background: 'var(--pl-chrome-text)', color: '#fff',
                           fontSize: panelText.chip,
                           fontWeight: panelWeight.bold,
                           fontFamily: 'inherit',
@@ -1302,7 +1302,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               {[1, 2, 3].map(i => (
                 <div key={i} style={{
                   borderRadius: '12px', padding: '12px',
-                  background: '#F4F4F5', border: '1px solid rgba(24,24,27,0.06)',
+                  background: 'var(--pl-chrome-bg)', border: '1px solid rgba(24,24,27,0.06)',
                   animation: 'pl-meal-pulse 1.5s ease-in-out infinite',
                   animationDelay: `${i * 0.12}s`,
                 }}>
@@ -1317,8 +1317,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           {/* Existing meal option cards */}
           {mealOptions.map((meal, i) => (
             <div key={meal.id} style={{
-              background: '#FAFAFA',
-              border: '1px solid #E4E4E7',
+              background: 'var(--pl-chrome-bg)',
+              border: '1px solid var(--pl-chrome-border)',
               borderRadius: '10px', padding: '12px',
               display: 'flex', flexDirection: 'column', gap: '8px',
             }}>
@@ -1326,7 +1326,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 <span style={{
                   fontSize: panelText.itemTitle,
                   fontWeight: panelWeight.bold,
-                  color: '#18181B',
+                  color: 'var(--pl-chrome-text)',
                   fontFamily: 'inherit',
                   lineHeight: panelLineHeight.tight,
                   display: 'inline-flex', alignItems: 'center', gap: '6px',
@@ -1375,7 +1375,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           {mealOptions.length === 0 && aiMealPreviews.length === 0 && !aiMealLoading && (
             <p style={{
               fontSize: panelText.body,
-              color: '#71717A',
+              color: 'var(--pl-chrome-text-muted)',
               fontFamily: 'inherit',
               textAlign: 'center',
               padding: '8px 0',
@@ -1396,7 +1396,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 fontWeight: panelWeight.bold,
                 letterSpacing: panelTracking.wider,
                 textTransform: 'uppercase',
-                color: '#71717A',
+                color: 'var(--pl-chrome-text-muted)',
                 fontFamily: 'inherit',
                 whiteSpace: 'nowrap',
                 lineHeight: panelLineHeight.tight,
@@ -1443,8 +1443,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               style={{
                 display: 'flex', alignItems: 'center', gap: '4px',
                 padding: '5px 10px',
-                borderRadius: '8px', border: '1px solid #E4E4E7',
-                background: '#F4F4F5', color: '#18181B',
+                borderRadius: '8px', border: '1px solid var(--pl-chrome-border)',
+                background: 'var(--pl-chrome-bg)', color: 'var(--pl-chrome-text)',
                 cursor: 'pointer',
                 fontSize: panelText.body,
                 fontWeight: panelWeight.bold,
@@ -1460,8 +1460,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             <button onClick={addHotel} style={{
               display: 'flex', alignItems: 'center', gap: '4px',
               padding: '5px 10px', borderRadius: '8px',
-              border: '1px solid #E4E4E7',
-              background: '#F4F4F5', color: '#18181B',
+              border: '1px solid var(--pl-chrome-border)',
+              background: 'var(--pl-chrome-bg)', color: 'var(--pl-chrome-text)',
               cursor: 'pointer',
               fontSize: panelText.body,
               fontWeight: panelWeight.bold,
@@ -1474,8 +1474,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         </div>
         {(travel.hotels || []).map((hotel, i) => (
           <div key={i} style={{
-            background: '#FAFAFA',
-            border: '1px solid #E4E4E7',
+            background: 'var(--pl-chrome-bg)',
+            border: '1px solid var(--pl-chrome-border)',
             borderRadius: '10px', padding: '12px',
             display: 'flex', flexDirection: 'column', gap: '8px',
           }}>
@@ -1483,7 +1483,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               <span style={{
                 fontSize: panelText.itemTitle,
                 fontWeight: panelWeight.bold,
-                color: '#18181B',
+                color: 'var(--pl-chrome-text)',
                 fontFamily: 'inherit',
                 lineHeight: panelLineHeight.tight,
               }}>Hotel {i + 1}</span>
@@ -1499,7 +1499,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         {(travel.hotels || []).length === 0 && (
           <p style={{
             fontSize: panelText.body,
-            color: '#71717A',
+            color: 'var(--pl-chrome-text-muted)',
             fontFamily: 'inherit',
             textAlign: 'center',
             padding: '8px 0',
@@ -1520,9 +1520,9 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: '5px 12px',
               borderRadius: '8px',
-              border: '1px solid #E4E4E7',
+              border: '1px solid var(--pl-chrome-border)',
               background: aiFaqLoading ? '#FAFAFA' : '#F4F4F5',
-              color: '#18181B', cursor: aiFaqLoading ? 'wait' : 'pointer',
+              color: 'var(--pl-chrome-text)', cursor: aiFaqLoading ? 'wait' : 'pointer',
               fontSize: panelText.body,
               fontWeight: panelWeight.bold,
               fontFamily: 'inherit',
@@ -1543,8 +1543,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           <button onClick={addFaq} style={{
             display: 'flex', alignItems: 'center', gap: '4px',
             padding: '5px 10px', borderRadius: '8px',
-            border: '1px solid #E4E4E7',
-            background: '#F4F4F5', color: '#18181B',
+            border: '1px solid var(--pl-chrome-border)',
+            background: 'var(--pl-chrome-bg)', color: 'var(--pl-chrome-text)',
             cursor: 'pointer',
             fontSize: panelText.body,
             fontWeight: panelWeight.bold,
@@ -1571,7 +1571,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         {faqs.length === 0 && (
           <p style={{
             fontSize: panelText.body,
-            color: '#71717A',
+            color: 'var(--pl-chrome-text-muted)',
             fontFamily: 'inherit',
             textAlign: 'center',
             padding: '12px 0',
@@ -1595,7 +1595,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           />
           <div style={{
             fontSize: panelText.hint,
-            color: '#71717A',
+            color: 'var(--pl-chrome-text-muted)',
             fontFamily: 'inherit',
             marginTop: '6px',
             lineHeight: panelLineHeight.normal,
@@ -1612,13 +1612,13 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               <div style={{
                 fontSize: panelText.body,
                 fontWeight: panelWeight.semibold,
-                color: '#18181B',
+                color: 'var(--pl-chrome-text)',
                 fontFamily: 'inherit',
                 lineHeight: panelLineHeight.tight,
               }}>Guest Wishes Wall</div>
               <div style={{
                 fontSize: panelText.hint,
-                color: '#71717A',
+                color: 'var(--pl-chrome-text-muted)',
                 fontFamily: 'inherit',
                 marginTop: '3px',
                 lineHeight: panelLineHeight.snug,
@@ -1652,13 +1652,13 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               <div style={{
                 fontSize: panelText.body,
                 fontWeight: panelWeight.semibold,
-                color: '#18181B',
+                color: 'var(--pl-chrome-text)',
                 fontFamily: 'inherit',
                 lineHeight: panelLineHeight.tight,
               }}>Live Updates Feed</div>
               <div style={{
                 fontSize: panelText.hint,
-                color: '#71717A',
+                color: 'var(--pl-chrome-text-muted)',
                 fontFamily: 'inherit',
                 marginTop: '3px',
                 lineHeight: panelLineHeight.snug,
@@ -1692,13 +1692,13 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               <div style={{
                 fontSize: panelText.body,
                 fontWeight: panelWeight.semibold,
-                color: '#18181B',
+                color: 'var(--pl-chrome-text)',
                 fontFamily: 'inherit',
                 lineHeight: panelLineHeight.tight,
               }}>Guest Photo Wall</div>
               <div style={{
                 fontSize: panelText.hint,
-                color: '#71717A',
+                color: 'var(--pl-chrome-text-muted)',
                 fontFamily: 'inherit',
                 marginTop: '3px',
                 lineHeight: panelLineHeight.snug,
@@ -1733,14 +1733,14 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         <Section id="seating" label="Seating Chart">
           <div style={{
             fontSize: panelText.hint,
-            color: '#71717A',
+            color: 'var(--pl-chrome-text-muted)',
             fontFamily: 'inherit',
             marginBottom: '10px',
             lineHeight: panelLineHeight.normal,
           }}>
             Drag guests to tables. Add constraints like &quot;keep together&quot; or &quot;near the exit&quot;.
           </div>
-          <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #E4E4E7' }}>
+          <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--pl-chrome-border)' }}>
             <SeatingCanvas siteId={subdomain || manifest.coupleId || 'draft'} />
           </div>
         </Section>
@@ -1760,9 +1760,9 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               gap: '6px',
               padding: '9px 12px',
               borderRadius: '8px',
-              border: '1px solid #E4E4E7',
-              background: '#F4F4F5',
-              color: '#18181B',
+              border: '1px solid var(--pl-chrome-border)',
+              background: 'var(--pl-chrome-bg)',
+              color: 'var(--pl-chrome-text)',
               cursor: 'pointer',
               fontSize: panelText.body,
               fontWeight: panelWeight.bold,
@@ -1780,7 +1780,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
 
       {/* ── Wedding Party ── */}
       <Section id="weddingParty" label="Wedding Party">
-        <p style={{ fontSize: panelText.hint, color: '#71717A', fontFamily: 'inherit', margin: '0 0 8px', lineHeight: panelLineHeight.normal }}>
+        <p style={{ fontSize: panelText.hint, color: 'var(--pl-chrome-text-muted)', fontFamily: 'inherit', margin: '0 0 8px', lineHeight: panelLineHeight.normal }}>
           Add bridesmaids, groomsmen, officiants, and other key people. Drag to reorder the list.
         </p>
         <WeddingPartyEditor manifest={manifest} onChange={onChange} />
@@ -1791,7 +1791,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       {detailsTab === 'settings' && <>
       {/* ── Poetry ── AI-generated lines, editable fallback for when inline edit isn't enough */}
       <Section id="poetry" label="Poetry">
-        <p style={{ fontSize: panelText.hint, color: '#71717A', fontFamily: 'inherit', margin: '0 0 8px', lineHeight: panelLineHeight.normal }}>
+        <p style={{ fontSize: panelText.hint, color: 'var(--pl-chrome-text-muted)', fontFamily: 'inherit', margin: '0 0 8px', lineHeight: panelLineHeight.normal }}>
           AI-generated taglines that appear throughout your site. Edit inline on the canvas, or here if you prefer.
         </p>
         <Field
@@ -1836,11 +1836,11 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           onChange={v => onChange({ ...manifest, poetry: { heroTagline: '', rsvpIntro: '', ...(manifest.poetry || {}), closingLine: v } })}
           placeholder="Together is our favourite place to be..."
         />
-        <p style={{ fontSize: panelText.hint, color: '#71717A', fontFamily: 'inherit', margin: 0, lineHeight: panelLineHeight.normal }}>
+        <p style={{ fontSize: panelText.hint, color: 'var(--pl-chrome-text-muted)', fontFamily: 'inherit', margin: 0, lineHeight: panelLineHeight.normal }}>
           Shown beneath your names in the footer.
         </p>
         <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', paddingTop: '4px' }}>
-          <span style={{ fontSize: panelText.body, color: '#18181B', fontWeight: panelWeight.semibold, fontFamily: 'inherit', lineHeight: panelLineHeight.tight }}>
+          <span style={{ fontSize: panelText.body, color: 'var(--pl-chrome-text)', fontWeight: panelWeight.semibold, fontFamily: 'inherit', lineHeight: panelLineHeight.tight }}>
             Show &ldquo;Made with Pearloom&rdquo;
           </span>
           <input
@@ -1880,7 +1880,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
             <span style={{
               fontSize: panelText.body,
-              color: '#18181B',
+              color: 'var(--pl-chrome-text)',
               fontWeight: panelWeight.semibold,
               fontFamily: 'inherit',
               lineHeight: panelLineHeight.tight,
@@ -1894,7 +1894,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           </label>
           <p style={{
             fontSize: panelText.hint,
-            color: '#71717A',
+            color: 'var(--pl-chrome-text-muted)',
             fontFamily: 'inherit',
             margin: 0,
             lineHeight: panelLineHeight.normal,
@@ -1919,7 +1919,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           {manifest.sitePassword && (
             <p style={{
               fontSize: panelText.hint,
-              color: '#18181B',
+              color: 'var(--pl-chrome-text)',
               fontFamily: 'inherit',
               margin: 0,
               lineHeight: panelLineHeight.snug,

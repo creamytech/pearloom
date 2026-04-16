@@ -115,7 +115,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                   display: 'flex', alignItems: 'center', gap: '8px',
                   padding: '10px 10px 10px 12px',
                   borderRadius: '8px',
-                  background: isHidden ? '#FAFAFA' : '#FFFFFF',
+                  background: isHidden ? 'var(--pl-chrome-bg)' : 'var(--pl-chrome-surface)',
                   border: '1px solid #E4E4E7',
                   transition: 'all 0.15s',
                   opacity: isHidden ? 0.5 : 1,
@@ -125,7 +125,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                   flex: 1,
                   fontSize: panelText.body,
                   fontWeight: panelWeight.semibold,
-                  color: isHidden ? '#71717A' : '#18181B',
+                  color: isHidden ? 'var(--pl-chrome-text-muted)' : 'var(--pl-chrome-text)',
                   fontFamily: 'inherit',
                   lineHeight: panelLineHeight.tight,
                   textDecoration: isHidden ? 'line-through' : 'none',
@@ -139,8 +139,8 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                     title="Preview this page"
                     style={{
                       width: '24px', height: '24px', borderRadius: '6px', border: 'none',
-                      background: previewPage === page.slug ? '#F4F4F5' : 'transparent',
-                      color: previewPage === page.slug ? '#18181B' : '#71717A',
+                      background: previewPage === page.slug ? 'var(--pl-chrome-bg)' : 'transparent',
+                      color: previewPage === page.slug ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-muted)',
                       cursor: 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}
@@ -156,7 +156,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                     style={{
                       width: '24px', height: '24px', borderRadius: '6px', border: 'none',
                       background: 'transparent',
-                      color: isHidden ? '#e87070' : '#71717A',
+                      color: isHidden ? '#e87070' : 'var(--pl-chrome-text-muted)',
                       cursor: 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}
@@ -180,7 +180,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                   display: 'flex', alignItems: 'center', gap: '8px',
                   padding: '10px 10px 10px 12px',
                   borderRadius: '8px',
-                  background: '#FAFAFA',
+                  background: 'var(--pl-chrome-bg)',
                   border: '1px solid #E4E4E7',
                 }}
               >
@@ -188,7 +188,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                   flex: 1,
                   fontSize: panelText.body,
                   fontWeight: panelWeight.semibold,
-                  color: '#18181B',
+                  color: 'var(--pl-chrome-text)',
                   fontFamily: 'inherit',
                   lineHeight: panelLineHeight.tight,
                 }}>
@@ -196,7 +196,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                 </span>
                 <span style={{
                   fontSize: panelText.meta,
-                  color: '#71717A',
+                  color: 'var(--pl-chrome-text-muted)',
                   fontFamily: 'inherit',
                   lineHeight: panelLineHeight.tight,
                 }}>
@@ -206,7 +206,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                   onClick={() => deleteCustomPage(page.id)}
                   style={{
                     width: '24px', height: '24px', borderRadius: '6px', border: 'none',
-                    background: 'transparent', color: '#71717A', cursor: 'pointer',
+                    background: 'transparent', color: 'var(--pl-chrome-text-muted)', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}
                 >
@@ -221,13 +221,13 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
       <PanelSection title="Add Page" icon={Plus} defaultOpen={false}>
         <motion.button
           onClick={() => setShowAddPage(!showAddPage)}
-          whileHover={{ y: -1, borderColor: '#18181B' }}
+          whileHover={{ y: -1, borderColor: 'var(--pl-chrome-text)' }}
           whileTap={{ scale: 0.98 }}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
             padding: '10px', borderRadius: '10px', width: '100%',
             border: '1.5px dashed #E4E4E7',
-            background: '#FAFAFA', color: '#18181B',
+            background: 'var(--pl-chrome-bg)', color: 'var(--pl-chrome-text)',
             cursor: 'pointer',
             fontSize: panelText.body,
             fontWeight: panelWeight.bold,
@@ -276,7 +276,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                     style={{
                       flex: 1, padding: '9px', borderRadius: '8px',
                       border: '1px solid #E4E4E7',
-                      background: '#FFFFFF', color: '#71717A',
+                      background: 'var(--pl-chrome-surface)', color: 'var(--pl-chrome-text-muted)',
                       cursor: 'pointer',
                       fontSize: panelText.body,
                       fontWeight: panelWeight.semibold,
@@ -291,8 +291,8 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                     disabled={!newPageTitle.trim()}
                     style={{
                       flex: 1, padding: '9px', borderRadius: '8px', border: 'none',
-                      background: newPageTitle.trim() ? '#18181B' : '#E4E4E7',
-                      color: newPageTitle.trim() ? '#FFFFFF' : '#71717A',
+                      background: newPageTitle.trim() ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-border)',
+                      color: newPageTitle.trim() ? 'var(--pl-chrome-surface)' : 'var(--pl-chrome-text-muted)',
                       cursor: newPageTitle.trim() ? 'pointer' : 'default',
                       fontSize: panelText.body,
                       fontWeight: panelWeight.bold,
@@ -311,7 +311,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
         {subdomain && (
           <div style={{
             fontSize: panelText.meta,
-            color: '#71717A',
+            color: 'var(--pl-chrome-text-muted)',
             fontFamily: 'inherit',
             padding: '12px 4px 0',
             textAlign: 'center',

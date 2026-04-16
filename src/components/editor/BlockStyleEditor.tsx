@@ -46,7 +46,7 @@ export function BlockStyleEditor({ block, onChange }: BlockStyleEditorProps) {
   const labelStyle: React.CSSProperties = {
     fontSize: '0.6rem', fontWeight: 700,
     letterSpacing: '0.1em', textTransform: 'uppercase',
-    color: '#71717A',
+    color: 'var(--pl-chrome-text-muted)',
     marginBottom: '8px', display: 'block',
   };
 
@@ -54,7 +54,7 @@ export function BlockStyleEditor({ block, onChange }: BlockStyleEditorProps) {
     padding: '5px 10px', borderRadius: '6px',
     border: active ? '1.5px solid #18181B' : '1.5px solid rgba(255,255,255,0.25)',
     background: active ? 'rgba(24,24,27,0.06)' : 'transparent',
-    color: active ? '#18181B' : '#71717A',
+    color: active ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-muted)',
     fontSize: '0.65rem', fontWeight: 600,
     cursor: 'pointer', transition: 'all 0.15s',
   });
@@ -70,7 +70,7 @@ export function BlockStyleEditor({ block, onChange }: BlockStyleEditorProps) {
         <span style={{
           fontSize: '0.7rem', fontWeight: 700,
           letterSpacing: '0.1em', textTransform: 'uppercase',
-          color: '#18181B',
+          color: 'var(--pl-chrome-text)',
         }}>
           Block Style
         </span>

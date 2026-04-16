@@ -18,6 +18,7 @@ import {
   Type as TypeIcon, Image as ImageIcon, Brush,
   Users, Mail, MessageSquare, Heart, Music, ShoppingBag,
   BarChart2, Globe, History, Settings,
+  Plus,
 } from 'lucide-react';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
 import { TAB_TIER, TIER_META, type PlanTier } from '@/lib/plan-tiers';
@@ -475,6 +476,63 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
       >
         P
       </div>
+
+      {/* Block library launcher — drag-to-canvas palette */}
+      <button
+        type="button"
+        aria-label="Open block library"
+        title="Block library (drag sections onto the canvas)"
+        onClick={() => window.dispatchEvent(new CustomEvent('pearloom-open-library'))}
+        style={{
+          width: 44,
+          height: 44,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 3,
+          border: 'none',
+          borderRadius: 12,
+          background: 'color-mix(in oklab, var(--pl-gold, #B8860B) 14%, transparent)',
+          color: 'var(--pl-ink)',
+          cursor: 'pointer',
+          marginBottom: 6,
+          transition: 'background var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-out)',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'color-mix(in oklab, var(--pl-gold, #B8860B) 22%, transparent)';
+          e.currentTarget.style.transform = 'translateY(-1px)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'color-mix(in oklab, var(--pl-gold, #B8860B) 14%, transparent)';
+          e.currentTarget.style.transform = 'translateY(0)';
+        }}
+      >
+        <Plus size={16} strokeWidth={2} />
+        <span
+          style={{
+            fontFamily: 'var(--pl-font-mono)',
+            fontSize: '0.55rem',
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            lineHeight: 1,
+            fontWeight: 700,
+          }}
+        >
+          Add
+        </span>
+      </button>
+
+      {/* Hairline separator */}
+      <div
+        aria-hidden
+        style={{
+          width: 24,
+          height: 1,
+          background: 'var(--pl-divider)',
+          margin: '2px 0 8px',
+        }}
+      />
 
       {WORKSPACES.map((ws) => (
         <div key={ws.id} style={{ position: 'relative' }}>
