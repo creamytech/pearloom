@@ -87,12 +87,12 @@ export function ConfirmDialog({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.12 }}
+            transition={{ duration: 0.14 }}
             onClick={onCancel}
             style={{
               position: 'fixed', inset: 0, zIndex: 3000,
-              background: 'rgba(0,0,0,0.45)',
-              backdropFilter: 'blur(4px)',
+              background: 'rgba(22,16,6,0.55)',
+              backdropFilter: 'blur(6px)',
             }}
           />
           <motion.div
@@ -103,24 +103,60 @@ export function ConfirmDialog({
             initial={{ opacity: 0, scale: 0.96, y: -8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -6 }}
-            transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
             style={{
               position: 'fixed', top: '30%', left: '50%',
               transform: 'translate(-50%, -50%)',
               zIndex: 3001,
-              width: '100%', maxWidth: 360,
-              background: '#FFFFFF',
-              border: '1px solid #E4E4E7',
-              borderRadius: 12,
-              boxShadow: '0 24px 60px rgba(0,0,0,0.25)',
-              padding: '18px 20px',
+              width: '100%', maxWidth: 380,
+              background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
+              borderTop: `2px solid ${danger ? 'rgba(139,45,45,0.65)' : 'rgba(184,147,90,0.55)'}`,
+              borderLeft: '1px solid rgba(184,147,90,0.22)',
+              borderRight: '1px solid rgba(184,147,90,0.22)',
+              borderBottom: '1px solid rgba(184,147,90,0.22)',
+              borderRadius: 2,
+              boxShadow: '0 28px 72px rgba(22,16,6,0.32), 0 2px 10px rgba(22,16,6,0.08)',
+              padding: '22px 26px 20px',
             }}
           >
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 10,
+            }}>
+              <span style={{
+                fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                fontSize: 9.5,
+                fontWeight: 700,
+                letterSpacing: '0.32em',
+                textTransform: 'uppercase',
+                color: danger ? 'rgba(139,45,45,0.85)' : 'rgba(184,147,90,0.85)',
+              }}>
+                {danger ? 'Erratum · confirm' : 'Notice · confirm'}
+              </span>
+              <span style={{
+                fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                fontSize: 8.5,
+                fontWeight: 700,
+                letterSpacing: '0.28em',
+                color: 'rgba(184,147,90,0.65)',
+              }}>
+                № 00
+              </span>
+            </div>
             <h2
               id="pl-confirm-title"
               style={{
-                margin: 0, fontSize: '1rem', fontWeight: 700,
-                color: '#18181B', lineHeight: 1.3,
+                margin: 0,
+                fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
+                fontStyle: 'italic',
+                fontSize: '1.4rem',
+                fontWeight: 400,
+                color: '#18181B',
+                lineHeight: 1.12,
+                letterSpacing: '-0.005em',
+                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
               }}
             >
               {title}
@@ -129,24 +165,48 @@ export function ConfirmDialog({
               <p
                 id="pl-confirm-message"
                 style={{
-                  margin: '6px 0 0', fontSize: '0.82rem',
-                  color: '#52525B', lineHeight: 1.45,
+                  margin: '10px 0 0',
+                  fontSize: '0.82rem',
+                  color: '#52525B',
+                  lineHeight: 1.5,
+                  fontFamily: 'var(--pl-font-body, inherit)',
                 }}
               >
                 {message}
               </p>
             )}
             <div style={{
-              marginTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 8,
+              marginTop: 22,
+              paddingTop: 14,
+              borderTop: '1px solid rgba(184,147,90,0.28)',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: 8,
             }}>
               <button
                 ref={cancelBtnRef}
                 onClick={onCancel}
                 style={{
-                  padding: '7px 14px', borderRadius: 8,
-                  border: '1px solid #E4E4E7',
-                  background: '#FFFFFF', color: '#18181B',
-                  fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
+                  padding: '9px 16px',
+                  borderRadius: 2,
+                  border: '1px solid rgba(184,147,90,0.45)',
+                  background: 'transparent',
+                  color: '#18181B',
+                  fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  transition: 'background 180ms ease, border-color 180ms ease',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(184,147,90,0.10)';
+                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.75)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.background = 'transparent';
+                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.45)';
                 }}
               >
                 {cancelLabel}
@@ -155,11 +215,31 @@ export function ConfirmDialog({
                 ref={confirmBtnRef}
                 onClick={onConfirm}
                 style={{
-                  padding: '7px 14px', borderRadius: 8,
+                  padding: '9px 18px',
+                  borderRadius: 2,
                   border: 'none',
-                  background: danger ? '#dc2626' : '#18181B',
-                  color: '#FFFFFF',
-                  fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer',
+                  background: danger ? '#8B2D2D' : '#18181B',
+                  color: '#FAF7F2',
+                  fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  boxShadow: danger
+                    ? '0 0 0 3px rgba(139,45,45,0.22)'
+                    : '0 0 0 3px rgba(184,147,90,0.22)',
+                  transition: 'box-shadow 180ms ease',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.boxShadow = danger
+                    ? '0 0 0 4px rgba(139,45,45,0.32)'
+                    : '0 0 0 4px rgba(184,147,90,0.32)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.boxShadow = danger
+                    ? '0 0 0 3px rgba(139,45,45,0.22)'
+                    : '0 0 0 3px rgba(184,147,90,0.22)';
                 }}
               >
                 {confirmLabel}
