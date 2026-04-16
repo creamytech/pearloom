@@ -23,7 +23,7 @@ import {
   Edit3,
   Mic,
 } from 'lucide-react';
-import { StatTile, PageCard, Button } from '@/components/shell';
+import { StatTile, Button } from '@/components/shell';
 
 export interface EventHQSite {
   id: string;
@@ -61,69 +61,159 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
   const rsvp = site.rsvpStats ?? { attending: 0, declined: 0, pending: 0, total: 0 };
   const rsvpRate = rsvp.total > 0 ? Math.round(((rsvp.attending + rsvp.declined) / rsvp.total) * 100) : 0;
 
+  const year = new Date().getFullYear();
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 32, maxWidth: 1180, margin: '0 auto' }}>
-      {/* ── Editorial header ───────────────────────────────────── */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 36, maxWidth: 1180, margin: '0 auto' }}>
+      {/* ── Editorial masthead ─────────────────────────────────── */}
       <header
         style={{
-          display: 'flex',
-          alignItems: 'flex-end',
-          justifyContent: 'space-between',
-          gap: 24,
-          flexWrap: 'wrap',
-          paddingBottom: 24,
+          position: 'relative',
+          paddingTop: 20,
+          paddingBottom: 28,
           borderBottom: '1px solid var(--pl-divider)',
         }}
       >
-        <div>
-          <div
-            className="pl-overline"
-            style={{ marginBottom: 14 }}
-          >
-            Event HQ · {site.occasion || 'Event'}
-          </div>
-          <h1
-            className="pl-display"
-            style={{
-              margin: 0,
-              fontSize: 'clamp(1.8rem, 3.2vw, 2.6rem)',
-              color: 'var(--pl-ink)',
-              lineHeight: 1.05,
-            }}
-          >
-            {titleNames}
-          </h1>
-          {site.eventDate && (
-            <p
+        <span
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 2,
+            background:
+              'linear-gradient(90deg, var(--pl-gold) 0%, rgba(184,147,90,0) 40%)',
+          }}
+        />
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'space-between',
+            gap: 24,
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ flex: 1, minWidth: 260 }}>
+            <div
               style={{
-                margin: '8px 0 0',
                 fontFamily: 'var(--pl-font-mono)',
-                fontSize: '0.78rem',
-                letterSpacing: '0.12em',
+                fontSize: '0.5rem',
+                fontWeight: 700,
+                letterSpacing: '0.28em',
                 textTransform: 'uppercase',
-                color: 'var(--pl-muted)',
+                color: 'var(--pl-olive)',
+                marginBottom: 18,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 10,
               }}
             >
-              {formatEventDate(site.eventDate)}
-            </p>
-          )}
-        </div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          {onShare && (
-            <Button variant="outline" size="sm" onClick={onShare} leftIcon={<ArrowUpRight size={14} />}>
-              Share site
-            </Button>
-          )}
-          {onEdit && (
-            <Button variant="primary" size="sm" onClick={onEdit} leftIcon={<Edit3 size={14} />}>
-              Edit site
-            </Button>
-          )}
+              <span
+                style={{
+                  width: 22,
+                  height: 1,
+                  background: 'var(--pl-gold)',
+                }}
+              />
+              The Programme · Event HQ · Vol. {year}
+            </div>
+            <h1
+              className="pl-display"
+              style={{
+                margin: 0,
+                fontSize: 'clamp(2.4rem, 5vw, 3.4rem)',
+                color: 'var(--pl-ink)',
+                lineHeight: 1.02,
+                letterSpacing: '-0.01em',
+                fontStyle: 'italic',
+                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+              }}
+            >
+              {titleNames}
+            </h1>
+            {/* Meta dossier */}
+            <div
+              style={{
+                marginTop: 16,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 16,
+                flexWrap: 'wrap',
+                fontFamily: 'var(--pl-font-mono)',
+                fontSize: '0.56rem',
+                fontWeight: 700,
+                letterSpacing: '0.24em',
+                textTransform: 'uppercase',
+                color: 'var(--pl-ink-soft)',
+              }}
+            >
+              <span style={{ color: 'var(--pl-olive)' }}>
+                {site.occasion || 'Event'}
+              </span>
+              {site.eventDate && (
+                <>
+                  <span style={{ color: 'var(--pl-divider)' }}>·</span>
+                  <span>{formatEventDate(site.eventDate)}</span>
+                </>
+              )}
+              <span style={{ color: 'var(--pl-divider)' }}>·</span>
+              <span style={{ color: 'var(--pl-muted)' }}>
+                {site.domain}.pearloom.com
+              </span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            {onShare && (
+              <Button variant="outline" size="sm" onClick={onShare} leftIcon={<ArrowUpRight size={14} />}>
+                Share site
+              </Button>
+            )}
+            {onEdit && (
+              <Button variant="primary" size="sm" onClick={onEdit} leftIcon={<Edit3 size={14} />}>
+                Edit site
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 
       {/* ── Stat row ───────────────────────────────────────────── */}
-      <section
+      <section>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            justifyContent: 'space-between',
+            marginBottom: 14,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.48rem',
+              fontWeight: 700,
+              letterSpacing: '0.28em',
+              textTransform: 'uppercase',
+              color: 'var(--pl-olive)',
+            }}
+          >
+            The Ledger · at a glance
+          </div>
+          <span
+            style={{
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.5rem',
+              fontWeight: 700,
+              letterSpacing: '0.24em',
+              textTransform: 'uppercase',
+              color: 'var(--pl-muted)',
+            }}
+          >
+            № 01—04
+          </span>
+        </div>
+      <div
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
@@ -197,6 +287,7 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
           value={site.galleryCount ?? 0}
           hint="moments captured"
         />
+      </div>
       </section>
 
       {/* ── Pear suggests + Quick lanes ───────────────────────── */}
@@ -209,53 +300,175 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
         className="pl-eventhq-grid"
       >
         <PearSuggestCard site={site} />
-        <PageCard
-          title="Quick lanes"
-          eyebrow="Jump straight in"
-          padding="md"
-        >
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              justifyContent: 'space-between',
+              marginBottom: 14,
+            }}
+          >
+            <div
+              style={{
+                fontFamily: 'var(--pl-font-mono)',
+                fontSize: '0.48rem',
+                fontWeight: 700,
+                letterSpacing: '0.28em',
+                textTransform: 'uppercase',
+                color: 'var(--pl-olive)',
+              }}
+            >
+              Quick lanes
+            </div>
+            <span
+              style={{
+                fontFamily: 'var(--pl-font-mono)',
+                fontSize: '0.5rem',
+                fontWeight: 700,
+                letterSpacing: '0.24em',
+                textTransform: 'uppercase',
+                color: 'var(--pl-muted)',
+              }}
+            >
+              Four routes
+            </span>
+          </div>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 0,
+              border: '1px solid var(--pl-divider)',
+              borderTop: '2px solid var(--pl-gold)',
+              borderRadius: 2,
+              background: 'var(--pl-cream-card)',
+              overflow: 'hidden',
+            }}
+          >
             <QuickLane
+              index={1}
               href="/dashboard/day-of"
-              icon={<Megaphone size={16} />}
+              icon={<Megaphone size={14} />}
               label="Day-of"
               hint="Run of show + announcements"
               accent="olive"
             />
             <QuickLane
+              index={2}
               href="/dashboard/rsvp"
-              icon={<Users size={16} />}
+              icon={<Users size={14} />}
               label="Guest list"
               hint="Seats, dietary, plus-ones"
               accent="gold"
+              divider
             />
             <QuickLane
+              index={3}
               href="/dashboard/gallery"
-              icon={<Camera size={16} />}
+              icon={<Camera size={14} />}
               label="Gallery"
               hint="Curate the album"
               accent="plum"
+              topBorder
             />
             <QuickLane
+              index={4}
               href="/dashboard/director"
-              icon={<Sparkles size={16} />}
+              icon={<Sparkles size={14} />}
               label="Director"
               hint="Talk to Pear"
               accent="olive"
+              divider
+              topBorder
             />
           </div>
-        </PageCard>
+        </div>
       </section>
 
       {/* ── Run of show ────────────────────────────────────────── */}
-      <PageCard
-        title="Run of show"
-        eyebrow="Today · Live"
-        padding="none"
-        accent="olive"
-      >
-        <RunOfShow />
-      </PageCard>
+      <section>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            justifyContent: 'space-between',
+            marginBottom: 16,
+            paddingBottom: 12,
+            borderBottom: '1px solid var(--pl-divider)',
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontFamily: 'var(--pl-font-mono)',
+                fontSize: '0.48rem',
+                fontWeight: 700,
+                letterSpacing: '0.28em',
+                textTransform: 'uppercase',
+                color: 'var(--pl-olive)',
+                marginBottom: 6,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 10,
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: 'var(--pl-olive)',
+                  boxShadow: '0 0 0 4px rgba(131,136,77,0.18)',
+                }}
+              />
+              Today · Live
+            </div>
+            <h2
+              style={{
+                margin: 0,
+                fontFamily: 'var(--pl-font-display)',
+                fontStyle: 'italic',
+                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                fontSize: '1.7rem',
+                letterSpacing: '-0.01em',
+                color: 'var(--pl-ink)',
+              }}
+            >
+              Run of show
+            </h2>
+          </div>
+          <Link
+            href="/dashboard/day-of"
+            style={{
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.58rem',
+              fontWeight: 700,
+              letterSpacing: '0.24em',
+              textTransform: 'uppercase',
+              color: 'var(--pl-olive)',
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            Open full <ArrowUpRight size={11} />
+          </Link>
+        </div>
+        <div
+          style={{
+            border: '1px solid var(--pl-divider)',
+            borderTop: '2px solid var(--pl-gold)',
+            borderRadius: 2,
+            background: 'var(--pl-cream-card)',
+            overflow: 'hidden',
+          }}
+        >
+          <RunOfShow />
+        </div>
+      </section>
 
       <style jsx>{`
         @media (max-width: 880px) {
@@ -291,23 +504,84 @@ function formatEventDate(iso: string) {
 function PearSuggestCard({ site }: { site: EventHQSite }) {
   const suggestion = computeSuggestion(site);
   return (
-    <PageCard padding="lg" accent="gold">
+    <article
+      style={{
+        position: 'relative',
+        padding: '28px 30px',
+        background: 'var(--pl-cream-card)',
+        border: '1px solid var(--pl-divider)',
+        borderRadius: 2,
+        overflow: 'hidden',
+      }}
+    >
+      <span
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 2,
+          background: 'var(--pl-gold)',
+        }}
+      />
+      {/* Folio corner */}
+      <span
+        style={{
+          position: 'absolute',
+          top: 12,
+          right: 16,
+          fontFamily: 'var(--pl-font-mono)',
+          fontSize: '0.48rem',
+          fontWeight: 700,
+          letterSpacing: '0.28em',
+          textTransform: 'uppercase',
+          color: 'var(--pl-gold)',
+        }}
+      >
+        Editor&apos;s pick
+      </span>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div
-          className="pl-overline"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 10,
+            fontFamily: 'var(--pl-font-mono)',
+            fontSize: '0.48rem',
+            fontWeight: 700,
+            letterSpacing: '0.3em',
+            textTransform: 'uppercase',
+            color: 'var(--pl-olive)',
+          }}
         >
-          <Sparkles size={12} style={{ color: 'var(--pl-gold)' }} />
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 22,
+              height: 22,
+              borderRadius: '50%',
+              background: 'color-mix(in oklab, var(--pl-gold) 14%, transparent)',
+              color: 'var(--pl-gold)',
+            }}
+          >
+            <Sparkles size={11} />
+          </span>
           Pear suggests
         </div>
 
         <h3
-          className="pl-display-italic"
           style={{
             margin: 0,
-            fontSize: 'clamp(1.3rem, 2.2vw, 1.7rem)',
+            fontFamily: 'var(--pl-font-display)',
+            fontStyle: 'italic',
+            fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+            fontSize: 'clamp(1.5rem, 2.6vw, 2rem)',
             color: 'var(--pl-ink)',
-            lineHeight: 1.2,
+            letterSpacing: '-0.01em',
+            lineHeight: 1.1,
+            maxWidth: '22ch',
           }}
         >
           {suggestion.title}
@@ -317,23 +591,64 @@ function PearSuggestCard({ site }: { site: EventHQSite }) {
           style={{
             margin: 0,
             color: 'var(--pl-ink-soft)',
-            fontSize: '0.95rem',
-            lineHeight: 1.55,
+            fontSize: '0.96rem',
+            lineHeight: 1.6,
+            maxWidth: '54ch',
           }}
         >
           {suggestion.description}
         </p>
 
-        <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
-          <Button size="sm" variant="primary">
-            {suggestion.cta}
-          </Button>
-          <Button size="sm" variant="ghost">
+        <div
+          style={{
+            display: 'flex',
+            gap: 10,
+            marginTop: 6,
+            alignItems: 'center',
+          }}
+        >
+          <button
+            type="button"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '10px 20px',
+              background: 'var(--pl-ink)',
+              color: 'var(--pl-cream)',
+              border: 'none',
+              borderRadius: 2,
+              cursor: 'pointer',
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.58rem',
+              fontWeight: 700,
+              letterSpacing: '0.24em',
+              textTransform: 'uppercase',
+              boxShadow: '0 0 0 3px rgba(184,147,90,0.18)',
+            }}
+          >
+            {suggestion.cta} →
+          </button>
+          <button
+            type="button"
+            style={{
+              padding: '10px 16px',
+              background: 'transparent',
+              color: 'var(--pl-muted)',
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.54rem',
+              fontWeight: 700,
+              letterSpacing: '0.24em',
+              textTransform: 'uppercase',
+            }}
+          >
             Dismiss
-          </Button>
+          </button>
         </div>
       </div>
-    </PageCard>
+    </article>
   );
 }
 
@@ -377,17 +692,23 @@ function computeSuggestion(site: EventHQSite): { title: string; description: str
 // ─────────────────────────────────────────────────────────────
 
 function QuickLane({
+  index,
   href,
   icon,
   label,
   hint,
   accent,
+  divider,
+  topBorder,
 }: {
+  index: number;
   href: string;
   icon: ReactNode;
   label: string;
   hint: string;
   accent: 'olive' | 'gold' | 'plum';
+  divider?: boolean;
+  topBorder?: boolean;
 }) {
   const accentVar =
     accent === 'olive' ? 'var(--pl-olive)' : accent === 'gold' ? 'var(--pl-gold)' : 'var(--pl-plum)';
@@ -396,45 +717,107 @@ function QuickLane({
     <Link
       href={href}
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
-        padding: '14px 14px 12px',
-        background: 'var(--pl-cream)',
-        border: '1px solid var(--pl-divider)',
-        borderRadius: 'var(--pl-radius-lg)',
+        position: 'relative',
+        display: 'block',
+        padding: '18px 16px 16px',
+        background: 'var(--pl-cream-card)',
+        borderLeft: divider ? '1px solid var(--pl-divider)' : 'none',
+        borderTop: topBorder ? '1px solid var(--pl-divider)' : 'none',
         textDecoration: 'none',
         color: 'var(--pl-ink)',
-        transition: 'transform var(--pl-dur-fast) var(--pl-ease-spring), border-color var(--pl-dur-fast) var(--pl-ease-out), box-shadow var(--pl-dur-fast) var(--pl-ease-out)',
+        transition:
+          'background 240ms cubic-bezier(0.22, 1, 0.36, 1)',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.borderColor = accentVar;
-        e.currentTarget.style.boxShadow = 'var(--pl-shadow-md)';
+        (e.currentTarget as HTMLAnchorElement).style.background =
+          'var(--pl-cream-deep)';
+        const arrow = e.currentTarget.querySelector(
+          '[data-arrow]',
+        ) as HTMLSpanElement | null;
+        if (arrow) arrow.style.transform = 'translateX(4px)';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.borderColor = 'var(--pl-divider)';
-        e.currentTarget.style.boxShadow = 'none';
+        (e.currentTarget as HTMLAnchorElement).style.background =
+          'var(--pl-cream-card)';
+        const arrow = e.currentTarget.querySelector(
+          '[data-arrow]',
+        ) as HTMLSpanElement | null;
+        if (arrow) arrow.style.transform = 'translateX(0)';
       }}
     >
-      <span
+      <div
         style={{
-          width: 28,
-          height: 28,
-          borderRadius: 8,
-          background: 'var(--pl-cream-card)',
-          border: `1px solid ${accentVar}`,
-          color: accentVar,
-          display: 'inline-flex',
+          display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 10,
         }}
       >
-        {icon}
-      </span>
-      <span style={{ fontSize: '0.92rem', fontWeight: 600, color: 'var(--pl-ink)' }}>{label}</span>
-      <span style={{ fontSize: '0.76rem', color: 'var(--pl-muted)', lineHeight: 1.4 }}>{hint}</span>
+        <span
+          style={{
+            fontFamily: 'var(--pl-font-mono)',
+            fontSize: '0.5rem',
+            fontWeight: 700,
+            letterSpacing: '0.26em',
+            color: 'var(--pl-gold)',
+          }}
+        >
+          № {String(index).padStart(2, '0')}
+        </span>
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 24,
+            height: 24,
+            borderRadius: 2,
+            background: 'var(--pl-cream-deep)',
+            border: `1px solid ${accentVar}`,
+            color: accentVar,
+          }}
+        >
+          {icon}
+        </span>
+      </div>
+      <div
+        style={{
+          fontFamily: 'var(--pl-font-display)',
+          fontStyle: 'italic',
+          fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+          fontSize: '1.1rem',
+          color: 'var(--pl-ink)',
+          letterSpacing: '-0.005em',
+          lineHeight: 1.1,
+          marginBottom: 4,
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
+          fontSize: '0.76rem',
+          color: 'var(--pl-ink-soft)',
+          lineHeight: 1.4,
+        }}
+      >
+        <span>{hint}</span>
+        <span
+          data-arrow
+          style={{
+            fontFamily: 'var(--pl-font-mono)',
+            fontSize: '0.68rem',
+            color: accentVar,
+            transition: 'transform 240ms cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+        >
+          →
+        </span>
+      </div>
     </Link>
   );
 }
@@ -453,83 +836,145 @@ function RunOfShow() {
 
   return (
     <div>
-      {ROWS.map((r, i) => (
-        <div
-          key={r.time}
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '88px 1fr 130px 90px',
-            alignItems: 'center',
-            gap: 16,
-            padding: '14px 22px',
-            borderBottom: i < ROWS.length - 1 ? '1px solid var(--pl-divider-soft)' : 'none',
-            background: r.state === 'live' ? 'var(--pl-olive-mist)' : 'transparent',
-          }}
-          className="pl-ros-row"
-        >
-          <span
+      {/* Column header */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '40px 88px 1fr 130px 88px',
+          alignItems: 'center',
+          gap: 16,
+          padding: '12px 22px',
+          borderBottom: '1px solid var(--pl-divider)',
+          background: 'var(--pl-cream-deep)',
+          fontFamily: 'var(--pl-font-mono)',
+          fontSize: '0.46rem',
+          fontWeight: 700,
+          letterSpacing: '0.28em',
+          textTransform: 'uppercase',
+          color: 'var(--pl-muted)',
+        }}
+      >
+        <span>№</span>
+        <span>Time</span>
+        <span>Cue</span>
+        <span>Lane</span>
+        <span style={{ justifySelf: 'end' }}>State</span>
+      </div>
+      {ROWS.map((r, i) => {
+        const isLive = r.state === 'live';
+        const isDone = r.state === 'done';
+        return (
+          <div
+            key={r.time}
             style={{
-              fontFamily: 'var(--pl-font-mono)',
-              fontSize: '0.82rem',
-              color: r.state === 'done' ? 'var(--pl-muted)' : 'var(--pl-ink-soft)',
-              letterSpacing: '0.06em',
+              position: 'relative',
+              display: 'grid',
+              gridTemplateColumns: '40px 88px 1fr 130px 88px',
+              alignItems: 'center',
+              gap: 16,
+              padding: '16px 22px',
+              borderBottom:
+                i < ROWS.length - 1 ? '1px solid var(--pl-divider-soft)' : 'none',
+              background: isLive ? 'var(--pl-olive-mist)' : 'transparent',
             }}
           >
-            {r.time}
-          </span>
-          <span
-            style={{
-              color: r.state === 'done' ? 'var(--pl-muted)' : 'var(--pl-ink)',
-              textDecoration: r.state === 'done' ? 'line-through' : 'none',
-              fontWeight: r.state === 'live' ? 600 : 400,
-              fontSize: '0.94rem',
-            }}
-          >
-            {r.label}
-          </span>
-          <span
-            style={{
-              fontSize: '0.72rem',
-              fontFamily: 'var(--pl-font-mono)',
-              color: 'var(--pl-muted)',
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-            }}
-          >
-            {r.lane}
-          </span>
-          <span
-            style={{
-              justifySelf: 'end',
-              padding: '3px 10px',
-              borderRadius: 'var(--pl-radius-full)',
-              fontSize: '0.66rem',
-              fontFamily: 'var(--pl-font-mono)',
-              letterSpacing: '0.16em',
-              textTransform: 'uppercase',
-              background:
-                r.state === 'live'
-                  ? 'var(--pl-olive)'
-                  : r.state === 'next'
-                  ? 'color-mix(in oklab, var(--pl-gold) 22%, transparent)'
-                  : r.state === 'done'
-                  ? 'var(--pl-divider)'
-                  : 'transparent',
-              color:
-                r.state === 'live'
-                  ? 'var(--pl-cream)'
-                  : r.state === 'next'
-                  ? 'var(--pl-gold)'
-                  : r.state === 'done'
-                  ? 'var(--pl-muted)'
-                  : 'var(--pl-muted)',
-              border: r.state === 'queued' ? '1px solid var(--pl-divider)' : 'none',
-            }}
-          >
-            {r.state}
-          </span>
-        </div>
-      ))}
+            {isLive && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  bottom: 0,
+                  width: 2,
+                  background: 'var(--pl-olive)',
+                }}
+              />
+            )}
+            <span
+              style={{
+                fontFamily: 'var(--pl-font-mono)',
+                fontSize: '0.54rem',
+                fontWeight: 700,
+                letterSpacing: '0.22em',
+                color: isDone ? 'var(--pl-muted)' : 'var(--pl-gold)',
+              }}
+            >
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <span
+              style={{
+                fontFamily: 'var(--pl-font-mono)',
+                fontSize: '0.92rem',
+                fontWeight: 600,
+                color: isDone ? 'var(--pl-muted)' : 'var(--pl-ink)',
+                letterSpacing: '0.04em',
+              }}
+            >
+              {r.time}
+            </span>
+            <span
+              style={{
+                fontFamily: 'var(--pl-font-display)',
+                fontStyle: 'italic',
+                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                color: isDone ? 'var(--pl-muted)' : 'var(--pl-ink)',
+                textDecoration: isDone ? 'line-through' : 'none',
+                fontSize: '1.02rem',
+                letterSpacing: '-0.005em',
+                lineHeight: 1.3,
+              }}
+            >
+              {r.label}
+            </span>
+            <span
+              style={{
+                fontSize: '0.5rem',
+                fontFamily: 'var(--pl-font-mono)',
+                color: 'var(--pl-muted)',
+                letterSpacing: '0.26em',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+              }}
+            >
+              {r.lane}
+            </span>
+            <span
+              style={{
+                justifySelf: 'end',
+                padding: '4px 10px',
+                borderRadius: 2,
+                fontSize: '0.5rem',
+                fontFamily: 'var(--pl-font-mono)',
+                fontWeight: 700,
+                letterSpacing: '0.26em',
+                textTransform: 'uppercase',
+                background:
+                  r.state === 'live'
+                    ? 'var(--pl-olive)'
+                    : r.state === 'next'
+                    ? 'color-mix(in oklab, var(--pl-gold) 18%, transparent)'
+                    : r.state === 'done'
+                    ? 'var(--pl-cream-deep)'
+                    : 'transparent',
+                color:
+                  r.state === 'live'
+                    ? 'var(--pl-cream)'
+                    : r.state === 'next'
+                    ? 'var(--pl-gold)'
+                    : r.state === 'done'
+                    ? 'var(--pl-muted)'
+                    : 'var(--pl-muted)',
+                border:
+                  r.state === 'queued' || r.state === 'next'
+                    ? '1px solid var(--pl-divider)'
+                    : 'none',
+              }}
+            >
+              {r.state}
+            </span>
+          </div>
+        );
+      })}
 
       <div
         style={{
@@ -537,8 +982,9 @@ function RunOfShow() {
           background: 'var(--pl-cream-deep)',
           borderTop: '1px solid var(--pl-divider)',
           fontFamily: 'var(--pl-font-mono)',
-          fontSize: '0.66rem',
-          letterSpacing: '0.18em',
+          fontSize: '0.5rem',
+          fontWeight: 700,
+          letterSpacing: '0.26em',
           textTransform: 'uppercase',
           color: 'var(--pl-muted)',
           display: 'flex',
@@ -546,7 +992,7 @@ function RunOfShow() {
           alignItems: 'center',
         }}
       >
-        <span>· Edit · Re-order · Voice updates auto-attached</span>
+        <span>Edit · Re-order · Voice updates auto-attached</span>
         <Link
           href="/dashboard/day-of"
           style={{
@@ -557,7 +1003,7 @@ function RunOfShow() {
             gap: 6,
           }}
         >
-          Open full <ArrowUpRight size={12} />
+          Full call-sheet <ArrowUpRight size={11} />
         </Link>
       </div>
     </div>
