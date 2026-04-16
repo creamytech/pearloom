@@ -120,7 +120,7 @@ export default function CommunityMemorySubmit({
     return (
       <div
         style={{
-          background: '#F5F1E8',
+          background: 'var(--pl-cream, #F5F1E8)',
           borderRadius: 20,
           padding: '48px 40px',
           textAlign: 'center',
@@ -276,7 +276,7 @@ export default function CommunityMemorySubmit({
               fontStyle: 'italic',
               fontSize: 15,
               lineHeight: 1.65,
-              background: '#FBF8F2', // parchment feel
+              background: 'color-mix(in oklab, var(--pl-cream, #FBF8F2) 70%, var(--pl-cream-card, #ffffff) 30%)', // parchment feel
             }}
           />
           <div
@@ -284,7 +284,7 @@ export default function CommunityMemorySubmit({
               textAlign: 'right',
               fontFamily: vibeSkin.fonts.body,
               fontSize: 12,
-              color: charsLeft < 50 ? '#C47A4A' : palette.muted,
+              color: charsLeft < 50 ? palette.highlight : palette.muted,
               marginTop: 4,
             }}
           >
@@ -345,7 +345,7 @@ export default function CommunityMemorySubmit({
                     position: 'absolute',
                     top: -8,
                     right: -8,
-                    background: '#C47A4A',
+                    background: palette.highlight,
                     color: '#fff',
                     border: 'none',
                     borderRadius: '50%',
@@ -380,13 +380,13 @@ export default function CommunityMemorySubmit({
         {(submitState === 'error' || errorMsg) && (
           <div
             style={{
-              background: '#FEF2F2',
-              border: '1px solid #FCA5A5',
+              background: 'color-mix(in oklab, #EF4444 12%, var(--pl-cream-card, #fff))',
+              border: '1px solid color-mix(in oklab, #EF4444 40%, transparent)',
               borderRadius: 8,
               padding: '10px 14px',
               fontFamily: vibeSkin.fonts.body,
               fontSize: 14,
-              color: '#B91C1C',
+              color: 'color-mix(in oklab, #EF4444 85%, var(--pl-ink))',
             }}
           >
             {errorMsg || 'Something went wrong. Please try again.'}
@@ -398,7 +398,7 @@ export default function CommunityMemorySubmit({
           type="submit"
           disabled={submitState === 'submitting'}
           style={{
-            background: submitState === 'submitting' ? palette.muted : '#6B7C4A', // olive CTA
+            background: submitState === 'submitting' ? palette.muted : palette.accent,
             color: '#fff',
             border: 'none',
             borderRadius: 12,

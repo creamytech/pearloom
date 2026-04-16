@@ -13,10 +13,17 @@ import type { WeddingEvent } from '@/types';
 
 // ── Constants ────────────────────────────────────────────────
 
-const OLIVE = '#A3B18A';
-const GOLD = '#D6C6A8';
-const MUTED = '#9A9488';
-const CARD_BG = 'rgba(255,255,255,0.8)';
+// Palette reads from the themed CSS variable layer so the component
+// flips correctly with the site light/dark toggle. Alpha variants
+// use color-mix() to tint the var without breaking on value reads.
+const OLIVE     = 'var(--pl-olive, #A3B18A)';
+const GOLD      = 'var(--pl-gold, var(--pl-olive-mist, #D6C6A8))';
+const MUTED     = 'var(--pl-muted, #9A9488)';
+const MUTED_50  = 'color-mix(in oklab, var(--pl-muted, #9A9488) 50%, transparent)';
+const MUTED_80  = 'color-mix(in oklab, var(--pl-muted, #9A9488) 80%, transparent)';
+const GOLD_40   = 'color-mix(in oklab, var(--pl-gold, var(--pl-olive-mist, #D6C6A8)) 40%, transparent)';
+const CARD_BG   = 'color-mix(in oklab, var(--pl-cream-card, #ffffff) 80%, transparent)';
+const INK       = 'var(--pl-ink, #2B2B2B)';
 
 const TYPE_ICONS: Record<string, string> = {
   ceremony: '\u{1F490}',   // bouquet
@@ -241,7 +248,7 @@ export function WeddingDayTimeline({
             top: 8,
             bottom: 8,
             width: 2,
-            background: `linear-gradient(180deg, ${accentColor} 0%, ${MUTED}60 100%)`,
+            background: `linear-gradient(180deg, ${accentColor} 0%, ${MUTED_50} 100%)`,
             borderRadius: 1,
           }}
         />
@@ -275,13 +282,13 @@ export function WeddingDayTimeline({
                   background: item.status === 'current'
                     ? GOLD
                     : item.status === 'past'
-                      ? `${MUTED}80`
-                      : `${accentColor}40`,
+                      ? MUTED_80
+                      : `color-mix(in oklab, ${accentColor} 40%, transparent)`,
                   border: item.status === 'current'
                     ? `2px solid ${GOLD}`
                     : item.status === 'past'
-                      ? `2px solid ${MUTED}60`
-                      : `2px solid ${accentColor}60`,
+                      ? `2px solid ${MUTED_50}`
+                      : `2px solid color-mix(in oklab, ${accentColor} 50%, transparent)`,
                   animation: item.status === 'current'
                     ? 'pl-timeline-pulse 2s ease-in-out infinite'
                     : undefined,
@@ -298,7 +305,7 @@ export function WeddingDayTimeline({
                   borderRadius: 14,
                   padding: 'clamp(0.9rem, 2.5vw, 1.2rem) clamp(1rem, 3vw, 1.4rem)',
                   border: item.status === 'current'
-                    ? `1.5px solid ${GOLD}60`
+                    ? `1.5px solid ${GOLD_40}`
                     : `1px solid rgba(0,0,0,0.06)`,
                   boxShadow: item.status === 'current'
                     ? `0 4px 24px rgba(163,177,138,0.12), 0 1px 4px rgba(0,0,0,0.04)`
@@ -407,7 +414,7 @@ export function WeddingDayTimeline({
                       fontFamily: `"${headingFont}", serif`,
                       fontSize: 'clamp(1rem, 2.5vw, 1.15rem)',
                       fontWeight: item.status === 'current' ? 600 : 400,
-                      color: item.status === 'past' ? MUTED : '#2B2B2B',
+                      color: item.status === 'past' ? MUTED : INK,
                       margin: 0,
                       lineHeight: 1.3,
                     }}
@@ -437,7 +444,7 @@ export function WeddingDayTimeline({
                         style={{
                           fontSize: 'clamp(0.65rem, 1.5vw, 0.75rem)',
                           fontFamily: `"${bodyFont}", sans-serif`,
-                          color: `${MUTED}cc`,
+                          color: `color-mix(in oklab, var(--pl-muted, #9A9488) 80%, transparent)`,
                           margin: 0,
                           paddingLeft: 28,
                           lineHeight: 1.5,

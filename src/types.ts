@@ -279,6 +279,18 @@ export interface ThemeSchema {
     muted: string; // hex
     cardBg: string; // hex
   };
+  /**
+   * Optional dark-mode palette. When omitted, ThemeProvider auto-derives
+   * a readable dark variant from `colors` via deriveDarkPalette().
+   */
+  darkColors?: {
+    background: string;
+    foreground: string;
+    accent: string;
+    accentLight: string;
+    muted: string;
+    cardBg: string;
+  };
   borderRadius: string; // e.g. "0.5rem"
   // Dynamic UI Generation properties
   elementShape?: 'square' | 'rounded' | 'arch' | 'pill';

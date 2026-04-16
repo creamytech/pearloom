@@ -32,20 +32,23 @@ type CardStyle = 'glass' | 'solid' | 'outlined' | 'minimal' | 'elevated';
 
 /** Build card CSS based on the vibeSkin cardStyle. */
 function buildCardStyle(style: CardStyle | undefined): React.CSSProperties {
+  // Reads from theme CSS vars so cards flip when dark mode is toggled.
+  const cardBg = 'var(--pl-cream-card, #FFFFFF)';
+  const divider = 'color-mix(in oklab, var(--pl-ink, #2B2B2B) 10%, transparent)';
   switch (style) {
     case 'glass':
       return {
-        background: 'rgba(255, 255, 255, 0.72)',
+        background: 'color-mix(in oklab, var(--pl-cream-card, #ffffff) 72%, transparent)',
         backdropFilter: 'blur(16px) saturate(140%)',
         WebkitBackdropFilter: 'blur(16px) saturate(140%)',
-        border: '1px solid #E4E4E7',
+        border: `1px solid ${divider}`,
         borderRadius: '12px',
         boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
       };
     case 'outlined':
       return {
         background: 'transparent',
-        border: '1px solid #E4E4E7',
+        border: `1px solid ${divider}`,
         borderRadius: '12px',
       };
     case 'minimal':
@@ -56,16 +59,16 @@ function buildCardStyle(style: CardStyle | undefined): React.CSSProperties {
       };
     case 'elevated':
       return {
-        background: '#FFFFFF',
-        border: '1px solid #E4E4E7',
+        background: cardBg,
+        border: `1px solid ${divider}`,
         borderRadius: '12px',
         boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
       };
     case 'solid':
     default:
       return {
-        background: '#FFFFFF',
-        border: '1px solid #E4E4E7',
+        background: cardBg,
+        border: `1px solid ${divider}`,
         borderRadius: '12px',
         boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
       };

@@ -2,15 +2,22 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / editor/ParchmentTintPanel.tsx
-// Photo filter system with 4 warm tint presets + apply button
-// Matches Stitch "Photo Atelier" Properties panel
+// Photo filter system with warm tint presets + apply button.
+// Migrated to the panel/ token system so chrome stays in lock-step
+// with the rest of the editor.
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Sparkles } from 'lucide-react';
-import { useEditor } from '@/lib/editor-state';
 import { Button } from '@/components/ui/button';
+import {
+  PanelRoot,
+  PanelSection,
+  panelText,
+  panelWeight,
+  panelTracking,
+} from './panel';
 
 const TINTS = [
   { id: 'none',      label: 'None',      color: '#FFFFFF', filter: 'none' },
@@ -37,75 +44,80 @@ export function ParchmentTintPanel({ currentTint = 'none', onApply }: ParchmentT
     setTimeout(() => setApplied(false), 1500);
   };
 
+  const selectedTint = TINTS.find((t) => t.id === selected);
+
   return (
-    <div style={{ padding: '16px' }}>
-      <h4 style={{
-        fontSize: '0.65rem', fontWeight: 700,
-        letterSpacing: '0.12em', textTransform: 'uppercase',
-        color: '#71717A',
-        marginBottom: '12px',
-      }}>
-        Parchment Tint
-      </h4>
+    <PanelRoot>
+      <PanelSection title="Parchment Tint" hint="A warm wash applied to every photo on the site.">
+        <div style={{ display: 'flex', gap: 10 }}>
+          {TINTS.map((tint) => {
+            const isActive = selected === tint.id;
+            return (
+              <motion.button
+                key={tint.id}
+                type="button"
+                onClick={() => setSelected(tint.id)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.94 }}
+                aria-label={tint.label}
+                aria-pressed={isActive}
+                title={tint.label}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  border: isActive ? '3px solid #18181B' : '1px solid #E4E4E7',
+                  background: tint.color,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'border-color 0.15s',
+                  boxShadow: isActive ? '0 0 0 2px rgba(24,24,27,0.12)' : 'none',
+                }}
+              >
+                {isActive && <Check size={14} strokeWidth={3} color="#18181B" />}
+              </motion.button>
+            );
+          })}
+        </div>
 
-      {/* Tint swatches */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
-        {TINTS.map((tint) => (
-          <motion.button
-            key={tint.id}
-            onClick={() => setSelected(tint.id)}
-            whileHover={{ scale: 1.12 }}
-            whileTap={{ scale: 0.92 }}
-            title={tint.label}
-            style={{
-              width: '36px', height: '36px',
-              borderRadius: '50%',
-              border: selected === tint.id
-                ? '3px solid #18181B'
-                : '2px solid rgba(255,255,255,0.25)',
-              background: tint.color,
-              cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'border-color 0.15s',
-              boxShadow: selected === tint.id
-                ? '0 0 0 2px rgba(110,140,92,0.2)'
-                : 'none',
-            }}
-          >
-            {selected === tint.id && (
-              <Check size={14} strokeWidth={3} color="#18181B" />
-            )}
-          </motion.button>
-        ))}
-      </div>
+        <p
+          style={{
+            margin: '12px 0 0',
+            fontSize: panelText.body,
+            lineHeight: 1.4,
+            color: '#3F3F46',
+          }}
+        >
+          {selectedTint?.label || 'None'}
+          {selected !== 'none' && (
+            <span
+              style={{
+                color: '#71717A',
+                fontSize: panelText.hint,
+                fontWeight: panelWeight.medium,
+                letterSpacing: panelTracking.normal,
+                marginLeft: 8,
+              }}
+            >
+              Applied to all photos
+            </span>
+          )}
+        </p>
 
-      {/* Selected label */}
-      <p style={{
-        fontSize: '0.75rem',
-        color: '#3F3F46',
-        fontFamily: 'inherit',
-        
-        marginBottom: '16px',
-      }}>
-        {TINTS.find(t => t.id === selected)?.label || 'None'}
-        {selected !== 'none' && (
-          <span style={{ color: '#71717A', fontStyle: 'normal', fontSize: '0.65rem', marginLeft: '8px' }}>
-            Applied to all photos
-          </span>
-        )}
-      </p>
-
-      {/* Apply button */}
-      <Button
-        variant="primary"
-        size="md"
-        className="w-full"
-        onClick={handleApply}
-        icon={applied ? <Check size={14} /> : <Sparkles size={14} />}
-      >
-        {applied ? 'Filter Applied' : 'Apply Filter'}
-      </Button>
-    </div>
+        <Button
+          variant="primary"
+          size="md"
+          className="w-full"
+          onClick={handleApply}
+          icon={applied ? <Check size={14} /> : <Sparkles size={14} />}
+          style={{ marginTop: 12 }}
+        >
+          {applied ? 'Filter Applied' : 'Apply Filter'}
+        </Button>
+      </PanelSection>
+    </PanelRoot>
   );
 }
 

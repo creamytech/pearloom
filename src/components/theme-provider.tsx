@@ -3,12 +3,22 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/theme-provider.tsx
 // Injects dynamic CSS variables + all visual atmosphere effects
-// from ThemeSchema into visitor-facing site pages.
+// from ThemeSchema into visitor-facing site pages, and manages
+// per-site light/dark mode (scoped to [data-pl-site-root] so it
+// never collides with the editor chrome's theme state).
 // ─────────────────────────────────────────────────────────────
 
-import { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import type { ThemeSchema } from '@/types';
-import { defaultTheme, themeToCssVars, googleFontsUrl } from '@/lib/theme';
+import { defaultTheme, themeToCssBlocks, googleFontsUrl } from '@/lib/theme';
 import { GrainOverlay } from '@/components/effects/GrainOverlay';
 import { VignetteOverlay } from '@/components/effects/VignetteOverlay';
 import { GradientMesh } from '@/components/effects/GradientMesh';
@@ -16,12 +26,23 @@ import { CustomCursor } from '@/components/effects/CustomCursor';
 import { TextureOverlay } from '@/components/effects/TextureOverlay';
 import { ScrollRevealInjector } from '@/components/effects/ScrollReveal';
 import { ColorTemperature } from '@/components/effects/ColorTemperature';
+import { SiteThemeToggle } from '@/components/site/SiteThemeToggle';
+
+type SiteThemeMode = 'light' | 'dark';
 
 interface ThemeContextValue {
   theme: ThemeSchema;
+  mode: SiteThemeMode;
+  setMode: (m: SiteThemeMode) => void;
+  toggleMode: () => void;
 }
 
-const ThemeContext = createContext<ThemeContextValue>({ theme: defaultTheme });
+const ThemeContext = createContext<ThemeContextValue>({
+  theme: defaultTheme,
+  mode: 'light',
+  setMode: () => {},
+  toggleMode: () => {},
+});
 
 export function useTheme() {
   return useContext(ThemeContext);
@@ -29,7 +50,23 @@ export function useTheme() {
 
 interface ThemeProviderProps {
   theme?: ThemeSchema;
+  /** Set to false on preview/wizard surfaces where the guest toggle would feel out of place. */
+  showToggle?: boolean;
   children: ReactNode;
+}
+
+const STORAGE_KEY = 'pl-site-theme';
+
+function readInitialMode(): SiteThemeMode {
+  if (typeof window === 'undefined') return 'light';
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (stored === 'light' || stored === 'dark') return stored;
+  } catch {}
+  try {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+  } catch {}
+  return 'light';
 }
 
 /** Generate a CSS background pattern string from the AI's backgroundPattern enum */
@@ -52,36 +89,37 @@ function getPatternStyle(pattern: string, accentLight: string): string {
   }
 }
 
-export function ThemeProvider({ theme = defaultTheme, children }: ThemeProviderProps) {
-  const cssVars = useMemo(() => themeToCssVars(theme), [theme]);
+export function ThemeProvider({ theme = defaultTheme, showToggle = true, children }: ThemeProviderProps) {
+  const [mode, setModeState] = useState<SiteThemeMode>('light');
+
+  // Hydrate mode from localStorage / system preference after mount.
+  useEffect(() => {
+    setModeState(readInitialMode());
+  }, []);
+
+  const setMode = useCallback((next: SiteThemeMode) => {
+    setModeState(next);
+    try { window.localStorage.setItem(STORAGE_KEY, next); } catch {}
+  }, []);
+
+  const toggleMode = useCallback(() => {
+    setModeState((prev) => {
+      const next: SiteThemeMode = prev === 'light' ? 'dark' : 'light';
+      try { window.localStorage.setItem(STORAGE_KEY, next); } catch {}
+      return next;
+    });
+  }, []);
+
+  const blocks = useMemo(() => themeToCssBlocks(theme), [theme]);
   const fx = theme.effects ?? {};
 
-  // ── Inject CSS custom properties into :root ──────────────────
-  useEffect(() => {
-    const root = document.documentElement;
-    for (const [key, value] of Object.entries(cssVars)) {
-      root.style.setProperty(key, value);
-    }
-    return () => {
-      for (const key of Object.keys(cssVars)) {
-        root.style.removeProperty(key);
-      }
-    };
-  }, [cssVars]);
-
   // ── Smooth theme-color transitions ───────────────────────────
-  // When the palette changes (e.g. live during generation), every
-  // element that reads these CSS vars will transition to the new
-  // color over ~700ms instead of snapping. The transition stays on
-  // at all times because the cost is negligible and it also
-  // smooths out any user-driven palette tweaks in the editor.
   useEffect(() => {
     const STYLE_ID = 'pearloom-theme-transition';
     if (document.getElementById(STYLE_ID)) return;
     const el = document.createElement('style');
     el.id = STYLE_ID;
     el.textContent = `
-      /* Smooth every themed surface when the palette changes */
       body,
       [data-pl-site-root],
       [data-pl-site-root] * {
@@ -89,7 +127,6 @@ export function ThemeProvider({ theme = defaultTheme, children }: ThemeProviderP
         transition-duration: 700ms;
         transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
       }
-      /* Don't animate on inputs the user is interacting with */
       [data-pl-site-root] input:focus,
       [data-pl-site-root] textarea:focus,
       [data-pl-site-root] button:active {
@@ -119,8 +156,25 @@ export function ThemeProvider({ theme = defaultTheme, children }: ThemeProviderP
     ? getPatternStyle(theme.backgroundPattern, theme.colors.accentLight)
     : '';
 
+  const ctxValue = useMemo<ThemeContextValue>(
+    () => ({ theme, mode, setMode, toggleMode }),
+    [theme, mode, setMode, toggleMode],
+  );
+
   return (
-    <ThemeContext.Provider value={{ theme }}>
+    <ThemeContext.Provider value={ctxValue}>
+      {/* ── Scoped CSS var blocks — swap instantly via data-theme attr ── */}
+      <style
+        // The two blocks are scoped to [data-pl-site-root] so the editor's
+        // own html[data-theme] cannot accidentally restyle the site canvas.
+        dangerouslySetInnerHTML={{
+          __html: `
+            [data-pl-site-root][data-theme="light"] { ${blocks.light} }
+            [data-pl-site-root][data-theme="dark"]  { ${blocks.dark}  color-scheme: dark; }
+          `,
+        }}
+      />
+
       {/* ── Background pattern ── */}
       {patternStyle && <style>{`body { ${patternStyle} }`}</style>}
 
@@ -141,8 +195,14 @@ export function ThemeProvider({ theme = defaultTheme, children }: ThemeProviderP
       )}
 
       {/* ── Page content root — color temp filter target ── */}
-      <div data-pl-site-root style={{ position: 'relative', zIndex: 1, minHeight: '100%' }}>
+      <div
+        data-pl-site-root
+        data-theme={mode}
+        style={{ position: 'relative', zIndex: 1, minHeight: '100%' }}
+      >
         {children}
+
+        {showToggle && <SiteThemeToggle />}
       </div>
 
       {/* ── Fixed-position overlays (render above content) ── */}

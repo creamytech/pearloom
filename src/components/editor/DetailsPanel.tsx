@@ -9,6 +9,7 @@ import { LocationPinIcon } from '@/components/icons/PearloomIcons';
 import { Field, lbl, inp } from './editor-utils';
 import { makeId } from '@/lib/editor-ids';
 import { panelText, panelWeight, panelTracking, panelLineHeight } from './panel';
+import { SortableContextShell, useSortableBlock } from '@/lib/dnd-kit-helpers';
 import type { StoryManifest, FaqItem, TravelInfo, HotelBlock, MealOption, WeddingPartyMember } from '@/types';
 import { VenueSearch } from '@/components/venue/VenueSearch';
 import type { VenuePartial } from '@/components/venue/VenueSearch';
@@ -102,23 +103,17 @@ function WeddingPartyMemberRow({ member, onUpdate, onDelete }: {
   onUpdate: (patch: Partial<WeddingPartyMember>) => void;
   onDelete: () => void;
 }) {
-  const controls = useDragControls();
   const [editing, setEditing] = useState(false);
+  const { setNodeRef, style, handleProps, isDragging } = useSortableBlock(member.id);
 
   return (
-    <Reorder.Item
-      value={member}
-      id={member.id}
-      dragListener={false}
-      dragControls={controls}
-      as="div"
-      whileDrag={{ scale: 1.02, zIndex: 50, boxShadow: '0 12px 28px rgba(0,0,0,0.08)' }}
-      layout
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -6 }}
-      transition={{ duration: 0.18 }}
-      style={{ marginBottom: '6px' }}
+    <div
+      ref={setNodeRef}
+      style={{
+        ...style,
+        marginBottom: '6px',
+        boxShadow: isDragging ? '0 12px 28px rgba(0,0,0,0.08)' : undefined,
+      }}
     >
       <div style={{
         display: 'flex', alignItems: 'center', gap: '8px',
@@ -127,10 +122,16 @@ function WeddingPartyMemberRow({ member, onUpdate, onDelete }: {
         background: '#FFFFFF',
         border: '1px solid #E4E4E7',
       }}>
-        {/* Drag handle */}
+        {/* Drag handle — dnd-kit keyboard accessible */}
         <div
-          onPointerDown={(e) => controls.start(e)}
-          style={{ cursor: 'grab', color: '#A1A1AA', display: 'flex', alignItems: 'center', padding: '2px' }}
+          {...handleProps}
+          style={{
+            ...handleProps.style,
+            color: '#A1A1AA',
+            display: 'flex',
+            alignItems: 'center',
+            padding: '2px',
+          }}
           aria-label="Drag to reorder"
         >
           <GripVertical size={14} />
@@ -210,7 +211,7 @@ function WeddingPartyMemberRow({ member, onUpdate, onDelete }: {
           />
         </div>
       )}
-    </Reorder.Item>
+    </div>
   );
 }
 
@@ -249,24 +250,21 @@ function WeddingPartyEditor({ manifest, onChange }: { manifest: StoryManifest; o
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {members.length > 0 && (
-        <Reorder.Group
-          axis="y"
-          values={members}
-          onReorder={(next) => commit(next as WeddingPartyMember[])}
-          as="div"
-          style={{ margin: 0, padding: 0 }}
+        <SortableContextShell
+          listId="wedding-party"
+          items={members}
+          getId={(m) => m.id}
+          onReorder={(next) => commit(next)}
         >
-          <AnimatePresence initial={false}>
-            {members.map(m => (
-              <WeddingPartyMemberRow
-                key={m.id}
-                member={m}
-                onUpdate={(patch) => updateMember(m.id, patch)}
-                onDelete={() => deleteMember(m.id)}
-              />
-            ))}
-          </AnimatePresence>
-        </Reorder.Group>
+          {members.map((m) => (
+            <WeddingPartyMemberRow
+              key={m.id}
+              member={m}
+              onUpdate={(patch) => updateMember(m.id, patch)}
+              onDelete={() => deleteMember(m.id)}
+            />
+          ))}
+        </SortableContextShell>
       )}
       {addingNew ? (
         <div style={{
