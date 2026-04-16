@@ -238,19 +238,36 @@ export function InlineArtHoverToolbar({
           right: 2,
           zIndex: 20,
           display: 'flex',
-          gap: 2,
-          padding: 3,
-          borderRadius: 8,
-          background: 'rgba(24,24,27,0.92)',
+          alignItems: 'stretch',
+          gap: 0,
+          padding: 0,
+          borderRadius: 2,
+          background: 'linear-gradient(180deg, rgba(20,20,22,0.96) 0%, rgba(12,12,14,0.96) 100%)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.22)',
+          borderTop: '1.5px solid rgba(184,147,90,0.55)',
+          boxShadow: '0 6px 16px rgba(0,0,0,0.28), 0 0 0 1px rgba(184,147,90,0.22)',
           pointerEvents: 'auto',
           opacity: hover || busy || panelOpen ? 1 : 0.55,
-          transform: hover || busy || panelOpen ? 'scale(1)' : 'scale(0.92)',
-          transition: 'opacity 150ms ease, transform 150ms ease',
+          transform: hover || busy || panelOpen ? 'translateY(0)' : 'translateY(-2px)',
+          transition: 'opacity 220ms cubic-bezier(0.22,1,0.36,1), transform 220ms cubic-bezier(0.22,1,0.36,1)',
         }}
       >
+        <span
+          aria-hidden="true"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            padding: '0 6px 0 7px',
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            fontSize: '0.44rem',
+            fontWeight: 700,
+            letterSpacing: '0.28em',
+            textTransform: 'uppercase',
+            color: 'rgba(184,147,90,0.82)',
+            borderRight: '1px solid rgba(184,147,90,0.22)',
+          }}
+        >ART</span>
         {settingKey && (
           <ArtBtn
             title={`Edit ${label.toLowerCase()}`}
@@ -291,33 +308,80 @@ export function InlineArtHoverToolbar({
             left: panelRect.left,
             width: 280,
             zIndex: 9999,
-            padding: 12,
-            borderRadius: 12,
-            background: 'rgba(250,247,242,0.98)',
+            padding: '14px 14px 12px',
+            borderRadius: 2,
+            background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid #E4E4E7',
-            boxShadow: '0 12px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.05)',
+            borderTop: '2px solid rgba(184,147,90,0.55)',
+            borderLeft: '1px solid rgba(184,147,90,0.18)',
+            borderRight: '1px solid rgba(184,147,90,0.18)',
+            borderBottom: '1px solid rgba(184,147,90,0.18)',
+            boxShadow: '0 20px 48px rgba(28,22,10,0.22), 0 2px 10px rgba(28,22,10,0.06)',
             fontFamily: 'inherit',
             color: '#18181B',
           }}
         >
           <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 10,
+            display: 'grid',
+            gridTemplateColumns: '1fr auto',
+            alignItems: 'end',
+            gap: 10,
+            paddingBottom: 8,
+            marginBottom: 12,
+            borderBottom: '1px solid rgba(184,147,90,0.28)',
           }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#52525B' }}>
-              {label}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <span style={{
+                fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                fontSize: 9,
+                fontWeight: 700,
+                letterSpacing: '0.28em',
+                textTransform: 'uppercase',
+                color: 'rgba(184,147,90,0.82)',
+              }}>
+                Specimen · {String(index != null ? index + 1 : 1).padStart(2, '0')}
+              </span>
+              <span style={{
+                fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
+                fontStyle: 'italic',
+                fontSize: 18,
+                lineHeight: 1.1,
+                fontWeight: 400,
+                color: '#18181B',
+                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+              }}>
+                {label}
+              </span>
             </div>
             <button
               type="button"
               onClick={() => setPanelOpen(false)}
               aria-label="Close"
               style={{
-                border: 'none', background: 'transparent', color: '#71717A',
-                cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: 0,
+                border: '1px solid rgba(184,147,90,0.45)',
+                background: 'transparent',
+                color: '#52525B',
+                cursor: 'pointer',
+                width: 22,
+                height: 22,
+                borderRadius: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                fontSize: 12,
+                lineHeight: 1,
+                padding: 0,
+                transition: 'background 180ms ease, color 180ms ease',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background = 'rgba(184,147,90,0.14)';
+                (e.currentTarget as HTMLElement).style.color = '#18181B';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = 'transparent';
+                (e.currentTarget as HTMLElement).style.color = '#52525B';
               }}
             >×</button>
           </div>
@@ -374,16 +438,19 @@ export function InlineArtHoverToolbar({
                       type="button"
                       onClick={() => patchSetting({ placement: opt.id })}
                       style={{
-                        padding: '6px 4px',
-                        borderRadius: 6,
-                        border: on ? '1px solid #18181B' : '1px solid #E4E4E7',
-                        background: on ? 'rgba(24,24,27,0.06)' : '#fff',
+                        padding: '7px 4px',
+                        borderRadius: 2,
+                        border: on ? '1px solid rgba(184,147,90,0.65)' : '1px solid rgba(184,147,90,0.18)',
+                        background: on ? 'rgba(184,147,90,0.12)' : 'rgba(255,252,245,0.7)',
                         color: '#18181B',
-                        fontSize: 9,
-                        fontWeight: 600,
-                        letterSpacing: '0.02em',
+                        fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                        fontSize: 8,
+                        fontWeight: 700,
+                        letterSpacing: '0.18em',
+                        textTransform: 'uppercase',
                         cursor: 'pointer',
-                        fontFamily: 'inherit',
+                        boxShadow: on ? '0 0 0 2px rgba(184,147,90,0.14)' : 'none',
+                        transition: 'background 180ms ease, border-color 180ms ease, box-shadow 180ms ease',
                       }}
                     >
                       {opt.label}
@@ -438,16 +505,24 @@ export function InlineArtHoverToolbar({
                     aria-label={`Color ${c.label}`}
                     onClick={() => patchSetting({ color: c.value })}
                     style={{
-                      width: 22, height: 22, padding: 0,
-                      borderRadius: '50%',
-                      border: on ? '2px solid #18181B' : '1.5px solid rgba(0,0,0,0.1)',
-                      background: c.value || 'linear-gradient(135deg,#eee,#aaa)',
+                      width: 24, height: 24, padding: 0,
+                      borderRadius: 2,
+                      border: on ? '1.5px solid #18181B' : '1px solid rgba(184,147,90,0.28)',
+                      background: c.value || 'linear-gradient(135deg,#FAF7F2,#C9B98E)',
                       cursor: 'pointer',
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: on ? '0 0 0 2px rgba(184,147,90,0.35)' : 'none',
+                      transition: 'box-shadow 180ms ease, border-color 180ms ease',
                     }}
                   >
                     {!c.value && (
-                      <span style={{ fontSize: 9, fontWeight: 700, color: '#52525B' }}>A</span>
+                      <span style={{
+                        fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
+                        fontStyle: 'italic',
+                        fontSize: 11,
+                        fontWeight: 400,
+                        color: '#18181B',
+                      }}>A</span>
                     )}
                   </button>
                 );
@@ -458,9 +533,9 @@ export function InlineArtHoverToolbar({
                 onChange={(e) => patchSetting({ color: e.target.value })}
                 aria-label="Custom color"
                 style={{
-                  width: 22, height: 22, padding: 0,
-                  border: '1.5px solid rgba(0,0,0,0.1)',
-                  borderRadius: '50%',
+                  width: 24, height: 24, padding: 0,
+                  border: '1px dashed rgba(184,147,90,0.55)',
+                  borderRadius: 2,
                   cursor: 'pointer',
                   background: 'transparent',
                 }}
@@ -469,7 +544,13 @@ export function InlineArtHoverToolbar({
           </PopoverSection>
 
           {/* Actions */}
-          <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+          <div style={{
+            display: 'flex',
+            gap: 6,
+            marginTop: 14,
+            paddingTop: 10,
+            borderTop: '1px solid rgba(184,147,90,0.28)',
+          }}>
             <button
               type="button"
               onClick={() => dispatchWithBusy('regenerate')}
@@ -480,45 +561,68 @@ export function InlineArtHoverToolbar({
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 6,
-                padding: '7px 10px',
-                borderRadius: 8,
+                padding: '9px 10px',
+                borderRadius: 2,
                 border: '1px solid #18181B',
                 background: '#18181B',
                 color: '#FAF7F2',
-                fontSize: 11,
-                fontWeight: 600,
+                fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
                 cursor: busy ? 'wait' : 'pointer',
-                fontFamily: 'inherit',
+                boxShadow: '0 0 0 3px rgba(184,147,90,0.18)',
+                transition: 'box-shadow 180ms ease, transform 180ms ease',
+              }}
+              onMouseEnter={(e) => {
+                if (!busy) (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 4px rgba(184,147,90,0.28)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px rgba(184,147,90,0.18)';
               }}
             >
               {busy === 'regenerate'
-                ? <Loader2 size={12} style={{ animation: 'spin 0.8s linear infinite' }} />
-                : <Sparkles size={12} />}
-              Regenerate AI
+                ? <Loader2 size={11} style={{ animation: 'spin 0.8s linear infinite' }} />
+                : <Sparkles size={11} />}
+              Regenerate
             </button>
             <button
               type="button"
               onClick={() => dispatchWithBusy('remove')}
               disabled={!!busy}
+              aria-label="Remove"
+              title="Remove"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 6,
-                padding: '7px 10px',
-                borderRadius: 8,
-                border: '1px solid #E4E4E7',
-                background: '#fff',
-                color: '#B91C1C',
-                fontSize: 11,
-                fontWeight: 600,
+                padding: '9px 12px',
+                borderRadius: 2,
+                border: '1px solid rgba(139,45,45,0.45)',
+                background: 'transparent',
+                color: '#8B2D2D',
+                fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
                 cursor: busy ? 'wait' : 'pointer',
-                fontFamily: 'inherit',
+                transition: 'background 180ms ease, color 180ms ease',
+              }}
+              onMouseEnter={(e) => {
+                if (!busy) {
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(139,45,45,0.08)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = 'transparent';
               }}
             >
               {busy === 'remove'
-                ? <Loader2 size={12} style={{ animation: 'spin 0.8s linear infinite' }} />
-                : <Trash2 size={12} />}
+                ? <Loader2 size={11} style={{ animation: 'spin 0.8s linear infinite' }} />
+                : <Trash2 size={11} />}
             </button>
           </div>
         </div>,
@@ -531,14 +635,15 @@ export function InlineArtHoverToolbar({
 // ── Sub-components ───────────────────────────────────────────────
 function PopoverSection({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div style={{ marginBottom: 10 }}>
+    <div style={{ marginBottom: 12 }}>
       <div style={{
+        fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
         fontSize: 9,
-        fontWeight: 600,
-        letterSpacing: '0.08em',
+        fontWeight: 700,
+        letterSpacing: '0.24em',
         textTransform: 'uppercase',
-        color: '#71717A',
-        marginBottom: 5,
+        color: 'rgba(184,147,90,0.85)',
+        marginBottom: 6,
       }}>
         {label}
       </div>
@@ -566,34 +671,47 @@ function PresetTile({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'stretch',
-        gap: 2,
-        padding: 4,
-        borderRadius: 6,
-        border: active ? '1.5px solid #18181B' : '1px solid #E4E4E7',
-        background: active ? 'rgba(24,24,27,0.04)' : '#fff',
+        gap: 3,
+        padding: 5,
+        borderRadius: 2,
+        border: active ? '1px solid rgba(184,147,90,0.65)' : '1px solid rgba(184,147,90,0.18)',
+        background: active ? 'rgba(184,147,90,0.10)' : 'rgba(255,252,245,0.7)',
         cursor: 'pointer',
         fontFamily: 'inherit',
         position: 'relative',
+        boxShadow: active ? '0 0 0 3px rgba(184,147,90,0.14)' : 'none',
+        transition: 'background 180ms ease, box-shadow 180ms ease, border-color 180ms ease',
       }}
     >
       <div style={{
-        height: 24,
+        height: 26,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         overflow: 'hidden',
       }}>
         {children}
       </div>
-      <div style={{ fontSize: 8, fontWeight: 600, color: '#52525B', letterSpacing: '0.02em' }}>
+      <div style={{
+        fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
+        fontStyle: 'italic',
+        fontSize: 9,
+        fontWeight: 400,
+        color: '#18181B',
+        letterSpacing: '0.01em',
+        textAlign: 'center',
+      }}>
         {label}
       </div>
       {active && (
         <span style={{
-          position: 'absolute', top: 2, right: 2,
-          width: 12, height: 12, borderRadius: '50%',
-          background: '#18181B', color: '#fff',
+          position: 'absolute', top: -5, right: -5,
+          width: 14, height: 14,
+          borderRadius: '50%',
+          background: '#18181B',
+          color: 'rgba(184,147,90,1)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 0 0 2px #FAF7F2',
         }}>
-          <Check size={8} />
+          <Check size={9} />
         </span>
       )}
     </button>
