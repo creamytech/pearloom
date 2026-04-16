@@ -112,118 +112,108 @@ export default function GalleryPage() {
               display: 'flex', flexDirection: 'column',
             }}
           >
-        {/* Editorial header */}
-        <div
-          style={{
-            marginBottom: 32,
-            paddingBottom: 24,
-            borderBottom: '1px solid var(--pl-divider)',
+        {/* Editorial masthead */}
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+            <span style={{
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.52rem', fontWeight: 700,
+              letterSpacing: '0.32em', textTransform: 'uppercase',
+              color: 'var(--pl-olive)',
+            }}>
+              The Reel · Gallery
+            </span>
+            <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.45)' }} />
+            <span style={{
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.52rem', fontWeight: 700,
+              letterSpacing: '0.26em', textTransform: 'uppercase',
+              color: 'rgba(14,13,11,0.55)',
+            }}>
+              {photos.length > 0 ? `${photos.length.toLocaleString()} frames` : 'empty reel'}
+            </span>
+          </div>
+          <div style={{
             display: 'flex',
             alignItems: 'flex-end',
             justifyContent: 'space-between',
             gap: 24,
             flexWrap: 'wrap',
-          }}
-        >
-          <div>
-            <div className="pl-overline" style={{ marginBottom: 14 }}>
-              Gallery · Every frame
-            </div>
-            <h1
-              className="pl-display"
-              style={{
+          }}>
+            <div style={{ maxWidth: 560 }}>
+              <h1 style={{
                 margin: 0,
-                fontSize: 'clamp(1.8rem, 3.2vw, 2.4rem)',
+                fontFamily: 'var(--pl-font-display)',
+                fontStyle: 'italic',
+                fontWeight: 400,
+                fontSize: 'clamp(2.4rem, 5.2vw, 3.6rem)',
+                lineHeight: 1.02,
+                letterSpacing: '-0.01em',
                 color: 'var(--pl-ink)',
-                lineHeight: 1.05,
-              }}
-            >
-              {photos.length > 0 ? (
-                <>
-                  {photos.length.toLocaleString()}{' '}
-                  <em
-                    style={{
-                      fontStyle: 'italic',
-                      color: 'var(--pl-olive)',
-                      fontVariationSettings:
-                        '"opsz" 144, "SOFT" 80, "WONK" 1',
-                    }}
-                  >
-                    moments
-                  </em>
-                  .
-                </>
-              ) : (
-                <>
-                  Every{' '}
-                  <em
-                    style={{
-                      fontStyle: 'italic',
-                      color: 'var(--pl-olive)',
-                      fontVariationSettings:
-                        '"opsz" 144, "SOFT" 80, "WONK" 1',
-                    }}
-                  >
-                    frame
-                  </em>
-                  .
-                </>
-              )}
-            </h1>
-            <p
-              style={{
-                margin: '8px 0 0',
-                color: 'var(--pl-muted)',
-                fontSize: '0.95rem',
+              }}>
+                {photos.length > 0 ? 'The moments' : 'Every frame'}
+              </h1>
+              <p style={{
+                margin: '12px 0 0',
+                fontFamily: 'var(--pl-font-body)',
+                fontSize: '0.85rem',
                 lineHeight: 1.55,
-                maxWidth: '52ch',
-              }}
-            >
-              Every photo from every site, in one room. Upload new ones and
-              they go straight into your next celebration.
-            </p>
-          </div>
-          <div>
-            <button
-              onClick={() => uploadRef.current?.click()}
-              disabled={uploading}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '10px 18px',
-                borderRadius: 'var(--pl-radius-full)',
-                background: 'var(--pl-ink)',
-                color: 'var(--pl-cream)',
-                border: 'none',
-                fontFamily: 'var(--pl-font-mono)',
-                fontSize: '0.72rem',
-                fontWeight: 700,
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                cursor: uploading ? 'not-allowed' : 'pointer',
-                opacity: uploading ? 0.6 : 1,
-                transition: 'transform 150ms, opacity 150ms',
-              }}
-            >
-              {uploading ? (
-                <Loader2
-                  size={14}
-                  style={{ animation: 'spin 1s linear infinite' }}
-                />
-              ) : (
-                <Upload size={14} />
-              )}
-              {uploading ? 'Uploading…' : 'Upload photos'}
-            </button>
-            <input
-              ref={uploadRef}
-              type="file"
-              accept="image/*"
-              multiple
-              style={{ display: 'none' }}
-              onChange={e => { handleUpload(e.target.files); e.target.value = ''; }}
-            />
+                color: 'var(--pl-ink-soft)',
+                maxWidth: 420,
+              }}>
+                A single room for every photograph across your sites. Upload new ones — they file themselves for your next celebration.
+              </p>
+            </div>
+            <div>
+              <button
+                onClick={() => uploadRef.current?.click()}
+                disabled={uploading}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '11px 20px',
+                  borderRadius: 8,
+                  background: 'var(--pl-ink)',
+                  color: 'var(--pl-cream)',
+                  border: '1px solid var(--pl-ink)',
+                  boxShadow: '0 0 0 3px rgba(184,147,90,0.18)',
+                  fontFamily: 'var(--pl-font-mono)',
+                  fontSize: '0.58rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.24em',
+                  textTransform: 'uppercase',
+                  cursor: uploading ? 'not-allowed' : 'pointer',
+                  opacity: uploading ? 0.6 : 1,
+                  transition: 'transform 0.18s, box-shadow 0.18s',
+                }}
+                onMouseEnter={(e) => {
+                  if (!uploading) {
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,147,90,0.28), 0 6px 18px rgba(14,13,11,0.18)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,147,90,0.18)';
+                }}
+              >
+                {uploading ? (
+                  <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
+                ) : (
+                  <Upload size={13} strokeWidth={2} />
+                )}
+                {uploading ? 'Uploading…' : 'Upload photos'}
+              </button>
+              <input
+                ref={uploadRef}
+                type="file"
+                accept="image/*"
+                multiple
+                style={{ display: 'none' }}
+                onChange={e => { handleUpload(e.target.files); e.target.value = ''; }}
+              />
+            </div>
           </div>
         </div>
 
@@ -231,72 +221,87 @@ export default function GalleryPage() {
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {[...Array(12)].map((_, i) => (
-              <div key={i} className="aspect-square rounded-[var(--pl-radius-md)] skeleton" />
+              <div
+                key={i}
+                className="aspect-square skeleton"
+                style={{ borderRadius: 6, border: '1px solid rgba(14,13,11,0.06)' }}
+              />
             ))}
           </div>
         ) : photos.length === 0 ? (
-          <div
-            style={{
-              textAlign: 'center',
-              padding: '80px 20px',
-              border: '1px dashed var(--pl-divider)',
-              borderRadius: 'var(--pl-radius-lg)',
-              background: 'var(--pl-cream-deep)',
-            }}
-          >
-            <div
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: 18,
-                background: 'var(--pl-olive-mist)',
-                margin: '0 auto 16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <ImageIcon size={26} style={{ color: 'var(--pl-olive)' }} />
+          <div style={{
+            position: 'relative',
+            textAlign: 'center',
+            padding: '72px 28px',
+            border: '1px dashed rgba(184,147,90,0.55)',
+            borderRadius: 16,
+            background: 'var(--pl-cream-card)',
+          }}>
+            <span style={{
+              position: 'absolute', top: 12, left: 16,
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.48rem', fontWeight: 700,
+              letterSpacing: '0.28em', textTransform: 'uppercase',
+              color: 'var(--pl-olive)',
+            }}>
+              Silent frame
+            </span>
+            <span style={{
+              position: 'absolute', top: 12, right: 16,
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.48rem', fontWeight: 700,
+              letterSpacing: '0.28em', textTransform: 'uppercase',
+              color: 'rgba(14,13,11,0.40)',
+            }}>
+              № 00
+            </span>
+            <div style={{
+              width: 72, height: 72,
+              borderRadius: '50%',
+              border: '1px solid rgba(184,147,90,0.55)',
+              background: 'rgba(184,147,90,0.08)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 20px',
+              boxShadow: '0 0 0 6px rgba(184,147,90,0.06)',
+            }}>
+              <ImageIcon size={28} style={{ color: 'var(--pl-ink)' }} />
             </div>
-            <h3
-              style={{
-                fontFamily: 'var(--pl-font-display)',
-                fontStyle: 'italic',
-                fontSize: '1.3rem',
-                color: 'var(--pl-ink)',
-                margin: '0 0 6px',
-              }}
-            >
-              No photos yet
+            <h3 style={{
+              fontFamily: 'var(--pl-font-display)',
+              fontStyle: 'italic', fontWeight: 400,
+              fontSize: '2rem', lineHeight: 1.05,
+              color: 'var(--pl-ink)',
+              margin: '0 0 10px',
+            }}>
+              The reel is empty
             </h3>
-            <p
-              style={{
-                fontSize: '0.88rem',
-                color: 'var(--pl-muted)',
-                maxWidth: 360,
-                margin: '0 auto 22px',
-              }}
-            >
-              Create a site and upload photos to see them here.
+            <p style={{
+              fontFamily: 'var(--pl-font-body)',
+              fontSize: '0.84rem',
+              lineHeight: 1.55,
+              color: 'var(--pl-ink-soft)',
+              maxWidth: 380,
+              margin: '0 auto 24px',
+            }}>
+              Create a site, upload a photograph, or simply begin — your moments will file themselves here.
             </p>
-            <Link
-              href="/dashboard"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '10px 18px',
-                borderRadius: 'var(--pl-radius-full)',
-                background: 'var(--pl-ink)',
-                color: 'var(--pl-cream)',
-                textDecoration: 'none',
-                fontFamily: 'var(--pl-font-mono)',
-                fontSize: '0.72rem',
-                fontWeight: 700,
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-              }}
-            >
+            <Link href="/dashboard" style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '11px 22px',
+              borderRadius: 8,
+              background: 'var(--pl-ink)',
+              color: 'var(--pl-cream)',
+              border: '1px solid var(--pl-ink)',
+              boxShadow: '0 0 0 3px rgba(184,147,90,0.18)',
+              textDecoration: 'none',
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.58rem',
+              fontWeight: 700,
+              letterSpacing: '0.24em',
+              textTransform: 'uppercase',
+            }}>
               Create a site
             </Link>
           </div>
@@ -305,22 +310,83 @@ export default function GalleryPage() {
             {photos.map((photo, i) => (
               <motion.div
                 key={photo.id}
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: Math.min(i * 0.03, 0.5) }}
-                className="group relative aspect-square rounded-[var(--pl-radius-md)] overflow-hidden bg-[var(--pl-cream-deep)] cursor-pointer"
+                transition={{ delay: Math.min(i * 0.02, 0.4), duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                className="group relative aspect-square overflow-hidden cursor-pointer"
+                style={{
+                  borderRadius: 6,
+                  background: 'var(--pl-cream-deep)',
+                  border: '1px solid rgba(14,13,11,0.08)',
+                  transition: 'border-color 0.2s, box-shadow 0.24s cubic-bezier(0.22,1,0.36,1)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(184,147,90,0.55)';
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(14,13,11,0.12), 0 0 0 3px rgba(184,147,90,0.14)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(14,13,11,0.08)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={photo.url.includes('googleusercontent') ? `/api/photos/proxy?url=${encodeURIComponent(photo.url)}&w=400&h=400` : photo.url}
                   alt={photo.alt}
                   loading="lazy"
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                 />
-                {/* Hover overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-3">
-                  <p className="text-white text-[0.72rem] font-semibold truncate">{photo.alt}</p>
-                  <p className="text-white/60 text-[0.62rem]">{photo.siteName}</p>
+                {/* Folio kicker — always visible, subtle */}
+                <span
+                  className="absolute top-2 left-2 px-1.5 py-0.5 rounded-[2px] pointer-events-none"
+                  style={{
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.42rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.2em',
+                    textTransform: 'uppercase',
+                    color: 'var(--pl-cream)',
+                    background: 'rgba(14,13,11,0.45)',
+                    backdropFilter: 'blur(4px)',
+                    WebkitBackdropFilter: 'blur(4px)',
+                    opacity: 0.85,
+                  }}
+                >
+                  № {String(i + 1).padStart(3, '0')}
+                </span>
+
+                {/* Hover caption — editorial overlay */}
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end"
+                  style={{
+                    background: 'linear-gradient(to top, rgba(14,13,11,0.78) 0%, rgba(14,13,11,0.35) 40%, transparent 75%)',
+                    padding: '10px 12px 12px',
+                  }}
+                >
+                  <span style={{
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.42rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.26em',
+                    textTransform: 'uppercase',
+                    color: 'var(--pl-gold)',
+                    marginBottom: 4,
+                  }}>
+                    {photo.siteName}
+                  </span>
+                  <span style={{
+                    fontFamily: 'var(--pl-font-display)',
+                    fontStyle: 'italic',
+                    fontWeight: 400,
+                    fontSize: '0.9rem',
+                    lineHeight: 1.15,
+                    color: 'var(--pl-cream)',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {photo.alt || 'Untitled frame'}
+                  </span>
                 </div>
               </motion.div>
             ))}
