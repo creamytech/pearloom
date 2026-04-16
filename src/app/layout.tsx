@@ -10,7 +10,6 @@ const fraunces = Fraunces({
   display: "swap",
   variable: "--font-fraunces",
   axes: ["SOFT", "WONK", "opsz"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
   style: ["normal", "italic"],
 });
 
