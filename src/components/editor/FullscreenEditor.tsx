@@ -1106,22 +1106,42 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       <AnimatePresence>
         {state.showHint && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }}
-            style={{ position: 'fixed', bottom: '80px', left: '50%', transform: 'translateX(-50%)', zIndex: 1500, pointerEvents: 'none', background: '#FFFFFF', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '8px', padding: '8px 18px', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' } as React.CSSProperties}>
-            <span style={{ fontSize: '14px', fontWeight: 600 }}>↑</span>
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#18181B', whiteSpace: 'nowrap' }}>Click any section in the preview to jump to it</span>
+            style={{
+              position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)',
+              zIndex: 1500, pointerEvents: 'none',
+              background: 'color-mix(in oklab, var(--pl-cream-card) 95%, transparent)',
+              backdropFilter: 'saturate(140%) blur(14px)',
+              WebkitBackdropFilter: 'saturate(140%) blur(14px)',
+              border: '1px solid var(--pl-divider)',
+              borderRadius: 999, padding: '8px 18px',
+              display: 'flex', alignItems: 'center', gap: 8,
+              boxShadow: '0 8px 24px color-mix(in oklab, var(--pl-ink) 12%, transparent)',
+            } as React.CSSProperties}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--pl-olive)' }}>↑</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--pl-ink)', whiteSpace: 'nowrap' }}>Click any section in the preview to jump to it</span>
           </motion.div>
         )}
       </AnimatePresence>
       <AnimatePresence>
         {state.rewriteError && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }}
-            style={{ position: 'fixed', bottom: '80px', left: '50%', transform: 'translateX(-50%)', zIndex: 1500, pointerEvents: 'none', background: 'rgba(255,240,240,0.95)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(220,38,38,0.2)', borderRadius: '8px', padding: '8px 18px', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' } as React.CSSProperties}>
-            <span style={{ fontSize: '14px' }}>⚠</span>
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#b91c1c', whiteSpace: 'nowrap' }}>{state.rewriteError}</span>
+            style={{
+              position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)',
+              zIndex: 1500, pointerEvents: 'none',
+              background: 'color-mix(in oklab, var(--pl-plum) 14%, var(--pl-cream-card))',
+              backdropFilter: 'saturate(140%) blur(14px)',
+              WebkitBackdropFilter: 'saturate(140%) blur(14px)',
+              border: '1px solid color-mix(in oklab, var(--pl-plum) 30%, transparent)',
+              borderRadius: 999, padding: '8px 18px',
+              display: 'flex', alignItems: 'center', gap: 8,
+              boxShadow: '0 8px 24px color-mix(in oklab, var(--pl-plum) 18%, transparent)',
+            } as React.CSSProperties}>
+            <span style={{ fontSize: 14, color: 'var(--pl-plum)' }}>⚠</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--pl-plum)', whiteSpace: 'nowrap' }}>{state.rewriteError}</span>
           </motion.div>
         )}
       </AnimatePresence>
-      {/* Lightweight info toast for ⌘S + block copy/paste (items 67 & 70) */}
+      {/* Lightweight info toast for ⌘S + block copy/paste */}
       <AnimatePresence>
         {infoToast && (
           <motion.div
@@ -1130,16 +1150,25 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.25 }}
             style={{
-              position: 'fixed', bottom: '80px', left: '50%',
+              position: 'fixed', bottom: 80, left: '50%',
               transform: 'translateX(-50%)', zIndex: 1500, pointerEvents: 'none',
-              background: 'rgba(24,24,27,0.92)', backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '8px', padding: '8px 18px', display: 'flex',
-              alignItems: 'center', gap: '8px',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
+              background: 'color-mix(in oklab, var(--pl-ink) 90%, transparent)',
+              backdropFilter: 'saturate(140%) blur(14px)',
+              WebkitBackdropFilter: 'saturate(140%) blur(14px)',
+              border: '1px solid color-mix(in oklab, var(--pl-cream) 14%, transparent)',
+              borderRadius: 999, padding: '8px 18px',
+              display: 'flex', alignItems: 'center', gap: 8,
+              boxShadow: '0 8px 24px color-mix(in oklab, var(--pl-ink) 22%, transparent)',
             } as React.CSSProperties}
           >
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap' }}>
+            <span style={{
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: 'var(--pl-cream)',
+              whiteSpace: 'nowrap',
+            }}>
               {infoToast}
             </span>
           </motion.div>
@@ -1152,11 +1181,15 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       </AnimatePresence>
 
       <style>{`
-        
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.06); border-radius: 100px; }
-        ::-webkit-scrollbar-thumb:hover { background: #71717A; }
+        ::-webkit-scrollbar-thumb {
+          background: color-mix(in oklab, var(--pl-ink) 8%, transparent);
+          border-radius: 100px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: color-mix(in oklab, var(--pl-ink) 22%, transparent);
+        }
       `}</style>
 
       {/* Pre-publish audit */}
@@ -1179,8 +1212,23 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       {/* Drag Overlay */}
       <DragOverlay dropAnimation={null}>
         {state.canvasDragId && (
-          <div style={{ padding: '8px 10px', background: '#18181B', color: '#3F3F46', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700, boxShadow: '0 12px 40px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '8px', pointerEvents: 'none', border: '1px solid #71717A', whiteSpace: 'nowrap' }}>
-            <span style={{ fontSize: '1.2rem' }}>{state.canvasDragId.startsWith('chapter:') ? '⌖' : '✦'}</span>
+          <div style={{
+            padding: '8px 14px',
+            background: 'var(--pl-ink)',
+            color: 'var(--pl-cream)',
+            borderRadius: 999,
+            fontSize: '0.72rem',
+            fontWeight: 700,
+            letterSpacing: '0.06em',
+            boxShadow: '0 16px 40px color-mix(in oklab, var(--pl-ink) 30%, transparent)',
+            display: 'flex', alignItems: 'center', gap: 8,
+            pointerEvents: 'none',
+            border: '1px solid color-mix(in oklab, var(--pl-cream) 14%, transparent)',
+            whiteSpace: 'nowrap',
+          }}>
+            <span style={{ fontSize: '1.05rem', color: 'var(--pl-olive-mist, var(--pl-olive))' }}>
+              {state.canvasDragId.startsWith('chapter:') ? '⌖' : '✦'}
+            </span>
             {state.canvasDragLabel}
           </div>
         )}
@@ -1221,11 +1269,10 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 import { Loader2 } from 'lucide-react';
 
 function PublishModalInline() {
-  const { state, dispatch, actions, manifest, coupleNames } = useEditor();
+  const { state, dispatch, actions, coupleNames } = useEditor();
   const { showPublish, publishedUrl, publishError, isPublishing, subdomain } = state;
   const [shareCopied, setShareCopied] = useState(false);
 
-  const accent = manifest?.theme?.colors?.accent || '#71717A';
   const displayNames = coupleNames
     ? (coupleNames[1]?.trim() ? `${coupleNames[0]} & ${coupleNames[1]}` : coupleNames[0])
     : 'Our Site';
@@ -1250,28 +1297,39 @@ function PublishModalInline() {
         transition={{ duration: 0.22 }}
         style={{
           position: 'fixed', inset: 0, zIndex: 2000,
-          background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+          background: 'color-mix(in oklab, var(--pl-ink) 70%, transparent)',
+          backdropFilter: 'saturate(140%) blur(20px)',
+          WebkitBackdropFilter: 'saturate(140%) blur(20px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           padding: 'calc(2rem + env(safe-area-inset-top, 0px)) 2rem calc(2rem + env(safe-area-inset-bottom, 0px))',
         } as React.CSSProperties}
         onClick={() => dispatch({ type: 'SET_SHOW_PUBLISH', show: false })}
       >
         <motion.div
-          initial={{ opacity: 0, scale: 0.88, y: 28 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          initial={{ opacity: 0, scale: 0.92, y: 24 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.94, y: 16 }}
           transition={{ type: 'spring', stiffness: 320, damping: 28 }}
           onClick={e => e.stopPropagation()}
           style={{
-            background: 'linear-gradient(160deg, #3d3530 0%, #312b26 100%)',
-            borderRadius: '16px 16px 36px 36px', padding: '2.5rem', maxWidth: '460px', width: '100%',
-            boxShadow: '0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.05) inset',
-            textAlign: 'center', position: 'relative', overflow: 'hidden',
+            background: 'var(--pl-cream-card)',
+            border: '1px solid var(--pl-divider)',
+            borderRadius: 24,
+            padding: 'clamp(1.75rem, 3vw, 2.5rem)',
+            maxWidth: 480,
+            width: '100%',
+            boxShadow: '0 40px 100px color-mix(in oklab, var(--pl-ink) 40%, transparent)',
+            textAlign: 'center',
+            position: 'relative',
+            overflow: 'hidden',
           }}
         >
+          {/* Soft olive halo behind the modal */}
           <div style={{
-            position: 'absolute', bottom: -40, left: '50%', transform: 'translateX(-50%)',
-            width: '200px', height: '200px', borderRadius: '50%',
-            background: publishedUrl ? 'radial-gradient(circle, rgba(24,24,27,0.08) 0%, transparent 70%)' : 'radial-gradient(circle, rgba(24,24,27,0.04) 0%, transparent 70%)',
+            position: 'absolute', bottom: -60, left: '50%', transform: 'translateX(-50%)',
+            width: 260, height: 260, borderRadius: '50%',
+            background: publishedUrl
+              ? 'radial-gradient(circle, color-mix(in oklab, var(--pl-olive) 18%, transparent) 0%, transparent 65%)'
+              : 'radial-gradient(circle, color-mix(in oklab, var(--pl-olive) 8%, transparent) 0%, transparent 65%)',
             pointerEvents: 'none', transition: 'background 0.6s',
           }} />
           <AnimatePresence mode="popLayout">
@@ -1280,97 +1338,179 @@ function PublishModalInline() {
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', position: 'relative' }}>
                 <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }}
                   transition={{ type: 'spring', stiffness: 360, damping: 22, delay: 0.05 }}
-                  style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(24,24,27,0.08)', border: '1px solid #E4E4E7', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 24px rgba(24,24,27,0.1)' }}>
-                  <Globe size={26} color="#18181B" />
+                  style={{
+                    width: 64, height: 64, borderRadius: '50%',
+                    background: 'color-mix(in oklab, var(--pl-olive) 18%, transparent)',
+                    border: '1px solid color-mix(in oklab, var(--pl-olive) 32%, transparent)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 8px 28px color-mix(in oklab, var(--pl-olive) 24%, transparent)',
+                  }}>
+                  <Globe size={26} color="var(--pl-olive)" />
                 </motion.div>
                 <motion.h2 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-                  style={{ fontFamily: 'inherit', fontSize: '2rem', color: '#fff', margin: 0, letterSpacing: '-0.02em' }}>
-                  It&apos;s Live.
+                  style={{
+                    fontFamily: 'var(--pl-font-display)',
+                    fontSize: 'clamp(1.6rem, 2.6vw, 2.1rem)',
+                    color: 'var(--pl-ink)',
+                    margin: 0,
+                    letterSpacing: '-0.02em',
+                    fontWeight: 400,
+                    fontVariationSettings: '"opsz" 32, "SOFT" 70, "WONK" 1',
+                  }}>
+                  It&apos;s <em style={{ fontStyle: 'italic', color: 'var(--pl-olive)' }}>live</em>.
                 </motion.h2>
                 <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-                  style={{ color: 'rgba(255,255,255,0.48)', margin: 0, fontSize: '0.9rem' }}>Your story is now live at:</motion.p>
+                  style={{ color: 'var(--pl-ink-soft)', margin: 0, fontSize: '0.9rem' }}>
+                  Your story is now live at:
+                </motion.p>
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
                   style={{ width: '100%', position: 'relative' }}>
-                  <code style={{ display: 'block', background: 'rgba(24,24,27,0.06)', border: '1px solid rgba(24,24,27,0.1)', padding: '0.65rem 2.8rem 0.65rem 1.2rem', borderRadius: '10px', fontSize: '0.8rem', color: '#18181B', wordBreak: 'break-all', textAlign: 'left' }}>
+                  <code style={{
+                    display: 'block',
+                    background: 'color-mix(in oklab, var(--pl-ink) 5%, transparent)',
+                    border: '1px solid var(--pl-divider)',
+                    padding: '0.7rem 2.8rem 0.7rem 1.2rem',
+                    borderRadius: 10,
+                    fontSize: '0.8rem',
+                    color: 'var(--pl-ink)',
+                    fontFamily: 'var(--pl-font-mono)',
+                    wordBreak: 'break-all',
+                    textAlign: 'left',
+                  }}>
                     {publishedUrl}
                   </code>
                   <motion.button onClick={() => navigator.clipboard?.writeText(publishedUrl!).catch(() => {})} title="Copy link"
-                    whileHover={{ scale: 1.15, color: '#71717A' }} whileTap={{ scale: 0.88 }}
-                    style={{ position: 'absolute', right: '0.6rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(24,24,27,0.55)', padding: '4px', display: 'flex' }}>
+                    whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.88 }}
+                    style={{
+                      position: 'absolute', right: '0.6rem', top: '50%',
+                      transform: 'translateY(-50%)', background: 'none', border: 'none',
+                      cursor: 'pointer', color: 'var(--pl-muted)', padding: 4, display: 'flex',
+                    }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                   </motion.button>
                 </motion.div>
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.26 }}
                   style={{ display: 'flex', gap: '0.75rem', width: '100%', marginTop: '0.5rem' }}>
                   <motion.a href={publishedUrl!} target="_blank" rel="noreferrer"
-                    whileHover={{ scale: 1.04, boxShadow: '0 6px 22px rgba(24,24,27,0.45)' }} whileTap={{ scale: 0.95 }}
-                    style={{ flex: 1, padding: '0.9rem', borderRadius: '10px 10px 10px 10px', background: 'linear-gradient(135deg, #71717A 0%, #8a9d72 100%)', color: 'var(--pl-cream, #F5F1E8)', textDecoration: 'none', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center', display: 'block', boxShadow: '0 3px 12px #E4E4E7' }}>
-                    Open Site →
+                    whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}
+                    style={{
+                      flex: 1, padding: '0.95rem',
+                      borderRadius: 999,
+                      background: 'var(--pl-ink)',
+                      color: 'var(--pl-cream)',
+                      textDecoration: 'none',
+                      fontWeight: 700, fontSize: '0.78rem',
+                      letterSpacing: '0.1em', textTransform: 'uppercase',
+                      textAlign: 'center', display: 'block',
+                      boxShadow: '0 4px 18px color-mix(in oklab, var(--pl-olive) 28%, transparent)',
+                    }}>
+                    Open site →
                   </motion.a>
                   <motion.button onClick={() => { dispatch({ type: 'SET_SHOW_PUBLISH', show: false }); }}
-                    whileHover={{ scale: 1.04, backgroundColor: 'rgba(0,0,0,0.06)' }} whileTap={{ scale: 0.95 }}
-                    style={{ flex: 1, padding: '0.9rem', borderRadius: '10px 10px 10px 10px', background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', color: '#18181B', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>
+                    whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}
+                    style={{
+                      flex: 1, padding: '0.95rem',
+                      borderRadius: 999,
+                      background: 'transparent',
+                      border: '1px solid var(--pl-divider)',
+                      color: 'var(--pl-ink)',
+                      cursor: 'pointer',
+                      fontWeight: 700, fontSize: '0.78rem',
+                      letterSpacing: '0.1em', textTransform: 'uppercase',
+                    }}>
                     Dashboard
                   </motion.button>
                 </motion.div>
 
                 {/* ── Share with guests ── */}
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.34 }}
-                  style={{ width: '100%', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '1rem' }}>
-                  <div style={{ fontSize: '0.6rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.28)', marginBottom: '0.75rem', textAlign: 'left' }}>
+                  style={{ width: '100%', borderTop: '1px solid var(--pl-divider)', paddingTop: '1.1rem', marginTop: '0.25rem' }}>
+                  <div style={{
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.6rem',
+                    letterSpacing: '0.18em',
+                    textTransform: 'uppercase',
+                    color: 'var(--pl-muted)',
+                    marginBottom: '0.75rem',
+                    textAlign: 'left',
+                  }}>
                     Share with guests
                   </div>
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    {/* iMessage / SMS */}
-                    <motion.button
-                      whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.94 }}
+                    <ShareChip
                       onClick={() => { if (shareMsg) window.location.href = `sms:?body=${encodeURIComponent(shareMsg)}`; }}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', borderRadius: '8px', background: 'rgba(24,24,27,0.08)', border: '1px solid rgba(24,24,27,0.12)', color: '#18181B', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
-                      <Phone size={13} /> iMessage
-                    </motion.button>
-                    {/* WhatsApp */}
-                    <motion.button
-                      whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.94 }}
+                      Icon={Phone}
+                      label="iMessage"
+                    />
+                    <ShareChip
                       onClick={() => { if (shareMsg) window.open(`https://wa.me/?text=${encodeURIComponent(shareMsg)}`, '_blank'); }}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', borderRadius: '8px', background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.06)', color: '#18181B', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
-                      <MessageCircle size={13} /> WhatsApp
-                    </motion.button>
-                    {/* Email */}
-                    <motion.button
-                      whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.94 }}
+                      Icon={MessageCircle}
+                      label="WhatsApp"
+                    />
+                    <ShareChip
                       onClick={() => { if (publishedUrl) window.open(`mailto:?subject=${encodeURIComponent(`You're invited — ${displayNames}`)}&body=${encodeURIComponent(`View our site:\n${publishedUrl}`)}`); }}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', borderRadius: '8px', background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.06)', color: '#18181B', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
-                      <Mail size={13} /> Email
-                    </motion.button>
-                    {/* Copy link */}
-                    <motion.button
-                      whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.94 }}
+                      Icon={Mail}
+                      label="Email"
+                    />
+                    <ShareChip
                       onClick={handleCopyLink}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', borderRadius: '8px', background: shareCopied ? 'rgba(34,197,94,0.12)' : 'rgba(0,0,0,0.04)', border: shareCopied ? '1px solid rgba(34,197,94,0.25)' : '1px solid rgba(0,0,0,0.06)', color: shareCopied ? '#4ade80' : '#18181B', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, transition: 'all 0.2s' }}>
-                      {shareCopied ? <Check size={13} /> : <Copy size={13} />}
-                      {shareCopied ? 'Copied!' : 'Copy Link'}
-                    </motion.button>
+                      Icon={shareCopied ? Check : Copy}
+                      label={shareCopied ? 'Copied!' : 'Copy link'}
+                      active={shareCopied}
+                    />
                   </div>
-                  {/* RSVP link hint */}
                   {rsvpUrl && (
-                    <div style={{ marginTop: '0.75rem', fontSize: '0.65rem', color: 'rgba(255,255,255,0.28)', textAlign: 'left' }}>
-                      RSVP link: <span style={{ color: '#71717A', fontFamily: 'ui-monospace, monospace' }}>{rsvpUrl}</span>
+                    <div style={{
+                      marginTop: '0.75rem',
+                      fontSize: '0.65rem',
+                      color: 'var(--pl-muted)',
+                      textAlign: 'left',
+                      fontFamily: 'var(--pl-font-mono)',
+                      letterSpacing: '0.04em',
+                    }}>
+                      RSVP link: <span style={{ color: 'var(--pl-ink-soft)' }}>{rsvpUrl}</span>
                     </div>
                   )}
                 </motion.div>
               </motion.div>
             ) : (
               <motion.div key="url-picker" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <h2 style={{ fontFamily: 'inherit', fontSize: '1.8rem', color: '#fff', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>Choose Your URL</h2>
-                <p style={{ color: 'rgba(255,255,255,0.42)', marginBottom: '2rem', fontSize: '0.8rem' }}>Customize your site address — you can change it anytime.</p>
+                <h2 style={{
+                  fontFamily: 'var(--pl-font-display)',
+                  fontSize: 'clamp(1.5rem, 2.4vw, 1.9rem)',
+                  color: 'var(--pl-ink)',
+                  marginBottom: '0.5rem',
+                  letterSpacing: '-0.02em',
+                  fontWeight: 400,
+                  fontVariationSettings: '"opsz" 28, "SOFT" 70',
+                }}>
+                  Choose your <em style={{ fontStyle: 'italic', color: 'var(--pl-olive)' }}>URL</em>.
+                </h2>
+                <p style={{
+                  color: 'var(--pl-ink-soft)',
+                  marginBottom: '1.75rem',
+                  fontSize: '0.85rem',
+                  lineHeight: 1.5,
+                }}>
+                  Customize your site address — you can change it anytime.
+                </p>
                 {publishError && (
                   <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
                     role="alert"
-                    style={{ background: 'rgba(185,28,28,0.14)', border: '1px solid rgba(248,113,113,0.3)', color: '#fca5a5', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBottom: '1.25rem', fontSize: '0.8rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                    style={{
+                      background: 'color-mix(in oklab, var(--pl-plum) 12%, transparent)',
+                      border: '1px solid color-mix(in oklab, var(--pl-plum) 28%, transparent)',
+                      color: 'var(--pl-plum)',
+                      borderRadius: 12,
+                      padding: '0.75rem 1rem',
+                      marginBottom: '1.25rem',
+                      fontSize: '0.8rem',
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '0.5rem',
+                    }}>
                     <span style={{ flexShrink: 0 }}>⚠</span>
-                    <span style={{ flex: 1 }}>{publishError}</span>
-                    {/* Item 88: explicit Retry button so users don't have to
-                        re-click Publish after an error. */}
+                    <span style={{ flex: 1, textAlign: 'left' }}>{publishError}</span>
                     <motion.button
                       onClick={actions.handlePublishSubmit}
                       disabled={isPublishing}
@@ -1378,38 +1518,88 @@ function PublishModalInline() {
                       whileTap={!isPublishing ? { scale: 0.95 } : {}}
                       style={{
                         flexShrink: 0,
-                        padding: '2px 10px',
-                        borderRadius: '999px',
-                        background: 'rgba(248,113,113,0.18)',
-                        border: '1px solid rgba(248,113,113,0.4)',
-                        color: '#fca5a5',
+                        padding: '3px 10px',
+                        borderRadius: 999,
+                        background: 'color-mix(in oklab, var(--pl-plum) 18%, transparent)',
+                        border: '1px solid color-mix(in oklab, var(--pl-plum) 40%, transparent)',
+                        color: 'var(--pl-plum)',
                         cursor: isPublishing ? 'not-allowed' : 'pointer',
-                        fontSize: '0.7rem',
+                        fontSize: '0.65rem',
                         fontWeight: 700,
-                        letterSpacing: '0.02em',
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
                       }}
                     >
                       {isPublishing ? 'Retrying…' : 'Retry'}
                     </motion.button>
                   </motion.div>
                 )}
-                <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.05)', borderRadius: '0.85rem', border: '1px solid rgba(0,0,0,0.07)', overflow: 'hidden', marginBottom: '1.5rem', boxShadow: '0 2px 12px rgba(0,0,0,0.2) inset' }}>
-                  <div style={{ padding: '0.9rem 0.25rem 0.9rem 1rem', color: 'rgba(255,255,255,0.28)', fontSize: '0.8rem', whiteSpace: 'nowrap', background: 'rgba(24,24,27,0.03)' }}>pearloom.com/sites/</div>
+                <div style={{
+                  display: 'flex', alignItems: 'center',
+                  background: 'color-mix(in oklab, var(--pl-ink) 4%, transparent)',
+                  borderRadius: 12,
+                  border: '1px solid var(--pl-divider)',
+                  overflow: 'hidden',
+                  marginBottom: '1.5rem',
+                }}>
+                  <div style={{
+                    padding: '0.95rem 0.25rem 0.95rem 1rem',
+                    color: 'var(--pl-muted)',
+                    fontSize: '0.78rem',
+                    whiteSpace: 'nowrap',
+                    fontFamily: 'var(--pl-font-mono)',
+                  }}>
+                    pearloom.com/sites/
+                  </div>
                   <input value={subdomain} onChange={e => dispatch({ type: 'SET_SUBDOMAIN', subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
                     placeholder="shauna-and-ben" disabled={isPublishing} autoFocus
-                    style={{ flex: 1, padding: '0.9rem 1rem', background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '0.9rem', fontFamily: 'inherit' }} />
+                    style={{
+                      flex: 1,
+                      padding: '0.95rem 1rem 0.95rem 0',
+                      background: 'transparent',
+                      border: 'none', outline: 'none',
+                      color: 'var(--pl-ink)',
+                      fontSize: '0.92rem',
+                      fontFamily: 'var(--pl-font-mono)',
+                    }} />
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
                   <motion.button onClick={() => dispatch({ type: 'SET_SHOW_PUBLISH', show: false })} disabled={isPublishing}
-                    whileHover={{ scale: 1.03, backgroundColor: 'rgba(0,0,0,0.06)' }} whileTap={{ scale: 0.95 }}
-                    style={{ flex: 1, padding: '0.9rem', borderRadius: '10px 10px 22px 22px', background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', color: '#18181B', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem' }}>
+                    whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }}
+                    style={{
+                      flex: 1, padding: '0.95rem',
+                      borderRadius: 999,
+                      background: 'transparent',
+                      border: '1px solid var(--pl-divider)',
+                      color: 'var(--pl-ink-soft)',
+                      cursor: 'pointer',
+                      fontWeight: 700, fontSize: '0.72rem',
+                      letterSpacing: '0.1em', textTransform: 'uppercase',
+                    }}>
                     Cancel
                   </motion.button>
                   <motion.button onClick={actions.handlePublishSubmit} disabled={isPublishing || !subdomain}
-                    whileHover={!isPublishing && subdomain ? { scale: 1.04, boxShadow: '0 6px 24px #A1A1AA' } : {}}
-                    whileTap={!isPublishing && subdomain ? { scale: 0.95 } : {}}
-                    style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '0.9rem', borderRadius: '10px 10px 22px 22px', background: 'linear-gradient(135deg, #71717A 0%, #8a9d72 100%)', color: 'var(--pl-cream, #F5F1E8)', border: 'none', cursor: isPublishing || !subdomain ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: '0.8rem', opacity: isPublishing || !subdomain ? 0.65 : 1, boxShadow: '0 3px 12px #E4E4E7' }}>
-                    {isPublishing ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Publishing…</> : <><Globe size={14} /> Publish Site</>}
+                    whileHover={!isPublishing && subdomain ? { y: -1 } : {}}
+                    whileTap={!isPublishing && subdomain ? { scale: 0.97 } : {}}
+                    style={{
+                      flex: 2,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      padding: '0.95rem',
+                      borderRadius: 999,
+                      background: 'var(--pl-ink)',
+                      color: 'var(--pl-cream)',
+                      border: 'none',
+                      cursor: isPublishing || !subdomain ? 'not-allowed' : 'pointer',
+                      fontWeight: 700, fontSize: '0.72rem',
+                      letterSpacing: '0.12em', textTransform: 'uppercase',
+                      opacity: isPublishing || !subdomain ? 0.55 : 1,
+                      boxShadow: !subdomain || isPublishing
+                        ? 'none'
+                        : '0 4px 18px color-mix(in oklab, var(--pl-olive) 30%, transparent)',
+                    }}>
+                    {isPublishing
+                      ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Publishing…</>
+                      : <><Globe size={14} /> Publish site</>}
                   </motion.button>
                 </div>
               </motion.div>
@@ -1418,6 +1608,47 @@ function PublishModalInline() {
         </motion.div>
       </motion.div>
     </AnimatePresence>
+  );
+}
+
+interface ShareChipProps {
+  onClick: () => void;
+  Icon: React.ComponentType<{ size?: number }>;
+  label: string;
+  active?: boolean;
+}
+
+function ShareChip({ onClick, Icon, label, active = false }: ShareChipProps) {
+  return (
+    <motion.button
+      onClick={onClick}
+      whileHover={{ y: -1 }}
+      whileTap={{ scale: 0.96 }}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: '8px 12px',
+        borderRadius: 999,
+        background: active
+          ? 'color-mix(in oklab, var(--pl-olive) 16%, transparent)'
+          : 'var(--pl-cream-card)',
+        border: `1px solid ${active
+          ? 'color-mix(in oklab, var(--pl-olive) 40%, transparent)'
+          : 'var(--pl-divider)'}`,
+        color: active ? 'var(--pl-olive)' : 'var(--pl-ink-soft)',
+        cursor: 'pointer',
+        fontSize: '0.72rem',
+        fontWeight: 600,
+        letterSpacing: '0.04em',
+        fontFamily: 'var(--pl-font-mono)',
+        textTransform: 'uppercase',
+        transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
+      }}
+    >
+      <Icon size={13} />
+      <span>{label}</span>
+    </motion.button>
   );
 }
 

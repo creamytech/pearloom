@@ -1372,11 +1372,11 @@ export function EditorCanvas() {
             // Actionable toasts need pointer events so Undo is clickable.
             pointerEvents: undoToastAction ? 'auto' : 'none',
             padding: '6px 16px', borderRadius: '8px',
-            background: 'rgba(250,247,242,0.92)',
+            background: 'color-mix(in oklab, var(--pl-cream-card) 92%, transparent)',
             backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-            border: '1px solid #E4E4E7',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
-            fontSize: '0.65rem', fontWeight: 600, color: '#18181B',
+            border: '1px solid var(--pl-divider)',
+            boxShadow: '0 4px 16px color-mix(in oklab, var(--pl-ink) 10%, transparent)',
+            fontSize: '0.65rem', fontWeight: 600, color: 'var(--pl-ink)',
             whiteSpace: 'nowrap',
             display: 'flex', alignItems: 'center', gap: '10px',
           } as React.CSSProperties}
@@ -1395,7 +1395,7 @@ export function EditorCanvas() {
                 border: 'none', background: 'transparent',
                 padding: '2px 8px', borderRadius: '6px',
                 fontSize: '0.65rem', fontWeight: 700,
-                color: '#7A3E62', cursor: 'pointer',
+                color: 'var(--pl-plum)', cursor: 'pointer',
                 textTransform: 'uppercase', letterSpacing: '0.04em',
               }}
             >
@@ -1410,7 +1410,7 @@ export function EditorCanvas() {
         <div style={{
           position: 'absolute', top: '56px', left: '50%', transform: 'translateX(-50%)',
           zIndex: 200, padding: '4px 12px', borderRadius: '8px',
-          background: '#18181B', color: 'white',
+          background: 'var(--pl-ink)', color: 'var(--pl-cream)',
           fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
         }}>
           Panning — release Space to stop

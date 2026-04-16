@@ -386,10 +386,10 @@ export function HeirloomArchive({ entries = [], onStartCurator }: HeirloomArchiv
         <InventorySyncCard lastSynced="4 minutes ago" />
         <Card variant="elevated" padding="md">
           <div style={{
-            background: 'linear-gradient(135deg, var(--pl-gold), #b89a5a)',
+            background: 'linear-gradient(135deg, var(--pl-gold), color-mix(in oklab, var(--pl-gold) 70%, var(--pl-ink)))',
             borderRadius: '12px',
             padding: '20px',
-            color: 'white',
+            color: 'var(--pl-cream)',
           }}>
             <p style={{
               fontSize: '0.62rem', fontWeight: 700,

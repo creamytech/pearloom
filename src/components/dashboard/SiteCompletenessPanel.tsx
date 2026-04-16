@@ -46,7 +46,7 @@ function ProgressRing({ score, size = 72 }: { score: number; size?: number }) {
   const dash = (score / 100) * circ;
   const is100 = score === 100;
 
-  const color = is100 ? 'var(--pl-gold, #D6C6A8)' : score >= 80 ? 'var(--pl-olive, #A3B18A)' : score >= 50 ? 'var(--pl-gold, #D6C6A8)' : 'var(--pl-plum, #6D597A)';
+  const color = is100 ? 'var(--pl-gold)' : score >= 80 ? 'var(--pl-olive)' : score >= 50 ? 'var(--pl-gold)' : 'var(--pl-plum)';
   const glowControls = useAnimation();
 
   useEffect(() => {
@@ -145,7 +145,7 @@ function CelebrationSparkles() {
             height: p.size,
             marginLeft: -p.size / 2,
             marginTop: -p.size / 2,
-            color: 'var(--pl-gold, #D6C6A8)',
+            color: 'var(--pl-gold)',
             fontSize: p.size,
             lineHeight: 1,
           }}
@@ -231,8 +231,8 @@ function MilestoneRow({
         {/* Status icon */}
         <div style={{ flexShrink: 0, width: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {milestone.done
-            ? <CheckCircle2 size={18} color="#A3B18A" />
-            : <Circle size={18} color="rgba(0,0,0,0.18)" />
+            ? <CheckCircle2 size={18} color="var(--pl-olive)" />
+            : <Circle size={18} color="var(--pl-muted)" />
           }
         </div>
 
@@ -242,7 +242,7 @@ function MilestoneRow({
           background: milestone.done ? 'rgba(163,177,138,0.12)' : 'rgba(0,0,0,0.04)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <Icon size={13} color={milestone.done ? '#A3B18A' : 'rgba(0,0,0,0.3)'} />
+          <Icon size={13} color={milestone.done ? 'var(--pl-olive)' : 'var(--pl-muted)'} />
         </div>
 
         {/* Labels */}
@@ -270,8 +270,8 @@ function MilestoneRow({
               background: expanded ? 'rgba(163,177,138,0.15)' : 'rgba(163,177,138,0.08)',
               border: '1px solid rgba(163,177,138,0.2)',
             }}>
-              <Sparkles size={10} color="var(--pl-olive, #A3B18A)" />
-              <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)', letterSpacing: '0.06em' }}>
+              <Sparkles size={10} color="var(--pl-olive)" />
+              <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--pl-olive)', letterSpacing: '0.06em' }}>
                 AI Write
               </span>
             </div>
@@ -310,9 +310,9 @@ function MilestoneRow({
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                    style={{ width: '14px', height: '14px', border: '2px solid rgba(163,177,138,0.3)', borderTopColor: 'var(--pl-olive, #A3B18A)', borderRadius: '50%' }}
+                    style={{ width: '14px', height: '14px', border: '2px solid rgba(163,177,138,0.3)', borderTopColor: 'var(--pl-olive)', borderRadius: '50%' }}
                   />
-                  <span style={{ fontSize: '0.75rem', color: 'var(--pl-olive, #A3B18A)', fontStyle: 'italic' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--pl-olive)', fontStyle: 'italic' }}>
                     Crafting your suggestion…
                   </span>
                 </div>
@@ -332,8 +332,8 @@ function MilestoneRow({
                       style={{
                         display: 'flex', alignItems: 'center', gap: '5px',
                         padding: '5px 12px', borderRadius: '6px', border: 'none',
-                        background: applied ? 'var(--pl-olive, #A3B18A)' : 'linear-gradient(135deg, #A3B18A, #8FA876)',
-                        color: '#fff', fontSize: '0.7rem', fontWeight: 700,
+                        background: applied ? 'var(--pl-olive)' : 'linear-gradient(135deg, var(--pl-olive), color-mix(in oklab, var(--pl-olive) 75%, var(--pl-ink)))',
+                        color: 'var(--pl-cream)', fontSize: '0.7rem', fontWeight: 700,
                         cursor: applied ? 'default' : 'pointer', transition: 'all 0.2s',
                       }}
                     >
@@ -344,7 +344,7 @@ function MilestoneRow({
                       style={{
                         padding: '5px 10px', borderRadius: '6px',
                         border: '1px solid rgba(163,177,138,0.2)',
-                        background: 'transparent', color: 'var(--pl-olive, #A3B18A)',
+                        background: 'transparent', color: 'var(--pl-olive)',
                         fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer',
                       }}
                     >
@@ -476,7 +476,7 @@ export function SiteCompletenessPanel({
 
   // ── Compact mode (badge in site card) ──────────────────────
   if (compact) {
-    const scoreColor = score >= 80 ? 'var(--pl-olive, #A3B18A)' : score >= 50 ? 'var(--pl-gold, #D6C6A8)' : 'var(--pl-plum, #6D597A)';
+    const scoreColor = score >= 80 ? 'var(--pl-olive)' : score >= 50 ? 'var(--pl-gold)' : 'var(--pl-plum)';
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {/* Mini progress bar */}
@@ -537,8 +537,8 @@ export function SiteCompletenessPanel({
           </div>
           {incomplete.length > 0 ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '3px' }}>
-              <Sparkles size={11} color="var(--pl-olive, #A3B18A)" />
-              <span style={{ fontSize: '0.68rem', color: 'var(--pl-olive, #A3B18A)', fontWeight: 600 }}>
+              <Sparkles size={11} color="var(--pl-olive)" />
+              <span style={{ fontSize: '0.68rem', color: 'var(--pl-olive)', fontWeight: 600 }}>
                 {incomplete.filter(m => m.suggestionField).length} AI suggestions available
               </span>
             </div>
@@ -557,7 +557,7 @@ export function SiteCompletenessPanel({
                 style={{
                   fontSize: '0.68rem',
                   fontWeight: 700,
-                  background: 'linear-gradient(90deg, #A3B18A, #D6C6A8, #C9A96E, #A3B18A)',
+                  background: 'linear-gradient(90deg, var(--pl-olive), var(--pl-gold), color-mix(in oklab, var(--pl-gold) 80%, var(--pl-ink)), var(--pl-olive))',
                   backgroundSize: '300% 100%',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',

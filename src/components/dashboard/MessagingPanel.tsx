@@ -191,7 +191,7 @@ export function MessagingPanel({ siteId, manifest }: MessagingPanelProps) {
                     ? 'rgba(163,177,138,0.2)'
                     : 'rgba(163,177,138,0.06)',
                   color: isActive
-                    ? 'var(--pl-olive, #A3B18A)'
+                    ? 'var(--pl-olive)'
                     : 'var(--pl-ink-soft)',
                   fontSize: '0.8rem',
                   fontWeight: isActive ? 600 : 400,
@@ -233,7 +233,7 @@ export function MessagingPanel({ siteId, manifest }: MessagingPanelProps) {
               background: 'rgba(163,177,138,0.12)',
               border: '1px solid rgba(163,177,138,0.25)',
               borderRadius: '100px',
-              color: '#A3B18A',
+              color: 'var(--pl-olive)',
               fontSize: '0.72rem',
               fontWeight: 600,
               letterSpacing: '0.05em',
@@ -307,7 +307,7 @@ export function MessagingPanel({ siteId, manifest }: MessagingPanelProps) {
               ✓
             </motion.span>
             <div>
-              <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600, color: '#A3B18A' }}>
+              <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600, color: 'var(--pl-olive)' }}>
                 Sent to {result.sent} guest{result.sent !== 1 ? 's' : ''}
               </p>
               {(result.failed > 0 || result.skipped > 0) && (
@@ -335,9 +335,9 @@ export function MessagingPanel({ siteId, manifest }: MessagingPanelProps) {
           borderRadius: '0.75rem',
           border: 'none',
           background: sending
-            ? 'rgba(0,0,0,0.06)'
-            : 'linear-gradient(135deg, #A3B18A 0%, #7A917A 50%, #6D597A 100%)',
-          color: sending ? 'var(--pl-muted)' : 'white',
+            ? 'color-mix(in oklab, var(--pl-ink) 6%, transparent)'
+            : 'linear-gradient(135deg, var(--pl-olive) 0%, color-mix(in oklab, var(--pl-olive) 70%, var(--pl-plum)) 50%, var(--pl-plum) 100%)',
+          color: sending ? 'var(--pl-muted)' : 'var(--pl-cream)',
           fontWeight: 700,
           fontSize: '0.9rem',
           letterSpacing: '0.03em',

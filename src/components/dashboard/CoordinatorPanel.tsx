@@ -216,7 +216,7 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
                   transition={{ duration: 0.15 }}
                   style={{
                     position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
-                    background: '#2A2520', border: '1px solid rgba(0,0,0,0.07)',
+                    background: 'var(--pl-cream-card)', border: '1px solid var(--pl-divider)',
                     borderRadius: '0.625rem', zIndex: 50, overflow: 'hidden',
                   }}
                 >
@@ -264,8 +264,8 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
               padding: '0.7rem 1.25rem', borderRadius: '0.625rem', border: 'none',
               background: sending || !email.trim()
                 ? 'rgba(163,177,138,0.3)'
-                : 'linear-gradient(135deg, #A3B18A 0%, #8a9d72 100%)',
-              color: 'var(--pl-ink-soft)', cursor: sending || !email.trim() ? 'not-allowed' : 'pointer',
+                : 'linear-gradient(135deg, var(--pl-olive) 0%, color-mix(in oklab, var(--pl-olive) 75%, var(--pl-ink)) 100%)',
+              color: 'var(--pl-cream)', cursor: sending || !email.trim() ? 'not-allowed' : 'pointer',
               fontSize: '0.85rem', fontWeight: 700,
               fontFamily: 'var(--pl-font-body, Georgia, serif)',
               transition: 'background 0.2s',
@@ -280,7 +280,7 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
           {error && (
             <motion.p
               initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              style={{ margin: '0.75rem 0 0', fontSize: '0.78rem', color: '#f87171' }}
+              style={{ margin: '0.75rem 0 0', fontSize: '0.78rem', color: 'var(--pl-plum)' }}
             >
               {error}
             </motion.p>
@@ -288,7 +288,7 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
           {successMsg && (
             <motion.p
               initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              style={{ margin: '0.75rem 0 0', fontSize: '0.78rem', color: '#86efac' }}
+              style={{ margin: '0.75rem 0 0', fontSize: '0.78rem', color: 'var(--pl-olive)' }}
             >
               {successMsg}
             </motion.p>
@@ -354,7 +354,7 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
                       flexShrink: 0,
                     }}>
                       {isAccepted
-                        ? <UserCheck size={14} color="#86efac" />
+                        ? <UserCheck size={14} color="var(--pl-olive)" />
                         : <Clock size={14} color={isExpired ? 'var(--pl-muted)' : 'rgba(163,177,138,0.8)'} />
                       }
                     </div>
@@ -377,7 +377,7 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
                         <span style={{ fontSize: '0.65rem', color: 'var(--pl-muted)' }}>·</span>
                         <span style={{
                           fontSize: '0.65rem',
-                          color: isAccepted ? '#86efac' : isExpired ? '#f87171' : 'var(--pl-muted)',
+                          color: isAccepted ? 'var(--pl-olive)' : isExpired ? '#f87171' : 'var(--pl-muted)',
                         }}>
                           {isAccepted ? 'Accepted' : isExpired ? 'Expired' : formatExpiry(invite.expiresAt)}
                         </span>
@@ -399,7 +399,7 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
                           onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(163,177,138,0.06)'; }}
                         >
                           {copiedId === invite.id
-                            ? <Check size={12} color="#86efac" />
+                            ? <Check size={12} color="var(--pl-olive)" />
                             : <Copy size={12} color="rgba(255,255,255,0.45)" />
                           }
                         </button>

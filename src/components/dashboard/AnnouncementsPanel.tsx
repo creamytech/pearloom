@@ -118,8 +118,8 @@ export function AnnouncementsPanel({ siteId }: { siteId: string }) {
       {/* Composer */}
       <div style={{
         padding: '1rem 1.25rem',
-        background: '#FFFFFF',
-        border: '1px solid #EEE8DC',
+        background: 'var(--pl-cream-card)',
+        border: '1px solid var(--pl-divider)',
         borderRadius: '0.75rem',
         marginBottom: '1.5rem',
       }}>
@@ -131,7 +131,7 @@ export function AnnouncementsPanel({ siteId }: { siteId: string }) {
           style={{
             width: '100%',
             padding: '0.75rem',
-            border: '1px solid #EEE8DC',
+            border: '1px solid var(--pl-divider)',
             borderRadius: '0.5rem',
             fontSize: '0.95rem',
             fontFamily: 'inherit',
@@ -143,7 +143,7 @@ export function AnnouncementsPanel({ siteId }: { siteId: string }) {
           display: 'flex',
           justifyContent: 'flex-end',
           fontSize: '0.75rem',
-          color: remaining < 0 ? '#B94A4A' : '#9A9488',
+          color: remaining < 0 ? 'var(--pl-plum)' : 'var(--pl-muted)',
           marginTop: '0.25rem',
         }}>
           {remaining} left
@@ -186,7 +186,7 @@ export function AnnouncementsPanel({ siteId }: { siteId: string }) {
 
         {error && (
           <div style={{
-            color: '#B94A4A',
+            color: 'var(--pl-plum)',
             fontSize: '0.85rem',
             marginTop: '0.75rem',
           }}>
@@ -201,8 +201,8 @@ export function AnnouncementsPanel({ siteId }: { siteId: string }) {
             disabled={submitting || !body.trim()}
             style={{
               padding: '0.6rem 1.25rem',
-              background: submitting || !body.trim() ? '#CFC9BC' : '#A3B18A',
-              color: '#FFFFFF',
+              background: submitting || !body.trim() ? 'var(--pl-muted)' : 'var(--pl-olive)',
+              color: 'var(--pl-cream)',
               border: 'none',
               borderRadius: '999px',
               fontSize: '0.9rem',
@@ -223,7 +223,7 @@ export function AnnouncementsPanel({ siteId }: { siteId: string }) {
           fontSize: '0.85rem',
           textTransform: 'uppercase',
           letterSpacing: '0.08em',
-          color: '#9A9488',
+          color: 'var(--pl-muted)',
         }}>
           Recent
         </h4>
@@ -245,10 +245,10 @@ export function AnnouncementsPanel({ siteId }: { siteId: string }) {
         }}>
           {list.map((a) => {
             const status = a.sent_at
-              ? { label: 'Sent', color: '#A3B18A' }
+              ? { label: 'Sent', color: 'var(--pl-olive)' }
               : a.scheduled_for
-              ? { label: `Scheduled`, color: '#C4A96A' }
-              : { label: 'Draft', color: '#9A9488' };
+              ? { label: `Scheduled`, color: 'var(--pl-gold)' }
+              : { label: 'Draft', color: 'var(--pl-muted)' };
             const when = a.sent_at
               ? new Date(a.sent_at).toLocaleString()
               : a.scheduled_for
@@ -259,8 +259,8 @@ export function AnnouncementsPanel({ siteId }: { siteId: string }) {
                 key={a.id}
                 style={{
                   padding: '0.85rem 1.1rem',
-                  background: '#FFFFFF',
-                  border: '1px solid #EEE8DC',
+                  background: 'var(--pl-cream-card)',
+                  border: '1px solid var(--pl-divider)',
                   borderRadius: '0.6rem',
                 }}
               >
@@ -278,7 +278,7 @@ export function AnnouncementsPanel({ siteId }: { siteId: string }) {
                       borderRadius: '999px',
                       fontSize: '0.7rem',
                       fontWeight: 600,
-                      background: `${status.color}22`,
+                      background: `color-mix(in oklab, ${status.color} 14%, transparent)`,
                       color: status.color,
                       textTransform: 'uppercase',
                       letterSpacing: '0.06em',
@@ -315,14 +315,14 @@ const labelText: React.CSSProperties = {
   fontSize: '0.7rem',
   textTransform: 'uppercase',
   letterSpacing: '0.08em',
-  color: '#9A9488',
+  color: 'var(--pl-muted)',
 };
 
 const selectStyle: React.CSSProperties = {
   padding: '0.5rem 0.6rem',
-  border: '1px solid #EEE8DC',
+  border: '1px solid var(--pl-divider)',
   borderRadius: '0.4rem',
   fontSize: '0.85rem',
   fontFamily: 'inherit',
-  background: '#FAF7F0',
+  background: 'var(--pl-cream)',
 };

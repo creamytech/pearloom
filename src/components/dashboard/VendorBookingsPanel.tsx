@@ -27,13 +27,13 @@ interface Booking {
 }
 
 const STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
-  inquiry: { bg: '#F0EBE0', fg: '#6B7F5E' },
-  proposal_sent: { bg: '#FDF6E3', fg: '#C4A96A' },
-  accepted: { bg: '#E9F1E1', fg: '#6B7F5E' },
-  deposit_paid: { bg: '#DFEAD6', fg: '#3F5233' },
-  paid: { bg: '#DFEAD6', fg: '#3F5233' },
-  completed: { bg: '#D4E5C6', fg: '#334A24' },
-  cancelled: { bg: '#FFE5E5', fg: '#B94A4A' },
+  inquiry:       { bg: 'color-mix(in oklab, var(--pl-cream-card) 70%, var(--pl-olive))',     fg: 'var(--pl-olive)' },
+  proposal_sent: { bg: 'color-mix(in oklab, var(--pl-gold) 18%, transparent)',                fg: 'var(--pl-gold)' },
+  accepted:      { bg: 'color-mix(in oklab, var(--pl-olive) 14%, transparent)',               fg: 'var(--pl-olive)' },
+  deposit_paid:  { bg: 'color-mix(in oklab, var(--pl-olive) 22%, transparent)',               fg: 'color-mix(in oklab, var(--pl-olive) 70%, var(--pl-ink))' },
+  paid:          { bg: 'color-mix(in oklab, var(--pl-olive) 22%, transparent)',               fg: 'color-mix(in oklab, var(--pl-olive) 70%, var(--pl-ink))' },
+  completed:     { bg: 'color-mix(in oklab, var(--pl-olive) 28%, transparent)',               fg: 'color-mix(in oklab, var(--pl-olive) 50%, var(--pl-ink))' },
+  cancelled:     { bg: 'color-mix(in oklab, var(--pl-plum) 14%, transparent)',                fg: 'var(--pl-plum)' },
 };
 
 function dollars(cents: number | null): string {
@@ -97,7 +97,7 @@ export function VendorBookingsPanel({ siteId }: { siteId: string }) {
           href="/marketplace?tab=vendors"
           style={{
             fontSize: '0.75rem',
-            color: '#6B7F5E',
+            color: 'var(--pl-olive)',
             textDecoration: 'none',
             fontWeight: 600,
           }}
@@ -106,20 +106,20 @@ export function VendorBookingsPanel({ siteId }: { siteId: string }) {
         </a>
       </div>
 
-      {error && <div style={{ padding: '0.6rem', color: '#B94A4A', fontSize: '0.85rem' }}>{error}</div>}
+      {error && <div style={{ padding: '0.6rem', color: 'var(--pl-plum)', fontSize: '0.85rem' }}>{error}</div>}
       {loading && <div style={{ opacity: 0.6, fontSize: '0.9rem' }}>Loading…</div>}
       {!loading && bookings.length === 0 && (
         <div style={{
           padding: '1.5rem',
-          background: '#FFFFFF',
-          border: '1px dashed #EEE8DC',
+          background: 'var(--pl-cream-card)',
+          border: '1px dashed var(--pl-divider)',
           borderRadius: '0.75rem',
           textAlign: 'center',
         }}>
-          <p style={{ margin: 0, marginBottom: '0.5rem', fontSize: '0.9rem', color: '#3D3530' }}>
+          <p style={{ margin: 0, marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--pl-ink-soft)' }}>
             No bookings yet.
           </p>
-          <p style={{ margin: 0, fontSize: '0.78rem', color: '#9A9488' }}>
+          <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--pl-muted)' }}>
             Start inquiries from the marketplace or let the Director agent suggest vendors.
           </p>
         </div>
@@ -133,8 +133,8 @@ export function VendorBookingsPanel({ siteId }: { siteId: string }) {
           return (
             <li key={b.id} style={{
               padding: '1rem 1.25rem',
-              background: '#FFFFFF',
-              border: '1px solid #EEE8DC',
+              background: 'var(--pl-cream-card)',
+              border: '1px solid var(--pl-divider)',
               borderRadius: '0.75rem',
             }}>
               <div style={{
@@ -148,7 +148,7 @@ export function VendorBookingsPanel({ siteId }: { siteId: string }) {
                   <div style={{ fontWeight: 600 }}>
                     {b.vendor?.name ?? 'Vendor'}
                   </div>
-                  <div style={{ fontSize: '0.72rem', color: '#9A9488', textTransform: 'capitalize' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', textTransform: 'capitalize' }}>
                     {b.vendor?.category ?? '—'}
                     {b.vendor?.city ? ` · ${b.vendor.city}` : ''}
                   </div>
@@ -172,7 +172,7 @@ export function VendorBookingsPanel({ siteId }: { siteId: string }) {
                 gridTemplateColumns: 'repeat(3, 1fr)',
                 gap: '0.5rem',
                 fontSize: '0.78rem',
-                color: '#3D3530',
+                color: 'var(--pl-ink-soft)',
                 marginBottom: b.notes ? '0.6rem' : '0.8rem',
               }}>
                 <div>
@@ -207,8 +207,8 @@ export function VendorBookingsPanel({ siteId }: { siteId: string }) {
                   disabled={checkingOut === b.id}
                   style={{
                     padding: '0.5rem 1.1rem',
-                    background: checkingOut === b.id ? '#CFC9BC' : '#A3B18A',
-                    color: '#FFFFFF',
+                    background: checkingOut === b.id ? 'var(--pl-muted)' : 'var(--pl-olive)',
+                    color: 'var(--pl-cream)',
                     border: 'none',
                     borderRadius: '999px',
                     fontSize: '0.78rem',
@@ -231,7 +231,7 @@ const metaLabel: React.CSSProperties = {
   fontSize: '0.6rem',
   textTransform: 'uppercase',
   letterSpacing: '0.08em',
-  color: '#9A9488',
+  color: 'var(--pl-muted)',
   marginBottom: '0.15rem',
 };
 const metaValue: React.CSSProperties = {

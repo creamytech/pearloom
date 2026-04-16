@@ -149,9 +149,9 @@ export function SiteSharePanel({
           style={{
             display: 'flex', alignItems: 'center', gap: '0.3rem',
             padding: '0.4rem 0.8rem', borderRadius: '0.4rem', flexShrink: 0,
-            background: copied === type ? 'rgba(34,197,94,0.1)' : 'var(--pl-olive)',
-            color:      copied === type ? 'var(--pl-olive)'             : '#fff',
-            border:     copied === type ? '1px solid rgba(34,197,94,0.2)' : 'none',
+            background: copied === type ? 'color-mix(in oklab, var(--pl-olive) 14%, transparent)' : 'var(--pl-olive)',
+            color:      copied === type ? 'var(--pl-olive)'             : 'var(--pl-cream)',
+            border:     copied === type ? '1px solid color-mix(in oklab, var(--pl-olive) 28%, transparent)' : 'none',
             cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
             fontFamily: 'var(--pl-font-body)',
           }}
@@ -178,7 +178,7 @@ export function SiteSharePanel({
         background: primary ? 'var(--pl-olive)' : 'rgba(255,255,255,0.35)',
         backdropFilter: primary ? 'none' : 'blur(8px)',
         WebkitBackdropFilter: primary ? 'none' : 'blur(8px)',
-        color:      primary ? '#fff'         : 'var(--pl-ink)',
+        color:      primary ? 'var(--pl-cream)' : 'var(--pl-ink)',
         border:     primary ? 'none'         : '1px solid rgba(255,255,255,0.4)',
         cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600,
         fontFamily: 'var(--pl-font-body)', whiteSpace: 'nowrap',

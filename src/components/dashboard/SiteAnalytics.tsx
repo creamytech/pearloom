@@ -14,16 +14,18 @@ import type { StoryManifest } from '@/types';
 import { buildSiteUrl } from '@/lib/site-urls';
 
 // ── Brand palette ──────────────────────────────────────────────
+// All values resolve to design tokens defined in globals.css. Names retained
+// as semantic aliases (sage, gold, etc.) for legibility at call sites.
 const C = {
-  ivory:    '#F5F1E8',
-  gold:     '#D6C6A8',
-  sage:     '#A3B18A',
-  espresso: '#3D3530',
-  muted:    '#9A8F87',
-  red:      '#C0574E',
-  white:    '#FFFFFF',
-  border:   'rgba(61,53,48,0.08)',
-  shadow:   '0 2px 14px rgba(61,53,48,0.06)',
+  ivory:    'var(--pl-cream)',
+  gold:     'var(--pl-gold)',
+  sage:     'var(--pl-olive)',
+  espresso: 'var(--pl-ink-soft)',
+  muted:    'var(--pl-muted)',
+  red:      'var(--pl-plum)',
+  white:    'var(--pl-cream-card)',
+  border:   'var(--pl-divider)',
+  shadow:   '0 2px 14px color-mix(in oklab, var(--pl-ink) 8%, transparent)',
 };
 
 // ── Shared card wrapper ────────────────────────────────────────
@@ -217,7 +219,7 @@ export function SiteAnalytics({ manifest, coupleNames, onEdit, onShare }: SiteAn
           label="Photos"
           value={totalPhotos}
           sub={`across ${chapters.length} chapter${chapters.length !== 1 ? 's' : ''}`}
-          color="#E09B6A"
+          color="var(--pl-gold)"
           delay={0.12}
         />
         <StatCard
@@ -243,7 +245,7 @@ export function SiteAnalytics({ manifest, coupleNames, onEdit, onShare }: SiteAn
             {/* Segmented bar */}
             <div style={{
               display: 'flex', height: '8px', borderRadius: '100px', overflow: 'hidden',
-              background: 'rgba(0,0,0,0.05)', gap: '1px',
+              background: 'color-mix(in oklab, var(--pl-ink) 6%, transparent)', gap: '1px',
             }}>
               {attendingPct > 0 && (
                 <motion.div
@@ -266,7 +268,7 @@ export function SiteAnalytics({ manifest, coupleNames, onEdit, onShare }: SiteAn
                   initial={{ width: 0 }}
                   animate={{ width: `${awaitingPct}%` }}
                   transition={{ duration: 0.9, ease: 'easeOut', delay: 0.5 }}
-                  style={{ height: '100%', background: '#C8BFB9', borderRadius: '0 100px 100px 0' }}
+                  style={{ height: '100%', background: 'color-mix(in oklab, var(--pl-muted) 60%, var(--pl-cream))', borderRadius: '0 100px 100px 0' }}
                 />
               )}
             </div>
@@ -276,7 +278,7 @@ export function SiteAnalytics({ manifest, coupleNames, onEdit, onShare }: SiteAn
               {[
                 { label: 'Attending', count: attending, color: C.sage },
                 { label: 'Declining', count: declined,  color: C.red },
-                { label: 'Awaiting',  count: awaiting,  color: '#C8BFB9' },
+                { label: 'Awaiting',  count: awaiting,  color: 'color-mix(in oklab, var(--pl-muted) 60%, var(--pl-cream))' },
               ].map((item) => (
                 <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                   <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: item.color, flexShrink: 0 }} />
@@ -306,7 +308,7 @@ export function SiteAnalytics({ manifest, coupleNames, onEdit, onShare }: SiteAn
                 {extraGuests > 0 && (
                   <span style={{
                     fontSize: '0.72rem', padding: '0.2rem 0.65rem',
-                    borderRadius: '100px', background: 'rgba(0,0,0,0.04)',
+                    borderRadius: '100px', background: 'color-mix(in oklab, var(--pl-ink) 5%, transparent)',
                     color: C.muted, fontWeight: 500,
                   }}>
                     +{extraGuests} more

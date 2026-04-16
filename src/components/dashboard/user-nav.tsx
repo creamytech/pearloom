@@ -56,7 +56,7 @@ function Avatar({ user, size = 'md' }: { user: UserNavProps['user']; size?: 'sm'
     );
   }
   return (
-    <div className={cn(dim, 'rounded-full bg-gradient-to-br from-[var(--pl-olive)] to-[#7A9170] text-white flex items-center justify-center font-bold flex-shrink-0')}>
+    <div className={cn(dim, 'rounded-full bg-gradient-to-br from-[var(--pl-olive)] to-[color-mix(in_oklab,var(--pl-olive)_60%,var(--pl-cream))] text-[var(--pl-cream)] flex items-center justify-center font-bold flex-shrink-0')}>
       {user.name ? user.name.charAt(0).toUpperCase() : <User size={13} />}
     </div>
   );

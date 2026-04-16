@@ -80,8 +80,8 @@ export function VoiceToastsPanel({ siteId }: { siteId: string }) {
                 borderRadius: '999px',
                 border: 'none',
                 cursor: 'pointer',
-                background: tab === t ? '#2B2B2B' : '#F0EBE0',
-                color: tab === t ? '#FFFFFF' : '#3D3530',
+                background: tab === t ? 'var(--pl-ink)' : 'color-mix(in oklab, var(--pl-cream-card) 60%, transparent)',
+                color: tab === t ? 'var(--pl-cream)' : 'var(--pl-ink-soft)',
                 textTransform: 'capitalize',
               }}
             >
@@ -92,7 +92,7 @@ export function VoiceToastsPanel({ siteId }: { siteId: string }) {
       </div>
 
       {error && (
-        <div style={{ padding: '0.75rem', color: '#B94A4A', fontSize: '0.85rem' }}>{error}</div>
+        <div style={{ padding: '0.75rem', color: 'var(--pl-plum)', fontSize: '0.85rem' }}>{error}</div>
       )}
 
       {loading && <div style={{ opacity: 0.6, fontSize: '0.9rem' }}>Loading…</div>}
@@ -107,8 +107,8 @@ export function VoiceToastsPanel({ siteId }: { siteId: string }) {
             key={t.id}
             style={{
               padding: '1rem 1.25rem',
-              background: '#FFFFFF',
-              border: '1px solid #EEE8DC',
+              background: 'var(--pl-cream-card)',
+              border: '1px solid var(--pl-divider)',
               borderRadius: '0.75rem',
             }}
           >
@@ -133,7 +133,7 @@ export function VoiceToastsPanel({ siteId }: { siteId: string }) {
                 <button
                   type="button"
                   onClick={() => moderate(t.id, 'approved')}
-                  style={btn('#A3B18A', '#FFFFFF')}
+                  style={btn('var(--pl-olive)', 'var(--pl-cream)')}
                 >
                   Approve
                 </button>
@@ -142,7 +142,7 @@ export function VoiceToastsPanel({ siteId }: { siteId: string }) {
                 <button
                   type="button"
                   onClick={() => moderate(t.id, 'rejected')}
-                  style={btn('#FFF0F0', '#B94A4A')}
+                  style={btn('color-mix(in oklab, var(--pl-plum) 12%, transparent)', 'var(--pl-plum)')}
                 >
                   Reject
                 </button>
@@ -151,7 +151,7 @@ export function VoiceToastsPanel({ siteId }: { siteId: string }) {
                 <button
                   type="button"
                   onClick={() => moderate(t.id, 'approved', !t.is_highlight)}
-                  style={btn(t.is_highlight ? '#C4A96A' : '#F0EBE0', t.is_highlight ? '#FFFFFF' : '#3D3530')}
+                  style={btn(t.is_highlight ? 'var(--pl-gold)' : 'color-mix(in oklab, var(--pl-cream-card) 60%, transparent)', t.is_highlight ? 'var(--pl-cream)' : 'var(--pl-ink-soft)')}
                 >
                   {t.is_highlight ? '★ Highlight' : '☆ Mark as highlight'}
                 </button>

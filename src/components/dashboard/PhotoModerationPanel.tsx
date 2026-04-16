@@ -17,9 +17,9 @@ type FilterTab = 'pending' | 'approved' | 'rejected';
 
 function StatusBadge({ status }: { status: GuestPhoto['status'] }) {
   const styles: Record<GuestPhoto['status'], { bg: string; color: string; label: string }> = {
-    pending:  { bg: 'rgba(255,193,7,0.18)',  color: '#b8860b', label: 'Pending' },
-    approved: { bg: 'rgba(76,175,80,0.18)',  color: '#2e7d32', label: 'Approved' },
-    rejected: { bg: 'rgba(244,67,54,0.18)',  color: '#c62828', label: 'Rejected' },
+    pending:  { bg: 'color-mix(in oklab, var(--pl-gold) 22%, transparent)',  color: 'var(--pl-gold)',                                              label: 'Pending' },
+    approved: { bg: 'color-mix(in oklab, var(--pl-olive) 22%, transparent)', color: 'color-mix(in oklab, var(--pl-olive) 70%, var(--pl-ink))',     label: 'Approved' },
+    rejected: { bg: 'color-mix(in oklab, var(--pl-plum) 22%, transparent)',  color: 'var(--pl-plum)',                                              label: 'Rejected' },
   };
   const s = styles[status];
   return (
@@ -94,7 +94,7 @@ export function PhotoModerationPanel({ siteId }: PhotoModerationPanelProps) {
     fontSize: '0.82rem',
     fontWeight: 600,
     background: activeTab === tab ? 'rgba(0,0,0,0.07)' : 'transparent',
-    color: activeTab === tab ? '#fff' : 'rgba(255,255,255,0.45)',
+    color: activeTab === tab ? 'var(--pl-ink)' : 'var(--pl-muted)',
     transition: 'all 0.15s',
   });
 
@@ -103,7 +103,7 @@ export function PhotoModerationPanel({ siteId }: PhotoModerationPanelProps) {
       {/* Header */}
       <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#fff' }}>
+          <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--pl-ink)' }}>
             Guest Photos
           </h3>
           <p style={{ margin: '0.2rem 0 0', fontSize: '0.75rem', color: 'var(--pl-ink-soft)' }}>
@@ -112,7 +112,7 @@ export function PhotoModerationPanel({ siteId }: PhotoModerationPanelProps) {
         </div>
         {pendingCount > 0 && (
           <span style={{
-            background: '#f59e0b', color: '#000',
+            background: 'var(--pl-gold)', color: 'var(--pl-ink)',
             borderRadius: '999px', padding: '2px 8px',
             fontSize: '0.72rem', fontWeight: 800,
           }}>
@@ -127,7 +127,7 @@ export function PhotoModerationPanel({ siteId }: PhotoModerationPanelProps) {
           <button key={tab} style={tabStyle(tab)} onClick={() => setActiveTab(tab)}>
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
             {tab === 'pending' && pendingCount > 0 && (
-              <span style={{ marginLeft: '5px', background: '#f59e0b', color: '#000', borderRadius: '999px', padding: '1px 5px', fontSize: '0.65rem' }}>
+              <span style={{ marginLeft: '5px', background: 'var(--pl-gold)', color: 'var(--pl-ink)', borderRadius: '999px', padding: '1px 5px', fontSize: '0.65rem' }}>
                 {pendingCount}
               </span>
             )}
@@ -174,7 +174,7 @@ export function PhotoModerationPanel({ siteId }: PhotoModerationPanelProps) {
                         title="Approve"
                         style={{
                           flex: 1, padding: '4px 0', border: 'none', borderRadius: '5px',
-                          background: 'rgba(76,175,80,0.25)', color: '#4caf50',
+                          background: 'color-mix(in oklab, var(--pl-olive) 24%, transparent)', color: 'var(--pl-olive)',
                           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                           opacity: moderating.has(photo.id) ? 0.5 : 1,
                         }}
@@ -187,7 +187,7 @@ export function PhotoModerationPanel({ siteId }: PhotoModerationPanelProps) {
                         title="Reject"
                         style={{
                           flex: 1, padding: '4px 0', border: 'none', borderRadius: '5px',
-                          background: 'rgba(244,67,54,0.25)', color: '#f44336',
+                          background: 'color-mix(in oklab, var(--pl-plum) 24%, transparent)', color: 'var(--pl-plum)',
                           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                           opacity: moderating.has(photo.id) ? 0.5 : 1,
                         }}

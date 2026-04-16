@@ -327,11 +327,11 @@ export function ReferralPanel() {
                 borderRadius: '0.4rem',
                 flexShrink: 0,
                 background: copied
-                  ? 'rgba(34,197,94,0.1)'
+                  ? 'color-mix(in oklab, var(--pl-olive) 14%, transparent)'
                   : 'var(--pl-olive)',
-                color: copied ? 'var(--pl-olive)' : '#fff',
+                color: copied ? 'var(--pl-olive)' : 'var(--pl-cream)',
                 border: copied
-                  ? '1px solid rgba(34,197,94,0.2)'
+                  ? '1px solid color-mix(in oklab, var(--pl-olive) 28%, transparent)'
                   : 'none',
                 cursor: 'pointer',
                 fontSize: '0.72rem',
@@ -447,7 +447,7 @@ export function ReferralPanel() {
                 padding: '0.6rem 1.2rem',
                 borderRadius: '12px',
                 background: 'var(--pl-olive)',
-                color: '#fff',
+                color: 'var(--pl-cream)',
                 border: 'none',
                 cursor: 'pointer',
                 fontWeight: 600,
@@ -589,7 +589,7 @@ export function ReferralPanel() {
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
               onClick={(e) => e.stopPropagation()}
               style={{
-                background: 'var(--pl-cream, #FAF7F2)',
+                background: 'var(--pl-cream-card)',
                 borderRadius: '20px',
                 padding: '1.75rem',
                 maxWidth: '480px',
