@@ -80,50 +80,97 @@ export function MultiSelectToolbar({
           transform: 'translateX(-50%)',
           zIndex: 100,
           display: 'flex',
-          alignItems: 'center',
-          gap: '2px',
-          padding: '6px 8px',
-          borderRadius: '10px',
-          background: 'rgba(255,255,255,0.95)',
-          border: '1px solid rgba(0,0,0,0.06)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+          alignItems: 'stretch',
+          gap: 0,
+          padding: 0,
+          borderRadius: 2,
+          background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
+          borderTop: '2px solid rgba(184,147,90,0.55)',
+          borderLeft: '1px solid rgba(184,147,90,0.22)',
+          borderRight: '1px solid rgba(184,147,90,0.22)',
+          borderBottom: '1px solid rgba(184,147,90,0.22)',
+          boxShadow: '0 18px 48px rgba(28,22,10,0.22), 0 2px 10px rgba(28,22,10,0.08)',
         } as React.CSSProperties}
       >
-        {/* Selection count */}
+        {/* Selection dossier */}
         <div style={{
-          padding: '6px 12px',
-          fontSize: '0.65rem', fontWeight: 700,
-          color: '#18181B',
-          borderRight: '1px solid rgba(255,255,255,0.25)',
-          marginRight: '4px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          padding: '8px 16px 8px 14px',
+          borderRight: '1px solid rgba(184,147,90,0.28)',
+          minWidth: 110,
         }}>
-          {selectedIds.length} selected
+          <span style={{
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            fontSize: '0.48rem',
+            fontWeight: 700,
+            letterSpacing: '0.28em',
+            textTransform: 'uppercase',
+            color: 'rgba(184,147,90,0.85)',
+          }}>
+            Ledger · multi
+          </span>
+          <span style={{
+            fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
+            fontStyle: 'italic',
+            fontSize: '0.95rem',
+            fontWeight: 400,
+            color: '#18181B',
+            lineHeight: 1.1,
+            marginTop: 2,
+            fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+          }}>
+            {String(selectedIds.length).padStart(2, '0')} selected
+          </span>
         </div>
 
         {/* Actions */}
-        {[
-          { icon: Copy, label: 'Duplicate', onClick: handleDuplicateAll, color: '#3F3F46' },
-          { icon: EyeOff, label: 'Hide', onClick: handleHideAll, color: '#3F3F46' },
-          { icon: Eye, label: 'Show', onClick: handleShowAll, color: '#18181B' },
-          { icon: Trash2, label: 'Delete', onClick: handleDeleteAll, color: 'var(--pl-warning)' },
-        ].map((action) => (
+        {([
+          { icon: Copy, label: 'Duplicate', onClick: handleDuplicateAll, danger: false },
+          { icon: EyeOff, label: 'Hide', onClick: handleHideAll, danger: false },
+          { icon: Eye, label: 'Show', onClick: handleShowAll, danger: false },
+          { icon: Trash2, label: 'Delete', onClick: handleDeleteAll, danger: true },
+        ] as const).map((action, idx) => (
           <motion.button
             key={action.label}
             onClick={action.onClick}
-            whileHover={{ scale: 1.08, backgroundColor: 'rgba(0,0,0,0.04)' }}
-            whileTap={{ scale: 0.92 }}
+            whileHover={{ backgroundColor: action.danger ? 'rgba(139,45,45,0.08)' : 'rgba(184,147,90,0.10)' }}
+            whileTap={{ scale: 0.96 }}
             title={action.label}
             style={{
               display: 'flex', flexDirection: 'column',
-              alignItems: 'center', gap: '2px',
-              padding: '6px 12px', borderRadius: '10px',
-              border: 'none', background: 'transparent',
-              cursor: 'pointer', color: action.color,
-              transition: 'color 0.15s',
+              alignItems: 'center', justifyContent: 'center', gap: '4px',
+              padding: '8px 14px', borderRadius: 0,
+              border: 'none',
+              borderRight: '1px solid rgba(184,147,90,0.22)',
+              background: 'transparent',
+              cursor: 'pointer',
+              color: action.danger ? '#8B2D2D' : '#18181B',
+              transition: 'background 180ms cubic-bezier(0.22,1,0.36,1)',
+              position: 'relative',
             }}
           >
-            <action.icon size={16} />
-            <span style={{ fontSize: '0.52rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+            <span style={{
+              fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+              fontSize: '0.4rem',
+              fontWeight: 700,
+              letterSpacing: '0.24em',
+              color: action.danger ? 'rgba(139,45,45,0.65)' : 'rgba(184,147,90,0.75)',
+              position: 'absolute',
+              top: 4,
+              left: 6,
+            }}>
+              № {String(idx + 1).padStart(2, '0')}
+            </span>
+            <action.icon size={15} strokeWidth={1.6} />
+            <span style={{
+              fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+              fontSize: '0.48rem',
+              fontWeight: 700,
+              letterSpacing: '0.24em',
+              textTransform: 'uppercase',
+            }}>
               {action.label}
             </span>
           </motion.button>
@@ -132,16 +179,31 @@ export function MultiSelectToolbar({
         {/* Close */}
         <motion.button
           onClick={onClearSelection}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+          whileHover={{ backgroundColor: 'rgba(184,147,90,0.10)' }}
+          whileTap={{ scale: 0.94 }}
+          aria-label="Clear selection"
+          title="Clear selection"
           style={{
-            width: '28px', height: '28px', borderRadius: '50%',
-            border: '1px solid #E4E4E7', background: 'transparent',
-            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#71717A', marginLeft: '4px',
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: '4px',
+            padding: '8px 14px',
+            border: 'none',
+            background: 'transparent',
+            cursor: 'pointer',
+            color: '#52525B',
+            transition: 'background 180ms cubic-bezier(0.22,1,0.36,1)',
           }}
         >
-          <X size={12} />
+          <X size={13} strokeWidth={1.6} />
+          <span style={{
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            fontSize: '0.48rem',
+            fontWeight: 700,
+            letterSpacing: '0.24em',
+            textTransform: 'uppercase',
+          }}>
+            Close
+          </span>
         </motion.button>
       </motion.div>
     </AnimatePresence>
