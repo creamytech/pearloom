@@ -2357,23 +2357,35 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         );
       }
       case 'storymap': {
-        const hasLocations = (manifest.chapters || []).some(c => c.location?.label);
+        const blockPins = (blockCfg.pins as Array<{ place?: string; when?: string; note?: string }>) || [];
+        const chapterPins = (manifest.chapters || [])
+          .filter(c => c.location?.label)
+          .map(c => ({
+            place: c.location!.label as string,
+            when: c.date || '',
+            note: c.subtitle || c.description || '',
+          }));
+        const pins = blockPins.length > 0 ? blockPins : chapterPins;
+        const hasPins = pins.length > 0;
+        const title = (blockCfg.title as string) || 'Our Journey';
         return (
-          <section key={key} data-pe-section="storymap" data-pe-empty-section={!hasLocations ? 'storymap' : undefined} style={{ padding: '4rem 2rem', textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
+          <section key={key} data-pe-section="storymap" data-pe-empty-section={!hasPins ? 'storymap' : undefined} style={{ padding: '4rem 2rem', textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
             <h2 data-pe-editable="true" data-pe-path="poetry.storymapTitle" style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: safeFg, marginBottom: '1rem' }}>
-              Our Journey
+              {title}
             </h2>
             <p style={{ color: safeMuted, marginBottom: '2rem' }}>The places that made our story</p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              {(manifest.chapters || []).slice(0, 4).filter(c => c.location?.label).map((ch, i) => (
-                <div key={i} style={{ padding: '0.75rem 1.25rem', borderRadius: '8px', background: `${pal.accent}10`, border: `1px solid ${pal.accent}20`, fontSize: '0.8rem', color: safeFg }}>
-                  📍 {ch.location!.label}
+              {pins.slice(0, 8).map((p, i) => (
+                <div key={i} style={{ padding: '0.75rem 1.25rem', borderRadius: '8px', background: `${pal.accent}10`, border: `1px solid ${pal.accent}20`, fontSize: '0.8rem', color: safeFg, textAlign: 'left' }}>
+                  <div>📍 {p.place}</div>
+                  {p.when && <div style={{ fontSize: '0.7rem', color: safeMuted, marginTop: '0.2rem' }}>{p.when}</div>}
+                  {p.note && <div style={{ fontSize: '0.7rem', color: safeMuted, marginTop: '0.2rem', maxWidth: '180px' }}>{p.note}</div>}
                 </div>
               ))}
-              {!hasLocations && (
+              {!hasPins && (
                 editMode ? (
                   <div className="pl-empty-gradient" style={{ width: '100%', padding: '2rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
-                    <p style={{ fontSize: '0.8rem', marginBottom: '0.75rem' }}>Add locations to your story chapters to see them here</p>
+                    <p style={{ fontSize: '0.8rem', marginBottom: '0.75rem' }}>Add pins in the block settings, or add locations to your story chapters.</p>
                     <PearHelpButton label="Ask Pear to add locations" prompt={getPearPrompt('story map locations')} />
                     {pearNudgeSection === 'storymap' && <PearNudge prompt={getPearPrompt('story map locations')} onDismiss={dismissPearNudge} />}
                   </div>

@@ -8,23 +8,21 @@
 // the chrome matches every other panel in the editor.
 // ─────────────────────────────────────────────────────────────
 
-import { Image, Type, Lock, Unlock, Wand2, Sparkles, EyeOff } from 'lucide-react';
-import { useEditor } from '@/lib/editor-state';
-import { Button } from '@/components/ui/button';
+import { Type, Lock, Unlock, Sparkles, EyeOff, Users } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { ParchmentTintPanel, type TintId } from './ParchmentTintPanel';
 import { TypographyPairSelector, type PairId } from './TypographyPairSelector';
-import { PanelRoot, PanelSection, panelText, panelWeight } from './panel';
+import { PanelRoot, PanelSection, PanelField, PanelInput, panelText, panelWeight } from './panel';
 import type { StoryManifest } from '@/types';
 
 interface PropertiesPanelProps {
   manifest: StoryManifest;
-  onChange: (manifest: StoryManifest) => void;
+  onChange: (manifest: StoryManifest, opts?: { coalesceKey?: string; label?: string }) => void;
+  /** Fallback names from the account/couple record when manifest.names is unset. */
+  fallbackNames?: [string, string];
 }
 
-export function PropertiesPanel({ manifest, onChange }: PropertiesPanelProps) {
-  const { dispatch } = useEditor();
-
+export function PropertiesPanel({ manifest, onChange, fallbackNames }: PropertiesPanelProps) {
   const handleTintChange = (tint: TintId) => {
     onChange({ ...manifest, parchmentTint: tint });
   };
@@ -41,28 +39,39 @@ export function PropertiesPanel({ manifest, onChange }: PropertiesPanelProps) {
     onChange({ ...manifest, privateGallery: checked });
   };
 
+  const currentNames: [string, string] =
+    manifest.names || fallbackNames || ['', ''];
+
+  const handleNameChange = (which: 0 | 1, value: string) => {
+    const next: [string, string] =
+      which === 0 ? [value, currentNames[1]] : [currentNames[0], value];
+    onChange(
+      { ...manifest, names: next },
+      { coalesceKey: `names:${which}`, label: 'Edit couple name' },
+    );
+  };
+
   return (
     <PanelRoot>
-      <PanelSection title="Quick Actions" icon={Wand2}>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <Button
-            variant="secondary"
-            size="sm"
-            className="flex-1"
-            icon={<Image size={13} />}
-            onClick={() => dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' })}
+      <PanelSection title="Couple Names" icon={Users}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <PanelField label="First Name">
+            <PanelInput
+              value={currentNames[0]}
+              onChange={(v) => handleNameChange(0, v)}
+              placeholder="e.g. Amelia"
+            />
+          </PanelField>
+          <PanelField
+            label="Second Name"
+            hint="Shown throughout your site — hero, invite, RSVP."
           >
-            Replace Imagery
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            className="flex-1"
-            icon={<Type size={13} />}
-            onClick={() => dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' })}
-          >
-            Edit Typography
-          </Button>
+            <PanelInput
+              value={currentNames[1]}
+              onChange={(v) => handleNameChange(1, v)}
+              placeholder="e.g. Benjamin"
+            />
+          </PanelField>
         </div>
       </PanelSection>
 

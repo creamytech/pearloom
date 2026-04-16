@@ -55,6 +55,7 @@ import { BlockStyleEditor } from './BlockStyleEditor';
 import { VersionHistoryPanel } from './VersionHistoryPanel';
 import { CustomCSSEditor } from './CustomCSSEditor';
 import { CustomizationPanel } from './CustomizationPanel';
+import { ComponentLibrary } from './ComponentLibrary';
 import { ActiveCuratorBadge } from '@/components/dashboard/CuratorAICard';
 import { trackPublish, trackEdit } from '@/lib/intelligence';
 import { WeddingPartyEditor } from './WeddingPartyEditor';
@@ -267,17 +268,63 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 
   // ── Push to preview (debounced) ──────────────────────────────
   // pushToPreview — with direct DOM rendering, changes propagate automatically
-  // via React re-renders. We keep this for save state tracking.
+  // via React re-renders. Also triggers a debounced server autosave so the
+  // "Saved" indicator reflects actual persistence, not just a cosmetic timer.
+  const autosaveAbortRef = useRef<AbortController | null>(null);
+  const latestManifestRef = useRef<StoryManifest>(manifest);
+  useEffect(() => { latestManifestRef.current = manifest; }, [manifest]);
+
   const pushToPreview = useCallback((m: StoryManifest) => {
     dispatch({ type: 'SET_SAVE_STATE', state: 'unsaved' });
     dispatch({ type: 'SET_DIRTY', dirty: true });
+    latestManifestRef.current = m;
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     try {
       storePreview(previewKey, m, coupleNames);
     } catch {}
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    saveTimeoutRef.current = setTimeout(() => dispatch({ type: 'SET_SAVE_STATE', state: 'saved' }), 1500);
-  }, [previewKey, coupleNames]);
+    saveTimeoutRef.current = setTimeout(async () => {
+      // Skip autosave when no subdomain is assigned yet (pre-publish drafts
+      // are kept in localStorage only — see AUTOSAVE_KEY below).
+      const targetSubdomain = initialSubdomain?.trim();
+      if (!targetSubdomain) {
+        dispatch({ type: 'SET_SAVE_STATE', state: 'saved' });
+        dispatch({ type: 'SET_DIRTY', dirty: false });
+        return;
+      }
+      // Cancel any in-flight autosave so rapid edits never double-write.
+      autosaveAbortRef.current?.abort();
+      const controller = new AbortController();
+      autosaveAbortRef.current = controller;
+      try {
+        const res = await fetch('/api/sites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            subdomain: targetSubdomain,
+            manifest: latestManifestRef.current,
+            names: latestManifestRef.current.names || coupleNames,
+          }),
+          signal: controller.signal,
+        });
+        if (res.ok) {
+          dispatch({ type: 'SET_SAVE_STATE', state: 'saved' });
+          dispatch({ type: 'SET_DIRTY', dirty: false });
+        } else {
+          // Server rejected — leave "unsaved" so the user knows work isn't safe.
+          // 401 (no session) is treated as saved-locally since localStorage
+          // autosave still holds the draft.
+          if (res.status === 401) {
+            dispatch({ type: 'SET_SAVE_STATE', state: 'saved' });
+            dispatch({ type: 'SET_DIRTY', dirty: false });
+          }
+        }
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          logEditorError('FullscreenEditor: server autosave', err);
+        }
+      }
+    }, 1500);
+  }, [previewKey, coupleNames, initialSubdomain]);
 
   useEffect(() => { pushToPreviewRef.current = pushToPreview; }, [pushToPreview]);
 
@@ -505,7 +552,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         body: JSON.stringify({
           subdomain: target,
           manifest: { ...manifest, chapters: state.chapters.map((ch, i) => ({ ...ch, order: i })) },
-          names: coupleNames,
+          names: manifest.names || coupleNames,
         }),
       });
       const data = await res.json();
@@ -950,7 +997,12 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                 {state.activeTab === 'story' && manifest.occasion !== 'birthday' && (
                   <WeddingPartyEditor
                     members={manifest.weddingParty || []}
-                    onChange={(members) => { const updated = { ...manifest, weddingParty: members }; onChange(updated); pushToPreview(updated); }}
+                    onChange={(members) => {
+                      handleDesignChange(
+                        { ...manifest, weddingParty: members },
+                        { coalesceKey: 'weddingParty', label: 'Edit wedding party' },
+                      );
+                    }}
                   />
                 )}
 
@@ -968,8 +1020,10 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                             b.id === state.activeId ? { ...b, config } : b
                           ),
                         };
-                        onChange(updated);
-                        pushToPreview(updated);
+                        handleDesignChange(updated, {
+                          coalesceKey: `block-config:${state.activeId}`,
+                          label: 'Edit block',
+                        });
                       }}
                     />
                   )}
@@ -993,50 +1047,51 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                 {state.activeTab === 'design' && (
                   <>
                     <DesignPanel manifest={manifest} onChange={handleDesignChange} coupleNames={coupleNames} />
-                    <PropertiesPanel manifest={manifest} onChange={handleDesignChange} />
+                    <PropertiesPanel
+                      manifest={manifest}
+                      onChange={handleDesignChange}
+                      fallbackNames={coupleNames}
+                    />
                     {/* Per-block style editor — shown when a block is selected */}
                     {state.activeId && manifest.blocks?.find(b => b.id === state.activeId) && (
                       <BlockStyleEditor
                         block={manifest.blocks.find(b => b.id === state.activeId)!}
                         onChange={(style) => {
-                          const updated = {
-                            ...manifest,
-                            blocks: setBlockStyle(manifest.blocks || [], state.activeId!, style),
-                          };
-                          onChange(updated);
-                          pushToPreview(updated);
+                          handleDesignChange(
+                            {
+                              ...manifest,
+                              blocks: setBlockStyle(manifest.blocks || [], state.activeId!, style),
+                            },
+                            { coalesceKey: `block-style:${state.activeId}`, label: 'Edit block style' },
+                          );
                         }}
                       />
                     )}
-                    {/* Version history */}
                     <CustomizationPanel
                       customization={manifest.customization || {}}
-                      onChange={(c) => { const updated = { ...manifest, customization: c }; onChange(updated); pushToPreview(updated); }}
+                      onChange={(c) => {
+                        handleDesignChange(
+                          { ...manifest, customization: c },
+                          { coalesceKey: 'customization', label: 'Edit customization' },
+                        );
+                      }}
                       names={coupleNames}
                       accentColor={manifest.vibeSkin?.palette?.accent}
-                    />
-                    <VersionHistoryPanel
-                      manifest={manifest}
-                      siteId={state.subdomain}
-                      onRestore={(restored) => {
-                        onChange(restored);
-                        pushToPreview(restored);
-                        dispatch({ type: 'SET_CHAPTERS', chapters: restored.chapters || [] });
-                      }}
                     />
                     {/* Custom CSS — shown when a block is selected */}
                     {state.activeId && manifest.blocks?.find(b => b.id === state.activeId) && (
                       <CustomCSSEditor
                         block={manifest.blocks.find(b => b.id === state.activeId)!}
                         onChange={(css) => {
-                          const updated = {
-                            ...manifest,
-                            blocks: (manifest.blocks || []).map(b =>
-                              b.id === state.activeId ? { ...b, config: { ...(b.config || {}), _customCSS: css } } : b
-                            ),
-                          };
-                          onChange(updated);
-                          pushToPreview(updated);
+                          handleDesignChange(
+                            {
+                              ...manifest,
+                              blocks: (manifest.blocks || []).map(b =>
+                                b.id === state.activeId ? { ...b, config: { ...(b.config || {}), _customCSS: css } } : b
+                              ),
+                            },
+                            { coalesceKey: `block-css:${state.activeId}`, label: 'Edit block CSS' },
+                          );
                         }}
                       />
                     )}
@@ -1054,7 +1109,12 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                 {state.activeTab === 'voice' && (
                   <VoiceTrainerPanel
                     voiceSamples={manifest.voiceSamples || []}
-                    onChange={(samples) => { const updated = { ...manifest, voiceSamples: samples }; onChange(updated); pushToPreview(updated); }}
+                    onChange={(samples) => {
+                      handleDesignChange(
+                        { ...manifest, voiceSamples: samples },
+                        { coalesceKey: 'voiceSamples', label: 'Edit voice samples' },
+                      );
+                    }}
                   />
                 )}
 
@@ -1096,6 +1156,21 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 
                 {state.activeTab === 'vendors' && (
                   <VendorPanel />
+                )}
+
+                {state.activeTab === 'components' && (
+                  <ComponentLibrary manifest={manifest} onChange={handleDesignChange} />
+                )}
+
+                {state.activeTab === 'history' && (
+                  <VersionHistoryPanel
+                    manifest={manifest}
+                    siteId={state.subdomain}
+                    onRestore={(restored) => {
+                      handleDesignChange(restored, { label: 'Restore version' });
+                      dispatch({ type: 'SET_CHAPTERS', chapters: restored.chapters || [] });
+                    }}
+                  />
                 )}
               </motion.div>
             </AnimatePresence>

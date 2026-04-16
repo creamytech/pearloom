@@ -47,8 +47,13 @@ function PickerGrid<T extends { id: string; name: string; preview: string }>({
             onClick={() => onChange(item.id)}
             style={{
               padding: '10px',
-              border: active ? '2px solid #18181B' : '1px solid rgba(24,24,27,0.1)',
-              background: active ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.5)',
+              border: active
+                ? '2px solid var(--pl-chrome-accent)'
+                : '1px solid var(--pl-chrome-border)',
+              background: active
+                ? 'var(--pl-chrome-accent-soft)'
+                : 'var(--pl-chrome-surface)',
+              color: 'var(--pl-chrome-text)',
               borderRadius: '12px',
               textAlign: 'center',
               cursor: 'pointer',
@@ -59,18 +64,18 @@ function PickerGrid<T extends { id: string; name: string; preview: string }>({
           >
             {active && (
               <div style={{ position: 'absolute', top: '4px', right: '4px' }}>
-                <Check size={10} color="#18181B" />
+                <Check size={10} style={{ color: 'var(--pl-chrome-accent)' }} />
               </div>
             )}
             <div style={{
               fontSize: panelText.chip,
               fontWeight: panelWeight.semibold,
-              color: '#18181B',
+              color: 'var(--pl-chrome-text)',
               marginBottom: '2px',
             }}>
               {item.name}
             </div>
-            <div style={{ fontSize: panelText.meta, color: '#71717A' }}>
+            <div style={{ fontSize: panelText.meta, color: 'var(--pl-chrome-text-muted)' }}>
               {item.preview}
             </div>
           </button>
@@ -151,8 +156,12 @@ export function CustomizationPanel({ customization, onChange, names, accentColor
                   padding: '8px',
                   cursor: 'pointer',
                   textAlign: 'center',
-                  border: active ? '2px solid #18181B' : '1px solid rgba(24,24,27,0.1)',
-                  background: active ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.5)',
+                  border: active
+                    ? '2px solid var(--pl-chrome-accent)'
+                    : '1px solid var(--pl-chrome-border)',
+                  background: active
+                    ? 'var(--pl-chrome-accent-soft)'
+                    : 'var(--pl-chrome-surface)',
                   borderRadius: '12px',
                   transition: 'all 0.15s',
                 }}
@@ -163,7 +172,7 @@ export function CustomizationPanel({ customization, onChange, names, accentColor
                     __html: generateMonogram(initials, style.id, accentColor || '#C4A96A'),
                   }}
                 />
-                <div style={{ fontSize: panelText.meta, color: '#71717A', marginTop: '4px' }}>
+                <div style={{ fontSize: panelText.meta, color: 'var(--pl-chrome-text-muted)', marginTop: '4px' }}>
                   {style.name}
                 </div>
               </button>

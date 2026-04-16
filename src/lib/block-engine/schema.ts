@@ -20,7 +20,8 @@ export type PropType =
   | 'url'          // URL input
   | 'select'       // dropdown from options
   | 'date'         // date picker
-  | 'binding';     // a {{ variable }} reference
+  | 'binding'      // a {{ variable }} reference
+  | 'list';        // array of objects, each with an itemShape
 
 /**
  * Schema for a single prop on a block.
@@ -48,6 +49,12 @@ export interface PropSchema {
   bindingHint?: string;
   /** Group for organizing props in the editor */
   group?: string;
+  /** Per-item schema for 'list' type */
+  itemShape?: Record<string, PropSchema>;
+  /** Template for a newly-added list item */
+  itemDefaults?: Record<string, unknown>;
+  /** Singular noun used in the "Add X" button for 'list' type */
+  itemLabel?: string;
 }
 
 /**
@@ -479,11 +486,36 @@ export const BLOCK_SCHEMAS: Record<string, BlockSchema> = {
     icon: 'HelpCircle',
     category: 'interaction',
     props: {
-      title: {
+      quizTitle: {
         label: 'Section Title',
         type: 'text',
         placeholder: 'How Well Do You Know Us?',
         group: 'Content',
+      },
+      questions: {
+        label: 'Questions',
+        type: 'list',
+        group: 'Content',
+        itemLabel: 'Question',
+        itemDefaults: { question: '', answer: '', options: [] },
+        itemShape: {
+          question: {
+            label: 'Question',
+            type: 'text',
+            placeholder: 'Where did we first meet?',
+          },
+          options: {
+            label: 'Choices (comma-separated)',
+            type: 'text',
+            placeholder: 'A coffee shop, Brooklyn, At work, Online',
+            description: 'Leave blank for a free-text answer.',
+          },
+          answer: {
+            label: 'Correct Answer',
+            type: 'text',
+            placeholder: 'A coffee shop',
+          },
+        },
       },
     },
   },
@@ -624,6 +656,30 @@ export const BLOCK_SCHEMAS: Record<string, BlockSchema> = {
         placeholder: 'Anniversary Edition',
         group: 'Content',
       },
+      milestones: {
+        label: 'Milestones',
+        type: 'list',
+        group: 'Content',
+        itemLabel: 'Milestone',
+        itemDefaults: { label: '', date: '', emoji: '\u2726' },
+        itemShape: {
+          label: {
+            label: 'Label',
+            type: 'text',
+            placeholder: 'First Date',
+          },
+          date: {
+            label: 'Date',
+            type: 'date',
+          },
+          emoji: {
+            label: 'Symbol',
+            type: 'text',
+            placeholder: '\u2726',
+            description: 'Any emoji or symbol.',
+          },
+        },
+      },
     },
   },
 
@@ -639,6 +695,30 @@ export const BLOCK_SCHEMAS: Record<string, BlockSchema> = {
         type: 'text',
         defaultValue: 'Our Journey',
         group: 'Content',
+      },
+      pins: {
+        label: 'Pins',
+        type: 'list',
+        group: 'Content',
+        itemLabel: 'Pin',
+        itemDefaults: { place: '', when: '', note: '' },
+        itemShape: {
+          place: {
+            label: 'Place',
+            type: 'text',
+            placeholder: 'Brooklyn, NY',
+          },
+          when: {
+            label: 'When',
+            type: 'text',
+            placeholder: 'Summer 2021',
+          },
+          note: {
+            label: 'Moment',
+            type: 'textarea',
+            placeholder: 'What happened here?',
+          },
+        },
       },
     },
   },

@@ -16,6 +16,10 @@ export interface StoryManifest {
   theme: ThemeSchema;
   chapters: Chapter[];
   comingSoon: ComingSoonConfig;
+  // Couple names — mirrored into the manifest so the editor can
+  // write through without needing a separate parent-level setter.
+  // Falls back to the `coupleNames` prop when absent.
+  names?: [string, string];
   // User-uploaded hero cover photo (overrides AI-generated art)
   coverPhoto?: string;
   // Hero slideshow: multiple photos that auto-rotate in the hero section
