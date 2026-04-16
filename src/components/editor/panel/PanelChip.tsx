@@ -15,7 +15,7 @@
 
 import type { ReactNode, CSSProperties, MouseEvent } from 'react';
 import { motion } from 'framer-motion';
-import { panelChip, panelText, panelWeight } from './panel-tokens';
+import { panelChip, panelFont, panelText, panelTracking, panelWeight } from './panel-tokens';
 
 export interface PanelChipProps {
   /** Whether this chip is currently selected. */
@@ -91,9 +91,9 @@ export function PanelChip({
       disabled={disabled}
       aria-pressed={active}
       aria-label={ariaLabel}
-      whileHover={disabled ? undefined : { y: -1, scale: 1.01 }}
-      whileTap={disabled ? undefined : { scale: 0.97 }}
-      transition={{ duration: 0.15 }}
+      whileHover={disabled ? undefined : { y: -1 }}
+      whileTap={disabled ? undefined : { scale: 0.98 }}
+      transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
       style={{
         width: fullWidth ? '100%' : 'auto',
         border,
@@ -102,8 +102,9 @@ export function PanelChip({
         borderRadius: radius,
         padding,
         fontSize,
-        fontWeight: active ? panelWeight.bold : panelWeight.semibold,
-        fontFamily: 'inherit',
+        fontWeight: active ? panelWeight.semibold : panelWeight.medium,
+        fontFamily: panelFont.body,
+        letterSpacing: '-0.005em',
         display: 'flex',
         flexDirection: hint ? 'column' : 'row',
         alignItems: hint ? 'flex-start' : 'center',
@@ -123,15 +124,31 @@ export function PanelChip({
           width: '100%',
         }}
       >
+        {active && (
+          <span
+            aria-hidden
+            style={{
+              color: accentColor || 'var(--pl-chrome-accent)',
+              fontSize: '0.7em',
+              lineHeight: 1,
+              flexShrink: 0,
+            }}
+          >
+            {'\u2726'}
+          </span>
+        )}
         {children}
       </span>
       {hint && (
         <span
           style={{
+            fontFamily: panelFont.mono,
             fontSize: panelText.meta,
             fontWeight: panelWeight.regular,
+            letterSpacing: panelTracking.wide,
+            textTransform: 'uppercase',
             lineHeight: 1.3,
-            opacity: active ? 0.85 : 0.65,
+            opacity: active ? 0.8 : 0.55,
           }}
         >
           {hint}

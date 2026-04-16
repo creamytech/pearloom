@@ -1,11 +1,32 @@
 'use client';
 
+// ─────────────────────────────────────────────────────────────
+// Pearloom / components/editor/TimeCapsulePanel.tsx
+// Love-letter time capsules — write, seal, deliver on an
+// anniversary. Rewritten in the editorial chrome: Fraunces
+// italic section titles, mono meta eyebrows, cream-paper cards,
+// gold hairlines, underlined inputs. Slots into the editor's
+// Extras rail.
+// ─────────────────────────────────────────────────────────────
+
 import { useState, useEffect, useCallback } from 'react';
-import { CustomSelect } from '@/components/ui/custom-select';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MailCheck } from 'lucide-react';
+import { MailCheck, Trash2, Lock, Unlock, AlertTriangle } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import { parseLocalDate } from '@/lib/date';
+import {
+  PanelRoot,
+  PanelSection,
+  PanelField,
+  PanelInput,
+  PanelTextarea,
+  PanelSelect,
+  panelFont,
+  panelText,
+  panelTracking,
+  panelWeight,
+  panelLineHeight,
+} from './panel';
 
 interface TimeCapsulePanelProps {
   manifest: StoryManifest;
@@ -42,48 +63,53 @@ function formatDate(dateStr: string): string {
   }
 }
 
+const pillMono: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '5px',
+  fontFamily: panelFont.mono,
+  fontSize: panelText.meta,
+  fontWeight: panelWeight.bold,
+  letterSpacing: panelTracking.widest,
+  textTransform: 'uppercase',
+  transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+  lineHeight: 1,
+};
+
 export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelProps) {
-  // ── Pre-fill names from manifest (StoryManifest has no names field directly;
-  //    fall back to any runtime-injected shape or just leave blank) ────────────
-  const manifestAny = manifest as unknown as { names?: [string, string]; coupleNames?: [string, string] };
+  const manifestAny = manifest as unknown as {
+    names?: [string, string];
+    coupleNames?: [string, string];
+  };
   const [name1, name2] = manifestAny.coupleNames ?? manifestAny.names ?? ['', ''];
 
   const defaultFrom = name1 ?? '';
   const defaultTo = name2 ?? '';
 
-  // ── Form state ─────────────────────────────────────────────────────────────
   const [fromName, setFromName] = useState(defaultFrom);
   const [toName, setToName] = useState(defaultTo);
   const [unlockYears, setUnlockYears] = useState<UnlockYears>(1);
   const [letterText, setLetterText] = useState('');
 
-  // ── Capsule list state ─────────────────────────────────────────────────────
   const [capsules, setCapsules] = useState<CapsuleSummary[]>([]);
   const [loadingList, setLoadingList] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  // ── Submission state ───────────────────────────────────────────────────────
   const [saving, setSaving] = useState(false);
-  const [successInfo, setSuccessInfo] = useState<{
-    date: string;
-    token: string;
-  } | null>(null);
+  const [successInfo, setSuccessInfo] = useState<{ date: string; token: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // ── Compute unlock date from wedding date ──────────────────────────────────
-  const weddingDate =
-    manifest.logistics?.date ?? manifest.events?.[0]?.date;
+  const weddingDate = manifest.logistics?.date ?? manifest.events?.[0]?.date;
 
   const computeUnlockDate = useCallback(
     (years: UnlockYears): Date => {
       const base = weddingDate ? parseLocalDate(weddingDate) : new Date();
       return addYears(base, years);
     },
-    [weddingDate]
+    [weddingDate],
   );
 
-  // ── Fetch existing capsules on mount ───────────────────────────────────────
   const fetchCapsules = useCallback(async () => {
     if (!siteId) return;
     setLoadingList(true);
@@ -102,11 +128,12 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
     fetchCapsules();
   }, [fetchCapsules]);
 
-  // ── Delete a capsule ───────────────────────────────────────────────────────
   async function handleDelete(id: string) {
     setDeleteError(null);
     try {
-      const res = await fetch(`/api/time-capsule?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      const res = await fetch(`/api/time-capsule?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setDeleteError(data.error || 'Failed to delete. Please try again.');
@@ -120,7 +147,6 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
     }
   }
 
-  // ── Seal & save ────────────────────────────────────────────────────────────
   async function handleSeal() {
     if (!fromName.trim() || !toName.trim()) {
       setError('Please fill in both From and To names.');
@@ -176,111 +202,357 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
   }
 
   const charCount = letterText.length;
-  const unlockLabel = unlockYears === 1 ? '1 Year' : `${unlockYears} Years`;
-
-  // ── Preview of computed unlock date ───────────────────────────────────────
+  const charOverLimit = charCount > 1800;
   const previewUnlockDate = formatDate(computeUnlockDate(unlockYears).toISOString());
 
   return (
-    <div style={styles.container}>
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div style={styles.header}>
-        <div style={styles.headerTop}>
-          <span style={styles.waxSeal}>🪢</span>
-          <h2 style={styles.title}>Love Letter Time Capsules</h2>
-        </div>
-        <p style={styles.subtitle}>
-          Write letters to each other — sealed until your anniversary.
+    <PanelRoot>
+      {/* Intro card — editorial opening spread */}
+      <PanelSection
+        title="Love-letter time capsules"
+        eyebrow="Sealed for later"
+        icon={MailCheck}
+        hint="Write a letter to each other — sealed until your anniversary, delivered with a share link when the day arrives."
+        collapsible={false}
+      >
+        {/* subtle decorative rule already supplied by PanelSection */}
+        <p
+          style={{
+            margin: 0,
+            fontFamily: panelFont.body,
+            fontSize: panelText.body,
+            color: 'var(--pl-chrome-text)',
+            lineHeight: panelLineHeight.normal,
+          }}
+        >
+          A tiny ritual: seal a few words today, open them years from now. Each letter
+          lives behind a private share link — keep it somewhere you&apos;ll remember.
         </p>
-      </div>
+      </PanelSection>
 
-      {/* ── Existing capsules ──────────────────────────────────────────────── */}
+      {/* Sealed letters list */}
       {siteId && (
-        <div style={styles.section}>
-          <h3 style={styles.sectionTitle}>Sealed Letters</h3>
-
+        <PanelSection
+          title="Sealed letters"
+          eyebrow="Archive"
+          icon={Lock}
+          badge={capsules.length || undefined}
+        >
           {loadingList && (
-            <p style={styles.dimText}>Loading your letters...</p>
+            <div
+              style={{
+                fontFamily: panelFont.mono,
+                fontSize: panelText.meta,
+                fontWeight: panelWeight.bold,
+                letterSpacing: panelTracking.widest,
+                textTransform: 'uppercase',
+                color: 'var(--pl-chrome-text-muted)',
+                textAlign: 'center',
+                padding: '8px',
+              }}
+            >
+              Loading
+            </div>
           )}
 
           {!loadingList && capsules.length === 0 && (
-            <p style={styles.dimText}>
+            <div
+              style={{
+                padding: '18px 14px',
+                textAlign: 'center',
+                fontFamily: panelFont.body,
+                fontStyle: 'italic',
+                fontSize: panelText.hint,
+                color: 'var(--pl-chrome-text-muted)',
+                border: '1px dashed color-mix(in srgb, var(--pl-chrome-accent) 24%, transparent)',
+                borderRadius: '10px',
+                background: 'color-mix(in srgb, var(--pl-chrome-accent) 3%, transparent)',
+                lineHeight: panelLineHeight.normal,
+              }}
+            >
               No letters sealed yet. Write your first one below.
-            </p>
+            </div>
           )}
 
           <AnimatePresence>
-          {capsules.map((capsule, i) => (
-            <motion.div
-              key={capsule.id}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              transition={{ duration: 0.22, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }}
-              style={styles.capsuleCard}
-            >
-              <div style={styles.capsuleInfo}>
-                <div style={styles.capsuleNames}>
-                  <span style={{ color: '#18181B' }}>◆</span>
-                  <strong style={styles.capsuleNameText}>
-                    From: {capsule.fromName} → To: {capsule.toName}
-                  </strong>
-                </div>
-                <div style={styles.capsuleMeta}>
-                  Opens: {formatDate(capsule.unlockDate)} ({capsule.unlockYears}{' '}
-                  {capsule.unlockYears === 1 ? 'year' : 'years'})
-                </div>
-                <div style={styles.capsuleStatus}>
-                  {capsule.sealed ? (
-                    <span style={styles.sealedBadge}>● Sealed</span>
-                  ) : (
-                    <span style={styles.openBadge}>● Open</span>
-                  )}
-                </div>
-              </div>
-              {deleteConfirmId === capsule.id ? (
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                  <span style={{ fontSize: '11px', color: 'rgba(239,68,68,0.7)' }}>Delete forever?</span>
-                  <button onClick={() => handleDelete(capsule.id)} style={{ ...styles.deleteBtn, borderColor: 'rgba(239,68,68,0.4)', color: 'rgba(239,68,68,0.8)' }}>Yes</button>
-                  <button onClick={() => setDeleteConfirmId(null)} style={styles.deleteBtn}>No</button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setDeleteConfirmId(capsule.id)}
-                  style={styles.deleteBtn}
-                  title="Delete this letter"
+            {capsules.map((capsule, i) => {
+              const sealed = capsule.sealed;
+              const isConfirming = deleteConfirmId === capsule.id;
+              return (
+                <motion.div
+                  key={capsule.id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.22, delay: i * 0.04, ease: [0.22, 1, 0.36, 1] }}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                    padding: '12px 14px',
+                    borderRadius: '10px',
+                    background: isConfirming
+                      ? 'color-mix(in srgb, var(--pl-chrome-danger) 6%, var(--pl-chrome-surface))'
+                      : 'var(--pl-chrome-surface)',
+                    border: '1px solid var(--pl-chrome-border)',
+                  }}
                 >
-                  Delete
-                </button>
-              )}
-            </motion.div>
-          ))}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                        <span
+                          style={{
+                            fontFamily: panelFont.mono,
+                            fontSize: panelText.meta,
+                            fontWeight: panelWeight.bold,
+                            letterSpacing: panelTracking.widest,
+                            color: 'var(--pl-chrome-accent)',
+                          }}
+                        >
+                          {String(i + 1).padStart(2, '0')}
+                        </span>
+                        <span
+                          style={{
+                            fontFamily: panelFont.mono,
+                            fontSize: panelText.meta,
+                            letterSpacing: panelTracking.wider,
+                            textTransform: 'uppercase',
+                            color: 'var(--pl-chrome-text-faint)',
+                          }}
+                        >
+                          {capsule.unlockYears} {capsule.unlockYears === 1 ? 'year' : 'years'}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: panelFont.display,
+                          fontStyle: 'italic',
+                          fontSize: panelText.itemTitle,
+                          fontWeight: panelWeight.regular,
+                          color: 'var(--pl-chrome-text)',
+                          letterSpacing: '-0.01em',
+                          lineHeight: panelLineHeight.tight,
+                        }}
+                      >
+                        {capsule.fromName} → {capsule.toName}
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: panelFont.body,
+                          fontSize: panelText.hint,
+                          color: 'var(--pl-chrome-text-muted)',
+                          marginTop: '2px',
+                        }}
+                      >
+                        Opens {formatDate(capsule.unlockDate)}
+                      </div>
+                    </div>
+
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '4px 10px',
+                        borderRadius: '99px',
+                        fontFamily: panelFont.mono,
+                        fontSize: panelText.meta,
+                        fontWeight: panelWeight.bold,
+                        letterSpacing: panelTracking.widest,
+                        textTransform: 'uppercase',
+                        background: sealed
+                          ? 'color-mix(in srgb, var(--pl-chrome-accent) 10%, transparent)'
+                          : 'color-mix(in srgb, var(--pl-chrome-warning, #d4a53a) 10%, transparent)',
+                        color: sealed ? 'var(--pl-chrome-accent)' : 'var(--pl-chrome-warning, #a87f1f)',
+                        flexShrink: 0,
+                        lineHeight: 1,
+                      }}
+                    >
+                      {sealed ? <Lock size={9} strokeWidth={2} /> : <Unlock size={9} strokeWidth={2} />}
+                      {sealed ? 'Sealed' : 'Open'}
+                    </span>
+                  </div>
+
+                  {isConfirming ? (
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '10px',
+                        paddingTop: '10px',
+                        borderTop: '1px solid color-mix(in srgb, var(--pl-chrome-danger) 28%, transparent)',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontFamily: panelFont.body,
+                          fontSize: panelText.hint,
+                          fontStyle: 'italic',
+                          color: 'var(--pl-chrome-danger)',
+                        }}
+                      >
+                        Delete this letter forever?
+                      </span>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(capsule.id)}
+                          style={{
+                            ...pillMono,
+                            padding: '6px 12px',
+                            borderRadius: '99px',
+                            border: '1px solid var(--pl-chrome-danger)',
+                            background: 'var(--pl-chrome-danger)',
+                            color: '#FFF',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Delete
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteConfirmId(null)}
+                          style={{
+                            ...pillMono,
+                            padding: '6px 12px',
+                            borderRadius: '99px',
+                            border: '1px solid var(--pl-chrome-border)',
+                            background: 'transparent',
+                            color: 'var(--pl-chrome-text-soft)',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Keep
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteConfirmId(capsule.id)}
+                        title="Delete this letter"
+                        aria-label="Delete this letter"
+                        style={{
+                          ...pillMono,
+                          padding: '5px 10px',
+                          borderRadius: '99px',
+                          border: '1px solid var(--pl-chrome-border)',
+                          background: 'transparent',
+                          color: 'var(--pl-chrome-text-muted)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <Trash2 size={10} strokeWidth={1.75} />
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
-        </div>
-      )}
-      {deleteError && (
-        <div style={{ fontSize: '12px', color: 'rgba(239,68,68,0.8)', padding: '8px 12px', background: 'rgba(239,68,68,0.08)', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {deleteError}
-          <button onClick={() => setDeleteError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(239,68,68,0.6)', fontSize: '14px', padding: 0 }}>×</button>
-        </div>
+
+          {deleteError && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '8px',
+                padding: '10px 12px',
+                borderRadius: '10px',
+                background: 'color-mix(in srgb, var(--pl-chrome-danger) 10%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--pl-chrome-danger) 28%, transparent)',
+                color: 'var(--pl-chrome-danger)',
+                fontFamily: panelFont.body,
+                fontSize: panelText.hint,
+                lineHeight: panelLineHeight.snug,
+              }}
+            >
+              <AlertTriangle size={13} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: '1px' }} />
+              <span style={{ flex: 1 }}>{deleteError}</span>
+              <button
+                type="button"
+                onClick={() => setDeleteError(null)}
+                aria-label="Dismiss"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--pl-chrome-danger)',
+                  fontSize: '14px',
+                  padding: 0,
+                }}
+              >
+                ×
+              </button>
+            </div>
+          )}
+        </PanelSection>
       )}
 
-      {/* ── Success message ────────────────────────────────────────────────── */}
+      {/* Success message */}
       <AnimatePresence>
         {successInfo && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 8 }}
+            initial={{ opacity: 0, scale: 0.98, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 8 }}
+            exit={{ opacity: 0, scale: 0.98, y: 8 }}
             transition={{ type: 'spring', stiffness: 340, damping: 28 }}
-            style={styles.successBox}
+            style={{
+              margin: '0 10px 8px',
+              padding: '14px 16px',
+              background: 'color-mix(in srgb, var(--pl-chrome-accent) 8%, var(--pl-chrome-surface))',
+              border: '1px solid color-mix(in srgb, var(--pl-chrome-accent) 32%, transparent)',
+              borderRadius: '10px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+            }}
           >
-            <div style={styles.successTitle}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><MailCheck size={16} style={{ color: '#18181B' }} /> Letter sealed! It will be delivered on {formatDate(successInfo.date)}.</span>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontFamily: panelFont.display,
+                fontStyle: 'italic',
+                fontSize: panelText.itemTitle,
+                fontWeight: panelWeight.regular,
+                color: 'var(--pl-chrome-text)',
+                letterSpacing: '-0.01em',
+                lineHeight: panelLineHeight.tight,
+              }}
+            >
+              <MailCheck size={14} strokeWidth={1.75} color="var(--pl-chrome-accent)" />
+              Letter sealed — delivery set for {formatDate(successInfo.date)}
             </div>
-            <div style={styles.successUrl}>
-              <span style={styles.dimText}>Save this link — share it with each other:</span>
-              <div style={styles.unlockLink}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <span
+                style={{
+                  fontFamily: panelFont.mono,
+                  fontSize: panelText.meta,
+                  fontWeight: panelWeight.bold,
+                  letterSpacing: panelTracking.widest,
+                  textTransform: 'uppercase',
+                  color: 'var(--pl-chrome-text-faint)',
+                }}
+              >
+                Save this link — share it with each other
+              </span>
+              <div
+                style={{
+                  fontFamily: panelFont.mono,
+                  fontSize: panelText.hint,
+                  color: 'var(--pl-chrome-text)',
+                  background: 'var(--pl-chrome-bg)',
+                  border: '1px solid var(--pl-chrome-border)',
+                  borderRadius: '8px',
+                  padding: '8px 10px',
+                  wordBreak: 'break-all',
+                }}
+              >
                 pearloom.com/time-capsule/{successInfo.token}
               </div>
             </div>
@@ -288,337 +560,112 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
         )}
       </AnimatePresence>
 
-      {/* ── Write a new letter ─────────────────────────────────────────────── */}
-      <div style={styles.section}>
-        <h3 style={styles.sectionTitle}>Write a New Letter</h3>
-
-        {/* From / To row */}
-        <div style={styles.namesRow}>
-          <div style={styles.fieldGroup}>
-            <label style={styles.label}>From</label>
-            <input
-              type="text"
-              value={fromName}
-              onChange={(e) => setFromName(e.target.value)}
-              placeholder="Your name"
-              style={styles.input}
-            />
-          </div>
-          <div style={styles.fieldGroup}>
-            <label style={styles.label}>To</label>
-            <input
-              type="text"
-              value={toName}
-              onChange={(e) => setToName(e.target.value)}
-              placeholder="Their name"
-              style={styles.input}
-            />
-          </div>
+      {/* Write a new letter */}
+      <PanelSection title="Write a new letter" eyebrow="Compose" icon={MailCheck}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '14px',
+          }}
+        >
+          <PanelField label="From">
+            <PanelInput value={fromName} onChange={setFromName} placeholder="Your name" />
+          </PanelField>
+          <PanelField label="To">
+            <PanelInput value={toName} onChange={setToName} placeholder="Their name" />
+          </PanelField>
         </div>
 
-        {/* Seal until dropdown */}
-        <div style={styles.fieldGroup}>
-          <label htmlFor="seal-until-select" style={styles.label}>Seal until</label>
-          <div style={styles.sealRow}>
-            <select
-              id="seal-until-select"
-              value={unlockYears}
-              onChange={(e) => setUnlockYears(Number(e.target.value) as UnlockYears)}
-              style={styles.select}
-            >
-              <option value={1}>1 Year</option>
-              <option value={5}>5 Years</option>
-              <option value={10}>10 Years</option>
-            </select>
-            <span style={styles.unlockPreview}>
-              Opens {previewUnlockDate}
-            </span>
-          </div>
-        </div>
+        <PanelField
+          label="Seal until"
+          hint={`Opens ${previewUnlockDate}`}
+        >
+          <PanelSelect
+            value={String(unlockYears)}
+            onChange={(v) => setUnlockYears(Number(v) as UnlockYears)}
+            options={[
+              { value: '1', label: '1 year after the wedding' },
+              { value: '5', label: '5 years after the wedding' },
+              { value: '10', label: '10 years after the wedding' },
+            ]}
+          />
+        </PanelField>
 
-        {/* Letter textarea */}
-        <div style={styles.fieldGroup}>
-          <label style={styles.label}>Your letter</label>
-          <textarea
+        <PanelField label="Your letter">
+          <PanelTextarea
             value={letterText}
-            onChange={(e) => setLetterText(e.target.value)}
+            onChange={setLetterText}
             placeholder={`Dear ${toName || '[Name]'},\n\n`}
-            maxLength={2000}
             rows={12}
-            style={styles.textarea}
           />
           <div
             style={{
-              ...styles.charCount,
-              color: charCount > 1800 ? '#c0856a' : '#A1A1AA',
+              marginTop: '6px',
+              fontFamily: panelFont.mono,
+              fontSize: panelText.meta,
+              fontWeight: panelWeight.bold,
+              letterSpacing: panelTracking.wider,
+              textAlign: 'right',
+              color: charOverLimit ? 'var(--pl-chrome-warning, #a87f1f)' : 'var(--pl-chrome-text-muted)',
+              transition: 'color 0.18s ease',
             }}
           >
-            {charCount} / 2000 characters
+            {charCount} / 2000
           </div>
-        </div>
+        </PanelField>
 
-        {/* Error */}
-        {error && <div style={styles.errorBox}>{error}</div>}
+        {error && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '8px',
+              padding: '10px 12px',
+              borderRadius: '10px',
+              background: 'color-mix(in srgb, var(--pl-chrome-danger) 10%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--pl-chrome-danger) 28%, transparent)',
+              color: 'var(--pl-chrome-danger)',
+              fontFamily: panelFont.body,
+              fontSize: panelText.hint,
+              lineHeight: panelLineHeight.snug,
+            }}
+          >
+            <AlertTriangle size={13} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: '1px' }} />
+            <span>{error}</span>
+          </div>
+        )}
 
-        {/* Submit */}
         <motion.button
+          type="button"
           onClick={handleSeal}
           disabled={saving}
-          whileHover={saving ? {} : { scale: 1.02, y: -1 }}
-          whileTap={saving ? {} : { scale: 0.97 }}
+          whileHover={saving ? {} : { y: -1 }}
+          whileTap={saving ? {} : { scale: 0.98 }}
           style={{
-            ...styles.sealBtn,
+            ...pillMono,
+            width: '100%',
+            padding: '12px 20px',
+            borderRadius: '99px',
+            background: 'var(--pl-chrome-accent)',
+            color: 'var(--pl-chrome-accent-ink)',
+            border: '1px solid var(--pl-chrome-accent)',
             opacity: saving ? 0.6 : 1,
             cursor: saving ? 'not-allowed' : 'pointer',
+            justifyContent: 'center',
+            gap: '8px',
           }}
         >
-          {saving ? 'Sealing...' : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><MailCheck size={14} style={{ color: 'currentColor' }} /> Seal &amp; Save Letter ({unlockLabel})</span>}
+          {saving ? (
+            'Sealing'
+          ) : (
+            <>
+              <MailCheck size={12} strokeWidth={1.75} />
+              Seal &amp; save letter ({unlockYears === 1 ? '1 year' : `${unlockYears} years`})
+            </>
+          )}
         </motion.button>
-      </div>
-    </div>
+      </PanelSection>
+    </PanelRoot>
   );
 }
-
-// ── Styles ────────────────────────────────────────────────────────────────────
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    background: '#1C1916',
-    color: '#18181B',
-    fontFamily: 'system-ui, -apple-system, sans-serif',
-    padding: '24px',
-    borderRadius: '12px',
-    maxWidth: '680px',
-    margin: '0 auto',
-  },
-
-  // Header
-  header: {
-    marginBottom: '28px',
-    borderBottom: '1px solid rgba(24,24,27,0.06)',
-    paddingBottom: '20px',
-  },
-  headerTop: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    marginBottom: '6px',
-  },
-  waxSeal: {
-    fontSize: '22px',
-  },
-  title: {
-    margin: 0,
-    fontSize: '20px',
-    fontWeight: 600,
-    color: '#71717A',
-    letterSpacing: '0.01em',
-  },
-  subtitle: {
-    margin: '4px 0 0 32px',
-    fontSize: '13px',
-    color: '#71717A',
-    lineHeight: 1.5,
-  },
-
-  // Section
-  section: {
-    marginBottom: '28px',
-  },
-  sectionTitle: {
-    margin: '0 0 14px 0',
-    fontSize: '13px',
-    fontWeight: 600,
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase',
-    color: '#71717A',
-  },
-
-  // Capsule card
-  capsuleCard: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    background: 'rgba(24,24,27,0.04)',
-    border: '1px solid rgba(24,24,27,0.06)',
-    borderRadius: '8px',
-    padding: '10px 12px',
-    marginBottom: '10px',
-  },
-  capsuleInfo: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-  },
-  capsuleNames: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    fontSize: '14px',
-  },
-  capsuleNameText: {
-    color: '#71717A',
-    fontWeight: 500,
-  },
-  capsuleMeta: {
-    fontSize: '12px',
-    color: '#71717A',
-    paddingLeft: '24px',
-  },
-  capsuleStatus: {
-    paddingLeft: '24px',
-    fontSize: '12px',
-  },
-  sealedBadge: {
-    color: '#8FAF7E',
-  },
-  openBadge: {
-    color: '#C0856A',
-  },
-  deleteBtn: {
-    background: 'transparent',
-    border: '1px solid rgba(24,24,27,0.08)',
-    borderRadius: '6px',
-    color: '#71717A',
-    fontSize: '12px',
-    padding: '5px 12px',
-    cursor: 'pointer',
-    transition: 'all 0.15s',
-    flexShrink: 0,
-  },
-
-  // Success
-  successBox: {
-    background: 'rgba(143,175,126,0.1)',
-    border: '1px solid rgba(143,175,126,0.35)',
-    borderRadius: '8px',
-    padding: '16px',
-    marginBottom: '24px',
-  },
-  successTitle: {
-    fontSize: '14px',
-    color: '#A8C98F',
-    fontWeight: 500,
-    marginBottom: '10px',
-  },
-  successUrl: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-  },
-  unlockLink: {
-    fontFamily: 'monospace',
-    fontSize: '13px',
-    color: '#71717A',
-    background: 'rgba(24,24,27,0.04)',
-    border: '1px solid rgba(24,24,27,0.06)',
-    borderRadius: '4px',
-    padding: '6px 10px',
-    wordBreak: 'break-all',
-  },
-
-  // Form
-  namesRow: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '12px',
-    marginBottom: '14px',
-  },
-  fieldGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-    marginBottom: '14px',
-  },
-  label: {
-    fontSize: '12px',
-    fontWeight: 500,
-    letterSpacing: '0.05em',
-    textTransform: 'uppercase',
-    color: '#71717A',
-  },
-  input: {
-    background: 'rgba(24,24,27,0.04)',
-    border: '1px solid rgba(24,24,27,0.08)',
-    borderRadius: '6px',
-    color: '#71717A',
-    fontSize: '14px',
-    padding: '9px 12px',
-    outline: 'none',
-    width: '100%',
-    boxSizing: 'border-box',
-  },
-  sealRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-  },
-  select: {
-    background: 'rgba(24,24,27,0.04)',
-    border: '1px solid rgba(24,24,27,0.08)',
-    borderRadius: '6px',
-    color: '#71717A',
-    fontSize: '14px',
-    padding: '9px 12px',
-    outline: 'none',
-    cursor: 'pointer',
-  },
-  unlockPreview: {
-    fontSize: '12px',
-    color: '#71717A',
-    
-  },
-  textarea: {
-    background: 'rgba(24,24,27,0.03)',
-    border: '1px solid rgba(24,24,27,0.08)',
-    borderRadius: '8px',
-    color: '#C8B89A',
-    fontFamily: 'Georgia, serif',
-    fontSize: '15px',
-    lineHeight: 1.75,
-    padding: '10px 12px',
-    resize: 'vertical',
-    outline: 'none',
-    width: '100%',
-    boxSizing: 'border-box',
-    minHeight: '220px',
-  },
-  charCount: {
-    fontSize: '11px',
-    textAlign: 'right',
-    marginTop: '4px',
-    transition: 'color 0.2s',
-  },
-
-  // Error
-  errorBox: {
-    background: 'rgba(192,133,106,0.12)',
-    border: '1px solid rgba(192,133,106,0.35)',
-    borderRadius: '6px',
-    color: '#C0856A',
-    fontSize: '13px',
-    padding: '8px 10px',
-    marginBottom: '14px',
-  },
-
-  // Seal button
-  sealBtn: {
-    background: 'linear-gradient(135deg, #8B7355 0%, #6B5A42 100%)',
-    border: '1px solid rgba(24,24,27,0.1)',
-    borderRadius: '8px',
-    color: '#F0E8D8',
-    fontSize: '14px',
-    fontWeight: 600,
-    padding: '12px 24px',
-    width: '100%',
-    letterSpacing: '0.02em',
-    transition: 'opacity 0.2s',
-  },
-
-  // Misc
-  dimText: {
-    fontSize: '13px',
-    color: '#71717A',
-    
-  },
-};

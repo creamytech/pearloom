@@ -13,6 +13,13 @@ import { Bookmark, Trash2, Download, Plus } from 'lucide-react';
 import type { PageBlock } from '@/types';
 import { makeId } from '@/lib/editor-ids';
 import { logEditorError } from '@/lib/editor-log';
+import {
+  panelFont,
+  panelText,
+  panelTracking,
+  panelWeight,
+  panelLineHeight,
+} from './panel';
 
 const STORAGE_KEY = 'pl-block-presets-v1';
 
@@ -99,115 +106,264 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
     setSaving(false);
   };
 
+  const pillMono: React.CSSProperties = {
+    fontFamily: panelFont.mono,
+    fontSize: panelText.meta,
+    fontWeight: panelWeight.bold,
+    letterSpacing: panelTracking.widest,
+    textTransform: 'uppercase',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '5px',
+    transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+    lineHeight: 1,
+    cursor: 'pointer',
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-      {/* Save button */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {!saving ? (
         <button
+          type="button"
           onClick={() => setSaving(true)}
           style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '6px 10px', borderRadius: '8px',
-            border: '1px dashed rgba(24,24,27,0.08)',
-            background: 'transparent', color: '#71717A',
-            cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700,
-            letterSpacing: '0.06em', textTransform: 'uppercase',
-            width: '100%', justifyContent: 'center',
+            ...pillMono,
+            padding: '9px 12px',
+            borderRadius: '10px',
+            border: '1px dashed color-mix(in srgb, var(--pl-chrome-accent) 30%, transparent)',
+            background: 'color-mix(in srgb, var(--pl-chrome-accent) 4%, transparent)',
+            color: 'var(--pl-chrome-text-soft)',
+            width: '100%',
+            justifyContent: 'center',
           }}
         >
-          <Plus size={11} /> Save current as preset
+          <Plus size={11} strokeWidth={1.75} /> Save current as preset
         </button>
       ) : (
-        <div style={{ display: 'flex', gap: '6px' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+            padding: '12px 14px',
+            borderRadius: '10px',
+            background: 'color-mix(in srgb, var(--pl-chrome-accent) 4%, var(--pl-chrome-bg))',
+            border: '1px solid color-mix(in srgb, var(--pl-chrome-accent) 24%, transparent)',
+          }}
+        >
+          <span
+            style={{
+              fontFamily: panelFont.mono,
+              fontSize: panelText.meta,
+              fontWeight: panelWeight.bold,
+              letterSpacing: panelTracking.widest,
+              textTransform: 'uppercase',
+              color: 'var(--pl-chrome-text-faint)',
+            }}
+          >
+            Preset name
+          </span>
           <input
             autoFocus
             value={saveName}
-            onChange={e => setSaveName(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') setSaving(false); }}
-            placeholder="Preset name…"
+            onChange={(e) => setSaveName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSave();
+              if (e.key === 'Escape') setSaving(false);
+            }}
+            placeholder="e.g. editorial hero"
             style={{
-              flex: 1, padding: '6px 10px', borderRadius: '6px',
-              border: '1px solid rgba(24,24,27,0.08)',
-              background: '#F4F4F5',
-              color: '#18181B', fontSize: '0.75rem',
+              width: '100%',
+              padding: '8px 2px 7px',
+              background: 'transparent',
+              border: 'none',
+              borderBottom: '1px solid var(--pl-chrome-border)',
+              borderRadius: 0,
+              fontFamily: panelFont.body,
+              fontSize: 'max(16px, 0.82rem)',
+              color: 'var(--pl-chrome-text)',
               outline: 'none',
+              transition: 'border-color 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderBottomColor = 'var(--pl-chrome-accent)';
+              e.currentTarget.style.borderBottomWidth = '1.5px';
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderBottomColor = 'var(--pl-chrome-border)';
+              e.currentTarget.style.borderBottomWidth = '1px';
             }}
           />
-          <button
-            onClick={handleSave}
-            disabled={!saveName.trim()}
-            style={{
-              padding: '6px 10px', borderRadius: '6px',
-              border: 'none', background: 'rgba(24,24,27,0.12)',
-              color: '#71717A', cursor: 'pointer', fontWeight: 700, fontSize: '0.75rem',
-              opacity: saveName.trim() ? 1 : 0.4,
-            }}
-          >Save</button>
-          <button
-            onClick={() => setSaving(false)}
-            style={{
-              padding: '6px 8px', borderRadius: '6px',
-              border: 'none', background: 'rgba(0,0,0,0.04)',
-              color: '#3F3F46', cursor: 'pointer', fontSize: '0.75rem',
-            }}
-          >✕</button>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
+            <button
+              type="button"
+              onClick={() => setSaving(false)}
+              style={{
+                ...pillMono,
+                padding: '7px 12px',
+                borderRadius: '99px',
+                border: '1px solid var(--pl-chrome-border)',
+                background: 'transparent',
+                color: 'var(--pl-chrome-text-soft)',
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={!saveName.trim()}
+              style={{
+                ...pillMono,
+                padding: '7px 14px',
+                borderRadius: '99px',
+                border: '1px solid var(--pl-chrome-accent)',
+                background: 'var(--pl-chrome-accent)',
+                color: 'var(--pl-chrome-accent-ink)',
+                opacity: saveName.trim() ? 1 : 0.4,
+                cursor: saveName.trim() ? 'pointer' : 'not-allowed',
+              }}
+            >
+              Commit
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Presets list */}
       {presets.length === 0 ? (
-        <div style={{ padding: '10px', textAlign: 'center', fontSize: '0.7rem', color: '#71717A' }}>
+        <div
+          style={{
+            padding: '14px 12px',
+            textAlign: 'center',
+            fontFamily: panelFont.body,
+            fontStyle: 'italic',
+            fontSize: panelText.hint,
+            color: 'var(--pl-chrome-text-muted)',
+            border: '1px dashed color-mix(in srgb, var(--pl-chrome-accent) 22%, transparent)',
+            borderRadius: '10px',
+            background: 'color-mix(in srgb, var(--pl-chrome-accent) 3%, transparent)',
+          }}
+        >
           No saved presets yet
         </div>
       ) : (
-        presets.map(preset => (
-          <div
-            key={preset.id}
-            onMouseEnter={() => setHoveredId(preset.id)}
-            onMouseLeave={() => setHoveredId(null)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '8px',
-              padding: '8px 10px', borderRadius: '8px',
-              background: hoveredId === preset.id ? 'rgba(24,24,27,0.04)' : 'rgba(24,24,27,0.03)',
-              border: '1px solid rgba(0,0,0,0.04)',
-              transition: 'background 0.15s',
-            }}
-          >
-            <Bookmark size={12} color="#A1A1AA" style={{ flexShrink: 0 }} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#18181B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{preset.name}</div>
-              <div style={{ fontSize: '0.6rem', color: '#71717A' }}>
-                {new Date(preset.savedAt).toLocaleDateString()}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {presets.map((preset, idx) => (
+            <div
+              key={preset.id}
+              onMouseEnter={() => setHoveredId(preset.id)}
+              onMouseLeave={() => setHoveredId(null)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '10px 12px',
+                borderRadius: '10px',
+                background:
+                  hoveredId === preset.id
+                    ? 'color-mix(in srgb, var(--pl-chrome-accent) 6%, var(--pl-chrome-surface))'
+                    : 'var(--pl-chrome-surface)',
+                border: '1px solid var(--pl-chrome-border)',
+                transition: 'background 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+              }}
+            >
+              <Bookmark
+                size={12}
+                strokeWidth={1.5}
+                color="var(--pl-chrome-accent)"
+                style={{ flexShrink: 0 }}
+              />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    gap: '6px',
+                    marginBottom: '2px',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: panelFont.mono,
+                      fontSize: panelText.meta,
+                      fontWeight: panelWeight.bold,
+                      letterSpacing: panelTracking.widest,
+                      color: 'var(--pl-chrome-text-faint)',
+                    }}
+                  >
+                    {String(idx + 1).padStart(2, '0')}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    fontFamily: panelFont.display,
+                    fontStyle: 'italic',
+                    fontSize: panelText.itemTitle,
+                    fontWeight: panelWeight.regular,
+                    color: 'var(--pl-chrome-text)',
+                    lineHeight: panelLineHeight.tight,
+                    letterSpacing: '-0.01em',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {preset.name}
+                </div>
+                <div
+                  style={{
+                    fontFamily: panelFont.mono,
+                    fontSize: panelText.meta,
+                    letterSpacing: panelTracking.wider,
+                    textTransform: 'uppercase',
+                    color: 'var(--pl-chrome-text-muted)',
+                    marginTop: '3px',
+                  }}
+                >
+                  {new Date(preset.savedAt).toLocaleDateString()}
+                </div>
               </div>
+              <button
+                type="button"
+                onClick={() => onApply(preset.config, preset.blockEffects)}
+                title="Apply preset"
+                style={{
+                  ...pillMono,
+                  padding: '6px 10px',
+                  borderRadius: '99px',
+                  border: '1px solid var(--pl-chrome-accent)',
+                  background: 'color-mix(in srgb, var(--pl-chrome-accent) 12%, transparent)',
+                  color: 'var(--pl-chrome-accent)',
+                  flexShrink: 0,
+                }}
+              >
+                <Download size={10} strokeWidth={1.75} /> Apply
+              </button>
+              <button
+                type="button"
+                onClick={() => deletePreset(preset.id)}
+                title="Delete preset"
+                aria-label="Delete preset"
+                style={{
+                  width: 26,
+                  height: 26,
+                  borderRadius: '50%',
+                  border: '1px solid var(--pl-chrome-border)',
+                  background: 'transparent',
+                  color: 'var(--pl-chrome-text-muted)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+                }}
+              >
+                <Trash2 size={11} strokeWidth={1.75} />
+              </button>
             </div>
-            <button
-              onClick={() => onApply(preset.config, preset.blockEffects)}
-              title="Apply preset"
-              style={{
-                display: 'flex', alignItems: 'center', gap: '3px',
-                padding: '4px 8px', borderRadius: '6px',
-                border: '1px solid rgba(24,24,27,0.12)',
-                background: 'rgba(24,24,27,0.04)',
-                color: '#71717A', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700,
-                flexShrink: 0,
-              }}
-            >
-              <Download size={10} /> Apply
-            </button>
-            <button
-              onClick={() => deletePreset(preset.id)}
-              title="Delete preset"
-              style={{
-                display: 'flex', padding: '4px', borderRadius: '6px',
-                border: 'none', background: 'none',
-                color: '#71717A', cursor: 'pointer',
-                flexShrink: 0,
-              }}
-            >
-              <Trash2 size={11} />
-            </button>
-          </div>
-        ))
+          ))}
+        </div>
       )}
     </div>
   );

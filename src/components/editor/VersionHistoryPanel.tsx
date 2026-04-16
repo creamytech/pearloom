@@ -2,15 +2,33 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / editor/VersionHistoryPanel.tsx
-// Version history — save/restore snapshots with timestamps.
+// Save/restore snapshots with timestamps. Rewritten in the
+// editorial chrome: Fraunces italic labels, mono uppercase meta,
+// gold hairline rules, cream surfaces via --pl-chrome-* tokens.
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Save, RotateCcw, Trash2, ChevronRight } from 'lucide-react';
-import { saveSnapshot, loadSnapshots, restoreSnapshot, deleteSnapshot, type VersionSnapshot } from '@/lib/block-engine/block-actions';
-import { Button } from '@/components/ui/button';
+import { Clock, Save, RotateCcw, Trash2 } from 'lucide-react';
+import {
+  saveSnapshot,
+  loadSnapshots,
+  restoreSnapshot,
+  deleteSnapshot,
+  type VersionSnapshot,
+} from '@/lib/block-engine/block-actions';
 import type { StoryManifest } from '@/types';
+import {
+  PanelRoot,
+  PanelSection,
+  PanelInput,
+  PanelEmptyState,
+  panelFont,
+  panelText,
+  panelTracking,
+  panelWeight,
+  panelLineHeight,
+} from './panel';
 
 interface VersionHistoryPanelProps {
   manifest: StoryManifest;
@@ -26,6 +44,61 @@ function timeAgo(timestamp: number): string {
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
   return `${Math.floor(seconds / 86400)}d ago`;
 }
+
+function formatTimestamp(timestamp: number): string {
+  const d = new Date(timestamp);
+  return d.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  }) + ' · ' + d.toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+const pillBase: React.CSSProperties = {
+  fontFamily: panelFont.mono,
+  fontSize: panelText.meta,
+  fontWeight: panelWeight.bold,
+  letterSpacing: panelTracking.widest,
+  textTransform: 'uppercase',
+  padding: '6px 12px',
+  borderRadius: '99px',
+  cursor: 'pointer',
+  transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '6px',
+  lineHeight: 1,
+};
+
+const pillFilled: React.CSSProperties = {
+  ...pillBase,
+  background: 'var(--pl-chrome-accent)',
+  color: 'var(--pl-chrome-accent-ink)',
+  border: '1px solid var(--pl-chrome-accent)',
+};
+
+const pillOutline: React.CSSProperties = {
+  ...pillBase,
+  background: 'transparent',
+  color: 'var(--pl-chrome-text-soft)',
+  border: '1px solid var(--pl-chrome-border)',
+};
+
+const iconButtonStyle: React.CSSProperties = {
+  width: 28,
+  height: 28,
+  borderRadius: '50%',
+  border: '1px solid var(--pl-chrome-border)',
+  background: 'transparent',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: 'var(--pl-chrome-text-muted)',
+  transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+};
 
 export function VersionHistoryPanel({ manifest, onRestore, siteId }: VersionHistoryPanelProps) {
   const [snapshots, setSnapshots] = useState<VersionSnapshot[]>([]);
@@ -59,154 +132,254 @@ export function VersionHistoryPanel({ manifest, onRestore, siteId }: VersionHist
   };
 
   return (
-    <div style={{ padding: '16px' }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        marginBottom: '16px',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Clock size={14} color="#18181B" />
-          <span style={{
-            fontSize: '0.7rem', fontWeight: 700,
-            letterSpacing: '0.1em', textTransform: 'uppercase',
-            color: '#18181B',
-          }}>
-            Version History
-          </span>
-        </div>
-        <Button
-          variant="secondary"
-          size="xs"
-          icon={<Save size={11} />}
-          onClick={() => setShowSave(!showSave)}
+    <PanelRoot>
+      <PanelSection
+        title="Version history"
+        eyebrow="Archive"
+        icon={Clock}
+        badge={snapshots.length || undefined}
+        hint="Keep waypoints you can return to. Snapshots live on this device."
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            marginTop: '-4px',
+          }}
         >
-          Save
-        </Button>
-      </div>
-
-      {/* Save form */}
-      <AnimatePresence>
-        {showSave && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            style={{ overflow: 'hidden', marginBottom: '12px' }}
+          <button
+            type="button"
+            onClick={() => setShowSave((v) => !v)}
+            style={showSave ? pillOutline : pillFilled}
           >
-            <div style={{
-              display: 'flex', gap: '8px', padding: '12px',
-              borderRadius: '10px', background: '#FAFAFA',
-              border: '1px solid #E4E4E7',
-            }}>
-              <input
-                type="text"
-                value={saveLabel}
-                onChange={(e) => setSaveLabel(e.target.value)}
-                placeholder="Snapshot label (optional)"
-                className="pl-focus-glow"
-                style={{
-                  flex: 1, padding: '6px 10px', borderRadius: '6px',
-                  border: '1.5px solid rgba(255,255,255,0.25)', fontSize: '0.8rem',
-                  background: 'white', color: '#18181B',
-                }}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
-              />
-              <Button variant="primary" size="xs" onClick={handleSave}>
-                Save
-              </Button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Snapshot list */}
-      {snapshots.length === 0 ? (
-        <div style={{
-          textAlign: 'center', padding: '24px 12px',
-          color: '#71717A', fontSize: '0.8rem',
-        }}>
-          <Clock size={20} style={{ opacity: 0.3, marginBottom: '8px' }} />
-          <p>No snapshots saved yet.</p>
-          <p style={{ fontSize: '0.65rem', marginTop: '4px' }}>
-            Save a snapshot to preserve this version of your site.
-          </p>
+            <Save size={10} strokeWidth={2} />
+            {showSave ? 'Cancel' : 'New snapshot'}
+          </button>
         </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          {snapshots.map((snap) => (
+
+        <AnimatePresence initial={false}>
+          {showSave && (
             <motion.div
-              key={snap.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              style={{
-                padding: '8px 10px',
-                borderRadius: '10px',
-                border: '1px solid #E4E4E7',
-                background: confirmRestore === snap.id ? 'rgba(24,24,27,0.04)' : 'white',
-                transition: 'background 0.15s',
-              }}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+              style={{ overflow: 'hidden' }}
             >
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              }}>
-                <div>
-                  <p style={{
-                    fontSize: '0.8rem', fontWeight: 600,
-                    color: '#18181B', margin: 0,
-                  }}>
-                    {snap.label}
-                  </p>
-                  <p style={{
-                    fontSize: '0.65rem', color: '#71717A',
-                    margin: '2px 0 0',
-                  }}>
-                    {timeAgo(snap.timestamp)}
-                  </p>
-                </div>
-                <div style={{ display: 'flex', gap: '4px' }}>
-                  {confirmRestore === snap.id ? (
-                    <>
-                      <Button variant="primary" size="xs" onClick={() => handleRestore(snap.id)}>
-                        Confirm
-                      </Button>
-                      <Button variant="ghost" size="xs" onClick={() => setConfirmRestore(null)}>
-                        Cancel
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => setConfirmRestore(snap.id)}
-                        title="Restore this version"
-                        style={{
-                          width: '28px', height: '28px', borderRadius: '6px',
-                          border: '1px solid #E4E4E7', background: 'transparent',
-                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: '#18181B',
-                        }}
-                      >
-                        <RotateCcw size={12} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(snap.id)}
-                        title="Delete snapshot"
-                        style={{
-                          width: '28px', height: '28px', borderRadius: '6px',
-                          border: '1px solid #E4E4E7', background: 'transparent',
-                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: '#71717A',
-                        }}
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </>
-                  )}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                  padding: '12px 14px',
+                  borderRadius: '10px',
+                  background:
+                    'color-mix(in srgb, var(--pl-chrome-accent) 4%, var(--pl-chrome-bg))',
+                  border: '1px dashed color-mix(in srgb, var(--pl-chrome-accent) 28%, transparent)',
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: panelFont.mono,
+                    fontSize: panelText.meta,
+                    fontWeight: panelWeight.bold,
+                    letterSpacing: panelTracking.widest,
+                    textTransform: 'uppercase',
+                    color: 'var(--pl-chrome-text-faint)',
+                  }}
+                >
+                  Label
+                </span>
+                <PanelInput
+                  value={saveLabel}
+                  onChange={setSaveLabel}
+                  placeholder="e.g. before redesign"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSave();
+                  }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <button type="button" onClick={handleSave} style={pillFilled}>
+                    Commit snapshot
+                  </button>
                 </div>
               </div>
             </motion.div>
-          ))}
-        </div>
-      )}
-    </div>
+          )}
+        </AnimatePresence>
+
+        {snapshots.length === 0 ? (
+          <PanelEmptyState
+            icon={<Clock size={18} strokeWidth={1.5} />}
+            title="No snapshots yet"
+            description="Save a version to preserve this moment. You can return to any snapshot later."
+            action={{ label: 'Save first snapshot', onClick: () => setShowSave(true) }}
+          />
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {snapshots.map((snap, idx) => {
+              const isConfirming = confirmRestore === snap.id;
+              return (
+                <motion.div
+                  key={snap.id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                  style={{
+                    padding: '12px 14px',
+                    borderRadius: '10px',
+                    border: '1px solid var(--pl-chrome-border)',
+                    background: isConfirming
+                      ? 'color-mix(in srgb, var(--pl-chrome-accent) 8%, var(--pl-chrome-surface))'
+                      : 'var(--pl-chrome-surface)',
+                    transition: 'background 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      justifyContent: 'space-between',
+                      gap: '10px',
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'baseline',
+                          gap: '8px',
+                          marginBottom: '4px',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontFamily: panelFont.mono,
+                            fontSize: panelText.meta,
+                            fontWeight: panelWeight.bold,
+                            letterSpacing: panelTracking.widest,
+                            textTransform: 'uppercase',
+                            color: 'var(--pl-chrome-accent)',
+                          }}
+                        >
+                          {String(snapshots.length - idx).padStart(2, '0')}
+                        </span>
+                        <span
+                          style={{
+                            fontFamily: panelFont.mono,
+                            fontSize: panelText.meta,
+                            letterSpacing: panelTracking.wider,
+                            textTransform: 'uppercase',
+                            color: 'var(--pl-chrome-text-faint)',
+                          }}
+                        >
+                          {timeAgo(snap.timestamp)}
+                        </span>
+                      </div>
+                      <p
+                        style={{
+                          fontFamily: panelFont.display,
+                          fontStyle: 'italic',
+                          fontSize: panelText.itemTitle,
+                          fontWeight: panelWeight.regular,
+                          lineHeight: panelLineHeight.tight,
+                          color: 'var(--pl-chrome-text)',
+                          margin: 0,
+                          letterSpacing: '-0.01em',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {snap.label}
+                      </p>
+                      <p
+                        style={{
+                          fontFamily: panelFont.body,
+                          fontSize: panelText.hint,
+                          color: 'var(--pl-chrome-text-muted)',
+                          margin: '3px 0 0',
+                        }}
+                      >
+                        {formatTimestamp(snap.timestamp)}
+                      </p>
+                    </div>
+
+                    {!isConfirming && (
+                      <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmRestore(snap.id)}
+                          title="Restore this version"
+                          aria-label="Restore this version"
+                          style={{ ...iconButtonStyle, color: 'var(--pl-chrome-accent)' }}
+                        >
+                          <RotateCcw size={12} strokeWidth={1.75} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(snap.id)}
+                          title="Delete snapshot"
+                          aria-label="Delete snapshot"
+                          style={iconButtonStyle}
+                        >
+                          <Trash2 size={12} strokeWidth={1.75} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {isConfirming && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '10px',
+                        paddingTop: '10px',
+                        borderTop: '1px solid color-mix(in srgb, var(--pl-chrome-accent) 22%, transparent)',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontFamily: panelFont.body,
+                          fontSize: panelText.hint,
+                          fontStyle: 'italic',
+                          color: 'var(--pl-chrome-text-muted)',
+                        }}
+                      >
+                        Replace current draft with this snapshot?
+                      </span>
+                      <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                        <button
+                          type="button"
+                          onClick={() => handleRestore(snap.id)}
+                          style={pillFilled}
+                        >
+                          Restore
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmRestore(null)}
+                          style={pillOutline}
+                        >
+                          Keep
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+      </PanelSection>
+    </PanelRoot>
   );
 }

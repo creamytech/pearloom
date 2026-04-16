@@ -10,7 +10,7 @@
 
 import type { ChangeEvent, CSSProperties } from 'react';
 import { useRef } from 'react';
-import { panelInputStyle } from './PanelField';
+import { panelFont } from './panel-tokens';
 
 export interface PanelColorPickerProps {
   value: string;
@@ -54,14 +54,15 @@ export function PanelColorPicker({
           disabled={disabled}
           onClick={() => nativeRef.current?.click()}
           style={{
-            width: 36,
-            minHeight: 36,
-            borderRadius: 6,
+            width: 38,
+            minHeight: 38,
+            borderRadius: '50%',
             background: hex,
             border: '1px solid var(--pl-chrome-border)',
-            boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.35)',
+            boxShadow: `inset 0 0 0 2px var(--pl-chrome-bg), 0 0 0 1px color-mix(in srgb, var(--pl-chrome-accent) 22%, transparent)`,
             cursor: disabled ? 'not-allowed' : 'pointer',
-            flex: '0 0 36px',
+            flex: '0 0 38px',
+            transition: 'transform 0.2s cubic-bezier(0.22, 1, 0.36, 1)',
           }}
         />
         <input
@@ -86,18 +87,28 @@ export function PanelColorPicker({
           onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(normalize(e.target.value))}
           disabled={disabled}
           style={{
-            ...panelInputStyle,
-            fontFamily: 'var(--font-geist-mono, ui-monospace), Menlo, monospace',
+            flex: 1,
+            padding: '8px 2px 7px',
+            background: 'transparent',
+            border: 'none',
+            borderBottom: '1px solid var(--pl-chrome-border)',
+            borderRadius: 0,
+            fontFamily: panelFont.mono,
+            fontSize: 'max(16px, 0.82rem)',
+            color: 'var(--pl-chrome-text)',
+            outline: 'none',
             textTransform: 'uppercase',
-            letterSpacing: '0.02em',
+            letterSpacing: '0.06em',
+            transition: 'border-color 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+            minHeight: 38,
           }}
           onFocus={(e) => {
-            e.currentTarget.style.borderColor = 'var(--pl-chrome-accent)';
-            e.currentTarget.style.boxShadow = 'var(--pl-chrome-focus)';
+            e.currentTarget.style.borderBottomColor = 'var(--pl-chrome-accent)';
+            e.currentTarget.style.borderBottomWidth = '1.5px';
           }}
           onBlur={(e) => {
-            e.currentTarget.style.borderColor = 'var(--pl-chrome-border)';
-            e.currentTarget.style.boxShadow = 'none';
+            e.currentTarget.style.borderBottomColor = 'var(--pl-chrome-border)';
+            e.currentTarget.style.borderBottomWidth = '1px';
           }}
         />
       </div>
@@ -119,13 +130,17 @@ export function PanelColorPicker({
                 onClick={() => onChange(pn)}
                 disabled={disabled}
                 style={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 4,
+                  width: 22,
+                  height: 22,
+                  borderRadius: '50%',
                   background: pn,
-                  border: active ? '2px solid var(--pl-chrome-accent)' : '1px solid var(--pl-chrome-border)',
+                  border: 'none',
+                  boxShadow: active
+                    ? `inset 0 0 0 2px var(--pl-chrome-bg), 0 0 0 1.5px var(--pl-chrome-accent)`
+                    : `inset 0 0 0 1px var(--pl-chrome-bg), 0 0 0 1px var(--pl-chrome-border)`,
                   cursor: disabled ? 'not-allowed' : 'pointer',
                   padding: 0,
+                  transition: 'transform 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
                 }}
               />
             );

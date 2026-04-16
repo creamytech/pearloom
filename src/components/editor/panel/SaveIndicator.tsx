@@ -12,7 +12,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
-import { panelText, panelWeight, panelTracking } from './panel-tokens';
+import { panelFont, panelText, panelWeight, panelTracking } from './panel-tokens';
 
 export type SaveState = 'idle' | 'saving' | 'saved' | 'error';
 
@@ -54,15 +54,15 @@ export function SaveIndicator({
               width: 10,
               height: 10,
               borderRadius: '50%',
-              border: '1.5px solid #A1A1AA',
+              border: '1.5px solid var(--pl-chrome-text-muted)',
               borderTopColor: 'transparent',
               display: 'inline-block',
-              animation: 'pl-save-spin 720ms linear infinite',
+              animation: 'pl-save-spin 820ms linear infinite',
             }}
           />
         ),
-        label: 'Saving…',
-        color: '#71717A',
+        label: 'Saving',
+        color: 'var(--pl-chrome-text-muted)',
       };
     }
     if (state === 'error') {
@@ -71,16 +71,16 @@ export function SaveIndicator({
           <span
             aria-hidden="true"
             style={{
-              width: 8,
-              height: 8,
+              width: 7,
+              height: 7,
               borderRadius: '50%',
-              background: '#DC2626',
+              background: 'var(--pl-chrome-danger)',
               display: 'inline-block',
             }}
           />
         ),
         label: errorLabel,
-        color: '#B91C1C',
+        color: 'var(--pl-chrome-danger)',
       };
     }
     return {
@@ -88,16 +88,16 @@ export function SaveIndicator({
         <span
           aria-hidden="true"
           style={{
-            width: 8,
-            height: 8,
+            width: 7,
+            height: 7,
             borderRadius: '50%',
-            background: '#16A34A',
+            background: 'var(--pl-chrome-accent)',
             display: 'inline-block',
           }}
         />
       ),
       label: 'Saved',
-      color: '#4D7C0F',
+      color: 'var(--pl-chrome-accent)',
     };
   })();
 
@@ -108,13 +108,14 @@ export function SaveIndicator({
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 6,
+        gap: 7,
+        fontFamily: panelFont.mono,
         fontSize: panelText.meta,
-        fontWeight: panelWeight.semibold,
-        letterSpacing: panelTracking.wider,
+        fontWeight: panelWeight.bold,
+        letterSpacing: panelTracking.widest,
         textTransform: 'uppercase',
         color,
-        transition: 'opacity 160ms ease',
+        transition: 'opacity 200ms cubic-bezier(0.22, 1, 0.36, 1)',
       }}
     >
       {dot}

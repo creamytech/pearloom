@@ -2,18 +2,23 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / editor/panel/PanelField.tsx
-// Canonical labeled form field for editor panels. Wraps a text
-// input / textarea / arbitrary children with the uppercase eyebrow
-// label style used everywhere else in the editor (0.62rem / 700 /
-// 0.1em tracking / #71717A).
+// Canonical labeled form field for editor panels.
 //
-// Intentionally thin — we don't own the input element because the
-// same wrapper is used for native inputs, selects, and custom
-// pickers. Pass your input as `children`.
+// Editorial chrome (v2): Labels are mono uppercase eyebrows
+// (0.58rem / 700 / 0.22em tracking / text-faint). Inputs use a
+// notebook-margin underline style — no boxed surface, just a
+// 1px bottom rule that promotes to olive on focus. Textareas keep
+// a subtle bordered surface because usability beats austerity for
+// multi-line copy.
 // ─────────────────────────────────────────────────────────────
 
-import type { ReactNode, CSSProperties, ChangeEvent } from 'react';
-import { panelText, panelWeight, panelTracking } from './panel-tokens';
+import type { ReactNode, CSSProperties, ChangeEvent, KeyboardEvent } from 'react';
+import {
+  panelFont,
+  panelText,
+  panelWeight,
+  panelTracking,
+} from './panel-tokens';
 
 export interface PanelFieldProps {
   /** Uppercase eyebrow label shown above the input. */
@@ -48,12 +53,13 @@ export function PanelField({
       {label && (
         <label
           style={{
+            fontFamily: panelFont.mono,
             fontSize: panelText.label,
             fontWeight: panelWeight.bold,
-            letterSpacing: panelTracking.wider,
+            letterSpacing: panelTracking.widest,
             textTransform: 'uppercase',
-            color: 'var(--pl-chrome-text-muted)',
-            lineHeight: 1.4,
+            color: 'var(--pl-chrome-text-faint)',
+            lineHeight: 1.2,
           }}
         >
           {label}
@@ -63,6 +69,7 @@ export function PanelField({
       {(error || hint) && (
         <div
           style={{
+            fontFamily: panelFont.body,
             fontSize: panelText.meta,
             lineHeight: 1.5,
             color: error ? 'var(--pl-chrome-danger)' : 'var(--pl-chrome-text-muted)',
@@ -77,23 +84,25 @@ export function PanelField({
 }
 
 // ── Shared input style for panels ────────────────────────────
-// The single source of truth for <input>/<textarea> chrome used
-// inside a PanelField. Panels should spread `panelInputStyle` onto
-// their native inputs to get consistent glass look + focus ring
-// (via :focus CSS, see globals.css / editor-utils).
+// Editorial "notebook margin" line — no boxed surface, just a thin
+// rule beneath the text that responds to focus with an olive
+// treatment. The input sits on the section's cream paper so the
+// typography can breathe.
 export const panelInputStyle: CSSProperties = {
   width: '100%',
-  padding: '8px 10px',
-  borderRadius: '6px',
-  background: 'var(--pl-chrome-surface)',
-  border: '1px solid var(--pl-chrome-border)',
-  fontSize: 'max(16px, 0.8rem)', // 16px min keeps iOS from zoom-in
+  padding: '8px 2px 7px',
+  borderRadius: '0',
+  background: 'transparent',
+  border: 'none',
+  borderBottom: '1px solid var(--pl-chrome-border)',
+  fontFamily: panelFont.body,
+  fontSize: 'max(16px, 0.82rem)',
   color: 'var(--pl-chrome-text)',
-  fontFamily: 'inherit',
   outline: 'none',
-  transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+  transition:
+    'border-color 0.18s cubic-bezier(0.22, 1, 0.36, 1), color 0.18s ease',
   boxSizing: 'border-box',
-  minHeight: '36px',
+  minHeight: '34px',
 };
 
 /**
@@ -107,34 +116,61 @@ export function PanelInput({
   placeholder,
   type = 'text',
   disabled,
+  onKeyDown,
+  autoFocus,
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   type?: 'text' | 'email' | 'url' | 'number' | 'date' | 'time';
   disabled?: boolean;
+  onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void;
+  autoFocus?: boolean;
 }) {
   return (
     <input
       value={value}
       onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+      onKeyDown={onKeyDown}
+      autoFocus={autoFocus}
       placeholder={placeholder}
       type={type}
       disabled={disabled}
       style={panelInputStyle}
       onFocus={(e) => {
-        e.currentTarget.style.borderColor = 'var(--pl-chrome-accent)';
-        e.currentTarget.style.boxShadow = 'var(--pl-chrome-focus)';
+        e.currentTarget.style.borderBottomColor = 'var(--pl-chrome-accent)';
+        e.currentTarget.style.borderBottomWidth = '1.5px';
       }}
       onBlur={(e) => {
-        e.currentTarget.style.borderColor = 'var(--pl-chrome-border)';
-        e.currentTarget.style.boxShadow = 'none';
+        e.currentTarget.style.borderBottomColor = 'var(--pl-chrome-border)';
+        e.currentTarget.style.borderBottomWidth = '1px';
       }}
     />
   );
 }
 
-/** Multi-line variant sharing the same chrome. */
+// ── Textarea — soft boxed surface ────────────────────────────
+// Multi-line input keeps a subtle bordered card (not a line) so
+// the writing area stays contained and usable.
+const panelTextareaStyle: CSSProperties = {
+  width: '100%',
+  padding: '10px 12px',
+  borderRadius: '8px',
+  background: 'color-mix(in srgb, var(--pl-chrome-accent) 3%, var(--pl-chrome-bg))',
+  border: '1px solid var(--pl-chrome-border)',
+  fontFamily: panelFont.body,
+  fontSize: 'max(16px, 0.82rem)',
+  lineHeight: 1.55,
+  color: 'var(--pl-chrome-text)',
+  outline: 'none',
+  transition:
+    'border-color 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.18s ease',
+  boxSizing: 'border-box',
+  resize: 'vertical',
+  minHeight: 68,
+};
+
+/** Multi-line variant with its own chrome. */
 export function PanelTextarea({
   value,
   onChange,
@@ -155,7 +191,7 @@ export function PanelTextarea({
       placeholder={placeholder}
       rows={rows}
       disabled={disabled}
-      style={{ ...panelInputStyle, resize: 'vertical', minHeight: 60 }}
+      style={panelTextareaStyle}
       onFocus={(e) => {
         e.currentTarget.style.borderColor = 'var(--pl-chrome-accent)';
         e.currentTarget.style.boxShadow = 'var(--pl-chrome-focus)';

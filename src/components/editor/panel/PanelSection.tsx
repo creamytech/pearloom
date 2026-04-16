@@ -4,22 +4,34 @@
 // Pearloom / editor/panel/PanelSection.tsx
 // Canonical collapsible section wrapper for editor panels.
 //
-// VISUAL RULE: one glass card wraps BOTH the header and the body.
-// The header is not a floating title above the card — it's part of
-// the same rounded surface, so the section always reads as a single
-// cohesive unit regardless of the user's site theme. Uses HARD-CODED
-// radii + backgrounds so the editor chrome never inherits the site-
-// level `elementShape` (arch/pill/etc).
+// Editorial chrome (v2): Each section is an editorial "card" with
+// a mono uppercase eyebrow (tracked 0.22em), a Fraunces italic
+// sentence-case title, and a gold hairline separating the header
+// from the body. The card itself sits on cream paper (or the warm
+// dark surface in dark mode) with a near-hairline border.
+//
+// Visual rule: one card wraps BOTH the header and the body — the
+// header is never a floating title above the card. Uses hard-coded
+// radii so the editor chrome never inherits the site's
+// `elementShape` override.
 // ─────────────────────────────────────────────────────────────
 
 import { useState, type ReactNode, type ElementType } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
-import { panelText, panelWeight, panelTracking } from './panel-tokens';
+import {
+  panelFont,
+  panelText,
+  panelWeight,
+  panelTracking,
+  panelSection,
+} from './panel-tokens';
 
 export interface PanelSectionProps {
-  /** Uppercase eyebrow title rendered in the section header. */
+  /** Sentence-case title rendered in Fraunces italic. */
   title: string;
+  /** Optional mono eyebrow rendered ABOVE the title. */
+  eyebrow?: string;
   /** Optional lucide icon component rendered left of the title. */
   icon?: ElementType;
   /** Optional count/badge rendered right of the title. */
@@ -32,28 +44,24 @@ export interface PanelSectionProps {
   defaultOpen?: boolean;
   /**
    * When `true` (default), the section renders on the canonical
-   * translucent glass card. Pass `false` to get an unstyled
-   * container for sections whose children already render their own
-   * full-bleed chrome (e.g. a block-list Reorder group).
+   * cream-paper card. Pass `false` to get an unstyled container for
+   * sections whose children already render their own chrome (e.g. a
+   * block-list Reorder group).
    */
   card?: boolean;
   /** Panel-level children. */
   children: ReactNode;
 }
 
-// One hard-coded radius for ALL editor panel chrome so site-level
-// elementShape overrides (arch / pill / etc) can't leak in. Colors
-// use the chrome token layer so the panel inverts cleanly with
-// [data-theme='dark'] without touching the canvas.
-const PANEL_RADIUS = '12px';
-const PANEL_CARD_BG = 'var(--pl-chrome-surface)';
-const PANEL_CARD_BORDER = '1px solid var(--pl-chrome-border)';
+const PANEL_RADIUS = panelSection.cardRadius;
 
 /**
  * A single collapsible section with:
- *   - uppercase eyebrow title @ 0.6rem / 700 / 0.1em tracking
+ *   - mono uppercase eyebrow @ 0.58rem / 700 / 0.22em tracking
+ *   - Fraunces italic sentence-case title (weight 400)
+ *   - gold hairline separator between header and body
  *   - chevron that rotates 90° when open
- *   - ONE rounded glass card wrapping the full header+body
+ *   - ONE rounded card wrapping the full header+body
  *   - spring-based height animation
  *
  * Usage:
@@ -63,6 +71,7 @@ const PANEL_CARD_BORDER = '1px solid var(--pl-chrome-border)';
  */
 export function PanelSection({
   title,
+  eyebrow,
   icon: Icon,
   badge,
   hint,
@@ -74,61 +83,112 @@ export function PanelSection({
   const [open, setOpen] = useState(defaultOpen);
   const isOpen = collapsible ? open : true;
 
+  const headerInner = (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '4px',
+        flex: 1,
+        minWidth: 0,
+      }}
+    >
+      {eyebrow && (
+        <span
+          style={{
+            fontFamily: panelFont.mono,
+            fontSize: panelText.meta,
+            fontWeight: panelWeight.bold,
+            letterSpacing: panelTracking.widest,
+            textTransform: 'uppercase',
+            color: 'var(--pl-chrome-text-faint)',
+            lineHeight: 1,
+          }}
+        >
+          {eyebrow}
+        </span>
+      )}
+      <span
+        style={{
+          fontFamily: panelFont.display,
+          fontStyle: 'italic',
+          fontWeight: 400,
+          fontSize: panelText.sectionTitle,
+          lineHeight: 1.15,
+          color: isOpen ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-soft)',
+          letterSpacing: '-0.01em',
+        }}
+      >
+        {title}
+      </span>
+    </div>
+  );
+
   const header = (
     <motion.button
       type="button"
       onClick={collapsible ? () => setOpen((v) => !v) : undefined}
-      whileHover={collapsible ? { backgroundColor: 'var(--pl-chrome-accent-soft)' } : undefined}
-      whileTap={collapsible ? { scale: 0.99 } : undefined}
-      transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+      whileHover={
+        collapsible
+          ? { backgroundColor: 'color-mix(in srgb, var(--pl-chrome-accent) 6%, transparent)' }
+          : undefined
+      }
+      whileTap={collapsible ? { scale: 0.995 } : undefined}
+      transition={{ type: 'spring', stiffness: 400, damping: 24 }}
       style={{
         width: '100%',
         display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        padding: card ? '10px 12px' : '8px 10px',
-        borderRadius: card ? `${PANEL_RADIUS} ${PANEL_RADIUS} 0 0` : '8px',
+        alignItems: eyebrow ? 'flex-start' : 'center',
+        gap: '10px',
+        padding: card ? '14px 16px 12px' : '10px 12px 8px',
+        borderRadius: card ? `${PANEL_RADIUS} ${PANEL_RADIUS} 0 0` : '6px',
         border: 'none',
         background: 'transparent',
         cursor: collapsible ? 'pointer' : 'default',
-        color: 'var(--pl-chrome-text-soft)',
+        color: 'var(--pl-chrome-text)',
         textAlign: 'left',
       }}
     >
       {collapsible && (
         <ChevronRight
-          size={10}
+          size={12}
+          strokeWidth={1.75}
           style={{
             transform: isOpen ? 'rotate(90deg)' : 'none',
-            transition: 'transform 0.2s',
-            color: isOpen ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-muted)',
+            transition: 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+            color: 'var(--pl-chrome-text-muted)',
             flexShrink: 0,
+            marginTop: eyebrow ? '14px' : '3px',
           }}
         />
       )}
-      {Icon && <Icon size={12} color="var(--pl-chrome-text)" />}
-      <span
-        style={{
-          flex: 1,
-          textAlign: 'left',
-          fontSize: '0.65rem',
-          fontWeight: 600,
-          letterSpacing: '0.04em',
-          textTransform: 'uppercase',
-          color: isOpen ? 'var(--pl-chrome-text-soft)' : 'var(--pl-chrome-text-muted)',
-        }}
-      >
-        {title}
-      </span>
+      {Icon && (
+        <Icon
+          size={13}
+          strokeWidth={1.5}
+          color="var(--pl-chrome-accent)"
+          style={{
+            flexShrink: 0,
+            marginTop: eyebrow ? '13px' : '2px',
+          }}
+        />
+      )}
+      {headerInner}
       {badge !== undefined && (
         <span
           style={{
+            fontFamily: panelFont.mono,
             fontSize: panelText.meta,
-            padding: '2px 7px',
-            borderRadius: '8px',
-            background: 'var(--pl-chrome-surface-2)',
-            color: 'var(--pl-chrome-text)',
+            padding: '3px 8px',
+            borderRadius: '99px',
+            background: 'var(--pl-chrome-accent-soft)',
+            color: 'var(--pl-chrome-accent)',
             fontWeight: panelWeight.bold,
+            letterSpacing: panelTracking.wide,
+            flexShrink: 0,
+            alignSelf: eyebrow ? 'flex-start' : 'center',
+            marginTop: eyebrow ? '14px' : 0,
+            lineHeight: 1.2,
           }}
         >
           {badge}
@@ -138,42 +198,53 @@ export function PanelSection({
   );
 
   const body = (
-    <div
-      style={{
-        padding: card ? '0 12px 12px' : '2px 10px 10px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-      }}
-    >
-      {hint && (
-        <div
-          style={{
-            fontSize: panelText.hint,
-            color: '#71717A',
-            lineHeight: 1.5,
-            margin: '-2px 0 2px',
-          }}
-        >
-          {hint}
-        </div>
-      )}
-      {children}
-    </div>
+    <>
+      {/* Gold hairline — signature editorial rule between header and body */}
+      <div
+        style={{
+          height: '1px',
+          margin: card ? '0 16px' : '0 12px',
+          background:
+            'color-mix(in srgb, var(--pl-chrome-accent) 24%, transparent)',
+        }}
+      />
+      <div
+        style={{
+          padding: card ? '14px 16px 16px' : '10px 12px 12px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '14px',
+        }}
+      >
+        {hint && (
+          <div
+            style={{
+              fontFamily: panelFont.body,
+              fontSize: panelText.hint,
+              color: 'var(--pl-chrome-text-muted)',
+              lineHeight: 1.55,
+              margin: '-2px 0 0',
+              fontStyle: 'italic',
+            }}
+          >
+            {hint}
+          </div>
+        )}
+        {children}
+      </div>
+    </>
   );
 
-  // Outer wrapper: ONE glass card (when `card`) that contains both the
-  // header button and the body. No nested cards — the site-theme arch
-  // radius can't sneak in because this wrapper doesn't use the
-  // `.pl-panel-section` CSS class or `var(--pl-radius-md)`.
   const wrapperStyle: React.CSSProperties = card
     ? {
-        marginBottom: '6px',
-        marginInline: '8px',
+        marginBottom: panelSection.stackGap,
+        marginInline: '10px',
         borderRadius: PANEL_RADIUS,
-        background: PANEL_CARD_BG,
-        border: PANEL_CARD_BORDER,
+        background: 'var(--pl-chrome-surface)',
+        border: '1px solid var(--pl-chrome-border)',
         overflow: 'hidden',
+        // Warm editorial shadow — brown-tinted, never pure black
+        boxShadow: 'var(--pl-chrome-shadow)',
       }
     : {
         marginBottom: '2px',
@@ -189,7 +260,7 @@ export function PanelSection({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
               style={{ overflow: 'hidden' }}
             >
               {body}
@@ -215,8 +286,8 @@ export function PanelRoot({ children }: { children: ReactNode }) {
         display: 'flex',
         flexDirection: 'column',
         gap: '0',
-        paddingBottom: '24px',
-        paddingTop: '4px',
+        paddingBottom: panelSection.rootPaddingBottom,
+        paddingTop: '10px',
       }}
     >
       {children}

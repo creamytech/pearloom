@@ -9,7 +9,13 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { ReactNode } from 'react';
-import { panelText, panelWeight, panelLineHeight } from './panel-tokens';
+import {
+  panelFont,
+  panelText,
+  panelTracking,
+  panelWeight,
+  panelLineHeight,
+} from './panel-tokens';
 
 export interface PanelEmptyStateProps {
   /** Short glyph/icon element (emoji, svg, dot). */
@@ -49,22 +55,22 @@ export function PanelEmptyState({
         alignItems: 'center',
         justifyContent: 'center',
         textAlign: 'center',
-        padding: '24px 16px',
-        border: '1px dashed var(--pl-chrome-border)',
+        padding: '28px 20px',
+        border: '1px dashed color-mix(in srgb, var(--pl-chrome-accent) 30%, transparent)',
         borderRadius: '10px',
-        background: 'var(--pl-chrome-surface-2)',
-        gap: 10,
+        background:
+          'color-mix(in srgb, var(--pl-chrome-accent) 4%, var(--pl-chrome-bg))',
+        gap: 12,
       }}
     >
       {icon != null && (
         <div
           aria-hidden="true"
           style={{
-            fontSize: 24,
+            fontSize: 22,
             lineHeight: 1,
-            color: 'var(--pl-chrome-text-faint)',
-            filter: 'grayscale(1)',
-            opacity: 0.85,
+            color: 'var(--pl-chrome-accent)',
+            opacity: 0.8,
           }}
         >
           {icon}
@@ -73,9 +79,12 @@ export function PanelEmptyState({
 
       <div
         style={{
-          fontSize: panelText.itemTitle,
-          fontWeight: panelWeight.semibold,
+          fontFamily: panelFont.display,
+          fontStyle: 'italic',
+          fontSize: panelText.sectionTitle,
+          fontWeight: panelWeight.regular,
           lineHeight: panelLineHeight.tight,
+          letterSpacing: '-0.01em',
           color: 'var(--pl-chrome-text)',
         }}
       >
@@ -86,6 +95,7 @@ export function PanelEmptyState({
         <p
           style={{
             margin: 0,
+            fontFamily: panelFont.body,
             fontSize: panelText.hint,
             lineHeight: panelLineHeight.normal,
             color: 'var(--pl-chrome-text-muted)',
@@ -97,20 +107,24 @@ export function PanelEmptyState({
       )}
 
       {(action || pearPrompt) && (
-        <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
           {action && (
             <button
               type="button"
               onClick={action.onClick}
               style={{
-                fontSize: panelText.body,
-                fontWeight: panelWeight.semibold,
-                padding: '7px 14px',
-                borderRadius: 8,
+                fontFamily: panelFont.mono,
+                fontSize: panelText.chip,
+                fontWeight: panelWeight.bold,
+                letterSpacing: panelTracking.wider,
+                textTransform: 'uppercase',
+                padding: '8px 16px',
+                borderRadius: '99px',
                 border: '1px solid var(--pl-chrome-accent)',
                 background: 'var(--pl-chrome-accent)',
                 color: 'var(--pl-chrome-accent-ink)',
                 cursor: 'pointer',
+                transition: 'transform 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
               }}
             >
               {action.label}
@@ -121,12 +135,15 @@ export function PanelEmptyState({
               type="button"
               onClick={firePear}
               style={{
-                fontSize: panelText.body,
-                fontWeight: panelWeight.medium,
-                padding: '7px 12px',
-                borderRadius: 8,
+                fontFamily: panelFont.mono,
+                fontSize: panelText.chip,
+                fontWeight: panelWeight.semibold,
+                letterSpacing: panelTracking.wider,
+                textTransform: 'uppercase',
+                padding: '8px 14px',
+                borderRadius: '99px',
                 border: '1px solid var(--pl-chrome-border)',
-                background: 'var(--pl-chrome-surface)',
+                background: 'transparent',
                 color: 'var(--pl-chrome-text-soft)',
                 cursor: 'pointer',
                 display: 'inline-flex',
@@ -134,7 +151,7 @@ export function PanelEmptyState({
                 gap: 6,
               }}
             >
-              <span aria-hidden="true" style={{ fontSize: 11 }}>{'\u2728'}</span>
+              <span aria-hidden="true" style={{ fontSize: 11, color: 'var(--pl-chrome-accent)' }}>{'\u2726'}</span>
               Ask Pear
             </button>
           )}
