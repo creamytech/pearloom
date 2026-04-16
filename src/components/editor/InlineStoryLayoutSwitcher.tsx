@@ -201,17 +201,51 @@ export function InlineStoryLayoutSwitcher() {
         zIndex: 170,
         pointerEvents: 'auto',
         maxWidth: `min(${Math.max(anchor.width - 24, 320)}px, calc(100vw - 32px))`,
-        padding: '8px 10px',
-        borderRadius: '16px',
-        background: 'rgba(250,247,242,0.94)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        border: '1px solid #E4E4E7',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)',
+        padding: '10px 12px 12px',
+        borderRadius: 2,
+        background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
+        backdropFilter: 'blur(18px)',
+        WebkitBackdropFilter: 'blur(18px)',
+        borderTop: '2px solid rgba(184,147,90,0.55)',
+        borderLeft: '1px solid rgba(184,147,90,0.22)',
+        borderRight: '1px solid rgba(184,147,90,0.22)',
+        borderBottom: '1px solid rgba(184,147,90,0.22)',
+        boxShadow: '0 18px 44px rgba(28,22,10,0.20), 0 2px 8px rgba(28,22,10,0.06)',
         overflowX: 'auto',
         overflowY: 'hidden',
       }}
     >
+      {/* Kicker masthead */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'baseline',
+        justifyContent: 'space-between',
+        gap: 12,
+        marginBottom: 10,
+        paddingBottom: 8,
+        borderBottom: '1px solid rgba(184,147,90,0.28)',
+      }}>
+        <span style={{
+          fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+          fontSize: 8.5,
+          fontWeight: 700,
+          letterSpacing: '0.28em',
+          textTransform: 'uppercase',
+          color: 'rgba(184,147,90,0.85)',
+        }}>
+          Layout · Story
+        </span>
+        <span style={{
+          fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
+          fontStyle: 'italic',
+          fontSize: 12.5,
+          fontWeight: 400,
+          color: '#18181B',
+          fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+        }}>
+          Choose the reel.
+        </span>
+      </div>
       {/* Inner content keyed on blockId so switching between story blocks
           remounts + fades in — avoids a jarring "frozen" re-anchor. The
           outer fixed-position container stays stable. */}
@@ -232,7 +266,7 @@ export function InlineStoryLayoutSwitcher() {
           width: 'max-content',
         }}
       >
-        {LAYOUT_OPTIONS.map((opt) => {
+        {LAYOUT_OPTIONS.map((opt, idx) => {
           const isActive = opt.type === activeLayout;
           return (
             <button
@@ -246,43 +280,68 @@ export function InlineStoryLayoutSwitcher() {
               aria-pressed={isActive}
               style={{
                 flex: '0 0 auto',
-                width: '80px',
+                width: '86px',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'stretch',
-                gap: '4px',
-                padding: '6px',
-                borderRadius: '10px',
-                background: isActive ? '#FFFFFF' : 'transparent',
-                border: '1px solid',
-                borderColor: isActive ? '#18181B' : 'transparent',
-                boxShadow: isActive ? '0 0 0 2px rgba(24,24,27,0.12)' : 'none',
+                gap: '5px',
+                padding: '8px 7px 9px',
+                borderRadius: 2,
+                background: isActive ? 'rgba(184,147,90,0.12)' : 'rgba(255,252,245,0.55)',
+                border: isActive
+                  ? '1px solid rgba(184,147,90,0.65)'
+                  : '1px solid rgba(184,147,90,0.18)',
+                boxShadow: isActive ? '0 0 0 3px rgba(184,147,90,0.18)' : 'none',
                 cursor: 'pointer',
-                transition: 'background 120ms ease, border-color 120ms ease, box-shadow 120ms ease',
+                transition: 'background 180ms cubic-bezier(0.22,1,0.36,1), border-color 180ms ease, box-shadow 180ms ease',
                 fontFamily: 'inherit',
                 color: '#18181B',
-                textAlign: 'center',
+                textAlign: 'left',
+                position: 'relative',
               }}
               onMouseEnter={(e) => {
                 if (!isActive) {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.6)';
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(184,147,90,0.08)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isActive) {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,252,245,0.55)';
                 }
               }}
             >
-              <div style={{ width: '100%', pointerEvents: 'none' }}>
+              <span style={{
+                position: 'absolute',
+                top: 4,
+                right: 6,
+                fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                fontSize: 7.5,
+                fontWeight: 700,
+                letterSpacing: '0.22em',
+                color: isActive ? 'rgba(184,147,90,0.95)' : 'rgba(184,147,90,0.45)',
+              }}>
+                № {String(idx + 1).padStart(2, '0')}
+              </span>
+              <div style={{
+                width: '100%',
+                pointerEvents: 'none',
+                marginTop: 8,
+                padding: 3,
+                background: '#FFFCF6',
+                border: '1px solid rgba(184,147,90,0.18)',
+                borderRadius: 1,
+              }}>
                 <MiniDiagram type={opt.type} />
               </div>
               <div
                 style={{
-                  fontSize: '0.62rem',
-                  fontWeight: 600,
-                  letterSpacing: '0.02em',
-                  color: isActive ? '#18181B' : '#52525B',
+                  fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
+                  fontStyle: 'italic',
+                  fontSize: '0.72rem',
+                  fontWeight: 400,
+                  lineHeight: 1.15,
+                  letterSpacing: '0.005em',
+                  color: '#18181B',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
