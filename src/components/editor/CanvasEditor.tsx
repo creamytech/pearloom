@@ -449,7 +449,7 @@ function getBlockContentSummary(block: PageBlock, manifest: StoryManifest): stri
 
 function BlockRow({
   block, def, isActive, onSelect, onToggle, onDelete, onDuplicate, onMoveUp, onMoveDown, dragHandleProps,
-  isMobile, isFirst, isLast, manifest,
+  isMobile, isFirst, isLast, manifest, index,
 }: {
   block: PageBlock;
   def: BlockDef | undefined;
@@ -465,66 +465,102 @@ function BlockRow({
   isFirst?: boolean;
   isLast?: boolean;
   manifest: StoryManifest;
+  index?: number;
 }) {
   const Icon = def?.icon || LayoutTemplate;
-  const color = def?.color || 'var(--pl-chrome-text)';
+  const color = def?.color || 'var(--pl-chrome-accent)';
   const label = def?.label || block.type.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim();
   const summary = getBlockContentSummary(block, manifest);
+  const folio = index != null ? String(index + 1).padStart(2, '0') : '—';
 
   return (
     <div>
-      {/* Main row — drag handle, icon, name + content summary, chevron */}
+      {/* Main row — folio, drag handle, icon, italic name, summary */}
       <motion.div
         layout
         initial={{ opacity: 0, y: -6 }}
-        animate={{ opacity: block.visible ? 1 : 0.4 }}
-        whileHover={{ background: 'var(--pl-chrome-bg)' }}
-        transition={{ duration: 0.15 }}
+        animate={{ opacity: block.visible ? 1 : 0.45 }}
+        whileHover={{ background: 'color-mix(in srgb, var(--pl-chrome-accent) 5%, var(--pl-chrome-surface))' }}
+        transition={{ duration: 0.18 }}
         onClick={() => onSelect(block.id)}
         style={{
-          display: 'flex', alignItems: 'center', gap: '8px',
-          padding: '10px 10px 10px 4px',
-          borderRadius: isActive ? '14px 14px 0 0' : '14px',
-          background: isActive ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.2)',
-          border: isActive ? `1.5px solid #18181B` : '1px solid rgba(255,255,255,0.2)',
-          borderBottom: isActive ? `1px solid ${color}25` : undefined,
-          cursor: 'pointer', transition: 'all 0.2s', position: 'relative',
+          display: 'grid',
+          gridTemplateColumns: '22px 18px 30px 1fr 20px',
+          alignItems: 'center',
+          gap: '10px',
+          padding: '11px 12px',
+          borderRadius: isActive ? '2px 2px 0 0' : '2px',
+          background: isActive
+            ? 'var(--pl-chrome-surface)'
+            : 'color-mix(in srgb, var(--pl-chrome-surface) 80%, transparent)',
+          border: `1px solid ${isActive ? 'var(--pl-chrome-accent)' : 'var(--pl-chrome-border)'}`,
+          borderLeft: `2px solid ${isActive ? color : 'color-mix(in srgb, var(--pl-chrome-accent) 30%, transparent)'}`,
+          borderBottom: isActive ? `1px solid color-mix(in srgb, ${color} 25%, transparent)` : undefined,
+          cursor: 'pointer',
+          transition: 'all 0.2s cubic-bezier(0.22, 1, 0.36, 1)',
+          position: 'relative',
           userSelect: 'none',
-          boxShadow: isActive ? `0 0 0 1px ${color}18` : 'none',
+          boxShadow: isActive ? `0 0 0 3px rgba(184,147,90,0.14)` : 'none',
         }}
       >
+        {/* Folio number */}
+        <span style={{
+          fontFamily: 'var(--pl-font-mono, monospace)',
+          fontSize: '0.5rem',
+          fontWeight: 700,
+          letterSpacing: '0.2em',
+          color: isActive ? 'var(--pl-chrome-accent)' : 'var(--pl-chrome-text-faint)',
+          textAlign: 'center',
+        }}>
+          {folio}
+        </span>
+
         {/* Drag handle */}
         <div
           {...dragHandleProps}
           onClick={e => e.stopPropagation()}
-          style={{ ...dragHandleProps.style, color: 'rgba(0,0,0,0.15)', display: 'flex', flexShrink: 0, padding: '4px' }}
+          style={{
+            ...dragHandleProps.style,
+            color: 'var(--pl-chrome-text-faint)',
+            display: 'flex', flexShrink: 0, alignItems: 'center', justifyContent: 'center',
+          }}
         >
-          <GripIcon size={13} />
+          <GripIcon size={12} />
         </div>
 
         {/* Block icon */}
         <div style={{
-          width: '28px', height: '28px', borderRadius: '8px', flexShrink: 0,
-          background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: '28px', height: '28px', borderRadius: '2px', flexShrink: 0,
+          background: `color-mix(in srgb, ${color} 12%, transparent)`,
+          border: `1px solid color-mix(in srgb, ${color} 35%, transparent)`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <Icon size={14} color={color} />
         </div>
 
-        {/* Name + inline content summary */}
-        <div style={{ flex: 1, overflow: 'hidden', minWidth: 0 }}>
+        {/* Italic name + mono summary kicker */}
+        <div style={{ overflow: 'hidden', minWidth: 0 }}>
           <span style={{
-            fontSize: '0.8rem', fontWeight: 600,
+            fontFamily: 'var(--pl-font-heading, "Fraunces", Georgia, serif)',
+            fontStyle: 'italic',
+            fontSize: '0.92rem',
+            fontWeight: 400,
+            letterSpacing: '-0.005em',
             color: block.visible ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-muted)',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             display: 'block',
+            lineHeight: 1.15,
           }}>
             {label}
           </span>
           {summary && (
             <span style={{
-              fontSize: '0.65rem', color: 'var(--pl-chrome-text-muted)', lineHeight: 1.3,
+              fontFamily: 'var(--pl-font-body, system-ui, sans-serif)',
+              fontSize: '0.68rem',
+              color: 'var(--pl-chrome-text-muted)',
+              lineHeight: 1.3,
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              display: 'block', marginTop: '1px',
+              display: 'block', marginTop: '2px',
             }}>
               {summary}
             </span>
@@ -535,32 +571,53 @@ function BlockRow({
         <motion.div
           animate={{ rotate: isActive ? 180 : 0 }}
           transition={{ duration: 0.2 }}
-          style={{ color: isActive ? color : 'var(--pl-chrome-text-muted)', display: 'flex', padding: '4px', transition: 'color 0.15s' }}
+          style={{
+            color: isActive ? color : 'var(--pl-chrome-text-faint)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'color 0.15s',
+          }}
         >
           <ChevronDown size={13} />
         </motion.div>
       </motion.div>
 
-      {/* Expanded actions — icon strip with labels */}
+      {/* Expanded actions — editorial action ribbon */}
       <AnimatePresence>
         {isActive && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
             style={{ overflow: 'hidden' }}
           >
             <div style={{
-              display: 'flex', gap: '6px', padding: '8px 12px',
-              justifyContent: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 12px',
+              background: 'color-mix(in srgb, var(--pl-chrome-accent) 4%, transparent)',
+              borderLeft: '2px solid var(--pl-chrome-accent)',
             }}>
+              <span style={{
+                fontFamily: 'var(--pl-font-mono, monospace)',
+                fontSize: '0.46rem',
+                fontWeight: 700,
+                letterSpacing: '0.28em',
+                textTransform: 'uppercase',
+                color: 'var(--pl-chrome-accent)',
+                marginRight: '6px',
+              }}>
+                Actions
+              </span>
               {[
-                { icon: <ChevronUp size={14} />, tip: 'Move up', action: () => onMoveUp(block.id), disabled: isFirst },
-                { icon: <ChevronDown size={14} />, tip: 'Move down', action: () => onMoveDown(block.id), disabled: isLast },
-                { icon: block.visible ? <Eye size={14} /> : <EyeOff size={14} />, tip: block.visible ? 'Hide' : 'Show', action: () => onToggle(block.id) },
-                { icon: <Copy size={14} />, tip: 'Duplicate', action: () => onDuplicate(block.id) },
-                { icon: <Trash2 size={14} />, tip: 'Delete', action: () => onDelete(block.id), danger: true },
+                { icon: <ChevronUp size={13} />, tip: 'Move up', action: () => onMoveUp(block.id), disabled: isFirst },
+                { icon: <ChevronDown size={13} />, tip: 'Move down', action: () => onMoveDown(block.id), disabled: isLast },
+                { icon: block.visible ? <Eye size={13} /> : <EyeOff size={13} />, tip: block.visible ? 'Hide' : 'Show', action: () => onToggle(block.id) },
+                { icon: <Copy size={13} />, tip: 'Duplicate', action: () => onDuplicate(block.id) },
+                { icon: <Trash2 size={13} />, tip: 'Delete', action: () => onDelete(block.id), danger: true },
               ].filter(a => !a.disabled).map(a => (
                 <button
                   key={a.tip}
@@ -568,14 +625,27 @@ function BlockRow({
                   title={a.tip}
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    width: '32px', height: '32px', borderRadius: '8px',
+                    width: '28px', height: '28px', borderRadius: '2px',
                     border: '1px solid var(--pl-chrome-border)',
                     background: 'var(--pl-chrome-surface)',
-                    color: (a as { danger?: boolean }).danger ? '#e87171' : 'var(--pl-chrome-text-muted)',
-                    cursor: 'pointer', transition: 'all 0.12s',
+                    color: (a as { danger?: boolean }).danger ? 'var(--pl-chrome-danger)' : 'var(--pl-chrome-text-muted)',
+                    cursor: 'pointer',
+                    transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
                   }}
-                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.55)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.4)'; }}
-                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.25)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.2)'; }}
+                  onMouseOver={e => {
+                    (e.currentTarget as HTMLElement).style.borderColor = (a as { danger?: boolean }).danger
+                      ? 'var(--pl-chrome-danger)'
+                      : 'var(--pl-chrome-accent)';
+                    (e.currentTarget as HTMLElement).style.color = (a as { danger?: boolean }).danger
+                      ? 'var(--pl-chrome-danger)'
+                      : 'var(--pl-chrome-accent)';
+                  }}
+                  onMouseOut={e => {
+                    (e.currentTarget as HTMLElement).style.borderColor = 'var(--pl-chrome-border)';
+                    (e.currentTarget as HTMLElement).style.color = (a as { danger?: boolean }).danger
+                      ? 'var(--pl-chrome-danger)'
+                      : 'var(--pl-chrome-text-muted)';
+                  }}
                 >
                   {a.icon}
                 </button>
@@ -1976,19 +2046,48 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
             }
           }}
         >
-          {/* Drop zone at top */}
+          {/* Drop zone at top — editorial insertion rule */}
           {draggingNewType && (
             <div
               onDragOver={(e) => handleDragOver(e, 0)}
               onDrop={(e) => handleExternalDrop(e, 0)}
               style={{
-                height: dropTargetIdx === 0 ? '4px' : '12px',
-                borderRadius: '2px',
-                background: dropTargetIdx === 0 ? 'var(--pl-chrome-text)' : 'transparent',
-                transition: 'all 0.15s',
-                boxShadow: dropTargetIdx === 0 ? '0 0 8px #A1A1AA' : 'none',
+                position: 'relative',
+                height: dropTargetIdx === 0 ? '22px' : '14px',
+                transition: 'height 0.2s cubic-bezier(0.22, 1, 0.36, 1)',
+                display: 'flex',
+                alignItems: 'center',
               }}
-            />
+            >
+              {dropTargetIdx === 0 && (
+                <>
+                  <div style={{
+                    position: 'absolute',
+                    inset: '50% 0 auto 0',
+                    height: '2px',
+                    transform: 'translateY(-50%)',
+                    background: 'linear-gradient(90deg, transparent 0%, var(--pl-chrome-accent) 10%, var(--pl-chrome-accent) 90%, transparent 100%)',
+                    boxShadow: '0 0 10px rgba(184,147,90,0.5)',
+                  }} />
+                  <span style={{
+                    position: 'absolute',
+                    left: '50%',
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    padding: '2px 8px',
+                    background: 'var(--pl-chrome-accent)',
+                    color: 'var(--pl-chrome-bg)',
+                    fontFamily: 'var(--pl-font-mono, monospace)',
+                    fontSize: '0.46rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.26em',
+                    textTransform: 'uppercase',
+                    borderRadius: '2px',
+                    whiteSpace: 'nowrap',
+                  }}>Insert above №01</span>
+                </>
+              )}
+            </div>
           )}
           {(() => {
             // Convert the hook's final-array dropIndex to the visual list position
@@ -2033,15 +2132,33 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                 data-drag-id={dragProps['data-drag-id']}
                 style={dragProps.style}
               >
-                {/* Drop indicator line — before this item */}
+                {/* Drop indicator line — before this item (editorial gold rule) */}
                 {showDropLine && (
                   <div style={{
+                    position: 'relative',
                     height: '2px',
-                    background: 'var(--pl-chrome-text-muted)',
+                    background: 'linear-gradient(90deg, transparent 0%, var(--pl-chrome-accent) 10%, var(--pl-chrome-accent) 90%, transparent 100%)',
                     borderRadius: '2px',
-                    marginBottom: '4px',
-                    boxShadow: '0 0 6px #A1A1AA',
-                  }} />
+                    marginBottom: '6px',
+                    boxShadow: '0 0 10px rgba(184,147,90,0.55)',
+                  }}>
+                    <span style={{
+                      position: 'absolute',
+                      left: 12,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      padding: '2px 8px',
+                      background: 'var(--pl-chrome-accent)',
+                      color: 'var(--pl-chrome-bg)',
+                      fontFamily: 'var(--pl-font-mono, monospace)',
+                      fontSize: '0.44rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.26em',
+                      textTransform: 'uppercase',
+                      borderRadius: '2px',
+                      whiteSpace: 'nowrap',
+                    }}>№ {String(idx + 1).padStart(2, '0')} · insert here</span>
+                  </div>
                 )}
                 <BlockRow
                   block={block}
@@ -2058,6 +2175,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                   isFirst={idx === 0}
                   isLast={idx === N - 1}
                   manifest={manifest}
+                  index={idx}
                 />
                 {/* Inline config panel — expands directly below the active block row (accordion style) */}
                 {isBlockActive && activeBlock && inlineActiveDef && (
@@ -2107,15 +2225,33 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                     </div>
                   </div>
                 )}
-                {/* Drop indicator line — after the last item */}
+                {/* Drop indicator line — after the last item (editorial gold rule) */}
                 {showDropLineAfter && (
                   <div style={{
+                    position: 'relative',
                     height: '2px',
-                    background: 'var(--pl-chrome-text-muted)',
+                    background: 'linear-gradient(90deg, transparent 0%, var(--pl-chrome-accent) 10%, var(--pl-chrome-accent) 90%, transparent 100%)',
                     borderRadius: '2px',
-                    marginTop: '4px',
-                    boxShadow: '0 0 6px #A1A1AA',
-                  }} />
+                    marginTop: '6px',
+                    boxShadow: '0 0 10px rgba(184,147,90,0.55)',
+                  }}>
+                    <span style={{
+                      position: 'absolute',
+                      left: 12,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      padding: '2px 8px',
+                      background: 'var(--pl-chrome-accent)',
+                      color: 'var(--pl-chrome-bg)',
+                      fontFamily: 'var(--pl-font-mono, monospace)',
+                      fontSize: '0.44rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.26em',
+                      textTransform: 'uppercase',
+                      borderRadius: '2px',
+                      whiteSpace: 'nowrap',
+                    }}>Append · end of reel</span>
+                  </div>
                 )}
                 {/* External drag drop zone — between blocks */}
                 {draggingNewType && (
@@ -2123,13 +2259,42 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                     onDragOver={(e) => handleDragOver(e, idx + 1)}
                     onDrop={(e) => handleExternalDrop(e, idx + 1)}
                     style={{
-                      height: dropTargetIdx === idx + 1 ? '4px' : '8px',
-                      borderRadius: '2px',
-                      background: dropTargetIdx === idx + 1 ? 'var(--pl-chrome-text)' : 'transparent',
-                      transition: 'all 0.15s',
-                      boxShadow: dropTargetIdx === idx + 1 ? '0 0 8px #A1A1AA' : 'none',
+                      position: 'relative',
+                      height: dropTargetIdx === idx + 1 ? '22px' : '10px',
+                      transition: 'height 0.2s cubic-bezier(0.22, 1, 0.36, 1)',
+                      display: 'flex',
+                      alignItems: 'center',
                     }}
-                  />
+                  >
+                    {dropTargetIdx === idx + 1 && (
+                      <>
+                        <div style={{
+                          position: 'absolute',
+                          inset: '50% 0 auto 0',
+                          height: '2px',
+                          transform: 'translateY(-50%)',
+                          background: 'linear-gradient(90deg, transparent 0%, var(--pl-chrome-accent) 10%, var(--pl-chrome-accent) 90%, transparent 100%)',
+                          boxShadow: '0 0 10px rgba(184,147,90,0.5)',
+                        }} />
+                        <span style={{
+                          position: 'absolute',
+                          left: 12,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          padding: '2px 8px',
+                          background: 'var(--pl-chrome-accent)',
+                          color: 'var(--pl-chrome-bg)',
+                          fontFamily: 'var(--pl-font-mono, monospace)',
+                          fontSize: '0.44rem',
+                          fontWeight: 700,
+                          letterSpacing: '0.26em',
+                          textTransform: 'uppercase',
+                          borderRadius: '2px',
+                          whiteSpace: 'nowrap',
+                        }}>Insert after № {String(idx + 1).padStart(2, '0')}</span>
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
             );
