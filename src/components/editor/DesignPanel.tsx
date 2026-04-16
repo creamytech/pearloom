@@ -1430,68 +1430,128 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
       {/* ── Writing Style — AI tone adjuster ── */}
       <SidebarSection title="Writing Style" defaultOpen={false}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <p style={{
-            fontSize: panelText.hint,
-            color: 'var(--pl-chrome-text-muted)',
-            margin: 0,
-            lineHeight: panelLineHeight.normal,
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{
+            borderLeft: '1px solid var(--pl-chrome-accent)',
+            paddingLeft: '10px',
           }}>
-            Let Pear rewrite all your site copy to match a tone.
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-            {(['Casual', 'Warm', 'Elegant', 'Formal'] as const).map((tone) => {
-              const isActive = activeTone === tone;
+            <div style={{
+              fontFamily: panelFont.mono,
+              fontSize: '0.5rem',
+              letterSpacing: panelTracking.widest,
+              textTransform: 'uppercase',
+              color: 'var(--pl-chrome-accent-ink)',
+              marginBottom: '3px',
+            }}>
+              Pear · AI Copyedit
+            </div>
+            <p style={{
+              fontFamily: panelFont.display,
+              fontStyle: 'italic',
+              fontSize: '0.82rem',
+              color: 'var(--pl-chrome-text)',
+              lineHeight: panelLineHeight.snug,
+              margin: 0,
+            }}>
+              Rewrite every word to fit a voice.
+            </p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            {([
+              { id: 'Casual',  sample: 'hey y\u2019all!', hint: 'Loose · friendly' },
+              { id: 'Warm',    sample: 'with love,',      hint: 'Tender · personal' },
+              { id: 'Elegant', sample: 'we invite you.',  hint: 'Refined · quiet' },
+              { id: 'Formal',  sample: 'request the honour', hint: 'Classical · crisp' },
+            ] as const).map((tone, i) => {
+              const isActive = activeTone === tone.id;
+              const loading = isActive && toneLoading;
               return (
                 <button
-                  key={tone}
-                  onClick={() => handleToneAdjust(tone)}
+                  key={tone.id}
+                  onClick={() => handleToneAdjust(tone.id)}
                   disabled={toneLoading}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    position: 'relative',
+                    display: 'flex', flexDirection: 'column',
+                    alignItems: 'flex-start',
                     gap: '6px',
-                    padding: '9px 12px',
-                    borderRadius: '8px',
-                    border: isActive ? '2px solid #18181B' : '1px solid #E4E4E7',
-                    background: isActive ? '#18181B' : '#FFFFFF',
+                    padding: '12px 12px 11px',
+                    borderRadius: '10px',
+                    border: isActive
+                      ? '1px solid var(--pl-chrome-accent)'
+                      : '1px solid var(--pl-chrome-border)',
+                    background: isActive ? 'var(--pl-chrome-accent-soft)' : 'var(--pl-chrome-surface)',
+                    boxShadow: isActive ? '0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 14%, transparent)' : 'none',
                     cursor: toneLoading ? 'wait' : 'pointer',
                     opacity: toneLoading && !isActive ? 0.5 : 1,
-                    transition: 'all 0.15s',
-                    fontSize: panelText.body,
-                    fontWeight: isActive ? panelWeight.bold : panelWeight.semibold,
-                    fontFamily: 'inherit',
-                    color: isActive ? '#FFFFFF' : '#3F3F46',
-                    lineHeight: panelLineHeight.tight,
+                    transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                    textAlign: 'left',
+                    minHeight: '72px',
                   }}
                 >
-                  {isActive && toneLoading ? (
-                    <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
-                  ) : (
-                    <PearIcon size={12} color={isActive ? '#FFFFFF' : '#71717A'} />
-                  )}
-                  {tone}
+                  <span style={{
+                    position: 'absolute', top: '7px', right: '10px',
+                    fontFamily: panelFont.mono,
+                    fontSize: '0.46rem',
+                    letterSpacing: panelTracking.widest,
+                    fontWeight: panelWeight.bold,
+                    color: isActive ? 'var(--pl-chrome-accent-ink)' : 'var(--pl-chrome-text-faint)',
+                  }}>
+                    № {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span style={{
+                    fontFamily: panelFont.display,
+                    fontStyle: 'italic',
+                    fontSize: '0.84rem',
+                    color: isActive ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-soft)',
+                    lineHeight: 1.1,
+                  }}>
+                    {loading ? (
+                      <Loader2 size={14} style={{ animation: 'spin 1s linear infinite', verticalAlign: 'middle' }} />
+                    ) : tone.id}
+                  </span>
+                  <span style={{
+                    fontFamily: panelFont.display,
+                    fontStyle: 'italic',
+                    fontSize: '0.66rem',
+                    color: 'var(--pl-chrome-text-muted)',
+                    lineHeight: 1.2,
+                    fontWeight: panelWeight.regular,
+                    opacity: 0.85,
+                  }}>
+                    &ldquo;{tone.sample}&rdquo;
+                  </span>
+                  <span style={{
+                    fontFamily: panelFont.mono,
+                    fontSize: '0.48rem',
+                    letterSpacing: panelTracking.wider,
+                    textTransform: 'uppercase',
+                    color: 'var(--pl-chrome-text-faint)',
+                    marginTop: 'auto',
+                  }}>
+                    {tone.hint}
+                  </span>
                 </button>
               );
             })}
           </div>
           {toneLoading && (
             <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 12px',
-              borderRadius: '10px',
-              background: 'var(--pl-chrome-bg)',
-              border: '1px solid var(--pl-chrome-border)',
-              fontSize: panelText.hint,
-              fontWeight: panelWeight.semibold,
-              color: 'var(--pl-chrome-text)',
-              lineHeight: panelLineHeight.tight,
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '10px 12px',
+              borderRadius: '8px',
+              background: 'var(--pl-chrome-accent-soft)',
+              border: '1px solid color-mix(in srgb, var(--pl-chrome-accent) 30%, transparent)',
             }}>
-              <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
-              Pear is adjusting your tone...
+              <Loader2 size={12} style={{ animation: 'spin 1s linear infinite', color: 'var(--pl-chrome-accent-ink)' }} />
+              <span style={{
+                fontFamily: panelFont.display,
+                fontStyle: 'italic',
+                fontSize: '0.74rem',
+                color: 'var(--pl-chrome-accent-ink)',
+              }}>
+                Pear is rewriting your voice…
+              </span>
             </div>
           )}
         </div>
@@ -1510,65 +1570,143 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
       {/* ── Page Background ── */}
       <SidebarSection title="Page Background" defaultOpen={false}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label style={SUB_LABEL}>Background Color</label>
-          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-            {[
-              { label: 'Theme', value: '' },
-              { label: 'White', value: '#ffffff' },
-              { label: 'Cream', value: '#FAF7F2' },
-              { label: 'Warm', value: '#F5EFE6' },
-              { label: 'Blush', value: '#FDF0F3' },
-              { label: 'Sage', value: '#EEF2ED' },
-              { label: 'Dark', value: '#1a1814' },
-              { label: 'Navy', value: '#1a2332' },
-            ].map(bg => {
-              const current = manifest.theme?.colors?.background || '';
-              const isActive = bg.value ? current === bg.value : !current || current === colors.background;
-              return (
-                <button
-                  key={bg.label}
-                  onClick={() => {
-                    const newColors = { ...colors, background: bg.value || (vibeSkin?.palette?.background || '#FAF7F2') };
-                    onChange({ ...manifest, theme: { ...manifest.theme, colors: newColors } });
-                  }}
-                  title={bg.label}
-                  style={{
-                    width: '28px', height: '28px', borderRadius: '12px',
-                    border: isActive ? '2px solid #18181B' : '1px solid rgba(255,255,255,0.3)',
-                    background: bg.value || 'linear-gradient(135deg, #FAF7F2, #E8D5C4)',
-                    cursor: 'pointer', transition: 'border 0.15s',
-                  }}
-                />
-              );
-            })}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Paper — swatch cards with italic name + mono hex */}
+          <div>
+            <label style={SUB_LABEL}>Paper</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+              {([
+                { label: 'Theme',  value: '', hex: 'Inherit' },
+                { label: 'White',  value: '#ffffff', hex: '#FFFFFF' },
+                { label: 'Cream',  value: '#FAF7F2', hex: '#FAF7F2' },
+                { label: 'Warm',   value: '#F5EFE6', hex: '#F5EFE6' },
+                { label: 'Blush',  value: '#FDF0F3', hex: '#FDF0F3' },
+                { label: 'Sage',   value: '#EEF2ED', hex: '#EEF2ED' },
+                { label: 'Dark',   value: '#1a1814', hex: '#1A1814' },
+                { label: 'Navy',   value: '#1a2332', hex: '#1A2332' },
+              ] as const).map(bg => {
+                const current = manifest.theme?.colors?.background || '';
+                const isActive = bg.value ? current === bg.value : !current || current === colors.background;
+                return (
+                  <button
+                    key={bg.label}
+                    onClick={() => {
+                      const newColors = { ...colors, background: bg.value || (vibeSkin?.palette?.background || '#FAF7F2') };
+                      onChange({ ...manifest, theme: { ...manifest.theme, colors: newColors } });
+                    }}
+                    title={bg.label}
+                    style={{
+                      display: 'flex', flexDirection: 'column',
+                      padding: 0, overflow: 'hidden',
+                      borderRadius: '8px', cursor: 'pointer',
+                      border: isActive
+                        ? '1px solid var(--pl-chrome-accent)'
+                        : '1px solid var(--pl-chrome-border)',
+                      background: 'var(--pl-chrome-surface)',
+                      boxShadow: isActive ? '0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 14%, transparent)' : 'none',
+                      transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                    }}
+                  >
+                    <div style={{
+                      width: '100%', height: '26px',
+                      background: bg.value || 'linear-gradient(135deg, #FAF7F2, #E8D5C4)',
+                      borderBottom: '1px solid var(--pl-chrome-border)',
+                    }} />
+                    <div style={{ padding: '4px 5px 5px', textAlign: 'left' }}>
+                      <div style={{
+                        fontFamily: panelFont.display,
+                        fontStyle: 'italic',
+                        fontSize: '0.62rem',
+                        color: isActive ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-soft)',
+                        lineHeight: 1.05,
+                      }}>
+                        {bg.label}
+                      </div>
+                      <div style={{
+                        fontFamily: panelFont.mono,
+                        fontSize: '0.42rem',
+                        letterSpacing: panelTracking.wider,
+                        textTransform: 'uppercase',
+                        color: 'var(--pl-chrome-text-faint)',
+                      }}>
+                        {bg.hex}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          <label style={SUB_LABEL}>Background Pattern</label>
-          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-            {[
-              { label: 'None', value: '' },
-              { label: 'Dots', value: 'radial-gradient(circle, rgba(24,24,27,0.04) 1px, transparent 1px)' },
-              { label: 'Lines', value: 'repeating-linear-gradient(0deg, rgba(24,24,27,0.03) 0px, transparent 1px, transparent 40px)' },
-              { label: 'Grid', value: 'linear-gradient(rgba(24,24,27,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(24,24,27,0.02) 1px, transparent 1px)' },
-            ].map(p => {
-              const current = (manifest as unknown as Record<string, unknown>).backgroundPatternCss as string || '';
-              const isActive = p.value === current;
-              return (
-                <button
-                  key={p.label}
-                  onClick={() => onChange({ ...manifest, backgroundPatternCss: p.value } as StoryManifest)}
-                  style={{
-                    padding: '4px 10px', borderRadius: '8px',
-                    border: isActive ? '1.5px solid #18181B' : '1px solid rgba(255,255,255,0.3)',
-                    background: isActive ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.2)',
-                    color: isActive ? '#18181B' : '#71717A',
-                    cursor: 'pointer', fontSize: '0.65rem', fontWeight: 600,
-                  }}
-                >
-                  {p.label}
-                </button>
-              );
-            })}
+
+          {/* Pattern — tiled preview panels */}
+          <div>
+            <label style={SUB_LABEL}>Pattern</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+              {([
+                { label: 'Plain', value: '' },
+                { label: 'Dots',  value: 'radial-gradient(circle, rgba(24,24,27,0.04) 1px, transparent 1px)' },
+                { label: 'Lines', value: 'repeating-linear-gradient(0deg, rgba(24,24,27,0.03) 0px, transparent 1px, transparent 40px)' },
+                { label: 'Grid',  value: 'linear-gradient(rgba(24,24,27,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(24,24,27,0.02) 1px, transparent 1px)' },
+              ] as const).map((p, i) => {
+                const current = (manifest as unknown as Record<string, unknown>).backgroundPatternCss as string || '';
+                const isActive = p.value === current;
+                // Smaller-scale preview version
+                const previewBg = p.label === 'Plain'
+                  ? 'transparent'
+                  : p.label === 'Dots'
+                    ? 'radial-gradient(circle, rgba(24,24,27,0.18) 1px, transparent 1.5px)'
+                    : p.label === 'Lines'
+                      ? 'repeating-linear-gradient(0deg, rgba(24,24,27,0.18) 0px, transparent 1px, transparent 6px)'
+                      : 'linear-gradient(rgba(24,24,27,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(24,24,27,0.18) 1px, transparent 1px)';
+                const previewSize = p.label === 'Dots' ? '8px 8px' : p.label === 'Grid' ? '8px 8px' : 'auto';
+                return (
+                  <button
+                    key={p.label}
+                    onClick={() => onChange({ ...manifest, backgroundPatternCss: p.value } as StoryManifest)}
+                    style={{
+                      display: 'flex', flexDirection: 'column',
+                      padding: 0, overflow: 'hidden',
+                      borderRadius: '8px', cursor: 'pointer',
+                      border: isActive
+                        ? '1px solid var(--pl-chrome-accent)'
+                        : '1px solid var(--pl-chrome-border)',
+                      background: 'var(--pl-chrome-surface)',
+                      boxShadow: isActive ? '0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 14%, transparent)' : 'none',
+                      transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                      position: 'relative',
+                    }}
+                  >
+                    <span style={{
+                      position: 'absolute', top: '4px', left: '6px',
+                      fontFamily: panelFont.mono,
+                      fontSize: '0.42rem',
+                      letterSpacing: panelTracking.widest,
+                      color: isActive ? 'var(--pl-chrome-accent-ink)' : 'var(--pl-chrome-text-faint)',
+                      zIndex: 2,
+                    }}>
+                      № 0{i + 1}
+                    </span>
+                    <div style={{
+                      width: '100%', height: '30px',
+                      background: previewBg,
+                      backgroundSize: previewSize,
+                      borderBottom: '1px solid var(--pl-chrome-border)',
+                    }} />
+                    <div style={{
+                      padding: '4px 5px 5px',
+                      fontFamily: panelFont.display,
+                      fontStyle: 'italic',
+                      fontSize: '0.64rem',
+                      color: isActive ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-soft)',
+                      textAlign: 'center',
+                      lineHeight: 1.05,
+                    }}>
+                      {p.label}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </SidebarSection>
@@ -1580,72 +1718,131 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
       {/* ── Wedding Palettes — curated presets ── */}
       <SidebarSection title="Wedding Palettes" defaultOpen={false}>
-        <p style={{ fontSize: '0.65rem', color: 'var(--pl-chrome-text-muted)', lineHeight: 1.5, margin: '0 0 8px' }}>
-          One-click curated palettes designed for weddings.
-        </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
+        <div style={{
+          borderLeft: '1px solid var(--pl-chrome-accent)',
+          paddingLeft: '10px',
+          marginBottom: '12px',
+        }}>
+          <div style={{
+            fontFamily: panelFont.mono,
+            fontSize: '0.5rem',
+            letterSpacing: panelTracking.widest,
+            textTransform: 'uppercase',
+            color: 'var(--pl-chrome-accent-ink)',
+            marginBottom: '3px',
+          }}>
+            Series · Curated
+          </div>
+          <p style={{
+            fontFamily: panelFont.display,
+            fontStyle: 'italic',
+            fontSize: '0.82rem',
+            color: 'var(--pl-chrome-text)',
+            lineHeight: panelLineHeight.snug,
+            margin: 0,
+          }}>
+            Eight palettes composed for weddings.
+          </p>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
           {([
-            { name: 'Blush & Sage', colors: ['#D4A0A0', '#71717A', '#FAF7F2', '#3D3530', '#F5F1E8'] },
-            { name: 'Navy & Gold', colors: ['#2C3E6B', '#C4A96A', '#FAF7F2', '#1C1C1C', '#F5F1E8'] },
-            { name: 'Terracotta & Cream', colors: ['#C67B5C', '#E8B89D', '#FFF8F2', '#3D2E24', '#F5ECE4'] },
-            { name: 'Lavender Dream', colors: ['#9B8EC1', '#D4A0C4', '#F8F5FD', '#2D2640', '#F0ECF8'] },
-            { name: 'Coastal Blue', colors: ['#5B9BD5', '#B8D4E8', '#F0F7FF', '#1E4D8C', '#E8F0F8'] },
-            { name: 'Emerald & Ivory', colors: ['#2D6A4F', '#C4A96A', '#F0F7F4', '#1C2E24', '#E2F0E8'] },
-            { name: 'Sunset Glow', colors: ['#E8785E', '#F0B860', '#FFF8F0', '#3D2420', '#FFF0E8'] },
-            { name: 'Classic B&W', colors: ['#333333', '#888888', '#FFFFFF', '#111111', '#F5F5F5'] },
-          ] as const).map(preset => (
-            <button
-              key={preset.name}
-              onClick={() => {
-                const [accent, accent2, background, ink, subtle] = preset.colors;
-                const newPalette = {
-                  ...(manifest.vibeSkin?.palette || {}),
-                  accent,
-                  accent2,
-                  background,
-                  foreground: ink,
-                  ink,
-                  subtle,
-                  card: subtle,
-                  muted: accent2,
-                  highlight: accent,
-                };
-                const newSkin = {
-                  ...(manifest.vibeSkin || {} as VibeSkin),
-                  palette: newPalette as VibeSkin['palette'],
-                };
-                handleThemeApply(newSkin);
-              }}
-              style={{
-                display: 'flex', flexDirection: 'column', gap: '8px',
-                padding: '10px', borderRadius: '12px', cursor: 'pointer',
-                border: '1px solid rgba(255,255,255,0.25)',
-                background: 'var(--pl-chrome-surface)',
-                textAlign: 'left', transition: 'all 0.15s',
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#A1A1AA'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.25)'; }}
-            >
-              <div className="pl-palette-swatches" style={{ display: 'flex', gap: '3px' }}>
-                {preset.colors.slice(0, 5).map((c, i) => (
-                  <div key={i} style={{
-                    width: 18, height: 18, borderRadius: '50%',
-                    background: c, border: '1px solid rgba(0,0,0,0.08)',
-                    transition: `transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) ${i * 0.04}s`,
-                  }} />
-                ))}
-              </div>
-              <div style={{
-                fontSize: panelText.hint,
-                fontWeight: panelWeight.bold,
-                color: 'var(--pl-chrome-text)',
-                fontFamily: 'inherit',
-                lineHeight: panelLineHeight.tight,
-              }}>
-                {preset.name}
-              </div>
-            </button>
-          ))}
+            { name: 'Blush & Sage',       colors: ['#D4A0A0', '#71717A', '#FAF7F2', '#3D3530', '#F5F1E8'], kicker: 'warm · soft' },
+            { name: 'Navy & Gold',        colors: ['#2C3E6B', '#C4A96A', '#FAF7F2', '#1C1C1C', '#F5F1E8'], kicker: 'formal · jewel' },
+            { name: 'Terracotta & Cream', colors: ['#C67B5C', '#E8B89D', '#FFF8F2', '#3D2E24', '#F5ECE4'], kicker: 'earthy · sun' },
+            { name: 'Lavender Dream',     colors: ['#9B8EC1', '#D4A0C4', '#F8F5FD', '#2D2640', '#F0ECF8'], kicker: 'dreamy · soft' },
+            { name: 'Coastal Blue',       colors: ['#5B9BD5', '#B8D4E8', '#F0F7FF', '#1E4D8C', '#E8F0F8'], kicker: 'seaside · airy' },
+            { name: 'Emerald & Ivory',    colors: ['#2D6A4F', '#C4A96A', '#F0F7F4', '#1C2E24', '#E2F0E8'], kicker: 'garden · rich' },
+            { name: 'Sunset Glow',        colors: ['#E8785E', '#F0B860', '#FFF8F0', '#3D2420', '#FFF0E8'], kicker: 'radiant · warm' },
+            { name: 'Classic B&W',        colors: ['#333333', '#888888', '#FFFFFF', '#111111', '#F5F5F5'], kicker: 'timeless · crisp' },
+          ] as const).map((preset, i) => {
+            const [accent, accent2, bg, ink] = preset.colors;
+            const current = manifest.vibeSkin?.palette;
+            const isActive = current?.accent === accent && current?.background === bg;
+            return (
+              <button
+                key={preset.name}
+                onClick={() => {
+                  const [acc, acc2, background, inkC, subtle] = preset.colors;
+                  const newPalette = {
+                    ...(manifest.vibeSkin?.palette || {}),
+                    accent: acc, accent2: acc2, background,
+                    foreground: inkC, ink: inkC,
+                    subtle, card: subtle,
+                    muted: acc2, highlight: acc,
+                  };
+                  const newSkin = { ...(manifest.vibeSkin || {} as VibeSkin), palette: newPalette as VibeSkin['palette'] };
+                  handleThemeApply(newSkin);
+                }}
+                style={{
+                  display: 'flex', flexDirection: 'column',
+                  padding: 0, overflow: 'hidden',
+                  borderRadius: '10px', cursor: 'pointer',
+                  border: isActive
+                    ? '1px solid var(--pl-chrome-accent)'
+                    : '1px solid var(--pl-chrome-border)',
+                  background: 'var(--pl-chrome-surface)',
+                  boxShadow: isActive ? '0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 14%, transparent)' : 'none',
+                  transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                  textAlign: 'left',
+                  position: 'relative',
+                }}
+                onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; }}
+                onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
+              >
+                {/* Horizontal stripe swatch */}
+                <div style={{
+                  display: 'flex', height: '36px',
+                  borderBottom: '1px solid var(--pl-chrome-border)',
+                  position: 'relative',
+                }}>
+                  {preset.colors.map((c, idx) => (
+                    <div key={idx} style={{ flex: idx === 2 ? 2 : 1, background: c }} />
+                  ))}
+                  <span style={{
+                    position: 'absolute', top: '4px', left: '6px',
+                    fontFamily: panelFont.mono,
+                    fontSize: '0.44rem',
+                    letterSpacing: panelTracking.widest,
+                    fontWeight: panelWeight.bold,
+                    color: 'rgba(255,255,255,0.9)',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.4)',
+                  }}>
+                    № {String(i + 1).padStart(2, '0')}
+                  </span>
+                  {isActive && (
+                    <span style={{
+                      position: 'absolute', top: '6px', right: '7px',
+                      width: '7px', height: '7px', borderRadius: '50%',
+                      background: '#fff',
+                      boxShadow: '0 0 0 2px var(--pl-chrome-accent), 0 1px 3px rgba(0,0,0,0.2)',
+                    }} />
+                  )}
+                </div>
+                {/* Name plate */}
+                <div style={{ padding: '7px 9px 8px' }}>
+                  <div style={{
+                    fontFamily: panelFont.display,
+                    fontStyle: 'italic',
+                    fontSize: '0.74rem',
+                    color: isActive ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-soft)',
+                    lineHeight: 1.1,
+                  }}>
+                    {preset.name}
+                  </div>
+                  <div style={{
+                    fontFamily: panelFont.mono,
+                    fontSize: '0.46rem',
+                    letterSpacing: panelTracking.wider,
+                    textTransform: 'uppercase',
+                    color: 'var(--pl-chrome-text-faint)',
+                    marginTop: '2px',
+                  }}>
+                    {preset.kicker}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </SidebarSection>
 
@@ -1686,29 +1883,88 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
           />
         ) : (
           <div style={{
-            padding: '16px',
+            padding: '24px 20px 22px',
             textAlign: 'center',
-            color: 'var(--pl-chrome-text-muted)',
-            fontSize: panelText.body,
-            lineHeight: panelLineHeight.normal,
+            borderRadius: '12px',
+            background: 'linear-gradient(145deg, var(--pl-chrome-accent-soft) 0%, var(--pl-chrome-surface) 80%)',
+            border: '1px dashed color-mix(in srgb, var(--pl-chrome-accent) 45%, transparent)',
           }}>
-            <p style={{ marginBottom: '10px', margin: '0 0 10px' }}>No AI art generated yet.</p>
+            {/* Sparkle glyph cluster */}
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              position: 'relative',
+              width: '36px', height: '36px',
+              marginBottom: '10px',
+            }}>
+              <span style={{
+                position: 'absolute',
+                fontFamily: panelFont.display,
+                fontStyle: 'italic',
+                fontSize: '1.8rem',
+                color: 'var(--pl-chrome-accent)',
+                lineHeight: 1,
+                top: '-3px', left: '3px',
+              }}>✦</span>
+              <span style={{
+                position: 'absolute',
+                fontSize: '0.7rem',
+                color: 'color-mix(in srgb, var(--pl-chrome-accent) 65%, transparent)',
+                bottom: '0px', right: '3px',
+              }}>✦</span>
+            </div>
+            <div style={{
+              fontFamily: panelFont.mono,
+              fontSize: '0.5rem',
+              letterSpacing: panelTracking.widest,
+              textTransform: 'uppercase',
+              color: 'var(--pl-chrome-accent-ink)',
+              marginBottom: '6px',
+            }}>
+              Plate · Awaiting
+            </div>
+            <div style={{
+              fontFamily: panelFont.display,
+              fontStyle: 'italic',
+              fontSize: '0.95rem',
+              color: 'var(--pl-chrome-text)',
+              lineHeight: 1.15,
+              marginBottom: '4px',
+            }}>
+              No art generated yet.
+            </div>
+            <div style={{
+              fontFamily: panelFont.body,
+              fontSize: '0.66rem',
+              color: 'var(--pl-chrome-text-muted)',
+              marginBottom: '14px',
+              maxWidth: '220px', marginLeft: 'auto', marginRight: 'auto',
+              lineHeight: 1.45,
+            }}>
+              Let Pear compose hero, ambient, and accent art from your vibe.
+            </div>
             <button
               onClick={handleRegenerateDesign}
               style={{
-                padding: '8px 16px',
-                borderRadius: '8px',
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                padding: '8px 16px 8px 14px',
+                borderRadius: '100px',
                 background: 'var(--pl-chrome-text)',
-                color: '#fff',
-                border: 'none',
+                color: 'var(--pl-chrome-surface)',
+                border: '1px solid var(--pl-chrome-text)',
                 cursor: 'pointer',
-                fontSize: panelText.body,
+                fontFamily: panelFont.mono,
+                fontSize: '0.56rem',
                 fontWeight: panelWeight.bold,
-                fontFamily: 'inherit',
-                lineHeight: panelLineHeight.tight,
+                letterSpacing: panelTracking.widest,
+                textTransform: 'uppercase',
+                lineHeight: 1,
+                transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
               }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'none'; }}
             >
-              Generate AI Art
+              <span style={{ fontSize: '0.7rem' }}>✦</span>
+              Generate
             </button>
           </div>
         )}
@@ -1724,62 +1980,95 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       {/* ── Chapter Date Format — applies to chapter date labels ── */}
       {/* Story-layout selection moved to the inline InlineStoryLayoutSwitcher. */}
       <SidebarSection title="Chapter Date Format" defaultOpen={false}>
-        <div>
-          <div style={SUB_LABEL}>Date format</div>
+        <div style={{
+          borderLeft: '1px solid var(--pl-chrome-accent)',
+          paddingLeft: '10px',
+          marginBottom: '12px',
+        }}>
           <div style={{
-            fontSize: panelText.hint,
-            color: 'var(--pl-chrome-text-muted)',
-            lineHeight: panelLineHeight.normal,
-            marginBottom: '10px',
+            fontFamily: panelFont.mono,
+            fontSize: '0.5rem',
+            letterSpacing: panelTracking.widest,
+            textTransform: 'uppercase',
+            color: 'var(--pl-chrome-accent-ink)',
+            marginBottom: '3px',
           }}>
-            How dates read on every chapter
+            Typesetter · Date
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {(Object.keys(CHAPTER_DATE_FORMATS) as ChapterDateFormatKey[]).map((key) => {
-                const preset = CHAPTER_DATE_FORMATS[key];
-                const isActive = (manifest.dateFormat || 'long') === key;
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => onChange({ ...manifest, dateFormat: key })}
-                    style={{
-                      width: '100%',
-                      padding: '8px 10px',
-                      borderRadius: 12,
-                      border: `1.5px solid ${isActive ? '#18181B' : 'rgba(24,24,27,0.1)'}`,
-                      background: isActive ? '#F4F4F5' : 'rgba(255,255,255,0.5)',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      gap: 12,
-                      transition: 'border-color 0.15s, background 0.15s',
-                    }}
-                    aria-pressed={isActive}
-                  >
-                    <span style={{
-                      fontSize: panelText.body,
-                      fontWeight: isActive ? panelWeight.bold : panelWeight.semibold,
-                      color: 'var(--pl-chrome-text)',
-                      fontFamily: 'inherit',
-                      lineHeight: panelLineHeight.tight,
-                    }}>
-                      {preset.label}
-                    </span>
-                    <span style={{
-                      fontSize: panelText.hint,
-                      fontFamily: 'ui-monospace, SFMono-Regular, monospace',
-                      color: 'var(--pl-chrome-text-muted)',
-                      lineHeight: panelLineHeight.tight,
-                    }}>
-                      {preset.example}
-                    </span>
-                  </button>
-                );
-              })}
-          </div>
+          <p style={{
+            fontFamily: panelFont.display,
+            fontStyle: 'italic',
+            fontSize: '0.82rem',
+            color: 'var(--pl-chrome-text)',
+            lineHeight: panelLineHeight.snug,
+            margin: 0,
+          }}>
+            How dates read on every chapter.
+          </p>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {(Object.keys(CHAPTER_DATE_FORMATS) as ChapterDateFormatKey[]).map((key, i) => {
+            const preset = CHAPTER_DATE_FORMATS[key];
+            const isActive = (manifest.dateFormat || 'long') === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => onChange({ ...manifest, dateFormat: key })}
+                aria-pressed={isActive}
+                style={{
+                  width: '100%',
+                  padding: '11px 14px 10px',
+                  borderRadius: '10px',
+                  border: isActive
+                    ? '1px solid var(--pl-chrome-accent)'
+                    : '1px solid var(--pl-chrome-border)',
+                  background: isActive ? 'var(--pl-chrome-accent-soft)' : 'var(--pl-chrome-surface)',
+                  boxShadow: isActive ? '0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 14%, transparent)' : 'none',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  display: 'grid',
+                  gridTemplateColumns: 'auto 1fr auto',
+                  alignItems: 'baseline',
+                  gap: '12px',
+                  transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                  position: 'relative',
+                }}
+              >
+                <span style={{
+                  fontFamily: panelFont.mono,
+                  fontSize: '0.46rem',
+                  letterSpacing: panelTracking.widest,
+                  fontWeight: panelWeight.bold,
+                  color: isActive ? 'var(--pl-chrome-accent-ink)' : 'var(--pl-chrome-text-faint)',
+                }}>
+                  № {String(i + 1).padStart(2, '0')}
+                </span>
+                <span style={{
+                  fontFamily: panelFont.display,
+                  fontStyle: 'italic',
+                  fontSize: '0.78rem',
+                  color: isActive ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-soft)',
+                  lineHeight: 1.1,
+                }}>
+                  {preset.label}
+                </span>
+                <span style={{
+                  fontFamily: panelFont.mono,
+                  fontSize: '0.58rem',
+                  letterSpacing: '0.02em',
+                  color: 'var(--pl-chrome-text-muted)',
+                  padding: '3px 7px',
+                  borderRadius: '4px',
+                  background: 'var(--pl-chrome-bg)',
+                  border: '1px solid var(--pl-chrome-border)',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {preset.example}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </SidebarSection>
 
@@ -1790,66 +2079,118 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
       {/* ── Quick Design Presets ── */}
       <SidebarSection title="Quick Style Presets" defaultOpen={false}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
-          {DESIGN_PRESETS.map(preset => (
-            <button
-              key={preset.id}
-              onClick={() => {
-                const newSkin: VibeSkin = {
-                  ...(manifest.vibeSkin || {} as VibeSkin),
-                  palette: preset.palette,
-                  fonts: preset.fonts,
-                  cardStyle: preset.cardStyle as VibeSkin['cardStyle'],
-                  texture: preset.texture as VibeSkin['texture'],
-                  headingStyle: preset.headingStyle as VibeSkin['headingStyle'],
-                  sectionEntrance: preset.sectionEntrance as VibeSkin['sectionEntrance'],
-                  particle: preset.particle as VibeSkin['particle'],
-                  tone: preset.tone as VibeSkin['tone'],
-                };
-                handleThemeApply(newSkin);
-              }}
-              style={{
-                display: 'flex', flexDirection: 'column', gap: '6px',
-                padding: '10px', borderRadius: '12px', cursor: 'pointer',
-                border: '1px solid rgba(255,255,255,0.25)',
-                background: 'var(--pl-chrome-surface)',
-                textAlign: 'left', transition: 'all 0.15s',
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#A1A1AA'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.25)'; }}
-            >
-              <div style={{ display: 'flex', gap: '3px' }}>
-                {[preset.preview.bg, preset.preview.fg, preset.preview.accent].map((c, i) => (
-                  <div key={i} style={{ width: 16, height: 16, borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,0.08)' }} />
-                ))}
-              </div>
-              <div style={{
-                fontSize: panelText.hint,
-                fontWeight: panelWeight.bold,
-                color: 'var(--pl-chrome-text)',
-                fontFamily: 'inherit',
-                lineHeight: panelLineHeight.tight,
-              }}>{preset.name}</div>
-              <div style={{
-                fontSize: panelText.meta,
-                color: 'var(--pl-chrome-text-muted)',
-                lineHeight: panelLineHeight.normal,
-              }}>{preset.description}</div>
-            </button>
-          ))}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+          {DESIGN_PRESETS.map((preset, i) => {
+            const current = manifest.vibeSkin;
+            const isActive = current?.tone === preset.tone &&
+              current?.fonts?.heading === preset.fonts?.heading;
+            return (
+              <button
+                key={preset.id}
+                onClick={() => {
+                  const newSkin: VibeSkin = {
+                    ...(manifest.vibeSkin || {} as VibeSkin),
+                    palette: preset.palette,
+                    fonts: preset.fonts,
+                    cardStyle: preset.cardStyle as VibeSkin['cardStyle'],
+                    texture: preset.texture as VibeSkin['texture'],
+                    headingStyle: preset.headingStyle as VibeSkin['headingStyle'],
+                    sectionEntrance: preset.sectionEntrance as VibeSkin['sectionEntrance'],
+                    particle: preset.particle as VibeSkin['particle'],
+                    tone: preset.tone as VibeSkin['tone'],
+                  };
+                  handleThemeApply(newSkin);
+                }}
+                style={{
+                  display: 'flex', flexDirection: 'column',
+                  padding: 0, overflow: 'hidden',
+                  borderRadius: '10px', cursor: 'pointer',
+                  border: isActive
+                    ? '1px solid var(--pl-chrome-accent)'
+                    : '1px solid var(--pl-chrome-border)',
+                  background: 'var(--pl-chrome-surface)',
+                  boxShadow: isActive ? '0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 14%, transparent)' : 'none',
+                  transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                  textAlign: 'left',
+                  position: 'relative',
+                }}
+              >
+                {/* Miniature specimen — bg + fg + accent as a layered card */}
+                <div style={{
+                  height: '64px', position: 'relative',
+                  background: preset.preview.bg,
+                  borderBottom: '1px solid var(--pl-chrome-border)',
+                  overflow: 'hidden',
+                }}>
+                  <span style={{
+                    position: 'absolute', top: '6px', left: '8px',
+                    fontFamily: panelFont.mono,
+                    fontSize: '0.44rem',
+                    letterSpacing: panelTracking.widest,
+                    fontWeight: panelWeight.bold,
+                    color: preset.preview.fg,
+                    opacity: 0.7,
+                  }}>
+                    № {String(i + 1).padStart(2, '0')}
+                  </span>
+                  {isActive && (
+                    <span style={{
+                      position: 'absolute', top: '7px', right: '8px',
+                      width: '7px', height: '7px', borderRadius: '50%',
+                      background: preset.preview.accent,
+                      boxShadow: `0 0 0 2px ${preset.preview.bg}, 0 0 0 3px ${preset.preview.accent}`,
+                    }} />
+                  )}
+                  {/* Display-font showing */}
+                  <div style={{
+                    position: 'absolute', bottom: '8px', left: '10px', right: '10px',
+                    fontFamily: `"${preset.fonts?.heading || 'Fraunces'}", serif`,
+                    fontStyle: 'italic',
+                    fontSize: '1.15rem',
+                    color: preset.preview.fg,
+                    lineHeight: 1,
+                    letterSpacing: '-0.01em',
+                  }}>
+                    Aa
+                  </div>
+                  {/* Accent bar */}
+                  <div style={{
+                    position: 'absolute', bottom: '6px', right: '10px',
+                    width: '20px', height: '3px',
+                    background: preset.preview.accent,
+                    borderRadius: '1px',
+                  }} />
+                </div>
+                {/* Label plate */}
+                <div style={{ padding: '8px 10px 10px' }}>
+                  <div style={{
+                    fontFamily: panelFont.display,
+                    fontStyle: 'italic',
+                    fontSize: '0.76rem',
+                    color: isActive ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-soft)',
+                    lineHeight: 1.1,
+                  }}>
+                    {preset.name}
+                  </div>
+                  <div style={{
+                    fontFamily: panelFont.mono,
+                    fontSize: '0.46rem',
+                    letterSpacing: panelTracking.wider,
+                    textTransform: 'uppercase',
+                    color: 'var(--pl-chrome-text-faint)',
+                    marginTop: '3px',
+                  }}>
+                    {preset.description}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </SidebarSection>
 
       {/* ── Dark Mode Preview ── */}
       <SidebarSection title="Dark Mode Preview" defaultOpen={false}>
-        <p style={{
-          fontSize: panelText.hint,
-          color: 'var(--pl-chrome-text-muted)',
-          marginBottom: '8px',
-          lineHeight: panelLineHeight.normal,
-        }}>
-          Preview how your site would look with inverted colors. Great for evening events.
-        </p>
         <button
           onClick={() => {
             if (!manifest.vibeSkin) return;
@@ -1859,79 +2200,181 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
           }}
           style={{
             width: '100%',
-            padding: '10px 12px',
-            borderRadius: '10px',
-            border: '1px solid rgba(255,255,255,0.3)',
-            background: 'linear-gradient(135deg, #1a1520 0%, #252030 100%)',
-            color: '#F0E8D8',
+            padding: 0, overflow: 'hidden',
+            borderRadius: '12px',
+            border: '1px solid rgba(196,169,106,0.4)',
+            background: 'linear-gradient(135deg, #0f0e14 0%, #1a1520 55%, #252030 100%)',
             cursor: 'pointer',
-            fontSize: panelText.body,
-            fontWeight: panelWeight.bold,
-            fontFamily: 'inherit',
-            lineHeight: panelLineHeight.tight,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            textAlign: 'left',
+            position: 'relative',
+            transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
           }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 20px rgba(0,0,0,0.18)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'none'; (e.currentTarget as HTMLElement).style.transform = 'none'; }}
         >
-          <span style={{ fontSize: '0.9rem' }}>🌙</span> Apply Dark Mode
+          <div style={{ padding: '16px 16px 18px', position: 'relative' }}>
+            {/* decorative mini-moons */}
+            <div style={{
+              position: 'absolute', top: '14px', right: '18px',
+              width: '28px', height: '28px', borderRadius: '50%',
+              background: 'radial-gradient(circle at 35% 35%, #F0E8D8 0%, #d4c899 60%, #9b8f66 100%)',
+              boxShadow: '0 0 20px rgba(240,232,216,0.25), inset -4px -4px 8px rgba(0,0,0,0.35)',
+            }} />
+            <div style={{ position: 'absolute', top: '24px', right: '52px', width: '2px', height: '2px', borderRadius: '50%', background: '#F0E8D8', opacity: 0.7 }} />
+            <div style={{ position: 'absolute', top: '18px', right: '70px', width: '1.5px', height: '1.5px', borderRadius: '50%', background: '#F0E8D8', opacity: 0.5 }} />
+            <div style={{ position: 'absolute', top: '36px', right: '62px', width: '1px', height: '1px', borderRadius: '50%', background: '#F0E8D8', opacity: 0.4 }} />
+
+            <div style={{
+              fontFamily: panelFont.mono,
+              fontSize: '0.5rem',
+              letterSpacing: panelTracking.widest,
+              textTransform: 'uppercase',
+              color: '#C4A96A',
+              marginBottom: '6px',
+            }}>
+              Nocturne · Invert
+            </div>
+            <div style={{
+              fontFamily: panelFont.display,
+              fontStyle: 'italic',
+              fontSize: '1.05rem',
+              color: '#F0E8D8',
+              lineHeight: 1.15,
+              letterSpacing: '-0.01em',
+            }}>
+              Flip to midnight
+            </div>
+            <div style={{
+              fontFamily: panelFont.body,
+              fontSize: '0.66rem',
+              color: 'rgba(240,232,216,0.65)',
+              marginTop: '6px',
+              lineHeight: 1.4,
+              maxWidth: '72%',
+            }}>
+              Invert the palette for evening events — dark paper, luminous accents.
+            </div>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              marginTop: '12px',
+              padding: '5px 10px',
+              borderRadius: '100px',
+              background: 'rgba(196,169,106,0.15)',
+              border: '1px solid rgba(196,169,106,0.4)',
+              fontFamily: panelFont.mono,
+              fontSize: '0.52rem',
+              letterSpacing: panelTracking.wider,
+              textTransform: 'uppercase',
+              color: '#C4A96A',
+            }}>
+              Apply <span style={{ color: '#F0E8D8' }}>→</span>
+            </div>
+          </div>
         </button>
       </SidebarSection>
 
       {/* ── Typographic Scale ── */}
       <SidebarSection title="Type Scale" defaultOpen={false}>
-        <p style={{
-          fontSize: panelText.hint,
-          color: 'var(--pl-chrome-text-muted)',
-          marginBottom: '8px',
-          lineHeight: panelLineHeight.normal,
+        <div style={{
+          borderLeft: '1px solid var(--pl-chrome-accent)',
+          paddingLeft: '10px',
+          marginBottom: '12px',
         }}>
-          Set the mathematical ratio for font size hierarchy across your site.
-        </p>
-        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-          {(['minor-third', 'major-third', 'perfect-fourth', 'golden-ratio'] as TypeScale[]).map(scale => {
+          <div style={{
+            fontFamily: panelFont.mono,
+            fontSize: '0.5rem',
+            letterSpacing: panelTracking.widest,
+            textTransform: 'uppercase',
+            color: 'var(--pl-chrome-accent-ink)',
+            marginBottom: '3px',
+          }}>
+            Typographic · Ratio
+          </div>
+          <p style={{
+            fontFamily: panelFont.display,
+            fontStyle: 'italic',
+            fontSize: '0.82rem',
+            color: 'var(--pl-chrome-text)',
+            lineHeight: panelLineHeight.snug,
+            margin: 0,
+          }}>
+            The math behind size hierarchy.
+          </p>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+          {(['minor-third', 'major-third', 'perfect-fourth', 'golden-ratio'] as TypeScale[]).map((scale, i) => {
             const h = generateTypeHierarchy(16, scale);
+            const isActive = manifest.theme?.typeScale === scale;
             return (
               <button
                 key={scale}
                 onClick={() => {
                   onChange({
                     ...manifest,
-                    theme: {
-                      ...manifest.theme,
-                      typeScale: scale,
-                      typeSizes: h.sizes,
-                    },
+                    theme: { ...manifest.theme, typeScale: scale, typeSizes: h.sizes },
                   });
                 }}
                 style={{
-                  flex: 1, minWidth: '70px',
-                  padding: '9px 6px',
+                  position: 'relative',
+                  padding: 0, overflow: 'hidden',
                   borderRadius: '10px',
-                  border: manifest.theme?.typeScale === scale
-                    ? '2px solid #18181B' : '1px solid #E4E4E7',
-                  background: manifest.theme?.typeScale === scale
-                    ? '#F4F4F5' : '#FFFFFF',
+                  border: isActive
+                    ? '1px solid var(--pl-chrome-accent)'
+                    : '1px solid var(--pl-chrome-border)',
+                  background: isActive ? 'var(--pl-chrome-accent-soft)' : 'var(--pl-chrome-surface)',
+                  boxShadow: isActive ? '0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 14%, transparent)' : 'none',
                   cursor: 'pointer',
-                  textAlign: 'center',
-                  transition: 'all 0.15s',
+                  textAlign: 'left',
+                  transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
                 }}
               >
+                {/* Ratio specimen visualization */}
                 <div style={{
-                  fontSize: panelText.hint,
-                  fontWeight: panelWeight.bold,
-                  color: 'var(--pl-chrome-text)',
-                  fontFamily: 'inherit',
-                  textTransform: 'capitalize',
-                  lineHeight: panelLineHeight.tight,
+                  display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: '3px',
+                  padding: '14px 10px 10px', height: '52px',
+                  borderBottom: '1px solid var(--pl-chrome-border)',
+                  background: isActive
+                    ? 'color-mix(in srgb, var(--pl-chrome-surface) 65%, var(--pl-chrome-accent-soft))'
+                    : 'var(--pl-chrome-bg)',
                 }}>
-                  {scale.replace('-', ' ')}
+                  {[1, h.ratio, h.ratio * h.ratio].map((mul, idx) => (
+                    <div key={idx} style={{
+                      width: '5px',
+                      height: `${Math.min(32, 10 * mul)}px`,
+                      background: isActive ? 'var(--pl-chrome-accent)' : 'var(--pl-chrome-text-muted)',
+                      borderRadius: '1px',
+                    }} />
+                  ))}
                 </div>
-                <div style={{
-                  fontSize: panelText.meta,
-                  color: 'var(--pl-chrome-text-muted)',
-                  marginTop: '2px',
-                  lineHeight: panelLineHeight.tight,
+                <span style={{
+                  position: 'absolute', top: '5px', left: '8px',
+                  fontFamily: panelFont.mono,
+                  fontSize: '0.44rem',
+                  letterSpacing: panelTracking.widest,
+                  fontWeight: panelWeight.bold,
+                  color: isActive ? 'var(--pl-chrome-accent-ink)' : 'var(--pl-chrome-text-faint)',
                 }}>
-                  {h.ratio}:1
+                  № {String(i + 1).padStart(2, '0')}
+                </span>
+                <div style={{ padding: '7px 10px 9px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <div style={{
+                    fontFamily: panelFont.display,
+                    fontStyle: 'italic',
+                    fontSize: '0.72rem',
+                    color: isActive ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-soft)',
+                    lineHeight: 1.1,
+                    textTransform: 'capitalize',
+                  }}>
+                    {scale.replace('-', ' ')}
+                  </div>
+                  <div style={{
+                    fontFamily: panelFont.mono,
+                    fontSize: '0.52rem',
+                    letterSpacing: '0.02em',
+                    color: 'var(--pl-chrome-text-muted)',
+                  }}>
+                    {h.ratio.toFixed(3)}:1
+                  </div>
                 </div>
               </button>
             );
