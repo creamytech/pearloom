@@ -2,18 +2,15 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, Globe, Pencil, ExternalLink, Calendar, Loader2, Image,
-  Trash2, AlertTriangle, Users, Check, Share2, RefreshCw, Sparkles,
+  Plus, Globe, ExternalLink, Calendar, Loader2, Image,
+  Trash2, AlertTriangle, Check, Share2, RefreshCw, Sparkles,
   EllipsisVertical,
 } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import { PearIcon } from '@/components/icons/PearloomIcons';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
 import { Modal } from '@/components/ui/modal';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/cn';
@@ -156,13 +153,31 @@ function daysUntil(dateStr: string): number | null {
 
 // ── Skeleton ──────────────────────────────────────────────────
 
-function SkeletonCard() {
+function SkeletonCard({ index }: { index: number }) {
   return (
-    <div className="flex items-center gap-4 px-4 py-3 rounded-xl bg-white border border-[#E4E4E7]">
-      <div className="w-[60px] h-[60px] rounded-lg skeleton flex-shrink-0" />
+    <div
+      className="flex items-center gap-5 px-5 py-4 rounded-[10px]"
+      style={{
+        background: 'var(--pl-cream-card)',
+        border: '1px solid rgba(14,13,11,0.08)',
+      }}
+    >
+      <span
+        style={{
+          fontFamily: 'var(--pl-font-mono)',
+          fontSize: '0.56rem',
+          fontWeight: 700,
+          letterSpacing: '0.22em',
+          color: 'rgba(14,13,11,0.25)',
+          minWidth: '28px',
+        }}
+      >
+        № {String(index + 1).padStart(2, '0')}
+      </span>
+      <div className="w-[64px] h-[64px] rounded-[8px] skeleton flex-shrink-0" />
       <div className="flex-1 flex flex-col gap-2">
-        <div className="h-4 rounded-full w-[55%] skeleton" />
-        <div className="h-3 rounded-full w-[30%] skeleton" />
+        <div className="h-[18px] rounded-sm w-[60%] skeleton" />
+        <div className="h-[10px] rounded-sm w-[32%] skeleton" />
       </div>
     </div>
   );
@@ -201,37 +216,105 @@ function OverflowMenu({ site, onShare, onDelete, isCopied, isDeleting }: {
     }
   }, [open]);
 
+  const itemStyle: React.CSSProperties = {
+    width: '100%',
+    display: 'grid',
+    gridTemplateColumns: '18px 1fr',
+    alignItems: 'center',
+    columnGap: '12px',
+    padding: '11px 14px',
+    textAlign: 'left',
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    transition: 'background 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+  };
+
+  const itemLabel: React.CSSProperties = {
+    fontFamily: 'var(--pl-font-display)',
+    fontStyle: 'italic',
+    fontSize: '0.84rem',
+    fontWeight: 500,
+    color: 'var(--pl-ink)',
+    lineHeight: 1.15,
+  };
+
+  const itemKicker: React.CSSProperties = {
+    fontFamily: 'var(--pl-font-mono)',
+    fontSize: '0.5rem',
+    fontWeight: 700,
+    letterSpacing: '0.22em',
+    textTransform: 'uppercase',
+    color: 'rgba(14,13,11,0.45)',
+    marginTop: '3px',
+    display: 'block',
+    lineHeight: 1,
+  };
+
   return (
     <div className="relative">
       <button
         ref={btnRef}
         onClick={(e) => { e.stopPropagation(); setOpen((p) => !p); }}
-        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors"
+        className="w-8 h-8 flex items-center justify-center rounded-full transition-colors"
+        style={{ background: open ? 'var(--pl-olive-mist)' : 'transparent' }}
+        onMouseEnter={(e) => { if (!open) e.currentTarget.style.background = 'rgba(14,13,11,0.04)'; }}
+        onMouseLeave={(e) => { if (!open) e.currentTarget.style.background = 'transparent'; }}
         aria-label="More options"
       >
-        <EllipsisVertical size={16} className="text-[var(--pl-muted)]" />
+        <EllipsisVertical size={16} style={{ color: 'var(--pl-ink-soft)' }} />
       </button>
       {open && typeof document !== 'undefined' && createPortal(
         <div ref={menuRef}>
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -4 }}
+            initial={{ opacity: 0, scale: 0.96, y: -4 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -4 }}
-            transition={{ duration: 0.15 }}
-            className="min-w-[160px] rounded-lg overflow-hidden bg-white border border-[#E4E4E7] shadow-[0_8px_32px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)]"
+            exit={{ opacity: 0, scale: 0.96, y: -4 }}
+            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
             style={{
               position: 'fixed',
               top: menuPos.top,
               right: menuPos.right,
               zIndex: 9999,
+              minWidth: '208px',
+              borderRadius: '10px',
+              overflow: 'hidden',
+              background: 'var(--pl-cream-card)',
+              border: '1px solid rgba(14,13,11,0.10)',
+              boxShadow: '0 2px 8px rgba(14,13,11,0.06), 0 18px 44px rgba(14,13,11,0.14), 0 0 0 3px rgba(184,147,90,0.08)',
             } as React.CSSProperties}
           >
+            {/* Editorial menu header — gold hairline */}
+            <div style={{
+              padding: '9px 14px 8px',
+              borderBottom: '1px solid rgba(184,147,90,0.32)',
+              background: 'rgba(184,147,90,0.06)',
+            }}>
+              <span style={{
+                fontFamily: 'var(--pl-font-mono)',
+                fontSize: '0.48rem',
+                fontWeight: 700,
+                letterSpacing: '0.28em',
+                textTransform: 'uppercase',
+                color: 'rgba(14,13,11,0.55)',
+              }}>
+                Site Actions
+              </span>
+            </div>
+
             <button
               onClick={(e) => { e.stopPropagation(); onShare(site, e); setOpen(false); }}
-              className="w-full flex items-center gap-3 px-4 py-3 text-[0.82rem] text-[var(--pl-ink)] hover:bg-black/[0.03] transition-colors text-left"
+              style={itemStyle}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(14,13,11,0.03)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
             >
-              {isCopied ? <Check size={14} className="text-[var(--pl-olive)]" /> : <Share2 size={14} className="text-[var(--pl-muted)]" />}
-              {isCopied ? 'Link copied!' : 'Copy share link'}
+              {isCopied
+                ? <Check size={14} style={{ color: 'var(--pl-olive)' }} />
+                : <Share2 size={14} style={{ color: 'var(--pl-ink-soft)' }} />}
+              <span>
+                <span style={itemLabel}>{isCopied ? 'Link copied' : 'Copy share link'}</span>
+                <span style={itemKicker}>{isCopied ? 'Confirmed' : 'To clipboard'}</span>
+              </span>
             </button>
             <button
               onClick={(e) => {
@@ -239,10 +322,15 @@ function OverflowMenu({ site, onShare, onDelete, isCopied, isDeleting }: {
                 window.open(getSiteUrlStatic(site.domain, site.manifest?.occasion), '_blank');
                 setOpen(false);
               }}
-              className="w-full flex items-center gap-3 px-4 py-3 text-[0.82rem] text-[var(--pl-ink)] hover:bg-black/[0.03] transition-colors text-left"
+              style={itemStyle}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(14,13,11,0.03)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
             >
-              <ExternalLink size={14} className="text-[var(--pl-muted)]" />
-              View live site
+              <ExternalLink size={14} style={{ color: 'var(--pl-ink-soft)' }} />
+              <span>
+                <span style={itemLabel}>View live site</span>
+                <span style={itemKicker}>Open in new tab</span>
+              </span>
             </button>
             <button
               onClick={(e) => {
@@ -251,10 +339,19 @@ function OverflowMenu({ site, onShare, onDelete, isCopied, isDeleting }: {
                 setOpen(false);
               }}
               disabled={isDeleting}
-              className="w-full flex items-center gap-3 px-4 py-3 text-[0.82rem] text-red-600 hover:bg-red-50 transition-colors text-left border-t border-[rgba(0,0,0,0.06)]"
+              style={{
+                ...itemStyle,
+                borderTop: '1px solid rgba(14,13,11,0.07)',
+                opacity: isDeleting ? 0.5 : 1,
+              }}
+              onMouseEnter={(e) => { if (!isDeleting) e.currentTarget.style.background = 'rgba(220,38,38,0.06)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
             >
-              {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-              Delete site
+              {isDeleting ? <Loader2 size={14} className="animate-spin" style={{ color: '#b91c1c' }} /> : <Trash2 size={14} style={{ color: '#b91c1c' }} />}
+              <span>
+                <span style={{ ...itemLabel, color: '#b91c1c' }}>Delete site</span>
+                <span style={itemKicker}>Permanent</span>
+              </span>
             </button>
           </motion.div>
         </div>,
@@ -299,7 +396,6 @@ const OCCASION_BADGE: Record<string, { label: string; variant: 'plum' | 'gold' |
 // ─────────────────────────────────────────────────────────────
 
 export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSite, userName }: UserSitesProps) {
-  const router = useRouter();
   const [sites, setSites]                   = useState<UserSite[]>([]);
   const [loading, setLoading]               = useState(true);
   const [fetchError, setFetchError]         = useState(false);
@@ -376,95 +472,350 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
   return (
     <div className="w-full max-w-[1280px] mx-auto pb-24 md:pb-20">
 
-      {/* ── Header band ── */}
-      <div className="pl-enter mb-6 sm:mb-10">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <p className="text-[0.65rem] font-semibold tracking-[0.06em] uppercase text-[#A1A1AA] mb-1">
-              {getGreeting()}{userName ? `, ${userName}` : ''}
-            </p>
-            <h1 className="text-[clamp(1.4rem,3vw,2rem)] font-semibold text-[#18181B] leading-tight">
-              Your Sites
+      {/* ── Editorial Masthead ── */}
+      <div className="pl-enter mb-8 sm:mb-12">
+        {/* Mono kicker above */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+          <span style={{
+            fontFamily: 'var(--pl-font-mono)',
+            fontSize: '0.52rem',
+            fontWeight: 700,
+            letterSpacing: '0.32em',
+            textTransform: 'uppercase',
+            color: 'var(--pl-olive)',
+          }}>
+            Volume · {new Date().getFullYear()}
+          </span>
+          <span style={{ flex: 1, height: '1px', background: 'rgba(184,147,90,0.45)' }} />
+          <span style={{
+            fontFamily: 'var(--pl-font-mono)',
+            fontSize: '0.52rem',
+            fontWeight: 700,
+            letterSpacing: '0.28em',
+            textTransform: 'uppercase',
+            color: 'rgba(14,13,11,0.55)',
+          }}>
+            {getGreeting()}{userName ? ` · ${userName}` : ''}
+          </span>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-5">
+          <div style={{ maxWidth: '560px' }}>
+            <h1 style={{
+              fontFamily: 'var(--pl-font-display)',
+              fontStyle: 'italic',
+              fontWeight: 400,
+              fontSize: 'clamp(2.4rem, 5.2vw, 3.6rem)',
+              lineHeight: 1.02,
+              letterSpacing: '-0.01em',
+              color: 'var(--pl-ink)',
+              margin: 0,
+            }}>
+              Your sites
             </h1>
+            <p style={{
+              marginTop: '10px',
+              fontFamily: 'var(--pl-font-body)',
+              fontSize: '0.82rem',
+              lineHeight: 1.55,
+              color: 'var(--pl-ink-soft)',
+              maxWidth: '440px',
+            }}>
+              An editorial atlas of the celebrations you&apos;ve composed — open one to edit, or compose something new.
+            </p>
           </div>
 
           <div className="flex items-center gap-3 flex-shrink-0">
-            {/* Pear usage indicator */}
-            {pearUsage && (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#F4F4F5] border border-[#E4E4E7]">
-                <Sparkles size={13} className="text-[#18181B]" />
-                <span className="text-[0.72rem] font-semibold text-[#18181B]">
-                  Pear:{' '}
-                  {pearUsage.plan !== 'free' ? (
-                    <span className="text-[#18181B]">{'\u221E'}</span>
-                  ) : (
-                    <span style={{ color: pearUsage.used >= pearUsage.limit ? '#b91c1c' : pearUsage.used >= pearUsage.limit - 3 ? '#b45309' : '#18181B' }}>
-                      {pearUsage.used}/{pearUsage.limit} used
+            {/* Pear usage — editorial dossier chip */}
+            {pearUsage && (() => {
+              const isUnlimited = pearUsage.plan !== 'free';
+              const remaining = Math.max(0, pearUsage.limit - pearUsage.used);
+              const tone = isUnlimited
+                ? 'var(--pl-olive)'
+                : pearUsage.used >= pearUsage.limit ? '#b91c1c'
+                : pearUsage.used >= pearUsage.limit - 3 ? '#b45309'
+                : 'var(--pl-olive)';
+              return (
+                <div style={{
+                  display: 'flex', alignItems: 'stretch',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(184,147,90,0.40)',
+                  background: 'var(--pl-cream-card)',
+                  overflow: 'hidden',
+                }}>
+                  <div style={{
+                    padding: '6px 10px',
+                    borderRight: '1px solid rgba(184,147,90,0.32)',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    background: 'rgba(184,147,90,0.08)',
+                  }}>
+                    <Sparkles size={12} style={{ color: 'var(--pl-gold)' }} />
+                  </div>
+                  <div style={{ padding: '4px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <span style={{
+                      fontFamily: 'var(--pl-font-mono)',
+                      fontSize: '0.46rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.26em',
+                      textTransform: 'uppercase',
+                      color: 'rgba(14,13,11,0.55)',
+                      lineHeight: 1,
+                    }}>Pear credits</span>
+                    <span style={{
+                      fontFamily: 'var(--pl-font-display)',
+                      fontStyle: 'italic',
+                      fontSize: '0.9rem',
+                      color: tone,
+                      lineHeight: 1.1,
+                      marginTop: '2px',
+                    }}>
+                      {isUnlimited
+                        ? '\u221E unlimited'
+                        : `${remaining} of ${pearUsage.limit} left`}
                     </span>
-                  )}
-                </span>
-              </div>
-            )}
+                  </div>
+                </div>
+              );
+            })()}
             <button
               onClick={onStartNew}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-md bg-[#18181B] text-white text-[0.75rem] font-semibold border-none cursor-pointer hover:bg-[#27272A] transition-colors flex-shrink-0"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                padding: '10px 18px',
+                borderRadius: '8px',
+                background: 'var(--pl-ink)',
+                color: 'var(--pl-cream)',
+                border: '1px solid var(--pl-ink)',
+                boxShadow: '0 0 0 3px rgba(184,147,90,0.18)',
+                cursor: 'pointer',
+                fontFamily: 'var(--pl-font-mono)',
+                fontSize: '0.6rem',
+                fontWeight: 700,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                transition: 'transform 0.18s cubic-bezier(0.22,1,0.36,1), box-shadow 0.18s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,147,90,0.28), 0 6px 18px rgba(14,13,11,0.18)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,147,90,0.18)';
+              }}
             >
-              <Plus size={15} /> New Site
+              <Plus size={14} strokeWidth={2.4} />
+              New site
             </button>
           </div>
         </div>
       </div>
 
-      {/* ── Compact creation row — horizontal scroll on mobile ── */}
+      {/* ── Compose — numbered specimen cards ── */}
       {!loading && !fetchError && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="flex gap-3 mb-6 sm:mb-10 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
-        >
-          {[
-            { icon: <Sparkles size={18} />, title: 'Let Pear handle it', action: onStartNew },
-            { icon: <Image size={18} />, title: 'Upload Photos', action: () => { if (onStartNew) onStartNew(); } },
-            { icon: <Globe size={18} />, title: 'From Template', action: onOpenTemplates || onQuickStart || onStartNew },
-          ].map((card, i) => (
-            <button
-              key={card.title}
-              onClick={card.action}
-              className={cn(
-                `pl-enter pl-enter-d${i + 1}`,
-                'flex items-center gap-3 px-4 py-3 min-w-[140px] max-h-[80px]',
-                'rounded-lg bg-white border border-[#E4E4E7]',
-                'hover:border-[#18181B] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]',
-                'active:scale-[0.98] transition-all duration-200 cursor-pointer flex-shrink-0',
-              )}
-            >
-              <div className="w-9 h-9 rounded-md border border-[#E4E4E7] flex items-center justify-center text-[#71717A] flex-shrink-0">
-                {card.icon}
-              </div>
-              <span className="text-[0.82rem] font-medium text-[#18181B] whitespace-nowrap">{card.title}</span>
-            </button>
-          ))}
-        </motion.div>
+        <div className="mb-8 sm:mb-12">
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            marginBottom: '14px',
+          }}>
+            <span style={{
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.5rem', fontWeight: 700,
+              letterSpacing: '0.32em',
+              textTransform: 'uppercase',
+              color: 'rgba(14,13,11,0.55)',
+            }}>
+              Compose · three paths
+            </span>
+            <span style={{ flex: 1, height: '1px', background: 'rgba(14,13,11,0.08)' }} />
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+          >
+            {[
+              {
+                icon: <Sparkles size={18} strokeWidth={1.6} />,
+                title: 'Let Pear handle it',
+                kicker: 'Pear AI · guided',
+                desc: 'Answer a few prompts — Pear composes colors, story, and layout for you.',
+                action: onStartNew,
+              },
+              {
+                icon: <Image size={18} strokeWidth={1.6} />,
+                title: 'Upload photos',
+                kicker: 'From your reel',
+                desc: 'Start with the pictures you love; we build chapters around them.',
+                action: () => { if (onStartNew) onStartNew(); },
+              },
+              {
+                icon: <Globe size={18} strokeWidth={1.6} />,
+                title: 'From template',
+                kicker: 'Hand-set layouts',
+                desc: 'Pick a pre-designed motif — editorial, archival, romantic, spare.',
+                action: onOpenTemplates || onQuickStart || onStartNew,
+              },
+            ].map((card, i) => (
+              <motion.button
+                key={card.title}
+                onClick={card.action}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.99 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 32 }}
+                className={cn(`pl-enter pl-enter-d${i + 1}`)}
+                style={{
+                  position: 'relative',
+                  display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+                  gap: '12px',
+                  padding: '20px 20px 18px',
+                  borderRadius: '10px',
+                  background: 'var(--pl-cream-card)',
+                  border: '1px solid rgba(14,13,11,0.09)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  overflow: 'hidden',
+                  transition: 'border-color 0.18s, box-shadow 0.24s cubic-bezier(0.22,1,0.36,1)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(184,147,90,0.55)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(14,13,11,0.04), 0 14px 36px rgba(14,13,11,0.10), 0 0 0 3px rgba(184,147,90,0.10)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(14,13,11,0.09)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                {/* Gold hairline at top */}
+                <span style={{
+                  position: 'absolute', top: 0, left: '16px', right: '16px',
+                  height: '1px', background: 'rgba(184,147,90,0.45)',
+                }} />
+
+                {/* № folio + icon row */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  <span style={{
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.56rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.26em',
+                    textTransform: 'uppercase',
+                    color: 'var(--pl-olive)',
+                  }}>
+                    № {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span style={{
+                    width: '36px', height: '36px',
+                    borderRadius: '50%',
+                    border: '1px solid rgba(184,147,90,0.40)',
+                    background: 'rgba(184,147,90,0.06)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'var(--pl-ink)',
+                  }}>
+                    {card.icon}
+                  </span>
+                </div>
+
+                {/* Title — Fraunces italic */}
+                <h3 style={{
+                  fontFamily: 'var(--pl-font-display)',
+                  fontStyle: 'italic',
+                  fontWeight: 400,
+                  fontSize: '1.5rem',
+                  lineHeight: 1.05,
+                  letterSpacing: '-0.005em',
+                  color: 'var(--pl-ink)',
+                  margin: 0,
+                }}>
+                  {card.title}
+                </h3>
+
+                {/* Kicker + description */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                  <span style={{
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.5rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.24em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(14,13,11,0.50)',
+                  }}>
+                    {card.kicker}
+                  </span>
+                  <p style={{
+                    fontFamily: 'var(--pl-font-body)',
+                    fontSize: '0.78rem',
+                    lineHeight: 1.5,
+                    color: 'var(--pl-ink-soft)',
+                    margin: 0,
+                  }}>
+                    {card.desc}
+                  </p>
+                </div>
+              </motion.button>
+            ))}
+          </motion.div>
+        </div>
       )}
 
       {/* ── Loading ── */}
       {loading ? (
         <div className="flex flex-col gap-3">
-          {[...Array(3)].map((_, i) => <SkeletonCard key={i} />)}
+          {[...Array(3)].map((_, i) => <SkeletonCard key={i} index={i} />)}
         </div>
 
       ) : fetchError ? (
-        <div className="p-8 sm:p-16 text-center max-w-[480px] mx-auto bg-white rounded-xl border border-[#E4E4E7]">
-          <div className="w-14 h-14 rounded-lg bg-[#FEF2F2] flex items-center justify-center mx-auto mb-5">
-            <AlertTriangle size={24} className="text-[#DC2626]" />
+        <div
+          className="mx-auto text-center"
+          style={{
+            maxWidth: '520px',
+            padding: '48px 32px',
+            borderRadius: '14px',
+            background: 'var(--pl-cream-card)',
+            border: '1px solid rgba(14,13,11,0.10)',
+            boxShadow: '0 2px 8px rgba(14,13,11,0.04), 0 18px 44px rgba(14,13,11,0.08)',
+            position: 'relative',
+          }}
+        >
+          <span style={{
+            position: 'absolute', top: '1px', left: '20%', right: '20%',
+            height: '1px', background: 'rgba(184,147,90,0.55)',
+          }} />
+          <span style={{
+            fontFamily: 'var(--pl-font-mono)',
+            fontSize: '0.52rem', fontWeight: 700,
+            letterSpacing: '0.32em', textTransform: 'uppercase',
+            color: '#b91c1c', display: 'block', marginBottom: '16px',
+          }}>
+            Erratum · fetch failed
+          </span>
+          <div style={{
+            width: '56px', height: '56px',
+            borderRadius: '50%',
+            border: '1px solid rgba(220,38,38,0.35)',
+            background: 'rgba(220,38,38,0.06)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 20px',
+          }}>
+            <AlertTriangle size={22} style={{ color: '#b91c1c' }} />
           </div>
-          <h3 className="text-xl font-semibold mb-2 text-[#18181B]">
-            Something went wrong
+          <h3 style={{
+            fontFamily: 'var(--pl-font-display)',
+            fontStyle: 'italic', fontWeight: 400,
+            fontSize: '1.7rem', lineHeight: 1.1,
+            color: 'var(--pl-ink)', margin: '0 0 10px',
+          }}>
+            Something went astray
           </h3>
-          <p className="text-[#71717A] text-[0.85rem] mb-6 leading-relaxed">
-            We couldn&apos;t load your sites. Check your connection and try again.
+          <p style={{
+            fontFamily: 'var(--pl-font-body)',
+            fontSize: '0.82rem', lineHeight: 1.55,
+            color: 'var(--pl-ink-soft)',
+            maxWidth: '340px', margin: '0 auto 24px',
+          }}>
+            We couldn&apos;t load your sites. Check your connection, then try the press again.
           </p>
           <Button variant="primary" size="md" onClick={loadSites} icon={<RefreshCw size={14} />}>
             Try Again
@@ -472,64 +823,211 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
         </div>
 
       ) : sites.length === 0 ? (
-        <div className="max-w-[640px] mx-auto">
-          {/* Hero empty state */}
-          <div className="pl-enter flex flex-col items-center justify-center text-center py-16 px-8 rounded-xl bg-white border border-[#E4E4E7] mb-6">
-            <div className="w-16 h-16 rounded-lg bg-[#F4F4F5] flex items-center justify-center mb-5">
-              <PearIcon size={40} color="#18181B" />
+        <div className="max-w-[680px] mx-auto">
+          {/* Hero — dashed gold frame empty state */}
+          <div
+            className="pl-enter"
+            style={{
+              position: 'relative',
+              padding: '56px 40px 48px',
+              borderRadius: '16px',
+              background: 'var(--pl-cream-card)',
+              border: '1px dashed rgba(184,147,90,0.55)',
+              marginBottom: '20px',
+              textAlign: 'center',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Corner folio marks */}
+            <span style={{ position: 'absolute', top: '12px', left: '16px', fontFamily: 'var(--pl-font-mono)', fontSize: '0.48rem', fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--pl-olive)' }}>
+              Prologue
+            </span>
+            <span style={{ position: 'absolute', top: '12px', right: '16px', fontFamily: 'var(--pl-font-mono)', fontSize: '0.48rem', fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'rgba(14,13,11,0.40)' }}>
+              № 00
+            </span>
+
+            <div style={{
+              width: '72px', height: '72px',
+              borderRadius: '50%',
+              border: '1px solid rgba(184,147,90,0.55)',
+              background: 'rgba(184,147,90,0.08)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 20px',
+              boxShadow: '0 0 0 6px rgba(184,147,90,0.06)',
+            }}>
+              <PearIcon size={40} color="var(--pl-ink)" />
             </div>
-            <h2 className="text-[clamp(1.6rem,4vw,2.2rem)] font-semibold text-[#18181B] mb-2 leading-tight">
+
+            <h2 style={{
+              fontFamily: 'var(--pl-font-display)',
+              fontStyle: 'italic', fontWeight: 400,
+              fontSize: 'clamp(2rem, 5vw, 2.8rem)',
+              lineHeight: 1.02,
+              color: 'var(--pl-ink)',
+              margin: '0 0 12px',
+            }}>
               Welcome to Pearloom
             </h2>
-            <p className="text-[#71717A] max-w-[360px] leading-[1.6] text-[0.9rem] mb-8">
-              Create your first celebration site in minutes.
+            <p style={{
+              fontFamily: 'var(--pl-font-body)',
+              fontSize: '0.88rem', lineHeight: 1.6,
+              color: 'var(--pl-ink-soft)',
+              maxWidth: '400px', margin: '0 auto 28px',
+            }}>
+              Compose your first celebration site — in minutes, with an editor that feels like setting a page.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 items-center">
-              <button onClick={onStartNew} className="flex items-center gap-2 px-5 py-2.5 rounded-md bg-[#18181B] text-white text-[0.8rem] font-semibold border-none cursor-pointer hover:bg-[#27272A] transition-colors min-w-[180px] justify-center">
-                <Sparkles size={15} /> Start with AI
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button
+                onClick={onStartNew}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  padding: '11px 22px',
+                  borderRadius: '8px',
+                  background: 'var(--pl-ink)',
+                  color: 'var(--pl-cream)',
+                  border: '1px solid var(--pl-ink)',
+                  boxShadow: '0 0 0 3px rgba(184,147,90,0.18)',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--pl-font-mono)',
+                  fontSize: '0.62rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  minWidth: '190px', justifyContent: 'center',
+                }}
+              >
+                <Sparkles size={14} /> Begin with Pear
               </button>
-              <button onClick={onOpenTemplates || onQuickStart || onStartNew} className="flex items-center justify-center px-5 py-2.5 rounded-md bg-white text-[#18181B] text-[0.8rem] font-semibold border border-[#E4E4E7] cursor-pointer hover:bg-[#F4F4F5] transition-colors min-w-[180px]">
-                Browse Templates
+              <button
+                onClick={onOpenTemplates || onQuickStart || onStartNew}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  padding: '11px 22px',
+                  borderRadius: '8px',
+                  background: 'transparent',
+                  color: 'var(--pl-ink)',
+                  border: '1px solid rgba(14,13,11,0.22)',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--pl-font-mono)',
+                  fontSize: '0.62rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  minWidth: '190px', justifyContent: 'center',
+                }}
+              >
+                Browse templates
               </button>
             </div>
           </div>
 
-          {/* How it works — 3 steps */}
-          <div className="pl-enter pl-enter-d2 grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {[
-              { num: '1', title: 'Add photos', desc: 'From Google Photos or your device — the moments that matter most.' },
-              { num: '2', title: 'Set your vibe', desc: 'Describe the feeling. AI crafts colors, fonts, and layout around it.' },
-              { num: '3', title: 'Share your site', desc: 'Get a beautiful link to send to your guests. Edit anytime.' },
-            ].map((step, i) => (
-              <motion.div
-                key={step.num}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 + i * 0.1, duration: 0.5 }}
-                className="p-5 rounded-xl bg-white border border-[#E4E4E7] text-center"
-              >
-                <div className="w-8 h-8 rounded-md bg-[#F4F4F5] flex items-center justify-center mx-auto mb-3 text-[0.72rem] font-bold text-[#18181B]">
-                  {step.num}
-                </div>
-                <h4 className="text-[0.82rem] font-semibold text-[#18181B] mb-1">{step.title}</h4>
-                <p className="text-[0.72rem] text-[#71717A] leading-relaxed">{step.desc}</p>
-              </motion.div>
-            ))}
+          {/* Three-act story — how it works */}
+          <div style={{ marginTop: '32px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+              <span style={{
+                fontFamily: 'var(--pl-font-mono)',
+                fontSize: '0.5rem', fontWeight: 700,
+                letterSpacing: '0.30em', textTransform: 'uppercase',
+                color: 'rgba(14,13,11,0.55)',
+              }}>
+                In three acts
+              </span>
+              <span style={{ flex: 1, height: '1px', background: 'rgba(14,13,11,0.08)' }} />
+            </div>
+            <div className="pl-enter pl-enter-d2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                { num: 'I',   title: 'Add photos',      desc: 'Pull from Google Photos or upload — the moments that matter most.' },
+                { num: 'II',  title: 'Set the vibe',    desc: 'Describe the feeling; Pear composes color, type, and layout around it.' },
+                { num: 'III', title: 'Share your link', desc: 'A printable-feeling URL for guests. Edit freely, whenever.' },
+              ].map((step, i) => (
+                <motion.div
+                  key={step.num}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 + i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  style={{
+                    position: 'relative',
+                    padding: '20px 18px 18px',
+                    borderRadius: '10px',
+                    background: 'var(--pl-cream-card)',
+                    border: '1px solid rgba(14,13,11,0.08)',
+                  }}
+                >
+                  <span style={{ position: 'absolute', top: 0, left: '14px', right: '14px', height: '1px', background: 'rgba(184,147,90,0.40)' }} />
+                  <span style={{
+                    fontFamily: 'var(--pl-font-display)',
+                    fontStyle: 'italic', fontWeight: 400,
+                    fontSize: '1.25rem',
+                    color: 'var(--pl-gold)',
+                    lineHeight: 1,
+                    display: 'block',
+                    marginBottom: '10px',
+                  }}>
+                    Act {step.num}
+                  </span>
+                  <h4 style={{
+                    fontFamily: 'var(--pl-font-display)',
+                    fontStyle: 'italic', fontWeight: 500,
+                    fontSize: '1.05rem', lineHeight: 1.15,
+                    color: 'var(--pl-ink)',
+                    margin: '0 0 6px',
+                  }}>
+                    {step.title}
+                  </h4>
+                  <p style={{
+                    fontFamily: 'var(--pl-font-body)',
+                    fontSize: '0.74rem', lineHeight: 1.55,
+                    color: 'var(--pl-ink-soft)',
+                    margin: 0,
+                  }}>
+                    {step.desc}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
 
       ) : (
         <>
-        {/* Your Sites heading + count */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[0.65rem] font-semibold tracking-[0.06em] uppercase text-[#A1A1AA]">Your Sites</h2>
-          <span className="text-[0.75rem] text-[#71717A]">
-            {sites.length} {sites.length === 1 ? 'site' : 'sites'}
+        {/* Section eyebrow — "The Index" */}
+        <div style={{
+          display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+          gap: '12px', marginBottom: '16px',
+          paddingBottom: '10px',
+          borderBottom: '1px solid rgba(184,147,90,0.40)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '14px' }}>
+            <span style={{
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.52rem', fontWeight: 700,
+              letterSpacing: '0.32em', textTransform: 'uppercase',
+              color: 'var(--pl-olive)',
+            }}>
+              The Index
+            </span>
+            <h2 style={{
+              fontFamily: 'var(--pl-font-display)',
+              fontStyle: 'italic', fontWeight: 400,
+              fontSize: '1.15rem', lineHeight: 1,
+              color: 'var(--pl-ink)', margin: 0,
+            }}>
+              your sites
+            </h2>
+          </div>
+          <span style={{
+            fontFamily: 'var(--pl-font-mono)',
+            fontSize: '0.52rem', fontWeight: 700,
+            letterSpacing: '0.26em', textTransform: 'uppercase',
+            color: 'rgba(14,13,11,0.50)',
+          }}>
+            {sites.length} {sites.length === 1 ? 'entry' : 'entries'}
           </span>
         </div>
 
-        {/* Compact site cards */}
-        <div className="flex flex-col gap-3">
+        {/* Periodical entry rows */}
+        <div className="flex flex-col gap-2">
           <AnimatePresence>
             {sites.map((site, i) => {
               const vibeSkin      = site.manifest?.vibeSkin;
@@ -563,16 +1061,42 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.3, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 0.32, delay: i * 0.04, ease: [0.22, 1, 0.36, 1] }}
                   onClick={() => onEditSite(site)}
-                  className={cn(
-                    'pl-site-card flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer',
-                    'bg-white border border-[#E4E4E7]',
-                    'transition-all duration-200',
-                    'hover:border-[#18181B] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]',
-                    'active:scale-[0.99]',
-                  )}
+                  style={{
+                    position: 'relative',
+                    display: 'grid',
+                    gridTemplateColumns: '36px 72px 1fr auto',
+                    alignItems: 'center',
+                    columnGap: '18px',
+                    padding: '16px 18px',
+                    borderRadius: '10px',
+                    background: 'var(--pl-cream-card)',
+                    border: '1px solid rgba(14,13,11,0.08)',
+                    cursor: 'pointer',
+                    transition: 'border-color 0.18s, box-shadow 0.24s cubic-bezier(0.22,1,0.36,1), transform 0.12s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(184,147,90,0.50)';
+                    e.currentTarget.style.boxShadow = '0 2px 6px rgba(14,13,11,0.04), 0 12px 32px rgba(14,13,11,0.08), 0 0 0 3px rgba(184,147,90,0.08)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(14,13,11,0.08)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
                 >
+                  {/* Folio number */}
+                  <span style={{
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.58rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.22em',
+                    color: 'var(--pl-olive)',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    № {String(i + 1).padStart(2, '0')}
+                  </span>
+
                   {/* Thumbnail */}
                   <SiteThumbnail
                     photos={chapterPhotos}
@@ -584,53 +1108,94 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                   />
 
                   {/* Content */}
-                  <div className="flex-1 min-w-0 flex flex-col gap-1">
-                    {/* Row 1: Name + status badge */}
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-[0.9rem] font-semibold text-[#18181B] truncate">
+                  <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '7px' }}>
+                    {/* Row 1: Name — Fraunces italic */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                      <span style={{
+                        fontFamily: 'var(--pl-font-display)',
+                        fontStyle: 'italic',
+                        fontWeight: 400,
+                        fontSize: '1.28rem',
+                        lineHeight: 1.05,
+                        color: 'var(--pl-ink)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}>
                         {displayName}
                       </span>
-                      {isLive ? (
-                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6rem] font-bold tracking-wide uppercase bg-green-50 text-green-700 border border-green-200 flex-shrink-0">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                          Live
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6rem] font-bold tracking-wide uppercase bg-amber-50 text-amber-700 border border-amber-200 flex-shrink-0">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                          Draft
-                        </span>
-                      )}
+                      {/* Status pill — minimal editorial */}
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                        padding: '3px 9px 3px 8px',
+                        borderRadius: '3px',
+                        background: isLive ? 'rgba(92,107,63,0.08)' : 'rgba(184,147,90,0.10)',
+                        border: isLive ? '1px solid rgba(92,107,63,0.30)' : '1px solid rgba(184,147,90,0.35)',
+                        fontFamily: 'var(--pl-font-mono)',
+                        fontSize: '0.48rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.24em',
+                        textTransform: 'uppercase',
+                        color: isLive ? 'var(--pl-olive)' : 'var(--pl-gold)',
+                        flexShrink: 0,
+                      }}>
+                        <span style={{
+                          width: '5px', height: '5px',
+                          borderRadius: '50%',
+                          background: isLive ? 'var(--pl-olive)' : 'var(--pl-gold)',
+                        }} />
+                        {isLive ? 'In print' : 'Draft'}
+                      </span>
                     </div>
 
-                    {/* Row 2: Occasion pill + date */}
-                    <div className="flex items-center gap-2 text-[0.75rem] text-[var(--pl-muted)]">
-                      {occ && <Badge variant={occ.variant} size="sm">{occ.label}</Badge>}
-                      {dateDisplay && (
-                        <span className="flex items-center gap-1">
-                          <Calendar size={10} />
-                          {dateDisplay}
-                        </span>
+                    {/* Row 2: Metadata strip — mono, separated by pipe hairlines */}
+                    <div style={{
+                      display: 'flex', alignItems: 'center',
+                      gap: '10px',
+                      flexWrap: 'wrap',
+                      fontFamily: 'var(--pl-font-mono)',
+                      fontSize: '0.52rem',
+                      fontWeight: 600,
+                      letterSpacing: '0.18em',
+                      textTransform: 'uppercase',
+                      color: 'rgba(14,13,11,0.55)',
+                    }}>
+                      {occ && (
+                        <>
+                          <span>{occ.label}</span>
+                          <span style={{ color: 'rgba(184,147,90,0.55)' }}>·</span>
+                        </>
                       )}
+                      {dateDisplay && (
+                        <>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                            <Calendar size={9} strokeWidth={1.8} />
+                            {dateDisplay}
+                          </span>
+                          <span style={{ color: 'rgba(184,147,90,0.55)' }}>·</span>
+                        </>
+                      )}
+                      <span style={{ color: 'rgba(14,13,11,0.40)', textTransform: 'lowercase', letterSpacing: '0.08em' }}>
+                        {site.domain}
+                      </span>
                       {showMilestone && (
                         <span
                           className="pl-badge-pulse"
                           style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '3px',
+                            display: 'inline-flex', alignItems: 'center', gap: '5px',
                             padding: '2px 8px',
-                            borderRadius: '100px',
-                            background: 'rgba(196,169,106,0.12)',
-                            border: '1px solid rgba(196,169,106,0.25)',
-                            fontSize: '0.6rem',
+                            borderRadius: '3px',
+                            background: 'rgba(184,147,90,0.12)',
+                            border: '1px solid rgba(184,147,90,0.38)',
+                            fontFamily: 'var(--pl-font-mono)',
+                            fontSize: '0.5rem',
                             fontWeight: 700,
-                            color: 'var(--pl-gold, #C4A96A)',
-                            whiteSpace: 'nowrap',
-                            flexShrink: 0,
+                            letterSpacing: '0.22em',
+                            color: 'var(--pl-gold)',
+                            marginLeft: '4px',
                           }}
                         >
-                          {'\uD83C\uDF89'} {daysLeft === 0 ? 'Today!' : `${daysLeft} day${daysLeft === 1 ? '' : 's'} to go!`}
+                          ✦ {daysLeft === 0 ? 'Today' : `${daysLeft}d to go`}
                         </span>
                       )}
                     </div>
@@ -654,25 +1219,71 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
 
       {/* Desktop floating nav removed — sidebar provides navigation */}
 
-      {/* Delete Modal */}
+      {/* Delete Modal — editorial confirmation */}
       <Modal
         open={confirmDelete !== null}
         onClose={() => { setConfirmDelete(null); setDeleteError(null); }}
-        maxWidth="max-w-[420px]"
+        maxWidth="max-w-[440px]"
       >
-        <div className="text-center pt-2">
-          <div className="w-14 h-14 rounded-lg bg-[#FEF2F2] flex items-center justify-center mx-auto mb-5">
-            <AlertTriangle size={24} className="text-[#DC2626]" />
+        <div style={{ position: 'relative', textAlign: 'center', paddingTop: '6px' }}>
+          <span style={{
+            position: 'absolute', top: '-18px', left: '18%', right: '18%',
+            height: '1px', background: 'rgba(184,147,90,0.55)',
+          }} />
+          <span style={{
+            fontFamily: 'var(--pl-font-mono)',
+            fontSize: '0.5rem', fontWeight: 700,
+            letterSpacing: '0.32em', textTransform: 'uppercase',
+            color: '#b91c1c', display: 'block', marginBottom: '16px',
+          }}>
+            Retire · irreversible
+          </span>
+          <div style={{
+            width: '58px', height: '58px',
+            borderRadius: '50%',
+            border: '1px solid rgba(220,38,38,0.32)',
+            background: 'rgba(220,38,38,0.05)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 18px',
+          }}>
+            <AlertTriangle size={22} style={{ color: '#b91c1c' }} />
           </div>
-          <h3 className="text-xl font-semibold mb-2 text-[#18181B]">
-            Delete this site?
+          <h3 style={{
+            fontFamily: 'var(--pl-font-display)',
+            fontStyle: 'italic', fontWeight: 400,
+            fontSize: '1.7rem', lineHeight: 1.1,
+            color: 'var(--pl-ink)', margin: '0 0 10px',
+          }}>
+            Retire this site?
           </h3>
-          <p className="text-[#71717A] leading-relaxed mb-6 text-[0.85rem]">
-            <strong className="text-[#18181B]">{confirmDelete ? getDisplayName(confirmDelete) : ''}</strong> will be
-            permanently removed and guests will lose access.
+          <p style={{
+            fontFamily: 'var(--pl-font-body)',
+            fontSize: '0.82rem', lineHeight: 1.55,
+            color: 'var(--pl-ink-soft)',
+            margin: '0 auto 22px',
+            maxWidth: '340px',
+          }}>
+            <span style={{
+              fontFamily: 'var(--pl-font-display)',
+              fontStyle: 'italic',
+              color: 'var(--pl-ink)',
+            }}>
+              {confirmDelete ? getDisplayName(confirmDelete) : ''}
+            </span>{' '}
+            will be permanently removed. Guests will lose access to the page.
           </p>
           {deleteError && (
-            <p className="text-[0.82rem] text-red-700 bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-5 text-left leading-snug">
+            <p style={{
+              fontFamily: 'var(--pl-font-body)',
+              fontSize: '0.78rem', lineHeight: 1.5,
+              color: '#b91c1c',
+              background: 'rgba(220,38,38,0.06)',
+              border: '1px solid rgba(220,38,38,0.28)',
+              borderRadius: '8px',
+              padding: '10px 14px',
+              margin: '0 0 18px',
+              textAlign: 'left',
+            }}>
               {deleteError}
             </p>
           )}
@@ -684,7 +1295,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
               className="flex-1"
               onClick={() => { setConfirmDelete(null); setDeleteError(null); }}
             >
-              Keep Site
+              Keep site
             </Button>
             <Button
               variant="danger"
@@ -693,7 +1304,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
               loading={confirmDelete ? deletingDomain === confirmDelete.domain : false}
               onClick={() => confirmDelete && handleDelete(confirmDelete)}
             >
-              Delete Forever
+              Delete forever
             </Button>
           </div>
         </div>
