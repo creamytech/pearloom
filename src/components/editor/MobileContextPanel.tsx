@@ -167,7 +167,9 @@ export function MobileContextPanel({
   }
 
   const sectionKey = activeSection as SectionType;
-  const meta = SECTION_META[sectionKey] || { icon: LayoutGrid, label: activeSection };
+  const meta: { icon: React.ElementType; label: string } =
+    (SECTION_META as Record<string, { icon: React.ElementType; label: string } | undefined>)[activeSection]
+    ?? { icon: LayoutGrid, label: activeSection };
   const SectionIcon = meta.icon;
 
   // ── Render section content ──

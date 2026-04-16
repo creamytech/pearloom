@@ -69,6 +69,7 @@ import {
 } from '@/lib/block-engine';
 import { makeId } from '@/lib/editor-ids';
 import { logEditorError } from '@/lib/editor-log';
+import { writeClipboardText } from '@/lib/clipboard';
 
 // ── State ─────────────────────────────────────────────────────
 import {
@@ -1271,6 +1272,7 @@ function PublishModalInline() {
   const { state, dispatch, actions, coupleNames } = useEditor();
   const { showPublish, publishedUrl, publishError, isPublishing, subdomain } = state;
   const [shareCopied, setShareCopied] = useState(false);
+  const [copyError, setCopyError] = useState<string | null>(null);
 
   const displayNames = coupleNames
     ? (coupleNames[1]?.trim() ? `${coupleNames[0]} & ${coupleNames[1]}` : coupleNames[0])
@@ -1280,11 +1282,17 @@ function PublishModalInline() {
     : '';
   const rsvpUrl = publishedUrl ? `${publishedUrl}#rsvp` : '';
 
-  const handleCopyLink = () => {
+  const handleCopyLink = async () => {
     if (!publishedUrl) return;
-    navigator.clipboard?.writeText(publishedUrl).catch(() => {});
-    setShareCopied(true);
-    setTimeout(() => setShareCopied(false), 2000);
+    const ok = await writeClipboardText(publishedUrl);
+    if (ok) {
+      setCopyError(null);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    } else {
+      setCopyError('Couldn\u2019t copy automatically — select the link above.');
+      setTimeout(() => setCopyError(null), 3500);
+    }
   };
 
   if (!showPublish) return null;
@@ -1378,7 +1386,7 @@ function PublishModalInline() {
                   }}>
                     {publishedUrl}
                   </code>
-                  <motion.button onClick={() => navigator.clipboard?.writeText(publishedUrl!).catch(() => {})} title="Copy link"
+                  <motion.button onClick={() => { void writeClipboardText(publishedUrl!); }} title="Copy link"
                     whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.88 }}
                     style={{
                       position: 'absolute', right: '0.6rem', top: '50%',
@@ -1458,6 +1466,20 @@ function PublishModalInline() {
                       active={shareCopied}
                     />
                   </div>
+                  {copyError && (
+                    <div
+                      role="status"
+                      style={{
+                        marginTop: '0.5rem',
+                        fontSize: '0.72rem',
+                        color: 'var(--pl-plum)',
+                        fontFamily: 'var(--pl-font-mono)',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      {copyError}
+                    </div>
+                  )}
                   {rsvpUrl && (
                     <div style={{
                       marginTop: '0.75rem',

@@ -18,6 +18,7 @@ import {
   panelLineHeight,
 } from './panel';
 import { useEditor } from '@/lib/editor-state';
+import { writeClipboardText } from '@/lib/clipboard';
 import type { Guest } from '@/types';
 
 // ── Types ──────────────────────────────────────────────────────
@@ -42,13 +43,12 @@ function makeId() {
 function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (text: string) => void }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(note.note);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<'ok' | 'fail' | null>(null);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(draft).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    });
+  const handleCopy = async () => {
+    const ok = await writeClipboardText(draft);
+    setCopied(ok ? 'ok' : 'fail');
+    setTimeout(() => setCopied(null), 1800);
   };
 
   const handleToggleEdit = () => {
@@ -97,17 +97,23 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
           </button>
           <button
             onClick={handleCopy}
-            title="Copy to clipboard"
+            title={copied === 'fail' ? 'Copy failed — select manually' : 'Copy to clipboard'}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: '24px', height: '24px', borderRadius: '6px',
-              border: '1px solid #E4E4E7',
-              background: copied ? '#F4F4F5' : 'transparent',
-              color: '#3F3F46',
+              border: copied === 'fail'
+                ? '1px solid color-mix(in oklab, var(--pl-plum) 50%, transparent)'
+                : '1px solid var(--pl-divider)',
+              background: copied === 'ok'
+                ? 'color-mix(in oklab, var(--pl-olive) 12%, transparent)'
+                : copied === 'fail'
+                  ? 'color-mix(in oklab, var(--pl-plum) 10%, transparent)'
+                  : 'transparent',
+              color: copied === 'fail' ? 'var(--pl-plum)' : 'var(--pl-ink-soft)',
               cursor: 'pointer',
             }}
           >
-            {copied ? <Check size={11} /> : <Copy size={11} />}
+            {copied === 'ok' ? <Check size={11} /> : <Copy size={11} />}
           </button>
         </div>
       </div>
@@ -174,7 +180,11 @@ export function ThankYouPanel() {
           })));
         }
       })
-      .catch(() => {});
+      .catch(err => {
+        setError(err instanceof Error
+          ? `Couldn\u2019t pre-fill guests (${err.message}). You can still add them by hand below.`
+          : 'Couldn\u2019t pre-fill guests. You can still add them by hand below.');
+      });
   }, [siteId]);
 
   // ── Animated progress messages ───────────────────────────────

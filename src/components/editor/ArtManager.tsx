@@ -449,6 +449,8 @@ export function ArtManager({ manifest, coupleNames, onUpdate }: ArtManagerProps)
       }
     } catch (err) {
       console.error('[ArtManager] Regenerate failed:', err);
+      setError(err instanceof Error ? err.message : 'Regeneration failed — try again.');
+      setTimeout(() => setError(null), 4000);
     } finally {
       setRegenerating(null);
     }

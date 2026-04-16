@@ -422,6 +422,8 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
               <motion.button
                 key={entry.id}
                 onClick={entry.disabled ? undefined : entry.action}
+                disabled={entry.disabled}
+                aria-disabled={entry.disabled || undefined}
                 whileHover={
                   !entry.disabled
                     ? {
@@ -441,9 +443,9 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
                   borderRadius: '8px',
                   border: 'none',
                   background: 'transparent',
-                  cursor: entry.disabled ? 'default' : 'pointer',
+                  cursor: entry.disabled ? 'not-allowed' : 'pointer',
                   color: entry.disabled
-                    ? 'rgba(0,0,0,0.2)'
+                    ? 'color-mix(in oklab, var(--pl-ink) 30%, transparent)'
                     : entry.danger
                       ? 'rgba(220,80,80,0.85)'
                       : '#3F3F46',
@@ -451,6 +453,7 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
                   fontWeight: 600,
                   textAlign: 'left',
                   opacity: entry.disabled ? 0.45 : 1,
+                  pointerEvents: entry.disabled ? 'none' : 'auto',
                 }}
               >
                 <Icon size={13} />

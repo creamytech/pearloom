@@ -742,7 +742,6 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
     </div>
   );
 
-  // FIX #4: Auto-save feedback indicator
   const [showSaved, setShowSaved] = useState(false);
   const savedTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevManifestRef = React.useRef(manifest);
@@ -788,7 +787,6 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           {filledCount} of {totalSections} sections filled
         </span>
       </div>
-      {/* FIX #4: Auto-save indicator */}
       <AnimatePresence>
         {showSaved && (
           <motion.div
@@ -1498,7 +1496,6 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             <Field label="Notes" value={hotel.notes || ''} onChange={v => updHotel(i, { notes: v })} placeholder="Mention the wedding block…" />
           </div>
         ))}
-        {/* FIX #5: Empty state for hotels */}
         {(travel.hotels || []).length === 0 && (
           <p style={{
             fontSize: panelText.body,
@@ -1516,7 +1513,6 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
 
       <Section id="faq" label="FAQ">
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', flexWrap: 'wrap' }}>
-          {/* FIX #14: AI FAQ button with more prominent styling for discoverability */}
           <button
             onClick={generateSmartFaqs}
             disabled={aiFaqLoading}

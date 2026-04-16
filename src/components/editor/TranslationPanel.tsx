@@ -21,7 +21,10 @@ import {
   panelLineHeight,
 } from './panel';
 
-const LOCALES: Array<{ code: string; label: string; flag: string }> = [
+export type LocaleCode =
+  | 'es' | 'fr' | 'it' | 'pt' | 'de' | 'ja' | 'zh' | 'he' | 'ar';
+
+const LOCALES: ReadonlyArray<{ code: LocaleCode; label: string; flag: string }> = [
   { code: 'es', label: 'Spanish',    flag: '🇪🇸' },
   { code: 'fr', label: 'French',     flag: '🇫🇷' },
   { code: 'it', label: 'Italian',    flag: '🇮🇹' },
@@ -48,7 +51,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
   const coupleNames = (manifest as unknown as { names?: string[] }).names ?? ['', ''];
   const chapters = manifest.chapters || [];
 
-  const handleGenerate = async (locale: string) => {
+  const handleGenerate = async (locale: LocaleCode) => {
     if (chapters.length === 0) {
       setErrors(prev => ({ ...prev, [locale]: 'Add story chapters first.' }));
       return;
@@ -83,7 +86,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
     }
   };
 
-  const handleRemove = (locale: string) => {
+  const handleRemove = (locale: LocaleCode) => {
     const tr = { ...(manifest.translations || {}) };
     delete tr[locale];
     onChange({ ...manifest, translations: Object.keys(tr).length > 0 ? tr : undefined });

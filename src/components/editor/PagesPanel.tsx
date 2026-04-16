@@ -42,6 +42,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
 }) {
   const [showAddPage, setShowAddPage] = useState(false);
   const [newPageTitle, setNewPageTitle] = useState('');
+  const [addError, setAddError] = useState<string | null>(null);
 
   const occasion = (manifest.occasion || 'wedding') as OccasionType;
   const filteredPresets = ALL_SITE_PAGES.filter(p => p.occasions.includes(occasion));
@@ -54,17 +55,38 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
     onChange({ ...manifest, hiddenPages: isHidden ? hiddenList.filter(id => id !== pageId) : [...hiddenList, pageId] });
   };
 
+  const slugify = (s: string) =>
+    s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+  const reservedSlugs = new Set<string>(
+    ALL_SITE_PAGES.map(p => p.slug).filter(Boolean),
+  );
+
   const addCustomPage = () => {
-    if (!newPageTitle.trim()) return;
-    const slug = newPageTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const trimmed = newPageTitle.trim();
+    if (!trimmed) return;
+    const slug = slugify(trimmed);
+    if (!slug) {
+      setAddError('Give the page a name with at least one letter or number.');
+      return;
+    }
+    if (reservedSlugs.has(slug)) {
+      setAddError(`"${slug}" is a reserved page — pick a different name.`);
+      return;
+    }
+    if (customPages.some(p => p.slug === slug)) {
+      setAddError('You already have a page with that name.');
+      return;
+    }
     const newPage = {
       id: makeId('page'), slug,
-      title: newPageTitle.trim(), icon: '',
+      title: trimmed, icon: '',
       blocks: [{ id: makeId('b-text'), type: 'text' as const, order: 0, visible: true }],
       visible: true, order: customPages.length,
     };
     onChange({ ...manifest, customPages: [...customPages, newPage] });
     setNewPageTitle('');
+    setAddError(null);
     setShowAddPage(false);
   };
 
@@ -229,9 +251,25 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <PanelInput
                   value={newPageTitle}
-                  onChange={setNewPageTitle}
+                  onChange={(v) => { setNewPageTitle(v); if (addError) setAddError(null); }}
                   placeholder="Page name..."
                 />
+                {addError && (
+                  <div
+                    role="alert"
+                    style={{
+                      fontSize: '0.7rem',
+                      lineHeight: 1.5,
+                      color: 'var(--pl-plum)',
+                      padding: '6px 8px',
+                      borderRadius: 6,
+                      background: 'color-mix(in oklab, var(--pl-plum) 10%, transparent)',
+                      border: '1px solid color-mix(in oklab, var(--pl-plum) 30%, transparent)',
+                    }}
+                  >
+                    {addError}
+                  </div>
+                )}
                 <div style={{ display: 'flex', gap: '6px' }}>
                   <button
                     onClick={() => { setShowAddPage(false); setNewPageTitle(''); }}

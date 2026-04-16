@@ -13,10 +13,10 @@
 //   • Color contrast (re-uses DesignAdvisor data)
 //
 // Designed to sit inside DesignPanel below DesignAdvisor.
-// Renders nothing when audit passes.
 // ─────────────────────────────────────────────────────────────
 
 import { useMemo, useState } from 'react';
+import { Check } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import { IconError, IconWarn, IconTip, IconClose, IconAccessibility } from './EditorIcons';
 
@@ -132,7 +132,41 @@ export function AccessibilityAuditPanel({ manifest }: AccessibilityAuditPanelPro
   const issues = useMemo(() => auditManifest(manifest), [manifest]);
   const visible = issues.filter(i => !dismissed.has(i.code));
 
-  if (visible.length === 0) return null;
+  if (visible.length === 0) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', margin: '0 0 4px' }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '6px',
+          fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em',
+          textTransform: 'uppercase', color: 'var(--pl-muted)',
+          marginBottom: '2px',
+        }}>
+          <IconAccessibility size={12} /> Accessibility
+        </div>
+        <div
+          role="status"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '10px 12px',
+            borderRadius: 10,
+            background: 'color-mix(in oklab, var(--pl-olive) 12%, transparent)',
+            border: '1px solid color-mix(in oklab, var(--pl-olive) 28%, transparent)',
+            color: 'var(--pl-olive-deep, var(--pl-olive))',
+            fontSize: '0.75rem',
+            lineHeight: 1.5,
+          }}
+        >
+          <Check size={14} style={{ flexShrink: 0 }} />
+          <div>
+            <div style={{ fontWeight: 700 }}>All clear</div>
+            <div style={{ color: 'var(--pl-ink-soft)', fontSize: '0.7rem', marginTop: 2 }}>
+              Your site passes the built-in accessibility checks.
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', margin: '0 0 4px' }}>

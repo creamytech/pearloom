@@ -29,6 +29,7 @@ interface BulkInvitePanelProps {
 export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanelProps) {
   const [guests, setGuests] = useState<Guest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [sending, setSending] = useState(false);
@@ -40,8 +41,12 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
 
   useEffect(() => {
     if (!siteId) return;
+    setLoadError(null);
     fetch(`/api/guests?siteId=${encodeURIComponent(siteId)}`)
-      .then(r => r.ok ? r.json() : { guests: [] })
+      .then(async r => {
+        if (!r.ok) throw new Error(`Failed to load guests (${r.status})`);
+        return r.json();
+      })
       .then(({ guests: data = [] }) => {
         setGuests(data);
         // Pre-select pending + attending guests with email
@@ -52,7 +57,9 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
         );
         setSelected(preSelect);
       })
-      .catch(() => {})
+      .catch(err => {
+        setLoadError(err instanceof Error ? err.message : 'Couldn\u2019t load your guest list.');
+      })
       .finally(() => setLoading(false));
   }, [siteId]);
 
@@ -130,15 +137,29 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
         <Mail size={12} /> Send Invitations
       </div>
 
-      {guestsWithEmail.length === 0 ? (
+      {loadError ? (
         <div style={{
           padding: '14px',
           borderRadius: '10px',
-          background: '#FAFAFA',
-          border: '1px solid #E4E4E7',
+          background: 'color-mix(in oklab, var(--pl-plum) 10%, transparent)',
+          border: '1px solid color-mix(in oklab, var(--pl-plum) 35%, transparent)',
           fontSize: panelText.body,
           fontWeight: panelWeight.semibold,
-          color: '#3F3F46',
+          color: 'var(--pl-plum)',
+          fontFamily: 'inherit',
+          lineHeight: panelLineHeight.snug,
+        }}>
+          {loadError}
+        </div>
+      ) : guestsWithEmail.length === 0 ? (
+        <div style={{
+          padding: '14px',
+          borderRadius: '10px',
+          background: 'var(--pl-cream-deep)',
+          border: '1px solid var(--pl-divider)',
+          fontSize: panelText.body,
+          fontWeight: panelWeight.semibold,
+          color: 'var(--pl-ink-soft)',
           fontFamily: 'inherit',
           lineHeight: panelLineHeight.snug,
         }}>

@@ -20,6 +20,16 @@ import {
   type MarketplaceItem,
 } from '@/lib/marketplace';
 import { SITE_TEMPLATES } from '@/lib/templates/wedding-templates';
+import { MARKETPLACE_PACKS } from '@/lib/marketplace-assets';
+import { COLOR_THEMES } from '@/lib/templates/color-themes';
+
+// Map an asset pack category to its MarketplaceItemType.
+const PACK_CATEGORY_TO_ITEM_TYPE: Record<string, MarketplaceItemType> = {
+  icons: 'icon-pack',
+  backgrounds: 'background-pack',
+  accents: 'accent-pack',
+  stickers: 'sticker-pack',
+};
 
 export const dynamic = 'force-dynamic';
 
@@ -53,7 +63,53 @@ function resolveItem(
     };
   }
 
-  // TODO: look up other item types (theme, icon-pack, etc.) from DB
+  if (itemType === 'theme') {
+    const theme = COLOR_THEMES.find((t) => t.id === itemId);
+    if (!theme) return null;
+    return {
+      id: theme.id,
+      type: 'theme',
+      name: theme.name,
+      description: theme.description,
+      price: 0,
+      currency: 'usd',
+      creatorRevenue: 0,
+      tags: theme.tags,
+      popularity: 0,
+      purchaseCount: 0,
+      createdAt: '',
+    };
+  }
+
+  if (
+    itemType === 'icon-pack' ||
+    itemType === 'background-pack' ||
+    itemType === 'accent-pack' ||
+    itemType === 'sticker-pack'
+  ) {
+    const pack = MARKETPLACE_PACKS.find((p) => p.id === itemId);
+    if (!pack) return null;
+    // Enforce that the requested itemType matches the pack's category,
+    // so a caller can't bypass pricing rules by mislabeling an icon pack
+    // as a sticker pack (or anything else).
+    const expectedType = PACK_CATEGORY_TO_ITEM_TYPE[pack.category];
+    if (expectedType !== itemType) return null;
+    return {
+      id: pack.id,
+      type: itemType,
+      name: pack.name,
+      description: pack.description,
+      price: pack.price,
+      currency: 'usd',
+      creatorRevenue: 0,
+      tags: pack.tags,
+      popularity: 0,
+      purchaseCount: 0,
+      createdAt: '',
+    };
+  }
+
+  // font-pairing catalogue is not yet in-app; fall back to DB in the future.
   return null;
 }
 

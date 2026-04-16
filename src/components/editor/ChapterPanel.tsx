@@ -182,6 +182,26 @@ export function ChapterPanel({
             ...(streamingText != null ? { opacity: 0.85, cursor: 'default' } : {}),
           }}
         />
+        {streamingText != null && (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              marginTop: 6,
+              fontSize: panelText.chip,
+              fontFamily: 'var(--pl-font-mono)',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: 'var(--pl-olive)',
+            }}
+          >
+            <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} />
+            Writing…
+          </div>
+        )}
       </div>
 
       {/* Alternates */}
