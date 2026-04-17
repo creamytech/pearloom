@@ -255,7 +255,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
           )}
 
           {!isMobile && subdomain && (
-            <RichTooltip label="Copy site link" side="bottom">
+            <RichTooltip label={publishedUrl ? 'Copy live site link' : 'Copy draft preview link (only you)'} side="bottom">
               <motion.button
                 onClick={async () => {
                   const url = buildSiteUrl(subdomain, '', undefined, manifest?.occasion);

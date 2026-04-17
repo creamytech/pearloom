@@ -610,7 +610,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const DRAFT_DISMISSED_KEY = `pearloom-draft-dismissed-${state.subdomain}`;
   const [recoveredDraft, setRecoveredDraft] = useState<StoryManifest | null>(null);
 
-  useEffect(() => {
+  const checkForRecoverableDraft = useCallback(() => {
     try {
       if (localStorage.getItem(DRAFT_DISMISSED_KEY)) return;
       const raw = localStorage.getItem(AUTOSAVE_KEY);
@@ -625,7 +625,24 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       logEditorError('FullscreenEditor: draft recovery', err);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [DRAFT_DISMISSED_KEY]);
+
+  useEffect(() => {
+    checkForRecoverableDraft();
+  }, [checkForRecoverableDraft]);
+
+  // Re-check for a recoverable draft whenever the user tabs back in.
+  // Covers the case where someone edits in another tab / lets the
+  // browser sleep for hours — they return to 'stale' local state.
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkForRecoverableDraft();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, [checkForRecoverableDraft]);
 
   useEffect(() => {
     const t = setTimeout(() => {
