@@ -937,7 +937,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           label={occasion === 'birthday' ? 'Party Time' : 'Ceremony Time'}
           value={logistics.time || ''}
           onChange={v => upd({ time: v })}
-          placeholder="5:00 PM"
+          placeholder="5:00 PM or 17:00"
+          required
         />
         {/* Venue search — populates name + address from Google Places */}
         <div>

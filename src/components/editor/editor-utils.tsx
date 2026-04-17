@@ -99,7 +99,7 @@ const blurStyle = (
 };
 
 // ── Reusable form field — glass input with label ──────────────
-export function Field({ label, value, onChange, rows, placeholder, hint, type, maxLength, showCount, onBlur: onBlurProp, error }: {
+export function Field({ label, value, onChange, rows, placeholder, hint, type, maxLength, showCount, onBlur: onBlurProp, error, required }: {
   label: string; value: string; onChange: (v: string) => void;
   rows?: number; placeholder?: string; hint?: string;
   type?: React.HTMLInputTypeAttribute;
@@ -108,7 +108,20 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type, m
   onBlur?: () => void;
   /** Item 90: optional validation error — renders red hint + red border. */
   error?: string | null;
+  /** Audit finding #62 — surface required fields with a gold asterisk. */
+  required?: boolean;
 }) {
+  // Render the label once with optional required marker so callers don't
+  // have to interpolate JSX into the plain-string label prop.
+  const labelNode = required ? (
+    <label style={lbl}>
+      {label}
+      <span aria-hidden style={{ marginLeft: 4, color: 'var(--pl-gold, #B8935A)' }}>*</span>
+      <span className="sr-only"> (required)</span>
+    </label>
+  ) : (
+    <label style={lbl}>{label}</label>
+  );
   const errInpStyle: React.CSSProperties = error
     ? { borderColor: 'var(--pl-chrome-danger)', boxShadow: '0 0 0 3px rgba(139,74,106,0.14)' }
     : {};
@@ -134,7 +147,7 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type, m
   };
   if (rows) return (
     <div>
-      <label style={lbl}>{label}</label>
+      {labelNode}
       <textarea
         value={value} onChange={e => onChange(e.target.value)} rows={rows}
         placeholder={placeholder}
@@ -160,7 +173,7 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type, m
   );
   return (
     <div>
-      <label style={lbl}>{label}</label>
+      {labelNode}
       <input
         type={type}
         value={value} onChange={e => onChange(e.target.value)}

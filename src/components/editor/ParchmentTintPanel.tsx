@@ -7,7 +7,7 @@
 // with the rest of the editor.
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -37,6 +37,23 @@ interface ParchmentTintPanelProps {
 export function ParchmentTintPanel({ currentTint = 'none', onApply }: ParchmentTintPanelProps) {
   const [selected, setSelected] = useState<TintId>(currentTint);
   const [applied, setApplied] = useState(false);
+  // Item #60: the warm filters are almost invisible over dark-mode
+  // surfaces — surface a note so users know why they can't see it.
+  const [isDark, setIsDark] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const check = () => {
+      const attr = document.documentElement.getAttribute('data-theme');
+      setIsDark(
+        attr === 'dark' ||
+          (attr !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches),
+      );
+    };
+    check();
+    const mo = new MutationObserver(check);
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => mo.disconnect();
+  }, []);
 
   const handleApply = () => {
     onApply(selected);
@@ -49,6 +66,25 @@ export function ParchmentTintPanel({ currentTint = 'none', onApply }: ParchmentT
   return (
     <PanelRoot>
       <PanelSection title="Parchment Tint" hint="A warm wash applied to every photo on the site.">
+        {isDark && (
+          <div
+            style={{
+              margin: '0 0 10px',
+              padding: '8px 10px',
+              borderRadius: 6,
+              background: 'color-mix(in oklab, var(--pl-gold, #B8935A) 10%, transparent)',
+              border: '1px dashed color-mix(in oklab, var(--pl-gold, #B8935A) 30%, transparent)',
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.6rem',
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: 'var(--pl-ink-soft, #3A332C)',
+              lineHeight: 1.5,
+            }}
+          >
+            Dark mode active — tint effect is subtle on dark photos.
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 10 }}>
           {TINTS.map((tint) => {
             const isActive = selected === tint.id;
