@@ -7,6 +7,7 @@ import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion
 import { Plus, Trash2, X, ChevronDown, Sparkles, MapPin, Check, UtensilsCrossed, Link, Loader2, GripVertical } from 'lucide-react';
 import { LocationPinIcon } from '@/components/icons/PearloomIcons';
 import { Field, lbl, inp } from './editor-utils';
+import { PearRegenerateButton } from './PearRegenerateButton';
 import { makeId } from '@/lib/editor-ids';
 import { panelText, panelWeight, panelTracking, panelLineHeight } from './panel';
 import { SortableContextShell, useSortableBlock } from '@/lib/dnd-kit-helpers';
@@ -1856,40 +1857,84 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       {/* ── Poetry ── AI-generated lines, editable fallback for when inline edit isn't enough */}
       <Section id="poetry" label="Poetry">
         <p style={{ fontSize: panelText.hint, color: 'var(--pl-chrome-text-muted)', fontFamily: 'inherit', margin: '0 0 8px', lineHeight: panelLineHeight.normal }}>
-          AI-generated taglines that appear throughout your site. Edit inline on the canvas, or here if you prefer.
+          AI-generated taglines that appear throughout your site. Use the gold pill beside any field to re-roll that line with Pear.
         </p>
-        <Field
-          label="Hero Tagline"
-          value={manifest.poetry?.heroTagline || ''}
-          onChange={v => onChange({ ...manifest, poetry: { ...POETRY_DEFAULTS, ...(manifest.poetry || {}), heroTagline: v } })}
-          placeholder="Two hearts, one story..."
-          rows={2}
-          hint="Appears beneath your names in the Hero section."
-        />
-        <Field
-          label="Welcome Statement"
-          value={manifest.poetry?.welcomeStatement || ''}
-          onChange={v => onChange({ ...manifest, poetry: { ...POETRY_DEFAULTS, ...(manifest.poetry || {}), welcomeStatement: v } })}
-          placeholder="We're so glad you're here..."
-          rows={3}
-          hint="Shown in the welcome block at the top of the page."
-        />
-        <Field
-          label="RSVP Intro"
-          value={manifest.poetry?.rsvpIntro || ''}
-          onChange={v => onChange({ ...manifest, poetry: { ...POETRY_DEFAULTS, ...(manifest.poetry || {}), rsvpIntro: v } })}
-          placeholder="Will you celebrate with us?"
-          rows={2}
-          hint="Heading above the RSVP form."
-        />
-        <Field
-          label="Closing Line"
-          value={manifest.poetry?.closingLine || ''}
-          onChange={v => onChange({ ...manifest, poetry: { ...POETRY_DEFAULTS, ...(manifest.poetry || {}), closingLine: v } })}
-          placeholder="Together is our favourite place to be..."
-          rows={2}
-          hint="Appears in the footer beneath your names."
-        />
+        <div>
+          <Field
+            label="Hero Tagline"
+            value={manifest.poetry?.heroTagline || ''}
+            onChange={v => onChange({ ...manifest, poetry: { ...POETRY_DEFAULTS, ...(manifest.poetry || {}), heroTagline: v } })}
+            placeholder="Two hearts, one story..."
+            rows={2}
+            hint="Appears beneath your names in the Hero section."
+          />
+          <div style={{ marginTop: 6 }}>
+            <PearRegenerateButton
+              value={manifest.poetry?.heroTagline || ''}
+              onApply={v => onChange({ ...manifest, poetry: { ...POETRY_DEFAULTS, ...(manifest.poetry || {}), heroTagline: v } })}
+              style="poetic"
+              label="Regen tagline"
+              compact
+            />
+          </div>
+        </div>
+        <div>
+          <Field
+            label="Welcome Statement"
+            value={manifest.poetry?.welcomeStatement || ''}
+            onChange={v => onChange({ ...manifest, poetry: { ...POETRY_DEFAULTS, ...(manifest.poetry || {}), welcomeStatement: v } })}
+            placeholder="We're so glad you're here..."
+            rows={3}
+            hint="Shown in the welcome block at the top of the page."
+          />
+          <div style={{ marginTop: 6 }}>
+            <PearRegenerateButton
+              value={manifest.poetry?.welcomeStatement || ''}
+              onApply={v => onChange({ ...manifest, poetry: { ...POETRY_DEFAULTS, ...(manifest.poetry || {}), welcomeStatement: v } })}
+              style="casual"
+              label="Regen welcome"
+              compact
+            />
+          </div>
+        </div>
+        <div>
+          <Field
+            label="RSVP Intro"
+            value={manifest.poetry?.rsvpIntro || ''}
+            onChange={v => onChange({ ...manifest, poetry: { ...POETRY_DEFAULTS, ...(manifest.poetry || {}), rsvpIntro: v } })}
+            placeholder="Will you celebrate with us?"
+            rows={2}
+            hint="Heading above the RSVP form."
+          />
+          <div style={{ marginTop: 6 }}>
+            <PearRegenerateButton
+              value={manifest.poetry?.rsvpIntro || ''}
+              onApply={v => onChange({ ...manifest, poetry: { ...POETRY_DEFAULTS, ...(manifest.poetry || {}), rsvpIntro: v } })}
+              style="casual"
+              label="Regen intro"
+              compact
+            />
+          </div>
+        </div>
+        <div>
+          <Field
+            label="Closing Line"
+            value={manifest.poetry?.closingLine || ''}
+            onChange={v => onChange({ ...manifest, poetry: { ...POETRY_DEFAULTS, ...(manifest.poetry || {}), closingLine: v } })}
+            placeholder="Together is our favourite place to be..."
+            rows={2}
+            hint="Appears in the footer beneath your names."
+          />
+          <div style={{ marginTop: 6 }}>
+            <PearRegenerateButton
+              value={manifest.poetry?.closingLine || ''}
+              onApply={v => onChange({ ...manifest, poetry: { ...POETRY_DEFAULTS, ...(manifest.poetry || {}), closingLine: v } })}
+              style="poetic"
+              label="Regen closing"
+              compact
+            />
+          </div>
+        </div>
       </Section>
 
       {/* ── Footer ── */}
