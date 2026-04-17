@@ -20,6 +20,10 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PearIcon } from '@/components/icons/PearloomIcons';
+import {
+  announceInlineToolbar,
+  onInlineToolbarActivated,
+} from './inline-toolbar-bus';
 
 interface InlineRewriteLauncherProps {
   /** Root DOM node to observe; defaults to document.body. */
@@ -76,7 +80,13 @@ export function InlineRewriteLauncher({ root }: InlineRewriteLauncherProps = {})
       if (hoverTimer.current) clearTimeout(hoverTimer.current);
       anchorRef.current = editable;
       setChip(positionFor(editable));
+      announceInlineToolbar('rewrite');
     };
+
+    // Hide when any other inline toolbar opens.
+    const offBus = onInlineToolbarActivated((id) => {
+      if (id !== 'rewrite') hide();
+    });
 
     const onScroll = () => {
       if (anchorRef.current) setChip(positionFor(anchorRef.current));
@@ -96,6 +106,7 @@ export function InlineRewriteLauncher({ root }: InlineRewriteLauncherProps = {})
       window.removeEventListener('resize', onScroll);
       window.removeEventListener('keydown', onKey);
       if (hoverTimer.current) clearTimeout(hoverTimer.current);
+      offBus();
     };
   }, [root, hide, positionFor]);
 

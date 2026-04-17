@@ -29,6 +29,10 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import {
+  announceInlineToolbar,
+  onInlineToolbarActivated,
+} from './inline-toolbar-bus';
 import { createPortal } from 'react-dom';
 import { Trash2, Sparkles, Loader2, Settings, Check } from 'lucide-react';
 import { SEPARATOR_PRESETS } from '@/lib/separator-presets';
@@ -107,6 +111,16 @@ export function InlineArtHoverToolbar({
   const [busy, setBusy] = useState<null | 'remove' | 'regenerate'>(null);
   const [panelOpen, setPanelOpen] = useState(false);
   const [panelRect, setPanelRect] = useState<{ top: number; left: number } | null>(null);
+
+  // Hide the hover affordance when another inline toolbar takes focus.
+  useEffect(() => {
+    return onInlineToolbarActivated((id) => {
+      if (id !== 'art') {
+        setHover(false);
+        setPanelOpen(false);
+      }
+    });
+  }, []);
   const chipRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   // Live ref so async handlers don't re-trigger in-flight calls.
@@ -210,7 +224,10 @@ export function InlineArtHoverToolbar({
 
   return (
     <div
-      onMouseEnter={() => setHover(true)}
+      onMouseEnter={() => {
+        setHover(true);
+        announceInlineToolbar('art');
+      }}
       onMouseLeave={() => setHover(false)}
       style={{
         // Wrapper itself doesn't capture pointer events — we rely on the

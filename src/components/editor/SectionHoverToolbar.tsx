@@ -10,6 +10,10 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState, useRef } from 'react';
+import {
+  announceInlineToolbar,
+  onInlineToolbarActivated,
+} from './inline-toolbar-bus';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Palette, Sparkles, MoreHorizontal, Copy, Trash2, ChevronDown, Loader2 } from 'lucide-react';
 import { useEditor } from '@/lib/editor-state';
@@ -43,6 +47,7 @@ export function SectionHoverToolbar() {
         if (hideTimer.current) clearTimeout(hideTimer.current);
         setHovered({ chapterId: e.data.chapterId, rect: e.data.rect });
         setMoreOpen(false);
+        announceInlineToolbar('section');
       }
       if (e.data?.type === 'SECTION_HOVER_OUT') {
         if (styleOpenRef.current) return;
@@ -68,6 +73,16 @@ export function SectionHoverToolbar() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // Hide when any other inline toolbar activates.
+  useEffect(() => {
+    return onInlineToolbarActivated((id) => {
+      if (id === 'section') return;
+      if (styleOpenRef.current) return;
+      setHovered(null);
+      setMoreOpen(false);
+    });
   }, []);
 
   if (isMobile || !hovered) return null;
