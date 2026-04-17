@@ -479,10 +479,26 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     }, 0);
   }, [state.activeTab]);
 
+  // ── In-editor preview overlay ────────────────────────────────
+  // Replaces the old 'open in new tab' jump with a full-height
+  // slide-up sheet that renders the preview iframe inside the
+  // editor. User keeps all their editor state; no tab confusion.
+  const [previewOverlayOpen, setPreviewOverlayOpen] = useState(false);
+  const [previewOverlayDevice, setPreviewOverlayDevice] = useState<'desktop' | 'tablet' | 'phone'>('desktop');
   const storePreviewForOpen = useCallback(() => {
     storePreview(previewKey, manifest, coupleNames);
-    window.open(`/preview?key=${previewKey}`, '_blank');
+    setPreviewOverlayOpen(true);
   }, [previewKey, manifest, coupleNames]);
+
+  // Close preview on Escape
+  useEffect(() => {
+    if (!previewOverlayOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setPreviewOverlayOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [previewOverlayOpen]);
 
   const handleCommandAction = useCallback((action: CommandAction) => {
     switch (action.type) {
@@ -1364,6 +1380,164 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 
       {/* Publish Modal */}
       <PublishModalInline />
+
+      {/* In-editor preview overlay — replaces the old new-tab jump.
+          Slides up from the bottom, keeps editor state alive. */}
+      <AnimatePresence>
+        {previewOverlayOpen && (
+          <motion.div
+            key="preview-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 2500,
+              background: 'color-mix(in oklab, var(--pl-ink) 55%, transparent)',
+              backdropFilter: 'blur(14px)',
+              WebkitBackdropFilter: 'blur(14px)',
+              display: 'flex',
+              flexDirection: 'column',
+              padding: 'clamp(16px, 3vw, 32px)',
+            }}
+            onClick={() => setPreviewOverlayOpen(false)}
+          >
+            <motion.div
+              initial={{ y: 48, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 32, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 280, damping: 30 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                flex: 1,
+                margin: '0 auto',
+                width: '100%',
+                maxWidth: 1280,
+                background: 'var(--pl-cream-card)',
+                border: '1px solid var(--pl-divider)',
+                borderRadius: 16,
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+                boxShadow: '0 40px 120px rgba(40,28,12,0.35)',
+              }}
+            >
+              {/* Preview toolbar */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '10px 16px',
+                  borderBottom: '1px solid var(--pl-divider)',
+                  background: 'var(--pl-cream-card)',
+                  flexShrink: 0,
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.6rem',
+                    letterSpacing: '0.22em',
+                    textTransform: 'uppercase',
+                    color: 'var(--pl-muted)',
+                    fontWeight: 700,
+                  }}
+                >
+                  Preview ·{' '}
+                  <span style={{ color: 'var(--pl-gold)' }}>
+                    {state.publishedUrl ? 'live sample' : 'draft'}
+                  </span>
+                </span>
+                <div style={{ flex: 1 }} />
+                <div style={{ display: 'flex', gap: 4 }}>
+                  {(['desktop', 'tablet', 'phone'] as const).map((d) => {
+                    const on = previewOverlayDevice === d;
+                    return (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => setPreviewOverlayDevice(d)}
+                        style={{
+                          padding: '5px 12px',
+                          borderRadius: 6,
+                          background: on ? 'var(--pl-ink)' : 'transparent',
+                          color: on ? 'var(--pl-cream)' : 'var(--pl-ink-soft)',
+                          border: `1px solid ${on ? 'var(--pl-ink)' : 'var(--pl-divider)'}`,
+                          fontFamily: 'var(--pl-font-mono)',
+                          fontSize: '0.58rem',
+                          letterSpacing: '0.2em',
+                          textTransform: 'uppercase',
+                          cursor: 'pointer',
+                          fontWeight: 700,
+                        }}
+                      >
+                        {d}
+                      </button>
+                    );
+                  })}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPreviewOverlayOpen(false)}
+                  style={{
+                    padding: '6px 16px',
+                    borderRadius: 6,
+                    background: 'var(--pl-ink)',
+                    color: 'var(--pl-cream)',
+                    border: 'none',
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.6rem',
+                    letterSpacing: '0.22em',
+                    textTransform: 'uppercase',
+                    cursor: 'pointer',
+                    fontWeight: 700,
+                  }}
+                >
+                  Exit preview
+                </button>
+              </div>
+
+              {/* Iframe */}
+              <div
+                style={{
+                  flex: 1,
+                  background: 'var(--pl-cream-deep)',
+                  overflow: 'auto',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  justifyContent: 'center',
+                  padding: previewOverlayDevice === 'desktop' ? 0 : 24,
+                }}
+              >
+                <iframe
+                  src={`/preview?key=${previewKey}`}
+                  title="Site preview"
+                  style={{
+                    width:
+                      previewOverlayDevice === 'phone'
+                        ? 390
+                        : previewOverlayDevice === 'tablet'
+                          ? 768
+                          : '100%',
+                    height: '100%',
+                    minHeight: '100%',
+                    border: previewOverlayDevice === 'desktop' ? 'none' : '1px solid var(--pl-divider)',
+                    borderRadius: previewOverlayDevice === 'desktop' ? 0 : 12,
+                    background: 'var(--pl-cream)',
+                    boxShadow:
+                      previewOverlayDevice === 'desktop'
+                        ? 'none'
+                        : '0 20px 60px rgba(40,28,12,0.18)',
+                  }}
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Block library drawer — slides in from the left of the canvas.
           Cards are native-draggable; drops land in SiteRenderer DropZones. */}
