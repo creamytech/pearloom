@@ -39,7 +39,32 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
   const [dragOver, setDragOver] = useState(false);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
   const [uploadName, setUploadName] = useState('');
+  const [showSwipeHint, setShowSwipeHint] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Show the "swipe to navigate" gesture hint once per client,
+  // on touch devices only. Auto-dismisses after 2.6s or on first drag.
+  useEffect(() => {
+    if (lightboxIdx === null) return;
+    if (typeof window === 'undefined') return;
+    const isTouch = window.matchMedia('(pointer: coarse)').matches;
+    if (!isTouch) return;
+    try {
+      if (localStorage.getItem('pl:swipe-hint-seen') === '1') return;
+    } catch {
+      /* private mode — show once per session instead */
+    }
+    setShowSwipeHint(true);
+    const t = setTimeout(() => {
+      setShowSwipeHint(false);
+      try {
+        localStorage.setItem('pl:swipe-hint-seen', '1');
+      } catch {
+        /* ignore */
+      }
+    }, 2600);
+    return () => clearTimeout(t);
+  }, [lightboxIdx]);
 
   const fetchPhotos = useCallback(async () => {
     try {
@@ -350,6 +375,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={0.15}
+                onDragStart={() => setShowSwipeHint(false)}
                 onDragEnd={(_: unknown, info: { offset: { x: number } }) => {
                   if (info.offset.x < -80 && lightboxIdx < photos.length - 1) nextPhoto();
                   else if (info.offset.x > 80 && lightboxIdx > 0) prevPhoto();
@@ -364,6 +390,52 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
                 }}
                 onClick={(e) => e.stopPropagation()}
               />
+            </AnimatePresence>
+
+            {/* Swipe gesture hint — first-visit, touch only */}
+            <AnimatePresence>
+              {showSwipeHint && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.35 }}
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    padding: '10px 18px',
+                    background: 'rgba(0,0,0,0.55)',
+                    backdropFilter: 'blur(8px)',
+                    borderRadius: 999,
+                    color: '#FAF7F2',
+                    fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                    fontSize: '0.66rem',
+                    letterSpacing: '0.24em',
+                    textTransform: 'uppercase',
+                    pointerEvents: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    zIndex: 20,
+                  }}
+                >
+                  <motion.span
+                    animate={{ x: [-6, 6, -6] }}
+                    transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
+                  >
+                    ←
+                  </motion.span>
+                  Swipe to browse
+                  <motion.span
+                    animate={{ x: [6, -6, 6] }}
+                    transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
+                  >
+                    →
+                  </motion.span>
+                </motion.div>
+              )}
             </AnimatePresence>
 
             {/* Caption row */}
