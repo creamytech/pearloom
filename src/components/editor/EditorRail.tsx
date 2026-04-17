@@ -95,8 +95,8 @@ const WORKSPACES: Workspace[] = [
     description: 'List, invite, seat, follow up',
     tabs: [
       { id: 'guests',      tab: 'guests',      Icon: Users,        label: 'Guest list',    description: 'Names, emails, RSVPs' },
-      { id: 'invite',      tab: 'invite',      Icon: Mail,         label: 'Send invites',  description: 'Editorial bulk email' },
-      { id: 'savethedate', tab: 'savethedate', Icon: Heart,        label: 'Save the date', description: 'Design + send STD' },
+      { id: 'invite',      tab: 'invite',      Icon: Mail,         label: 'Send invites',  description: 'Email your full guest list' },
+      { id: 'savethedate', tab: 'savethedate', Icon: Heart,        label: 'Save the date', description: 'Design and send STDs' },
       { id: 'seating',     tab: 'seating',     Icon: LayoutGrid,   label: 'Seating',       description: 'Tables & assignments' },
       { id: 'messaging',   tab: 'messaging',   Icon: MessageSquare,label: 'Messages',      description: 'One-off emails to guests' },
     ],

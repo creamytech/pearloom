@@ -275,7 +275,7 @@ export function BlockLibraryDrawer({
                   color: 'var(--pl-chrome-text)',
                 }}
               >
-                Drop a section onto the canvas
+                Add a section
               </h2>
               <p
                 style={{
@@ -287,8 +287,8 @@ export function BlockLibraryDrawer({
                   maxWidth: 340,
                 }}
               >
-                Drag a card into any preview dropzone, or press{' '}
-                <kbd style={kbdStyle}>Enter</kbd> on a focused card to insert at the bottom.
+                Drag any block onto your site, or press{' '}
+                <kbd style={kbdStyle}>Enter</kbd> with a card focused to add it to the bottom.
               </p>
             </header>
 
