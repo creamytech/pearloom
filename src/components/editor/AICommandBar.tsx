@@ -178,7 +178,9 @@ export function AICommandBar() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      // "/" opens the bar when not inside an editable element
+      // "/" opens the bar when not inside an editable element.
+      // ⌘K is reserved for the CommandPalette navigator; Ask Pear
+      // owns "/" so the two AI/nav shortcuts don't fight.
       if (
         e.key === '/' &&
         !expanded &&
@@ -186,6 +188,18 @@ export function AICommandBar() {
       ) {
         e.preventDefault();
         open();
+        return;
+      }
+      // ⌘⇧P is a power-user alias for Ask Pear — useful when the
+      // cursor is inside a text field and "/" would be captured.
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        e.shiftKey &&
+        e.key.toLowerCase() === 'p'
+      ) {
+        e.preventDefault();
+        if (expanded) close();
+        else open();
         return;
       }
       // ESC closes
