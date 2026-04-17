@@ -2445,46 +2445,75 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         onMouseLeave={() => setHoveredZone(false)}
         style={{
           position: 'relative',
-          height: isDropTarget ? '48px' : (paletteDragging ? '28px' : (showLine ? '24px' : '8px')),
-          transition: 'height 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          // During a palette drag the zone opens up much bigger so users
+          // can actually land on it. 56px default while dragging, 80px
+          // when actively hovered.
+          height: isDropTarget ? '80px' : (paletteDragging ? '56px' : (showLine ? '24px' : '8px')),
+          transition: 'height 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           // Widen the hit zone during a palette drag so users don't have
           // to hit a 1px hairline to insert.
           zIndex: paletteDragging ? 2 : 1,
         }}
       >
-        {/* Line */}
-        {showLine && (
-          <div style={{
-            position: 'absolute', left: '5%', right: '5%', top: '50%', transform: 'translateY(-50%)',
-            height: isDropTarget ? '3px' : (paletteDragging ? '2px' : '1px'),
-            background: isDropTarget
-              ? 'var(--pl-chrome-accent)'
-              : (paletteDragging ? 'var(--pl-chrome-accent-soft)' : 'var(--pl-chrome-border)'),
-            borderRadius: '2px',
-            transition: 'all 0.15s',
-            boxShadow: isDropTarget ? '0 0 12px var(--pl-chrome-accent-soft)' : 'none',
-            // Subtle pulse so the zones are visible during a drag but
-            // don't shout; pure chromeline when idle.
-            animation: paletteDragging && !isDropTarget ? 'pl-dropzone-pulse 1.6s ease-in-out infinite' : undefined,
-          }} />
+        {/* Gold-accent zone fill during palette drag — a full pill, not a
+            hairline, so the drop target is unmistakable even at 50% zoom. */}
+        {paletteDragging && (
+          <div
+            style={{
+              position: 'absolute',
+              left: '5%',
+              right: '5%',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              height: isDropTarget ? 68 : 44,
+              borderRadius: 10,
+              background: isDropTarget
+                ? 'color-mix(in oklab, var(--pl-chrome-accent, #B8935A) 22%, transparent)'
+                : 'color-mix(in oklab, var(--pl-chrome-accent, #B8935A) 10%, transparent)',
+              border: `1.5px dashed ${isDropTarget
+                ? 'var(--pl-chrome-accent, #B8935A)'
+                : 'color-mix(in oklab, var(--pl-chrome-accent, #B8935A) 55%, transparent)'}`,
+              boxShadow: isDropTarget
+                ? '0 0 0 3px color-mix(in oklab, var(--pl-chrome-accent, #B8935A) 22%, transparent), 0 8px 24px rgba(40,28,12,0.14)'
+                : 'none',
+              transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+              animation: !isDropTarget ? 'pl-dropzone-pulse 1.8s ease-in-out infinite' : undefined,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              pointerEvents: 'none',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                fontSize: '0.62rem',
+                letterSpacing: '0.24em',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+                color: isDropTarget
+                  ? 'var(--pl-chrome-accent-ink, #0E0D0B)'
+                  : 'var(--pl-chrome-accent, #B8935A)',
+                background: isDropTarget ? 'var(--pl-chrome-accent, #B8935A)' : 'transparent',
+                padding: isDropTarget ? '4px 12px' : '0',
+                borderRadius: 999,
+                transition: 'all 0.15s',
+              }}
+            >
+              {isDropTarget ? 'Drop here' : `Insert at position ${index + 1}`}
+            </span>
+          </div>
         )}
 
-        {/* Drop-target badge: while actively hovered during a palette drag
-            we pop a "Drop here" pill so the insertion point is unmistakable. */}
-        {isDropTarget && paletteDragging && (
+        {/* Idle hairline when not dragging — same subtle mark as before. */}
+        {!paletteDragging && showLine && (
           <div style={{
-            position: 'absolute', zIndex: 6,
-            padding: '4px 10px', borderRadius: '999px',
-            background: 'var(--pl-chrome-accent)',
-            color: 'var(--pl-chrome-accent-ink)',
-            fontSize: '0.6rem', fontWeight: 700,
-            letterSpacing: '0.08em', textTransform: 'uppercase',
-            boxShadow: '0 6px 18px rgba(0,0,0,0.18)',
-            pointerEvents: 'none',
-          }}>
-            Drop here
-          </div>
+            position: 'absolute', left: '5%', right: '5%', top: '50%', transform: 'translateY(-50%)',
+            height: '1px',
+            background: 'var(--pl-chrome-border)',
+            borderRadius: '2px',
+          }} />
         )}
 
         {/* + button */}
@@ -2736,8 +2765,14 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               })}
             </>
           ) : (
+            // Fallback: manifest.blocks is empty/undefined. We still have to
+            // surface drop zones here or new users get the 'hand cursor but
+            // no drop target' bug flagged by the audit. Each default
+            // section gets bracketing zones (before + after).
             <>
+              <DropZone index={0} />
               <Hero names={names} subtitle={manifest.chapters?.[0]?.subtitle || 'A love story beautifully told.'} coverPhoto={effectiveCover} weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date} vibeSkin={vibeSkin} heroTagline={manifest.poetry?.heroTagline} photos={((manifest as any).heroSlideshow?.length > 0 ? (manifest as any).heroSlideshow.filter(Boolean) : (manifest.chapters || []).flatMap(ch => (ch.images || []).slice(0, 1).map(img => img.url)).filter(Boolean).slice(0, 6))} editMode={editMode} />
+              <DropZone index={1} />
               <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
               <section id="our-story" style={{ position: 'relative' }}>
                 <StorySection
@@ -2758,11 +2793,12 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                   }
                 />
               </section>
-              {manifest.events?.length ? <section id="schedule"><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></section> : null}
-              {manifest.events?.length ? <section id="rsvp"><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} rsvpIntro={manifest.poetry?.rsvpIntro} editable={editMode} /></section> : null}
-              {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? <section id="registry"><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></section> : null}
-              {manifest.travelInfo ? <section id="travel"><TravelSection info={manifest.travelInfo} /></section> : null}
-              {manifest.faqs?.length ? <section id="faq"><FaqSection faqs={manifest.faqs} /></section> : null}
+              <DropZone index={2} />
+              {manifest.events?.length ? (<><section id="schedule"><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></section><DropZone index={3} /></>) : null}
+              {manifest.events?.length ? (<><section id="rsvp"><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} rsvpIntro={manifest.poetry?.rsvpIntro} editable={editMode} /></section><DropZone index={4} /></>) : null}
+              {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? (<><section id="registry"><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></section><DropZone index={5} /></>) : null}
+              {manifest.travelInfo ? (<><section id="travel"><TravelSection info={manifest.travelInfo} /></section><DropZone index={6} /></>) : null}
+              {manifest.faqs?.length ? (<><section id="faq"><FaqSection faqs={manifest.faqs} /></section><DropZone index={7} /></>) : null}
             </>
           )}
 

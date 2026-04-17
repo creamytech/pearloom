@@ -1075,6 +1075,29 @@ export function EditorCanvas() {
     setPendingBlock({ blockType, position });
   }, []);
 
+  // Canvas-level palette-drag indicator — subscribes to the same
+  // `pearloom-palette-drag-start/end` events every drag source fires
+  // so the whole canvas can light up (dashed frame + banner) even if
+  // the user's cursor hasn't landed on a DropZone yet.
+  const [paletteDragType, setPaletteDragType] = useState<string | null>(null);
+  useEffect(() => {
+    const onStart = (e: Event) => {
+      const detail = (e as CustomEvent<{ type?: string }>).detail;
+      setPaletteDragType(detail?.type ?? 'block');
+    };
+    const onEnd = () => setPaletteDragType(null);
+    window.addEventListener('pearloom-palette-drag-start', onStart);
+    window.addEventListener('pearloom-palette-drag-end', onEnd);
+    window.addEventListener('dragend', onEnd);
+    window.addEventListener('drop', onEnd);
+    return () => {
+      window.removeEventListener('pearloom-palette-drag-start', onStart);
+      window.removeEventListener('pearloom-palette-drag-end', onEnd);
+      window.removeEventListener('dragend', onEnd);
+      window.removeEventListener('drop', onEnd);
+    };
+  }, []);
+
   // Actually commit the pending block once the preset picker closes.
   const commitPendingBlock = useCallback((preset: BlockPreset | null) => {
     setPendingBlock((current) => {
@@ -1110,6 +1133,48 @@ export function EditorCanvas() {
         background: 'var(--pl-cream-deep)',
       }}
     >
+      {/* Palette-drag feedback — dashed frame + top banner so the user
+          can SEE they're dragging something that will be accepted. */}
+      {paletteDragType && (
+        <>
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              inset: '6px',
+              border: '2px dashed var(--pl-chrome-accent, #B8935A)',
+              borderRadius: 10,
+              pointerEvents: 'none',
+              zIndex: 40,
+              boxShadow: '0 0 0 3px color-mix(in oklab, var(--pl-chrome-accent, #B8935A) 18%, transparent) inset',
+            }}
+          />
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              top: 18,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 41,
+              pointerEvents: 'none',
+              padding: '8px 18px',
+              borderRadius: 999,
+              background: 'var(--pl-chrome-accent, #B8935A)',
+              color: 'var(--pl-chrome-accent-ink, #FAF7F2)',
+              fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+              fontSize: '0.64rem',
+              letterSpacing: '0.24em',
+              textTransform: 'uppercase',
+              fontWeight: 700,
+              boxShadow: '0 10px 28px rgba(40,28,12,0.22), 0 2px 6px rgba(40,28,12,0.10)',
+            }}
+          >
+            Dragging {paletteDragType.replace(/[-_]/g, ' ')} — drop on any gold band
+          </div>
+        </>
+      )}
+
       {/* Device switcher moved to toolbar */}
 
       {/* AI text rewrite floating pill — shows on text selection. Also
