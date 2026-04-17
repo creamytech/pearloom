@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   description: 'You have received a special invitation.',
 };
 import { InviteReveal } from '@/components/invite/InviteReveal';
+import { InvitePage } from '@/components/invite/InvitePage';
 import type { StoryManifest } from '@/types';
 
 function getSupabase() {
@@ -22,7 +23,7 @@ function getSupabase() {
   return createClient(url, key);
 }
 
-export default async function InvitePage({
+export default async function InviteTokenPage({
   params,
 }: {
   params: Promise<{ token: string }>;
@@ -105,17 +106,34 @@ export default async function InvitePage({
 
   const guest = tokenRow.guests as Record<string, unknown> | null;
   const guestName = (guest?.name as string) || 'Guest';
+  const guestId = (guest?.id as string) || undefined;
+  const hasReplied = !!(guest?.responded_at) && guest?.status !== 'pending';
 
   const siteConfig = siteRow?.site_config as Record<string, unknown> | null;
   const names: [string, string] = (siteConfig?.names as [string, string]) || ['', ''];
   const manifest = siteRow?.ai_manifest as StoryManifest | null;
 
   return (
-    <InviteReveal
+    <InvitePage
       manifest={manifest}
       guestName={guestName}
+      guestId={guestId}
       token={token}
       coupleNames={names}
+      hasReplied={hasReplied}
+      priorRsvp={hasReplied ? {
+        status: (guest?.status as 'attending' | 'declined' | 'pending') || 'pending',
+        email: (guest?.email as string) || undefined,
+        plusOne: !!guest?.plus_one,
+        plusOneName: (guest?.plus_one_name as string) || undefined,
+        mealPreference: (guest?.meal_preference as string) || undefined,
+        dietaryRestrictions: (guest?.dietary_restrictions as string) || undefined,
+        songRequest: (guest?.song_request as string) || undefined,
+        mailingAddress: (guest?.mailing_address as string) || undefined,
+        message: (guest?.message as string) || undefined,
+        selectedEvents: (guest?.event_ids as string[]) || [],
+        respondedAt: (guest?.responded_at as string) || undefined,
+      } : null}
     />
   );
 }
