@@ -114,6 +114,10 @@ export function GettingStartedChecklist() {
           50% { transform: scale(1.05); }
           100% { transform: scale(1); opacity: 1; }
         }
+        @keyframes pl-checklist-pulse {
+          0%, 100% { box-shadow: 0 0 0 4px color-mix(in oklab, var(--pl-gold, #B8935A) 22%, transparent); }
+          50% { box-shadow: 0 0 0 8px color-mix(in oklab, var(--pl-gold, #B8935A) 8%, transparent); }
+        }
       `}</style>
 
       <div
@@ -164,10 +168,13 @@ export function GettingStartedChecklist() {
             {collapsed && remaining > 0 && (
               <span style={{
                 width: '18px', height: '18px', borderRadius: '50%',
-                background: '#18181B', color: '#fff',
+                background: 'var(--pl-gold, #B8935A)',
+                color: 'var(--pl-cream, #FAF7F2)',
                 fontSize: '0.58rem', fontWeight: 800,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 lineHeight: 1,
+                boxShadow: '0 0 0 4px color-mix(in oklab, var(--pl-gold, #B8935A) 22%, transparent)',
+                animation: 'pl-checklist-pulse 2.4s ease-in-out infinite',
               }}>
                 {remaining}
               </span>
@@ -234,6 +241,9 @@ export function GettingStartedChecklist() {
             <div style={{ padding: '10px 8px 12px' }}>
               {ITEMS.map((item, i) => {
                 const done = completionStatus[i];
+                // First unfinished item is 'next up' — gets a gold
+                // accent so the user always knows where to look.
+                const isNextUp = !done && completionStatus.slice(0, i).every(Boolean);
                 return (
                   <div
                     key={item.id}
@@ -241,10 +251,20 @@ export function GettingStartedChecklist() {
                       display: 'flex', alignItems: 'center', gap: '10px',
                       padding: '7px 8px',
                       borderRadius: '10px',
+                      background: isNextUp
+                        ? 'color-mix(in oklab, var(--pl-gold, #B8935A) 12%, transparent)'
+                        : 'transparent',
+                      border: isNextUp
+                        ? '1px solid color-mix(in oklab, var(--pl-gold, #B8935A) 28%, transparent)'
+                        : '1px solid transparent',
                       transition: 'background 0.12s',
                     }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.025)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                    onMouseEnter={e => {
+                      if (!isNextUp) e.currentTarget.style.background = 'rgba(0,0,0,0.025)';
+                    }}
+                    onMouseLeave={e => {
+                      if (!isNextUp) e.currentTarget.style.background = 'transparent';
+                    }}
                   >
                     {/* Checkbox */}
                     <div style={{
@@ -302,6 +322,34 @@ export function GettingStartedChecklist() {
                   </div>
                 );
               })}
+
+              {/* Publish nudge — appears once the 4 content items are
+                  all done but the site hasn't been published yet. */}
+              {completionStatus.slice(0, 4).every(Boolean) &&
+                !completionStatus[4] && (
+                  <button
+                    onClick={() => dispatch({ type: 'OPEN_PUBLISH' })}
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      marginTop: 10,
+                      padding: '10px 14px',
+                      borderRadius: 8,
+                      background: 'var(--pl-ink, #18181B)',
+                      color: 'var(--pl-cream, #FAF7F2)',
+                      border: 'none',
+                      fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                      fontSize: '0.64rem',
+                      letterSpacing: '0.22em',
+                      textTransform: 'uppercase',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      boxShadow: '0 6px 18px color-mix(in oklab, var(--pl-olive, #5C6B3F) 28%, transparent)',
+                    }}
+                  >
+                    ✦ You&apos;re ready — publish now
+                  </button>
+                )}
             </div>
           )}
         </div>
