@@ -56,6 +56,29 @@ function formatTimestamp(timestamp: number): string {
   });
 }
 
+// Lightweight diff: which top-level manifest areas changed between
+// a snapshot and the current draft. No deep structural diff — just
+// 'this area moved' chips so the user can see what the snapshot
+// will actually rewind.
+function diffAreas(snap: StoryManifest, current: StoryManifest): string[] {
+  const changed: string[] = [];
+  const areas: Array<[string, unknown, unknown]> = [
+    ['Names',    snap.names,                current.names],
+    ['Chapters', snap.chapters?.length,     current.chapters?.length],
+    ['Sections', snap.blocks?.length,       current.blocks?.length],
+    ['Events',   snap.events?.length,       current.events?.length],
+    ['Design',   snap.vibeSkin?.palette,    current.vibeSkin?.palette],
+    ['Poetry',   snap.poetry?.heroTagline,  current.poetry?.heroTagline],
+    ['Logistics',snap.logistics?.venue,     current.logistics?.venue],
+    ['Registry', snap.registry?.entries?.length, current.registry?.entries?.length],
+    ['FAQs',     snap.faqs?.length,         current.faqs?.length],
+  ];
+  for (const [label, a, b] of areas) {
+    if (JSON.stringify(a) !== JSON.stringify(b)) changed.push(label);
+  }
+  return changed;
+}
+
 const pillBase: React.CSSProperties = {
   fontFamily: panelFont.mono,
   fontSize: panelText.meta,
@@ -306,6 +329,53 @@ export function VersionHistoryPanel({ manifest, onRestore, siteId }: VersionHist
                       >
                         {formatTimestamp(snap.timestamp)}
                       </p>
+                      {(() => {
+                        const changed = diffAreas(snap.manifest as StoryManifest, manifest);
+                        if (changed.length === 0) return null;
+                        return (
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexWrap: 'wrap',
+                              gap: 4,
+                              marginTop: 8,
+                            }}
+                          >
+                            {changed.slice(0, 6).map((label) => (
+                              <span
+                                key={label}
+                                style={{
+                                  fontFamily: panelFont.mono,
+                                  fontSize: panelText.meta,
+                                  letterSpacing: panelTracking.wider,
+                                  textTransform: 'uppercase',
+                                  padding: '2px 6px',
+                                  borderRadius: 4,
+                                  background: 'color-mix(in srgb, var(--pl-chrome-accent) 12%, transparent)',
+                                  color: 'var(--pl-chrome-accent)',
+                                  border: '1px solid color-mix(in srgb, var(--pl-chrome-accent) 28%, transparent)',
+                                }}
+                              >
+                                {label}
+                              </span>
+                            ))}
+                            {changed.length > 6 && (
+                              <span
+                                style={{
+                                  fontFamily: panelFont.mono,
+                                  fontSize: panelText.meta,
+                                  letterSpacing: panelTracking.wider,
+                                  textTransform: 'uppercase',
+                                  color: 'var(--pl-chrome-text-muted)',
+                                  padding: '2px 6px',
+                                }}
+                              >
+                                +{changed.length - 6}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {!isConfirming && (
