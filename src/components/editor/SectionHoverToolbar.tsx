@@ -42,18 +42,26 @@ export function SectionHoverToolbar() {
   useEffect(() => { styleOpenRef.current = styleOpen; }, [styleOpen]);
 
   useEffect(() => {
+    // Only announce to the mutex bus on a fresh reveal (null → chapter)
+    // or chapter switch — announcing every SECTION_HOVER tick was thrashing
+    // the rewrite chip off the screen.
+    let lastAnnouncedChapter: string | null = null;
     const handler = (e: MessageEvent) => {
       if (e.data?.type === 'SECTION_HOVER' && e.data.chapterId && e.data.rect) {
         if (hideTimer.current) clearTimeout(hideTimer.current);
         setHovered({ chapterId: e.data.chapterId, rect: e.data.rect });
         setMoreOpen(false);
-        announceInlineToolbar('section');
+        if (lastAnnouncedChapter !== e.data.chapterId) {
+          announceInlineToolbar('section');
+          lastAnnouncedChapter = e.data.chapterId;
+        }
       }
       if (e.data?.type === 'SECTION_HOVER_OUT') {
         if (styleOpenRef.current) return;
         hideTimer.current = setTimeout(() => {
           setHovered(null);
           setMoreOpen(false);
+          lastAnnouncedChapter = null;
         }, 180);
       }
     };

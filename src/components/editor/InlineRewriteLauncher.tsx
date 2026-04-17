@@ -61,6 +61,11 @@ export function InlineRewriteLauncher({ root }: InlineRewriteLauncherProps = {})
   // Track the hovered editable element.
   useEffect(() => {
     const host = root || document.body;
+    // Only announce to the bus on fresh open (null → chip) or when
+    // the anchor changes — announcing on every mousemove hid the
+    // Section toolbar whenever the user passed over a chapter's
+    // editable title (bug reported 2026-04).
+    let lastAnnouncedAnchor: HTMLElement | null = null;
     const onMove = (e: MouseEvent) => {
       if (suppressed.current) return;
       const target = e.target as HTMLElement | null;
@@ -72,7 +77,10 @@ export function InlineRewriteLauncher({ root }: InlineRewriteLauncherProps = {})
       ) as HTMLElement | null;
       if (!editable) {
         if (hoverTimer.current) clearTimeout(hoverTimer.current);
-        hoverTimer.current = setTimeout(() => hide(), 260);
+        hoverTimer.current = setTimeout(() => {
+          hide();
+          lastAnnouncedAnchor = null;
+        }, 260);
         return;
       }
       const text = (editable.textContent || '').trim();
@@ -80,12 +88,18 @@ export function InlineRewriteLauncher({ root }: InlineRewriteLauncherProps = {})
       if (hoverTimer.current) clearTimeout(hoverTimer.current);
       anchorRef.current = editable;
       setChip(positionFor(editable));
-      announceInlineToolbar('rewrite');
+      if (lastAnnouncedAnchor !== editable) {
+        announceInlineToolbar('rewrite');
+        lastAnnouncedAnchor = editable;
+      }
     };
 
     // Hide when any other inline toolbar opens.
     const offBus = onInlineToolbarActivated((id) => {
-      if (id !== 'rewrite') hide();
+      if (id !== 'rewrite') {
+        hide();
+        lastAnnouncedAnchor = null;
+      }
     });
 
     const onScroll = () => {
