@@ -172,6 +172,7 @@ export function InviteRsvpForm({
   }
 
   if (submitted) {
+    const selectedEventObjs = events.filter((e) => selectedEvents.includes(e.id));
     return (
       <SuccessCard
         attending={attending}
@@ -180,9 +181,9 @@ export function InviteRsvpForm({
         plusOne={plusOne}
         plusOneName={plusOneName}
         meal={meal}
-        selectedEventNames={events
-          .filter((e) => selectedEvents.includes(e.id))
-          .map((e) => e.name)}
+        selectedEventNames={selectedEventObjs.map((e) => e.name)}
+        selectedEvents={selectedEventObjs}
+        fallbackLogistics={manifest?.logistics}
       />
     );
   }
@@ -585,6 +586,77 @@ interface SuccessProps {
   plusOneName: string;
   meal: string;
   selectedEventNames: string[];
+  selectedEvents: WeddingEvent[];
+  fallbackLogistics?: {
+    date?: string;
+    time?: string;
+    venue?: string;
+    venueAddress?: string;
+  };
+}
+
+function buildIcsDataUri(events: WeddingEvent[], fallback?: SuccessProps['fallbackLogistics']) {
+  const list: WeddingEvent[] = events.length > 0
+    ? events
+    : (fallback?.date
+        ? [{
+            id: 'main',
+            name: 'Celebration',
+            type: 'ceremony' as const,
+            date: fallback.date,
+            time: fallback.time || '',
+            venue: fallback.venue || '',
+            address: fallback.venueAddress || '',
+          }]
+        : []);
+  if (list.length === 0) return null;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const esc = (s: string) => s.replace(/[,;\\]/g, ' ');
+  const parseT = (t?: string): { hh: number; mm: number } => {
+    if (!t) return { hh: 16, mm: 0 };
+    const up = t.trim().toUpperCase();
+    const m12 = up.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/);
+    const m24 = up.match(/^(\d{1,2}):(\d{2})$/);
+    if (m12) {
+      let hh = parseInt(m12[1], 10);
+      const mm = m12[2] ? parseInt(m12[2], 10) : 0;
+      if (m12[3] === 'AM' && hh === 12) hh = 0;
+      if (m12[3] === 'PM' && hh !== 12) hh += 12;
+      return { hh, mm };
+    }
+    if (m24) return { hh: parseInt(m24[1], 10), mm: parseInt(m24[2], 10) };
+    return { hh: 16, mm: 0 };
+  };
+  const vevents = list.map((e, i) => {
+    const ds = (e.date || '').includes('T') ? (e.date as string).slice(0, 10) : (e.date || '');
+    const [y, m, d] = ds.split('-').map(Number);
+    if (!y || !m || !d) return '';
+    const { hh, mm } = parseT(e.time);
+    const endInfo = parseT(e.endTime);
+    const useEnd = e.endTime && endInfo.hh >= hh ? endInfo : { hh: (hh + 2) % 24, mm };
+    const dtStart = `${y}${pad(m)}${pad(d)}T${pad(hh)}${pad(mm)}00`;
+    const dtEnd = `${y}${pad(m)}${pad(d)}T${pad(useEnd.hh)}${pad(useEnd.mm)}00`;
+    const loc = [e.venue, e.address].filter(Boolean).join(', ');
+    return [
+      'BEGIN:VEVENT',
+      `UID:rsvp-${i}-${Date.now()}@pearloom.com`,
+      `DTSTART:${dtStart}`,
+      `DTEND:${dtEnd}`,
+      `SUMMARY:${esc(e.name || 'Celebration')}`,
+      loc ? `LOCATION:${esc(loc)}` : '',
+      e.description ? `DESCRIPTION:${esc(e.description)}` : '',
+      'END:VEVENT',
+    ].filter(Boolean).join('\r\n');
+  }).filter(Boolean);
+  if (vevents.length === 0) return null;
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Pearloom//RSVP//EN',
+    ...vevents,
+    'END:VCALENDAR',
+  ].join('\r\n');
+  return `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
 }
 
 function SuccessCard({
@@ -595,7 +667,10 @@ function SuccessCard({
   plusOneName,
   meal,
   selectedEventNames,
+  selectedEvents,
+  fallbackLogistics,
 }: SuccessProps) {
+  const icsHref = attending ? buildIcsDataUri(selectedEvents, fallbackLogistics) : null;
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -680,6 +755,39 @@ function SuccessCard({
             )}
           </dl>
         </div>
+      )}
+
+      {/* Add to calendar — attending only, only when we have
+          enough event data to build a real .ics. */}
+      {attending && icsHref && (
+        <a
+          href={icsHref}
+          download="celebration.ics"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            marginTop: 24,
+            padding: '12px 22px',
+            background: CREAM,
+            border: `1px solid ${INK}`,
+            color: INK,
+            textDecoration: 'none',
+            fontFamily: FONT_MONO,
+            fontSize: '0.68rem',
+            letterSpacing: '0.24em',
+            textTransform: 'uppercase',
+            borderRadius: 2,
+          }}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          Add to calendar
+        </a>
       )}
 
       <div

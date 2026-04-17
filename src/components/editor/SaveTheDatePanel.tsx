@@ -16,7 +16,16 @@
 
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Link2, Check, Calendar, Image as ImageIcon, Send, Clock } from 'lucide-react';
+import {
+  Download,
+  Link2,
+  Check,
+  Send,
+  Clock,
+  Share2,
+  Palette,
+  Eye,
+} from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import { buildSiteUrl } from '@/lib/site-urls';
 import { logEditorError } from '@/lib/editor-log';
@@ -31,7 +40,7 @@ import {
 
 // ── Variants match canvas block presets ──────────────────────
 interface Variant {
-  id: 'minimalist' | 'cinematic' | 'playful' | 'botanical';
+  id: 'minimalist' | 'cinematic' | 'playful' | 'botanical' | 'photo';
   label: string;
   paper: string;
   ink: string;
@@ -40,6 +49,8 @@ interface Variant {
   ruleOpacity: number;
   eyebrow: string;
   swatch: string;
+  /** If true, render a hero photo as the card background. */
+  usePhoto?: boolean;
 }
 
 const VARIANTS: Variant[] = [
@@ -87,7 +98,21 @@ const VARIANTS: Variant[] = [
     eyebrow: 'An Invitation is Forthcoming',
     swatch: 'linear-gradient(180deg, #EEF0E6 0%, #D9DFC9 100%)',
   },
+  {
+    id: 'photo',
+    label: 'Photo',
+    paper: '#18181B',
+    ink: '#FAF7F2',
+    accent: '#E8D8B4',
+    soft: 'rgba(250,247,242,0.75)',
+    ruleOpacity: 0.5,
+    eyebrow: 'Save the Date',
+    swatch: 'linear-gradient(180deg, #3A332C 0%, #18181B 100%)',
+    usePhoto: true,
+  },
 ];
+
+type Aspect = 'landscape' | 'portrait';
 
 function formatDate(dateStr: string): string {
   try {
@@ -112,17 +137,48 @@ interface CardProps {
   venue: string;
   message: string;
   website: string;
+  aspect: Aspect;
+  photoUrl?: string;
   /** If true, embed @font-face rules so exported PNG has italic serif. */
   embedFonts?: boolean;
 }
 
-function CardSvg({ variant, displayNames, date, venue, message, website, embedFonts }: CardProps) {
-  const W = 1050;
-  const H = 750;
+function CardSvg({
+  variant,
+  displayNames,
+  date,
+  venue,
+  message,
+  website,
+  aspect,
+  photoUrl,
+  embedFonts,
+}: CardProps) {
+  const isPortrait = aspect === 'portrait';
+  const W = isPortrait ? 750 : 1050;
+  const H = isPortrait ? 1050 : 750;
+  const cx = W / 2;
+
+  // Layout anchors that scale with aspect. Keeping visual
+  // rhythm on a portrait card requires pushing everything down.
+  const pad = 40;
+  const eyebrowY = isPortrait ? 150 : 130;
+  const namesY = isPortrait ? H / 2 - 20 : 310;
+  const dividerY = namesY + (isPortrait ? 70 : 50);
+  const dateY = dividerY + (isPortrait ? 80 : 80);
+  const venueY = dateY + (isPortrait ? 52 : 46);
+  const messageY = venueY + (isPortrait ? 82 : 74);
+  const websiteLineY = H - 90;
+  const websiteY = H - 60;
+
   const rule = `rgba(${hexToRgb(variant.accent)}, ${variant.ruleOpacity})`;
   const ruleSoft = `rgba(${hexToRgb(variant.accent)}, ${variant.ruleOpacity * 0.55})`;
   const fontDisplay = '"Fraunces", "Playfair Display", Georgia, serif';
   const fontMono = '"Geist Mono", "JetBrains Mono", ui-monospace, monospace';
+
+  const namesFontSize = isPortrait ? 80 : 96;
+  const dateFontSize = isPortrait ? 30 : 34;
+  const showPhoto = variant.usePhoto && photoUrl;
 
   return (
     <svg
@@ -135,18 +191,43 @@ function CardSvg({ variant, displayNames, date, venue, message, website, embedFo
           <style>{`@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;1,400&family=Geist+Mono:wght@400&display=swap');`}</style>
         </defs>
       )}
+      <defs>
+        <linearGradient id="pl-std-veil" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="rgba(24,24,27,0.15)" />
+          <stop offset="55%" stopColor="rgba(24,24,27,0.55)" />
+          <stop offset="100%" stopColor="rgba(24,24,27,0.82)" />
+        </linearGradient>
+      </defs>
+
+      {/* Base paper */}
       <rect width={W} height={H} fill={variant.paper} />
 
+      {/* Photo variant background */}
+      {showPhoto && (
+        <>
+          <image
+            href={photoUrl}
+            xlinkHref={photoUrl}
+            x={0}
+            y={0}
+            width={W}
+            height={H}
+            preserveAspectRatio="xMidYMid slice"
+          />
+          <rect width={W} height={H} fill="url(#pl-std-veil)" />
+        </>
+      )}
+
       {/* Outer inset frame */}
-      <rect x={40} y={40} width={W - 80} height={H - 80} fill="none" stroke={rule} strokeWidth={1} />
-      <rect x={54} y={54} width={W - 108} height={H - 108} fill="none" stroke={ruleSoft} strokeWidth={0.75} />
+      <rect x={pad} y={pad} width={W - pad * 2} height={H - pad * 2} fill="none" stroke={rule} strokeWidth={1} />
+      <rect x={pad + 14} y={pad + 14} width={W - (pad + 14) * 2} height={H - (pad + 14) * 2} fill="none" stroke={ruleSoft} strokeWidth={0.75} />
 
       {/* Top eyebrow ornament */}
-      <line x1={W / 2 - 140} y1={130} x2={W / 2 - 30} y2={130} stroke={variant.accent} strokeWidth={1} />
-      <line x1={W / 2 + 30} y1={130} x2={W / 2 + 140} y2={130} stroke={variant.accent} strokeWidth={1} />
+      <line x1={cx - 140} y1={eyebrowY} x2={cx - 30} y2={eyebrowY} stroke={variant.accent} strokeWidth={1} />
+      <line x1={cx + 30} y1={eyebrowY} x2={cx + 140} y2={eyebrowY} stroke={variant.accent} strokeWidth={1} />
       <text
-        x={W / 2}
-        y={134}
+        x={cx}
+        y={eyebrowY + 4}
         textAnchor="middle"
         fontFamily={fontMono}
         fontSize={15}
@@ -158,31 +239,31 @@ function CardSvg({ variant, displayNames, date, venue, message, website, embedFo
 
       {/* Display names */}
       <text
-        x={W / 2}
-        y={310}
+        x={cx}
+        y={namesY}
         textAnchor="middle"
         fontFamily={fontDisplay}
         fontStyle="italic"
         fontWeight={400}
-        fontSize={96}
+        fontSize={namesFontSize}
         fill={variant.ink}
       >
         {displayNames}
       </text>
 
       {/* Divider flourish */}
-      <line x1={W / 2 - 40} y1={360} x2={W / 2 + 40} y2={360} stroke={variant.accent} strokeWidth={1.5} />
-      <circle cx={W / 2} cy={360} r={4} fill={variant.accent} />
+      <line x1={cx - 40} y1={dividerY} x2={cx + 40} y2={dividerY} stroke={variant.accent} strokeWidth={1.5} />
+      <circle cx={cx} cy={dividerY} r={4} fill={variant.accent} />
 
       {/* Date */}
       {date && (
         <text
-          x={W / 2}
-          y={440}
+          x={cx}
+          y={dateY}
           textAnchor="middle"
           fontFamily={fontDisplay}
           fontStyle="italic"
-          fontSize={34}
+          fontSize={dateFontSize}
           fill={variant.ink}
         >
           {date}
@@ -192,8 +273,8 @@ function CardSvg({ variant, displayNames, date, venue, message, website, embedFo
       {/* Venue */}
       {venue && (
         <text
-          x={W / 2}
-          y={486}
+          x={cx}
+          y={venueY}
           textAnchor="middle"
           fontFamily={fontMono}
           fontSize={14}
@@ -207,8 +288,8 @@ function CardSvg({ variant, displayNames, date, venue, message, website, embedFo
       {/* Custom message */}
       {message && (
         <text
-          x={W / 2}
-          y={560}
+          x={cx}
+          y={messageY}
           textAnchor="middle"
           fontFamily={fontDisplay}
           fontStyle="italic"
@@ -220,10 +301,10 @@ function CardSvg({ variant, displayNames, date, venue, message, website, embedFo
       )}
 
       {/* Bottom website line */}
-      <line x1={W / 2 - 170} y1={660} x2={W / 2 + 170} y2={660} stroke={ruleSoft} strokeWidth={0.75} />
+      <line x1={cx - 170} y1={websiteLineY} x2={cx + 170} y2={websiteLineY} stroke={ruleSoft} strokeWidth={0.75} />
       <text
-        x={W / 2}
-        y={690}
+        x={cx}
+        y={websiteY}
         textAnchor="middle"
         fontFamily={fontMono}
         fontSize={13}
@@ -259,12 +340,14 @@ interface SaveTheDatePanelProps {
 export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps) {
   const svgRef = useRef<HTMLDivElement>(null);
   const [variantId, setVariantId] = useState<Variant['id']>('minimalist');
+  const [aspect, setAspect] = useState<Aspect>('landscape');
   const [downloading, setDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [sending, setSending] = useState(false);
   const [customMessage, setCustomMessage] = useState('');
   const [sharing, setSharing] = useState(false);
   const [sharedUrl, setSharedUrl] = useState<string | null>(null);
+  const [shareError, setShareError] = useState<string | null>(null);
 
   const variant = useMemo(
     () => VARIANTS.find((v) => v.id === variantId) ?? VARIANTS[0],
@@ -280,35 +363,57 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
   const website = subdomain ? `${subdomain}.pearloom.com` : 'pearloom.com';
   const message = customMessage.trim();
 
-  // Real PNG export: serialize the SVG and draw into a canvas.
-  const handleDownload = useCallback(async () => {
-    if (!svgRef.current) return;
+  // Hero photo (first available from manifest) — used by the
+  // "Photo" variant and offered as an option on the others.
+  const heroPhoto = useMemo(() => {
+    const anyManifest = manifest as unknown as {
+      coverPhoto?: string;
+      heroSlideshow?: string[];
+      chapters?: Array<{
+        images?: Array<{ url?: string } | string>;
+        heroPhotoIndex?: number;
+      }>;
+    };
+    if (anyManifest.coverPhoto) return anyManifest.coverPhoto;
+    if (anyManifest.heroSlideshow?.[0]) return anyManifest.heroSlideshow[0];
+    const chapter0 = anyManifest.chapters?.[0];
+    if (chapter0?.images?.length) {
+      const idx = chapter0.heroPhotoIndex ?? 0;
+      const img = chapter0.images[idx] ?? chapter0.images[0];
+      if (typeof img === 'string') return img;
+      if (img && typeof img === 'object' && 'url' in img) return img.url;
+    }
+    return undefined;
+  }, [manifest]);
+
+  // Render the current SVG to a PNG blob. Used by both the
+  // download and share-as-image flows.
+  const renderPngBlob = useCallback(async (): Promise<Blob | null> => {
+    if (!svgRef.current) return null;
     const svgEl = svgRef.current.querySelector('svg');
-    if (!svgEl) return;
+    if (!svgEl) return null;
 
-    setDownloading(true);
+    const clone = svgEl.cloneNode(true) as SVGSVGElement;
+    if (!clone.getAttribute('xmlns')) {
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    }
+    const serializer = new XMLSerializer();
+    const source = serializer.serializeToString(clone);
+    const svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+
     try {
-      // Clone + embed fonts link
-      const clone = svgEl.cloneNode(true) as SVGSVGElement;
-      if (!clone.getAttribute('xmlns')) {
-        clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-      }
-      const serializer = new XMLSerializer();
-      const source = serializer.serializeToString(clone);
-      const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-
       const img = new Image();
       img.crossOrigin = 'anonymous';
-
       await new Promise<void>((resolve, reject) => {
         img.onload = () => resolve();
         img.onerror = () => reject(new Error('SVG load failed'));
         img.src = url;
       });
 
-      const W = 2100;
-      const H = 1500;
+      const isPortrait = aspect === 'portrait';
+      const W = isPortrait ? 1500 : 2100;
+      const H = isPortrait ? 2100 : 1500;
       const canvas = document.createElement('canvas');
       canvas.width = W;
       canvas.height = H;
@@ -318,21 +423,75 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
       ctx.fillRect(0, 0, W, H);
       ctx.drawImage(img, 0, 0, W, H);
 
+      return await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob((b) => resolve(b), 'image/png');
+      });
+    } finally {
       URL.revokeObjectURL(url);
+    }
+  }, [aspect, variant.paper]);
 
-      const pngUrl = canvas.toDataURL('image/png');
+  // PNG download
+  const handleDownload = useCallback(async () => {
+    setDownloading(true);
+    try {
+      const blob = await renderPngBlob();
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = pngUrl;
-      a.download = `save-the-date-${subdomain || 'pearloom'}.png`;
+      a.href = url;
+      a.download = `save-the-date-${subdomain || 'pearloom'}-${aspect}.png`;
       document.body.appendChild(a);
       a.click();
       a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (err) {
       logEditorError('SaveTheDatePanel: png export', err);
     } finally {
       setDownloading(false);
     }
-  }, [subdomain, variant.paper]);
+  }, [aspect, renderPngBlob, subdomain]);
+
+  // Web Share API — hands the PNG off to the OS share sheet on
+  // supporting devices. Falls back gracefully on desktop Chrome
+  // (text + url only) and surfaces a clear message otherwise.
+  const canWebShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+  const [webSharing, setWebSharing] = useState(false);
+  const handleWebShare = useCallback(async () => {
+    setShareError(null);
+    if (!canWebShare) {
+      setShareError('This browser can\u2019t use the native share sheet.');
+      return;
+    }
+    setWebSharing(true);
+    try {
+      const url = buildSiteUrl(subdomain, '', undefined, manifest.occasion);
+      const title = `${displayNames} — Save the Date`;
+      const text = date ? `${displayNames} · ${date}` : displayNames;
+
+      const blob = await renderPngBlob();
+      const file = blob
+        ? new File([blob], `save-the-date-${subdomain || 'pearloom'}.png`, { type: 'image/png' })
+        : null;
+      const nav = navigator as Navigator & {
+        canShare?: (data: ShareData & { files?: File[] }) => boolean;
+      };
+      if (file && nav.canShare && nav.canShare({ files: [file] })) {
+        await navigator.share({ title, text, url, files: [file] });
+      } else {
+        await navigator.share({ title, text, url });
+      }
+    } catch (err) {
+      // User-cancelled share throws AbortError — silent.
+      const anyErr = err as { name?: string };
+      if (anyErr?.name !== 'AbortError') {
+        logEditorError('SaveTheDatePanel: web share', err);
+        setShareError('Share cancelled or unavailable.');
+      }
+    } finally {
+      setWebSharing(false);
+    }
+  }, [canWebShare, date, displayNames, manifest.occasion, renderPngBlob, subdomain]);
 
   const handleCopyLink = useCallback(async () => {
     const url = buildSiteUrl(subdomain, '', undefined, manifest.occasion);
@@ -395,7 +554,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
   return (
     <PanelRoot>
       {/* ── Variant picker + message ── */}
-      <PanelSection title="Design" icon={ImageIcon} defaultOpen>
+      <PanelSection title="Style" icon={Palette} defaultOpen>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <div
             style={{
@@ -411,17 +570,21 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
             {VARIANTS.map((v) => {
               const on = variantId === v.id;
+              const disabled = v.usePhoto && !heroPhoto;
               return (
                 <button
                   key={v.id}
-                  onClick={() => setVariantId(v.id)}
+                  onClick={() => !disabled && setVariantId(v.id)}
+                  disabled={disabled}
+                  title={disabled ? 'Add a photo to your site to use this variant' : undefined}
                   style={{
                     padding: '10px 10px',
                     borderRadius: 8,
                     border: `1px solid ${on ? v.accent : '#E4E4E7'}`,
                     background: on ? `${v.accent}18` : v.swatch,
                     color: on ? v.ink : '#3F3F46',
-                    cursor: 'pointer',
+                    cursor: disabled ? 'not-allowed' : 'pointer',
+                    opacity: disabled ? 0.45 : 1,
                     textAlign: 'left',
                     display: 'flex',
                     flexDirection: 'column',
@@ -443,7 +606,61 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
                       fontStyle: 'italic',
                     }}
                   >
-                    {v.eyebrow}
+                    {disabled ? 'Needs a photo' : v.eyebrow}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Aspect ratio */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <div
+            style={{
+              fontSize: panelText.label,
+              color: '#71717A',
+              textTransform: 'uppercase',
+              letterSpacing: panelTracking.wide,
+              fontWeight: panelWeight.bold,
+            }}
+          >
+            Shape
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+            {([
+              ['landscape', 'Landscape', 'For email & desktop'],
+              ['portrait', 'Portrait', 'For stories & prints'],
+            ] as const).map(([id, label, hint]) => {
+              const on = aspect === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => setAspect(id)}
+                  style={{
+                    padding: '10px 10px',
+                    borderRadius: 8,
+                    border: `1px solid ${on ? '#18181B' : '#E4E4E7'}`,
+                    background: on ? '#18181B' : '#FFFFFF',
+                    color: on ? '#FAF7F2' : '#3F3F46',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                  }}
+                >
+                  <span style={{ fontSize: panelText.body, fontWeight: panelWeight.bold }}>
+                    {label}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: panelText.meta,
+                      color: on ? 'rgba(250,247,242,0.6)' : '#A1A1AA',
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    {hint}
                   </span>
                 </button>
               );
@@ -485,11 +702,13 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
       </PanelSection>
 
       {/* ── Preview ── */}
-      <PanelSection title="Preview" icon={Calendar} defaultOpen>
+      <PanelSection title="Preview" icon={Eye} defaultOpen>
         <div
           ref={svgRef}
           style={{
             width: '100%',
+            maxWidth: aspect === 'portrait' ? 280 : '100%',
+            margin: aspect === 'portrait' ? '0 auto' : undefined,
             borderRadius: 8,
             overflow: 'hidden',
             border: '1px solid #E4E4E7',
@@ -503,6 +722,8 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
             venue={venue}
             message={message}
             website={website}
+            aspect={aspect}
+            photoUrl={heroPhoto}
             embedFonts
           />
         </div>
@@ -523,8 +744,8 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
         )}
       </PanelSection>
 
-      {/* ── Ship ── */}
-      <PanelSection title="Send" icon={Send} defaultOpen>
+      {/* ── Share / Send ── */}
+      <PanelSection title="Share" icon={Send} defaultOpen>
         <div style={{ display: 'grid', gap: 6 }}>
           <motion.button
             onClick={handleSendBulk}
@@ -552,6 +773,37 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
             {sending ? 'Opening…' : 'Send as save-the-date'}
           </motion.button>
 
+          {/* Native share sheet (mobile-primary). Renders only
+              when the browser supports navigator.share, so we
+              never show a button that does nothing. */}
+          {canWebShare && (
+            <motion.button
+              onClick={handleWebShare}
+              disabled={webSharing}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                padding: 10,
+                borderRadius: 8,
+                border: '1px solid #B8935A',
+                background: '#FAF7F2',
+                color: '#8C6E3D',
+                cursor: webSharing ? 'wait' : 'pointer',
+                fontSize: panelText.body,
+                fontWeight: panelWeight.bold,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+              }}
+            >
+              <Share2 size={13} />
+              {webSharing ? 'Opening share sheet\u2026' : 'Share via phone'}
+            </motion.button>
+          )}
+
           <div style={{ display: 'flex', gap: 6 }}>
             <motion.button
               onClick={handleDownload}
@@ -575,7 +827,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
               }}
             >
               <Download size={13} />
-              {downloading ? 'Saving…' : 'PNG'}
+              {downloading ? 'Saving\u2026' : 'PNG'}
             </motion.button>
 
             <motion.button
@@ -602,6 +854,21 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
               {copied ? 'Copied' : 'Link'}
             </motion.button>
           </div>
+
+          {shareError && (
+            <div
+              style={{
+                padding: '8px 10px',
+                borderRadius: 8,
+                background: 'rgba(234,179,8,0.07)',
+                border: '1px solid rgba(234,179,8,0.2)',
+                fontSize: panelText.hint,
+                color: '#3F3F46',
+              }}
+            >
+              {shareError}
+            </div>
+          )}
 
           {/* 24h preview share */}
           <motion.button
