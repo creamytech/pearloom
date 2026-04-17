@@ -197,9 +197,12 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     }
   }, [state.showPublish, showPublishAudit]);
 
-  // ── Auto-dismiss welcome ─────────────────────────────────────
+  // ── Welcome overlay safety timer ─────────────────────────────
+  // The overlay is click-to-dismiss; a 12-second safety timer
+  // removes it if the user ignores it (previous 2.5s was too fast
+  // for anyone to actually read the copy).
   useEffect(() => {
-    const t = setTimeout(() => dispatch({ type: 'SET_WELCOME', show: false }), 2500);
+    const t = setTimeout(() => dispatch({ type: 'SET_WELCOME', show: false }), 12000);
     return () => clearTimeout(t);
   }, []);
 

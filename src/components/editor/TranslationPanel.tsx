@@ -24,16 +24,19 @@ import {
 export type LocaleCode =
   | 'es' | 'fr' | 'it' | 'pt' | 'de' | 'ja' | 'zh' | 'he' | 'ar';
 
-const LOCALES: ReadonlyArray<{ code: LocaleCode; label: string; flag: string }> = [
-  { code: 'es', label: 'Spanish',    flag: '🇪🇸' },
-  { code: 'fr', label: 'French',     flag: '🇫🇷' },
-  { code: 'it', label: 'Italian',    flag: '🇮🇹' },
-  { code: 'pt', label: 'Portuguese', flag: '🇧🇷' },
-  { code: 'de', label: 'German',     flag: '🇩🇪' },
-  { code: 'ja', label: 'Japanese',   flag: '🇯🇵' },
-  { code: 'zh', label: 'Chinese',    flag: '🇨🇳' },
-  { code: 'he', label: 'Hebrew',     flag: '🇮🇱' },
-  { code: 'ar', label: 'Arabic',     flag: '🇸🇦' },
+// ISO 639-1 codes + endonyms — accessible and honest (a language
+// is not a country). Endonyms render identically across all OSes;
+// flag emoji do not.
+const LOCALES: ReadonlyArray<{ code: LocaleCode; label: string; endonym: string }> = [
+  { code: 'es', label: 'Spanish',    endonym: 'Español' },
+  { code: 'fr', label: 'French',     endonym: 'Français' },
+  { code: 'it', label: 'Italian',    endonym: 'Italiano' },
+  { code: 'pt', label: 'Portuguese', endonym: 'Português' },
+  { code: 'de', label: 'German',     endonym: 'Deutsch' },
+  { code: 'ja', label: 'Japanese',   endonym: '日本語' },
+  { code: 'zh', label: 'Chinese',    endonym: '中文' },
+  { code: 'he', label: 'Hebrew',     endonym: 'עברית' },
+  { code: 'ar', label: 'Arabic',     endonym: 'العربية' },
 ];
 
 interface TranslationPanelProps {
@@ -133,7 +136,20 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                 background: '#FAFAFA',
                 border: '1px solid #E4E4E7',
               }}>
-                <span style={{ fontSize: '1rem' }}>{locale.flag}</span>
+                <span
+                  style={{
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.62rem',
+                    letterSpacing: '0.16em',
+                    textTransform: 'uppercase',
+                    padding: '3px 6px',
+                    borderRadius: 4,
+                    background: 'var(--pl-cream-deep, #F0ECE3)',
+                    color: 'var(--pl-ink-soft, #3A332C)',
+                  }}
+                >
+                  {locale.code}
+                </span>
                 <div style={{
                   flex: 1,
                   fontSize: panelText.body,
@@ -194,14 +210,43 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                   textAlign: 'left',
                 }}
               >
-                <span style={{ fontSize: '1rem', flexShrink: 0 }}>{locale.flag}</span>
+                <span
+                  style={{
+                    flexShrink: 0,
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.62rem',
+                    letterSpacing: '0.16em',
+                    textTransform: 'uppercase',
+                    padding: '3px 6px',
+                    borderRadius: 4,
+                    background: 'var(--pl-cream-deep, #F0ECE3)',
+                    color: 'var(--pl-ink-soft, #3A332C)',
+                    minWidth: 28,
+                    textAlign: 'center',
+                  }}
+                >
+                  {locale.code}
+                </span>
                 <span style={{
                   flex: 1,
                   fontSize: panelText.body,
                   fontWeight: panelWeight.semibold,
                   color: '#3F3F46',
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  gap: 8,
                 }}>
                   {locale.label}
+                  <span
+                    style={{
+                      fontSize: panelText.hint,
+                      color: '#A1A1AA',
+                      fontWeight: panelWeight.regular,
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    {locale.endonym}
+                  </span>
                 </span>
                 {generating === locale.code ? (
                   <span style={{
