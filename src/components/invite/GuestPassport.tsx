@@ -460,7 +460,7 @@ export function GuestPassport({
             Edit my response
           </button>
           <a
-            href={`webcal://pearloom.com/api/invite/ics?token=${encodeURIComponent(token)}`}
+            href={`/api/invite/ics?token=${encodeURIComponent(token)}`}
             style={{
               flex: 1,
               minWidth: 180,
