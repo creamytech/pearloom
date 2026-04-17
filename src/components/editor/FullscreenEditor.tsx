@@ -1426,7 +1426,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 import { Loader2 } from 'lucide-react';
 
 function PublishModalInline() {
-  const { state, dispatch, actions, coupleNames } = useEditor();
+  const { state, dispatch, actions, coupleNames, manifest } = useEditor();
   const { showPublish, publishedUrl, publishError, isPublishing, subdomain } = state;
   const [shareCopied, setShareCopied] = useState(false);
   const [copyError, setCopyError] = useState<string | null>(null);
@@ -1438,6 +1438,43 @@ function PublishModalInline() {
     ? `You're invited! View ${displayNames}'s site: ${publishedUrl}`
     : '';
   const rsvpUrl = publishedUrl ? `${publishedUrl}#rsvp` : '';
+
+  // Inline readiness checklist — gives publishers a visible 'x of N
+  // ready' before they hit publish, and points to the panel where
+  // each gap can be fixed. Replaces the blocking PearPublishAudit
+  // modal with reassurance in the same drawer.
+  const readiness: Array<{ label: string; done: boolean; fixTab?: EditorTab }> = [
+    {
+      label: 'Couple names in place',
+      done: !!(coupleNames?.[0]?.trim()),
+      fixTab: 'details',
+    },
+    {
+      label: 'Event date set',
+      done: !!(manifest?.logistics?.date || manifest?.events?.[0]?.date),
+      fixTab: 'events',
+    },
+    {
+      label: 'At least one chapter',
+      done: (manifest?.chapters?.length || 0) > 0,
+      fixTab: 'story',
+    },
+    {
+      label: 'At least one photo',
+      done:
+        (manifest?.chapters?.reduce((n, c) => n + (c.images?.length || 0), 0) || 0) > 0 ||
+        !!manifest?.coverPhoto ||
+        (manifest?.heroSlideshow?.filter(Boolean).length || 0) > 0,
+      fixTab: 'story',
+    },
+    {
+      label: 'RSVP deadline (optional)',
+      done: !!manifest?.logistics?.rsvpDeadline,
+      fixTab: 'details',
+    },
+  ];
+  const readyCount = readiness.filter((r) => r.done).length;
+  const totalCount = readiness.length;
 
   const handleCopyLink = async () => {
     if (!publishedUrl) return;
@@ -1461,30 +1498,27 @@ function PublishModalInline() {
         transition={{ duration: 0.22 }}
         style={{
           position: 'fixed', inset: 0, zIndex: 2000,
-          background: 'color-mix(in oklab, var(--pl-ink) 70%, transparent)',
-          backdropFilter: 'saturate(140%) blur(20px)',
-          WebkitBackdropFilter: 'saturate(140%) blur(20px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          padding: 'calc(2rem + env(safe-area-inset-top, 0px)) 2rem calc(2rem + env(safe-area-inset-bottom, 0px))',
+          background: 'color-mix(in oklab, var(--pl-ink) 50%, transparent)',
+          backdropFilter: 'saturate(140%) blur(14px)',
+          WebkitBackdropFilter: 'saturate(140%) blur(14px)',
+          display: 'flex', alignItems: 'stretch', justifyContent: 'flex-end',
         } as React.CSSProperties}
         onClick={() => dispatch({ type: 'SET_SHOW_PUBLISH', show: false })}
       >
         <motion.div
-          initial={{ opacity: 0, scale: 0.92, y: 24 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.94, y: 16 }}
-          transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+          initial={{ opacity: 0, x: 48 }} animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 32 }}
+          transition={{ type: 'spring', stiffness: 340, damping: 32 }}
           onClick={e => e.stopPropagation()}
           style={{
             background: 'var(--pl-cream-card)',
-            border: '1px solid var(--pl-divider)',
-            borderRadius: 24,
+            borderLeft: '1px solid var(--pl-divider)',
             padding: 'clamp(1.75rem, 3vw, 2.5rem)',
-            maxWidth: 480,
-            width: '100%',
-            boxShadow: '0 40px 100px color-mix(in oklab, var(--pl-ink) 40%, transparent)',
+            width: 'min(520px, 100%)',
+            boxShadow: '-40px 0 100px color-mix(in oklab, var(--pl-ink) 30%, transparent)',
             textAlign: 'center',
             position: 'relative',
-            overflow: 'hidden',
+            overflow: 'auto',
           }}
         >
           {/* Soft olive halo behind the modal */}
@@ -1653,6 +1687,113 @@ function PublishModalInline() {
               </motion.div>
             ) : (
               <motion.div key="url-picker" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                {/* Readiness checklist — inline reassurance, not a blocker */}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8,
+                    padding: '14px 16px',
+                    marginBottom: 20,
+                    background: 'color-mix(in oklab, var(--pl-olive) 5%, transparent)',
+                    border: '1px solid color-mix(in oklab, var(--pl-olive) 18%, transparent)',
+                    borderRadius: 12,
+                    textAlign: 'left',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'baseline',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: 'var(--pl-font-mono)',
+                        fontSize: '0.58rem',
+                        letterSpacing: '0.24em',
+                        textTransform: 'uppercase',
+                        color: 'var(--pl-muted)',
+                        fontWeight: 700,
+                      }}
+                    >
+                      Readiness
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: 'var(--pl-font-mono)',
+                        fontSize: '0.66rem',
+                        letterSpacing: '0.14em',
+                        color: readyCount === totalCount ? 'var(--pl-olive)' : 'var(--pl-ink-soft)',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {readyCount}/{totalCount} ready
+                    </span>
+                  </div>
+                  <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 4 }}>
+                    {readiness.map((r) => (
+                      <li
+                        key={r.label}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          fontSize: '0.78rem',
+                          color: r.done ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        <span
+                          aria-hidden
+                          style={{
+                            width: 14,
+                            height: 14,
+                            borderRadius: '50%',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: 10,
+                            background: r.done ? 'var(--pl-olive)' : 'transparent',
+                            border: r.done ? '1px solid var(--pl-olive)' : '1px dashed var(--pl-divider)',
+                            color: r.done ? 'var(--pl-cream)' : 'var(--pl-muted)',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {r.done ? '✓' : ''}
+                        </span>
+                        <span style={{ flex: 1, textDecoration: r.done ? 'none' : 'none' }}>
+                          {r.label}
+                        </span>
+                        {!r.done && r.fixTab && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              dispatch({ type: 'SET_SHOW_PUBLISH', show: false });
+                              dispatch({ type: 'SET_ACTIVE_TAB', tab: r.fixTab! });
+                            }}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: 'var(--pl-gold)',
+                              fontFamily: 'var(--pl-font-mono)',
+                              fontSize: '0.58rem',
+                              letterSpacing: '0.16em',
+                              textTransform: 'uppercase',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              padding: 0,
+                            }}
+                          >
+                            Fix →
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
                 <h2 style={{
                   fontFamily: 'var(--pl-font-display)',
                   fontSize: 'clamp(1.5rem, 2.4vw, 1.9rem)',
