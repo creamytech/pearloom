@@ -133,7 +133,7 @@ export function BlockPresetPicker({ pending, onPick, onClose }: BlockPresetPicke
               textTransform: 'uppercase',
               color: 'rgba(184,147,90,0.85)',
             }}>
-              New Plate · {blockLabel} · pick a variant
+              New block · {blockLabel} · pick a variant
             </span>
             <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.45)' }} />
             <span style={{

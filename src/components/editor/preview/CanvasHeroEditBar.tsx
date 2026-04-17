@@ -181,7 +181,7 @@ export function CanvasHeroEditBar({
               padding: 0,
               borderRadius: '50%',
               background: s.value,
-              border: textColor === s.value ? '2px solid #A3B18A' : '1.5px solid rgba(255,255,255,0.2)',
+              border: textColor === s.value ? '2px solid var(--pl-olive)' : '1.5px solid rgba(255,255,255,0.2)',
             }}
           />
         ))}
@@ -216,7 +216,7 @@ export function CanvasHeroEditBar({
             style={{
               ...PILL_BTN,
               background: badgeStyle === b.id ? 'rgba(163,177,138,0.25)' : 'rgba(255,255,255,0.06)',
-              color: badgeStyle === b.id ? '#A3B18A' : 'rgba(255,255,255,0.55)',
+              color: badgeStyle === b.id ? 'var(--pl-olive)' : 'rgba(255,255,255,0.55)',
               border: badgeStyle === b.id ? '1px solid rgba(163,177,138,0.4)' : '1px solid transparent',
             }}
           >
@@ -237,7 +237,7 @@ export function CanvasHeroEditBar({
             style={{
               ...PILL_BTN,
               background: cdStyle === c.id ? 'rgba(163,177,138,0.25)' : 'rgba(255,255,255,0.06)',
-              color: cdStyle === c.id ? '#A3B18A' : 'rgba(255,255,255,0.55)',
+              color: cdStyle === c.id ? 'var(--pl-olive)' : 'rgba(255,255,255,0.55)',
               border: cdStyle === c.id ? '1px solid rgba(163,177,138,0.4)' : '1px solid transparent',
             }}
           >
@@ -258,7 +258,7 @@ export function CanvasHeroEditBar({
             ...PILL_BTN,
             display: 'flex', alignItems: 'center', gap: '4px',
             background: fontsOpen ? 'rgba(163,177,138,0.25)' : 'rgba(255,255,255,0.06)',
-            color: fontsOpen ? '#A3B18A' : 'rgba(255,255,255,0.55)',
+            color: fontsOpen ? 'var(--pl-olive)' : 'rgba(255,255,255,0.55)',
             border: fontsOpen ? '1px solid rgba(163,177,138,0.4)' : '1px solid transparent',
           }}
         >
@@ -380,7 +380,7 @@ function FontGroup({
                 borderRadius: '6px',
                 border: isActive ? '1px solid rgba(163,177,138,0.5)' : '1px solid transparent',
                 background: isActive ? 'rgba(163,177,138,0.15)' : 'transparent',
-                color: isActive ? '#A3B18A' : 'rgba(255,255,255,0.75)',
+                color: isActive ? 'var(--pl-olive)' : 'rgba(255,255,255,0.75)',
                 fontFamily: `'${f}', ${fallback}`,
                 fontSize: '13px',
                 lineHeight: 1.2,
@@ -392,7 +392,7 @@ function FontGroup({
               onMouseOut={(e) => { if (!isActive) (e.currentTarget.style.background = 'transparent'); }}
             >
               <span>{f}</span>
-              {isActive && <Check size={11} color="#A3B18A" strokeWidth={3} />}
+              {isActive && <Check size={11} color="var(--pl-olive)" strokeWidth={3} />}
             </button>
           );
         })}

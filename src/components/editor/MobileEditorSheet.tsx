@@ -14,6 +14,7 @@ import {
   Undo2, Redo2, ExternalLink, MoreVertical,
   Users, Send, Mail, Mic, LayoutGrid, Globe, Gift,
   Music, ShoppingBag, Heart, BarChart2, Sparkles,
+  Palette, Image as ImageIcon,
 } from 'lucide-react';
 import { useEditor } from '@/lib/editor-state';
 import { SiteRenderer } from './SiteRenderer';
@@ -42,6 +43,8 @@ const SpotifyPanel            = dynamic(() => import('./SpotifyPanel').then(m =>
 const VendorPanel             = dynamic(() => import('./VendorPanel').then(m => ({ default: m.VendorPanel })), { ssr: false });
 const VoiceTrainerPanel       = dynamic(() => import('./VoiceTrainerPanel').then(m => ({ default: m.VoiceTrainerPanel })), { ssr: false });
 const AIBlocksPanel           = dynamic(() => import('./AIBlocksPanel').then(m => ({ default: m.AIBlocksPanel })), { ssr: false });
+const ColorPalettePanel       = dynamic(() => import('./ColorPalettePanel').then(m => ({ default: m.ColorPalettePanel })), { ssr: false });
+const MediaLibraryPanel       = dynamic(() => import('./MediaLibraryPanel').then(m => ({ default: m.MediaLibraryPanel })), { ssr: false });
 
 // ── Types ───────────────────────────────────────────────────────
 type BottomTab = 'edit' | 'blocks' | 'more';
@@ -55,6 +58,8 @@ interface MoreTool {
 const ESSENTIAL_TOOLS: MoreTool[] = [
   { id: 'details',     icon: LayoutGrid,  label: 'Details'       },
   { id: 'pages',       icon: Globe,       label: 'Pages'         },
+  { id: 'colors',      icon: Palette,     label: 'Palette'       },
+  { id: 'media',       icon: ImageIcon,   label: 'Media library' },
   { id: 'guests',      icon: Users,       label: 'Guests'        },
   { id: 'messaging',   icon: Mail,        label: 'Messaging'     },
   { id: 'invite',      icon: Mail,        label: 'Invites'       },
@@ -396,6 +401,8 @@ export function MobileEditorSheet() {
       case 'savethedate':
         return <GuestsLifecyclePanel manifest={manifest} subdomain={subdomain} />;
       case 'messaging': return <MessagingPanel manifest={manifest} siteId={subdomain} subdomain={subdomain} />;
+      case 'colors': return <ColorPalettePanel manifest={manifest} onChange={actions.handleDesignChange} names={coupleNames} />;
+      case 'media': return <MediaLibraryPanel />;
       case 'blocks': return <AIBlocksPanel manifest={manifest} coupleNames={coupleNames} onChange={(m) => { actions.handleDesignChange(m); }} />;
       case 'voice': return <VoiceTrainerPanel voiceSamples={manifest.voiceSamples || []} onChange={(samples) => { const updated = { ...manifest, voiceSamples: samples }; actions.handleDesignChange(updated); }} />;
       case 'analytics': return <AnalyticsDashboardPanel siteId={subdomain} />;

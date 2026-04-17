@@ -150,7 +150,7 @@ export default function FontPicker({
         </div>
         <div style={{
           fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.1em',
-          textTransform: 'uppercase', color: '#A3B18A', flexShrink: 0,
+          textTransform: 'uppercase', color: 'var(--pl-olive)', flexShrink: 0,
         }}>Active</div>
       </div>
 
@@ -235,7 +235,7 @@ export default function FontPicker({
                     display: 'flex', alignItems: 'stretch', gap: '0',
                     borderRadius: '10px', cursor: 'pointer',
                     background: selected ? 'rgba(163,177,138,0.12)' : '#FAFAFA',
-                    border: selected ? '1.5px solid #A3B18A' : '1.5px solid #E4E4E7',
+                    border: selected ? '1.5px solid var(--pl-olive)' : '1.5px solid #E4E4E7',
                     overflow: 'hidden', boxSizing: 'border-box', width: '100%',
                     transition: 'border-color 0.12s',
                   }}
@@ -289,7 +289,7 @@ export default function FontPicker({
                     <div style={{ display: 'flex', gap: '3px', marginTop: '2px' }}>
                       <span style={{
                         fontSize: '0.57rem', fontWeight: 600, letterSpacing: '0.06em',
-                        textTransform: 'uppercase', color: '#A3B18A',
+                        textTransform: 'uppercase', color: 'var(--pl-olive)',
                         background: 'rgba(163,177,138,0.12)', padding: '1px 5px',
                         borderRadius: '3px',
                       }}>
@@ -318,7 +318,7 @@ export default function FontPicker({
                           transition={{ type: 'spring', stiffness: 400, damping: 22 }}
                           style={{
                             width: '20px', height: '20px', borderRadius: '50%',
-                            background: '#A3B18A', display: 'flex',
+                            background: 'var(--pl-olive)', display: 'flex',
                             alignItems: 'center', justifyContent: 'center',
                           }}
                         >
@@ -375,7 +375,7 @@ export default function FontPicker({
                         justifyContent: 'space-between', padding: '8px 10px',
                         borderRadius: '7px', cursor: 'pointer',
                         background: isActive ? 'rgba(163,177,138,0.12)' : 'transparent',
-                        border: isActive ? '1px solid #A3B18A' : '1px solid transparent',
+                        border: isActive ? '1px solid var(--pl-olive)' : '1px solid transparent',
                         transition: 'all 0.1s', width: '100%', boxSizing: 'border-box',
                       }}
                     >
@@ -390,7 +390,7 @@ export default function FontPicker({
                       {isActive && (
                         <div style={{
                           width: '16px', height: '16px', borderRadius: '50%',
-                          background: '#A3B18A', display: 'flex',
+                          background: 'var(--pl-olive)', display: 'flex',
                           alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                         }}>
                           <Check size={8} color="#fff" strokeWidth={3} />

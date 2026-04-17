@@ -200,7 +200,7 @@ export function CanvasInlineFormatBar({
               padding: '3px 6px', height: '22px',
               fontSize: '11px', fontWeight: 600,
               background: activeSize === s.id ? 'rgba(163,177,138,0.3)' : 'transparent',
-              color: activeSize === s.id ? '#A3B18A' : 'rgba(255,255,255,0.5)',
+              color: activeSize === s.id ? 'var(--pl-olive)' : 'rgba(255,255,255,0.5)',
               border: activeSize === s.id ? '1px solid rgba(163,177,138,0.4)' : '1px solid transparent',
             }}
           >
@@ -226,7 +226,7 @@ export function CanvasInlineFormatBar({
               width: '16px', height: '16px', borderRadius: '50%', padding: 0,
               background: c.value,
               border: activeColor === c.value
-                ? '2px solid #A3B18A'
+                ? '2px solid var(--pl-olive)'
                 : c.value === '#ffffff' ? '1.5px solid rgba(255,255,255,0.3)' : '1.5px solid rgba(255,255,255,0.1)',
               boxShadow: activeColor === c.value ? '0 0 0 1px rgba(163,177,138,0.5)' : 'none',
             }}

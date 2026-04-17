@@ -105,11 +105,12 @@ export function AnnouncementsPanel({ siteId }: { siteId: string }) {
   const remaining = 1000 - body.length;
 
   return (
-    <div style={{ fontFamily: 'Inter, system-ui, sans-serif', padding: '1rem' }}>
+    <div style={{ fontFamily: 'var(--pl-font-body)', padding: '1rem' }}>
       <h3 style={{
         margin: 0,
         marginBottom: '1rem',
-        fontFamily: 'Playfair Display, serif',
+        fontFamily: 'var(--pl-font-display)',
+        fontStyle: 'italic',
         fontSize: '1.25rem',
       }}>
         Day-of announcements

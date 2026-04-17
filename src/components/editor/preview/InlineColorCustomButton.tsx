@@ -139,7 +139,7 @@ export function InlineColorCustomButton({
           borderRadius: '50%',
           background: swatchBg,
           border: ringActive
-            ? '2px solid #A3B18A'
+            ? '2px solid var(--pl-olive)'
             : '1.5px solid rgba(255,255,255,0.3)',
           boxShadow: ringActive ? '0 0 0 1px rgba(163,177,138,0.5)' : 'none',
           cursor: 'pointer',
@@ -196,7 +196,7 @@ export function InlineColorCustomButton({
                   <input
                     type="range" min={0} max={100} value={hsl[1]}
                     onChange={(e) => updateFromHSL(hsl[0], parseInt(e.target.value, 10), hsl[2])}
-                    style={{ width: '100%', accentColor: '#A3B18A', marginTop: 4 }}
+                    style={{ width: '100%', accentColor: 'var(--pl-olive)', marginTop: 4 }}
                   />
                 </div>
                 <div style={{ flex: 1 }}>
@@ -204,7 +204,7 @@ export function InlineColorCustomButton({
                   <input
                     type="range" min={0} max={100} value={hsl[2]}
                     onChange={(e) => updateFromHSL(hsl[0], hsl[1], parseInt(e.target.value, 10))}
-                    style={{ width: '100%', accentColor: '#A3B18A', marginTop: 4 }}
+                    style={{ width: '100%', accentColor: 'var(--pl-olive)', marginTop: 4 }}
                   />
                 </div>
               </div>

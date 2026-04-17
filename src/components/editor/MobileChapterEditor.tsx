@@ -330,7 +330,7 @@ export function MobileChapterEditor({
                 background: 'rgba(255,255,255,0.025)',
                 outline: 'none',
                 resize: 'none',
-                fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
+                fontFamily: 'var(--pl-font-body)',
                 fontSize: '0.97rem',
                 lineHeight: 1.75,
                 color: '#3F3F46',

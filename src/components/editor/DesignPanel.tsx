@@ -1920,7 +1920,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               color: 'var(--pl-chrome-accent-ink)',
               marginBottom: '6px',
             }}>
-              Plate · Awaiting
+              Awaiting preview
             </div>
             <div style={{
               fontFamily: panelFont.display,

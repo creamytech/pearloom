@@ -267,7 +267,7 @@ export function EditorialHero({ onGetStarted }: EditorialHeroProps) {
                 color: 'var(--pl-muted)',
               }}
             >
-              <span>Plate I — Event HQ</span>
+              <span>Event HQ</span>
               <span style={{ display: 'inline-flex', gap: 5 }}>
                 <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--pl-plum)' }} />
                 <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--pl-gold)' }} />

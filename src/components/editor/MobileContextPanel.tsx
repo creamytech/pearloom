@@ -754,7 +754,7 @@ function ChapterSettings({
               ...inp,
               resize: 'vertical',
               lineHeight: 1.65,
-              fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
+              fontFamily: 'var(--pl-font-body)',
             }}
           />
         </div>

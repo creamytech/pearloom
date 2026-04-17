@@ -524,7 +524,7 @@ function PearSuggestCard({ site }: { site: EventHQSite }) {
           background: 'var(--pl-gold)',
         }}
       />
-      {/* Folio corner */}
+      {/* Corner tag */}
       <span
         style={{
           position: 'absolute',

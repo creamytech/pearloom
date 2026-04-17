@@ -65,9 +65,9 @@ export function VoiceToastsPanel({ siteId }: { siteId: string }) {
   };
 
   return (
-    <div style={{ fontFamily: 'Inter, system-ui, sans-serif', padding: '1rem' }}>
+    <div style={{ fontFamily: 'var(--pl-font-body)', padding: '1rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h3 style={{ margin: 0, fontFamily: 'Playfair Display, serif', fontSize: '1.25rem' }}>Voice toasts</h3>
+        <h3 style={{ margin: 0, fontFamily: 'var(--pl-font-display)', fontStyle: 'italic', fontSize: '1.25rem' }}>Voice toasts</h3>
         <div style={{ display: 'flex', gap: '0.25rem' }}>
           {(['pending', 'approved', 'rejected'] as Tab[]).map((t) => (
             <button

@@ -105,7 +105,7 @@ function buildContextCommands(hints: NonNullable<CommandPaletteProps['contextHin
       label: 'AI rewrite this field',
       description: `Pear will polish the ${describePath(focusedFieldPath)} in place`,
       icon: Sparkles,
-      iconColor: '#A3B18A',
+      iconColor: 'var(--pl-olive)',
       group: 'In context',
       action: { type: 'pear', prompt: `Rewrite the ${describePath(focusedFieldPath)} to match the site's tone. Keep names and dates exact.` },
     });
@@ -117,7 +117,7 @@ function buildContextCommands(hints: NonNullable<CommandPaletteProps['contextHin
       label: `AI rewrite "${activeChapterTitle}"`,
       description: 'Polish this chapter while keeping facts intact',
       icon: Sparkles,
-      iconColor: '#A3B18A',
+      iconColor: 'var(--pl-olive)',
       group: 'In context',
       action: { type: 'pear', prompt: `Rewrite the "${activeChapterTitle}" chapter with warmer, more evocative prose. Keep names, dates, and the core storyline. Use the update_chapter action on chapter ${activeChapterId}.` },
     });

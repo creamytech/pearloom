@@ -2404,7 +2404,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                       {fmt.preview === 'cascade' && (
                         <>
                           <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
-                            <div style={{ width: '28px', height: '14px', borderRadius: '2px', background: active ? '#A3B18A' : 'var(--pl-divider, #E6DFD2)', flexShrink: 0 }} />
+                            <div style={{ width: '28px', height: '14px', borderRadius: '2px', background: active ? 'var(--pl-olive)' : 'var(--pl-divider, #E6DFD2)', flexShrink: 0 }} />
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', justifyContent: 'center' }}>
                               <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#bbb' }} />
                               <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#bbb', width: '70%' }} />
@@ -2415,7 +2415,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                               <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#bbb' }} />
                               <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#bbb', width: '60%' }} />
                             </div>
-                            <div style={{ width: '28px', height: '14px', borderRadius: '2px', background: active ? '#A3B18A' : 'var(--pl-divider, #E6DFD2)', flexShrink: 0 }} />
+                            <div style={{ width: '28px', height: '14px', borderRadius: '2px', background: active ? 'var(--pl-olive)' : 'var(--pl-divider, #E6DFD2)', flexShrink: 0 }} />
                           </div>
                         </>
                       )}
@@ -2435,7 +2435,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                       {fmt.preview === 'scrapbook' && (
                         <>
                           <div style={{ position: 'absolute', left: '6px', top: '5px', width: '28px', height: '32px', background: active ? '#C4D4A8' : '#ddd', borderRadius: '1px', transform: 'rotate(-5deg)', boxShadow: '1px 2px 4px rgba(0,0,0,0.15)' }}>
-                            <div style={{ width: '100%', height: '22px', background: active ? '#A3B18A' : 'var(--pl-divider, #E6DFD2)', borderRadius: '1px 1px 0 0' }} />
+                            <div style={{ width: '100%', height: '22px', background: active ? 'var(--pl-olive)' : 'var(--pl-divider, #E6DFD2)', borderRadius: '1px 1px 0 0' }} />
                           </div>
                           <div style={{ position: 'absolute', right: '6px', top: '8px', width: '26px', height: '30px', background: active ? '#D6C6A8' : '#e8e8e8', borderRadius: '1px', transform: 'rotate(4deg)', boxShadow: '1px 2px 4px rgba(0,0,0,0.12)' }}>
                             <div style={{ width: '100%', height: '20px', background: active ? '#C4B490' : '#d0d0d0', borderRadius: '1px 1px 0 0' }} />
@@ -2445,7 +2445,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                       {fmt.preview === 'magazine' && (
                         <>
                           <div style={{ display: 'flex', gap: '4px', height: '40px' }}>
-                            <div style={{ width: '36px', height: '100%', background: active ? '#A3B18A' : 'var(--pl-divider, #E6DFD2)', borderRadius: '2px' }} />
+                            <div style={{ width: '36px', height: '100%', background: active ? 'var(--pl-olive)' : 'var(--pl-divider, #E6DFD2)', borderRadius: '2px' }} />
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '3px', justifyContent: 'center' }}>
                               <div style={{ height: '4px', borderRadius: 1, background: active ? 'var(--pl-olive-deep)' : 'var(--pl-muted)' }} />
                               <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#ccc' }} />
@@ -2458,7 +2458,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                       {fmt.preview === 'chapters' && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', padding: '2px' }}>
                           {[{ w: '100%', open: true }, { w: '80%', open: false }, { w: '70%', open: false }].map((c, i) => (
-                            <div key={i} style={{ width: c.w, height: c.open ? '14px' : '8px', borderRadius: '2px', background: c.open ? (active ? '#A3B18A' : '#bbb') : (active ? 'rgba(163,177,138,0.35)' : 'rgba(0,0,0,0.07)'), transition: 'all 0.2s' }} />
+                            <div key={i} style={{ width: c.w, height: c.open ? '14px' : '8px', borderRadius: '2px', background: c.open ? (active ? 'var(--pl-olive)' : '#bbb') : (active ? 'rgba(163,177,138,0.35)' : 'rgba(0,0,0,0.07)'), transition: 'all 0.2s' }} />
                           ))}
                         </div>
                       )}
