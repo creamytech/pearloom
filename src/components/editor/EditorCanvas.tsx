@@ -14,6 +14,8 @@ import { useEditor, type DeviceMode } from '@/lib/editor-state';
 import { SiteRenderer } from './SiteRenderer';
 import { PearTextRewrite } from './PearTextRewrite';
 import { InlineRewriteLauncher } from './InlineRewriteLauncher';
+import { BlockPresetPicker, type PendingBlock } from './BlockPresetPicker';
+import type { BlockPreset } from './block-presets';
 import { SlashMenu } from './SlashMenu';
 import { UndoChip } from './UndoChip';
 import { SuggestionBadges } from './SuggestionBadges';
@@ -76,6 +78,9 @@ export function EditorCanvas() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const zoom = previewZoom || 1;
   const [isPanning, setIsPanning] = useState(false);
+  // Block insertion gets intercepted by the preset picker — we hold the
+  // pending block here until the user picks a variant (or skips).
+  const [pendingBlock, setPendingBlock] = useState<PendingBlock | null>(null);
   const [undoToast, setUndoToast] = useState<string | null>(null);
   // Action attached to the current toast (e.g. "Undo" after chapter delete).
   const [undoToastAction, setUndoToastAction] = useState<{ label: string; onClick: () => void } | null>(null);
@@ -1061,20 +1066,36 @@ export function EditorCanvas() {
     return () => window.removeEventListener('pearloom-art-edit', onArtEdit);
   }, [actions, coupleNames, showPlainToast]);
 
-  // ── Block drop → insert at position ──────────────────────
+  // ── Block drop → queue for preset picker ─────────────────
+  // The preset picker modal shows 3 variants (Minimalist / Cinematic /
+  // Playful) for the block type, then calls commitPendingBlock with
+  // the chosen preset (or null if the user hits "Skip").
   const handleBlockDrop = useCallback((blockType: string, position: number) => {
-    const blocks = manifest.blocks || [];
-    const newBlock = {
-      id: makeBlockId(`block-${blockType}`),
-      type: blockType as BlockType,
-      order: position,
-      visible: true,
-    };
-    const updated = [...blocks];
-    updated.splice(position, 0, newBlock);
-    const sorted = updated.map((b, i) => ({ ...b, order: i }));
-    actions.handleDesignChange({ ...manifest, blocks: sorted });
-  }, [manifest, actions]);
+    setPendingBlock({ blockType, position });
+  }, []);
+
+  // Actually commit the pending block once the preset picker closes.
+  const commitPendingBlock = useCallback((preset: BlockPreset | null) => {
+    setPendingBlock((current) => {
+      if (!current) return null;
+      const blocks = manifestRef.current?.blocks || [];
+      const newBlock: PageBlock = {
+        id: makeBlockId(`block-${current.blockType}`),
+        type: current.blockType as BlockType,
+        order: current.position,
+        visible: true,
+        ...(preset ? { config: { ...preset.config } } : {}),
+      };
+      const updated = [...blocks];
+      updated.splice(current.position, 0, newBlock);
+      const sorted = updated.map((b, i) => ({ ...b, order: i }));
+      const currentManifest = manifestRef.current;
+      if (currentManifest) {
+        actions.handleDesignChange({ ...currentManifest, blocks: sorted });
+      }
+      return null;
+    });
+  }, [actions]);
 
   return (
     <div
@@ -1099,6 +1120,16 @@ export function EditorCanvas() {
           with PearTextRewrite (selection-based) so the user has both
           an "edit the whole thing" and an "edit this phrase" entry. */}
       <InlineRewriteLauncher />
+
+      {/* Block preset picker — intercepts the "add a block" flow to
+          offer 3 visual variants (Minimalist / Cinematic / Playful)
+          before committing the insert. Closing/skipping falls back
+          to the default config. */}
+      <BlockPresetPicker
+        pending={pendingBlock}
+        onPick={commitPendingBlock}
+        onClose={() => setPendingBlock(null)}
+      />
 
       {/* Slash-menu — Notion-style insert popover for editable text fields.
           Opens on "/" typed inside any [data-pe-editable][contenteditable]. */}
