@@ -16,7 +16,7 @@
 
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Link2, Check, Calendar, Image as ImageIcon, Send } from 'lucide-react';
+import { Download, Link2, Check, Calendar, Image as ImageIcon, Send, Clock } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import { buildSiteUrl } from '@/lib/site-urls';
 import { logEditorError } from '@/lib/editor-log';
@@ -263,6 +263,8 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
   const [copied, setCopied] = useState(false);
   const [sending, setSending] = useState(false);
   const [customMessage, setCustomMessage] = useState('');
+  const [sharing, setSharing] = useState(false);
+  const [sharedUrl, setSharedUrl] = useState<string | null>(null);
 
   const variant = useMemo(
     () => VARIANTS.find((v) => v.id === variantId) ?? VARIANTS[0],
@@ -342,6 +344,38 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
       logEditorError('SaveTheDatePanel: copy link', err);
     }
   }, [subdomain, manifest.occasion]);
+
+  // Mint a 24-hour shareable preview URL via /api/preview so the
+  // user can send the current draft to a partner/vendor for a
+  // look before any guests receive a real invitation.
+  const handleShare24h = useCallback(async () => {
+    setSharing(true);
+    try {
+      const siteId =
+        (manifest as unknown as { coupleId?: string }).coupleId ||
+        (manifest as unknown as { subdomain?: string }).subdomain ||
+        subdomain;
+      const res = await fetch('/api/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId, manifest, ttlHours: 24 }),
+      });
+      if (!res.ok) throw new Error('preview mint failed');
+      const { previewUrl } = await res.json();
+      if (previewUrl) {
+        setSharedUrl(previewUrl);
+        try {
+          await navigator.clipboard.writeText(previewUrl);
+        } catch {
+          /* user can still click link */
+        }
+      }
+    } catch (err) {
+      logEditorError('SaveTheDatePanel: share 24h preview', err);
+    } finally {
+      setSharing(false);
+    }
+  }, [manifest, subdomain]);
 
   // Hand off to the bulk-email flow. The Guests panel listens
   // for `pearloom:send-save-the-date` and opens its bulk modal.
@@ -568,6 +602,51 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
               {copied ? 'Copied' : 'Link'}
             </motion.button>
           </div>
+
+          {/* 24h preview share */}
+          <motion.button
+            onClick={handleShare24h}
+            disabled={sharing}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: 10,
+              borderRadius: 8,
+              border: '1px dashed #B8935A',
+              background: 'rgba(184,147,90,0.08)',
+              color: '#8C6E3D',
+              cursor: sharing ? 'wait' : 'pointer',
+              fontSize: panelText.hint,
+              fontWeight: panelWeight.bold,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+            }}
+          >
+            <Clock size={12} />
+            {sharing ? 'Minting…' : 'Share 24-hour preview'}
+          </motion.button>
+
+          {sharedUrl && (
+            <div
+              style={{
+                padding: '10px 12px',
+                borderRadius: 8,
+                background: 'rgba(184,147,90,0.06)',
+                border: '1px solid rgba(184,147,90,0.25)',
+                fontSize: panelText.hint,
+                color: '#3F3F46',
+                wordBreak: 'break-all',
+                fontFamily: 'var(--pl-font-mono, monospace)',
+              }}
+            >
+              Copied to clipboard · expires in 24h
+              <div style={{ marginTop: 4, color: '#8C6E3D' }}>{sharedUrl}</div>
+            </div>
+          )}
         </div>
       </PanelSection>
     </PanelRoot>
