@@ -1,8 +1,9 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// PearCalendar — Beautiful inline date picker for the wizard
-// Organic Glass design, month navigation, quick presets
+// PearCalendar — Editorial almanac date picker for the wizard.
+// Cream plate, gold hairlines, ink day discs. Month navigation
+// via square chevron buttons; quick presets as mono-cap plates.
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useMemo } from 'react';
@@ -15,6 +16,9 @@ interface PearCalendarProps {
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DAYS = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+const FONT_DISPLAY = 'var(--pl-font-display, "Fraunces", serif)';
+const FONT_MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
 
 function daysInMonth(year: number, month: number): number {
   return new Date(year, month + 1, 0).getDate();
@@ -93,99 +97,258 @@ export function PearCalendar({ onSelect, dark = false }: PearCalendarProps) {
     return formatDate(d.getFullYear(), d.getMonth(), d.getDate());
   })();
 
-  // Colors
-  const textColor = dark ? '#FAF7F2' : 'var(--pl-ink-soft, #3D3530)';
-  const mutedColor = dark ? 'rgba(250,247,242,0.5)' : 'var(--pl-muted, #8C7E72)';
-  const cellBg = dark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.4)';
-  const cellHover = dark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.7)';
-  const pillBg = dark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.5)';
-  const pillBorder = dark ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(255,255,255,0.5)';
+  // Editorial palette
+  const textColor = dark ? '#FAF7F2' : '#18181B';
+  const mutedColor = dark ? 'rgba(250,247,242,0.55)' : '#52525B';
+  const ruleColor = dark ? 'rgba(212,175,55,0.55)' : 'rgba(184,147,90,0.55)';
+  const kickerColor = dark ? 'rgba(212,175,55,0.85)' : 'rgba(184,147,90,0.85)';
+  const plateBorder = dark ? 'rgba(212,175,55,0.32)' : 'rgba(184,147,90,0.3)';
+  const plateBg = dark
+    ? 'rgba(22,16,6,0.35)'
+    : 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)';
+  const chipBg = dark ? 'rgba(22,16,6,0.4)' : 'rgba(250,247,242,0.65)';
+  const chipBorder = dark ? '1px solid rgba(212,175,55,0.38)' : '1px solid rgba(184,147,90,0.38)';
+  const activeInk = dark ? '#FAF7F2' : '#18181B';
+  const activeFg = dark ? '#18181B' : '#FAF7F2';
 
   return (
     <div>
-      {/* Quick presets */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
+      {/* Presets — editorial plates */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '0 2px 8px',
+      }}>
+        <span style={{
+          fontFamily: FONT_MONO,
+          fontSize: 8.5,
+          fontWeight: 700,
+          letterSpacing: '0.3em',
+          textTransform: 'uppercase',
+          color: kickerColor,
+        }}>
+          Shortcuts · quick dates
+        </span>
+        <span style={{ flex: 1, height: 1, background: ruleColor, opacity: 0.5 }} />
+      </div>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+        gap: 6,
+        marginBottom: 14,
+      }}>
         {[
-          { label: 'This weekend', value: thisWeekend },
-          { label: 'Next month', value: nextMonthDate },
-          { label: 'In 3 months', value: threeMonths },
-        ].map(p => (
-          <button
-            key={p.label}
-            onClick={() => {
-              setSelected(p.value);
-              const d = new Date(p.value + 'T12:00:00');
-              setViewYear(d.getFullYear());
-              setViewMonth(d.getMonth());
-            }}
-            style={{
-              padding: '7px 16px', borderRadius: 100,
-              background: selected === p.value ? 'var(--pl-olive, #A3B18A)' : pillBg,
-              border: selected === p.value ? '1px solid var(--pl-olive)' : pillBorder,
-              fontSize: '0.78rem', fontWeight: 600,
-              color: selected === p.value ? '#fff' : textColor,
-              cursor: 'pointer', transition: 'all 0.2s',
-            }}
-          >
-            {p.label}
-          </button>
-        ))}
+          { label: 'This Weekend', value: thisWeekend, folio: '01' },
+          { label: 'Next Month', value: nextMonthDate, folio: '02' },
+          { label: 'In Three Months', value: threeMonths, folio: '03' },
+        ].map(p => {
+          const active = selected === p.value;
+          return (
+            <button
+              key={p.label}
+              onClick={() => {
+                setSelected(p.value);
+                const d = new Date(p.value + 'T12:00:00');
+                setViewYear(d.getFullYear());
+                setViewMonth(d.getMonth());
+              }}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: 4,
+                padding: '8px 10px',
+                borderRadius: 2,
+                background: active ? activeInk : chipBg,
+                border: active ? `1px solid ${activeInk}` : chipBorder,
+                borderTop: active
+                  ? `1.5px solid ${dark ? 'rgba(212,175,55,0.95)' : 'rgba(184,147,90,0.95)'}`
+                  : `1.5px solid ${ruleColor}`,
+                boxShadow: active ? '0 0 0 3px rgba(184,147,90,0.22)' : 'none',
+                cursor: 'pointer',
+                fontFamily: FONT_MONO,
+                textAlign: 'left',
+                transition: 'background 180ms ease, box-shadow 180ms ease',
+              }}
+            >
+              <span style={{
+                fontSize: 8,
+                fontWeight: 700,
+                letterSpacing: '0.28em',
+                color: active
+                  ? (dark ? 'rgba(22,16,6,0.7)' : 'rgba(250,247,242,0.75)')
+                  : kickerColor,
+              }}>
+                № {p.folio}
+              </span>
+              <span style={{
+                fontSize: 9.5,
+                fontWeight: 700,
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                color: active ? activeFg : textColor,
+                lineHeight: 1.15,
+              }}>
+                {p.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Calendar */}
+      {/* Almanac plate */}
       <div style={{
-        borderRadius: 18, overflow: 'hidden',
-        background: dark ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.45)',
-        backdropFilter: 'blur(16px)',
-        border: dark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.5)',
-        padding: '16px 12px',
-      } as React.CSSProperties}>
+        borderRadius: 2,
+        overflow: 'hidden',
+        background: plateBg,
+        borderTop: `1.5px solid ${ruleColor}`,
+        borderLeft: `1px solid ${plateBorder}`,
+        borderRight: `1px solid ${plateBorder}`,
+        borderBottom: `1px solid ${plateBorder}`,
+        padding: '14px 14px 16px',
+        boxShadow: dark ? 'none' : '0 1px 0 rgba(184,147,90,0.04)',
+      }}>
+        {/* Masthead */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '0 2px 10px',
+          borderBottom: `1px solid ${ruleColor}`,
+          marginBottom: 10,
+        }}>
+          <span style={{
+            fontFamily: FONT_MONO,
+            fontSize: 8.5,
+            fontWeight: 700,
+            letterSpacing: '0.3em',
+            textTransform: 'uppercase',
+            color: kickerColor,
+          }}>
+            Almanac · pick a plate
+          </span>
+          <span style={{ flex: 1 }} />
+          <span style={{
+            fontFamily: FONT_MONO,
+            fontSize: 8.5,
+            fontWeight: 700,
+            letterSpacing: '0.28em',
+            color: kickerColor,
+          }}>
+            № {String(viewMonth + 1).padStart(2, '0')}
+          </span>
+        </div>
 
         {/* Month navigation */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, padding: '0 4px' }}>
-          <button onClick={prevMonth} style={{
-            width: 32, height: 32, borderRadius: '50%', border: 'none',
-            background: cellBg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: textColor, fontSize: '1rem', transition: 'background 0.15s',
-          }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 12,
+          padding: '0 2px',
+        }}>
+          <button
+            onClick={prevMonth}
+            aria-label="Previous month"
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: 2,
+              border: `1px solid ${plateBorder}`,
+              background: 'transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: textColor,
+              transition: 'background 180ms ease, border-color 180ms ease',
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background = dark
+                ? 'rgba(212,175,55,0.1)'
+                : 'rgba(184,147,90,0.08)';
+              (e.currentTarget as HTMLElement).style.borderColor = ruleColor;
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = 'transparent';
+              (e.currentTarget as HTMLElement).style.borderColor = plateBorder;
+            }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
 
           <AnimatePresence mode="wait">
             <motion.span
               key={`${viewYear}-${viewMonth}`}
-              initial={{ opacity: 0, x: direction * 20 }}
+              initial={{ opacity: 0, x: direction * 12 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: direction * -20 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, x: direction * -12 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
               style={{
-                fontFamily: 'var(--pl-font-heading)',
+                fontFamily: FONT_DISPLAY,
                 fontStyle: 'italic',
-                fontSize: '1.05rem',
+                fontSize: '1.2rem',
                 fontWeight: 400,
                 color: textColor,
+                letterSpacing: '-0.005em',
+                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
               }}
             >
-              {MONTHS[viewMonth]} {viewYear}
+              {MONTHS[viewMonth]} <span style={{ color: kickerColor }}>·</span> {viewYear}
             </motion.span>
           </AnimatePresence>
 
-          <button onClick={nextMonth} style={{
-            width: 32, height: 32, borderRadius: '50%', border: 'none',
-            background: cellBg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: textColor, fontSize: '1rem', transition: 'background 0.15s',
-          }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          <button
+            onClick={nextMonth}
+            aria-label="Next month"
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: 2,
+              border: `1px solid ${plateBorder}`,
+              background: 'transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: textColor,
+              transition: 'background 180ms ease, border-color 180ms ease',
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background = dark
+                ? 'rgba(212,175,55,0.1)'
+                : 'rgba(184,147,90,0.08)';
+              (e.currentTarget as HTMLElement).style.borderColor = ruleColor;
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = 'transparent';
+              (e.currentTarget as HTMLElement).style.borderColor = plateBorder;
+            }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
 
         {/* Day headers */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 4 }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(7, 1fr)',
+          gap: 2,
+          marginBottom: 6,
+          paddingBottom: 6,
+          borderBottom: `1px dashed ${ruleColor}`,
+        }}>
           {DAYS.map(d => (
             <div key={d} style={{
-              textAlign: 'center', fontSize: '0.68rem', fontWeight: 700,
-              color: mutedColor, textTransform: 'uppercase' as const,
-              letterSpacing: '0.05em', padding: '4px 0',
+              textAlign: 'center',
+              fontFamily: FONT_MONO,
+              fontSize: 8,
+              fontWeight: 700,
+              color: kickerColor,
+              textTransform: 'uppercase' as const,
+              letterSpacing: '0.2em',
+              padding: '4px 0',
             }}>
               {d}
             </div>
@@ -196,10 +359,10 @@ export function PearCalendar({ onSelect, dark = false }: PearCalendarProps) {
         <AnimatePresence mode="wait">
           <motion.div
             key={`${viewYear}-${viewMonth}`}
-            initial={{ opacity: 0, x: direction * 30 }}
+            initial={{ opacity: 0, x: direction * 20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: direction * -30 }}
-            transition={{ duration: 0.2 }}
+            exit={{ opacity: 0, x: direction * -20 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
             style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}
           >
             {grid.map((day, i) => {
@@ -219,25 +382,43 @@ export function PearCalendar({ onSelect, dark = false }: PearCalendarProps) {
                   style={{
                     width: '100%',
                     aspectRatio: '1',
-                    borderRadius: '50%',
-                    border: isToday && !isSelected ? `1.5px solid var(--pl-olive, #A3B18A)` : 'none',
-                    background: isSelected
-                      ? 'var(--pl-olive, #A3B18A)'
-                      : 'transparent',
+                    borderRadius: 2,
+                    border: isSelected
+                      ? `1px solid ${activeInk}`
+                      : isToday
+                        ? `1px dashed ${ruleColor}`
+                        : '1px solid transparent',
+                    background: isSelected ? activeInk : 'transparent',
                     color: isSelected
-                      ? '#fff'
+                      ? activeFg
                       : isPast
-                        ? (dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')
+                        ? (dark ? 'rgba(250,247,242,0.18)' : 'rgba(82,82,91,0.25)')
                         : textColor,
-                    fontSize: '0.82rem',
-                    fontWeight: isSelected || isToday ? 700 : 500,
+                    fontFamily: isSelected ? FONT_MONO : FONT_DISPLAY,
+                    fontStyle: isSelected ? 'normal' : 'italic',
+                    fontSize: isSelected ? '0.78rem' : '0.92rem',
+                    fontWeight: isSelected ? 700 : 400,
+                    letterSpacing: isSelected ? '0.1em' : '-0.005em',
+                    fontVariationSettings: isSelected ? 'normal' : '"opsz" 144, "SOFT" 80, "WONK" 1',
                     cursor: isPast ? 'default' : 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    transition: 'all 0.15s',
+                    transition: 'background 180ms ease, border-color 180ms ease',
                     padding: 0,
-                    fontFamily: 'inherit',
+                    boxShadow: isSelected ? '0 0 0 2px rgba(184,147,90,0.22)' : 'none',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected && !isPast) {
+                      (e.currentTarget as HTMLElement).style.background = dark
+                        ? 'rgba(212,175,55,0.1)'
+                        : 'rgba(184,147,90,0.08)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected && !isPast) {
+                      (e.currentTarget as HTMLElement).style.background = 'transparent';
+                    }
                   }}
                 >
                   {day}
@@ -255,25 +436,75 @@ export function PearCalendar({ onSelect, dark = false }: PearCalendarProps) {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
-            style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}
           >
-            <p style={{
-              textAlign: 'center', fontSize: '0.85rem', color: textColor, fontWeight: 600,
+            <div style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: 10,
+              padding: '8px 12px',
+              borderRadius: 2,
+              borderTop: `1.5px solid ${ruleColor}`,
+              borderLeft: `1px solid ${plateBorder}`,
+              borderRight: `1px solid ${plateBorder}`,
+              borderBottom: `1px solid ${plateBorder}`,
+              background: chipBg,
             }}>
-              {new Date(selected + 'T12:00:00').toLocaleDateString('en-US', {
-                weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
-              })}
-            </p>
+              <span style={{
+                fontFamily: FONT_MONO,
+                fontSize: 8.5,
+                fontWeight: 700,
+                letterSpacing: '0.3em',
+                textTransform: 'uppercase',
+                color: kickerColor,
+                flexShrink: 0,
+              }}>
+                Dated ·
+              </span>
+              <span style={{
+                fontFamily: FONT_DISPLAY,
+                fontStyle: 'italic',
+                fontSize: '1rem',
+                fontWeight: 400,
+                color: textColor,
+                letterSpacing: '-0.003em',
+                lineHeight: 1.15,
+                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                flex: 1,
+              }}>
+                {new Date(selected + 'T12:00:00').toLocaleDateString('en-US', {
+                  weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+                })}
+              </span>
+            </div>
             <button
               onClick={handleConfirm}
               style={{
-                width: '100%', padding: '14px 0', borderRadius: 100,
-                background: 'var(--pl-olive, #A3B18A)', border: 'none',
-                fontSize: '0.88rem', fontWeight: 700, color: '#fff', cursor: 'pointer',
-                transition: 'all 0.2s',
+                width: '100%',
+                padding: '14px 0',
+                borderRadius: 2,
+                background: activeInk,
+                color: activeFg,
+                border: 'none',
+                borderTop: `1.5px solid ${dark ? 'rgba(212,175,55,0.9)' : 'rgba(184,147,90,0.95)'}`,
+                fontFamily: FONT_MONO,
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                boxShadow: '0 0 0 3px rgba(184,147,90,0.22)',
+                transition: 'box-shadow 180ms ease',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 4px rgba(184,147,90,0.32)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px rgba(184,147,90,0.22)';
               }}
             >
-              Confirm date
+              Set the Date · ↵
             </button>
           </motion.div>
         )}
