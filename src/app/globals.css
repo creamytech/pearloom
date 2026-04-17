@@ -1620,3 +1620,61 @@ button:hover > .pl-palette-swatches > div {
     scroll-behavior: auto !important;
   }
 }
+
+/* ─── Mobile editor input safeguards ─────────────────────────────
+   Prevent iOS Safari's auto-zoom-on-focus by ensuring every text
+   input/textarea/select inside the mobile editor renders at >=16 px.
+   Only applies on touch viewports where the auto-zoom heuristic
+   actually fires.
+   ───────────────────────────────────────────────────────────── */
+@media (pointer: coarse) and (max-width: 820px) {
+  .pl-mobile-editor input[type="text"],
+  .pl-mobile-editor input[type="email"],
+  .pl-mobile-editor input[type="search"],
+  .pl-mobile-editor input[type="tel"],
+  .pl-mobile-editor input[type="url"],
+  .pl-mobile-editor input[type="number"],
+  .pl-mobile-editor input[type="date"],
+  .pl-mobile-editor input[type="time"],
+  .pl-mobile-editor input[type="datetime-local"],
+  .pl-mobile-editor input:not([type]),
+  .pl-mobile-editor textarea,
+  .pl-mobile-editor select {
+    font-size: 16px !important;
+  }
+  /* Bump every interactive control to a 44 × 44 minimum hit target. */
+  .pl-mobile-editor button,
+  .pl-mobile-editor [role="button"],
+  .pl-mobile-editor a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  /* Don't blow up icon-only chips inside dense rows. */
+  .pl-mobile-editor button.pl-mobile-chip,
+  .pl-mobile-editor [data-pl-chip="true"] {
+    min-height: 32px;
+    min-width: 32px;
+  }
+}
+
+/* Landscape phone — show a 'rotate to portrait' overlay since the
+   mobile editor sheet doesn't adapt to wide-but-short viewports. */
+@media (pointer: coarse) and (max-height: 480px) and (orientation: landscape) {
+  body[data-pl-editor="active"]::before {
+    content: "Rotate your phone to portrait to keep editing.";
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px;
+    background: var(--pl-cream, #F5EFE2);
+    color: var(--pl-ink, #18181B);
+    font-family: var(--pl-font-mono, ui-monospace, monospace);
+    font-size: 0.7rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+  }
+}

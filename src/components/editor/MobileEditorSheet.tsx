@@ -13,7 +13,7 @@ import {
   Pencil, Layers, MoreHorizontal, ArrowLeft,
   Undo2, Redo2, ExternalLink, MoreVertical,
   Users, Send, Mail, Mic, LayoutGrid, Globe, Gift,
-  Music, ShoppingBag, Heart, BarChart2,
+  Music, ShoppingBag, Heart, BarChart2, Sparkles,
 } from 'lucide-react';
 import { useEditor } from '@/lib/editor-state';
 import { SiteRenderer } from './SiteRenderer';
@@ -582,8 +582,39 @@ export function MobileEditorSheet() {
     }
   };
 
+  // Tag <body> so global CSS can detect we're inside the mobile editor
+  // (powers the iOS auto-zoom guard, 44 px tap-target floor, and the
+  // landscape rotate prompt).
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.body.setAttribute('data-pl-editor', 'active');
+    return () => {
+      document.body.removeAttribute('data-pl-editor');
+    };
+  }, []);
+
+  // Keyboard auto-scroll — when any input/textarea gains focus, slide
+  // the bottom sheet content so the active field sits above the iOS
+  // keyboard. Without this, tapping a field below the half-snap fold
+  // hides the input behind the soft keyboard.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handler = (e: FocusEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const tag = target.tagName;
+      if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') return;
+      // Wait a beat for the keyboard to render then scroll into view.
+      setTimeout(() => {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 240);
+    };
+    document.addEventListener('focusin', handler);
+    return () => document.removeEventListener('focusin', handler);
+  }, []);
+
   return (
-    <div style={{
+    <div className="pl-mobile-editor" style={{
       position: 'fixed', inset: 0, zIndex: 500,
       display: 'flex', flexDirection: 'column',
       background: 'var(--pl-cream-deep)',
@@ -680,6 +711,26 @@ export function MobileEditorSheet() {
                     { label: 'Undo', icon: Undo2, action: () => { actions.undo(); setShowMenu(false); }, disabled: !canUndo },
                     { label: 'Redo', icon: Redo2, action: () => { actions.redo(); setShowMenu(false); }, disabled: !canRedo },
                     { label: 'Preview', icon: ExternalLink, action: () => { actions.storePreviewForOpen(); setShowMenu(false); } },
+                    {
+                      label:
+                        typeof document !== 'undefined' &&
+                        document.body.getAttribute('data-pear-mode') === '1'
+                          ? 'Switch to Advanced'
+                          : 'Switch to Pear mode',
+                      icon: Sparkles,
+                      action: () => {
+                        const curr =
+                          typeof document !== 'undefined' &&
+                          document.body.getAttribute('data-pear-mode') === '1';
+                        try {
+                          localStorage.setItem('pearloom:pear-mode', curr ? '0' : '1');
+                        } catch {}
+                        if (typeof document !== 'undefined') {
+                          document.body.setAttribute('data-pear-mode', curr ? '0' : '1');
+                        }
+                        setShowMenu(false);
+                      },
+                    },
                     { label: 'Publish', icon: Send, action: () => { dispatch({ type: 'OPEN_PUBLISH' }); setShowMenu(false); } },
                   ].map(item => (
                     <button
@@ -797,6 +848,11 @@ export function MobileEditorSheet() {
         </AnimatePresence>
       </MobileBottomSheet>
 
+      {/* Mobile readiness chip — sits just above the bottom nav so the
+          publisher can see how far they are without opening the publish
+          drawer. Mirrors the 5-item desktop checklist. */}
+      <MobileReadinessChip onPublish={() => dispatch({ type: 'OPEN_PUBLISH' })} />
+
       {/* ── Bottom Navigation (3 tabs) ── */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
@@ -864,5 +920,99 @@ export function MobileEditorSheet() {
       </div>
 
     </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Tiny readiness chip that floats above the mobile bottom nav.
+// Mirrors the 5-item checklist in the desktop publish drawer so
+// users see 'X/5 ready' before they decide to publish.
+// ─────────────────────────────────────────────────────────────
+function MobileReadinessChip({ onPublish }: { onPublish: () => void }) {
+  const { manifest, coupleNames, state } = useEditor();
+
+  const checks = [
+    !!coupleNames?.[0]?.trim(),
+    !!(manifest?.logistics?.date || manifest?.events?.[0]?.date),
+    (manifest?.chapters?.length || 0) > 0,
+    (manifest?.chapters?.reduce((n, c) => n + (c.images?.length || 0), 0) || 0) > 0 ||
+      !!manifest?.coverPhoto ||
+      (manifest?.heroSlideshow?.filter(Boolean).length || 0) > 0,
+    !!manifest?.logistics?.rsvpDeadline,
+  ];
+  const ready = checks.filter(Boolean).length;
+  const total = checks.length;
+  const pct = (ready / total) * 100;
+  const isPublished = !!state.publishedUrl;
+  const allReady = ready === total;
+
+  if (isPublished) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={onPublish}
+      data-pl-chip="true"
+      style={{
+        position: 'fixed',
+        left: 12,
+        right: 12,
+        bottom: 'calc(env(safe-area-inset-bottom, 0px) + 60px)',
+        zIndex: 1290,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '8px 12px',
+        background: 'var(--pl-cream-card)',
+        border: '1px solid color-mix(in oklab, var(--pl-gold, #B8935A) 32%, transparent)',
+        borderRadius: 999,
+        boxShadow: '0 6px 20px rgba(40,28,12,0.08)',
+        cursor: 'pointer',
+        textAlign: 'left',
+      }}
+    >
+      <span
+        style={{
+          fontFamily: 'var(--pl-font-mono)',
+          fontSize: '0.58rem',
+          letterSpacing: '0.22em',
+          textTransform: 'uppercase',
+          fontWeight: 700,
+          color: allReady ? 'var(--pl-olive)' : 'var(--pl-gold)',
+        }}
+      >
+        {ready}/{total} ready
+      </span>
+      <div
+        style={{
+          flex: 1,
+          height: 3,
+          background: 'color-mix(in oklab, var(--pl-gold, #B8935A) 18%, transparent)',
+          borderRadius: 999,
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            width: `${pct}%`,
+            height: '100%',
+            background: allReady ? 'var(--pl-olive)' : 'var(--pl-gold)',
+            transition: 'width 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+        />
+      </div>
+      <span
+        style={{
+          fontFamily: 'var(--pl-font-mono)',
+          fontSize: '0.58rem',
+          letterSpacing: '0.22em',
+          textTransform: 'uppercase',
+          color: 'var(--pl-ink)',
+          fontWeight: 700,
+        }}
+      >
+        {allReady ? 'Publish →' : 'Review'}
+      </span>
+    </button>
   );
 }
