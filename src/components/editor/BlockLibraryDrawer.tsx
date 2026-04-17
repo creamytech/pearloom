@@ -392,8 +392,8 @@ export function BlockLibraryDrawer({
                 overflowY: 'auto',
                 padding: '16px 14px 18px',
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
-                gap: 10,
+                gridTemplateColumns: '1fr',
+                gap: 6,
                 alignContent: 'start',
                 background: 'var(--pl-chrome-bg)',
               }}
@@ -614,12 +614,15 @@ function BlockCard({
       onMouseLeave={() => setHovered(false)}
       title={block.description}
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        gap: 9,
-        padding: '14px 14px 13px',
-        borderRadius: 12,
+        // Horizontal card layout — icon-tile on the left, label + hint
+        // on the right. Eliminates the 'narrow column truncates everything'
+        // bug in the ALL tab where 25 cards squeezed labels off-screen.
+        display: 'grid',
+        gridTemplateColumns: '40px 1fr auto',
+        alignItems: 'center',
+        gap: 10,
+        padding: '10px 12px',
+        borderRadius: 10,
         border: `1px solid ${hovered || dragging ? accent : baseBorder}`,
         background: dragging
           ? `color-mix(in srgb, ${accent} 14%, var(--pl-chrome-surface))`
@@ -636,30 +639,14 @@ function BlockCard({
         boxShadow: hovered
           ? `0 10px 24px -16px color-mix(in srgb, ${accent} 50%, transparent)`
           : 'none',
+        width: '100%',
       }}
     >
-      {/* Gold index in the corner */}
-      <span
-        style={{
-          position: 'absolute',
-          top: 10,
-          right: 12,
-          fontFamily: panelFont.mono,
-          fontSize: 9,
-          fontWeight: panelWeight.bold,
-          letterSpacing: panelTracking.widest,
-          color: 'var(--pl-chrome-text-faint)',
-          lineHeight: 1,
-        }}
-      >
-        {String(index + 1).padStart(2, '0')}
-      </span>
-
       <div
         style={{
           width: 38,
           height: 38,
-          borderRadius: 10,
+          borderRadius: 8,
           background: `color-mix(in srgb, ${accent} 18%, transparent)`,
           border: `1px solid color-mix(in srgb, ${accent} 32%, transparent)`,
           display: 'inline-flex',
@@ -671,30 +658,54 @@ function BlockCard({
         <Icon size={17} color={accent} />
       </div>
 
-      <div
-        style={{
-          fontFamily: panelFont.display,
-          fontStyle: 'italic',
-          fontSize: '1.04rem',
-          fontWeight: panelWeight.regular,
-          color: 'var(--pl-chrome-text)',
-          letterSpacing: '-0.014em',
-          lineHeight: panelLineHeight.tight,
-        }}
-      >
-        {block.label}
+      <div style={{ minWidth: 0, overflow: 'hidden' }}>
+        <div
+          style={{
+            fontFamily: panelFont.display,
+            fontStyle: 'italic',
+            fontSize: '0.98rem',
+            fontWeight: panelWeight.regular,
+            color: 'var(--pl-chrome-text)',
+            letterSpacing: '-0.012em',
+            lineHeight: 1.2,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {block.label}
+        </div>
+        <div
+          style={{
+            fontFamily: panelFont.body,
+            fontSize: '0.68rem',
+            lineHeight: 1.3,
+            color: 'var(--pl-chrome-text-muted)',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            marginTop: 2,
+          }}
+        >
+          {block.description}
+        </div>
       </div>
 
-      <div
+      {/* Gold index — right column of the grid */}
+      <span
         style={{
-          fontFamily: panelFont.body,
-          fontSize: panelText.hint,
-          lineHeight: panelLineHeight.snug,
-          color: 'var(--pl-chrome-text-muted)',
+          fontFamily: panelFont.mono,
+          fontSize: 9,
+          fontWeight: panelWeight.bold,
+          letterSpacing: panelTracking.widest,
+          color: 'var(--pl-chrome-text-faint)',
+          lineHeight: 1,
+          alignSelf: 'start',
+          paddingTop: 2,
         }}
       >
-        {block.description}
-      </div>
+        {String(index + 1).padStart(2, '0')}
+      </span>
 
       {existing && (
         <span

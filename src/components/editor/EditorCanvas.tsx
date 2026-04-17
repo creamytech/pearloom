@@ -1138,11 +1138,74 @@ export function EditorCanvas() {
     },
     [handleBlockDrop],
   );
-  const canvasAllowDrop = useCallback((e: React.DragEvent) => {
-    if (e.dataTransfer.types.includes('pearloom/block-type')) {
+  // Auto-scroll while dragging near viewport edges — users were
+  // getting 'stuck' unable to reach drop zones further down the
+  // canvas because the browser's native HTML5 drag doesn't scroll
+  // for you. We manually scroll the inner scroll container when
+  // the cursor is within 96px of the top/bottom.
+  const autoScrollRafRef = useRef<number | null>(null);
+  const autoScrollVelRef = useRef(0);
+  const startAutoScroll = useCallback(() => {
+    if (autoScrollRafRef.current) return;
+    const tick = () => {
+      const container = scrollContainerRef.current;
+      const v = autoScrollVelRef.current;
+      if (container && v !== 0) {
+        container.scrollBy({ top: v, behavior: 'auto' });
+      }
+      if (autoScrollVelRef.current !== 0) {
+        autoScrollRafRef.current = requestAnimationFrame(tick);
+      } else {
+        autoScrollRafRef.current = null;
+      }
+    };
+    autoScrollRafRef.current = requestAnimationFrame(tick);
+  }, []);
+
+  const canvasAllowDrop = useCallback(
+    (e: React.DragEvent) => {
+      if (!e.dataTransfer.types.includes('pearloom/block-type')) return;
       e.preventDefault();
       e.dataTransfer.dropEffect = 'copy';
-    }
+      // Auto-scroll math: within 96px of top → scroll up, bottom → scroll down.
+      const container = scrollContainerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const threshold = 96;
+      const maxSpeed = 24;
+      if (y < threshold) {
+        autoScrollVelRef.current = -Math.round(((threshold - y) / threshold) * maxSpeed);
+      } else if (y > rect.height - threshold) {
+        autoScrollVelRef.current = Math.round(
+          ((y - (rect.height - threshold)) / threshold) * maxSpeed,
+        );
+      } else {
+        autoScrollVelRef.current = 0;
+      }
+      if (autoScrollVelRef.current !== 0) startAutoScroll();
+    },
+    [startAutoScroll],
+  );
+
+  // Halt auto-scroll on any drag exit/drop/end event.
+  useEffect(() => {
+    const stop = () => {
+      autoScrollVelRef.current = 0;
+      if (autoScrollRafRef.current) {
+        cancelAnimationFrame(autoScrollRafRef.current);
+        autoScrollRafRef.current = null;
+      }
+    };
+    window.addEventListener('dragend', stop);
+    window.addEventListener('drop', stop);
+    window.addEventListener('pearloom-palette-drag-end', stop);
+    return () => {
+      window.removeEventListener('dragend', stop);
+      window.removeEventListener('drop', stop);
+      window.removeEventListener('pearloom-palette-drag-end', stop);
+      stop();
+    };
   }, []);
 
   return (
