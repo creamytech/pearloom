@@ -20,6 +20,7 @@ import type { CommandAction } from './CommandPalette';
 // ── Extracted components ──────────────────────────────────────
 import { EditorToolbar } from './EditorToolbar';
 import { CollabPresence } from './CollabPresence';
+import { SectionCommentsPanel } from './SectionCommentsPanel';
 import { useSession } from 'next-auth/react';
 import { useSiteRole } from '@/lib/use-site-role';
 import { EditorCanvas } from './EditorCanvas';
@@ -101,6 +102,19 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const { data: sessionData } = useSession();
   const collabSiteId = initialSubdomain || (manifest as unknown as { coupleId?: string })?.coupleId;
   const caps = useSiteRole({ subdomain: initialSubdomain });
+
+  // Section comments — opened via a CustomEvent from anywhere.
+  const [commentsFor, setCommentsFor] = useState<{ sectionId: string; label?: string } | null>(null);
+  useEffect(() => {
+    const onOpen = (e: Event) => {
+      const detail = (e as CustomEvent<{ sectionId?: string; label?: string }>).detail;
+      if (detail?.sectionId) {
+        setCommentsFor({ sectionId: detail.sectionId, label: detail.label });
+      }
+    };
+    window.addEventListener('pearloom:open-comments', onOpen);
+    return () => window.removeEventListener('pearloom:open-comments', onOpen);
+  }, []);
   // Panel open/collapsed lives in editor state (sidebarCollapsed) so the
   // toolbar and keyboard shortcuts can toggle it without prop drilling.
   const panelOpen = !state.sidebarCollapsed;
@@ -1658,6 +1672,17 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
           siteId={collabSiteId}
           userEmail={sessionData.user.email}
           userName={sessionData.user.name || undefined}
+        />
+      )}
+
+      {/* Section comments drawer */}
+      {commentsFor && collabSiteId && sessionData?.user?.email && (
+        <SectionCommentsPanel
+          siteId={collabSiteId}
+          sectionId={commentsFor.sectionId}
+          sectionLabel={commentsFor.label}
+          currentUserEmail={sessionData.user.email}
+          onClose={() => setCommentsFor(null)}
         />
       )}
 

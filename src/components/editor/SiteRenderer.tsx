@@ -9,7 +9,7 @@
 
 import React, { useMemo, useCallback, useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronUp, ChevronDown, Copy, Trash2, Eye, EyeOff, GripVertical, CalendarDays, Mail, Gift, Plane, HelpCircle, PenLine, Camera, Hand, Sparkles } from 'lucide-react';
+import { ChevronUp, ChevronDown, Copy, Trash2, Eye, EyeOff, GripVertical, CalendarDays, Mail, Gift, Plane, HelpCircle, PenLine, Camera, Hand, Sparkles, MessageSquare } from 'lucide-react';
 import { Hero } from '@/components/hero';
 // Timeline is kept only as a legacy fallback for the rare code path that
 // doesn't have manifest.blocks. New renders go through StorySection, which
@@ -643,6 +643,17 @@ const SectionOverlay = React.memo(function SectionOverlay({
             ...(index < total - 1
               ? [{ Icon: ChevronDown, action: 'moveDown' as const, label: 'Move down', handler: () => onBlockAction?.('moveDown', blockId) }]
               : []),
+            {
+              Icon: MessageSquare,
+              action: 'comment' as const,
+              label: 'Open section comments',
+              handler: () =>
+                window.dispatchEvent(
+                  new CustomEvent('pearloom:open-comments', {
+                    detail: { sectionId: blockId, label: def?.label || blockType },
+                  }),
+                ),
+            },
             { Icon: Copy, action: 'copy' as const, label: 'Copy block', handler: () => onBlockCopy?.(blockId) },
             { Icon: Camera, action: 'duplicate' as const, label: 'Duplicate block', handler: () => onBlockAction?.('duplicate', blockId) },
             { Icon: Trash2, action: 'delete' as const, label: 'Delete block', handler: () => setConfirmDelete(true), danger: true },
