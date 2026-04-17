@@ -8,8 +8,9 @@
 // screens or prefers-reduced-motion.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { Calendar, MapPin, Check } from 'lucide-react';
 import type { StoryManifest, WeddingEvent } from '@/types';
 import { InviteRsvpForm } from './InviteRsvpForm';
 
@@ -27,7 +28,6 @@ const INK = '#18181B';
 const INK_SOFT = '#3A332C';
 const MUTED = '#6F6557';
 const GOLD = '#B8935A';
-const GOLD_MIST = 'rgba(184,147,90,0.12)';
 const GOLD_RULE = 'rgba(184,147,90,0.28)';
 const CRIMSON = '#8B2D2D';
 
@@ -75,13 +75,15 @@ export function InviteReveal({
   // Skip envelope anim on mobile or prefers-reduced-motion.
   const skipEnvelope = prefersReduced || small;
   const [revealed, setRevealed] = useState(skipEnvelope);
+  const [calendarAdded, setCalendarAdded] = useState(false);
 
   useEffect(() => {
     if (skipEnvelope) {
       setRevealed(true);
       return;
     }
-    const t = setTimeout(() => setRevealed(true), 900);
+    // Auto-open after a beat, but user can tap to open sooner.
+    const t = setTimeout(() => setRevealed(true), 1800);
     return () => clearTimeout(t);
   }, [skipEnvelope]);
 
@@ -89,6 +91,7 @@ export function InviteReveal({
   const events = useMemo<WeddingEvent[]>(() => manifest?.events ?? [], [manifest]);
   const ceremony = events.find((e) => e.type === 'ceremony') ?? events[0];
   const headlineDate = ceremony?.date || logistics?.date;
+  const headlineTime = ceremony?.time || logistics?.time;
   const headlineVenue = ceremony?.venue || logistics?.venue;
   const headlineAddress = ceremony?.address || logistics?.venueAddress;
 
@@ -103,6 +106,63 @@ export function InviteReveal({
   const displayNames = coupleNames.filter(Boolean).join(' & ') || 'The Couple';
   const firstName = coupleNames[0] || '';
   const secondName = coupleNames[1] || '';
+
+  // ── Practical actions (calendar / directions) ─────────────
+  const icsHref = useMemo(() => {
+    if (!headlineDate) return null;
+    const eventName = ceremony?.name || `${displayNames}'s Celebration`;
+    const descLines = [
+      `Save the date for ${displayNames}`,
+      headlineVenue ? `Venue: ${headlineVenue}` : '',
+      headlineAddress ? `Address: ${headlineAddress}` : '',
+    ].filter(Boolean);
+    const dateStr = headlineDate.includes('T') ? headlineDate.slice(0, 10) : headlineDate;
+    const [y, m, d] = dateStr.split('-').map(Number);
+    if (!y || !m || !d) return null;
+    const pad = (n: number) => String(n).padStart(2, '0');
+
+    // Parse headline time if present; default to 16:00 local.
+    let hh = 16, mm = 0;
+    if (headlineTime) {
+      const t = headlineTime.trim().toUpperCase();
+      const m12 = t.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/);
+      const m24 = t.match(/^(\d{1,2}):(\d{2})$/);
+      if (m12) {
+        hh = parseInt(m12[1], 10);
+        mm = m12[2] ? parseInt(m12[2], 10) : 0;
+        if (m12[3] === 'AM' && hh === 12) hh = 0;
+        if (m12[3] === 'PM' && hh !== 12) hh += 12;
+      } else if (m24) {
+        hh = parseInt(m24[1], 10);
+        mm = parseInt(m24[2], 10);
+      }
+    }
+    const endHh = (hh + 3) % 24;
+    const dtStart = `${y}${pad(m)}${pad(d)}T${pad(hh)}${pad(mm)}00`;
+    const dtEnd = `${y}${pad(m)}${pad(d)}T${pad(endHh)}${pad(mm)}00`;
+    const esc = (s: string) => s.replace(/[,;\\]/g, ' ');
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Pearloom//Invitation//EN',
+      'BEGIN:VEVENT',
+      `UID:invite-${token}@pearloom.com`,
+      `DTSTART:${dtStart}`,
+      `DTEND:${dtEnd}`,
+      `SUMMARY:${esc(eventName)}`,
+      `LOCATION:${esc([headlineVenue, headlineAddress].filter(Boolean).join(', '))}`,
+      `DESCRIPTION:${esc(descLines.join(' \\n '))}`,
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+    return `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
+  }, [headlineDate, headlineTime, headlineVenue, headlineAddress, ceremony?.name, displayNames, token]);
+
+  const directionsHref = useMemo(() => {
+    const q = [headlineVenue, headlineAddress].filter(Boolean).join(', ');
+    if (!q) return null;
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+  }, [headlineVenue, headlineAddress]);
 
   return (
     <div
@@ -129,13 +189,16 @@ export function InviteReveal({
         }}
       />
 
-      {/* Envelope overlay — desktop + motion-ok only */}
+      {/* Envelope overlay — desktop + motion-ok only. Tap to open. */}
       <AnimatePresence>
         {!revealed && !skipEnvelope && (
-          <motion.div
+          <motion.button
             key="envelope"
+            type="button"
+            aria-label="Open invitation"
+            onClick={() => setRevealed(true)}
             initial={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.45 } }}
+            exit={{ opacity: 0, transition: { duration: 0.55 } }}
             style={{
               position: 'fixed',
               inset: 0,
@@ -144,26 +207,39 @@ export function InviteReveal({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              flexDirection: 'column',
+              gap: 24,
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              fontFamily: FONT_BODY,
             }}
           >
+            <motion.p
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              style={{
+                fontFamily: FONT_MONO,
+                fontSize: '0.6rem',
+                letterSpacing: '0.28em',
+                textTransform: 'uppercase',
+                color: MUTED,
+                margin: 0,
+              }}
+            >
+              An invitation for {guestName && guestName !== 'Guest' ? guestName : 'you'}
+            </motion.p>
             <motion.svg
               viewBox="0 0 220 140"
-              width={200}
-              height={128}
+              width={220}
+              height={140}
               initial={{ y: 10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              animate={{ y: [0, -4, 0] }}
+              transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+              style={{ opacity: 1 }}
             >
-              <rect
-                x="1"
-                y="36"
-                width="218"
-                height="102"
-                rx="2"
-                fill="none"
-                stroke={GOLD}
-                strokeWidth="1"
-              />
+              <rect x="1" y="36" width="218" height="102" rx="2" fill="#FFFFFF" stroke={GOLD} strokeWidth="1" />
               <motion.path
                 d="M 1 36 L 110 100 L 219 36"
                 fill="none"
@@ -171,11 +247,36 @@ export function InviteReveal({
                 strokeWidth="1"
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
-                transition={{ duration: 0.7, delay: 0.1 }}
+                transition={{ duration: 0.8, delay: 0.1 }}
               />
-              <circle cx="110" cy="78" r="6" fill={CRIMSON} opacity="0.85" />
+              <circle cx="110" cy="78" r="7" fill={CRIMSON} opacity="0.9" />
+              <text
+                x="110"
+                y="82"
+                textAnchor="middle"
+                fontSize="7"
+                fontFamily={FONT_DISPLAY}
+                fontStyle="italic"
+                fill={CREAM}
+              >
+                {firstName && secondName ? `${firstName[0]}${secondName[0]}` : '✦'}
+              </text>
             </motion.svg>
-          </motion.div>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+              style={{
+                fontFamily: FONT_DISPLAY,
+                fontStyle: 'italic',
+                fontSize: '1rem',
+                color: INK_SOFT,
+                margin: 0,
+              }}
+            >
+              Tap to open
+            </motion.p>
+          </motion.button>
         )}
       </AnimatePresence>
 
@@ -206,7 +307,7 @@ export function InviteReveal({
             }}
           >
             <span style={{ width: 18, height: 1, background: GOLD }} />
-            Invitation · No. 01
+            An Invitation
             <span style={{ width: 18, height: 1, background: GOLD }} />
           </div>
         </header>
@@ -378,6 +479,73 @@ export function InviteReveal({
                 )}
               </>
             )}
+
+            {/* Practical actions — calendar + directions */}
+            {(icsHref || directionsHref) && (
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  justifyContent: 'center',
+                  gap: 8,
+                  marginTop: 22,
+                  paddingTop: 18,
+                  borderTop: `1px solid ${GOLD_RULE}`,
+                }}
+              >
+                {icsHref && (
+                  <a
+                    href={icsHref}
+                    download={`invite-${token}.ics`}
+                    onClick={() => setCalendarAdded(true)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '9px 14px',
+                      border: `1px solid ${GOLD_RULE}`,
+                      background: CREAM,
+                      color: INK,
+                      textDecoration: 'none',
+                      fontFamily: FONT_MONO,
+                      fontSize: '0.6rem',
+                      letterSpacing: '0.2em',
+                      textTransform: 'uppercase',
+                      borderRadius: 2,
+                      transition: 'background 0.18s ease, border-color 0.18s ease',
+                    }}
+                  >
+                    {calendarAdded ? <Check size={12} color={GOLD} /> : <Calendar size={12} />}
+                    {calendarAdded ? 'Added' : 'Add to calendar'}
+                  </a>
+                )}
+                {directionsHref && (
+                  <a
+                    href={directionsHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '9px 14px',
+                      border: `1px solid ${GOLD_RULE}`,
+                      background: CREAM,
+                      color: INK,
+                      textDecoration: 'none',
+                      fontFamily: FONT_MONO,
+                      fontSize: '0.6rem',
+                      letterSpacing: '0.2em',
+                      textTransform: 'uppercase',
+                      borderRadius: 2,
+                    }}
+                  >
+                    <MapPin size={12} />
+                    Directions
+                  </a>
+                )}
+              </div>
+            )}
           </section>
         )}
 
@@ -496,7 +664,7 @@ export function InviteReveal({
           />
         </section>
 
-        {/* Footer colophon */}
+        {/* Footer signature */}
         <footer
           style={{
             marginTop: 64,
@@ -515,7 +683,7 @@ export function InviteReveal({
               margin: 0,
             }}
           >
-            Set in Fraunces &amp; Geist · Sent with Pearloom
+            Sent with Pearloom
           </p>
         </footer>
       </motion.main>
