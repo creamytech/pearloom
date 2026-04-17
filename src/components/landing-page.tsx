@@ -14,6 +14,7 @@ import { AuthModal } from '@/components/auth/AuthModal';
 
 import { MarketingNav } from './marketing/MarketingNav';
 import { EditorialHero } from './marketing/EditorialHero';
+import { SiteShowroom } from './marketing/SiteShowroom';
 import { EventOSPillars } from './marketing/EventOSPillars';
 import { SocialProofBar } from './marketing/SocialProofBar';
 import { TheLoomShowcase } from './marketing/TheLoomShowcase';
@@ -173,6 +174,9 @@ export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPage
 
       {/* ── Hero ───────────────────────────────────────────────── */}
       <EditorialHero onGetStarted={openAuth} />
+
+      {/* ── The showroom — six real sites the visitor can open ── */}
+      <SiteShowroom onGetStarted={openAuth} />
 
       {/* ── Social proof — slim band ───────────────────────────── */}
       <SocialProofBar />
