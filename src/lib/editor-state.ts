@@ -15,7 +15,7 @@ import type { CommandAction } from '@/components/editor/CommandPalette';
 
 // ── Types ──────────────────────────────────────────────────────
 export type DeviceMode = 'desktop' | 'tablet' | 'mobile';
-export type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas' | 'messaging' | 'analytics' | 'guests' | 'seating' | 'translate' | 'invite' | 'savethedate' | 'thankyou' | 'spotify' | 'vendors' | 'components' | 'history';
+export type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas' | 'messaging' | 'analytics' | 'guests' | 'seating' | 'translate' | 'invite' | 'savethedate' | 'thankyou' | 'spotify' | 'vendors' | 'components' | 'history' | 'media';
 
 export interface UndoHistoryEntry {
   label: string;

@@ -57,6 +57,7 @@ import { BlockLibraryDrawer } from './BlockLibraryDrawer';
 import { CustomCSSEditor } from './CustomCSSEditor';
 import { CustomizationPanel } from './CustomizationPanel';
 import { ComponentLibrary } from './ComponentLibrary';
+import { MediaLibraryPanel } from './MediaLibraryPanel';
 import { ActiveCuratorBadge } from '@/components/dashboard/CuratorAICard';
 import { trackPublish, trackEdit } from '@/lib/intelligence';
 import { WeddingPartyEditor } from './WeddingPartyEditor';
@@ -1248,6 +1249,10 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 
                 {state.activeTab === 'components' && (
                   <ComponentLibrary manifest={manifest} onChange={handleDesignChange} />
+                )}
+
+                {state.activeTab === 'media' && (
+                  <MediaLibraryPanel />
                 )}
 
                 {state.activeTab === 'history' && (

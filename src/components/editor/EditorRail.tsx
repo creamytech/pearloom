@@ -18,7 +18,7 @@ import {
   Type as TypeIcon, Brush,
   Mail, MessageSquare, Heart,
   Globe, History,
-  Plus,
+  Plus, Image as ImageIcon,
 } from 'lucide-react';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
 import { TAB_TIER, TIER_META, type PlanTier } from '@/lib/plan-tiers';
@@ -71,9 +71,10 @@ const WORKSPACES: Workspace[] = [
     defaultTab: 'design',
     description: 'Palette, type, blocks, components',
     tabs: [
-      { id: 'design',     tab: 'design',     Icon: Brush,    label: 'Theme',       description: 'Palette · radius · vibe', shortcut: '⌘3' },
-      { id: 'blocks',     tab: 'blocks',     Icon: Sparkles, label: 'Pear blocks', description: 'AI section presets' },
-      { id: 'components', tab: 'components', Icon: TypeIcon, label: 'Components',  description: 'Saved blocks & motifs' },
+      { id: 'design',     tab: 'design',     Icon: Brush,     label: 'Theme',         description: 'Palette · radius · vibe', shortcut: '⌘3' },
+      { id: 'blocks',     tab: 'blocks',     Icon: Sparkles,  label: 'Pear blocks',   description: 'AI section presets' },
+      { id: 'components', tab: 'components', Icon: TypeIcon,  label: 'Components',    description: 'Saved blocks & motifs' },
+      { id: 'media',      tab: 'media',      Icon: ImageIcon, label: 'Media library', description: 'Every photo on the site' },
     ],
   },
   {
