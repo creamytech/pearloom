@@ -312,6 +312,36 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
       {/* ── Custom tab ── */}
       {activeTab === 'custom' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {/* Discoverability nudge for Theme Remix Mode — a hidden
+              expert gesture nobody would find unprompted. */}
+          <div
+            style={{
+              padding: '6px 10px',
+              borderRadius: 6,
+              background: 'color-mix(in oklab, var(--pl-gold, #B8935A) 8%, transparent)',
+              border: '1px dashed color-mix(in oklab, var(--pl-gold, #B8935A) 28%, transparent)',
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.6rem',
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: 'var(--pl-ink-soft, #3A332C)',
+              lineHeight: 1.5,
+            }}
+          >
+            <span style={{ color: 'var(--pl-gold, #B8935A)' }}>Tip</span>
+            {' · hold '}
+            <kbd
+              style={{
+                padding: '0 4px',
+                borderRadius: 3,
+                background: 'var(--pl-cream-card, #FBF7EE)',
+                border: '1px solid var(--pl-divider, #D8CFB8)',
+                fontFamily: 'inherit',
+                fontSize: '0.55rem',
+              }}
+            >Shift</kbd>
+            {' and scroll over the canvas to remix'}
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
             <Swatch label="Background" color={colors.background} onChange={v => updateColor('background', v)} />
             <Swatch label="Text"       color={colors.foreground} onChange={v => updateColor('foreground', v)} />

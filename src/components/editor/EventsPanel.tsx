@@ -136,7 +136,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
     }
     if (start != null && end <= start) {
       // Block commit and show inline error
-      setEndTimeErrors(prev => ({ ...prev, [evt.id]: 'End time must be after start time' }));
+      setEndTimeErrors(prev => ({ ...prev, [evt.id]: 'End time must be after start time (use 5:00 PM or 17:00).' }));
       return;
     }
     setEndTimeErrors(prev => { const n = { ...prev }; delete n[evt.id]; return n; });
@@ -296,7 +296,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                         <Field label="Name" value={evt.name} onChange={v => updateEvent(evt.id, { name: v })} placeholder="Ceremony" />
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                           <DatePicker label="Date" value={evt.date || ''} onChange={d => updateEvent(evt.id, { date: d })} />
-                          <Field label="Time" value={evt.time} onChange={v => updateEvent(evt.id, { time: v })} placeholder="5:00 PM" />
+                          <Field label="Time" value={evt.time} onChange={v => updateEvent(evt.id, { time: v })} placeholder="5:00 PM or 17:00" />
                         </div>
                         <Field label="Venue" value={evt.venue} onChange={v => updateEvent(evt.id, { venue: v })} placeholder="The Grand Ballroom" />
 
@@ -328,7 +328,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                                     updateEvent(evt.id, { endTime: v });
                                   }}
                                   onBlur={() => commitEndTime(evt, evt.endTime || '')}
-                                  placeholder="11:00 PM"
+                                  placeholder="11:00 PM or 23:00"
                                 />
                                 {endTimeErrors[evt.id] && (
                                   <div
