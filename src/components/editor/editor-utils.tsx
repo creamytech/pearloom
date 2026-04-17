@@ -8,6 +8,7 @@
 
 import React from 'react';
 import { parseLocalDate } from '@/lib/date';
+import { VoiceDictateButton } from './VoiceDictateButton';
 
 // ── Spacing system (4px base unit) ───────────────────────────
 export const spacing = {
@@ -147,7 +148,10 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type, m
   };
   if (rows) return (
     <div>
-      {labelNode}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        {labelNode}
+        <VoiceDictateButton value={value} onChange={onChange} size="sm" />
+      </div>
       <textarea
         value={value} onChange={e => onChange(e.target.value)} rows={rows}
         placeholder={placeholder}
@@ -171,9 +175,17 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type, m
       )}
     </div>
   );
+  // Voice dictation only makes sense for free-form text — skip for
+  // semantic types (number, date, time, email, etc.).
+  const supportsVoice = !type || type === 'text' || type === 'search' || type === 'url';
   return (
     <div>
-      {labelNode}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        {labelNode}
+        {supportsVoice && (
+          <VoiceDictateButton value={value} onChange={onChange} size="sm" />
+        )}
+      </div>
       <input
         type={type}
         value={value} onChange={e => onChange(e.target.value)}
