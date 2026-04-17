@@ -19,6 +19,8 @@ import type { CommandAction } from './CommandPalette';
 
 // ── Extracted components ──────────────────────────────────────
 import { EditorToolbar } from './EditorToolbar';
+import { CollabPresence } from './CollabPresence';
+import { useSession } from 'next-auth/react';
 import { EditorCanvas } from './EditorCanvas';
 import { EditorWing } from './EditorWing';
 import { EditorRail } from './EditorRail';
@@ -95,6 +97,8 @@ interface FullscreenEditorProps {
 export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubdomain, onChange, onPublish, onExit }: FullscreenEditorProps) {
   const [state, dispatch] = useReducer(editorReducer, undefined, () => createInitialEditorState(manifest, initialSubdomain));
   const [previewKey] = useState(() => `${PREVIEW_KEY_PREFIX}-${Date.now()}`);
+  const { data: sessionData } = useSession();
+  const collabSiteId = initialSubdomain || (manifest as unknown as { coupleId?: string })?.coupleId;
   // Panel open/collapsed lives in editor state (sidebarCollapsed) so the
   // toolbar and keyboard shortcuts can toggle it without prop drilling.
   const panelOpen = !state.sidebarCollapsed;
@@ -1633,6 +1637,17 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       {/* Guided tour (first-time only) + Getting started checklist */}
       {!state.isMobile && <EditorTour />}
       {!state.isMobile && <GettingStartedChecklist />}
+
+      {/* Multi-user co-edit: presence avatars + peer cursors. Only
+          mounts when we have a site id and a signed-in user — so
+          wizard-only / anonymous editors don't broadcast. */}
+      {collabSiteId && sessionData?.user?.email && (
+        <CollabPresence
+          siteId={collabSiteId}
+          userEmail={sessionData.user.email}
+          userName={sessionData.user.name || undefined}
+        />
+      )}
 
       {/* Inline story layout switcher — appears above a selected story section */}
       {!state.isMobile && <InlineStoryLayoutSwitcher />}
