@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Globe, ExternalLink, Calendar, Loader2, Image,
   Trash2, AlertTriangle, Check, Share2, RefreshCw, Sparkles,
-  EllipsisVertical,
+  EllipsisVertical, Pin,
 } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import { PearIcon } from '@/components/icons/PearloomIcons';
@@ -202,10 +202,12 @@ function SkeletonCard({ index }: { index: number }) {
 
 // ── Overflow menu ─────────────────────────────────────────────
 
-function OverflowMenu({ site, onShare, onDelete, isCopied, isDeleting }: {
+function OverflowMenu({ site, onShare, onDelete, onTogglePin, isPinned, isCopied, isDeleting }: {
   site: UserSite;
   onShare: (site: UserSite, e: React.MouseEvent) => void;
   onDelete: (site: UserSite) => void;
+  onTogglePin?: (site: UserSite) => void;
+  isPinned?: boolean;
   isCopied: boolean;
   isDeleting: boolean;
 }) {
@@ -319,6 +321,28 @@ function OverflowMenu({ site, onShare, onDelete, isCopied, isDeleting }: {
               </span>
             </div>
 
+            {onTogglePin && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onTogglePin(site); setOpen(false); }}
+                style={itemStyle}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(14,13,11,0.03)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                <Pin
+                  size={14}
+                  style={{
+                    color: isPinned ? 'var(--pl-gold)' : 'var(--pl-ink-soft)',
+                    transform: isPinned ? 'rotate(45deg)' : 'none',
+                  }}
+                />
+                <span>
+                  <span style={itemLabel}>{isPinned ? 'Unpin site' : 'Pin to top'}</span>
+                  <span style={itemKicker}>
+                    {isPinned ? 'Drops back to recent order' : 'Keep at the top of your list'}
+                  </span>
+                </span>
+              </button>
+            )}
             <button
               onClick={(e) => { e.stopPropagation(); onShare(site, e); setOpen(false); }}
               style={itemStyle}
@@ -414,6 +438,27 @@ const OCCASION_BADGE: Record<string, { label: string; variant: 'plum' | 'gold' |
 
 // ─────────────────────────────────────────────────────────────
 
+const PIN_STORAGE_KEY = 'pearloom:pinned-sites';
+function readPinned(): string[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(PIN_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as string[]) : [];
+  } catch {
+    return [];
+  }
+}
+function writePinned(domains: string[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(PIN_STORAGE_KEY, JSON.stringify(domains));
+  } catch {
+    /* ignore */
+  }
+}
+
 export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSite, userName }: UserSitesProps) {
   const [sites, setSites]                   = useState<UserSite[]>([]);
   const [loading, setLoading]               = useState(true);
@@ -422,6 +467,22 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
   const [confirmDelete, setConfirmDelete]   = useState<UserSite | null>(null);
   const [deleteError, setDeleteError]       = useState<string | null>(null);
   const [copiedId, setCopiedId]             = useState<string | null>(null);
+  const [pinned, setPinned]                 = useState<string[]>([]);
+
+  // Load pinned list on mount.
+  useEffect(() => {
+    setPinned(readPinned());
+  }, []);
+
+  const togglePin = useCallback((domain: string) => {
+    setPinned((prev) => {
+      const next = prev.includes(domain)
+        ? prev.filter((d) => d !== domain)
+        : [domain, ...prev].slice(0, 8);
+      writePinned(next);
+      return next;
+    });
+  }, []);
   const [pearUsage, setPearUsage]           = useState<{ used: number; limit: number; plan: string } | null>(null);
 
 
@@ -1048,7 +1109,13 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
         {/* Periodical entry rows */}
         <div className="flex flex-col gap-2">
           <AnimatePresence>
-            {sites.map((site, i) => {
+            {[...sites]
+              .sort((a, b) => {
+                const ap = pinned.includes(a.domain) ? 0 : 1;
+                const bp = pinned.includes(b.domain) ? 0 : 1;
+                return ap - bp;
+              })
+              .map((site, i) => {
               const vibeSkin      = site.manifest?.vibeSkin;
               const accentColor   = vibeSkin?.palette?.accent || site.manifest?.theme?.colors?.accent || '#A3B18A';
               const accentDark    = vibeSkin?.palette?.highlight || site.manifest?.theme?.colors?.muted || '#8FA876';
@@ -1067,6 +1134,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
               const showMilestone = daysLeft !== null && daysLeft >= 0 && daysLeft <= 7;
               // Draft vs live state for the metadata strip.
               const isPublished   = site.published === true;
+              const isPinned      = pinned.includes(site.domain);
               // Relative 'last edited' — pulls updated_at from supabase if
               // present, falls back silently.
               const lastEditedAt  = site.updated_at || site.created_at;
@@ -1110,16 +1178,22 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
-                  {/* Folio number */}
+                  {/* Site number / pinned badge */}
                   <span style={{
                     fontFamily: 'var(--pl-font-mono)',
                     fontSize: '0.58rem',
                     fontWeight: 700,
                     letterSpacing: '0.22em',
-                    color: 'var(--pl-olive)',
+                    color: isPinned ? 'var(--pl-gold)' : 'var(--pl-olive)',
                     whiteSpace: 'nowrap',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
                   }}>
-                    № {String(i + 1).padStart(2, '0')}
+                    {isPinned ? (
+                      <Pin size={10} strokeWidth={2.4} style={{ transform: 'rotate(45deg)' }} />
+                    ) : null}
+                    {String(i + 1).padStart(2, '0')}
                   </span>
 
                   {/* Thumbnail */}
@@ -1269,6 +1343,8 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                     site={site}
                     onShare={handleCopyUrl}
                     onDelete={(s) => setConfirmDelete(s)}
+                    onTogglePin={(s) => togglePin(s.domain)}
+                    isPinned={pinned.includes(site.domain)}
                     isCopied={isCopied}
                     isDeleting={isDeleting}
                   />

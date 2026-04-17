@@ -24,9 +24,9 @@ const PAGES: SitePage[] = [
 
 const THEME: ThemeSchema = {
   name: 'pearloom-ivory',
-  fonts: { heading: 'Playfair Display', body: 'Inter' },
-  colors: { background: '#F5F1E8', foreground: '#2B2B2B', accent: '#A3B18A', accentLight: '#EEE8DC', muted: '#9A9488', cardBg: '#ffffff' },
-  borderRadius: '1rem',
+  fonts: { heading: 'Fraunces', body: 'Geist' },
+  colors: { background: '#F5EFE2', foreground: '#0E0D0B', accent: '#B8935A', accentLight: '#EBE3D2', muted: '#6F6557', cardBg: '#FBF7EE' },
+  borderRadius: '2px',
 };
 
 const EVENTS: WeddingEvent[] = [
@@ -116,7 +116,7 @@ export default function DetailsPage() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 1.5rem',
             }}>
-              <Sparkles size={22} color="#A3B18A" />
+              <Sparkles size={22} color="var(--pl-gold, #B8935A)" />
             </div>
             <h1 style={{
               fontFamily: 'var(--pl-font-heading)',
@@ -135,7 +135,7 @@ export default function DetailsPage() {
           {/* Schedule */}
           <section style={{ marginBottom: '3rem' }}>
             <h2 style={sectionTitleStyle}>
-              <Calendar size={18} color="#A3B18A" /> Schedule
+              <Calendar size={18} color="var(--pl-gold, #B8935A)" /> Schedule
             </h2>
             {EVENTS.map((event) => (
               <motion.div
@@ -158,7 +158,7 @@ export default function DetailsPage() {
                   marginBottom: '1rem',
                 }}>
                   <div style={detailRowStyle}>
-                    <Calendar size={15} color="#A3B18A" />
+                    <Calendar size={15} color="var(--pl-gold, #B8935A)" />
                     <span>
                       {parseLocalDate(event.date).toLocaleDateString('en-US', {
                         weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
@@ -166,16 +166,16 @@ export default function DetailsPage() {
                     </span>
                   </div>
                   <div style={detailRowStyle}>
-                    <Clock size={15} color="#A3B18A" />
+                    <Clock size={15} color="var(--pl-gold, #B8935A)" />
                     <span>{event.time}{event.endTime ? ` – ${event.endTime}` : ''}</span>
                   </div>
                   <div style={detailRowStyle}>
-                    <MapPin size={15} color="#A3B18A" />
+                    <MapPin size={15} color="var(--pl-gold, #B8935A)" />
                     <span>{event.venue}</span>
                   </div>
                   {event.dressCode && (
                     <div style={detailRowStyle}>
-                      <Shirt size={15} color="#A3B18A" />
+                      <Shirt size={15} color="var(--pl-gold, #B8935A)" />
                       <span>{event.dressCode}</span>
                     </div>
                   )}
@@ -199,7 +199,7 @@ export default function DetailsPage() {
           {/* Travel */}
           <section style={{ marginBottom: '3rem' }}>
             <h2 style={sectionTitleStyle}>
-              <Plane size={18} color="#A3B18A" /> Getting There
+              <Plane size={18} color="var(--pl-gold, #B8935A)" /> Getting There
             </h2>
             <div style={{
               display: 'grid',
@@ -235,7 +235,7 @@ export default function DetailsPage() {
                 style={cardStyle}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                  <Car size={16} color="#A3B18A" />
+                  <Car size={16} color="var(--pl-gold, #B8935A)" />
                   <h3 style={{ fontWeight: 500, fontSize: '0.9rem' }}>Parking</h3>
                 </div>
                 <p style={{ fontSize: '0.9rem', color: '#9A9488', lineHeight: 1.7 }}>
@@ -257,7 +257,7 @@ export default function DetailsPage() {
           {/* Hotels */}
           <section>
             <h2 style={sectionTitleStyle}>
-              <Hotel size={18} color="#A3B18A" /> Where to Stay
+              <Hotel size={18} color="var(--pl-gold, #B8935A)" /> Where to Stay
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {TRAVEL.hotels.map((hotel, i) => (
@@ -279,7 +279,7 @@ export default function DetailsPage() {
                     background: '#EEE8DC', display: 'flex',
                     alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                   }}>
-                    <Hotel size={20} color="#A3B18A" />
+                    <Hotel size={20} color="var(--pl-gold, #B8935A)" />
                   </div>
                   <div style={{ flex: 1, minWidth: '200px' }}>
                     <h3 style={{ fontWeight: 500, fontSize: '0.95rem' }}>{hotel.name}</h3>
@@ -289,7 +289,7 @@ export default function DetailsPage() {
                     {hotel.notes && (
                       <div style={{
                         display: 'flex', alignItems: 'flex-start', gap: '0.4rem',
-                        marginTop: '0.5rem', fontSize: '0.8rem', color: '#A3B18A',
+                        marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--pl-gold, #B8935A)',
                       }}>
                         <Info size={12} style={{ marginTop: '0.2rem', flexShrink: 0 }} />
                         <span>{hotel.notes}</span>
@@ -298,7 +298,7 @@ export default function DetailsPage() {
                   </div>
                   {hotel.groupRate && (
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <p style={{ fontSize: '1.25rem', fontWeight: 700, color: '#A3B18A' }}>
+                      <p style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--pl-gold, #B8935A)' }}>
                         {hotel.groupRate}
                       </p>
                       <p style={{ fontSize: '0.65rem', color: '#aaa', fontWeight: 500, letterSpacing: '0.1em' }}>

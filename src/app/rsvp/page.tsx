@@ -24,9 +24,9 @@ const PAGES: SitePage[] = [
 
 const THEME: ThemeSchema = {
   name: 'pearloom-ivory',
-  fonts: { heading: 'Playfair Display', body: 'Inter' },
-  colors: { background: '#F5F1E8', foreground: '#2B2B2B', accent: '#A3B18A', accentLight: '#EEE8DC', muted: '#9A9488', cardBg: '#F5F1E8' },
-  borderRadius: '1rem',
+  fonts: { heading: 'Fraunces', body: 'Geist' },
+  colors: { background: '#F5EFE2', foreground: '#0E0D0B', accent: '#B8935A', accentLight: '#EBE3D2', muted: '#6F6557', cardBg: '#FBF7EE' },
+  borderRadius: '2px',
 };
 
 const EVENTS: WeddingEvent[] = [
@@ -70,7 +70,7 @@ export default function RsvpPage() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 1.5rem',
             }}>
-              <Heart size={22} color="#A3B18A" />
+              <Heart size={22} color="var(--pl-gold, #B8935A)" />
             </div>
             <h1 style={{
               fontFamily: 'var(--pl-font-heading)',
