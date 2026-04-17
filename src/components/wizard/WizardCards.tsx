@@ -176,7 +176,7 @@ export function OccasionCard({ occasions, onSelect }: OccasionCardProps) {
                   color: isSelected ? COLOR_ACCENT : COLOR_ACCENT_SOFT,
                   lineHeight: 1,
                 }}>
-                  № {folio}
+                  Step {folio}
                 </span>
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -577,7 +577,7 @@ export function SitePreviewCard({ names, occasion, date, vibe, venue }: SitePrev
             fontFamily: FONT_MONO, fontSize: 9, fontWeight: 700,
             letterSpacing: '0.32em', textTransform: 'uppercase',
             color: COLOR_ACCENT,
-          }}>Mock Issue · Vol. {new Date().getFullYear()}</span>
+          }}>Live preview · {new Date().getFullYear()}</span>
           <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.32)' }} />
           <span style={{
             fontFamily: FONT_MONO, fontSize: 9, fontWeight: 700,

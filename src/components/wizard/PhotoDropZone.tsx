@@ -298,7 +298,7 @@ export function PhotoDropZone({
             fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
           }}
         >
-          {dragOver ? 'release to commit the plate' : 'drop photographs onto the press'}
+          {dragOver ? 'release to upload' : 'drop photos here or click to choose'}
         </div>
         <div style={{ width: 32, height: 1, background: ruleColor, opacity: 0.6 }} />
         <div
@@ -445,7 +445,7 @@ export function PhotoDropZone({
           }}
         >
           <AlertCircle size={12} style={{ flexShrink: 0, marginTop: 2 }} />
-          <span>Erratum · {error}</span>
+          <span>{error}</span>
         </div>
       )}
 
@@ -520,12 +520,12 @@ export function PhotoDropZone({
                     borderTopColor: dark ? '#18181B' : '#FAF7F2',
                   }}
                 />
-                Pressing · plates
+                Uploading photos
               </>
             ) : (
               <>
                 <ImageIcon size={12} strokeWidth={1.8} />
-                File · {String(pending.length).padStart(2, '0')} plate{pending.length === 1 ? '' : 's'}
+                Ready · {String(pending.length).padStart(2, '0')} photo{pending.length === 1 ? '' : 's'}
               </>
             )}
           </button>
@@ -545,7 +545,7 @@ export function PhotoDropZone({
             paddingTop: 2,
           }}
         >
-          Filed · {String(uploadedCount).padStart(2, '0')} plate{uploadedCount === 1 ? '' : 's'} committed
+          Uploaded · {String(uploadedCount).padStart(2, '0')} photo{uploadedCount === 1 ? '' : 's'}
         </div>
       )}
     </div>

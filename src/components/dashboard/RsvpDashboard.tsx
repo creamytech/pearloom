@@ -391,7 +391,7 @@ export function RsvpDashboard({
               letterSpacing: '0.32em', textTransform: 'uppercase',
               color: 'var(--pl-olive)',
             }}>
-              The Ledger · Guests
+              Guest list
             </span>
             <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.45)' }} />
             <span style={{

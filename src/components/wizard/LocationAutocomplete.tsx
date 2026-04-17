@@ -139,7 +139,7 @@ export function LocationAutocomplete({
             zIndex: 1,
           }}
         >
-          Atlas · search
+          Find venue
         </span>
         {/* Pin icon */}
         <svg
@@ -225,7 +225,7 @@ export function LocationAutocomplete({
               textTransform: 'uppercase',
               color: kickerColor,
             }}>
-              Codex · {String(suggestions.length).padStart(2, '0')} plate{suggestions.length === 1 ? '' : 's'}
+              {String(suggestions.length).padStart(2, '0')} result{suggestions.length === 1 ? '' : 's'}
             </span>
             <span style={{ flex: 1, height: 1, background: ruleColor, opacity: 0.4 }} />
           </div>

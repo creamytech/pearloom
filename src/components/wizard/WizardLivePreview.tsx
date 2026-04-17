@@ -290,7 +290,7 @@ export function WizardLivePreview({
             color: 'rgba(184,147,90,0.85)',
           }}
         >
-          The Proof · Vol. {year}
+          Live preview · {year}
         </span>
         <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.45)' }} />
         <span
@@ -302,7 +302,7 @@ export function WizardLivePreview({
             color: 'rgba(184,147,90,0.85)',
           }}
         >
-          № {folio} / 04
+          Step {folio} of 4
         </span>
       </div>
 
@@ -400,7 +400,7 @@ function EmptyPreview() {
           color: 'rgba(184,147,90,0.85)',
         }}
       >
-        Specimen · blank plate
+        Empty preview
       </div>
       <div
         style={{
@@ -436,7 +436,7 @@ function EmptyPreview() {
           fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
         }}
       >
-        your issue begins here
+        your story begins here
       </div>
       <div style={{ width: 42, height: 1, background: 'rgba(184,147,90,0.55)' }} />
       <div
@@ -448,7 +448,7 @@ function EmptyPreview() {
           fontFamily: 'var(--pl-font-body, inherit)',
         }}
       >
-        Every answer sets another plate on the press — the site assembles itself
+        Each answer adds another piece — your site assembles itself
         beside you as you go.
       </div>
     </div>

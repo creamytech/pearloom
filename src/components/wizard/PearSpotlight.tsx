@@ -1070,7 +1070,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
               fontSize: 10, fontWeight: 700,
               letterSpacing: '0.32em', textTransform: 'uppercase',
               color: 'rgba(139,45,45,0.85)', marginBottom: 10,
-            }}>Erratum · press halted</div>
+            }}>Something went wrong</div>
             <p style={{
               fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
               fontStyle: 'italic',
@@ -1229,7 +1229,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
               color: 'rgba(184,147,90,0.95)',
               marginBottom: 26,
             }}
-          >The Issue · goes to press</motion.p>
+          >Building your site</motion.p>
 
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
             style={{
@@ -1315,7 +1315,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(184,147,90,0.1)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-            >Preview Live Issue</button>
+            >Preview your site</button>
           </motion.div>
         </motion.div>
       </div>
@@ -1679,7 +1679,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                         marginTop: -4,
                       }}
                     >
-                      Marginalia · {dictation.error}
+                      {dictation.error}
                     </div>
                   )}
                   {freeformError && (
@@ -2163,7 +2163,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                     }}
                   >
                     <Sparkles size={11} style={{ marginRight: 8, verticalAlign: 'text-bottom' }} />
-                    Random Dispatch
+                    Surprise me
                   </button>
                 </div>
               )}
@@ -2180,7 +2180,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       fontSize: 9, fontWeight: 700,
                       letterSpacing: '0.3em', textTransform: 'uppercase',
                       color: 'rgba(184,147,90,0.9)',
-                    }}>Folio · from</span>
+                    }}>From</span>
                     <span style={{
                       fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
                       fontStyle: 'italic', fontSize: '0.95rem',
@@ -2541,7 +2541,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                             transition: 'box-shadow 180ms ease',
                           }}
                         >
-                          {isLast ? 'Set · done' : 'Next · plate'}
+                          {isLast ? 'Done' : 'Next step'}
                         </button>
                       </div>
                     </div>
@@ -2759,7 +2759,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                     }}
                   >
                     <Sparkles size={14} color="#F0D484" />
-                    Press the Issue
+                    Build my site
                   </button>
                 </div>
               )}

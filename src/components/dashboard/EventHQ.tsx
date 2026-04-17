@@ -198,7 +198,7 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
               color: 'var(--pl-olive)',
             }}
           >
-            The Ledger · at a glance
+            Guests at a glance
           </div>
           <span
             style={{

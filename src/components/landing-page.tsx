@@ -589,7 +589,7 @@ export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPage
                   lineHeight: 1.15,
                 }}
               >
-                Begin your first plate
+                Build your first site
               </h3>
               <p
                 style={{

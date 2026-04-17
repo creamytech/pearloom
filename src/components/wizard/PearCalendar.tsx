@@ -226,7 +226,7 @@ export function PearCalendar({ onSelect, dark = false }: PearCalendarProps) {
             textTransform: 'uppercase',
             color: kickerColor,
           }}>
-            Almanac · pick a plate
+            Pick a date
           </span>
           <span style={{ flex: 1 }} />
           <span style={{
