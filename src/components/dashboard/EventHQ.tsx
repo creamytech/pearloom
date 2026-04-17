@@ -116,7 +116,7 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
                   background: 'var(--pl-gold)',
                 }}
               />
-              The Programme · Event HQ · Vol. {year}
+              Event HQ · {year}
             </div>
             <h1
               className="pl-display"

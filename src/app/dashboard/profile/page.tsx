@@ -334,7 +334,7 @@ export default function ProfilePage() {
                       color: 'var(--pl-gold)',
                       marginBottom: 8,
                     }}>
-                      Current tier · Vol. 00
+                      Current plan
                     </span>
                     <span style={{
                       display: 'block',

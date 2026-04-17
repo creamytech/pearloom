@@ -212,7 +212,7 @@ export function InlineStylePicker({
           textTransform: 'uppercase',
           color: 'rgba(184,147,90,0.85)',
         }}>
-          Specimen · style
+          Style
         </span>
         <span style={{
           fontFamily: 'var(--pl-font-display, "Fraunces", serif)',

@@ -1284,7 +1284,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
               marginBottom: 24,
               fontFamily: 'var(--pl-font-body, inherit)',
             }}
-          >Plates archived. Every block is editable from the studio.</motion.p>
+          >All saved. You can edit every section from the editor.</motion.p>
 
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}
             style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
@@ -1399,7 +1399,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
             textTransform: 'uppercase',
             color: 'rgba(184,147,90,0.9)',
           }}>
-            The Pearloom · Atelier · Vol. {new Date().getFullYear()}
+            Pearloom · {new Date().getFullYear()}
           </span>
           <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.42)' }} />
           <span style={{
@@ -1410,7 +1410,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
             textTransform: 'uppercase',
             color: 'rgba(184,147,90,0.9)',
           }}>
-            № {stepFolio} / {stepTotal}
+            Step {stepFolio} of {stepTotal}
           </span>
         </div>
 
@@ -1457,7 +1457,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                     alignItems: 'center',
                     gap: 10,
                   }}>
-                    <span>Chapter № {stepFolio} · {step.replace(/-/g, ' ')}</span>
+                    <span>Step {stepFolio} · {step.replace(/-/g, ' ')}</span>
                     <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.28)' }} />
                   </div>
                   <h2 style={{
@@ -2860,7 +2860,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                     transition: 'box-shadow 180ms ease, background 180ms ease',
                   }}
                 >
-                  Lock Plate{selectedPhotos.length > 0 ? ` · ${selectedPhotos.length}` : ''}
+                  Use {selectedPhotos.length > 0 ? `these ${selectedPhotos.length}` : 'these photos'}
                 </button>
               </div>
             </motion.div>

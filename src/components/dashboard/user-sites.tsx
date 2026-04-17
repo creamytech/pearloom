@@ -503,7 +503,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
             textTransform: 'uppercase',
             color: 'var(--pl-olive)',
           }}>
-            Volume · {new Date().getFullYear()}
+            Your sites · {new Date().getFullYear()}
           </span>
           <span style={{ flex: 1, height: '1px', background: 'rgba(184,147,90,0.45)' }} />
           <span style={{
@@ -808,7 +808,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
             letterSpacing: '0.32em', textTransform: 'uppercase',
             color: '#b91c1c', display: 'block', marginBottom: '16px',
           }}>
-            Erratum · fetch failed
+            Couldn&rsquo;t load your sites
           </span>
           <div style={{
             width: '56px', height: '56px',

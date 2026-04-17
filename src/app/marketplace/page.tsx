@@ -134,14 +134,15 @@ export default function MarketplacePage() {
         <main className="flex-1 overflow-auto">
           {/* Hero banner */}
           <div className="px-6 md:px-10 py-8 md:py-10 bg-gradient-to-br from-[var(--pl-cream)] to-white border-b border-[var(--pl-divider)]">
-            <p className="text-[0.62rem] font-bold tracking-[0.14em] uppercase text-[var(--pl-olive-deep)] mb-2">
+            <p className="text-[0.62rem] font-bold tracking-[0.22em] uppercase text-[var(--pl-gold)] mb-2">
               Marketplace
             </p>
-            <h1 className="font-heading italic text-[clamp(1.4rem,3vw,2.2rem)] text-[var(--pl-ink-soft)] leading-tight mb-2">
-              Templates, themes & presets
+            <h1 className="font-heading italic text-[clamp(1.6rem,3.2vw,2.4rem)] text-[var(--pl-ink)] leading-tight mb-2 tracking-[-0.012em]">
+              Start from something beautiful.
             </h1>
-            <p className="text-[0.88rem] text-[var(--pl-muted)] max-w-[500px]">
-              Start with a beautifully designed foundation and make it completely yours.
+            <p className="text-[0.92rem] text-[var(--pl-ink-soft)] max-w-[520px] italic font-heading leading-relaxed">
+              Hand-crafted templates, palettes, and section presets. Pick one as your
+              starting point; make it yours in an afternoon.
             </p>
 
             {/* Mobile search */}

@@ -110,7 +110,7 @@ export default function DayOfPage() {
                         background: 'var(--pl-gold)',
                       }}
                     />
-                    The Call-sheet · Day-of · Vol. {year}
+                    Day-of schedule · {year}
                   </div>
                   <h1
                     className="pl-display"

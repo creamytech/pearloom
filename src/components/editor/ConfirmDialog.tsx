@@ -133,7 +133,7 @@ export function ConfirmDialog({
                 textTransform: 'uppercase',
                 color: danger ? 'rgba(139,45,45,0.85)' : 'rgba(184,147,90,0.85)',
               }}>
-                {danger ? 'Erratum · confirm' : 'Notice · confirm'}
+                {danger ? 'Heads up' : 'Confirm'}
               </span>
               <span style={{
                 fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',

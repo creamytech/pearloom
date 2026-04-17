@@ -357,7 +357,7 @@ export function InlineArtHoverToolbar({
                 textTransform: 'uppercase',
                 color: 'rgba(184,147,90,0.82)',
               }}>
-                Specimen · {String(index != null ? index + 1 : 1).padStart(2, '0')}
+                Variant · {String(index != null ? index + 1 : 1).padStart(2, '0')}
               </span>
               <span style={{
                 fontFamily: 'var(--pl-font-display, "Fraunces", serif)',

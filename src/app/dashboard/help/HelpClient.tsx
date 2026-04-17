@@ -158,7 +158,7 @@ export default function HelpClient() {
                         background: 'var(--pl-gold)',
                       }}
                     />
-                    The Manual · Help · Vol. {year}
+                    Help · {year}
                   </div>
                   <h1
                     className="pl-display"
@@ -293,7 +293,7 @@ export default function HelpClient() {
                   marginBottom: 14,
                 }}
               >
-                Folio · three routes
+                Three ways to reach us
               </div>
               <div
                 style={{
