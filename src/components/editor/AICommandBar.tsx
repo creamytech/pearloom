@@ -114,7 +114,13 @@ type BarStatus = 'idle' | 'loading' | 'success' | 'error' | 'reply';
 
 export function AICommandBar() {
   const { state, dispatch, manifest, actions } = useEditor();
-  const [expanded, setExpanded] = useState(false);
+  // When the editor is in Pear-primary mode, the command bar defaults
+  // to expanded on every mount instead of collapsed-pill. Mode is set
+  // via `data-pear-mode="1"` on <body> by FullscreenEditor.
+  const [expanded, setExpanded] = useState(() => {
+    if (typeof document === 'undefined') return false;
+    return document.body?.getAttribute('data-pear-mode') === '1';
+  });
   const [inputVal, setInputVal] = useState('');
   const [status, setStatus] = useState<BarStatus>('idle');
   const [errorMsg, setErrorMsg] = useState('');

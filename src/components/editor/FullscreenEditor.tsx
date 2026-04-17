@@ -98,6 +98,29 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   // Panel open/collapsed lives in editor state (sidebarCollapsed) so the
   // toolbar and keyboard shortcuts can toggle it without prop drilling.
   const panelOpen = !state.sidebarCollapsed;
+
+  // Pear-primary mode (default ON). Ask Pear is the main UI; the
+  // right inspector is hidden until the user clicks 'Advanced'.
+  // Persisted per-browser so returning users keep their pick.
+  const [pearMode, setPearMode] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    try {
+      const v = localStorage.getItem('pearloom:pear-mode');
+      return v === null ? true : v === '1';
+    } catch {
+      return true;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem('pearloom:pear-mode', pearMode ? '1' : '0');
+    } catch {
+      /* ignore */
+    }
+    if (typeof document !== 'undefined') {
+      document.body.setAttribute('data-pear-mode', pearMode ? '1' : '0');
+    }
+  }, [pearMode]);
   // previewKey + iframeRef kept for mobile editor sheet + external preview window
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const contentPanelRef = useRef<HTMLDivElement>(null);
@@ -1058,7 +1081,17 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       {/* Top bar — flex child, so body below can flex-fill */}
       {!state.isMobile && (
         <div style={{ flexShrink: 0, zIndex: 40, position: 'relative' }}>
-          <EditorToolbar onExit={onExit} />
+          <EditorToolbar
+            onExit={onExit}
+            pearMode={pearMode}
+            onTogglePearMode={() => {
+              setPearMode((v) => !v);
+              // When flipping to Advanced, open the wing so the user sees panels.
+              if (pearMode && state.sidebarCollapsed) {
+                dispatch({ type: 'TOGGLE_SIDEBAR_COLLAPSED' });
+              }
+            }}
+          />
           {/* AIContextBar removed — chapter actions now in inline canvas toolbar + panel */}
           <PostWeddingBanner manifest={manifest} subdomain={state.subdomain} onUpdate={(m) => { onChange(m); pushToPreview(m); }} />
         </div>
@@ -1077,8 +1110,16 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
           </div>
           {/* Docked editor panel — reserves its own width from the row */}
           <EditorWing
-            open={panelOpen}
-            onToggle={() => dispatch({ type: 'TOGGLE_SIDEBAR_COLLAPSED' })}
+            open={panelOpen && !pearMode}
+            onToggle={() => {
+              if (pearMode) {
+                // Switching to advanced from Pear mode: flip mode + open wing.
+                setPearMode(false);
+                if (state.sidebarCollapsed) dispatch({ type: 'TOGGLE_SIDEBAR_COLLAPSED' });
+              } else {
+                dispatch({ type: 'TOGGLE_SIDEBAR_COLLAPSED' });
+              }
+            }}
             activeTab={state.activeTab}
             contentRef={contentPanelRef}
           >

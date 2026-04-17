@@ -27,9 +27,11 @@ import { KeyboardShortcuts } from './KeyboardShortcuts';
 
 interface EditorToolbarProps {
   onExit: () => void;
+  pearMode?: boolean;
+  onTogglePearMode?: () => void;
 }
 
-export function EditorToolbar({ onExit }: EditorToolbarProps) {
+export function EditorToolbar({ onExit, pearMode, onTogglePearMode }: EditorToolbarProps) {
   const { state, dispatch, actions, manifest, coupleNames } = useEditor();
   const { isMobile, canUndo, canRedo, saveState, subdomain, publishedUrl } = state;
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -227,6 +229,43 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             </RichTooltip>
 
             <Divider />
+
+            {onTogglePearMode && (
+              <RichTooltip
+                label={pearMode ? 'Switch to Advanced editor' : 'Switch back to Pear-primary'}
+                side="bottom"
+              >
+                <motion.button
+                  type="button"
+                  onClick={onTogglePearMode}
+                  whileHover={{ y: -1 }}
+                  whileTap={{ scale: 0.96 }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '5px 12px',
+                    borderRadius: 999,
+                    border: pearMode
+                      ? '1px solid color-mix(in oklab, var(--pl-olive) 50%, transparent)'
+                      : '1px solid var(--pl-divider)',
+                    background: pearMode
+                      ? 'color-mix(in oklab, var(--pl-olive) 14%, transparent)'
+                      : 'var(--pl-cream-card)',
+                    color: pearMode ? 'var(--pl-olive)' : 'var(--pl-ink-soft)',
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.58rem',
+                    letterSpacing: '0.22em',
+                    textTransform: 'uppercase',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
+                  }}
+                >
+                  {pearMode ? 'Pear mode' : 'Advanced'}
+                </motion.button>
+              </RichTooltip>
+            )}
 
             <RichTooltip label="Quick actions" shortcut="⌘K" side="bottom">
               <ToolBtn onClick={() => dispatch({ type: 'SET_CMD_PALETTE', open: true })}>
