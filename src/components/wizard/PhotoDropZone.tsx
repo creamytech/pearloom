@@ -83,12 +83,20 @@ export function PhotoDropZone({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const accentBorder = dark
-    ? 'rgba(255,255,255,0.25)'
-    : 'rgba(163,177,138,0.35)';
-  const activeBorder = 'var(--pl-olive, #A3B18A)';
-  const cardBg = dark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.45)';
-  const textColor = dark ? '#FAF7F2' : 'var(--pl-ink-soft)';
-  const mutedColor = dark ? 'rgba(250,247,242,0.6)' : 'var(--pl-muted)';
+    ? 'rgba(212,175,55,0.45)'
+    : 'rgba(184,147,90,0.45)';
+  const activeBorder = dark
+    ? 'rgba(212,175,55,0.9)'
+    : 'rgba(184,147,90,0.95)';
+  const cardBg = dark
+    ? 'rgba(22,16,6,0.35)'
+    : 'rgba(250,247,242,0.7)';
+  const textColor = dark ? '#FAF7F2' : '#18181B';
+  const mutedColor = dark ? 'rgba(250,247,242,0.65)' : '#52525B';
+  const kickerColor = dark ? 'rgba(212,175,55,0.85)' : 'rgba(184,147,90,0.85)';
+  const ruleColor = dark ? 'rgba(212,175,55,0.55)' : 'rgba(184,147,90,0.55)';
+  const FONT_DISPLAY = 'var(--pl-font-display, "Fraunces", serif)';
+  const FONT_MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
 
   const handleFiles = useCallback(async (fileList: FileList | File[]) => {
     setError(null);
@@ -205,7 +213,27 @@ export function PhotoDropZone({
         width: '100%',
       }}
     >
-      {/* Drop area */}
+      {/* Dossier kicker */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '0 2px 2px',
+      }}>
+        <span style={{
+          fontFamily: FONT_MONO,
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: '0.32em',
+          textTransform: 'uppercase',
+          color: kickerColor,
+        }}>
+          Dossier · direct deposit
+        </span>
+        <span style={{ flex: 1, height: 1, background: ruleColor, opacity: 0.6 }} />
+      </div>
+
+      {/* Drop area — editorial plate */}
       <motion.label
         htmlFor="pear-photo-upload-input"
         onDragOver={(e) => {
@@ -224,42 +252,68 @@ export function PhotoDropZone({
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: 8,
-          padding: '24px 18px',
-          borderRadius: 18,
-          border: `1.5px dashed ${dragOver ? activeBorder : accentBorder}`,
+          gap: 10,
+          padding: '26px 20px',
+          borderRadius: 2,
+          border: `1px dashed ${dragOver ? activeBorder : accentBorder}`,
+          borderTop: `1.5px solid ${dragOver ? activeBorder : ruleColor}`,
           background: dragOver
-            ? 'rgba(163,177,138,0.12)'
+            ? (dark ? 'rgba(212,175,55,0.14)' : 'rgba(184,147,90,0.1)')
             : cardBg,
+          boxShadow: dragOver
+            ? (dark
+                ? '0 0 0 3px rgba(212,175,55,0.22)'
+                : '0 0 0 3px rgba(184,147,90,0.18)')
+            : 'none',
           cursor: 'pointer',
-          transition: 'background 0.15s, border-color 0.15s',
+          transition: 'background 180ms cubic-bezier(0.22,1,0.36,1), border-color 180ms ease, box-shadow 180ms ease',
           textAlign: 'center',
-          minHeight: 128,
+          minHeight: 140,
         }}
       >
+        <span style={{
+          fontFamily: FONT_MONO,
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: '0.34em',
+          textTransform: 'uppercase',
+          color: kickerColor,
+        }}>
+          Plate · {dragOver ? 'ready · set' : 'open for filing'}
+        </span>
         <UploadCloud
-          size={28}
-          color={dragOver ? 'var(--pl-olive)' : 'var(--pl-muted)'}
+          size={26}
+          strokeWidth={1.5}
+          color={dragOver ? activeBorder : ruleColor}
         />
         <div
           style={{
-            fontSize: '0.82rem',
-            fontWeight: 600,
+            fontFamily: FONT_DISPLAY,
+            fontStyle: 'italic',
+            fontSize: '1.15rem',
+            fontWeight: 400,
             color: textColor,
+            letterSpacing: '-0.005em',
+            lineHeight: 1.15,
+            fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
           }}
         >
-          {dragOver ? 'Drop to add' : 'Drop photos here'}
+          {dragOver ? 'release to commit the plate' : 'drop photographs onto the press'}
         </div>
+        <div style={{ width: 32, height: 1, background: ruleColor, opacity: 0.6 }} />
         <div
           style={{
-            fontSize: '0.68rem',
+            fontFamily: FONT_MONO,
+            fontSize: 8.5,
+            fontWeight: 700,
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
             color: mutedColor,
-            lineHeight: 1.4,
-            maxWidth: 280,
+            lineHeight: 1.5,
+            maxWidth: 300,
           }}
         >
-          Or click to browse from your device. Up to {maxPhotos} photos,{' '}
-          {Math.round(maxBytesPerPhoto / (1024 * 1024))} MB each.
+          or click to browse · up to {maxPhotos} plates · {Math.round(maxBytesPerPhoto / (1024 * 1024))} MB each
         </div>
         <input
           ref={inputRef}
@@ -288,20 +342,23 @@ export function PhotoDropZone({
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))',
               gap: 6,
-              padding: 8,
-              borderRadius: 14,
+              padding: 10,
+              borderRadius: 2,
+              borderTop: `1.5px solid ${ruleColor}`,
+              borderLeft: `1px solid ${accentBorder}`,
+              borderRight: `1px solid ${accentBorder}`,
+              borderBottom: `1px solid ${accentBorder}`,
               background: cardBg,
-              border: `1px solid ${accentBorder}`,
             }}
           >
-            {pending.map((p) => (
+            {pending.map((p, i) => (
               <div
                 key={p.id}
                 style={{
                   position: 'relative',
                   width: '100%',
                   aspectRatio: '1',
-                  borderRadius: 8,
+                  borderRadius: 2,
                   overflow: 'hidden',
                   border: `1px solid ${accentBorder}`,
                 }}
@@ -317,6 +374,23 @@ export function PhotoDropZone({
                     display: 'block',
                   }}
                 />
+                <span
+                  aria-hidden="true"
+                  style={{
+                    position: 'absolute',
+                    bottom: 2,
+                    left: 4,
+                    fontFamily: FONT_MONO,
+                    fontSize: 7.5,
+                    fontWeight: 700,
+                    letterSpacing: '0.22em',
+                    color: '#FAF7F2',
+                    textShadow: '0 1px 2px rgba(22,16,6,0.6)',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  № {String(i + 1).padStart(2, '0')}
+                </span>
                 <button
                   type="button"
                   onClick={() => removePending(p.id)}
@@ -328,10 +402,10 @@ export function PhotoDropZone({
                     right: 3,
                     width: 18,
                     height: 18,
-                    borderRadius: '50%',
-                    border: 'none',
-                    background: 'rgba(0,0,0,0.55)',
-                    color: '#fff',
+                    borderRadius: 2,
+                    border: '1px solid rgba(250,247,242,0.55)',
+                    background: 'rgba(22,16,6,0.62)',
+                    color: '#FAF7F2',
                     cursor: uploading ? 'default' : 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -339,7 +413,7 @@ export function PhotoDropZone({
                     opacity: uploading ? 0.4 : 1,
                   }}
                 >
-                  <X size={10} />
+                  <X size={10} strokeWidth={2.5} />
                 </button>
               </div>
             ))}
@@ -347,24 +421,31 @@ export function PhotoDropZone({
         )}
       </AnimatePresence>
 
-      {/* Error */}
+      {/* Erratum */}
       {error && (
         <div
           style={{
             display: 'flex',
             alignItems: 'flex-start',
-            gap: 6,
-            padding: '6px 10px',
-            borderRadius: 10,
-            background: 'rgba(185,28,28,0.08)',
-            border: '1px solid rgba(185,28,28,0.18)',
-            color: '#b91c1c',
-            fontSize: '0.7rem',
-            lineHeight: 1.4,
+            gap: 8,
+            padding: '10px 12px',
+            borderRadius: 2,
+            background: 'rgba(139,45,45,0.06)',
+            borderTop: '1.5px solid rgba(139,45,45,0.65)',
+            borderLeft: '1px solid rgba(139,45,45,0.28)',
+            borderRight: '1px solid rgba(139,45,45,0.28)',
+            borderBottom: '1px solid rgba(139,45,45,0.28)',
+            color: '#8B2D2D',
+            fontFamily: FONT_MONO,
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            lineHeight: 1.55,
           }}
         >
-          <AlertCircle size={12} style={{ flexShrink: 0, marginTop: 1 }} />
-          <span>{error}</span>
+          <AlertCircle size={12} style={{ flexShrink: 0, marginTop: 2 }} />
+          <span>Erratum · {error}</span>
         </div>
       )}
 
@@ -381,20 +462,23 @@ export function PhotoDropZone({
             disabled={uploading}
             style={{
               flex: 1,
-              minHeight: 40,
-              padding: '0 14px',
-              borderRadius: 100,
-              background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.5)',
+              minHeight: 42,
+              padding: '0 16px',
+              borderRadius: 2,
+              background: 'transparent',
               border: `1px solid ${accentBorder}`,
-              fontSize: '0.76rem',
-              fontWeight: 600,
+              fontFamily: FONT_MONO,
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
               color: mutedColor,
               cursor: uploading ? 'default' : 'pointer',
-              fontFamily: 'inherit',
               opacity: uploading ? 0.5 : 1,
+              transition: 'background 180ms ease, border-color 180ms ease',
             }}
           >
-            Clear
+            Discard
           </button>
           <button
             type="button"
@@ -402,20 +486,25 @@ export function PhotoDropZone({
             disabled={uploading}
             style={{
               flex: 1.6,
-              minHeight: 40,
-              padding: '0 16px',
-              borderRadius: 100,
-              background: 'var(--pl-olive, #A3B18A)',
+              minHeight: 42,
+              padding: '0 18px',
+              borderRadius: 2,
+              background: dark ? '#FAF7F2' : '#18181B',
+              color: dark ? '#18181B' : '#FAF7F2',
               border: 'none',
-              fontSize: '0.8rem',
+              borderTop: `1.5px solid ${dark ? 'rgba(212,175,55,0.85)' : 'rgba(184,147,90,0.95)'}`,
+              fontFamily: FONT_MONO,
+              fontSize: 10,
               fontWeight: 700,
-              color: '#fff',
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
               cursor: uploading ? 'default' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 6,
-              fontFamily: 'inherit',
+              gap: 8,
+              boxShadow: '0 0 0 3px rgba(184,147,90,0.22)',
+              transition: 'box-shadow 180ms ease',
             }}
           >
             {uploading ? (
@@ -424,19 +513,19 @@ export function PhotoDropZone({
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                   style={{
-                    width: 12,
-                    height: 12,
+                    width: 11,
+                    height: 11,
                     borderRadius: '50%',
-                    border: '2px solid rgba(255,255,255,0.4)',
-                    borderTopColor: '#fff',
+                    border: `1.5px solid ${dark ? 'rgba(22,16,6,0.35)' : 'rgba(250,247,242,0.35)'}`,
+                    borderTopColor: dark ? '#18181B' : '#FAF7F2',
                   }}
                 />
-                Uploading…
+                Pressing · plates
               </>
             ) : (
               <>
-                <ImageIcon size={13} />
-                Upload {pending.length}
+                <ImageIcon size={12} strokeWidth={1.8} />
+                File · {String(pending.length).padStart(2, '0')} plate{pending.length === 1 ? '' : 's'}
               </>
             )}
           </button>
@@ -446,12 +535,17 @@ export function PhotoDropZone({
       {uploadedCount > 0 && pending.length === 0 && !uploading && (
         <div
           style={{
-            fontSize: '0.7rem',
-            color: mutedColor,
+            fontFamily: FONT_MONO,
+            fontSize: 8.5,
+            fontWeight: 700,
+            letterSpacing: '0.3em',
+            textTransform: 'uppercase',
+            color: kickerColor,
             textAlign: 'center',
+            paddingTop: 2,
           }}
         >
-          {uploadedCount} photo{uploadedCount === 1 ? '' : 's'} uploaded
+          Filed · {String(uploadedCount).padStart(2, '0')} plate{uploadedCount === 1 ? '' : 's'} committed
         </div>
       )}
     </div>
