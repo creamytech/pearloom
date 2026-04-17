@@ -126,6 +126,36 @@ export function MobileEditorSheet() {
     // Ignore if user was just scrolling — prevents accidental opens
     if (scrollingRef.current) return;
 
+    // Pear-primary mode parity with desktop: tapping a section opens Ask Pear
+    // pre-filled with a section-specific prompt instead of the settings sheet.
+    const pearModeOn =
+      typeof document !== 'undefined' &&
+      document.body.getAttribute('data-pear-mode') === '1';
+    if (pearModeOn) {
+      const friendly = sectionId
+        .replace(/-/g, ' ')
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+        .toLowerCase();
+      const prompt = chapterId
+        ? 'Help me improve this chapter: '
+        : sectionId === 'hero'
+          ? 'Rewrite my hero tagline to be more '
+          : sectionId === 'rsvp'
+            ? 'Write a warmer RSVP intro for my guests: '
+            : sectionId === 'events'
+              ? 'Add an event to my schedule: '
+              : sectionId === 'faq'
+                ? 'Suggest FAQs guests would actually ask about our '
+                : sectionId === 'registry'
+                  ? 'Help me set up my registry for '
+                  : `Change my ${friendly} section to `;
+      window.dispatchEvent(
+        new CustomEvent('pearloom:ask-pear', { detail: { prompt } }),
+      );
+      if (chapterId) dispatch({ type: 'SET_ACTIVE_ID', id: chapterId });
+      return;
+    }
+
     if (chapterId) {
       setActiveChapterId(chapterId);
       setActiveSection('story');

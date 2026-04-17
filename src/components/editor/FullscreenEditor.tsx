@@ -1664,15 +1664,40 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       {!state.isMobile && <EditorTour />}
       {!state.isMobile && <GettingStartedChecklist />}
 
-      {/* Multi-user co-edit: presence avatars + peer cursors. Only
-          mounts when we have a site id and a signed-in user — so
-          wizard-only / anonymous editors don't broadcast. */}
-      {collabSiteId && sessionData?.user?.email && (
+      {/* Multi-user co-edit: presence avatars + peer cursors.
+          Now mobile-parity — was previously desktop-only. */}
+      {collabSiteId && sessionData?.user?.email && !state.isMobile && (
         <CollabPresence
           siteId={collabSiteId}
           userEmail={sessionData.user.email}
           userName={sessionData.user.name || undefined}
         />
+      )}
+
+      {/* Mobile collab — avatars only, no cursors (touch UIs don't
+          broadcast a cursor to peers). Rendered inside a fixed pill
+          so the presence strip doesn't clash with the mobile sheet. */}
+      {collabSiteId && sessionData?.user?.email && state.isMobile && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 'calc(env(safe-area-inset-top, 0px) + 8px)',
+            right: 12,
+            zIndex: 1200,
+            padding: '4px 6px',
+            borderRadius: 999,
+            background: 'color-mix(in oklab, var(--pl-cream-card, #FBF7EE) 92%, transparent)',
+            border: '1px solid var(--pl-divider)',
+            boxShadow: '0 4px 12px rgba(40,28,12,0.08)',
+            pointerEvents: 'auto',
+          }}
+        >
+          <CollabPresence
+            siteId={collabSiteId}
+            userEmail={sessionData.user.email}
+            userName={sessionData.user.name || undefined}
+          />
+        </div>
       )}
 
       {/* Section comments drawer */}
