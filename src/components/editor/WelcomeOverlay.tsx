@@ -1,9 +1,18 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// Pearloom / WelcomeOverlay.tsx — Context-aware welcome screen
-// First visit: "Your site is ready" with editing hints
-// Returning: Personalized greeting with site stats
+// Pearloom / WelcomeOverlay.tsx — Editorial site-intro screen
+//
+// Redesign (2026-04): drops the generic white-card/gray-grey
+// splash in favour of an Editorial Modernism dispatch —
+// masthead kicker, Fraunces italic display names, gold hairlines,
+// cream paper, and a short "keyboard grimoire" that makes the
+// hidden shortcuts (⌘K palette · / Ask Pear) discoverable on
+// first open without a modal tour.
+//
+// First visit  → "In this issue…" with three affordances.
+// Returning    → time-of-day greeting, stat marginalia, editorial
+//                dispatch line ("Five guests await a reply").
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
@@ -34,27 +43,82 @@ function getTimeGreeting(): string {
   return 'Good evening';
 }
 
-function getSiteStats(manifest?: StoryManifest) {
+interface SiteStats {
+  rsvpCount: number;
+  attending: number;
+  pending: number;
+  declined: number;
+  guestbookCount: number;
+  chapterCount: number;
+  eventCount: number;
+  photoCount: number;
+  hasBlocks: boolean;
+  marginalia: Array<{ label: string; value: string }>;
+}
+
+function getSiteStats(manifest?: StoryManifest): SiteStats | null {
   if (!manifest) return null;
-  const rsvpCount = manifest.rsvps?.length || 0;
-  const attending = manifest.rsvps?.filter(r => r.status === 'attending').length || 0;
-  const guestbookCount = (manifest as any).guestbookMessages?.length || 0;
+  const rsvps = manifest.rsvps || [];
+  const rsvpCount = rsvps.length;
+  const attending = rsvps.filter(r => r.status === 'attending').length;
+  const pending = rsvps.filter(r => r.status === 'pending').length;
+  const declined = rsvps.filter(r => r.status === 'declined').length;
+  const guestbookCount =
+    (manifest as unknown as { guestbookMessages?: unknown[] }).guestbookMessages?.length || 0;
   const chapterCount = manifest.chapters?.length || 0;
   const eventCount = manifest.events?.length || 0;
-  const photoCount = (manifest.chapters?.reduce((sum, ch) => sum + (ch.images?.length || 0), 0) || 0)
-    + ((manifest as any).coverPhoto ? 1 : 0)
-    + ((manifest as any).heroSlideshow?.filter(Boolean)?.length || 0);
+  const photoCount =
+    (manifest.chapters?.reduce((sum, ch) => sum + (ch.images?.length || 0), 0) || 0) +
+    (manifest.coverPhoto ? 1 : 0) +
+    (manifest.heroSlideshow?.filter(Boolean)?.length || 0);
   const hasBlocks = (manifest.blocks?.length || 0) > 0;
 
-  const stats: Array<{ label: string; value: string }> = [];
-  if (rsvpCount > 0) stats.push({ label: 'RSVPs', value: `${attending} attending` });
-  if (guestbookCount > 0) stats.push({ label: 'Messages', value: `${guestbookCount} new` });
-  if (photoCount > 0) stats.push({ label: 'Photos', value: String(photoCount) });
-  if (chapterCount > 0) stats.push({ label: 'Chapters', value: String(chapterCount) });
-  if (eventCount > 0) stats.push({ label: 'Events', value: String(eventCount) });
+  const marginalia: SiteStats['marginalia'] = [];
+  if (attending > 0) marginalia.push({ label: 'Attending', value: String(attending) });
+  if (pending > 0) marginalia.push({ label: 'Pending', value: String(pending) });
+  if (chapterCount > 0) marginalia.push({ label: 'Chapters', value: String(chapterCount) });
+  if (eventCount > 0) marginalia.push({ label: 'Events', value: String(eventCount) });
+  if (photoCount > 0) marginalia.push({ label: 'Photos', value: String(photoCount) });
 
-  return { rsvpCount, attending, guestbookCount, chapterCount, eventCount, photoCount, hasBlocks, stats };
+  return { rsvpCount, attending, pending, declined, guestbookCount, chapterCount, eventCount, photoCount, hasBlocks, marginalia };
 }
+
+// Pick a warm, specific dispatch line for returning users based on state.
+function getDispatch(stats: SiteStats | null): string {
+  if (!stats) return 'Pick up where you left off.';
+  if (stats.pending > 0) {
+    return stats.pending === 1
+      ? 'One guest still owes a reply.'
+      : `${stats.pending} guests still owe a reply.`;
+  }
+  if (stats.attending > 0) {
+    return stats.attending === 1
+      ? 'One guest is planning to join you.'
+      : `${stats.attending} guests are planning to join you.`;
+  }
+  if (stats.guestbookCount > 0) {
+    return stats.guestbookCount === 1
+      ? 'A new note is waiting in the guestbook.'
+      : `${stats.guestbookCount} new notes are waiting in the guestbook.`;
+  }
+  if (stats.hasBlocks) return 'Your site is taking shape — keep going.';
+  return 'Pick up where you left off.';
+}
+
+// ── Palette (editorial) ─────────────────────────────────────────
+const CREAM = 'var(--pl-cream, #F5EFE2)';
+const CREAM_CARD = 'var(--pl-cream-card, #FBF7EE)';
+const INK = 'var(--pl-ink, #0E0D0B)';
+const INK_SOFT = 'var(--pl-ink-soft, #3A332C)';
+const MUTED = 'var(--pl-muted, #6F6557)';
+const GOLD = 'var(--pl-gold, #B8935A)';
+const GOLD_RULE = 'color-mix(in oklab, var(--pl-gold, #B8935A) 35%, transparent)';
+const GOLD_MIST = 'color-mix(in oklab, var(--pl-gold, #B8935A) 14%, transparent)';
+const OLIVE = 'var(--pl-olive, #5C6B3F)';
+
+const FONT_DISPLAY = 'var(--pl-font-heading, "Fraunces", Georgia, serif)';
+const FONT_BODY = 'var(--pl-font-body, system-ui, sans-serif)';
+const FONT_MONO = 'var(--pl-font-mono, ui-monospace, "Geist Mono", monospace)';
 
 export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: WelcomeOverlayProps) {
   const [isReturning, setIsReturning] = useState(false);
@@ -67,181 +131,564 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
 
   const stats = getSiteStats(manifest);
   const firstName = coupleNames?.[0] || '';
+  const secondName = coupleNames?.[1] || '';
+  const displayNames = [firstName, secondName].filter(Boolean).join(' & ');
   const greeting = getTimeGreeting();
+  const dispatch = getDispatch(stats);
 
-  // ── Returning user content ─────────────────────────────────
-  const returningTitle = firstName ? `${greeting}, ${firstName}` : `${greeting}!`;
-  const returningSubtitle = stats?.rsvpCount
-    ? `You have ${stats.attending} guest${stats.attending !== 1 ? 's' : ''} attending so far.`
-    : stats?.hasBlocks
-      ? 'Your site is looking great. Keep building!'
-      : 'Pick up where you left off.';
+  // Edition metadata — deterministic but feels authored.
+  const today = new Date();
+  const dateLine = today.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
 
-  // ── First visit content ─────────────────────────────────────
-  const firstTitle = 'Your Pearloom site is ready';
-  const firstSubtitle = 'Click any section to edit it. Drag to rearrange. Make it yours.';
-
-  const title = isReturning ? returningTitle : firstTitle;
-  const subtitle = isReturning ? returningSubtitle : firstSubtitle;
-  const ctaText = isReturning ? 'Continue editing' : 'Click anywhere to start editing';
-
+  // ── Frame ────────────────────────────────────────────────
   return (
     <motion.div
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
       onClick={onDismiss}
       style={{
-        position: 'fixed', inset: 0, zIndex: 9999,
-        display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
-        cursor: 'pointer', overflow: 'hidden',
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        overflow: 'hidden',
+        background: CREAM,
+        padding: 'clamp(20px, 5vw, 48px)',
       }}
     >
-      {/* Clean neutral background */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: '#FAFAFA',
-      }} />
-
-      {/* Glass card */}
-      <motion.div
-        initial={{ opacity: 0, y: 30, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      {/* Paper grain overlay */}
+      <div
+        aria-hidden
         style={{
-          position: 'relative', zIndex: 1,
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', gap: '0',
-          padding: 'clamp(2.5rem, 6vw, 4rem) clamp(2rem, 5vw, 5rem)',
-          borderRadius: '10px',
-          background: '#FFFFFF',
-          border: '1px solid #E4E4E7',
-          boxShadow: '0 16px 40px rgba(0,0,0,0.08)',
-          maxWidth: '480px',
-          width: '90%',
-        } as React.CSSProperties}
+          position: 'absolute',
+          inset: 0,
+          backgroundImage:
+            'radial-gradient(rgba(14,13,11,0.028) 1px, transparent 1px)',
+          backgroundSize: '3px 3px',
+          mixBlendMode: 'multiply',
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Edition mark — top corners */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          top: 'clamp(20px, 4vw, 40px)',
+          left: 'clamp(20px, 4vw, 40px)',
+          right: 'clamp(20px, 4vw, 40px)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          fontFamily: FONT_MONO,
+          fontSize: 'clamp(0.56rem, 1.3vw, 0.66rem)',
+          letterSpacing: '0.26em',
+          textTransform: 'uppercase',
+          color: MUTED,
+          pointerEvents: 'none',
+        }}
       >
-        {/* Decorative accent */}
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: '48px' }}
-          transition={{ duration: 0.8, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          style={{ height: '2px', background: '#18181B', borderRadius: '2px', marginBottom: '2rem' }}
+        <span>Pearloom · The Editor</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {dateLine}
+          <span style={{ width: 4, height: 4, borderRadius: '50%', background: GOLD }} />
+          {isReturning ? 'Daily Dispatch' : 'Edition 01'}
+        </span>
+      </div>
+
+      {/* Core card */}
+      <motion.div
+        onClick={(e) => {
+          // First visit: swallow clicks inside the card so users can read.
+          // Click-outside (on the backdrop) still dismisses.
+          e.stopPropagation();
+        }}
+        initial={{ opacity: 0, y: 22 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          width: '100%',
+          maxWidth: 640,
+          padding: 'clamp(36px, 5vw, 56px) clamp(28px, 5vw, 64px)',
+          background: CREAM_CARD,
+          border: `1px solid ${GOLD_RULE}`,
+          boxShadow:
+            '0 1px 0 rgba(184,147,90,0.18) inset, 0 24px 72px rgba(40,28,12,0.12), 0 6px 18px rgba(40,28,12,0.06)',
+          borderRadius: 2,
+          cursor: 'default',
+        }}
+      >
+        {/* Gold hairline top-inner */}
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            top: 8,
+            left: 18,
+            right: 18,
+            height: 1,
+            background: GOLD,
+            opacity: 0.55,
+          }}
         />
 
-        {/* Accent symbol */}
+        {/* Kicker */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.35 }}
           style={{
-            fontSize: '1.8rem', color: '#18181B', opacity: 0.6,
-            marginBottom: '1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 12,
+            marginBottom: 22,
+            fontFamily: FONT_MONO,
+            fontSize: '0.62rem',
+            letterSpacing: '0.28em',
+            textTransform: 'uppercase',
+            color: GOLD,
           }}
         >
-          {isReturning ? '✦' : '✦'}
+          <span style={{ width: 18, height: 1, background: GOLD }} />
+          {isReturning ? `${greeting}${firstName ? `, ${firstName}` : ''}` : 'In this issue'}
+          <span style={{ width: 18, height: 1, background: GOLD }} />
         </motion.div>
 
-        {/* Title */}
-        <motion.h1
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.9, ease: [0.16, 1, 0.3, 1] }}
+        {/* Display name(s) */}
+        {displayNames ? (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            style={{ textAlign: 'center', marginBottom: 22 }}
+          >
+            <h1
+              style={{
+                margin: 0,
+                fontFamily: FONT_DISPLAY,
+                fontStyle: 'italic',
+                fontWeight: 400,
+                fontSize: 'clamp(2.4rem, 6.5vw, 4rem)',
+                lineHeight: 1.02,
+                letterSpacing: '-0.018em',
+                color: INK,
+                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+              }}
+            >
+              {firstName}
+            </h1>
+            {secondName && (
+              <>
+                <div
+                  style={{
+                    fontFamily: FONT_DISPLAY,
+                    fontStyle: 'italic',
+                    fontSize: 'clamp(1rem, 2vw, 1.25rem)',
+                    color: GOLD,
+                    margin: '4px 0',
+                  }}
+                >
+                  &amp;
+                </div>
+                <h1
+                  style={{
+                    margin: 0,
+                    fontFamily: FONT_DISPLAY,
+                    fontStyle: 'italic',
+                    fontWeight: 400,
+                    fontSize: 'clamp(2.4rem, 6.5vw, 4rem)',
+                    lineHeight: 1.02,
+                    letterSpacing: '-0.018em',
+                    color: INK,
+                    fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                  }}
+                >
+                  {secondName}
+                </h1>
+              </>
+            )}
+          </motion.div>
+        ) : (
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.45 }}
+            style={{
+              margin: '0 0 22px',
+              fontFamily: FONT_DISPLAY,
+              fontStyle: 'italic',
+              fontWeight: 400,
+              fontSize: 'clamp(2rem, 5vw, 2.8rem)',
+              lineHeight: 1.08,
+              color: INK,
+              textAlign: 'center',
+              letterSpacing: '-0.012em',
+            }}
+          >
+            Your site is ready.
+          </motion.h1>
+        )}
+
+        {/* Rule */}
+        <div
+          aria-hidden
           style={{
-            fontFamily: 'inherit',
-            fontSize: isReturning ? 'clamp(1.5rem, 4vw, 2.2rem)' : 'clamp(1.8rem, 5vw, 2.8rem)',
-            fontWeight: 400, 
-            color: '#3F3F46',
-            letterSpacing: '-0.02em',
-            textAlign: 'center',
-            margin: '0 0 0.75rem',
+            width: 40,
+            height: 1,
+            background: GOLD,
+            margin: '0 auto 20px',
+          }}
+        />
+
+        {/* Body — diverges by first-visit vs returning */}
+        {isReturning ? (
+          <>
+            <motion.p
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              style={{
+                margin: '0 auto 24px',
+                maxWidth: 420,
+                textAlign: 'center',
+                fontFamily: FONT_DISPLAY,
+                fontStyle: 'italic',
+                fontSize: 'clamp(1.05rem, 2.1vw, 1.2rem)',
+                lineHeight: 1.5,
+                color: INK_SOFT,
+              }}
+            >
+              {dispatch}
+            </motion.p>
+
+            {stats && stats.marginalia.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.75 }}
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  justifyContent: 'center',
+                  gap: 0,
+                  marginBottom: 30,
+                  borderTop: `1px solid ${GOLD_RULE}`,
+                  borderBottom: `1px solid ${GOLD_RULE}`,
+                  paddingBlock: 14,
+                }}
+              >
+                {stats.marginalia.slice(0, 4).map((item, i) => (
+                  <div
+                    key={item.label}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 4,
+                      padding: '0 clamp(14px, 3vw, 24px)',
+                      borderLeft: i === 0 ? 'none' : `1px solid ${GOLD_RULE}`,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: FONT_DISPLAY,
+                        fontSize: 'clamp(1.4rem, 3vw, 1.9rem)',
+                        color: INK,
+                        lineHeight: 1,
+                      }}
+                    >
+                      {item.value}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: FONT_MONO,
+                        fontSize: '0.58rem',
+                        letterSpacing: '0.24em',
+                        textTransform: 'uppercase',
+                        color: MUTED,
+                      }}
+                    >
+                      {item.label}
+                    </span>
+                  </div>
+                ))}
+              </motion.div>
+            )}
+
+            <motion.button
+              type="button"
+              onClick={onDismiss}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.9 }}
+              whileHover={{ y: -1 }}
+              whileTap={{ scale: 0.98 }}
+              style={{
+                display: 'block',
+                margin: '0 auto',
+                padding: '14px 28px',
+                background: INK,
+                color: CREAM,
+                border: `1px solid ${INK}`,
+                borderRadius: 2,
+                fontFamily: FONT_MONO,
+                fontSize: '0.68rem',
+                letterSpacing: '0.28em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                fontWeight: 600,
+              }}
+            >
+              Continue editing
+            </motion.button>
+          </>
+        ) : (
+          <>
+            <motion.p
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              style={{
+                margin: '0 auto 28px',
+                maxWidth: 440,
+                textAlign: 'center',
+                fontFamily: FONT_DISPLAY,
+                fontStyle: 'italic',
+                fontSize: 'clamp(1.05rem, 2.1vw, 1.22rem)',
+                lineHeight: 1.5,
+                color: INK_SOFT,
+              }}
+            >
+              Three ways in. Click anything on the canvas to edit it, type{' '}
+              <KBD>/</KBD> to summon Pear, or <KBD>⌘K</KBD> for the command palette.
+            </motion.p>
+
+            {/* Three-way affordance list — editorial index */}
+            <motion.ul
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.65, delay: 0.78 }}
+              style={{
+                listStyle: 'none',
+                margin: '0 0 30px',
+                padding: 0,
+                borderTop: `1px solid ${GOLD_RULE}`,
+              }}
+            >
+              <AffordanceRow
+                n="01"
+                label="Edit inline"
+                detail="Click any section. Edit in place."
+                shortcut="Click"
+              />
+              <AffordanceRow
+                n="02"
+                label="Summon Pear"
+                detail="AI rewrites, generates, and reviews."
+                shortcut="/"
+              />
+              <AffordanceRow
+                n="03"
+                label="Command palette"
+                detail="Jump to any tab in one keystroke."
+                shortcut="⌘K"
+              />
+            </motion.ul>
+
+            <motion.button
+              type="button"
+              onClick={onDismiss}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.95 }}
+              whileHover={{ y: -1 }}
+              whileTap={{ scale: 0.98 }}
+              style={{
+                display: 'block',
+                margin: '0 auto',
+                padding: '14px 32px',
+                background: INK,
+                color: CREAM,
+                border: `1px solid ${INK}`,
+                borderRadius: 2,
+                fontFamily: FONT_MONO,
+                fontSize: '0.68rem',
+                letterSpacing: '0.28em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                fontWeight: 600,
+              }}
+            >
+              Begin editing
+            </motion.button>
+          </>
+        )}
+
+        {/* Colophon */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 1.2 }}
+          style={{
+            marginTop: 28,
+            paddingTop: 14,
+            borderTop: `1px solid ${GOLD_RULE}`,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 12,
+            fontFamily: FONT_MONO,
+            fontSize: '0.56rem',
+            letterSpacing: '0.24em',
+            textTransform: 'uppercase',
+            color: MUTED,
+          }}
+        >
+          <span>Set in Fraunces &amp; Geist</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: OLIVE }} />
+            {siteName || 'Pearloom'}
+          </span>
+        </motion.div>
+      </motion.div>
+
+      {/* Dismiss hint — pinned to the bottom, click-backdrop reminder */}
+      <motion.div
+        aria-hidden
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.4, duration: 0.6 }}
+        style={{
+          position: 'absolute',
+          bottom: 'clamp(20px, 3vw, 32px)',
+          left: 0,
+          right: 0,
+          textAlign: 'center',
+          fontFamily: FONT_MONO,
+          fontSize: '0.56rem',
+          letterSpacing: '0.28em',
+          textTransform: 'uppercase',
+          color: MUTED,
+          pointerEvents: 'none',
+        }}
+      >
+        Tap anywhere to close
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// ── Inline helpers ──────────────────────────────────────────
+function KBD({ children }: { children: React.ReactNode }) {
+  return (
+    <kbd
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        padding: '1px 6px',
+        margin: '0 2px',
+        borderRadius: 3,
+        background: GOLD_MIST,
+        border: `1px solid ${GOLD_RULE}`,
+        fontFamily: FONT_MONO,
+        fontSize: '0.72em',
+        letterSpacing: '0.08em',
+        color: INK,
+        fontStyle: 'normal',
+        lineHeight: 1.2,
+      }}
+    >
+      {children}
+    </kbd>
+  );
+}
+
+function AffordanceRow({
+  n,
+  label,
+  detail,
+  shortcut,
+}: {
+  n: string;
+  label: string;
+  detail: string;
+  shortcut: string;
+}) {
+  return (
+    <li
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '48px 1fr auto',
+        alignItems: 'center',
+        gap: 16,
+        padding: '14px 4px',
+        borderBottom: `1px solid ${GOLD_RULE}`,
+      }}
+    >
+      <span
+        style={{
+          fontFamily: FONT_MONO,
+          fontSize: '0.64rem',
+          letterSpacing: '0.22em',
+          color: GOLD,
+          fontWeight: 700,
+        }}
+      >
+        {n}
+      </span>
+      <div>
+        <div
+          style={{
+            fontFamily: FONT_DISPLAY,
+            fontStyle: 'italic',
+            fontSize: '1.05rem',
+            color: INK,
             lineHeight: 1.15,
           }}
         >
-          {title}
-        </motion.h1>
-
-        {/* Site name */}
-        {siteName && !isReturning && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 1.2 }}
-            style={{
-              fontSize: '0.9rem', fontWeight: 600,
-              color: '#18181B',
-              marginBottom: '0.5rem',
-              letterSpacing: '0.02em',
-            }}
-          >
-            {siteName}
-          </motion.p>
-        )}
-
-        {/* Subtitle / stats */}
-        <motion.p
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.3, ease: [0.16, 1, 0.3, 1] }}
+          {label}
+        </div>
+        <div
           style={{
-            fontSize: '0.8rem',
-            color: '#71717A',
-            textAlign: 'center',
-            lineHeight: 1.6,
-            maxWidth: '320px',
-            margin: '0 0 1.5rem',
+            fontFamily: FONT_BODY,
+            fontSize: '0.82rem',
+            color: MUTED,
+            lineHeight: 1.4,
+            marginTop: 2,
           }}
         >
-          {subtitle}
-        </motion.p>
-
-        {/* Quick stats for returning users */}
-        {isReturning && stats && stats.stats.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.5 }}
-            style={{
-              display: 'flex', gap: '16px', marginBottom: '1.5rem',
-              flexWrap: 'wrap', justifyContent: 'center',
-            }}
-          >
-            {stats.stats.slice(0, 3).map((s) => (
-              <div
-                key={s.label}
-                style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center',
-                  padding: '8px 16px', borderRadius: '12px',
-                  background: 'rgba(24,24,27,0.04)',
-                  border: '1px solid rgba(24,24,27,0.08)',
-                }}
-              >
-                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#18181B' }}>{s.value}</span>
-                <span style={{ fontSize: '0.6rem', fontWeight: 600, color: '#71717A', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{s.label}</span>
-              </div>
-            ))}
-          </motion.div>
-        )}
-
-        {/* CTA hint */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 1, 0.6, 1] }}
-          transition={{ duration: 2, delay: 1.8, repeat: Infinity, repeatDelay: 3 }}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '8px 20px', borderRadius: '8px',
-            background: 'rgba(24,24,27,0.06)',
-            border: '1px solid rgba(24,24,27,0.1)',
-            color: '#18181B',
-            fontSize: '0.65rem', fontWeight: 600,
-            letterSpacing: '0.06em',
-          }}
-        >
-          {ctaText}
-        </motion.div>
-      </motion.div>
-    </motion.div>
+          {detail}
+        </div>
+      </div>
+      <kbd
+        style={{
+          padding: '6px 10px',
+          borderRadius: 3,
+          background: CREAM,
+          border: `1px solid ${GOLD_RULE}`,
+          fontFamily: FONT_MONO,
+          fontSize: '0.66rem',
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          color: INK,
+          minWidth: 44,
+          textAlign: 'center',
+        }}
+      >
+        {shortcut}
+      </kbd>
+    </li>
   );
 }
