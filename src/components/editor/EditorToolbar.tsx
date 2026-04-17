@@ -29,9 +29,11 @@ interface EditorToolbarProps {
   onExit: () => void;
   pearMode?: boolean;
   onTogglePearMode?: () => void;
+  canPublish?: boolean;
+  roleLabel?: string | null;
 }
 
-export function EditorToolbar({ onExit, pearMode, onTogglePearMode }: EditorToolbarProps) {
+export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish = true, roleLabel = null }: EditorToolbarProps) {
   const { state, dispatch, actions, manifest, coupleNames } = useEditor();
   const { isMobile, canUndo, canRedo, saveState, subdomain, publishedUrl } = state;
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -402,20 +404,26 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode }: EditorTool
             </RichTooltip>
           )}
 
-          <RichTooltip
-            label={publishDisabled
-              ? 'Add a chapter, event, or block before publishing'
-              : 'Publish & share your site'}
-            side="bottom"
-          >
+          {/* Role-aware: only the owner can publish. Co-editors see
+              a dimmed, disabled pill with a tooltip explaining why. */}
+          {(() => {
+            const blocked = publishDisabled || !canPublish;
+            const blockedReason = !canPublish
+              ? `Only the site owner can publish${roleLabel ? ` (you're a ${roleLabel})` : ''}`
+              : 'Add a chapter, event, or block before publishing';
+            return (
+              <RichTooltip
+                label={blocked ? blockedReason : 'Publish & share your site'}
+                side="bottom"
+              >
             <motion.button
               onClick={() => {
-                if (!publishDisabled) dispatch({ type: 'OPEN_PUBLISH' });
+                if (!blocked) dispatch({ type: 'OPEN_PUBLISH' });
               }}
-              disabled={publishDisabled}
-              whileHover={!publishDisabled ? { y: -1 } : {}}
-              whileTap={!publishDisabled ? { scale: 0.97 } : {}}
-              className={publishDisabled ? undefined : 'pl-cta-pulse'}
+              disabled={blocked}
+              whileHover={!blocked ? { y: -1 } : {}}
+              whileTap={!blocked ? { scale: 0.97 } : {}}
+              className={blocked ? undefined : 'pl-cta-pulse'}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -423,15 +431,15 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode }: EditorTool
                 padding: isMobile ? '6px 14px' : '7px 18px',
                 borderRadius: 999,
                 border: 'none',
-                background: publishDisabled ? 'var(--pl-muted-soft, var(--pl-divider))' : 'var(--pl-ink)',
-                color: publishDisabled ? 'var(--pl-muted)' : 'var(--pl-cream)',
-                cursor: publishDisabled ? 'not-allowed' : 'pointer',
-                opacity: publishDisabled ? 0.6 : 1,
+                background: blocked ? 'var(--pl-muted-soft, var(--pl-divider))' : 'var(--pl-ink)',
+                color: blocked ? 'var(--pl-muted)' : 'var(--pl-cream)',
+                cursor: blocked ? 'not-allowed' : 'pointer',
+                opacity: blocked ? 0.6 : 1,
                 fontSize: '0.66rem',
                 fontWeight: 700,
                 letterSpacing: '0.12em',
                 textTransform: 'uppercase',
-                boxShadow: publishDisabled
+                boxShadow: blocked
                   ? 'none'
                   : '0 2px 12px color-mix(in oklab, var(--pl-olive) 30%, transparent)',
                 transition: 'box-shadow 0.25s ease, transform 0.2s ease',
@@ -440,6 +448,8 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode }: EditorTool
               Publish
             </motion.button>
           </RichTooltip>
+            );
+          })()}
         </div>
       </div>
 

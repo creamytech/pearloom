@@ -26,13 +26,36 @@ export async function POST(req: NextRequest) {
     });
 
     if (!subdomain || !manifest) {
-      return NextResponse.json({ 
-        error: `Missing required fields: subdomain=${!!subdomain}, manifest=${!!manifest}` 
+      return NextResponse.json({
+        error: `Missing required fields: subdomain=${!!subdomain}, manifest=${!!manifest}`
       }, { status: 400 });
     }
 
     // Format subdomain purely to be safe (no spaces, lowercase, etc)
     const cleanSubdomain = subdomain.toLowerCase().replace(/[^a-z0-9-]/g, '');
+
+    // Co-host role gate — only the site owner can publish.
+    // If the subdomain doesn't exist yet, anyone logged in can claim it.
+    try {
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (url && key) {
+        const sb = createClient(url, key);
+        const { data: existing } = await sb
+          .from('sites')
+          .select('creator_email')
+          .eq('subdomain', cleanSubdomain)
+          .maybeSingle();
+        if (existing && existing.creator_email && existing.creator_email !== session.user.email) {
+          return NextResponse.json(
+            { error: 'Only the site owner can publish. Ask the owner to do it.' },
+            { status: 403 },
+          );
+        }
+      }
+    } catch (err) {
+      console.warn('[Publish API] Role check skipped:', err);
+    }
 
     if (cleanSubdomain.length < 3) {
       return NextResponse.json({ error: 'Subdomain must be at least 3 characters' }, { status: 400 });

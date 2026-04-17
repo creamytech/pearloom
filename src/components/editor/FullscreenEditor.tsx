@@ -21,6 +21,7 @@ import type { CommandAction } from './CommandPalette';
 import { EditorToolbar } from './EditorToolbar';
 import { CollabPresence } from './CollabPresence';
 import { useSession } from 'next-auth/react';
+import { useSiteRole } from '@/lib/use-site-role';
 import { EditorCanvas } from './EditorCanvas';
 import { EditorWing } from './EditorWing';
 import { EditorRail } from './EditorRail';
@@ -99,6 +100,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const [previewKey] = useState(() => `${PREVIEW_KEY_PREFIX}-${Date.now()}`);
   const { data: sessionData } = useSession();
   const collabSiteId = initialSubdomain || (manifest as unknown as { coupleId?: string })?.coupleId;
+  const caps = useSiteRole({ subdomain: initialSubdomain });
   // Panel open/collapsed lives in editor state (sidebarCollapsed) so the
   // toolbar and keyboard shortcuts can toggle it without prop drilling.
   const panelOpen = !state.sidebarCollapsed;
@@ -1095,6 +1097,16 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                 dispatch({ type: 'TOGGLE_SIDEBAR_COLLAPSED' });
               }
             }}
+            canPublish={caps.canPublish}
+            roleLabel={
+              caps.role === 'editor'
+                ? 'co-editor'
+                : caps.role === 'guest-manager'
+                  ? 'guest manager'
+                  : caps.role === 'viewer'
+                    ? 'viewer'
+                    : null
+            }
           />
           {/* AIContextBar removed — chapter actions now in inline canvas toolbar + panel */}
           <PostWeddingBanner manifest={manifest} subdomain={state.subdomain} onUpdate={(m) => { onChange(m); pushToPreview(m); }} />
