@@ -23,6 +23,19 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
   const [applied, setApplied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Line-count + character-count meta so the textarea feels more
+  // like an editor and less like a free-form note field.
+  const lineCount = value ? value.split('\n').length : 0;
+  const charCount = value.length;
+  const bracketBalance = (() => {
+    let open = 0;
+    for (const c of value) {
+      if (c === '{') open++;
+      else if (c === '}') open--;
+    }
+    return open;
+  })();
+
   const validateCSS = (css: string): boolean => {
     // Basic safety checks — no @import, no url() to external resources, no expression()
     const forbidden = ['@import', 'expression(', 'javascript:', 'url(http'];
@@ -72,6 +85,9 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
         onChange={(e) => setValue(e.target.value)}
         placeholder={`.block {\n  /* Your custom CSS here */\n  border: 2px solid gold;\n  padding: 2rem;\n}`}
         spellCheck={false}
+        autoCapitalize="off"
+        autoCorrect="off"
+        autoComplete="off"
         className="pl-focus-glow"
         style={{
           width: '100%',
@@ -79,7 +95,10 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
           padding: '12px',
           borderRadius: 'var(--pl-radius-sm)',
           border: error ? '1.5px solid var(--pl-warning)' : '1.5px solid rgba(255,255,255,0.25)',
-          background: '#FAFAFA',
+          // Subtle zebra striping feels like a code surface without a dep.
+          backgroundImage:
+            'repeating-linear-gradient(to bottom, #FAFAFA 0px, #FAFAFA calc(1.6em * 2), #F4F4F2 calc(1.6em * 2), #F4F4F2 calc(1.6em * 4))',
+          backgroundAttachment: 'local',
           fontFamily: '"JetBrains Mono", "Fira Code", monospace',
           fontSize: '0.75rem',
           lineHeight: 1.6,
@@ -88,6 +107,30 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
           tabSize: 2,
         }}
       />
+
+      {/* Editor meta strip */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: 6,
+          fontFamily: 'var(--pl-font-mono)',
+          fontSize: '0.55rem',
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: '#71717A',
+        }}
+      >
+        <span>
+          {lineCount} line{lineCount === 1 ? '' : 's'} · {charCount} char{charCount === 1 ? '' : 's'}
+        </span>
+        {bracketBalance !== 0 && (
+          <span style={{ color: 'var(--pl-warning, #A14A2C)' }}>
+            {bracketBalance > 0 ? `${bracketBalance} open {` : `${-bracketBalance} extra }`}
+          </span>
+        )}
+      </div>
 
       {error && (
         <div style={{
