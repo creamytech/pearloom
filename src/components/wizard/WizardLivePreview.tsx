@@ -25,7 +25,6 @@
 
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Eye } from 'lucide-react';
 import { SiteRenderer } from '@/components/editor/SiteRenderer';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import type { StoryManifest, PageBlock } from '@/types';
@@ -251,6 +250,10 @@ export function WizardLivePreview({
     [collected, selectedPhotos, selectedPaletteColors],
   );
 
+  const year = new Date().getFullYear();
+  const blockCount = skeleton?.blocks?.length ?? 0;
+  const folio = String(Math.max(1, blockCount)).padStart(2, '0');
+
   return (
     <motion.div
       layout
@@ -263,31 +266,50 @@ export function WizardLivePreview({
         display: 'flex',
         flexDirection: 'column',
         gap: 10,
+        width: '100%',
+        maxWidth: 640,
+        margin: '0 auto',
       }}
     >
-      {/* Eyebrow label */}
+      {/* Masthead kicker */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          gap: 7,
-          fontSize: '0.68rem',
-          fontWeight: 800,
-          letterSpacing: '0.16em',
-          textTransform: 'uppercase',
-          color: 'var(--pl-olive-deep, #7D9B6A)',
-          opacity: 0.85,
+          gap: 10,
+          padding: '0 2px 2px',
         }}
       >
-        <Eye size={12} />
-        <span>Your site so far</span>
+        <span
+          style={{
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: '0.32em',
+            textTransform: 'uppercase',
+            color: 'rgba(184,147,90,0.85)',
+          }}
+        >
+          The Proof · Vol. {year}
+        </span>
+        <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.45)' }} />
+        <span
+          style={{
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: '0.3em',
+            color: 'rgba(184,147,90,0.85)',
+          }}
+        >
+          № {folio} / 04
+        </span>
       </div>
 
-      {/* The preview frame — a scaled-down SiteRenderer on a glass
-          surface. We render the site into a fake 1600 × 1000 desktop
-          viewport and then CSS-transform the whole thing down so it
-          fits inside the 640 × 400 glass card. This gives a real
+      {/* The preview frame — a scaled-down SiteRenderer on a cream
+          editorial plate. We render the site into a fake 1600 × 1000
+          desktop viewport and then CSS-transform the whole thing down
+          so it fits inside the 640 × 400 plate. This gives a real
           desktop-shaped preview (16:10) instead of a mobile-phone
           sliver, and the 0.4× scale is still readable. */}
       <motion.div
@@ -296,13 +318,12 @@ export function WizardLivePreview({
           width: '100%',
           maxWidth: 640,
           margin: '0 auto',
-          borderRadius: 20,
+          borderRadius: 2,
           overflow: 'hidden',
-          boxShadow: '0 22px 60px rgba(43,30,20,0.22), 0 2px 8px rgba(43,30,20,0.08)',
-          border: '1px solid rgba(255,255,255,0.6)',
-          background: 'rgba(255,255,255,0.72)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
+          boxShadow:
+            '0 22px 60px rgba(22,16,6,0.22), 0 2px 8px rgba(22,16,6,0.08), 0 0 0 1px rgba(184,147,90,0.28)',
+          borderTop: '1.5px solid rgba(184,147,90,0.65)',
+          background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
           height: 400,
           position: 'relative',
         }}
@@ -359,7 +380,7 @@ function EmptyPreview() {
       style={{
         width: '100%',
         height: '100%',
-        padding: '36px 32px',
+        padding: '28px 36px',
         textAlign: 'center',
         display: 'flex',
         flexDirection: 'column',
@@ -368,40 +389,67 @@ function EmptyPreview() {
         justifyContent: 'center',
       }}
     >
+      {/* Folio seal */}
+      <div
+        style={{
+          fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: '0.34em',
+          textTransform: 'uppercase',
+          color: 'rgba(184,147,90,0.85)',
+        }}
+      >
+        Specimen · blank plate
+      </div>
       <div
         style={{
           width: 72,
           height: 72,
-          borderRadius: 999,
-          background: 'rgba(163,177,138,0.15)',
+          borderRadius: 2,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          border: '1px dashed rgba(163,177,138,0.4)',
-        }}
-      >
-        <Eye size={28} color="var(--pl-olive, #A3B18A)" />
-      </div>
-      <div
-        style={{
-          fontFamily: 'var(--pl-font-heading)',
+          border: '1px solid rgba(184,147,90,0.45)',
+          borderTop: '1.5px solid rgba(184,147,90,0.75)',
+          background: 'rgba(250,247,242,0.65)',
+          fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
           fontStyle: 'italic',
-          fontSize: '1.2rem',
-          color: 'var(--pl-ink-soft)',
+          fontSize: '2rem',
+          fontWeight: 400,
+          color: 'rgba(184,147,90,0.9)',
+          letterSpacing: '-0.02em',
+          fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
         }}
       >
-        Your site will appear here
+        №
       </div>
       <div
         style={{
-          fontSize: '0.85rem',
-          color: 'var(--pl-muted)',
+          fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
+          fontStyle: 'italic',
+          fontSize: '1.35rem',
+          fontWeight: 400,
+          color: '#18181B',
+          letterSpacing: '-0.005em',
+          lineHeight: 1.15,
+          fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+        }}
+      >
+        your issue begins here
+      </div>
+      <div style={{ width: 42, height: 1, background: 'rgba(184,147,90,0.55)' }} />
+      <div
+        style={{
+          fontSize: '0.78rem',
+          color: '#52525B',
           maxWidth: 320,
           lineHeight: 1.55,
+          fontFamily: 'var(--pl-font-body, inherit)',
         }}
       >
-        Every answer lights up another piece of your real site so you can watch
-        it come together.
+        Every answer sets another plate on the press — the site assembles itself
+        beside you as you go.
       </div>
     </div>
   );
