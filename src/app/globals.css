@@ -1777,3 +1777,77 @@ button:hover > .pl-palette-swatches > div {
 .pl-edge-fade {
   mask-image: linear-gradient(90deg, transparent 0, #000 8%, #000 92%, transparent 100%);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   BRAND v7.1 — PEARLOOM SIGNATURE LAYER
+   • Paper grain as a global underlay (the "feel-it" texture)
+   • Letterpress depth utility for display type
+   • Weave keyframes used by Thread / WeaveLoader / signatures
+   • Selection ring becomes the gold thread
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Global paper-grain underlay ────────────────────────────────
+   A fixed, subtle warm grain that sits behind every page so the
+   product feels like it's printed on real cream paper. Tuned to
+   stay readable: opacity is low and it scales by viewport. */
+html::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.34 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 240px 240px;
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+[data-theme='dark'] html::before {
+  /* Lighter grain on dark so it shows up as paper specks, not darker shadows. */
+  mix-blend-mode: screen;
+  opacity: 0.18;
+}
+/* Make sure interactive content stays above the grain. */
+body > * { position: relative; z-index: 1; }
+
+/* ── Letterpress depth utility ──────────────────────────────────
+   Subtle inset shadow + tiny baseline lift so display type feels
+   pressed into the paper rather than stuck on top of it. Use on
+   Fraunces headings ≥ 1.6rem on light surfaces only. */
+.pl-letterpress {
+  text-shadow:
+    0 1px 0 rgba(255, 251, 240, 0.7),
+    0 0 1px rgba(46, 36, 22, 0.04),
+    0 1px 1px rgba(46, 36, 22, 0.06);
+  -webkit-font-smoothing: antialiased;
+}
+[data-theme='dark'] .pl-letterpress {
+  text-shadow:
+    0 -1px 0 rgba(0, 0, 0, 0.55),
+    0 1px 1px rgba(255, 248, 230, 0.04);
+}
+
+/* ── Selection ring — gold thread ───────────────────────────── */
+::selection {
+  background: color-mix(in oklab, var(--pl-gold) 32%, transparent);
+  color: var(--pl-ink);
+}
+[data-theme='dark'] ::selection {
+  background: color-mix(in oklab, var(--pl-gold) 28%, transparent);
+  color: var(--pl-cream);
+}
+
+/* ── Focus ring — woven olive + gold double stroke ──────────── */
+:focus-visible {
+  outline: 2px solid var(--pl-olive);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--pl-gold) 22%, transparent);
+  border-radius: var(--pl-radius-sm);
+}
+
+/* ── Weave keyframes (used by Thread + WeaveLoader) ───────────
+   A continuous loom-shuttle motion: the dash travels across
+   each strand with a phase offset between the two. */
+@keyframes pl-weave-travel {
+  0%   { stroke-dashoffset: 1; }
+  100% { stroke-dashoffset: -0.32; }
+}
