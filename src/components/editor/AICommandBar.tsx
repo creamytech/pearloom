@@ -148,14 +148,20 @@ export function AICommandBar() {
 
   // ── Expand / collapse ─────────────────────────────────────
 
-  const open = useCallback(() => {
+  const open = useCallback((prefill?: string) => {
     setExpanded(true);
     setStatus('idle');
-    setInputVal('');
+    setInputVal(prefill ?? '');
     setErrorMsg('');
     setTimeout(() => {
       inputRef.current?.focus();
       sidePanelInputRef.current?.focus();
+      if (prefill) {
+        // Position cursor at the end so the user can keep typing or
+        // hit Enter to send the suggestion as-is.
+        const node = inputRef.current || sidePanelInputRef.current;
+        if (node) node.setSelectionRange(prefill.length, prefill.length);
+      }
     }, 80);
   }, []);
 
@@ -214,7 +220,21 @@ export function AICommandBar() {
       }
     };
     window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+
+    // Context-aware prompts — any code path can ask Pear to open with
+    // a prefilled prompt by dispatching a `pearloom:ask-pear` event.
+    // Used by the canvas click handler in Pear mode to surface things
+    // like 'What should the hero say?' when a section is tapped.
+    const onAskPear = (e: Event) => {
+      const detail = (e as CustomEvent<{ prompt?: string }>).detail;
+      open(detail?.prompt || '');
+    };
+    window.addEventListener('pearloom:ask-pear', onAskPear);
+
+    return () => {
+      window.removeEventListener('keydown', handler);
+      window.removeEventListener('pearloom:ask-pear', onAskPear);
+    };
   }, [expanded, open, close]);
 
   // ── Auto-scroll messages ──────────────────────────────────
@@ -1162,7 +1182,7 @@ export function AICommandBar() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 8, scale: 0.95 }}
                 transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                onClick={open}
+                onClick={() => open()}
                 style={{
                   pointerEvents: 'auto',
                   display: 'flex',

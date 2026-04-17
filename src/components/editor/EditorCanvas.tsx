@@ -220,6 +220,36 @@ export function EditorCanvas() {
     blockId?: string,
     clickPos?: { x: number; y: number },
   ) => {
+    // Pear-primary mode: every section click opens Ask Pear pre-loaded
+    // with a context-aware prompt instead of deep-linking to a panel.
+    const pearModeOn =
+      typeof document !== 'undefined' &&
+      document.body.getAttribute('data-pear-mode') === '1';
+    if (pearModeOn) {
+      const friendly = sectionId
+        .replace(/-/g, ' ')
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+        .toLowerCase();
+      const prompt = chapterId
+        ? `Help me improve this chapter: `
+        : sectionId === 'hero'
+          ? 'Rewrite my hero tagline to be more '
+          : sectionId === 'rsvp'
+            ? 'Write a warmer RSVP intro for my guests: '
+            : sectionId === 'events'
+              ? 'Add an event to my schedule: '
+              : sectionId === 'faq'
+                ? 'Suggest FAQs guests would actually ask about our '
+                : sectionId === 'registry'
+                  ? 'Help me set up my registry for '
+                  : `Change my ${friendly} section to `;
+      window.dispatchEvent(
+        new CustomEvent('pearloom:ask-pear', { detail: { prompt } }),
+      );
+      if (chapterId) dispatch({ type: 'SET_ACTIVE_ID', id: chapterId });
+      return;
+    }
+
     // Chapter-specific: select chapter for inline editing, do NOT force-switch tabs.
     if (chapterId) {
       dispatch({ type: 'SET_ACTIVE_ID', id: chapterId });
