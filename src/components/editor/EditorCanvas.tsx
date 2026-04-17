@@ -13,6 +13,7 @@ import { Monitor, Tablet, Smartphone } from 'lucide-react';
 import { useEditor, type DeviceMode } from '@/lib/editor-state';
 import { SiteRenderer } from './SiteRenderer';
 import { PearTextRewrite } from './PearTextRewrite';
+import { InlineRewriteLauncher } from './InlineRewriteLauncher';
 import { SlashMenu } from './SlashMenu';
 import { UndoChip } from './UndoChip';
 import { SuggestionBadges } from './SuggestionBadges';
@@ -1092,6 +1093,12 @@ export function EditorCanvas() {
           hosts inline format controls (bold / italic / size / color) so
           the user sees every text affordance in one place. */}
       <PearTextRewrite onTextEdit={handleTextEdit} manifest={manifest} />
+
+      {/* Ambient hover chip — follows the hovered editable field and
+          offers "Rewrite with Pear" for the whole text at once. Pairs
+          with PearTextRewrite (selection-based) so the user has both
+          an "edit the whole thing" and an "edit this phrase" entry. */}
+      <InlineRewriteLauncher />
 
       {/* Slash-menu — Notion-style insert popover for editable text fields.
           Opens on "/" typed inside any [data-pe-editable][contenteditable]. */}
