@@ -651,12 +651,12 @@ function DirectorBody({ siteId }: { siteId: string }) {
                 {sending ? 'Sending' : 'Send →'}
               </button>
             </div>
-            <style jsx>{`
+            <style>{`
               @keyframes pl-ty {
                 0%, 80%, 100% { opacity: 0.25; }
                 40% { opacity: 1; }
               }
-              :global(.pl-ty-dot) {
+              .pl-ty-dot {
                 display: inline-block;
                 animation: pl-ty 1.2s infinite ease-in-out;
                 font-weight: 700;
@@ -901,9 +901,9 @@ function DirectorBody({ siteId }: { siteId: string }) {
         </aside>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @media (max-width: 960px) {
-          :global(.pl-director-grid) {
+          .pl-director-grid {
             grid-template-columns: 1fr !important;
           }
         }
