@@ -3,18 +3,22 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / editor/SaveTheDatePanel.tsx
 //
-// Generates a beautiful Save-the-Date card that couples can
-// download or share. Renders a live preview using theme colors
-// + first event date, then offers:
-//   • Download as PNG (via html-to-image / canvas)
-//   • Copy a shareable link (just the event details page)
+// Editorial Save-the-Date composer. Four editorial variants
+// that mirror the canvas block presets (Minimalist / Cinematic
+// / Playful / Botanical). Renders as SVG so PNG export is 1:1
+// with the preview (no html2canvas dep). Ships three actions:
+//
+//   • Download PNG — real SVG→canvas→blob download
+//   • Copy link — shareable site url
+//   • Send as save-the-date — hands off to the bulk email flow
+//     via a custom event the Guests panel listens for.
 // ─────────────────────────────────────────────────────────────
 
-import { useRef, useState, useCallback } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Link2, Check, Calendar, Image as ImageIcon } from 'lucide-react';
+import { Download, Link2, Check, Calendar, Image as ImageIcon, Send } from 'lucide-react';
 import type { StoryManifest } from '@/types';
-import { buildSiteUrl, formatSiteDisplayUrl } from '@/lib/site-urls';
+import { buildSiteUrl } from '@/lib/site-urls';
 import { logEditorError } from '@/lib/editor-log';
 import {
   PanelRoot,
@@ -25,61 +29,308 @@ import {
   panelLineHeight,
 } from './panel';
 
-// ── Card layout themes ────────────────────────────────────────
-const CARD_STYLES = [
-  { id: 'elegant',  label: 'Elegant',  bg: 'linear-gradient(135deg, #1a1410 0%, #2d2218 100%)', text: '#D6C6A8', accent: '#71717A' },
-  { id: 'romantic', label: 'Romantic', bg: 'linear-gradient(135deg, #1f0f14 0%, #2d1520 100%)', text: '#f0d8e0', accent: '#e87ab8' },
-  { id: 'minimal',  label: 'Minimal',  bg: 'linear-gradient(135deg, #faf8f4 0%, #f0ebe2 100%)', text: '#3F3F46', accent: '#8A7A4A' },
-  { id: 'garden',   label: 'Garden',   bg: 'linear-gradient(135deg, #0d1812 0%, #162412 100%)', text: '#D4E6C3', accent: '#7BB661' },
-] as const;
+// ── Variants match canvas block presets ──────────────────────
+interface Variant {
+  id: 'minimalist' | 'cinematic' | 'playful' | 'botanical';
+  label: string;
+  paper: string;
+  ink: string;
+  accent: string;
+  soft: string;
+  ruleOpacity: number;
+  eyebrow: string;
+  swatch: string;
+}
 
-type CardStyleId = (typeof CARD_STYLES)[number]['id'];
+const VARIANTS: Variant[] = [
+  {
+    id: 'minimalist',
+    label: 'Minimalist',
+    paper: '#FAF7F2',
+    ink: '#18181B',
+    accent: '#B8935A',
+    soft: '#6F6557',
+    ruleOpacity: 0.35,
+    eyebrow: 'Save the Date',
+    swatch: 'linear-gradient(180deg, #FAF7F2 0%, #EFEAE0 100%)',
+  },
+  {
+    id: 'cinematic',
+    label: 'Cinematic',
+    paper: '#161006',
+    ink: '#F0E8D4',
+    accent: '#D6A655',
+    soft: '#9B8A66',
+    ruleOpacity: 0.45,
+    eyebrow: 'Save the Date',
+    swatch: 'linear-gradient(180deg, #161006 0%, #2A1F10 100%)',
+  },
+  {
+    id: 'playful',
+    label: 'Playful',
+    paper: '#F7E9D2',
+    ink: '#8B2D2D',
+    accent: '#D95D50',
+    soft: '#A46A3F',
+    ruleOpacity: 0.4,
+    eyebrow: 'Mark Your Calendar',
+    swatch: 'linear-gradient(135deg, #F7E9D2 0%, #F2C5A0 60%, #E5B0C8 100%)',
+  },
+  {
+    id: 'botanical',
+    label: 'Botanical',
+    paper: '#EEF0E6',
+    ink: '#1E2A1A',
+    accent: '#5C6B3F',
+    soft: '#64724E',
+    ruleOpacity: 0.4,
+    eyebrow: 'An Invitation is Forthcoming',
+    swatch: 'linear-gradient(180deg, #EEF0E6 0%, #D9DFC9 100%)',
+  },
+];
 
 function formatDate(dateStr: string): string {
   try {
-    const d = new Date(dateStr + 'T00:00:00');
-    return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  } catch { return dateStr; }
+    const d = new Date(dateStr + 'T12:00:00');
+    if (Number.isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  } catch {
+    return dateStr;
+  }
 }
 
+// ── Pure SVG card (used for preview AND PNG export) ──────────
+interface CardProps {
+  variant: Variant;
+  displayNames: string;
+  date: string;
+  venue: string;
+  message: string;
+  website: string;
+  /** If true, embed @font-face rules so exported PNG has italic serif. */
+  embedFonts?: boolean;
+}
+
+function CardSvg({ variant, displayNames, date, venue, message, website, embedFonts }: CardProps) {
+  const W = 1050;
+  const H = 750;
+  const rule = `rgba(${hexToRgb(variant.accent)}, ${variant.ruleOpacity})`;
+  const ruleSoft = `rgba(${hexToRgb(variant.accent)}, ${variant.ruleOpacity * 0.55})`;
+  const fontDisplay = '"Fraunces", "Playfair Display", Georgia, serif';
+  const fontMono = '"Geist Mono", "JetBrains Mono", ui-monospace, monospace';
+
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ width: '100%', height: 'auto', display: 'block' }}
+    >
+      {embedFonts && (
+        <defs>
+          <style>{`@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;1,400&family=Geist+Mono:wght@400&display=swap');`}</style>
+        </defs>
+      )}
+      <rect width={W} height={H} fill={variant.paper} />
+
+      {/* Outer inset frame */}
+      <rect x={40} y={40} width={W - 80} height={H - 80} fill="none" stroke={rule} strokeWidth={1} />
+      <rect x={54} y={54} width={W - 108} height={H - 108} fill="none" stroke={ruleSoft} strokeWidth={0.75} />
+
+      {/* Top eyebrow ornament */}
+      <line x1={W / 2 - 140} y1={130} x2={W / 2 - 30} y2={130} stroke={variant.accent} strokeWidth={1} />
+      <line x1={W / 2 + 30} y1={130} x2={W / 2 + 140} y2={130} stroke={variant.accent} strokeWidth={1} />
+      <text
+        x={W / 2}
+        y={134}
+        textAnchor="middle"
+        fontFamily={fontMono}
+        fontSize={15}
+        letterSpacing={6}
+        fill={variant.soft}
+      >
+        {variant.eyebrow.toUpperCase()}
+      </text>
+
+      {/* Display names */}
+      <text
+        x={W / 2}
+        y={310}
+        textAnchor="middle"
+        fontFamily={fontDisplay}
+        fontStyle="italic"
+        fontWeight={400}
+        fontSize={96}
+        fill={variant.ink}
+      >
+        {displayNames}
+      </text>
+
+      {/* Divider flourish */}
+      <line x1={W / 2 - 40} y1={360} x2={W / 2 + 40} y2={360} stroke={variant.accent} strokeWidth={1.5} />
+      <circle cx={W / 2} cy={360} r={4} fill={variant.accent} />
+
+      {/* Date */}
+      {date && (
+        <text
+          x={W / 2}
+          y={440}
+          textAnchor="middle"
+          fontFamily={fontDisplay}
+          fontStyle="italic"
+          fontSize={34}
+          fill={variant.ink}
+        >
+          {date}
+        </text>
+      )}
+
+      {/* Venue */}
+      {venue && (
+        <text
+          x={W / 2}
+          y={486}
+          textAnchor="middle"
+          fontFamily={fontMono}
+          fontSize={14}
+          letterSpacing={4}
+          fill={variant.soft}
+        >
+          {venue.toUpperCase()}
+        </text>
+      )}
+
+      {/* Custom message */}
+      {message && (
+        <text
+          x={W / 2}
+          y={560}
+          textAnchor="middle"
+          fontFamily={fontDisplay}
+          fontStyle="italic"
+          fontSize={22}
+          fill={variant.soft}
+        >
+          {message}
+        </text>
+      )}
+
+      {/* Bottom website line */}
+      <line x1={W / 2 - 170} y1={660} x2={W / 2 + 170} y2={660} stroke={ruleSoft} strokeWidth={0.75} />
+      <text
+        x={W / 2}
+        y={690}
+        textAnchor="middle"
+        fontFamily={fontMono}
+        fontSize={13}
+        letterSpacing={3}
+        fill={variant.soft}
+      >
+        {website.toUpperCase()}
+      </text>
+    </svg>
+  );
+}
+
+function hexToRgb(hex: string): string {
+  const m = hex.replace('#', '');
+  const n = parseInt(
+    m.length === 3
+      ? m
+          .split('')
+          .map((c) => c + c)
+          .join('')
+      : m,
+    16,
+  );
+  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
+}
+
+// ── Main panel ───────────────────────────────────────────────
 interface SaveTheDatePanelProps {
   manifest: StoryManifest;
   subdomain: string;
 }
 
 export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [cardStyle, setCardStyle] = useState<CardStyleId>('elegant');
+  const svgRef = useRef<HTMLDivElement>(null);
+  const [variantId, setVariantId] = useState<Variant['id']>('minimalist');
   const [downloading, setDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [sending, setSending] = useState(false);
   const [customMessage, setCustomMessage] = useState('');
+
+  const variant = useMemo(
+    () => VARIANTS.find((v) => v.id === variantId) ?? VARIANTS[0],
+    [variantId],
+  );
 
   const coupleNames = (manifest as unknown as { names?: string[] }).names ?? [];
   const events = manifest.events || [];
-  const mainEvent = events.find(e => e.type === 'ceremony') || events[0];
+  const mainEvent = events.find((e) => e.type === 'ceremony') || events[0];
   const date = mainEvent?.date ? formatDate(mainEvent.date) : '';
   const venue = mainEvent?.venue || '';
-  const headingFont = manifest.vibeSkin?.fonts?.heading || 'Georgia';
-
-  const style = CARD_STYLES.find(s => s.id === cardStyle) || CARD_STYLES[0];
   const displayNames = coupleNames.filter(Boolean).join(' & ') || 'The Couple';
-  const message = customMessage.trim() || 'Please save the date';
+  const website = subdomain ? `${subdomain}.pearloom.com` : 'pearloom.com';
+  const message = customMessage.trim();
 
-  // Download using browser print / canvas approach
-  const handleDownload = useCallback(() => {
+  // Real PNG export: serialize the SVG and draw into a canvas.
+  const handleDownload = useCallback(async () => {
+    if (!svgRef.current) return;
+    const svgEl = svgRef.current.querySelector('svg');
+    if (!svgEl) return;
+
     setDownloading(true);
     try {
-      if (!cardRef.current) return;
-      const cardHtml = cardRef.current.outerHTML;
-      const w = window.open('', '_blank', 'width=700,height=520');
-      if (w) {
-        w.document.write(`<!DOCTYPE html><html><head><title>Save the Date — ${subdomain}</title><style>*{box-sizing:border-box;}body{margin:0;padding:32px;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;}@media print{body{background:transparent;padding:0;display:block;}</style></head><body>${cardHtml}</body></html>`);
-        w.document.close();
-        setTimeout(() => { w.focus(); w.print(); }, 300);
+      // Clone + embed fonts link
+      const clone = svgEl.cloneNode(true) as SVGSVGElement;
+      if (!clone.getAttribute('xmlns')) {
+        clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
       }
-    } catch { /* silent */ }
-    finally { setDownloading(false); }
-  }, [subdomain]);
+      const serializer = new XMLSerializer();
+      const source = serializer.serializeToString(clone);
+      const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error('SVG load failed'));
+        img.src = url;
+      });
+
+      const W = 2100;
+      const H = 1500;
+      const canvas = document.createElement('canvas');
+      canvas.width = W;
+      canvas.height = H;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('canvas 2d ctx unavailable');
+      ctx.fillStyle = variant.paper;
+      ctx.fillRect(0, 0, W, H);
+      ctx.drawImage(img, 0, 0, W, H);
+
+      URL.revokeObjectURL(url);
+
+      const pngUrl = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = pngUrl;
+      a.download = `save-the-date-${subdomain || 'pearloom'}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (err) {
+      logEditorError('SaveTheDatePanel: png export', err);
+    } finally {
+      setDownloading(false);
+    }
+  }, [subdomain, variant.paper]);
 
   const handleCopyLink = useCallback(async () => {
     const url = buildSiteUrl(subdomain, '', undefined, manifest.occasion);
@@ -88,209 +339,237 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      logEditorError('SaveTheDatePanel: copy link to clipboard', err);
+      logEditorError('SaveTheDatePanel: copy link', err);
     }
   }, [subdomain, manifest.occasion]);
 
+  // Hand off to the bulk-email flow. The Guests panel listens
+  // for `pearloom:send-save-the-date` and opens its bulk modal.
+  const handleSendBulk = useCallback(() => {
+    setSending(true);
+    window.dispatchEvent(
+      new CustomEvent('pearloom:send-save-the-date', {
+        detail: {
+          variant: variantId,
+          message: message || undefined,
+        },
+      }),
+    );
+    setTimeout(() => setSending(false), 1200);
+  }, [variantId, message]);
+
   return (
     <PanelRoot>
-
-      {/* ── Card Style + Message ── */}
-      <PanelSection title="Customize" icon={ImageIcon} defaultOpen>
-
-        {/* Style picker */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <div style={{
-            fontSize: panelText.label,
-            color: '#71717A',
-            textTransform: 'uppercase',
-            letterSpacing: panelTracking.wide,
-            fontWeight: panelWeight.bold,
-          }}>Card Style</div>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            {CARD_STYLES.map(s => (
-              <button
-                key={s.id}
-                onClick={() => setCardStyle(s.id)}
-                style={{
-                  padding: '5px 10px', borderRadius: '10px',
-                  fontSize: panelText.hint,
-                  fontWeight: panelWeight.bold,
-                  border: `1px solid ${cardStyle === s.id ? s.accent : '#E4E4E7'}`,
-                  background: cardStyle === s.id ? `${s.accent}22` : '#FFFFFF',
-                  color: cardStyle === s.id ? s.accent : '#71717A',
-                  cursor: 'pointer',
-                }}
-              >{s.label}</button>
-            ))}
+      {/* ── Variant picker + message ── */}
+      <PanelSection title="Composition" icon={ImageIcon} defaultOpen>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div
+            style={{
+              fontSize: panelText.label,
+              color: '#71717A',
+              textTransform: 'uppercase',
+              letterSpacing: panelTracking.wide,
+              fontWeight: panelWeight.bold,
+            }}
+          >
+            Variant
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+            {VARIANTS.map((v) => {
+              const on = variantId === v.id;
+              return (
+                <button
+                  key={v.id}
+                  onClick={() => setVariantId(v.id)}
+                  style={{
+                    padding: '10px 10px',
+                    borderRadius: 8,
+                    border: `1px solid ${on ? v.accent : '#E4E4E7'}`,
+                    background: on ? `${v.accent}18` : v.swatch,
+                    color: on ? v.ink : '#3F3F46',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: panelText.body,
+                      fontWeight: panelWeight.bold,
+                    }}
+                  >
+                    {v.label}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: panelText.meta,
+                      color: v.soft,
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    {v.eyebrow}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Custom message */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <div style={{
-            fontSize: panelText.label,
-            color: '#71717A',
-            textTransform: 'uppercase',
-            letterSpacing: panelTracking.wide,
-            fontWeight: panelWeight.bold,
-          }}>Message</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <div
+            style={{
+              fontSize: panelText.label,
+              color: '#71717A',
+              textTransform: 'uppercase',
+              letterSpacing: panelTracking.wide,
+              fontWeight: panelWeight.bold,
+            }}
+          >
+            Custom line
+          </div>
           <input
             value={customMessage}
-            onChange={e => setCustomMessage(e.target.value)}
-            placeholder="Please save the date"
+            onChange={(e) => setCustomMessage(e.target.value)}
+            placeholder="Formal invitation to follow"
             style={{
-              width: '100%', padding: '8px 10px', borderRadius: '8px',
+              width: '100%',
+              padding: '8px 10px',
+              borderRadius: 8,
               border: '1px solid #E4E4E7',
               background: '#FFFFFF',
               color: '#18181B',
               fontSize: 'max(16px, 0.8rem)',
-              outline: 'none', boxSizing: 'border-box',
+              outline: 'none',
+              boxSizing: 'border-box',
               fontFamily: 'inherit',
               lineHeight: panelLineHeight.normal,
-              transition: 'border-color 0.15s, box-shadow 0.15s',
             }}
-            onFocus={e => { e.currentTarget.style.borderColor = '#18181B'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(24,24,27,0.12)'; }}
-            onBlur={e => { e.currentTarget.style.borderColor = '#E4E4E7'; e.currentTarget.style.boxShadow = 'none'; }}
           />
         </div>
       </PanelSection>
 
       {/* ── Preview ── */}
-      <PanelSection title="Preview" icon={Calendar} defaultOpen>
+      <PanelSection title="Proof" icon={Calendar} defaultOpen>
         <div
-          ref={cardRef}
+          ref={svgRef}
           style={{
             width: '100%',
-            aspectRatio: '7 / 5',
-            borderRadius: '12px',
+            borderRadius: 8,
             overflow: 'hidden',
-            background: style.bg,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '24px',
-            boxSizing: 'border-box',
-            position: 'relative',
             border: '1px solid #E4E4E7',
+            background: variant.paper,
           }}
         >
-          {/* Decorative top/bottom lines */}
-          <div style={{ position: 'absolute', top: '14px', left: '24px', right: '24px', height: '1px', background: `${style.accent}40` }} />
-          <div style={{ position: 'absolute', bottom: '14px', left: '24px', right: '24px', height: '1px', background: `${style.accent}40` }} />
-
-          {/* Save the date tagline */}
-          <div style={{
-            fontSize: '0.55rem', letterSpacing: '0.3em', textTransform: 'uppercase',
-            color: `${style.accent}aa`, fontWeight: panelWeight.bold, marginBottom: '8px',
-          }}>
-            {message.toUpperCase()}
-          </div>
-
-          {/* Names */}
-          <div style={{
-            fontFamily: headingFont,
-            fontSize: 'clamp(1rem, 3vw, 1.5rem)',
-            fontWeight: 400,
-            color: style.text,
-            letterSpacing: '-0.02em',
-            textAlign: 'center',
-            lineHeight: panelLineHeight.tight,
-            marginBottom: '10px',
-          }}>
-            {displayNames}
-          </div>
-
-          {/* Divider flourish */}
-          <div style={{
-            width: '40px', height: '1px', background: `${style.accent}80`,
-            marginBottom: '8px',
-          }} />
-
-          {/* Date */}
-          {date && (
-            <div style={{
-              fontSize: '0.65rem', color: `${style.text}cc`,
-              letterSpacing: '0.06em', textAlign: 'center', fontWeight: panelWeight.medium,
-            }}>
-              {date}
-            </div>
-          )}
-
-          {/* Venue */}
-          {venue && (
-            <div style={{
-              fontSize: '0.55rem', color: `${style.text}80`,
-              letterSpacing: '0.08em', textAlign: 'center', marginTop: '5px', textTransform: 'uppercase',
-            }}>
-              {venue}
-            </div>
-          )}
-
-          {/* Website */}
-          <div style={{
-            position: 'absolute', bottom: '24px',
-            fontSize: '0.5rem', color: `${style.accent}80`,
-            letterSpacing: '0.12em', textTransform: 'lowercase',
-          }}>
-            {formatSiteDisplayUrl(subdomain, '', manifest.occasion)}
-          </div>
-        </div>
-      </PanelSection>
-
-      {/* ── Share ── */}
-      <PanelSection title="Share" icon={Download} defaultOpen>
-        <div style={{ display: 'flex', gap: '6px' }}>
-          <motion.button
-            onClick={handleDownload}
-            disabled={downloading}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
-            style={{
-              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-              padding: '9px', borderRadius: '8px',
-              border: '1px solid #E4E4E7',
-              background: '#F4F4F5', color: '#71717A',
-              cursor: downloading ? 'wait' : 'pointer',
-              fontSize: panelText.body,
-              fontWeight: panelWeight.bold,
-            }}
-          >
-            <Download size={13} />
-            {downloading ? 'Saving…' : 'Download PNG'}
-          </motion.button>
-
-          <motion.button
-            onClick={handleCopyLink}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
-            style={{
-              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-              padding: '9px', borderRadius: '8px',
-              border: '1px solid #E4E4E7',
-              background: '#F4F4F5', color: '#71717A',
-              cursor: 'pointer',
-              fontSize: panelText.body,
-              fontWeight: panelWeight.bold,
-            }}
-          >
-            {copied ? <Check size={13} color="#71717A" /> : <Link2 size={13} />}
-            {copied ? 'Copied!' : 'Copy Link'}
-          </motion.button>
+          <CardSvg
+            variant={variant}
+            displayNames={displayNames}
+            date={date}
+            venue={venue}
+            message={message}
+            website={website}
+            embedFonts
+          />
         </div>
 
         {!mainEvent && (
-          <div style={{
-            padding: '8px 10px', borderRadius: '8px',
-            background: 'rgba(234,179,8,0.07)', border: '1px solid rgba(234,179,8,0.2)',
-            fontSize: panelText.hint, color: '#3F3F46',
-          }}>
+          <div
+            style={{
+              padding: '8px 10px',
+              borderRadius: 8,
+              background: 'rgba(234,179,8,0.07)',
+              border: '1px solid rgba(234,179,8,0.2)',
+              fontSize: panelText.hint,
+              color: '#3F3F46',
+            }}
+          >
             Add a ceremony or event with a date to see it on the card.
           </div>
         )}
       </PanelSection>
 
+      {/* ── Ship ── */}
+      <PanelSection title="Ship" icon={Send} defaultOpen>
+        <div style={{ display: 'grid', gap: 6 }}>
+          <motion.button
+            onClick={handleSendBulk}
+            disabled={sending}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: 11,
+              borderRadius: 8,
+              border: '1px solid #18181B',
+              background: '#18181B',
+              color: '#FAF7F2',
+              cursor: sending ? 'wait' : 'pointer',
+              fontSize: panelText.body,
+              fontWeight: panelWeight.bold,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+            }}
+          >
+            <Send size={13} />
+            {sending ? 'Opening…' : 'Send as save-the-date'}
+          </motion.button>
+
+          <div style={{ display: 'flex', gap: 6 }}>
+            <motion.button
+              onClick={handleDownload}
+              disabled={downloading}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                padding: 9,
+                borderRadius: 8,
+                border: '1px solid #E4E4E7',
+                background: '#F4F4F5',
+                color: '#3F3F46',
+                cursor: downloading ? 'wait' : 'pointer',
+                fontSize: panelText.body,
+                fontWeight: panelWeight.bold,
+              }}
+            >
+              <Download size={13} />
+              {downloading ? 'Saving…' : 'PNG'}
+            </motion.button>
+
+            <motion.button
+              onClick={handleCopyLink}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                padding: 9,
+                borderRadius: 8,
+                border: '1px solid #E4E4E7',
+                background: '#F4F4F5',
+                color: '#3F3F46',
+                cursor: 'pointer',
+                fontSize: panelText.body,
+                fontWeight: panelWeight.bold,
+              }}
+            >
+              {copied ? <Check size={13} /> : <Link2 size={13} />}
+              {copied ? 'Copied' : 'Link'}
+            </motion.button>
+          </div>
+        </div>
+      </PanelSection>
     </PanelRoot>
   );
 }
