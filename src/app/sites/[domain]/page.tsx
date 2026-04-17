@@ -31,6 +31,7 @@ import { GuestbookSection } from '@/components/site/GuestbookSection';
 import { GuestPhotoWall } from '@/components/site/GuestPhotoWall';
 import { LiveUpdatesFeed } from '@/components/site/LiveUpdatesFeed';
 import { SpotifySection } from '@/components/site/SpotifySection';
+import { AmbientSpotifyPlayer } from '@/components/site/AmbientSpotifyPlayer';
 import { CoupleQuiz } from '@/components/site/CoupleQuiz';
 import { ShareBar } from '@/components/site/ShareBar';
 import { enforcePaletteContrast } from '@/lib/color-utils';
@@ -1258,6 +1259,14 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         </main>
 
         <SiteClientSections siteId={domain} coupleNames={safeNames} vibeSkin={vibeSkin} />
+
+        {/* Ambient scroll-synced companion to the Soundtrack section */}
+        {manifest.spotifyUrl && (
+          <AmbientSpotifyPlayer
+            spotifyUrl={manifest.spotifyUrl}
+            accent={pal.accent}
+          />
+        )}
 
         {/* Site footer */}
         <footer style={{
