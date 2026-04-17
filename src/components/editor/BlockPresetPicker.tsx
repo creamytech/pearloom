@@ -31,6 +31,19 @@ interface BlockPresetPickerProps {
 
 export function BlockPresetPicker({ pending, onPick, onClose }: BlockPresetPickerProps) {
   const firstTileRef = useRef<HTMLButtonElement>(null);
+  // Guard: when the picker opens immediately after a drag-and-drop, the
+  // trailing mouseup/click from the drop event can land on the backdrop
+  // and dismiss the picker before the user even sees it. We swallow
+  // backdrop clicks for the first 280 ms after open.
+  const openedAtRef = useRef<number>(0);
+  useEffect(() => {
+    if (pending) openedAtRef.current = Date.now();
+  }, [pending]);
+
+  const handleBackdropClick = () => {
+    if (Date.now() - openedAtRef.current < 280) return;
+    onClose();
+  };
 
   // Autofocus the first tile + handle keyboard — Esc cancels, 1/2/3 picks
   // a variant, Enter accepts the focused tile.
@@ -68,7 +81,7 @@ export function BlockPresetPicker({ pending, onPick, onClose }: BlockPresetPicke
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.14 }}
-        onClick={onClose}
+        onClick={handleBackdropClick}
         style={{
           position: 'fixed',
           inset: 0,
