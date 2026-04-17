@@ -79,6 +79,13 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
     setSending(true);
     setResult(null);
     try {
+      const eventSummaries = (manifest.events ?? []).map(e => ({
+        name: e.name,
+        date: e.date,
+        time: e.time,
+        venue: e.venue,
+        address: e.address,
+      }));
       const res = await fetch('/api/invite/bulk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -88,7 +95,9 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
           coupleNames,
           message,
           occasion: manifest.occasion,
-          guests: selectedGuests.map(g => ({ name: g.name, email: g.email! })),
+          events: eventSummaries,
+          rsvpDeadline: manifest.logistics?.rsvpDeadline,
+          guests: selectedGuests.map(g => ({ id: g.id, name: g.name, email: g.email! })),
         }),
       });
       if (res.ok) {
@@ -102,7 +111,20 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
     } finally {
       setSending(false);
     }
-  }, [selectedGuests, siteId, subdomain, coupleNames, message]);
+  }, [selectedGuests, siteId, subdomain, coupleNames, message, manifest.occasion, manifest.events, manifest.logistics?.rsvpDeadline]);
+
+  // Listen for the Save-the-Date panel's "send as save-the-date" hand-off.
+  // The event carries { variant, message? } — we pre-fill the message and
+  // open the preview so the user just needs to hit Send.
+  useEffect(() => {
+    function onSendSaveTheDate(e: Event) {
+      const detail = (e as CustomEvent).detail as { message?: string } | undefined;
+      if (detail?.message) setMessage(detail.message);
+      setPreviewOpen(true);
+    }
+    window.addEventListener('pearloom:send-save-the-date', onSendSaveTheDate);
+    return () => window.removeEventListener('pearloom:send-save-the-date', onSendSaveTheDate);
+  }, []);
 
   if (loading) {
     return (
