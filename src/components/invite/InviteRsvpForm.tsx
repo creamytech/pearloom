@@ -9,7 +9,7 @@
 // Success state echoes back the guest's choices.
 // ─────────────────────────────────────────────────────────────
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { StoryManifest, WeddingEvent } from '@/types';
 
@@ -84,6 +84,45 @@ export function InviteRsvpForm({
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  // Prior-response hydration: when we find an existing RSVP for this
+  // token, we land in "already responded" mode — a banner with a
+  // single "Edit response" action instead of the form.
+  const [priorRsvp, setPriorRsvp] = useState<null | {
+    status: 'attending' | 'declined' | 'pending';
+    respondedAt?: string;
+  }>(null);
+  const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    fetch(`/api/invite/rsvp?token=${encodeURIComponent(token)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled || !data?.rsvp) return;
+        const r = data.rsvp;
+        setPriorRsvp({ status: r.status, respondedAt: r.respondedAt });
+        setStatus(r.status === 'declined' ? 'declined' : 'attending');
+        if (r.email) setEmail(r.email);
+        setPlusOne(!!r.plusOne);
+        if (r.plusOneName) setPlusOneName(r.plusOneName);
+        if (r.mealPreference) setMeal(r.mealPreference);
+        if (r.dietaryRestrictions) setDietary(r.dietaryRestrictions);
+        if (r.songRequest) setSong(r.songRequest);
+        if (r.message) setMessage(r.message);
+        if (r.mailingAddress) setMailingAddress(r.mailingAddress);
+        if (Array.isArray(r.selectedEvents) && r.selectedEvents.length > 0) {
+          setSelectedEvents(r.selectedEvents);
+        }
+        if (data.guest?.name) setName(data.guest.name);
+      })
+      .catch(() => {
+        /* non-fatal — fall back to blank form */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   const attending = status === 'attending';
   const showAttendingFields = attending;
@@ -149,6 +188,16 @@ export function InviteRsvpForm({
   }
 
   const deadline = manifest?.logistics?.rsvpDeadline;
+
+  if (priorRsvp && !editing) {
+    return (
+      <PriorResponseCard
+        status={priorRsvp.status}
+        respondedAt={priorRsvp.respondedAt}
+        onEdit={() => setEditing(true)}
+      />
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} style={{ width: '100%' }}>
@@ -435,6 +484,95 @@ export function InviteRsvpForm({
         {loading ? 'Sending…' : 'Send RSVP'}
       </button>
     </form>
+  );
+}
+
+// ── Prior-response card (shown when an RSVP already exists) ──
+function PriorResponseCard({
+  status,
+  respondedAt,
+  onEdit,
+}: {
+  status: 'attending' | 'declined' | 'pending';
+  respondedAt?: string;
+  onEdit: () => void;
+}) {
+  const attending = status === 'attending';
+  const label = attending
+    ? 'You\u2019re on the list.'
+    : status === 'declined'
+      ? 'We\u2019ve noted you won\u2019t be able to make it.'
+      : 'Your response is pending.';
+  const respondedLabel = respondedAt
+    ? new Date(respondedAt).toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      style={{
+        textAlign: 'center',
+        padding: '28px 24px',
+        border: `1px solid ${GOLD_RULE}`,
+        borderRadius: 2,
+        background: CREAM,
+      }}
+    >
+      <p
+        style={{
+          fontFamily: FONT_MONO,
+          fontSize: '0.6rem',
+          letterSpacing: '0.28em',
+          textTransform: 'uppercase',
+          color: GOLD,
+          margin: '0 0 16px',
+        }}
+      >
+        Previously received
+      </p>
+      <h3
+        style={{
+          fontFamily: FONT_DISPLAY,
+          fontStyle: 'italic',
+          fontWeight: 400,
+          fontSize: 'clamp(1.4rem, 4vw, 1.9rem)',
+          color: INK,
+          margin: '0 0 12px',
+          lineHeight: 1.2,
+        }}
+      >
+        {label}
+      </h3>
+      {respondedLabel && (
+        <p style={{ fontSize: '0.82rem', color: MUTED, margin: '0 0 24px' }}>
+          Received {respondedLabel}
+        </p>
+      )}
+      <button
+        type="button"
+        onClick={onEdit}
+        style={{
+          padding: '12px 24px',
+          background: CREAM,
+          border: `1px solid ${INK}`,
+          borderRadius: 2,
+          color: INK,
+          fontFamily: FONT_MONO,
+          fontSize: '0.7rem',
+          letterSpacing: '0.24em',
+          textTransform: 'uppercase',
+          cursor: 'pointer',
+        }}
+      >
+        Edit my response
+      </button>
+    </motion.div>
   );
 }
 
