@@ -7,7 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { colors, radius, shadow, ease, text as textScale } from '@/lib/design-tokens';
 import { formatLocalDate } from '@/lib/date';
 import { getImageBrightness, textColorForBrightness } from '@/lib/smart-features';
@@ -260,28 +260,30 @@ export function ParallaxScroll({
   dateFormat,
   editable,
 }: StoryLayoutProps) {
-  const sectionRef = useRef<HTMLDivElement | null>(null);
-  const [visible, setVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement | null>(null);
   const bgUrl = photos[0]?.url;
   const { textColor, overlayOpacity } = useAutoTextColor(bgUrl);
   const formattedDate = formatChapterDate(date, dateFormat);
 
-  useEffect(() => {
-    const node = sectionRef.current;
-    if (!node) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setVisible(true);
-          }
-        });
-      },
-      { threshold: 0.2 }
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
+  // Track scroll progress across the entire time the section is in the
+  // viewport — from "just entering the bottom" to "just leaving the top".
+  // Mapping that 0→1 onto a vertical translation on the photo gives a
+  // true scroll-linked parallax (iOS-safe, unlike background-attachment:fixed).
+  const { scrollYProgress } = useScroll({
+    target: sectionRef as React.RefObject<HTMLElement>,
+    offset: ['start end', 'end start'],
+  });
+  // Photo drifts from -12% to +12% of its container height as the user
+  // scrolls through the section. Slight scale keeps edges from peeking.
+  const photoY = useTransform(scrollYProgress, [0, 1], ['-12%', '12%']);
+  const photoScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.18, 1.12, 1.18]);
+  // Content rises gently + fades near the tail so it doesn't overstay.
+  const contentY = useTransform(scrollYProgress, [0, 0.4, 1], [56, 0, -24]);
+  const contentOpacity = useTransform(
+    scrollYProgress,
+    [0, 0.22, 0.78, 1],
+    [0, 1, 1, 0.4],
+  );
 
   const sectionStyle: React.CSSProperties = {
     position: 'relative',
@@ -290,11 +292,7 @@ export function ParallaxScroll({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundImage: bgUrl ? `url(${bgUrl})` : undefined,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundAttachment: 'fixed',
-    backgroundColor: colors.inkSoft,
+    background: colors.inkSoft,
     overflow: 'hidden',
   };
 
@@ -309,25 +307,45 @@ export function ParallaxScroll({
         ? `linear-gradient(180deg, rgba(245,241,232,${Math.max(0.35, overlayOpacity)}) 0%, rgba(245,241,232,${Math.max(0.55, overlayOpacity + 0.2)}) 100%)`
         : `linear-gradient(180deg, rgba(26,26,26,${Math.max(0.25, overlayOpacity - 0.3)}) 0%, rgba(26,26,26,${Math.max(0.55, overlayOpacity)}) 55%, rgba(26,26,26,${Math.max(0.78, overlayOpacity + 0.23)}) 100%)`,
     pointerEvents: 'none',
+    zIndex: 1,
   };
 
   const contentStyle: React.CSSProperties = {
     position: 'relative',
-    zIndex: 1,
+    zIndex: 2,
     maxWidth: '760px',
     padding: '3rem 1.5rem',
     textAlign: 'center',
     color: textColor,
-    opacity: visible ? 1 : 0,
-    transform: visible ? 'translateY(0)' : 'translateY(36px)',
-    transition:
-      'opacity 900ms cubic-bezier(0.22, 1, 0.36, 1), transform 900ms cubic-bezier(0.22, 1, 0.36, 1)',
   };
 
   return (
     <section ref={sectionRef} style={sectionStyle}>
+      {bgUrl && (
+        <motion.div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: `url(${bgUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            willChange: 'transform',
+            y: photoY,
+            scale: photoScale,
+            zIndex: 0,
+          }}
+        />
+      )}
       <div style={overlayStyle} />
-      <div style={contentStyle}>
+      <motion.div
+        style={{
+          ...contentStyle,
+          y: contentY,
+          opacity: contentOpacity,
+        }}
+      >
         {(formattedDate || location) && (
           <div
             style={{
@@ -407,7 +425,7 @@ export function ParallaxScroll({
             {body}
           </p>
         )}
-      </div>
+      </motion.div>
     </section>
   );
 }
