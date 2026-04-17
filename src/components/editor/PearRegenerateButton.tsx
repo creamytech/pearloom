@@ -68,6 +68,13 @@ export function PearRegenerateButton({
               ? data.text.trim()
               : null;
       if (!next) throw new Error('No rewrite returned');
+      // Label the next undo entry so the user can see that Pear
+      // made the edit (audit finding #50).
+      window.dispatchEvent(
+        new CustomEvent<string>('pearloom:next-edit-label', {
+          detail: `Pear: ${label.toLowerCase()}`,
+        }),
+      );
       onApply(next);
     } catch (err) {
       setError((err as Error).message || 'Couldn\u2019t rewrite');

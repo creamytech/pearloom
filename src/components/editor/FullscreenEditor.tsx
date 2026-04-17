@@ -246,8 +246,27 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   // stays in sync with the manifest-ref stack.
   const lastPushKeyRef = useRef<string | null>(null);
   const lastPushAtRef = useRef<number>(0);
+  // Audit finding #50: AI actions queue a next-edit label via
+  // `pearloom:next-edit-label` so the following push carries a
+  // distinct 'Pear: …' label in the undo history.
+  const pendingLabelRef = useRef<string | null>(null);
+  useEffect(() => {
+    const onLabel = (e: Event) => {
+      const detail = (e as CustomEvent<string>).detail;
+      if (typeof detail === 'string' && detail) pendingLabelRef.current = detail;
+    };
+    window.addEventListener('pearloom:next-edit-label', onLabel);
+    return () => window.removeEventListener('pearloom:next-edit-label', onLabel);
+  }, []);
   const pushHistory = useCallback((m: StoryManifest, opts?: { coalesceKey?: string; label?: string }) => {
     const now = Date.now();
+    // Pending AI label takes precedence over the caller-supplied label
+    // but only for a single push.
+    let effectiveLabel = opts?.label;
+    if (pendingLabelRef.current) {
+      effectiveLabel = pendingLabelRef.current;
+      pendingLabelRef.current = null;
+    }
     const coalesceKey = opts?.coalesceKey;
     const canCoalesce =
       !!coalesceKey &&
@@ -269,7 +288,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     lastPushAtRef.current = now;
     dispatch({ type: 'SET_CAN_UNDO', can: stack.length > 1 });
     dispatch({ type: 'SET_CAN_REDO', can: false });
-    dispatch({ type: 'PUSH_UNDO_ENTRY', label: opts?.label || 'Edit', coalesceKey });
+    dispatch({ type: 'PUSH_UNDO_ENTRY', label: effectiveLabel || 'Edit', coalesceKey });
   }, []);
 
   // ── Push to preview (debounced) ──────────────────────────────
