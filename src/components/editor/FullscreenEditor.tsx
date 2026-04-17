@@ -322,15 +322,18 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
           if (res.status === 401) {
             dispatch({ type: 'SET_SAVE_STATE', state: 'saved' });
             dispatch({ type: 'SET_DIRTY', dirty: false });
+          } else {
+            showInfoToast('Couldn\u2019t save to server · kept local copy', 3600);
           }
         }
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
           logEditorError('FullscreenEditor: server autosave', err);
+          showInfoToast('Network glitch · retrying on next edit', 3600);
         }
       }
     }, 1500);
-  }, [previewKey, coupleNames, initialSubdomain]);
+  }, [previewKey, coupleNames, initialSubdomain, showInfoToast]);
 
   useEffect(() => { pushToPreviewRef.current = pushToPreview; }, [pushToPreview]);
 
