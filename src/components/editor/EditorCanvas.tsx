@@ -16,6 +16,7 @@ import { PearTextRewrite } from './PearTextRewrite';
 import { InlineRewriteLauncher } from './InlineRewriteLauncher';
 import { BlockPresetPicker, type PendingBlock } from './BlockPresetPicker';
 import type { BlockPreset } from './block-presets';
+import { ThemeRemixMode } from './ThemeRemixMode';
 import { SlashMenu } from './SlashMenu';
 import { UndoChip } from './UndoChip';
 import { SuggestionBadges } from './SuggestionBadges';
@@ -1099,6 +1100,7 @@ export function EditorCanvas() {
 
   return (
     <div
+      id="pl-editor-canvas"
       ref={canvasRef}
       style={{
         width: '100%', height: '100%',
@@ -1129,6 +1131,14 @@ export function EditorCanvas() {
         pending={pendingBlock}
         onPick={commitPendingBlock}
         onClose={() => setPendingBlock(null)}
+      />
+
+      {/* Shift+scroll theme remix — cycles hand-crafted palette
+          presets live on the whole site. Release Shift to prompt
+          Keep/Revert; Esc reverts instantly. */}
+      <ThemeRemixMode
+        manifest={manifest}
+        onApply={actions.handleDesignChange}
       />
 
       {/* Slash-menu — Notion-style insert popover for editable text fields.
