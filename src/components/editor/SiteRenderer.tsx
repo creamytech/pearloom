@@ -602,13 +602,13 @@ const SectionOverlay = React.memo(function SectionOverlay({
       {/* Inline toolbar — selected only */}
       {editMode && isSelected && (
         <div style={{
-          position: 'absolute', top: '-36px', left: '50%', transform: 'translateX(-50%)',
+          position: 'absolute', top: '-38px', left: '50%', transform: 'translateX(-50%)',
           zIndex: 100, display: 'flex', alignItems: 'center', gap: '2px',
-          padding: '4px 6px', borderRadius: '12px',
-          background: 'rgba(250,247,242,0.92)',
-          backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid #E4E4E7',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+          padding: '4px 6px', borderRadius: '999px',
+          background: 'var(--pl-ink, #0E0D0B)',
+          color: 'var(--pl-cream, #FAF7F2)',
+          border: `1px solid color-mix(in oklab, var(--pl-gold, #B8935A) 40%, transparent)`,
+          boxShadow: '0 10px 28px rgba(14,13,11,0.25), 0 0 0 3px color-mix(in oklab, var(--pl-gold, #B8935A) 18%, transparent)',
         } as React.CSSProperties}>
           {/* Drag handle — grab to reorder */}
           <div
@@ -617,43 +617,85 @@ const SectionOverlay = React.memo(function SectionOverlay({
             aria-label="Drag to reorder block"
             style={{
               cursor: isDragging ? 'grabbing' : 'grab',
-              // Ensure hit area is at least 24x24 (item 96)
               minWidth: 24, minHeight: 24,
               padding: '6px', display: 'flex',
               alignItems: 'center', justifyContent: 'center',
-              color: 'rgba(0,0,0,0.2)',
+              color: 'color-mix(in oklab, var(--pl-cream, #FAF7F2) 60%, transparent)',
               touchAction: 'none',
             }}
             title="Drag to reorder"
           >
             <GripVertical size={12} />
           </div>
-          <span style={{ fontSize: '0.55rem', fontWeight: 700, color, letterSpacing: '0.06em', textTransform: 'uppercase', padding: '0 4px' }}>
+          <span style={{
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            fontSize: '0.58rem', fontWeight: 700,
+            color,
+            letterSpacing: '0.18em', textTransform: 'uppercase', padding: '0 6px',
+          }}>
             {def?.label || blockType}
           </span>
-          <div style={{ width: '1px', height: '14px', background: '#FFFFFF' }} />
+          <div style={{ width: '1px', height: '14px', background: 'rgba(250,247,242,0.2)' }} />
           {[
-            ...(index > 0 ? [{ icon: '↑', action: 'moveUp' as const, handler: () => onBlockAction?.('moveUp', blockId) }] : []),
-            ...(index < total - 1 ? [{ icon: '↓', action: 'moveDown' as const, handler: () => onBlockAction?.('moveDown', blockId) }] : []),
-            { icon: '⎘', action: 'copy' as const, handler: () => onBlockCopy?.(blockId) },
-            { icon: '⧉', action: 'duplicate' as const, handler: () => onBlockAction?.('duplicate', blockId) },
-            { icon: '✕', action: 'delete' as const, handler: () => setConfirmDelete(true), danger: true },
-          ].map(a => (
-            <button key={a.action} onClick={(e) => { e.stopPropagation(); a.handler(); }}
-              title={a.action.charAt(0).toUpperCase() + a.action.slice(1)}
-              style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: '6px', background: 'transparent', color: (a as { danger?: boolean }).danger ? '#d06060' : '#71717A', cursor: 'pointer', fontSize: '0.65rem' }}
-            >{a.icon}</button>
-          ))}
+            ...(index > 0
+              ? [{ Icon: ChevronUp, action: 'moveUp' as const, label: 'Move up', handler: () => onBlockAction?.('moveUp', blockId) }]
+              : []),
+            ...(index < total - 1
+              ? [{ Icon: ChevronDown, action: 'moveDown' as const, label: 'Move down', handler: () => onBlockAction?.('moveDown', blockId) }]
+              : []),
+            { Icon: Copy, action: 'copy' as const, label: 'Copy block', handler: () => onBlockCopy?.(blockId) },
+            { Icon: Camera, action: 'duplicate' as const, label: 'Duplicate block', handler: () => onBlockAction?.('duplicate', blockId) },
+            { Icon: Trash2, action: 'delete' as const, label: 'Delete block', handler: () => setConfirmDelete(true), danger: true },
+          ].map(a => {
+            const { Icon } = a;
+            return (
+              <button
+                key={a.action}
+                onClick={(e) => { e.stopPropagation(); a.handler(); }}
+                title={a.label}
+                aria-label={a.label}
+                style={{
+                  width: '28px', height: '28px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: 'none', borderRadius: '999px',
+                  background: 'transparent',
+                  color: (a as { danger?: boolean }).danger
+                    ? '#E06B6B'
+                    : 'color-mix(in oklab, var(--pl-cream, #FAF7F2) 85%, transparent)',
+                  cursor: 'pointer',
+                  transition: 'background 0.14s, color 0.14s',
+                }}
+                onMouseEnter={(e) => {
+                  const t = e.currentTarget as HTMLButtonElement;
+                  t.style.background = (a as { danger?: boolean }).danger
+                    ? 'rgba(224,107,107,0.18)'
+                    : 'rgba(250,247,242,0.14)';
+                  t.style.color = (a as { danger?: boolean }).danger
+                    ? '#F0A0A0'
+                    : 'var(--pl-cream, #FAF7F2)';
+                }}
+                onMouseLeave={(e) => {
+                  const t = e.currentTarget as HTMLButtonElement;
+                  t.style.background = 'transparent';
+                  t.style.color = (a as { danger?: boolean }).danger
+                    ? '#E06B6B'
+                    : 'color-mix(in oklab, var(--pl-cream, #FAF7F2) 85%, transparent)';
+                }}
+              >
+                <Icon size={13} strokeWidth={2} />
+              </button>
+            );
+          })}
           {/* Delete confirmation inline */}
           {confirmDelete && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '4px' }} onClick={e => e.stopPropagation()}>
-              <span style={{ fontSize: '0.65rem', color: '#d06060', fontWeight: 600, whiteSpace: 'nowrap' }}>Delete?</span>
+              <span style={{ fontSize: '0.65rem', color: '#F0A0A0', fontWeight: 600, whiteSpace: 'nowrap' }}>Delete?</span>
               <button onClick={(e) => { e.stopPropagation(); onBlockAction?.('delete', blockId); setConfirmDelete(false); }}
-                style={{ padding: '2px 7px', borderRadius: '5px', border: 'none', background: '#d06060', color: '#fff', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700 }}>
+                style={{ padding: '2px 9px', borderRadius: '999px', border: 'none', background: '#E06B6B', color: '#fff', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700 }}>
                 Yes
               </button>
               <button onClick={(e) => { e.stopPropagation(); setConfirmDelete(false); }}
-                style={{ padding: '2px 7px', borderRadius: '5px', border: 'none', background: '#F4F4F5', color: '#52525B', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 600 }}>
+                style={{ padding: '2px 9px', borderRadius: '999px', border: '1px solid rgba(250,247,242,0.3)', background: 'transparent', color: 'var(--pl-cream)', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 600 }}>
                 No
               </button>
             </div>
