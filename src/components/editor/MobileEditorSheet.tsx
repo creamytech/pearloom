@@ -92,6 +92,10 @@ export function MobileEditorSheet() {
   const [activeChapterId, setActiveChapterId] = useState<string | null>(null);
   const [activeEventId, setActiveEventId] = useState<string | null>(null);
   const [sheetSnap, setSheetSnap] = useState<0 | 1 | 2>(0);
+  // Phase 3 mobile UX: when this is true, the preview + bottom sheet
+  // disappear and the section's edit panel takes the whole viewport.
+  // Eliminates the half-snap keyboard-clash problem on dense panels.
+  const [editFullScreen, setEditFullScreen] = useState(false);
   const [moreToolOpen, setMoreToolOpen] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState(false);
 
@@ -160,6 +164,7 @@ export function MobileEditorSheet() {
       setActiveChapterId(chapterId);
       setActiveSection('story');
       setActiveTab('edit');
+      setEditFullScreen(true);
       setSheetSnap(1);
       dispatch({ type: 'SET_ACTIVE_ID', id: chapterId });
       return;
@@ -177,7 +182,9 @@ export function MobileEditorSheet() {
     setActiveSection(sectionId);
     setActiveChapterId(null);
     setActiveTab('edit');
-    // Snap to half — not full — so it's less disruptive
+    // Full-screen edit takes over the viewport. Bottom sheet + nav
+    // hide so dense panels + the soft keyboard both fit.
+    setEditFullScreen(true);
     setSheetSnap(1);
 
     // Flash highlight on the tapped section in preview
@@ -311,6 +318,7 @@ export function MobileEditorSheet() {
       dispatch({ type: 'SET_ACTIVE_ID', id: blockId });
       setActiveSection(block.type);
       setActiveTab('edit');
+      setEditFullScreen(true);
       setSheetSnap(1);
     }
   }, [manifest.blocks, dispatch]);
@@ -612,6 +620,184 @@ export function MobileEditorSheet() {
     document.addEventListener('focusin', handler);
     return () => document.removeEventListener('focusin', handler);
   }, []);
+
+  // ─────────────────────────────────────────────────────────
+  // Full-screen edit overlay — Phase 3 mobile UX. When the user
+  // taps any editable section, we render a dedicated full-height
+  // layer instead of the half-snap sheet. Dense panels fit, the
+  // keyboard doesn't collide with the content, and the canvas is
+  // one tap away via the back chevron.
+  // ─────────────────────────────────────────────────────────
+  if (editFullScreen && activeSection) {
+    const friendly = activeSection.charAt(0).toUpperCase() + activeSection.slice(1);
+    const exit = () => {
+      setEditFullScreen(false);
+      setActiveSection(null);
+      setActiveChapterId(null);
+      setSelectedBlockId(null);
+      dispatch({ type: 'SET_ACTIVE_ID', id: null });
+      setSheetSnap(0);
+    };
+    return (
+      <div
+        className="pl-mobile-editor"
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 520,
+          display: 'flex',
+          flexDirection: 'column',
+          background: 'var(--pl-cream-card)',
+        }}
+      >
+        {/* Top bar */}
+        <header
+          style={{
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            minHeight: 52,
+            padding: '6px 10px',
+            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 6px)',
+            borderBottom: '1px solid var(--pl-divider)',
+            background: 'var(--pl-cream)',
+          }}
+        >
+          <button
+            type="button"
+            onClick={exit}
+            aria-label="Back to canvas"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 44,
+              height: 44,
+              border: 'none',
+              background: 'transparent',
+              color: 'var(--pl-ink)',
+              cursor: 'pointer',
+              borderRadius: 8,
+            }}
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              minWidth: 0,
+            }}
+          >
+            <span
+              style={{
+                fontFamily: 'var(--pl-font-mono)',
+                fontSize: '0.52rem',
+                letterSpacing: '0.24em',
+                textTransform: 'uppercase',
+                color: 'var(--pl-muted)',
+                fontWeight: 700,
+              }}
+            >
+              Editing
+            </span>
+            <span
+              style={{
+                fontFamily: 'var(--pl-font-heading)',
+                fontStyle: 'italic',
+                fontSize: '1.04rem',
+                color: 'var(--pl-ink)',
+                lineHeight: 1.15,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {friendly}
+            </span>
+          </div>
+          {/* Quick actions — Pear, preview, done */}
+          <button
+            type="button"
+            onClick={() => {
+              window.dispatchEvent(
+                new CustomEvent('pearloom:ask-pear', {
+                  detail: {
+                    prompt: `Change my ${activeSection} section to `,
+                  },
+                }),
+              );
+            }}
+            aria-label="Ask Pear about this section"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+              padding: '8px 12px',
+              background: 'color-mix(in oklab, var(--pl-olive) 14%, transparent)',
+              color: 'var(--pl-olive)',
+              border: '1px solid color-mix(in oklab, var(--pl-olive) 32%, transparent)',
+              borderRadius: 999,
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.58rem',
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            <Sparkles size={12} /> Pear
+          </button>
+          <button
+            type="button"
+            onClick={exit}
+            aria-label="Done"
+            style={{
+              padding: '8px 14px',
+              background: 'var(--pl-ink)',
+              color: 'var(--pl-cream)',
+              border: 'none',
+              borderRadius: 999,
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.6rem',
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            Done
+          </button>
+        </header>
+
+        {/* Panel body — scrolls independently */}
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: '8px 0 120px',
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
+          {selectedBlockId && activeSection && activeSection !== 'story' ? (
+            <MobileContextPanel
+              activeSection={activeSection}
+              activeChapterId={null}
+              activeEventId={activeEventId}
+            />
+          ) : (
+            <MobileContextPanel
+              activeSection={activeSection}
+              activeChapterId={activeChapterId}
+              activeEventId={activeEventId}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pl-mobile-editor" style={{
