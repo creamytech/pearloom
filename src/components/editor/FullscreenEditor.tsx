@@ -44,7 +44,7 @@ import { GuestSearchPanel } from './GuestSearchPanel';
 import { BulkInvitePanel } from './BulkInvitePanel';
 import { SeatingEditorPanel } from './SeatingEditorPanel';
 import { TranslationPanel } from './TranslationPanel';
-import { SaveTheDatePanel } from './SaveTheDatePanel';
+import { GuestsLifecyclePanel } from './GuestsLifecyclePanel';
 import { ThankYouPanel } from './ThankYouPanel';
 import { SpotifyPanel } from './SpotifyPanel';
 import { AnniversaryNudgePanel } from './AnniversaryNudgePanel';
@@ -1164,16 +1164,11 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                   <GuestMessagingPanel />
                 )}
 
-                {state.activeTab === 'guests' && (
-                  <GuestSearchPanel siteId={state.subdomain} />
-                )}
-
-                {state.activeTab === 'invite' && (
-                  <BulkInvitePanel manifest={manifest} siteId={state.subdomain} subdomain={state.subdomain} />
-                )}
-
-                {state.activeTab === 'seating' && (
-                  <SeatingEditorPanel siteId={state.subdomain} />
+                {(state.activeTab === 'guests' ||
+                  state.activeTab === 'invite' ||
+                  state.activeTab === 'seating' ||
+                  state.activeTab === 'savethedate') && (
+                  <GuestsLifecyclePanel manifest={manifest} subdomain={state.subdomain} />
                 )}
 
                 {state.activeTab === 'analytics' && (
@@ -1182,10 +1177,6 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 
                 {state.activeTab === 'translate' && (
                   <TranslationPanel manifest={manifest} onChange={handleDesignChange} />
-                )}
-
-                {state.activeTab === 'savethedate' && (
-                  <SaveTheDatePanel manifest={manifest} subdomain={state.subdomain} />
                 )}
 
                 {state.activeTab === 'thankyou' && (
