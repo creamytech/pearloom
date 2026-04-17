@@ -459,7 +459,8 @@ function FaqRow({ faq, onUpdate, onDelete, index }: {
 
 export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void; subdomain?: string }) {
   const { state } = useEditor();
-  const [detailsTab, setDetailsTab] = useState<'logistics' | 'guests' | 'settings'>('logistics');
+  type DetailsTabId = 'essentials' | 'rsvp' | 'travel' | 'extras';
+  const [detailsTab, setDetailsTab] = useState<DetailsTabId>('essentials');
   const logistics = manifest.logistics || {};
   const occasion = manifest.occasion || 'wedding';
   const isEvent = occasion === 'wedding' || occasion === 'engagement';
@@ -473,13 +474,14 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
   };
   const [openSection, setOpenSection] = useState<string | null>(getDefaultSection);
 
-  // Auto-open section from contextual click + scroll-to + highlight
-  // Also auto-switch the sub-tab (logistics / guests / settings) when needed
-  const SECTION_TAB_MAP: Record<string, 'logistics' | 'guests' | 'settings'> = {
-    couple: 'logistics', theday: 'logistics', registry: 'logistics',
-    rsvp: 'logistics', travel: 'logistics', faq: 'logistics',
-    vibe: 'logistics', seating: 'guests',
-    seo: 'settings', protection: 'settings', footer: 'settings',
+  // Auto-open section from contextual click + scroll-to + highlight.
+  // Also auto-switches the sub-tab so the target section is visible.
+  const SECTION_TAB_MAP: Record<string, DetailsTabId> = {
+    couple: 'essentials', theday: 'essentials', registry: 'essentials',
+    rsvp: 'rsvp', weddingParty: 'rsvp',
+    travel: 'travel', faq: 'travel',
+    vibe: 'extras', seating: 'extras', poetry: 'extras',
+    footer: 'extras', seo: 'extras', protection: 'extras',
   };
   useEffect(() => {
     if (state.contextSection && state.activeTab === 'details') {
@@ -714,6 +716,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
   const totalSections = Object.keys(sectionFilled).length;
 
   const Section = ({ id, label, children }: { id: SectionId; label: string; children: React.ReactNode }) => {
+    // Gate on the sub-tab so each tab only shows its own sections.
+    if (SECTION_TAB_MAP[id] !== detailsTab) return null;
     const isOpen = openSection === id;
     const isFilled = sectionFilled[id];
     return (
@@ -872,38 +876,43 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         )}
       </AnimatePresence>
 
-      {/* ── Sub-tab switcher: Logistics / Guests / Settings ── */}
+      {/* ── Sub-tab switcher: Essentials / RSVP / Travel / Extras ── */}
+      {/* Breaks the 2000-line panel into four focused views. */}
       <div style={{
-        display: 'flex', gap: '6px',
+        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px',
         padding: '0 8px 10px',
         borderBottom: '1px solid #E4E4E7',
         marginBottom: '8px',
       }}>
-        {(['logistics', 'guests', 'settings'] as const).map((tab) => (
+        {([
+          { id: 'essentials', label: 'Essentials' },
+          { id: 'rsvp',       label: 'RSVP' },
+          { id: 'travel',     label: 'Travel & FAQ' },
+          { id: 'extras',     label: 'Extras' },
+        ] as Array<{ id: DetailsTabId; label: string }>).map((tab) => (
           <button
-            key={tab}
-            onClick={() => setDetailsTab(tab)}
+            key={tab.id}
+            onClick={() => setDetailsTab(tab.id)}
             style={{
-              flex: 1, padding: '8px 0', borderRadius: '8px',
-              border: detailsTab === tab ? '1px solid #18181B' : '1px solid #E4E4E7',
-              background: detailsTab === tab ? '#18181B' : '#FFFFFF',
-              color: detailsTab === tab ? '#FFFFFF' : '#71717A',
+              padding: '8px 0', borderRadius: '8px',
+              border: detailsTab === tab.id ? '1px solid #18181B' : '1px solid #E4E4E7',
+              background: detailsTab === tab.id ? '#18181B' : '#FFFFFF',
+              color: detailsTab === tab.id ? '#FFFFFF' : '#71717A',
               fontSize: panelText.chip,
               fontWeight: panelWeight.semibold,
               fontFamily: 'inherit',
               cursor: 'pointer',
               lineHeight: panelLineHeight.tight,
               transition: 'all 0.15s',
-              textTransform: 'capitalize',
             }}
           >
-            {tab === 'logistics' ? 'Logistics' : tab === 'guests' ? 'Guests' : 'Settings'}
+            {tab.label}
           </button>
         ))}
       </div>
 
       {/* ═══ Logistics tier ═══ */}
-      {detailsTab === 'logistics' && <>
+      {/* All sections rendered unconditionally — Section self-gates on sub-tab. */}
       <Section id="couple" label={occasion === 'birthday' ? 'Honoree' : occasion === 'anniversary' ? 'Couple' : 'Couple'}>
         {occasion !== 'birthday' && (
           <Field label="Dress Code" value={logistics.dresscode || ''} onChange={v => upd({ dresscode: v })} placeholder="Black Tie Optional" />
@@ -1190,10 +1199,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           }}>No registries yet</p>
         )}
       </Section>
-      </>}
 
-      {/* ═══ Guests tier ═══ */}
-      {detailsTab === 'guests' && <>
       <Section id="rsvp" label="RSVP">
         <div>
           <DatePicker
@@ -1845,10 +1851,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         </p>
         <WeddingPartyEditor manifest={manifest} onChange={onChange} />
       </Section>
-      </>}
 
-      {/* ═══ Settings tier ═══ */}
-      {detailsTab === 'settings' && <>
       {/* ── Poetry ── AI-generated lines, editable fallback for when inline edit isn't enough */}
       <Section id="poetry" label="Poetry">
         <p style={{ fontSize: panelText.hint, color: 'var(--pl-chrome-text-muted)', fontFamily: 'inherit', margin: '0 0 8px', lineHeight: panelLineHeight.normal }}>
@@ -1990,7 +1993,6 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         </div>
       </Section>
 
-      </>}
 
       {/* Hotel Finder overlay */}
       {showHotelFinder && (
