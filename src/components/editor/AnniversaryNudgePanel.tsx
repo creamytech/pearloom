@@ -68,8 +68,13 @@ export function AnniversaryNudgePanel() {
   const occasion = manifest?.occasion;
   const weddingDate = manifest?.logistics?.date;
 
+  // Generalised from just wedding/anniversary — any occasion with a
+  // date that has passed can show a milestone-recap nudge.
   const isEligible =
-    (occasion === 'wedding' || occasion === 'anniversary') &&
+    (occasion === 'wedding' ||
+      occasion === 'anniversary' ||
+      occasion === 'engagement' ||
+      occasion === 'birthday') &&
     Boolean(weddingDate);
 
   const [annInfo, setAnnInfo] = useState<{
@@ -117,11 +122,17 @@ export function AnniversaryNudgePanel() {
     }
   }
 
+  const milestoneNoun =
+    occasion === 'birthday'
+      ? 'birthday'
+      : occasion === 'engagement'
+        ? 'engagement'
+        : 'anniversary';
   const badgeLabel = annInfo.today
-    ? `✦ ${ordinal(annInfo.yearsAgo)} anniversary today`
+    ? `✦ ${ordinal(annInfo.yearsAgo)} ${milestoneNoun} today`
     : annInfo.near
-    ? `✦ ${ordinal(annInfo.yearsAgo)} anniversary this week`
-    : `✦ ${ordinal(annInfo.yearsAgo)} anniversary`;
+    ? `✦ ${ordinal(annInfo.yearsAgo)} ${milestoneNoun} this week`
+    : `✦ ${ordinal(annInfo.yearsAgo)} ${milestoneNoun}`;
 
   return (
     <AnimatePresence>

@@ -30,7 +30,7 @@ type Tool = {
 const TOOLS: Tool[] = [
   { id: 'move',  Icon: GripVertical, label: 'Reorder',  description: 'Drag to reorder blocks', tab: 'canvas', group: 'compose' },
   { id: 'style', Icon: Paintbrush,   label: 'Design',   description: 'Colors, fonts & visual style', tab: 'design', group: 'compose' },
-  { id: 'add',   Icon: Plus,         label: 'Section',  description: 'Add a new section', tab: 'canvas', primary: true, group: 'spine' },
+  { id: 'add',   Icon: Plus,         label: 'Section',  description: 'Add a new section · press / to search', tab: 'canvas', primary: true, group: 'spine' },
   { id: 'undo',  Icon: Undo2,        label: 'Undo',     description: 'Undo last action', shortcut: '⌘Z', tab: null, group: 'history' },
   { id: 'redo',  Icon: Redo2,        label: 'Redo',     description: 'Redo last action', shortcut: '⌘⇧Z', tab: null, group: 'history' },
 ];
