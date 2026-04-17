@@ -1,23 +1,23 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// EditorRail — Wave D rebuild.
-// Collapses the legacy 16-tab rail into 4 editorial workspaces:
-//   Build · Style · Grow · Ship
-// Each workspace icon expands to a contextual flyout listing its
-// sub-tabs. Drives the existing tab state machine — no migration
-// of `editor-state` required.
+// EditorRail — Wave E rebuild.
+// Collapses the legacy 20-tab rail into 6 user-verb workspaces:
+//   Story · Design · Details · Guests · Music · Insights
+// (Publish lives in the toolbar so it's always one click away.)
+// Ghost panels (thankyou / vendors / relationshipGraph) are
+// hidden from the rail until they ship for real.
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Hammer, Palette, Megaphone, Rocket,
-  BookOpen, CalendarDays, FileText, LayoutGrid, Sparkles, Mic,
-  Type as TypeIcon, Image as ImageIcon, Brush,
-  Users, Mail, MessageSquare, Heart, Music, ShoppingBag,
-  BarChart2, Globe, History, Settings,
+  BookOpen, Palette, ClipboardList, Users, Music, BarChart2,
+  CalendarDays, FileText, LayoutGrid, Sparkles, Mic,
+  Type as TypeIcon, Brush,
+  Mail, MessageSquare, Heart,
+  Globe, History,
   Plus,
 } from 'lucide-react';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
@@ -36,7 +36,7 @@ interface SubTab {
 }
 
 interface Workspace {
-  id: 'build' | 'style' | 'grow' | 'ship';
+  id: 'story' | 'design' | 'details' | 'guests' | 'music' | 'insights';
   label: string;
   Icon: React.ElementType;
   defaultTab: EditorTab;
@@ -44,63 +44,82 @@ interface Workspace {
   tabs: SubTab[];
 }
 
-// ── 4 workspaces ────────────────────────────────────────────────
+// ── 6 user-verb workspaces ──────────────────────────────────────
+// Ghost / unfinished panels (thankyou, vendors, relationshipGraph)
+// are intentionally absent from the rail. They can still be reached
+// via ⌘K if someone needs them while they're in progress.
 
 const WORKSPACES: Workspace[] = [
   {
-    id: 'build',
-    label: 'Build',
-    Icon: Hammer,
+    id: 'story',
+    label: 'Story',
+    Icon: BookOpen,
     defaultTab: 'story',
-    description: 'Words, sections, structure',
+    description: 'Chapters, events, pages, voice',
     tabs: [
-      { id: 'story',    tab: 'story',    Icon: BookOpen,     label: 'Chapters',    description: 'Your love story timeline', shortcut: '⌘1' },
-      { id: 'events',   tab: 'events',   Icon: CalendarDays, label: 'Events',      description: 'Ceremony, reception, more', shortcut: '⌘2' },
-      { id: 'pages',    tab: 'pages',    Icon: FileText,     label: 'Pages',       description: 'Manage all site pages', shortcut: '⌘5' },
-      { id: 'sections', tab: 'canvas',   Icon: LayoutGrid,   label: 'Sections',    description: 'Add & arrange sections', shortcut: '⌘8' },
-      { id: 'voice',    tab: 'voice',    Icon: Mic,          label: 'Voice & tone', description: 'How Pear sounds like you' },
+      { id: 'story',    tab: 'story',  Icon: BookOpen,     label: 'Chapters',     description: 'Your love story timeline', shortcut: '⌘1' },
+      { id: 'events',   tab: 'events', Icon: CalendarDays, label: 'Events',       description: 'Ceremony, reception, more', shortcut: '⌘2' },
+      { id: 'pages',    tab: 'pages',  Icon: FileText,     label: 'Pages',        description: 'Manage all site pages',    shortcut: '⌘5' },
+      { id: 'sections', tab: 'canvas', Icon: LayoutGrid,   label: 'Sections',     description: 'Add & arrange sections',    shortcut: '⌘8' },
+      { id: 'voice',    tab: 'voice',  Icon: Mic,          label: 'Voice & tone', description: 'How Pear sounds like you' },
     ],
   },
   {
-    id: 'style',
-    label: 'Style',
+    id: 'design',
+    label: 'Design',
     Icon: Palette,
     defaultTab: 'design',
-    description: 'Color, type, motion',
+    description: 'Palette, type, blocks, components',
     tabs: [
-      { id: 'design',     tab: 'design',     Icon: Brush,     label: 'Theme',       description: 'Palette · radius · vibe', shortcut: '⌘3' },
-      { id: 'blocks',     tab: 'blocks',     Icon: Sparkles,  label: 'Pear blocks', description: 'AI section presets' },
-      { id: 'components', tab: 'components', Icon: TypeIcon,  label: 'Components',  description: 'Saved blocks & motifs' },
+      { id: 'design',     tab: 'design',     Icon: Brush,    label: 'Theme',       description: 'Palette · radius · vibe', shortcut: '⌘3' },
+      { id: 'blocks',     tab: 'blocks',     Icon: Sparkles, label: 'Pear blocks', description: 'AI section presets' },
+      { id: 'components', tab: 'components', Icon: TypeIcon, label: 'Components',  description: 'Saved blocks & motifs' },
     ],
   },
   {
-    id: 'grow',
-    label: 'Grow',
-    Icon: Megaphone,
+    id: 'details',
+    label: 'Details',
+    Icon: ClipboardList,
+    defaultTab: 'details',
+    description: 'Logistics, RSVP, travel, FAQ',
+    tabs: [
+      { id: 'details', tab: 'details', Icon: ClipboardList, label: 'All details', description: 'Date · venue · RSVP · FAQ' },
+    ],
+  },
+  {
+    id: 'guests',
+    label: 'Guests',
+    Icon: Users,
     defaultTab: 'guests',
-    description: 'Reach guests, fill the room',
+    description: 'List, invite, seat, follow up',
     tabs: [
-      { id: 'guests',      tab: 'guests',      Icon: Users,        label: 'Guests',      description: 'Guest list & RSVPs' },
-      { id: 'invite',      tab: 'invite',      Icon: Mail,         label: 'Invitations', description: 'Send bulk invites' },
-      { id: 'messaging',   tab: 'messaging',   Icon: MessageSquare,label: 'Messages',    description: 'Email your guests' },
-      { id: 'seating',     tab: 'seating',     Icon: Users,        label: 'Seating',     description: 'Seating chart' },
-      { id: 'savethedate', tab: 'savethedate', Icon: Heart,        label: 'Save the Date' },
-      { id: 'thankyou',    tab: 'thankyou',    Icon: Heart,        label: 'Thank-you notes' },
-      { id: 'spotify',     tab: 'spotify',     Icon: Music,        label: 'Music' },
-      { id: 'vendors',     tab: 'vendors',     Icon: ShoppingBag,  label: 'Vendors' },
+      { id: 'guests',      tab: 'guests',      Icon: Users,        label: 'Guest list',    description: 'Names, emails, RSVPs' },
+      { id: 'invite',      tab: 'invite',      Icon: Mail,         label: 'Send invites',  description: 'Editorial bulk email' },
+      { id: 'savethedate', tab: 'savethedate', Icon: Heart,        label: 'Save the date', description: 'Design + send STD' },
+      { id: 'seating',     tab: 'seating',     Icon: LayoutGrid,   label: 'Seating',       description: 'Tables & assignments' },
+      { id: 'messaging',   tab: 'messaging',   Icon: MessageSquare,label: 'Messages',      description: 'One-off emails to guests' },
     ],
   },
   {
-    id: 'ship',
-    label: 'Ship',
-    Icon: Rocket,
-    defaultTab: 'analytics',
-    description: 'Polish, publish, measure',
+    id: 'music',
+    label: 'Music',
+    Icon: Music,
+    defaultTab: 'spotify',
+    description: 'Soundtrack & ambient player',
     tabs: [
-      { id: 'analytics', tab: 'analytics', Icon: BarChart2, label: 'Analytics', description: 'Views & engagement' },
-      { id: 'translate', tab: 'translate', Icon: Globe,     label: 'Translate', description: 'Multi-language sites' },
-      { id: 'history',   tab: 'history',   Icon: History,   label: 'History',   description: 'Versions & rollback' },
-      { id: 'details',   tab: 'details',   Icon: Settings,  label: 'Settings',  description: 'Site-wide preferences' },
+      { id: 'spotify', tab: 'spotify', Icon: Music, label: 'Soundtrack', description: 'Spotify playlist' },
+    ],
+  },
+  {
+    id: 'insights',
+    label: 'Insights',
+    Icon: BarChart2,
+    defaultTab: 'analytics',
+    description: 'Analytics, translate, history',
+    tabs: [
+      { id: 'analytics', tab: 'analytics', Icon: BarChart2, label: 'Analytics',   description: 'Views & engagement' },
+      { id: 'translate', tab: 'translate', Icon: Globe,     label: 'Translate',   description: 'Multi-language sites' },
+      { id: 'history',   tab: 'history',   Icon: History,   label: 'Versions',    description: 'Snapshots & rollback' },
     ],
   },
 ];
@@ -111,7 +130,7 @@ function findWorkspaceForTab(tab: EditorTab): Workspace['id'] {
   for (const ws of WORKSPACES) {
     if (ws.tabs.some((t) => t.tab === tab) || ws.defaultTab === tab) return ws.id;
   }
-  return 'build';
+  return 'story';
 }
 
 function useUserPlan(): string {
