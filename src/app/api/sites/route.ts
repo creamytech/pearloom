@@ -34,9 +34,9 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from('sites')
-      .select('id, subdomain, ai_manifest, site_config, created_at')
+      .select('id, subdomain, ai_manifest, site_config, created_at, updated_at, published')
       .contains('site_config', { creator_email: session.user.email })
-      .order('created_at', { ascending: false });
+      .order('updated_at', { ascending: false, nullsFirst: false });
 
     if (error) {
       console.error('Database error fetching sites:', error);
@@ -49,6 +49,8 @@ export async function GET() {
       domain: site.subdomain,
       manifest: site.ai_manifest,
       created_at: site.created_at,
+      updated_at: (site as Record<string, unknown>).updated_at as string | undefined,
+      published: Boolean((site as Record<string, unknown>).published),
       // Ensure names is always an array
       names: Array.isArray((site.site_config as Record<string, unknown>)?.names)
         ? (site.site_config as Record<string, unknown>).names

@@ -141,6 +141,23 @@ function getGreeting(): string {
   return 'Good evening';
 }
 
+// Relative time for the 'Edited X ago' metadata chip on each site row.
+function relativeTime(iso: string | undefined): string | null {
+  if (!iso) return null;
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return null;
+  const diff = Math.max(0, Date.now() - then);
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  if (days < 60) return `${Math.floor(days / 7)}w ago`;
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
 function daysUntil(dateStr: string): number | null {
   try {
     const event = parseLocalDate(dateStr);
@@ -374,6 +391,8 @@ interface UserSite {
   domain: string;
   manifest: StoryManifest;
   created_at: string;
+  updated_at?: string;
+  published?: boolean;
   names: [string, string];
 }
 
@@ -1046,6 +1065,12 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
               const occ           = OCCASION_BADGE[site.manifest?.occasion || ''];
               const daysLeft      = weddingDate ? daysUntil(weddingDate) : null;
               const showMilestone = daysLeft !== null && daysLeft >= 0 && daysLeft <= 7;
+              // Draft vs live state for the metadata strip.
+              const isPublished   = site.published === true;
+              // Relative 'last edited' — pulls updated_at from supabase if
+              // present, falls back silently.
+              const lastEditedAt  = site.updated_at || site.created_at;
+              const lastEditedRel = relativeTime(lastEditedAt);
 
               // Date display
               let dateDisplay: string | null = null;
@@ -1178,6 +1203,44 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                       <span style={{ color: 'rgba(14,13,11,0.40)', textTransform: 'lowercase', letterSpacing: '0.08em' }}>
                         {site.domain}
                       </span>
+                      <span style={{ color: 'rgba(184,147,90,0.55)' }}>·</span>
+                      <span
+                        aria-label={isPublished ? 'Published' : 'Draft'}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 5,
+                          padding: '2px 7px',
+                          borderRadius: 3,
+                          background: isPublished
+                            ? 'color-mix(in oklab, var(--pl-olive) 14%, transparent)'
+                            : 'color-mix(in oklab, var(--pl-gold) 14%, transparent)',
+                          border: `1px solid color-mix(in oklab, ${isPublished ? 'var(--pl-olive)' : 'var(--pl-gold)'} 32%, transparent)`,
+                          color: isPublished ? 'var(--pl-olive)' : 'var(--pl-gold)',
+                          fontFamily: 'var(--pl-font-mono)',
+                          fontSize: '0.5rem',
+                          letterSpacing: '0.22em',
+                          fontWeight: 700,
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: 5,
+                            height: 5,
+                            borderRadius: '50%',
+                            background: isPublished ? 'var(--pl-olive)' : 'var(--pl-gold)',
+                          }}
+                        />
+                        {isPublished ? 'Live' : 'Draft'}
+                      </span>
+                      {lastEditedRel && (
+                        <>
+                          <span style={{ color: 'rgba(184,147,90,0.55)' }}>·</span>
+                          <span style={{ color: 'rgba(14,13,11,0.52)' }}>
+                            Edited {lastEditedRel}
+                          </span>
+                        </>
+                      )}
                       {showMilestone && (
                         <span
                           className="pl-badge-pulse"
