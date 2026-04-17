@@ -8,7 +8,7 @@
 // • All hex codes replaced with var(--pl-*) tokens
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   Users, Check, X, Clock, Download, Copy, Search,
@@ -35,6 +35,8 @@ interface Guest {
   plusOneName?: string;
   mealPreference?: string;
   dietaryRestrictions?: string;
+  songRequest?: string;
+  mailingAddress?: string;
   message?: string;
   respondedAt?: string;
   eventIds?: string[];
@@ -168,6 +170,15 @@ export function RsvpDashboard({
   const [refreshed, setRefreshed] = useState(false);
   const [copiedEmails, setCopiedEmails] = useState(false);
   const [exportedCsv, setExportedCsv] = useState(false);
+  // Nudge-pending-guests feature — hits /api/rsvp-reminder with
+  // the currently-pending guest ids. Disabled while pending > 0
+  // count is zero.
+  const [nudging, setNudging] = useState(false);
+  const [nudgeResult, setNudgeResult] = useState<string | null>(null);
+  // Open a right-side detail drawer when a guest row is tapped so
+  // users can read the full response (meal, dietary, song request,
+  // mailing address, message) without a modal.
+  const [detailGuest, setDetailGuest] = useState<Guest | null>(null);
 
   const refresh = useCallback(async () => {
     if (!siteId) return;
@@ -230,6 +241,36 @@ export function RsvpDashboard({
     navigator.clipboard.writeText(emails).catch(() => {});
     setCopiedEmails(true);
     setTimeout(() => setCopiedEmails(false), 2000);
+  };
+
+  const pendingWithEmail = useMemo(
+    () => guests.filter(g => g.status === 'pending' && g.email),
+    [guests],
+  );
+
+  const nudgePending = async () => {
+    if (pendingWithEmail.length === 0 || !siteId) return;
+    setNudging(true);
+    setNudgeResult(null);
+    try {
+      const res = await fetch('/api/rsvp-reminder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId,
+          guestIds: pendingWithEmail.map(g => g.id),
+        }),
+      });
+      if (!res.ok) throw new Error('reminder request failed');
+      const data = await res.json().catch(() => ({}));
+      const sent = typeof data?.sent === 'number' ? data.sent : pendingWithEmail.length;
+      setNudgeResult(`Sent ${sent} reminder${sent === 1 ? '' : 's'}.`);
+    } catch {
+      setNudgeResult('Couldn\u2019t send reminders. Try again shortly.');
+    } finally {
+      setNudging(false);
+      setTimeout(() => setNudgeResult(null), 4000);
+    }
   };
 
   const responseRate = stats.total > 0
@@ -462,6 +503,20 @@ export function RsvpDashboard({
             >
               {copiedEmails ? 'Copied' : 'Copy emails'}
             </Button>
+            {pendingWithEmail.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={nudgePending}
+                disabled={nudging}
+                leftIcon={<Clock size={13} />}
+                title={`Send a gentle reminder to ${pendingWithEmail.length} pending guest${pendingWithEmail.length === 1 ? '' : 's'}`}
+              >
+                {nudging
+                  ? 'Nudging…'
+                  : `Nudge pending (${pendingWithEmail.length})`}
+              </Button>
+            )}
             <Button
               variant="primary"
               size="sm"
@@ -470,6 +525,20 @@ export function RsvpDashboard({
             >
               {exportedCsv ? 'Exported' : 'Export CSV'}
             </Button>
+            {nudgeResult && (
+              <span
+                style={{
+                  fontFamily: 'var(--pl-font-mono)',
+                  fontSize: '0.6rem',
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  color: 'var(--pl-muted)',
+                  alignSelf: 'center',
+                }}
+              >
+                {nudgeResult}
+              </span>
+            )}
           </div>
         </div>
 
@@ -668,6 +737,7 @@ export function RsvpDashboard({
                 getRowKey={(g) => g.id}
                 mobileTitle={(g) => g.name}
                 mobileSubtitle={(g) => g.email || formatDate(g.respondedAt)}
+                onRowClick={(g) => setDetailGuest(g)}
                 empty={
                   <div
                     style={{
@@ -699,7 +769,196 @@ export function RsvpDashboard({
           </motion.div>
         )}
       </div>
+
+      {/* Guest detail drawer — click a row to read a guest's full
+          response without leaving the ledger. */}
+      {detailGuest && (
+        <GuestDetailDrawer
+          guest={detailGuest}
+          onClose={() => setDetailGuest(null)}
+          eventsById={events.reduce<Record<string, string>>((acc, e) => {
+            acc[e.id] = e.name;
+            return acc;
+          }, {})}
+        />
+      )}
     </DashboardShell>
+  );
+}
+
+// ── Guest detail drawer ─────────────────────────────────────────
+function GuestDetailDrawer({
+  guest,
+  onClose,
+  eventsById,
+}: {
+  guest: Guest;
+  onClose: () => void;
+  eventsById: Record<string, string>;
+}) {
+  const rows: Array<[string, React.ReactNode]> = [];
+  if (guest.email) rows.push(['Email', <a key="e" href={`mailto:${guest.email}`} style={{ color: 'var(--pl-ink)' }}>{guest.email}</a>]);
+  rows.push([
+    'Status',
+    <span key="s" style={{ textTransform: 'capitalize' }}>{guest.status}</span>,
+  ]);
+  if (guest.plusOne) rows.push(['Plus one', guest.plusOneName || 'Yes']);
+  if (guest.mealPreference) rows.push(['Meal', guest.mealPreference]);
+  if (guest.dietaryRestrictions) rows.push(['Dietary', guest.dietaryRestrictions]);
+  if (guest.songRequest) rows.push(['Song request', <em key="sr">&ldquo;{guest.songRequest}&rdquo;</em>]);
+  if (guest.mailingAddress) rows.push(['Mailing address', guest.mailingAddress]);
+  if (guest.eventIds && guest.eventIds.length > 0) {
+    rows.push([
+      'Events',
+      guest.eventIds
+        .map((id) => eventsById[id] || id)
+        .join(' · '),
+    ]);
+  }
+  if (guest.respondedAt) rows.push(['Responded', new Date(guest.respondedAt).toLocaleString()]);
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 2500,
+        background: 'color-mix(in oklab, var(--pl-ink) 40%, transparent)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        display: 'flex',
+        justifyContent: 'flex-end',
+      }}
+    >
+      <motion.aside
+        initial={{ x: 40, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 'min(480px, 100%)',
+          height: '100%',
+          background: 'var(--pl-cream-card)',
+          borderLeft: '1px solid var(--pl-divider)',
+          padding: 'clamp(20px, 3vw, 32px)',
+          overflowY: 'auto',
+          boxShadow: '-30px 0 80px rgba(40,28,12,0.25)',
+        }}
+      >
+        <div
+          style={{
+            fontFamily: 'var(--pl-font-mono)',
+            fontSize: '0.58rem',
+            letterSpacing: '0.28em',
+            textTransform: 'uppercase',
+            color: 'var(--pl-muted)',
+            marginBottom: 10,
+          }}
+        >
+          Guest file
+        </div>
+        <h2
+          style={{
+            fontFamily: 'var(--pl-font-display)',
+            fontStyle: 'italic',
+            fontSize: 'clamp(1.6rem, 3.4vw, 2.1rem)',
+            lineHeight: 1.1,
+            color: 'var(--pl-ink)',
+            margin: '0 0 18px',
+            letterSpacing: '-0.014em',
+          }}
+        >
+          {guest.name}
+        </h2>
+
+        <dl style={{ margin: 0, display: 'grid', gridTemplateColumns: '140px 1fr', gap: '12px 14px' }}>
+          {rows.map(([k, v]) => (
+            <React.Fragment key={k}>
+              <dt
+                style={{
+                  fontFamily: 'var(--pl-font-mono)',
+                  fontSize: '0.58rem',
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  color: 'var(--pl-muted)',
+                  alignSelf: 'start',
+                  paddingTop: 2,
+                }}
+              >
+                {k}
+              </dt>
+              <dd style={{ margin: 0, color: 'var(--pl-ink-soft)', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                {v}
+              </dd>
+            </React.Fragment>
+          ))}
+        </dl>
+
+        {guest.message && (
+          <div
+            style={{
+              marginTop: 24,
+              padding: '14px 16px',
+              background: 'color-mix(in oklab, var(--pl-gold) 8%, transparent)',
+              border: '1px solid color-mix(in oklab, var(--pl-gold) 24%, transparent)',
+              borderRadius: 8,
+              fontFamily: 'var(--pl-font-display)',
+              fontStyle: 'italic',
+              fontSize: '0.98rem',
+              lineHeight: 1.5,
+              color: 'var(--pl-ink-soft)',
+            }}
+          >
+            &ldquo;{guest.message}&rdquo;
+          </div>
+        )}
+
+        <div style={{ marginTop: 24, display: 'flex', gap: 8 }}>
+          {guest.email && (
+            <a
+              href={`mailto:${guest.email}`}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '9px 14px',
+                background: 'var(--pl-ink)',
+                color: 'var(--pl-cream)',
+                borderRadius: 999,
+                textDecoration: 'none',
+                fontFamily: 'var(--pl-font-mono)',
+                fontSize: '0.64rem',
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+              }}
+            >
+              <Mail size={12} /> Email
+            </a>
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              padding: '9px 14px',
+              background: 'transparent',
+              color: 'var(--pl-ink-soft)',
+              border: '1px solid var(--pl-divider)',
+              borderRadius: 999,
+              cursor: 'pointer',
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.64rem',
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              fontWeight: 700,
+            }}
+          >
+            Close
+          </button>
+        </div>
+      </motion.aside>
+    </div>
   );
 }
 

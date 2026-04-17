@@ -1121,10 +1121,36 @@ export function EditorCanvas() {
     });
   }, [actions]);
 
+  // Canvas-level catch-all drop handler — if the user drops outside
+  // one of the 56px DropZones (on a photo, an empty patch of the
+  // preview, etc), we still accept the drop and append the block at
+  // the end. Otherwise the drag looks broken even though zones exist.
+  const canvasAcceptDrop = useCallback(
+    (e: React.DragEvent) => {
+      if (!e.dataTransfer.types.includes('pearloom/block-type')) return;
+      // A DropZone child will have already handled + stopped propagation
+      // when the drop landed on it. If we get here, the user missed.
+      e.preventDefault();
+      const blockType = e.dataTransfer.getData('pearloom/block-type');
+      if (!blockType) return;
+      const blocks = manifestRef.current?.blocks || [];
+      handleBlockDrop(blockType, blocks.length);
+    },
+    [handleBlockDrop],
+  );
+  const canvasAllowDrop = useCallback((e: React.DragEvent) => {
+    if (e.dataTransfer.types.includes('pearloom/block-type')) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+    }
+  }, []);
+
   return (
     <div
       id="pl-editor-canvas"
       ref={canvasRef}
+      onDragOver={canvasAllowDrop}
+      onDrop={canvasAcceptDrop}
       style={{
         width: '100%', height: '100%',
         display: 'flex', flexDirection: 'column',
@@ -1170,7 +1196,7 @@ export function EditorCanvas() {
               boxShadow: '0 10px 28px rgba(40,28,12,0.22), 0 2px 6px rgba(40,28,12,0.10)',
             }}
           >
-            Dragging {paletteDragType.replace(/[-_]/g, ' ')} — drop on any gold band
+            Dragging {paletteDragType.replace(/[-_]/g, ' ')} — drop anywhere on the canvas
           </div>
         </>
       )}

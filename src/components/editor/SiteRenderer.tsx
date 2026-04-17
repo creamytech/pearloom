@@ -2432,6 +2432,9 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         onDragLeave={() => setDropTargetIdx(null)}
         onDrop={e => {
           e.preventDefault();
+          // Stop the canvas-level fallback drop handler from firing
+          // too — otherwise we'd insert twice.
+          e.stopPropagation();
           const blockType = e.dataTransfer.getData('pearloom/block-type');
           const reorderFrom = e.dataTransfer.getData('pearloom/reorder');
           if (blockType && onBlockDrop) {
