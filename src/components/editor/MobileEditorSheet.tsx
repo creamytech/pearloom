@@ -36,6 +36,7 @@ const SeatingEditorPanel      = dynamic(() => import('./SeatingEditorPanel').the
 const AnalyticsDashboardPanel = dynamic(() => import('./AnalyticsDashboardPanel').then(m => ({ default: m.AnalyticsDashboardPanel })), { ssr: false });
 const TranslationPanel        = dynamic(() => import('./TranslationPanel').then(m => ({ default: m.TranslationPanel })), { ssr: false });
 const SaveTheDatePanel        = dynamic(() => import('./SaveTheDatePanel').then(m => ({ default: m.SaveTheDatePanel })), { ssr: false });
+const GuestsLifecyclePanel    = dynamic(() => import('./GuestsLifecyclePanel').then(m => ({ default: m.GuestsLifecyclePanel })), { ssr: false });
 const ThankYouPanel           = dynamic(() => import('./ThankYouPanel').then(m => ({ default: m.ThankYouPanel })), { ssr: false });
 const SpotifyPanel            = dynamic(() => import('./SpotifyPanel').then(m => ({ default: m.SpotifyPanel })), { ssr: false });
 const VendorPanel             = dynamic(() => import('./VendorPanel').then(m => ({ default: m.VendorPanel })), { ssr: false });
@@ -351,15 +352,16 @@ export function MobileEditorSheet() {
       case 'sections': return <SectionsPanel manifest={manifest} onChange={actions.handleDesignChange} />;
       case 'details': return <DetailsPanel manifest={manifest} onChange={actions.handleDesignChange} subdomain={subdomain} />;
       case 'pages': return <PagesPanel manifest={manifest} subdomain={subdomain} onChange={actions.handleDesignChange} previewPage={previewPage} onPreviewPage={(slug) => dispatch({ type: 'SET_PREVIEW_PAGE', page: slug })} />;
-      case 'guests': return <GuestSearchPanel siteId={subdomain} />;
+      case 'guests':
+      case 'invite':
+      case 'seating':
+      case 'savethedate':
+        return <GuestsLifecyclePanel manifest={manifest} subdomain={subdomain} />;
       case 'messaging': return <MessagingPanel manifest={manifest} siteId={subdomain} subdomain={subdomain} />;
-      case 'invite': return <BulkInvitePanel manifest={manifest} siteId={subdomain} subdomain={subdomain} />;
       case 'blocks': return <AIBlocksPanel manifest={manifest} coupleNames={coupleNames} onChange={(m) => { actions.handleDesignChange(m); }} />;
       case 'voice': return <VoiceTrainerPanel voiceSamples={manifest.voiceSamples || []} onChange={(samples) => { const updated = { ...manifest, voiceSamples: samples }; actions.handleDesignChange(updated); }} />;
-      case 'seating': return <SeatingEditorPanel siteId={subdomain} />;
       case 'analytics': return <AnalyticsDashboardPanel siteId={subdomain} />;
       case 'translate': return <TranslationPanel manifest={manifest} onChange={actions.handleDesignChange} />;
-      case 'savethedate': return <SaveTheDatePanel manifest={manifest} subdomain={subdomain} />;
       case 'vendors': return <VendorPanel />;
       case 'thankyou': return <ThankYouPanel />;
       case 'spotify': return <SpotifyPanel />;
