@@ -110,49 +110,135 @@ async function reverseGeocode(lat: number, lng: number): Promise<string | null> 
   }
 }
 
-function pickPalette(vibeHint: string): {
+interface Palette {
   name: string;
   background: string;
   foreground: string;
   accent: string;
   muted: string;
-} {
-  // Poor-man's palette picker until Gemini Vision returns something.
+}
+
+// Fallback palette picker — used when Gemini Vision is unavailable
+// or the call fails. Same rules as the v1 photo-first endpoint.
+function fallbackPalette(vibeHint: string): Palette {
   const hint = vibeHint.toLowerCase();
   if (hint.includes('sunset') || hint.includes('golden') || hint.includes('warm')) {
-    return {
-      name: 'Golden Hour',
-      background: '#FAF5EC',
-      foreground: '#2A1E12',
-      accent: '#C67B5C',
-      muted: '#8A6E4A',
-    };
+    return { name: 'Golden Hour', background: '#FAF5EC', foreground: '#2A1E12', accent: '#C67B5C', muted: '#8A6E4A' };
   }
   if (hint.includes('beach') || hint.includes('coast') || hint.includes('ocean')) {
-    return {
-      name: 'Coastal',
-      background: '#F0F5FA',
-      foreground: '#0C1F2E',
-      accent: '#3A7CA8',
-      muted: '#6A8FA8',
-    };
+    return { name: 'Coastal', background: '#F0F5FA', foreground: '#0C1F2E', accent: '#3A7CA8', muted: '#6A8FA8' };
   }
   if (hint.includes('garden') || hint.includes('forest') || hint.includes('sage')) {
-    return {
-      name: 'Garden',
-      background: '#F4F7F1',
-      foreground: '#1E2A1A',
-      accent: '#5C6B3F',
-      muted: '#7A8C72',
-    };
+    return { name: 'Garden', background: '#F4F7F1', foreground: '#1E2A1A', accent: '#5C6B3F', muted: '#7A8C72' };
   }
-  return {
-    name: 'Warm Ivory',
-    background: '#FAF7F2',
-    foreground: '#18181B',
-    accent: '#B8935A',
-    muted: '#6F6557',
-  };
+  return { name: 'Warm Ivory', background: '#FAF7F2', foreground: '#18181B', accent: '#B8935A', muted: '#6F6557' };
+}
+
+// Call Gemini 2.5 Flash with image inlineData + a vibe/palette prompt.
+// We only send up to 3 representative photos (first, middle, last of the
+// chronological set) to stay under Gemini payload limits.
+async function geminiAnalyze(
+  photos: Array<{ url: string }>,
+  venueHint: string | null,
+): Promise<{ palette: Palette | null; vibeString: string | null; chapters: Array<{ title: string; description: string }> } | null> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey || photos.length === 0) return null;
+
+  // Pick up to 3 representative photos.
+  const sample: typeof photos = [];
+  if (photos.length > 0) sample.push(photos[0]);
+  if (photos.length > 2) sample.push(photos[Math.floor(photos.length / 2)]);
+  if (photos.length > 1) sample.push(photos[photos.length - 1]);
+
+  const parts: Array<
+    | { text: string }
+    | { inlineData: { mimeType: string; data: string } }
+  > = [
+    {
+      text:
+        'You are helping design a wedding website from a small sample of a couple\'s engagement photos.' +
+        (venueHint ? ` The shoot appears to be in ${venueHint}.` : '') +
+        ' Look at the photos holistically. Return STRICT JSON (no prose, no code fences) with:\n' +
+        '{\n' +
+        '  "paletteName": string (2-3 words, evocative, e.g. "Tuscan Sunset", "Coastal Sage"),\n' +
+        '  "background": "#xxxxxx" (paper/cream base, usually light),\n' +
+        '  "foreground": "#xxxxxx" (main text, high-contrast to background),\n' +
+        '  "accent": "#xxxxxx" (hero color, echoes dominant photo tone),\n' +
+        '  "muted": "#xxxxxx" (secondary text),\n' +
+        '  "vibe": string (one poetic sentence about the couple\'s vibe),\n' +
+        '  "chapter1Title": string (short, e.g. "How we met"),\n' +
+        '  "chapter1Description": string (1 sentence, warm),\n' +
+        '  "chapter2Title": string,\n' +
+        '  "chapter2Description": string,\n' +
+        '  "chapter3Title": string,\n' +
+        '  "chapter3Description": string\n' +
+        '}',
+    },
+  ];
+
+  // Inline the image data.
+  for (const p of sample) {
+    if (p.url.startsWith('data:')) {
+      const [header, data] = p.url.split(',', 2);
+      const mimeMatch = header.match(/data:([^;]+)/);
+      const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+      parts.push({ inlineData: { mimeType, data: data || '' } });
+    }
+  }
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 800,
+            responseMimeType: 'application/json',
+          },
+        }),
+      },
+    );
+    if (!res.ok) {
+      console.warn('[photo-first] Gemini rejected:', res.status);
+      return null;
+    }
+    const body = await res.json();
+    const text = body?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) return null;
+    const parsed = JSON.parse(text);
+    const hex = /^#[0-9a-fA-F]{6}$/;
+    if (
+      !hex.test(parsed.background) ||
+      !hex.test(parsed.foreground) ||
+      !hex.test(parsed.accent) ||
+      !hex.test(parsed.muted)
+    ) {
+      console.warn('[photo-first] Gemini palette hex invalid');
+      return null;
+    }
+    return {
+      palette: {
+        name: String(parsed.paletteName || 'Photo-picked'),
+        background: parsed.background,
+        foreground: parsed.foreground,
+        accent: parsed.accent,
+        muted: parsed.muted,
+      },
+      vibeString: String(parsed.vibe || ''),
+      chapters: [
+        { title: String(parsed.chapter1Title || 'How we met'), description: String(parsed.chapter1Description || '') },
+        { title: String(parsed.chapter2Title || 'Getting to know each other'), description: String(parsed.chapter2Description || '') },
+        { title: String(parsed.chapter3Title || 'Here we are'), description: String(parsed.chapter3Description || '') },
+      ],
+    };
+  } catch (err) {
+    console.warn('[photo-first] Gemini error:', err);
+    return null;
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -215,18 +301,26 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Gemini Vision call — palette + vibe + chapter prose. Runs in
+  // parallel with the rest of the synchronous work above, so the
+  // endpoint total time stays ~30 s. If Gemini is unavailable we
+  // fall back to the rule-based palette.
+  const gemini = await geminiAnalyze(withExif, venueGuess);
+  const palette: Palette = gemini?.palette || fallbackPalette(venueGuess || '');
+
   const chapters = clusters.map((cluster, i) => {
     const clusterDate = cluster.find((p) => p.exif.date)?.exif.date;
+    const prose = gemini?.chapters?.[i];
     return {
       id: `chapter-${i + 1}`,
-      title: i === 0 ? 'How we met' : i === 1 ? 'Getting to know each other' : `Chapter ${i + 1}`,
+      title: prose?.title || (i === 0 ? 'How we met' : i === 1 ? 'Getting to know each other' : `Chapter ${i + 1}`),
       subtitle: clusterDate
         ? new Date(clusterDate).toLocaleDateString('en-US', {
             month: 'long',
             year: 'numeric',
           })
         : '',
-      description: '',
+      description: prose?.description || '',
       date: clusterDate?.slice(0, 10) || '',
       images: cluster.slice(0, 6).map((p, j) => ({
         url: p.url,
@@ -237,14 +331,14 @@ export async function POST(req: NextRequest) {
     };
   });
 
-  const palette = pickPalette(venueGuess || '');
-
   const manifest = {
     coupleId: `photo-first-${Date.now()}`,
     generatedAt: new Date().toISOString(),
-    vibeString: venueGuess
-      ? `A story that begins in ${venueGuess}.`
-      : 'A story in the making.',
+    vibeString: gemini?.vibeString
+      ? gemini.vibeString
+      : venueGuess
+        ? `A story that begins in ${venueGuess}.`
+        : 'A story in the making.',
     names: body.coupleNames || (['', ''] as [string, string]),
     theme: {
       colors: {
