@@ -517,7 +517,7 @@ export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPage
                 marginBottom: 18,
               }}
             >
-              Edition 06 — Now open
+              Pearloom is open
             </div>
             <h2
               className="pl-display"

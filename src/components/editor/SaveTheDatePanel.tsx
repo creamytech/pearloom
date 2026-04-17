@@ -395,7 +395,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
   return (
     <PanelRoot>
       {/* ── Variant picker + message ── */}
-      <PanelSection title="Composition" icon={ImageIcon} defaultOpen>
+      <PanelSection title="Design" icon={ImageIcon} defaultOpen>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <div
             style={{
@@ -406,7 +406,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
               fontWeight: panelWeight.bold,
             }}
           >
-            Variant
+            Style
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
             {VARIANTS.map((v) => {
@@ -485,7 +485,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
       </PanelSection>
 
       {/* ── Preview ── */}
-      <PanelSection title="Proof" icon={Calendar} defaultOpen>
+      <PanelSection title="Preview" icon={Calendar} defaultOpen>
         <div
           ref={svgRef}
           style={{
@@ -524,7 +524,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
       </PanelSection>
 
       {/* ── Ship ── */}
-      <PanelSection title="Ship" icon={Send} defaultOpen>
+      <PanelSection title="Send" icon={Send} defaultOpen>
         <div style={{ display: 'grid', gap: 6 }}>
           <motion.button
             onClick={handleSendBulk}

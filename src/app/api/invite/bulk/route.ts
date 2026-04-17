@@ -208,7 +208,7 @@ function buildEmailHtml(opts: {
         <tr>
           <td style="background:#FAF7F2;border-left:1px solid rgba(184,147,90,0.35);border-right:1px solid rgba(184,147,90,0.35);padding:0 40px 20px;">
             <div style="text-align:center;margin-bottom:10px;">
-              <span style="display:inline-block;font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#6F6557;background:#FAF7F2;padding:0 12px;position:relative;top:7px;">The Itinerary</span>
+              <span style="display:inline-block;font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#6F6557;background:#FAF7F2;padding:0 12px;position:relative;top:7px;">The day at a glance</span>
               <div style="height:1px;background:rgba(184,147,90,0.28);"></div>
             </div>
             <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
@@ -240,7 +240,7 @@ function buildEmailHtml(opts: {
         <tr>
           <td align="center" style="padding:20px 0 0;">
             <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#6F6557;">
-              Set in Fraunces &amp; Geist · Sent with Pearloom
+              Sent with love · Made with Pearloom
             </div>
           </td>
         </tr>

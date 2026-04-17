@@ -206,7 +206,7 @@ export function InviteReveal({
             }}
           >
             <span style={{ width: 18, height: 1, background: GOLD }} />
-            Invitation · No. 01
+            You&rsquo;re invited
             <span style={{ width: 18, height: 1, background: GOLD }} />
           </div>
         </header>
@@ -400,7 +400,7 @@ export function InviteReveal({
               }}
             >
               <span style={{ flex: 1, height: 1, background: GOLD_RULE }} />
-              The Itinerary
+              The day at a glance
               <span style={{ flex: 1, height: 1, background: GOLD_RULE }} />
             </p>
             <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
@@ -515,7 +515,7 @@ export function InviteReveal({
               margin: 0,
             }}
           >
-            Set in Fraunces &amp; Geist · Sent with Pearloom
+            Sent with love · Made with Pearloom
           </p>
         </footer>
       </motion.main>

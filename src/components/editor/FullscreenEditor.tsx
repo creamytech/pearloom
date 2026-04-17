@@ -1897,7 +1897,7 @@ function PublishModalInline() {
                         fontWeight: 700,
                       }}
                     >
-                      Readiness
+                      Before you publish
                     </span>
                     <span
                       style={{

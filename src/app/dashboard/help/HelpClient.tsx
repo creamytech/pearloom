@@ -652,7 +652,7 @@ export default function HelpClient() {
                   color: 'var(--pl-gold)',
                 }}
               >
-                Colophon · III
+                Still stuck
               </span>
               <span
                 style={{

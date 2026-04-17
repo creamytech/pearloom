@@ -436,7 +436,7 @@ export function RsvpDashboard({
               }}>
                 {guests.length === 0
                   ? 'Share your site to start collecting responses — they\u2019ll post here as they arrive.'
-                  : `A live register of every reply received. ${responseRate}% of invited have responded.`}
+                  : `${responseRate}% of your guests have replied so far.`}
               </p>
             </div>
 
@@ -856,7 +856,7 @@ function GuestDetailDrawer({
             marginBottom: 10,
           }}
         >
-          Guest file
+          Guest details
         </div>
         <h2
           style={{

@@ -178,7 +178,7 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
         }}
       />
 
-      {/* Edition mark — top corners */}
+      {/* Pearloom mark — top corners */}
       <div
         aria-hidden
         style={{
@@ -197,11 +197,11 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
           pointerEvents: 'none',
         }}
       >
-        <span>Pearloom · The Editor</span>
+        <span>Pearloom</span>
         <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {dateLine}
           <span style={{ width: 4, height: 4, borderRadius: '50%', background: GOLD }} />
-          {isReturning ? 'Daily Dispatch' : 'Edition 01'}
+          {isReturning ? 'Welcome back' : 'Your site is ready'}
         </span>
       </div>
 
@@ -262,7 +262,7 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
           }}
         >
           <span style={{ width: 18, height: 1, background: GOLD }} />
-          {isReturning ? `${greeting}${firstName ? `, ${firstName}` : ''}` : 'In this issue'}
+          {isReturning ? `${greeting}${firstName ? `, ${firstName}` : ''}` : 'Three ways to start'}
           <span style={{ width: 18, height: 1, background: GOLD }} />
         </motion.div>
 
@@ -471,8 +471,8 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
                 color: INK_SOFT,
               }}
             >
-              Three ways in. Click anything on the canvas to edit it, type{' '}
-              <KBD>/</KBD> to summon Pear, or <KBD>⌘K</KBD> for the command palette.
+              Click anything on the canvas to edit it. Type{' '}
+              <KBD>/</KBD> to ask Pear for help, or <KBD>⌘K</KBD> to jump to any panel.
             </motion.p>
 
             {/* Three-way affordance list — editorial index */}
@@ -489,20 +489,20 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
             >
               <AffordanceRow
                 n="01"
-                label="Edit inline"
-                detail="Click any section. Edit in place."
+                label="Edit on the page"
+                detail="Click any section to change it in place."
                 shortcut="Click"
               />
               <AffordanceRow
                 n="02"
-                label="Summon Pear"
-                detail="AI rewrites, generates, and reviews."
+                label="Ask Pear"
+                detail="Your AI co-host. Rewrites copy, generates content, suggests fixes."
                 shortcut="/"
               />
               <AffordanceRow
                 n="03"
-                label="Command palette"
-                detail="Jump to any tab in one keystroke."
+                label="Jump anywhere"
+                detail="Open any panel from one search box."
                 shortcut="⌘K"
               />
             </motion.ul>
@@ -536,7 +536,7 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
           </>
         )}
 
-        {/* Colophon */}
+        {/* Footer mark */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -556,10 +556,10 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
             color: MUTED,
           }}
         >
-          <span>Set in Fraunces &amp; Geist</span>
+          <span>Made with Pearloom</span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ width: 5, height: 5, borderRadius: '50%', background: OLIVE }} />
-            {siteName || 'Pearloom'}
+            {siteName || 'Your site'}
           </span>
         </motion.div>
       </motion.div>

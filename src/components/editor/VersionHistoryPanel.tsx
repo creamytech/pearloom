@@ -157,11 +157,11 @@ export function VersionHistoryPanel({ manifest, onRestore, siteId }: VersionHist
   return (
     <PanelRoot>
       <PanelSection
-        title="Version history"
-        eyebrow="Archive"
+        title="Saved versions"
+        eyebrow="Time machine"
         icon={Clock}
         badge={snapshots.length || undefined}
-        hint="Keep waypoints you can return to. Snapshots live on this device."
+        hint="Save a version any time. You can roll back here whenever you change your mind."
       >
         <div
           style={{
@@ -176,7 +176,7 @@ export function VersionHistoryPanel({ manifest, onRestore, siteId }: VersionHist
             style={showSave ? pillOutline : pillFilled}
           >
             <Save size={10} strokeWidth={2} />
-            {showSave ? 'Cancel' : 'New snapshot'}
+            {showSave ? 'Cancel' : 'Save this version'}
           </button>
         </div>
 
@@ -223,7 +223,7 @@ export function VersionHistoryPanel({ manifest, onRestore, siteId }: VersionHist
                 />
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                   <button type="button" onClick={handleSave} style={pillFilled}>
-                    Commit snapshot
+                    Save version
                   </button>
                 </div>
               </div>
@@ -234,9 +234,9 @@ export function VersionHistoryPanel({ manifest, onRestore, siteId }: VersionHist
         {snapshots.length === 0 ? (
           <PanelEmptyState
             icon={<Clock size={18} strokeWidth={1.5} />}
-            title="No snapshots yet"
-            description="Save a version to preserve this moment. You can return to any snapshot later."
-            action={{ label: 'Save first snapshot', onClick: () => setShowSave(true) }}
+            title="No saved versions yet"
+            description="Save a version to lock in your current site. You can roll back here whenever you change your mind."
+            action={{ label: 'Save first version', onClick: () => setShowSave(true) }}
           />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>

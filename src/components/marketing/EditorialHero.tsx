@@ -51,7 +51,7 @@ export function EditorialHero({ onGetStarted }: EditorialHeroProps) {
           alignItems: 'center',
         }}
       >
-        <span>Edition 06 — 2026</span>
+        <span>Built for life&rsquo;s biggest days</span>
         <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--pl-gold)' }} />
         <span>The Event OS</span>
       </div>

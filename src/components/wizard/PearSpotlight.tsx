@@ -1249,7 +1249,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
               letterSpacing: '0.3em',
               color: 'rgba(184,147,90,0.9)',
               marginBottom: 6, marginTop: 0,
-            }}>Colophon · address</p>
+            }}>Address</p>
             <p style={{
               fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
               fontStyle: 'italic',
