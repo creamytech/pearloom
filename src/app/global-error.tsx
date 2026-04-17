@@ -2,6 +2,17 @@
 
 import { useEffect } from 'react';
 
+// global-error renders OUTSIDE the root layout, so none of the CSS
+// variables from globals.css are available. We inline the Pearloom
+// colour + font tokens here, and preload Fraunces + Geist Mono so
+// this page still reads as Pearloom even when everything else has
+// failed.
+const INK = '#0E0D0B';
+const INK_SOFT = '#3A332C';
+const CREAM = '#F5EFE2';
+const GOLD = '#B8935A';
+const MUTED = '#6F6557';
+
 export default function GlobalError({
   error,
   unstable_retry,
@@ -20,17 +31,18 @@ export default function GlobalError({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400&family=Fraunces:ital,opsz,wght@1,9..144,400&family=Geist+Mono:wght@400;700&display=swap"
           rel="stylesheet"
         />
-        <title>Pear hit a snag - Pearloom</title>
+        <title>Pear hit a snag · Pearloom</title>
       </head>
       <body
         style={{
           margin: 0,
-          fontFamily: "'Lora', Georgia, serif",
-          background: '#FAF7F2',
-          color: '#1A1A1A',
+          fontFamily:
+            '"Geist", "Geist Mono", "Helvetica Neue", Arial, sans-serif',
+          background: CREAM,
+          color: INK,
         }}
       >
         <div
@@ -46,73 +58,78 @@ export default function GlobalError({
         >
           <div
             style={{
-              fontSize: '2.5rem',
-              color: '#A3B18A',
-              marginBottom: '1.25rem',
-              letterSpacing: '0.1em',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
+              marginBottom: 22,
+              fontFamily: '"Geist Mono", ui-monospace, monospace',
+              fontSize: '0.6rem',
+              letterSpacing: '0.26em',
+              textTransform: 'uppercase',
+              color: MUTED,
             }}
           >
-            &#10022;
+            <span style={{ width: 20, height: 1, background: GOLD }} />
+            Something went sideways
+            <span style={{ width: 20, height: 1, background: GOLD }} />
           </div>
           <h1
             style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
+              fontFamily: '"Fraunces", Georgia, serif',
+              fontStyle: 'italic',
               fontWeight: 400,
-              fontSize: '2rem',
-              color: '#3D3530',
-              marginBottom: '0.75rem',
-              letterSpacing: '-0.01em',
+              fontSize: 'clamp(2rem, 6vw, 3rem)',
+              color: INK,
+              margin: '0 0 12px',
+              letterSpacing: '-0.014em',
+              lineHeight: 1.1,
             }}
           >
-            Pear hit a snag
+            Pear hit a snag.
           </h1>
           <p
             style={{
-              color: '#6B665F',
+              color: INK_SOFT,
               fontSize: '1rem',
-              maxWidth: '420px',
-              lineHeight: 1.7,
-              marginBottom: '2rem',
+              maxWidth: 440,
+              lineHeight: 1.6,
+              marginBottom: 32,
+              fontFamily: '"Fraunces", Georgia, serif',
+              fontStyle: 'italic',
             }}
           >
-            Something unexpected happened, but your data is safe. Let&rsquo;s try
-            that again.
+            Something unexpected happened. Your work is safe — let&rsquo;s try that again.
           </p>
           <button
             onClick={() => unstable_retry()}
             style={{
-              padding: '0.7rem 1.75rem',
-              borderRadius: '100px',
-              background: '#A3B18A',
-              color: '#fff',
+              padding: '13px 28px',
+              borderRadius: 2,
+              background: INK,
+              color: CREAM,
               border: 'none',
-              fontFamily: "'Lora', Georgia, serif",
-              fontWeight: 600,
-              fontSize: '0.9rem',
+              fontFamily: '"Geist Mono", ui-monospace, monospace',
+              fontWeight: 700,
+              fontSize: '0.66rem',
+              letterSpacing: '0.24em',
+              textTransform: 'uppercase',
               cursor: 'pointer',
-              letterSpacing: '0.04em',
-              transition: 'background 0.2s ease',
             }}
-            onMouseOver={(e) =>
-              ((e.target as HTMLButtonElement).style.background = '#8FA876')
-            }
-            onMouseOut={(e) =>
-              ((e.target as HTMLButtonElement).style.background = '#A3B18A')
-            }
           >
             Try again
           </button>
           {error.digest && (
             <p
               style={{
-                marginTop: '1.5rem',
-                fontSize: '0.7rem',
-                color: '#C4A96A',
-                letterSpacing: '0.06em',
-                fontFamily: 'monospace',
+                marginTop: 26,
+                fontSize: '0.58rem',
+                color: MUTED,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                fontFamily: '"Geist Mono", ui-monospace, monospace',
               }}
             >
-              Error ID: {error.digest}
+              Reference · {error.digest}
             </p>
           )}
         </div>

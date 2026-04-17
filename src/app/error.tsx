@@ -24,57 +24,69 @@ export default function ErrorPage({
         justifyContent: 'center',
         padding: '2rem',
         textAlign: 'center',
-        background: '#FAF7F2',
-        fontFamily: "'Lora', Georgia, serif",
+        background: 'var(--pl-cream, #F5EFE2)',
+        fontFamily: 'var(--pl-font-body, system-ui, sans-serif)',
+        color: 'var(--pl-ink, #0E0D0B)',
       }}
     >
       <div
         style={{
-          fontSize: '2.5rem',
-          color: '#A3B18A',
-          marginBottom: '1.25rem',
-          letterSpacing: '0.1em',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 10,
+          marginBottom: 22,
+          fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+          fontSize: '0.6rem',
+          letterSpacing: '0.26em',
+          textTransform: 'uppercase',
+          color: 'var(--pl-muted, #6F6557)',
         }}
       >
-        &#10022;
+        <span style={{ width: 20, height: 1, background: 'var(--pl-gold, #B8935A)' }} />
+        Something went sideways
+        <span style={{ width: 20, height: 1, background: 'var(--pl-gold, #B8935A)' }} />
       </div>
       <h1
         style={{
-          fontFamily: "'Playfair Display', Georgia, serif",
+          fontFamily: 'var(--pl-font-heading, "Fraunces", Georgia, serif)',
+          fontStyle: 'italic',
           fontWeight: 400,
-          fontSize: '2rem',
-          color: '#3D3530',
-          marginBottom: '0.75rem',
-          letterSpacing: '-0.01em',
+          fontSize: 'clamp(2rem, 6vw, 3rem)',
+          color: 'var(--pl-ink, #18181B)',
+          margin: '0 0 12px',
+          letterSpacing: '-0.014em',
+          lineHeight: 1.1,
         }}
       >
-        Pear hit a snag
+        Pear hit a snag.
       </h1>
       <p
         style={{
-          color: '#6B665F',
+          color: 'var(--pl-ink-soft, #3A332C)',
           fontSize: '1rem',
-          maxWidth: '420px',
-          lineHeight: 1.7,
-          marginBottom: '2rem',
+          maxWidth: 440,
+          lineHeight: 1.6,
+          marginBottom: 32,
+          fontFamily: 'var(--pl-font-heading, "Fraunces", Georgia, serif)',
+          fontStyle: 'italic',
         }}
       >
-        Something unexpected happened, but your data is safe. Let&rsquo;s try
-        that again.
+        Something unexpected happened. Your work is safe — let&rsquo;s try that again.
       </p>
       <button
         onClick={() => unstable_retry()}
         style={{
-          padding: '0.7rem 1.75rem',
-          borderRadius: '100px',
-          background: '#A3B18A',
-          color: '#fff',
+          padding: '13px 28px',
+          borderRadius: 2,
+          background: 'var(--pl-ink, #0E0D0B)',
+          color: 'var(--pl-cream, #FAF7F2)',
           border: 'none',
-          fontFamily: "'Lora', Georgia, serif",
-          fontWeight: 600,
-          fontSize: '0.9rem',
+          fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+          fontWeight: 700,
+          fontSize: '0.66rem',
+          letterSpacing: '0.24em',
+          textTransform: 'uppercase',
           cursor: 'pointer',
-          letterSpacing: '0.04em',
         }}
       >
         Try again
@@ -82,14 +94,15 @@ export default function ErrorPage({
       {error.digest && (
         <p
           style={{
-            marginTop: '1.5rem',
-            fontSize: '0.7rem',
-            color: '#C4A96A',
-            letterSpacing: '0.06em',
-            fontFamily: 'monospace',
+            marginTop: 26,
+            fontSize: '0.58rem',
+            color: 'var(--pl-muted, #6F6557)',
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
           }}
         >
-          Error ID: {error.digest}
+          Reference · {error.digest}
         </p>
       )}
     </div>

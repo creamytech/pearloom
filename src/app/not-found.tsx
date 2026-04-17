@@ -11,60 +11,72 @@ export default function NotFound() {
         justifyContent: 'center',
         padding: '2rem',
         textAlign: 'center',
-        background: '#FAF7F2',
-        fontFamily: "'Lora', Georgia, serif",
+        background: 'var(--pl-cream, #F5EFE2)',
+        fontFamily: 'var(--pl-font-body, system-ui, sans-serif)',
+        color: 'var(--pl-ink, #0E0D0B)',
       }}
     >
       <div
         style={{
-          fontSize: '2.5rem',
-          color: '#A3B18A',
-          marginBottom: '1.25rem',
-          letterSpacing: '0.1em',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 10,
+          marginBottom: 22,
+          fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+          fontSize: '0.6rem',
+          letterSpacing: '0.26em',
+          textTransform: 'uppercase',
+          color: 'var(--pl-muted, #6F6557)',
         }}
       >
-        &#10022;
+        <span style={{ width: 20, height: 1, background: 'var(--pl-gold, #B8935A)' }} />
+        404 · Not found
+        <span style={{ width: 20, height: 1, background: 'var(--pl-gold, #B8935A)' }} />
       </div>
       <h1
         style={{
-          fontFamily: "'Playfair Display', Georgia, serif",
+          fontFamily: 'var(--pl-font-heading, "Fraunces", Georgia, serif)',
+          fontStyle: 'italic',
           fontWeight: 400,
-          fontSize: '2rem',
-          color: '#3D3530',
-          marginBottom: '0.75rem',
-          letterSpacing: '-0.01em',
+          fontSize: 'clamp(2rem, 6vw, 3rem)',
+          color: 'var(--pl-ink, #18181B)',
+          margin: '0 0 12px',
+          letterSpacing: '-0.014em',
+          lineHeight: 1.1,
         }}
       >
-        Page not found
+        This page isn&rsquo;t here.
       </h1>
       <p
         style={{
-          color: '#6B665F',
+          color: 'var(--pl-ink-soft, #3A332C)',
           fontSize: '1rem',
-          maxWidth: '420px',
-          lineHeight: 1.7,
-          marginBottom: '2rem',
+          maxWidth: 440,
+          lineHeight: 1.6,
+          marginBottom: 32,
+          fontFamily: 'var(--pl-font-heading, "Fraunces", Georgia, serif)',
+          fontStyle: 'italic',
         }}
       >
-        The page you&apos;re looking for doesn&apos;t exist or has been moved.
+        Either it moved, or it was never written. Let&rsquo;s get you back to somewhere real.
       </p>
       <Link
         href="/"
         style={{
           display: 'inline-block',
-          padding: '0.7rem 1.75rem',
-          borderRadius: '100px',
-          background: '#A3B18A',
-          color: '#fff',
-          fontFamily: "'Lora', Georgia, serif",
-          fontWeight: 600,
-          fontSize: '0.9rem',
+          padding: '13px 28px',
+          borderRadius: 2,
+          background: 'var(--pl-ink, #0E0D0B)',
+          color: 'var(--pl-cream, #FAF7F2)',
+          fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+          fontWeight: 700,
+          fontSize: '0.66rem',
           textDecoration: 'none',
-          letterSpacing: '0.04em',
-          transition: 'background 0.2s ease',
+          letterSpacing: '0.24em',
+          textTransform: 'uppercase',
         }}
       >
-        Go home
+        Back home
       </Link>
     </div>
   );
