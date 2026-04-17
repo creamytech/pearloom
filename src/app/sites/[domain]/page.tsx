@@ -32,6 +32,7 @@ import { GuestPhotoWall } from '@/components/site/GuestPhotoWall';
 import { LiveUpdatesFeed } from '@/components/site/LiveUpdatesFeed';
 import { SpotifySection } from '@/components/site/SpotifySection';
 import { AmbientSpotifyPlayer } from '@/components/site/AmbientSpotifyPlayer';
+import { StickyRsvpPill } from '@/components/site/StickyRsvpPill';
 import { CoupleQuiz } from '@/components/site/CoupleQuiz';
 import { ShareBar } from '@/components/site/ShareBar';
 import { enforcePaletteContrast } from '@/lib/color-utils';
@@ -1266,6 +1267,12 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             spotifyUrl={manifest.spotifyUrl}
             accent={pal.accent}
           />
+        )}
+
+        {/* Persistent RSVP pill — appears after 30% scroll, hides on
+            top of the RSVP section itself, dismissable for the session. */}
+        {(manifest.events?.length || 0) > 0 && (
+          <StickyRsvpPill accent={pal.accent} rsvpLabel="RSVP" />
         )}
 
         {/* Site footer */}
