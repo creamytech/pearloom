@@ -1,13 +1,13 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// EditorialHero — v6 marketing hero.
-// Big concrete promise (no poetry). Editorial display type.
-// One CTA. Live mini-demo to the right.
+// EditorialHero — v7 marketing hero (brand build).
+// Gooey text morph on the rotating occasion + kinetic-axis
+// Fraunces heading. Big concrete promise (no poetry),
+// one CTA, live mini-demo to the right.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { GooeyText } from '@/components/brand/GooeyText';
 
 interface EditorialHeroProps {
   onGetStarted: () => void;
@@ -17,12 +17,6 @@ const ROTATING_NOUN = ['wedding', 'anniversary', 'memorial', 'birthday', 'reunio
 const LONGEST_NOUN = ROTATING_NOUN.reduce((a, b) => (b.length > a.length ? b : a));
 
 export function EditorialHero({ onGetStarted }: EditorialHeroProps) {
-  const [nounIdx, setNounIdx] = useState(0);
-
-  useEffect(() => {
-    const t = setInterval(() => setNounIdx((i) => (i + 1) % ROTATING_NOUN.length), 2400);
-    return () => clearInterval(t);
-  }, []);
 
   return (
     <section
@@ -95,27 +89,27 @@ export function EditorialHero({ onGetStarted }: EditorialHeroProps) {
           >
             One calm command center for every{' '}
             <span style={{ position: 'relative', display: 'inline-block', verticalAlign: 'baseline' }}>
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.em
-                  key={ROTATING_NOUN[nounIdx]}
-                  initial={{ opacity: 0, y: 12, filter: 'blur(6px)' }}
-                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                  exit={{ opacity: 0, y: -12, filter: 'blur(6px)' }}
-                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    top: 0,
-                    whiteSpace: 'nowrap',
-                    fontFamily: 'var(--pl-font-display)',
-                    fontStyle: 'italic',
-                    color: 'var(--pl-olive)',
-                    fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                  }}
-                >
-                  {ROTATING_NOUN[nounIdx]}.
-                </motion.em>
-              </AnimatePresence>
+              {/* Gooey morph — the signature "ink spreading on paper"
+                  moment that anchors the Pearloom brand voice. */}
+              <span
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  whiteSpace: 'nowrap',
+                  color: 'var(--pl-olive)',
+                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                }}
+              >
+                <GooeyText
+                  words={ROTATING_NOUN.map((n) => `${n}.`)}
+                  interval={2600}
+                  fontSize="inherit"
+                  italic
+                  color="var(--pl-olive)"
+                  intensity={0.65}
+                />
+              </span>
               {/* Sizes the inline slot to the longest word so the line never reflows. */}
               <span
                 aria-hidden

@@ -23,13 +23,13 @@ interface PearloomMarkProps {
  */
 export function PearloomMark({
   size = 40,
-  color = '#A3B18A',
+  color = 'var(--pl-olive)',
   color2,
   animated = false,
   className,
   style,
 }: PearloomMarkProps) {
-  const c2 = color2 || adjustAlpha(color, 0.65);
+  const c2 = color2 || (color.startsWith('#') ? adjustAlpha(color, 0.65) : 'var(--pl-gold)');
 
   // The intertwined paths — two threads crossing over each other
   // Thread 1: sweeps upper-left to lower-right
@@ -91,7 +91,7 @@ export function PearloomMark({
  */
 export function PearloomWordmark({
   size = 120,
-  color = '#A3B18A',
+  color = 'var(--pl-olive)',
   textColor = 'var(--pl-ink)',
   style,
 }: {

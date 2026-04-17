@@ -3,9 +3,11 @@
 @tailwind utilities;
 
 /* ═══════════════════════════════════════════════════════════════
-   PEARLOOM — DESIGN SYSTEM v6 · EDITORIAL MODERNISM
-   Fraunces (display) + Geist (body). Warm paper / deep olive /
-   gold leaf / oxblood. Full dark mode. One source of truth.
+   PEARLOOM — DESIGN SYSTEM v7 · EDITORIAL MODERNISM (2026)
+   Fraunces (variable, opsz+SOFT+WONK) + Geist (body) + Geist Mono.
+   Cloud Dancer cream ground · deep olive · gold leaf · oxblood.
+   OKLCH authoring + Display P3 accents where supported.
+   One source of truth; hex fallbacks kept for SVG/data consumers.
    ═══════════════════════════════════════════════════════════════ */
 
 /* ─── LIGHT (Editorial Paper) ─── */
@@ -1677,4 +1679,101 @@ button:hover > .pl-palette-swatches > div {
     letter-spacing: 0.24em;
     text-transform: uppercase;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BRAND v7 — P3 wide-gamut accents, view transitions,
+   scroll-driven animations, kinetic type helpers.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Wide-gamut P3 accents ────────────────────────────────────
+   When the display can render P3 we bump the olive / gold / plum
+   into wider saturation. SRGB devices keep the existing hex tokens.
+   We only overwrite the brand hues; surface / ink colors remain
+   calibrated for paper warmth. */
+@media (color-gamut: p3) {
+  :root,
+  [data-theme='light'] {
+    --pl-olive:        oklch(42% 0.08 125);
+    --pl-olive-hover:  oklch(36% 0.09 125);
+    --pl-olive-deep:   oklch(27% 0.07 125);
+    --pl-gold:         oklch(68% 0.11 78);
+    --pl-plum:         oklch(38% 0.14 22);
+    --pl-warning:      oklch(50% 0.15 38);
+  }
+  [data-theme='dark'] {
+    --pl-olive:        oklch(72% 0.11 125);
+    --pl-gold:         oklch(78% 0.12 78);
+    --pl-plum:         oklch(62% 0.16 22);
+  }
+}
+
+/* ── Cloud Dancer alias ─────────────────────────────────────── */
+:root,
+[data-theme='light'] { --pl-cloud-dancer: var(--pl-cream); }
+
+/* ── View Transitions API (Next.js 16 / Chromium) ─────────────
+   Gives a free cross-fade + slide between routes without JS.
+   Runs only on browsers that implement the spec. */
+@view-transition { navigation: auto; }
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 360ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+::view-transition-old(root) {
+  animation-name: pl-vt-fade-out;
+}
+::view-transition-new(root) {
+  animation-name: pl-vt-fade-in;
+}
+@keyframes pl-vt-fade-out {
+  to { opacity: 0; transform: translateY(-6px); }
+}
+@keyframes pl-vt-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-name: none;
+  }
+}
+
+/* ── Scroll-driven reveal utility (CSS-native, progressive) ───
+   Use on any element:
+     <section class="pl-reveal">...</section>
+   Falls back to simply rendering fully visible in browsers
+   without animation-timeline support. */
+@supports (animation-timeline: view()) {
+  .pl-reveal {
+    animation: pl-reveal-frame linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 60%;
+  }
+  @keyframes pl-reveal-frame {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+      filter: blur(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+  }
+}
+
+/* ── Kinetic-type helpers ─────────────────────────────────────
+   Apply to any Fraunces heading for a soft, hand-set vibe. */
+.pl-text-soft    { font-variation-settings: "opsz" 96, "SOFT" 100, "WONK" 0; }
+.pl-text-crisp   { font-variation-settings: "opsz" 14, "SOFT" 0,   "WONK" 0; }
+.pl-text-display { font-variation-settings: "opsz" 144, "SOFT" 50, "WONK" 1; }
+
+/* ── Optical marquee gradient edges (for horizontal reels) ─── */
+.pl-edge-fade {
+  mask-image: linear-gradient(90deg, transparent 0, #000 8%, #000 92%, transparent 100%);
 }

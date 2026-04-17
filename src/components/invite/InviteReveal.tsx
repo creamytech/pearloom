@@ -13,6 +13,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Calendar, MapPin, Check } from 'lucide-react';
 import type { StoryManifest, WeddingEvent } from '@/types';
 import { InviteRsvpForm } from './InviteRsvpForm';
+import { GooeyText } from '@/components/brand/GooeyText';
 
 interface InviteRevealProps {
   manifest: StoryManifest | null;
@@ -352,6 +353,8 @@ export function InviteReveal({
             Together with their families
           </p>
 
+          {/* Signature name-reveal — the two names gooey-bleed in, one
+              after the other, the way ink spreads on warm paper. */}
           <h1
             style={{
               fontFamily: FONT_DISPLAY,
@@ -362,9 +365,16 @@ export function InviteReveal({
               letterSpacing: '-0.015em',
               color: INK,
               margin: '0 0 4px',
+              minHeight: '1.2em',
             }}
           >
-            {firstName}
+            <GooeyText
+              words={firstName ? [firstName] : ['\u2014']}
+              fontSize="inherit"
+              italic
+              color={INK}
+              intensity={0.55}
+            />
           </h1>
           <p
             style={{
@@ -388,9 +398,16 @@ export function InviteReveal({
               letterSpacing: '-0.015em',
               color: INK,
               margin: '4px 0 28px',
+              minHeight: '1.2em',
             }}
           >
-            {secondName}
+            <GooeyText
+              words={secondName ? [secondName] : ['\u2014']}
+              fontSize="inherit"
+              italic
+              color={INK}
+              intensity={0.55}
+            />
           </h1>
 
           <p

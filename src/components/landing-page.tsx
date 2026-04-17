@@ -325,6 +325,7 @@ export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPage
                 variants={fadeUp}
                 initial="hidden"
                 animate={occasionInView ? 'show' : 'hidden'}
+                className="pl-reveal"
                 style={{
                   display: 'grid',
                   gridTemplateColumns: '90px 1fr auto',
@@ -414,6 +415,7 @@ export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPage
                 variants={fadeUp}
                 initial="hidden"
                 animate={testInView ? 'show' : 'hidden'}
+                className="pl-reveal"
                 style={{ margin: 0, display: 'flex', flexDirection: 'column' }}
               >
                 <div

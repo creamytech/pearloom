@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { ThemeToggle } from '@/components/shell';
+import { AmbientNav } from '@/components/brand/AmbientNav';
 
 interface MarketingNavProps {
   onGetStarted: () => void;
@@ -39,11 +40,12 @@ export function MarketingNav({ onGetStarted }: MarketingNavProps) {
 
   return (
     <>
+      {/* Placeholder — keeps page layout honest while the real nav
+          floats. Matches the nav's 64px height exactly. */}
+      <div aria-hidden style={{ height: 64 }} />
+      <AmbientNav forceVisible={mobileOpen} zIndex={100}>
       <nav
         style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 100,
           height: 64,
           padding: '0 clamp(20px, 5vw, 56px)',
           display: 'flex',
@@ -197,6 +199,7 @@ export function MarketingNav({ onGetStarted }: MarketingNavProps) {
           </button>
         </div>
       </nav>
+      </AmbientNav>
 
       {/* Mobile drawer */}
       <AnimatePresence>
