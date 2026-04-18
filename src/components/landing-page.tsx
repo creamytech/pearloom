@@ -614,13 +614,7 @@ export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPage
               <Button
                 variant="gold"
                 size="lg"
-                className="w-full justify-center mt-7 text-[1rem] py-3.5"
-                style={{
-                  background: 'var(--pl-gold)',
-                  color: 'var(--pl-ink)',
-                  border: 0,
-                  boxShadow: '0 4px 24px color-mix(in oklab, var(--pl-gold) 35%, transparent)',
-                }}
+                className="w-full justify-center mt-7 text-[1rem] py-3.5 pl-pearl-accent"
                 onClick={openAuth}
                 disabled={status === 'loading'}
               >

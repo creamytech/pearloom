@@ -226,16 +226,19 @@ export function PricingPreview({ onGetStarted }: PricingPreviewProps = {}) {
                     {tier.desc}
                   </p>
 
-                  {/* CTA */}
+                  {/* CTA — highlighted tier gets the pearl shimmer,
+                      the others keep their accent-filled identity so the
+                      upsell moment stays visually louder than its neighbours. */}
                   <button
                     onClick={handleTierClick}
+                    className={isHighlighted ? 'pl-pearl-accent' : undefined}
                     style={{
                       width: '100%',
                       padding: '11px 16px',
                       borderRadius: '8px',
-                      border: isHighlighted ? 'none' : `1px solid ${tier.accent}38`,
-                      background: isHighlighted ? tier.accent : `${tier.accent}12`,
-                      color: isHighlighted ? '#fff' : tier.accent,
+                      border: isHighlighted ? undefined : `1px solid ${tier.accent}38`,
+                      background: isHighlighted ? undefined : `${tier.accent}12`,
+                      color: isHighlighted ? undefined : tier.accent,
                       fontSize: text.sm,
                       fontWeight: 700,
                       letterSpacing: '0.04em',
@@ -247,7 +250,7 @@ export function PricingPreview({ onGetStarted }: PricingPreviewProps = {}) {
                       marginBottom: '1.75rem',
                       transition: 'filter 0.15s',
                     }}
-                    onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(0.92)')}
+                    onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(0.94)')}
                     onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
                   >
                     {tier.cta}

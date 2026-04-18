@@ -154,26 +154,21 @@ export function MarketingNav({ onGetStarted }: MarketingNavProps) {
           <ThemeToggle />
           <button
             onClick={onGetStarted}
-            className="pl-mn-cta"
+            className="pl-mn-cta pl-pearl-accent"
             style={{
               padding: '10px 18px',
-              background: 'var(--pl-ink)',
-              color: 'var(--pl-cream)',
-              border: '1px solid var(--pl-ink)',
               borderRadius: 'var(--pl-radius-full)',
               fontSize: '0.86rem',
               fontWeight: 600,
               letterSpacing: '-0.005em',
               cursor: 'pointer',
-              transition: 'transform var(--pl-dur-fast) var(--pl-ease-spring), box-shadow var(--pl-dur-fast) var(--pl-ease-out)',
+              transition: 'transform var(--pl-dur-fast) var(--pl-ease-spring)',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-1px)';
-              e.currentTarget.style.boxShadow = 'var(--pl-shadow-md)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
             }}
           >
             Start free

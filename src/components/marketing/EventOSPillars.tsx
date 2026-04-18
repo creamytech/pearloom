@@ -176,6 +176,7 @@ export function EventOSPillars() {
             pillar={p}
             index={i}
             flip={i % 2 === 1}
+            isActive={activeIdx === i}
             ref={(el: HTMLElement | null) => {
               refs.current[i] = el;
             }}
@@ -244,7 +245,7 @@ export function EventOSPillars() {
 
 const Plate = (() => {
   const PlateInner = (
-    { pillar, index, flip, innerRef }: { pillar: Pillar; index: number; flip: boolean; innerRef?: (el: HTMLElement | null) => void }
+    { pillar, index, flip, isActive, innerRef }: { pillar: Pillar; index: number; flip: boolean; isActive: boolean; innerRef?: (el: HTMLElement | null) => void }
   ) => {
     const accentVar =
       pillar.accent === 'olive'
@@ -259,15 +260,39 @@ const Plate = (() => {
         data-idx={index}
         className="pl-plate"
         style={{
+          position: 'relative',
           display: 'grid',
           gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.05fr)',
           gap: 'clamp(40px, 6vw, 96px)',
           alignItems: 'center',
         }}
       >
+        {/* Ambient accent halo — brightens when the plate is the
+            active (in-view) one, so as the reader scrolls, the
+            right half of the page gently glows in the pillar's
+            own colour. Purely decorative, no interaction. */}
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            zIndex: 0,
+            top: '50%',
+            left: flip ? '18%' : '62%',
+            width: 'min(58%, 680px)',
+            height: 'min(72%, 620px)',
+            transform: `translate(-50%, -50%) scale(${isActive ? 1 : 0.85})`,
+            background: `radial-gradient(ellipse at center, color-mix(in oklab, ${accentVar} ${isActive ? '22%' : '9%'}, transparent) 0%, transparent 68%)`,
+            filter: 'blur(12px)',
+            pointerEvents: 'none',
+            opacity: isActive ? 0.95 : 0.55,
+            transition: 'opacity 720ms ease, transform 900ms cubic-bezier(0.22,1,0.36,1), background 720ms ease',
+          }}
+        />
         {/* Copy column */}
         <div
           style={{
+            position: 'relative',
+            zIndex: 1,
             order: flip ? 2 : 1,
             paddingLeft: flip ? 0 : 'clamp(0px, 4vw, 56px)',
           }}
@@ -366,6 +391,8 @@ const Plate = (() => {
         {/* Artifact column */}
         <div
           style={{
+            position: 'relative',
+            zIndex: 1,
             order: flip ? 1 : 2,
           }}
           className="pl-plate-artifact"
@@ -395,14 +422,16 @@ const Plate = (() => {
     pillar,
     index,
     flip,
+    isActive,
     ref,
   }: {
     pillar: Pillar;
     index: number;
     flip: boolean;
+    isActive: boolean;
     ref?: (el: HTMLElement | null) => void;
   }) {
-    return <PlateInner pillar={pillar} index={index} flip={flip} innerRef={ref} />;
+    return <PlateInner pillar={pillar} index={index} flip={flip} isActive={isActive} innerRef={ref} />;
   };
 })();
 
