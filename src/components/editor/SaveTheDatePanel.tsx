@@ -28,7 +28,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import type { StoryManifest } from '@/types';
-import { buildSiteUrl } from '@/lib/site-urls';
+import { buildSiteUrl, formatSiteDisplayUrl } from '@/lib/site-urls';
 import { logEditorError } from '@/lib/editor-log';
 import {
   PanelRoot,
@@ -380,7 +380,9 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
   const date = mainEvent?.date ? formatDate(mainEvent.date) : '';
   const venue = mainEvent?.venue || '';
   const displayNames = coupleNames.filter(Boolean).join(' & ') || 'The Couple';
-  const website = subdomain ? `${subdomain}.pearloom.com` : 'pearloom.com';
+  const website = subdomain
+    ? formatSiteDisplayUrl(subdomain, '', manifest.occasion)
+    : 'pearloom.com';
   const message = customMessage.trim();
 
   // Hero photo (first available from manifest) — used by the
