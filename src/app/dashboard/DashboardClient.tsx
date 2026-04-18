@@ -34,10 +34,70 @@ import { MobileBottomNav } from '@/components/dashboard/MobileBottomNav';
 import { DialogProvider } from '@/components/ui/confirm-dialog';
 import { applyTemplate, SITE_TEMPLATES, type SiteTemplate } from '@/lib/templates/wedding-templates';
 
-// Full-screen editor — SSR disabled (uses browser APIs + framer Reorder)
+// Full-screen editor — SSR disabled (uses browser APIs + framer Reorder).
+// Custom loading screen prevents the silent-gap between dashboard click
+// and editor mount that made first-time users click the tile twice.
+function EditorLoadingScreen() {
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'var(--pl-cream, #F5EFE2)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 18,
+        zIndex: 40,
+        color: 'var(--pl-ink, #0E0D0B)',
+        fontFamily: 'var(--pl-font-body, ui-sans-serif)',
+      }}
+    >
+      <div
+        aria-hidden
+        className="pl-pearl-accent"
+        style={{
+          width: 56,
+          height: 56,
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          animation: 'pl-dot-pulse 1.6s ease-in-out infinite',
+        }}
+      />
+      <div style={{ textAlign: 'center' }}>
+        <div
+          style={{
+            fontFamily: 'var(--pl-font-display, Georgia, serif)',
+            fontStyle: 'italic',
+            fontSize: '1.35rem',
+            letterSpacing: '-0.01em',
+          }}
+        >
+          Opening the editor
+        </div>
+        <div
+          style={{
+            marginTop: 6,
+            fontFamily: 'var(--pl-font-mono, ui-monospace)',
+            fontSize: '0.68rem',
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            color: 'var(--pl-muted, #6F6557)',
+          }}
+        >
+          Threading your site · one moment
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const FullscreenEditor = nextDynamic(
   () => import('@/components/editor/FullscreenEditor').then(m => m.FullscreenEditor),
-  { ssr: false },
+  { ssr: false, loading: () => <EditorLoadingScreen /> },
 );
 
 // ── Template Personalize Modal ─────────────────────────────────

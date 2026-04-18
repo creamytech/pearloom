@@ -93,14 +93,20 @@ export default function EditorClient({ manifest: initialManifest, siteSlug, name
   const lastManifestRef = useRef<StoryManifest>(initialManifest);
   const hasPendingSave = useRef(false);
 
-  // Flush pending save on page unload using sendBeacon (survives tab close)
+  // Flush pending save on page unload using sendBeacon (survives tab
+  // close) AND warn the user if there are unsaved changes — the
+  // beacon is best-effort, so the browser's native confirm dialog
+  // is the last safety net preventing silent data loss.
   useEffect(() => {
-    const handleUnload = () => {
-      if (hasPendingSave.current) {
-        const saveable = unproxyImageUrls(stripArtForStorage(lastManifestRef.current));
-        const payload = JSON.stringify({ subdomain: siteSlug, manifest: saveable, names });
-        navigator.sendBeacon('/api/sites', new Blob([payload], { type: 'application/json' }));
-      }
+    const handleUnload = (e: BeforeUnloadEvent) => {
+      if (!hasPendingSave.current) return;
+      const saveable = unproxyImageUrls(stripArtForStorage(lastManifestRef.current));
+      const payload = JSON.stringify({ subdomain: siteSlug, manifest: saveable, names });
+      navigator.sendBeacon('/api/sites', new Blob([payload], { type: 'application/json' }));
+      // Modern browsers require setting returnValue for the confirm
+      // dialog; the message shown is browser-controlled.
+      e.preventDefault();
+      e.returnValue = '';
     };
     window.addEventListener('beforeunload', handleUnload);
     return () => window.removeEventListener('beforeunload', handleUnload);

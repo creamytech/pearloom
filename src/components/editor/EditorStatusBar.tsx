@@ -82,26 +82,45 @@ export function EditorStatusBar() {
 
       {sep}
 
-      {/* Save state */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-        <div style={{
-          width: '6px', height: '6px', borderRadius: '50%',
-          flexShrink: 0,
-          background: saveState === 'saved' ? '#71717A' : 'var(--pl-gold)',
-          boxShadow: saveState === 'saved'
-            ? '0 0 6px rgba(24,24,27,0.55)'
-            : '0 0 6px rgba(196,169,106,0.55)',
-          transition: 'background 0.3s, box-shadow 0.3s',
-        }} />
-        <span style={{
-          color: saveState === 'saved'
-            ? '#18181B'
-            : 'var(--pl-gold)',
-          transition: 'color 0.3s',
-        }}>
-          {saveState === 'saved' ? 'Saved' : 'Unsaved'}
-        </span>
-      </div>
+      {/* Save state — four distinct states (idle = up-to-date,
+          saving = in-flight, saved = just-saved, error = failed).
+          Previously collapsed saving+error into "Unsaved"; now
+          each state has its own label + dot colour so users can
+          tell "I'm being saved" from "my save broke". */}
+      {(() => {
+        const saveDot =
+          saveState === 'error' ? 'var(--pl-plum)' :
+          saveState === 'saving' ? 'var(--pl-gold)' :
+          saveState === 'saved' ? '#71717A' :
+          '#71717A';
+        const saveLabel =
+          saveState === 'error' ? 'Save failed' :
+          saveState === 'saving' ? 'Saving…' :
+          saveState === 'saved' ? 'Saved' :
+          'Up to date';
+        const saveLabelColor =
+          saveState === 'error' ? 'var(--pl-plum)' :
+          saveState === 'saving' ? 'var(--pl-gold)' :
+          '#18181B';
+        return (
+          <div
+            style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
+            role={saveState === 'error' ? 'alert' : undefined}
+          >
+            <div style={{
+              width: '6px', height: '6px', borderRadius: '50%',
+              flexShrink: 0,
+              background: saveDot,
+              boxShadow: `0 0 6px ${saveState === 'error' ? 'rgba(122,45,45,0.6)' : saveState === 'saving' ? 'rgba(196,169,106,0.55)' : 'rgba(24,24,27,0.55)'}`,
+              transition: 'background 0.3s, box-shadow 0.3s',
+              animation: saveState === 'saving' ? 'pl-dot-pulse 1.2s ease-in-out infinite' : undefined,
+            }} />
+            <span style={{ color: saveLabelColor, transition: 'color 0.3s' }}>
+              {saveLabel}
+            </span>
+          </div>
+        );
+      })()}
     </div>
   );
 }
