@@ -1851,3 +1851,116 @@ body > * { position: relative; z-index: 1; }
   0%   { stroke-dashoffset: 1; }
   100% { stroke-dashoffset: -0.32; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   PEARSHELL — iridescent accent layer (v7.2, 2026)
+   Additive brand signal for interactive affordances only. Never
+   touches body text or flat surfaces. A conic pearl that shifts
+   phase as the page scrolls, so the brand moves with the reader.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Registered custom property — typed, so CSS can animate the
+   angle smoothly instead of resetting between keyframes. */
+@property --pl-pearl-phase {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 0deg;
+}
+
+/* Pearl tri-stop — cool / neutral / warm. Values intentionally
+   close in lightness so the accent reads as luminance, not hue
+   (the effect we want is "sheen", not "rainbow"). */
+:root,
+[data-theme='light'] {
+  --pl-pearl-a:  #F8F1E6;
+  --pl-pearl-b:  #D9E0DD;
+  --pl-pearl-c:  #EAD4D6;
+  --pl-pearl-ink:#2C1E12;
+  --pl-rind:     #E9D9A8;
+  --pl-bruise:   #9C6C43;
+}
+
+[data-theme='dark'] {
+  /* Cooler, dimmer pearl so it reads on midnight surfaces. */
+  --pl-pearl-a:  #2A2722;
+  --pl-pearl-b:  #3C3E3D;
+  --pl-pearl-c:  #4A3A3C;
+  --pl-pearl-ink:#F1EBDC;
+  --pl-rind:     #5C4F2E;
+  --pl-bruise:   #C49A6F;
+}
+
+/* Base pearl gradient — conic so it catches light around an edge.
+   Anything applying .pl-pearl gets a phase-aware fill that can be
+   used as border-image, background, or mask.
+   Fallback: radial blend for browsers without @property. */
+.pl-pearl,
+.pl-pearl-accent,
+.pl-pearl-border {
+  --_pearl-bg: conic-gradient(
+    from var(--pl-pearl-phase, 0deg),
+    var(--pl-pearl-a),
+    var(--pl-pearl-b),
+    var(--pl-pearl-c),
+    var(--pl-pearl-a)
+  );
+}
+
+/* Filled pearl surface — a subtle animated sheen, ideal for
+   primary CTA backgrounds. Text on top stays dark (pearl-ink)
+   for contrast. */
+.pl-pearl-accent {
+  background: var(--_pearl-bg);
+  color: var(--pl-pearl-ink);
+  border: 1px solid color-mix(in oklab, var(--pl-bruise) 28%, transparent);
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--pl-pearl-ink) 14%, transparent),
+    0 8px 24px -12px color-mix(in oklab, var(--pl-bruise) 38%, transparent);
+  animation: pl-pearl-drift 24s linear infinite;
+}
+
+/* Pearl border on a neutral surface — for selected-state outlines,
+   focus rings, and inline links. 1px of pearl catching light. */
+.pl-pearl-border {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--pl-cream-card), var(--pl-cream-card)) padding-box,
+    var(--_pearl-bg) border-box;
+  animation: pl-pearl-drift 24s linear infinite;
+}
+[data-theme='dark'] .pl-pearl-border {
+  background:
+    linear-gradient(var(--pl-cream-card), var(--pl-cream-card)) padding-box,
+    var(--_pearl-bg) border-box;
+}
+
+/* Phase animation — a slow rotation so the sheen drifts. Paired
+   with a scroll-timeline below so scrolling *also* nudges the
+   phase. Both read as "alive", not "animated gimmick". */
+@keyframes pl-pearl-drift {
+  to { --pl-pearl-phase: 360deg; }
+}
+
+/* Scroll-driven phase shift — supported browsers couple the pearl
+   to page position. The brand literally moves with the reader. */
+@supports (animation-timeline: scroll()) {
+  @keyframes pl-pearl-scroll {
+    to { --pl-pearl-phase: 180deg; }
+  }
+  .pl-pearl-accent,
+  .pl-pearl-border {
+    animation:
+      pl-pearl-drift 24s linear infinite,
+      pl-pearl-scroll linear;
+    animation-timeline: auto, scroll(root block);
+  }
+}
+
+/* Honour reduced-motion: keep the palette, lose the drift. */
+@media (prefers-reduced-motion: reduce) {
+  .pl-pearl-accent,
+  .pl-pearl-border {
+    animation: none;
+    --pl-pearl-phase: 48deg;
+  }
+}

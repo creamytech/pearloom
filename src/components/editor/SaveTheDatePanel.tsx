@@ -778,12 +778,13 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
                       key={choice}
                       onClick={() => handleChoosePhotoStyle(choice)}
                       disabled={disabled}
+                      className={on ? 'pl-pearl-border' : undefined}
                       style={{
                         padding: '10px 10px',
                         borderRadius: 8,
-                        border: `1px solid ${on ? '#18181B' : '#E4E4E7'}`,
-                        background: on ? '#18181B' : '#FFFFFF',
-                        color: on ? '#FAF7F2' : '#3F3F46',
+                        border: on ? undefined : '1px solid #E4E4E7',
+                        background: on ? undefined : '#FFFFFF',
+                        color: '#18181B',
                         cursor: disabled ? 'wait' : loading ? 'wait' : 'pointer',
                         opacity: disabled ? 0.55 : 1,
                         textAlign: 'left',
@@ -908,6 +909,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
           <motion.button
             onClick={handleSendBulk}
             disabled={sending}
+            className="pl-pearl-accent"
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.98 }}
             style={{
@@ -917,9 +919,6 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
               gap: 8,
               padding: 11,
               borderRadius: 8,
-              border: '1px solid #18181B',
-              background: '#18181B',
-              color: '#FAF7F2',
               cursor: sending ? 'wait' : 'pointer',
               fontSize: panelText.body,
               fontWeight: panelWeight.bold,
