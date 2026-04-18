@@ -1966,6 +1966,14 @@ body > * { position: relative; z-index: 1; }
   }
 }
 
+/* Generic conic-spin keyframe — used by the showroom card
+   hover preview and any other accent that needs a slow rotation
+   independent of the pearl phase. */
+@keyframes pl-conic-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 /* Selected canvas block — soft pearl glow rather than a hard outline.
    Uses outline so it doesn't affect the block's own layout. */
 .pl-block-selected {

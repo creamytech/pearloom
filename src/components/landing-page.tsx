@@ -14,6 +14,7 @@ import { AuthModal } from '@/components/auth/AuthModal';
 
 import { MarketingNav } from './marketing/MarketingNav';
 import { EditorialHero } from './marketing/EditorialHero';
+import { WovenDivider } from './marketing/WovenDivider';
 import { SiteShowroom } from './marketing/SiteShowroom';
 import { EventOSPillars } from './marketing/EventOSPillars';
 import { SocialProofBar } from './marketing/SocialProofBar';
@@ -174,6 +175,9 @@ export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPage
 
       {/* ── Hero ───────────────────────────────────────────────── */}
       <EditorialHero onGetStarted={openAuth} />
+
+      {/* ── Woven divider — hero threads keep travelling ───────── */}
+      <WovenDivider />
 
       {/* ── The showroom — six real sites the visitor can open ── */}
       <SiteShowroom onGetStarted={openAuth} />

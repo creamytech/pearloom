@@ -280,12 +280,18 @@ function ShowroomCard({ entry, index }: { entry: ShowroomEntry; index: number })
   const fg = template?.theme.colors.foreground ?? 'var(--pl-ink)';
   const muted = template?.theme.colors.muted ?? 'var(--pl-muted)';
   const heading = template?.theme.fonts.heading ?? 'Fraunces';
+  const [hovered, setHovered] = useState(false);
 
   return (
     <motion.article
       data-showroom-card
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => setHovered(true)}
+      onBlur={() => setHovered(false)}
       initial={{ opacity: 0, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -6 }}
       viewport={{ once: true, amount: 0.3 }}
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: Math.min(index, 4) * 0.06 }}
       style={{
@@ -296,7 +302,10 @@ function ShowroomCard({ entry, index }: { entry: ShowroomEntry; index: number })
         background: 'var(--pl-cream-card)',
         border: '1px solid var(--pl-divider)',
         borderRadius: 'var(--pl-radius-2xl)',
-        boxShadow: 'var(--pl-shadow-md)',
+        boxShadow: hovered
+          ? '0 26px 52px -14px color-mix(in oklab, var(--pl-ink) 30%, transparent)'
+          : 'var(--pl-shadow-md)',
+        transition: 'box-shadow 320ms cubic-bezier(0.22, 1, 0.36, 1)',
         overflow: 'hidden',
         position: 'relative',
       }}
@@ -315,6 +324,50 @@ function ShowroomCard({ entry, index }: { entry: ShowroomEntry; index: number })
           overflow: 'hidden',
         }}
       >
+        {/* Hover overlay — conic sweep in the template's own
+            accent colour so each card feels individually alive
+            when the cursor lands on it. Inset is expanded so
+            the rotation never exposes the container edges. */}
+        <motion.div
+          aria-hidden
+          animate={{ opacity: hovered ? 0.6 : 0 }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            position: 'absolute',
+            inset: '-35%',
+            pointerEvents: 'none',
+            background: `conic-gradient(from 0deg at 50% 50%, ${accent}00 0%, ${accent}88 28%, ${accent}00 52%, ${accent}55 78%, ${accent}00 100%)`,
+            mixBlendMode: 'overlay',
+            animation: 'pl-conic-spin 10s linear infinite',
+            willChange: 'opacity, transform',
+          }}
+        />
+
+        {/* Pearl bead orbit — only while hovered. A subtle extra
+            beat of motion that reads as "this site is awake." */}
+        {hovered && (
+          <svg
+            aria-hidden
+            viewBox="0 0 100 120"
+            preserveAspectRatio="none"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'none',
+            }}
+          >
+            <circle r="1.2" fill="var(--pl-pearl-a)" opacity="0.92">
+              <animateMotion
+                dur="4.2s"
+                repeatCount="indefinite"
+                path="M 14 22 Q 90 32 88 92 T 12 102 Q 6 60 14 22"
+              />
+            </circle>
+          </svg>
+        )}
+
         {/* Top folio */}
         <div
           style={{
@@ -411,28 +464,22 @@ function ShowroomCard({ entry, index }: { entry: ShowroomEntry; index: number })
         </p>
         <Link
           href={`/dashboard?template=${entry.templateId}`}
+          className={hovered ? 'pl-pearl-border' : undefined}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '12px 14px',
             borderRadius: 'var(--pl-radius-md)',
-            border: '1px solid var(--pl-ink)',
-            background: 'var(--pl-ink)',
-            color: 'var(--pl-cream)',
+            border: hovered ? undefined : '1px solid var(--pl-ink)',
+            background: hovered ? undefined : 'var(--pl-ink)',
+            color: hovered ? 'var(--pl-ink)' : 'var(--pl-cream)',
             textDecoration: 'none',
             fontSize: '0.84rem',
             fontWeight: 600,
             letterSpacing: '-0.005em',
-            transition: 'transform var(--pl-dur-fast) var(--pl-ease-spring), box-shadow var(--pl-dur-base) var(--pl-ease-out)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-1px)';
-            e.currentTarget.style.boxShadow = 'var(--pl-shadow-md)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = 'none';
+            transition:
+              'background 220ms ease, color 220ms ease, transform 160ms var(--pl-ease-spring), box-shadow 280ms var(--pl-ease-out)',
           }}
         >
           Open the site
