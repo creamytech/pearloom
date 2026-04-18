@@ -58,7 +58,7 @@ const FAQ: FaqEntry[] = [
   },
   {
     q: 'How do I publish and share my site?',
-    a: 'In the editor, hit Publish. Your site goes live at yourname.pearloom.com instantly. Attach a custom domain from Dashboard → Profile → Domains.',
+    a: 'In the editor, hit Publish. Your site goes live at pearloom.com/wedding/yourname (or the occasion you chose) instantly. Attach a custom domain from Dashboard → Profile → Domains.',
     tags: ['publish', 'domain'],
   },
   {

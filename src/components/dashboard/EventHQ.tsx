@@ -24,6 +24,7 @@ import {
   Mic,
 } from 'lucide-react';
 import { StatTile, Button } from '@/components/shell';
+import { formatSiteDisplayUrl } from '@/lib/site-urls';
 
 export interface EventHQSite {
   id: string;
@@ -159,7 +160,7 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
               )}
               <span style={{ color: 'var(--pl-divider)' }}>·</span>
               <span style={{ color: 'var(--pl-muted)' }}>
-                {site.domain}.pearloom.com
+                {formatSiteDisplayUrl(site.domain, '', site.occasion)}
               </span>
             </div>
           </div>

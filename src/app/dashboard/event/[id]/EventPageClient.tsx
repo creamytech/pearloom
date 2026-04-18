@@ -11,6 +11,7 @@ import { ArrowLeft } from 'lucide-react';
 import { DashboardSidebar } from '@/components/dashboard/sidebar';
 import { EventHQ, type EventHQSite } from '@/components/dashboard/EventHQ';
 import { ThemeToggle } from '@/components/shell';
+import { buildSiteUrl } from '@/lib/site-urls';
 
 interface EventPageClientProps {
   siteId: string;
@@ -154,7 +155,9 @@ export default function EventPageClient({ siteId }: EventPageClientProps) {
                 onEdit={() => router.push(`/editor/${site.domain}`)}
                 onShare={() => {
                   if (typeof navigator !== 'undefined' && site.domain) {
-                    navigator.clipboard.writeText(`https://${site.domain}.pearloom.com`).catch(() => {});
+                    navigator.clipboard
+                      .writeText(buildSiteUrl(site.domain, '', undefined, site.occasion))
+                      .catch(() => {});
                   }
                 }}
               />
