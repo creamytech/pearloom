@@ -1959,8 +1959,37 @@ body > * { position: relative; z-index: 1; }
 /* Honour reduced-motion: keep the palette, lose the drift. */
 @media (prefers-reduced-motion: reduce) {
   .pl-pearl-accent,
-  .pl-pearl-border {
+  .pl-pearl-border,
+  .pl-block-selected {
     animation: none;
     --pl-pearl-phase: 48deg;
+  }
+}
+
+/* Selected canvas block — soft pearl glow rather than a hard outline.
+   Uses outline so it doesn't affect the block's own layout. */
+.pl-block-selected {
+  position: relative;
+  --_pearl-bg: conic-gradient(
+    from var(--pl-pearl-phase, 0deg),
+    var(--pl-pearl-a),
+    var(--pl-pearl-b),
+    var(--pl-pearl-c),
+    var(--pl-pearl-a)
+  );
+  outline: 2px solid transparent;
+  outline-offset: 4px;
+  box-shadow:
+    0 0 0 2px color-mix(in oklab, var(--pl-pearl-b) 70%, transparent),
+    0 0 22px -4px color-mix(in oklab, var(--pl-pearl-c) 50%, transparent),
+    0 0 48px -16px color-mix(in oklab, var(--pl-bruise) 40%, transparent);
+  animation: pl-pearl-drift 24s linear infinite;
+}
+@supports (animation-timeline: scroll()) {
+  .pl-block-selected {
+    animation:
+      pl-pearl-drift 24s linear infinite,
+      pl-pearl-scroll linear;
+    animation-timeline: auto, scroll(root block);
   }
 }

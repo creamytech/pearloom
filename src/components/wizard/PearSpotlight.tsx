@@ -2529,16 +2529,13 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                         </button>
                         <button
                           onClick={() => isLast ? setReviewDone(true) : setPhotoReviewIndex(prev => prev + 1)}
-                          className="pear-btn"
+                          className="pear-btn pl-pearl-accent"
                           style={{
                             flex: 1, minHeight: 46, padding: '0 16px', borderRadius: 2,
-                            background: '#18181B', border: 'none',
                             fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                             fontSize: 10, fontWeight: 700,
                             letterSpacing: '0.22em', textTransform: 'uppercase',
-                            color: '#FAF7F2', cursor: 'pointer',
-                            boxShadow: '0 0 0 3px rgba(184,147,90,0.22)',
-                            transition: 'box-shadow 180ms ease',
+                            cursor: 'pointer',
                           }}
                         >
                           {isLast ? 'Done' : 'Next step'}
@@ -2567,17 +2564,13 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       }));
                       setLayoutConfirmed(true);
                     }}
+                    className="pl-pearl-accent"
                     style={{
                       marginTop: 18, width: '100%', padding: '14px 0', borderRadius: 2,
-                      background: '#18181B',
-                      border: 'none',
                       fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                       fontSize: 10, fontWeight: 700,
                       letterSpacing: '0.26em', textTransform: 'uppercase',
-                      color: '#FAF7F2',
                       cursor: 'pointer',
-                      boxShadow: '0 0 0 3px rgba(184,147,90,0.22)',
-                      transition: 'box-shadow 180ms ease, background 180ms ease',
                     }}
                   >
                     Set the Layout · ↵

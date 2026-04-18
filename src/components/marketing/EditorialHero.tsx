@@ -8,6 +8,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { GooeyText } from '@/components/brand/GooeyText';
+import { HeroAtmosphere } from './HeroAtmosphere';
 
 interface EditorialHeroProps {
   onGetStarted: () => void;
@@ -29,12 +30,16 @@ export function EditorialHero({ onGetStarted }: EditorialHeroProps) {
         overflow: 'hidden',
       }}
     >
+      {/* Living atmosphere — pearl mesh + loom threads + cursor halo */}
+      <HeroAtmosphere />
+
       {/* Editorial edition mark — top corner */}
       <div
         style={{
           position: 'absolute',
           top: 24,
           right: 'clamp(20px, 5vw, 64px)',
+          zIndex: 1,
           color: 'var(--pl-muted)',
           fontFamily: 'var(--pl-font-mono)',
           fontSize: '0.66rem',
@@ -152,14 +157,12 @@ export function EditorialHero({ onGetStarted }: EditorialHeroProps) {
           >
             <button
               onClick={onGetStarted}
+              className="pl-pearl-accent"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 12,
                 padding: '18px 32px',
-                background: 'var(--pl-ink)',
-                color: 'var(--pl-cream)',
-                border: '1px solid var(--pl-ink)',
                 borderRadius: 'var(--pl-radius-full)',
                 fontFamily: 'var(--pl-font-body)',
                 fontSize: '0.96rem',
@@ -167,15 +170,12 @@ export function EditorialHero({ onGetStarted }: EditorialHeroProps) {
                 letterSpacing: '-0.005em',
                 cursor: 'pointer',
                 transition: 'transform var(--pl-dur-fast) var(--pl-ease-spring), box-shadow var(--pl-dur-base) var(--pl-ease-out)',
-                boxShadow: 'var(--pl-shadow-md)',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.boxShadow = 'var(--pl-shadow-lg)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'var(--pl-shadow-md)';
               }}
             >
               Start weaving — free

@@ -252,13 +252,14 @@ export function LoginClient({ searchParamsPromise }: Props) {
           </motion.div>
         ) : (
           <>
-            {/* Google button */}
+            {/* Google button — Pearshell signature on the primary entry */}
             <motion.button
               type="button"
               whileHover={{ y: -1 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleGoogle}
               disabled={busy !== null}
+              className="pl-pearl-accent"
               style={{
                 width: '100%',
                 display: 'inline-flex',
@@ -266,9 +267,6 @@ export function LoginClient({ searchParamsPromise }: Props) {
                 justifyContent: 'center',
                 gap: 10,
                 padding: '14px 18px',
-                background: INK,
-                color: CREAM,
-                border: `1px solid ${INK}`,
                 borderRadius: 2,
                 fontFamily: FONT_MONO,
                 fontSize: '0.7rem',
@@ -276,7 +274,6 @@ export function LoginClient({ searchParamsPromise }: Props) {
                 textTransform: 'uppercase',
                 fontWeight: 700,
                 cursor: busy ? 'wait' : 'pointer',
-                boxShadow: '0 2px 10px color-mix(in oklab, var(--pl-olive) 24%, transparent)',
               }}
             >
               <GoogleMark />

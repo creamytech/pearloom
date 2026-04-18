@@ -423,25 +423,22 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
               disabled={blocked}
               whileHover={!blocked ? { y: -1 } : {}}
               whileTap={!blocked ? { scale: 0.97 } : {}}
-              className={blocked ? undefined : 'pl-cta-pulse'}
+              className={blocked ? undefined : 'pl-pearl-accent'}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 6,
                 padding: isMobile ? '6px 14px' : '7px 18px',
                 borderRadius: 999,
-                border: 'none',
-                background: blocked ? 'var(--pl-muted-soft, var(--pl-divider))' : 'var(--pl-ink)',
-                color: blocked ? 'var(--pl-muted)' : 'var(--pl-cream)',
+                border: blocked ? 'none' : undefined,
+                background: blocked ? 'var(--pl-muted-soft, var(--pl-divider))' : undefined,
+                color: blocked ? 'var(--pl-muted)' : undefined,
                 cursor: blocked ? 'not-allowed' : 'pointer',
                 opacity: blocked ? 0.6 : 1,
                 fontSize: '0.66rem',
                 fontWeight: 700,
                 letterSpacing: '0.12em',
                 textTransform: 'uppercase',
-                boxShadow: blocked
-                  ? 'none'
-                  : '0 2px 12px color-mix(in oklab, var(--pl-olive) 30%, transparent)',
                 transition: 'box-shadow 0.25s ease, transform 0.2s ease',
               }}
             >
