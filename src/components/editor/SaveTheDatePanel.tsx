@@ -25,6 +25,7 @@ import {
   Share2,
   Palette,
   Eye,
+  Sparkles,
 } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import { buildSiteUrl } from '@/lib/site-urls';
@@ -337,6 +338,19 @@ interface SaveTheDatePanelProps {
   subdomain: string;
 }
 
+// ── Photo-style presets (Gemini image-edit) ──────────────────
+// Mirrors the server side. Keep ids in sync with
+// /api/photos/stylize prompts — the server is source of truth
+// for the actual prompt text.
+const PHOTO_STYLES = [
+  { id: 'paper-craft', label: 'Paper craft' },
+  { id: 'watercolor', label: 'Watercolor' },
+  { id: 'embroidery', label: 'Embroidery' },
+  { id: 'botanical', label: 'Botanical' },
+] as const;
+type PhotoStyleId = (typeof PHOTO_STYLES)[number]['id'];
+type PhotoStyleChoice = PhotoStyleId | 'original';
+
 export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps) {
   const svgRef = useRef<HTMLDivElement>(null);
   const [variantId, setVariantId] = useState<Variant['id']>('minimalist');
@@ -348,6 +362,12 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
   const [sharing, setSharing] = useState(false);
   const [sharedUrl, setSharedUrl] = useState<string | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
+
+  // Nano-banana style transforms for the Photo variant.
+  const [photoStyle, setPhotoStyle] = useState<PhotoStyleChoice>('original');
+  const [stylizingId, setStylizingId] = useState<PhotoStyleId | null>(null);
+  const [stylizedCache, setStylizedCache] = useState<Partial<Record<PhotoStyleId, string>>>({});
+  const [stylizeError, setStylizeError] = useState<string | null>(null);
 
   const variant = useMemo(
     () => VARIANTS.find((v) => v.id === variantId) ?? VARIANTS[0],
@@ -385,6 +405,59 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
     }
     return undefined;
   }, [manifest]);
+
+  // Resolve the photo actually shown on the Photo variant —
+  // stylized override if one is active, else the raw hero.
+  const effectivePhoto = useMemo(() => {
+    if (photoStyle !== 'original') {
+      const cached = stylizedCache[photoStyle];
+      if (cached) return cached;
+    }
+    return heroPhoto;
+  }, [photoStyle, stylizedCache, heroPhoto]);
+
+  const handleChoosePhotoStyle = useCallback(
+    async (choice: PhotoStyleChoice) => {
+      setStylizeError(null);
+
+      if (choice === 'original') {
+        setPhotoStyle('original');
+        return;
+      }
+      // If we already rendered this style for the current photo,
+      // switching back is instant.
+      if (stylizedCache[choice]) {
+        setPhotoStyle(choice);
+        return;
+      }
+      if (!heroPhoto) {
+        setStylizeError('Add a photo to your site first.');
+        return;
+      }
+      if (stylizingId) return;
+
+      setStylizingId(choice);
+      try {
+        const res = await fetch('/api/photos/stylize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ photoUrl: heroPhoto, style: choice }),
+        });
+        const data = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+        if (!res.ok || !data.url) {
+          throw new Error(data.error || `Request failed (${res.status})`);
+        }
+        setStylizedCache((prev) => ({ ...prev, [choice]: data.url }));
+        setPhotoStyle(choice);
+      } catch (err) {
+        logEditorError('SaveTheDatePanel: stylize', err);
+        setStylizeError(err instanceof Error ? err.message : 'Style render failed.');
+      } finally {
+        setStylizingId(null);
+      }
+    },
+    [heroPhoto, stylizedCache, stylizingId],
+  );
 
   // Render the current SVG to a PNG blob. Used by both the
   // download and share-as-image flows.
@@ -668,6 +741,89 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
           </div>
         </div>
 
+        {/* Photo-style transforms — Gemini image-edit presets.
+            Only shown on the Photo variant once a source photo
+            is available, since we need something to restyle. */}
+        {variantId === 'photo' && heroPhoto && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <div
+              style={{
+                fontSize: panelText.label,
+                color: '#71717A',
+                textTransform: 'uppercase',
+                letterSpacing: panelTracking.wide,
+                fontWeight: panelWeight.bold,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <Sparkles size={11} />
+              Photo style
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+              {(['original', ...PHOTO_STYLES.map((s) => s.id)] as PhotoStyleChoice[]).map(
+                (choice) => {
+                  const isOriginal = choice === 'original';
+                  const label = isOriginal
+                    ? 'Original'
+                    : PHOTO_STYLES.find((s) => s.id === choice)?.label ?? choice;
+                  const on = photoStyle === choice;
+                  const loading = stylizingId === choice;
+                  const disabled = !!stylizingId && !loading;
+                  return (
+                    <button
+                      key={choice}
+                      onClick={() => handleChoosePhotoStyle(choice)}
+                      disabled={disabled}
+                      style={{
+                        padding: '10px 10px',
+                        borderRadius: 8,
+                        border: `1px solid ${on ? '#18181B' : '#E4E4E7'}`,
+                        background: on ? '#18181B' : '#FFFFFF',
+                        color: on ? '#FAF7F2' : '#3F3F46',
+                        cursor: disabled ? 'wait' : loading ? 'wait' : 'pointer',
+                        opacity: disabled ? 0.55 : 1,
+                        textAlign: 'left',
+                        fontSize: panelText.body,
+                        fontWeight: panelWeight.bold,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                      }}
+                    >
+                      {loading ? 'Rendering\u2026' : label}
+                    </button>
+                  );
+                },
+              )}
+            </div>
+            <div
+              style={{
+                fontSize: panelText.meta,
+                color: '#71717A',
+                fontStyle: 'italic',
+              }}
+            >
+              Restyles your hero photo with AI — faces stay the same.
+            </div>
+            {stylizeError && (
+              <div
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: 8,
+                  background: 'rgba(220,38,38,0.06)',
+                  border: '1px solid rgba(220,38,38,0.2)',
+                  fontSize: panelText.hint,
+                  color: '#7F1D1D',
+                }}
+              >
+                {stylizeError}
+              </div>
+            )}
+          </div>
+        )}
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
           <div
             style={{
@@ -723,7 +879,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
             message={message}
             website={website}
             aspect={aspect}
-            photoUrl={heroPhoto}
+            photoUrl={effectivePhoto}
             embedFonts
           />
         </div>
