@@ -306,12 +306,10 @@ export function MarketingNav({ onGetStarted }: MarketingNavProps) {
                     setMobileOpen(false);
                     onGetStarted();
                   }}
+                  className="pl-pearl-accent"
                   style={{
                     width: '100%',
                     padding: '14px 18px',
-                    background: 'var(--pl-ink)',
-                    color: 'var(--pl-cream)',
-                    border: 'none',
                     borderRadius: 'var(--pl-radius-full)',
                     fontSize: '0.92rem',
                     fontWeight: 600,
