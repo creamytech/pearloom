@@ -1908,11 +1908,13 @@ body > * { position: relative; z-index: 1; }
 
 /* Filled pearl surface — a subtle animated sheen, ideal for
    primary CTA backgrounds. Text on top stays dark (pearl-ink)
-   for contrast. */
+   for contrast. `!important` wins over Tailwind utility classes
+   when this class is composed alongside a bg/text variant (e.g.
+   on shared Button components). */
 .pl-pearl-accent {
-  background: var(--_pearl-bg);
-  color: var(--pl-pearl-ink);
-  border: 1px solid color-mix(in oklab, var(--pl-bruise) 28%, transparent);
+  background: var(--_pearl-bg) !important;
+  color: var(--pl-pearl-ink) !important;
+  border: 1px solid color-mix(in oklab, var(--pl-bruise) 28%, transparent) !important;
   box-shadow:
     0 1px 2px color-mix(in oklab, var(--pl-pearl-ink) 14%, transparent),
     0 8px 24px -12px color-mix(in oklab, var(--pl-bruise) 38%, transparent);
