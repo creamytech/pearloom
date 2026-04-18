@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { layout } from '@/lib/design-tokens';
 import { PearIcon } from '@/components/icons/PearloomIcons';
 
@@ -43,7 +44,43 @@ function SocialIcon({ type }: { type: 'twitter' | 'instagram' }) {
   return <svg {...props}><rect x="2" y="2" width="20" height="20" rx="5" /><circle cx="12" cy="12" r="5" /><circle cx="18" cy="6" r="1.2" fill="currentColor" stroke="none" /></svg>;
 }
 
+type SubscribeStatus = 'idle' | 'submitting' | 'success' | 'error';
+
 export function MarketingFooter() {
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<SubscribeStatus>('idle');
+  const [message, setMessage] = useState('');
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || status === 'submitting') return;
+    setStatus('submitting');
+    setMessage('');
+    try {
+      const res = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), source: 'marketing_footer' }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        error?: string;
+        alreadySubscribed?: boolean;
+      };
+      if (!res.ok || !data.ok) {
+        setStatus('error');
+        setMessage(data.error || 'Something went wrong. Try again.');
+        return;
+      }
+      setStatus('success');
+      setMessage(data.alreadySubscribed ? 'You\u2019re already on the list.' : 'You\u2019re on the list.');
+      setEmail('');
+    } catch {
+      setStatus('error');
+      setMessage('Couldn\u2019t reach the server. Try again.');
+    }
+  };
+
   return (
     <footer
       className="border-t py-[clamp(3rem,5vw,5rem)] px-6 pb-10"
@@ -82,35 +119,56 @@ export function MarketingFooter() {
               >
                 Stay in the loop
               </p>
-              <form onSubmit={(e) => e.preventDefault()} className="flex gap-0">
-                <input
-                  type="email"
-                  placeholder="your@email.com"
-                  aria-label="Email address for newsletter"
-                  className="flex-1 min-w-0 px-3 py-2 rounded-l-[var(--pl-radius-sm)] outline-none text-[max(16px,0.86rem)]"
-                  style={{
-                    background: 'var(--pl-cream-card)',
-                    color: 'var(--pl-ink)',
-                    border: '1px solid var(--pl-divider)',
-                    borderRight: 'none',
-                  }}
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-r-[var(--pl-radius-sm)] font-semibold tracking-widest uppercase cursor-pointer text-[0.62rem] border-0 transition-colors duration-150"
-                  style={{
-                    background: 'var(--pl-olive)',
-                    color: 'var(--pl-cream)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'var(--pl-olive-hover)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'var(--pl-olive)';
-                  }}
-                >
-                  Join
-                </button>
+              <form onSubmit={handleSubscribe} className="flex flex-col gap-2">
+                <div className="flex gap-0">
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={status === 'submitting' || status === 'success'}
+                    placeholder="your@email.com"
+                    aria-label="Email address for newsletter"
+                    aria-invalid={status === 'error' ? true : undefined}
+                    className="flex-1 min-w-0 px-3 py-2 rounded-l-[var(--pl-radius-sm)] outline-none text-[max(16px,0.86rem)] disabled:opacity-70"
+                    style={{
+                      background: 'var(--pl-cream-card)',
+                      color: 'var(--pl-ink)',
+                      border: '1px solid var(--pl-divider)',
+                      borderRight: 'none',
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={status === 'submitting' || status === 'success'}
+                    className="px-4 py-2 rounded-r-[var(--pl-radius-sm)] font-semibold tracking-widest uppercase cursor-pointer text-[0.62rem] border-0 transition-colors duration-150 disabled:cursor-default"
+                    style={{
+                      background: 'var(--pl-olive)',
+                      color: 'var(--pl-cream)',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (status !== 'submitting' && status !== 'success') {
+                        e.currentTarget.style.background = 'var(--pl-olive-hover)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'var(--pl-olive)';
+                    }}
+                  >
+                    {status === 'submitting' ? '…' : status === 'success' ? '✓' : 'Join'}
+                  </button>
+                </div>
+                {message && (
+                  <p
+                    role={status === 'error' ? 'alert' : 'status'}
+                    className="text-[0.7rem]"
+                    style={{
+                      color: status === 'error' ? 'var(--pl-plum)' : 'var(--pl-olive)',
+                    }}
+                  >
+                    {message}
+                  </p>
+                )}
               </form>
             </div>
           </div>
