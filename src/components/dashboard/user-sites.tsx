@@ -17,6 +17,7 @@ import { cn } from '@/lib/cn';
 
 import { parseLocalDate } from '@/lib/date';
 import { buildSiteUrl } from '@/lib/site-urls';
+import { BlurFade, GrooveBlob } from '@/components/brand/groove';
 
 // ── Occasion gradients & icons ──────────────────────────────
 
@@ -550,30 +551,49 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
   }, []);
 
   return (
-    <div className="w-full max-w-[1280px] mx-auto pb-24 md:pb-20">
+    <div
+      className="w-full max-w-[1280px] mx-auto pb-24 md:pb-20"
+      style={{ position: 'relative' }}
+    >
+      {/* Ambient groove blobs — faint warmth behind the page */}
+      <GrooveBlob
+        palette="sunrise"
+        size={520}
+        blur={80}
+        opacity={0.3}
+        style={{ position: 'absolute', top: '-120px', right: '-80px', zIndex: 0, pointerEvents: 'none' }}
+      />
+      <GrooveBlob
+        palette="orchard"
+        size={380}
+        blur={70}
+        opacity={0.22}
+        style={{ position: 'absolute', top: '40%', left: '-80px', zIndex: 0, pointerEvents: 'none' }}
+      />
 
       {/* ── Editorial Masthead ── */}
-      <div className="pl-enter mb-8 sm:mb-12">
+      <BlurFade>
+      <div className="pl-enter mb-8 sm:mb-12" style={{ position: 'relative', zIndex: 1 }}>
         {/* Mono kicker above */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
           <span style={{
             fontFamily: 'var(--pl-font-mono)',
-            fontSize: '0.52rem',
+            fontSize: '0.72rem',
             fontWeight: 700,
-            letterSpacing: '0.32em',
+            letterSpacing: '0.24em',
             textTransform: 'uppercase',
-            color: 'var(--pl-olive)',
+            color: 'var(--pl-groove-terra)',
           }}>
             Your sites · {new Date().getFullYear()}
           </span>
-          <span style={{ flex: 1, height: '1px', background: 'rgba(184,147,90,0.45)' }} />
+          <span style={{ flex: 1, height: '1px', background: 'color-mix(in oklab, var(--pl-groove-terra) 30%, transparent)' }} />
           <span style={{
             fontFamily: 'var(--pl-font-mono)',
-            fontSize: '0.52rem',
+            fontSize: '0.72rem',
             fontWeight: 700,
-            letterSpacing: '0.28em',
+            letterSpacing: '0.22em',
             textTransform: 'uppercase',
-            color: 'rgba(14,13,11,0.55)',
+            color: 'color-mix(in oklab, var(--pl-groove-ink) 60%, transparent)',
           }}>
             {getGreeting()}{userName ? ` · ${userName}` : ''}
           </span>
@@ -692,6 +712,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
           </div>
         </div>
       </div>
+      </BlurFade>
 
       {/* ── Compose — numbered specimen cards ── */}
       {!loading && !fetchError && (
