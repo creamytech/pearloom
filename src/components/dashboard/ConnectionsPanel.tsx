@@ -235,7 +235,7 @@ export function ConnectionsPanel({ sites, onChanged }: Props) {
                 </header>
 
                 {/* Members */}
-                <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {members.map((s) => (
                     <li
                       key={s.domain}
@@ -244,14 +244,25 @@ export function ConnectionsPanel({ sites, onChanged }: Props) {
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         gap: 10,
-                        padding: '8px 10px',
+                        padding: '10px 12px',
                         borderRadius: 'var(--pl-radius-sm)',
                         background: 'color-mix(in oklab, var(--pl-olive) 6%, transparent)',
                       }}
                     >
-                      <span style={{ fontSize: '0.88rem', color: 'var(--pl-ink)' }}>
-                        {formatSiteDisplayUrl(s.domain, '', normalizeOccasion(s.manifest?.occasion))}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
+                        <OgThumbnail site={s} />
+                        <span
+                          style={{
+                            fontSize: '0.88rem',
+                            color: 'var(--pl-ink)',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {formatSiteDisplayUrl(s.domain, '', normalizeOccasion(s.manifest?.occasion))}
+                        </span>
+                      </div>
                       <button
                         onClick={() => { void unlinkSite(s.domain); }}
                         disabled={pendingDomain === s.domain}
@@ -266,6 +277,7 @@ export function ConnectionsPanel({ sites, onChanged }: Props) {
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: 4,
+                          flexShrink: 0,
                         }}
                       >
                         <Unlink size={11} />
@@ -475,5 +487,67 @@ export function ConnectionsPanel({ sites, onChanged }: Props) {
         </div>
       )}
     </section>
+  );
+}
+
+// ── OG share preview ─────────────────────────────────────────
+// Renders a tiny thumbnail of what the site's share card looks
+// like in Messages / Slack / WhatsApp. Forwards the minimal set
+// of params /api/og supports; the endpoint fills in sensible
+// defaults for anything we don't pass. Thumbnails stay small
+// (80x42 ≈ 1.9:1) so they fit inside the row without shouting.
+
+function OgThumbnail({ site }: { site: DashSite }) {
+  const manifest = site.manifest ?? null;
+  const names: [string, string] = (manifest?.names as [string, string] | undefined)
+    ?? (site.names as [string, string] | null)
+    ?? ['', ''];
+  const occasion = normalizeOccasion(manifest?.occasion);
+
+  const SOLO = new Set<string>([
+    'birthday', 'first-birthday', 'sweet-sixteen', 'milestone-birthday',
+    'retirement', 'graduation', 'bar-mitzvah', 'bat-mitzvah', 'quinceanera',
+    'baptism', 'first-communion', 'confirmation',
+    'memorial', 'funeral', 'gender-reveal', 'sip-and-see', 'bridal-shower',
+    'bridal-luncheon', 'baby-shower',
+  ]);
+
+  const params = new URLSearchParams();
+  params.set(
+    'names',
+    SOLO.has(occasion) ? (names[0] || '') : `${names[0] || ''},${names[1] || ''}`,
+  );
+  params.set('occasion', occasion);
+  const src = `/api/og?${params.toString()}`;
+
+  return (
+    <span
+      style={{
+        flexShrink: 0,
+        width: 80,
+        height: 42,
+        borderRadius: 'var(--pl-radius-xs)',
+        border: '1px solid var(--pl-divider)',
+        overflow: 'hidden',
+        display: 'block',
+        background: 'var(--pl-cream)',
+        position: 'relative',
+      }}
+      title={`Share card for ${site.domain}`}
+      aria-hidden
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt=""
+        loading="lazy"
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          display: 'block',
+        }}
+      />
+    </span>
   );
 }
