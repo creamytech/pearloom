@@ -326,7 +326,22 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       ? { id: 'faq',      slug: 'faq',      label: 'FAQ',        enabled: true,  order: 5 } : null,
   ].filter(Boolean) as import('@/types').SitePage[];
 
-  const isPasswordProtected = manifest.comingSoon?.passwordProtected && manifest.comingSoon?.password;
+  // Password gating drawn from two sources: the legacy
+  // comingSoon.passwordProtected flag, and any privacyGate block
+  // whose config sets a password. First match wins.
+  const privacyGateBlock = (manifest.blocks || []).find(
+    (b) => b.type === 'privacyGate' && typeof (b.config as { password?: unknown })?.password === 'string' && ((b.config as { password?: string }).password ?? '').trim().length > 0,
+  );
+  const gatePassword: string | null = (() => {
+    if (manifest.comingSoon?.passwordProtected && manifest.comingSoon?.password) {
+      return manifest.comingSoon.password;
+    }
+    if (privacyGateBlock) {
+      return ((privacyGateBlock.config as { password?: string }).password ?? '').trim() || null;
+    }
+    return null;
+  })();
+  const isPasswordProtected = gatePassword !== null;
 
   // ── Binding context for template/binding resolution ──────────────
   const bindingCtx = buildContext(manifest, safeNames, vibeSkin);
@@ -1380,7 +1395,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
 
   if (isPasswordProtected) {
     return (
-      <SitePasswordWrapper siteId={domain} coupleNames={safeNames} password={manifest.comingSoon!.password!} vibeSkin={vibeSkin}>
+      <SitePasswordWrapper siteId={domain} coupleNames={safeNames} password={gatePassword!} vibeSkin={vibeSkin}>
         {siteContent}
       </SitePasswordWrapper>
     );

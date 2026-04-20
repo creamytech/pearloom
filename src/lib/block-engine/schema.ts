@@ -243,6 +243,13 @@ export const BLOCK_SCHEMAS: Record<string, BlockSchema> = {
         itemShape: { text: { label: 'Rule', type: 'text' } },
       },
       contact: { label: 'Contact for access', type: 'text', placeholder: 'Text the best man at 555-1234', group: 'Content' },
+      password: {
+        label: 'Password (optional)',
+        type: 'text',
+        placeholder: 'Leave blank for a callout-only gate',
+        description: 'If set, guests must enter this password before the site loads. Legacy comingSoon.password wins if both are set.',
+        group: 'Settings',
+      },
     },
   },
 
