@@ -23,6 +23,9 @@ import { PackingListBlock } from '@/components/site/PackingListBlock';
 import { ActivityVoteBlock } from '@/components/site/ActivityVoteBlock';
 import { AdviceWallBlock } from '@/components/site/AdviceWallBlock';
 import { ToastSignupBlock } from '@/components/site/ToastSignupBlock';
+import { ObituaryBlock } from '@/components/site/ObituaryBlock';
+import { LivestreamBlock } from '@/components/site/LivestreamBlock';
+import { ProgramBlock } from '@/components/site/ProgramBlock';
 import { getEventType } from '@/lib/event-os/event-types';
 import { RegistryShowcase } from '@/components/registry-showcase';
 import { FaqSection } from '@/components/faq-section';
@@ -2657,6 +2660,68 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               subtitle={blockCfg.subtitle as string | undefined}
               slots={slots}
               storageKey={manifest.subdomain || 'default'}
+              accent={pal.accent}
+              foreground={safeFg}
+              muted={safeMuted}
+              headingFont={`"${vibeSkin.fonts.heading}", serif`}
+              bodyFont={`"${vibeSkin.fonts.body}", system-ui, sans-serif`}
+            />
+          </div>
+        );
+      }
+      case 'obituary': {
+        const name = (blockCfg.name as string) || '';
+        const body = (blockCfg.body as string) || '';
+        if (!name.trim() && !editMode) return null;
+        return (
+          <div key={key} style={blockStyle}>
+            <ObituaryBlock
+              name={name.trim() || 'In loving memory'}
+              dates={blockCfg.dates as string | undefined}
+              photoUrl={blockCfg.photoUrl as string | undefined}
+              body={body}
+              inMemoryOf={blockCfg.inMemoryOf as string | undefined}
+              accent={pal.accent}
+              foreground={safeFg}
+              muted={safeMuted}
+              headingFont={`"${vibeSkin.fonts.heading}", serif`}
+              bodyFont={`"${vibeSkin.fonts.body}", system-ui, sans-serif`}
+            />
+          </div>
+        );
+      }
+      case 'livestream': {
+        const url = (blockCfg.url as string) || '';
+        if (!url.trim() && !editMode) return null;
+        return (
+          <div key={key} style={blockStyle}>
+            <LivestreamBlock
+              title={(blockCfg.title as string) || 'Watch live'}
+              subtitle={blockCfg.subtitle as string | undefined}
+              startsAt={blockCfg.startsAt as string | undefined}
+              url={url || '#'}
+              buttonLabel={(blockCfg.buttonLabel as string) || 'Open the livestream'}
+              accent={pal.accent}
+              foreground={safeFg}
+              muted={safeMuted}
+              headingFont={`"${vibeSkin.fonts.heading}", serif`}
+              bodyFont={`"${vibeSkin.fonts.body}", system-ui, sans-serif`}
+            />
+          </div>
+        );
+      }
+      case 'program': {
+        const rawItems = (blockCfg.items as Array<{ title?: string; description?: string; participant?: string }>) || [];
+        const items = rawItems
+          .filter((i) => (i.title ?? '').trim().length > 0)
+          .map((i) => ({ title: i.title ?? '', description: i.description, participant: i.participant }));
+        if (items.length === 0 && !editMode) return null;
+        return (
+          <div key={key} style={blockStyle}>
+            <ProgramBlock
+              title={(blockCfg.title as string) || 'The program'}
+              subtitle={blockCfg.subtitle as string | undefined}
+              items={items}
               accent={pal.accent}
               foreground={safeFg}
               muted={safeMuted}

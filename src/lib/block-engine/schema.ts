@@ -224,6 +224,60 @@ export const BLOCK_SCHEMAS: Record<string, BlockSchema> = {
     },
   },
 
+  obituary: {
+    type: 'obituary',
+    label: 'Obituary',
+    description: 'Name, dates, long-form body — memorial + funeral',
+    icon: 'BookOpen',
+    category: 'content',
+    props: {
+      name: { label: 'Name', type: 'text', required: true, group: 'Content' },
+      dates: { label: 'Dates', type: 'text', placeholder: '1942 — 2026', group: 'Content' },
+      photoUrl: { label: 'Portrait URL', type: 'image', group: 'Content' },
+      body: { label: 'Body', type: 'textarea', required: true, group: 'Content' },
+      inMemoryOf: { label: 'In memory of / donations', type: 'text', placeholder: 'In lieu of flowers, donations to the Pacific Foundation.', group: 'Content' },
+    },
+  },
+
+  livestream: {
+    type: 'livestream',
+    label: 'Livestream',
+    description: 'Watch-live callout with start time + link',
+    icon: 'Video',
+    category: 'media',
+    props: {
+      title: { label: 'Title', type: 'text', placeholder: 'Watch live', group: 'Content' },
+      subtitle: { label: 'Subtitle', type: 'text', group: 'Content' },
+      startsAt: { label: 'Starts at (ISO)', type: 'text', placeholder: '2026-06-14T18:00:00-04:00', description: 'Any ISO 8601 datetime. Shown in the viewer\u2019s local timezone.', group: 'Settings' },
+      url: { label: 'Stream URL', type: 'url', required: true, placeholder: 'https://zoom.us/…', group: 'Settings' },
+      buttonLabel: { label: 'Button label', type: 'text', placeholder: 'Open the livestream', group: 'Settings' },
+    },
+  },
+
+  program: {
+    type: 'program',
+    label: 'Program',
+    description: 'Ordered ceremony program — bar mitzvah, quinceañera, memorial',
+    icon: 'ListOrdered',
+    category: 'content',
+    props: {
+      title: { label: 'Title', type: 'text', placeholder: 'The program', group: 'Content' },
+      subtitle: { label: 'Subtitle', type: 'text', group: 'Content' },
+      items: {
+        label: 'Items',
+        type: 'list',
+        group: 'Content',
+        itemLabel: 'Item',
+        itemDefaults: { title: '', description: '', participant: '' },
+        itemShape: {
+          title: { label: 'Title', type: 'text', placeholder: 'Candle-lighting ceremony' },
+          participant: { label: 'Participant', type: 'text', placeholder: 'The family' },
+          description: { label: 'Description', type: 'textarea', placeholder: 'Each candle lit in memory of…' },
+        },
+      },
+    },
+  },
+
   packingList: {
     type: 'packingList',
     label: 'Packing list',

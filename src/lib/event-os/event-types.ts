@@ -445,8 +445,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     optionalBlocks: ['video', 'spotify', 'photoWall', 'quote'],
     hiddenBlocks: ['weddingParty', 'registry', 'anniversary', 'obituary'],
-    templateIds: ['confetti-party', 'wildflower-meadow', 'cottage-pastoral'],
-    status: 'planned',
+    templateIds: ['one-year-in', 'confetti-party', 'wildflower-meadow'],
+    status: 'beta',
   },
   {
     id: 'sweet-sixteen',
@@ -464,8 +464,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     optionalBlocks: ['photoWall', 'video', 'quote', 'activityVote', 'menu'],
     hiddenBlocks: ['weddingParty', 'registry', 'anniversary', 'obituary'],
-    templateIds: ['neon-nights', 'modern-glam', 'disco-groovy'],
-    status: 'planned',
+    templateIds: ['spotlight-sixteen', 'neon-nights', 'modern-glam'],
+    status: 'beta',
   },
   {
     id: 'milestone-birthday',
@@ -504,8 +504,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     optionalBlocks: ['gallery', 'video', 'menu', 'quote', 'spotify'],
     hiddenBlocks: ['weddingParty', 'registry', 'anniversary', 'obituary'],
-    templateIds: ['quiet-luxury', 'vintage-romance', 'classic-cathedral'],
-    status: 'planned',
+    templateIds: ['career-remembered', 'quiet-luxury', 'vintage-romance'],
+    status: 'beta',
   },
   {
     id: 'graduation',
@@ -523,8 +523,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     optionalBlocks: ['livestream', 'gallery', 'video', 'quote', 'hashtag', 'menu'],
     hiddenBlocks: ['weddingParty', 'registry', 'anniversary', 'obituary'],
-    templateIds: ['dark-academia', 'chic-monochrome', 'quiet-luxury'],
-    status: 'planned',
+    templateIds: ['from-one-chapter', 'dark-academia', 'chic-monochrome'],
+    status: 'beta',
   },
 
   // ═══════════════════════════════════════════════════════════

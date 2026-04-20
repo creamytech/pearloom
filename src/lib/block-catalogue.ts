@@ -73,6 +73,9 @@ export const BLOCK_CATALOGUE: BlockDef[] = [
   { type: 'activityVote', label: 'Activity vote',    description: 'Multi-choice poll — activity, playlist, venue', color: '#7A8B4A', category: 'guests',    occasions: ['wedding', 'engagement'] },
   { type: 'adviceWall',   label: 'Advice wall',      description: 'Prompted guest submissions with a public wall', color: '#B8935A', category: 'guests',    occasions: ['wedding', 'engagement'] },
   { type: 'toastSignup',  label: 'Toast signup',     description: 'Ordered slots for who speaks and when',         color: '#7A2D2D', category: 'guests',    occasions: ['wedding', 'engagement'] },
+  { type: 'obituary',     label: 'Obituary',         description: 'Name, dates, long-form remembrance',           color: '#3A3028', category: 'story',     occasions: ['wedding', 'engagement'] },
+  { type: 'livestream',   label: 'Livestream',       description: 'Watch-live CTA with start time + link',        color: '#4A4A8B', category: 'media',     occasions: ['wedding', 'engagement'] },
+  { type: 'program',      label: 'Program',          description: 'Ordered ceremony program',                      color: '#8B6F4F', category: 'logistics', occasions: ['wedding', 'engagement'] },
 
   // gifts
   { type: 'registry',  label: 'Registry',          description: 'Registry links & honeymoon fund',             color: '#c4774a', category: 'gifts',     occasions: ['wedding', 'engagement', 'birthday'] },
