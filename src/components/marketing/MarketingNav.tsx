@@ -14,6 +14,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { ThemeToggle } from '@/components/shell';
 import { AmbientNav } from '@/components/brand/AmbientNav';
+import { SquishyButton } from '@/components/brand/groove';
 
 interface MarketingNavProps {
   onGetStarted: () => void;
@@ -139,7 +140,7 @@ export function MarketingNav({ onGetStarted }: MarketingNavProps) {
                   bottom: -4,
                   width: '100%',
                   height: 1,
-                  background: 'var(--pl-olive)',
+                  background: 'var(--pl-groove-terra)',
                   transformOrigin: 'left',
                   transform: 'scaleX(0)',
                   transition: 'transform var(--pl-dur-base) var(--pl-ease-out)',
@@ -152,27 +153,14 @@ export function MarketingNav({ onGetStarted }: MarketingNavProps) {
         {/* Right cluster */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <ThemeToggle />
-          <button
+          <SquishyButton
+            className="pl-mn-cta"
             onClick={onGetStarted}
-            className="pl-mn-cta pl-pearl-accent"
-            style={{
-              padding: '10px 18px',
-              borderRadius: 'var(--pl-radius-full)',
-              fontSize: '0.86rem',
-              fontWeight: 600,
-              letterSpacing: '-0.005em',
-              cursor: 'pointer',
-              transition: 'transform var(--pl-dur-fast) var(--pl-ease-spring)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-1px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}
+            size="sm"
+            palette="sunrise"
           >
             Start free
-          </button>
+          </SquishyButton>
           <button
             className="pl-mn-burger"
             onClick={() => setMobileOpen(true)}
@@ -301,23 +289,17 @@ export function MarketingNav({ onGetStarted }: MarketingNavProps) {
               </div>
 
               <div style={{ padding: 20, borderTop: '1px solid var(--pl-divider)', display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <button
+                <SquishyButton
                   onClick={() => {
                     setMobileOpen(false);
                     onGetStarted();
                   }}
-                  className="pl-pearl-accent"
-                  style={{
-                    width: '100%',
-                    padding: '14px 18px',
-                    borderRadius: 'var(--pl-radius-full)',
-                    fontSize: '0.92rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
+                  size="lg"
+                  palette="sunrise"
+                  fullWidth
                 >
                   Start weaving — free
-                </button>
+                </SquishyButton>
                 <div
                   style={{
                     display: 'flex',
