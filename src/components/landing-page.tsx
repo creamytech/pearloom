@@ -16,6 +16,7 @@ import { MarketingNav } from './marketing/MarketingNav';
 import { GrooveHero } from './marketing/GrooveHero';
 import { WovenDivider } from './marketing/WovenDivider';
 import { SiteShowroom } from './marketing/SiteShowroom';
+import { ShowroomParallax } from './marketing/ShowroomParallax';
 import { GrooveEventOS } from './marketing/GrooveEventOS';
 import { TracingThread } from '@/components/brand/groove';
 import { SocialProofBar } from './marketing/SocialProofBar';
@@ -186,6 +187,9 @@ export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPage
 
       {/* ── Woven divider — hero threads keep travelling ───────── */}
       <WovenDivider />
+
+      {/* ── Parallax teaser — rows of template cards drifting ── */}
+      <ShowroomParallax onGetStarted={openAuth} />
 
       {/* ── The showroom — six real sites the visitor can open ── */}
       <SiteShowroom onGetStarted={openAuth} />
