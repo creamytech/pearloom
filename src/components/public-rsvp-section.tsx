@@ -375,7 +375,8 @@ export function PublicRsvpSection({
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '0.6rem',
-                    padding: '0.85rem 2rem',
+                    padding: '14px 32px',
+                    minHeight: 48,
                     background:
                       envelopeState === 'opening'
                         ? 'linear-gradient(135deg, #d4b87a, #a8894e)'
@@ -384,7 +385,7 @@ export function PublicRsvpSection({
                     border: 'none',
                     borderRadius: '2rem',
                     fontFamily: 'var(--pl-font-body, inherit)',
-                    fontSize: '0.9rem',
+                    fontSize: '1rem',
                     fontWeight: 600,
                     letterSpacing: '0.06em',
                     cursor: envelopeState === 'opening' ? 'default' : 'pointer',
@@ -395,6 +396,32 @@ export function PublicRsvpSection({
                 >
                   <span>{envelopeState === 'opening' ? 'Opening…' : 'Open your invitation'}</span>
                 </motion.button>
+
+                {/* Plain-text bypass for guests who'd rather skip
+                    the ceremony (older users, assistive tech, or
+                    anyone who's already RSVP'd once and just wants
+                    to edit). */}
+                <div style={{ marginTop: 14 }}>
+                  <button
+                    type="button"
+                    onClick={handleOpenEnvelope}
+                    disabled={envelopeState === 'opening'}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: '6px 10px',
+                      color: 'var(--pl-muted)',
+                      fontSize: '0.88rem',
+                      textDecoration: 'underline',
+                      textDecorationThickness: '1px',
+                      textUnderlineOffset: '3px',
+                      cursor: envelopeState === 'opening' ? 'default' : 'pointer',
+                      fontFamily: 'var(--pl-font-body, inherit)',
+                    }}
+                  >
+                    Skip straight to the RSVP form
+                  </button>
+                </div>
               </div>
             </div>
           )}

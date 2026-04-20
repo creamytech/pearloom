@@ -53,8 +53,8 @@ export function StatTile({ label, value, hint, trend, accent = 'olive', icon }: 
         {icon && (
           <span
             style={{
-              width: 26,
-              height: 26,
+              width: 32,
+              height: 32,
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -68,7 +68,7 @@ export function StatTile({ label, value, hint, trend, accent = 'olive', icon }: 
         )}
         <span
           className="pl-overline"
-          style={{ fontSize: '0.62rem', letterSpacing: '0.18em' }}
+          style={{ fontSize: '0.75rem', letterSpacing: '0.18em' }}
         >
           {label}
         </span>

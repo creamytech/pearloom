@@ -42,7 +42,7 @@ export function EditorialHero({ onGetStarted }: EditorialHeroProps) {
           zIndex: 1,
           color: 'var(--pl-muted)',
           fontFamily: 'var(--pl-font-mono)',
-          fontSize: '0.66rem',
+          fontSize: '0.75rem',
           letterSpacing: '0.18em',
           textTransform: 'uppercase',
           display: 'flex',
@@ -400,7 +400,7 @@ function MiniRow({ icon, label, value, trend }: { icon: string; label: string; v
         {icon}
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '0.66rem', color: 'var(--pl-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>{label}</div>
+        <div style={{ fontSize: '0.75rem', color: 'var(--pl-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>{label}</div>
         <div style={{ color: 'var(--pl-ink)', fontWeight: 500 }}>{value}</div>
       </div>
       {trend && (

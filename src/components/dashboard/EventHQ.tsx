@@ -99,7 +99,7 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
             <div
               style={{
                 fontFamily: 'var(--pl-font-mono)',
-                fontSize: '0.5rem',
+                fontSize: '0.72rem',
                 fontWeight: 700,
                 letterSpacing: '0.28em',
                 textTransform: 'uppercase',
@@ -142,7 +142,7 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
                 gap: 16,
                 flexWrap: 'wrap',
                 fontFamily: 'var(--pl-font-mono)',
-                fontSize: '0.56rem',
+                fontSize: '0.72rem',
                 fontWeight: 700,
                 letterSpacing: '0.24em',
                 textTransform: 'uppercase',
@@ -166,12 +166,12 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
           </div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             {onShare && (
-              <Button variant="outline" size="sm" onClick={onShare} leftIcon={<ArrowUpRight size={14} />}>
+              <Button variant="outline" size="sm" onClick={onShare} leftIcon={<ArrowUpRight size={16} />}>
                 Share site
               </Button>
             )}
             {onEdit && (
-              <Button variant="primary" size="sm" onClick={onEdit} leftIcon={<Edit3 size={14} />}>
+              <Button variant="primary" size="sm" onClick={onEdit} leftIcon={<Edit3 size={16} />}>
                 Edit site
               </Button>
             )}
@@ -192,7 +192,7 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
           <div
             style={{
               fontFamily: 'var(--pl-font-mono)',
-              fontSize: '0.48rem',
+              fontSize: '0.72rem',
               fontWeight: 700,
               letterSpacing: '0.28em',
               textTransform: 'uppercase',
@@ -204,7 +204,7 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
           <span
             style={{
               fontFamily: 'var(--pl-font-mono)',
-              fontSize: '0.5rem',
+              fontSize: '0.72rem',
               fontWeight: 700,
               letterSpacing: '0.24em',
               textTransform: 'uppercase',
@@ -223,7 +223,7 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
       >
         <StatTile
           accent="olive"
-          icon={<Calendar size={14} />}
+          icon={<Calendar size={16} />}
           label="Countdown"
           value={
             daysUntil != null ? (
@@ -249,7 +249,7 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
         />
         <StatTile
           accent="gold"
-          icon={<Users size={14} />}
+          icon={<Users size={16} />}
           label="RSVPs"
           value={
             rsvp.total > 0 ? (
@@ -276,14 +276,14 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
         />
         <StatTile
           accent="plum"
-          icon={<Briefcase size={14} />}
+          icon={<Briefcase size={16} />}
           label="Vendors"
           value={site.vendorCount ?? 0}
           hint="bookings tracked"
         />
         <StatTile
           accent="none"
-          icon={<ImageIcon size={14} />}
+          icon={<ImageIcon size={16} />}
           label="Gallery"
           value={site.galleryCount ?? 0}
           hint="moments captured"
@@ -325,7 +325,7 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
             <span
               style={{
                 fontFamily: 'var(--pl-font-mono)',
-                fontSize: '0.5rem',
+                fontSize: '0.72rem',
                 fontWeight: 700,
                 letterSpacing: '0.24em',
                 textTransform: 'uppercase',
@@ -350,7 +350,7 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
             <QuickLane
               index={1}
               href="/dashboard/day-of"
-              icon={<Megaphone size={14} />}
+              icon={<Megaphone size={16} />}
               label="Day-of"
               hint="Run of show + announcements"
               accent="olive"
@@ -358,7 +358,7 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
             <QuickLane
               index={2}
               href="/dashboard/rsvp"
-              icon={<Users size={14} />}
+              icon={<Users size={16} />}
               label="Guest list"
               hint="Seats, dietary, plus-ones"
               accent="gold"
@@ -367,7 +367,7 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
             <QuickLane
               index={3}
               href="/dashboard/gallery"
-              icon={<Camera size={14} />}
+              icon={<Camera size={16} />}
               label="Gallery"
               hint="Curate the album"
               accent="plum"
@@ -376,7 +376,7 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
             <QuickLane
               index={4}
               href="/dashboard/director"
-              icon={<Sparkles size={14} />}
+              icon={<Sparkles size={16} />}
               label="Director"
               hint="Talk to Pear"
               accent="olive"
@@ -444,7 +444,7 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
             href="/dashboard/day-of"
             style={{
               fontFamily: 'var(--pl-font-mono)',
-              fontSize: '0.58rem',
+              fontSize: '0.72rem',
               fontWeight: 700,
               letterSpacing: '0.24em',
               textTransform: 'uppercase',
@@ -621,7 +621,7 @@ function PearSuggestCard({ site }: { site: EventHQSite }) {
               borderRadius: 'var(--pl-radius-xs)',
               cursor: 'pointer',
               fontFamily: 'var(--pl-font-mono)',
-              fontSize: '0.58rem',
+              fontSize: '0.72rem',
               fontWeight: 700,
               letterSpacing: '0.24em',
               textTransform: 'uppercase',
@@ -639,7 +639,7 @@ function PearSuggestCard({ site }: { site: EventHQSite }) {
               border: 'none',
               cursor: 'pointer',
               fontFamily: 'var(--pl-font-mono)',
-              fontSize: '0.54rem',
+              fontSize: '0.72rem',
               fontWeight: 700,
               letterSpacing: '0.24em',
               textTransform: 'uppercase',
@@ -757,7 +757,7 @@ function QuickLane({
         <span
           style={{
             fontFamily: 'var(--pl-font-mono)',
-            fontSize: '0.5rem',
+            fontSize: '0.72rem',
             fontWeight: 700,
             letterSpacing: '0.26em',
             color: 'var(--pl-gold)',
@@ -811,7 +811,7 @@ function QuickLane({
           data-arrow
           style={{
             fontFamily: 'var(--pl-font-mono)',
-            fontSize: '0.68rem',
+            fontSize: '0.75rem',
             color: accentVar,
             transition: 'transform 240ms cubic-bezier(0.22, 1, 0.36, 1)',
           }}
@@ -894,7 +894,7 @@ function RunOfShow() {
             <span
               style={{
                 fontFamily: 'var(--pl-font-mono)',
-                fontSize: '0.54rem',
+                fontSize: '0.72rem',
                 fontWeight: 700,
                 letterSpacing: '0.22em',
                 color: isDone ? 'var(--pl-muted)' : 'var(--pl-gold)',
@@ -929,7 +929,7 @@ function RunOfShow() {
             </span>
             <span
               style={{
-                fontSize: '0.5rem',
+                fontSize: '0.72rem',
                 fontFamily: 'var(--pl-font-mono)',
                 color: 'var(--pl-muted)',
                 letterSpacing: '0.26em',
@@ -944,7 +944,7 @@ function RunOfShow() {
                 justifySelf: 'end',
                 padding: '4px 10px',
                 borderRadius: 'var(--pl-radius-xs)',
-                fontSize: '0.5rem',
+                fontSize: '0.72rem',
                 fontFamily: 'var(--pl-font-mono)',
                 fontWeight: 700,
                 letterSpacing: '0.26em',
@@ -983,7 +983,7 @@ function RunOfShow() {
           background: 'var(--pl-cream-deep)',
           borderTop: '1px solid var(--pl-divider)',
           fontFamily: 'var(--pl-font-mono)',
-          fontSize: '0.5rem',
+          fontSize: '0.72rem',
           fontWeight: 700,
           letterSpacing: '0.26em',
           textTransform: 'uppercase',

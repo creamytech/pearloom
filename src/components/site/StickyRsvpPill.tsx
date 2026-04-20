@@ -97,22 +97,23 @@ export function StickyRsvpPill({
             zIndex: 90,
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 10,
-            padding: '12px 20px 12px 18px',
+            gap: 12,
+            padding: '14px 22px 14px 20px',
+            minHeight: 48,
             borderRadius: 'var(--pl-radius-full)',
             background: accent,
             color: '#FAF7F2',
             textDecoration: 'none',
             fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
-            fontSize: 'clamp(0.66rem, 1.4vw, 0.72rem)',
-            letterSpacing: '0.28em',
+            fontSize: 'clamp(0.82rem, 1.4vw, 0.88rem)',
+            letterSpacing: '0.22em',
             textTransform: 'uppercase',
             fontWeight: 700,
             boxShadow:
               '0 14px 32px color-mix(in oklab, var(--pl-ink, #0E0D0B) 28%, transparent), 0 2px 6px color-mix(in oklab, var(--pl-ink, #0E0D0B) 16%, transparent)',
           }}
         >
-          <Mail size={14} />
+          <Mail size={16} />
           <span>{rsvpLabel}</span>
           <button
             type="button"
@@ -122,18 +123,19 @@ export function StickyRsvpPill({
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 20,
-              height: 20,
+              width: 44,
+              height: 44,
               marginLeft: 4,
+              marginRight: -8,
               padding: 0,
               border: 'none',
-              background: 'rgba(255,255,255,0.18)',
+              background: 'transparent',
               color: 'currentColor',
               borderRadius: '50%',
               cursor: 'pointer',
             }}
           >
-            <X size={11} />
+            <X size={16} />
           </button>
         </motion.a>
       )}

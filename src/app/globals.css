@@ -83,10 +83,10 @@
   --pl-white-90:  rgba(251,247,238,0.90);
 
   /* ── Typography scale (perfect-fourth, 1.25) ── */
-  --pl-text-2xs:  0.66rem;   /* 10.5px — micro labels                  */
-  --pl-text-xs:   0.74rem;   /* 11.8px — tiny hints                    */
-  --pl-text-sm:   0.82rem;   /* 13.1px — small labels                  */
-  --pl-text-base: 0.92rem;   /* 14.7px — body text                     */
+  --pl-text-2xs:  0.75rem;   /* 12px — micro labels (age-inclusive floor) */
+  --pl-text-xs:   0.82rem;   /* 13.1px — tiny hints                     */
+  --pl-text-sm:   0.88rem;   /* 14.1px — small labels (AA on cream)     */
+  --pl-text-base: 1rem;      /* 16px — body text (browser default)      */
   --pl-text-md:   1rem;      /* 16px   — card titles                   */
   --pl-text-lg:   1.13rem;   /* 18px   — section headers               */
   --pl-text-xl:   1.32rem;   /* 21px   — panel titles                  */

@@ -94,9 +94,9 @@ export function SidebarSection({
             flexShrink: 0,
           }}
         />
-        {Icon && <Icon size={12} color="var(--pl-chrome-text)" />}
+        {Icon && <Icon size={14} color="var(--pl-chrome-text)" />}
         <span style={{
-          flex: 1, textAlign: 'left', fontSize: '0.65rem', fontWeight: 600,
+          flex: 1, textAlign: 'left', fontSize: '0.78rem', fontWeight: 600,
           letterSpacing: '0.04em', textTransform: 'uppercase',
           color: open ? 'var(--pl-chrome-text-soft)' : 'var(--pl-chrome-text-muted)',
         }}>
@@ -104,7 +104,7 @@ export function SidebarSection({
         </span>
         {badge !== undefined && (
           <span style={{
-            fontSize: '0.58rem', padding: '2px 7px', borderRadius: 'var(--pl-radius-md)',
+            fontSize: '0.72rem', padding: '3px 8px', borderRadius: 'var(--pl-radius-md)',
             background: 'var(--pl-chrome-surface-2)', color: 'var(--pl-chrome-text)',
             fontWeight: 700,
           }}>
@@ -311,7 +311,7 @@ export function EditorSidebar({
                 </motion.div>
                 {/* Micro-label */}
                 <span style={{
-                  fontSize: '0.6rem',
+                  fontSize: '0.72rem',
                   fontWeight: 700,
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',

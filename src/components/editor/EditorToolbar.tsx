@@ -126,21 +126,26 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
           <RichTooltip label="Back to dashboard" shortcut="Esc" side="bottom">
             <motion.button
               onClick={onExit}
+              aria-label="Back to dashboard"
+              title="Back to dashboard"
               whileHover={{ x: -2 }}
               whileTap={{ scale: 0.94 }}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 4,
-                padding: '6px 10px',
+                gap: 6,
+                padding: '8px 12px',
+                minHeight: 36,
                 borderRadius: 'var(--pl-radius-md)',
                 border: 'none',
                 background: 'transparent',
                 color: 'var(--pl-muted)',
                 cursor: 'pointer',
+                fontSize: '0.78rem',
+                fontWeight: 600,
               }}
             >
-              <ArrowLeft size={14} />
+              <ArrowLeft size={16} />
             </motion.button>
           </RichTooltip>
 
@@ -202,8 +207,12 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
               const active = state.device === mode;
               return (
                 <RichTooltip key={mode} label={tip.label} shortcut={tip.shortcut} side="bottom">
-                  <ToolBtn onClick={() => dispatch({ type: 'SET_DEVICE', device: mode })} active={active}>
-                    <Icon size={13} />
+                  <ToolBtn
+                    onClick={() => dispatch({ type: 'SET_DEVICE', device: mode })}
+                    active={active}
+                    label={tip.label}
+                  >
+                    <Icon size={16} />
                   </ToolBtn>
                 </RichTooltip>
               );
@@ -216,8 +225,12 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
               shortcut="⌘Z"
               side="bottom"
             >
-              <ToolBtn onClick={actions.undo} disabled={!canUndo}>
-                <UndoIcon size={13} />
+              <ToolBtn
+                onClick={actions.undo}
+                disabled={!canUndo}
+                label={canUndo && lastUndoLabel ? `Undo: ${lastUndoLabel}` : 'Undo'}
+              >
+                <UndoIcon size={16} />
               </ToolBtn>
             </RichTooltip>
             <RichTooltip
@@ -225,8 +238,12 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
               shortcut="⌘⇧Z"
               side="bottom"
             >
-              <ToolBtn onClick={actions.redo} disabled={!canRedo}>
-                <RedoIcon size={13} />
+              <ToolBtn
+                onClick={actions.redo}
+                disabled={!canRedo}
+                label={canRedo && nextRedoLabel ? `Redo: ${nextRedoLabel}` : 'Redo'}
+              >
+                <RedoIcon size={16} />
               </ToolBtn>
             </RichTooltip>
 
@@ -516,22 +533,25 @@ function PreviewButton({ onClick }: { onClick: () => void }) {
 
 // ── Tool button ──────────────────────────────────────────────
 function ToolBtn({
-  onClick, disabled, active, children,
+  onClick, disabled, active, children, label,
 }: {
   onClick: () => void;
   disabled?: boolean;
   active?: boolean;
   children: React.ReactNode;
+  label?: string;
 }) {
   return (
     <motion.button
       onClick={onClick}
       disabled={disabled}
+      aria-label={label}
+      title={label}
       whileHover={!disabled ? { scale: 1.06 } : {}}
       whileTap={!disabled ? { scale: 0.9 } : {}}
       style={{
-        width: 28,
-        height: 28,
+        minWidth: 36,
+        height: 36,
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
