@@ -546,8 +546,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     optionalBlocks: ['livestream', 'spotify', 'photoWall', 'video', 'registry'],
     hiddenBlocks: ['weddingParty', 'anniversary', 'obituary'],
-    templateIds: ['classic-cathedral', 'quiet-luxury'],
-    status: 'planned',
+    templateIds: ['sons-of-the-commandment', 'classic-cathedral', 'quiet-luxury'],
+    status: 'beta',
   },
   {
     id: 'bat-mitzvah',
@@ -565,8 +565,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     optionalBlocks: ['livestream', 'spotify', 'photoWall', 'video', 'registry'],
     hiddenBlocks: ['weddingParty', 'anniversary', 'obituary'],
-    templateIds: ['classic-cathedral', 'blush-romance', 'quiet-luxury'],
-    status: 'planned',
+    templateIds: ['daughters-of-the-commandment', 'classic-cathedral', 'blush-romance'],
+    status: 'beta',
   },
   {
     id: 'quinceanera',
@@ -584,8 +584,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     optionalBlocks: ['livestream', 'photoWall', 'video', 'hashtag', 'gallery'],
     hiddenBlocks: ['weddingParty', 'registry', 'anniversary', 'obituary'],
-    templateIds: ['confetti-party', 'modern-glam', 'classic-cathedral'],
-    status: 'planned',
+    templateIds: ['fifteen-and', 'confetti-party', 'modern-glam'],
+    status: 'beta',
   },
   {
     id: 'baptism',
@@ -603,8 +603,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     optionalBlocks: ['livestream', 'story', 'quote', 'photoWall'],
     hiddenBlocks: ['weddingParty', 'registry', 'anniversary', 'obituary', 'countdown'],
-    templateIds: ['classic-cathedral', 'blush-romance', 'quiet-luxury'],
-    status: 'planned',
+    templateIds: ['small-soul-shared-promise', 'classic-cathedral', 'blush-romance'],
+    status: 'beta',
   },
   {
     id: 'first-communion',
@@ -621,8 +621,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     optionalBlocks: ['photoWall', 'story', 'quote'],
     hiddenBlocks: ['weddingParty', 'registry', 'anniversary', 'obituary', 'countdown'],
-    templateIds: ['classic-cathedral', 'blush-romance'],
-    status: 'planned',
+    templateIds: ['first-taste', 'classic-cathedral', 'blush-romance'],
+    status: 'beta',
   },
   {
     id: 'confirmation',
@@ -639,8 +639,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     optionalBlocks: ['story', 'quote', 'photoWall'],
     hiddenBlocks: ['weddingParty', 'registry', 'anniversary', 'obituary'],
-    templateIds: ['classic-cathedral', 'quiet-luxury'],
-    status: 'planned',
+    templateIds: ['choosing-the-faith', 'classic-cathedral', 'quiet-luxury'],
+    status: 'beta',
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -662,8 +662,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     optionalBlocks: ['registry', 'spotify', 'video', 'rsvp', 'whosWho', 'menu'],
     hiddenBlocks: ['weddingParty', 'anniversary', 'countdown', 'hashtag'],
-    templateIds: ['quiet-luxury', 'classic-cathedral', 'dark-academia'],
-    status: 'planned',
+    templateIds: ['a-gathering-to-remember', 'quiet-luxury', 'classic-cathedral'],
+    status: 'beta',
   },
   {
     id: 'funeral',
@@ -684,8 +684,8 @@ export const EVENT_TYPES: EventType[] = [
       'weddingParty', 'registry', 'anniversary', 'countdown',
       'hashtag', 'spotify',
     ],
-    templateIds: ['classic-cathedral', 'quiet-luxury'],
-    status: 'planned',
+    templateIds: ['gathering-briefly', 'classic-cathedral', 'quiet-luxury'],
+    status: 'beta',
   },
   {
     id: 'reunion',
