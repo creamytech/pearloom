@@ -68,6 +68,7 @@ export const BLOCK_CATALOGUE: BlockDef[] = [
   { type: 'map',       label: 'Map',               description: 'Embedded venue map',                          color: '#4a6a8b', category: 'logistics', occasions: ['wedding', 'engagement', 'anniversary'] },
   { type: 'faq',       label: 'FAQ',               description: 'Common guest questions & answers',            color: '#8b7a4a', category: 'logistics', occasions: ['wedding', 'engagement'] },
   { type: 'itinerary', label: 'Itinerary',         description: 'Multi-day hourly schedule with details',       color: '#5C6B3F', category: 'logistics', occasions: ['wedding', 'engagement'] },
+  { type: 'costSplitter', label: 'Cost share',      description: 'Shared group-trip budget + per-person share', color: '#C49A6F', category: 'gifts',     occasions: ['wedding', 'engagement'] },
 
   // gifts
   { type: 'registry',  label: 'Registry',          description: 'Registry links & honeymoon fund',             color: '#c4774a', category: 'gifts',     occasions: ['wedding', 'engagement', 'birthday'] },

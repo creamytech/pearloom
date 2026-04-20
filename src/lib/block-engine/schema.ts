@@ -167,6 +167,136 @@ export const BLOCK_SCHEMAS: Record<string, BlockSchema> = {
     },
   },
 
+  itinerary: {
+    type: 'itinerary',
+    label: 'Itinerary',
+    description: 'Multi-day hourly schedule — bachelor, reunion, welcome party',
+    icon: 'CalendarClock',
+    category: 'content',
+    props: {
+      title: {
+        label: 'Section Title',
+        type: 'text',
+        placeholder: 'The plan',
+        group: 'Content',
+      },
+      subtitle: {
+        label: 'Subtitle',
+        type: 'text',
+        placeholder: 'Every hour accounted for — or close enough.',
+        group: 'Content',
+      },
+      entries: {
+        label: 'Schedule',
+        type: 'list',
+        group: 'Content',
+        itemLabel: 'Slot',
+        itemDefaults: { day: 'Day 1', time: '', title: '', location: '', detail: '' },
+        itemShape: {
+          day: {
+            label: 'Day',
+            type: 'text',
+            placeholder: 'Friday · Day 1 · Arrival day',
+            description: 'Slots with the same day label are grouped together.',
+          },
+          time: {
+            label: 'Time',
+            type: 'text',
+            placeholder: '09:30 · All day · Evening',
+          },
+          title: {
+            label: 'What',
+            type: 'text',
+            placeholder: 'Hotel check-in',
+          },
+          location: {
+            label: 'Where',
+            type: 'text',
+            placeholder: 'Chez nous · The Hollow · 123 Main St.',
+          },
+          detail: {
+            label: 'Notes',
+            type: 'textarea',
+            placeholder: 'Key in the lockbox if you\u2019re early.',
+          },
+        },
+      },
+    },
+  },
+
+  costSplitter: {
+    type: 'costSplitter',
+    label: 'Cost share',
+    description: 'Shared group budget with per-person share — bachelor, reunion',
+    icon: 'Wallet',
+    category: 'content',
+    props: {
+      title: {
+        label: 'Section Title',
+        type: 'text',
+        placeholder: 'The cost share',
+        group: 'Content',
+      },
+      subtitle: {
+        label: 'Intro',
+        type: 'text',
+        placeholder: 'All-in, split evenly.',
+        group: 'Content',
+      },
+      currency: {
+        label: 'Currency',
+        type: 'select',
+        defaultValue: 'USD',
+        options: [
+          { value: 'USD', label: 'USD $' },
+          { value: 'EUR', label: 'EUR €' },
+          { value: 'GBP', label: 'GBP £' },
+          { value: 'CAD', label: 'CAD $' },
+          { value: 'AUD', label: 'AUD $' },
+        ],
+        group: 'Settings',
+      },
+      headcount: {
+        label: 'Number of people',
+        type: 'number',
+        min: 1,
+        max: 200,
+        description: 'Used to calculate the per-person share.',
+        group: 'Settings',
+      },
+      payoutHandle: {
+        label: 'Pay to (Venmo / handle)',
+        type: 'text',
+        placeholder: 'Venmo @best-man',
+        group: 'Settings',
+      },
+      lineItems: {
+        label: 'Line items',
+        type: 'list',
+        group: 'Content',
+        itemLabel: 'Expense',
+        itemDefaults: { label: '', amount: 0, note: '' },
+        itemShape: {
+          label: {
+            label: 'What',
+            type: 'text',
+            placeholder: 'Airbnb · Dinner Saturday · Activity',
+          },
+          amount: {
+            label: 'Amount',
+            type: 'number',
+            min: 0,
+          },
+          note: {
+            label: 'Note',
+            type: 'text',
+            placeholder: 'Locked in · Split 6 ways · Tip included',
+          },
+        },
+      },
+    },
+  },
+
   rsvp: {
     type: 'rsvp',
     label: 'RSVP',

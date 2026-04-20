@@ -1120,29 +1120,36 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('itinerary', 4, {
         title: 'The plan',
         subtitle: 'Every hour accounted for — or close enough.',
-        days: [
-          { label: 'Friday', slots: [
-            { time: '16:00', title: 'Arrivals', location: 'The house', detail: 'Front door is open — key in the lockbox if you\u2019re early.' },
-            { time: '19:00', title: 'Welcome dinner', location: 'Chez nous', detail: 'Kitchen table. Nothing fancy.' },
-            { time: '21:30', title: 'First round', location: 'The Hollow', detail: 'Two-block walk from the house.' },
-          ]},
-          { label: 'Saturday', slots: [
-            { time: '09:00', title: 'Breakfast + coffee', location: 'The house' },
-            { time: '11:00', title: 'The main event', detail: 'See vote in the activity block — final pick by Thursday.' },
-            { time: '19:00', title: 'Dinner reservation', location: 'Supper Club', detail: 'Collared shirt, please. They\u2019ll turn us away otherwise.' },
-            { time: '22:00', title: 'The main event', detail: 'Rolling through the night.' },
-          ]},
-          { label: 'Sunday', slots: [
-            { time: '10:30', title: 'Recovery brunch', location: 'The diner on the corner' },
-            { time: '13:00', title: 'Checkout' },
-          ]},
+        entries: [
+          { day: 'Friday',   time: '16:00', title: 'Arrivals',          location: 'The house',                detail: 'Front door is open — key in the lockbox if you\u2019re early.' },
+          { day: 'Friday',   time: '19:00', title: 'Welcome dinner',    location: 'Chez nous',                detail: 'Kitchen table. Nothing fancy.' },
+          { day: 'Friday',   time: '21:30', title: 'First round',       location: 'The Hollow',               detail: 'Two-block walk from the house.' },
+          { day: 'Saturday', time: '09:00', title: 'Breakfast + coffee',location: 'The house',                detail: '' },
+          { day: 'Saturday', time: '11:00', title: 'The main event',    location: '',                         detail: 'See vote in the activity block — final pick by Thursday.' },
+          { day: 'Saturday', time: '19:00', title: 'Dinner reservation',location: 'Supper Club',              detail: 'Collared shirt, please. They\u2019ll turn us away otherwise.' },
+          { day: 'Saturday', time: '22:00', title: 'The main event',    location: '',                         detail: 'Rolling through the night.' },
+          { day: 'Sunday',   time: '10:30', title: 'Recovery brunch',   location: 'The diner on the corner',  detail: '' },
+          { day: 'Sunday',   time: '13:00', title: 'Checkout',          location: '',                         detail: '' },
         ],
       }),
       makeBlock('event', 5, { title: 'Where we\u2019re staying' }),
-      makeBlock('rsvp', 6, { title: 'In or out', introText: '{{ poetry.rsvpIntro }}' }),
-      makeBlock('faq', 7, { title: 'Quick answers' }),
-      makeBlock('photos', 8, { title: 'Proof of life', maxPhotos: 12 }),
-      makeBlock('footer', 9, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
+      makeBlock('costSplitter', 6, {
+        title: 'The cost share',
+        subtitle: 'All-in, split evenly. Venmo before Friday so the host isn\u2019t chasing.',
+        currency: 'USD',
+        headcount: 6,
+        payoutHandle: 'Venmo @best-man',
+        lineItems: [
+          { label: 'Airbnb · 2 nights', amount: 1800, note: 'Friday + Saturday, 3BR' },
+          { label: 'Saturday dinner',    amount: 780,  note: 'Supper Club reservation — drinks included' },
+          { label: 'Saturday activity',  amount: 540,  note: 'See the vote on the main plan' },
+          { label: 'Group chef, Friday', amount: 420,  note: 'Private dinner + wine pairing' },
+        ],
+      }),
+      makeBlock('rsvp', 7, { title: 'In or out', introText: '{{ poetry.rsvpIntro }}' }),
+      makeBlock('faq', 8, { title: 'Quick answers' }),
+      makeBlock('photos', 9, { title: 'Proof of life', maxPhotos: 12 }),
+      makeBlock('footer', 10, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     theme: {
       colors: {

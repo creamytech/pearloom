@@ -18,6 +18,7 @@ import { StorySection, chapterDateFormatOptions } from '@/components/blocks/Stor
 import { WeddingEvents } from '@/components/wedding-events';
 import { VisualTimeline } from '@/components/visual-timeline';
 import { ItineraryBlock } from '@/components/site/ItineraryBlock';
+import { CostSplitterBlock } from '@/components/site/CostSplitterBlock';
 import { getEventType } from '@/lib/event-os/event-types';
 import { RegistryShowcase } from '@/components/registry-showcase';
 import { FaqSection } from '@/components/faq-section';
@@ -2458,25 +2459,52 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         );
       }
       case 'itinerary': {
-        // Multi-day schedule for bachelor/ette, reunion, welcome party.
-        // Data layout: config.days = [{ label, date?, slots: [{time, title, detail?, location?}] }]
-        const rawDays = (blockCfg.days as Array<{
-          label?: string;
-          date?: string;
-          slots?: Array<{ time?: string; title?: string; detail?: string; location?: string }>;
-        }>) || [];
-        const days = rawDays.map((d, i) => ({
-          label: d.label || `Day ${i + 1}`,
-          date: d.date,
-          slots: (d.slots || [])
-            .filter((s) => (s.title ?? '').trim().length > 0)
-            .map((s) => ({
-              time: s.time,
-              title: s.title ?? '',
-              detail: s.detail,
-              location: s.location,
-            })),
-        }));
+        // Multi-day schedule. Two supported config shapes:
+        //  1. Preferred / editor-friendly: config.entries[] — flat
+        //     rows, each with {day, time, title, location?, detail?}.
+        //     Grouped by `day` label at render time.
+        //  2. Legacy / template-friendly: config.days[] — pre-grouped
+        //     shape matching ItineraryBlock's props.
+        // Whichever is present wins; entries takes precedence when
+        // both exist.
+        type Entry = { day?: string; time?: string; title?: string; location?: string; detail?: string };
+        const entries = (blockCfg.entries as Entry[]) || [];
+        let days: Array<{ label: string; date?: string; slots: Array<{ time?: string; title: string; location?: string; detail?: string }> }> = [];
+        if (entries.length > 0) {
+          const grouped = new Map<string, typeof days[number]>();
+          for (const entry of entries) {
+            if (!(entry.title ?? '').trim()) continue;
+            const dayKey = (entry.day ?? 'Day 1').trim() || 'Day 1';
+            if (!grouped.has(dayKey)) {
+              grouped.set(dayKey, { label: dayKey, slots: [] });
+            }
+            grouped.get(dayKey)!.slots.push({
+              time: entry.time,
+              title: entry.title ?? '',
+              location: entry.location,
+              detail: entry.detail,
+            });
+          }
+          days = Array.from(grouped.values());
+        } else {
+          const rawDays = (blockCfg.days as Array<{
+            label?: string;
+            date?: string;
+            slots?: Array<{ time?: string; title?: string; detail?: string; location?: string }>;
+          }>) || [];
+          days = rawDays.map((d, i) => ({
+            label: d.label || `Day ${i + 1}`,
+            date: d.date,
+            slots: (d.slots || [])
+              .filter((s) => (s.title ?? '').trim().length > 0)
+              .map((s) => ({
+                time: s.time,
+                title: s.title ?? '',
+                detail: s.detail,
+                location: s.location,
+              })),
+          }));
+        }
         if (days.length === 0) {
           return editMode ? (
             <section key={key} data-pe-section="itinerary" data-pe-empty-section="itinerary" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
@@ -2495,6 +2523,41 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               title={title}
               subtitle={subtitle}
               days={days}
+              accent={pal.accent}
+              foreground={safeFg}
+              muted={safeMuted}
+              headingFont={`"${vibeSkin.fonts.heading}", serif`}
+              bodyFont={`"${vibeSkin.fonts.body}", system-ui, sans-serif`}
+            />
+          </div>
+        );
+      }
+      case 'costSplitter': {
+        // Group-trip budget. config.lineItems[] = [{label, amount, note?}]
+        // config.headcount (number), config.currency (ISO), config.payoutHandle.
+        const rawItems = (blockCfg.lineItems as Array<{ label?: string; amount?: number | string; note?: string }>) || [];
+        const lineItems = rawItems
+          .filter((i) => (i.label ?? '').trim().length > 0)
+          .map((i) => ({
+            label: i.label ?? '',
+            amount: Number(i.amount) || 0,
+            note: i.note,
+          }));
+        if (lineItems.length === 0 && !editMode) return null;
+        const title = (blockCfg.title as string) || 'The cost share';
+        const subtitle = (blockCfg.subtitle as string) || undefined;
+        const currency = (blockCfg.currency as string) || 'USD';
+        const headcount = Number(blockCfg.headcount) || undefined;
+        const payoutHandle = (blockCfg.payoutHandle as string) || undefined;
+        return (
+          <div key={key} style={blockStyle}>
+            <CostSplitterBlock
+              title={title}
+              subtitle={subtitle}
+              currency={currency}
+              headcount={headcount}
+              lineItems={lineItems}
+              payoutHandle={payoutHandle}
               accent={pal.accent}
               foreground={safeFg}
               muted={safeMuted}
