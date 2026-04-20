@@ -16,7 +16,8 @@ import { MarketingNav } from './marketing/MarketingNav';
 import { GrooveHero } from './marketing/GrooveHero';
 import { WovenDivider } from './marketing/WovenDivider';
 import { SiteShowroom } from './marketing/SiteShowroom';
-import { EventOSPillars } from './marketing/EventOSPillars';
+import { GrooveEventOS } from './marketing/GrooveEventOS';
+import { TracingThread } from '@/components/brand/groove';
 import { SocialProofBar } from './marketing/SocialProofBar';
 import { TheLoomShowcase } from './marketing/TheLoomShowcase';
 import { GuestExperience } from './marketing/GuestExperience';
@@ -173,6 +174,13 @@ export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPage
       {/* ── Nav (editorial, theme-aware) ───────────────────────── */}
       <MarketingNav onGetStarted={openAuth} />
 
+      {/* ── Scroll-linked loom thread running down the whole page.
+          Fixed position, hides on narrow screens, honours
+          reduced-motion via framer's useScroll (no kinetic
+          motion when motion-reduced). */}
+      <TracingThread side="left" />
+      <TracingThread side="right" warp="var(--pl-groove-sage)" weft="var(--pl-groove-butter)" />
+
       {/* ── Hero ───────────────────────────────────────────────── */}
       <GrooveHero onGetStarted={openAuth} />
 
@@ -186,7 +194,7 @@ export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPage
       <SocialProofBar />
 
       {/* ── Event OS — the actual pitch ────────────────────────── */}
-      <EventOSPillars />
+      <GrooveEventOS onGetStarted={openAuth} />
 
       {/* ── Try it live ────────────────────────────────────────── */}
       <section

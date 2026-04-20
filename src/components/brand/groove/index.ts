@@ -14,3 +14,5 @@ export { PillNav } from './PillNav';
 export { RipeningPear } from './RipeningPear';
 export { Ripple } from './Ripple';
 export { BlurFade } from './BlurFade';
+export { GrooveBento, type GrooveBentoCell } from './GrooveBento';
+export { TracingThread } from './TracingThread';
