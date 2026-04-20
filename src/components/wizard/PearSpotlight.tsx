@@ -2808,23 +2808,43 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                     onClick={handlePhotosSkip}
                     style={{
                       width: '100%',
-                      padding: '10px 16px',
+                      padding: '14px 16px',
+                      minHeight: 48,
                       background: 'transparent',
-                      border: 'none',
+                      border: '1px dashed rgba(184,147,90,0.45)',
+                      borderRadius: 'var(--pl-radius-xs)',
                       fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
-                      fontSize: 9.5,
+                      fontSize: 11,
                       fontWeight: 700,
-                      letterSpacing: '0.28em',
+                      letterSpacing: '0.22em',
                       textTransform: 'uppercase',
-                      color: 'rgba(184,147,90,0.85)',
+                      color: '#18181B',
                       cursor: 'pointer',
-                      textDecoration: 'underline',
-                      textUnderlineOffset: 4,
-                      textDecorationColor: 'rgba(184,147,90,0.35)',
+                      transition: 'background 180ms ease, border-color 180ms ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLElement).style.background = 'rgba(184,147,90,0.08)';
+                      (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.75)';
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLElement).style.background = 'transparent';
+                      (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.45)';
                     }}
                   >
-                    Run without photographs
+                    Skip photos · add them later
                   </button>
+                  <p
+                    style={{
+                      textAlign: 'center',
+                      fontSize: '0.78rem',
+                      color: 'rgba(14,13,11,0.55)',
+                      margin: '4px 0 0',
+                      fontStyle: 'italic',
+                      fontFamily: 'var(--pl-font-body)',
+                    }}
+                  >
+                    We&rsquo;ll use Pear-drafted artwork until you upload your own.
+                  </p>
                 </div>
               )}
 
