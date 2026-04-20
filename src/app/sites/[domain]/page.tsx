@@ -34,6 +34,7 @@ import { LiveUpdatesFeed } from '@/components/site/LiveUpdatesFeed';
 import { SpotifySection } from '@/components/site/SpotifySection';
 import { AmbientSpotifyPlayer } from '@/components/site/AmbientSpotifyPlayer';
 import { StickyRsvpPill } from '@/components/site/StickyRsvpPill';
+import { LinkedEventsStrip } from '@/components/site/LinkedEventsStrip';
 import { CoupleQuiz } from '@/components/site/CoupleQuiz';
 import { ShareBar } from '@/components/site/ShareBar';
 import { enforcePaletteContrast } from '@/lib/color-utils';
@@ -1290,6 +1291,20 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             top of the RSVP section itself, dismissable for the session. */}
         {(manifest.events?.length || 0) > 0 && (
           <StickyRsvpPill accent={pal.accent} rsvpLabel="RSVP" />
+        )}
+
+        {/* Linked sibling events — shows only when the site has a
+            celebration group + at least one other published sibling. */}
+        {manifest.celebration?.id && manifest.celebration?.name && (
+          <LinkedEventsStrip
+            siteId={domain}
+            celebrationName={manifest.celebration.name}
+            accent={pal.accent}
+            foreground={pal.foreground}
+            muted={pal.muted}
+            headingFont={vibeSkin.fonts.heading}
+            bodyFont={vibeSkin.fonts.body}
+          />
         )}
 
         {/* Site footer */}

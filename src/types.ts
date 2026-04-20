@@ -129,6 +129,15 @@ export interface StoryManifest {
   ogImage?: string;
   // Site protection
   sitePassword?: string;
+  // Celebration — groups this site with sibling Pearloom sites
+  // that belong to the same real-world celebration (e.g. a
+  // wedding weekend with its own bachelor party + rehearsal +
+  // brunch sites). Sites sharing the same `id` are siblings;
+  // the group is discoverable via /api/celebrations/siblings.
+  celebration?: {
+    id: string;    // opaque grouping key (UUID or host-defined)
+    name: string;  // display name — "Emma & James's wedding weekend"
+  };
   // Page ids to hide from nav
   hiddenPages?: string[];
   // Feature flags for optional site sections
