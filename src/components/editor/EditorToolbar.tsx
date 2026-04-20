@@ -439,24 +439,30 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
               }}
               disabled={blocked}
               whileHover={!blocked ? { y: -1 } : {}}
-              whileTap={!blocked ? { scale: 0.97 } : {}}
-              className={blocked ? undefined : 'pl-pearl-accent'}
+              whileTap={!blocked ? { scale: 0.94 } : {}}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 6,
-                padding: isMobile ? '6px 14px' : '7px 18px',
-                borderRadius: 'var(--pl-radius-full)',
-                border: blocked ? 'none' : undefined,
-                background: blocked ? 'var(--pl-muted-soft, var(--pl-divider))' : undefined,
-                color: blocked ? 'var(--pl-muted)' : undefined,
+                padding: isMobile ? '10px 18px' : '12px 22px',
+                minHeight: isMobile ? 36 : 40,
+                borderRadius: 'var(--pl-groove-radius-pill)',
+                border: 'none',
+                background: blocked
+                  ? 'var(--pl-muted-soft, var(--pl-divider))'
+                  : 'var(--pl-groove-blob-sunrise)',
+                color: blocked ? 'var(--pl-muted)' : '#fff',
                 cursor: blocked ? 'not-allowed' : 'pointer',
                 opacity: blocked ? 0.6 : 1,
-                fontSize: '0.66rem',
-                fontWeight: 700,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                transition: 'box-shadow 0.25s ease, transform 0.2s ease',
+                fontSize: '0.88rem',
+                fontWeight: 600,
+                letterSpacing: '-0.005em',
+                boxShadow: blocked
+                  ? 'none'
+                  : '0 6px 18px rgba(139,74,106,0.24), 0 2px 6px rgba(43,30,20,0.08)',
+                transition:
+                  'transform var(--pl-dur-fast) var(--pl-groove-ease-squish),' +
+                  ' box-shadow var(--pl-dur-fast) var(--pl-ease-out)',
               }}
             >
               Publish

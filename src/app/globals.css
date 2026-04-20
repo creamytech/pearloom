@@ -236,12 +236,16 @@
   --pl-chrome-text-soft:      #3A332C;
   --pl-chrome-text-muted:     #7A6F5C;
   --pl-chrome-text-faint:     #A89F8B;
-  --pl-chrome-accent:         #7A8B4A;
-  --pl-chrome-accent-soft:    rgba(122,139,74,0.12);
+  /* Accent shifted to a calibrated groove terra (~60% saturation)
+     so the editor chrome reads warm like the rest of the product-
+     UI family without overwhelming the canvas preview next to it.
+     The canvas panel still uses its own site palette. */
+  --pl-chrome-accent:         #B8754A;
+  --pl-chrome-accent-soft:    rgba(184,117,74,0.12);
   --pl-chrome-accent-ink:     #FBF7EE;
   --pl-chrome-danger:         #8B4A6A;
   --pl-chrome-success:        #7A8B4A;
-  --pl-chrome-focus:          0 0 0 2px rgba(122,139,74,0.35);
+  --pl-chrome-focus:          0 0 0 2px rgba(184,117,74,0.35);
   --pl-chrome-shadow:         0 1px 3px rgba(14,13,11,0.06), 0 1px 2px rgba(14,13,11,0.04);
   /* Rail: the permanent dark icon column at the editor's left edge */
   --pl-chrome-rail:           #18181B;
@@ -335,12 +339,14 @@
   --pl-chrome-text-soft:      #D4CDBC;
   --pl-chrome-text-muted:     #9A9080;
   --pl-chrome-text-faint:     #6B6452;
-  --pl-chrome-accent:         #A4B57A;
-  --pl-chrome-accent-soft:    rgba(164,181,122,0.14);
+  /* Dark-mode groove-calibrated accent: lighter terracotta so
+     it reads on midnight chrome. */
+  --pl-chrome-accent:         #E08A5C;
+  --pl-chrome-accent-soft:    rgba(224,138,92,0.14);
   --pl-chrome-accent-ink:     #0D0B07;
   --pl-chrome-danger:         #C46A6A;
   --pl-chrome-success:        #A4B57A;
-  --pl-chrome-focus:          0 0 0 2px rgba(164,181,122,0.40);
+  --pl-chrome-focus:          0 0 0 2px rgba(224,138,92,0.40);
   --pl-chrome-shadow:         0 1px 3px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.30);
   /* Rail stays near-black to anchor the dark theme too */
   --pl-chrome-rail:           #0A0806;
