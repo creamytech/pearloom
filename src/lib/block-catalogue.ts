@@ -10,13 +10,17 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { BlockType } from '@/types';
+import type { SiteOccasion } from '@/lib/site-urls';
+import {
+  getAllowedBlocksFor,
+  getHiddenBlocksFor,
+} from '@/lib/event-os/event-types';
 
-export type OccasionTag =
-  | 'wedding'
-  | 'anniversary'
-  | 'engagement'
-  | 'birthday'
-  | 'story';
+// OccasionTag kept as an alias for backwards compat. The registry
+// in event-types.ts now owns which blocks apply to which occasions;
+// the per-block `occasions: []` below is informational only and
+// filtering goes through filterBlocksForOccasion() → registry.
+export type OccasionTag = SiteOccasion;
 
 export const ALL_OCCASIONS: OccasionTag[] = [
   'wedding',
@@ -101,6 +105,20 @@ export function getBlockDef(type: BlockType): BlockDef | undefined {
   return BLOCK_CATALOGUE.find((b) => b.type === type);
 }
 
+/**
+ * Filter the block catalogue to blocks available for a given occasion.
+ *
+ * Delegates to the EVENT_TYPES registry: if an event type declares a
+ * block in defaultBlocks or optionalBlocks, it shows; if it's in
+ * hiddenBlocks, it's hidden. Unknown / legacy occasions fall back to
+ * the per-block `occasions: []` hint for backwards compatibility.
+ */
 export function filterBlocksForOccasion(occasion: OccasionTag): BlockDef[] {
-  return BLOCK_CATALOGUE.filter((b) => b.occasions.includes(occasion));
+  const allowed = new Set<BlockType>(getAllowedBlocksFor(occasion));
+  const hidden = new Set<BlockType>(getHiddenBlocksFor(occasion));
+  if (allowed.size === 0 && hidden.size === 0) {
+    // Occasion not in the registry yet — fall back to legacy per-block tags.
+    return BLOCK_CATALOGUE.filter((b) => b.occasions.includes(occasion));
+  }
+  return BLOCK_CATALOGUE.filter((b) => allowed.has(b.type) && !hidden.has(b.type));
 }

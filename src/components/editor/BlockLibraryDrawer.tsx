@@ -40,6 +40,7 @@ import {
 import {
   BLOCK_CATALOGUE,
   BLOCK_CATEGORIES,
+  filterBlocksForOccasion,
   type BlockCategory,
   type BlockDef,
   type OccasionTag,
@@ -130,7 +131,7 @@ export function BlockLibraryDrawer({
   }, [open, onClose]);
 
   const filtered = useMemo(() => {
-    const byOccasion = BLOCK_CATALOGUE.filter((b) => b.occasions.includes(occasion));
+    const byOccasion = filterBlocksForOccasion(occasion);
     const byCat = activeCat === 'all' ? byOccasion : byOccasion.filter((b) => b.category === activeCat);
     const q = search.trim().toLowerCase();
     if (!q) return byCat;
@@ -144,8 +145,7 @@ export function BlockLibraryDrawer({
   const catCounts = useMemo(() => {
     const counts: Record<string, number> = { all: 0 };
     for (const cat of BLOCK_CATEGORIES) counts[cat.id] = 0;
-    for (const b of BLOCK_CATALOGUE) {
-      if (!b.occasions.includes(occasion)) continue;
+    for (const b of filterBlocksForOccasion(occasion)) {
       counts.all += 1;
       counts[b.category] = (counts[b.category] || 0) + 1;
     }

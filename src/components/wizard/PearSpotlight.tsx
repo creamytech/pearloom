@@ -20,6 +20,11 @@ import { WizardBreadcrumb, type BreadcrumbStepKey } from '@/components/wizard/Wi
 import { useConfetti } from '@/components/wizard/useConfetti';
 import { PhotoDropZone } from '@/components/wizard/PhotoDropZone';
 import { useSpeechRecognition } from '@/components/wizard/useSpeechRecognition';
+import {
+  EVENT_TYPES,
+  getEventTypesByCategory,
+  type EventCategory,
+} from '@/lib/event-os/event-types';
 import type { StoryManifest } from '@/types';
 
 interface PearSpotlightProps {
@@ -28,6 +33,8 @@ interface PearSpotlightProps {
 }
 
 interface Collected {
+  /** High-level category chosen in step 1, used to filter event options in step 2. */
+  category?: 'wedding-arc' | 'family' | 'milestone' | 'cultural' | 'commemoration';
   occasion?: string;
   names?: [string, string];
   date?: string;
@@ -39,7 +46,7 @@ interface Collected {
   songUrl?: string;
 }
 
-type Step = 'occasion' | 'names' | 'date' | 'venue' | 'vibe-ask' | 'vibe-pick' | 'photos' | 'photo-review' | 'layout' | 'song' | 'ready';
+type Step = 'category' | 'occasion' | 'names' | 'date' | 'venue' | 'vibe-ask' | 'vibe-pick' | 'photos' | 'photo-review' | 'layout' | 'song' | 'ready';
 
 const STYLE_PAIRS = [
   { a: { name: 'Blush & Sage', colors: ['#D4A0A0', '#5C6B3F', '#FAF7F2', '#3D3530'] },
@@ -172,6 +179,7 @@ function getDefaultVibeForOccasion(occasion?: string): string {
 // from the actual photos the user picked (see the vibe-ask
 // step's "Let Pear look at your photos" suggestions block).
 function currentStep(c: Collected, photosDecided: boolean, vibeDescription: string, photosCount: number, reviewDone: boolean, layoutConfirmed: boolean, songDecided: boolean): Step {
+  if (!c.category) return 'category';
   if (!c.occasion) return 'occasion';
   if (!c.names?.[0]) return 'names';
   if (c.occasion === 'wedding' || c.occasion === 'engagement' || c.occasion === 'anniversary') {
@@ -196,6 +204,7 @@ function titleForStep(step: Step, collected: Collected): string {
   const nameDisplay = name2 ? `${name1} & ${name2}` : name1;
 
   switch (step) {
+    case 'category': return 'What kind of moment?';
     case 'occasion': return 'What are we celebrating?';
     case 'names': return 'Who is this for?';
     case 'date': return "When's the date?";
@@ -214,6 +223,7 @@ function titleForStep(step: Step, collected: Collected): string {
 function descriptionForStep(step: Step, collected: Collected): string {
   const occ = collected.occasion;
   switch (step) {
+    case 'category': return 'Pick a direction and we\u2019ll narrow it down.';
     case 'occasion': return 'This helps us personalize your site layout and features.';
     case 'names':
       if (occ === 'birthday') return 'Just their first name is perfect.';
@@ -240,9 +250,9 @@ function isDarkVibe(vibe?: string): boolean {
 }
 
 // Step index for progress bar (0-based out of total steps)
-const TOTAL_STEPS = 11;
+const TOTAL_STEPS = 12;
 function stepIndex(step: Step): number {
-  const ORDER: Step[] = ['occasion', 'names', 'date', 'venue', 'photos', 'photo-review', 'vibe-ask', 'vibe-pick', 'layout', 'song', 'ready'];
+  const ORDER: Step[] = ['category', 'occasion', 'names', 'date', 'venue', 'photos', 'photo-review', 'vibe-ask', 'vibe-pick', 'layout', 'song', 'ready'];
   return ORDER.indexOf(step);
 }
 
@@ -545,6 +555,12 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   const [detectingPhotos, setDetectingPhotos] = useState<Set<number>>(new Set());
 
   // ── Handlers ──────────────────────────────────────────────
+  const handleCategorySelect = (value: string) => {
+    const cat = value as EventCategory;
+    setDirection(1);
+    setCollected(prev => ({ ...prev, category: cat, occasion: undefined }));
+  };
+
   const handleOccasionSelect = (value: string) => {
     setDirection(1);
     setCollected(prev => ({ ...prev, occasion: value }));
@@ -1506,19 +1522,39 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: direction * -40 }}
                 transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                style={{ minHeight: step === 'occasion' ? 200 : 120 }}
+                style={{ minHeight: step === 'category' || step === 'occasion' ? 200 : 120 }}
               >
-              {/* ── Occasion step ── */}
-              {step === 'occasion' && !freeformOpen && (
+              {/* ── Category step (first choice: direction) ── */}
+              {step === 'category' && (
                 <div>
                   <OccasionCard
                     occasions={[
-                      { label: 'Wedding', value: 'wedding' },
-                      { label: 'Birthday', value: 'birthday' },
-                      { label: 'Anniversary', value: 'anniversary' },
-                      { label: 'Engagement', value: 'engagement' },
-                      { label: 'Our Story', value: 'story' },
+                      { label: 'Wedding arc', value: 'wedding-arc' },
+                      { label: 'Family moment', value: 'family' },
+                      { label: 'Milestone', value: 'milestone' },
+                      { label: 'Cultural', value: 'cultural' },
+                      { label: 'Gathering', value: 'commemoration' },
                     ]}
+                    onSelect={handleCategorySelect}
+                  />
+                </div>
+              )}
+
+              {/* ── Occasion step (second choice: specific event) ── */}
+              {step === 'occasion' && !freeformOpen && (
+                <div>
+                  <OccasionCard
+                    occasions={
+                      collected.category
+                        ? getEventTypesByCategory(collected.category).map((e) => ({
+                            label: e.label,
+                            value: e.id,
+                          }))
+                        // Fallback if category somehow missing: show all shipping events
+                        : EVENT_TYPES
+                            .filter((e) => e.status === 'shipping')
+                            .map((e) => ({ label: e.label, value: e.id }))
+                    }
                     onSelect={handleOccasionSelect}
                   />
                   {/* Power-user shortcut — lets people describe
