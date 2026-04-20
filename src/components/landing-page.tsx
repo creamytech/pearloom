@@ -18,13 +18,20 @@ import { WovenDivider } from './marketing/WovenDivider';
 import { SiteShowroom } from './marketing/SiteShowroom';
 import { ShowroomParallax } from './marketing/ShowroomParallax';
 import { GrooveEventOS } from './marketing/GrooveEventOS';
-import { GrooveMotion, TracingThread } from '@/components/brand/groove';
+import {
+  GrooveMotion,
+  TracingThread,
+  Wave,
+  GrooveBlob,
+  BlurFade,
+} from '@/components/brand/groove';
+import { GrooveSiteFaq } from '@/components/site/groove/GrooveSiteFaq';
 import { SocialProofBar } from './marketing/SocialProofBar';
 import { TheLoomShowcase } from './marketing/TheLoomShowcase';
 import { GuestExperience } from './marketing/GuestExperience';
 import { EditorShowcase } from './marketing/EditorShowcase';
 import { PricingPreview } from './marketing/PricingPreview';
-import { FAQSection } from './marketing/FAQSection';
+import { FAQS } from './marketing/FAQSection';
 import { TrustSignals } from './marketing/TrustSignals';
 import { MarketingFooter } from './marketing/MarketingFooter';
 import { C, EASE } from './marketing/colors';
@@ -186,8 +193,12 @@ export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPage
       {/* ── Hero ───────────────────────────────────────────────── */}
       <GrooveHero onGetStarted={openAuth} />
 
-      {/* ── Woven divider — hero threads keep travelling ───────── */}
-      <WovenDivider />
+      {/* Wavy divider tailing the hero into the parallax teaser */}
+      <Wave
+        color="color-mix(in oklab, var(--pl-groove-rose) 10%, var(--pl-groove-cream))"
+        depth="medium"
+        height={96}
+      />
 
       {/* ── Parallax teaser — rows of template cards drifting ── */}
       <ShowroomParallax onGetStarted={openAuth} />
@@ -195,8 +206,20 @@ export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPage
       {/* ── The showroom — six real sites the visitor can open ── */}
       <SiteShowroom onGetStarted={openAuth} />
 
+      <Wave
+        color="color-mix(in oklab, var(--pl-groove-butter) 12%, var(--pl-groove-cream))"
+        depth="shallow"
+        height={72}
+      />
+
       {/* ── Social proof — slim band ───────────────────────────── */}
       <SocialProofBar />
+
+      <Wave
+        color="var(--pl-groove-cream)"
+        depth="deep"
+        height={110}
+      />
 
       {/* ── Event OS — the actual pitch ────────────────────────── */}
       <GrooveEventOS onGetStarted={openAuth} />
@@ -205,74 +228,75 @@ export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPage
       <section
         id="try"
         style={{
+          position: 'relative',
           padding: 'clamp(80px, 12vh, 140px) clamp(20px, 5vw, 64px)',
-          background: 'var(--pl-cream)',
+          background:
+            'color-mix(in oklab, var(--pl-groove-butter) 10%, var(--pl-groove-cream))',
+          overflow: 'hidden',
         }}
       >
-        <div style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
-          <motion.div
-            className="pl-overline"
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            custom={0}
-            style={{ marginBottom: 18 }}
-          >
-            Try it now · no signup
-          </motion.div>
-          <motion.h2
-            className="pl-display"
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            custom={1}
-            style={{
-              margin: '0 0 14px',
-              fontSize: 'clamp(2rem, 4.5vw, 3rem)',
-              color: 'var(--pl-ink)',
-              lineHeight: 1.05,
-            }}
-          >
-            Type your names. Watch the cover{' '}
-            <em
+        <GrooveBlob
+          palette="sunrise"
+          size={420}
+          blur={80}
+          opacity={0.28}
+          style={{ position: 'absolute', top: '-80px', right: '-100px', zIndex: 0, pointerEvents: 'none' }}
+        />
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 1,
+            maxWidth: 720,
+            margin: '0 auto',
+            textAlign: 'center',
+          }}
+        >
+          <BlurFade>
+            <div
               style={{
-                fontFamily: 'var(--pl-font-display)',
-                fontStyle: 'italic',
-                color: 'var(--pl-gold)',
-                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                marginBottom: 14,
+                fontFamily: 'var(--pl-font-body)',
+                fontSize: '0.92rem',
+                fontWeight: 500,
+                color: 'var(--pl-groove-terra)',
               }}
             >
-              breathe.
-            </em>
-          </motion.h2>
-          <motion.p
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            custom={2}
-            style={{
-              color: 'var(--pl-muted)',
-              fontSize: '1rem',
-              maxWidth: 460,
-              margin: '0 auto 36px',
-              lineHeight: 1.55,
-            }}
-          >
-            A miniature of the cover-builder. The real one has hundreds of cover compositions, swappable typography, and a Pear assistant whispering ideas.
-          </motion.p>
+              Try it · no signup
+            </div>
+          </BlurFade>
+          <BlurFade delay={0.08}>
+            <h2
+              style={{
+                margin: '0 0 14px',
+                fontFamily: 'var(--pl-font-body)',
+                fontWeight: 700,
+                fontSize: 'clamp(2rem, 4.5vw, 2.8rem)',
+                color: 'var(--pl-groove-ink)',
+                lineHeight: 1.1,
+                letterSpacing: '-0.02em',
+              }}
+            >
+              Type your names. Watch the cover come alive.
+            </h2>
+          </BlurFade>
+          <BlurFade delay={0.16}>
+            <p
+              style={{
+                color: 'color-mix(in oklab, var(--pl-groove-ink) 70%, transparent)',
+                fontSize: '1.04rem',
+                maxWidth: 480,
+                margin: '0 auto 36px',
+                lineHeight: 1.55,
+              }}
+            >
+              A tiny cover-builder. The real one has hundreds of compositions,
+              swappable typography, and a Pear assistant whispering ideas.
+            </p>
+          </BlurFade>
 
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            custom={3}
-          >
+          <BlurFade delay={0.24}>
             <TryItLivePlayground onGetStarted={openAuth} />
-          </motion.div>
+          </BlurFade>
         </div>
       </section>
 
@@ -285,127 +309,147 @@ export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPage
       {/* ── The Loom (Pear narrative) ─────────────────────────── */}
       <TheLoomShowcase />
 
-      {/* ── Occasions — numbered editorial list on dark bg ────── */}
+      {/* ── Occasions — warm groove tiles ────────────────────── */}
       <section
         id="occasions"
         ref={occasionRef}
         style={{
-          background: 'var(--pl-ink)',
+          position: 'relative',
+          background:
+            'radial-gradient(ellipse at 50% 0%, color-mix(in oklab, var(--pl-groove-plum) 14%, var(--pl-groove-cream)) 0%, var(--pl-groove-cream) 65%)',
           padding: 'clamp(80px, 12vh, 140px) clamp(20px, 5vw, 64px)',
+          overflow: 'hidden',
         }}
       >
-        <div style={{ maxWidth: 1180, margin: '0 auto' }}>
-          <div style={{ marginBottom: 56, maxWidth: 640 }}>
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={occasionInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6 }}
+        <GrooveBlob
+          palette="petal"
+          size={520}
+          blur={90}
+          opacity={0.35}
+          style={{ position: 'absolute', top: '-140px', right: '-120px', zIndex: 0, pointerEvents: 'none' }}
+        />
+        <GrooveBlob
+          palette="sunrise"
+          size={420}
+          blur={80}
+          opacity={0.28}
+          style={{ position: 'absolute', bottom: '-120px', left: '-100px', zIndex: 0, pointerEvents: 'none' }}
+        />
+
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 1180, margin: '0 auto' }}>
+          <BlurFade>
+            <div
               style={{
-                fontFamily: 'var(--pl-font-mono)',
-                fontSize: '0.66rem',
-                letterSpacing: '0.22em',
-                textTransform: 'uppercase',
-                color: 'var(--pl-gold)',
-                marginBottom: 18,
+                fontFamily: 'var(--pl-font-body)',
+                fontSize: '0.92rem',
+                fontWeight: 500,
+                color: 'var(--pl-groove-plum)',
+                marginBottom: 14,
               }}
             >
               Every occasion
-            </motion.div>
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              animate={occasionInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.7, delay: 0.08 }}
-              className="pl-display"
+            </div>
+          </BlurFade>
+          <BlurFade delay={0.08}>
+            <h2
               style={{
-                margin: 0,
-                fontSize: 'clamp(2rem, 5vw, 3.4rem)',
-                color: 'var(--pl-cream)',
-                lineHeight: 1.05,
+                margin: '0 0 48px',
+                maxWidth: '22ch',
+                fontFamily: 'var(--pl-font-body)',
+                fontWeight: 700,
+                fontSize: 'clamp(2rem, 4.8vw, 3rem)',
+                lineHeight: 1.1,
+                letterSpacing: '-0.02em',
+                color: 'var(--pl-groove-ink)',
               }}
             >
-              Whatever you’re celebrating, it deserves a{' '}
-              <em
-                style={{
-                  fontFamily: 'var(--pl-font-display)',
-                  fontStyle: 'italic',
-                  color: 'var(--pl-gold)',
-                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                }}
-              >
-                home.
-              </em>
-            </motion.h2>
-          </div>
+              Whatever you&rsquo;re celebrating, it has a home here.
+            </h2>
+          </BlurFade>
 
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {OCCASIONS.map((o, i) => (
-              <motion.a
-                key={o.label}
-                href="#try"
-                custom={i}
-                variants={fadeUp}
-                initial="hidden"
-                animate={occasionInView ? 'show' : 'hidden'}
-                className="pl-reveal"
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '90px 1fr auto',
-                  alignItems: 'center',
-                  gap: 28,
-                  padding: '28px 4px',
-                  borderTop: '1px solid color-mix(in oklab, var(--pl-cream) 12%, transparent)',
-                  textDecoration: 'none',
-                  color: 'inherit',
-                  transition: 'background var(--pl-dur-base) var(--pl-ease-out), padding var(--pl-dur-base) var(--pl-ease-out)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'color-mix(in oklab, var(--pl-cream) 4%, transparent)';
-                  e.currentTarget.style.paddingLeft = '14px';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.paddingLeft = '4px';
-                }}
-              >
-                <span
-                  className="pl-display-italic"
-                  style={{
-                    fontSize: '2.6rem',
-                    color: o.accent,
-                    opacity: 0.55,
-                    lineHeight: 1,
-                    fontVariationSettings: '"opsz" 144, "SOFT" 50, "WONK" 1',
-                  }}
-                >
-                  {o.num}
-                </span>
-                <div>
-                  <div
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+              gap: 18,
+            }}
+          >
+            {OCCASIONS.map((o, i) => {
+              const tones = ['sunrise', 'orchard', 'petal'] as const;
+              const tintMap = {
+                sunrise: 'var(--pl-groove-butter)',
+                orchard: 'var(--pl-groove-sage)',
+                petal:   'var(--pl-groove-rose)',
+              } as const;
+              const tone = tones[i % tones.length];
+              const tint = tintMap[tone];
+              return (
+                <BlurFade key={o.label} delay={0.08 + i * 0.06}>
+                  <a
+                    href="#try"
                     style={{
-                      fontFamily: 'var(--pl-font-mono)',
-                      fontSize: '0.66rem',
-                      letterSpacing: '0.2em',
-                      textTransform: 'uppercase',
-                      color: o.accent,
-                      marginBottom: 8,
+                      position: 'relative',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 12,
+                      padding: 'clamp(22px, 3vw, 30px)',
+                      background: `color-mix(in oklab, ${tint} 24%, var(--pl-groove-cream))`,
+                      borderRadius: i % 2 === 0
+                        ? 'var(--pl-groove-radius-blob)'
+                        : '28px',
+                      border: `1px solid color-mix(in oklab, ${tint} 48%, transparent)`,
+                      textDecoration: 'none',
+                      color: 'var(--pl-groove-ink)',
+                      transition:
+                        'transform var(--pl-dur-base) var(--pl-groove-ease-bloom),' +
+                        ' box-shadow var(--pl-dur-base) var(--pl-ease-out),' +
+                        ' border-color var(--pl-dur-fast) var(--pl-ease-out)',
+                      boxShadow: '0 2px 6px rgba(43,30,20,0.04), 0 14px 40px color-mix(in oklab, ' + tint + ' 16%, transparent)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.boxShadow =
+                        '0 6px 14px rgba(43,30,20,0.06), 0 28px 56px color-mix(in oklab, ' + tint + ' 26%, transparent)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = '';
+                      e.currentTarget.style.boxShadow =
+                        '0 2px 6px rgba(43,30,20,0.04), 0 14px 40px color-mix(in oklab, ' + tint + ' 16%, transparent)';
                     }}
                   >
-                    {o.label}
-                  </div>
-                  <div
-                    className="pl-display"
-                    style={{
-                      fontSize: 'clamp(1.2rem, 2.2vw, 1.6rem)',
-                      color: 'var(--pl-cream)',
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {o.tagline}
-                  </div>
-                </div>
-                <ArrowRight size={18} style={{ color: o.accent, opacity: 0.7 }} />
-              </motion.a>
-            ))}
+                    <div
+                      style={{
+                        fontFamily: 'var(--pl-font-body)',
+                        fontSize: '1.2rem',
+                        fontWeight: 700,
+                        color: 'var(--pl-groove-ink)',
+                        letterSpacing: '-0.015em',
+                      }}
+                    >
+                      {o.label}
+                    </div>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: '0.96rem',
+                        lineHeight: 1.55,
+                        color: 'color-mix(in oklab, var(--pl-groove-ink) 72%, transparent)',
+                      }}
+                    >
+                      {o.tagline}
+                    </p>
+                    <ArrowRight
+                      size={18}
+                      style={{
+                        color: 'var(--pl-groove-plum)',
+                        marginTop: 8,
+                        alignSelf: 'flex-start',
+                      }}
+                    />
+                  </a>
+                </BlurFade>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -484,14 +528,41 @@ export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPage
         </div>
       </section>
 
+      <Wave
+        color="color-mix(in oklab, var(--pl-groove-butter) 8%, var(--pl-groove-cream))"
+        depth="shallow"
+        height={72}
+      />
+
       {/* ── Pricing ───────────────────────────────────────────── */}
       <PricingPreview onGetStarted={openAuth} />
+
+      <Wave
+        color="color-mix(in oklab, var(--pl-groove-sage) 8%, var(--pl-groove-cream))"
+        depth="medium"
+        height={84}
+      />
 
       {/* ── Trust signals ─────────────────────────────────────── */}
       <TrustSignals />
 
+      <Wave
+        color="var(--pl-groove-cream)"
+        depth="deep"
+        height={100}
+      />
+
       {/* ── FAQ ───────────────────────────────────────────────── */}
-      <FAQSection />
+      <GrooveSiteFaq
+        items={FAQS.map((f) => ({ question: f.q, answer: f.a }))}
+        title="Good questions"
+        accent="var(--pl-groove-terra)"
+        foreground="var(--pl-groove-ink)"
+        background="var(--pl-groove-cream)"
+        muted="color-mix(in oklab, var(--pl-groove-ink) 70%, transparent)"
+        headingFont="Fraunces"
+        bodyFont="Geist"
+      />
 
       {/* ── Final CTA ─────────────────────────────────────────── */}
       <section

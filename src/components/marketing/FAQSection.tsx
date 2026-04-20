@@ -6,7 +6,7 @@ import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-to
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 
-const FAQS = [
+export const FAQS = [
   {
     q: 'Is it really free to start?',
     a: 'Yes. Create your site, get your custom visual identity, and share it on a Pearloom link — completely free, forever. Upgrade to Atelier ($19 one-time) when you want extras like a custom domain, all 19+ block types, seating charts, and full guest management.',
