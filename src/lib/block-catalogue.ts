@@ -76,6 +76,7 @@ export const BLOCK_CATALOGUE: BlockDef[] = [
   { type: 'obituary',     label: 'Obituary',         description: 'Name, dates, long-form remembrance',           color: '#3A3028', category: 'story',     occasions: ['wedding', 'engagement'] },
   { type: 'livestream',   label: 'Livestream',       description: 'Watch-live CTA with start time + link',        color: '#4A4A8B', category: 'media',     occasions: ['wedding', 'engagement'] },
   { type: 'program',      label: 'Program',          description: 'Ordered ceremony program',                      color: '#8B6F4F', category: 'logistics', occasions: ['wedding', 'engagement'] },
+  { type: 'privacyGate',  label: 'Privacy gate',     description: 'Invite-only callout + access rules',            color: '#2A241E', category: 'structure', occasions: ['wedding', 'engagement'] },
 
   // gifts
   { type: 'registry',  label: 'Registry',          description: 'Registry links & honeymoon fund',             color: '#c4774a', category: 'gifts',     occasions: ['wedding', 'engagement', 'birthday'] },

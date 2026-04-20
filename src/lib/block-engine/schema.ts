@@ -224,6 +224,28 @@ export const BLOCK_SCHEMAS: Record<string, BlockSchema> = {
     },
   },
 
+  privacyGate: {
+    type: 'privacyGate',
+    label: 'Privacy gate',
+    description: 'Invite-only callout with access rules — bachelor, private memorial',
+    icon: 'Lock',
+    category: 'layout',
+    props: {
+      title: { label: 'Title', type: 'text', placeholder: 'Private event', group: 'Content' },
+      subtitle: { label: 'Subtitle', type: 'text', group: 'Content' },
+      body: { label: 'Body', type: 'textarea', group: 'Content' },
+      rules: {
+        label: 'Rules',
+        type: 'list',
+        group: 'Content',
+        itemLabel: 'Rule',
+        itemDefaults: { text: '' },
+        itemShape: { text: { label: 'Rule', type: 'text' } },
+      },
+      contact: { label: 'Contact for access', type: 'text', placeholder: 'Text the best man at 555-1234', group: 'Content' },
+    },
+  },
+
   obituary: {
     type: 'obituary',
     label: 'Obituary',

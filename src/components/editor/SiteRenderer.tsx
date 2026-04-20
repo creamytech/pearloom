@@ -26,6 +26,7 @@ import { ToastSignupBlock } from '@/components/site/ToastSignupBlock';
 import { ObituaryBlock } from '@/components/site/ObituaryBlock';
 import { LivestreamBlock } from '@/components/site/LivestreamBlock';
 import { ProgramBlock } from '@/components/site/ProgramBlock';
+import { PrivacyGateBlock } from '@/components/site/PrivacyGateBlock';
 import { getEventType } from '@/lib/event-os/event-types';
 import { RegistryShowcase } from '@/components/registry-showcase';
 import { FaqSection } from '@/components/faq-section';
@@ -2722,6 +2723,28 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               title={(blockCfg.title as string) || 'The program'}
               subtitle={blockCfg.subtitle as string | undefined}
               items={items}
+              accent={pal.accent}
+              foreground={safeFg}
+              muted={safeMuted}
+              headingFont={`"${vibeSkin.fonts.heading}", serif`}
+              bodyFont={`"${vibeSkin.fonts.body}", system-ui, sans-serif`}
+            />
+          </div>
+        );
+      }
+      case 'privacyGate': {
+        const rawRules = (blockCfg.rules as Array<{ text?: string } | string>) || [];
+        const rules = rawRules
+          .map((r) => (typeof r === 'string' ? r : r.text ?? ''))
+          .filter((r) => r.trim().length > 0);
+        return (
+          <div key={key} style={blockStyle}>
+            <PrivacyGateBlock
+              title={(blockCfg.title as string) || 'Private event'}
+              subtitle={blockCfg.subtitle as string | undefined}
+              body={blockCfg.body as string | undefined}
+              rules={rules.length > 0 ? rules : undefined}
+              contact={blockCfg.contact as string | undefined}
               accent={pal.accent}
               foreground={safeFg}
               muted={safeMuted}

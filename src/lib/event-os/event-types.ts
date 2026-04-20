@@ -284,8 +284,8 @@ export const EVENT_TYPES: EventType[] = [
     defaultBlocks: [...UNIVERSAL, 'rsvp', 'menu', 'map', 'dressCode'],
     optionalBlocks: ['story', 'quote', 'photoWall', 'adviceWall'],
     hiddenBlocks: ['weddingParty', 'registry', 'anniversary', 'obituary'],
-    templateIds: ['vintage-romance', 'quiet-luxury'],
-    status: 'planned',
+    templateIds: ['a-quiet-table', 'vintage-romance', 'quiet-luxury'],
+    status: 'beta',
   },
   {
     id: 'rehearsal-dinner',
@@ -389,8 +389,8 @@ export const EVENT_TYPES: EventType[] = [
     defaultBlocks: [...UNIVERSAL, 'countdown', 'rsvp', 'map', 'nameVote'],
     optionalBlocks: ['photoWall', 'video', 'activityVote', 'quote'],
     hiddenBlocks: ['weddingParty', 'registry', 'anniversary', 'obituary'],
-    templateIds: ['confetti-party', 'blush-romance'],
-    status: 'planned',
+    templateIds: ['blue-pink-or-surprise', 'confetti-party', 'blush-romance'],
+    status: 'beta',
   },
   {
     id: 'sip-and-see',
@@ -404,8 +404,8 @@ export const EVENT_TYPES: EventType[] = [
     defaultBlocks: [...UNIVERSAL, 'rsvp', 'menu', 'map', 'faq'],
     optionalBlocks: ['photoWall', 'quote', 'guestbook'],
     hiddenBlocks: ['weddingParty', 'registry', 'anniversary', 'obituary', 'countdown'],
-    templateIds: ['cottage-pastoral', 'blush-romance'],
-    status: 'planned',
+    templateIds: ['come-meet-the-baby', 'cottage-pastoral', 'blush-romance'],
+    status: 'beta',
   },
   {
     id: 'housewarming',
@@ -422,8 +422,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     optionalBlocks: ['gallery', 'story', 'quote', 'spotify'],
     hiddenBlocks: ['weddingParty', 'anniversary', 'obituary'],
-    templateIds: ['industrial-loft', 'chic-monochrome', 'modern-glam'],
-    status: 'planned',
+    templateIds: ['come-see-the-place', 'industrial-loft', 'chic-monochrome'],
+    status: 'beta',
   },
 
   // ═══════════════════════════════════════════════════════════

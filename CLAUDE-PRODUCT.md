@@ -440,6 +440,59 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-04-22 — All 28 event types graduated to beta
+
+Every event type in the catalog now has a template and a
+non-'planned' status. **28 of 28 shipping or beta.**
+
+Summary of what's shipped across the sequence of commits:
+
+- **10 new blocks**: itinerary, costSplitter, packingList,
+  activityVote, adviceWall, toastSignup, obituary, livestream,
+  program, privacyGate — all with schema + catalogue + SiteRenderer
+  case + bespoke renderer.
+- **21 new templates** (one per previously-planned event) —
+  each a real editorial build with palette, vibe string,
+  poetry, and blocks wired up.
+- **RSVP preset system** (from earlier Phase A) consumed by
+  `PresetRsvpForm.tsx`; every non-wedding site gets the right
+  questions per event.
+- **Supabase `guests.rsvp_preset` + `guests.rsvp_answers`** —
+  preset-specific RSVP answers persist.
+
+Coverage (status in EVENT_TYPES registry):
+  Shipping: wedding, engagement, anniversary, birthday, story
+  Beta (23): bachelor-party, bachelorette-party, bridal-shower,
+            rehearsal-dinner, welcome-party, brunch, vow-renewal,
+            bridal-luncheon, baby-shower, reunion,
+            milestone-birthday, first-birthday, sweet-sixteen,
+            retirement, graduation, memorial, funeral,
+            bar-mitzvah, bat-mitzvah, quinceanera, baptism,
+            first-communion, confirmation, housewarming,
+            gender-reveal, sip-and-see
+
+What's deliberately deferred (noted for next product sessions):
+
+1. **Server-side sync for the localStorage blocks** — adviceWall,
+   activityVote, toastSignup, packingList all persist guest state
+   to localStorage only. Multi-guest visibility needs
+   `tribute_submissions` / `activity_votes` / `toast_signups`
+   tables + API routes. Every block has a clear schema; the
+   interfaces are stable.
+2. **Authenticated access for privacyGate** — today the block is
+   a *callout* that declares the policy. Real password/session
+   enforcement lives in PasswordGate (existing) but isn't wired
+   to the block. Next session's work.
+3. **Dashboard UI for rsvp_answers JSONB** — the column exists
+   and is written; the guest dashboard still only shows the
+   legacy columns (meal, dietary, song, message). One session
+   of UI to surface preset answers per event type.
+4. **AI voice per event category** — EVENT_TYPES already
+   declares a `voice` field (celebratory / intimate / ceremonial
+   / playful / solemn); the Gemini/Claude prompts don't yet
+   vary by it. Low-effort follow-up that raises the AI-draft
+   quality meaningfully for memorials + bachelor parties.
+
 ### 2026-04-22 — Phase B.1 completion + B.2 + B.3
 
 **Phase B.1 wrap-up (bachelor/ette deep)**
