@@ -317,8 +317,8 @@ export const EVENT_TYPES: EventType[] = [
     defaultBlocks: [...UNIVERSAL, 'itinerary', 'rsvp', 'map', 'dressCode', 'faq'],
     optionalBlocks: ['menu', 'spotify', 'photoWall', 'welcome', 'hashtag'],
     hiddenBlocks: ['weddingParty', 'registry', 'anniversary', 'obituary'],
-    templateIds: ['tuscan-villa', 'desert-boho', 'tropical-breeze'],
-    status: 'planned',
+    templateIds: ['warm-threshold', 'tuscan-villa', 'desert-boho'],
+    status: 'beta',
   },
   {
     id: 'brunch',
@@ -332,8 +332,8 @@ export const EVENT_TYPES: EventType[] = [
     defaultBlocks: [...UNIVERSAL, 'menu', 'map', 'rsvp'],
     optionalBlocks: ['quote', 'photoWall', 'guestbook', 'faq'],
     hiddenBlocks: ['weddingParty', 'registry', 'anniversary', 'obituary', 'countdown'],
-    templateIds: ['southern-magnolia', 'cottage-pastoral'],
-    status: 'planned',
+    templateIds: ['one-more-round', 'southern-magnolia', 'cottage-pastoral'],
+    status: 'beta',
   },
   {
     id: 'vow-renewal',
@@ -351,8 +351,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     optionalBlocks: ['spotify', 'storymap', 'video', 'weddingParty', 'hashtag'],
     hiddenBlocks: ['registry', 'obituary'],
-    templateIds: ['rustic-romance', 'golden-hour', 'vintage-romance'],
-    status: 'planned',
+    templateIds: ['saying-it-again', 'rustic-romance', 'golden-hour'],
+    status: 'beta',
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -374,8 +374,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     optionalBlocks: ['spotify', 'photoWall', 'activityVote', 'quote'],
     hiddenBlocks: ['weddingParty', 'anniversary', 'obituary'],
-    templateIds: ['blush-romance', 'wildflower-meadow', 'cottage-pastoral'],
-    status: 'planned',
+    templateIds: ['soft-landing', 'blush-romance', 'wildflower-meadow'],
+    status: 'beta',
   },
   {
     id: 'gender-reveal',
@@ -485,8 +485,8 @@ export const EVENT_TYPES: EventType[] = [
       'thenAndNow', 'storymap', 'video', 'quote', 'menu', 'hashtag',
     ],
     hiddenBlocks: ['weddingParty', 'registry', 'anniversary', 'obituary'],
-    templateIds: ['quiet-luxury', 'disco-groovy', 'chic-monochrome'],
-    status: 'planned',
+    templateIds: ['years-worth-marking', 'quiet-luxury', 'disco-groovy'],
+    status: 'beta',
   },
   {
     id: 'retirement',
@@ -706,8 +706,8 @@ export const EVENT_TYPES: EventType[] = [
       'photoWall', 'spotify', 'hashtag', 'groupChat',
     ],
     hiddenBlocks: ['weddingParty', 'registry', 'anniversary', 'obituary'],
-    templateIds: ['rustic-romance', 'tuscan-villa', 'mountain-alpine'],
-    status: 'planned',
+    templateIds: ['the-people-you-keep', 'rustic-romance', 'tuscan-villa'],
+    status: 'beta',
   },
 ];
 
