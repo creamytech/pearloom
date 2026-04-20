@@ -99,7 +99,7 @@ export function SubmissionsModeration({ siteId, initialEntries = [] }: Props) {
   );
 
   return (
-    <div style={{ maxWidth: 960, margin: '0 auto', padding: 'clamp(16px, 4vw, 32px)' }}>
+    <section>
       <header style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
         <div>
           <div
@@ -264,7 +264,7 @@ export function SubmissionsModeration({ siteId, initialEntries = [] }: Props) {
           ))}
         </div>
       )}
-    </div>
+    </section>
   );
 }
 

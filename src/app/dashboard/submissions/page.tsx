@@ -11,10 +11,12 @@ import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { SubmissionsModeration } from '@/components/dashboard/SubmissionsModeration';
+import { VotesSummary } from '@/components/dashboard/VotesSummary';
+import { ToastClaimsList } from '@/components/dashboard/ToastClaimsList';
 
 export const metadata: Metadata = {
   title: 'Submissions · Pearloom',
-  description: 'Moderate advice, tribute, and memory wall posts from your guests.',
+  description: 'Moderate advice, tribute, and memory wall posts + activity votes + toast signups from your guests.',
 };
 
 export default async function SubmissionsPage({
@@ -50,7 +52,11 @@ export default async function SubmissionsPage({
       }}
     >
       {siteId ? (
-        <SubmissionsModeration siteId={siteId} />
+        <div style={{ maxWidth: 960, margin: '0 auto', padding: 'clamp(16px, 4vw, 32px)' }}>
+          <SubmissionsModeration siteId={siteId} />
+          <VotesSummary siteId={siteId} />
+          <ToastClaimsList siteId={siteId} />
+        </div>
       ) : (
         <div style={{ maxWidth: 640, margin: '0 auto', padding: '60px 24px', textAlign: 'center' }}>
           <h1
