@@ -28,11 +28,15 @@ import {
   Link2,
 } from 'lucide-react';
 
+import type { GroovePersonality } from './GrooveSidebarIcon';
+import { GrooveSidebarIcon } from './GrooveSidebarIcon';
+
 interface NavLink {
   href: string;
   label: string;
   icon: typeof LayoutDashboard;
   badge?: string;
+  personality?: GroovePersonality;
 }
 
 interface NavSection {
@@ -44,32 +48,32 @@ const SECTIONS: NavSection[] = [
   {
     label: 'Build',
     links: [
-      { href: '/dashboard', label: 'Sites', icon: LayoutDashboard },
-      { href: '/dashboard/director', label: 'Director', icon: Sparkles },
+      { href: '/dashboard',          label: 'Sites',         icon: LayoutDashboard, personality: 'morph' },
+      { href: '/dashboard/director', label: 'Director',      icon: Sparkles,        personality: 'bloom' },
     ],
   },
   {
     label: 'Run event',
     links: [
-      { href: '/dashboard/day-of', label: 'Day-of', icon: Megaphone },
-      { href: '/dashboard/rsvp', label: 'Guests · RSVP', icon: Users },
-      { href: '/dashboard/submissions', label: 'Submissions', icon: MessageSquare },
-      { href: '/dashboard/gallery', label: 'Gallery', icon: ImageIcon },
-      { href: '/dashboard/connections', label: 'Connections', icon: Link2 },
+      { href: '/dashboard/day-of',       label: 'Day-of',       icon: Megaphone,     personality: 'bounce' },
+      { href: '/dashboard/rsvp',         label: 'Guests · RSVP', icon: Users,        personality: 'wobble' },
+      { href: '/dashboard/submissions',  label: 'Submissions',  icon: MessageSquare, personality: 'wave' },
+      { href: '/dashboard/gallery',      label: 'Gallery',      icon: ImageIcon,     personality: 'morph' },
+      { href: '/dashboard/connections',  label: 'Connections',  icon: Link2,         personality: 'pulse' },
     ],
   },
   {
     label: 'Grow',
     links: [
-      { href: '/marketplace', label: 'Marketplace', icon: Store },
-      { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
+      { href: '/marketplace',         label: 'Marketplace', icon: Store,      personality: 'morph' },
+      { href: '/dashboard/analytics', label: 'Analytics',   icon: BarChart3, personality: 'pulse' },
     ],
   },
   {
     label: 'Account',
     links: [
-      { href: '/dashboard/profile', label: 'Settings', icon: Settings },
-      { href: '/dashboard/help', label: 'Help', icon: HelpCircle },
+      { href: '/dashboard/profile', label: 'Settings', icon: Settings,   personality: 'spin' },
+      { href: '/dashboard/help',    label: 'Help',     icon: HelpCircle, personality: 'wobble' },
     ],
   },
 ];
@@ -267,24 +271,26 @@ function SidebarLink({
         margin: '0 4px',
         borderRadius: 'var(--pl-radius-md)',
         minHeight: 36,
-        background: active ? 'var(--pl-olive-mist)' : 'transparent',
-        color: active ? 'var(--pl-ink)' : 'var(--pl-ink-soft)',
+        background: active
+          ? 'color-mix(in oklab, var(--pl-groove-terra) 14%, transparent)'
+          : 'transparent',
+        color: active ? 'var(--pl-groove-ink)' : 'color-mix(in oklab, var(--pl-groove-ink) 70%, transparent)',
         textDecoration: 'none',
-        fontSize: '0.86rem',
-        fontWeight: active ? 600 : 500,
+        fontSize: '0.9rem',
+        fontWeight: active ? 700 : 500,
         letterSpacing: '-0.005em',
         transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
       }}
       onMouseEnter={(e) => {
         if (!active) {
-          e.currentTarget.style.background = 'color-mix(in oklab, var(--pl-olive) 6%, transparent)';
-          e.currentTarget.style.color = 'var(--pl-ink)';
+          e.currentTarget.style.background = 'color-mix(in oklab, var(--pl-groove-butter) 22%, transparent)';
+          e.currentTarget.style.color = 'var(--pl-groove-ink)';
         }
       }}
       onMouseLeave={(e) => {
         if (!active) {
           e.currentTarget.style.background = 'transparent';
-          e.currentTarget.style.color = 'var(--pl-ink-soft)';
+          e.currentTarget.style.color = 'color-mix(in oklab, var(--pl-groove-ink) 70%, transparent)';
         }
       }}
     >
@@ -297,15 +303,20 @@ function SidebarLink({
             left: -4,
             top: '50%',
             transform: 'translateY(-50%)',
-            width: 3,
-            height: 18,
-            borderRadius: 'var(--pl-radius-full)',
-            background: 'var(--pl-olive)',
+            width: 4,
+            height: 22,
+            borderRadius: 'var(--pl-groove-radius-pill)',
+            background: 'var(--pl-groove-blob-sunrise)',
+            boxShadow: '0 2px 6px rgba(139,74,106,0.28)',
           }}
           transition={{ type: 'spring', stiffness: 380, damping: 32 }}
         />
       )}
-      <Icon size={16} style={{ flexShrink: 0 }} />
+      <GrooveSidebarIcon
+        Icon={Icon}
+        personality={link.personality ?? 'bounce'}
+        alwaysOn={active}
+      />
       <AnimatePresence>
         {expanded && (
           <motion.span

@@ -91,52 +91,39 @@ export default function DayOfPage() {
                 <div style={{ flex: 1, minWidth: 260 }}>
                   <div
                     style={{
-                      fontFamily: 'var(--pl-font-mono)',
-                      fontSize: '0.5rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.28em',
-                      textTransform: 'uppercase',
-                      color: 'var(--pl-olive)',
-                      marginBottom: 18,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 10,
+                      fontFamily: 'var(--pl-font-body)',
+                      fontSize: '0.92rem',
+                      fontWeight: 500,
+                      color: 'var(--pl-groove-terra)',
+                      marginBottom: 10,
                     }}
                   >
-                    <span
-                      style={{
-                        width: 22,
-                        height: 1,
-                        background: 'var(--pl-gold)',
-                      }}
-                    />
-                    Day-of schedule · {year}
+                    The day-of room
                   </div>
                   <h1
-                    className="pl-display"
                     style={{
                       margin: 0,
-                      fontSize: 'clamp(2.4rem, 5vw, 3.4rem)',
-                      color: 'var(--pl-ink)',
-                      lineHeight: 1.02,
-                      letterSpacing: '-0.01em',
-                      fontStyle: 'italic',
-                      fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                      fontFamily: 'var(--pl-font-body)',
+                      fontWeight: 700,
+                      fontSize: 'clamp(2rem, 4.2vw, 2.8rem)',
+                      color: 'var(--pl-groove-ink)',
+                      lineHeight: 1.1,
+                      letterSpacing: '-0.02em',
                     }}
                   >
-                    Run the room.
+                    Run the room
                   </h1>
                   <p
                     style={{
-                      margin: '16px 0 0',
+                      margin: '14px 0 0',
                       maxWidth: '56ch',
-                      color: 'var(--pl-ink-soft)',
+                      color: 'color-mix(in oklab, var(--pl-groove-ink) 70%, transparent)',
                       fontSize: 'clamp(0.96rem, 1.2vw, 1.06rem)',
                       lineHeight: 1.6,
                     }}
                   >
-                    Announcements · voice toasts · vendor bookings. One calm
-                    room, three stations, all the night&apos;s moving parts.
+                    Announcements, voice toasts, and vendor bookings — one
+                    calm room with all the night&apos;s moving parts in sight.
                   </p>
                 </div>
 
@@ -144,16 +131,14 @@ export default function DayOfPage() {
                   <div style={{ minWidth: 260 }}>
                     <div
                       style={{
-                        fontFamily: 'var(--pl-font-mono)',
-                        fontSize: '0.46rem',
-                        fontWeight: 700,
-                        letterSpacing: '0.28em',
-                        textTransform: 'uppercase',
-                        color: 'var(--pl-olive)',
+                        fontFamily: 'var(--pl-font-body)',
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        color: 'var(--pl-groove-terra)',
                         marginBottom: 8,
                       }}
                     >
-                      Dossier · select site
+                      Select a site
                     </div>
                     <SiteSelector
                       options={siteOptions}
@@ -203,103 +188,80 @@ export default function DayOfPage() {
               <section
                 style={{
                   position: 'relative',
-                  padding: '64px 32px',
-                  border: '1px dashed rgba(184,147,90,0.5)',
-                  borderRadius: 'var(--pl-radius-xs)',
+                  padding: '72px 40px 64px',
+                  borderRadius: 'var(--pl-groove-radius-blob)',
                   textAlign: 'center',
                   background:
-                    'radial-gradient(ellipse at top, rgba(184,147,90,0.06), transparent 70%)',
+                    'radial-gradient(ellipse at top, color-mix(in oklab, var(--pl-groove-butter) 22%, var(--pl-groove-cream)) 0%, var(--pl-groove-cream) 70%)',
+                  border: '1px solid color-mix(in oklab, var(--pl-groove-terra) 22%, transparent)',
+                  overflow: 'hidden',
                 }}
               >
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: 10,
-                    left: 12,
-                    fontFamily: 'var(--pl-font-mono)',
-                    fontSize: '0.46rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.28em',
-                    textTransform: 'uppercase',
-                    color: 'var(--pl-gold)',
-                  }}
-                >
-                  Empty call-sheet
-                </span>
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: 10,
-                    right: 12,
-                    fontFamily: 'var(--pl-font-mono)',
-                    fontSize: '0.46rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.28em',
-                    textTransform: 'uppercase',
-                    color: 'var(--pl-gold)',
-                  }}
-                >
-                  № 00
-                </span>
                 <div
+                  aria-hidden
                   style={{
-                    fontFamily: 'var(--pl-font-mono)',
-                    fontSize: '0.5rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.3em',
-                    textTransform: 'uppercase',
-                    color: 'var(--pl-olive)',
-                    marginBottom: 14,
+                    position: 'absolute',
+                    top: '-80px',
+                    right: '-60px',
+                    width: 300,
+                    height: 300,
+                    borderRadius: '42% 58% 70% 30% / 45% 30% 70% 55%',
+                    background: 'var(--pl-groove-rose)',
+                    opacity: 0.22,
+                    filter: 'blur(60px)',
+                    animation: 'pl-groove-blob-morph 20s ease-in-out infinite',
+                    pointerEvents: 'none',
                   }}
-                >
-                  Prologue
-                </div>
+                />
                 <h3
                   style={{
+                    position: 'relative',
                     margin: 0,
-                    fontFamily: 'var(--pl-font-display)',
-                    fontStyle: 'italic',
-                    fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                    fontSize: '2rem',
-                    color: 'var(--pl-ink)',
-                    letterSpacing: '-0.01em',
-                    lineHeight: 1.05,
+                    fontFamily: 'var(--pl-font-body)',
+                    fontWeight: 700,
+                    fontSize: 'clamp(1.5rem, 3vw, 2rem)',
+                    color: 'var(--pl-groove-ink)',
+                    letterSpacing: '-0.02em',
+                    lineHeight: 1.15,
                   }}
                 >
-                  No sites yet.
+                  Nothing to run yet
                 </h3>
                 <p
                   style={{
-                    margin: '12px auto 22px',
-                    maxWidth: '46ch',
-                    color: 'var(--pl-ink-soft)',
-                    fontSize: '0.98rem',
+                    position: 'relative',
+                    margin: '14px auto 28px',
+                    maxWidth: '48ch',
+                    color: 'color-mix(in oklab, var(--pl-groove-ink) 70%, transparent)',
+                    fontSize: '1rem',
                     lineHeight: 1.6,
                   }}
                 >
-                  The day-of room comes alive once you have a site with guests,
-                  vendors, and a date on the book.
+                  The day-of room comes alive once you have a site with
+                  guests, vendors, and a date on the book.
                 </p>
                 <Link
                   href="/dashboard"
                   style={{
+                    position: 'relative',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 10,
-                    padding: '12px 22px',
-                    background: 'var(--pl-ink)',
-                    color: 'var(--pl-cream)',
-                    borderRadius: 'var(--pl-radius-xs)',
+                    padding: '14px 26px',
+                    minHeight: 48,
+                    background: 'var(--pl-groove-blob-sunrise)',
+                    color: '#fff',
+                    borderRadius: 'var(--pl-groove-radius-pill)',
                     textDecoration: 'none',
-                    fontFamily: 'var(--pl-font-mono)',
-                    fontSize: '0.62rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.24em',
-                    textTransform: 'uppercase',
-                    boxShadow: '0 0 0 3px rgba(184,147,90,0.18)',
+                    fontFamily: 'var(--pl-font-body)',
+                    fontSize: '0.96rem',
+                    fontWeight: 600,
+                    letterSpacing: '-0.005em',
+                    boxShadow:
+                      '0 6px 18px rgba(139,74,106,0.24), 0 2px 6px rgba(43,30,20,0.08)',
                   }}
                 >
-                  Create a site →
+                  Begin a new site →
                 </Link>
               </section>
             ) : (

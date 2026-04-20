@@ -940,91 +940,112 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
             style={{
               position: 'relative',
               padding: '56px 40px 48px',
-              borderRadius: 'var(--pl-radius-xl)',
-              background: 'var(--pl-cream-card)',
-              border: '1px dashed rgba(184,147,90,0.55)',
+              borderRadius: 'var(--pl-groove-radius-blob)',
+              background:
+                'radial-gradient(ellipse at 50% 0%, color-mix(in oklab, var(--pl-groove-butter) 22%, var(--pl-groove-cream)) 0%, var(--pl-groove-cream) 70%)',
+              border: '1px solid color-mix(in oklab, var(--pl-groove-terra) 22%, transparent)',
               marginBottom: '20px',
               textAlign: 'center',
               overflow: 'hidden',
             }}
           >
-            {/* Corner folio marks */}
-            <span style={{ position: 'absolute', top: '12px', left: '16px', fontFamily: 'var(--pl-font-mono)', fontSize: '0.48rem', fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--pl-olive)' }}>
-              Prologue
-            </span>
-            <span style={{ position: 'absolute', top: '12px', right: '16px', fontFamily: 'var(--pl-font-mono)', fontSize: '0.48rem', fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'rgba(14,13,11,0.40)' }}>
-              № 00
-            </span>
+            {/* Soft drifting blob behind the pear icon */}
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute',
+                top: '-120px',
+                right: '-100px',
+                width: 340,
+                height: 340,
+                borderRadius: '42% 58% 70% 30% / 45% 30% 70% 55%',
+                background: 'var(--pl-groove-rose)',
+                opacity: 0.22,
+                filter: 'blur(60px)',
+                animation: 'pl-groove-blob-morph 20s ease-in-out infinite',
+                pointerEvents: 'none',
+              }}
+            />
 
             <div style={{
-              width: '72px', height: '72px',
-              borderRadius: '50%',
-              border: '1px solid rgba(184,147,90,0.55)',
-              background: 'rgba(184,147,90,0.08)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 20px',
-              boxShadow: '0 0 0 6px rgba(184,147,90,0.06)',
+              position: 'relative',
+              width: '84px',
+              height: '84px',
+              borderRadius: 'var(--pl-groove-radius-blob)',
+              background: 'var(--pl-groove-blob-sunrise)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 24px',
+              boxShadow:
+                '0 10px 28px rgba(139,74,106,0.26), inset 0 1px 0 rgba(255,255,255,0.4)',
             }}>
-              <PearIcon size={40} color="var(--pl-ink)" />
+              <PearIcon size={44} color="#fff" />
             </div>
 
             <h2 style={{
-              fontFamily: 'var(--pl-font-display)',
-              fontStyle: 'italic', fontWeight: 400,
-              fontSize: 'clamp(2rem, 5vw, 2.8rem)',
-              lineHeight: 1.02,
-              color: 'var(--pl-ink)',
+              position: 'relative',
+              fontFamily: 'var(--pl-font-body)',
+              fontWeight: 700,
+              fontSize: 'clamp(1.8rem, 4vw, 2.4rem)',
+              lineHeight: 1.1,
+              letterSpacing: '-0.02em',
+              color: 'var(--pl-groove-ink)',
               margin: '0 0 12px',
             }}>
               Welcome to Pearloom
             </h2>
             <p style={{
+              position: 'relative',
               fontFamily: 'var(--pl-font-body)',
-              fontSize: '0.88rem', lineHeight: 1.6,
-              color: 'var(--pl-ink-soft)',
-              maxWidth: '400px', margin: '0 auto 28px',
+              fontSize: '1rem', lineHeight: 1.6,
+              color: 'color-mix(in oklab, var(--pl-groove-ink) 68%, transparent)',
+              maxWidth: '420px', margin: '0 auto 32px',
             }}>
-              Compose your first celebration site — in minutes, with an editor that feels like setting a page.
+              Compose your first celebration site — in minutes, with an editor that feels warm under your hands.
             </p>
 
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <div style={{ position: 'relative', display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
               <button
                 onClick={onStartNew}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '8px',
-                  padding: '11px 22px',
-                  borderRadius: 'var(--pl-radius-md)',
-                  background: 'var(--pl-ink)',
-                  color: 'var(--pl-cream)',
-                  border: '1px solid var(--pl-ink)',
-                  boxShadow: '0 0 0 3px rgba(184,147,90,0.18)',
+                  padding: '14px 26px',
+                  minHeight: 48,
+                  borderRadius: 'var(--pl-groove-radius-pill)',
+                  background: 'var(--pl-groove-blob-sunrise)',
+                  color: '#fff',
+                  border: 'none',
+                  boxShadow: '0 6px 18px rgba(139,74,106,0.24), 0 2px 6px rgba(43,30,20,0.08)',
                   cursor: 'pointer',
-                  fontFamily: 'var(--pl-font-mono)',
-                  fontSize: '0.62rem',
-                  fontWeight: 700,
-                  letterSpacing: '0.22em',
-                  textTransform: 'uppercase',
-                  minWidth: '190px', justifyContent: 'center',
+                  fontFamily: 'var(--pl-font-body)',
+                  fontSize: '0.96rem',
+                  fontWeight: 600,
+                  letterSpacing: '-0.005em',
+                  minWidth: '190px',
+                  justifyContent: 'center',
+                  transition: 'transform var(--pl-dur-fast) var(--pl-groove-ease-squish)',
                 }}
               >
-                <Sparkles size={14} /> Begin with Pear
+                <Sparkles size={16} /> Begin with Pear
               </button>
               <button
                 onClick={onOpenTemplates || onQuickStart || onStartNew}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '8px',
-                  padding: '11px 22px',
-                  borderRadius: 'var(--pl-radius-md)',
+                  padding: '14px 26px',
+                  minHeight: 48,
+                  borderRadius: 'var(--pl-groove-radius-pill)',
                   background: 'transparent',
-                  color: 'var(--pl-ink)',
-                  border: '1px solid rgba(14,13,11,0.22)',
+                  color: 'var(--pl-groove-ink)',
+                  border: '1.5px solid color-mix(in oklab, var(--pl-groove-terra) 40%, transparent)',
                   cursor: 'pointer',
-                  fontFamily: 'var(--pl-font-mono)',
-                  fontSize: '0.62rem',
-                  fontWeight: 700,
-                  letterSpacing: '0.22em',
-                  textTransform: 'uppercase',
-                  minWidth: '190px', justifyContent: 'center',
+                  fontFamily: 'var(--pl-font-body)',
+                  fontSize: '0.96rem',
+                  fontWeight: 600,
+                  letterSpacing: '-0.005em',
+                  minWidth: '190px',
+                  justifyContent: 'center',
                 }}
               >
                 Browse templates
@@ -1032,69 +1053,83 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
             </div>
           </div>
 
-          {/* Three-act story — how it works */}
+          {/* Three-step story — how it works, groove version */}
           <div style={{ marginTop: '32px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-              <span style={{
-                fontFamily: 'var(--pl-font-mono)',
-                fontSize: '0.5rem', fontWeight: 700,
-                letterSpacing: '0.30em', textTransform: 'uppercase',
-                color: 'rgba(14,13,11,0.55)',
-              }}>
-                In three acts
-              </span>
-              <span style={{ flex: 1, height: '1px', background: 'rgba(14,13,11,0.08)' }} />
-            </div>
+            <h3 style={{
+              margin: '0 0 16px',
+              fontFamily: 'var(--pl-font-body)',
+              fontWeight: 700,
+              fontSize: '1.1rem',
+              color: 'var(--pl-groove-ink)',
+              letterSpacing: '-0.01em',
+            }}>
+              How it comes together
+            </h3>
             <div className="pl-enter pl-enter-d2 grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
-                { num: 'I',   title: 'Add photos',      desc: 'Pull from Google Photos or upload — the moments that matter most.' },
-                { num: 'II',  title: 'Set the vibe',    desc: 'Describe the feeling; Pear composes color, type, and layout around it.' },
-                { num: 'III', title: 'Share your link', desc: 'A printable-feeling URL for guests. Edit freely, whenever.' },
-              ].map((step, i) => (
+                { tone: 'butter', title: 'Add photos',      desc: 'Pull from Google Photos or upload — the moments that matter most.' },
+                { tone: 'rose',   title: 'Set the vibe',    desc: 'Describe the feeling; Pear composes color, type, and layout around it.' },
+                { tone: 'sage',   title: 'Share your link', desc: 'A warm URL for guests. Edit freely, whenever.' },
+              ].map((step, i) => {
+                const tintMap = {
+                  butter: 'var(--pl-groove-butter)',
+                  rose:   'var(--pl-groove-rose)',
+                  sage:   'var(--pl-groove-sage)',
+                } as const;
+                const tint = tintMap[step.tone as keyof typeof tintMap];
+                return (
                 <motion.div
-                  key={step.num}
+                  key={step.title}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 + i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ delay: 0.2 + i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                   style={{
                     position: 'relative',
-                    padding: '20px 18px 18px',
-                    borderRadius: 'var(--pl-radius-lg)',
-                    background: 'var(--pl-cream-card)',
-                    border: '1px solid rgba(14,13,11,0.08)',
+                    padding: '24px 22px 22px',
+                    borderRadius: i % 2 === 0 ? 'var(--pl-groove-radius-blob)' : '28px',
+                    background: `color-mix(in oklab, ${tint} 18%, var(--pl-groove-cream))`,
+                    border: `1px solid color-mix(in oklab, ${tint} 40%, transparent)`,
                   }}
                 >
-                  <span style={{ position: 'absolute', top: 0, left: '14px', right: '14px', height: '1px', background: 'rgba(184,147,90,0.40)' }} />
                   <span style={{
-                    fontFamily: 'var(--pl-font-display)',
-                    fontStyle: 'italic', fontWeight: 400,
-                    fontSize: '1.25rem',
-                    color: 'var(--pl-gold)',
-                    lineHeight: 1,
-                    display: 'block',
-                    marginBottom: '10px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    background: `color-mix(in oklab, ${tint} 50%, white)`,
+                    color: 'var(--pl-groove-ink)',
+                    fontFamily: 'var(--pl-font-body)',
+                    fontWeight: 700,
+                    fontSize: '0.94rem',
+                    marginBottom: '12px',
                   }}>
-                    Act {step.num}
+                    {i + 1}
                   </span>
                   <h4 style={{
-                    fontFamily: 'var(--pl-font-display)',
-                    fontStyle: 'italic', fontWeight: 500,
-                    fontSize: '1.05rem', lineHeight: 1.15,
-                    color: 'var(--pl-ink)',
+                    fontFamily: 'var(--pl-font-body)',
+                    fontWeight: 700,
+                    fontSize: '1.05rem',
+                    lineHeight: 1.15,
+                    color: 'var(--pl-groove-ink)',
                     margin: '0 0 6px',
+                    letterSpacing: '-0.01em',
                   }}>
                     {step.title}
                   </h4>
                   <p style={{
                     fontFamily: 'var(--pl-font-body)',
-                    fontSize: '0.74rem', lineHeight: 1.55,
-                    color: 'var(--pl-ink-soft)',
+                    fontSize: '0.88rem',
+                    lineHeight: 1.55,
+                    color: 'color-mix(in oklab, var(--pl-groove-ink) 70%, transparent)',
                     margin: 0,
                   }}>
                     {step.desc}
                   </p>
                 </motion.div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

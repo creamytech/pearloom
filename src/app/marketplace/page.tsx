@@ -133,14 +133,46 @@ export default function MarketplacePage() {
         {/* Main content */}
         <main className="flex-1 overflow-auto">
           {/* Hero banner */}
-          <div className="px-6 md:px-10 py-8 md:py-10 bg-gradient-to-br from-[var(--pl-cream)] to-white border-b border-[var(--pl-divider)]">
-            <p className="text-[0.62rem] font-bold tracking-[0.22em] uppercase text-[var(--pl-gold)] mb-2">
+          <div
+            className="relative px-6 md:px-10 py-10 md:py-12 overflow-hidden"
+            style={{
+              background:
+                'radial-gradient(ellipse at 50% 0%, color-mix(in oklab, var(--pl-groove-butter) 22%, var(--pl-groove-cream)) 0%, var(--pl-groove-cream) 70%)',
+              borderBottom: '1px solid color-mix(in oklab, var(--pl-groove-terra) 18%, transparent)',
+            }}
+          >
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute',
+                top: '-80px',
+                right: '-60px',
+                width: 360,
+                height: 360,
+                borderRadius: '42% 58% 70% 30% / 45% 30% 70% 55%',
+                background: 'var(--pl-groove-rose)',
+                opacity: 0.22,
+                filter: 'blur(70px)',
+                animation: 'pl-groove-blob-morph 20s ease-in-out infinite',
+                pointerEvents: 'none',
+              }}
+            />
+            <p className="relative text-[0.92rem] font-medium mb-2" style={{ color: 'var(--pl-groove-terra)' }}>
               Marketplace
             </p>
-            <h1 className="font-heading italic text-[clamp(1.6rem,3.2vw,2.4rem)] text-[var(--pl-ink)] leading-tight mb-2 tracking-[-0.012em]">
-              Start from something beautiful.
+            <h1
+              className="relative text-[clamp(1.8rem,3.6vw,2.6rem)] leading-[1.1] mb-3 tracking-[-0.02em]"
+              style={{ fontFamily: 'var(--pl-font-body)', fontWeight: 700, color: 'var(--pl-groove-ink)' }}
+            >
+              Start from something beautiful
             </h1>
-            <p className="text-[0.92rem] text-[var(--pl-ink-soft)] max-w-[520px] italic font-heading leading-relaxed">
+            <p
+              className="relative text-[0.98rem] leading-[1.6] max-w-[540px]"
+              style={{
+                fontFamily: 'var(--pl-font-body)',
+                color: 'color-mix(in oklab, var(--pl-groove-ink) 70%, transparent)',
+              }}
+            >
               Hand-crafted templates, palettes, and section presets. Pick one as your
               starting point; make it yours in an afternoon.
             </p>
