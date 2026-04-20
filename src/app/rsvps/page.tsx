@@ -35,6 +35,8 @@ interface Guest {
   message: string | null;
   responded_at: string | null;
   created_at: string | null;
+  rsvp_preset: string | null;
+  rsvp_answers: Record<string, string> | null;
 }
 
 type SortKey = 'name' | 'status' | 'responded_at';
@@ -431,6 +433,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                     {g.song_request ?? (
                       <span style={{ opacity: 0.3 }}>—</span>
                     )}
+                    <PresetAnswerChips guest={g} />
                   </td>
                   <td
                     style={{
@@ -554,6 +557,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                   </span>
                 )}
               </div>
+              <PresetAnswerChips guest={g} />
               {g.responded_at && (
                 <p
                   style={{
@@ -589,6 +593,88 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
 }
 
 // ─── Meal Summary ─────────────────────────────────────────────
+
+// ─── Preset answer chips ─────────────────────────────────────
+// Renders readable labels + values for the non-wedding RSVP
+// presets (bachelor, shower, memorial, reunion, milestone,
+// cultural, casual). Legacy wedding columns render elsewhere;
+// this surfaces everything that lives in rsvp_answers JSONB.
+
+const PRESET_LABEL: Record<string, string> = {
+  'cost-acknowledge': 'Cost OK',
+  'bed-preference':   'Bed',
+  'room-preference':  'Room',
+  'attending-days':   'Days',
+  'allergies-med':    'Allergies / meds',
+  'gift-status':      'Gift',
+  'advice':           'Advice',
+  'memory-share':     'Memory',
+  'tshirt-size':      'T-shirt',
+  'photo-upload':     'Photo',
+  'plus-one':         'Plus one',
+  'dietary':          'Dietary',
+  'song-request':     'Song',
+  'comments':         'Note',
+  'meal':             'Meal',
+  'attending':        'Attending',
+};
+
+function humanizeAnswer(kind: string, value: string): string {
+  if (kind === 'cost-acknowledge') return value === 'yes' ? 'Yes' : '—';
+  if (kind === 'attending-days') return value.split(',').filter(Boolean).join(' · ');
+  if (value.length > 60) return value.slice(0, 57) + '…';
+  return value;
+}
+
+function PresetAnswerChips({ guest }: { guest: Guest }) {
+  // Only render when there are preset answers beyond the legacy columns.
+  const answers = guest.rsvp_answers;
+  if (!answers || typeof answers !== 'object') return null;
+  const entries = Object.entries(answers).filter(
+    ([kind, value]) =>
+      typeof value === 'string' &&
+      value.trim().length > 0 &&
+      // Don't duplicate the chips already rendered from legacy columns.
+      !['meal', 'dietary', 'song-request', 'comments'].includes(kind),
+  );
+  if (entries.length === 0) return null;
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.4rem' }}>
+      {entries.map(([kind, value]) => (
+        <span
+          key={kind}
+          title={`${PRESET_LABEL[kind] ?? kind}: ${value}`}
+          style={{
+            fontSize: '0.7rem',
+            color: 'var(--pl-ink-soft)',
+            background: 'color-mix(in oklab, var(--pl-olive) 10%, transparent)',
+            border: '1px solid color-mix(in oklab, var(--pl-olive) 22%, transparent)',
+            borderRadius: 'var(--pl-radius-full)',
+            padding: '0.1rem 0.55rem',
+            fontFamily: 'var(--pl-font-body)',
+            display: 'inline-flex',
+            alignItems: 'baseline',
+            gap: 6,
+          }}
+        >
+          <span
+            style={{
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.58rem',
+              fontWeight: 700,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: 'var(--pl-olive)',
+            }}
+          >
+            {PRESET_LABEL[kind] ?? kind}
+          </span>
+          <span>{humanizeAnswer(kind, value as string)}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
 
 function MealSummary({ guests }: { guests: Guest[] }) {
   const counts: Record<string, number> = {};

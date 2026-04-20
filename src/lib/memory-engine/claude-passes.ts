@@ -201,16 +201,44 @@ export interface PoetryResult {
   milestones?: Array<{ year: number; label: string; emoji?: string }>;
 }
 
+/**
+ * Voice modifier per event archetype. Pulled from
+ * EventType.voice in the event-os registry; drives tone, line
+ * length, and banned-phrase lists for the poetry pass.
+ */
+type PoetryVoice = 'celebratory' | 'intimate' | 'ceremonial' | 'playful' | 'solemn';
+
+const VOICE_GUIDANCE: Record<PoetryVoice, string> = {
+  celebratory: 'Warm, upbeat, forward-leaning. Hints of anticipation. Default wedding/birthday tone.',
+  intimate:    'Smaller-room tone. Quiet confidence, affection, understated. Good for showers, anniversaries, vow renewals.',
+  ceremonial:  'Formal, ritual-aware. Measured pacing. References the tradition without being heavy-handed. Good for weddings, bar/bat mitzvah, confirmations.',
+  playful:     'Loud, in-on-the-joke, slightly irreverent. Still brand-safe — no slang, no crass. Good for bachelor/ette, sweet sixteen.',
+  solemn:      'Gentle, respectful, grief-aware. Short sentences, soft cadence. Never cheery, never morose. Good for memorials, funerals.',
+};
+
+const VOICE_BANNED_BASE = ['journey', 'adventure', 'fairy tale', 'soulmate'];
+const VOICE_BANNED: Record<PoetryVoice, string[]> = {
+  celebratory: VOICE_BANNED_BASE,
+  intimate:    [...VOICE_BANNED_BASE, 'epic', 'wild ride', 'best day ever'],
+  ceremonial:  [...VOICE_BANNED_BASE, 'magical', 'dream', 'fairytale'],
+  playful:     [...VOICE_BANNED_BASE, 'sacred', 'forever', 'eternity'],
+  solemn:      [...VOICE_BANNED_BASE, 'party', 'celebrate', 'fun', 'amazing', 'awesome', 'best day', 'happy'],
+};
+
 export async function poetryPassClaude(
   vibeString: string,
   coupleNames: [string, string] | undefined,
   chapters: Chapter[],
-  occasion?: string
+  occasion?: string,
+  voice?: PoetryVoice,
 ): Promise<PoetryResult> {
   const namesCtx = coupleNames ? `${coupleNames[0]} & ${coupleNames[1]}` : 'this couple';
   const name1 = coupleNames?.[0] ?? 'We';
   const occ = occasion || 'wedding';
   const occCap = occ.charAt(0).toUpperCase() + occ.slice(1);
+  const activeVoice: PoetryVoice = voice ?? 'celebratory';
+  const voiceDirection = VOICE_GUIDANCE[activeVoice];
+  const bannedList = VOICE_BANNED[activeVoice].join('", "');
 
   const vibeForPoetry = vibeString
     .replace(/^Occasion\s*\/\s*Project Type:[^\n]*\n?/im, '')
@@ -240,11 +268,13 @@ export async function poetryPassClaude(
 Vibe: "${vibeForPoetry}"
 Chapters: ${chapterContext}
 
+Voice for this event: ${voiceDirection}
+
 Rules:
-- heroTagline: 5-8 words, literary/cinematic. BANNED: "Today is the Day", "Happy Birthday", "Celebrating", "Happily Ever After".
-- closingLine: 10-15 words, warm, references their story.
-- rsvpIntro: 1-2 sentences, personal.
-- welcomeStatement: 3-5 sentences in the ${occ === 'birthday' ? `host/birthday person's` : `couple's`} voice, referencing at least ONE specific vibe detail. Must feel like a real human wrote it. BANNED: "journey", "adventure", "fairy tale", "soulmate".
+- heroTagline: 5-8 words, literary/cinematic. Match the voice above. BANNED: "Today is the Day", "Happy Birthday", "Celebrating", "Happily Ever After".
+- closingLine: 10-15 words, warm, references their story. Match the voice above.
+- rsvpIntro: 1-2 sentences, personal. Match the voice above.
+- welcomeStatement: 3-5 sentences in the ${occ === 'birthday' ? `host/birthday person's` : `couple's`} voice, referencing at least ONE specific vibe detail. Must feel like a real human wrote it, in the voice above. BANNED: "${bannedList}".
 ${needsMilestones ? `- milestones: 5-8 specific, poetic 3-6 word highlights with years and emojis (e.g. \`{"year":2019,"label":"Moved in, chaos ensued","emoji":"📦"}\`).` : ''}`,
       },
     ],

@@ -16,6 +16,7 @@ import {
   extractCoupleProfileClaude,
   useClaudeForStory,
 } from './claude-passes';
+import { getEventType } from '@/lib/event-os/event-types';
 
 export async function generateStoryManifest(
   clusters: PhotoCluster[],
@@ -311,9 +312,19 @@ export async function generateStoryManifest(
           occasion,
           clusterNotes
         ),
-    // Pass 4: Poetry (welcome + tagline + closing)
+    // Pass 4: Poetry (welcome + tagline + closing). Claude pass
+    // additionally gets the EventType.voice — shifts tone so a
+    // memorial doesn't read like a wedding, bachelor doesn't read
+    // like a baptism. Falls back to 'celebratory' if the occasion
+    // isn't in the registry.
     claudeStoryEnabled
-      ? poetryPassClaude(manifest.vibeString, coupleNames, chaptersSnapshot, occasion)
+      ? poetryPassClaude(
+          manifest.vibeString,
+          coupleNames,
+          chaptersSnapshot,
+          occasion,
+          getEventType(occasion)?.voice,
+        )
       : generatePoetryPass(manifest.vibeString, coupleNames, chaptersSnapshot, apiKey, occasion),
   ]);
 
