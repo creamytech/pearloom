@@ -634,9 +634,9 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                   <div style={{ padding: '4px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                     <span style={{
                       fontFamily: 'var(--pl-font-mono)',
-                      fontSize: '0.46rem',
+                      fontSize: '0.7rem',
                       fontWeight: 700,
-                      letterSpacing: '0.26em',
+                      letterSpacing: '0.22em',
                       textTransform: 'uppercase',
                       color: 'rgba(14,13,11,0.55)',
                       lineHeight: 1,
@@ -659,33 +659,35 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
             })()}
             <button
               onClick={onStartNew}
+              aria-label="Begin a new site"
               style={{
-                display: 'inline-flex', alignItems: 'center', gap: '8px',
-                padding: '10px 18px',
+                display: 'inline-flex', alignItems: 'center', gap: '10px',
+                padding: '14px 22px',
+                minHeight: 48,
                 borderRadius: 'var(--pl-radius-md)',
                 background: 'var(--pl-ink)',
                 color: 'var(--pl-cream)',
                 border: '1px solid var(--pl-ink)',
-                boxShadow: '0 0 0 3px rgba(184,147,90,0.18)',
+                boxShadow: '0 0 0 3px rgba(184,147,90,0.22)',
                 cursor: 'pointer',
                 fontFamily: 'var(--pl-font-mono)',
-                fontSize: '0.6rem',
+                fontSize: '0.78rem',
                 fontWeight: 700,
-                letterSpacing: '0.22em',
+                letterSpacing: '0.2em',
                 textTransform: 'uppercase',
                 transition: 'transform 0.18s cubic-bezier(0.22,1,0.36,1), box-shadow 0.18s',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,147,90,0.28), 0 6px 18px rgba(14,13,11,0.18)';
+                e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,147,90,0.32), 0 8px 22px rgba(14,13,11,0.22)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,147,90,0.18)';
+                e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,147,90,0.22)';
               }}
             >
-              <Plus size={14} strokeWidth={2.4} />
-              New site
+              <Plus size={18} strokeWidth={2.4} />
+              Begin a new site
             </button>
           </div>
         </div>
@@ -700,10 +702,10 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
           }}>
             <span style={{
               fontFamily: 'var(--pl-font-mono)',
-              fontSize: '0.5rem', fontWeight: 700,
-              letterSpacing: '0.32em',
+              fontSize: '0.72rem', fontWeight: 700,
+              letterSpacing: '0.24em',
               textTransform: 'uppercase',
-              color: 'rgba(14,13,11,0.55)',
+              color: 'rgba(14,13,11,0.65)',
             }}>
               Compose · three paths
             </span>
@@ -738,22 +740,32 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                 desc: 'Pick a pre-designed motif — editorial, archival, romantic, spare.',
                 action: onOpenTemplates || onQuickStart || onStartNew,
               },
-            ].map((card, i) => (
+            ].map((card, i) => {
+              const isPrimary = i === 0;
+              return (
               <motion.button
                 key={card.title}
                 onClick={card.action}
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.99 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 32 }}
-                className={cn(`pl-enter pl-enter-d${i + 1}`)}
+                className={cn(`pl-enter pl-enter-d${i + 1}`, isPrimary && 'pl-pearl-border')}
                 style={{
                   position: 'relative',
                   display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
                   gap: '12px',
-                  padding: '20px 20px 18px',
+                  padding: '24px 22px 22px',
+                  minHeight: isPrimary ? 220 : 200,
                   borderRadius: 'var(--pl-radius-lg)',
-                  background: 'var(--pl-cream-card)',
-                  border: '1px solid rgba(14,13,11,0.09)',
+                  background: isPrimary
+                    ? 'linear-gradient(135deg, var(--pl-cream-card) 0%, color-mix(in oklab, var(--pl-olive) 8%, var(--pl-cream-card)) 100%)'
+                    : 'var(--pl-cream-card)',
+                  border: isPrimary
+                    ? '1.5px solid color-mix(in oklab, var(--pl-olive) 45%, transparent)'
+                    : '1px solid rgba(14,13,11,0.09)',
+                  boxShadow: isPrimary
+                    ? '0 2px 10px rgba(14,13,11,0.05), 0 0 0 3px color-mix(in oklab, var(--pl-gold) 18%, transparent)'
+                    : 'none',
                   cursor: 'pointer',
                   textAlign: 'left',
                   overflow: 'hidden',
@@ -761,11 +773,15 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.borderColor = 'rgba(184,147,90,0.55)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(14,13,11,0.04), 0 14px 36px rgba(14,13,11,0.10), 0 0 0 3px rgba(184,147,90,0.10)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(14,13,11,0.04), 0 14px 36px rgba(14,13,11,0.10), 0 0 0 3px rgba(184,147,90,0.18)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(14,13,11,0.09)';
-                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.borderColor = isPrimary
+                    ? 'color-mix(in oklab, var(--pl-olive) 45%, transparent)'
+                    : 'rgba(14,13,11,0.09)';
+                  e.currentTarget.style.boxShadow = isPrimary
+                    ? '0 2px 10px rgba(14,13,11,0.05), 0 0 0 3px color-mix(in oklab, var(--pl-gold) 18%, transparent)'
+                    : 'none';
                 }}
               >
                 {/* Gold hairline at top */}
@@ -774,23 +790,46 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                   height: '1px', background: 'rgba(184,147,90,0.45)',
                 }} />
 
+                {/* Recommended ribbon for the primary card */}
+                {isPrimary && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: 12,
+                      right: 12,
+                      fontFamily: 'var(--pl-font-mono)',
+                      fontSize: '0.66rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.22em',
+                      textTransform: 'uppercase',
+                      color: 'var(--pl-olive)',
+                      background: 'var(--pl-cream)',
+                      border: '1px solid color-mix(in oklab, var(--pl-olive) 40%, transparent)',
+                      padding: '3px 10px',
+                      borderRadius: 'var(--pl-radius-full)',
+                    }}
+                  >
+                    Recommended
+                  </span>
+                )}
+
                 {/* № folio + icon row */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                   <span style={{
                     fontFamily: 'var(--pl-font-mono)',
-                    fontSize: '0.56rem',
+                    fontSize: '0.72rem',
                     fontWeight: 700,
-                    letterSpacing: '0.26em',
+                    letterSpacing: '0.22em',
                     textTransform: 'uppercase',
                     color: 'var(--pl-olive)',
                   }}>
                     № {String(i + 1).padStart(2, '0')}
                   </span>
                   <span style={{
-                    width: '36px', height: '36px',
+                    width: '44px', height: '44px',
                     borderRadius: '50%',
                     border: '1px solid rgba(184,147,90,0.40)',
-                    background: 'rgba(184,147,90,0.06)',
+                    background: isPrimary ? 'color-mix(in oklab, var(--pl-olive) 14%, transparent)' : 'rgba(184,147,90,0.06)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: 'var(--pl-ink)',
                   }}>
@@ -803,7 +842,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                   fontFamily: 'var(--pl-font-display)',
                   fontStyle: 'italic',
                   fontWeight: 400,
-                  fontSize: '1.5rem',
+                  fontSize: isPrimary ? '1.7rem' : '1.4rem',
                   lineHeight: 1.05,
                   letterSpacing: '-0.005em',
                   color: 'var(--pl-ink)',
@@ -813,20 +852,20 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                 </h3>
 
                 {/* Kicker + description */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
                   <span style={{
                     fontFamily: 'var(--pl-font-mono)',
-                    fontSize: '0.5rem',
+                    fontSize: '0.72rem',
                     fontWeight: 700,
-                    letterSpacing: '0.24em',
+                    letterSpacing: '0.2em',
                     textTransform: 'uppercase',
-                    color: 'rgba(14,13,11,0.50)',
+                    color: 'rgba(14,13,11,0.60)',
                   }}>
                     {card.kicker}
                   </span>
                   <p style={{
                     fontFamily: 'var(--pl-font-body)',
-                    fontSize: '0.78rem',
+                    fontSize: '0.92rem',
                     lineHeight: 1.5,
                     color: 'var(--pl-ink-soft)',
                     margin: 0,
@@ -835,7 +874,8 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                   </p>
                 </div>
               </motion.button>
-            ))}
+              );
+            })}
           </motion.div>
         </div>
       )}
