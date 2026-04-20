@@ -1346,6 +1346,21 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
         genStep={genStep}
         genProgress={genProgress}
         partialManifest={partialManifest}
+        onStopAndEdit={() => {
+          if (!partialManifest || !collected.names) return;
+          const c = collected;
+          const n1 = (c.names![0] || 'celebration').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const n2 = c.names![1] ? c.names![1].toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+          const suffix = Math.random().toString(36).slice(2, 6);
+          const subdomain = n2 ? `${n1}-and-${n2}-${suffix}` : `${n1}-${suffix}`;
+          setCompletedData({
+            manifest: partialManifest,
+            names: c.names!,
+            subdomain,
+          });
+          setPhase('complete');
+          clearDraft();
+        }}
       />
     );
   }
@@ -1454,6 +1469,46 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                   (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.45)';
                 }}
               >Revise Answers</button>
+              {/* Checkpoint recovery: if partial passes have
+                  landed, offer to continue with whatever
+                  generated before the failure — no need to
+                  restart from pass 0. */}
+              {partialManifest && partialManifest.chapters && partialManifest.chapters.length > 0 && collected.names && (
+                <button
+                  onClick={() => {
+                    const c = collected;
+                    const n1 = (c.names![0] || 'celebration').toLowerCase().replace(/[^a-z0-9]/g, '');
+                    const n2 = c.names![1] ? c.names![1].toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+                    const suffix = Math.random().toString(36).slice(2, 6);
+                    const subdomain = n2 ? `${n1}-and-${n2}-${suffix}` : `${n1}-${suffix}`;
+                    setCompletedData({
+                      manifest: partialManifest,
+                      names: c.names!,
+                      subdomain,
+                    });
+                    setPhase('complete');
+                    clearDraft();
+                  }}
+                  style={{
+                    padding: '10px 20px', borderRadius: 'var(--pl-radius-xs)',
+                    background: 'transparent',
+                    border: '1px solid rgba(92,107,63,0.55)',
+                    fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                    fontSize: 10, fontWeight: 700,
+                    letterSpacing: '0.24em', textTransform: 'uppercase',
+                    color: '#5C6B3F', cursor: 'pointer',
+                    transition: 'background 180ms ease, border-color 180ms ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.background = 'rgba(92,107,63,0.08)';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.background = 'transparent';
+                  }}
+                >
+                  Continue with what we have
+                </button>
+              )}
               {retryCount < 3 && (
                 <button onClick={() => { setPhase('chat'); setGenError(null); setTimeout(() => handleBuild(), 50); }}
                   style={{
@@ -3303,6 +3358,12 @@ interface GeneratingStageProps {
   genStep: number;
   genProgress: number;
   partialManifest: StoryManifest | null;
+  /**
+   * Fires when the user hits "I like it, stop here" — jumps
+   * to the editor with whatever partial manifest we have. Only
+   * surfaced once the generation has produced something real.
+   */
+  onStopAndEdit?: () => void;
 }
 
 function GeneratingStage({
@@ -3313,6 +3374,7 @@ function GeneratingStage({
   genStep,
   genProgress,
   partialManifest,
+  onStopAndEdit,
 }: GeneratingStageProps) {
   const displayNames = collected.names
     ? collected.names[1]
@@ -3471,6 +3533,40 @@ function GeneratingStage({
             }}>
               {Math.round(displayProgress)}%
             </span>
+            {/* Stop-and-edit: once the partial has enough shape
+                to edit (past pass 2), let hosts bail into the
+                editor without waiting for all 8 passes. */}
+            {onStopAndEdit && genPass >= 2 && partialManifest?.chapters && partialManifest.chapters.length > 0 && (
+              <button
+                type="button"
+                onClick={onStopAndEdit}
+                style={{
+                  fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                  fontSize: '0.66rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.2em',
+                  textTransform: 'uppercase',
+                  color: '#5C6B3F',
+                  background: 'transparent',
+                  border: '1px solid rgba(92,107,63,0.45)',
+                  padding: '7px 12px',
+                  borderRadius: 'var(--pl-radius-xs)',
+                  cursor: 'pointer',
+                  marginLeft: 8,
+                  transition: 'background 180ms ease, border-color 180ms ease',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(92,107,63,0.08)';
+                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(92,107,63,0.75)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.background = 'transparent';
+                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(92,107,63,0.45)';
+                }}
+              >
+                Edit now
+              </button>
+            )}
           </div>
 
           {/* Dynamic ticker */}
