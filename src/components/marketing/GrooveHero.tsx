@@ -18,6 +18,7 @@ import { GooeyText } from '@/components/brand/GooeyText';
 import {
   BlurFade,
   GrooveBlob,
+  MagneticHover,
   RipeningPear,
   Ripple,
   SquishyButton,
@@ -195,18 +196,22 @@ export function GrooveHero({ onGetStarted }: GrooveHeroProps) {
                 alignItems: 'center',
               }}
             >
-              <SquishyButton size="lg" onClick={onGetStarted}>
-                Begin a new site
-              </SquishyButton>
-              <SquishyButton
-                size="lg"
-                palette="orchard"
-                onClick={() => {
-                  document.getElementById('showroom')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-              >
-                See the showroom
-              </SquishyButton>
+              <MagneticHover strength={0.25} radius={140}>
+                <SquishyButton size="lg" onClick={onGetStarted}>
+                  Begin a new site
+                </SquishyButton>
+              </MagneticHover>
+              <MagneticHover strength={0.2} radius={120}>
+                <SquishyButton
+                  size="lg"
+                  palette="orchard"
+                  onClick={() => {
+                    document.getElementById('showroom')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  See the showroom
+                </SquishyButton>
+              </MagneticHover>
             </div>
           </BlurFade>
 

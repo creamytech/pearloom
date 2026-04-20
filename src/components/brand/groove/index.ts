@@ -18,3 +18,5 @@ export { GrooveBento, type GrooveBentoCell } from './GrooveBento';
 export { TracingThread } from './TracingThread';
 export { GrooveMotion } from './GrooveMotion';
 export { AnimatedList } from './AnimatedList';
+export { useMagneticPointer } from './useMagneticPointer';
+export { MagneticHover } from './MagneticHover';
