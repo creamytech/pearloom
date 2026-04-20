@@ -20,6 +20,8 @@ import { VisualTimeline } from '@/components/visual-timeline';
 import { ItineraryBlock } from '@/components/site/ItineraryBlock';
 import { GrooveSiteHero } from '@/components/site/groove/GrooveSiteHero';
 import { GrooveSiteStory } from '@/components/site/groove/GrooveSiteStory';
+import { GrooveSiteEvents } from '@/components/site/groove/GrooveSiteEvents';
+import { GrooveSiteFooter } from '@/components/site/groove/GrooveSiteFooter';
 import { resolveThemeFamily } from '@/lib/event-os/theme-family';
 import { CostSplitterBlock } from '@/components/site/CostSplitterBlock';
 import { PackingListBlock } from '@/components/site/PackingListBlock';
@@ -1812,7 +1814,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           </section>
         );
       }
-      case 'event':
+      case 'event': {
         if (!manifest.events?.length) return editMode ? (
           <section key={key} data-pe-section="events" data-pe-empty-section="events" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
             <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
@@ -1824,6 +1826,24 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             </div>
           </section>
         ) : null;
+        const eventFamily = resolveThemeFamily(manifest);
+        if (eventFamily === 'groove') {
+          return (
+            <div key={key} data-pe-section="events" style={blockStyle}>
+              <GrooveSiteEvents
+                events={manifest.events}
+                title={(blockCfg.title as string) || vibeSkin.sectionLabels?.events || 'The schedule'}
+                accent={pal.accent}
+                accent2={pal.accent2}
+                foreground={safeFg}
+                background={pal.background}
+                muted={safeMuted}
+                headingFont={vibeSkin.fonts.heading}
+                bodyFont={vibeSkin.fonts.body}
+              />
+            </div>
+          );
+        }
         return (
           <section key={key} id="schedule" data-pe-section="events" style={{ position: 'relative', overflow: 'hidden', ...blockStyle }}>
             {art.cornerSvg && (
@@ -1885,6 +1905,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             )}
           </section>
         );
+      }
       case 'rsvp':
         if (!manifest.events?.length) return editMode ? (
           <section key={key} data-pe-section="rsvp" data-pe-empty-section="rsvp" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
@@ -2434,6 +2455,25 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       }
       case 'footer': {
         const footerText = blockCfg.text as string | undefined;
+        const footerFamily = resolveThemeFamily(manifest);
+        if (footerFamily === 'groove') {
+          return (
+            <div key={key} data-pe-section="footer" style={blockStyle}>
+              <GrooveSiteFooter
+                names={names}
+                closingLine={manifest.poetry?.closingLine}
+                subtitle={footerText}
+                accent={pal.accent}
+                accent2={pal.accent2}
+                foreground={safeFg}
+                background={pal.background}
+                muted={safeMuted}
+                headingFont={vibeSkin.fonts.heading}
+                bodyFont={vibeSkin.fonts.body}
+              />
+            </div>
+          );
+        }
         return (
           <section key={key} data-pe-section="footer" style={{ padding: '3rem 2rem', textAlign: 'center', borderTop: `1px solid ${pal.accent}15`, ...blockStyle }}>
             <p style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '0.8rem',  color: safeMuted, lineHeight: 1.6 }}>

@@ -37,6 +37,8 @@ import { StickyRsvpPill } from '@/components/site/StickyRsvpPill';
 import { LinkedEventsStrip } from '@/components/site/LinkedEventsStrip';
 import { GrooveSiteHero } from '@/components/site/groove/GrooveSiteHero';
 import { GrooveSiteStory } from '@/components/site/groove/GrooveSiteStory';
+import { GrooveSiteEvents } from '@/components/site/groove/GrooveSiteEvents';
+import { GrooveSiteFooter } from '@/components/site/groove/GrooveSiteFooter';
 import { resolveThemeFamily } from '@/lib/event-os/theme-family';
 import { CoupleQuiz } from '@/components/site/CoupleQuiz';
 import { ShareBar } from '@/components/site/ShareBar';
@@ -450,8 +452,25 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           </section>
         );
       }
-      case 'event':
+      case 'event': {
         if (!manifest.events?.length) return null;
+        const eventFamily = resolveThemeFamily(manifest);
+        if (eventFamily === 'groove') {
+          return (
+            <GrooveSiteEvents
+              key={key}
+              events={manifest.events}
+              title={(blockCfg.title as string) || vibeSkin.sectionLabels.events}
+              accent={pal.accent}
+              accent2={pal.accent2}
+              foreground={pal.foreground}
+              background={pal.background}
+              muted={pal.muted}
+              headingFont={vibeSkin.fonts.heading}
+              bodyFont={vibeSkin.fonts.body}
+            />
+          );
+        }
         return (
           <section key={key} id="schedule" style={{ position: 'relative', overflow: 'hidden', background: cardBg }}>
             {vibeSkin.accentBlobSvg && (
@@ -463,6 +482,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             <WeddingEvents events={manifest.events} title={(blockCfg.title as string) || vibeSkin.sectionLabels.events} />
           </section>
         );
+      }
       case 'rsvp':
         if (!manifest.events?.length) return null;
         return (
@@ -753,7 +773,25 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             bodyFont={vibeSkin.fonts.body}
           />
         );
-      case 'footer':
+      case 'footer': {
+        const footerFamily = resolveThemeFamily(manifest);
+        if (footerFamily === 'groove') {
+          return (
+            <GrooveSiteFooter
+              key={key}
+              names={safeNames}
+              closingLine={manifest.poetry?.closingLine}
+              subtitle={(blockCfg.text as string) || undefined}
+              accent={pal.accent}
+              accent2={pal.accent2}
+              foreground={pal.foreground}
+              background={pal.background}
+              muted={pal.muted}
+              headingFont={vibeSkin.fonts.heading}
+              bodyFont={vibeSkin.fonts.body}
+            />
+          );
+        }
         return (
           <footer key={key} style={{ background: pal.foreground, color: `${pal.background}B0`, padding: 'clamp(3rem,6vw,5rem) 2rem 2rem', textAlign: 'center' }}>
             <p style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.2rem,3vw,1.8rem)', fontWeight: 600, fontStyle: 'italic', color: `${pal.background}F0`, marginBottom: '0.75rem' }}>
@@ -769,6 +807,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             </p>
           </footer>
         );
+      }
       default:
         return null;
     }
