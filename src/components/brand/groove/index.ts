@@ -12,3 +12,5 @@ export { SquishyButton } from './SquishyButton';
 export { BubbleCard } from './BubbleCard';
 export { PillNav } from './PillNav';
 export { RipeningPear } from './RipeningPear';
+export { Ripple } from './Ripple';
+export { BlurFade } from './BlurFade';
