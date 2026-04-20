@@ -20,7 +20,7 @@ interface Props {
 
 export function VoiceToastRecorder({
   token,
-  accent = '#A3B18A',
+  accent = '#5C6B3F',
   headingFont = 'Playfair Display',
 }: Props) {
   const [phase, setPhase] = useState<Phase>('idle');

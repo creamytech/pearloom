@@ -249,7 +249,7 @@ export function AnniversaryNudgePanel() {
                 textTransform: 'uppercase',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 fontFamily: 'Georgia, serif',
-                transition: 'all 0.2s ease',
+                transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
               }}
             >
               {loading

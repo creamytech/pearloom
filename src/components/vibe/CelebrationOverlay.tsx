@@ -87,7 +87,7 @@ function renderShape(shape: Particle['shape'], size: number, color: string): str
 
 export function CelebrationOverlay({
   occasion = 'wedding',
-  accentColor = '#A3B18A',
+  accentColor = '#5C6B3F',
   accentColor2 = '#D6C6A8',
   disabled = false,
 }: CelebrationOverlayProps) {

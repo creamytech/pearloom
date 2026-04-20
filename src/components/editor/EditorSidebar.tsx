@@ -89,7 +89,7 @@ export function SidebarSection({
           size={10}
           style={{
             transform: open ? 'rotate(90deg)' : 'none',
-            transition: 'transform 0.2s',
+            transition: 'transform var(--pl-dur-fast)',
             color: open ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-muted)',
             flexShrink: 0,
           }}
@@ -480,7 +480,7 @@ export function EditorSidebar({
             background: isResizing || isResizeHover
               ? 'var(--pl-chrome-accent-soft)'
               : 'transparent',
-            transition: 'background 0.15s',
+            transition: 'background var(--pl-dur-instant)',
           }}
         >
           {/* Visual line */}
@@ -492,7 +492,7 @@ export function EditorSidebar({
               background: isResizing || isResizeHover
                 ? 'var(--pl-chrome-accent)'
                 : 'var(--pl-chrome-border)',
-              transition: 'background 0.15s',
+              transition: 'background var(--pl-dur-instant)',
               pointerEvents: 'none',
             }}
           />

@@ -79,7 +79,7 @@ function DragHandle({ controls }: { controls: ReturnType<typeof useDragControls>
         cursor: 'grab', padding: '0.5rem 0.25rem', display: 'flex',
         alignItems: 'center', color: 'rgba(0,0,0,0.2)',
         touchAction: 'none', userSelect: 'none', flexShrink: 0,
-        transition: 'color 0.15s',
+        transition: 'color var(--pl-dur-instant)',
       }}
       onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive)'; }}
       onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(0,0,0,0.2)'; }}
@@ -286,7 +286,7 @@ function ChapterCard({
                 background: isRewriting ? 'var(--pl-olive-mist)' : 'transparent',
                 color: isRewriting ? 'var(--pl-olive)' : 'rgba(0,0,0,0.35)',
                 cursor: isRewriting ? 'not-allowed' : 'pointer',
-                display: 'flex', transition: 'all 0.15s',
+                display: 'flex', transition: 'all var(--pl-dur-instant)',
               }}
               onMouseOver={e => { if (!isRewriting) { (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-mist)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--pl-olive)'; }}}
               onMouseOut={e => { if (!isRewriting) { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'rgba(0,0,0,0.35)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.08)'; }}}
@@ -304,7 +304,7 @@ function ChapterCard({
                 color: isEditing ? '#fff' : 'rgba(0,0,0,0.5)',
                 cursor: 'pointer', fontWeight: 700,
                 display: 'flex', alignItems: 'center', gap: '4px',
-                transition: 'all 0.15s',
+                transition: 'all var(--pl-dur-instant)',
               }}
             >
               {isEditing ? <><Check size={12} /> Done</> : <><Pencil size={12} /> Edit</>}
@@ -317,7 +317,7 @@ function ChapterCard({
                 padding: '0.45rem', borderRadius: '0.5rem',
                 border: '1px solid rgba(239,68,68,0.15)', background: 'transparent',
                 color: 'rgba(239,68,68,0.45)', cursor: 'pointer', display: 'flex',
-                transition: 'all 0.15s',
+                transition: 'all var(--pl-dur-instant)',
               }}
               onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.08)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-ink-soft)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--pl-ink-soft)'; }}
               onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'rgba(239,68,68,0.45)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(239,68,68,0.15)'; }}
@@ -540,7 +540,7 @@ function AIBlockGenerator({ onGenerated, manifest }: { onGenerated: (block: Canv
                   background: prompt.trim() ? 'var(--pl-olive)' : 'rgba(255,255,255,0.25)',
                   color: prompt.trim() ? '#fff' : 'var(--pl-muted)',
                   fontWeight: 700, fontSize: '0.8rem', letterSpacing: '0.04em',
-                  transition: 'all 0.2s',
+                  transition: 'all var(--pl-dur-fast)',
                 }}
               >
                 {loading
@@ -569,7 +569,7 @@ function PaletteItem({ type, onAdd }: { type: BlockType; onAdd: (t: BlockType) =
         width: '100%', padding: '0.7rem 0.875rem', borderRadius: '0.65rem',
         background: cfg.color, border: '1px solid rgba(255,255,255,0.4)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
         cursor: 'pointer', textAlign: 'left', marginBottom: '0.4rem',
-        transition: 'box-shadow 0.15s',
+        transition: 'box-shadow var(--pl-dur-instant)',
       }}
       onMouseOver={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px rgba(0,0,0,0.09)'; }}
       onMouseOut={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
@@ -702,7 +702,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
                     color: hasChanges ? '#fff' : 'var(--pl-muted)',
                     padding: '0.45rem 0.875rem',
                     gap: '0.3rem', fontSize: '0.75rem', fontWeight: 700,
-                    transition: 'all 0.2s',
+                    transition: 'all var(--pl-dur-fast)',
                   }}
                 >
                   <Check size={12} />
@@ -760,7 +760,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
             padding: '0.6rem', borderRadius: '0.65rem', width: '100%',
             border: '1px solid rgba(0,0,0,0.08)', background: 'transparent',
             color: 'var(--pl-muted)', fontSize: '0.75rem', fontWeight: 600,
-            cursor: 'pointer', transition: 'all 0.15s',
+            cursor: 'pointer', transition: 'all var(--pl-dur-instant)',
           }}
           onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.2)'; }}
           onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.08)'; }}

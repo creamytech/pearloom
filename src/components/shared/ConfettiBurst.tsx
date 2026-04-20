@@ -8,7 +8,7 @@ import { useMemo } from 'react';
 // Duration: 2.5s then fades out.
 
 const COLORS = [
-  '#A3B18A', // olive
+  '#5C6B3F', // olive
   '#C4A96A', // gold
   '#F0EBE0', // cream
   '#6D597A', // plum

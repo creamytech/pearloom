@@ -30,7 +30,7 @@ export const TAB_TIER: Partial<Record<EditorTab, PlanTier>> = {
 
 // Display labels and accent colors per tier
 export const TIER_META: Record<PlanTier, { label: string; color: string; bg: string }> = {
-  journal: { label: 'Journal', color: '#A3B18A', bg: 'rgba(163,177,138,0.14)' },
+  journal: { label: 'Journal', color: '#5C6B3F', bg: 'rgba(163,177,138,0.14)' },
   atelier: { label: 'Atelier', color: '#6D597A', bg: 'rgba(109,89,122,0.12)'  },
   legacy:  { label: 'Legacy',  color: '#C4A96A', bg: 'rgba(196,169,106,0.14)' },
 };

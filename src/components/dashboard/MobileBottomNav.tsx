@@ -223,7 +223,7 @@ export function MobileBottomNav({ activeTab, onTabChange, onBuild }: MobileBotto
                       strokeWidth={isActive ? 2.2 : 1.8}
                       style={{
                         color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
-                        transition: 'color 0.15s',
+                        transition: 'color var(--pl-dur-instant)',
                       }}
                     />
                     <span
@@ -233,7 +233,7 @@ export function MobileBottomNav({ activeTab, onTabChange, onBuild }: MobileBotto
                         letterSpacing: '0.06em',
                         textTransform: 'uppercase',
                         color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
-                        transition: 'color 0.15s',
+                        transition: 'color var(--pl-dur-instant)',
                       }}
                     >
                       {tab.label}

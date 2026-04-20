@@ -12,74 +12,70 @@ import { cn } from '@/lib/cn';
 // All variants use ONLY Tailwind classes. No inline style overrides.
 // ─────────────────────────────────────────────────────────────
 
+// Shared class string for ink-filled variants so primary/accent/ink
+// stay visually locked — a single point of truth instead of three
+// drifted copies. When we want one of them to differentiate (e.g.,
+// make `primary` pearl-driven), change this in one place.
+const INK_FILLED = [
+  'bg-[var(--pl-ink)] text-[var(--pl-cream)] border border-[var(--pl-ink)]',
+  'hover:opacity-90',
+  'shadow-[var(--pl-shadow-sm)]',
+].join(' ');
+
 const buttonVariants = cva(
   // Base — shared across all variants
   [
     'inline-flex items-center justify-center font-semibold leading-none',
     'tracking-[0.02em]',
-    'transition-all duration-200 cursor-pointer select-none',
+    'transition-all duration-[var(--pl-dur-fast)] ease-[cubic-bezier(0.22,1,0.36,1)] cursor-pointer select-none',
     'disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#18181B] focus-visible:ring-offset-2',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--pl-ink)] focus-visible:ring-offset-2',
   ].join(' '),
   {
     variants: {
       variant: {
-        /** Dark-filled — primary CTA */
-        primary: [
-          'bg-[#18181B] text-white border border-[#18181B]',
-          'hover:bg-[#27272A]',
-          'shadow-[0_1px_3px_rgba(0,0,0,0.08)]',
-        ].join(' '),
-
-        /** Dark-filled — brand CTA (alias) */
-        accent: [
-          'bg-[#18181B] text-white border border-[#18181B]',
-          'hover:bg-[#27272A]',
-          'shadow-[0_1px_3px_rgba(0,0,0,0.08)]',
-        ].join(' '),
+        /** Ink-filled — primary CTA (canonical). */
+        primary: INK_FILLED,
+        /** Alias of primary. Kept for semantic intent at call sites. */
+        accent: INK_FILLED,
+        /** Alias of primary. Kept for legacy "ink CTA" callers. */
+        ink: INK_FILLED,
 
         /** Outlined — secondary action */
         secondary: [
-          'bg-white text-[#18181B] border border-[#E4E4E7]',
-          'hover:border-[#18181B] hover:bg-[#F4F4F5]',
+          'bg-[var(--pl-cream-card)] text-[var(--pl-ink)] border border-[var(--pl-divider)]',
+          'hover:border-[var(--pl-ink)] hover:bg-[var(--pl-cream-deep)]',
         ].join(' '),
 
         /** Minimal text — tertiary / inline action */
         ghost: [
-          'bg-transparent text-[#71717A] border border-transparent',
-          'hover:text-[#18181B] hover:bg-[#F4F4F5]',
+          'bg-transparent text-[var(--pl-muted)] border border-transparent',
+          'hover:text-[var(--pl-ink)] hover:bg-[var(--pl-cream-deep)]',
         ].join(' '),
 
         /** Gold-filled — premium / upgrade prompt */
         gold: [
-          'bg-[var(--pl-gold)] text-white border border-[var(--pl-gold)]',
-          'hover:bg-[#b89a5a]',
-          'shadow-[0_1px_3px_rgba(0,0,0,0.08)]',
+          'bg-[var(--pl-gold)] text-[var(--pl-cream)] border border-[var(--pl-gold)]',
+          'hover:opacity-90',
+          'shadow-[var(--pl-shadow-sm)]',
         ].join(' '),
 
         /** Warning — outline */
         warning: [
-          'bg-transparent text-[#DC2626] border border-[#DC2626]',
-          'hover:bg-[#FEF2F2]',
+          'bg-transparent text-[var(--pl-warning)] border border-[var(--pl-warning)]',
+          'hover:bg-[var(--pl-warning-mist)]',
         ].join(' '),
 
         /** Destructive */
         danger: [
           'bg-destructive text-destructive-foreground border border-destructive',
-          'hover:opacity-90 shadow-[0_1px_3px_rgba(0,0,0,0.08)]',
+          'hover:opacity-90 shadow-[var(--pl-shadow-sm)]',
         ].join(' '),
 
         /** Dark-surface ghost — for use inside editor / dark panels */
         darkGhost: [
           'bg-transparent text-[var(--pl-dark-text)] border border-[var(--pl-dark-border)]',
           'hover:bg-white/10 hover:text-[var(--pl-dark-heading)]',
-        ].join(' '),
-
-        /** Ink-filled — secondary dark CTA */
-        ink: [
-          'bg-[#18181B] text-white border border-[#18181B]',
-          'hover:bg-[#27272A]',
-          'shadow-[0_1px_3px_rgba(0,0,0,0.08)]',
         ].join(' '),
       },
 

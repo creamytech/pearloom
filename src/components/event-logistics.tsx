@@ -105,7 +105,7 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
                             display: 'inline-block',
                             padding: '0.5rem 1rem', 
                             background: 'var(--pl-olive-mist, #EEE8DC)', 
-                            color: 'var(--pl-olive, #A3B18A)',
+                            color: 'var(--pl-olive, #5C6B3F)',
                             borderRadius: '0.5rem',
                             fontWeight: 500,
                             textDecoration: 'none'
@@ -199,7 +199,7 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
                     style={{ 
                       width: '100%', padding: '1.25rem', background: 'var(--pl-ink)', color: '#fff', 
                       borderRadius: '0.5rem', border: 'none', fontWeight: 600, cursor: 'pointer',
-                      opacity: attending === null ? 0.5 : 1, transition: 'opacity 0.2s', marginTop: '1rem'
+                      opacity: attending === null ? 0.5 : 1, transition: 'opacity var(--pl-dur-fast)', marginTop: '1rem'
                     }}
                   >
                     {status === 'loading' ? <Loader2 className="animate-spin m-auto" /> : 'Send RSVP'}

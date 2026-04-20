@@ -117,7 +117,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                   borderRadius: '8px',
                   background: isHidden ? 'var(--pl-chrome-bg)' : 'var(--pl-chrome-surface)',
                   border: '1px solid #E4E4E7',
-                  transition: 'all 0.15s',
+                  transition: 'all var(--pl-dur-instant)',
                   opacity: isHidden ? 0.5 : 1,
                 }}
               >
@@ -233,7 +233,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
             fontWeight: panelWeight.bold,
             fontFamily: 'inherit',
             lineHeight: panelLineHeight.tight,
-            transition: 'all 0.15s',
+            transition: 'all var(--pl-dur-instant)',
           }}
         >
           <Plus size={13} /> Add Custom Page

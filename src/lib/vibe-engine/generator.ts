@@ -537,7 +537,7 @@ CRITICAL DESIGN RULES:
     const curve: VibeSkin['curve'] = VALID_CURVES.includes(parsed.curve) ? parsed.curve : 'organic';
     const waveDef = WAVE_PATHS[curve];
     const accentForFallback = typeof parsed.palette?.accent === 'string' && parsed.palette.accent.startsWith('#')
-      ? parsed.palette.accent : '#A3B18A';
+      ? parsed.palette.accent : '#5C6B3F';
     const fallbackArt = buildFallbackArt(accentForFallback, curve);
 
     // Extract and validate SVG fields — fall back to deterministic art if invalid
@@ -564,7 +564,7 @@ CRITICAL DESIGN RULES:
 
     const bgColor = userBg || hexOrDefault(parsed.palette?.background, '#F5F1E8');
     const fgColor = userFg || hexOrDefault(parsed.palette?.foreground, '#2B2B2B');
-    const accentColor = userAccent || hexOrDefault(parsed.palette?.accent, '#A3B18A');
+    const accentColor = userAccent || hexOrDefault(parsed.palette?.accent, '#5C6B3F');
     const accent2Color = userAccent2 || hexOrDefault(parsed.palette?.accent2, '#D6C6A8');
     const cardColor = (typeof parsed.palette?.card === 'string' &&
       (parsed.palette.card.startsWith('#') || parsed.palette.card.startsWith('rgba')))

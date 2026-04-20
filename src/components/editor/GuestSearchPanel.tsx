@@ -211,7 +211,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
                   ? (s === 'all' ? '#18181B' : accent)
                   : '#3F3F46',
                 cursor: 'pointer',
-                transition: 'all 0.15s',
+                transition: 'all var(--pl-dur-instant)',
               }}
             >
               {s === 'all' ? `All (${guests.length})` : `${s.charAt(0).toUpperCase() + s.slice(1)} (${counts[s as keyof typeof counts]})`}
@@ -303,7 +303,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
                 borderRadius: '8px',
                 background: '#FFFFFF',
                 border: '1px solid #E4E4E7',
-                transition: 'all 0.15s',
+                transition: 'all var(--pl-dur-instant)',
               }}
             >
               <div style={{
@@ -398,7 +398,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
               fontWeight: panelWeight.bold,
               fontFamily: 'inherit',
               lineHeight: panelLineHeight.tight,
-              transition: 'all 0.15s',
+              transition: 'all var(--pl-dur-instant)',
             }}
           >
             {adding ? 'Adding…' : '+ Add Guest'}
@@ -443,7 +443,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
               fontWeight: panelWeight.bold,
               fontFamily: 'inherit',
               lineHeight: panelLineHeight.tight,
-              transition: 'all 0.15s',
+              transition: 'all var(--pl-dur-instant)',
             }}
           >
             <Upload size={13} />

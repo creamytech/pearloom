@@ -381,7 +381,7 @@ export function PublicRsvpSection({
                     cursor: envelopeState === 'opening' ? 'default' : 'pointer',
                     boxShadow:
                       '0 4px 16px rgba(139,112,64,0.35), inset 0 1px 0 rgba(0,0,0,0.08)',
-                    transition: 'box-shadow 0.2s',
+                    transition: 'box-shadow var(--pl-dur-fast)',
                   }}
                 >
                   <span>{envelopeState === 'opening' ? 'Opening…' : 'Open your invitation'}</span>

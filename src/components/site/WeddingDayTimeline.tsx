@@ -16,7 +16,7 @@ import type { WeddingEvent } from '@/types';
 // Palette reads from the themed CSS variable layer so the component
 // flips correctly with the site light/dark toggle. Alpha variants
 // use color-mix() to tint the var without breaking on value reads.
-const OLIVE     = 'var(--pl-olive, #A3B18A)';
+const OLIVE     = 'var(--pl-olive, #5C6B3F)';
 const GOLD      = 'var(--pl-gold, var(--pl-olive-mist, #D6C6A8))';
 const MUTED     = 'var(--pl-muted, #9A9488)';
 const MUTED_50  = 'color-mix(in oklab, var(--pl-muted, #9A9488) 50%, transparent)';

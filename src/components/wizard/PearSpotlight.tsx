@@ -42,7 +42,7 @@ interface Collected {
 type Step = 'occasion' | 'names' | 'date' | 'venue' | 'vibe-ask' | 'vibe-pick' | 'photos' | 'photo-review' | 'layout' | 'song' | 'ready';
 
 const STYLE_PAIRS = [
-  { a: { name: 'Blush & Sage', colors: ['#D4A0A0', '#A3B18A', '#FAF7F2', '#3D3530'] },
+  { a: { name: 'Blush & Sage', colors: ['#D4A0A0', '#5C6B3F', '#FAF7F2', '#3D3530'] },
     b: { name: 'Navy & Gold', colors: ['#2C3E6B', '#C4A96A', '#FAF7F2', '#1C1C1C'] } },
   { a: { name: 'Terracotta', colors: ['#C67B5C', '#E8B89D', '#FFF8F2', '#3D2E24'] },
     b: { name: 'Lavender', colors: ['#9B8EC1', '#D4A0C4', '#F8F5FD', '#2D2640'] } },
@@ -90,7 +90,7 @@ RULES:
     if (Array.isArray(palettes) && palettes.length >= 2) {
       return palettes.slice(0, 3).map((p: any) => ({
         name: typeof p.name === 'string' ? p.name : 'Custom',
-        colors: Array.isArray(p.colors) ? p.colors.filter((c: any) => typeof c === 'string' && c.startsWith('#')).slice(0, 4) : ['#A3B18A', '#D4A574', '#FAF7F2', '#3D3530'],
+        colors: Array.isArray(p.colors) ? p.colors.filter((c: any) => typeof c === 'string' && c.startsWith('#')).slice(0, 4) : ['#5C6B3F', '#D4A574', '#FAF7F2', '#3D3530'],
         description: typeof p.description === 'string' ? p.description : '',
       }));
     }
@@ -140,7 +140,7 @@ function generatePalettesFallback(
     wedding: [
       { name: 'Romantic Blush', colors: ['#F2D1D1', '#E8B4C8', '#C4A96A', '#FAF7F2'], description: 'Soft pinks with gold' },
       { name: 'Timeless Ivory', colors: ['#F0E6D6', '#C4A96A', '#3D3530', '#FAF7F2'], description: 'Classic elegance' },
-      { name: 'Garden Fresh', colors: ['#A3B18A', '#D5F5E3', '#F2D1D1', '#3D3530'], description: 'Green and bloom' },
+      { name: 'Garden Fresh', colors: ['#5C6B3F', '#D5F5E3', '#F2D1D1', '#3D3530'], description: 'Green and bloom' },
     ],
     birthday: [
       { name: 'Party Vibes', colors: ['#FF6B6B', '#FFC857', '#5BCEFA', '#1C1C1C'], description: 'Bright and festive' },
@@ -740,7 +740,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
     // Synthesize a skeleton manifest from collected data so the live
     // preview shows IMMEDIATELY with real names/date/colors instead
     // of waiting for the server to finish.
-    const paletteColors = selectedPaletteColors || ['#A3B18A', '#C4A96A', '#FAF7F2', '#3D3530'];
+    const paletteColors = selectedPaletteColors || ['#5C6B3F', '#C4A96A', '#FAF7F2', '#3D3530'];
     const photoUrls = photos.map(p => {
       const raw = p?.baseUrl || p?.url || p?.uri || '';
       return raw.includes('googleusercontent') ? `/api/photos/proxy?url=${encodeURIComponent(raw)}&w=1200&h=1200` : raw;
@@ -2716,7 +2716,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                     onClick={(e) => {
                       try {
                         fireConfetti(e, {
-                          colors: selectedPaletteColors || ['#A3B18A', '#D4A574', '#E8C39C', '#C4A96A'],
+                          colors: selectedPaletteColors || ['#5C6B3F', '#D4A574', '#E8C39C', '#C4A96A'],
                           count: 42,
                           spread: 220,
                           lifetimeMs: 1600,

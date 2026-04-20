@@ -372,7 +372,7 @@ export function SiteAnalytics({ manifest, coupleNames, onEdit, onShare }: SiteAn
             background: C.gold, color: C.white,
             cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600,
             fontFamily: 'var(--pl-font-body, sans-serif)',
-            transition: 'opacity 0.15s',
+            transition: 'opacity var(--pl-dur-instant)',
           }}
           onMouseOver={(e) => { e.currentTarget.style.opacity = '0.88'; }}
           onMouseOut={(e)  => { e.currentTarget.style.opacity = '1'; }}
@@ -391,7 +391,7 @@ export function SiteAnalytics({ manifest, coupleNames, onEdit, onShare }: SiteAn
             background: C.white, color: C.espresso,
             cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600,
             fontFamily: 'var(--pl-font-body, sans-serif)',
-            transition: 'background 0.15s',
+            transition: 'background var(--pl-dur-instant)',
           }}
           onMouseOver={(e) => { e.currentTarget.style.background = C.ivory; }}
           onMouseOut={(e)  => { e.currentTarget.style.background = C.white; }}
@@ -414,7 +414,7 @@ export function SiteAnalytics({ manifest, coupleNames, onEdit, onShare }: SiteAn
               cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600,
               fontFamily: 'var(--pl-font-body, sans-serif)',
               textDecoration: 'none',
-              transition: 'background 0.15s',
+              transition: 'background var(--pl-dur-instant)',
             }}
             onMouseOver={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = C.ivory; }}
             onMouseOut={(e)  => { (e.currentTarget as HTMLAnchorElement).style.background = C.white; }}

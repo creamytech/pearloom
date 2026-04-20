@@ -86,7 +86,7 @@ function ToggleChip({
         color: active ? '#FFFFFF' : '#3F3F46',
         cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600,
         display: 'flex', alignItems: 'center', gap: '5px',
-        transition: 'all 0.15s', minHeight: '32px',
+        transition: 'all var(--pl-dur-instant)', minHeight: '32px',
       }}
     >
       {icon && <span style={{ display: 'flex', alignItems: 'center' }}>{icon}</span>}
@@ -123,7 +123,7 @@ function MeshPresetPicker({ value, onChange }: { value: MeshPreset; onChange: (v
               padding: '6px 8px', borderRadius: '8px',
               border: active ? '2px solid #18181B' : '1px solid #E4E4E7',
               background: active ? 'rgba(24,24,27,0.05)' : '#FFFFFF',
-              cursor: 'pointer', transition: 'all 0.15s',
+              cursor: 'pointer', transition: 'all var(--pl-dur-instant)',
             }}
           >
             <div style={{
@@ -326,7 +326,7 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
                 color: divider.style === d.id ? '#FFFFFF' : '#3F3F46',
                 cursor: 'pointer', fontSize: '0.65rem', fontWeight: 600,
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
-                transition: 'all 0.15s',
+                transition: 'all var(--pl-dur-instant)',
               }}
             >
               <span style={{ fontSize: '0.65rem', fontFamily: 'monospace', letterSpacing: '-0.03em', opacity: 0.7 }}>{d.preview}</span>
@@ -349,7 +349,7 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
                   color: divider.style === d.id ? '#18181B' : '#3F3F46',
                   cursor: 'pointer', fontSize: '0.65rem', fontWeight: divider.style === d.id ? 700 : 400,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
-                  transition: 'all 0.15s',
+                  transition: 'all var(--pl-dur-instant)',
                 }}
               >
                 <span style={{ fontSize: '0.65rem', fontFamily: 'monospace', letterSpacing: '-0.03em', opacity: 0.7 }}>{d.preview}</span>
@@ -486,7 +486,7 @@ function EffectBlock({
         <span style={{
           display: 'flex', alignItems: 'center',
           color: '#A1A1AA',
-          transition: 'transform 0.2s',
+          transition: 'transform var(--pl-dur-fast)',
           transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
         }}>
           <IconChevronDown size={12} />

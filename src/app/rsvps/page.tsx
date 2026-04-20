@@ -1067,7 +1067,7 @@ export default function RsvpManagementPage({
         colors: {
           background: '#F5F1E8',
           foreground: '#2B2B2B',
-          accent: '#A3B18A',
+          accent: '#5C6B3F',
           accentLight: '#EEE8DC',
           muted: '#9A9488',
           cardBg: '#ffffff',

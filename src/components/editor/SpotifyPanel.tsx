@@ -108,7 +108,7 @@ export function SpotifyPanel() {
               cursor: loading ? 'not-allowed' : 'pointer',
               fontSize: panelText.hint,
               fontWeight: panelWeight.semibold,
-              transition: 'background 0.15s',
+              transition: 'background var(--pl-dur-instant)',
             }}
             onMouseOver={e => {
               if (!loading) (e.currentTarget as HTMLElement).style.background = '#F4F4F5';

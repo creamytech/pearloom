@@ -433,7 +433,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                   fontWeight: panelWeight.bold,
                   padding: '8px', cursor: saving ? 'not-allowed' : 'pointer',
                   opacity: saving ? 0.7 : 1,
-                  transition: 'all 0.15s',
+                  transition: 'all var(--pl-dur-instant)',
                 }}
               >
                 {saving ? 'Saving…' : 'Save Vendor'}

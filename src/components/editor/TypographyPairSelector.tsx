@@ -83,7 +83,7 @@ export function TypographyPairSelector({ value = 'serif-sans', onChange }: Typog
           size={14}
           style={{
             transform: open ? 'rotate(180deg)' : 'none',
-            transition: 'transform 0.2s',
+            transition: 'transform var(--pl-dur-fast)',
             color: '#71717A',
           }}
         />

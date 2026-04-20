@@ -24,7 +24,7 @@ interface ProgressArcProps {
 export function ProgressArc({
   value,
   size = 48,
-  color = 'var(--pl-olive, #A3B18A)',
+  color = 'var(--pl-olive, #5C6B3F)',
   trackColor = 'rgba(163,177,138,0.15)',
   strokeWidth = 3,
   children,

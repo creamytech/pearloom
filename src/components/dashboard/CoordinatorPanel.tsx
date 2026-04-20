@@ -128,7 +128,7 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
     fontSize: '0.875rem',
     fontFamily: 'var(--pl-font-body, Georgia, serif)',
     outline: 'none',
-    transition: 'border-color 0.2s',
+    transition: 'border-color var(--pl-dur-fast)',
   };
 
   return (
@@ -205,7 +205,7 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
               }}
             >
               <span>{role === 'coordinator' ? 'Coordinator' : 'View Only'}</span>
-              <ChevronDown size={14} color="var(--pl-ink-soft)" style={{ transform: roleOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+              <ChevronDown size={14} color="var(--pl-ink-soft)" style={{ transform: roleOpen ? 'rotate(180deg)' : 'none', transition: 'transform var(--pl-dur-fast)' }} />
             </button>
             <AnimatePresence>
               {roleOpen && (
@@ -231,7 +231,7 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
                         background: role === r ? 'rgba(163,177,138,0.1)' : 'transparent',
                         border: 'none', cursor: 'pointer',
                         fontFamily: 'var(--pl-font-body, Georgia, serif)',
-                        transition: 'background 0.15s',
+                        transition: 'background var(--pl-dur-instant)',
                       }}
                       onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(163,177,138,0.08)'; }}
                       onMouseOut={(e) => { e.currentTarget.style.background = role === r ? 'rgba(163,177,138,0.1)' : 'transparent'; }}
@@ -268,7 +268,7 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
               color: 'var(--pl-cream)', cursor: sending || !email.trim() ? 'not-allowed' : 'pointer',
               fontSize: '0.85rem', fontWeight: 700,
               fontFamily: 'var(--pl-font-body, Georgia, serif)',
-              transition: 'background 0.2s',
+              transition: 'background var(--pl-dur-fast)',
             }}
           >
             <Mail size={14} />
@@ -393,7 +393,7 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             width: '28px', height: '28px', borderRadius: '0.4rem',
                             background: 'rgba(163,177,138,0.06)', border: '1px solid rgba(0,0,0,0.06)',
-                            cursor: 'pointer', transition: 'background 0.15s',
+                            cursor: 'pointer', transition: 'background var(--pl-dur-instant)',
                           }}
                           onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.07)'; }}
                           onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(163,177,138,0.06)'; }}
@@ -411,7 +411,7 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           width: '28px', height: '28px', borderRadius: '0.4rem',
                           background: 'rgba(248,113,113,0.06)', border: '1px solid rgba(248,113,113,0.12)',
-                          cursor: 'pointer', transition: 'background 0.15s',
+                          cursor: 'pointer', transition: 'background var(--pl-dur-instant)',
                         }}
                         onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(248,113,113,0.12)'; }}
                         onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(248,113,113,0.06)'; }}

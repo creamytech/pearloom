@@ -48,8 +48,8 @@ export const COLOR_VOCAB: Record<string, string[]> = {
   lime:       ['#84CC16', '#D9F99D'],
   green:      ['#16A34A', '#86EFAC'],
   emerald:    ['#059669', '#6EE7B7'],
-  sage:       ['#A3B18A', '#C8D5B9'],
-  olive:      ['#6B7F3B', '#A3B18A'],
+  sage:       ['#5C6B3F', '#C8D5B9'],
+  olive:      ['#6B7F3B', '#5C6B3F'],
   teal:       ['#0D9488', '#99F6E4'],
   cyan:       ['#06B6D4', '#A5F3FC'],
   turquoise:  ['#30D5C8', '#B2F5EA'],
@@ -111,8 +111,8 @@ export const COLOR_VOCAB: Record<string, string[]> = {
   retro:      ['#E06C75', '#E5C07B', '#56B6C2'],
   glamorous:  ['#C4A96A', '#2D2B33', '#E8D5A0'],
   glam:       ['#C4A96A', '#2D2B33', '#E8D5A0'],
-  garden:     ['#A3B18A', '#D5F5E3', '#F2D1D1'],
-  woodland:   ['#5F7A3B', '#8B6F47', '#A3B18A'],
+  garden:     ['#5C6B3F', '#D5F5E3', '#F2D1D1'],
+  woodland:   ['#5F7A3B', '#8B6F47', '#5C6B3F'],
   celestial:  ['#1E1B3A', '#7C3AED', '#FDE68A'],
   ethereal:   ['#E8D5F5', '#B8D4E8', '#F5E1E8'],
   fairy:      ['#E8D5F5', '#D5F5E3', '#FFD1DC'],
@@ -124,7 +124,7 @@ export const COLOR_VOCAB: Record<string, string[]> = {
   royal:      ['#1E3A5F', '#C4A96A', '#FFFFFF'],
   pastel:     ['#FFD1DC', '#D5F5E3', '#E8D5F5'],
   neon:       ['#39FF14', '#FF073A', '#FF6EFF'],
-  earthy:     ['#92400E', '#A3B18A', '#D4A574'],
+  earthy:     ['#92400E', '#5C6B3F', '#D4A574'],
   dreamy:     ['#E8D5F5', '#F5E1E8', '#B8D4E8'],
 
   // ── Seasons ──
@@ -365,7 +365,7 @@ function occasionColors(occasion?: string, vibe?: string): string[] {
     case 'birthday':    return ['#FF6B6B', '#FFC857', '#5BCEFA', '#F472B6', '#A78BFA', '#34D399'];
     case 'anniversary': return ['#C4A96A', '#DBC07E', '#E8D5A0', '#B89A5A'];
     case 'engagement':  return ['#F2C6C6', '#FFD1DC', '#E8A0B4', '#F5B8C8'];
-    default:            return ['#E8D5C4', '#D4B8A0', '#A3B18A', '#C4A96A'];
+    default:            return ['#E8D5C4', '#D4B8A0', '#5C6B3F', '#C4A96A'];
   }
 }
 

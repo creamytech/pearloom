@@ -317,7 +317,7 @@ export function FaqSection({
                     fontWeight: 600,
                     letterSpacing: '0.05em',
                     cursor: 'pointer',
-                    transition: 'all 0.2s ease',
+                    transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                     fontFamily: 'var(--pl-font-body)',
                     minHeight: '44px',
                   }}

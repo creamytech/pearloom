@@ -59,7 +59,7 @@ export default function Loading() {
             position: 'absolute',
             inset: 0,
             borderRadius: '50%',
-            border: '2px solid #A3B18A',
+            border: '2px solid #5C6B3F',
             opacity: 0.15,
             animation: 'pl-default-ring 2s ease-in-out infinite',
           }}
@@ -72,7 +72,7 @@ export default function Loading() {
             width: '60%',
             height: '60%',
             borderRadius: '50%',
-            background: '#A3B18A',
+            background: '#5C6B3F',
             opacity: 0.15,
             filter: 'blur(14px)',
             animation: 'pl-default-glow 2s ease-in-out infinite',
@@ -83,7 +83,7 @@ export default function Loading() {
         <span
           style={{
             fontSize: '3.5rem',
-            color: '#A3B18A',
+            color: '#5C6B3F',
             lineHeight: 1,
             animation: 'pl-default-symbol 2s ease-in-out infinite',
             userSelect: 'none',
@@ -102,7 +102,7 @@ export default function Loading() {
           marginTop: '1.25rem',
           fontFamily: 'Cormorant Garamond, Georgia, serif',
           fontSize: '0.9rem',
-          color: '#A3B18A',
+          color: '#5C6B3F',
           opacity: 0.7,
           letterSpacing: '0.04em',
           fontWeight: 400,

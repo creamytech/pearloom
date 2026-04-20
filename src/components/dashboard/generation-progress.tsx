@@ -34,7 +34,7 @@ const MESSAGES = [
 ];
 
 // ── Color palette for phase 3 ──────────────────────────────────
-const PREVIEW_COLORS = ['#A3B18A', '#C4A96A', '#6D597A', '#E8D5C4', '#3D3530'];
+const PREVIEW_COLORS = ['#5C6B3F', '#C4A96A', '#6D597A', '#E8D5C4', '#3D3530'];
 
 // ── SVG Progress Ring constants ────────────────────────────────
 const RING_SIZE = 160;

@@ -413,7 +413,7 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  transition: 'all 0.2s',
+                  transition: 'all var(--pl-dur-fast)',
                   flexShrink: 0,
                 }}
               >

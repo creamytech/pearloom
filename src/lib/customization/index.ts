@@ -20,7 +20,7 @@ export const CARD_BORDERS: CardBorderStyle[] = [
   { id: 'thin-line', name: 'Thin Line', css: { border: '1px solid rgba(0,0,0,0.08)', borderRadius: '16px' }, preview: 'Subtle single line' },
   { id: 'double-classic', name: 'Double Classic', css: { border: '3px double rgba(0,0,0,0.15)', borderRadius: '8px' }, preview: 'Classic double border' },
   { id: 'gold-ornamental', name: 'Gold Ornamental', css: { border: '2px solid #C4A96A', borderRadius: '12px', boxShadow: 'inset 0 0 0 4px rgba(196,169,106,0.1)' }, preview: 'Antique gold frame' },
-  { id: 'botanical-vine', name: 'Botanical Vine', css: { border: '2px solid #A3B18A', borderRadius: '20px', boxShadow: 'inset 0 0 0 3px rgba(163,177,138,0.08)' }, preview: 'Soft botanical frame' },
+  { id: 'botanical-vine', name: 'Botanical Vine', css: { border: '2px solid #5C6B3F', borderRadius: '20px', boxShadow: 'inset 0 0 0 3px rgba(163,177,138,0.08)' }, preview: 'Soft botanical frame' },
   { id: 'art-deco', name: 'Art Deco', css: { border: '2px solid #111', borderRadius: '0', boxShadow: 'inset 0 0 0 7px rgba(0,0,0,0.04)' }, preview: 'Geometric art deco' },
   { id: 'scalloped', name: 'Scalloped Edge', css: { border: '2px solid rgba(0,0,0,0.1)', borderRadius: '24px' }, preview: 'Soft scalloped corners' },
   { id: 'watercolor-wash', name: 'Watercolor Wash', css: { border: 'none', borderRadius: '20px', boxShadow: '0 0 0 2px rgba(163,177,138,0.15), 0 0 40px rgba(163,177,138,0.06)' }, preview: 'Soft watercolor glow' },

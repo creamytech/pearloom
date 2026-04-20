@@ -21,7 +21,7 @@ export type EmailType =
 export interface EmailThemeColors {
   background: string;    // page bg (replaces #F5F1E8)
   foreground: string;    // text color (replaces #2B2B2B)
-  accent: string;        // button/link color (replaces #A3B18A)
+  accent: string;        // button/link color (replaces #5C6B3F)
   accentLight: string;   // light accent for borders
   card: string;          // card bg (replaces #FFFFFF)
   muted: string;         // secondary text
@@ -32,7 +32,7 @@ export interface EmailThemeColors {
 const DEFAULT_THEME: EmailThemeColors = {
   background: '#F5F1E8',
   foreground: '#2B2B2B',
-  accent: '#A3B18A',
+  accent: '#5C6B3F',
   accentLight: '#EEE8DC',
   card: '#FFFFFF',
   muted: '#9A9488',

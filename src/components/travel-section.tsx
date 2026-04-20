@@ -39,7 +39,7 @@ function StarDots({ count }: { count: number }) {
             height: '6px',
             borderRadius: '50%',
             background: i < count ? 'var(--pl-gold)' : 'rgba(0,0,0,0.1)',
-            transition: 'background 0.2s',
+            transition: 'background var(--pl-dur-fast)',
           }}
         />
       ))}

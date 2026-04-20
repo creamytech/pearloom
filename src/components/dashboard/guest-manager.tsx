@@ -190,7 +190,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
     boxSizing: 'border-box',
     fontFamily: 'var(--pl-font-body)',
     color: 'var(--pl-ink)',
-    transition: 'border-color 0.2s',
+    transition: 'border-color var(--pl-dur-fast)',
   };
 
   return (
@@ -264,7 +264,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
         <button
           onClick={fetchGuests}
           aria-label="Refresh guest list"
-          style={{ padding: '0.7rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', cursor: 'pointer', display: 'flex', color: 'var(--pl-muted)', transition: 'background 0.15s' } as React.CSSProperties}
+          style={{ padding: '0.7rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', cursor: 'pointer', display: 'flex', color: 'var(--pl-muted)', transition: 'background var(--pl-dur-instant)' } as React.CSSProperties}
           onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.55)'; }}
           onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.35)'; }}
         >
@@ -280,7 +280,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
             backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
             cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
             color: 'var(--pl-ink)', fontFamily: 'var(--pl-font-body)',
-            transition: 'background 0.15s',
+            transition: 'background var(--pl-dur-instant)',
           } as React.CSSProperties}
           onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.55)'; }}
           onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.35)'; }}
@@ -499,7 +499,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                   color: copiedShare ? '#16a34a' : 'var(--pl-olive)',
                   border: `1px solid ${copiedShare ? 'rgba(34,197,94,0.2)' : 'rgba(163,177,138,0.2)'}`,
                   cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem',
-                  fontFamily: 'var(--pl-font-body)', transition: 'all 0.2s',
+                  fontFamily: 'var(--pl-font-body)', transition: 'all var(--pl-dur-fast)',
                 }}
               >
                 {copiedShare ? <Check size={15} /> : <Share2 size={15} />}
@@ -533,7 +533,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                     cursor: 'pointer',
                     borderBottom: '1px solid rgba(255,255,255,0.2)',
                     background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.1)',
-                    transition: 'background 0.12s',
+                    transition: 'background var(--pl-dur-instant)',
                   }}
                   onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.2)'; }}
                   onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.1)'; }}
@@ -570,9 +570,9 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                           color: 'inherit',
                           textDecoration: 'none',
                           borderBottom: '1px dotted rgba(0,0,0,0.25)',
-                          transition: 'border-color 0.15s',
+                          transition: 'border-color var(--pl-dur-instant)',
                         }}
-                        onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.borderBottomColor = 'var(--pl-olive, #A3B18A)'; }}
+                        onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.borderBottomColor = 'var(--pl-olive, #5C6B3F)'; }}
                         onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.borderBottomColor = 'rgba(0,0,0,0.25)'; }}
                       >
                         {guest.email}
@@ -598,7 +598,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                   <button
                     onClick={(e) => { e.stopPropagation(); deleteGuest(guest.id); }}
                     aria-label={`Delete ${guest.name}`}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(239,68,68,0.4)', display: 'flex', padding: '0.25rem', transition: 'color 0.15s' }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(239,68,68,0.4)', display: 'flex', padding: '0.25rem', transition: 'color var(--pl-dur-instant)' }}
                     onMouseOver={(e) => { e.currentTarget.style.color = '#ef4444'; }}
                     onMouseOut={(e) => { e.currentTarget.style.color = 'rgba(239,68,68,0.4)'; }}
                   >

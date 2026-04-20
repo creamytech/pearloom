@@ -1333,7 +1333,7 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
           background: pendingName ? 'linear-gradient(135deg, #6b7c3f, #8a9e56)' : 'rgba(0,0,0,0.04)',
           color: pendingName ? '#fff' : '#71717A',
           fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.04em',
-          transition: 'background 0.15s',
+          transition: 'background var(--pl-dur-instant)',
           opacity: pendingName ? 1 : 0.6,
         }}
       >

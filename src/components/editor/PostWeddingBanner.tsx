@@ -113,7 +113,7 @@ export function PostWeddingBanner({ manifest, subdomain, onUpdate }: PostWedding
             background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: '#71717A',
-            transition: 'color 0.2s',
+            transition: 'color var(--pl-dur-fast)',
           }}
           onMouseOver={(e) => { e.currentTarget.style.color = '#71717A'; }}
           onMouseOut={(e) => { e.currentTarget.style.color = '#A1A1AA'; }}
@@ -171,7 +171,7 @@ export function PostWeddingBanner({ manifest, subdomain, onUpdate }: PostWedding
             fontFamily: 'var(--pl-font-body, Georgia, serif)',
             whiteSpace: 'nowrap',
             flexShrink: 0,
-            transition: 'background 0.2s',
+            transition: 'background var(--pl-dur-fast)',
           }}
         >
           {loading ? 'Rewriting your story...' : 'Activate Memory Mode'}

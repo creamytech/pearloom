@@ -475,7 +475,7 @@ export function GuestDashboard({
                       color: 'var(--pl-olive)',
                       textDecoration: 'none',
                       marginTop: '0.35rem',
-                      transition: 'opacity 0.2s',
+                      transition: 'opacity var(--pl-dur-fast)',
                     }}
                     onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.7')}
                     onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
@@ -548,7 +548,7 @@ export function GuestDashboard({
                     borderRadius: '2rem',
                     textDecoration: 'none',
                     marginTop: '0.75rem',
-                    transition: 'opacity 0.25s',
+                    transition: 'opacity var(--pl-dur-base)',
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
                   onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}

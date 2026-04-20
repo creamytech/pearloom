@@ -21,7 +21,7 @@ export interface GuestChipProps {
 /** Derive a stable color from a name string */
 function colorFromName(name: string): string {
   const COLORS = [
-    '#A3B18A', // olive
+    '#5C6B3F', // olive
     '#8FA876', // dark olive
     '#D6C6A8', // gold
     '#6D597A', // plum

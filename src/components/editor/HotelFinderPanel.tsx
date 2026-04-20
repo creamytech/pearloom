@@ -225,7 +225,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+                transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
               }}
             >
               <X size={14} strokeWidth={1.75} />
@@ -295,7 +295,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                   textTransform: 'uppercase',
                   cursor: loading ? 'default' : 'pointer',
                   whiteSpace: 'nowrap',
-                  transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+                  transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                   lineHeight: 1,
                 }}
               >
@@ -582,7 +582,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                             letterSpacing: panelTracking.widest,
                             textTransform: 'uppercase',
                             cursor: isAdded ? 'default' : 'pointer',
-                            transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+                            transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                             lineHeight: 1,
                           }}
                         >
@@ -609,7 +609,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                               letterSpacing: panelTracking.widest,
                               textTransform: 'uppercase',
                               textDecoration: 'none',
-                              transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+                              transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                               lineHeight: 1,
                             }}
                           >

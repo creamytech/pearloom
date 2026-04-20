@@ -46,7 +46,7 @@ export function CanvasPhotoBlockOverlay({ rect, blockId }: CanvasPhotoBlockOverl
           border: 'none', cursor: 'pointer',
           fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.04em',
           boxShadow: '0 4px 24px rgba(0,0,0,0.28)',
-          transition: 'background 0.15s',
+          transition: 'background var(--pl-dur-instant)',
           whiteSpace: 'nowrap',
         }}
         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#27272A'; }}

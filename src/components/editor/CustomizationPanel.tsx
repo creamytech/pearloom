@@ -58,7 +58,7 @@ function PickerGrid<T extends { id: string; name: string; preview: string }>({
               textAlign: 'center',
               cursor: 'pointer',
               position: 'relative',
-              transition: 'all 0.15s',
+              transition: 'all var(--pl-dur-instant)',
             }}
             aria-pressed={active}
           >
@@ -163,7 +163,7 @@ export function CustomizationPanel({ customization, onChange, names, accentColor
                     ? 'var(--pl-chrome-accent-soft)'
                     : 'var(--pl-chrome-surface)',
                   borderRadius: '12px',
-                  transition: 'all 0.15s',
+                  transition: 'all var(--pl-dur-instant)',
                 }}
               >
                 <div

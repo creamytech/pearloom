@@ -126,7 +126,7 @@ export function FloatingThread({
   size = 60,
   delay = 0,
   opacity = 0.2,
-  color = '#A3B18A',
+  color = '#5C6B3F',
 }: {
   x: string;
   y: string;

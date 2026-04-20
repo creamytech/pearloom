@@ -72,7 +72,7 @@ const COLOR_SWATCHES = [
   { value: '#18181B', label: 'Ink'   },
   { value: '#ffffff', label: 'White' },
   { value: '#F5F1E8', label: 'Cream' },
-  { value: '#A3B18A', label: 'Olive' },
+  { value: '#5C6B3F', label: 'Olive' },
   { value: '#C4A96A', label: 'Gold'  },
   { value: '#8B7355', label: 'Warm'  },
   { value: '#6B7280', label: 'Gray'  },
@@ -394,7 +394,7 @@ export function PearTextRewrite({ onTextEdit, manifest }: PearTextRewriteProps) 
                 fontWeight: 600,
                 cursor: loading ? 'wait' : 'pointer',
                 opacity: loading && activeStyle !== opt.value ? 0.5 : 1,
-                transition: 'all 0.15s',
+                transition: 'all var(--pl-dur-instant)',
               }}
             >
               {loading && activeStyle === opt.value ? (
@@ -542,7 +542,7 @@ export function PearTextRewrite({ onTextEdit, manifest }: PearTextRewriteProps) 
                     fontWeight: 600,
                     fontFamily: 'inherit',
                     cursor: 'pointer',
-                    transition: 'all 0.12s',
+                    transition: 'all var(--pl-dur-instant)',
                   }}
                 >
                   {s.label}
@@ -579,7 +579,7 @@ export function PearTextRewrite({ onTextEdit, manifest }: PearTextRewriteProps) 
                         : '1.5px solid rgba(0,0,0,0.06)',
                     boxShadow: on ? '0 0 0 1px rgba(24,24,27,0.35)' : 'none',
                     cursor: 'pointer',
-                    transition: 'all 0.12s',
+                    transition: 'all var(--pl-dur-instant)',
                   }}
                 />
               );
@@ -697,7 +697,7 @@ export function PearTextRewrite({ onTextEdit, manifest }: PearTextRewriteProps) 
                     fontSize: 12,
                     lineHeight: 1.4,
                     cursor: 'pointer',
-                    transition: 'all 0.12s',
+                    transition: 'all var(--pl-dur-instant)',
                   }}
                 >
                   <div style={{
@@ -788,7 +788,7 @@ function FormatBtn({
         background: active ? 'rgba(24,24,27,0.08)' : 'transparent',
         color: active ? OLIVE : 'rgba(24,24,27,0.55)',
         cursor: 'pointer',
-        transition: 'all 0.12s',
+        transition: 'all var(--pl-dur-instant)',
       }}
     >
       {children}

@@ -186,7 +186,7 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
           padding: files.length > 0 ? '1.5rem' : '3.5rem 2rem',
           border: '2px dashed rgba(255,255,255,0.5)',
           borderRadius: '16px', textAlign: 'center',
-          cursor: 'pointer', transition: 'all 0.2s ease',
+          cursor: 'pointer', transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
@@ -284,7 +284,7 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
                           background: 'rgba(0,0,0,0.6)', border: 'none',
                           cursor: 'pointer', display: 'flex', alignItems: 'center',
                           justifyContent: 'center', color: '#fff', opacity: 0,
-                          transition: 'opacity 0.15s',
+                          transition: 'opacity var(--pl-dur-instant)',
                         }}
                         onMouseOver={e => { (e.target as HTMLElement).style.opacity = '1'; }}
                         onMouseOut={e => { (e.target as HTMLElement).style.opacity = '0'; }}

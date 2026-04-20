@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
 
   const manifest = config.manifest;
   const accentColor: string =
-    (manifest?.vibeSkin?.palette?.accent as string | undefined) ?? '#A3B18A';
+    (manifest?.vibeSkin?.palette?.accent as string | undefined) ?? '#5C6B3F';
 
   // ── Extract data ──────────────────────────────────────────
   const names: string =

@@ -95,7 +95,7 @@ function SectionHeader({ icon: Icon, title }: { icon: React.ComponentType<{ size
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         flexShrink: 0,
       }}>
-        <Icon size={18} style={{ color: 'var(--pl-accent, #A3B18A)' }} />
+        <Icon size={18} style={{ color: 'var(--pl-accent, #5C6B3F)' }} />
       </div>
       <h3 style={{
         margin: 0,
@@ -119,7 +119,7 @@ function DistanceBadge({ text }: { text: string }) {
       padding: '3px 10px',
       borderRadius: '100px',
       background: 'rgba(163, 177, 138, 0.15)',
-      color: 'var(--pl-accent, #A3B18A)',
+      color: 'var(--pl-accent, #5C6B3F)',
       fontSize: '0.72rem',
       fontWeight: 600,
       letterSpacing: '0.02em',
@@ -190,7 +190,7 @@ export function TravelGuide({ venueAddress, venueCity, eventDate, suggestions }:
         <div style={{
           width: '32px', height: '32px', margin: '0 auto 1rem',
           border: '3px solid rgba(163, 177, 138, 0.2)',
-          borderTopColor: 'var(--pl-accent, #A3B18A)',
+          borderTopColor: 'var(--pl-accent, #5C6B3F)',
           borderRadius: '50%',
           animation: 'spin 0.8s linear infinite',
         }} />
@@ -268,7 +268,7 @@ export function TravelGuide({ venueAddress, venueCity, eventDate, suggestions }:
                 alignItems: 'flex-start',
                 gap: '0.5rem',
               }}>
-                <MapPin size={14} style={{ color: 'var(--pl-accent, #A3B18A)', flexShrink: 0, marginTop: '2px' }} />
+                <MapPin size={14} style={{ color: 'var(--pl-accent, #5C6B3F)', flexShrink: 0, marginTop: '2px' }} />
                 <span style={{ fontSize: '0.82rem', color: 'var(--pl-fg, #1A1A1A)', opacity: 0.7, lineHeight: 1.5 }}>
                   {venueAddress}
                 </span>
@@ -373,7 +373,7 @@ export function TravelGuide({ venueAddress, venueCity, eventDate, suggestions }:
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0,
               }}>
-                <SeasonIcon size={24} style={{ color: 'var(--pl-accent, #A3B18A)' }} />
+                <SeasonIcon size={24} style={{ color: 'var(--pl-accent, #5C6B3F)' }} />
               </div>
               <div style={{ flex: 1, minWidth: '200px' }}>
                 <div style={{
@@ -407,7 +407,7 @@ export function TravelGuide({ venueAddress, venueCity, eventDate, suggestions }:
                   lineHeight: 1.5,
                   maxWidth: '280px',
                 }}>
-                  <strong style={{ color: 'var(--pl-accent, #A3B18A)' }}>Packing tip:</strong>{' '}
+                  <strong style={{ color: 'var(--pl-accent, #5C6B3F)' }}>Packing tip:</strong>{' '}
                   {weather.packingTip}
                 </div>
               )}

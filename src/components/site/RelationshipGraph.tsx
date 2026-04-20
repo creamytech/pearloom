@@ -113,7 +113,7 @@ function runForceSimulation(
 
 const RELATIONSHIP_COLORS: Record<string, string> = {
   family: '#D6C6A8',
-  college: '#A3B18A',
+  college: '#5C6B3F',
   work: '#8BA4B5',
   childhood: '#C4A882',
   neighbors: '#B5A99A',

@@ -288,7 +288,7 @@ export function RegistryCard({ source, onEdit, onDelete, editable = false }: Reg
                 borderRadius: '0.375rem',
                 color: '#9A9488',
                 lineHeight: 1,
-                transition: 'color 0.15s',
+                transition: 'color var(--pl-dur-instant)',
               }}
               onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = 'var(--pl-ink)')}
               onMouseLeave={(e) =>
@@ -312,7 +312,7 @@ export function RegistryCard({ source, onEdit, onDelete, editable = false }: Reg
                 borderRadius: '0.375rem',
                 color: '#9A9488',
                 lineHeight: 1,
-                transition: 'color 0.15s',
+                transition: 'color var(--pl-dur-instant)',
               }}
               onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = '#DC2626')}
               onMouseLeave={(e) =>

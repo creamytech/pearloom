@@ -179,7 +179,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
     cursor: 'pointer' as const,
     background: active ? (accent ? 'var(--pl-olive)' : 'var(--pl-ink)') : 'transparent',
     color: active ? '#fff' : 'var(--pl-muted)',
-    transition: 'all 0.2s ease',
+    transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
   });
 
   return (
@@ -234,7 +234,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                 border: '1.5px solid rgba(255,255,255,0.5)', background: 'transparent',
                 color: 'var(--pl-ink)', fontSize: '0.78rem', fontWeight: 700,
                 cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase',
-                transition: 'all 0.2s ease',
+                transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
               }}
               onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--pl-olive)'; e.currentTarget.style.color = 'var(--pl-olive)'; }}
               onMouseOut={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)'; e.currentTarget.style.color = 'var(--pl-ink)'; }}
@@ -254,7 +254,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                 fontSize: '0.78rem', fontWeight: 700,
                 cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase',
                 boxShadow: '0 8px 20px rgba(0,0,0,0.2)',
-                transition: 'all 0.2s ease',
+                transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
               }}
               onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 12px 28px rgba(0,0,0,0.25)'; }}
               onMouseOut={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.2)'; }}
@@ -290,7 +290,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                   padding: '0.6rem 1.25rem', borderRadius: '0.6rem',
                   border: '1.5px dashed rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.25)',
                   color: 'var(--pl-muted)', fontSize: '0.8rem', fontWeight: 600,
-                  cursor: 'pointer', transition: 'all 0.2s',
+                  cursor: 'pointer', transition: 'all var(--pl-dur-fast)',
                 }}
                 onMouseOver={(e) => { e.currentTarget.style.borderColor = 'var(--pl-olive)'; e.currentTarget.style.color = 'var(--pl-olive)'; }}
                 onMouseOut={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)'; e.currentTarget.style.color = 'var(--pl-muted)'; }}
@@ -404,7 +404,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem 1.25rem' }} className="group">
                     {/* Reorder arrows */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', opacity: 0, transition: 'opacity 0.2s' }} className="group-hover:opacity-100">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', opacity: 0, transition: 'opacity var(--pl-dur-fast)' }} className="group-hover:opacity-100">
                       <button onClick={() => moveChapter(index, 'up')} disabled={index === 0} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', padding: '2px', opacity: index === 0 ? 0.3 : 1 }}>
                         <GripVertical size={14} />
                       </button>
@@ -442,7 +442,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                     </div>
 
                     {/* Actions */}
-                    <div style={{ display: 'flex', gap: '0.4rem', opacity: 0, transition: 'opacity 0.2s' }} className="group-hover:opacity-100">
+                    <div style={{ display: 'flex', gap: '0.4rem', opacity: 0, transition: 'opacity var(--pl-dur-fast)' }} className="group-hover:opacity-100">
                       <button onClick={() => setEditingId(chapter.id)} style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.4)', background: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex' }}>
                         <Pencil size={14} />
                       </button>
@@ -615,7 +615,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                     border: 'none', cursor: 'pointer',
                     background: manifest.comingSoon?.passwordProtected ? 'var(--pl-olive)' : 'rgba(255,255,255,0.35)',
                     color: manifest.comingSoon?.passwordProtected ? '#fff' : 'var(--pl-muted)',
-                    transition: 'all 0.2s',
+                    transition: 'all var(--pl-dur-fast)',
                   }}
                 >
                   {manifest.comingSoon?.passwordProtected ? <Lock size={14} /> : <Unlock size={14} />}

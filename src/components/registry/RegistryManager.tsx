@@ -221,7 +221,7 @@ function inputStyle(isError: boolean): React.CSSProperties {
     color: '#1C1C1C',
     background: '#fff',
     outline: 'none',
-    transition: 'border-color 0.15s',
+    transition: 'border-color var(--pl-dur-instant)',
     width: '100%',
     boxSizing: 'border-box',
   };
@@ -238,7 +238,7 @@ function primaryBtnStyle(disabled: boolean): React.CSSProperties {
     fontSize: '0.875rem',
     fontFamily: 'Inter, sans-serif',
     cursor: disabled ? 'not-allowed' : 'pointer',
-    transition: 'background 0.15s',
+    transition: 'background var(--pl-dur-instant)',
   };
 }
 
@@ -279,18 +279,18 @@ function EmptyState() {
         <circle cx="28" cy="28" r="28" fill="#F5F1E8" />
         <path
           d="M18 23h20l-2.5 16h-15L18 23z"
-          stroke="#A3B18A"
+          stroke="#5C6B3F"
           strokeWidth="1.8"
           strokeLinejoin="round"
         />
         <path
           d="M23 23v-3a5 5 0 0 1 10 0v3"
-          stroke="#A3B18A"
+          stroke="#5C6B3F"
           strokeWidth="1.8"
           strokeLinecap="round"
         />
-        <circle cx="24" cy="30" r="1.5" fill="#A3B18A" />
-        <circle cx="32" cy="30" r="1.5" fill="#A3B18A" />
+        <circle cx="24" cy="30" r="1.5" fill="#5C6B3F" />
+        <circle cx="32" cy="30" r="1.5" fill="#5C6B3F" />
       </svg>
       <p
         style={{
@@ -626,7 +626,7 @@ export function RegistryManager({ siteId }: RegistryManagerProps) {
             gap: '0.5rem',
             padding: '0.75rem 1.5rem',
             borderRadius: '0.75rem',
-            border: '2px dashed #A3B18A',
+            border: '2px dashed #5C6B3F',
             background: 'transparent',
             color: '#6B7C3A',
             fontSize: '0.9rem',

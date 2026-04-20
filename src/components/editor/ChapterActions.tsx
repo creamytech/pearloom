@@ -118,7 +118,7 @@ function CompletionDot({ filled, tooltip }: { filled: boolean; tooltip: string }
           width: '7px', height: '7px', borderRadius: '50%',
           background: filled ? '#18181B' : 'rgba(0,0,0,0.08)',
           border: filled ? 'none' : '1px solid #71717A',
-          transition: 'background 0.2s', cursor: 'default', flexShrink: 0,
+          transition: 'background var(--pl-dur-fast)', cursor: 'default', flexShrink: 0,
         }}
       />
       {hover && (
@@ -163,13 +163,13 @@ function LayoutSwitcher({ current, onChange }: { current: string; onChange: (l: 
           border: `1px solid ${open ? '#A1A1AA' : 'rgba(0,0,0,0.07)'}`,
           background: open ? '#F4F4F5' : '#F4F4F5',
           color: open ? '#18181B' : '#3F3F46',
-          cursor: 'pointer', transition: 'all 0.15s',
+          cursor: 'pointer', transition: 'all var(--pl-dur-instant)',
         }}
         onMouseOver={e => { if (!open) { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.07)'; (e.currentTarget as HTMLElement).style.color = '#18181B'; }}}
         onMouseOut={e => { if (!open) { (e.currentTarget as HTMLElement).style.background = '#F4F4F5'; (e.currentTarget as HTMLElement).style.color = '#3F3F46'; }}}
       >
         <span style={{ display: 'flex', alignItems: 'center' }}>{active.icon}</span>
-        <svg width="7" height="5" viewBox="0 0 7 5" fill="none" style={{ opacity: 0.4, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
+        <svg width="7" height="5" viewBox="0 0 7 5" fill="none" style={{ opacity: 0.4, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform var(--pl-dur-instant)' }}>
           <path d="M1 1l2.5 3L6 1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
         </svg>
       </button>
@@ -196,7 +196,7 @@ function LayoutSwitcher({ current, onChange }: { current: string; onChange: (l: 
                   padding: '8px 6px', borderRadius: '6px', border: 'none', cursor: 'pointer',
                   background: isActive ? 'rgba(24,24,27,0.08)' : isHov ? 'rgba(0,0,0,0.06)' : 'transparent',
                   color: isActive ? '#18181B' : isHov ? '#18181B' : '#3F3F46',
-                  transition: 'all 0.12s',
+                  transition: 'all var(--pl-dur-instant)',
                   outline: isActive ? '1.5px solid #E4E4E7' : 'none',
                 }}
               >
@@ -351,7 +351,7 @@ export function ChapterActions({
             color: rewriting ? '#71717A' : '#18181B',
             fontSize: '0.65rem', fontWeight: 700,
             cursor: rewriting ? 'not-allowed' : 'pointer',
-            letterSpacing: '0.03em', transition: 'all 0.15s',
+            letterSpacing: '0.03em', transition: 'all var(--pl-dur-instant)',
             whiteSpace: 'nowrap', height: '26px',
           }}
           onMouseOver={e => { if (!rewriting) (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.1)'; }}
@@ -405,7 +405,7 @@ export function ChapterActions({
             color: sortingPhotos ? '#71717A' : 'rgba(255,255,255,0.45)',
             fontSize: '0.65rem', fontWeight: 700,
             cursor: sortingPhotos ? 'not-allowed' : 'pointer',
-            letterSpacing: '0.03em', transition: 'all 0.15s',
+            letterSpacing: '0.03em', transition: 'all var(--pl-dur-instant)',
             whiteSpace: 'nowrap', height: '26px',
           }}
           onMouseOver={e => { if (!sortingPhotos) { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.07)'; (e.currentTarget as HTMLElement).style.color = '#18181B'; }}}

@@ -446,6 +446,6 @@ function inputStyle(palette: VibeSkin['palette']): React.CSSProperties {
     outline: 'none',
     boxSizing: 'border-box',
     lineHeight: 1.5,
-    transition: 'border-color 0.15s',
+    transition: 'border-color var(--pl-dur-instant)',
   };
 }

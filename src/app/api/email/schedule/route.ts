@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
     const emailThemeColors: EmailThemeColors = {
       background: vibePalette?.background || themeColors?.background || '#F5F1E8',
       foreground: vibePalette?.foreground || themeColors?.foreground || '#2B2B2B',
-      accent: vibePalette?.accent || themeColors?.accent || '#A3B18A',
+      accent: vibePalette?.accent || themeColors?.accent || '#5C6B3F',
       accentLight: vibePalette?.accent2 || themeColors?.accentLight || '#EEE8DC',
       card: vibePalette?.card || themeColors?.cardBg || '#FFFFFF',
       muted: vibePalette?.muted || themeColors?.muted || '#9A9488',

@@ -297,7 +297,7 @@ export function GuestMessagingPanel() {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '6px',
-              transition: 'all 0.15s',
+              transition: 'all var(--pl-dur-instant)',
             }}
           >
             {sending ? (
@@ -387,7 +387,7 @@ export function GuestMessagingPanel() {
                     borderRadius: '10px',
                     padding: '10px 12px',
                     cursor: 'pointer',
-                    transition: 'all 0.15s',
+                    transition: 'all var(--pl-dur-instant)',
                   }}
                   onClick={() => setExpandedId(isExpanded ? null : msg.id)}
                 >

@@ -196,7 +196,7 @@ export default function EditorClient({ manifest: initialManifest, siteSlug, name
             color: 'var(--pl-cream)',
             backdropFilter: 'saturate(140%) blur(10px)',
             WebkitBackdropFilter: 'saturate(140%) blur(10px)',
-            transition: 'opacity 0.3s',
+            transition: 'opacity var(--pl-dur-base)',
             opacity: 1,
             boxShadow: '0 8px 24px color-mix(in oklab, var(--pl-ink) 18%, transparent)',
           }}

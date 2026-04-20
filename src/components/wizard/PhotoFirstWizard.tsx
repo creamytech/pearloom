@@ -191,7 +191,7 @@ export function PhotoFirstWizard() {
                 : CREAM_CARD,
               textAlign: 'center',
               cursor: 'pointer',
-              transition: 'all 0.2s',
+              transition: 'all var(--pl-dur-fast)',
             }}
           >
             <div

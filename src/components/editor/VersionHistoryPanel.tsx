@@ -88,7 +88,7 @@ const pillBase: React.CSSProperties = {
   padding: '6px 12px',
   borderRadius: '99px',
   cursor: 'pointer',
-  transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+  transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
   display: 'inline-flex',
   alignItems: 'center',
   gap: '6px',
@@ -120,7 +120,7 @@ const iconButtonStyle: React.CSSProperties = {
   alignItems: 'center',
   justifyContent: 'center',
   color: 'var(--pl-chrome-text-muted)',
-  transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+  transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
 };
 
 export function VersionHistoryPanel({ manifest, onRestore, siteId }: VersionHistoryPanelProps) {

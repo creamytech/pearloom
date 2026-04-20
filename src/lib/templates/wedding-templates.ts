@@ -84,7 +84,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     price: 0,
     featured: true,
     description: 'Lush greenery, soft sage accents, and warm natural light. Perfect for garden ceremonies and outdoor celebrations.',
-    previewGradient: 'linear-gradient(135deg, #E8F0E0 0%, #D4DFC8 50%, #A3B18A 100%)',
+    previewGradient: 'linear-gradient(135deg, #E8F0E0 0%, #D4DFC8 50%, #5C6B3F 100%)',
     occasions: ['wedding', 'engagement'],
     tags: ['garden', 'botanical', 'outdoor', 'romantic', 'sage', 'green'],
     popularity: 95,

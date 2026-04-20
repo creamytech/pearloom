@@ -84,7 +84,7 @@ function getLuminance(hex: string): number {
  */
 export function generatePaletteFromColors(dominantColors: string[]): ExtractedPalette['palette'] {
   if (dominantColors.length === 0) {
-    return { background: '#FAF7F2', foreground: '#1A1A1A', accent: '#A3B18A', accentLight: '#EEE8DC', muted: '#6B665F', cardBg: '#FFFFFF' };
+    return { background: '#FAF7F2', foreground: '#1A1A1A', accent: '#5C6B3F', accentLight: '#EEE8DC', muted: '#6B665F', cardBg: '#FFFFFF' };
   }
 
   // Find the most vibrant color for accent

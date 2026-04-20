@@ -590,7 +590,7 @@ export function SiteNav({
                   fontFamily: 'var(--pl-font-body)', fontSize: '0.82rem', fontWeight: active ? 700 : 500,
                   borderLeft: `3px solid ${active ? 'var(--pl-olive)' : 'transparent'}`,
                   background: active ? 'rgba(163,177,138,0.07)' : 'transparent',
-                  transition: 'all 0.15s',
+                  transition: 'all var(--pl-dur-instant)',
                 }}
               >
                 <PageIcon slug={page.slug} size={15} />
@@ -631,7 +631,7 @@ export function SiteNav({
             color: 'rgba(255,255,255,0.9)',
             fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.04em',
             cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-            transition: 'background 0.15s',
+            transition: 'background var(--pl-dur-instant)',
           }}
         >
           <span style={{ opacity: 0.6, fontSize: '0.65rem' }}>⌘K</span>
@@ -679,7 +679,7 @@ export function SiteNav({
                         textDecoration: 'none',
                         color: active ? 'var(--pl-ink)' : 'var(--pl-muted)',
                         background: active ? 'rgba(163,177,138,0.1)' : 'transparent',
-                        transition: 'background 0.12s',
+                        transition: 'background var(--pl-dur-instant)',
                         fontFamily: 'var(--pl-font-body)', fontSize: '0.88rem', fontWeight: active ? 700 : 500,
                       }}
                     >
@@ -825,7 +825,7 @@ export function SiteNav({
                           padding: '8px 4px 6px',
                           textDecoration: 'none',
                           color: active ? 'var(--pl-olive)' : 'rgba(0,0,0,0.35)',
-                          transition: 'color 0.15s',
+                          transition: 'color var(--pl-dur-instant)',
                           position: 'relative',
                         }}
                       >
@@ -867,7 +867,7 @@ export function SiteNav({
                         background: 'transparent',
                         cursor: 'pointer',
                         color: anyOverflowActive ? 'var(--pl-olive)' : 'rgba(0,0,0,0.35)',
-                        transition: 'color 0.15s',
+                        transition: 'color var(--pl-dur-instant)',
                         position: 'relative',
                         fontFamily: 'inherit',
                       }}
@@ -1063,7 +1063,7 @@ export function SiteNav({
                   padding: active ? '0 12px' : '0',
                   background: active ? 'var(--pl-olive)' : 'transparent',
                   color: active ? '#fff' : 'rgba(0,0,0,0.45)',
-                  textDecoration: 'none', transition: 'all 0.2s ease',
+                  textDecoration: 'none', transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                   gap: '5px',
                 }}
               >

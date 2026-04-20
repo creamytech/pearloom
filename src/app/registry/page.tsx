@@ -56,7 +56,7 @@ export default async function RegistryPage({ searchParams }: RegistryPageProps) 
             fontSize: '0.875rem',
             fontFamily: 'Inter, sans-serif',
             fontWeight: 500,
-            transition: 'color 0.15s',
+            transition: 'color var(--pl-dur-instant)',
           }}
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">

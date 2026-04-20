@@ -244,7 +244,7 @@ export default function CommunityMemoryModerate({
                     ? '1px solid #10B98133'
                     : '1px solid #F59E0B33',
                   opacity: isLoading ? 0.5 : 1,
-                  transition: 'opacity 0.2s',
+                  transition: 'opacity var(--pl-dur-fast)',
                 }}
               >
                 {/* Status badge */}

@@ -191,7 +191,7 @@ export function ThemedLoader({
   size = 'md',
 }: ThemedLoaderProps) {
   const accentSymbol = theme?.accentSymbol || '\u2726';
-  const accentColor = theme?.accentColor || '#A3B18A';
+  const accentColor = theme?.accentColor || '#5C6B3F';
   const backgroundColor = theme?.backgroundColor || '#FAF8F4';
   const fontHeading = theme?.fontHeading || 'Cormorant Garamond, serif';
   const tone = theme?.tone || 'dreamy';

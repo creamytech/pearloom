@@ -43,7 +43,7 @@ export function ShareBar({ url, title, accent, bgColor }: ShareBarProps) {
     border: `1px solid ${accent}40`,
     background: `${accent}12`,
     color: accent,
-    transition: 'opacity 0.15s',
+    transition: 'opacity var(--pl-dur-instant)',
   };
 
   return (

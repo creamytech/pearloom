@@ -24,7 +24,7 @@ function buildEmailHtml(coupleName: string, body: string): string {
   </div>
   <div style="font-size: 16px; line-height: 1.8; color: #3D3530; white-space: pre-wrap;">${escapedBody}</div>
   <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.06); text-align: center;">
-    <p style="font-size: 11px; color: #9A9488; margin: 0;">Sent via <a href="https://pearloom.com" style="color: #A3B18A; text-decoration: none;">Pearloom</a></p>
+    <p style="font-size: 11px; color: #9A9488; margin: 0;">Sent via <a href="https://pearloom.com" style="color: #5C6B3F; text-decoration: none;">Pearloom</a></p>
   </div>
 </div>`;
 }

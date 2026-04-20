@@ -93,7 +93,7 @@ export function buildFallbackArt(accent: string, curve: VibeSkin['curve']): {
   heroPatternSvg: string; sectionBorderSvg: string; cornerFlourishSvg: string; medallionSvg: string;
   heroBlobSvg: string; accentBlobSvg: string; sectionBlobPath: string;
 } {
-  const a = accent || '#A3B18A';
+  const a = accent || '#5C6B3F';
 
   // Pattern varies by curve type for more visual variety across sites
   const HERO_PATTERNS: Record<VibeSkin['curve'], string> = {

@@ -383,7 +383,7 @@ export function EditorWing({
                 background: resizing
                   ? 'color-mix(in oklab, var(--pl-olive) 50%, transparent)'
                   : 'transparent',
-                transition: 'background 0.15s',
+                transition: 'background var(--pl-dur-instant)',
                 pointerEvents: 'none',
               }}
             />

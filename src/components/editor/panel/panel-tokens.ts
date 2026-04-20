@@ -117,7 +117,7 @@ export const panelChip = {
   },
   radius: '8px',
   padding: '8px 14px',
-  transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+  transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
 } as const;
 
 // ── Divider style ────────────────────────────────────────────

@@ -222,7 +222,7 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
   }, [rsvps, events]);
 
   // Meal bar chart segments
-  const mealColors = ['#A3B18A', '#C4A265', '#8B6F8E', '#6B9BD2', '#D4836D', '#7DB8A5', '#B5A0D1'];
+  const mealColors = ['#5C6B3F', '#C4A265', '#8B6F8E', '#6B9BD2', '#D4836D', '#7DB8A5', '#B5A0D1'];
   const mealSegments = Array.from(stats.mealMap.entries()).map(([label, value], i) => ({
     label, value, color: mealColors[i % mealColors.length],
   }));
@@ -295,7 +295,7 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
       }}>
         <StatCard
           label="Attending" value={stats.attending.length} total={totalInvited}
-          color="#A3B18A" icon={UserCheck} delay={0}
+          color="#5C6B3F" icon={UserCheck} delay={0}
         />
         <StatCard
           label="Declined" value={stats.declined.length} total={totalInvited}
@@ -324,7 +324,7 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
           <div style={{
             fontSize: '0.68rem', fontWeight: 700,
             textTransform: 'uppercase', letterSpacing: '0.1em',
-            color: 'var(--pl-olive, #A3B18A)',
+            color: 'var(--pl-olive, #5C6B3F)',
             marginBottom: '4px',
           }}>
             Predicted Final Count
@@ -418,7 +418,7 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
                       height: '100%',
                       width: `${pct}%`,
                       borderRadius: '4px',
-                      background: 'linear-gradient(90deg, #A3B18A, #C4A265)',
+                      background: 'linear-gradient(90deg, #5C6B3F, #C4A265)',
                       transition: 'width 0.6s ease-out',
                     }} />
                   </div>
@@ -470,11 +470,11 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
                   borderRadius: '8px',
                   border: '1px solid rgba(163, 177, 138, 0.35)',
                   background: followUpLoading ? 'rgba(163, 177, 138, 0.05)' : 'rgba(163, 177, 138, 0.12)',
-                  color: 'var(--pl-olive, #A3B18A)',
+                  color: 'var(--pl-olive, #5C6B3F)',
                   cursor: followUpLoading ? 'wait' : 'pointer',
                   fontSize: '0.78rem',
                   fontWeight: 700,
-                  transition: 'background 0.15s',
+                  transition: 'background var(--pl-dur-instant)',
                 }}
               >
                 {followUpLoading ? (
@@ -482,7 +482,7 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
                     <div style={{
                       width: '14px', height: '14px',
                       border: '2px solid rgba(163, 177, 138, 0.2)',
-                      borderTopColor: 'var(--pl-olive, #A3B18A)',
+                      borderTopColor: 'var(--pl-olive, #5C6B3F)',
                       borderRadius: '50%',
                       animation: 'spin 0.8s linear infinite',
                     }} />
@@ -516,7 +516,7 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
               <div style={{
                 fontSize: '0.72rem', fontWeight: 700,
                 textTransform: 'uppercase', letterSpacing: '0.08em',
-                color: 'var(--pl-olive, #A3B18A)',
+                color: 'var(--pl-olive, #5C6B3F)',
                 marginBottom: '4px',
               }}>
                 Subject
@@ -534,7 +534,7 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
               <div style={{
                 fontSize: '0.72rem', fontWeight: 700,
                 textTransform: 'uppercase', letterSpacing: '0.08em',
-                color: 'var(--pl-olive, #A3B18A)',
+                color: 'var(--pl-olive, #5C6B3F)',
                 marginBottom: '4px',
               }}>
                 Body
@@ -564,11 +564,11 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
                     borderRadius: '8px',
                     border: '1px solid rgba(163, 177, 138, 0.35)',
                     background: copied ? 'rgba(163, 177, 138, 0.2)' : 'rgba(163, 177, 138, 0.1)',
-                    color: 'var(--pl-olive, #A3B18A)',
+                    color: 'var(--pl-olive, #5C6B3F)',
                     cursor: 'pointer',
                     fontSize: '0.78rem',
                     fontWeight: 700,
-                    transition: 'all 0.15s',
+                    transition: 'all var(--pl-dur-instant)',
                   }}
                 >
                   {copied ? <Check size={13} /> : <Copy size={13} />}

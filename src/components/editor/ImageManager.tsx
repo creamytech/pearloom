@@ -325,7 +325,7 @@ export function ImageManager({
                   padding: '3px 8px', borderRadius: '4px', border: '1px solid #E4E4E7',
                   background: '#fff', color: '#18181B',
                   fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer',
-                  transition: 'all 0.15s',
+                  transition: 'all var(--pl-dur-instant)',
                 }}
               >
                 {gpState === 'waiting' || gpState === 'fetching' || gpState === 'creating'
@@ -341,7 +341,7 @@ export function ImageManager({
                   padding: '3px 8px', borderRadius: '4px', border: '1px solid #E4E4E7',
                   background: '#fff', color: '#18181B',
                   fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer',
-                  transition: 'all 0.15s',
+                  transition: 'all var(--pl-dur-instant)',
                 }}
               >
                 <LayoutGrid size={9} />
@@ -467,7 +467,7 @@ export function ImageManager({
                     width: '20px', height: '20px', borderRadius: '50%',
                     background: 'rgba(0,0,0,0.7)', border: 'none', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'background 0.15s',
+                    transition: 'background var(--pl-dur-instant)',
                     zIndex: 2,
                   }}
                   onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = '#71717A'; }}
@@ -494,7 +494,7 @@ export function ImageManager({
                 aspectRatio: '1', borderRadius: '8px',
                 border: '2px dashed #E4E4E7', background: 'transparent',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#71717A', transition: 'all 0.15s',
+                color: '#71717A', transition: 'all var(--pl-dur-instant)',
               }}
               onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = '#E4E4E7'; (e.currentTarget as HTMLElement).style.color = '#18181B'; }}
               onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.06)'; (e.currentTarget as HTMLElement).style.color = '#71717A'; }}
@@ -600,7 +600,7 @@ export function ImageManager({
                         alignItems: 'center',
                         justifyContent: 'center',
                         color: '#fff',
-                        transition: 'background 0.15s',
+                        transition: 'background var(--pl-dur-instant)',
                         zIndex: 2,
                         padding: 0,
                       }}
@@ -621,7 +621,7 @@ export function ImageManager({
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                 width: '100%', marginTop: '8px', padding: '6px 10px', borderRadius: '8px',
                 border: '2px dashed #E4E4E7', background: 'transparent',
-                cursor: 'pointer', color: '#71717A', transition: 'all 0.15s',
+                cursor: 'pointer', color: '#71717A', transition: 'all var(--pl-dur-instant)',
               }}
               onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = '#E4E4E7'; (e.currentTarget as HTMLElement).style.color = '#18181B'; }}
               onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.06)'; (e.currentTarget as HTMLElement).style.color = '#71717A'; }}
@@ -697,7 +697,7 @@ export function ImageManager({
               background: '#fff',
               color: generatingCaptions ? '#A1A1AA' : '#18181B',
               fontSize: '0.6rem', fontWeight: 600, cursor: generatingCaptions ? 'not-allowed' : 'pointer',
-              transition: 'all 0.15s',
+              transition: 'all var(--pl-dur-instant)',
             }}
             onMouseOver={e => { if (!generatingCaptions) (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.1)'; }}
             onMouseOut={e => { if (!generatingCaptions) (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.06)'; }}

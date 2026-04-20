@@ -35,7 +35,7 @@ const TYPE_LABELS: Record<string, string> = {
 const TYPE_COLORS: Record<string, string> = {
   ceremony: 'var(--pl-gold, #D6C6A8)',
   reception: 'var(--pl-plum, #6D597A)',
-  cocktail: 'var(--pl-olive, #A3B18A)',
+  cocktail: 'var(--pl-olive, #5C6B3F)',
   misc: 'var(--pl-muted, #9A9488)',
 };
 
@@ -73,7 +73,7 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const headingFont = vibeSkin?.fonts?.heading || 'Playfair Display';
-  const accent = vibeSkin?.palette?.accent || 'var(--pl-olive, #A3B18A)';
+  const accent = vibeSkin?.palette?.accent || 'var(--pl-olive, #5C6B3F)';
 
   const fetchUpdates = useCallback(async () => {
     try {
@@ -145,7 +145,7 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
               fontWeight: 700,
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              color: 'var(--pl-olive, #A3B18A)',
+              color: 'var(--pl-olive, #5C6B3F)',
             }}
           >
             <motion.span
@@ -155,7 +155,7 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
                 width: '8px',
                 height: '8px',
                 borderRadius: '50%',
-                background: 'var(--pl-olive, #A3B18A)',
+                background: 'var(--pl-olive, #5C6B3F)',
                 display: 'inline-block',
               }}
             />
@@ -373,7 +373,7 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
                   width: '6px',
                   height: '6px',
                   borderRadius: '50%',
-                  background: 'var(--pl-olive, #A3B18A)',
+                  background: 'var(--pl-olive, #5C6B3F)',
                   display: 'inline-block',
                 }}
               />

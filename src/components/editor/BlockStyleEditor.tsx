@@ -56,7 +56,7 @@ export function BlockStyleEditor({ block, onChange }: BlockStyleEditorProps) {
     background: active ? 'rgba(24,24,27,0.06)' : 'transparent',
     color: active ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-muted)',
     fontSize: '0.65rem', fontWeight: 600,
-    cursor: 'pointer', transition: 'all 0.15s',
+    cursor: 'pointer', transition: 'all var(--pl-dur-instant)',
   });
 
   return (

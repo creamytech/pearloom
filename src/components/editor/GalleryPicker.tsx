@@ -179,7 +179,7 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
                   background: 'rgba(0,0,0,0.04)',
                   cursor: 'pointer',
                   color: 'var(--pl-ink-soft, #5A4D42)',
-                  transition: 'background 0.15s',
+                  transition: 'background var(--pl-dur-instant)',
                 }}
                 onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.08)'; }}
                 onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)'; }}
@@ -321,7 +321,7 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
                           height: '100%',
                           objectFit: 'cover',
                           display: 'block',
-                          transition: 'transform 0.3s',
+                          transition: 'transform var(--pl-dur-base)',
                         }}
                         onMouseOver={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.05)'; }}
                         onMouseOut={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)'; }}
@@ -334,7 +334,7 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
                           inset: 0,
                           background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)',
                           opacity: 0,
-                          transition: 'opacity 0.2s',
+                          transition: 'opacity var(--pl-dur-fast)',
                           display: 'flex',
                           flexDirection: 'column',
                           justifyContent: 'flex-end',

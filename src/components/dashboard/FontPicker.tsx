@@ -166,7 +166,7 @@ export default function FontPicker({
             style={{
               flex: 1, border: 'none', borderRadius: '7px', cursor: 'pointer',
               padding: '6px 0', fontSize: '0.73rem', fontWeight: 600,
-              fontFamily: 'inherit', transition: 'all 0.12s',
+              fontFamily: 'inherit', transition: 'all var(--pl-dur-instant)',
               background: tab === t ? '#ffffff' : 'transparent',
               color: tab === t ? '#18181B' : '#71717A',
               boxShadow: tab === t ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
@@ -194,7 +194,7 @@ export default function FontPicker({
                     border: 'none', borderRadius: '6px', cursor: 'pointer',
                     padding: '4px 9px', fontSize: '0.68rem', fontWeight: 600,
                     fontFamily: 'inherit', letterSpacing: '0.02em',
-                    transition: 'all 0.12s',
+                    transition: 'all var(--pl-dur-instant)',
                     background: isActive ? '#18181B' : '#F4F4F5',
                     color: isActive ? '#ffffff' : '#52525B',
                   }}

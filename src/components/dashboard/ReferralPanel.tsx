@@ -692,7 +692,7 @@ export function ReferralPanel() {
                         textAlign: 'left',
                         width: '100%',
                         opacity: claiming ? 0.6 : 1,
-                        transition: 'opacity 0.15s',
+                        transition: 'opacity var(--pl-dur-instant)',
                       } as React.CSSProperties}
                     >
                       <div

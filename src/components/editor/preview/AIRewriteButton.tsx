@@ -79,7 +79,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
           background: 'rgba(24,24,27,0.08)', border: 'none',
           cursor: 'pointer', display: 'flex', alignItems: 'center',
           justifyContent: 'center', color: '#71717A',
-          transition: 'background 0.15s',
+          transition: 'background var(--pl-dur-instant)',
         }}
       >
         <Sparkles size={12} />
@@ -116,7 +116,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
                     border: `1.5px solid ${activeStyle === s.id ? '#71717A' : 'rgba(0,0,0,0.08)'}`,
                     background: activeStyle === s.id ? 'rgba(24,24,27,0.06)' : '#fff',
                     fontSize: '0.75rem', fontWeight: 500, cursor: loading ? 'wait' : 'pointer',
-                    color: '#18181B', transition: 'all 0.15s',
+                    color: '#18181B', transition: 'all var(--pl-dur-instant)',
                   }}
                 >
                   {s.label}

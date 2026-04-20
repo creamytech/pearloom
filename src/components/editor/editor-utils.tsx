@@ -287,7 +287,7 @@ export function ActionButton({ label, icon, onClick, variant = 'default', size =
         fontWeight: 700,
         letterSpacing: '0.22em',
         textTransform: 'uppercase',
-        transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+        transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
         touchAction: 'manipulation',
       }}
     >
@@ -337,7 +337,7 @@ export function PillToggle({ label, value, onChange }: {
               : 'var(--pl-chrome-surface-2)',
             border: `1px solid ${value ? 'var(--pl-chrome-accent)' : 'var(--pl-chrome-border)'}`,
             cursor: 'pointer', position: 'relative',
-            transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+            transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
             touchAction: 'manipulation',
             padding: 0,
           }}
@@ -420,7 +420,7 @@ export function EmptyState({ icon, title, description, action, onAction }: {
             cursor: 'pointer',
             letterSpacing: '0.22em',
             textTransform: 'uppercase',
-            transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+            transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
             touchAction: 'manipulation',
           }}
         >

@@ -325,7 +325,7 @@ export function CoupleQuiz({ coupleNames, vibeSkin, chapters }: CoupleQuizProps)
                     fontWeight: 600,
                     fontSize: '0.9rem',
                     cursor: 'pointer',
-                    transition: 'opacity 0.2s',
+                    transition: 'opacity var(--pl-dur-fast)',
                   }}
                   onMouseEnter={(e) => { (e.target as HTMLElement).style.opacity = '0.85'; }}
                   onMouseLeave={(e) => { (e.target as HTMLElement).style.opacity = '1'; }}
@@ -344,7 +344,7 @@ export function CoupleQuiz({ coupleNames, vibeSkin, chapters }: CoupleQuizProps)
                     fontWeight: 600,
                     fontSize: '0.9rem',
                     cursor: 'pointer',
-                    transition: 'background 0.2s',
+                    transition: 'background var(--pl-dur-fast)',
                   }}
                   onMouseEnter={(e) => { (e.target as HTMLElement).style.background = `${palette.accent}10`; }}
                   onMouseLeave={(e) => { (e.target as HTMLElement).style.background = 'transparent'; }}
@@ -542,7 +542,7 @@ export function CoupleQuiz({ coupleNames, vibeSkin, chapters }: CoupleQuizProps)
                         fontWeight: 600,
                         fontSize: '0.88rem',
                         cursor: 'pointer',
-                        transition: 'opacity 0.2s',
+                        transition: 'opacity var(--pl-dur-fast)',
                         flexShrink: 0,
                       }}
                       onMouseEnter={(e) => { (e.target as HTMLElement).style.opacity = '0.85'; }}

@@ -332,7 +332,7 @@ export function EditorTour({ onComplete }: { onComplete?: () => void }) {
                 fontSize: '0.65rem', fontWeight: 600,
                 color: 'var(--pl-muted, #8a8472)',
                 padding: '2px 6px', borderRadius: '6px',
-                transition: 'background 0.15s',
+                transition: 'background var(--pl-dur-instant)',
               }}
               onMouseEnter={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.04)')}
               onMouseLeave={e => (e.currentTarget.style.background = 'none')}
@@ -393,7 +393,7 @@ export function EditorTour({ onComplete }: { onComplete?: () => void }) {
                   background: '#FFFFFF',
                   color: 'var(--pl-ink-soft, #5a4f42)',
                   cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600,
-                  transition: 'background 0.15s',
+                  transition: 'background var(--pl-dur-instant)',
                 }}
                 onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.9)')}
                 onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.6)')}

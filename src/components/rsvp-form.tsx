@@ -26,7 +26,7 @@ function ConfettiBurst({ active }: { active: boolean }) {
     canvas.height = window.innerHeight;
 
     const COLORS = [
-      '#A3B18A', '#f0c080', '#f87171', '#a78bfa', '#34d399',
+      '#5C6B3F', '#f0c080', '#f87171', '#a78bfa', '#34d399',
       '#60a5fa', '#fb923c', '#e879f9',
     ];
     const SHAPES = ['circle', 'rect', 'heart'] as const;
@@ -430,7 +430,7 @@ export function RsvpForm({ events, siteId, mealOptions }: RsvpFormProps) {
                           ? 'var(--pl-olive-mist)'
                           : 'transparent',
                         cursor: 'pointer',
-                        transition: 'all 0.2s',
+                        transition: 'all var(--pl-dur-fast)',
                       }}
                     >
                       <input
@@ -535,7 +535,7 @@ export function RsvpForm({ events, siteId, mealOptions }: RsvpFormProps) {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    transition: 'all 0.2s',
+                    transition: 'all var(--pl-dur-fast)',
                     flexShrink: 0,
                   }}
                 >
@@ -602,7 +602,7 @@ export function RsvpForm({ events, siteId, mealOptions }: RsvpFormProps) {
                         background: selected ? 'var(--pl-olive-mist)' : 'rgba(0,0,0,0.02)',
                         color: selected ? 'var(--pl-olive)' : 'var(--pl-muted)',
                         cursor: 'pointer',
-                        transition: 'all 0.2s',
+                        transition: 'all var(--pl-dur-fast)',
                         fontFamily: 'var(--pl-font-body)',
                         display: 'flex', flexDirection: 'column',
                         alignItems: 'center', gap: '0.35rem',

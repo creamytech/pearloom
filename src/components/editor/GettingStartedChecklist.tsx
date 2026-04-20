@@ -257,7 +257,7 @@ export function GettingStartedChecklist() {
                       border: isNextUp
                         ? '1px solid color-mix(in oklab, var(--pl-gold, #B8935A) 28%, transparent)'
                         : '1px solid transparent',
-                      transition: 'background 0.12s',
+                      transition: 'background var(--pl-dur-instant)',
                     }}
                     onMouseEnter={e => {
                       if (!isNextUp) e.currentTarget.style.background = 'rgba(0,0,0,0.025)';
@@ -272,7 +272,7 @@ export function GettingStartedChecklist() {
                       border: done ? 'none' : '1.5px solid rgba(0,0,0,0.15)',
                       background: done ? '#18181B' : 'rgba(255,255,255,0.5)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      transition: 'all 0.2s',
+                      transition: 'all var(--pl-dur-fast)',
                       animation: done ? 'pl-check-bounce 0.35s cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
                     }}>
                       {done && (
@@ -288,7 +288,7 @@ export function GettingStartedChecklist() {
                       color: done ? 'var(--pl-muted, #8a8472)' : 'var(--pl-ink, #2b1e14)',
                       textDecoration: done ? 'line-through' : 'none',
                       opacity: done ? 0.7 : 1,
-                      transition: 'all 0.2s',
+                      transition: 'all var(--pl-dur-fast)',
                     }}>
                       {item.label}
                     </span>

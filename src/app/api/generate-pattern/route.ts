@@ -331,7 +331,7 @@ export async function POST(req: NextRequest) {
     // Always return something
     const body = await req.json().catch(() => ({}));
     const fallback = buildFallbackSvg(
-      (body as { accent?: string }).accent || '#A3B18A',
+      (body as { accent?: string }).accent || '#5C6B3F',
       (body as { vibeString?: string }).vibeString || '',
       (body as { place?: string }).place || ''
     );

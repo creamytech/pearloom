@@ -844,9 +844,9 @@ export const DESIGN_PRESETS: DesignPreset[] = [
     id: 'romantic-garden',
     name: 'Romantic Garden',
     description: 'Soft florals, warm ivory, classic serif typography',
-    preview: { bg: '#FDF8F0', fg: '#2B2018', accent: '#A3B18A' },
+    preview: { bg: '#FDF8F0', fg: '#2B2018', accent: '#5C6B3F' },
     palette: {
-      background: '#FDF8F0', foreground: '#2B2018', accent: '#A3B18A',
+      background: '#FDF8F0', foreground: '#2B2018', accent: '#5C6B3F',
       accent2: '#D4C5A0', card: '#FFFBF5', muted: '#9A8E78',
       highlight: '#8A9E70', subtle: '#FAF5EC', ink: '#1A1208',
     },

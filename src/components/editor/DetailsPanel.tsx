@@ -56,7 +56,7 @@ function ConfirmDeleteButton({ onConfirm }: { onConfirm: () => void }) {
         fontWeight: confirming ? panelWeight.bold : panelWeight.medium,
         fontFamily: 'inherit',
         lineHeight: panelLineHeight.tight,
-        transition: 'all 0.15s',
+        transition: 'all var(--pl-dur-instant)',
       }}
       onMouseOver={e => { if (!confirming) (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
       onMouseOut={e => { if (!confirming) (e.currentTarget as HTMLElement).style.color = '#71717A'; }}
@@ -369,7 +369,7 @@ function WeddingPartyEditor({ manifest, onChange }: { manifest: StoryManifest; o
             fontFamily: 'var(--pl-font-mono, monospace)',
             fontSize: '0.54rem', fontWeight: 700,
             letterSpacing: '0.24em', textTransform: 'uppercase',
-            transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+            transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
           }}
           onMouseOver={e => {
             (e.currentTarget as HTMLElement).style.background =
@@ -729,7 +729,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           borderRadius: '10px', marginBottom: '4px',
           background: isOpen ? '#FAFAFA' : 'transparent',
           border: isOpen ? '1px solid #E4E4E7' : '1px solid transparent',
-          transition: 'all 0.15s',
+          transition: 'all var(--pl-dur-instant)',
           position: 'relative', zIndex: isOpen ? 10 : 1,
         }}
       >
@@ -904,7 +904,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               fontFamily: 'inherit',
               cursor: 'pointer',
               lineHeight: panelLineHeight.tight,
-              transition: 'all 0.15s',
+              transition: 'all var(--pl-dur-instant)',
             }}
           >
             {tab.label}
@@ -1008,13 +1008,13 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             style={{
               width: '36px', height: '20px', borderRadius: '8px', flexShrink: 0,
               background: manifest.registry?.enabled !== false ? '#18181B' : '#E4E4E7',
-              border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
+              border: 'none', cursor: 'pointer', position: 'relative', transition: 'background var(--pl-dur-fast)',
             }}
           >
             <span style={{
               position: 'absolute', top: '2px', left: manifest.registry?.enabled !== false ? '18px' : '2px',
               width: '16px', height: '16px', borderRadius: '50%', background: '#fff',
-              transition: 'left 0.2s', display: 'block',
+              transition: 'left var(--pl-dur-fast)', display: 'block',
             }} />
           </button>
         </div>
@@ -1065,7 +1065,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 fontWeight: panelWeight.bold,
                 fontFamily: 'inherit',
                 lineHeight: panelLineHeight.tight,
-                transition: 'background 0.15s',
+                transition: 'background var(--pl-dur-instant)',
                 flexShrink: 0,
                 opacity: registryImportLoading ? 0.7 : 1,
               }}
@@ -1429,7 +1429,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                           border: active ? '2px solid #18181B' : '1px solid #E4E4E7',
                           background: active ? '#F4F4F5' : '#FFFFFF',
                           color: active ? '#18181B' : '#71717A',
-                          cursor: 'pointer', transition: 'all 0.15s',
+                          cursor: 'pointer', transition: 'all var(--pl-dur-instant)',
                         }}
                       >
                         {tag}
@@ -1700,7 +1700,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               style={{
                 width: '40px', height: '22px', borderRadius: '10px',
                 background: (manifest.features?.guestbook ?? true) ? '#18181B' : '#E4E4E7',
-                border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
+                border: 'none', cursor: 'pointer', position: 'relative', transition: 'background var(--pl-dur-fast)',
                 flexShrink: 0,
               }}
             >
@@ -1708,7 +1708,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 position: 'absolute', top: '3px',
                 left: (manifest.features?.guestbook ?? true) ? '21px' : '3px',
                 width: '16px', height: '16px', borderRadius: '50%',
-                background: '#fff', transition: 'left 0.2s',
+                background: '#fff', transition: 'left var(--pl-dur-fast)',
                 display: 'block',
               }} />
             </button>
@@ -1740,7 +1740,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               style={{
                 width: '40px', height: '22px', borderRadius: '10px',
                 background: (manifest.features?.liveUpdates ?? true) ? '#18181B' : '#E4E4E7',
-                border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
+                border: 'none', cursor: 'pointer', position: 'relative', transition: 'background var(--pl-dur-fast)',
                 flexShrink: 0,
               }}
             >
@@ -1748,7 +1748,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 position: 'absolute', top: '3px',
                 left: (manifest.features?.liveUpdates ?? true) ? '21px' : '3px',
                 width: '16px', height: '16px', borderRadius: '50%',
-                background: '#fff', transition: 'left 0.2s',
+                background: '#fff', transition: 'left var(--pl-dur-fast)',
                 display: 'block',
               }} />
             </button>
@@ -1780,7 +1780,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               style={{
                 width: '40px', height: '22px', borderRadius: '10px',
                 background: (manifest.features?.photoWall ?? false) ? '#18181B' : '#E4E4E7',
-                border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
+                border: 'none', cursor: 'pointer', position: 'relative', transition: 'background var(--pl-dur-fast)',
                 flexShrink: 0,
               }}
             >
@@ -1788,7 +1788,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 position: 'absolute', top: '3px',
                 left: (manifest.features?.photoWall ?? false) ? '21px' : '3px',
                 width: '16px', height: '16px', borderRadius: '50%',
-                background: '#fff', transition: 'left 0.2s',
+                background: '#fff', transition: 'left var(--pl-dur-fast)',
                 display: 'block',
               }} />
             </button>

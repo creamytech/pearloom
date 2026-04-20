@@ -264,7 +264,7 @@ export function KeyboardShortcuts({ open, onClose }: KeyboardShortcutsProps) {
                       justifyContent: 'space-between',
                       padding: '6px 4px',
                       borderRadius: '6px',
-                      transition: 'background 0.12s',
+                      transition: 'background var(--pl-dur-instant)',
                     }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.025)'; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}

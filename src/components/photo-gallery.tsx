@@ -144,7 +144,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
             background: '#fff', outline: 'none',
             fontFamily: 'var(--pl-font-body)',
             color: 'var(--pl-ink)',
-            transition: 'border-color 0.2s',
+            transition: 'border-color var(--pl-dur-fast)',
           }}
           onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--pl-olive)'; }}
           onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'; }}
@@ -190,7 +190,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
                 width: '52px', height: '52px', borderRadius: '50%',
                 background: dragOver ? 'rgba(163,177,138,0.15)' : 'rgba(0,0,0,0.04)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'background 0.25s',
+                transition: 'background var(--pl-dur-base)',
                 animation: dragOver ? 'pulse-zone 1s ease-in-out infinite' : 'none',
               }}
             >
@@ -320,7 +320,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
                 padding: '0.5rem', background: 'rgba(0,0,0,0.06)',
                 border: 'none', borderRadius: '50%',
                 color: 'var(--pl-ink)', cursor: 'pointer', zIndex: 10,
-                display: 'flex', transition: 'background 0.15s',
+                display: 'flex', transition: 'background var(--pl-dur-instant)',
               }}
               onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; }}
               onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; }}
@@ -337,7 +337,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
                   padding: '0.75rem', background: 'rgba(0,0,0,0.06)',
                   border: 'none', borderRadius: '50%',
                   color: 'var(--pl-ink)', cursor: 'pointer', zIndex: 10,
-                  display: 'flex', transition: 'background 0.15s',
+                  display: 'flex', transition: 'background var(--pl-dur-instant)',
                 }}
                 onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; }}
                 onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; }}
@@ -355,7 +355,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
                   padding: '0.75rem', background: 'rgba(0,0,0,0.06)',
                   border: 'none', borderRadius: '50%',
                   color: 'var(--pl-ink)', cursor: 'pointer', zIndex: 10,
-                  display: 'flex', transition: 'background 0.15s',
+                  display: 'flex', transition: 'background var(--pl-dur-instant)',
                 }}
                 onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; }}
                 onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; }}

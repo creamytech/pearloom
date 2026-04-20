@@ -783,7 +783,7 @@ function ChapterSettings({
                     background: active ? 'rgba(24,24,27,0.06)' : 'rgba(24,24,27,0.03)',
                     color: active ? '#18181B' : '#71717A',
                     cursor: 'pointer', minWidth: 72,
-                    transition: 'all 0.15s',
+                    transition: 'all var(--pl-dur-instant)',
                   }}
                   title={description}
                 >
@@ -977,7 +977,7 @@ function DesignSettings({
                       padding: '10px 6px', borderRadius: 12, textAlign: 'center',
                       border: active ? '2px solid #18181B' : '1px solid rgba(0,0,0,0.06)',
                       background: active ? 'rgba(24,24,27,0.04)' : 'rgba(255,255,255,0.75)',
-                      cursor: 'pointer', transition: 'all 0.15s',
+                      cursor: 'pointer', transition: 'all var(--pl-dur-instant)',
                     }}
                   >
                     <div style={{ fontSize: '0.65rem', fontWeight: 600, color: active ? '#18181B' : '#18181B' }}>{mode.label}</div>
@@ -1004,7 +1004,7 @@ function DesignSettings({
                       padding: '10px 6px', borderRadius: 10, textAlign: 'center',
                       border: active ? '2px solid #18181B' : '1px solid rgba(0,0,0,0.06)',
                       background: active ? 'rgba(24,24,27,0.04)' : 'rgba(255,255,255,0.75)',
-                      cursor: 'pointer', transition: 'all 0.15s',
+                      cursor: 'pointer', transition: 'all var(--pl-dur-instant)',
                     }}
                   >
                     <div style={{ fontSize: '0.65rem', fontWeight: 600, color: active ? '#18181B' : '#18181B' }}>{s.label}</div>
@@ -1031,7 +1031,7 @@ function DesignSettings({
                       padding: '10px 6px', borderRadius: 10, textAlign: 'center',
                       border: active ? '2px solid #18181B' : '1px solid rgba(0,0,0,0.06)',
                       background: active ? 'rgba(24,24,27,0.04)' : 'rgba(255,255,255,0.75)',
-                      cursor: 'pointer', transition: 'all 0.15s',
+                      cursor: 'pointer', transition: 'all var(--pl-dur-instant)',
                     }}
                   >
                     <div style={{ fontSize: '0.65rem', fontWeight: 600, color: active ? '#18181B' : '#18181B' }}>{s.label}</div>
@@ -1072,7 +1072,7 @@ function DesignSettings({
                       border: active ? '2px solid #18181B' : '1px solid rgba(0,0,0,0.06)',
                       background: active ? 'rgba(24,24,27,0.04)' : 'rgba(255,255,255,0.75)',
                       color: active ? '#18181B' : '#71717A',
-                      cursor: 'pointer', transition: 'all 0.15s',
+                      cursor: 'pointer', transition: 'all var(--pl-dur-instant)',
                       display: 'flex', alignItems: 'center', gap: 4,
                     }}
                   >
@@ -1603,14 +1603,14 @@ function BlockSettings({
               style={{
                 width: 44, height: 26, borderRadius: 13, border: 'none', cursor: 'pointer',
                 background: config.showCaptions ? '#18181B' : 'rgba(0,0,0,0.12)',
-                position: 'relative', transition: 'background 0.2s',
+                position: 'relative', transition: 'background var(--pl-dur-fast)',
               }}
             >
               <div style={{
                 width: 22, height: 22, borderRadius: 11, background: 'white',
                 position: 'absolute', top: 2,
                 left: config.showCaptions ? 20 : 2,
-                transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                transition: 'left var(--pl-dur-fast)', boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
               }} />
             </button>
           </div>

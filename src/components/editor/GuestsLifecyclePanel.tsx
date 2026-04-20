@@ -108,7 +108,7 @@ export function GuestsLifecyclePanel({ manifest, subdomain }: Props) {
                 background: on ? 'var(--pl-ink, #18181B)' : '#FFFFFF',
                 color: on ? 'var(--pl-cream, #FAF7F2)' : '#71717A',
                 cursor: 'pointer',
-                transition: 'all 0.15s',
+                transition: 'all var(--pl-dur-instant)',
               }}
             >
               <Icon size={14} strokeWidth={on ? 2.2 : 1.7} />

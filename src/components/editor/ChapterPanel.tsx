@@ -136,7 +136,7 @@ export function ChapterPanel({
                 fontFamily: 'inherit',
                 cursor: isRewriting ? 'not-allowed' : 'pointer',
                 opacity: isRewriting ? 0.5 : 1,
-                transition: 'background 0.15s',
+                transition: 'background var(--pl-dur-instant)',
               }}
             >
               {isRewriting ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={10} />}
@@ -156,7 +156,7 @@ export function ChapterPanel({
                   fontFamily: 'inherit',
                   cursor: isLoadingAlternates ? 'not-allowed' : 'pointer',
                   opacity: isLoadingAlternates ? 0.5 : 1,
-                  transition: 'background 0.15s',
+                  transition: 'background var(--pl-dur-instant)',
                 }}
               >
                 {isLoadingAlternates ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : '✦'}
@@ -236,7 +236,7 @@ export function ChapterPanel({
                   fontWeight: isActive ? panelWeight.bold : panelWeight.semibold,
                   fontFamily: 'inherit',
                   color: isActive ? m.color : 'var(--pl-chrome-text-soft)',
-                  transition: 'all 0.15s',
+                  transition: 'all var(--pl-dur-instant)',
                   lineHeight: panelLineHeight.tight,
                 }}
               >

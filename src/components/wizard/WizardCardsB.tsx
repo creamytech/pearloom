@@ -402,7 +402,7 @@ function PaletteMiniPreview({ colors: c }: { colors: string[] }) {
   // c[0]=accent, c[1]=accent2, c[2]=background, c[3]=foreground
   const bg = c[2] || '#FAFAFA';
   const fg = c[3] || '#18181B';
-  const accent = c[0] || '#A3B18A';
+  const accent = c[0] || '#5C6B3F';
   const accent2 = c[1] || '#C4A96A';
 
   return (

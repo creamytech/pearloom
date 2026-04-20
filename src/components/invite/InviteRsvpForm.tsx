@@ -479,7 +479,7 @@ export function InviteRsvpForm({
           letterSpacing: '0.28em',
           textTransform: 'uppercase',
           cursor: status && name.trim() && !loading ? 'pointer' : 'not-allowed',
-          transition: 'all 0.2s ease',
+          transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
         }}
       >
         {loading ? 'Sending…' : 'Send RSVP'}

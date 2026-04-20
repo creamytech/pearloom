@@ -91,7 +91,7 @@ export function PasswordGate({ siteId, coupleNames, password, vibeSkin, children
 
   if (unlocked) return <>{children}</>;
 
-  const accentColor = vibeSkin?.particleColor || '#A3B18A';
+  const accentColor = vibeSkin?.particleColor || '#5C6B3F';
   const bgColor = '#F5F1E8';
 
   return (
@@ -185,7 +185,7 @@ export function PasswordGate({ siteId, coupleNames, password, vibeSkin, children
                   fontFamily: 'var(--pl-font-body)',
                   boxSizing: 'border-box',
                   color: 'var(--pl-ink-soft)',
-                  transition: 'border-color 0.2s',
+                  transition: 'border-color var(--pl-dur-fast)',
                 }}
                 onFocus={e => { e.target.style.borderBottomColor = accentColor; }}
                 onBlur={e => { e.target.style.borderBottomColor = error ? '#ef4444' : 'rgba(0,0,0,0.15)'; }}

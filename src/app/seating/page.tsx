@@ -74,7 +74,7 @@ function SeatingPageInner() {
             color: 'var(--pl-muted)',
             textDecoration: 'none',
             fontFamily: 'var(--pl-font-body)',
-            transition: 'color 0.15s',
+            transition: 'color var(--pl-dur-instant)',
           }}
         >
           <ArrowLeft size={14} />
@@ -177,9 +177,9 @@ function SeatingPageInner() {
           zIndex: 100, maxWidth: 'calc(100vw - 3rem)',
           animation: 'fadeInUp 0.3s ease',
         }}>
-          <Sparkles size={16} color="var(--pl-olive, #A3B18A)" />
+          <Sparkles size={16} color="var(--pl-olive, #5C6B3F)" />
           <div>
-            <span style={{ fontWeight: 700, color: '#A3B18A' }}>AI Arrange</span>
+            <span style={{ fontWeight: 700, color: '#5C6B3F' }}>AI Arrange</span>
             {' '}is coming soon — it will seat guests automatically based on your relationships and constraints.
           </div>
         </div>

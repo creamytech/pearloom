@@ -13,7 +13,7 @@ export interface CollabUser {
   lastSeen: number;  // Unix timestamp (ms)
 }
 
-const COLLAB_COLORS = ['#A3B18A', '#D6C6A8', '#C4A882', '#8BA888', '#B5A99A'];
+const COLLAB_COLORS = ['#5C6B3F', '#D6C6A8', '#C4A882', '#8BA888', '#B5A99A'];
 
 /**
  * Assign a consistent color to a user based on their userId.

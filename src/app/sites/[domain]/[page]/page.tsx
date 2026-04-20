@@ -62,7 +62,7 @@ export async function generateMetadata(
   const manifest = siteConfig.manifest;
 
   // OG image: same AI-generated route as the main page
-  const accent = manifest?.theme?.colors?.accent || '#A3B18A';
+  const accent = manifest?.theme?.colors?.accent || '#5C6B3F';
   const bg = manifest?.theme?.colors?.background || '#2B2B2B';
   const coverPhoto = manifest?.chapters?.[0]?.images?.[0]?.url || '';
   const weddingDate = manifest?.logistics?.date || '';

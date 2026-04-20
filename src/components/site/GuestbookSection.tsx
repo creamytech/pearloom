@@ -50,7 +50,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
   const [selectedEmoji, setSelectedEmoji] = useState('💕');
   const [showForm, setShowForm] = useState(false);
 
-  const accent = vibeSkin?.palette?.accent || 'var(--pl-olive, #A3B18A)';
+  const accent = vibeSkin?.palette?.accent || 'var(--pl-olive, #5C6B3F)';
   const headingFont = vibeSkin?.fonts?.heading || 'Playfair Display';
 
   const fetchMessages = useCallback(async () => {
@@ -210,7 +210,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '0.75rem',
-                transition: 'box-shadow 0.2s',
+                transition: 'box-shadow var(--pl-dur-fast)',
               }}
             >
               {/* Emoji + Name row */}
@@ -436,7 +436,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
                         ? 'rgba(109,89,122,0.08)'
                         : 'transparent',
                       cursor: 'pointer',
-                      transition: 'all 0.12s',
+                      transition: 'all var(--pl-dur-instant)',
                       lineHeight: 1,
                     }}
                     title={emoji}
@@ -495,7 +495,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
                   fontWeight: 700,
                   cursor: submitting ? 'not-allowed' : 'pointer',
                   opacity: submitting || !name.trim() || !message.trim() ? 0.6 : 1,
-                  transition: 'opacity 0.15s',
+                  transition: 'opacity var(--pl-dur-instant)',
                   fontFamily: 'inherit',
                   letterSpacing: '0.04em',
                 }}

@@ -45,7 +45,7 @@ const COLOR_SWATCHES = [
   { value: '#18181B', label: 'Ink'     },
   { value: '#ffffff', label: 'White'   },
   { value: '#F5F1E8', label: 'Cream'   },
-  { value: '#A3B18A', label: 'Olive'   },
+  { value: '#5C6B3F', label: 'Olive'   },
   { value: '#C4A96A', label: 'Gold'    },
   { value: '#8B7355', label: 'Warm'    },
   { value: '#6B7280', label: 'Gray'    },

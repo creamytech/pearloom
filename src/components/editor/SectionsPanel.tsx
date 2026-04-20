@@ -271,7 +271,7 @@ export function SectionsPanel({ manifest, onChange }: {
                   fontSize: panelText.chip,
                   fontWeight: panelWeight.semibold,
                   cursor: 'grab',
-                  transition: 'all 0.15s',
+                  transition: 'all var(--pl-dur-instant)',
                 }}
               >
                 <AddIcon size={13} style={{ color: 'var(--pl-chrome-text)' }} />

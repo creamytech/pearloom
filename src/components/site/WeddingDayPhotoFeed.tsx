@@ -212,7 +212,7 @@ export function WeddingDayPhotoFeed({ siteId, vibeSkin }: WeddingDayPhotoFeedPro
               textAlign: 'center',
               cursor: 'pointer',
               background: filePreview ? 'transparent' : `${accent}08`,
-              transition: 'border-color 0.2s',
+              transition: 'border-color var(--pl-dur-fast)',
               position: 'relative',
               overflow: 'hidden',
               minHeight: 120,
@@ -291,7 +291,7 @@ export function WeddingDayPhotoFeed({ siteId, vibeSkin }: WeddingDayPhotoFeedPro
               fontWeight: 600,
               fontSize: '1rem',
               cursor: uploading ? 'not-allowed' : 'pointer',
-              transition: 'background 0.2s',
+              transition: 'background var(--pl-dur-fast)',
               opacity: uploading ? 0.7 : 1,
             }}
           >

@@ -1398,7 +1398,7 @@ select:focus-visible {
 }
 
 .pl-empty-gradient {
-  background: linear-gradient(135deg, #A3B18A22, #C4A96A22, #FAF7F222, #A3B18A22) !important;
+  background: linear-gradient(135deg, #5C6B3F22, #C4A96A22, #FAF7F222, #5C6B3F22) !important;
   background-size: 300% 300% !important;
   animation: pl-empty-gradient 12s ease-in-out infinite;
 }
@@ -1468,7 +1468,7 @@ select:focus-visible {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--pl-mood-color, #A3B18A);
+  background: var(--pl-mood-color, #5C6B3F);
   opacity: 0;
   pointer-events: none;
   transition: none;

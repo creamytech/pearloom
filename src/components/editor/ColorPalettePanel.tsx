@@ -300,7 +300,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
               background: activeTab === t.id ? '#FFFFFF' : 'transparent',
               color: activeTab === t.id ? '#18181B' : '#71717A',
               cursor: 'pointer', fontSize: '0.65rem', fontWeight: 600,
-              transition: 'all 0.15s', whiteSpace: 'nowrap',
+              transition: 'all var(--pl-dur-instant)', whiteSpace: 'nowrap',
               boxShadow: activeTab === t.id ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
             }}
           >
@@ -432,7 +432,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                       background: artStyle === s.id ? '#18181B' : '#FFFFFF',
                       color: artStyle === s.id ? '#FFFFFF' : '#3F3F46',
                       cursor: 'pointer', fontSize: '0.6rem', fontWeight: 600,
-                      textAlign: 'center', transition: 'all 0.15s', lineHeight: 1.3,
+                      textAlign: 'center', transition: 'all var(--pl-dur-instant)', lineHeight: 1.3,
                     }}
                   >
                     {s.label}
@@ -482,7 +482,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
               color: generating ? '#3F3F46' : '#fff',
               fontSize: '0.8rem', fontWeight: 800, cursor: generating ? 'not-allowed' : 'pointer',
               letterSpacing: '0.05em', boxShadow: generating ? 'none' : '0 4px 20px rgba(155,127,217,0.3)',
-              transition: 'all 0.2s',
+              transition: 'all var(--pl-dur-fast)',
             }}
           >
             {generating ? (
@@ -593,7 +593,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                       backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(svg)}")`,
                       backgroundSize: 'cover',
                       border: '1px solid rgba(0,0,0,0.06)',
-                      cursor: 'pointer', transition: 'border-color 0.15s',
+                      cursor: 'pointer', transition: 'border-color var(--pl-dur-instant)',
                     }}
                     onMouseOver={e => { e.currentTarget.style.borderColor = '#18181B'; }}
                     onMouseOut={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.06)'; }}

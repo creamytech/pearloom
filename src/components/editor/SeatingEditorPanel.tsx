@@ -208,7 +208,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
           fontWeight: panelWeight.bold,
           fontFamily: 'inherit',
           lineHeight: panelLineHeight.tight,
-          transition: 'all 0.15s',
+          transition: 'all var(--pl-dur-instant)',
         }}
       >
         <Sparkles size={13} style={{ animation: optimizing ? 'pl-spin 1s linear infinite' : 'none' }} />
@@ -339,7 +339,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
           fontWeight: panelWeight.bold,
           fontFamily: 'inherit',
           lineHeight: panelLineHeight.tight,
-          transition: 'all 0.15s',
+          transition: 'all var(--pl-dur-instant)',
         }}
       >
         <LayoutGrid size={13} /> Open Full Editor <ExternalLink size={11} />
@@ -433,7 +433,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
                 fontFamily: 'inherit',
                 lineHeight: panelLineHeight.tight,
                 textAlign: 'left',
-                transition: 'all 0.15s',
+                transition: 'all var(--pl-dur-instant)',
               }}
             >
               {preset.shape === 'round' ? <Circle size={12} color="#71717A" /> : <Square size={12} color="#71717A" />}

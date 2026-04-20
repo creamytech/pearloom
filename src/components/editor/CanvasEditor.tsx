@@ -167,7 +167,7 @@ const inp: React.CSSProperties = {
   width: '100%', padding: '0.6rem 0.75rem', borderRadius: '0.5rem',
   border: '1px solid var(--pl-chrome-border)', background: 'var(--pl-chrome-bg)',
   color: 'var(--pl-chrome-text)', fontSize: 'max(16px, 0.82rem)', outline: 'none', fontFamily: 'inherit',
-  boxSizing: 'border-box', transition: 'border-color 0.15s',
+  boxSizing: 'border-box', transition: 'border-color var(--pl-dur-instant)',
 };
 
 function MiniInput({ label, value, onChange, placeholder, type = 'text', hint }: {
@@ -196,13 +196,13 @@ function Toggle({ label, value, onChange }: { label: string; value: boolean; onC
         style={{
           width: '36px', height: '20px', borderRadius: '8px',
           background: value ? 'var(--pl-chrome-text)' : 'rgba(255,255,255,0.3)',
-          border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
+          border: 'none', cursor: 'pointer', position: 'relative', transition: 'background var(--pl-dur-fast)',
         }}
       >
         <span style={{
           position: 'absolute', top: '2px', left: value ? '18px' : '2px',
           width: '16px', height: '16px', borderRadius: '50%', background: '#fff',
-          transition: 'left 0.2s', display: 'block',
+          transition: 'left var(--pl-dur-fast)', display: 'block',
         }} />
       </button>
     </div>
@@ -254,7 +254,7 @@ function EventBlockConfig({ events, onChange }: {
                 padding: '4px 10px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700,
                 background: activeId === e.id ? def.color : 'rgba(255,255,255,0.25)',
                 color: activeId === e.id ? '#fff' : 'var(--pl-chrome-text-soft)',
-                transition: 'all 0.15s',
+                transition: 'all var(--pl-dur-instant)',
               }}
             >
               {e.name}
@@ -272,7 +272,7 @@ function EventBlockConfig({ events, onChange }: {
             style={{
               padding: '3px 8px', borderRadius: '6px', border: `1px dashed ${def.color}50`,
               background: 'transparent', color: def.color, cursor: 'pointer', fontSize: '0.6rem', fontWeight: 700,
-              transition: 'all 0.15s',
+              transition: 'all var(--pl-dur-instant)',
             }}
             title={`Add ${def.label}`}
           >
@@ -576,7 +576,7 @@ function BlockRow({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            transition: 'color 0.15s',
+            transition: 'color var(--pl-dur-instant)',
           }}
         >
           <ChevronDown size={13} />
@@ -630,7 +630,7 @@ function BlockRow({
                     background: 'var(--pl-chrome-surface)',
                     color: (a as { danger?: boolean }).danger ? 'var(--pl-chrome-danger)' : 'var(--pl-chrome-text-muted)',
                     cursor: 'pointer',
-                    transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+                    transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                   }}
                   onMouseOver={e => {
                     (e.currentTarget as HTMLElement).style.borderColor = (a as { danger?: boolean }).danger
@@ -798,7 +798,7 @@ function SectionStylePanel({
                   background: isActive ? 'rgba(24,24,27,0.12)' : 'rgba(255,255,255,0.2)',
                   color: isActive ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-soft)',
                   fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer',
-                  transition: 'all 0.15s',
+                  transition: 'all var(--pl-dur-instant)',
                 }}
               >
                 {p.label}
@@ -877,7 +877,7 @@ function SectionStylePanel({
                   background: isActive ? 'var(--pl-chrome-text)' : 'rgba(255,255,255,0.2)',
                   color: isActive ? 'white' : 'var(--pl-chrome-text-muted)',
                   fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer',
-                  transition: 'all 0.12s',
+                  transition: 'all var(--pl-dur-instant)',
                 }}
               >
                 {preset.label}
@@ -1101,7 +1101,7 @@ function BlockConfigPanel({
                 background: 'rgba(24,24,27,0.04)',
                 color: 'var(--pl-chrome-text)',
                 fontSize: '0.65rem', fontWeight: 700,
-                cursor: 'pointer', transition: 'all 0.15s',
+                cursor: 'pointer', transition: 'all var(--pl-dur-instant)',
                 letterSpacing: '0.04em',
               }}
             >
@@ -1173,7 +1173,7 @@ function BlockConfigPanel({
                     flex: 1, padding: '8px', borderRadius: '8px',
                     border: '1.5px solid var(--pl-chrome-border)', background: 'rgba(24,24,27,0.04)',
                     color: 'var(--pl-chrome-text)', fontSize: '0.65rem', fontWeight: 600,
-                    cursor: 'pointer', transition: 'all 0.15s',
+                    cursor: 'pointer', transition: 'all var(--pl-dur-instant)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
                   }}
                 >
@@ -1186,7 +1186,7 @@ function BlockConfigPanel({
                     flex: 1, padding: '8px', borderRadius: '8px',
                     border: '1.5px dashed var(--pl-chrome-border)', background: 'rgba(24,24,27,0.04)',
                     color: 'var(--pl-chrome-text)', fontSize: '0.65rem', fontWeight: 600,
-                    cursor: 'pointer', transition: 'all 0.15s',
+                    cursor: 'pointer', transition: 'all var(--pl-dur-instant)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
                   }}
                 >
@@ -1452,7 +1452,7 @@ function BlockEffectsEditor({
             padding: '2px 6px', borderRadius: '8px', border: '1px solid rgba(24,24,27,0.12)',
           }}>ON</span>
         )}
-        <span style={{ display: 'flex', alignItems: 'center', color: 'var(--pl-chrome-text-muted)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+        <span style={{ display: 'flex', alignItems: 'center', color: 'var(--pl-chrome-text-muted)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform var(--pl-dur-fast)' }}>
           <IconChevronDown size={14} />
         </span>
       </button>
@@ -1477,7 +1477,7 @@ function BlockEffectsEditor({
                     color: reveal === opt.value ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-soft)',
                     cursor: 'pointer', fontSize: '0.65rem', fontWeight: reveal === opt.value ? 700 : 400,
                     display: 'flex', alignItems: 'center', gap: '4px',
-                    transition: 'all 0.12s',
+                    transition: 'all var(--pl-dur-instant)',
                   }}
                 >
                   <span style={{ display: 'flex', alignItems: 'center' }}>{opt.icon}</span>
@@ -1510,7 +1510,7 @@ function BlockEffectsEditor({
                     color: divStyle === opt.value ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-soft)',
                     cursor: 'pointer', fontSize: '0.65rem', fontWeight: divStyle === opt.value ? 700 : 400,
                     display: 'flex', alignItems: 'center', gap: '4px',
-                    transition: 'all 0.12s',
+                    transition: 'all var(--pl-dur-instant)',
                   }}
                 >
                   <span style={{ fontFamily: 'monospace', fontSize: '0.7rem', opacity: 0.7 }}>{opt.preview}</span>
@@ -1560,7 +1560,7 @@ function AddBlockPicker({ onAdd, onDragType, existingTypes, occasion = 'wedding'
           background: open ? '#F4F4F5' : '#F4F4F5',
           color: 'rgba(24,24,27,0.95)', cursor: 'pointer',
           fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.06em',
-          transition: 'all 0.15s',
+          transition: 'all var(--pl-dur-instant)',
           boxShadow: open ? 'inset 0 1px 0 rgba(24,24,27,0.04)' : 'none',
         }}
       >
@@ -1612,7 +1612,7 @@ function AddBlockPicker({ onAdd, onDragType, existingTypes, occasion = 'wedding'
                     border: `1px solid ${existingTypes.has(b.type) ? `${b.color}28` : 'transparent'}`,
                     background: existingTypes.has(b.type) ? `${b.color}08` : 'transparent',
                     borderLeft: `2px solid ${existingTypes.has(b.type) ? b.color : 'transparent'}`,
-                    cursor: 'grab', textAlign: 'left', transition: 'all 0.12s',
+                    cursor: 'grab', textAlign: 'left', transition: 'all var(--pl-dur-instant)',
                   }}
                   onMouseOver={e => {
                     const el = e.currentTarget as HTMLElement;
@@ -1949,7 +1949,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                 flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
                 padding: '6px', borderRadius: '6px', border: '1px dashed var(--pl-chrome-border)',
                 background: 'var(--pl-chrome-bg)', color: 'var(--pl-chrome-text)', cursor: 'pointer',
-                fontSize: '0.7rem', fontWeight: 700, transition: 'all 0.15s',
+                fontSize: '0.7rem', fontWeight: 700, transition: 'all var(--pl-dur-instant)',
               }}
             >
               <Plus size={11} /> Add Page
@@ -1961,7 +1961,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
                   padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(24,24,27,0.1)',
                   background: 'rgba(24,24,27,0.04)', color: 'var(--pl-chrome-text-muted)', cursor: 'pointer',
-                  fontSize: '0.65rem', fontWeight: 700, transition: 'all 0.15s',
+                  fontSize: '0.65rem', fontWeight: 700, transition: 'all var(--pl-dur-instant)',
                 }}
               >
                 <Trash2 size={10} /> Delete Page

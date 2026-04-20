@@ -30,7 +30,7 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const accent = vibeSkin?.palette?.accent || 'var(--pl-olive, #A3B18A)';
+  const accent = vibeSkin?.palette?.accent || 'var(--pl-olive, #5C6B3F)';
   const headingFont = vibeSkin?.fonts?.heading || 'Playfair Display';
 
   const fetchPhotos = useCallback(async () => {
@@ -187,7 +187,7 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
               borderRadius: '1rem',
               background: `${accent}08`,
               cursor: 'pointer',
-              transition: 'all 0.2s',
+              transition: 'all var(--pl-dur-fast)',
               color: 'var(--pl-ink, #2B2B2B)',
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = `${accent}14`; }}
@@ -327,7 +327,7 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
                     cursor: 'pointer',
                     marginBottom: '1.25rem',
                     background: previewUrl ? 'transparent' : `${accent}08`,
-                    transition: 'all 0.2s',
+                    transition: 'all var(--pl-dur-fast)',
                     overflow: 'hidden',
                   }}
                 >
@@ -428,7 +428,7 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
                       background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
                       color: '#fff', fontSize: '0.9rem', fontWeight: 600,
                       opacity: uploading || !selectedFile || !uploaderName.trim() ? 0.5 : 1,
-                      transition: 'opacity 0.2s',
+                      transition: 'opacity var(--pl-dur-fast)',
                     }}
                   >
                     {uploading ? 'Uploading...' : 'Upload Photo'}

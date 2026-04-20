@@ -103,7 +103,7 @@ export function RelationshipGraphInput({ siteId, coupleNames, onAdded }: Relatio
       <div
         style={{
           background: '#F9F6EF',
-          border: '1px solid #A3B18A',
+          border: '1px solid #5C6B3F',
           borderRadius: '0.75rem',
           padding: '2rem',
           textAlign: 'center',
@@ -172,8 +172,8 @@ export function RelationshipGraphInput({ siteId, coupleNames, onAdded }: Relatio
                 style={{
                   padding: '0.45rem 1rem',
                   borderRadius: '2rem',
-                  border: `1.5px solid ${side === val ? '#A3B18A' : '#D6C6A8'}`,
-                  background: side === val ? '#A3B18A' : 'transparent',
+                  border: `1.5px solid ${side === val ? '#5C6B3F' : '#D6C6A8'}`,
+                  background: side === val ? '#5C6B3F' : 'transparent',
                   color: side === val ? '#fff' : '#5A5248',
                   fontFamily: 'inherit',
                   fontSize: '0.85rem',
@@ -261,7 +261,7 @@ export function RelationshipGraphInput({ siteId, coupleNames, onAdded }: Relatio
         style={{
           width: '100%',
           padding: '0.7rem',
-          background: submitting ? '#B5CCA3' : '#A3B18A',
+          background: submitting ? '#B5CCA3' : '#5C6B3F',
           color: '#fff',
           border: 'none',
           borderRadius: '0.4rem',

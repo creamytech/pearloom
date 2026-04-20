@@ -508,7 +508,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                               WebkitBackdropFilter: 'blur(20px)',
                               color: 'var(--pl-olive)',
                               fontSize: text.sm, fontWeight: 600, cursor: 'pointer',
-                              transition: 'all 0.2s ease', flexShrink: 0,
+                              transition: 'all var(--pl-dur-fast) var(--pl-ease-out)', flexShrink: 0,
                               opacity: aiSuggesting === idx ? 0.7 : 1,
                               boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
                             } as React.CSSProperties}
@@ -531,7 +531,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                             WebkitBackdropFilter: 'blur(20px)',
                             color: hasLocation ? 'var(--pl-olive)' : 'var(--pl-muted)',
                             fontSize: text.sm, fontWeight: 600, cursor: 'pointer',
-                            transition: 'all 0.2s ease', flexShrink: 0,
+                            transition: 'all var(--pl-dur-fast) var(--pl-ease-out)', flexShrink: 0,
                             boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
                           } as React.CSSProperties}
                         >
@@ -558,7 +558,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                           border: '1px solid rgba(163,177,138,0.25)',
                           background: 'rgba(163,177,138,0.08)',
                           color: 'var(--pl-olive-deep)', fontSize: text.xs, fontWeight: 600,
-                          cursor: 'pointer', transition: 'all 0.2s',
+                          cursor: 'pointer', transition: 'all var(--pl-dur-fast)',
                           minHeight: '28px',
                         }}
                       >
@@ -575,7 +575,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                           border: '1px solid rgba(163,177,138,0.25)',
                           background: 'rgba(163,177,138,0.08)',
                           color: 'var(--pl-olive-deep)', fontSize: text.xs, fontWeight: 600,
-                          cursor: 'pointer', transition: 'all 0.2s',
+                          cursor: 'pointer', transition: 'all var(--pl-dur-fast)',
                           minHeight: '28px',
                         }}
                       >
@@ -610,7 +610,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                           background: 'rgba(255,255,255,0.35)',
                           backdropFilter: 'blur(8px)',
                           lineHeight: 1.5,
-                          transition: 'border-color 0.2s',
+                          transition: 'border-color var(--pl-dur-fast)',
                         } as React.CSSProperties}
                         onFocus={e => { e.target.style.borderColor = 'var(--pl-olive)'; }}
                         onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.4)'; }}

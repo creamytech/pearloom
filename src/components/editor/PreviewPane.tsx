@@ -414,7 +414,7 @@ export function PreviewPane({
                 padding: '4px 8px', borderRadius: '4px', border: 'none', cursor: 'pointer',
                 background: previewDevice === d ? 'rgba(255,255,255,0.14)' : 'transparent',
                 color: previewDevice === d ? '#fff' : '#71717A',
-                display: 'flex', alignItems: 'center', transition: 'all 0.15s',
+                display: 'flex', alignItems: 'center', transition: 'all var(--pl-dur-instant)',
               }}
             >
               {d === 'desktop' ? <Monitor size={12} /> : <Smartphone size={12} />}
@@ -473,7 +473,7 @@ export function PreviewPane({
                 />
               );
               return (
-                <div key={ch.id} style={{ opacity: draggingId === ch.id ? 0.35 : 1, transition: 'opacity 0.15s' }}>
+                <div key={ch.id} style={{ opacity: draggingId === ch.id ? 0.35 : 1, transition: 'opacity var(--pl-dur-instant)' }}>
                   {isSelected ? (
                     <div style={{
                       outline: '2px solid #71717A',

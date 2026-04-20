@@ -1117,7 +1117,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
               })
               .map((site, i) => {
               const vibeSkin      = site.manifest?.vibeSkin;
-              const accentColor   = vibeSkin?.palette?.accent || site.manifest?.theme?.colors?.accent || '#A3B18A';
+              const accentColor   = vibeSkin?.palette?.accent || site.manifest?.theme?.colors?.accent || '#5C6B3F';
               const accentDark    = vibeSkin?.palette?.highlight || site.manifest?.theme?.colors?.muted || '#8FA876';
               const coverPhotoUrl = site.manifest?.chapters?.[0]?.images?.[0]?.url;
               const chapterPhotos = (site.manifest?.chapters ?? [])

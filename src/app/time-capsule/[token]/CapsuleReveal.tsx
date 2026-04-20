@@ -249,7 +249,7 @@ const envelopeStyles: Record<string, React.CSSProperties> = {
     fontWeight: 500,
     padding: '12px 32px',
     cursor: 'pointer',
-    transition: 'all 0.2s',
+    transition: 'all var(--pl-dur-fast)',
     marginTop: '8px',
   },
 };

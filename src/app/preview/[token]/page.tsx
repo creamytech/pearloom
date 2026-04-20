@@ -75,7 +75,7 @@ function FeedbackForm({ token, onClose }: { token: string; onClose: () => void }
         </button>
       </div>
       {status === 'sent' ? (
-        <p style={{ color: '#A3B18A', fontSize: '0.875rem', textAlign: 'center', padding: '0.5rem 0' }}>
+        <p style={{ color: '#5C6B3F', fontSize: '0.875rem', textAlign: 'center', padding: '0.5rem 0' }}>
           Thanks for your feedback!
         </p>
       ) : (
@@ -130,7 +130,7 @@ function FeedbackForm({ token, onClose }: { token: string; onClose: () => void }
               width: '100%',
               padding: '0.6rem',
               borderRadius: '0.5rem',
-              background: '#A3B18A',
+              background: '#5C6B3F',
               color: '#1e1b16',
               fontWeight: 600,
               fontSize: '0.875rem',
@@ -211,7 +211,7 @@ function PreviewBanner({ token }: { token: string }) {
               borderRadius: '0.4rem',
               border: '1px solid rgba(163,177,138,0.5)',
               background: 'rgba(163,177,138,0.15)',
-              color: '#A3B18A',
+              color: '#5C6B3F',
               fontSize: '0.8rem',
               cursor: 'pointer',
               fontWeight: 500,

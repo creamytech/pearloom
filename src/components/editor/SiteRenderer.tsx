@@ -377,7 +377,7 @@ const SectionOverlay = React.memo(function SectionOverlay({
     // Dim the original
     if (wrapRef.current) {
       wrapRef.current.style.opacity = '0.3';
-      wrapRef.current.style.transition = 'opacity 0.15s';
+      wrapRef.current.style.transition = 'opacity var(--pl-dur-instant)';
     }
 
     const onMove = (ev: PointerEvent) => {
@@ -2533,7 +2533,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               boxShadow: isDropTarget
                 ? '0 0 0 3px color-mix(in oklab, var(--pl-chrome-accent, #B8935A) 22%, transparent), 0 8px 24px rgba(40,28,12,0.14)'
                 : 'none',
-              transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+              transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
               animation: !isDropTarget ? 'pl-dropzone-pulse 1.8s ease-in-out infinite' : undefined,
               display: 'flex',
               alignItems: 'center',
@@ -2554,7 +2554,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                 background: isDropTarget ? 'var(--pl-chrome-accent, #B8935A)' : 'transparent',
                 padding: isDropTarget ? '4px 12px' : '0',
                 borderRadius: 999,
-                transition: 'all 0.15s',
+                transition: 'all var(--pl-dur-instant)',
               }}
             >
               {isDropTarget ? 'Drop here' : `Insert at position ${index + 1}`}
@@ -2589,7 +2589,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               cursor: 'pointer', fontSize: '1rem', fontWeight: 300,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: 'var(--pl-chrome-shadow)',
-              transition: 'all 0.15s',
+              transition: 'all var(--pl-dur-instant)',
             } as React.CSSProperties}
             onMouseEnter={e => {
               (e.currentTarget as HTMLElement).style.background = 'var(--pl-chrome-accent)';
@@ -2985,7 +2985,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
                         opacity: 0,
-                        transition: 'opacity 0.15s',
+                        transition: 'opacity var(--pl-dur-instant)',
                         pointerEvents: 'auto',
                       }}
                       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '1'; }}

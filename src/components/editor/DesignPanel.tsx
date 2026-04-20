@@ -206,7 +206,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
     background: isActive ? 'var(--pl-chrome-accent-soft)' : 'var(--pl-chrome-surface)',
     cursor: 'pointer', padding: 0,
     boxShadow: isActive ? '0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 16%, transparent)' : 'none',
-    transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+    transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
     textAlign: 'left',
     minHeight: variant === 'preview' ? '82px' : '62px',
   });
@@ -322,7 +322,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                     ? 'inset 0 0 0 1px var(--pl-chrome-accent)'
                     : 'none',
                   cursor: 'pointer',
-                  transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+                  transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                 }}
               >
                 <Icon size={18} color={isActive ? accent : 'var(--pl-chrome-text-soft)' as unknown as string} />
@@ -586,7 +586,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                   background: isActive ? 'var(--pl-chrome-accent-soft)' : 'var(--pl-chrome-surface)',
                   boxShadow: isActive ? '0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 14%, transparent)' : 'none',
                   cursor: 'pointer',
-                  transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                  transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                   textAlign: 'left',
                 }}
               >
@@ -745,7 +745,7 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
                 boxShadow: active ? '0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 14%, transparent)' : 'none',
                 cursor: 'pointer',
                 overflow: 'hidden',
-                transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                 padding: 0,
               }}
             >
@@ -947,7 +947,7 @@ function QuickStylesRow({
                   : isHov
                     ? '0 2px 8px rgba(0,0,0,0.06)'
                     : 'none',
-                transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                 transform: isHov ? 'translateY(-1px)' : 'none',
                 position: 'relative',
                 textAlign: 'left',
@@ -1263,7 +1263,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               fontWeight: panelWeight.semibold,
               fontFamily: 'inherit',
               cursor: 'pointer',
-              transition: 'all 0.15s',
+              transition: 'all var(--pl-dur-instant)',
               lineHeight: panelLineHeight.tight,
             }}
           >
@@ -1316,7 +1316,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             fontSize: panelText.body,
             fontWeight: panelWeight.bold,
             fontFamily: 'inherit',
-            transition: 'all 0.15s',
+            transition: 'all var(--pl-dur-instant)',
             boxShadow: feedbackLoading ? 'none' : '0 2px 8px #E4E4E7',
             width: '100%',
             lineHeight: panelLineHeight.tight,
@@ -1408,7 +1408,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             fontSize: panelText.body,
             fontWeight: panelWeight.bold,
             fontFamily: 'inherit',
-            transition: 'all 0.15s',
+            transition: 'all var(--pl-dur-instant)',
             boxShadow: isRegenerating ? 'none' : '0 2px 8px #E4E4E7',
             lineHeight: panelLineHeight.tight,
           }}
@@ -1484,7 +1484,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                     boxShadow: isActive ? '0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 14%, transparent)' : 'none',
                     cursor: toneLoading ? 'wait' : 'pointer',
                     opacity: toneLoading && !isActive ? 0.5 : 1,
-                    transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                    transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                     textAlign: 'left',
                     minHeight: '72px',
                   }}
@@ -1604,7 +1604,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                         : '1px solid var(--pl-chrome-border)',
                       background: 'var(--pl-chrome-surface)',
                       boxShadow: isActive ? '0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 14%, transparent)' : 'none',
-                      transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                      transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                     }}
                   >
                     <div style={{
@@ -1672,7 +1672,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                         : '1px solid var(--pl-chrome-border)',
                       background: 'var(--pl-chrome-surface)',
                       boxShadow: isActive ? '0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 14%, transparent)' : 'none',
-                      transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                      transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                       position: 'relative',
                     }}
                   >
@@ -1782,7 +1782,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                     : '1px solid var(--pl-chrome-border)',
                   background: 'var(--pl-chrome-surface)',
                   boxShadow: isActive ? '0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 14%, transparent)' : 'none',
-                  transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                  transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                   textAlign: 'left',
                   position: 'relative',
                 }}
@@ -1958,7 +1958,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                 letterSpacing: panelTracking.widest,
                 textTransform: 'uppercase',
                 lineHeight: 1,
-                transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
               }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'none'; }}
@@ -2031,7 +2031,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                   gridTemplateColumns: 'auto 1fr auto',
                   alignItems: 'baseline',
                   gap: '12px',
-                  transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                  transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                   position: 'relative',
                 }}
               >
@@ -2110,7 +2110,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                     : '1px solid var(--pl-chrome-border)',
                   background: 'var(--pl-chrome-surface)',
                   boxShadow: isActive ? '0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 14%, transparent)' : 'none',
-                  transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                  transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                   textAlign: 'left',
                   position: 'relative',
                 }}
@@ -2207,7 +2207,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             cursor: 'pointer',
             textAlign: 'left',
             position: 'relative',
-            transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+            transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
           }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 20px rgba(0,0,0,0.18)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'none'; (e.currentTarget as HTMLElement).style.transform = 'none'; }}
@@ -2325,7 +2325,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                   boxShadow: isActive ? '0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 14%, transparent)' : 'none',
                   cursor: 'pointer',
                   textAlign: 'left',
-                  transition: 'all 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                  transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                 }}
               >
                 {/* Ratio specimen visualization */}

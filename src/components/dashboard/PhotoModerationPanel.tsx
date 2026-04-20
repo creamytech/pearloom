@@ -95,7 +95,7 @@ export function PhotoModerationPanel({ siteId }: PhotoModerationPanelProps) {
     fontWeight: 600,
     background: activeTab === tab ? 'rgba(0,0,0,0.07)' : 'transparent',
     color: activeTab === tab ? 'var(--pl-ink)' : 'var(--pl-muted)',
-    transition: 'all 0.15s',
+    transition: 'all var(--pl-dur-instant)',
   });
 
   return (

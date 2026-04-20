@@ -507,7 +507,7 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
                   border: '1.5px solid rgba(163,177,138,0.22)', outline: 'none',
                   fontSize: '1rem', fontFamily: 'var(--pl-font-body)',
                   background: 'var(--pl-ink-soft)', boxSizing: 'border-box',
-                  transition: 'border-color 0.2s',
+                  transition: 'border-color var(--pl-dur-fast)',
                   color: 'var(--pl-ink)',
                 }}
                 onFocus={e => { e.target.style.borderColor = 'var(--pl-olive)'; }}
@@ -524,7 +524,7 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
                     flex: 1, padding: '1rem 1.25rem', borderRadius: '1rem',
                     border: '1.5px solid rgba(163,177,138,0.22)', outline: 'none',
                     fontSize: '1rem', fontFamily: 'var(--pl-font-body)',
-                    background: 'var(--pl-ink-soft)', transition: 'border-color 0.2s',
+                    background: 'var(--pl-ink-soft)', transition: 'border-color var(--pl-dur-fast)',
                     color: 'var(--pl-ink)',
                   }}
                   onFocus={e => { e.target.style.borderColor = 'var(--pl-olive)'; }}

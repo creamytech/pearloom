@@ -329,7 +329,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
               boxShadow: '0 2px 12px rgba(43,30,20,0.04), inset 0 1px 0 rgba(255,255,255,0.5)',
-              cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s',
+              cursor: 'pointer', textAlign: 'left', transition: 'all var(--pl-dur-fast)',
             } as React.CSSProperties}
           >
             <span style={{ width: 40, height: 40, borderRadius: '12px', background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -370,7 +370,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
               boxShadow: '0 2px 12px rgba(43,30,20,0.04), inset 0 1px 0 rgba(255,255,255,0.5)',
-              cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s',
+              cursor: 'pointer', textAlign: 'left', transition: 'all var(--pl-dur-fast)',
             } as React.CSSProperties}
           >
             <span style={{ width: 40, height: 40, borderRadius: '12px', background: 'rgba(163,177,138,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -406,7 +406,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
                   background: 'rgba(255,255,255,0.45)',
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
-                  cursor: 'pointer', textAlign: 'left' as const, transition: 'all 0.2s',
+                  cursor: 'pointer', textAlign: 'left' as const, transition: 'all var(--pl-dur-fast)',
                   width: '100%',
                 }}
               >

@@ -249,7 +249,7 @@ export function BlockLibraryDrawer({
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+                    transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.color = 'var(--pl-chrome-text)';
@@ -528,7 +528,7 @@ function CategoryTab({
         textTransform: 'uppercase',
         cursor: 'pointer',
         lineHeight: 1,
-        transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+        transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
       }}
       onMouseEnter={(e) => {
         if (active) return;

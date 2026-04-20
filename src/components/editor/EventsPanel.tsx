@@ -216,7 +216,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                   borderRadius: '12px',
                   background: '#FFFFFF',
                   border: isExpanded ? `1.5px solid ${typeColor}` : '1px solid #E4E4E7',
-                  overflow: 'hidden', transition: 'all 0.15s',
+                  overflow: 'hidden', transition: 'all var(--pl-dur-instant)',
                 }}
               >
                 {/* Header — click to expand */}
@@ -410,7 +410,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
               fontWeight: panelWeight.bold,
               fontFamily: 'inherit',
               lineHeight: panelLineHeight.tight,
-              transition: 'all 0.15s',
+              transition: 'all var(--pl-dur-instant)',
             }}
           >
             <Plus size={13} /> Add Event
@@ -431,7 +431,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                   fontWeight: panelWeight.bold,
                   fontFamily: 'inherit',
                   lineHeight: panelLineHeight.tight,
-                  textDecoration: 'none', transition: 'background 0.12s',
+                  textDecoration: 'none', transition: 'background var(--pl-dur-instant)',
                 }}
               >
                 <Calendar size={12} /> .ics
@@ -446,7 +446,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                   color: '#3F3F46',
                   fontSize: panelText.hint,
                   fontWeight: panelWeight.semibold,
-                  textDecoration: 'none', transition: 'background 0.12s',
+                  textDecoration: 'none', transition: 'background var(--pl-dur-instant)',
                 }}
               >
                 <Calendar size={12} /> Google

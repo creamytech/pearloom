@@ -334,7 +334,7 @@ function MilestoneRow({
                         padding: '5px 12px', borderRadius: '6px', border: 'none',
                         background: applied ? 'var(--pl-olive)' : 'linear-gradient(135deg, var(--pl-olive), color-mix(in oklab, var(--pl-olive) 75%, var(--pl-ink)))',
                         color: 'var(--pl-cream)', fontSize: '0.7rem', fontWeight: 700,
-                        cursor: applied ? 'default' : 'pointer', transition: 'all 0.2s',
+                        cursor: applied ? 'default' : 'pointer', transition: 'all var(--pl-dur-fast)',
                       }}
                     >
                       {applied ? '✓ Applied!' : `Use this ${milestone.ctaLabel || 'suggestion'}`}

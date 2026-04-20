@@ -85,7 +85,7 @@ const fieldStyle: React.CSSProperties = {
   background: 'rgba(24,24,27,0.04)',
   color: '#18181B',
   fontSize: 'max(16px, 1rem)', fontFamily: 'var(--pl-font-body)',
-  outline: 'none', transition: 'border-color 0.15s',
+  outline: 'none', transition: 'border-color var(--pl-dur-instant)',
 };
 
 const fieldFocusStyle: React.CSSProperties = {

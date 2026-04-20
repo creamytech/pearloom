@@ -60,7 +60,7 @@ const pillMono: React.CSSProperties = {
   fontWeight: panelWeight.bold,
   letterSpacing: panelTracking.widest,
   textTransform: 'uppercase',
-  transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+  transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
   lineHeight: 1,
 };
 

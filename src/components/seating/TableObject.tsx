@@ -26,7 +26,7 @@ const RECT_W = 160;
 const RECT_H = 80;
 
 function colorFromName(name: string): string {
-  const COLORS = ['#A3B18A','#8FA876','#D6C6A8','#6D597A','#C8A47A','#7A9BB3','#B38A8A','#8AB38A'];
+  const COLORS = ['#5C6B3F','#8FA876','#D6C6A8','#6D597A','#C8A47A','#7A9BB3','#B38A8A','#8AB38A'];
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
   return COLORS[Math.abs(hash) % COLORS.length];
@@ -82,7 +82,7 @@ function SeatCircle({
       <circle
         r={r}
         fill={guest ? colorFromName(guest.name) : isDragOver ? 'rgba(163,177,138,0.35)' : 'rgba(245,241,232,0.9)'}
-        stroke={isDragOver ? '#A3B18A' : guest ? 'var(--pl-ink-soft)' : '#D6C6A8'}
+        stroke={isDragOver ? '#5C6B3F' : guest ? 'var(--pl-ink-soft)' : '#D6C6A8'}
         strokeWidth={isDragOver ? 2 : 1}
         style={{ transition: 'fill 0.15s, stroke 0.15s' }}
       />
@@ -204,7 +204,7 @@ export function TableObject({
           cy={cy}
           r={R}
           fill={isDropTarget ? 'rgba(163,177,138,0.15)' : '#F5F1E8'}
-          stroke={isSelected ? '#A3B18A' : '#D6C6A8'}
+          stroke={isSelected ? '#5C6B3F' : '#D6C6A8'}
           strokeWidth={isSelected ? 2.5 : 1.5}
           style={{ transition: 'fill 0.15s' }}
         />
@@ -274,7 +274,7 @@ export function TableObject({
           height={H}
           rx={8}
           fill={isDropTarget ? 'rgba(163,177,138,0.15)' : '#F5F1E8'}
-          stroke={isSelected ? '#A3B18A' : '#D6C6A8'}
+          stroke={isSelected ? '#5C6B3F' : '#D6C6A8'}
           strokeWidth={isSelected ? 2.5 : 1.5}
           style={{ transition: 'fill 0.15s' }}
         />
@@ -343,7 +343,7 @@ export function TableObject({
       <rect
         x={ox} y={oy} width={S} height={S} rx={6}
         fill="#F5F1E8"
-        stroke={isSelected ? '#A3B18A' : '#D6C6A8'}
+        stroke={isSelected ? '#5C6B3F' : '#D6C6A8'}
         strokeWidth={isSelected ? 2.5 : 1.5}
       />
     );

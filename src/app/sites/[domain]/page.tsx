@@ -938,7 +938,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           ...(manifest.anniversaryMode ? [
             <div key="anniversary-banner" style={{
               textAlign: 'center', fontSize: '0.85rem',
-              color: 'var(--pl-olive, #A3B18A)',
+              color: 'var(--pl-olive, #5C6B3F)',
               letterSpacing: '0.12em', textTransform: 'uppercase',
               marginTop: '0.5rem', opacity: 0.8,
             }}>
@@ -992,7 +992,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             {manifest.hashtags.map((tag: string) => (
               <span key={tag} style={{
                 fontSize: '0.9rem', fontWeight: 600,
-                color: 'var(--pl-olive, #A3B18A)',
+                color: 'var(--pl-olive, #5C6B3F)',
                 background: 'rgba(163,177,138,0.08)',
                 padding: '0.3rem 0.75rem', borderRadius: '999px',
                 border: '1px solid rgba(163,177,138,0.2)',
@@ -1163,7 +1163,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               {manifest.anniversaryMode && (
                 <div style={{
                   textAlign: 'center', fontSize: '0.85rem',
-                  color: 'var(--pl-olive, #A3B18A)',
+                  color: 'var(--pl-olive, #5C6B3F)',
                   letterSpacing: '0.12em', textTransform: 'uppercase',
                   marginTop: '0.5rem', opacity: 0.8,
                 }}>
@@ -1239,7 +1239,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                     {manifest.hashtags.map((tag: string) => (
                       <span key={tag} style={{
                         fontSize: '0.9rem', fontWeight: 600,
-                        color: 'var(--pl-olive, #A3B18A)',
+                        color: 'var(--pl-olive, #5C6B3F)',
                         background: 'rgba(163,177,138,0.08)',
                         padding: '0.3rem 0.75rem', borderRadius: '999px',
                         border: '1px solid rgba(163,177,138,0.2)',

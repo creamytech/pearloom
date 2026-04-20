@@ -122,7 +122,7 @@ Just write the body paragraph(s).`;
           <strong>${name1} & ${name2}</strong>
         </p>
         ${logistics?.date ? `<p style="font-size: 0.85rem; color: #9A9488; margin-top: 2rem; border-top: 1px solid #E6DFD2; padding-top: 1rem;">${logistics.date}${logistics.venue ? ` at ${logistics.venue}` : ''}</p>` : ''}
-        <p style="font-size: 0.72rem; color: #B5AFA5; margin-top: 1rem;">Sent via <a href="https://pearloom.com" style="color: #A3B18A;">Pearloom</a></p>
+        <p style="font-size: 0.72rem; color: #B5AFA5; margin-top: 1rem;">Sent via <a href="https://pearloom.com" style="color: #5C6B3F;">Pearloom</a></p>
       </div>
     `;
 

@@ -43,7 +43,7 @@ const COLOR_SWATCHES = [
   { value: '#ffffff', label: 'White'   },
   { value: '#18181B', label: 'Ink'     },
   { value: '#F5F1E8', label: 'Cream'   },
-  { value: '#A3B18A', label: 'Olive'   },
+  { value: '#5C6B3F', label: 'Olive'   },
   { value: '#C4A96A', label: 'Gold'    },
 ];
 
@@ -91,7 +91,7 @@ const PILL_BTN: React.CSSProperties = {
   fontWeight: 600,
   lineHeight: 1,
   fontFamily: 'inherit',
-  transition: 'all 0.12s',
+  transition: 'all var(--pl-dur-instant)',
 };
 
 export function CanvasHeroEditBar({
@@ -264,7 +264,7 @@ export function CanvasHeroEditBar({
         >
           <Type size={11} />
           Fonts
-          <ChevronDown size={10} style={{ transform: fontsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+          <ChevronDown size={10} style={{ transform: fontsOpen ? 'rotate(180deg)' : 'none', transition: 'transform var(--pl-dur-instant)' }} />
         </button>
 
         <AnimatePresence>

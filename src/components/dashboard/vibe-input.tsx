@@ -62,7 +62,7 @@ function VenueAestheticChip({ loading, style, mood }: { loading: boolean; style:
         border: '1px solid rgba(163,177,138,0.22)',
         fontSize: '0.72rem', color: 'var(--pl-olive)',
         fontWeight: 600, lineHeight: 1.3,
-        transition: 'all 0.3s',
+        transition: 'all var(--pl-dur-base)',
         maxWidth: '100%',
         overflow: 'hidden',
       }}
@@ -112,7 +112,7 @@ function AccordionSection({ title, icon, children, defaultOpen = true }: {
     } as React.CSSProperties}>
       {/* Pear watermark — ghost silhouette at bottom-right */}
       <div style={{ position: 'absolute', bottom: -24, right: -16, pointerEvents: 'none', zIndex: 0 }} aria-hidden="true">
-        <PearBackground color="var(--pl-olive, #A3B18A)" opacity={0.055} size={110} />
+        <PearBackground color="var(--pl-olive, #5C6B3F)" opacity={0.055} size={110} />
       </div>
       <button
         type="button"
@@ -340,7 +340,7 @@ const OCCASIONS = [
 ];
 
 const COLOR_PALETTES = [
-  { id: 'from-photos', name: 'From Your Photos', colors: ['#FAF7F2', '#A3B18A', '#C4A96A', '#3D3530', '#6D597A'] },
+  { id: 'from-photos', name: 'From Your Photos', colors: ['#FAF7F2', '#5C6B3F', '#C4A96A', '#3D3530', '#6D597A'] },
   { id: 'warm-earth',    name: 'Warm Earth',       colors: ['#8B4513', '#D2691E', '#DEB887', '#FAEBD7', '#2F1B14'] },
   { id: 'ocean-breeze',  name: 'Ocean Breeze',      colors: ['#1B4965', '#5FA8D3', '#BEE9E8', '#CAE9FF', '#0B2545'] },
   { id: 'golden-hour',   name: 'Golden Hour',       colors: ['#B8860B', '#DAA520', '#FFD700', '#FFF8DC', '#1A1A1A'] },
@@ -839,7 +839,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
       fontSize: '0.88rem',
       fontWeight: 500,
       cursor: 'pointer',
-      transition: 'all 0.2s ease',
+      transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
       whiteSpace: 'nowrap' as const,
     });
 
@@ -1410,14 +1410,14 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
         {/* URL slug picker */}
         <div style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', marginTop: '2rem', position: 'relative', overflow: 'hidden' } as React.CSSProperties}>
           <div style={{ position: 'absolute', bottom: -24, right: -16, pointerEvents: 'none', zIndex: 0 }} aria-hidden="true">
-            <PearBackground color="var(--pl-olive, #A3B18A)" opacity={0.055} size={110} />
+            <PearBackground color="var(--pl-olive, #5C6B3F)" opacity={0.055} size={110} />
           </div>
           <div style={{ position: 'relative', zIndex: 1 }}>
           <p style={sectionHeading}><Globe size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.4rem' }} />Your Site URL<Tooltip text={`This becomes your site URL: pearloom.com/${occasion || 'wedding'}/yourname`} /></p>
           <p style={{ fontSize: '0.85rem', color: 'var(--pl-muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
             This is where your site will live. You can always change it later.
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid rgba(255,255,255,0.4)', borderRadius: '12px', overflow: 'hidden', transition: 'border-color 0.2s', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } as React.CSSProperties}
+          <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid rgba(255,255,255,0.4)', borderRadius: '12px', overflow: 'hidden', transition: 'border-color var(--pl-dur-fast)', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } as React.CSSProperties}
             onFocus={() => {}} onBlur={() => {}}>
             <div style={{ padding: '0.85rem 0.4rem 0.85rem 1rem', background: 'rgba(0,0,0,0.03)', color: 'var(--pl-muted)', fontWeight: 500, borderRight: '1px solid rgba(0,0,0,0.08)', whiteSpace: 'nowrap', fontSize: '0.9rem' }}>
               pearloom.com/{occasion || 'wedding'}/
@@ -1937,7 +1937,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                 const active = occasion === occ.id;
                 const accentColors: Record<string, string> = {
                   wedding: '#B4838D', engagement: '#C48890', anniversary: '#C4A96A',
-                  birthday: '#A3B18A', story: '#6D597A',
+                  birthday: '#5C6B3F', story: '#6D597A',
                 };
                 const accent = accentColors[occ.id] || 'var(--pl-olive)';
                 return (
@@ -1971,7 +1971,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       width: '48px', height: '48px', borderRadius: '14px',
                       background: active ? `${accent}20` : 'rgba(163,177,138,0.08)',
-                      transition: 'all 0.2s',
+                      transition: 'all var(--pl-dur-fast)',
                     }}>
                       <occ.icon size={24} color={active ? accent : 'var(--pl-muted)'} />
                     </span>
@@ -2176,7 +2176,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                         padding: '0.35rem 0.85rem', borderRadius: '100px',
                         background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)',
                         color: 'var(--pl-ink)', fontSize: '0.84rem', cursor: 'pointer',
-                        transition: 'all 0.15s',
+                        transition: 'all var(--pl-dur-instant)',
                       }}
                       onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(163,177,138,0.15)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--pl-olive)'; }}
                       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,0,0.04)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(0,0,0,0.08)'; }}
@@ -2319,7 +2319,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                     <div style={{
                       height: '52px',
                       background: isCustom
-                        ? 'linear-gradient(90deg, #A3B18A, #D6C6A8, #6D597A, #1a1713, #8FA876)'
+                        ? 'linear-gradient(90deg, #5C6B3F, #D6C6A8, #6D597A, #1a1713, #8FA876)'
                         : `linear-gradient(90deg, ${p.colors.join(', ')})`,
                       position: 'relative',
                     }}>
@@ -2458,7 +2458,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                       {fmt.preview === 'chapters' && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', padding: '2px' }}>
                           {[{ w: '100%', open: true }, { w: '80%', open: false }, { w: '70%', open: false }].map((c, i) => (
-                            <div key={i} style={{ width: c.w, height: c.open ? '14px' : '8px', borderRadius: '2px', background: c.open ? (active ? 'var(--pl-olive)' : '#bbb') : (active ? 'rgba(163,177,138,0.35)' : 'rgba(0,0,0,0.07)'), transition: 'all 0.2s' }} />
+                            <div key={i} style={{ width: c.w, height: c.open ? '14px' : '8px', borderRadius: '2px', background: c.open ? (active ? 'var(--pl-olive)' : '#bbb') : (active ? 'rgba(163,177,138,0.35)' : 'rgba(0,0,0,0.07)'), transition: 'all var(--pl-dur-fast)' }} />
                           ))}
                         </div>
                       )}
@@ -2540,7 +2540,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                     border: '1.5px solid rgba(163,177,138,0.25)',
                     background: 'rgba(163,177,138,0.06)',
                     color: 'var(--pl-ink)', fontSize: '0.85rem', fontWeight: 500,
-                    cursor: 'pointer', transition: 'all 0.15s',
+                    cursor: 'pointer', transition: 'all var(--pl-dur-instant)',
                   }}
                 >
                   <chip.icon size={14} /> {chip.label}

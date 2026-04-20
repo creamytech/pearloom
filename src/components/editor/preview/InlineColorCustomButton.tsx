@@ -66,8 +66,8 @@ export function InlineColorCustomButton({
 }: InlineColorCustomButtonProps) {
   const [open, setOpen] = useState(false);
   const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
-  const [hex, setHex] = useState(value || '#A3B18A');
-  const [hsl, setHSL] = useState<[number, number, number]>(() => hexToHSL(value || '#A3B18A'));
+  const [hex, setHex] = useState(value || '#5C6B3F');
+  const [hsl, setHSL] = useState<[number, number, number]>(() => hexToHSL(value || '#5C6B3F'));
   const btnRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
 

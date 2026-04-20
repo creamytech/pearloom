@@ -173,7 +173,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
                 fontWeight: panelWeight.bold,
                 fontFamily: 'inherit',
                 lineHeight: panelLineHeight.tight,
-                transition: 'all 0.15s',
+                transition: 'all var(--pl-dur-instant)',
               }}
             >
               {saved ? <Check size={13} /> : <Plus size={13} />}
@@ -194,7 +194,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
                 fontFamily: 'inherit',
                 lineHeight: panelLineHeight.tight,
                 cursor: 'pointer',
-                transition: 'all 0.15s',
+                transition: 'all var(--pl-dur-instant)',
               }}
             >
               Load example samples (demo)
@@ -216,7 +216,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
                 fontWeight: panelWeight.bold,
                 fontFamily: 'inherit',
                 lineHeight: panelLineHeight.tight,
-                transition: 'all 0.15s',
+                transition: 'all var(--pl-dur-instant)',
               }}
             >
               <Cpu size={13} />

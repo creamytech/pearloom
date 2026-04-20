@@ -118,10 +118,10 @@ export function SeatFinder({ siteId: _siteId, subdomain, vibeSkin: _vibeSkin }: 
               background: 'var(--pl-cream, #fff)',
               outline: 'none',
               boxSizing: 'border-box',
-              transition: 'border-color 0.2s',
+              transition: 'border-color var(--pl-dur-fast)',
             }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = 'var(--pl-olive, #A3B18A)';
+              e.currentTarget.style.borderColor = 'var(--pl-olive, #5C6B3F)';
             }}
             onBlur={(e) => {
               e.currentTarget.style.borderColor = 'rgba(0,0,0,0.12)';
@@ -131,7 +131,7 @@ export function SeatFinder({ siteId: _siteId, subdomain, vibeSkin: _vibeSkin }: 
             type="submit"
             disabled={state === 'loading' || !name.trim()}
             style={{
-              background: 'var(--pl-olive, #A3B18A)',
+              background: 'var(--pl-olive, #5C6B3F)',
               color: '#fff',
               border: 'none',
               borderRadius: '100px',
@@ -228,7 +228,7 @@ export function SeatFinder({ siteId: _siteId, subdomain, vibeSkin: _vibeSkin }: 
                         alignItems: 'center',
                         padding: '0.25rem 0.75rem',
                         borderRadius: '100px',
-                        background: 'var(--pl-olive, #A3B18A)',
+                        background: 'var(--pl-olive, #5C6B3F)',
                         color: '#fff',
                         fontSize: '0.78rem',
                         fontWeight: 700,

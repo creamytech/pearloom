@@ -325,7 +325,7 @@ export default function CommunityMemorySection({
                   fontWeight: 600,
                   cursor: 'pointer',
                   letterSpacing: '0.02em',
-                  transition: 'opacity 0.2s',
+                  transition: 'opacity var(--pl-dur-fast)',
                 }}
                 onMouseEnter={(e) => ((e.target as HTMLButtonElement).style.opacity = '0.85')}
                 onMouseLeave={(e) => ((e.target as HTMLButtonElement).style.opacity = '1')}

@@ -84,7 +84,7 @@ function vibeGradient(vibe?: string): string {
   if (v.includes('lavender') || v.includes('purple'))
     return 'linear-gradient(135deg, #9B8EC1 0%, #D4A0C4 50%, #F0E8F8 100%)';
   if (v.includes('emerald') || v.includes('green') || v.includes('garden'))
-    return 'linear-gradient(135deg, #2D6A4F 0%, #588B5B 50%, #A3B18A 100%)';
+    return 'linear-gradient(135deg, #2D6A4F 0%, #588B5B 50%, #5C6B3F 100%)';
   if (v.includes('gold') || v.includes('elegant') || v.includes('classic'))
     return 'linear-gradient(135deg, #C4A96A 0%, #E8D5A8 50%, #F5EED8 100%)';
   if (v.includes('romantic') || v.includes('blush') || v.includes('rose'))

@@ -37,12 +37,12 @@ const CONSTRAINT_LABELS: Record<ConstraintType, string> = {
 };
 
 const CONSTRAINT_COLORS: Record<ConstraintType, string> = {
-  must_sit_together: '#A3B18A',
+  must_sit_together: '#5C6B3F',
   must_not_sit_together: '#ef4444',
   near_exit: '#D6C6A8',
   near_dance_floor: '#6D597A',
   avoid_table: '#C8A47A',
-  prefer_table: '#A3B18A',
+  prefer_table: '#5C6B3F',
   custom: '#9A9488',
 };
 
@@ -160,7 +160,7 @@ function GuestsTab({
               fontSize: '0.72rem',
               fontFamily: 'var(--pl-font-body)',
               cursor: 'pointer',
-              transition: 'all 0.15s',
+              transition: 'all var(--pl-dur-instant)',
             }}
           >
             {f.label}
@@ -395,7 +395,7 @@ function ConstraintsTab({ siteId }: { siteId: string }) {
             fontFamily: 'var(--pl-font-body)',
             cursor: input.trim() ? 'pointer' : 'not-allowed',
             opacity: input.trim() ? 1 : 0.5,
-            transition: 'opacity 0.15s',
+            transition: 'opacity var(--pl-dur-instant)',
           }}
         >
           {saving ? 'Saving…' : 'Add Constraint'}
@@ -563,7 +563,7 @@ export function SeatingPanel({
               fontFamily: 'var(--pl-font-body)',
               fontWeight: effectiveTab === tab.key ? 600 : 400,
               cursor: tab.key === 'table' && !selectedTable ? 'not-allowed' : 'pointer',
-              transition: 'color 0.15s',
+              transition: 'color var(--pl-dur-instant)',
               marginBottom: '-1px',
             }}
           >

@@ -241,7 +241,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
                         border: `1px solid ${isSelected ? '#A1A1AA' : '#E4E4E7'}`,
                         cursor: 'pointer',
                         textAlign: 'left',
-                        transition: 'all 0.15s',
+                        transition: 'all var(--pl-dur-instant)',
                       }}
                     >
                       <div style={{
@@ -429,7 +429,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
               fontWeight: panelWeight.bold,
               fontFamily: 'inherit',
               lineHeight: panelLineHeight.tight,
-              transition: 'all 0.15s',
+              transition: 'all var(--pl-dur-instant)',
             }}
           >
             <Send size={13} />

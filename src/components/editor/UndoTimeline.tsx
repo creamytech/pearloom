@@ -565,7 +565,7 @@ export function UndoTimelinePanel() {
             fontSize: 'var(--pl-text-xs)',
             fontWeight: 600,
             color: '#71717A',
-            transition: 'color 0.15s',
+            transition: 'color var(--pl-dur-instant)',
           } as React.CSSProperties}
         >
           <Trash2 size={11} />

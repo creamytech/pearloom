@@ -415,7 +415,7 @@ export function ThankYouPanel() {
             cursor: canGenerate ? 'pointer' : 'default',
             fontSize: panelText.body,
             fontWeight: panelWeight.bold,
-            transition: 'all 0.15s',
+            transition: 'all var(--pl-dur-instant)',
           }}
         >
           {loading ? (

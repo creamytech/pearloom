@@ -380,7 +380,7 @@ export function MobileChapterEditor({
                         : '#71717A',
                       cursor: 'pointer',
                       minWidth: 68,
-                      transition: 'all 0.15s',
+                      transition: 'all var(--pl-dur-instant)',
                     }}
                   >
                     <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>{glyph}</span>

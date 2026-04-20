@@ -84,7 +84,7 @@ function MoodChip({ mood, onSelect }: { mood?: string; onSelect: (m: string) => 
           padding: '3px 8px 3px 6px',
           borderRadius: '8px', border: '1px solid #E4E4E7',
           background: open ? '#F4F4F5' : '#FFFFFF',
-          cursor: 'pointer', transition: 'background 0.12s',
+          cursor: 'pointer', transition: 'background var(--pl-dur-instant)',
         }}
       >
         <div style={{
@@ -193,7 +193,7 @@ function ChapterCard({
           border: isConfirming ? '1.5px solid rgba(248,113,113,0.4)' : isActive ? '1.5px solid #18181B' : '1px solid #E4E4E7',
           overflow: 'hidden',
           cursor: isConfirming ? 'default' : 'pointer',
-          transition: 'all 0.2s',
+          transition: 'all var(--pl-dur-fast)',
           boxShadow: isConfirming ? '0 2px 8px rgba(248,113,113,0.08)' : isActive ? '0 2px 8px rgba(24,24,27,0.08)' : 'none',
         }}
       >
@@ -366,7 +366,7 @@ function ChapterCard({
                       fontSize: panelText.body,
                       fontWeight: panelWeight.semibold,
                       fontFamily: 'inherit',
-                      cursor: 'pointer', transition: 'background 0.15s',
+                      cursor: 'pointer', transition: 'background var(--pl-dur-instant)',
                     }}
                   >
                     Cancel
@@ -380,7 +380,7 @@ function ChapterCard({
                       fontSize: panelText.body,
                       fontWeight: panelWeight.bold,
                       fontFamily: 'inherit',
-                      cursor: 'pointer', transition: 'background 0.15s',
+                      cursor: 'pointer', transition: 'background var(--pl-dur-instant)',
                     }}
                   >
                     Delete
@@ -432,7 +432,7 @@ function UndoToast({ message, onUndo, onDismiss }: { message: string; onUndo: ()
           fontFamily: 'inherit',
           cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: '4px',
-          transition: 'background 0.15s',
+          transition: 'background var(--pl-dur-instant)',
         }}
         onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.28)'; }}
         onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.18)'; }}
@@ -654,7 +654,7 @@ export function StoryPanel() {
             fontSize: panelText.body,
             fontWeight: panelWeight.semibold,
             fontFamily: 'inherit',
-            transition: 'all 0.15s',
+            transition: 'all var(--pl-dur-instant)',
           }}
         >
           <Plus size={13} /> Add Chapter

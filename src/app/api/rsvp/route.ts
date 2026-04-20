@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
               ${songRequest ? `<tr><td style="padding:0.4rem 0;color:#999">Song request</td><td style="font-style:italic">${esc(String(songRequest))}</td></tr>` : ''}
               ${message ? `<tr><td style="padding:0.4rem 0;color:#999">Message</td><td style="font-style:italic">"${esc(String(message))}"</td></tr>` : ''}
             </table>
-            <p style="margin:1.5rem 0 0;font-size:0.8rem;color:#aaa">Sent by Pearloom · <a href="${esc(process.env.NEXT_PUBLIC_SITE_URL || '')}" style="color:#A3B18A">pearloom.com</a></p>
+            <p style="margin:1.5rem 0 0;font-size:0.8rem;color:#aaa">Sent by Pearloom · <a href="${esc(process.env.NEXT_PUBLIC_SITE_URL || '')}" style="color:#5C6B3F">pearloom.com</a></p>
           </div>
         `,
       }).catch((e: unknown) => console.error('[RSVP] Resend error:', e));

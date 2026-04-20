@@ -295,7 +295,7 @@ export function getThemeArt(themeId: string): ThemeArt {
   if (art.cornerSvg && (!art.heroPatternSvg || !art.accentSvg)) {
     // Extract the primary color from the cornerSvg
     const colorMatch = art.cornerSvg.match(/#[0-9A-Fa-f]{6}/);
-    const color = colorMatch ? colorMatch[0] : '#A3B18A';
+    const color = colorMatch ? colorMatch[0] : '#5C6B3F';
 
     if (!art.heroPatternSvg) {
       art.heroPatternSvg = `<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><circle cx="25" cy="25" r="1" fill="${color}" opacity="0.12"/><circle cx="5" cy="5" r="0.5" fill="${color}" opacity="0.12"/><circle cx="45" cy="45" r="0.5" fill="${color}" opacity="0.12"/></svg>`;

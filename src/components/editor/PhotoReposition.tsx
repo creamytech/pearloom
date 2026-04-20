@@ -200,7 +200,7 @@ export function PhotoReposition({
             background: 'rgba(0,0,0,0.08)', border: '1px solid #71717A',
             color: '#fff', cursor: 'pointer', fontSize: '0.6rem', fontWeight: 700,
             backdropFilter: 'blur(6px)',
-            transition: 'background 0.15s',
+            transition: 'background var(--pl-dur-instant)',
           }}
           onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.8)'; }}
           onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.08)'; }}

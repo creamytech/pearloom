@@ -110,7 +110,7 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
                 fontWeight: 700,
                 cursor: 'pointer',
                 letterSpacing: '0.03em',
-                transition: 'all 0.15s',
+                transition: 'all var(--pl-dur-instant)',
               }}
               onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(24,24,27,0.12)'; }}
               onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = '#F4F4F5'; }}

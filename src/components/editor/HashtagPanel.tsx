@@ -124,7 +124,7 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
             background: 'var(--pl-chrome-accent)',
             color: 'var(--pl-chrome-accent-ink)',
             border: '1px solid var(--pl-chrome-accent)',
-            transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+            transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
             lineHeight: 1,
           }}
         >
@@ -185,7 +185,7 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
                       borderRadius: '10px',
                       background: 'var(--pl-chrome-surface)',
                       border: '1px solid var(--pl-chrome-border)',
-                      transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+                      transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', minWidth: 0 }}>
@@ -239,7 +239,7 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
                           : 'transparent',
                         border: '1px solid var(--pl-chrome-border)',
                         color: isCopied ? 'var(--pl-chrome-accent)' : 'var(--pl-chrome-text-muted)',
-                        transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+                        transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                         lineHeight: 1,
                         flexShrink: 0,
                       }}

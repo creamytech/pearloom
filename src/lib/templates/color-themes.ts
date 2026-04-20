@@ -75,7 +75,7 @@ export const COLOR_THEMES: ColorTheme[] = [
     occasions: ['wedding', 'engagement'],
     tags: ['botanical', 'garden', 'organic', 'natural', 'spring', 'summer'],
     season: 'spring',
-    previewGradient: 'linear-gradient(135deg, #F4F7F1 0%, #A3B18A 50%, #6E8C5C 100%)',
+    previewGradient: 'linear-gradient(135deg, #F4F7F1 0%, #5C6B3F 50%, #6E8C5C 100%)',
     colors: { background: '#F4F7F1', foreground: '#1E2A1A', accent: '#6A8F5A', accentLight: '#DDEBD4', muted: '#7A8C72', cardBg: '#FFFFFF' },
     fonts: { heading: 'Cormorant Garamond', body: 'Inter' },
     borderRadius: '1.5rem', cardStyle: 'glass', backgroundPattern: 'floral',

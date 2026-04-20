@@ -185,7 +185,7 @@ export function LanguageSwitcher({
                     fontWeight: isActive ? 700 : 400,
                     cursor: isLoadingThis ? 'wait' : 'pointer',
                     textAlign: 'left',
-                    transition: 'background 0.15s',
+                    transition: 'background var(--pl-dur-instant)',
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) (e.currentTarget as HTMLElement).style.background = `${palette.accent}0e`;
@@ -241,7 +241,7 @@ export function LanguageSwitcher({
           cursor: 'pointer',
           backdropFilter: 'blur(10px)',
           WebkitBackdropFilter: 'blur(10px)',
-          transition: 'box-shadow 0.2s',
+          transition: 'box-shadow var(--pl-dur-fast)',
         }}
         title="Change language"
         aria-label={`Current language: ${currentLang.label}. Click to change.`}
@@ -257,7 +257,7 @@ export function LanguageSwitcher({
             fontSize: '0.6rem',
             opacity: 0.6,
             transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.2s',
+            transition: 'transform var(--pl-dur-fast)',
             display: 'inline-block',
           }}
         >

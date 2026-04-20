@@ -77,8 +77,8 @@ export function VisualTimeline({ events }: VisualTimelineProps) {
           background: linear-gradient(
             180deg,
             transparent 0%,
-            var(--pl-olive, #A3B18A) 8%,
-            var(--pl-olive, #A3B18A) 92%,
+            var(--pl-olive, #5C6B3F) 8%,
+            var(--pl-olive, #5C6B3F) 92%,
             transparent 100%
           );
           transform-origin: top center;
@@ -114,11 +114,11 @@ export function VisualTimeline({ events }: VisualTimelineProps) {
           height: 36px;
           border-radius: 50%;
           background: var(--pl-cream, #FDFAF4);
-          border: 2px solid var(--pl-olive, #A3B18A);
+          border: 2px solid var(--pl-olive, #5C6B3F);
           display: flex;
           align-items: center;
           justify-content: center;
-          color: var(--pl-olive, #A3B18A);
+          color: var(--pl-olive, #5C6B3F);
           box-shadow: 0 2px 12px rgba(163,177,138,0.2);
           animation: pl-tl-dot-pop 0.35s ease-out both;
         }
@@ -170,7 +170,7 @@ export function VisualTimeline({ events }: VisualTimelineProps) {
           font-size: 0.7rem;
           font-weight: 700;
           letter-spacing: 0.06em;
-          color: var(--pl-olive, #A3B18A);
+          color: var(--pl-olive, #5C6B3F);
           background: rgba(163,177,138,0.12);
           padding: 0.25rem 0.65rem;
           border-radius: 100px;

@@ -67,7 +67,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     <p style="font-size:14px;color:#7A756E;margin:8px 0 24px">{{ venue }}</p>
     {{ personal_note }}
     <a href="{{ rsvp_url }}" style="display:inline-block;padding:14px 32px;background:#6E8C5C;color:#fff;border-radius:100px;text-decoration:none;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase">RSVP Now</a>
-    <p style="font-size:12px;color:#7A756E;margin:24px 0 0">View our site at <a href="{{ site_url }}" style="color:#A3B18A">{{ site_url }}</a></p>
+    <p style="font-size:12px;color:#7A756E;margin:24px 0 0">View our site at <a href="{{ site_url }}" style="color:#5C6B3F">{{ site_url }}</a></p>
   </td></tr>
   <tr><td style="padding:16px 32px;background:#FAF7F2;text-align:center">
     <p style="font-size:10px;color:#7A756E;margin:0">Made with Pearloom</p>
@@ -88,7 +88,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
 <body style="margin:0;padding:0;background:#FAF7F2;font-family:Georgia,serif">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(43,30,20,0.06)">
   <tr><td style="padding:48px 32px;text-align:center;border:2px solid #E0D8CA;border-radius:16px;margin:8px">
-    <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#A3B18A;margin:0 0 20px">You're Cordially Invited</p>
+    <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#5C6B3F;margin:0 0 20px">You're Cordially Invited</p>
     <h1 style="font-family:Georgia,serif;font-size:36px;font-weight:400;font-style:italic;color:#3D3530;margin:0 0 4px">{{ couple_name }}</h1>
     <p style="font-size:14px;color:#7A756E;margin:0 0 16px">request the pleasure of your company</p>
     <div style="width:60px;height:1px;background:#C4A96A;margin:16px auto"></div>
@@ -137,7 +137,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
 <body style="margin:0;padding:0;background:#FAF7F2;font-family:Georgia,serif">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(43,30,20,0.06)">
   <tr><td style="padding:40px 32px;text-align:center">
-    <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#A3B18A;margin:0 0 16px">Thank You</p>
+    <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#5C6B3F;margin:0 0 16px">Thank You</p>
     <h1 style="font-family:Georgia,serif;font-size:28px;font-weight:400;font-style:italic;color:#3D3530;margin:0 0 16px">From the bottom of our hearts</h1>
     <p style="font-size:14px;color:#7A756E;line-height:1.7;margin:0 0 24px">Dear {{ guest_name }},<br><br>{{ thank_you_message }}<br><br>Revisit the memories and photos from our celebration:</p>
     <a href="{{ site_url }}" style="display:inline-block;padding:14px 32px;background:#6E8C5C;color:#fff;border-radius:100px;text-decoration:none;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase">View Memories</a>

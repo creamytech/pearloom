@@ -197,7 +197,7 @@ export default function VenuePage() {
             borderRadius: '0.5rem',
             border: '1px solid #D4C9B0',
             background: 'transparent',
-            transition: 'background 0.15s',
+            transition: 'background var(--pl-dur-instant)',
           }}
         >
           <ArrowLeft size={15} />

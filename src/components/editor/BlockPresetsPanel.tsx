@@ -115,7 +115,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '5px',
-    transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+    transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
     lineHeight: 1,
     cursor: 'pointer',
   };
@@ -356,7 +356,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
-                  transition: 'all 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
+                  transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                 }}
               >
                 <Trash2 size={11} strokeWidth={1.75} />

@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
   const n1       = (searchParams.get('n1') || 'Celebrating').slice(0, 36);
   const n2       = (searchParams.get('n2') || '').slice(0, 36);
   const occasion = searchParams.get('occasion') || 'birthday';
-  const accent   = searchParams.get('accent') || '#A3B18A';
+  const accent   = searchParams.get('accent') || '#5C6B3F';
   const bg       = searchParams.get('bg') || '#F5F1E8';
 
   // Deep cinematic background derived from site bg color

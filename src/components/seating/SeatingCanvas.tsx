@@ -667,7 +667,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
                     fontSize: '0.82rem',
                     fontFamily: 'var(--pl-font-body)',
                     cursor: 'pointer',
-                    transition: 'all 0.15s',
+                    transition: 'all var(--pl-dur-instant)',
                   }}
                   onMouseEnter={e => {
                     e.currentTarget.style.background = 'rgba(163,177,138,0.18)';
@@ -741,7 +741,7 @@ const toolbarBtnStyle: React.CSSProperties = {
   fontSize: '0.78rem',
   fontFamily: 'var(--pl-font-body)',
   cursor: 'pointer',
-  transition: 'background 0.15s',
+  transition: 'background var(--pl-dur-instant)',
 };
 
 const iconBtnStyle: React.CSSProperties = {
@@ -755,5 +755,5 @@ const iconBtnStyle: React.CSSProperties = {
   background: 'var(--pl-ink)',
   color: 'var(--pl-muted)',
   cursor: 'pointer',
-  transition: 'background 0.15s',
+  transition: 'background var(--pl-dur-instant)',
 };

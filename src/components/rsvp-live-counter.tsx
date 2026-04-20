@@ -82,7 +82,7 @@ export function RsvpLiveCounter({ siteId, coupleNames }: RsvpLiveCounterProps) {
                 margin: '0 auto 1rem',
               }}
             >
-              <Heart size={20} color="#A3B18A" />
+              <Heart size={20} color="#5C6B3F" />
             </motion.div>
             <p style={{
               fontFamily: 'var(--pl-font-heading)', fontSize: '1.1rem',

@@ -509,7 +509,7 @@ export function InlineArtHoverToolbar({
                 { value: '', label: 'Theme' },
                 { value: '#18181B', label: 'Ink' },
                 { value: '#8B7355', label: 'Warm' },
-                { value: '#A3B18A', label: 'Olive' },
+                { value: '#5C6B3F', label: 'Olive' },
                 { value: '#C4A96A', label: 'Gold' },
                 { value: '#6B7280', label: 'Gray' },
               ].map(c => {

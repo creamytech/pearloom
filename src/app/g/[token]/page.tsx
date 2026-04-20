@@ -107,7 +107,7 @@ export default async function PersonalGuestPage({
         guestFirstName={guest.display_name.split(' ')[0]}
         coupleNames={coupleNames}
         heroCopy={personalization.hero_copy}
-        accent={theme?.accent ?? '#A3B18A'}
+        accent={theme?.accent ?? '#5C6B3F'}
         headingFont={headingFont}
         eventDate={manifest.logistics?.date ?? ''}
         venue={manifest.logistics?.venue ?? ''}
@@ -182,7 +182,7 @@ export default async function PersonalGuestPage({
                 <ul style={{ listStyle: 'none', padding: 0, margin: '0.5rem 0 0', fontSize: '0.9rem' }}>
                   {personalization.travel_tips.recommendedHotels.map((h, i) => (
                     <li key={i} style={{ margin: '0.25rem 0' }}>
-                      {h.url ? <a href={h.url} style={{ color: theme?.accent ?? '#A3B18A' }}>{h.name}</a> : h.name}
+                      {h.url ? <a href={h.url} style={{ color: theme?.accent ?? '#5C6B3F' }}>{h.name}</a> : h.name}
                       {h.note && <span style={{ color: theme?.muted ?? '#9A9488' }}> — {h.note}</span>}
                     </li>
                   ))}
@@ -194,7 +194,7 @@ export default async function PersonalGuestPage({
 
         <VoiceToastRecorder
           token={token}
-          accent={theme?.accent ?? '#A3B18A'}
+          accent={theme?.accent ?? '#5C6B3F'}
           headingFont={headingFont}
         />
 
@@ -203,7 +203,7 @@ export default async function PersonalGuestPage({
             href={`/rsvp?site=${site.subdomain}&g=${token}`}
             style={{
               padding: '0.85rem 1.5rem',
-              background: theme?.accent ?? '#A3B18A',
+              background: theme?.accent ?? '#5C6B3F',
               color: theme?.background ?? '#F5F1E8',
               borderRadius: '999px',
               fontSize: '0.9rem',

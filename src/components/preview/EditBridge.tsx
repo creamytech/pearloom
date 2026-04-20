@@ -419,7 +419,7 @@ export function EditBridge({ enabled }: EditBridgeProps) {
     const highlightZone = (index: number) => {
       activeZones.forEach((z, i) => {
         if (i === index) {
-          z.style.background = '#A3B18A';
+          z.style.background = '#5C6B3F';
           z.style.height = '6px';
           z.style.boxShadow = '0 0 12px rgba(163,177,138,0.5)';
         } else {
@@ -708,7 +708,7 @@ function PhotoActionBtn({
           : 'rgba(22,18,14,0.92)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
-        color: danger ? '#fca5a5' : accent ? '#A3B18A' : 'rgba(255,255,255,0.88)',
+        color: danger ? '#fca5a5' : accent ? '#5C6B3F' : 'rgba(255,255,255,0.88)',
         cursor: 'pointer',
         fontSize: '13px',
         fontWeight: 700,

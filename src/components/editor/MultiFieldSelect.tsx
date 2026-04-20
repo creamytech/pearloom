@@ -239,7 +239,7 @@ function BarBtn({
         background: 'transparent',
         color: 'rgba(255,255,255,0.85)',
         cursor: 'pointer',
-        transition: 'background 0.12s',
+        transition: 'background var(--pl-dur-instant)',
       }}
       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)'; }}
       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}

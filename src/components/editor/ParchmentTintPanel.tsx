@@ -108,7 +108,7 @@ export function ParchmentTintPanel({ currentTint = 'none', onApply }: ParchmentT
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  transition: 'border-color 0.15s',
+                  transition: 'border-color var(--pl-dur-instant)',
                   boxShadow: isActive ? '0 0 0 2px rgba(24,24,27,0.12)' : 'none',
                 }}
               >

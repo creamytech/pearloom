@@ -37,7 +37,7 @@ export function SiteSharePanel({
   siteId,
   siteName,
   coupleNames,
-  accentColor = '#A3B18A',
+  accentColor = '#5C6B3F',
   bgColor = '#FAF7F2',
   tagline = '',
   dateStr = '',
@@ -306,7 +306,7 @@ export function SiteSharePanel({
                     fontSize: '0.72rem', fontWeight: 600,
                     color: qrTab === tab ? 'var(--pl-ink)' : 'var(--pl-muted)',
                     boxShadow: qrTab === tab ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
-                    transition: 'all 0.15s',
+                    transition: 'all var(--pl-dur-instant)',
                     fontFamily: 'var(--pl-font-body)',
                   }}
                 >

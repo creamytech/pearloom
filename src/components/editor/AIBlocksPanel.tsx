@@ -784,7 +784,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
             fontFamily: 'inherit',
             lineHeight: panelLineHeight.tight,
             cursor: 'pointer',
-            transition: 'all 0.15s', whiteSpace: 'nowrap',
+            transition: 'all var(--pl-dur-instant)', whiteSpace: 'nowrap',
           }}
         >
           <Sparkles size={10} /> Reset
@@ -806,7 +806,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
             fontWeight: activeCategory === 'all' ? panelWeight.bold : panelWeight.semibold,
             fontFamily: 'inherit',
             lineHeight: panelLineHeight.tight,
-            transition: 'all 0.15s',
+            transition: 'all var(--pl-dur-instant)',
           }}
         >
           All
@@ -841,7 +841,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
                 fontWeight: isActive ? panelWeight.bold : panelWeight.semibold,
                 fontFamily: 'inherit',
                 lineHeight: panelLineHeight.tight,
-                transition: 'all 0.15s',
+                transition: 'all var(--pl-dur-instant)',
               }}
             >
               <Icon size={10} color={isActive ? block.color : isDone ? block.color : '#71717A'} />

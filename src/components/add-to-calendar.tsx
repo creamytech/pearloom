@@ -169,7 +169,7 @@ export function AddToCalendar({
           transform: translateY(-1px);
         }
         .pl-cal-btn--google {
-          background: var(--pl-olive, #A3B18A);
+          background: var(--pl-olive, #5C6B3F);
           color: #fff;
           box-shadow: 0 2px 8px rgba(163,177,138,0.25);
         }

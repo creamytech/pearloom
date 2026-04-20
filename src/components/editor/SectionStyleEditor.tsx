@@ -81,7 +81,7 @@ export function SectionStyleEditor({
                   : '1px solid rgba(0,0,0,0.08)',
                 cursor: 'pointer', flexShrink: 0,
                 boxShadow: currentBg === color ? '0 0 0 2px #E4E4E7' : 'none',
-                transition: 'all 0.15s',
+                transition: 'all var(--pl-dur-instant)',
               }}
             />
           ))}
@@ -104,7 +104,7 @@ export function SectionStyleEditor({
               cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
               background: isDark ? '#71717A' : 'rgba(0,0,0,0.05)',
               color: isDark ? '#fff' : '#3F3F46',
-              transition: 'all 0.15s',
+              transition: 'all var(--pl-dur-instant)',
               minHeight: '36px',
             }}
           >
@@ -117,7 +117,7 @@ export function SectionStyleEditor({
               cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
               background: !isDark ? '#71717A' : 'rgba(0,0,0,0.05)',
               color: !isDark ? '#fff' : '#3F3F46',
-              transition: 'all 0.15s',
+              transition: 'all var(--pl-dur-instant)',
               minHeight: '36px',
             }}
           >
@@ -139,7 +139,7 @@ export function SectionStyleEditor({
                 cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
                 background: padding === opt.value ? '#71717A' : 'rgba(0,0,0,0.05)',
                 color: padding === opt.value ? '#fff' : '#3F3F46',
-                transition: 'all 0.15s',
+                transition: 'all var(--pl-dur-instant)',
                 minHeight: '36px',
               }}
             >
@@ -159,14 +159,14 @@ export function SectionStyleEditor({
             style={{
               width: '36px', height: '20px', borderRadius: '8px', flexShrink: 0,
               background: currentOverrides.fullWidth ? '#18181B' : 'rgba(0,0,0,0.07)',
-              border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
+              border: 'none', cursor: 'pointer', position: 'relative', transition: 'background var(--pl-dur-fast)',
             }}
           >
             <span style={{
               position: 'absolute', top: '2px',
               left: currentOverrides.fullWidth ? '18px' : '2px',
               width: '16px', height: '16px', borderRadius: '50%', background: '#fff',
-              transition: 'left 0.2s', display: 'block',
+              transition: 'left var(--pl-dur-fast)', display: 'block',
             }} />
           </button>
         </div>
@@ -178,14 +178,14 @@ export function SectionStyleEditor({
             style={{
               width: '36px', height: '20px', borderRadius: '8px', flexShrink: 0,
               background: currentOverrides.dividerBefore ? '#18181B' : 'rgba(0,0,0,0.07)',
-              border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
+              border: 'none', cursor: 'pointer', position: 'relative', transition: 'background var(--pl-dur-fast)',
             }}
           >
             <span style={{
               position: 'absolute', top: '2px',
               left: currentOverrides.dividerBefore ? '18px' : '2px',
               width: '16px', height: '16px', borderRadius: '50%', background: '#fff',
-              transition: 'left 0.2s', display: 'block',
+              transition: 'left var(--pl-dur-fast)', display: 'block',
             }} />
           </button>
         </div>
@@ -197,14 +197,14 @@ export function SectionStyleEditor({
             style={{
               width: '36px', height: '20px', borderRadius: '8px', flexShrink: 0,
               background: currentOverrides.dividerAfter ? '#18181B' : 'rgba(0,0,0,0.07)',
-              border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
+              border: 'none', cursor: 'pointer', position: 'relative', transition: 'background var(--pl-dur-fast)',
             }}
           >
             <span style={{
               position: 'absolute', top: '2px',
               left: currentOverrides.dividerAfter ? '18px' : '2px',
               width: '16px', height: '16px', borderRadius: '50%', background: '#fff',
-              transition: 'left 0.2s', display: 'block',
+              transition: 'left var(--pl-dur-fast)', display: 'block',
             }} />
           </button>
         </div>

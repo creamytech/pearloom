@@ -43,7 +43,7 @@ const PRESETS: Record<Exclude<MeshPreset, 'none'>, { colors: string[] }> = {
     colors: ['#2C1654', '#6B2FA0', '#C850C0', '#4158D0'],
   },
   custom: {
-    colors: ['#A3B18A', '#3A5A40', '#588157', '#DAD7CD'],
+    colors: ['#5C6B3F', '#3A5A40', '#588157', '#DAD7CD'],
   },
 };
 

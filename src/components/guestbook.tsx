@@ -684,7 +684,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                             : charsLeft <= 40
                             ? '#f59e0b'
                             : 'var(--pl-muted)',
-                        transition: 'color 0.2s',
+                        transition: 'color var(--pl-dur-fast)',
                       }}
                     >
                       {charsLeft} left

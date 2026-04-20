@@ -465,7 +465,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
               fontSize: 'var(--pl-text-2xs)', fontWeight: 700,
               color: showBuiltIns ? '#18181B' : '#71717A',
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
-              transition: 'all 0.15s',
+              transition: 'all var(--pl-dur-instant)',
             }}
           >
             <Sparkles size={9} />
@@ -654,7 +654,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
                         fontSize: 'var(--pl-text-2xs)', fontWeight: 700,
                         borderRight: '1px solid rgba(24,24,27,0.08)',
-                        transition: 'background 0.15s',
+                        transition: 'background var(--pl-dur-instant)',
                       }}
                     >
                       <Plus size={10} />
@@ -754,7 +754,7 @@ function CategoryChip({ label, count, active, color, onClick }: {
         display: 'flex',
         alignItems: 'center',
         gap: '3px',
-        transition: 'all 0.15s',
+        transition: 'all var(--pl-dur-instant)',
       }}
     >
       {label}
