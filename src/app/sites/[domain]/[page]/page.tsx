@@ -11,6 +11,7 @@ import { FaqSection } from '@/components/faq-section';
 import { RegistryShowcase } from '@/components/registry-showcase';
 import { WeddingEvents } from '@/components/wedding-events';
 import { PublicRsvpSection } from '@/components/public-rsvp-section';
+import { getEventType } from '@/lib/event-os/event-types';
 import { WaveDivider } from '@/components/vibe/WaveDivider';
 import { SiteClientSections } from '@/components/site/SiteClientSections';
 
@@ -301,6 +302,7 @@ export default async function SiteSubPage(
           siteId={domain}
           events={manifest.events}
           deadline={manifest.logistics?.rsvpDeadline}
+          rsvpPreset={getEventType(manifest.occasion)?.rsvpPreset}
         />
       </>
     );

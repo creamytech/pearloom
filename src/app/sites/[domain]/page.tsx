@@ -15,6 +15,7 @@ import { RegistryShowcase } from '@/components/registry-showcase';
 import { FaqSection } from '@/components/faq-section';
 import { TravelSection } from '@/components/travel-section';
 import { PublicRsvpSection } from '@/components/public-rsvp-section';
+import { getEventType } from '@/lib/event-os/event-types';
 import type { Chapter } from '@/types';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { WaveDivider } from '@/components/vibe/WaveDivider';
@@ -389,6 +390,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               siteId={domain}
               events={manifest.events}
               deadline={manifest.logistics?.rsvpDeadline}
+              rsvpPreset={getEventType(manifest.occasion)?.rsvpPreset}
             />
           </section>
         );
@@ -1196,7 +1198,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                   <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted />
                 </>
               ) : null}
-              {manifest.events?.length ? <section id="rsvp"><PublicRsvpSection siteId={domain} events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} mealOptions={manifest.mealOptions} /></section> : null}
+              {manifest.events?.length ? <section id="rsvp"><PublicRsvpSection siteId={domain} events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} mealOptions={manifest.mealOptions} rsvpPreset={getEventType(manifest.occasion)?.rsvpPreset} /></section> : null}
               {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? (
                 <>
                   <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={accentLight} height={80} />

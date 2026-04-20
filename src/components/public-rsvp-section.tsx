@@ -11,6 +11,8 @@ import { motion } from 'framer-motion';
 import { EnvelopeIcon } from '@/components/icons/PearloomIcons';
 import { SectionDivider } from '@/components/site/SectionDivider';
 import { RsvpForm } from '@/components/rsvp-form';
+import { PresetRsvpForm } from '@/components/PresetRsvpForm';
+import type { RsvpPreset } from '@/lib/event-os/event-types';
 import type { WeddingEvent } from '@/types';
 import { parseLocalDate } from '@/lib/date';
 
@@ -25,6 +27,12 @@ interface PublicRsvpSectionProps {
   mealOptions?: Array<{ id: string; name: string; dietaryTags?: string[] }>;
   /** When true, renders the RSVP intro text as inline-editable (editor canvas only). */
   editable?: boolean;
+  /**
+   * RSVP preset derived from the site's occasion. Wedding / unset →
+   * the legacy multi-step wedding form. Anything else → the
+   * preset-driven form that renders the right fields per event.
+   */
+  rsvpPreset?: RsvpPreset;
 }
 
 export function PublicRsvpSection({
@@ -35,6 +43,7 @@ export function PublicRsvpSection({
   title,
   mealOptions,
   editable = false,
+  rsvpPreset,
 }: PublicRsvpSectionProps) {
   const headingText = title || rsvpIntro || 'Join us';
 
@@ -478,7 +487,15 @@ export function PublicRsvpSection({
 
               {/* RSVP form embedded in invitation */}
               <div style={{ padding: 'clamp(1rem, 5vw, 2.5rem)' }}>
-                <RsvpForm events={events} siteId={siteId} mealOptions={mealOptions} />
+                {rsvpPreset && rsvpPreset !== 'wedding' ? (
+                  <PresetRsvpForm
+                    siteId={siteId}
+                    preset={rsvpPreset}
+                    title={title || rsvpIntro || undefined}
+                  />
+                ) : (
+                  <RsvpForm events={events} siteId={siteId} mealOptions={mealOptions} />
+                )}
               </div>
             </motion.div>
           )}

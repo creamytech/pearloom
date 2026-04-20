@@ -18,6 +18,7 @@ import { StorySection, chapterDateFormatOptions } from '@/components/blocks/Stor
 import { WeddingEvents } from '@/components/wedding-events';
 import { VisualTimeline } from '@/components/visual-timeline';
 import { ItineraryBlock } from '@/components/site/ItineraryBlock';
+import { getEventType } from '@/lib/event-os/event-types';
 import { RegistryShowcase } from '@/components/registry-showcase';
 import { FaqSection } from '@/components/faq-section';
 import { TravelSection } from '@/components/travel-section';
@@ -1854,7 +1855,14 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.rsvpDecor) }}
               />
             )}
-            <PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} rsvpIntro={manifest.poetry?.rsvpIntro} editable={editMode} />
+            <PublicRsvpSection
+              siteId="preview"
+              events={manifest.events}
+              deadline={manifest.logistics?.rsvpDeadline}
+              rsvpIntro={manifest.poetry?.rsvpIntro}
+              editable={editMode}
+              rsvpPreset={getEventType(manifest.occasion)?.rsvpPreset}
+            />
           </section>
         );
       case 'registry':
@@ -2899,7 +2907,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               </section>
               <DropZone index={2} />
               {manifest.events?.length ? (<><section id="schedule"><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></section><DropZone index={3} /></>) : null}
-              {manifest.events?.length ? (<><section id="rsvp"><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} rsvpIntro={manifest.poetry?.rsvpIntro} editable={editMode} /></section><DropZone index={4} /></>) : null}
+              {manifest.events?.length ? (<><section id="rsvp"><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} rsvpIntro={manifest.poetry?.rsvpIntro} editable={editMode} rsvpPreset={getEventType(manifest.occasion)?.rsvpPreset} /></section><DropZone index={4} /></>) : null}
               {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? (<><section id="registry"><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></section><DropZone index={5} /></>) : null}
               {manifest.travelInfo ? (<><section id="travel"><TravelSection info={manifest.travelInfo} /></section><DropZone index={6} /></>) : null}
               {manifest.faqs?.length ? (<><section id="faq"><FaqSection faqs={manifest.faqs} /></section><DropZone index={7} /></>) : null}

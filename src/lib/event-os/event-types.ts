@@ -714,7 +714,8 @@ export const EVENT_TYPES: EventType[] = [
 // ── Helpers ──────────────────────────────────────────────────
 
 /** Returns the EventType entry for a given occasion id, or null. */
-export function getEventType(id: SiteOccasion | string): EventType | null {
+export function getEventType(id: SiteOccasion | string | null | undefined): EventType | null {
+  if (!id) return null;
   return EVENT_TYPES.find((e) => e.id === id) ?? null;
 }
 
