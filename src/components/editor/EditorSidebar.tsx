@@ -313,16 +313,16 @@ export function EditorSidebar({
                 <span style={{
                   fontSize: '0.72rem',
                   fontWeight: 700,
-                  letterSpacing: '0.08em',
+                  letterSpacing: '0.06em',
                   textTransform: 'uppercase',
                   lineHeight: 1,
                   color: isActive && !collapsed ? 'var(--pl-chrome-rail-ink)' : 'var(--pl-chrome-rail-ink-faint)',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  maxWidth: '52px',
+                  maxWidth: '56px',
                 }}>
-                  {item.label.length > 8 ? item.label.slice(0, 6) + '…' : item.label}
+                  {item.label}
                 </span>
               </motion.button>
             </React.Fragment>

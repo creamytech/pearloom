@@ -87,8 +87,8 @@ export function InlineEditableText({
     if (isEditing) commit();
   }, [isEditing, commit]);
 
-  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent parent onClick (chapter select)
+  const handleStartEdit = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent parent onClick (chapter/block select)
     e.preventDefault();
     if (!isEditing) onStartEdit();
   }, [isEditing, onStartEdit]);
@@ -119,8 +119,10 @@ export function InlineEditableText({
 
   return createElement(tag, {
     className,
-    // Item 81: make inline-editable text reachable via keyboard. Pressing
-    // Enter on the focused element starts edit mode, mirroring double-click.
+    // Keyboard-reachable: Enter/Space on focused element starts
+    // edit mode. Click also starts edit mode — canvas-first UX
+    // so older / touch users don't need to discover double-click.
+    // (Double-click still works via the same handler.)
     tabIndex: 0,
     role: 'textbox',
     'aria-label': placeholder ? `Edit ${placeholder}` : 'Edit text',
@@ -129,14 +131,15 @@ export function InlineEditableText({
       cursor: 'text',
       transition: 'outline-color 0.15s',
     },
-    onDoubleClick: handleDoubleClick,
+    onClick: handleStartEdit,
+    onDoubleClick: handleStartEdit,
     onKeyDown: (e: React.KeyboardEvent) => {
       if ((e.key === 'Enter' || e.key === ' ') && !isEditing) {
         e.preventDefault();
         onStartEdit();
       }
     },
-    title: 'Double-click to edit',
+    title: 'Click to edit',
     children: displayValue,
   });
 }

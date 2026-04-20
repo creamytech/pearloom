@@ -247,8 +247,10 @@ function titleForStep(step: Step, collected: Collected): string {
       if (collected.occasion === 'memorial' || collected.occasion === 'funeral') return 'A few careful details';
       if (collected.occasion === 'graduation') return 'About the graduate';
       return 'One more thing';
-    case 'vibe-ask': return 'Describe your style';
-    case 'vibe-pick': return 'Pick a color palette';
+    // vibe-ask + vibe-pick share one folio; the title reads the
+    // same so the header doesn't flicker between sub-steps.
+    case 'vibe-ask':
+    case 'vibe-pick': return 'Choose your palette';
     case 'photos': return 'Add your photos';
     case 'photo-review': return 'Review your photos';
     case 'layout': return 'Choose a layout';
@@ -297,12 +299,16 @@ function isDarkVibe(vibe?: string): boolean {
 // `event-details` sits between venue + photos but isn't counted
 // toward the progress bar — it's optional per-occasion polish and
 // would otherwise make the bar jump for occasions that skip it.
-const TOTAL_STEPS = 12;
+// `vibe-ask` + `vibe-pick` share one folio number — together they
+// represent "choose a palette" from the host's POV, and the two-
+// step counter made the flow feel longer than it is.
+const TOTAL_STEPS = 11;
 function stepIndex(step: Step): number {
-  const ORDER: Step[] = ['category', 'occasion', 'names', 'date', 'venue', 'photos', 'photo-review', 'vibe-ask', 'vibe-pick', 'layout', 'song', 'ready'];
+  const ORDER: Step[] = ['category', 'occasion', 'names', 'date', 'venue', 'photos', 'photo-review', 'vibe-ask', 'layout', 'song', 'ready'];
   const idx = ORDER.indexOf(step);
   if (idx >= 0) return idx;
   if (step === 'event-details') return ORDER.indexOf('venue');
+  if (step === 'vibe-pick') return ORDER.indexOf('vibe-ask');
   return 0;
 }
 
