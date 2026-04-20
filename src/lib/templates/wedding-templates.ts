@@ -1171,6 +1171,110 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       welcomeStatement: 'The who, the when, the where. Everything the trip needs in one place — private, shared only with the people going.',
     },
   },
+
+  // ── 62. Gentle Gathering — bridal shower (Phase B.2) ──
+  {
+    id: 'gentle-gathering',
+    name: 'Gentle Gathering',
+    tagline: 'A soft, storied shower',
+    description: 'An editorial bridal-shower site for the maid of honour or mother-of-the-bride. Blush + sage palette, registry front-and-centre, advice wall collecting notes for the bride.',
+    previewGradient: 'linear-gradient(135deg, #FAF3EE 0%, #F2D4CC 55%, #9AA583 100%)',
+    occasions: ['bridal-shower'],
+    tags: ['shower', 'bridal', 'blush', 'sage', 'intimate', 'editorial'],
+    popularity: 82, price: 149,
+    blocks: [
+      makeBlock('hero', 0, { subtitle: '{{ poetry.heroTagline }}' }),
+      makeBlock('vibeQuote', 1, { text: 'Bring something old, something new, and a piece of advice.', symbol: '✿' }),
+      makeBlock('welcome', 2, { text: '{{ poetry.welcomeStatement }}' }),
+      makeBlock('countdown', 3, { label: 'Until we gather' }),
+      makeBlock('event', 4, { title: 'The afternoon' }),
+      makeBlock('rsvp', 5, { title: 'Will you be there?', introText: '{{ poetry.rsvpIntro }}' }),
+      makeBlock('registry', 6, { title: 'Registry' }),
+      makeBlock('adviceWall', 7, {
+        title: 'Advice wall',
+        subtitle: 'We\u2019ll print the best ones and bring them on the day.',
+        prompt: 'A piece of advice for the new bride.',
+        seeds: [
+          { from: 'Auntie Mo', body: 'Marry someone who laughs at your jokes, even the bad ones.' },
+          { from: 'Grandma', body: 'Never go to bed mad. Go to bed tired.' },
+        ],
+      }),
+      makeBlock('photos', 8, { title: 'Moments', maxPhotos: 12 }),
+      makeBlock('faq', 9, { title: 'Quick answers' }),
+      makeBlock('footer', 10, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
+    ],
+    theme: {
+      colors: {
+        background: '#FAF3EE',
+        foreground: '#3D2E38',
+        accent: '#C98A86',
+        accentLight: '#F2D4CC',
+        muted: '#8C7A78',
+        cardBg: '#FFFFFF',
+      },
+      fonts: { heading: 'Fraunces', body: 'Geist' },
+    },
+    vibeString: 'bridal shower blush sage intimate editorial feminine soft elegant afternoon gentle',
+    layoutFormat: 'cascade',
+    poetry: {
+      heroTagline: 'a gentle gathering',
+      closingLine: 'A soft afternoon, the one before the day.',
+      rsvpIntro: 'We\u2019d love your yes. Let us know any allergies so the menu\u2019s right.',
+      welcomeStatement: 'An afternoon of gifts, stories, and well-wishes before the big day. Small, unhurried, and entirely hers.',
+    },
+  },
+
+  // ── 63. The Night Before — rehearsal dinner (Phase B.2) ──
+  {
+    id: 'the-night-before',
+    name: 'The Night Before',
+    tagline: 'The private one with the people who got you here',
+    description: 'An intimate rehearsal-dinner site for the groom\u2019s parents or hosting couple. Toast signup front-and-centre, menu with dietary tags, and a 40-person seating hint.',
+    previewGradient: 'linear-gradient(135deg, #1E1A14 0%, #3A2E24 50%, #D4B373 100%)',
+    occasions: ['rehearsal-dinner'],
+    tags: ['rehearsal', 'intimate', 'evening', 'dark', 'gold', 'editorial'],
+    popularity: 76, price: 149,
+    blocks: [
+      makeBlock('hero', 0, { subtitle: '{{ poetry.heroTagline }}' }),
+      makeBlock('vibeQuote', 1, { text: 'Tomorrow\u2019s the big one. Tonight is ours.', symbol: '◈' }),
+      makeBlock('welcome', 2, { text: '{{ poetry.welcomeStatement }}' }),
+      makeBlock('event', 3, { title: 'The evening' }),
+      makeBlock('rsvp', 4, { title: 'Will you be there?', introText: '{{ poetry.rsvpIntro }}' }),
+      makeBlock('toastSignup', 5, {
+        title: 'Who\u2019s speaking',
+        subtitle: 'Claim a slot if you have words to share. Keep them to 90 seconds.',
+        slots: [
+          { label: 'Father of the bride', assigned: '', note: 'Opening toast.' },
+          { label: 'Best man', assigned: '', note: 'Before the main course.' },
+          { label: 'Maid of honour', assigned: '', note: 'Between main and dessert.' },
+          { label: 'An open mic', assigned: '', note: 'Anyone — keep it short, keep it kind.' },
+        ],
+      }),
+      makeBlock('weddingParty', 6, { title: 'The table' }),
+      makeBlock('photos', 7, { title: 'Before & after', maxPhotos: 9 }),
+      makeBlock('faq', 8, { title: 'Tonight\u2019s details' }),
+      makeBlock('footer', 9, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
+    ],
+    theme: {
+      colors: {
+        background: '#1E1A14',
+        foreground: '#F1EBDC',
+        accent: '#D4B373',
+        accentLight: '#2F2820',
+        muted: '#9B8F78',
+        cardBg: '#2A2218',
+      },
+      fonts: { heading: 'Fraunces', body: 'Geist' },
+    },
+    vibeString: 'rehearsal dinner intimate evening dark gold editorial warm candlelit',
+    layoutFormat: 'cascade',
+    poetry: {
+      heroTagline: 'the night before',
+      closingLine: 'The room that made the couple who they are.',
+      rsvpIntro: 'A small room, a big moment. Let us know if you can make it — and any dietary notes.',
+      welcomeStatement: 'A private dinner the night before the wedding. Candlelight, a few toasts, the people who know the couple best.',
+    },
+  },
 ];
 
 /**

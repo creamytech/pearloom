@@ -41,6 +41,9 @@ export async function POST(req: NextRequest) {
       message,
       selectedEvents,
       mailingAddress,
+      // New: non-wedding RSVP form sends these
+      preset,
+      answers,
     } = body;
 
     if (!siteId || !guestName) {
@@ -69,6 +72,9 @@ export async function POST(req: NextRequest) {
           message: message || null,
           event_ids: selectedEvents || [],
           mailing_address: mailingAddress || null,
+          // Preset-driven RSVP columns (20260422_rsvp_preset_answers.sql)
+          rsvp_preset: preset || null,
+          rsvp_answers: answers && typeof answers === 'object' ? answers : {},
           responded_at: new Date().toISOString(),
           created_at: new Date().toISOString(),
         },

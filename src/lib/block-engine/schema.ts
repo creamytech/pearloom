@@ -224,6 +224,112 @@ export const BLOCK_SCHEMAS: Record<string, BlockSchema> = {
     },
   },
 
+  packingList: {
+    type: 'packingList',
+    label: 'Packing list',
+    description: 'Bring-this checklist — destination trips, bachelor weekend',
+    icon: 'Briefcase',
+    category: 'content',
+    props: {
+      title: { label: 'Section Title', type: 'text', placeholder: 'What to pack', group: 'Content' },
+      subtitle: { label: 'Subtitle', type: 'text', placeholder: 'The non-negotiables.', group: 'Content' },
+      items: {
+        label: 'Items',
+        type: 'list',
+        group: 'Content',
+        itemLabel: 'Item',
+        itemDefaults: { label: '', category: '', note: '', required: false },
+        itemShape: {
+          label: { label: 'Item', type: 'text', placeholder: 'Swim trunks · Dress shirt · Reef-safe sunscreen' },
+          category: { label: 'Category', type: 'text', placeholder: 'Essentials · Clothes · Optional' },
+          note: { label: 'Note', type: 'text', placeholder: 'One pair — laundry is pricey.' },
+          required: { label: 'Must-have', type: 'boolean' },
+        },
+      },
+    },
+  },
+
+  activityVote: {
+    type: 'activityVote',
+    label: 'Activity vote',
+    description: 'Multi-choice poll — Saturday activity, playlist mood',
+    icon: 'Vote',
+    category: 'interaction',
+    props: {
+      title: { label: 'Section Title', type: 'text', placeholder: 'What should we do?', group: 'Content' },
+      subtitle: { label: 'Subtitle', type: 'text', group: 'Content' },
+      question: { label: 'Question', type: 'text', placeholder: 'Saturday afternoon — pick one:', group: 'Content' },
+      showResults: { label: 'Show running tally', type: 'boolean', defaultValue: true, group: 'Settings' },
+      options: {
+        label: 'Options',
+        type: 'list',
+        group: 'Content',
+        itemLabel: 'Option',
+        itemDefaults: { id: '', label: '', note: '', initialVotes: 0 },
+        itemShape: {
+          id: { label: 'ID (unique, no spaces)', type: 'text', placeholder: 'bar-crawl · boat-day · hike' },
+          label: { label: 'Label', type: 'text', placeholder: 'Bar crawl' },
+          note: { label: 'Note', type: 'text', placeholder: 'Six stops, walking only.' },
+          initialVotes: { label: 'Seed votes', type: 'number', min: 0, description: 'Host-entered starting votes.' },
+        },
+      },
+    },
+  },
+
+  adviceWall: {
+    type: 'adviceWall',
+    label: 'Advice wall',
+    description: 'Prompted guest submissions — baby shower, retirement, milestone',
+    icon: 'Feather',
+    category: 'interaction',
+    props: {
+      title: { label: 'Section Title', type: 'text', placeholder: 'Advice wall', group: 'Content' },
+      subtitle: { label: 'Subtitle', type: 'text', group: 'Content' },
+      prompt: {
+        label: 'Prompt',
+        type: 'text',
+        placeholder: 'A piece of advice for the road ahead.',
+        description: 'Shown above the input. Sets the tone.',
+        group: 'Content',
+      },
+      seeds: {
+        label: 'Seed entries (optional)',
+        type: 'list',
+        group: 'Content',
+        itemLabel: 'Entry',
+        itemDefaults: { from: '', body: '' },
+        itemShape: {
+          from: { label: 'Name', type: 'text', placeholder: 'Auntie Ro' },
+          body: { label: 'Message', type: 'textarea', placeholder: 'Never go to bed angry.' },
+        },
+      },
+    },
+  },
+
+  toastSignup: {
+    type: 'toastSignup',
+    label: 'Toast signup',
+    description: 'Ordered slots for who speaks — rehearsal dinner, milestone birthday',
+    icon: 'Mic',
+    category: 'interaction',
+    props: {
+      title: { label: 'Section Title', type: 'text', placeholder: 'Toasts & words', group: 'Content' },
+      subtitle: { label: 'Subtitle', type: 'text', group: 'Content' },
+      slots: {
+        label: 'Slots',
+        type: 'list',
+        group: 'Content',
+        itemLabel: 'Slot',
+        itemDefaults: { label: '', assigned: '', note: '' },
+        itemShape: {
+          label: { label: 'What', type: 'text', placeholder: 'Father of the bride · Best man · Grandma' },
+          assigned: { label: 'Assigned to', type: 'text', placeholder: 'Leave blank for open' },
+          note: { label: 'Note', type: 'text', placeholder: 'Keep it under 90 seconds.' },
+        },
+      },
+    },
+  },
+
   costSplitter: {
     type: 'costSplitter',
     label: 'Cost share',

@@ -269,8 +269,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     optionalBlocks: ['spotify', 'photoWall', 'activityVote', 'quote', 'hashtag'],
     hiddenBlocks: ['weddingParty', 'anniversary', 'obituary'],
-    templateIds: ['southern-magnolia', 'vintage-romance', 'blush-romance'],
-    status: 'planned',
+    templateIds: ['gentle-gathering', 'southern-magnolia', 'vintage-romance'],
+    status: 'beta',
   },
   {
     id: 'bridal-luncheon',
@@ -302,8 +302,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     optionalBlocks: ['story', 'weddingParty', 'quote', 'spotify'],
     hiddenBlocks: ['registry', 'anniversary', 'obituary', 'countdown'],
-    templateIds: ['quiet-luxury', 'vintage-romance', 'classic-cathedral'],
-    status: 'planned',
+    templateIds: ['the-night-before', 'quiet-luxury', 'vintage-romance'],
+    status: 'beta',
   },
   {
     id: 'welcome-party',

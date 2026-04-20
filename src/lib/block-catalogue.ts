@@ -69,6 +69,10 @@ export const BLOCK_CATALOGUE: BlockDef[] = [
   { type: 'faq',       label: 'FAQ',               description: 'Common guest questions & answers',            color: '#8b7a4a', category: 'logistics', occasions: ['wedding', 'engagement'] },
   { type: 'itinerary', label: 'Itinerary',         description: 'Multi-day hourly schedule with details',       color: '#5C6B3F', category: 'logistics', occasions: ['wedding', 'engagement'] },
   { type: 'costSplitter', label: 'Cost share',      description: 'Shared group-trip budget + per-person share', color: '#C49A6F', category: 'gifts',     occasions: ['wedding', 'engagement'] },
+  { type: 'packingList',  label: 'Packing list',     description: 'What to bring — destination trips, weekends',  color: '#8B6F8E', category: 'logistics', occasions: ['wedding', 'engagement'] },
+  { type: 'activityVote', label: 'Activity vote',    description: 'Multi-choice poll — activity, playlist, venue', color: '#7A8B4A', category: 'guests',    occasions: ['wedding', 'engagement'] },
+  { type: 'adviceWall',   label: 'Advice wall',      description: 'Prompted guest submissions with a public wall', color: '#B8935A', category: 'guests',    occasions: ['wedding', 'engagement'] },
+  { type: 'toastSignup',  label: 'Toast signup',     description: 'Ordered slots for who speaks and when',         color: '#7A2D2D', category: 'guests',    occasions: ['wedding', 'engagement'] },
 
   // gifts
   { type: 'registry',  label: 'Registry',          description: 'Registry links & honeymoon fund',             color: '#c4774a', category: 'gifts',     occasions: ['wedding', 'engagement', 'birthday'] },

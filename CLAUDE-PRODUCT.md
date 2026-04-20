@@ -440,6 +440,31 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-04-22 — Phase B.1 completion + B.2 + B.3
+
+**Phase B.1 wrap-up (bachelor/ette deep)**
+- 4 new blocks shipped end-to-end (renderer + schema + catalogue + SiteRenderer case):
+  - `packingList` — checklist grouped by category, per-guest check-off via localStorage
+  - `activityVote` — multi-choice poll with bars + "your pick" marker, localStorage vote
+  - `adviceWall` — prompted submissions, seeded entries from host, local submit
+  - `toastSignup` — ordered slots with name claim via localStorage
+- All four are purely presentational + localStorage for MVP; Supabase tables (`tribute_submissions`, `toast_signups`, `activity_votes`) remain the right next step for real multi-guest sync.
+
+**Supabase: `guests.rsvp_preset` + `guests.rsvp_answers`**
+- Migration `20260422_rsvp_preset_answers.sql` adds `rsvp_preset TEXT` + `rsvp_answers JSONB` to the `guests` table (the actual RSVP store; `public.rsvps` is legacy).
+- `/api/rsvp` writes both on every submission; legacy columns (meal_preference, dietary_restrictions, song_request, message) remain authoritative when the preset maps onto them.
+- Guest dashboards that want preset-specific answers now have a JSONB column to read from.
+
+**Phase B.2 shipped — bridal-shower → beta**
+- Template `gentle-gathering` (blush + sage) with registry, advice wall (seeded), countdown, RSVP.
+- Event-type status: `bridal-shower` planned → beta.
+
+**Phase B.3 shipped — rehearsal-dinner → beta**
+- Template `the-night-before` (dark + gold) with toast signup (4 preset slots), small-group RSVP.
+- Event-type status: `rehearsal-dinner` planned → beta.
+
+Currently shipping/beta: wedding, engagement, anniversary, birthday, story (shipping) + bachelor-party, bachelorette-party, bridal-shower, rehearsal-dinner (beta). 9 of 28 event types.
+
 ### 2026-04-21 — Phase B.1 kickoff (bachelor/bachelorette party to beta)
 
 - **Itinerary block** — `src/components/site/ItineraryBlock.tsx` + case in SiteRenderer. Multi-day hourly schedule with time/title/detail/location per slot. Registered in `block-catalogue.ts`. Reads from `PageBlock.config.days[]`.

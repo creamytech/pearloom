@@ -19,6 +19,10 @@ import { WeddingEvents } from '@/components/wedding-events';
 import { VisualTimeline } from '@/components/visual-timeline';
 import { ItineraryBlock } from '@/components/site/ItineraryBlock';
 import { CostSplitterBlock } from '@/components/site/CostSplitterBlock';
+import { PackingListBlock } from '@/components/site/PackingListBlock';
+import { ActivityVoteBlock } from '@/components/site/ActivityVoteBlock';
+import { AdviceWallBlock } from '@/components/site/AdviceWallBlock';
+import { ToastSignupBlock } from '@/components/site/ToastSignupBlock';
 import { getEventType } from '@/lib/event-os/event-types';
 import { RegistryShowcase } from '@/components/registry-showcase';
 import { FaqSection } from '@/components/faq-section';
@@ -2558,6 +2562,101 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               headcount={headcount}
               lineItems={lineItems}
               payoutHandle={payoutHandle}
+              accent={pal.accent}
+              foreground={safeFg}
+              muted={safeMuted}
+              headingFont={`"${vibeSkin.fonts.heading}", serif`}
+              bodyFont={`"${vibeSkin.fonts.body}", system-ui, sans-serif`}
+            />
+          </div>
+        );
+      }
+      case 'packingList': {
+        const rawItems = (blockCfg.items as Array<{ label?: string; category?: string; note?: string; required?: boolean }>) || [];
+        const items = rawItems
+          .filter((i) => (i.label ?? '').trim().length > 0)
+          .map((i) => ({ label: i.label ?? '', category: i.category, note: i.note, required: !!i.required }));
+        if (items.length === 0 && !editMode) return null;
+        return (
+          <div key={key} style={blockStyle}>
+            <PackingListBlock
+              title={(blockCfg.title as string) || 'What to pack'}
+              subtitle={blockCfg.subtitle as string | undefined}
+              storageKey={manifest.subdomain || 'default'}
+              items={items}
+              accent={pal.accent}
+              foreground={safeFg}
+              muted={safeMuted}
+              headingFont={`"${vibeSkin.fonts.heading}", serif`}
+              bodyFont={`"${vibeSkin.fonts.body}", system-ui, sans-serif`}
+            />
+          </div>
+        );
+      }
+      case 'activityVote': {
+        const rawOptions = (blockCfg.options as Array<{ id?: string; label?: string; note?: string; initialVotes?: number }>) || [];
+        const options = rawOptions
+          .filter((o) => (o.label ?? '').trim().length > 0)
+          .map((o, i) => ({
+            id: (o.id ?? '').trim() || `opt-${i}`,
+            label: o.label ?? '',
+            note: o.note,
+            initialVotes: Number(o.initialVotes) || 0,
+          }));
+        if (options.length === 0 && !editMode) return null;
+        return (
+          <div key={key} style={blockStyle}>
+            <ActivityVoteBlock
+              title={(blockCfg.title as string) || 'What should we do?'}
+              subtitle={blockCfg.subtitle as string | undefined}
+              question={blockCfg.question as string | undefined}
+              storageKey={manifest.subdomain || 'default'}
+              options={options}
+              showResults={blockCfg.showResults !== false}
+              accent={pal.accent}
+              foreground={safeFg}
+              muted={safeMuted}
+              headingFont={`"${vibeSkin.fonts.heading}", serif`}
+              bodyFont={`"${vibeSkin.fonts.body}", system-ui, sans-serif`}
+            />
+          </div>
+        );
+      }
+      case 'adviceWall': {
+        const rawSeeds = (blockCfg.seeds as Array<{ from?: string; body?: string; at?: string }>) || [];
+        const seeds = rawSeeds
+          .filter((e) => (e.body ?? '').trim().length > 0)
+          .map((e) => ({ from: e.from ?? 'Anonymous', body: e.body ?? '', at: e.at }));
+        return (
+          <div key={key} style={blockStyle}>
+            <AdviceWallBlock
+              title={(blockCfg.title as string) || 'Advice wall'}
+              subtitle={blockCfg.subtitle as string | undefined}
+              prompt={(blockCfg.prompt as string) || 'A piece of advice for the road ahead.'}
+              seeds={seeds}
+              storageKey={manifest.subdomain || 'default'}
+              accent={pal.accent}
+              foreground={safeFg}
+              muted={safeMuted}
+              headingFont={`"${vibeSkin.fonts.heading}", serif`}
+              bodyFont={`"${vibeSkin.fonts.body}", system-ui, sans-serif`}
+            />
+          </div>
+        );
+      }
+      case 'toastSignup': {
+        const rawSlots = (blockCfg.slots as Array<{ label?: string; assigned?: string; note?: string }>) || [];
+        const slots = rawSlots
+          .filter((s) => (s.label ?? '').trim().length > 0)
+          .map((s) => ({ label: s.label ?? '', assigned: s.assigned, note: s.note }));
+        if (slots.length === 0 && !editMode) return null;
+        return (
+          <div key={key} style={blockStyle}>
+            <ToastSignupBlock
+              title={(blockCfg.title as string) || 'Toasts & words'}
+              subtitle={blockCfg.subtitle as string | undefined}
+              slots={slots}
+              storageKey={manifest.subdomain || 'default'}
               accent={pal.accent}
               foreground={safeFg}
               muted={safeMuted}
