@@ -732,6 +732,11 @@ export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPage
       </section>
 
       {/* ── Footer ────────────────────────────────────────────── */}
+      <Wave
+        color="color-mix(in oklab, var(--pl-groove-plum) 14%, var(--pl-groove-cream))"
+        depth="deep"
+        height={110}
+      />
       <MarketingFooter />
 
       {/* ── Auth modal ─────────────────────────────────────────── */}

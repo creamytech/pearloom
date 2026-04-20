@@ -83,20 +83,39 @@ export function MarketingFooter() {
 
   return (
     <footer
-      className="border-t py-[clamp(3rem,5vw,5rem)] px-6 pb-10"
+      className="py-[clamp(3rem,5vw,5rem)] px-6 pb-10"
       style={{
-        background: 'var(--pl-cream-deep)',
-        borderColor: 'var(--pl-divider)',
-        color: 'var(--pl-ink-soft)',
+        position: 'relative',
+        background:
+          'radial-gradient(ellipse at 50% 100%, color-mix(in oklab, var(--pl-groove-plum) 14%, var(--pl-groove-cream)) 0%, color-mix(in oklab, var(--pl-groove-butter) 10%, var(--pl-groove-cream)) 60%)',
+        color: 'var(--pl-groove-ink)',
+        overflow: 'hidden',
       }}
     >
-      <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
+      {/* Atmospheric blob drifting behind the footer */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          bottom: '-120px',
+          right: '-80px',
+          width: 440,
+          height: 440,
+          borderRadius: '42% 58% 70% 30% / 45% 30% 70% 55%',
+          background: 'var(--pl-groove-rose)',
+          opacity: 0.28,
+          filter: 'blur(70px)',
+          animation: 'pl-groove-blob-morph 22s ease-in-out infinite',
+          pointerEvents: 'none',
+        }}
+      />
+      <div style={{ position: 'relative', zIndex: 1, maxWidth: layout.maxWidth, margin: '0 auto' }}>
         {/* Top row */}
         <div className="flex flex-col md:flex-row gap-10 mb-12">
           {/* Brand column */}
           <div className="md:w-[260px] flex-shrink-0">
             <div className="flex items-center gap-2.5 mb-4">
-              <PearIcon size={28} color="var(--pl-olive)" />
+              <PearIcon size={28} color="var(--pl-groove-terra)" />
               <span
                 className="font-heading text-[1.35rem] font-bold italic tracking-[0.03em]"
                 style={{ color: 'var(--pl-ink)' }}
