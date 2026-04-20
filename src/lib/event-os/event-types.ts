@@ -230,8 +230,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     optionalBlocks: ['photoWall', 'spotify', 'groupChat', 'map', 'dressCode'],
     hiddenBlocks: ['weddingParty', 'registry', 'anniversary', 'obituary'],
-    templateIds: ['neon-nights', 'desert-boho', 'chic-monochrome'],
-    status: 'planned',
+    templateIds: ['last-weekend-in', 'neon-nights', 'desert-boho'],
+    status: 'beta',
   },
   {
     id: 'bachelorette-party',
@@ -250,8 +250,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     optionalBlocks: ['photoWall', 'spotify', 'groupChat', 'map', 'hashtag'],
     hiddenBlocks: ['weddingParty', 'registry', 'anniversary', 'obituary'],
-    templateIds: ['desert-boho', 'tropical-breeze', 'modern-glam'],
-    status: 'planned',
+    templateIds: ['last-weekend-in', 'desert-boho', 'tropical-breeze'],
+    status: 'beta',
   },
   {
     id: 'bridal-shower',

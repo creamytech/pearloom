@@ -67,6 +67,7 @@ export const BLOCK_CATALOGUE: BlockDef[] = [
   { type: 'travel',    label: 'Travel & Hotels',   description: 'Hotels, airports & directions',               color: '#4a7a9b', category: 'logistics', occasions: ['wedding', 'engagement'] },
   { type: 'map',       label: 'Map',               description: 'Embedded venue map',                          color: '#4a6a8b', category: 'logistics', occasions: ['wedding', 'engagement', 'anniversary'] },
   { type: 'faq',       label: 'FAQ',               description: 'Common guest questions & answers',            color: '#8b7a4a', category: 'logistics', occasions: ['wedding', 'engagement'] },
+  { type: 'itinerary', label: 'Itinerary',         description: 'Multi-day hourly schedule with details',       color: '#5C6B3F', category: 'logistics', occasions: ['wedding', 'engagement'] },
 
   // gifts
   { type: 'registry',  label: 'Registry',          description: 'Registry links & honeymoon fund',             color: '#c4774a', category: 'gifts',     occasions: ['wedding', 'engagement', 'birthday'] },

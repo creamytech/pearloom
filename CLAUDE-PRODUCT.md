@@ -440,6 +440,24 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-04-21 — Phase B.1 kickoff (bachelor/bachelorette party to beta)
+
+- **Itinerary block** — `src/components/site/ItineraryBlock.tsx` + case in SiteRenderer. Multi-day hourly schedule with time/title/detail/location per slot. Registered in `block-catalogue.ts`. Reads from `PageBlock.config.days[]`.
+- **"Last Weekend In" template** — `id: 'last-weekend-in'` in `wedding-templates.ts`. Editorial midnight palette, applies to both `bachelor-party` and `bachelorette-party`. Ships with a full 3-day itinerary skeleton guests can edit.
+- **Status graduation** — `bachelor-party` and `bachelorette-party` moved from `'planned'` to `'beta'` in EVENT_TYPES. Both now have a real template and at least one working block differentiator.
+
+**Remaining Phase B.1 work (next session):**
+- **RSVP preset form** — `rsvp-form.tsx` still renders wedding fields only. The preset data exists in `rsvp-presets.ts`; the form needs to accept an `RsvpPreset` prop and render its fields. This is the single biggest unlock for all planned event types (not just bachelor).
+- Panel UI for the itinerary block (edit days, add slots, reorder) — currently editable only via JSON config on the block.
+- Remaining distinguishing blocks: `costSplitter`, `activityVote`, `packingList`, `privacyGate` — declared in `BlockType` and in the template's `optionalBlocks`, but not yet implemented.
+
+### 2026-04-21 — Phase A complete (foundation)
+
+- **A.1** — `EventType` registry with 28 entries (5 shipping, 23 planned) + 18 new `BlockType` values + expanded `SiteOccasion` + proxy allowlist from registry.
+- **A.2** — Wizard two-step category → event picker. New `'category'` step before `'occasion'`; event options filtered by category via `getEventTypesByCategory()`.
+- **A.3** — RSVP preset system at `src/lib/event-os/rsvp-presets.ts`. 8 presets, 16 field kinds, 4 unit tests.
+- **A.4** — `filterBlocksForOccasion` in `block-catalogue.ts` delegates to the registry; BlockLibraryDrawer auto-updates.
+
 ### 2026-04-21 — Initial draft
 - Created this file with:
   - Current state (§2): 5 occasions, 26 blocks, 60+ templates

@@ -17,6 +17,7 @@ import { Hero } from '@/components/hero';
 import { StorySection, chapterDateFormatOptions } from '@/components/blocks/StoryLayouts';
 import { WeddingEvents } from '@/components/wedding-events';
 import { VisualTimeline } from '@/components/visual-timeline';
+import { ItineraryBlock } from '@/components/site/ItineraryBlock';
 import { RegistryShowcase } from '@/components/registry-showcase';
 import { FaqSection } from '@/components/faq-section';
 import { TravelSection } from '@/components/travel-section';
@@ -2446,6 +2447,53 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               )}
             </div>
           </section>
+        );
+      }
+      case 'itinerary': {
+        // Multi-day schedule for bachelor/ette, reunion, welcome party.
+        // Data layout: config.days = [{ label, date?, slots: [{time, title, detail?, location?}] }]
+        const rawDays = (blockCfg.days as Array<{
+          label?: string;
+          date?: string;
+          slots?: Array<{ time?: string; title?: string; detail?: string; location?: string }>;
+        }>) || [];
+        const days = rawDays.map((d, i) => ({
+          label: d.label || `Day ${i + 1}`,
+          date: d.date,
+          slots: (d.slots || [])
+            .filter((s) => (s.title ?? '').trim().length > 0)
+            .map((s) => ({
+              time: s.time,
+              title: s.title ?? '',
+              detail: s.detail,
+              location: s.location,
+            })),
+        }));
+        if (days.length === 0) {
+          return editMode ? (
+            <section key={key} data-pe-section="itinerary" data-pe-empty-section="itinerary" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
+              <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
+                <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Itinerary</div>
+                <p style={{ fontSize: '0.8rem' }}>Add your day-by-day plan in the Itinerary panel.</p>
+              </div>
+            </section>
+          ) : null;
+        }
+        const title = (blockCfg.title as string) || 'The plan';
+        const subtitle = (blockCfg.subtitle as string) || undefined;
+        return (
+          <div key={key} style={blockStyle}>
+            <ItineraryBlock
+              title={title}
+              subtitle={subtitle}
+              days={days}
+              accent={pal.accent}
+              foreground={safeFg}
+              muted={safeMuted}
+              headingFont={`"${vibeSkin.fonts.heading}", serif`}
+              bodyFont={`"${vibeSkin.fonts.body}", system-ui, sans-serif`}
+            />
+          </div>
         );
       }
       default:

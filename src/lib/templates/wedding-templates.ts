@@ -1101,6 +1101,69 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'nature organic sustainable earth green eco raw grounded peaceful', layoutFormat: 'cascade',
     poetry: { heroTagline: 'rooted in love, growing wild', closingLine: 'Plant love. Water it daily. Watch it grow.', rsvpIntro: 'Come celebrate with us — under the open sky.', welcomeStatement: 'Welcome to our celebration of love and nature. No waste, no excess — just the beauty of the earth and the warmth of community.' },
   },
+
+  // ── 61. Last Weekend In — bachelor / bachelorette party (Phase B.1) ──
+  {
+    id: 'last-weekend-in',
+    name: 'Last Weekend In',
+    tagline: 'The weekend they\'ll still talk about in ten years',
+    description: 'A private, itinerary-first site for bachelor and bachelorette parties. Built for the best man or maid of honour to share details with only the people going — itinerary, cost share, packing list, room assignments — and nothing else.',
+    previewGradient: 'linear-gradient(135deg, #1A1410 0%, #3A2818 50%, #C49A6F 100%)',
+    occasions: ['bachelor-party', 'bachelorette-party'],
+    tags: ['bachelor', 'bachelorette', 'trip', 'weekend', 'private', 'itinerary', 'group'],
+    popularity: 88, price: 199,
+    blocks: [
+      makeBlock('hero', 0, { subtitle: '{{ poetry.heroTagline }}' }),
+      makeBlock('vibeQuote', 1, { text: 'Packed, planned, and paid up.', symbol: '◆' }),
+      makeBlock('welcome', 2, { text: '{{ poetry.welcomeStatement }}' }),
+      makeBlock('countdown', 3, { label: 'Until wheels up' }),
+      makeBlock('itinerary', 4, {
+        title: 'The plan',
+        subtitle: 'Every hour accounted for — or close enough.',
+        days: [
+          { label: 'Friday', slots: [
+            { time: '16:00', title: 'Arrivals', location: 'The house', detail: 'Front door is open — key in the lockbox if you\u2019re early.' },
+            { time: '19:00', title: 'Welcome dinner', location: 'Chez nous', detail: 'Kitchen table. Nothing fancy.' },
+            { time: '21:30', title: 'First round', location: 'The Hollow', detail: 'Two-block walk from the house.' },
+          ]},
+          { label: 'Saturday', slots: [
+            { time: '09:00', title: 'Breakfast + coffee', location: 'The house' },
+            { time: '11:00', title: 'The main event', detail: 'See vote in the activity block — final pick by Thursday.' },
+            { time: '19:00', title: 'Dinner reservation', location: 'Supper Club', detail: 'Collared shirt, please. They\u2019ll turn us away otherwise.' },
+            { time: '22:00', title: 'The main event', detail: 'Rolling through the night.' },
+          ]},
+          { label: 'Sunday', slots: [
+            { time: '10:30', title: 'Recovery brunch', location: 'The diner on the corner' },
+            { time: '13:00', title: 'Checkout' },
+          ]},
+        ],
+      }),
+      makeBlock('event', 5, { title: 'Where we\u2019re staying' }),
+      makeBlock('rsvp', 6, { title: 'In or out', introText: '{{ poetry.rsvpIntro }}' }),
+      makeBlock('faq', 7, { title: 'Quick answers' }),
+      makeBlock('photos', 8, { title: 'Proof of life', maxPhotos: 12 }),
+      makeBlock('footer', 9, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
+    ],
+    theme: {
+      colors: {
+        background: '#161006',
+        foreground: '#F0E8D4',
+        accent: '#C49A6F',
+        accentLight: '#2A1F10',
+        muted: '#9B8A66',
+        cardBg: '#1F1610',
+      },
+      fonts: { heading: 'Fraunces', body: 'Geist' },
+    },
+    vibeString: 'bachelor bachelorette weekend trip itinerary private group dark warm masculine sophisticated',
+    layoutFormat: 'cascade',
+    poetry: {
+      heroTagline: 'last weekend in',
+      closingLine: 'What happens this weekend — goes in the group chat forever.',
+      rsvpIntro: 'Drop in if you\u2019re in. Flag anything we should know — allergies, timing, budget.',
+      welcomeStatement: 'The who, the when, the where. Everything the trip needs in one place — private, shared only with the people going.',
+    },
+  },
 ];
 
 /**
