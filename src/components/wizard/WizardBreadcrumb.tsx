@@ -182,34 +182,16 @@ export function WizardBreadcrumb({
         paddingBottom: 10,
       }}
     >
-      {/* Eyebrow kicker */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '0 4px 8px',
-      }}>
-        <span style={{
-          fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
-          fontSize: 9,
-          fontWeight: 700,
-          letterSpacing: '0.32em',
-          textTransform: 'uppercase',
-          color: palette.eyebrow,
-        }}>
-          Issue · step {String(activeIdx + 1).padStart(2, '0')} / {String(STEPS.length).padStart(2, '0')}
-        </span>
-        <span style={{ flex: 1, height: 1, background: palette.rule }} />
-      </div>
-
-      {/* Breadcrumb rail */}
+      {/* Chip row — warm pills, no folio numbers, no mono caps. Shows
+          what's been answered so far with the value; current step gets
+          a groovy halo. Click a done chip to edit that field. */}
       <div
         role="list"
         style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${visibleSteps.length}, minmax(0, 1fr))`,
-          gap: 4,
+          display: 'flex',
+          gap: 8,
           padding: 2,
+          flexWrap: 'wrap',
         }}
       >
         <AnimatePresence>
@@ -218,7 +200,6 @@ export function WizardBreadcrumb({
             const isActive = step.currentStepMatch.includes(currentStep);
             const isDone = !!value && !isActive;
             const isIdle = !isDone && !isActive;
-            const folioNum = String(i + 1).padStart(2, '0');
 
             return (
               <motion.button
@@ -244,92 +225,61 @@ export function WizardBreadcrumb({
                     : step.label
                 }
                 style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-start',
-                  justifyContent: 'space-between',
-                  gap: 4,
-                  padding: '8px 10px 10px',
-                  borderRadius: 'var(--pl-radius-xs)',
-                  border: `1px solid ${isActive ? palette.activeBorder : 'transparent'}`,
-                  background: isActive ? palette.activeBg : 'transparent',
-                  borderTop: `1.5px solid ${isActive ? palette.activeBorder : isDone ? palette.accent : palette.rule}`,
-                  boxShadow: isActive ? '0 0 0 3px rgba(184,147,90,0.14)' : 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '8px 14px',
+                  borderRadius: 999,
+                  border: `1px solid ${isActive ? palette.activeBorder : isDone ? palette.accent + '55' : palette.rule}`,
+                  background: isActive
+                    ? palette.activeBg
+                    : isDone
+                    ? `color-mix(in oklab, ${palette.accent} 14%, transparent)`
+                    : 'transparent',
+                  boxShadow: isActive
+                    ? `0 0 0 3px color-mix(in oklab, ${palette.activeBorder} 22%, transparent)`
+                    : 'none',
                   cursor: isDone ? 'pointer' : 'default',
                   textAlign: 'left',
-                  transition: 'background 180ms cubic-bezier(0.22,1,0.36,1), box-shadow 180ms ease, border-color 180ms ease',
-                  minHeight: 56,
-                  position: 'relative',
-                  fontFamily: 'inherit',
+                  transition:
+                    'background var(--pl-dur-fast) var(--pl-ease-out),' +
+                    ' box-shadow var(--pl-dur-fast) var(--pl-ease-out),' +
+                    ' border-color var(--pl-dur-fast) var(--pl-ease-out)',
+                  opacity: isIdle ? 0.55 : 1,
+                  fontFamily: 'var(--pl-font-body)',
+                  fontSize: '0.86rem',
+                  fontWeight: isActive ? 700 : 500,
+                  lineHeight: 1.2,
+                  color: isActive ? palette.value : isDone ? palette.doneValue : palette.labelIdle,
+                  letterSpacing: '-0.005em',
                 }}
               >
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  width: '100%',
-                }}>
-                  <span style={{
-                    fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
-                    fontSize: 8.5,
-                    fontWeight: 700,
-                    letterSpacing: '0.24em',
-                    color: isActive ? palette.activeFolio : isDone ? palette.folio : palette.folioIdle,
-                    lineHeight: 1,
-                  }}>
-                    № {folioNum}
-                  </span>
-                  {isDone && (
-                    <span aria-hidden="true" style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      color: palette.accent,
-                    }}>
-                      <Check size={9} strokeWidth={3} />
-                    </span>
-                  )}
-                  <span style={{
-                    flex: 1,
-                    fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
-                    fontSize: 8.5,
-                    fontWeight: 700,
-                    letterSpacing: '0.22em',
-                    textTransform: 'uppercase',
-                    color: isIdle ? palette.labelIdle : palette.label,
-                    lineHeight: 1,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}>
-                    {step.label}
-                  </span>
-                  {isDone && (
-                    <span aria-hidden="true" style={{
-                      opacity: 0.55,
-                      color: palette.label,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                    }}>
-                      <X size={9} strokeWidth={3} />
-                    </span>
-                  )}
-                </div>
-                <span style={{
-                  fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
-                  fontStyle: 'italic',
-                  fontSize: '0.85rem',
-                  fontWeight: 400,
-                  lineHeight: 1.15,
-                  color: isActive ? palette.value : isDone ? palette.doneValue : palette.labelIdle,
-                  letterSpacing: '-0.003em',
-                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  width: '100%',
-                }}>
-                  {value || (isActive ? 'in progress…' : '—')}
+                <span style={{ color: isActive ? palette.value : palette.label, fontWeight: 600 }}>
+                  {step.label}
                 </span>
+                {value && (
+                  <>
+                    <span aria-hidden style={{ opacity: 0.5 }}>·</span>
+                    <span style={{
+                      maxWidth: 140,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {value}
+                    </span>
+                  </>
+                )}
+                {isDone && (
+                  <span aria-hidden style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    color: palette.accent,
+                    marginLeft: 2,
+                  }}>
+                    <Check size={11} strokeWidth={3} />
+                  </span>
+                )}
               </motion.button>
             );
           })}

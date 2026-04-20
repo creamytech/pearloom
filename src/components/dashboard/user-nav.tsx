@@ -140,10 +140,16 @@ export function UserNav({ user, onDashboard }: UserNavProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.97 }}
             transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute top-[calc(100%+0.6rem)] right-0 w-[min(296px,calc(100vw-2rem))] bg-white rounded-[var(--pl-radius-lg)] border border-[var(--pl-divider)] shadow-[0_16px_48px_rgba(43,30,20,0.14),0_4px_12px_rgba(43,30,20,0.06)] overflow-hidden z-[200]"
+            className="absolute top-[calc(100%+0.6rem)] right-0 w-[min(296px,calc(100vw-2rem))] rounded-[28px] overflow-hidden z-[200]"
+            style={{
+              background: 'var(--pl-groove-cream)',
+              border: '1px solid color-mix(in oklab, var(--pl-groove-terra) 22%, transparent)',
+              boxShadow:
+                '0 16px 48px rgba(139,74,106,0.14), 0 4px 12px rgba(43,30,20,0.06)',
+            }}
           >
             {/* ── Identity header ── */}
-            <div className="px-4 pt-4 pb-3 border-b border-[var(--pl-divider)]">
+            <div className="px-4 pt-4 pb-3 border-b border-[color-mix(in_oklab,var(--pl-groove-terra)_14%,transparent)]">
               <div className="flex items-center gap-3">
                 <Avatar user={user} size="lg" />
                 <div className="flex-1 min-w-0">
@@ -166,7 +172,7 @@ export function UserNav({ user, onDashboard }: UserNavProps) {
             </div>
 
             {/* ── Quick links ── */}
-            <div className="flex items-stretch border-b border-[var(--pl-divider)]">
+            <div className="flex items-stretch border-b border-[color-mix(in_oklab,var(--pl-groove-terra)_14%,transparent)]">
               {[
                 { icon: LayoutDashboard, label: 'Dashboard', action: () => { setIsOpen(false); if (onDashboard) onDashboard(); else window.location.href = '/dashboard'; } },
                 { icon: LayoutGrid,      label: 'Gallery',   action: () => { setIsOpen(false); window.location.href = '/dashboard/gallery'; } },
@@ -175,7 +181,7 @@ export function UserNav({ user, onDashboard }: UserNavProps) {
                 <button
                   key={label}
                   onClick={action}
-                  className="flex-1 flex flex-col items-center gap-1.5 py-3 border-0 bg-transparent cursor-pointer text-[var(--pl-muted)] hover:bg-[var(--pl-cream)] hover:text-[var(--pl-ink)] transition-colors duration-120"
+                  className="flex-1 flex flex-col items-center gap-1.5 py-3 border-0 bg-transparent cursor-pointer text-[color-mix(in_oklab,var(--pl-groove-ink)_65%,transparent)] hover:bg-[color-mix(in_oklab,var(--pl-groove-butter)_22%,transparent)] hover:text-[var(--pl-groove-ink)] transition-colors duration-150"
                 >
                   <Icon size={15} />
                   <span className="text-[0.62rem] font-semibold tracking-[0.04em]">{label}</span>
@@ -184,7 +190,7 @@ export function UserNav({ user, onDashboard }: UserNavProps) {
             </div>
 
             {/* ── Inline name edit ── */}
-            <div className="px-4 py-3.5 border-b border-[var(--pl-divider)]">
+            <div className="px-4 py-3.5 border-b border-[color-mix(in_oklab,var(--pl-groove-terra)_14%,transparent)]">
               <div className="text-[0.6rem] font-bold uppercase tracking-[0.1em] text-[var(--pl-muted)] mb-1.5">
                 Display Name
               </div>
@@ -194,18 +200,23 @@ export function UserNav({ user, onDashboard }: UserNavProps) {
                   onChange={e => setDisplayName(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') handleSave(); }}
                   placeholder="Your name"
-                  className="flex-1 min-w-0 px-2.5 py-1.5 rounded-[var(--pl-radius-sm)] border border-[var(--pl-divider)] text-[max(16px,0.85rem)] text-[var(--pl-ink)] bg-white outline-none focus:border-[var(--pl-olive)] transition-colors font-body"
+                  className="flex-1 min-w-0 px-3 py-1.5 rounded-full border border-[color-mix(in_oklab,var(--pl-groove-terra)_26%,transparent)] text-[max(16px,0.85rem)] text-[var(--pl-groove-ink)] bg-[var(--pl-groove-cream)] outline-none focus:border-[var(--pl-groove-terra)] transition-colors font-body"
                 />
                 <button
                   onClick={handleSave}
                   disabled={saving || !displayName.trim() || displayName === user.name}
                   className={cn(
-                    'px-3 py-1.5 rounded-[var(--pl-radius-sm)] border-0 text-[0.78rem] font-bold cursor-pointer flex items-center gap-1 transition-all duration-150 flex-shrink-0',
+                    'px-3 py-1.5 rounded-full border-0 text-[0.78rem] font-bold cursor-pointer flex items-center gap-1 transition-all duration-150 flex-shrink-0',
                     saved
-                      ? 'bg-[var(--pl-olive-mist)] text-[var(--pl-olive-deep)]'
-                      : 'bg-[var(--pl-olive)] text-white hover:opacity-88',
+                      ? 'bg-[color-mix(in_oklab,var(--pl-groove-sage)_28%,transparent)] text-[var(--pl-groove-sage)]'
+                      : 'text-white hover:opacity-90',
                     (saving || !displayName.trim() || displayName === user.name) && 'opacity-40 cursor-default',
                   )}
+                  style={
+                    saved
+                      ? undefined
+                      : { background: 'var(--pl-groove-blob-sunrise)' }
+                  }
                 >
                   {saving ? <Loader2 size={11} className="animate-spin" /> : saved ? <Check size={11} /> : 'Save'}
                 </button>
@@ -217,7 +228,7 @@ export function UserNav({ user, onDashboard }: UserNavProps) {
 
             {/* ── Plan card — only show upgrade if on free ── */}
             {!isPaid && (
-              <div className="px-4 py-3.5 border-b border-[var(--pl-divider)]">
+              <div className="px-4 py-3.5 border-b border-[color-mix(in_oklab,var(--pl-groove-terra)_14%,transparent)]">
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 mb-0.5">
@@ -230,7 +241,8 @@ export function UserNav({ user, onDashboard }: UserNavProps) {
                   </div>
                   <button
                     onClick={() => { setIsOpen(false); window.location.href = '/dashboard?upgrade=true'; }}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-[var(--pl-radius-sm)] border-0 bg-[var(--pl-ink)] text-white text-[0.68rem] font-bold cursor-pointer hover:opacity-85 transition-opacity flex-shrink-0"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-full border-0 text-white text-[0.72rem] font-bold cursor-pointer hover:opacity-90 transition-opacity flex-shrink-0"
+                    style={{ background: 'var(--pl-groove-blob-sunrise)' }}
                   >
                     Upgrade <ExternalLink size={9} />
                   </button>
@@ -240,7 +252,7 @@ export function UserNav({ user, onDashboard }: UserNavProps) {
 
             {/* ── Current plan info if paid ── */}
             {isPaid && (
-              <div className="px-4 py-3.5 border-b border-[var(--pl-divider)]">
+              <div className="px-4 py-3.5 border-b border-[color-mix(in_oklab,var(--pl-groove-terra)_14%,transparent)]">
                 <div className="flex items-center gap-2">
                   <PlanIcon size={13} style={{ color: planInfo.color }} />
                   <span className="text-[0.72rem] font-bold text-[var(--pl-ink-soft)]">

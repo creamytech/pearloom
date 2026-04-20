@@ -8,7 +8,7 @@
 
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Cake, Sparkles, Diamond, BookOpen } from 'lucide-react';
+import { Heart, Cake, Sparkles, Diamond, BookOpen, Users, Mountain, Crown, Globe2 } from 'lucide-react';
 
 // ── Shared tokens ─────────────────────
 
@@ -41,25 +41,47 @@ const fadeIn = {
 // ── Occasion icon + description map ─────────────────────────
 
 const OCCASION_META: Record<string, { icon: React.ReactNode; description: string }> = {
+  // Categories (first wizard step)
+  'wedding-arc': {
+    icon: <Heart size={22} strokeWidth={1.8} />,
+    description: 'Weddings, showers, bachelor weekends',
+  },
+  family: {
+    icon: <Users size={22} strokeWidth={1.8} />,
+    description: 'Anniversaries, baby showers, housewarmings',
+  },
+  milestone: {
+    icon: <Mountain size={22} strokeWidth={1.8} />,
+    description: 'Birthdays, graduations, retirements',
+  },
+  cultural: {
+    icon: <Crown size={22} strokeWidth={1.8} />,
+    description: 'Bar & bat mitzvah, quinceañera, baptism',
+  },
+  commemoration: {
+    icon: <Globe2 size={22} strokeWidth={1.8} />,
+    description: 'Memorials, reunions, gatherings',
+  },
+  // Occasions (second wizard step — individual events)
   wedding: {
-    icon: <Heart size={20} strokeWidth={1.5} />,
-    description: 'Ceremony, reception & more',
+    icon: <Heart size={22} strokeWidth={1.8} />,
+    description: 'Ceremony, reception, everything after',
   },
   birthday: {
-    icon: <Cake size={20} strokeWidth={1.5} />,
-    description: 'Party, milestones & fun',
+    icon: <Cake size={22} strokeWidth={1.8} />,
+    description: 'Party, milestones, many candles',
   },
   anniversary: {
-    icon: <Sparkles size={20} strokeWidth={1.5} />,
-    description: 'Celebrate years together',
+    icon: <Sparkles size={22} strokeWidth={1.8} />,
+    description: 'Years together, still writing chapters',
   },
   engagement: {
-    icon: <Diamond size={20} strokeWidth={1.5} />,
-    description: 'The big announcement',
+    icon: <Diamond size={22} strokeWidth={1.8} />,
+    description: 'They said yes. Tell the world.',
   },
   story: {
-    icon: <BookOpen size={20} strokeWidth={1.5} />,
-    description: 'Tell any story your way',
+    icon: <BookOpen size={22} strokeWidth={1.8} />,
+    description: 'Any story, any shape, your way',
   },
 };
 
@@ -110,131 +132,162 @@ export function OccasionCard({ occasions, onSelect }: OccasionCardProps) {
     setTimeout(() => onSelect(value), 180);
   };
 
+  // Cycling palette blobs so the grid feels alive; avoids mono
+  // repetition without locking each card to a specific tone.
+  const TONES = [
+    { wash: 'var(--pl-groove-butter)', ink: 'var(--pl-groove-terra)' },
+    { wash: 'var(--pl-groove-rose)',   ink: 'var(--pl-groove-plum)'  },
+    { wash: 'var(--pl-groove-sage)',   ink: 'var(--pl-groove-sage)'  },
+    { wash: 'var(--pl-groove-terra)',  ink: 'var(--pl-groove-terra)' },
+  ];
+
   return (
     <motion.div {...fadeIn}>
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(2, 1fr)',
-        gap: 6,
+        gap: 12,
       }}>
         {occasions.map((occ, idx) => {
           const meta = getOccasionMeta(occ.value);
           const isSelected = selected === occ.value;
-          const folio = String(idx + 1).padStart(2, '0');
+          const tone = TONES[idx % TONES.length];
+          // Alternate card radii so the grid reads like a bolt
+          // of fabric, not a regular checkerboard.
+          const radius = idx % 3 === 0
+            ? 'var(--pl-groove-radius-blob)'
+            : idx % 3 === 1
+            ? '28px 28px 28px 6px'
+            : '28px';
+          const blobRadius = idx % 2 === 0
+            ? 'var(--pl-groove-radius-blob)'
+            : '50%';
 
           return (
             <motion.button
               key={occ.value}
               onClick={() => !selected && handleSelect(occ.value)}
               disabled={!!selected}
-              initial={{ opacity: 0, y: 6 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.04, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ delay: idx * 0.05, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+              whileHover={!selected ? { y: -3, scale: 1.01 } : {}}
+              whileTap={!selected ? { scale: 0.98 } : {}}
               style={{
                 position: 'relative',
-                display: 'grid',
-                gridTemplateColumns: '1fr',
-                gap: 8,
-                padding: '16px 14px 14px',
-                borderRadius: RADIUS,
-                border: isSelected ? CARD_BORDER_ACTIVE_VAL : CARD_BORDER,
-                borderTop: isSelected ? CARD_TOP_RULE_ACTIVE : CARD_TOP_RULE,
-                background: isSelected ? CARD_BG_ACTIVE : CARD_BG,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: 14,
+                padding: '22px 20px 20px',
+                borderRadius: radius,
+                border: isSelected
+                  ? `1.5px solid color-mix(in oklab, ${tone.ink} 60%, transparent)`
+                  : `1px solid color-mix(in oklab, ${tone.ink} 22%, transparent)`,
+                background: isSelected
+                  ? `color-mix(in oklab, ${tone.wash} 28%, var(--pl-groove-cream))`
+                  : `color-mix(in oklab, ${tone.wash} 14%, var(--pl-groove-cream))`,
                 cursor: selected && !isSelected ? 'default' : 'pointer',
-                opacity: selected && !isSelected ? 0.4 : 1,
-                boxShadow: isSelected ? CARD_HALO_ACTIVE : CARD_SHADOW,
-                transition: 'all 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+                opacity: selected && !isSelected ? 0.35 : 1,
+                boxShadow: isSelected
+                  ? `0 2px 6px rgba(43,30,20,0.05), 0 14px 40px color-mix(in oklab, ${tone.ink} 22%, transparent)`
+                  : `0 1px 3px rgba(43,30,20,0.04), 0 8px 24px color-mix(in oklab, ${tone.ink} 12%, transparent)`,
+                transition:
+                  'background var(--pl-dur-fast) var(--pl-ease-out),' +
+                  ' border-color var(--pl-dur-fast) var(--pl-ease-out),' +
+                  ' box-shadow var(--pl-dur-base) var(--pl-ease-out)',
                 overflow: 'hidden',
                 textAlign: 'left',
                 fontFamily: 'inherit',
-                minHeight: 110,
-              }}
-              onMouseEnter={(e) => {
-                if (!selected) {
-                  (e.currentTarget as HTMLElement).style.background = CARD_BG_ACTIVE;
-                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.6)';
-                  (e.currentTarget as HTMLElement).style.boxShadow = CARD_SHADOW_HOVER;
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!selected && !isSelected) {
-                  (e.currentTarget as HTMLElement).style.background = CARD_BG;
-                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.3)';
-                  (e.currentTarget as HTMLElement).style.boxShadow = CARD_SHADOW;
-                }
+                minHeight: 128,
               }}
             >
-              {/* Top row: folio + icon badge */}
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              }}>
-                <span style={{
-                  fontFamily: FONT_MONO,
-                  fontSize: 9,
-                  fontWeight: 700,
-                  letterSpacing: '0.28em',
-                  color: isSelected ? COLOR_ACCENT : COLOR_ACCENT_SOFT,
-                  lineHeight: 1,
-                }}>
-                  Step {folio}
-                </span>
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  width: 30, height: 30,
-                  border: '1px solid rgba(184,147,90,0.35)',
-                  borderRadius: 'var(--pl-radius-xs)',
-                  color: isSelected ? COLOR_INK : COLOR_INK_SOFT,
-                  background: 'rgba(250,247,242,0.6)',
-                }}>
-                  {meta.icon}
-                </span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{
-                  fontFamily: FONT_DISPLAY,
-                  fontStyle: 'italic',
-                  fontSize: '1.15rem',
-                  fontWeight: 400,
-                  color: COLOR_INK,
-                  lineHeight: 1.1,
-                  letterSpacing: '-0.006em',
-                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                }}>
-                  {occ.label}
-                </span>
-                <span style={{
-                  fontFamily: FONT_MONO,
-                  fontSize: 8.5,
-                  fontWeight: 700,
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                  color: isSelected ? COLOR_ACCENT : 'rgba(82,82,91,0.7)',
-                  lineHeight: 1.35,
-                }}>
-                  {meta.description}
-                </span>
-              </div>
+              {/* Soft accent blob in the corner — backs the icon */}
+              <span
+                aria-hidden
+                style={{
+                  position: 'absolute',
+                  top: -24,
+                  right: -24,
+                  width: 96,
+                  height: 96,
+                  borderRadius: blobRadius,
+                  background: tone.wash,
+                  opacity: 0.35,
+                  filter: 'blur(12px)',
+                  pointerEvents: 'none',
+                }}
+              />
 
-              {/* Corner folio mark when selected */}
+              {/* Icon blob — big, warm, no hairline frame */}
+              <span
+                style={{
+                  position: 'relative',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 44,
+                  height: 44,
+                  borderRadius: blobRadius,
+                  background: `color-mix(in oklab, ${tone.wash} 60%, var(--pl-groove-cream))`,
+                  color: tone.ink,
+                  boxShadow: `inset 0 1px 0 color-mix(in oklab, ${tone.wash} 50%, white)`,
+                }}
+              >
+                {meta.icon}
+              </span>
+
+              {/* Title — sentence-case, body font, no folio, no mono eyebrow */}
+              <span
+                style={{
+                  fontFamily: FONT_BODY,
+                  fontSize: '1.1rem',
+                  fontWeight: 700,
+                  color: 'var(--pl-groove-ink)',
+                  lineHeight: 1.15,
+                  letterSpacing: '-0.012em',
+                }}
+              >
+                {occ.label}
+              </span>
+              <span
+                style={{
+                  fontFamily: FONT_BODY,
+                  fontSize: '0.88rem',
+                  fontWeight: 400,
+                  color: 'color-mix(in oklab, var(--pl-groove-ink) 68%, transparent)',
+                  lineHeight: 1.45,
+                }}
+              >
+                {meta.description}
+              </span>
+
+              {/* Check pip when selected — groovy circle, no black square */}
               {isSelected && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.6 }}
+                <motion.span
+                  aria-hidden
+                  initial={{ opacity: 0, scale: 0.4 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
                   style={{
                     position: 'absolute',
-                    bottom: 10, right: 10,
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    width: 16, height: 16,
-                    border: `1px solid ${COLOR_ACCENT}`,
-                    borderRadius: 'var(--pl-radius-xs)',
-                    background: '#18181B',
+                    bottom: 16,
+                    right: 16,
+                    width: 24,
+                    height: 24,
+                    borderRadius: '50%',
+                    background: tone.ink,
+                    color: 'var(--pl-groove-cream)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: `0 4px 12px color-mix(in oklab, ${tone.ink} 38%, transparent)`,
                   }}
                 >
-                  <svg width="9" height="9" viewBox="0 0 10 10" fill="none">
-                    <path d="M2 5.2l2 2 4-4.5" stroke="#F0D484" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  <svg width="11" height="11" viewBox="0 0 10 10" fill="none">
+                    <path d="M2 5.2l2 2 4-4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                </motion.div>
+                </motion.span>
               )}
             </motion.button>
           );
