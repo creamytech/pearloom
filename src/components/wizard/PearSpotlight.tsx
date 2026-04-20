@@ -44,9 +44,42 @@ interface Collected {
   storyLayout?: StoryLayoutType;
   /** Optional Spotify or YouTube URL that powers a music block. */
   songUrl?: string;
+  /**
+   * Event-specific details captured in the 'event-details' step.
+   * Only populated for occasions that benefit from extra context
+   * (bachelor/ette + reunion: days; memorial/funeral: livestream +
+   * memory line; graduation: school). Passed to /api/generate so
+   * downstream LLM passes can use it when drafting content.
+   */
+  eventDetails?: {
+    days?: number;
+    livestreamUrl?: string;
+    inMemoryOf?: string;
+    school?: string;
+  };
 }
 
-type Step = 'category' | 'occasion' | 'names' | 'date' | 'venue' | 'vibe-ask' | 'vibe-pick' | 'photos' | 'photo-review' | 'layout' | 'song' | 'ready';
+type Step = 'category' | 'occasion' | 'names' | 'date' | 'venue' | 'event-details' | 'vibe-ask' | 'vibe-pick' | 'photos' | 'photo-review' | 'layout' | 'song' | 'ready';
+
+/**
+ * Which occasions unlock the 'event-details' step? Others skip
+ * straight past it. Keep tight: only add an occasion here when
+ * the extra questions meaningfully change the generated site.
+ */
+const EVENT_DETAILS_OCCASIONS = new Set<string>([
+  'bachelor-party',
+  'bachelorette-party',
+  'reunion',
+  'memorial',
+  'funeral',
+  'graduation',
+]);
+
+function needsEventDetails(c: Collected): boolean {
+  if (!c.occasion) return false;
+  if (!EVENT_DETAILS_OCCASIONS.has(c.occasion)) return false;
+  return !c.eventDetails; // answered once, then skipped
+}
 
 const STYLE_PAIRS = [
   { a: { name: 'Blush & Sage', colors: ['#D4A0A0', '#5C6B3F', '#FAF7F2', '#3D3530'] },
@@ -187,6 +220,7 @@ function currentStep(c: Collected, photosDecided: boolean, vibeDescription: stri
   }
   if (!c.date) return 'date';
   if (!c.venue) return 'venue';
+  if (needsEventDetails(c)) return 'event-details';
   if (!photosDecided) return 'photos';
   if (photosCount > 0 && !reviewDone) return 'photo-review';
   if (!c.vibe) return vibeDescription ? 'vibe-pick' : 'vibe-ask';
@@ -209,6 +243,10 @@ function titleForStep(step: Step, collected: Collected): string {
     case 'names': return 'Who is this for?';
     case 'date': return "When's the date?";
     case 'venue': return "Where's it happening?";
+    case 'event-details':
+      if (collected.occasion === 'memorial' || collected.occasion === 'funeral') return 'A few careful details';
+      if (collected.occasion === 'graduation') return 'About the graduate';
+      return 'One more thing';
     case 'vibe-ask': return 'Describe your style';
     case 'vibe-pick': return 'Pick a color palette';
     case 'photos': return 'Add your photos';
@@ -232,6 +270,12 @@ function descriptionForStep(step: Step, collected: Collected): string {
     case 'date':
       return "We'll add a countdown to your site.";
     case 'venue': return "We'll add it to the map for your guests. Skip if TBD.";
+    case 'event-details':
+      if (collected.occasion === 'memorial' || collected.occasion === 'funeral') {
+        return 'Optional. Helps us draft the tone and page structure with care.';
+      }
+      if (collected.occasion === 'graduation') return 'The school name goes into the page header.';
+      return 'Quick — so we can shape the site around the weekend.';
     case 'vibe-ask': return 'Colors, themes, moods — describe what you want.';
     case 'vibe-pick': return `Based on "${collected.vibe?.split(' - ')[0] || ''}"`;
     case 'photos': return 'Photos make your site personal. Upload or pick from Google Photos.';
@@ -249,11 +293,182 @@ function isDarkVibe(vibe?: string): boolean {
   return v.includes('dark') || v.includes('moody') || v.includes('gothic') || v.includes('midnight') || v.includes('noir') || v.includes('black') || v.includes('navy') || v.includes('celestial');
 }
 
-// Step index for progress bar (0-based out of total steps)
+// Step index for progress bar (0-based out of total steps).
+// `event-details` sits between venue + photos but isn't counted
+// toward the progress bar — it's optional per-occasion polish and
+// would otherwise make the bar jump for occasions that skip it.
 const TOTAL_STEPS = 12;
 function stepIndex(step: Step): number {
   const ORDER: Step[] = ['category', 'occasion', 'names', 'date', 'venue', 'photos', 'photo-review', 'vibe-ask', 'vibe-pick', 'layout', 'song', 'ready'];
-  return ORDER.indexOf(step);
+  const idx = ORDER.indexOf(step);
+  if (idx >= 0) return idx;
+  if (step === 'event-details') return ORDER.indexOf('venue');
+  return 0;
+}
+
+// ── Event-details sub-component ──────────────────────────────
+// Renders per-occasion questions — kept in this file so the
+// wizard remains a single file, but scoped so per-occasion UX
+// doesn't bleed into the main component's render flow.
+
+interface EventDetails {
+  days?: number;
+  livestreamUrl?: string;
+  inMemoryOf?: string;
+  school?: string;
+}
+
+function EventDetailsStep({
+  occasion,
+  dark,
+  textColor,
+  mutedColor,
+  ghostBorder,
+  onSubmit,
+  onSkip,
+}: {
+  occasion: string;
+  dark: boolean;
+  textColor: string;
+  mutedColor: string;
+  ghostBorder: string;
+  onSubmit: (details: EventDetails) => void;
+  onSkip: () => void;
+}) {
+  const [days, setDays] = useState<string>('3');
+  const [livestreamUrl, setLivestreamUrl] = useState('');
+  const [inMemoryOf, setInMemoryOf] = useState('');
+  const [school, setSchool] = useState('');
+
+  const isMultiDay = occasion === 'bachelor-party' || occasion === 'bachelorette-party' || occasion === 'reunion';
+  const isSolemn = occasion === 'memorial' || occasion === 'funeral';
+  const isGrad = occasion === 'graduation';
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '12px 14px',
+    borderRadius: 'var(--pl-radius-xs)',
+    border: dark ? '1px solid rgba(255,255,255,0.18)' : '1px solid #D4D4D8',
+    background: dark ? 'rgba(0,0,0,0.32)' : '#FAFAFA',
+    color: textColor,
+    fontFamily: 'var(--pl-font-body)',
+    fontSize: '0.92rem',
+    outline: 'none',
+  };
+  const labelStyle: React.CSSProperties = {
+    display: 'block',
+    fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+    fontSize: 10,
+    fontWeight: 700,
+    letterSpacing: '0.24em',
+    textTransform: 'uppercase',
+    color: mutedColor,
+    marginBottom: 8,
+  };
+
+  const submit = () => {
+    const out: EventDetails = {};
+    if (isMultiDay) {
+      const n = Math.max(1, Math.min(10, parseInt(days, 10) || 0));
+      if (n > 0) out.days = n;
+    }
+    if (isSolemn) {
+      if (livestreamUrl.trim()) out.livestreamUrl = livestreamUrl.trim();
+      if (inMemoryOf.trim()) out.inMemoryOf = inMemoryOf.trim();
+    }
+    if (isGrad && school.trim()) out.school = school.trim();
+    onSubmit(out);
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      {isMultiDay && (
+        <div>
+          <label style={labelStyle}>How many days</label>
+          <input
+            type="number"
+            min={1}
+            max={10}
+            value={days}
+            onChange={(e) => setDays(e.target.value)}
+            style={inputStyle}
+            placeholder="3"
+          />
+        </div>
+      )}
+
+      {isSolemn && (
+        <>
+          <div>
+            <label style={labelStyle}>Livestream link (optional)</label>
+            <input
+              type="url"
+              value={livestreamUrl}
+              onChange={(e) => setLivestreamUrl(e.target.value)}
+              style={inputStyle}
+              placeholder="https://zoom.us/…"
+            />
+          </div>
+          <div>
+            <label style={labelStyle}>In memory of / donations line</label>
+            <input
+              type="text"
+              value={inMemoryOf}
+              onChange={(e) => setInMemoryOf(e.target.value)}
+              style={inputStyle}
+              placeholder="In lieu of flowers, donations to the Pacific Foundation."
+            />
+          </div>
+        </>
+      )}
+
+      {isGrad && (
+        <div>
+          <label style={labelStyle}>School</label>
+          <input
+            type="text"
+            value={school}
+            onChange={(e) => setSchool(e.target.value)}
+            style={inputStyle}
+            placeholder="Stanford University"
+          />
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button
+          type="button"
+          onClick={onSkip}
+          style={{
+            flex: 1, minHeight: 48, padding: '0 16px', borderRadius: 'var(--pl-radius-xs)',
+            background: 'transparent', border: ghostBorder,
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            fontSize: 10, fontWeight: 700,
+            letterSpacing: '0.24em', textTransform: 'uppercase',
+            color: textColor, cursor: 'pointer',
+          }}
+        >
+          Skip for now
+        </button>
+        <button
+          type="button"
+          onClick={submit}
+          style={{
+            flex: 1, minHeight: 48, padding: '0 16px', borderRadius: 'var(--pl-radius-xs)',
+            background: '#18181B',
+            border: 'none',
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            fontSize: 10, fontWeight: 700,
+            letterSpacing: '0.24em', textTransform: 'uppercase',
+            color: '#FAF7F2', cursor: 'pointer',
+            boxShadow: '0 0 0 3px rgba(184,147,90,0.22)',
+          }}
+        >
+          Continue · ↵
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
@@ -485,6 +700,11 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
         if (step === 'names') handleEditField('occasion');
         else if (step === 'date') handleEditField('names');
         else if (step === 'venue') handleEditField('date');
+        else if (step === 'event-details') {
+          setDirection(-1);
+          setCollected((prev) => ({ ...prev, venue: undefined }));
+          setInput('');
+        }
         else if (step === 'photos') handleEditField('venue');
         else if (step === 'vibe-ask' || step === 'vibe-pick') handleEditField('photos');
         else if (step === 'layout') handleEditField('vibe');
@@ -867,6 +1087,14 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       // on the song step. The server adds a music block to the
       // manifest when this is set.
       songUrl: c.songUrl?.trim() || undefined,
+      // Event-specific details collected on the 'event-details'
+      // step (bachelor days, memorial livestream, grad school,
+      // etc.). Server can use these to seed block configs and
+      // steer LLM prompts; safe to ignore server-side for now.
+      eventDetails:
+        c.eventDetails && Object.keys(c.eventDetails).length > 0
+          ? c.eventDetails
+          : undefined,
     });
 
     try {
@@ -1948,6 +2176,25 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                     </button>
                   </div>
                 </div>
+              )}
+
+              {/* ── Event-details step — optional per-occasion polish ── */}
+              {step === 'event-details' && (
+                <EventDetailsStep
+                  occasion={collected.occasion ?? ''}
+                  dark={dark}
+                  textColor={textColor}
+                  mutedColor={mutedColor}
+                  ghostBorder={ghostBorder}
+                  onSubmit={(details) => {
+                    setDirection(1);
+                    setCollected((prev) => ({ ...prev, eventDetails: details }));
+                  }}
+                  onSkip={() => {
+                    setDirection(1);
+                    setCollected((prev) => ({ ...prev, eventDetails: {} }));
+                  }}
+                />
               )}
 
               {/* ── Vibe ask step — text input for description ── */}

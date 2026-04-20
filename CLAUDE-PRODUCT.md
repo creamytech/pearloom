@@ -36,17 +36,18 @@ Everything in this file is in service of those three acts happening for **any ma
 
 ### 2.1 Supported occasions (5)
 
-Source of truth: `src/lib/site-urls.ts:26–31` + `src/types.ts` occasion field.
+Source of truth: `src/lib/site-urls.ts:36–73` (full SiteOccasion union) + `EVENT_TYPES` registry at `src/lib/event-os/event-types.ts`.
 
-| Occasion | URL prefix | Wizard coverage | Template count |
-|---|---|---|---|
-| `wedding` | `/wedding/{slug}` | Full | ~45 |
-| `engagement` | `/engagement/{slug}` | Re-uses wedding | ~30 shared |
-| `anniversary` | `/anniversary/{slug}` | Partial | ~10 shared |
-| `birthday` | `/birthday/{slug}` | Partial | 7 |
-| `story` | `/story/{slug}` | Minimal (catch-all) | 2 |
-
-**Reality check:** 95% of existing templates are wedding/engagement-themed and 100% of wizard prompts assume a couple. Birthday support is a thin veneer over the wedding flow. The "Event OS" positioning outruns the current reality.
+**28 occasions supported.** 5 shipping, 23 in beta (all have
+templates + beta status in the registry as of 2026-04-22).
+Every occasion now passes through:
+- Category-filtered wizard step (A.2)
+- Occasion-specific RSVP preset (A.3)
+- Occasion-filtered block library (A.4)
+- AI voice directive from `EVENT_TYPES[occasion].voice`
+- Per-event OG share card (including solo-honoree layout)
+- Per-event title / label in nav, share, metadata
+- Optional extra wizard questions for bachelor/reunion/memorial/graduation
 
 ### 2.2 Block types (26)
 
@@ -439,6 +440,126 @@ How we actually ship this over many sessions without re-explaining every time.
 ---
 
 ## 10 · Changelog
+
+### 2026-04-23 — Retention + polish pass (Phase D completion)
+
+A push to close the 4 TODOs flagged in the 2026-04-22 entry plus
+five follow-ons. Everything below is shipped + pushed.
+
+**Moderation:**
+- **Advice / tribute / toast submissions** persisted to three new
+  Supabase tables (`tribute_submissions`, `toast_signups`,
+  `activity_votes`) with belt-and-braces deny-anon RLS.
+- **Public write APIs** — `POST /api/event-os/submissions`,
+  `POST /api/event-os/votes`, `POST /api/event-os/toasts` — each
+  with unique-constraint dedup, 409 on slot conflict, and a
+  graceful `stored: false` fall-through when Supabase env vars
+  are missing.
+- **Host moderation APIs** — `GET+PATCH /api/event-os/submissions/moderation`,
+  `GET /api/event-os/votes/moderation`,
+  `GET+DELETE /api/event-os/toasts/moderation`. All gated on
+  `site_config.creator_email === session.user.email`.
+- **Dashboard at `/dashboard/submissions`** composes three
+  host-only panels: `SubmissionsModeration` (approve/hide/flag
+  guest posts), `VotesSummary` (per-block winner + ranked tally
+  + voter count), `ToastClaimsList` (per-block slot claims with
+  void button).
+
+**AI voice per event category:**
+- `VOICE_GUIDANCE` / `VOICE_PRONOUNS` / `VOICE_BANNED` constants
+  in `claude-passes.ts` — extended `poetryPassClaude`,
+  `corePassClaude`, `critiqueChaptersClaude` to accept a
+  `voice` param drawn from `EVENT_TYPES[occasion].voice`.
+  Memorial sites now get "solemn" tone directives; bachelor
+  parties get "playful"; etc. Pipeline threads the voice
+  through every pass.
+
+**PrivacyGate enforcement:**
+- `privacyGate` block's `config.password` is now actually
+  enforced via the existing PasswordGate + SitePasswordWrapper
+  flow (`/sites/[domain]/page.tsx`). Legacy
+  `comingSoon.passwordProtected` still wins if both are set.
+
+**RSVP preset answers UI:**
+- Extended Guest type on `/rsvps/page.tsx` with `rsvp_preset` +
+  `rsvp_answers` JSONB. Desktop table + mobile cards render
+  `<PresetAnswerChips />` so hosts see cost-acknowledge,
+  bed-pref, memory-share, advice answers — not just legacy
+  wedding columns.
+- **Guest detail drawer** — clicking any row opens a right-edge
+  drawer with the full `rsvp_answers` breakdown + email
+  mailto + invited/replied timestamp. Esc / backdrop close.
+
+**Event linking — sibling events for one celebration:**
+- New `manifest.celebration = { id, name }` field on
+  StoryManifest. Sites sharing the same `id` are siblings of
+  each other.
+- `PATCH /api/celebrations` (owner-only) sets/clears the field;
+  mints a UUID if the caller didn't supply one.
+- `GET /api/celebrations/siblings?siteId=X` (public) returns
+  published siblings — domain, occasion, display title.
+- `<LinkedEventsStrip />` renders above the footer on any
+  published site that's part of a celebration with ≥1 sibling.
+- `/dashboard/connections` page hosts `ConnectionsPanel` — host
+  names the celebration, toggles which of their sites belong.
+
+**Memorial publish guardrail:**
+- `PublishModal.tsx` intercepts `occasion === 'memorial' |
+  'funeral'` with a re-read interstitial listing a small
+  checklist (names + dates, tone, service details, family
+  review). Host clicks "I've re-read it" to continue.
+
+**Per-event OG images:**
+- Occasion label map expanded from 5 → 28 entries
+  (`/api/og/route.tsx`). Memorial shows "IN LOVING MEMORY";
+  sip-and-see shows "SIP & SEE"; etc.
+- Solo-honoree events (birthdays, memorials, graduations,
+  retirements, showers) centre a single 84px name without
+  the "&" glyph. Metadata emitter (`/sites/[domain]/page.tsx`)
+  skips `name2` for these occasions.
+
+**StoryManifest.occasion widened** from the legacy 5-event
+union to the full `SiteOccasion` type.
+
+**Nav integration:**
+- Desktop sidebar + mobile drawer now expose
+  `/dashboard/submissions` + `/dashboard/connections` under
+  the "Run event" section.
+
+**Editor empty-state hints:**
+- `SiteRenderer.tsx` cases for costSplitter, packingList,
+  activityVote, toastSignup, obituary, livestream, program
+  render a `.pl-empty-gradient` editorial strip in edit mode
+  when content is empty. Published view still returns null.
+
+**Minimal per-event wizard step:**
+- New `'event-details'` step in `PearSpotlight.tsx` sits
+  between venue + photos. Fires only for:
+  - `bachelor-party` / `bachelorette-party` / `reunion` →
+    asks "How many days?"
+  - `memorial` / `funeral` → asks livestream URL + "in memory
+    of / donations" line
+  - `graduation` → asks school
+- `Collected.eventDetails` typed + passed to
+  `/api/generate/stream` for downstream LLM passes to use.
+
+**What's still deliberately deferred:**
+
+1. **Server-side consumption of `eventDetails`** — the wizard
+   captures the fields; Gemini/Claude prompts don't yet read
+   them. Trivial to wire once the pattern is picked (seed the
+   block configs during generation vs. inject into prompts).
+2. **PearSpotlight refactor** (§17 design debt) — still 144KB.
+   Visual regression testing required; deferred to dedicated
+   session.
+3. **Voter-key hashing** — raw random IDs provide dedup today;
+   with no real guest identity there's nothing meaningful to
+   hash. Revisit when we add guest auth.
+4. **Server-side `tribute_submissions` sync for localStorage
+   blocks** — `AdviceWallBlock`, `ActivityVoteBlock`,
+   `ToastSignupBlock`, `PackingListBlock` write to localStorage
+   only today. Schema + API is in place; wiring each block is
+   low-risk follow-up work.
 
 ### 2026-04-22 — All 28 event types graduated to beta
 
