@@ -16,7 +16,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, Link2, Unlink, RefreshCw } from 'lucide-react';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
-import { BlurFade, GrooveBlob, SquishyButton } from '@/components/brand/groove';
+import { BlurFade, GrooveBlob, MagneticHover, SquishyButton } from '@/components/brand/groove';
 
 interface DashSite {
   domain: string;
@@ -419,14 +419,16 @@ export function ConnectionsPanel({ sites, onChanged }: Props) {
               fontFamily: 'var(--pl-font-body)',
             }}
           />
-          <SquishyButton
-            onClick={() => { void createCelebration(); }}
-            disabled={!newName.trim() || pendingDomain !== null || sites.length === 0}
-            icon={<Plus size={14} />}
-            palette="sunrise"
-          >
-            Create
-          </SquishyButton>
+          <MagneticHover strength={0.22} radius={100}>
+            <SquishyButton
+              onClick={() => { void createCelebration(); }}
+              disabled={!newName.trim() || pendingDomain !== null || sites.length === 0}
+              icon={<Plus size={14} />}
+              palette="sunrise"
+            >
+              Create
+            </SquishyButton>
+          </MagneticHover>
         </div>
       </div>
 

@@ -17,7 +17,7 @@ import { cn } from '@/lib/cn';
 
 import { parseLocalDate } from '@/lib/date';
 import { buildSiteUrl } from '@/lib/site-urls';
-import { BlurFade, GrooveBlob } from '@/components/brand/groove';
+import { BlurFade, GrooveBlob, MagneticHover } from '@/components/brand/groove';
 
 // ── Occasion gradients & icons ──────────────────────────────
 
@@ -677,38 +677,39 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                 </div>
               );
             })()}
-            <button
-              onClick={onStartNew}
-              aria-label="Begin a new site"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '10px',
-                padding: '14px 22px',
-                minHeight: 48,
-                borderRadius: 'var(--pl-radius-md)',
-                background: 'var(--pl-ink)',
-                color: 'var(--pl-cream)',
-                border: '1px solid var(--pl-ink)',
-                boxShadow: '0 0 0 3px rgba(184,147,90,0.22)',
-                cursor: 'pointer',
-                fontFamily: 'var(--pl-font-mono)',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-                transition: 'transform 0.18s cubic-bezier(0.22,1,0.36,1), box-shadow 0.18s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,147,90,0.32), 0 8px 22px rgba(14,13,11,0.22)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,147,90,0.22)';
-              }}
-            >
-              <Plus size={18} strokeWidth={2.4} />
-              Begin a new site
-            </button>
+            <MagneticHover strength={0.25} radius={120}>
+              <button
+                onClick={onStartNew}
+                aria-label="Begin a new site"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '10px',
+                  padding: '14px 24px',
+                  minHeight: 48,
+                  borderRadius: 'var(--pl-groove-radius-pill)',
+                  background: 'var(--pl-groove-blob-sunrise)',
+                  color: '#fff',
+                  border: 'none',
+                  boxShadow: '0 6px 18px rgba(139,74,106,0.24), 0 2px 6px rgba(43,30,20,0.08)',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--pl-font-body)',
+                  fontSize: '0.92rem',
+                  fontWeight: 600,
+                  letterSpacing: '-0.005em',
+                  transition: 'box-shadow var(--pl-dur-fast) var(--pl-ease-out)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow =
+                    '0 10px 28px rgba(139,74,106,0.34), 0 4px 10px rgba(43,30,20,0.12)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow =
+                    '0 6px 18px rgba(139,74,106,0.24), 0 2px 6px rgba(43,30,20,0.08)';
+                }}
+              >
+                <Plus size={18} strokeWidth={2.4} />
+                Begin a new site
+              </button>
+            </MagneticHover>
           </div>
         </div>
       </div>

@@ -14,7 +14,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { ThemeToggle } from '@/components/shell';
 import { AmbientNav } from '@/components/brand/AmbientNav';
-import { SquishyButton } from '@/components/brand/groove';
+import { MagneticHover, SquishyButton } from '@/components/brand/groove';
 
 interface MarketingNavProps {
   onGetStarted: () => void;
@@ -153,14 +153,16 @@ export function MarketingNav({ onGetStarted }: MarketingNavProps) {
         {/* Right cluster */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <ThemeToggle />
-          <SquishyButton
-            className="pl-mn-cta"
-            onClick={onGetStarted}
-            size="sm"
-            palette="sunrise"
-          >
-            Start free
-          </SquishyButton>
+          <MagneticHover strength={0.2} radius={100}>
+            <SquishyButton
+              className="pl-mn-cta"
+              onClick={onGetStarted}
+              size="sm"
+              palette="sunrise"
+            >
+              Start free
+            </SquishyButton>
+          </MagneticHover>
           <button
             className="pl-mn-burger"
             onClick={() => setMobileOpen(true)}

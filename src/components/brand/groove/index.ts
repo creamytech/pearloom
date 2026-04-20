@@ -20,3 +20,4 @@ export { GrooveMotion } from './GrooveMotion';
 export { AnimatedList } from './AnimatedList';
 export { useMagneticPointer } from './useMagneticPointer';
 export { MagneticHover } from './MagneticHover';
+export { useScrollProgress } from './useScrollProgress';
