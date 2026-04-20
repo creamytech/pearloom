@@ -118,69 +118,52 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
           <div style={{ flex: 1, minWidth: 260 }}>
             <div
               style={{
-                fontFamily: 'var(--pl-font-mono)',
-                fontSize: '0.72rem',
-                fontWeight: 700,
-                letterSpacing: '0.22em',
-                textTransform: 'uppercase',
+                fontFamily: 'var(--pl-font-body)',
+                fontSize: '0.92rem',
+                fontWeight: 500,
                 color: 'var(--pl-groove-terra)',
-                marginBottom: 18,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 10,
+                marginBottom: 10,
               }}
             >
-              <span
-                style={{
-                  width: 24,
-                  height: 2,
-                  background: 'var(--pl-groove-butter)',
-                  borderRadius: 'var(--pl-groove-radius-pill)',
-                }}
-              />
-              Event HQ · {year}
+              Your headquarters for this one.
             </div>
             <h1
-              className="pl-display"
               style={{
                 margin: 0,
-                fontSize: 'clamp(2.4rem, 5vw, 3.4rem)',
-                color: 'var(--pl-ink)',
-                lineHeight: 1.02,
-                letterSpacing: '-0.01em',
-                fontStyle: 'italic',
-                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                fontFamily: 'var(--pl-font-body)',
+                fontSize: 'clamp(2rem, 4vw, 2.8rem)',
+                color: 'var(--pl-groove-ink)',
+                lineHeight: 1.1,
+                letterSpacing: '-0.02em',
+                fontWeight: 700,
               }}
             >
               {titleNames}
             </h1>
-            {/* Meta dossier */}
+            {/* Meta — sentence-case, mid-weight body copy. */}
             <div
               style={{
-                marginTop: 16,
+                marginTop: 14,
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 16,
+                gap: 12,
                 flexWrap: 'wrap',
-                fontFamily: 'var(--pl-font-mono)',
-                fontSize: '0.72rem',
-                fontWeight: 700,
-                letterSpacing: '0.24em',
-                textTransform: 'uppercase',
-                color: 'var(--pl-ink-soft)',
+                fontFamily: 'var(--pl-font-body)',
+                fontSize: '0.92rem',
+                color: 'color-mix(in oklab, var(--pl-groove-ink) 70%, transparent)',
               }}
             >
-              <span style={{ color: 'var(--pl-olive)' }}>
+              <span style={{ color: 'var(--pl-groove-terra)', fontWeight: 600, textTransform: 'capitalize' }}>
                 {site.occasion || 'Event'}
               </span>
               {site.eventDate && (
                 <>
-                  <span style={{ color: 'var(--pl-divider)' }}>·</span>
+                  <span style={{ color: 'color-mix(in oklab, var(--pl-groove-ink) 35%, transparent)' }}>·</span>
                   <span>{formatEventDate(site.eventDate)}</span>
                 </>
               )}
-              <span style={{ color: 'var(--pl-divider)' }}>·</span>
-              <span style={{ color: 'var(--pl-muted)' }}>
+              <span style={{ color: 'color-mix(in oklab, var(--pl-groove-ink) 35%, transparent)' }}>·</span>
+              <span>
                 {formatSiteDisplayUrl(site.domain, '', site.occasion)}
               </span>
             </div>
@@ -211,30 +194,18 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
             marginBottom: 14,
           }}
         >
-          <div
+          <h3
             style={{
-              fontFamily: 'var(--pl-font-mono)',
-              fontSize: '0.72rem',
+              margin: 0,
+              fontFamily: 'var(--pl-font-body)',
+              fontSize: '1.1rem',
               fontWeight: 700,
-              letterSpacing: '0.28em',
-              textTransform: 'uppercase',
-              color: 'var(--pl-olive)',
+              color: 'var(--pl-groove-ink)',
+              letterSpacing: '-0.01em',
             }}
           >
             Guests at a glance
-          </div>
-          <span
-            style={{
-              fontFamily: 'var(--pl-font-mono)',
-              fontSize: '0.72rem',
-              fontWeight: 700,
-              letterSpacing: '0.24em',
-              textTransform: 'uppercase',
-              color: 'var(--pl-muted)',
-            }}
-          >
-            № 01—04
-          </span>
+          </h3>
         </div>
       <div
         style={{

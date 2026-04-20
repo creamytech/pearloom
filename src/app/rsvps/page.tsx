@@ -1297,19 +1297,17 @@ function RsvpPageContent({ domain }: { domain: string }) {
       <BlurFade>
       <h1
         style={{
-          fontFamily: 'var(--pl-font-display)',
-          fontStyle: 'italic',
-          fontSize: 'clamp(2rem, 4.5vw, 3rem)',
-          fontWeight: 400,
+          fontFamily: 'var(--pl-font-body)',
+          fontSize: 'clamp(1.8rem, 4vw, 2.6rem)',
+          fontWeight: 700,
           color: 'var(--pl-groove-ink)',
           marginBottom: '2rem',
           letterSpacing: '-0.02em',
-          fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
           position: 'relative',
           zIndex: 1,
         }}
       >
-        Guest RSVPs
+        Your guest list
       </h1>
       </BlurFade>
 

@@ -108,37 +108,28 @@ export default function ProfilePage() {
               }}
             >
               <div
-                className="pl-overline"
                 style={{
-                  marginBottom: 14,
+                  marginBottom: 12,
                   color: 'var(--pl-groove-terra)',
-                  letterSpacing: '0.22em',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
+                  fontSize: '0.92rem',
+                  fontWeight: 500,
+                  fontFamily: 'var(--pl-font-body)',
                 }}
               >
-                Account · Preferences
+                Account &amp; preferences
               </div>
               <h1
-                className="pl-display"
                 style={{
                   margin: 0,
+                  fontFamily: 'var(--pl-font-body)',
+                  fontWeight: 700,
                   fontSize: 'clamp(1.8rem, 3.2vw, 2.4rem)',
                   color: 'var(--pl-groove-ink)',
-                  lineHeight: 1.05,
+                  lineHeight: 1.1,
+                  letterSpacing: '-0.02em',
                 }}
               >
-                Your{' '}
-                <em
-                  style={{
-                    fontStyle: 'italic',
-                    color: 'var(--pl-groove-terra)',
-                    fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                  }}
-                >
-                  workspace
-                </em>
-                .
+                Your workspace
               </h1>
               <p
                 style={{

@@ -153,27 +153,24 @@ export function ConnectionsPanel({ sites, onChanged }: Props) {
       <BlurFade>
       <header style={{ marginBottom: 24, position: 'relative', zIndex: 1 }}>
         <div
-          className="pl-overline"
           style={{
             color: 'var(--pl-groove-plum)',
             marginBottom: 8,
-            letterSpacing: '0.22em',
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            fontFamily: 'var(--pl-font-mono)',
+            fontSize: '0.92rem',
+            fontWeight: 500,
+            fontFamily: 'var(--pl-font-body)',
           }}
         >
           Site connections
         </div>
         <h2
-          className="pl-display"
           style={{
             margin: 0,
-            fontStyle: 'italic',
+            fontFamily: 'var(--pl-font-body)',
+            fontWeight: 700,
             fontSize: 'clamp(1.6rem, 3vw, 2.2rem)',
             color: 'var(--pl-groove-ink)',
-            fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+            letterSpacing: '-0.02em',
           }}
         >
           Events woven together

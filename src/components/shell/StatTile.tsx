@@ -67,21 +67,25 @@ export function StatTile({ label, value, hint, trend, accent = 'olive', icon }: 
           </span>
         )}
         <span
-          className="pl-overline"
-          style={{ fontSize: '0.75rem', letterSpacing: '0.18em' }}
+          style={{
+            fontFamily: 'var(--pl-font-body)',
+            fontSize: '0.82rem',
+            fontWeight: 600,
+            color: 'color-mix(in oklab, var(--pl-groove-ink, var(--pl-ink)) 68%, transparent)',
+            letterSpacing: '-0.005em',
+          }}
         >
           {label}
         </span>
       </div>
       <div
         style={{
-          fontFamily: 'var(--pl-font-display)',
-          fontWeight: 400,
+          fontFamily: 'var(--pl-font-body)',
+          fontWeight: 700,
           fontSize: 'clamp(2rem, 4vw, 2.6rem)',
-          letterSpacing: '-0.025em',
+          letterSpacing: '-0.03em',
           lineHeight: 1,
-          color: 'var(--pl-ink)',
-          fontVariationSettings: '"opsz" 144, "SOFT" 50',
+          color: 'var(--pl-groove-ink, var(--pl-ink))',
         }}
       >
         {value}

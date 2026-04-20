@@ -1823,52 +1823,48 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
             </button>
           </div>
         )}
-        {/* Masthead above the card */}
+        {/* Friendly progress strip — replaces the editorial
+            "Pearloom · 2026 / Step 01 of 11" folio band. Shows
+            a sentence-case step label + a warm groove progress
+            bar. No mono caps, no folio numbers. */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0 4px 12px',
+          padding: '0 4px 14px',
           gap: 12,
         }}>
           <span style={{
-            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
-            fontSize: 9.5,
-            fontWeight: 700,
-            letterSpacing: '0.34em',
-            textTransform: 'uppercase',
-            color: 'rgba(184,147,90,0.9)',
+            fontFamily: 'var(--pl-font-body)',
+            fontSize: '0.82rem',
+            fontWeight: 600,
+            color: 'var(--pl-groove-plum)',
           }}>
-            Pearloom · {new Date().getFullYear()}
+            {titleForStep(step, collected)}
           </span>
-          <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.42)' }} />
           <span style={{
-            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
-            fontSize: 9.5,
-            fontWeight: 700,
-            letterSpacing: '0.3em',
-            textTransform: 'uppercase',
-            color: 'rgba(184,147,90,0.9)',
+            fontFamily: 'var(--pl-font-body)',
+            fontSize: '0.78rem',
+            color: 'color-mix(in oklab, var(--pl-groove-ink) 55%, transparent)',
           }}>
-            Step {stepFolio} of {stepTotal}
+            {Math.max(1, stepIndex(step) + 1)} of {stepTotal}
           </span>
         </div>
 
         <div style={{
-          background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
-          borderRadius: 'var(--pl-radius-xs)',
-          border: '1px solid rgba(184,147,90,0.28)',
-          borderTop: '2px solid rgba(184,147,90,0.65)',
-          boxShadow: '0 24px 60px rgba(22,16,6,0.14), 0 2px 8px rgba(22,16,6,0.06)',
+          background: 'linear-gradient(180deg, var(--pl-groove-cream) 0%, color-mix(in oklab, var(--pl-groove-butter) 10%, var(--pl-groove-cream)) 100%)',
+          borderRadius: '24px',
+          border: '1px solid color-mix(in oklab, var(--pl-groove-terra) 22%, transparent)',
+          boxShadow: '0 24px 60px rgba(139,74,106,0.10), 0 2px 8px rgba(43,30,20,0.06)',
           overflow: step === 'venue' || step === 'photo-review' ? 'visible' : 'hidden',
           position: 'relative',
         }}>
-          {/* Progress rule — gold bar under the top rule */}
-          <div style={{ height: 2, background: 'rgba(184,147,90,0.14)', overflow: 'hidden' }}>
+          {/* Progress rule — warm sunrise gradient */}
+          <div style={{ height: 3, background: 'color-mix(in oklab, var(--pl-groove-terra) 12%, transparent)', overflow: 'hidden', borderRadius: '24px 24px 0 0' }}>
             <motion.div
               animate={{ width: `${progressPct}%` }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              style={{ height: '100%', background: 'linear-gradient(90deg, rgba(184,147,90,0.9), rgba(212,175,55,0.95))' }}
+              style={{ height: '100%', background: 'var(--pl-groove-blob-sunrise)' }}
             />
           </div>
 
@@ -1885,31 +1881,14 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                   transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                   style={{ marginBottom: 22 }}
                 >
-                  <div style={{
-                    fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
-                    fontSize: 9.5,
-                    fontWeight: 700,
-                    letterSpacing: '0.32em',
-                    textTransform: 'uppercase',
-                    color: 'rgba(184,147,90,0.95)',
-                    marginBottom: 10,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                  }}>
-                    <span>Step {stepFolio} · {step.replace(/-/g, ' ')}</span>
-                    <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.28)' }} />
-                  </div>
                   <h2 style={{
-                    fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
-                    fontStyle: 'italic',
-                    fontSize: '1.75rem',
-                    fontWeight: 400,
-                    color: '#18181B',
+                    fontFamily: 'var(--pl-font-body)',
+                    fontSize: '1.6rem',
+                    fontWeight: 600,
+                    color: 'var(--pl-groove-ink)',
                     margin: '0 0 6px',
-                    letterSpacing: '-0.012em',
-                    lineHeight: 1.08,
-                    fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                    letterSpacing: '-0.015em',
+                    lineHeight: 1.15,
                   }}>
                     {stepTitle}
                   </h2>

@@ -150,38 +150,24 @@ export default function HelpClient() {
                 <div style={{ flex: 1, minWidth: 260 }}>
                   <div
                     style={{
-                      fontFamily: 'var(--pl-font-mono)',
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.22em',
-                      textTransform: 'uppercase',
+                      fontFamily: 'var(--pl-font-body)',
+                      fontSize: '0.92rem',
+                      fontWeight: 500,
                       color: 'var(--pl-groove-terra)',
-                      marginBottom: 18,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 10,
+                      marginBottom: 12,
                     }}
                   >
-                    <span
-                      style={{
-                        width: 24,
-                        height: 2,
-                        background: 'var(--pl-groove-butter)',
-                        borderRadius: 'var(--pl-groove-radius-pill)',
-                      }}
-                    />
-                    Help · {year}
+                    Help center
                   </div>
                   <h1
-                    className="pl-display"
                     style={{
                       margin: 0,
-                      fontSize: 'clamp(2.4rem, 5.2vw, 3.6rem)',
-                      color: 'var(--pl-ink)',
-                      lineHeight: 1.02,
-                      letterSpacing: '-0.01em',
-                      fontStyle: 'italic',
-                      fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                      fontFamily: 'var(--pl-font-body)',
+                      fontWeight: 700,
+                      fontSize: 'clamp(2rem, 4.2vw, 2.8rem)',
+                      color: 'var(--pl-groove-ink)',
+                      lineHeight: 1.1,
+                      letterSpacing: '-0.02em',
                     }}
                   >
                     How can we help?

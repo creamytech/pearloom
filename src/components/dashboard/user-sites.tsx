@@ -571,57 +571,43 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
         style={{ position: 'absolute', top: '40%', left: '-80px', zIndex: 0, pointerEvents: 'none' }}
       />
 
-      {/* ── Editorial Masthead ── */}
+      {/* ── Masthead — warm greeting, no folios, no mono caps ── */}
       <BlurFade>
       <div className="pl-enter mb-8 sm:mb-12" style={{ position: 'relative', zIndex: 1 }}>
-        {/* Mono kicker above */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-          <span style={{
-            fontFamily: 'var(--pl-font-mono)',
-            fontSize: '0.72rem',
-            fontWeight: 700,
-            letterSpacing: '0.24em',
-            textTransform: 'uppercase',
+        <div
+          style={{
+            fontFamily: 'var(--pl-font-body)',
+            fontSize: '0.92rem',
+            fontWeight: 500,
             color: 'var(--pl-groove-terra)',
-          }}>
-            Your sites · {new Date().getFullYear()}
-          </span>
-          <span style={{ flex: 1, height: '1px', background: 'color-mix(in oklab, var(--pl-groove-terra) 30%, transparent)' }} />
-          <span style={{
-            fontFamily: 'var(--pl-font-mono)',
-            fontSize: '0.72rem',
-            fontWeight: 700,
-            letterSpacing: '0.22em',
-            textTransform: 'uppercase',
-            color: 'color-mix(in oklab, var(--pl-groove-ink) 60%, transparent)',
-          }}>
-            {getGreeting()}{userName ? ` · ${userName}` : ''}
-          </span>
+            marginBottom: 8,
+          }}
+        >
+          {getGreeting()}{userName ? `, ${userName}` : ''}
         </div>
 
         <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-5">
           <div style={{ maxWidth: '560px' }}>
             <h1 style={{
-              fontFamily: 'var(--pl-font-display)',
-              fontStyle: 'italic',
-              fontWeight: 400,
-              fontSize: 'clamp(2.4rem, 5.2vw, 3.6rem)',
-              lineHeight: 1.02,
-              letterSpacing: '-0.01em',
-              color: 'var(--pl-ink)',
+              fontFamily: 'var(--pl-font-body)',
+              fontWeight: 700,
+              fontSize: 'clamp(2rem, 4.2vw, 2.8rem)',
+              lineHeight: 1.1,
+              letterSpacing: '-0.02em',
+              color: 'var(--pl-groove-ink)',
               margin: 0,
             }}>
-              Your sites
+              Your celebrations
             </h1>
             <p style={{
-              marginTop: '10px',
+              marginTop: '12px',
               fontFamily: 'var(--pl-font-body)',
-              fontSize: '0.82rem',
+              fontSize: '1rem',
               lineHeight: 1.55,
-              color: 'var(--pl-ink-soft)',
-              maxWidth: '440px',
+              color: 'color-mix(in oklab, var(--pl-groove-ink) 70%, transparent)',
+              maxWidth: '460px',
             }}>
-              An editorial atlas of the celebrations you&apos;ve composed — open one to edit, or compose something new.
+              Open one to keep going, or start something new.
             </p>
           </div>
 
@@ -719,19 +705,18 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
       {!loading && !fetchError && (
         <div className="mb-8 sm:mb-12">
           <div style={{
-            display: 'flex', alignItems: 'center', gap: '10px',
             marginBottom: '14px',
           }}>
-            <span style={{
-              fontFamily: 'var(--pl-font-mono)',
-              fontSize: '0.72rem', fontWeight: 700,
-              letterSpacing: '0.24em',
-              textTransform: 'uppercase',
-              color: 'rgba(14,13,11,0.65)',
+            <h2 style={{
+              margin: 0,
+              fontFamily: 'var(--pl-font-body)',
+              fontWeight: 700,
+              fontSize: '1.2rem',
+              color: 'var(--pl-groove-ink)',
+              letterSpacing: '-0.01em',
             }}>
-              Compose · three paths
-            </span>
-            <span style={{ flex: 1, height: '1px', background: 'rgba(14,13,11,0.08)' }} />
+              Start something new
+            </h2>
           </div>
 
           <motion.div
@@ -835,56 +820,39 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                   </span>
                 )}
 
-                {/* № folio + icon row */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                  <span style={{
-                    fontFamily: 'var(--pl-font-mono)',
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.22em',
-                    textTransform: 'uppercase',
-                    color: 'var(--pl-olive)',
-                  }}>
-                    № {String(i + 1).padStart(2, '0')}
-                  </span>
-                  <span style={{
-                    width: '44px', height: '44px',
-                    borderRadius: '50%',
-                    border: '1px solid rgba(184,147,90,0.40)',
-                    background: isPrimary ? 'color-mix(in oklab, var(--pl-olive) 14%, transparent)' : 'rgba(184,147,90,0.06)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'var(--pl-ink)',
-                  }}>
-                    {card.icon}
-                  </span>
+                {/* Big warm icon in a blob-ish circle, no folio */}
+                <div style={{
+                  width: '56px', height: '56px',
+                  borderRadius: isPrimary
+                    ? 'var(--pl-groove-radius-blob)'
+                    : '50%',
+                  background: isPrimary
+                    ? 'var(--pl-groove-blob-sunrise)'
+                    : 'color-mix(in oklab, var(--pl-groove-butter) 28%, transparent)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: isPrimary ? '#fff' : 'var(--pl-groove-ink)',
+                  boxShadow: isPrimary
+                    ? '0 6px 18px rgba(139,74,106,0.22)'
+                    : 'none',
+                }}>
+                  {card.icon}
                 </div>
 
-                {/* Title — Fraunces italic */}
+                {/* Title — sentence-case sans, no italic, warm */}
                 <h3 style={{
-                  fontFamily: 'var(--pl-font-display)',
-                  fontStyle: 'italic',
-                  fontWeight: 400,
-                  fontSize: isPrimary ? '1.7rem' : '1.4rem',
-                  lineHeight: 1.05,
-                  letterSpacing: '-0.005em',
-                  color: 'var(--pl-ink)',
+                  fontFamily: 'var(--pl-font-body)',
+                  fontWeight: 700,
+                  fontSize: isPrimary ? '1.4rem' : '1.15rem',
+                  lineHeight: 1.15,
+                  letterSpacing: '-0.01em',
+                  color: 'var(--pl-groove-ink)',
                   margin: 0,
                 }}>
                   {card.title}
                 </h3>
 
-                {/* Kicker + description */}
+                {/* Description — no mono uppercase kicker */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
-                  <span style={{
-                    fontFamily: 'var(--pl-font-mono)',
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.2em',
-                    textTransform: 'uppercase',
-                    color: 'rgba(14,13,11,0.60)',
-                  }}>
-                    {card.kicker}
-                  </span>
                   <p style={{
                     fontFamily: 'var(--pl-font-body)',
                     fontSize: '0.92rem',
