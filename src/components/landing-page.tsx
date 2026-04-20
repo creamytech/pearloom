@@ -18,7 +18,7 @@ import { WovenDivider } from './marketing/WovenDivider';
 import { SiteShowroom } from './marketing/SiteShowroom';
 import { ShowroomParallax } from './marketing/ShowroomParallax';
 import { GrooveEventOS } from './marketing/GrooveEventOS';
-import { TracingThread } from '@/components/brand/groove';
+import { GrooveMotion, TracingThread } from '@/components/brand/groove';
 import { SocialProofBar } from './marketing/SocialProofBar';
 import { TheLoomShowcase } from './marketing/TheLoomShowcase';
 import { GuestExperience } from './marketing/GuestExperience';
@@ -168,6 +168,7 @@ export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPage
   const ctaInView = useInView(ctaRef, { once: true, amount: 0.3 });
 
   return (
+    <GrooveMotion>
     <div
       className="min-h-dvh font-body overflow-x-hidden"
       style={{ background: 'var(--pl-cream)', color: 'var(--pl-ink)' }}
@@ -665,6 +666,7 @@ export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPage
       {/* ── Auth modal ─────────────────────────────────────────── */}
       <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
+    </GrooveMotion>
   );
 }
 

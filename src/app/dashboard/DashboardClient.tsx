@@ -19,6 +19,7 @@ import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import nextDynamic from 'next/dynamic';
 import { ThemeProvider } from '@/components/theme-provider';
+import { GrooveMotion } from '@/components/brand/groove';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useWizardState } from '@/lib/wizard-state';
 import type { WizardStep } from '@/lib/wizard-state';
@@ -502,6 +503,7 @@ export default function DashboardClient() {
 
   return (
     <DialogProvider>
+    <GrooveMotion>
     <ThemeProvider theme={{
       name: 'pearloom-v5',
       fonts: { heading: 'DM Sans', body: 'DM Sans' },
@@ -653,6 +655,7 @@ export default function DashboardClient() {
         />
       )}
     </ThemeProvider>
+    </GrooveMotion>
     </DialogProvider>
   );
 }
