@@ -238,7 +238,7 @@ export const VOICE_PRONOUNS: Record<PoetryVoice, string> = {
 };
 
 const VOICE_BANNED_BASE = ['journey', 'adventure', 'fairy tale', 'soulmate'];
-const VOICE_BANNED: Record<PoetryVoice, string[]> = {
+export const VOICE_BANNED: Record<PoetryVoice, string[]> = {
   celebratory: VOICE_BANNED_BASE,
   intimate:    [...VOICE_BANNED_BASE, 'epic', 'wild ride', 'best day ever'],
   ceremonial:  [...VOICE_BANNED_BASE, 'magical', 'dream', 'fairytale'],

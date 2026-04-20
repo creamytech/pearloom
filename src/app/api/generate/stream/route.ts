@@ -16,6 +16,7 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import pLimit from 'p-limit';
 import { encryptBuffer, isEncryptionEnabled } from '@/lib/crypto';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
+import { seedBlocksFromEventDetails } from '@/lib/event-os/seed-event-details';
 
 // ── Pass labels (index 0-7) ────────────────────────────────────
 const PASS_LABELS = [
@@ -272,6 +273,7 @@ export async function POST(req: Request) {
     photoNotes,
     storyLayout,
     songUrl,
+    eventDetails,
   } = body as {
     photos: GooglePhotoMetadata[];
     clusters?: PhotoCluster[];
@@ -299,6 +301,12 @@ export async function POST(req: Request) {
     photoNotes?: Record<string, { note?: string; location?: string; date?: string }>;
     storyLayout?: 'parallax' | 'filmstrip' | 'magazine' | 'timeline' | 'kenburns' | 'bento';
     songUrl?: string;
+    eventDetails?: {
+      days?: number;
+      livestreamUrl?: string;
+      inMemoryOf?: string;
+      school?: string;
+    };
   };
 
   if (!photos?.length) {
@@ -507,6 +515,15 @@ export async function POST(req: Request) {
         // Initialize blocks: occasion-aware defaults.
         {
           const blocks = getDefaultBlocks(occasion ?? 'story', events.length > 0, !!eventDate);
+          // Seed block configs from the wizard's event-details
+          // step (days → itinerary skeleton, livestreamUrl →
+          // livestream block URL, school → hero subtitle, etc.).
+          seedBlocksFromEventDetails(
+            blocks as unknown as import('@/types').PageBlock[],
+            occasion,
+            eventDetails,
+            names,
+          );
           manifest.blocks = blocks as typeof manifest.blocks;
         }
 

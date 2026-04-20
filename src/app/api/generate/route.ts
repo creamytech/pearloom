@@ -19,6 +19,7 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import pLimit from 'p-limit';
 import { encryptBuffer, isEncryptionEnabled } from '@/lib/crypto';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
+import { seedBlocksFromEventDetails } from '@/lib/event-os/seed-event-details';
 
 // ── R2 upload helper — fetches a URL and stores it permanently ─
 function getR2Client() {
@@ -284,6 +285,7 @@ export async function POST(req: NextRequest) {
       weddingTimeline,
       ringDetails,
       venueAesthetic,
+      eventDetails,
     }: {
       photos: GooglePhotoMetadata[];
       clusters?: PhotoCluster[];
@@ -325,6 +327,12 @@ export async function POST(req: NextRequest) {
       weddingTimeline?: string;
       ringDetails?: string;
       venueAesthetic?: string;
+      eventDetails?: {
+        days?: number;
+        livestreamUrl?: string;
+        inMemoryOf?: string;
+        school?: string;
+      };
     } = body;
 
     if (!photos?.length) {
@@ -575,9 +583,17 @@ export async function POST(req: NextRequest) {
       if (hasDate)   revealed.add('countdown');
       if (hasRsvp)   revealed.add('rsvp');
       if (hasRegistry) revealed.add('registry');
-      manifest.blocks = blocks.map((b) =>
+      const revealedBlocks = blocks.map((b) =>
         revealed.has(b.type) ? { ...b, visible: true } : b
-      ) as typeof manifest.blocks;
+      );
+      // Seed block configs from the wizard's event-details step.
+      seedBlocksFromEventDetails(
+        revealedBlocks as unknown as import('@/types').PageBlock[],
+        occasion,
+        eventDetails,
+        names,
+      );
+      manifest.blocks = revealedBlocks as typeof manifest.blocks;
     }
 
     // Hide sub-pages by default, then unhide the ones backed by user-supplied data
