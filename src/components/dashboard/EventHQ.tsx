@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { StatTile, Button } from '@/components/shell';
 import { formatSiteDisplayUrl } from '@/lib/site-urls';
+import { BlurFade, GrooveBlob } from '@/components/brand/groove';
 
 export interface EventHQSite {
   id: string;
@@ -65,14 +66,32 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
   const year = new Date().getFullYear();
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 36, maxWidth: 1180, margin: '0 auto' }}>
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 36, maxWidth: 1180, margin: '0 auto' }}>
+      {/* Ambient warmth — two groove blobs drifting behind the hq */}
+      <GrooveBlob
+        palette="sunrise"
+        size={460}
+        blur={80}
+        opacity={0.24}
+        style={{ position: 'absolute', top: '-100px', right: '-60px', zIndex: 0, pointerEvents: 'none' }}
+      />
+      <GrooveBlob
+        palette="orchard"
+        size={340}
+        blur={70}
+        opacity={0.18}
+        style={{ position: 'absolute', top: '45%', left: '-80px', zIndex: 0, pointerEvents: 'none' }}
+      />
+
       {/* ── Editorial masthead ─────────────────────────────────── */}
+      <BlurFade>
       <header
         style={{
           position: 'relative',
+          zIndex: 1,
           paddingTop: 20,
           paddingBottom: 28,
-          borderBottom: '1px solid var(--pl-divider)',
+          borderBottom: '1px solid color-mix(in oklab, var(--pl-groove-terra) 22%, transparent)',
         }}
       >
         <span
@@ -81,9 +100,10 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
             top: 0,
             left: 0,
             right: 0,
-            height: 2,
+            height: 3,
             background:
-              'linear-gradient(90deg, var(--pl-gold) 0%, rgba(184,147,90,0) 40%)',
+              'linear-gradient(90deg, var(--pl-groove-terra) 0%, var(--pl-groove-butter) 40%, transparent 75%)',
+            borderRadius: 'var(--pl-groove-radius-pill)',
           }}
         />
         <div
@@ -101,9 +121,9 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
                 fontFamily: 'var(--pl-font-mono)',
                 fontSize: '0.72rem',
                 fontWeight: 700,
-                letterSpacing: '0.28em',
+                letterSpacing: '0.22em',
                 textTransform: 'uppercase',
-                color: 'var(--pl-olive)',
+                color: 'var(--pl-groove-terra)',
                 marginBottom: 18,
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -112,9 +132,10 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
             >
               <span
                 style={{
-                  width: 22,
-                  height: 1,
-                  background: 'var(--pl-gold)',
+                  width: 24,
+                  height: 2,
+                  background: 'var(--pl-groove-butter)',
+                  borderRadius: 'var(--pl-groove-radius-pill)',
                 }}
               />
               Event HQ · {year}
@@ -178,9 +199,10 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
           </div>
         </div>
       </header>
+      </BlurFade>
 
       {/* ── Stat row ───────────────────────────────────────────── */}
-      <section>
+      <section style={{ position: 'relative', zIndex: 1 }}>
         <div
           style={{
             display: 'flex',
@@ -294,6 +316,8 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
       {/* ── Pear suggests + Quick lanes ───────────────────────── */}
       <section
         style={{
+          position: 'relative',
+          zIndex: 1,
           display: 'grid',
           gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)',
           gap: 24,

@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, Link2, Unlink, RefreshCw } from 'lucide-react';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
+import { BlurFade, GrooveBlob, SquishyButton } from '@/components/brand/groove';
 
 interface DashSite {
   domain: string;
@@ -140,11 +141,28 @@ export function ConnectionsPanel({ sites, onChanged }: Props) {
   );
 
   return (
-    <section>
-      <header style={{ marginBottom: 24 }}>
+    <section style={{ position: 'relative' }}>
+      {/* Ambient warmth */}
+      <GrooveBlob
+        palette="petal"
+        size={420}
+        blur={80}
+        opacity={0.22}
+        style={{ position: 'absolute', top: '-80px', right: '-60px', zIndex: 0, pointerEvents: 'none' }}
+      />
+      <BlurFade>
+      <header style={{ marginBottom: 24, position: 'relative', zIndex: 1 }}>
         <div
           className="pl-overline"
-          style={{ color: 'var(--pl-olive)', marginBottom: 8 }}
+          style={{
+            color: 'var(--pl-groove-plum)',
+            marginBottom: 8,
+            letterSpacing: '0.22em',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            fontFamily: 'var(--pl-font-mono)',
+          }}
         >
           Site connections
         </div>
@@ -154,7 +172,8 @@ export function ConnectionsPanel({ sites, onChanged }: Props) {
             margin: 0,
             fontStyle: 'italic',
             fontSize: 'clamp(1.6rem, 3vw, 2.2rem)',
-            color: 'var(--pl-ink)',
+            color: 'var(--pl-groove-ink)',
+            fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
           }}
         >
           Events woven together
@@ -172,6 +191,7 @@ export function ConnectionsPanel({ sites, onChanged }: Props) {
           ceremony all link back to each other on the footer of every page.
         </p>
       </header>
+      </BlurFade>
 
       {error && (
         <div
@@ -399,33 +419,14 @@ export function ConnectionsPanel({ sites, onChanged }: Props) {
               fontFamily: 'var(--pl-font-body)',
             }}
           />
-          <button
+          <SquishyButton
             onClick={() => { void createCelebration(); }}
             disabled={!newName.trim() || pendingDomain !== null || sites.length === 0}
-            style={{
-              padding: '9px 16px',
-              borderRadius: 'var(--pl-radius-full)',
-              border: '1px solid var(--pl-ink)',
-              background: 'var(--pl-ink)',
-              color: 'var(--pl-cream)',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              cursor:
-                !newName.trim() || pendingDomain !== null
-                  ? 'not-allowed'
-                  : 'pointer',
-              opacity:
-                !newName.trim() || pendingDomain !== null || sites.length === 0
-                  ? 0.55
-                  : 1,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
+            icon={<Plus size={14} />}
+            palette="sunrise"
           >
-            <Plus size={13} />
             Create
-          </button>
+          </SquishyButton>
         </div>
       </div>
 

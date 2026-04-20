@@ -19,6 +19,7 @@ import {
 import { LoomThreadIcon } from '@/components/icons/PearloomIcons';
 import Link from 'next/link';
 import { formatSiteDisplayUrl } from '@/lib/site-urls';
+import { BlurFade, GrooveBlob } from '@/components/brand/groove';
 
 // Force dynamic since we pull live RSVP data
 export const dynamic = 'force-dynamic';
@@ -1215,8 +1216,17 @@ function RsvpPageContent({ domain }: { domain: string }) {
         paddingLeft: '1.5rem',
         paddingRight: '1.5rem',
         fontFamily: 'var(--pl-font-body)',
+        position: 'relative',
       }}
     >
+      <GrooveBlob
+        palette="orchard"
+        size={480}
+        blur={80}
+        opacity={0.2}
+        style={{ position: 'absolute', top: '-100px', right: '-80px', zIndex: 0, pointerEvents: 'none' }}
+      />
+
       {/* ── Header row ── */}
       <div
         style={{
@@ -1284,18 +1294,24 @@ function RsvpPageContent({ domain }: { domain: string }) {
         </button>
       </div>
 
+      <BlurFade>
       <h1
         style={{
-          fontFamily: 'var(--pl-font-heading)',
-          fontSize: 'clamp(1.8rem, 4vw, 2.5rem)',
-          fontWeight: 700,
-          color: 'var(--pl-ink)',
+          fontFamily: 'var(--pl-font-display)',
+          fontStyle: 'italic',
+          fontSize: 'clamp(2rem, 4.5vw, 3rem)',
+          fontWeight: 400,
+          color: 'var(--pl-groove-ink)',
           marginBottom: '2rem',
           letterSpacing: '-0.02em',
+          fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         Guest RSVPs
       </h1>
+      </BlurFade>
 
       {/* ── Stats row ── */}
       <div
