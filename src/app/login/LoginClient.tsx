@@ -259,21 +259,27 @@ export function LoginClient({ searchParamsPromise }: Props) {
               whileTap={{ scale: 0.98 }}
               onClick={handleGoogle}
               disabled={busy !== null}
-              className="pl-pearl-accent"
               style={{
                 width: '100%',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 10,
-                padding: '14px 18px',
-                borderRadius: 'var(--pl-radius-xs)',
-                fontFamily: FONT_MONO,
-                fontSize: '0.7rem',
-                letterSpacing: '0.26em',
-                textTransform: 'uppercase',
-                fontWeight: 700,
+                padding: '16px 18px',
+                minHeight: 52,
+                borderRadius: 'var(--pl-groove-radius-pill)',
+                border: 'none',
+                background: 'var(--pl-groove-blob-sunrise)',
+                color: '#fff',
+                fontFamily: FONT_BODY,
+                fontSize: '0.98rem',
+                fontWeight: 600,
+                letterSpacing: '-0.005em',
                 cursor: busy ? 'wait' : 'pointer',
+                boxShadow:
+                  '0 6px 18px rgba(139,74,106,0.24), 0 2px 6px rgba(43,30,20,0.08)',
+                transition:
+                  'transform var(--pl-dur-fast) var(--pl-groove-ease-squish)',
               }}
             >
               <GoogleMark />

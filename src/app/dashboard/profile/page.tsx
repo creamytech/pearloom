@@ -21,6 +21,7 @@ import { Switch } from '@/components/ui/switch';
 import { PageCard } from '@/components/shell';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
 import { downloadFile } from '@/lib/guest-services';
+import { BlurFade, GrooveBlob } from '@/components/brand/groove';
 
 export default function ProfilePage() {
   const { data: session } = useSession();
@@ -86,15 +87,36 @@ export default function ProfilePage() {
 
   return (
     <DashboardShell eyebrow="Account" contentMaxWidth={720}>
+            <div style={{ position: 'relative' }}>
+              <GrooveBlob
+                palette="orchard"
+                size={420}
+                blur={80}
+                opacity={0.2}
+                style={{ position: 'absolute', top: '-80px', right: '-60px', zIndex: 0, pointerEvents: 'none' }}
+              />
+            </div>
+            <BlurFade>
             {/* Editorial header */}
             <div
               style={{
+                position: 'relative',
+                zIndex: 1,
                 marginBottom: 32,
                 paddingBottom: 24,
-                borderBottom: '1px solid var(--pl-divider)',
+                borderBottom: '1px solid color-mix(in oklab, var(--pl-groove-terra) 20%, transparent)',
               }}
             >
-              <div className="pl-overline" style={{ marginBottom: 14 }}>
+              <div
+                className="pl-overline"
+                style={{
+                  marginBottom: 14,
+                  color: 'var(--pl-groove-terra)',
+                  letterSpacing: '0.22em',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                }}
+              >
                 Account · Preferences
               </div>
               <h1
@@ -102,7 +124,7 @@ export default function ProfilePage() {
                 style={{
                   margin: 0,
                   fontSize: 'clamp(1.8rem, 3.2vw, 2.4rem)',
-                  color: 'var(--pl-ink)',
+                  color: 'var(--pl-groove-ink)',
                   lineHeight: 1.05,
                 }}
               >
@@ -110,7 +132,7 @@ export default function ProfilePage() {
                 <em
                   style={{
                     fontStyle: 'italic',
-                    color: 'var(--pl-olive)',
+                    color: 'var(--pl-groove-terra)',
                     fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
                   }}
                 >
@@ -121,7 +143,7 @@ export default function ProfilePage() {
               <p
                 style={{
                   margin: '10px 0 0',
-                  color: 'var(--pl-muted)',
+                  color: 'color-mix(in oklab, var(--pl-groove-ink) 70%, transparent)',
                   fontSize: '0.95rem',
                   lineHeight: 1.55,
                   maxWidth: '52ch',
@@ -130,6 +152,7 @@ export default function ProfilePage() {
                 Profile, plan, notifications, and the quiet controls for your data.
               </p>
             </div>
+            </BlurFade>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {/* Profile */}

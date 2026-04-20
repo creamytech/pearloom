@@ -18,6 +18,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
+import { BlurFade, GrooveBlob } from '@/components/brand/groove';
 
 interface FaqEntry {
   q: string;
@@ -106,13 +107,22 @@ export default function HelpClient() {
 
   return (
     <DashboardShell eyebrow="Help · Docs" contentMaxWidth={980}>
+            <GrooveBlob
+              palette="sunrise"
+              size={460}
+              blur={80}
+              opacity={0.22}
+              style={{ position: 'absolute', top: '-100px', right: '-60px', zIndex: 0, pointerEvents: 'none' }}
+            />
+            <BlurFade>
             {/* Editorial masthead */}
             <header
               style={{
                 position: 'relative',
+                zIndex: 1,
                 marginBottom: 40,
                 paddingBottom: 32,
-                borderBottom: '1px solid var(--pl-divider)',
+                borderBottom: '1px solid color-mix(in oklab, var(--pl-groove-terra) 20%, transparent)',
               }}
             >
               <div
@@ -121,9 +131,10 @@ export default function HelpClient() {
                   top: 0,
                   left: 0,
                   right: 0,
-                  height: 2,
+                  height: 3,
                   background:
-                    'linear-gradient(90deg, var(--pl-gold) 0%, rgba(184,147,90,0) 40%)',
+                    'linear-gradient(90deg, var(--pl-groove-terra) 0%, var(--pl-groove-butter) 40%, transparent 75%)',
+                  borderRadius: 'var(--pl-groove-radius-pill)',
                 }}
               />
               <div
@@ -140,11 +151,11 @@ export default function HelpClient() {
                   <div
                     style={{
                       fontFamily: 'var(--pl-font-mono)',
-                      fontSize: '0.5rem',
+                      fontSize: '0.75rem',
                       fontWeight: 700,
-                      letterSpacing: '0.28em',
+                      letterSpacing: '0.22em',
                       textTransform: 'uppercase',
-                      color: 'var(--pl-olive)',
+                      color: 'var(--pl-groove-terra)',
                       marginBottom: 18,
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -153,9 +164,10 @@ export default function HelpClient() {
                   >
                     <span
                       style={{
-                        width: 22,
-                        height: 1,
-                        background: 'var(--pl-gold)',
+                        width: 24,
+                        height: 2,
+                        background: 'var(--pl-groove-butter)',
+                        borderRadius: 'var(--pl-groove-radius-pill)',
                       }}
                     />
                     Help · {year}
@@ -276,6 +288,7 @@ export default function HelpClient() {
                 </label>
               </div>
             </header>
+            </BlurFade>
 
             {/* Three-column dossier: shortcuts to help surfaces */}
             <section
