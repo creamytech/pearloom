@@ -9,7 +9,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useEditor } from '@/lib/editor-state';
 
-const LS_DISMISSED_KEY = 'pearloom_checklist_dismissed';
+// The dismiss-forever path was removed — the checklist is now a
+// persistent readiness rail. Hosts can still collapse it into a
+// pill, but it never fully disappears until every item is done
+// and the celebration timer auto-hides it.
 const LS_COLLAPSED_KEY = 'pearloom_checklist_collapsed';
 
 // ── Checklist item definitions ────────────────────────────────
@@ -36,21 +39,21 @@ const ITEMS: ChecklistItem[] = [
 export function GettingStartedChecklist() {
   const { state, dispatch, manifest } = useEditor();
 
-  // Visibility state
-  const [dismissed, setDismissed] = useState(true);
+  // Visibility state — the rail is always rendered; the user
+  // can only collapse it to a pill, not dismiss it outright.
   const [collapsed, setCollapsed] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
+  const [postCelebrateHidden, setPostCelebrateHidden] = useState(false);
   const celebrateTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  // Check localStorage on mount
+  // Check localStorage on mount — only collapsed state persists.
+  // Also clear the legacy dismiss flag so returning hosts who
+  // hid the checklist before the rail redesign see it again.
   useEffect(() => {
     try {
-      if (localStorage.getItem(LS_DISMISSED_KEY)) { setDismissed(true); return; }
-      setDismissed(false);
+      localStorage.removeItem('pearloom_checklist_dismissed');
       setCollapsed(localStorage.getItem(LS_COLLAPSED_KEY) === '1');
-    } catch {
-      setDismissed(false);
-    }
+    } catch { /* ignore */ }
   }, []);
 
   // Compute completion status from manifest
@@ -58,17 +61,17 @@ export function GettingStartedChecklist() {
   const completedCount = completionStatus.filter(Boolean).length;
   const allDone = completedCount === ITEMS.length;
 
-  // Celebrate when all items complete
+  // Celebrate when all items complete — hide the rail after
+  // the celebration animation so the editor chrome is clean.
   useEffect(() => {
-    if (allDone && !dismissed && !celebrating) {
+    if (allDone && !celebrating && !postCelebrateHidden) {
       setCelebrating(true);
       celebrateTimerRef.current = setTimeout(() => {
-        try { localStorage.setItem(LS_DISMISSED_KEY, '1'); } catch {}
-        setDismissed(true);
+        setPostCelebrateHidden(true);
       }, 3500);
     }
     return () => { if (celebrateTimerRef.current) clearTimeout(celebrateTimerRef.current); };
-  }, [allDone, dismissed, celebrating]);
+  }, [allDone, celebrating, postCelebrateHidden]);
 
   // Toggle collapsed
   const toggleCollapsed = useCallback(() => {
@@ -88,8 +91,8 @@ export function GettingStartedChecklist() {
     }
   }, [dispatch]);
 
-  // Don't render if permanently dismissed
-  if (dismissed) return null;
+  // Hide only after the post-publish celebration animation.
+  if (postCelebrateHidden) return null;
 
   const remaining = ITEMS.length - completedCount;
   const progressPct = (completedCount / ITEMS.length) * 100;

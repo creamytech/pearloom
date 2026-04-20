@@ -471,9 +471,81 @@ function EventDetailsStep({
   );
 }
 
+// ── Local-draft persistence ──────────────────────────────────
+// The wizard collects ~11 steps of data before generation.
+// Closing the browser (or crashing, or switching tabs to pick
+// a song) used to drop all of it. We persist `collected` to
+// localStorage on every change so hosts can resume.
+const DRAFT_KEY = 'pearloom:wizard-draft:v1';
+
+interface WizardDraft {
+  collected: Collected;
+  savedAt: string; // ISO
+}
+
+function readDraft(): WizardDraft | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as WizardDraft;
+    // Expire drafts older than 14 days — stale context is
+    // worse than no context.
+    const age = Date.now() - new Date(parsed.savedAt).getTime();
+    if (age > 14 * 24 * 60 * 60 * 1000) {
+      window.localStorage.removeItem(DRAFT_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeDraft(collected: Collected) {
+  if (typeof window === 'undefined') return;
+  // Empty draft = no draft (user is at step 1).
+  const isEmpty = Object.values(collected).every(
+    (v) => v === undefined || v === null || (Array.isArray(v) && v.length === 0),
+  );
+  try {
+    if (isEmpty) {
+      window.localStorage.removeItem(DRAFT_KEY);
+      return;
+    }
+    const draft: WizardDraft = {
+      collected,
+      savedAt: new Date().toISOString(),
+    };
+    window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    /* quota exceeded — ignore */
+  }
+}
+
+function clearDraft() {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.removeItem(DRAFT_KEY);
+  } catch { /* ignore */ }
+}
+
 export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
   // ── State ─────────────────────────────────────────────────
-  const [collected, setCollected] = useState<Collected>({});
+  const [collected, setCollected] = useState<Collected>(() => {
+    // Seed from local draft if present — hosts resume exactly
+    // where they left off without any ceremony.
+    const draft = readDraft();
+    return draft?.collected ?? {};
+  });
+  const [resumedFromDraft, setResumedFromDraft] = useState(() => readDraft() !== null);
+
+  // Persist every change so a browser crash mid-wizard doesn't
+  // cost the host their answers. Runs on mount with a seeded
+  // value too, but writeDraft no-ops when `collected` is empty.
+  useEffect(() => {
+    writeDraft(collected);
+  }, [collected]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [phase, setPhase] = useState<'chat' | 'generating' | 'error' | 'done' | 'complete'>('chat');
@@ -1201,6 +1273,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
           const subdomain = n2 ? `${n1}-and-${n2}-${suffix}` : `${n1}-${suffix}`;
           setCompletedData({ manifest, names: c.names, subdomain });
           setPhase('complete');
+          clearDraft();
           return;
         }
       }
@@ -1215,6 +1288,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
       const subdomain = n2 ? `${n1}-and-${n2}-${suffix}` : `${n1}-${suffix}`;
       setCompletedData({ manifest: data.manifest, names: c.names, subdomain });
       setPhase('complete');
+      clearDraft();
     } catch (err) {
       setGenError(err instanceof Error ? err.message : 'Generation failed');
       setRetryCount(prev => prev + 1);
@@ -1627,6 +1701,67 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
         position: 'relative', zIndex: 10,
         width: '100%', maxWidth: 620, padding: '80px 20px 48px',
       }}>
+        {/* Resumed-from-draft banner — shown until dismissed or
+            the host explicitly starts fresh. Appears at the top
+            above the masthead so it can't be missed. */}
+        {resumedFromDraft && (
+          <div
+            style={{
+              margin: '0 4px 14px',
+              padding: '10px 14px',
+              borderRadius: 'var(--pl-radius-md)',
+              background: 'color-mix(in oklab, var(--pl-olive) 10%, transparent)',
+              border: '1px solid color-mix(in oklab, var(--pl-olive) 32%, transparent)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              flexWrap: 'wrap',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '0.82rem',
+                color: 'var(--pl-ink)',
+                fontFamily: 'var(--pl-font-body)',
+              }}
+            >
+              Continuing where you left off.
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                clearDraft();
+                setCollected({});
+                setInput('');
+                setVibeDescription('');
+                setGeneratedPalettes([]);
+                setSelectedPaletteColors(null);
+                setPhotosDecided(false);
+                setSelectedPhotos([]);
+                setReviewDone(false);
+                setLayoutConfirmed(false);
+                setSongDecided(false);
+                setResumedFromDraft(false);
+              }}
+              style={{
+                fontFamily: 'var(--pl-font-mono)',
+                fontSize: '0.68rem',
+                fontWeight: 700,
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                color: 'var(--pl-olive)',
+                background: 'transparent',
+                border: '1px solid color-mix(in oklab, var(--pl-olive) 45%, transparent)',
+                padding: '6px 12px',
+                borderRadius: 'var(--pl-radius-sm)',
+                cursor: 'pointer',
+              }}
+            >
+              Start fresh
+            </button>
+          </div>
+        )}
         {/* Masthead above the card */}
         <div style={{
           display: 'flex',
