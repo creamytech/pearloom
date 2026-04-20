@@ -39,6 +39,10 @@ import { GrooveSiteHero } from '@/components/site/groove/GrooveSiteHero';
 import { GrooveSiteStory } from '@/components/site/groove/GrooveSiteStory';
 import { GrooveSiteEvents } from '@/components/site/groove/GrooveSiteEvents';
 import { GrooveSiteFooter } from '@/components/site/groove/GrooveSiteFooter';
+import { GrooveSiteCountdown } from '@/components/site/groove/GrooveSiteCountdown';
+import { GrooveSiteFaq } from '@/components/site/groove/GrooveSiteFaq';
+import { GrooveSiteWelcome } from '@/components/site/groove/GrooveSiteWelcome';
+import { GrooveSiteQuote } from '@/components/site/groove/GrooveSiteQuote';
 import { resolveThemeFamily } from '@/lib/event-os/theme-family';
 import { CoupleQuiz } from '@/components/site/CoupleQuiz';
 import { ShareBar } from '@/components/site/ShareBar';
@@ -514,13 +518,30 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             <TravelSection info={manifest.travelInfo} />
           </section>
         );
-      case 'faq':
+      case 'faq': {
         if (!manifest.faqs?.length) return null;
+        const faqFamily = resolveThemeFamily(manifest);
+        if (faqFamily === 'groove') {
+          return (
+            <GrooveSiteFaq
+              key={key}
+              items={manifest.faqs.map((f) => ({ question: f.question, answer: f.answer }))}
+              title={(blockCfg.title as string) || 'Good questions'}
+              accent={pal.accent}
+              foreground={pal.foreground}
+              background={pal.background}
+              muted={pal.muted}
+              headingFont={vibeSkin.fonts.heading}
+              bodyFont={vibeSkin.fonts.body}
+            />
+          );
+        }
         return (
           <section key={key} id="faq">
             <FaqSection faqs={manifest.faqs} />
           </section>
         );
+      }
       case 'guestbook':
         if (manifest.features?.guestbook === false) return null;
         return (
@@ -550,6 +571,21 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           : occasion === 'story' ? 'The moment arrives'
           : 'Until we say I do';
         const countdownLabel = (blockCfg.label as string) || defaultCountdownLabel;
+        const countdownFamily = resolveThemeFamily(manifest);
+        if (countdownFamily === 'groove') {
+          return (
+            <GrooveSiteCountdown
+              key={key}
+              targetDate={eventDate}
+              label={countdownLabel}
+              accent={pal.accent}
+              foreground={pal.foreground}
+              background={pal.background}
+              muted={pal.muted}
+              headingFont={vibeSkin.fonts.heading}
+            />
+          );
+        }
         return (
           <CountdownBlock
             key={key}
@@ -732,6 +768,20 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       case 'vibeQuote': {
         const vqText = (blockCfg.text as string) || vibeSkin.dividerQuote || manifest.vibeString || '';
         if (!vqText) return null;
+        const vqFamily = resolveThemeFamily(manifest);
+        if (vqFamily === 'groove') {
+          return (
+            <GrooveSiteQuote
+              key={key}
+              text={vqText}
+              symbol={(blockCfg.symbol as string) || vibeSkin.accentSymbol}
+              accent={pal.accent}
+              foreground={pal.foreground}
+              background={pal.background}
+              headingFont={vibeSkin.fonts.heading}
+            />
+          );
+        }
         return (
           <section key={key} style={{ padding: 'clamp(3rem,6vw,6rem) 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
             <div style={{ fontSize: '2rem', color: pal.accent, opacity: 0.4, marginBottom: '1rem' }}>{(blockCfg.symbol as string) || vibeSkin.accentSymbol || '\u2726'}</div>
@@ -744,6 +794,19 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       case 'welcome': {
         const welcomeText = (blockCfg.text as string) || manifest.poetry?.welcomeStatement;
         if (!welcomeText) return null;
+        const welcomeFamily = resolveThemeFamily(manifest);
+        if (welcomeFamily === 'groove') {
+          return (
+            <GrooveSiteWelcome
+              key={key}
+              text={welcomeText}
+              accent={pal.accent}
+              foreground={pal.foreground}
+              background={pal.background}
+              headingFont={vibeSkin.fonts.heading}
+            />
+          );
+        }
         return (
           <section key={key} style={{ padding: 'clamp(3rem,6vw,5rem) 2rem', textAlign: 'center', maxWidth: '680px', margin: '0 auto' }}>
             <p style={{ fontFamily: `"${vibeSkin.fonts.body}", sans-serif`, fontSize: '1.05rem', lineHeight: 1.9, color: pal.foreground, opacity: 0.8 }}>
