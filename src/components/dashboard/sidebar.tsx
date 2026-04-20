@@ -24,6 +24,8 @@ import {
   Users,
   BarChart3,
   CalendarRange,
+  MessageSquare,
+  Link2,
 } from 'lucide-react';
 
 interface NavLink {
@@ -51,7 +53,9 @@ const SECTIONS: NavSection[] = [
     links: [
       { href: '/dashboard/day-of', label: 'Day-of', icon: Megaphone },
       { href: '/dashboard/rsvp', label: 'Guests · RSVP', icon: Users },
+      { href: '/dashboard/submissions', label: 'Submissions', icon: MessageSquare },
       { href: '/dashboard/gallery', label: 'Gallery', icon: ImageIcon },
+      { href: '/dashboard/connections', label: 'Connections', icon: Link2 },
     ],
   },
   {

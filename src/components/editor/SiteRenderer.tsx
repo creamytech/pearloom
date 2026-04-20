@@ -2551,7 +2551,16 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             amount: Number(i.amount) || 0,
             note: i.note,
           }));
-        if (lineItems.length === 0 && !editMode) return null;
+        if (lineItems.length === 0) {
+          return editMode ? (
+            <section key={key} data-pe-section="costSplitter" data-pe-empty-section="costSplitter" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
+              <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: 'var(--pl-radius-lg)', border: `2px dashed ${pal.accent}30`, color: safeMuted, maxWidth: 520, margin: '0 auto' }}>
+                <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>The cost share</div>
+                <p style={{ fontSize: '0.85rem', lineHeight: 1.5 }}>Add line items in the Cost share panel — venue, transport, anything guests split.</p>
+              </div>
+            </section>
+          ) : null;
+        }
         const title = (blockCfg.title as string) || 'The cost share';
         const subtitle = (blockCfg.subtitle as string) || undefined;
         const currency = (blockCfg.currency as string) || 'USD';
@@ -2580,7 +2589,16 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         const items = rawItems
           .filter((i) => (i.label ?? '').trim().length > 0)
           .map((i) => ({ label: i.label ?? '', category: i.category, note: i.note, required: !!i.required }));
-        if (items.length === 0 && !editMode) return null;
+        if (items.length === 0) {
+          return editMode ? (
+            <section key={key} data-pe-section="packingList" data-pe-empty-section="packingList" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
+              <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: 'var(--pl-radius-lg)', border: `2px dashed ${pal.accent}30`, color: safeMuted, maxWidth: 520, margin: '0 auto' }}>
+                <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Packing list</div>
+                <p style={{ fontSize: '0.85rem', lineHeight: 1.5 }}>Add items in the Packing list panel — guests will tick them off as they pack.</p>
+              </div>
+            </section>
+          ) : null;
+        }
         return (
           <div key={key} style={blockStyle}>
             <PackingListBlock
@@ -2607,7 +2625,16 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             note: o.note,
             initialVotes: Number(o.initialVotes) || 0,
           }));
-        if (options.length === 0 && !editMode) return null;
+        if (options.length === 0) {
+          return editMode ? (
+            <section key={key} data-pe-section="activityVote" data-pe-empty-section="activityVote" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
+              <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: 'var(--pl-radius-lg)', border: `2px dashed ${pal.accent}30`, color: safeMuted, maxWidth: 520, margin: '0 auto' }}>
+                <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>What should we do?</div>
+                <p style={{ fontSize: '0.85rem', lineHeight: 1.5 }}>Add options in the Activity vote panel — guests pick their favourite.</p>
+              </div>
+            </section>
+          ) : null;
+        }
         return (
           <div key={key} style={blockStyle}>
             <ActivityVoteBlock
@@ -2657,7 +2684,16 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         const slots = rawSlots
           .filter((s) => (s.label ?? '').trim().length > 0)
           .map((s) => ({ label: s.label ?? '', assigned: s.assigned, note: s.note }));
-        if (slots.length === 0 && !editMode) return null;
+        if (slots.length === 0) {
+          return editMode ? (
+            <section key={key} data-pe-section="toastSignup" data-pe-empty-section="toastSignup" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
+              <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: 'var(--pl-radius-lg)', border: `2px dashed ${pal.accent}30`, color: safeMuted, maxWidth: 520, margin: '0 auto' }}>
+                <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Toasts &amp; words</div>
+                <p style={{ fontSize: '0.85rem', lineHeight: 1.5 }}>Add slots in the Toast signup panel — "Father of the bride", "Best man", etc.</p>
+              </div>
+            </section>
+          ) : null;
+        }
         return (
           <div key={key} style={blockStyle}>
             <ToastSignupBlock
@@ -2679,7 +2715,16 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'obituary': {
         const name = (blockCfg.name as string) || '';
         const body = (blockCfg.body as string) || '';
-        if (!name.trim() && !editMode) return null;
+        if (!name.trim()) {
+          return editMode ? (
+            <section key={key} data-pe-section="obituary" data-pe-empty-section="obituary" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
+              <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: 'var(--pl-radius-lg)', border: `2px dashed ${pal.accent}30`, color: safeMuted, maxWidth: 520, margin: '0 auto' }}>
+                <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>In loving memory</div>
+                <p style={{ fontSize: '0.85rem', lineHeight: 1.5 }}>Add a name, dates, and a few paragraphs of remembrance in the Obituary panel.</p>
+              </div>
+            </section>
+          ) : null;
+        }
         return (
           <div key={key} style={blockStyle}>
             <ObituaryBlock
@@ -2699,7 +2744,16 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       }
       case 'livestream': {
         const url = (blockCfg.url as string) || '';
-        if (!url.trim() && !editMode) return null;
+        if (!url.trim()) {
+          return editMode ? (
+            <section key={key} data-pe-section="livestream" data-pe-empty-section="livestream" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
+              <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: 'var(--pl-radius-lg)', border: `2px dashed ${pal.accent}30`, color: safeMuted, maxWidth: 520, margin: '0 auto' }}>
+                <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Watch live</div>
+                <p style={{ fontSize: '0.85rem', lineHeight: 1.5 }}>Paste the Zoom / YouTube / Vimeo link in the Livestream panel.</p>
+              </div>
+            </section>
+          ) : null;
+        }
         return (
           <div key={key} style={blockStyle}>
             <LivestreamBlock
@@ -2722,7 +2776,16 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         const items = rawItems
           .filter((i) => (i.title ?? '').trim().length > 0)
           .map((i) => ({ title: i.title ?? '', description: i.description, participant: i.participant }));
-        if (items.length === 0 && !editMode) return null;
+        if (items.length === 0) {
+          return editMode ? (
+            <section key={key} data-pe-section="program" data-pe-empty-section="program" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
+              <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: 'var(--pl-radius-lg)', border: `2px dashed ${pal.accent}30`, color: safeMuted, maxWidth: 520, margin: '0 auto' }}>
+                <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>The program</div>
+                <p style={{ fontSize: '0.85rem', lineHeight: 1.5 }}>Add ceremony items in the Program panel — each with a title and participant.</p>
+              </div>
+            </section>
+          ) : null;
+        }
         return (
           <div key={key} style={blockStyle}>
             <ProgramBlock

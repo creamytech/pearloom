@@ -27,6 +27,8 @@ import {
   BarChart3,
   Settings,
   HelpCircle,
+  MessageSquare,
+  Link2,
   X,
 } from 'lucide-react';
 
@@ -81,7 +83,9 @@ const DRAWER_SECTIONS: DrawerSection[] = [
     links: [
       { href: '/dashboard/day-of', label: 'Day-of', Icon: Megaphone, hint: 'Live board for the wedding day' },
       { href: '/dashboard/rsvp', label: 'Guests · RSVP', Icon: Users, hint: 'Replies, seating, plus-ones' },
+      { href: '/dashboard/submissions', label: 'Submissions', Icon: MessageSquare, hint: 'Advice, tribute, toast signups' },
       { href: '/dashboard/gallery', label: 'Gallery', Icon: ImageIcon, hint: 'Shared photos from the day' },
+      { href: '/dashboard/connections', label: 'Connections', Icon: Link2, hint: 'Link sibling events to one celebration' },
     ],
   },
   {
