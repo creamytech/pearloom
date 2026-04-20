@@ -22,20 +22,73 @@
 //   4. Custom domains map 1:1 to the path form
 // ─────────────────────────────────────────────────────────────
 
-/** Occasions Pearloom supports for URL prefixing. */
+/** Occasions Pearloom supports for URL prefixing.
+ *
+ * The source of truth for *which* occasions exist is the
+ * EVENT_TYPES registry in `src/lib/event-os/event-types.ts` —
+ * this union mirrors those ids so TypeScript can narrow correctly
+ * across the codebase. Adding a new occasion means:
+ *   1. Append it here.
+ *   2. Add an entry to EVENT_TYPES.
+ *   3. Nothing else — the proxy allowlist, URL helpers, and
+ *      wizard all read the registry.
+ */
 export type SiteOccasion =
+  // Currently shipping
   | 'wedding'
   | 'anniversary'
   | 'engagement'
   | 'birthday'
-  | 'story';
+  | 'story'
+  // Wedding-arc (planned)
+  | 'bachelor-party'
+  | 'bachelorette-party'
+  | 'bridal-shower'
+  | 'bridal-luncheon'
+  | 'rehearsal-dinner'
+  | 'welcome-party'
+  | 'brunch'
+  | 'vow-renewal'
+  // Family (planned)
+  | 'baby-shower'
+  | 'gender-reveal'
+  | 'sip-and-see'
+  | 'housewarming'
+  // Milestone (planned)
+  | 'first-birthday'
+  | 'sweet-sixteen'
+  | 'milestone-birthday'
+  | 'retirement'
+  | 'graduation'
+  // Cultural (planned)
+  | 'bar-mitzvah'
+  | 'bat-mitzvah'
+  | 'quinceanera'
+  | 'baptism'
+  | 'first-communion'
+  | 'confirmation'
+  // Commemoration (planned)
+  | 'memorial'
+  | 'funeral'
+  | 'reunion';
 
 const ALLOWED_OCCASIONS = new Set<SiteOccasion>([
-  'wedding',
-  'anniversary',
-  'engagement',
-  'birthday',
-  'story',
+  // Shipping
+  'wedding', 'anniversary', 'engagement', 'birthday', 'story',
+  // Wedding arc
+  'bachelor-party', 'bachelorette-party', 'bridal-shower',
+  'bridal-luncheon', 'rehearsal-dinner', 'welcome-party',
+  'brunch', 'vow-renewal',
+  // Family
+  'baby-shower', 'gender-reveal', 'sip-and-see', 'housewarming',
+  // Milestone
+  'first-birthday', 'sweet-sixteen', 'milestone-birthday',
+  'retirement', 'graduation',
+  // Cultural
+  'bar-mitzvah', 'bat-mitzvah', 'quinceanera',
+  'baptism', 'first-communion', 'confirmation',
+  // Commemoration
+  'memorial', 'funeral', 'reunion',
 ]);
 
 /** Normalize an unknown input into a valid occasion slug ("wedding" default). */

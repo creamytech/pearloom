@@ -10,6 +10,7 @@
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getAllOccasionIds } from '@/lib/event-os/event-types';
 
 // ── Security headers ────────────────────────────────────────
 
@@ -84,13 +85,10 @@ function getRootDomain(): string {
 //
 // The legacy `/sites/{slug}` URL is preserved as a permanent
 // fallback for already-shared links.
-const OCCASION_SEGMENTS = new Set([
-  'wedding',
-  'anniversary',
-  'engagement',
-  'birthday',
-  'story',
-]);
+// Occasion allowlist for the URL rewrite. Sourced from the
+// EVENT_TYPES registry (imported at top) so adding a new event
+// type anywhere auto-propagates here — no manual sync.
+const OCCASION_SEGMENTS = new Set<string>(getAllOccasionIds());
 
 // ── Proxy entry point ───────────────────────────────────────
 

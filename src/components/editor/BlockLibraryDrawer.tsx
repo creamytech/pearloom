@@ -57,7 +57,11 @@ import {
 // The catalogue stays pure data; we resolve components here so
 // the drawer can swap in brand-specific block icons without the
 // catalogue growing a JSX dependency.
-const BLOCK_ICONS: Record<BlockType, React.ElementType> = {
+// Partial: the new event-OS block types (itinerary, costSplitter,
+// tributeWall, etc.) don't have bespoke icons yet — the drawer
+// falls back to a generic icon at the usage site when undefined.
+// See CLAUDE-PRODUCT.md §4 for the block expansion plan.
+const BLOCK_ICONS: Partial<Record<BlockType, React.ElementType>> = {
   hero: BlockHeroIcon,
   story: BlockStoryIcon,
   event: BlockEventIcon,
@@ -575,7 +579,9 @@ function BlockCard({
   onInsert: () => void;
   onDragType?: (type: BlockType | null) => void;
 }) {
-  const Icon = BLOCK_ICONS[block.type];
+  // Fallback to the text-block icon when a new event-OS block
+  // type doesn't have its own icon yet.
+  const Icon = BLOCK_ICONS[block.type] ?? BlockTextIcon;
   const [dragging, setDragging] = useState(false);
   const [hovered, setHovered] = useState(false);
 

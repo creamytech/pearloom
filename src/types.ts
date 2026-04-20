@@ -526,6 +526,7 @@ export interface WeddingEvent {
 // ─────────────────────────────────────────────────────────────
 
 export type BlockType =
+  // ── Core (shipping) ──
   | 'hero'
   | 'story'
   | 'countdown'
@@ -551,7 +552,26 @@ export type BlockType =
   | 'welcome'
   | 'footer'
   | 'anniversary'
-  | 'weddingParty';
+  | 'weddingParty'
+  // ── Event-OS expansion (CLAUDE-PRODUCT.md §4, implementations pending) ──
+  | 'itinerary'       // Multi-day hourly schedule
+  | 'costSplitter'    // Shared group-trip budget
+  | 'activityVote'    // Multi-choice poll
+  | 'toastSignup'     // Rehearsal dinner / milestone toast slots
+  | 'rooms'           // Reunion / bachelor-trip bed pairing
+  | 'tributeWall'     // Memorial / retirement submissions
+  | 'adviceWall'      // Baby shower / bridal shower advice
+  | 'nameVote'        // Baby-shower name polling
+  | 'program'         // Cultural / religious ceremony order
+  | 'livestream'      // Memorial / destination-wedding livestream
+  | 'obituary'        // Memorial long-form
+  | 'dressCode'       // Visual dress-code guide
+  | 'menu'            // Course list with dietary tags
+  | 'packingList'     // Destination trip checklist
+  | 'thenAndNow'      // Before/after photo pairs (reunions, milestone)
+  | 'whosWho'         // Face cards with roles (reunion, wedding party)
+  | 'groupChat'       // Threaded chat pinned to the site
+  | 'privacyGate';    // Password / invite-list gate
 
 export interface PageBlock {
   id: string;
