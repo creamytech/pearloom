@@ -102,9 +102,23 @@ export async function generateMetadata(
 
   const siteUrl = buildSiteUrl(domain, '', undefined, manifest?.occasion);
 
-  // Build themed OG image URL with full palette & font info
+  // Build themed OG image URL with full palette & font info.
+  // Solo occasions (birthday, memorial, graduation, etc.) pass
+  // only the first honoree — the OG route centres a single name
+  // without the "&" glyph.
+  const ogSoloOccasions = new Set<string>([
+    'birthday', 'first-birthday', 'sweet-sixteen', 'milestone-birthday',
+    'retirement', 'graduation', 'bar-mitzvah', 'bat-mitzvah', 'quinceanera',
+    'baptism', 'first-communion', 'confirmation',
+    'memorial', 'funeral', 'gender-reveal', 'sip-and-see', 'bridal-shower',
+    'bridal-luncheon', 'baby-shower',
+  ]);
+  const ogIsSolo = ogSoloOccasions.has(occasion);
   const ogUrl = new URL('/api/og', siteUrl);
-  ogUrl.searchParams.set('names', `${names[0]},${names[1]}`);
+  ogUrl.searchParams.set(
+    'names',
+    ogIsSolo ? names[0] : `${names[0]},${names[1]}`,
+  );
   ogUrl.searchParams.set('occasion', occasion);
   ogUrl.searchParams.set('date', eventDate || '');
   ogUrl.searchParams.set('tagline', tagline);

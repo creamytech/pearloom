@@ -63,6 +63,19 @@ function formatDate(raw: string): string {
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
 
+  const occasion = (searchParams.get('occasion') || 'wedding').slice(0, 30);
+
+  // Solo events centre a single honoree; duet events show two names
+  // joined by an ampersand (weddings, anniversaries, etc.).
+  const SOLO_OCCASIONS = new Set([
+    'birthday', 'first-birthday', 'sweet-sixteen', 'milestone-birthday',
+    'retirement', 'graduation', 'bar-mitzvah', 'bat-mitzvah', 'quinceanera',
+    'baptism', 'first-communion', 'confirmation',
+    'memorial', 'funeral', 'gender-reveal', 'sip-and-see', 'bridal-shower',
+    'bridal-luncheon', 'baby-shower',
+  ]);
+  const isSolo = SOLO_OCCASIONS.has(occasion);
+
   // ── Parse params (support both legacy and new param names) ────────────
   // New format: ?names=Name1,Name2   Legacy: ?n1=Name1&n2=Name2
   const namesParam = searchParams.get('names');
@@ -70,14 +83,12 @@ export async function GET(req: NextRequest) {
   let name2: string;
   if (namesParam) {
     const parts = namesParam.split(',');
-    name1 = (parts[0] || 'Together').trim().slice(0, 60);
-    name2 = (parts[1] || 'Forever').trim().slice(0, 60);
+    name1 = (parts[0] || (isSolo ? '' : 'Together')).trim().slice(0, 60);
+    name2 = (parts[1] || (isSolo ? '' : 'Forever')).trim().slice(0, 60);
   } else {
-    name1 = (searchParams.get('n1') || 'Together').slice(0, 60);
-    name2 = (searchParams.get('n2') || 'Forever').slice(0, 60);
+    name1 = (searchParams.get('n1') || (isSolo ? '' : 'Together')).slice(0, 60);
+    name2 = (searchParams.get('n2') || (isSolo ? '' : 'Forever')).slice(0, 60);
   }
-
-  const occasion = (searchParams.get('occasion') || 'wedding').slice(0, 30);
   const rawDate  = (searchParams.get('date') || '').slice(0, 30);
   const tagline  = (searchParams.get('tagline') || searchParams.get('tag') || '').slice(0, 120);
   const bgRaw    = searchParams.get('bg') || 'F5F1E8';
@@ -103,12 +114,43 @@ export async function GET(req: NextRequest) {
   const textSecondary = isLight ? 'rgba(30,25,20,0.55)' : 'rgba(255,255,255,0.58)';
   const textMuted     = isLight ? 'rgba(30,25,20,0.30)' : 'rgba(255,255,255,0.30)';
 
-  // Format occasion label nicely
+  // Format occasion label nicely — covers the full EVENT_TYPES
+  // registry so every share card has a human hero line, not a
+  // raw slug (SIP-AND-SEE instead of sip-and-see).
   const occasionLabels: Record<string, string> = {
-    wedding: 'WEDDING', anniversary: 'ANNIVERSARY',
-    birthday: 'BIRTHDAY', engagement: 'ENGAGEMENT', story: 'OUR STORY',
+    wedding: 'WEDDING',
+    anniversary: 'ANNIVERSARY',
+    engagement: 'ENGAGEMENT',
+    birthday: 'BIRTHDAY',
+    story: 'OUR STORY',
+    'bachelor-party': 'BACHELOR WEEKEND',
+    'bachelorette-party': 'BACHELORETTE WEEKEND',
+    'bridal-shower': 'BRIDAL SHOWER',
+    'bridal-luncheon': 'BRIDAL LUNCHEON',
+    'rehearsal-dinner': 'REHEARSAL DINNER',
+    'welcome-party': 'WELCOME PARTY',
+    brunch: 'THE MORNING AFTER',
+    'vow-renewal': 'VOW RENEWAL',
+    'baby-shower': 'BABY SHOWER',
+    'gender-reveal': 'GENDER REVEAL',
+    'sip-and-see': 'SIP & SEE',
+    housewarming: 'HOUSEWARMING',
+    'first-birthday': 'FIRST BIRTHDAY',
+    'sweet-sixteen': 'SWEET SIXTEEN',
+    'milestone-birthday': 'A MILESTONE',
+    retirement: 'RETIREMENT',
+    graduation: 'GRADUATION',
+    'bar-mitzvah': 'BAR MITZVAH',
+    'bat-mitzvah': 'BAT MITZVAH',
+    quinceanera: 'QUINCEAÑERA',
+    baptism: 'BAPTISM',
+    'first-communion': 'FIRST COMMUNION',
+    confirmation: 'CONFIRMATION',
+    memorial: 'IN LOVING MEMORY',
+    funeral: 'IN LOVING MEMORY',
+    reunion: 'REUNION',
   };
-  const occasionLabel = occasionLabels[occasion.toLowerCase()] || occasion.toUpperCase();
+  const occasionLabel = occasionLabels[occasion.toLowerCase()] || occasion.toUpperCase().replace(/-/g, ' ');
 
   // Format date
   const displayDate = formatDate(rawDate);
@@ -296,7 +338,9 @@ export async function GET(req: NextRequest) {
             {occasionLabel}
           </div>
 
-          {/* Names in heading font — large, centered */}
+          {/* Names in heading font — large, centered. Solo events
+              (birthday, memorial, graduation, etc.) show a single
+              honoree without the "&" glyph. */}
           <div
             style={{
               display: 'flex',
@@ -309,7 +353,7 @@ export async function GET(req: NextRequest) {
           >
             <span
               style={{
-                fontSize: '72px',
+                fontSize: isSolo ? '84px' : '72px',
                 fontWeight: 400,
                 color: fg,
                 display: 'flex',
@@ -317,29 +361,32 @@ export async function GET(req: NextRequest) {
             >
               {name1}
             </span>
-            {/* "&" symbol in accent color */}
-            <span
-              style={{
-                fontSize: '40px',
-                color: accent,
-                fontWeight: 400,
-                fontStyle: 'italic',
-                margin: '4px 0',
-                display: 'flex',
-              }}
-            >
-              &amp;
-            </span>
-            <span
-              style={{
-                fontSize: '72px',
-                fontWeight: 400,
-                color: fg,
-                display: 'flex',
-              }}
-            >
-              {name2}
-            </span>
+            {!isSolo && name2 && (
+              <>
+                <span
+                  style={{
+                    fontSize: '40px',
+                    color: accent,
+                    fontWeight: 400,
+                    fontStyle: 'italic',
+                    margin: '4px 0',
+                    display: 'flex',
+                  }}
+                >
+                  &amp;
+                </span>
+                <span
+                  style={{
+                    fontSize: '72px',
+                    fontWeight: 400,
+                    color: fg,
+                    display: 'flex',
+                  }}
+                >
+                  {name2}
+                </span>
+              </>
+            )}
           </div>
 
           {/* Decorative divider */}
