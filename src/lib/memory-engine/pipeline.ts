@@ -59,6 +59,7 @@ export async function generateStoryManifest(
         eventDate,
         photoCount,
         layoutFormat,
+        voice: getEventType(occasion)?.voice,
       });
       rawText = result.raw;
     } catch (err) {
@@ -295,7 +296,7 @@ export async function generateStoryManifest(
   const [pass12Result, pass15Result, pass4Result] = await Promise.allSettled([
     // Pass 1.2: Chapter quality gate
     claudeStoryEnabled
-      ? critiqueChaptersClaude(chaptersSnapshot, vibeString, coupleNames, occasion, clusterNotes)
+      ? critiqueChaptersClaude(chaptersSnapshot, vibeString, coupleNames, occasion, clusterNotes, getEventType(occasion)?.voice)
       : critiqueAndRefineChapters(chaptersSnapshot, vibeString, coupleNames, apiKey, occasion, clusterNotes),
     // Pass 1.5: Couple DNA extraction
     claudeStoryEnabled

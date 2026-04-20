@@ -37,6 +37,8 @@ export async function corePassClaude(
     eventDate?: string;
     photoCount: number;
     layoutFormat?: string;
+    /** Voice from EventType — shifts tone + pronoun + banned list. */
+    voice?: PoetryVoice;
   }
 ): Promise<Pass1Result> {
   const prompt = buildPrompt(
@@ -49,25 +51,26 @@ export async function corePassClaude(
     opts.layoutFormat
   );
 
+  const voice: PoetryVoice = opts.voice ?? 'celebratory';
+  const voiceSystem =
+    `You are Pearloom's Memory Engine — a literary editor and web designer rolled into one. ` +
+    `You turn a photo archive into a cohesive, emotionally layered celebration website. ` +
+    `Your output is always valid JSON matching the schema supplied in the user prompt.\n\n` +
+    `Voice for this event (${voice}): ${VOICE_GUIDANCE[voice]}\n` +
+    `Pronouns: ${VOICE_PRONOUNS[voice]}\n` +
+    `Banned clichés (never use): ${VOICE_BANNED[voice].map((w) => `"${w}"`).join(', ')}.`;
+
   // We split the prompt into a "stable" cacheable prefix (the system rules
   // and the cluster data block that won't change between revisions) and a
-  // small tail. For now the whole buildPrompt output goes into one cached
-  // text block. If the user rerenders with the same clusters, the cache
-  // hits and only the instruction tail is billed at full price.
+  // small tail. Voice becomes part of the cache key implicitly through the
+  // system string — different voices produce distinct caches, which is
+  // fine: at most 5 variants instead of one.
   const msg = await generate({
     tier: 'opus',
     temperature: 0.85,
     maxTokens: 16384,
     system: [
-      cached(
-        'You are Pearloom\'s Memory Engine — a literary editor and web designer ' +
-          'rolled into one. You turn a photo archive into a cohesive, emotionally ' +
-          'layered celebration website. Your output is always valid JSON matching ' +
-          'the schema supplied in the user prompt. You never use clichés like ' +
-          '"journey", "adventure", "soulmate", "fairy tale". You write in first-person ' +
-          'plural ("we / us / our") from the couple\'s voice.',
-          '1h'
-      ),
+      cached(voiceSystem, '1h'),
     ],
     messages: [
       {
@@ -108,11 +111,14 @@ export async function critiqueChaptersClaude(
   vibeString: string,
   coupleNames: [string, string] | undefined,
   occasion?: string,
-  clusterNotes?: Array<{ chapterIndex: number; note: string; location: string | null }>
+  clusterNotes?: Array<{ chapterIndex: number; note: string; location: string | null }>,
+  voice?: PoetryVoice,
 ): Promise<Chapter[]> {
   if (!chapters.length) return chapters;
   const namesCtx = coupleNames ? `${coupleNames[0]} & ${coupleNames[1]}` : 'this couple';
   const occ = (occasion || 'wedding').charAt(0).toUpperCase() + (occasion || 'wedding').slice(1);
+  const activeVoice: PoetryVoice = voice ?? 'celebratory';
+  const bannedList = VOICE_BANNED[activeVoice].join(', ');
 
   const chapterList = chapters
     .map(
@@ -137,13 +143,15 @@ export async function critiqueChaptersClaude(
     temperature: 0.7,
     maxTokens: 4096,
     system: cached(
-      `You are a world-class story editor for Pearloom. You score chapter descriptions for specificity: could this chapter ONLY belong to this couple, or could it fit any ${occ} site? Rewrite anything scoring below 7.`,
+      `You are a world-class story editor for Pearloom. You score chapter descriptions for specificity: could this chapter ONLY belong to this host, or could it fit any ${occ} site? Rewrite anything scoring below 7.\n\n` +
+      `Voice for this event (${activeVoice}): ${VOICE_GUIDANCE[activeVoice]}\n` +
+      `Pronouns: ${VOICE_PRONOUNS[activeVoice]}`,
       '1h'
     ) as unknown as string, // cached block array is accepted at runtime
     messages: [
       {
         role: 'user',
-        content: `Vibe: "${vibeString.slice(0, 500)}"\nCouple: ${namesCtx}\n${notesSection}\nCHAPTERS:\n${chapterList}\n\nScore 1-10. BANNED when rewriting: journey, adventure, soulmate, fairy tale, magical, beautiful memories, new chapter, story of us. Rewrites must be first-person plural, 3-4 sentences, reference specific vibe details.`,
+        content: `Vibe: "${vibeString.slice(0, 500)}"\nHost: ${namesCtx}\n${notesSection}\nCHAPTERS:\n${chapterList}\n\nScore 1-10. BANNED when rewriting: ${bannedList}, "beautiful memories", "new chapter", "story of us". Rewrites: 3-4 sentences, reference specific vibe details, honour the voice above.`,
       },
     ],
     schemaName: 'emit_critiques',
@@ -206,14 +214,27 @@ export interface PoetryResult {
  * EventType.voice in the event-os registry; drives tone, line
  * length, and banned-phrase lists for the poetry pass.
  */
-type PoetryVoice = 'celebratory' | 'intimate' | 'ceremonial' | 'playful' | 'solemn';
+export type PoetryVoice = 'celebratory' | 'intimate' | 'ceremonial' | 'playful' | 'solemn';
 
-const VOICE_GUIDANCE: Record<PoetryVoice, string> = {
+export const VOICE_GUIDANCE: Record<PoetryVoice, string> = {
   celebratory: 'Warm, upbeat, forward-leaning. Hints of anticipation. Default wedding/birthday tone.',
   intimate:    'Smaller-room tone. Quiet confidence, affection, understated. Good for showers, anniversaries, vow renewals.',
   ceremonial:  'Formal, ritual-aware. Measured pacing. References the tradition without being heavy-handed. Good for weddings, bar/bat mitzvah, confirmations.',
   playful:     'Loud, in-on-the-joke, slightly irreverent. Still brand-safe — no slang, no crass. Good for bachelor/ette, sweet sixteen.',
   solemn:      'Gentle, respectful, grief-aware. Short sentences, soft cadence. Never cheery, never morose. Good for memorials, funerals.',
+};
+
+/**
+ * Pronoun voice per archetype — corePassClaude & critique use
+ * this to decide whether to write "we/us/our" (couple) or a
+ * narrator/host voice (birthdays, memorials, showers, etc.).
+ */
+export const VOICE_PRONOUNS: Record<PoetryVoice, string> = {
+  celebratory: 'First-person plural (we / us / our) for couple events; narrator voice for birthdays.',
+  intimate:    'First-person plural when it\u2019s a couple; otherwise gentle narrator.',
+  ceremonial:  'Respectful narrator for religious/cultural ceremonies; first-person plural for weddings.',
+  playful:     'Narrator or host voice; never the couple\u2019s voice (the bachelor party is NOT the couple\u2019s site).',
+  solemn:      'Respectful narrator on behalf of the family; never first-person plural.',
 };
 
 const VOICE_BANNED_BASE = ['journey', 'adventure', 'fairy tale', 'soulmate'];
