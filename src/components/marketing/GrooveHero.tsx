@@ -13,7 +13,6 @@
 // ripens the fruit.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useState } from 'react';
 import { GooeyText } from '@/components/brand/GooeyText';
 import {
   BlurFade,
@@ -30,21 +29,13 @@ interface GrooveHeroProps {
 
 const ROTATING_NOUN = ['wedding', 'anniversary', 'memorial', 'birthday', 'reunion', 'milestone'];
 
+// The hero previously tracked scrollY in React state and passed
+// ripeness down, which re-rendered the whole subtree 60×/sec —
+// noticeable jank once Lenis + framer useScroll + two TracingThreads
+// all piled on. RipeningPear now self-drives from scroll via a ref
+// + rAF, so this component is static after mount.
+
 export function GrooveHero({ onGetStarted }: GrooveHeroProps) {
-  const [ripeness, setRipeness] = useState(0);
-
-  // Ripeness tracks scroll progress through the first viewport.
-  useEffect(() => {
-    const onScroll = () => {
-      const y = window.scrollY;
-      const max = Math.max(1, window.innerHeight * 0.9);
-      setRipeness(Math.min(1, Math.max(0, y / max)));
-    };
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
   return (
     <section
       className="pl-grain"
@@ -255,7 +246,7 @@ export function GrooveHero({ onGetStarted }: GrooveHeroProps) {
                 justifyContent: 'center',
               }}
             >
-              <RipeningPear ripeness={ripeness} size={360} />
+              <RipeningPear size={360} />
             </div>
           </div>
         </BlurFade>

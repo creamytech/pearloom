@@ -13,7 +13,7 @@
 // click-to-open shelf below.
 // ─────────────────────────────────────────────────────────────
 
-import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
 import { SITE_TEMPLATES } from '@/lib/templates/wedding-templates';
 import { BlurFade } from '@/components/brand/groove';
@@ -34,15 +34,15 @@ interface ShowroomParallaxProps {
 
 export function ShowroomParallax({ onGetStarted }: ShowroomParallaxProps) {
   const ref = useRef<HTMLDivElement>(null);
+  // Lenis already smooths the underlying scroll; a framer-motion
+  // useSpring on top double-smooths and lags behind the page.
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ['start end', 'end start'],
   });
-  const smooth = useSpring(scrollYProgress, { stiffness: 140, damping: 40 });
-
-  const rowOneX = useTransform(smooth, [0, 1], ['0%', '-35%']);
-  const rowTwoX = useTransform(smooth, [0, 1], ['-35%', '0%']);
-  const opacity = useTransform(smooth, [0, 0.2, 0.8, 1], [0, 1, 1, 0.6]);
+  const rowOneX = useTransform(scrollYProgress, [0, 1], ['0%', '-35%']);
+  const rowTwoX = useTransform(scrollYProgress, [0, 1], ['-35%', '0%']);
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0.6]);
 
   const rowOne = pickTemplates(ROW_ONE_IDS);
   const rowTwo = pickTemplates(ROW_TWO_IDS);

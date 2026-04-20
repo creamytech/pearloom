@@ -15,22 +15,30 @@
 //   • Entirely skipped when prefers-reduced-motion: reduce —
 //     SVG fallback is the permanent view for those users.
 //   • Feature-detects WebGL; SVG fallback if unavailable.
+//   • Scroll-linked ripeness is read INTERNALLY via rAF on a
+//     ref — no React re-renders on scroll. Parent components
+//     don't need to subscribe to scroll and pass the prop,
+//     which was the old jank source.
 //
-// Ripeness prop (0–1) drives colour + stem. Usually bound to
-// scroll progress.
+// `ripeness` prop still accepted (0–1) for manually driven
+// cases (wizard demo, /brand/groove review page); when
+// omitted, the component self-drives from scroll.
 // ─────────────────────────────────────────────────────────────
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 
 const PearScene = dynamic(() => import('./PearScene'), { ssr: false });
 
 interface RipeningPearProps {
-  /** 0 = unripe green, 1 = ripe + kissed by the sun. */
+  /** If set, overrides the internal scroll-driven ripeness. */
   ripeness?: number;
   /** Pixel size of the canvas (square). Default 360. */
   size?: number;
   className?: string;
+  /** When true (default) the pear ripens as the page scrolls
+   *  through the first viewport. Opt out for static demos. */
+  scrollDriven?: boolean;
 }
 
 function PearSvgFallback({ ripeness = 0, size = 360 }: { ripeness?: number; size?: number }) {
@@ -60,9 +68,20 @@ function PearSvgFallback({ ripeness = 0, size = 360 }: { ripeness?: number; size
   );
 }
 
-export function RipeningPear({ ripeness = 0, size = 360, className }: RipeningPearProps) {
+export function RipeningPear({
+  ripeness: ripenessProp,
+  size = 360,
+  className,
+  scrollDriven = true,
+}: RipeningPearProps) {
   const [canUseWebGL, setCanUseWebGL] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  // SVG fallback needs a state-driven ripeness because it's a
+  // React-rendered colour. We update it once per rAF tick — NOT
+  // once per scroll event — so the update frequency is capped
+  // at the monitor refresh rate, and we only push state through
+  // React when the value actually changes.
+  const [svgRipeness, setSvgRipeness] = useState(ripenessProp ?? 0);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -82,7 +101,43 @@ export function RipeningPear({ ripeness = 0, size = 360, className }: RipeningPe
     return () => mq.removeEventListener('change', onChange);
   }, []);
 
+  // Internal scroll-driven ripeness (no parent setState). The
+  // latest value lives on a ref; PearScene reads it imperatively
+  // inside its rAF loop, so three.js sees updates without any
+  // React render work.
+  const ripenessRef = useRef(ripenessProp ?? 0);
+  useEffect(() => {
+    if (!scrollDriven || ripenessProp !== undefined) {
+      ripenessRef.current = ripenessProp ?? 0;
+      setSvgRipeness(ripenessProp ?? 0);
+      return;
+    }
+    if (typeof window === 'undefined') return;
+    let raf = 0;
+    let lastPublished = -1;
+    const tick = () => {
+      const y = window.scrollY;
+      const max = Math.max(1, window.innerHeight * 0.9);
+      const r = Math.min(1, Math.max(0, y / max));
+      ripenessRef.current = r;
+      // Only push React state when the SVG fallback is visible
+      // AND the value moved materially, so we don't re-render
+      // unless there's something to show.
+      if (prefersReducedMotion || !canUseWebGL) {
+        const rounded = Math.round(r * 100) / 100;
+        if (rounded !== lastPublished) {
+          lastPublished = rounded;
+          setSvgRipeness(rounded);
+        }
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [scrollDriven, ripenessProp, prefersReducedMotion, canUseWebGL]);
+
   const useStatic = !canUseWebGL || prefersReducedMotion;
+  const currentRipeness = ripenessProp ?? svgRipeness;
 
   return (
     <div
@@ -97,10 +152,10 @@ export function RipeningPear({ ripeness = 0, size = 360, className }: RipeningPe
       }}
     >
       {useStatic ? (
-        <PearSvgFallback ripeness={ripeness} size={size} />
+        <PearSvgFallback ripeness={currentRipeness} size={size} />
       ) : (
-        <Suspense fallback={<PearSvgFallback ripeness={ripeness} size={size} />}>
-          <PearScene ripeness={ripeness} />
+        <Suspense fallback={<PearSvgFallback ripeness={currentRipeness} size={size} />}>
+          <PearScene ripenessRef={ripenessRef} />
         </Suspense>
       )}
     </div>

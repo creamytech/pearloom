@@ -17,20 +17,16 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
 interface PearSceneProps {
-  ripeness: number;
+  /** The latest ripeness value lives on a ref so the scene can
+   *  read it inside its rAF loop without any React renders.
+   *  Parent updates the ref directly on scroll. */
+  ripenessRef: { current: number };
   size?: number;
 }
 
-export default function PearScene({ ripeness, size = 360 }: PearSceneProps) {
+export default function PearScene({ ripenessRef, size = 360 }: PearSceneProps) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const rafRef = useRef<number | null>(null);
-  const ripenessRef = useRef(ripeness);
-
-  // Keep the animation loop reading the latest ripeness prop
-  // without tearing down the scene on every scroll tick.
-  useEffect(() => {
-    ripenessRef.current = ripeness;
-  }, [ripeness]);
 
   useEffect(() => {
     const mount = mountRef.current;

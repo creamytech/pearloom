@@ -47,7 +47,10 @@ export function GrooveMotion({
 
     (async () => {
       try {
-        const LenisMod = await import('lenis');
+        const [LenisMod, framerMotion] = await Promise.all([
+          import('lenis'),
+          import('framer-motion'),
+        ]);
         if (cancelled) return;
         const Lenis = LenisMod.default;
         const lenis = new Lenis({
@@ -61,11 +64,35 @@ export function GrooveMotion({
         });
         lenisRef.current = lenis;
 
-        const raf = (time: number) => {
-          lenis.raf(time);
+        // Integrate with framer-motion's frame scheduler so
+        // useScroll subscribers (TracingThread, ShowroomParallax,
+        // etc.) read the Lenis-smoothed scroll position once per
+        // frame instead of racing their own rAF. Without this
+        // the two rAF loops interleave and scroll-linked
+        // transforms look choppy even though Lenis itself is
+        // smooth.
+        const frame = (framerMotion as { frame?: typeof import('framer-motion').frame }).frame;
+        const cancel = (framerMotion as { cancelFrame?: typeof import('framer-motion').cancelFrame }).cancelFrame;
+        let update: ((data: { timestamp: number }) => void) | null = null;
+        if (frame && cancel) {
+          update = ({ timestamp }: { timestamp: number }) => {
+            lenis.raf(timestamp);
+          };
+          frame.update(update, true);
+        } else {
+          // Fallback: our own rAF loop if the framer-motion
+          // scheduler isn't available for some reason.
+          const raf = (time: number) => {
+            lenis.raf(time);
+            rafId = requestAnimationFrame(raf);
+          };
           rafId = requestAnimationFrame(raf);
+        }
+
+        // Stash the cancel fn on the ref so cleanup can reach it.
+        (lenisRef.current as unknown as { _framerCancel?: () => void })._framerCancel = () => {
+          if (update && cancel) cancel(update);
         };
-        rafId = requestAnimationFrame(raf);
       } catch {
         // Lenis failed to load — native scroll is a fine fallback.
       }
@@ -74,7 +101,10 @@ export function GrooveMotion({
     return () => {
       cancelled = true;
       if (rafId) cancelAnimationFrame(rafId);
-      const l = lenisRef.current as { destroy?: () => void } | null;
+      const l = lenisRef.current as
+        | { destroy?: () => void; _framerCancel?: () => void }
+        | null;
+      l?._framerCancel?.();
       l?.destroy?.();
       lenisRef.current = null;
     };

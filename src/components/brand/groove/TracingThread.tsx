@@ -12,7 +12,7 @@
 // Fixed-position so it persists through multiple sections.
 // ─────────────────────────────────────────────────────────────
 
-import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 
 interface TracingThreadProps {
@@ -56,10 +56,13 @@ export function TracingThread({
     };
   }, [hideBelow, top]);
 
+  // Read scroll progress directly — Lenis already smooths the
+  // underlying scrollY via framer-motion's frame scheduler
+  // (see GrooveMotion.tsx), so adding useSpring on top
+  // double-smooths and makes the thread feel laggy.
   const { scrollYProgress } = useScroll();
-  const smooth = useSpring(scrollYProgress, { stiffness: 120, damping: 40 });
-  const dashOffset = useTransform(smooth, [0, 1], [height, 0]);
-  const dotY = useTransform(smooth, [0, 1], [0, height]);
+  const dashOffset = useTransform(scrollYProgress, [0, 1], [height, 0]);
+  const dotY = useTransform(scrollYProgress, [0, 1], [0, height]);
 
   if (!show || height === 0) return null;
 
