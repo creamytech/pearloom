@@ -17,6 +17,7 @@ import pLimit from 'p-limit';
 import { encryptBuffer, isEncryptionEnabled } from '@/lib/crypto';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { seedBlocksFromEventDetails } from '@/lib/event-os/seed-event-details';
+import { getDefaultThemeFamily } from '@/lib/event-os/theme-family';
 
 // ── Pass labels (index 0-7) ────────────────────────────────────
 const PASS_LABELS = [
@@ -525,6 +526,15 @@ export async function POST(req: Request) {
             names,
           );
           manifest.blocks = blocks as typeof manifest.blocks;
+        }
+
+        // Seed the theme family from the occasion voice.
+        // Ceremonial / solemn / intimate → editorial (weddings,
+        // memorials, showers). Celebratory / playful → groove
+        // (bachelor parties, birthdays, retirements, reunions).
+        // Host can override in the editor.
+        if (!manifest.themeFamily) {
+          manifest.themeFamily = getDefaultThemeFamily(occasion);
         }
 
         // Hide all sub-pages from nav by default.

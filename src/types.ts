@@ -29,6 +29,16 @@ export interface StoryManifest {
   // in src/lib/site-urls.ts for the full registry (28 events as
   // of 2026-04-22). The legacy 5 ship; the rest are in beta.
   occasion?: SiteOccasion;
+  // Which brand family renders the published site?
+  //   'editorial' — the classic Pearloom letterpress + thread
+  //                 aesthetic. Default for weddings, anniversaries,
+  //                 memorials, funerals, religious ceremonies.
+  //   'groove'    — warm, wavy, pear-and-loom organic aesthetic.
+  //                 Default for bachelor/ette, birthdays, reunions,
+  //                 baby showers, retirements — celebratory events.
+  // Seeded by occasion voice at generation time; host can override
+  // in the editor. See src/lib/event-os/theme-family.ts.
+  themeFamily?: 'editorial' | 'groove';
   // Timeline macro layout format chosen by user
   layoutFormat?: 'cascade' | 'filmstrip' | 'scrapbook' | 'magazine' | 'chapters' | 'starmap';
   // Story chapter layout — controls how individual chapters render in the story section.

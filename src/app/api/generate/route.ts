@@ -20,6 +20,7 @@ import pLimit from 'p-limit';
 import { encryptBuffer, isEncryptionEnabled } from '@/lib/crypto';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { seedBlocksFromEventDetails } from '@/lib/event-os/seed-event-details';
+import { getDefaultThemeFamily } from '@/lib/event-os/theme-family';
 
 // ── R2 upload helper — fetches a URL and stores it permanently ─
 function getR2Client() {
@@ -594,6 +595,12 @@ export async function POST(req: NextRequest) {
         names,
       );
       manifest.blocks = revealedBlocks as typeof manifest.blocks;
+    }
+
+    // Seed theme family from occasion voice — see
+    // lib/event-os/theme-family.ts for the mapping.
+    if (!manifest.themeFamily) {
+      manifest.themeFamily = getDefaultThemeFamily(occasion);
     }
 
     // Hide sub-pages by default, then unhide the ones backed by user-supplied data

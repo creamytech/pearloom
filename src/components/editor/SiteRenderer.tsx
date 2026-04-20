@@ -18,6 +18,8 @@ import { StorySection, chapterDateFormatOptions } from '@/components/blocks/Stor
 import { WeddingEvents } from '@/components/wedding-events';
 import { VisualTimeline } from '@/components/visual-timeline';
 import { ItineraryBlock } from '@/components/site/ItineraryBlock';
+import { GrooveSiteHero } from '@/components/site/groove/GrooveSiteHero';
+import { resolveThemeFamily } from '@/lib/event-os/theme-family';
 import { CostSplitterBlock } from '@/components/site/CostSplitterBlock';
 import { PackingListBlock } from '@/components/site/PackingListBlock';
 import { ActivityVoteBlock } from '@/components/site/ActivityVoteBlock';
@@ -1577,7 +1579,31 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     if (blockCfg.color) blockStyle.color = blockCfg.color as string;
 
     switch (block.type) {
-      case 'hero':
+      case 'hero': {
+        // Groove-family sites render a different hero entirely —
+        // warm radial gradient, two morphing blobs, big kinetic
+        // italic names, wavy divider. Editorial family falls
+        // through to the classic <Hero /> below.
+        const heroFamily = resolveThemeFamily(manifest);
+        if (heroFamily === 'groove') {
+          return (
+            <div key={key} data-pe-section="hero" data-pe-label="Hero" style={{ position: 'relative', ...blockStyle }}>
+              <GrooveSiteHero
+                names={names}
+                subtitle={manifest.poetry?.heroTagline || manifest.chapters?.[0]?.subtitle}
+                eventDate={manifest.events?.[0]?.date || manifest.logistics?.date}
+                coverPhoto={effectiveCover}
+                accent={pal.accent}
+                accent2={pal.accent2}
+                foreground={pal.foreground}
+                background={pal.background}
+                muted={pal.muted}
+                headingFont={vibeSkin.fonts.heading}
+                bodyFont={vibeSkin.fonts.body}
+              />
+            </div>
+          );
+        }
         return (
           <div key={key} data-pe-section="hero" data-pe-label="Hero" style={{ position: 'relative', overflow: 'hidden', ...blockStyle }}>
             {/* AI-generated hero blob illustration — couple-specific motifs */}
@@ -1735,6 +1761,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             {/* Stickers rendered globally at the site root — not inside hero */}
           </div>
         );
+      }
       case 'story': {
         return (
           <section key={key} id="our-story" data-pe-section="story" style={{ position: 'relative', ...blockStyle }}>

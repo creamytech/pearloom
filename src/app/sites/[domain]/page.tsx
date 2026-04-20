@@ -35,6 +35,8 @@ import { SpotifySection } from '@/components/site/SpotifySection';
 import { AmbientSpotifyPlayer } from '@/components/site/AmbientSpotifyPlayer';
 import { StickyRsvpPill } from '@/components/site/StickyRsvpPill';
 import { LinkedEventsStrip } from '@/components/site/LinkedEventsStrip';
+import { GrooveSiteHero } from '@/components/site/groove/GrooveSiteHero';
+import { resolveThemeFamily } from '@/lib/event-os/theme-family';
 import { CoupleQuiz } from '@/components/site/CoupleQuiz';
 import { ShareBar } from '@/components/site/ShareBar';
 import { enforcePaletteContrast } from '@/lib/color-utils';
@@ -366,7 +368,30 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     const rawCfg = (manifest.blocks || []).find((b: { id: string }) => b.id === key)?.config || {};
     const blockCfg = resolveBlockConfig(rawCfg, bindingCtx);
     switch (type) {
-      case 'hero':
+      case 'hero': {
+        // Groove-family sites render a warm, wavy hero; editorial
+        // sites keep the classic <Hero /> component.
+        const heroFamily = resolveThemeFamily(manifest);
+        if (heroFamily === 'groove') {
+          return (
+            <div key={key} style={{ position: 'relative' }}>
+              <GrooveSiteHero
+                names={safeNames}
+                subtitle={(blockCfg.subtitle as string) || manifest.poetry?.heroTagline || siteConfig.tagline || ''}
+                eventDate={manifest.events?.[0]?.date || manifest.logistics?.date}
+                coverPhoto={coverPhoto}
+                accent={pal.accent}
+                accent2={pal.accent2}
+                foreground={pal.foreground}
+                background={pal.background}
+                muted={pal.muted}
+                headingFont={vibeSkin.fonts.heading}
+                bodyFont={vibeSkin.fonts.body}
+              />
+              <StickerLayer stickers={manifest.stickers || []} accentColor={pal.accent} />
+            </div>
+          );
+        }
         return (
           <div key={key} style={{ position: 'relative' }}>
             <Hero
@@ -381,6 +406,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             <StickerLayer stickers={manifest.stickers || []} accentColor={pal.accent} />
           </div>
         );
+      }
       case 'story':
         return (
           <section key={key} id="our-story" style={{ position: 'relative' }}>
