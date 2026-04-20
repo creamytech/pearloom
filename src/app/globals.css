@@ -1950,6 +1950,96 @@ body > * { position: relative; z-index: 1; }
   to   { transform: rotate(360deg); }
 }
 
+/* ─────────────────────────────────────────────────────────────
+   GROOVE — product-UI design language (marketing + app chrome)
+   ─────────────────────────────────────────────────────────────
+   The editorial brand (BRAND.md) governs the PUBLISHED SITE — the
+   artifact hosts buy. These tokens govern PEARLOOM.COM itself:
+   marketing pages, dashboard, /rsvps, login, profile, help. The
+   two aesthetics live side by side deliberately — "our product
+   feels alive, your site feels timeless."
+
+   Grounded in Pear + Loom (fruit + weave), NOT pearl (gem).
+   Saturated, warm, organic. Wavy section dividers instead of
+   hairlines. Pill over square. Asymmetric grids.
+   ───────────────────────────────────────────────────────────── */
+
+:root,
+[data-theme='light'] {
+  /* Palette — warm + saturated */
+  --pl-groove-terra:   #D97746;  /* terracotta */
+  --pl-groove-butter:  #F4C55A;  /* butter yellow */
+  --pl-groove-sage:    #7A9B6E;  /* warm sage */
+  --pl-groove-plum:    #8B4A6A;  /* deep rose-plum */
+  --pl-groove-rose:    #E8A4B5;  /* soft rose */
+  --pl-groove-cream:   #FBF3E4;  /* warmer than editorial cream */
+  --pl-groove-ink:     #2B1E14;  /* deep warm ink, not pure black */
+
+  /* Ripening-pear gradient stops, drive the hero shader too */
+  --pl-groove-pear-unripe: #7A9B6E;
+  --pl-groove-pear-ripe:   #F4C55A;
+  --pl-groove-pear-bruise: #D97746;
+}
+
+[data-theme='dark'] {
+  --pl-groove-terra:   #E08A5C;
+  --pl-groove-butter:  #F7D172;
+  --pl-groove-sage:    #9BB88A;
+  --pl-groove-plum:    #B57089;
+  --pl-groove-rose:    #F2BDC9;
+  --pl-groove-cream:   #1C150E;
+  --pl-groove-ink:     #FBF3E4;
+
+  --pl-groove-pear-unripe: #9BB88A;
+  --pl-groove-pear-ripe:   #F7D172;
+  --pl-groove-pear-bruise: #E08A5C;
+}
+
+:root {
+  /* Organic gradient presets — for blob backgrounds, buttons,
+     active-state washes. Three named tones so a page can mix
+     them without re-inventing each time. */
+  --pl-groove-blob-sunrise: linear-gradient(135deg, var(--pl-groove-butter) 0%, var(--pl-groove-terra) 60%, var(--pl-groove-plum) 100%);
+  --pl-groove-blob-orchard: linear-gradient(135deg, var(--pl-groove-sage) 0%, var(--pl-groove-butter) 100%);
+  --pl-groove-blob-petal:   linear-gradient(135deg, var(--pl-groove-rose) 0%, var(--pl-groove-plum) 100%);
+
+  /* Motion — springier easings than editorial. Used by
+     SquishyButton + Blob morphing + wizard-complete reveal. */
+  --pl-groove-ease-squish: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --pl-groove-ease-bloom:  cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Asymmetric radii — the signature "not-a-rectangle" shape.
+     Use --pl-groove-radius-blob for cards that want a little
+     organic wobble; --pl-groove-radius-leaf for hero illos. */
+  --pl-groove-radius-pill: 999px;
+  --pl-groove-radius-blob: 42% 58% 70% 30% / 45% 30% 70% 55%;
+  --pl-groove-radius-leaf: 0 100% 0 100% / 0 100% 0 100%;
+}
+
+/* Pear-breathe keyframe — matches PearMascot cadence so the
+   3D pear and the 2D mascot feel like one family. */
+@keyframes pl-groove-breathe {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50%      { transform: scale(1.02) translateY(-4px); }
+}
+
+/* Blob morph — tweens asymmetric border-radius so the blob
+   slowly shapeshifts. Cheap, no JS, no 3D. */
+@keyframes pl-groove-blob-morph {
+  0%, 100% { border-radius: 42% 58% 70% 30% / 45% 30% 70% 55%; }
+  33%      { border-radius: 62% 38% 43% 57% / 65% 55% 45% 35%; }
+  66%      { border-radius: 35% 65% 55% 45% / 40% 60% 40% 60%; }
+}
+
+/* Respect reduced motion — no blob morph, no breathe, no
+   squish on tap. Groove still reads through colour + shape. */
+@media (prefers-reduced-motion: reduce) {
+  .pl-groove-blob,
+  .pl-groove-breathe {
+    animation: none !important;
+  }
+}
+
 /* Selected canvas block — soft pearl glow rather than a hard outline.
    Uses outline so it doesn't affect the block's own layout. */
 .pl-block-selected {
