@@ -28,12 +28,32 @@ interface ActivityVoteBlockProps {
   options: ActivityOption[];
   /** If true, shows vote bars. Host-only in later iterations; open now. */
   showResults?: boolean;
+  /** Site id + block id — when both are set, votes sync to the
+   * server so every guest sees the same tally. */
+  siteId?: string;
+  blockId?: string;
   accent?: string;
   foreground?: string;
   muted?: string;
   headingFont?: string;
   bodyFont?: string;
   style?: CSSProperties;
+}
+
+const VOTER_KEY_STORE = 'pearloom:voter-key';
+
+function getOrCreateVoterKey(): string {
+  if (typeof window === 'undefined') return '';
+  try {
+    let key = window.localStorage.getItem(VOTER_KEY_STORE);
+    if (!key) {
+      key = `v_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+      window.localStorage.setItem(VOTER_KEY_STORE, key);
+    }
+    return key;
+  } catch {
+    return `v_${Math.random().toString(36).slice(2)}`;
+  }
 }
 
 export function ActivityVoteBlock({
@@ -43,6 +63,8 @@ export function ActivityVoteBlock({
   storageKey = 'default',
   options,
   showResults = true,
+  siteId,
+  blockId,
   accent = 'var(--pl-olive)',
   foreground = 'var(--pl-ink)',
   muted = 'var(--pl-muted)',
@@ -51,8 +73,12 @@ export function ActivityVoteBlock({
   style,
 }: ActivityVoteBlockProps) {
   const storeKey = `pearloom:vote:${storageKey}`;
+  const canSync = Boolean(siteId && blockId);
   const [myVote, setMyVote] = useState<string | null>(null);
+  const [serverTallies, setServerTallies] = useState<Record<string, number>>({});
+  const [voterKey] = useState(() => getOrCreateVoterKey());
 
+  // Hydrate local vote immediately.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
@@ -61,7 +87,23 @@ export function ActivityVoteBlock({
     } catch { /* ignore */ }
   }, [storeKey]);
 
-  const castVote = (id: string) => {
+  // Server sync — tally + authoritative my-vote.
+  useEffect(() => {
+    if (!canSync || !voterKey) return;
+    let cancelled = false;
+    const params = new URLSearchParams({ siteId: siteId!, blockId: blockId!, voterKey });
+    fetch(`/api/event-os/votes?${params}`, { cache: 'no-store' })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (cancelled || !data?.ok) return;
+        setServerTallies(data.tallies ?? {});
+        if (data.myVote !== undefined) setMyVote(data.myVote);
+      })
+      .catch(() => { /* offline — local wins */ });
+    return () => { cancelled = true; };
+  }, [canSync, siteId, blockId, voterKey]);
+
+  const castVote = async (id: string) => {
     const next = myVote === id ? null : id;
     setMyVote(next);
     if (typeof window !== 'undefined') {
@@ -70,12 +112,31 @@ export function ActivityVoteBlock({
         else window.localStorage.removeItem(storeKey);
       } catch { /* ignore */ }
     }
+    if (canSync && voterKey) {
+      try {
+        const res = await fetch('/api/event-os/votes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ siteId, blockId, voterKey, optionId: next }),
+        });
+        if (res.ok) {
+          // Refresh tallies from server so bars reflect reality.
+          const params = new URLSearchParams({ siteId: siteId!, blockId: blockId!, voterKey });
+          const refreshed = await fetch(`/api/event-os/votes?${params}`, { cache: 'no-store' });
+          if (refreshed.ok) {
+            const data = await refreshed.json();
+            if (data?.ok) setServerTallies(data.tallies ?? {});
+          }
+        }
+      } catch { /* offline — local only */ }
+    }
   };
 
-  const totalVotes = options.reduce((sum, o) => {
-    const base = o.initialVotes ?? 0;
-    return sum + base + (myVote === o.id ? 1 : 0);
-  }, 0);
+  // When synced, server tally is authoritative. Otherwise use
+  // host-seeded initialVotes + local "my vote" as a proxy.
+  const totalVotes = canSync
+    ? Object.values(serverTallies).reduce((a, b) => a + b, 0)
+    : options.reduce((sum, o) => sum + (o.initialVotes ?? 0) + (myVote === o.id ? 1 : 0), 0);
 
   return (
     <section
@@ -125,7 +186,9 @@ export function ActivityVoteBlock({
         <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {options.map((option) => {
             const base = option.initialVotes ?? 0;
-            const votes = base + (myVote === option.id ? 1 : 0);
+            const votes = canSync
+              ? (serverTallies[option.id] ?? 0)
+              : base + (myVote === option.id ? 1 : 0);
             const pct = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
             const on = myVote === option.id;
             return (
@@ -214,17 +277,19 @@ export function ActivityVoteBlock({
           })}
         </ul>
 
-        <p
-          style={{
-            marginTop: 14,
-            textAlign: 'center',
-            fontSize: '0.78rem',
-            color: muted,
-            fontStyle: 'italic',
-          }}
-        >
-          Your vote is saved in your browser. Live tallies across guests are coming soon.
-        </p>
+        {!canSync && (
+          <p
+            style={{
+              marginTop: 14,
+              textAlign: 'center',
+              fontSize: '0.78rem',
+              color: muted,
+              fontStyle: 'italic',
+            }}
+          >
+            Your vote is saved in your browser. Live tallies appear once the site is published.
+          </p>
+        )}
       </div>
     </section>
   );

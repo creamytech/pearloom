@@ -32,6 +32,10 @@ interface AdviceWallBlockProps {
   seeds?: AdviceEntry[];
   /** localStorage namespace — usually the site slug. */
   storageKey?: string;
+  /** Site id (slug) + block id — when both are set, the wall
+   * syncs submissions to the server (multi-guest visibility). */
+  siteId?: string;
+  blockId?: string;
   accent?: string;
   foreground?: string;
   muted?: string;
@@ -48,6 +52,8 @@ export function AdviceWallBlock({
   prompt = 'A piece of advice for the road ahead.',
   seeds = [],
   storageKey = 'default',
+  siteId,
+  blockId,
   accent = 'var(--pl-olive)',
   foreground = 'var(--pl-ink)',
   muted = 'var(--pl-muted)',
@@ -56,11 +62,14 @@ export function AdviceWallBlock({
   style,
 }: AdviceWallBlockProps) {
   const storeKey = `${LOCAL_PREFIX}${storageKey}`;
+  const canSync = Boolean(siteId && blockId);
   const [localEntries, setLocalEntries] = useState<AdviceEntry[]>([]);
+  const [serverEntries, setServerEntries] = useState<AdviceEntry[]>([]);
   const [from, setFrom] = useState('');
   const [body, setBody] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
+  // Hydrate local submissions (guests always see their own).
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
@@ -69,14 +78,38 @@ export function AdviceWallBlock({
     } catch { /* ignore */ }
   }, [storeKey]);
 
-  const entries = [...seeds, ...localEntries];
+  // Pull the authoritative list from the server when available.
+  useEffect(() => {
+    if (!canSync) return;
+    let cancelled = false;
+    const params = new URLSearchParams({ siteId: siteId!, blockId: blockId! });
+    fetch(`/api/event-os/submissions?${params}`, { cache: 'no-store' })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (cancelled || !data?.ok) return;
+        setServerEntries((data.entries as AdviceEntry[]) ?? []);
+      })
+      .catch(() => { /* offline-safe — seeds + local still render */ });
+    return () => { cancelled = true; };
+  }, [canSync, siteId, blockId]);
 
-  const submit = (e: FormEvent) => {
+  // Server entries take precedence over local (dedup by body+from+at).
+  const entries: AdviceEntry[] = (() => {
+    if (serverEntries.length === 0) return [...seeds, ...localEntries];
+    const seen = new Set(serverEntries.map((e) => `${e.from}|${e.body}`));
+    const localUnseen = localEntries.filter((e) => !seen.has(`${e.from}|${e.body}`));
+    return [...seeds, ...serverEntries, ...localUnseen];
+  })();
+
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     const f = from.trim();
     const b = body.trim();
     if (!f || !b) return;
     const next: AdviceEntry = { from: f, body: b, at: new Date().toISOString() };
+
+    // Always write local so the guest sees their own entry
+    // immediately, even if the server is slow / offline.
     const merged = [...localEntries, next];
     setLocalEntries(merged);
     if (typeof window !== 'undefined') {
@@ -86,6 +119,27 @@ export function AdviceWallBlock({
     setBody('');
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 2400);
+
+    // Fire-and-forget server write; on success, re-fetch so
+    // other-guest entries appear + ours gets its authoritative
+    // created_at.
+    if (canSync) {
+      try {
+        const res = await fetch('/api/event-os/submissions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ siteId, blockId, from: f, body: b }),
+        });
+        if (res.ok) {
+          const params = new URLSearchParams({ siteId: siteId!, blockId: blockId! });
+          const refreshed = await fetch(`/api/event-os/submissions?${params}`, { cache: 'no-store' });
+          if (refreshed.ok) {
+            const data = await refreshed.json();
+            if (data?.ok) setServerEntries((data.entries as AdviceEntry[]) ?? []);
+          }
+        }
+      } catch { /* offline — entry stays local */ }
+    }
   };
 
   return (

@@ -25,6 +25,10 @@ interface ToastSignupBlockProps {
   subtitle?: string;
   slots: ToastSlot[];
   storageKey?: string;
+  /** Site + block ids for server sync — when both set, claims
+   * persist across guests. */
+  siteId?: string;
+  blockId?: string;
   accent?: string;
   foreground?: string;
   muted?: string;
@@ -40,6 +44,8 @@ export function ToastSignupBlock({
   subtitle,
   slots,
   storageKey = 'default',
+  siteId,
+  blockId,
   accent = 'var(--pl-olive)',
   foreground = 'var(--pl-ink)',
   muted = 'var(--pl-muted)',
@@ -48,8 +54,10 @@ export function ToastSignupBlock({
   style,
 }: ToastSignupBlockProps) {
   const storeKey = `${LOCAL_PREFIX}${storageKey}`;
+  const canSync = Boolean(siteId && blockId);
   const [claimed, setClaimed] = useState<Record<number, string>>({});
   const [claimerName, setClaimerName] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -61,9 +69,29 @@ export function ToastSignupBlock({
     } catch { /* ignore */ }
   }, [storeKey]);
 
-  const claim = (index: number) => {
+  // Server sync — authoritative claims once published.
+  useEffect(() => {
+    if (!canSync) return;
+    let cancelled = false;
+    const params = new URLSearchParams({ siteId: siteId!, blockId: blockId! });
+    fetch(`/api/event-os/toasts?${params}`, { cache: 'no-store' })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (cancelled || !data?.ok) return;
+        // Server claims override any local (in case a different
+        // browser claimed ahead of us).
+        setClaimed(data.claims ?? {});
+      })
+      .catch(() => { /* offline — local only */ });
+    return () => { cancelled = true; };
+  }, [canSync, siteId, blockId]);
+
+  const claim = async (index: number) => {
     const name = claimerName.trim();
     if (!name) return;
+    setError(null);
+
+    // Optimistic local update.
     const next = { ...claimed, [index]: name };
     setClaimed(next);
     if (typeof window !== 'undefined') {
@@ -71,6 +99,34 @@ export function ToastSignupBlock({
         window.localStorage.setItem(storeKey, JSON.stringify(next));
         window.localStorage.setItem('pearloom:guest-name', name);
       } catch { /* ignore */ }
+    }
+
+    if (canSync) {
+      try {
+        const res = await fetch('/api/event-os/toasts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ siteId, blockId, slotIndex: index, claimedBy: name }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({} as { error?: string; code?: string }));
+          // Slot taken by someone else — rollback the optimistic update.
+          if (res.status === 409) {
+            // Refresh from server to show who got it.
+            const params = new URLSearchParams({ siteId: siteId!, blockId: blockId! });
+            const refreshed = await fetch(`/api/event-os/toasts?${params}`, { cache: 'no-store' });
+            if (refreshed.ok) {
+              const payload = await refreshed.json();
+              if (payload?.ok) setClaimed(payload.claims ?? {});
+            }
+            setError('Someone else grabbed that slot first.');
+          } else {
+            setError(data?.error ?? 'Could not save the claim. Try again.');
+          }
+        }
+      } catch {
+        setError('Offline — claim saved locally, will sync when you\u2019re back.');
+      }
     }
   };
 
@@ -149,6 +205,23 @@ export function ToastSignupBlock({
             }}
           />
         </div>
+
+        {error && (
+          <div
+            role="alert"
+            style={{
+              margin: '0 0 14px',
+              padding: '10px 14px',
+              borderRadius: 'var(--pl-radius-sm)',
+              background: 'color-mix(in oklab, var(--pl-plum) 10%, transparent)',
+              border: '1px solid color-mix(in oklab, var(--pl-plum) 30%, transparent)',
+              color: 'var(--pl-plum)',
+              fontSize: '0.85rem',
+            }}
+          >
+            {error}
+          </div>
+        )}
 
         <ol style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {slots.map((slot, i) => {

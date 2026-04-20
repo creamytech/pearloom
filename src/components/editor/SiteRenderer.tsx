@@ -2615,6 +2615,8 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               subtitle={blockCfg.subtitle as string | undefined}
               question={blockCfg.question as string | undefined}
               storageKey={manifest.subdomain || 'default'}
+              siteId={editMode ? undefined : manifest.subdomain}
+              blockId={editMode ? undefined : block.id}
               options={options}
               showResults={blockCfg.showResults !== false}
               accent={pal.accent}
@@ -2639,6 +2641,8 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               prompt={(blockCfg.prompt as string) || 'A piece of advice for the road ahead.'}
               seeds={seeds}
               storageKey={manifest.subdomain || 'default'}
+              siteId={editMode ? undefined : manifest.subdomain}
+              blockId={editMode ? undefined : block.id}
               accent={pal.accent}
               foreground={safeFg}
               muted={safeMuted}
@@ -2661,6 +2665,8 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               subtitle={blockCfg.subtitle as string | undefined}
               slots={slots}
               storageKey={manifest.subdomain || 'default'}
+              siteId={editMode ? undefined : manifest.subdomain}
+              blockId={editMode ? undefined : block.id}
               accent={pal.accent}
               foreground={safeFg}
               muted={safeMuted}
