@@ -99,6 +99,11 @@ export async function GET(req: NextRequest) {
   // Couple photo (cover image). Allowed protocols: https only.
   const photoRaw = searchParams.get('photo') || '';
   const photoUrl = photoRaw.startsWith('https://') ? photoRaw.slice(0, 1024) : '';
+  // Theme family — drives the card layout.
+  //   editorial (default): double-bordered invitation card
+  //   groove:              warm radial gradient, wavy divider,
+  //                        big italic names, no inset frames.
+  const themeFamily = (searchParams.get('family') || 'editorial').toLowerCase() as 'editorial' | 'groove';
 
   // Normalize colors — ensure they have # prefix
   const bg     = bgRaw.startsWith('#') ? bgRaw : `#${bgRaw}`;
@@ -219,7 +224,37 @@ export async function GET(req: NextRequest) {
           </>
         )}
 
-        {/* Subtle accent-colored border/frame — inset */}
+        {/* Groove-family sites get a warm radial wash + a big
+            soft blob instead of the editorial double frame.
+            Makes the share card itself feel part of the groove
+            brand family. */}
+        {themeFamily === 'groove' && (
+          <>
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: `radial-gradient(ellipse at 50% 0%, ${accent}28 0%, transparent 60%)`,
+                display: 'flex',
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                right: '-160px',
+                top: '-100px',
+                width: 520,
+                height: 520,
+                borderRadius: '42% 58% 70% 30%',
+                background: accent,
+                opacity: 0.22,
+                display: 'flex',
+              }}
+            />
+          </>
+        )}
+        {/* Subtle accent-colored border/frame — editorial only */}
+        {themeFamily !== 'groove' && (
         <div
           style={{
             position: 'absolute',
@@ -231,7 +266,9 @@ export async function GET(req: NextRequest) {
             display: 'flex',
           }}
         />
-        {/* Inner frame — double border effect */}
+        )}
+        {/* Inner frame — double border effect (editorial only) */}
+        {themeFamily !== 'groove' && (
         <div
           style={{
             position: 'absolute',
@@ -243,8 +280,11 @@ export async function GET(req: NextRequest) {
             display: 'flex',
           }}
         />
+        )}
 
-        {/* Corner accent flourishes */}
+        {/* Corner accent flourishes — editorial only */}
+        {themeFamily !== 'groove' && (
+        <>
         <div
           style={{
             position: 'absolute',
@@ -293,6 +333,8 @@ export async function GET(req: NextRequest) {
             display: 'flex',
           }}
         />
+        </>
+        )}
 
         {/* Main content — centered invitation card layout */}
         <div

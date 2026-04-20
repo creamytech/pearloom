@@ -1428,6 +1428,62 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
         </p>
       )}
 
+      {/* ── Brand family — groove vs editorial ── */}
+      <SidebarSection title="Brand family" defaultOpen={false}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <p
+            style={{
+              margin: 0,
+              fontSize: '0.78rem',
+              lineHeight: 1.55,
+              color: 'var(--pl-chrome-text-muted)',
+            }}
+          >
+            Editorial is the timeless letterpress look. Groove is warm and wavy.
+            We pick by occasion — override here if you'd rather flip.
+          </p>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 8,
+              padding: 4,
+              background: 'var(--pl-chrome-surface-2)',
+              borderRadius: 999,
+              border: '1px solid var(--pl-chrome-border)',
+            }}
+          >
+            {(['editorial', 'groove'] as const).map((family) => {
+              const active = (manifest.themeFamily ?? 'editorial') === family;
+              return (
+                <button
+                  key={family}
+                  type="button"
+                  onClick={() => onChange({ ...manifest, themeFamily: family })}
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: 999,
+                    border: 'none',
+                    background: active ? 'var(--pl-chrome-accent)' : 'transparent',
+                    color: active ? '#fff' : 'var(--pl-chrome-text)',
+                    fontFamily: 'var(--pl-font-body)',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    letterSpacing: '-0.005em',
+                    cursor: 'pointer',
+                    textTransform: 'capitalize',
+                    transition:
+                      'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
+                  }}
+                >
+                  {family}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </SidebarSection>
+
       {/* ── Writing Style — AI tone adjuster ── */}
       <SidebarSection title="Writing Style" defaultOpen={false}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

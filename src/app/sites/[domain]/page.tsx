@@ -129,6 +129,9 @@ export async function generateMetadata(
     ogIsSolo ? names[0] : `${names[0]},${names[1]}`,
   );
   ogUrl.searchParams.set('occasion', occasion);
+  // Theme family drives the OG card layout (warm blob + radial
+  // for groove, double frame + corner flourishes for editorial).
+  ogUrl.searchParams.set('family', resolveThemeFamily(manifest));
   ogUrl.searchParams.set('date', eventDate || '');
   ogUrl.searchParams.set('tagline', tagline);
   ogUrl.searchParams.set('bg', vibeSkin.palette.background.replace('#', ''));
