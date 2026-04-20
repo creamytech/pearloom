@@ -18,7 +18,6 @@ import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import nextDynamic from 'next/dynamic';
-import { ThemeProvider } from '@/components/theme-provider';
 import { GrooveMotion } from '@/components/brand/groove';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useWizardState } from '@/lib/wizard-state';
@@ -29,6 +28,7 @@ import type { StoryManifest } from '@/types';
 import { DashboardStep } from '@/components/wizard/DashboardStep';
 import { DashboardSidebar } from '@/components/dashboard/sidebar';
 import { UserNav } from '@/components/dashboard/user-nav';
+import { ThemeToggle } from '@/components/shell';
 import { PearSpotlight } from '@/components/wizard/PearSpotlight';
 import { TemplateGallery } from '@/components/dashboard/TemplateGallery';
 import { MobileBottomNav } from '@/components/dashboard/MobileBottomNav';
@@ -504,12 +504,13 @@ export default function DashboardClient() {
   return (
     <DialogProvider>
     <GrooveMotion>
-    <ThemeProvider theme={{
-      name: 'pearloom-v5',
-      fonts: { heading: 'DM Sans', body: 'DM Sans' },
-      colors: { background: '#FAFAFA', foreground: '#18181B', accent: '#18181B', accentLight: '#F4F4F5', muted: '#71717A', cardBg: '#ffffff' },
-      borderRadius: '0.75rem',
-    }}>
+      {/* NOTE: previously wrapped children in a per-dashboard
+          ThemeProvider (`pl-site-theme` key) which created a
+          separate dark-mode state from every other dashboard
+          page (which inherit from the ROOT ThemeProvider using
+          `pl-theme`). The toggle now writes to a single global
+          state so main /dashboard and /dashboard/* stay in
+          sync. */}
       {status === 'loading' ? (
         /* Branded loading state */
         <div
@@ -572,16 +573,29 @@ export default function DashboardClient() {
               zIndex: 10,
             }}
           >
-            <div className="flex items-center gap-2 md:hidden">
+            {/* Left — wordmark + eyebrow, same shape as DashboardShell's
+                header so the chrome reads identical on every
+                dashboard page. */}
+            <div className="flex items-center gap-3">
               <span
                 style={{
                   fontFamily: 'var(--pl-font-display)',
                   fontSize: '1.05rem',
-                  color: 'var(--pl-ink)',
+                  color: 'var(--pl-groove-ink)',
                   letterSpacing: '-0.01em',
                 }}
               >
                 Pearloom
+              </span>
+              <span
+                style={{
+                  fontFamily: 'var(--pl-font-body)',
+                  fontSize: '0.78rem',
+                  fontWeight: 500,
+                  color: 'var(--pl-groove-terra)',
+                }}
+              >
+                Home
               </span>
             </div>
             <div className="flex items-center gap-2 ml-auto">
@@ -590,9 +604,9 @@ export default function DashboardClient() {
                 className="flex items-center gap-1.5 md:hidden"
                 style={{
                   padding: '8px 14px',
-                  background: 'var(--pl-ink)',
-                  color: 'var(--pl-cream)',
-                  borderRadius: 'var(--pl-radius-full)',
+                  background: 'var(--pl-groove-blob-sunrise)',
+                  color: '#fff',
+                  borderRadius: 'var(--pl-groove-radius-pill)',
                   fontSize: '0.78rem',
                   fontWeight: 600,
                   border: 'none',
@@ -603,6 +617,7 @@ export default function DashboardClient() {
                 <Plus size={14} />
                 <span className="hidden sm:inline">New site</span>
               </button>
+              <ThemeToggle />
               {session?.user && (
                 <UserNav user={session.user} onDashboard={() => goTo('dashboard')} />
               )}
@@ -654,7 +669,6 @@ export default function DashboardClient() {
           onBuild={() => goTo('pear-crafts')}
         />
       )}
-    </ThemeProvider>
     </GrooveMotion>
     </DialogProvider>
   );

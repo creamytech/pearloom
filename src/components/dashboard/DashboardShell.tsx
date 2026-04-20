@@ -5,20 +5,25 @@
 // Replaces the hand-rolled header + sidebar that each page used
 // to inline. Keeps main /dashboard free to render its own frame
 // (it owns the fullscreen editor + PearSpotlight hand-offs).
+//
+// Cohesion rule: this shell's header is the SAME shape as
+// DashboardClient's top bar — wordmark on the left, theme
+// toggle + UserNav on the right. Both inherit the root theme
+// (pl-theme), no inner ThemeProvider, so dark-mode toggling
+// flips every dashboard page together.
 // ─────────────────────────────────────────────────────────────
 
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useSession } from 'next-auth/react';
 import { DashboardSidebar } from './sidebar';
 import { ThemeToggle } from '@/components/shell';
+import { UserNav } from './user-nav';
 
 interface DashboardShellProps {
   eyebrow: string;
   children: ReactNode;
   rightSlot?: ReactNode;
-  backHref?: string;
-  backLabel?: string;
   contentMaxWidth?: number | string;
 }
 
@@ -26,10 +31,9 @@ export function DashboardShell({
   eyebrow,
   children,
   rightSlot,
-  backHref = '/dashboard',
-  backLabel = 'Back',
   contentMaxWidth = 1180,
 }: DashboardShellProps) {
+  const { data: session } = useSession();
   return (
     <div
       style={{
@@ -56,13 +60,13 @@ export function DashboardShell({
           zIndex: 10,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <Link
             href="/dashboard"
             style={{
               fontFamily: 'var(--pl-font-display)',
               fontSize: '1.05rem',
-              color: 'var(--pl-ink)',
+              color: 'var(--pl-groove-ink)',
               textDecoration: 'none',
               letterSpacing: '-0.01em',
             }}
@@ -71,11 +75,11 @@ export function DashboardShell({
           </Link>
           <span
             style={{
-              fontFamily: 'var(--pl-font-mono)',
-              fontSize: '0.62rem',
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              color: 'var(--pl-muted)',
+              fontFamily: 'var(--pl-font-body)',
+              fontSize: '0.78rem',
+              fontWeight: 500,
+              color: 'var(--pl-groove-terra)',
+              letterSpacing: '-0.005em',
             }}
           >
             {eyebrow}
@@ -84,19 +88,7 @@ export function DashboardShell({
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {rightSlot}
           <ThemeToggle />
-          <Link
-            href={backHref}
-            style={{
-              fontSize: '0.78rem',
-              color: 'var(--pl-muted)',
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            <ArrowLeft size={12} /> {backLabel}
-          </Link>
+          {session?.user && <UserNav user={session.user} />}
         </div>
       </header>
 
