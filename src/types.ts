@@ -3,6 +3,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { VibeSkin } from '@/lib/vibe-engine';
+import type { SiteOccasion } from '@/lib/site-urls';
 
 /**
  * Story Manifest
@@ -24,8 +25,10 @@ export interface StoryManifest {
   coverPhoto?: string;
   // Hero slideshow: multiple photos that auto-rotate in the hero section
   heroSlideshow?: string[];
-  // What type of life event is this site for?
-  occasion?: 'wedding' | 'anniversary' | 'engagement' | 'birthday' | 'story';
+  // What type of life event is this site for? See SiteOccasion
+  // in src/lib/site-urls.ts for the full registry (28 events as
+  // of 2026-04-22). The legacy 5 ship; the rest are in beta.
+  occasion?: SiteOccasion;
   // Timeline macro layout format chosen by user
   layoutFormat?: 'cascade' | 'filmstrip' | 'scrapbook' | 'magazine' | 'chapters' | 'starmap';
   // Story chapter layout — controls how individual chapters render in the story section.

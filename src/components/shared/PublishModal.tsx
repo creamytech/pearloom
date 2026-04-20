@@ -88,8 +88,14 @@ export function PublishModal({
   const [error, setError] = useState<string | null>(null);
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  // Memorial / funeral sites pause on a re-read interstitial before
+  // the standard publish flow — AI-drafted copy deserves a human
+  // pass before the world sees it.
+  const [memorialAck, setMemorialAck] = useState(false);
   // Zola-style URL prefix: pearloom.com/wedding/…, pearloom.com/birthday/…
   const occasionPrefix = (manifest?.occasion || 'wedding') as string;
+  const isSolemn =
+    manifest?.occasion === 'memorial' || manifest?.occasion === 'funeral';
 
   const handleSubdomainChange = (val: string) => {
     const clean = val.toLowerCase().replace(/[^a-z0-9-]/g, '');
@@ -248,6 +254,76 @@ export function PublishModal({
             </button>
           </motion.div>
         </div>
+      ) : isSolemn && !memorialAck ? (
+        /* ── Memorial / funeral re-read interstitial ── */
+        <>
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="h-[1px] w-10 bg-[var(--pl-olive)] opacity-30" />
+            <Globe size={18} className="text-[var(--pl-olive)] opacity-60" />
+            <div className="h-[1px] w-10 bg-[var(--pl-olive)] opacity-30" />
+          </div>
+          <h2 className="text-[1.8rem] mb-1 font-heading font-normal italic text-[var(--pl-ink-soft)] text-center tracking-tight">
+            One more read
+          </h2>
+          <p className="text-[0.9rem] text-[var(--pl-muted)] text-center mb-5 leading-relaxed max-w-[38ch] mx-auto">
+            {manifest?.occasion === 'funeral' ? 'Funerals' : 'Memorials'} deserve
+            careful words. Pearloom drafted this copy with you — please
+            re-read the page end-to-end before it goes live to family
+            and friends.
+          </p>
+
+          {/* Guidance list */}
+          <ul
+            className="mb-5 mx-auto"
+            style={{
+              maxWidth: '42ch',
+              padding: '14px 16px',
+              borderRadius: 'var(--pl-radius-lg)',
+              background: 'color-mix(in oklab, var(--pl-olive) 5%, transparent)',
+              border: '1px solid color-mix(in oklab, var(--pl-olive) 18%, transparent)',
+              listStyle: 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+              color: 'var(--pl-ink-soft)',
+              fontSize: '0.82rem',
+              lineHeight: 1.5,
+            }}
+          >
+            <li className="flex gap-2">
+              <span style={{ color: 'var(--pl-olive)', marginTop: 1 }}>·</span>
+              Names, dates, and relationships are spelled right.
+            </li>
+            <li className="flex gap-2">
+              <span style={{ color: 'var(--pl-olive)', marginTop: 1 }}>·</span>
+              Tone feels gathered, not celebratory.
+            </li>
+            <li className="flex gap-2">
+              <span style={{ color: 'var(--pl-olive)', marginTop: 1 }}>·</span>
+              Service time, livestream link, donation info are correct.
+            </li>
+            <li className="flex gap-2">
+              <span style={{ color: 'var(--pl-olive)', marginTop: 1 }}>·</span>
+              Family has seen the draft, if they asked to.
+            </li>
+          </ul>
+
+          <Button
+            variant="accent"
+            size="lg"
+            onClick={() => setMemorialAck(true)}
+            icon={<ArrowRight size={16} />}
+            className="w-full"
+          >
+            I&rsquo;ve re-read it
+          </Button>
+          <button
+            onClick={handleClose}
+            className="mt-2 text-[0.82rem] text-[var(--pl-muted)] bg-transparent border-0 cursor-pointer hover:text-[var(--pl-ink)] transition-colors self-center"
+          >
+            Back to the draft
+          </button>
+        </>
       ) : (
         /* ── Simplified publish flow ── */
         <>
