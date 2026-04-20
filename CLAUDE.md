@@ -1,1 +1,3 @@
 @AGENTS.md
+@BRAND.md
+@CLAUDE-DESIGN.md
