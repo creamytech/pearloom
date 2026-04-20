@@ -215,7 +215,7 @@ export function GuestPassport({
               gap: 8,
               marginTop: 18,
               padding: '6px 14px',
-              borderRadius: 999,
+              borderRadius: 'var(--pl-radius-full)',
               background: attending
                 ? `color-mix(in oklab, ${OLIVE} 14%, transparent)`
                 : rsvp.status === 'declined'
@@ -285,7 +285,7 @@ export function GuestPassport({
                 padding: '18px 20px',
                 background: CREAM_DEEP,
                 border: `1px solid ${GOLD_RULE}`,
-                borderRadius: 2,
+                borderRadius: 'var(--pl-radius-xs)',
               }}
             >
               <p
@@ -419,7 +419,7 @@ export function GuestPassport({
                     aspectRatio: '1 / 1',
                     objectFit: 'cover',
                     display: 'block',
-                    borderRadius: 2,
+                    borderRadius: 'var(--pl-radius-xs)',
                   }}
                 />
               ))}
@@ -448,7 +448,7 @@ export function GuestPassport({
               background: 'transparent',
               color: INK,
               border: `1px solid ${INK}`,
-              borderRadius: 2,
+              borderRadius: 'var(--pl-radius-xs)',
               fontFamily: FONT_MONO,
               fontSize: '0.66rem',
               letterSpacing: '0.24em',
@@ -468,7 +468,7 @@ export function GuestPassport({
               background: INK,
               color: CREAM,
               border: `1px solid ${INK}`,
-              borderRadius: 2,
+              borderRadius: 'var(--pl-radius-xs)',
               fontFamily: FONT_MONO,
               fontSize: '0.66rem',
               letterSpacing: '0.24em',

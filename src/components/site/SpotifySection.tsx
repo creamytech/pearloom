@@ -162,7 +162,7 @@ export function SpotifySection({ spotifyUrl, playlistName, vibeSkin }: SpotifySe
           viewport={{ once: true }}
           transition={{ duration: 0.7, delay: 0.1 }}
           style={{
-            borderRadius: '16px',
+            borderRadius: 'var(--pl-radius-xl)',
             overflow: 'hidden',
             background: `linear-gradient(135deg, ${palette.card}, ${palette.subtle})`,
             boxShadow: `0 16px 60px ${palette.accent}18`,
@@ -176,7 +176,7 @@ export function SpotifySection({ spotifyUrl, playlistName, vibeSkin }: SpotifySe
             frameBorder={0}
             allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
             loading="lazy"
-            style={{ display: 'block', borderRadius: '16px' }}
+            style={{ display: 'block', borderRadius: 'var(--pl-radius-xl)' }}
             title={playlistName ? `${playlistName} — Spotify` : 'Our Soundtrack — Spotify'}
           />
         </motion.div>

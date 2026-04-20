@@ -118,7 +118,7 @@ export function ReferralPanel() {
     background: 'rgba(255,255,255,0.45)',
     backdropFilter: 'blur(20px)',
     WebkitBackdropFilter: 'blur(20px)',
-    borderRadius: '16px',
+    borderRadius: 'var(--pl-radius-xl)',
     border: '1px solid rgba(255,255,255,0.5)',
     padding: '1.5rem',
     boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
@@ -155,7 +155,7 @@ export function ReferralPanel() {
         background: 'rgba(255,255,255,0.35)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
-        borderRadius: '12px',
+        borderRadius: 'var(--pl-radius-lg)',
         border: '1px solid rgba(255,255,255,0.4)',
       }}
     >
@@ -247,7 +247,7 @@ export function ReferralPanel() {
             style={{
               width: '44px',
               height: '44px',
-              borderRadius: '14px',
+              borderRadius: 'var(--pl-radius-xl)',
               background: 'rgba(163,177,138,0.15)',
               display: 'flex',
               alignItems: 'center',
@@ -291,7 +291,7 @@ export function ReferralPanel() {
             alignItems: 'center',
             gap: '0.6rem',
             background: 'rgba(255,255,255,0.35)',
-            borderRadius: '12px',
+            borderRadius: 'var(--pl-radius-lg)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
             padding: '0.7rem 0.9rem',
@@ -403,7 +403,7 @@ export function ReferralPanel() {
               style={{
                 width: '44px',
                 height: '44px',
-                borderRadius: '14px',
+                borderRadius: 'var(--pl-radius-xl)',
                 background:
                   'linear-gradient(135deg, rgba(163,177,138,0.25), rgba(163,177,138,0.1))',
                 display: 'flex',
@@ -445,7 +445,7 @@ export function ReferralPanel() {
                 alignItems: 'center',
                 gap: '0.35rem',
                 padding: '0.6rem 1.2rem',
-                borderRadius: '12px',
+                borderRadius: 'var(--pl-radius-lg)',
                 background: 'var(--pl-olive)',
                 color: 'var(--pl-cream)',
                 border: 'none',
@@ -590,7 +590,7 @@ export function ReferralPanel() {
               onClick={(e) => e.stopPropagation()}
               style={{
                 background: 'var(--pl-cream-card)',
-                borderRadius: '20px',
+                borderRadius: 'var(--pl-radius-2xl)',
                 padding: '1.75rem',
                 maxWidth: '480px',
                 width: '100%',
@@ -637,7 +637,7 @@ export function ReferralPanel() {
                   style={{
                     background: 'rgba(255,255,255,0.5)',
                     border: '1px solid rgba(255,255,255,0.6)',
-                    borderRadius: '10px',
+                    borderRadius: 'var(--pl-radius-lg)',
                     width: '32px',
                     height: '32px',
                     display: 'flex',
@@ -683,7 +683,7 @@ export function ReferralPanel() {
                         alignItems: 'center',
                         gap: '0.75rem',
                         padding: '0.9rem 1rem',
-                        borderRadius: '14px',
+                        borderRadius: 'var(--pl-radius-xl)',
                         background: 'rgba(255,255,255,0.5)',
                         backdropFilter: 'blur(8px)',
                         WebkitBackdropFilter: 'blur(8px)',
@@ -699,7 +699,7 @@ export function ReferralPanel() {
                         style={{
                           width: '36px',
                           height: '36px',
-                          borderRadius: '10px',
+                          borderRadius: 'var(--pl-radius-lg)',
                           background:
                             'linear-gradient(135deg, rgba(163,177,138,0.2), rgba(163,177,138,0.08))',
                           display: 'flex',

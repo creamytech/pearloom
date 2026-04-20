@@ -154,7 +154,7 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 9999,
+        zIndex: 'var(--z-max)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -225,7 +225,7 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
           border: `1px solid ${GOLD_RULE}`,
           boxShadow:
             '0 1px 0 rgba(184,147,90,0.18) inset, 0 24px 72px rgba(40,28,12,0.12), 0 6px 18px rgba(40,28,12,0.06)',
-          borderRadius: 2,
+          borderRadius: 'var(--pl-radius-xs)',
           cursor: 'default',
         }}
       >
@@ -442,7 +442,7 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
                 background: INK,
                 color: CREAM,
                 border: `1px solid ${INK}`,
-                borderRadius: 2,
+                borderRadius: 'var(--pl-radius-xs)',
                 fontFamily: FONT_MONO,
                 fontSize: '0.68rem',
                 letterSpacing: '0.28em',
@@ -522,7 +522,7 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
                 background: INK,
                 color: CREAM,
                 border: `1px solid ${INK}`,
-                borderRadius: 2,
+                borderRadius: 'var(--pl-radius-xs)',
                 fontFamily: FONT_MONO,
                 fontSize: '0.68rem',
                 letterSpacing: '0.28em',

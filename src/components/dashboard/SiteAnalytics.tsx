@@ -244,7 +244,7 @@ export function SiteAnalytics({ manifest, coupleNames, onEdit, onShare }: SiteAn
 
             {/* Segmented bar */}
             <div style={{
-              display: 'flex', height: '8px', borderRadius: '100px', overflow: 'hidden',
+              display: 'flex', height: '8px', borderRadius: 'var(--pl-radius-full)', overflow: 'hidden',
               background: 'color-mix(in oklab, var(--pl-ink) 6%, transparent)', gap: '1px',
             }}>
               {attendingPct > 0 && (
@@ -297,7 +297,7 @@ export function SiteAnalytics({ manifest, coupleNames, onEdit, onShare }: SiteAn
                     key={r.id}
                     style={{
                       fontSize: '0.72rem', padding: '0.2rem 0.65rem',
-                      borderRadius: '100px', background: C.ivory,
+                      borderRadius: 'var(--pl-radius-full)', background: C.ivory,
                       color: C.espresso, fontWeight: 500,
                       border: `1px solid ${C.border}`,
                     }}
@@ -308,7 +308,7 @@ export function SiteAnalytics({ manifest, coupleNames, onEdit, onShare }: SiteAn
                 {extraGuests > 0 && (
                   <span style={{
                     fontSize: '0.72rem', padding: '0.2rem 0.65rem',
-                    borderRadius: '100px', background: 'color-mix(in oklab, var(--pl-ink) 5%, transparent)',
+                    borderRadius: 'var(--pl-radius-full)', background: 'color-mix(in oklab, var(--pl-ink) 5%, transparent)',
                     color: C.muted, fontWeight: 500,
                   }}>
                     +{extraGuests} more

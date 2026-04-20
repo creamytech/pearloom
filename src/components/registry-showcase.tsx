@@ -149,7 +149,7 @@ function CashFundProgressBar({
         style={{
           width: '100%',
           height: '8px',
-          borderRadius: '100px',
+          borderRadius: 'var(--pl-radius-full)',
           background: 'color-mix(in srgb, var(--pl-plum) 12%, transparent)',
           overflow: 'hidden',
         }}
@@ -158,7 +158,7 @@ function CashFundProgressBar({
           style={{
             width: `${pct}%`,
             height: '100%',
-            borderRadius: '100px',
+            borderRadius: 'var(--pl-radius-full)',
             background: 'var(--pl-plum)',
             transition: 'width 0.6s ease',
           }}
@@ -301,7 +301,7 @@ function RegistryCard({
             alignItems: 'center',
             gap: '0.5rem',
             padding: '0.7rem 1.5rem',
-            borderRadius: '100px',
+            borderRadius: 'var(--pl-radius-full)',
             background: 'var(--pl-olive)',
             color: '#fff',
             fontSize: '0.72rem',
@@ -596,7 +596,7 @@ export function RegistryShowcase({
                     alignItems: 'center',
                     gap: '0.6rem',
                     padding: '0.9rem 2.5rem',
-                    borderRadius: '100px',
+                    borderRadius: 'var(--pl-radius-full)',
                     background: 'var(--pl-plum)',
                     color: '#fff',
                     fontWeight: 700,

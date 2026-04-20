@@ -179,7 +179,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
           disabled={refreshing}
           title="Refresh"
           style={{
-            width: '24px', height: '24px', borderRadius: '6px',
+            width: '24px', height: '24px', borderRadius: 'var(--pl-radius-sm)',
             border: 'none', background: 'transparent',
             color: '#71717A',
             cursor: refreshing ? 'default' : 'pointer',
@@ -199,7 +199,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
           padding: '10px 12px',
-          borderRadius: '8px',
+          borderRadius: 'var(--pl-radius-md)',
           border: 'none',
           background: optimizing ? '#E4E4E7' : '#18181B',
           color: optimizing ? '#71717A' : '#FFFFFF',
@@ -252,7 +252,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
         ].map(({ label, value, accent }) => (
           <div key={label} style={{
             padding: '10px 12px',
-            borderRadius: '10px',
+            borderRadius: 'var(--pl-radius-lg)',
             background: '#FAFAFA',
             border: '1px solid #E4E4E7',
           }}>
@@ -309,12 +309,12 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
           </div>
           <div style={{
             height: '6px',
-            borderRadius: '4px',
+            borderRadius: 'var(--pl-radius-xs)',
             background: '#E4E4E7',
             overflow: 'hidden',
           }}>
             <div style={{
-              height: '100%', width: `${fillPct}%`, borderRadius: '4px',
+              height: '100%', width: `${fillPct}%`, borderRadius: 'var(--pl-radius-xs)',
               background: fillPct >= 90 ? '#e87a7a' : '#18181B',
               transition: 'width 0.5s ease',
             }} />
@@ -330,7 +330,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
           padding: '10px 12px',
-          borderRadius: '8px',
+          borderRadius: 'var(--pl-radius-md)',
           border: '1px solid #E4E4E7',
           background: '#F4F4F5',
           color: '#18181B',
@@ -365,7 +365,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
                   style={{
                     display: 'flex', alignItems: 'center', gap: '10px',
                     padding: '8px 10px',
-                    borderRadius: '8px',
+                    borderRadius: 'var(--pl-radius-md)',
                     background: '#FFFFFF',
                     border: '1px solid #E4E4E7',
                   }}
@@ -423,7 +423,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
               style={{
                 display: 'flex', alignItems: 'center', gap: '10px',
                 padding: '8px 10px',
-                borderRadius: '8px',
+                borderRadius: 'var(--pl-radius-md)',
                 border: '1px solid #E4E4E7',
                 background: '#FFFFFF',
                 color: '#18181B',

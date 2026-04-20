@@ -41,7 +41,7 @@ export function CuratorAICard({ onLaunch }: CuratorAICardProps) {
       {/* Icon */}
       <div style={{
         width: '48px', height: '48px',
-        borderRadius: '14px',
+        borderRadius: 'var(--pl-radius-xl)',
         background: 'rgba(163,177,138,0.2)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         marginBottom: '16px',
@@ -96,10 +96,10 @@ export function ActiveCuratorBadge({ active = false }: { active?: boolean }) {
         position: 'fixed',
         bottom: '80px',
         right: '24px',
-        zIndex: 100,
+        zIndex: 'var(--z-sticky)',
         display: 'flex', alignItems: 'center', gap: '8px',
         padding: '8px 16px',
-        borderRadius: '100px',
+        borderRadius: 'var(--pl-radius-full)',
         background: 'rgba(255,255,255,0.92)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',

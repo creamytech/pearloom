@@ -174,7 +174,7 @@ function SeatingPageInner() {
           boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
           fontSize: '0.875rem', fontFamily: 'var(--pl-font-body)',
           display: 'flex', alignItems: 'center', gap: '0.75rem',
-          zIndex: 100, maxWidth: 'calc(100vw - 3rem)',
+          zIndex: 'var(--z-sticky)', maxWidth: 'calc(100vw - 3rem)',
           animation: 'fadeInUp 0.3s ease',
         }}>
           <Sparkles size={16} color="var(--pl-olive, #5C6B3F)" />

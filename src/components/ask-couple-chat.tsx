@@ -143,7 +143,7 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
           position: 'fixed',
           bottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))',
           right: '1.5rem',
-          zIndex: 100,
+          zIndex: 'var(--z-sticky)',
           width: '56px',
           height: '56px',
           borderRadius: '50%',
@@ -339,7 +339,7 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
                     }}
                     style={{
                       padding: '0.4rem 0.8rem',
-                      borderRadius: '100px',
+                      borderRadius: 'var(--pl-radius-full)',
                       border: '1.5px solid rgba(0,0,0,0.08)',
                       background: 'var(--pl-cream)',
                       fontSize: '0.78rem',
@@ -379,7 +379,7 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
                 style={{
                   flex: 1,
                   padding: '0.6rem 1rem',
-                  borderRadius: '100px',
+                  borderRadius: 'var(--pl-radius-full)',
                   border: '1.5px solid rgba(0,0,0,0.08)',
                   background: 'var(--pl-cream)',
                   fontSize: 'max(16px, 0.875rem)',

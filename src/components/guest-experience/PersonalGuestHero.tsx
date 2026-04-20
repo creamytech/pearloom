@@ -129,7 +129,7 @@ export function PersonalGuestHero({
             alignItems: 'center',
             padding: '1rem 1.5rem',
             border: `1px solid ${accent}55`,
-            borderRadius: '999px',
+            borderRadius: 'var(--pl-radius-full)',
             fontSize: '0.85rem',
             letterSpacing: '0.04em',
           }}

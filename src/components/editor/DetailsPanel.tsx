@@ -51,7 +51,7 @@ function ConfirmDeleteButton({ onConfirm }: { onConfirm: () => void }) {
         alignItems: 'center',
         gap: '4px',
         padding: confirming ? '3px 8px' : '3px',
-        borderRadius: '6px',
+        borderRadius: 'var(--pl-radius-sm)',
         fontSize: panelText.hint,
         fontWeight: confirming ? panelWeight.bold : panelWeight.medium,
         fontFamily: 'inherit',
@@ -119,7 +119,7 @@ function WeddingPartyMemberRow({ member, onUpdate, onDelete }: {
       <div style={{
         display: 'flex', alignItems: 'center', gap: '10px',
         padding: '10px 12px',
-        borderRadius: '2px',
+        borderRadius: 'var(--pl-radius-xs)',
         background: 'var(--pl-chrome-surface)',
         border: '1px solid var(--pl-chrome-border)',
         borderLeft: '2px solid color-mix(in srgb, var(--pl-chrome-accent) 45%, transparent)',
@@ -303,7 +303,7 @@ function WeddingPartyEditor({ manifest, onChange }: { manifest: StoryManifest; o
       )}
       {addingNew ? (
         <div style={{
-          padding: '10px', borderRadius: '10px',
+          padding: '10px', borderRadius: 'var(--pl-radius-lg)',
           background: 'var(--pl-chrome-bg)', border: '1px solid var(--pl-chrome-border)',
           display: 'flex', flexDirection: 'column', gap: '8px',
         }}>
@@ -329,7 +329,7 @@ function WeddingPartyEditor({ manifest, onChange }: { manifest: StoryManifest; o
             <button
               onClick={() => { setAddingNew(false); setNewName(''); }}
               style={{
-                padding: '6px 14px', borderRadius: '2px',
+                padding: '6px 14px', borderRadius: 'var(--pl-radius-xs)',
                 background: 'transparent', border: '1px solid var(--pl-chrome-border)',
                 color: 'var(--pl-chrome-text-muted)', cursor: 'pointer',
                 fontFamily: 'var(--pl-font-mono, monospace)',
@@ -343,7 +343,7 @@ function WeddingPartyEditor({ manifest, onChange }: { manifest: StoryManifest; o
               onClick={addMember}
               disabled={!newName.trim()}
               style={{
-                padding: '6px 14px', borderRadius: '2px',
+                padding: '6px 14px', borderRadius: 'var(--pl-radius-xs)',
                 background: newName.trim() ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-border)',
                 color: newName.trim() ? 'var(--pl-chrome-bg)' : 'var(--pl-chrome-text-faint)',
                 border: 'none', cursor: newName.trim() ? 'pointer' : 'not-allowed',
@@ -362,7 +362,7 @@ function WeddingPartyEditor({ manifest, onChange }: { manifest: StoryManifest; o
           onClick={() => setAddingNew(true)}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            padding: '10px 12px', borderRadius: '2px',
+            padding: '10px 12px', borderRadius: 'var(--pl-radius-xs)',
             background: 'color-mix(in srgb, var(--pl-chrome-accent) 3%, transparent)',
             border: '1px dashed color-mix(in srgb, var(--pl-chrome-accent) 50%, transparent)',
             color: 'var(--pl-chrome-accent)', cursor: 'pointer',
@@ -402,7 +402,7 @@ function FaqRow({ faq, onUpdate, onDelete, index }: {
     <div style={{
       background: 'var(--pl-chrome-bg)',
       border: '1px solid var(--pl-chrome-border)',
-      borderRadius: '2px',
+      borderRadius: 'var(--pl-radius-xs)',
       borderTop: '2px solid color-mix(in srgb, var(--pl-chrome-accent) 45%, transparent)',
       padding: '12px 14px 14px',
       display: 'flex', flexDirection: 'column', gap: '10px',
@@ -417,7 +417,7 @@ function FaqRow({ faq, onUpdate, onDelete, index }: {
             background: 'none', border: 'none', cursor: 'pointer',
             color: 'var(--pl-chrome-text-muted)',
             padding: '2px 4px',
-            borderRadius: '2px',
+            borderRadius: 'var(--pl-radius-xs)',
             fontFamily: 'var(--pl-font-mono, monospace)',
             fontSize: '0.5rem', fontWeight: 700,
             letterSpacing: '0.24em', textTransform: 'uppercase',
@@ -726,7 +726,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         id={`pe-panel-section-${id}`}
         data-field-focus={id}
         style={{
-          borderRadius: '10px', marginBottom: '4px',
+          borderRadius: 'var(--pl-radius-lg)', marginBottom: '4px',
           background: isOpen ? '#FAFAFA' : 'transparent',
           border: isOpen ? '1px solid #E4E4E7' : '1px solid transparent',
           transition: 'all var(--pl-dur-instant)',
@@ -739,7 +739,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '12px', background: 'none', border: 'none', cursor: 'pointer',
             color: isOpen ? '#3F3F46' : '#71717A',
-            borderRadius: '10px',
+            borderRadius: 'var(--pl-radius-lg)',
           }}
         >
           <span style={{
@@ -826,16 +826,16 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       <div style={{
         display: 'flex', alignItems: 'center', gap: '8px',
         padding: '8px 10px', marginBottom: '4px',
-        borderRadius: '10px',
+        borderRadius: 'var(--pl-radius-lg)',
         background: 'var(--pl-chrome-bg)',
         border: '1px solid var(--pl-chrome-border)',
       }}>
         <div style={{
-          flex: 1, height: '4px', borderRadius: '8px',
+          flex: 1, height: '4px', borderRadius: 'var(--pl-radius-md)',
           background: '#E4E4E7', overflow: 'hidden',
         }}>
           <div style={{
-            height: '100%', borderRadius: '8px',
+            height: '100%', borderRadius: 'var(--pl-radius-md)',
             background: 'var(--pl-chrome-text)',
             width: `${Math.round((filledCount / totalSections) * 100)}%`,
             transition: 'width 0.3s ease',
@@ -862,7 +862,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
               padding: '6px 12px', margin: '0 12px 4px',
-              borderRadius: '100px',
+              borderRadius: 'var(--pl-radius-full)',
               background: 'var(--pl-chrome-bg)',
               border: '1px solid var(--pl-chrome-border)',
               fontSize: panelText.hint,
@@ -895,7 +895,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             key={tab.id}
             onClick={() => setDetailsTab(tab.id)}
             style={{
-              padding: '8px 0', borderRadius: '8px',
+              padding: '8px 0', borderRadius: 'var(--pl-radius-md)',
               border: detailsTab === tab.id ? '1px solid #18181B' : '1px solid #E4E4E7',
               background: detailsTab === tab.id ? '#18181B' : '#FFFFFF',
               color: detailsTab === tab.id ? '#FFFFFF' : '#71717A',
@@ -949,7 +949,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               display: 'flex', alignItems: 'center', gap: '10px',
               background: 'var(--pl-chrome-bg)',
               border: '1px solid var(--pl-chrome-border)',
-              borderRadius: '10px',
+              borderRadius: 'var(--pl-radius-lg)',
               padding: '12px',
             }}>
               <LocationPinIcon size={14} color="#18181B" style={{ flexShrink: 0 }} />
@@ -1006,7 +1006,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           <button
             onClick={() => updRegistry({ enabled: !manifest.registry?.enabled })}
             style={{
-              width: '36px', height: '20px', borderRadius: '8px', flexShrink: 0,
+              width: '36px', height: '20px', borderRadius: 'var(--pl-radius-md)', flexShrink: 0,
               background: manifest.registry?.enabled !== false ? '#18181B' : '#E4E4E7',
               border: 'none', cursor: 'pointer', position: 'relative', transition: 'background var(--pl-dur-fast)',
             }}
@@ -1033,7 +1033,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         {/* ── Smart Registry Import ── */}
         <div style={{
           background: 'var(--pl-chrome-bg)',
-          borderRadius: '10px',
+          borderRadius: 'var(--pl-radius-lg)',
           padding: '12px',
           border: '1px solid var(--pl-chrome-border)',
           marginTop: '4px',
@@ -1056,7 +1056,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               style={{
                 display: 'flex', alignItems: 'center', gap: '4px',
                 padding: '0 12px',
-                borderRadius: '8px',
+                borderRadius: 'var(--pl-radius-md)',
                 border: 'none',
                 background: registryUrl.trim() ? '#18181B' : '#E4E4E7',
                 color: registryUrl.trim() ? '#fff' : '#71717A',
@@ -1087,7 +1087,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               marginTop: '8px',
               background: 'var(--pl-chrome-bg)',
               border: '1px solid var(--pl-chrome-border)',
-              borderRadius: '10px',
+              borderRadius: 'var(--pl-radius-lg)',
               padding: '12px',
             }}>
               <div style={{
@@ -1124,7 +1124,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 style={{
                   display: 'flex', alignItems: 'center', gap: '4px',
                   padding: '6px 14px',
-                  borderRadius: '8px',
+                  borderRadius: 'var(--pl-radius-md)',
                   border: 'none',
                   background: 'var(--pl-chrome-text)',
                   color: '#fff',
@@ -1145,7 +1145,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           <label style={{ ...lbl, margin: 0 }}>Registry Links ({entries.length})</label>
           <button onClick={addEntry} style={{
             display: 'flex', alignItems: 'center', gap: '4px',
-            padding: '5px 10px', borderRadius: '8px',
+            padding: '5px 10px', borderRadius: 'var(--pl-radius-md)',
             border: '1px solid var(--pl-chrome-border)',
             background: 'var(--pl-chrome-bg)', color: 'var(--pl-chrome-text)',
             cursor: 'pointer',
@@ -1161,7 +1161,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           <div key={i} style={{
             background: 'var(--pl-chrome-bg)',
             border: '1px solid var(--pl-chrome-border)',
-            borderRadius: '10px', padding: '12px',
+            borderRadius: 'var(--pl-radius-lg)', padding: '12px',
             display: 'flex', flexDirection: 'column', gap: '8px',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1222,7 +1222,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 style={{
                   display: 'flex', alignItems: 'center', gap: '4px',
                   padding: '5px 10px',
-                  borderRadius: '8px', border: '1px solid var(--pl-chrome-border)',
+                  borderRadius: 'var(--pl-radius-md)', border: '1px solid var(--pl-chrome-border)',
                   background: aiMealLoading ? '#FAFAFA' : '#F4F4F5',
                   color: 'var(--pl-chrome-text)', cursor: aiMealLoading ? 'wait' : 'pointer',
                   fontSize: panelText.body,
@@ -1244,7 +1244,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               </button>
               <button onClick={addMealOption} style={{
                 display: 'flex', alignItems: 'center', gap: '4px',
-                padding: '5px 10px', borderRadius: '8px',
+                padding: '5px 10px', borderRadius: 'var(--pl-radius-md)',
                 border: '1px solid var(--pl-chrome-border)',
                 background: 'var(--pl-chrome-bg)', color: 'var(--pl-chrome-text)',
                 cursor: 'pointer',
@@ -1287,7 +1287,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 <div key={i} style={{
                   background: 'var(--pl-chrome-bg)',
                   border: '1px dashed #E4E4E7',
-                  borderRadius: '10px', padding: '12px',
+                  borderRadius: 'var(--pl-radius-lg)', padding: '12px',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -1316,7 +1316,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                           {meal.dietaryTags.map((tag, j) => (
                             <span key={j} style={{
-                              padding: '2px 8px', borderRadius: '100px',
+                              padding: '2px 8px', borderRadius: 'var(--pl-radius-full)',
                               fontSize: panelText.chip,
                               fontWeight: panelWeight.semibold,
                               fontFamily: 'inherit',
@@ -1335,7 +1335,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                         onClick={() => acceptMealPreview(meal)}
                         style={{
                           display: 'flex', alignItems: 'center', gap: '3px',
-                          padding: '4px 8px', borderRadius: '6px', border: 'none',
+                          padding: '4px 8px', borderRadius: 'var(--pl-radius-sm)', border: 'none',
                           background: 'var(--pl-chrome-text)', color: '#fff',
                           fontSize: panelText.chip,
                           fontWeight: panelWeight.bold,
@@ -1350,7 +1350,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                         onClick={() => rejectMealPreview(meal.name)}
                         style={{
                           display: 'flex', alignItems: 'center', padding: '4px 6px',
-                          borderRadius: '6px', border: 'none',
+                          borderRadius: 'var(--pl-radius-sm)', border: 'none',
                           background: 'rgba(248,113,113,0.1)', color: '#e87a7a',
                           cursor: 'pointer',
                         }}
@@ -1369,13 +1369,13 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             <div style={{ marginBottom: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {[1, 2, 3].map(i => (
                 <div key={i} style={{
-                  borderRadius: '12px', padding: '12px',
+                  borderRadius: 'var(--pl-radius-lg)', padding: '12px',
                   background: 'var(--pl-chrome-bg)', border: '1px solid rgba(24,24,27,0.06)',
                   animation: 'pl-meal-pulse 1.5s ease-in-out infinite',
                   animationDelay: `${i * 0.12}s`,
                 }}>
-                  <div style={{ width: '60%', height: '14px', borderRadius: '6px', background: 'rgba(0,0,0,0.06)', marginBottom: '6px' }} />
-                  <div style={{ width: '85%', height: '10px', borderRadius: '12px', background: 'rgba(0,0,0,0.04)' }} />
+                  <div style={{ width: '60%', height: '14px', borderRadius: 'var(--pl-radius-sm)', background: 'rgba(0,0,0,0.06)', marginBottom: '6px' }} />
+                  <div style={{ width: '85%', height: '10px', borderRadius: 'var(--pl-radius-lg)', background: 'rgba(0,0,0,0.04)' }} />
                 </div>
               ))}
               <style>{`@keyframes pl-meal-pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }`}</style>
@@ -1387,7 +1387,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             <div key={meal.id} style={{
               background: 'var(--pl-chrome-bg)',
               border: '1px solid var(--pl-chrome-border)',
-              borderRadius: '10px', padding: '12px',
+              borderRadius: 'var(--pl-radius-lg)', padding: '12px',
               display: 'flex', flexDirection: 'column', gap: '8px',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1421,7 +1421,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                           updMealOption(i, { dietaryTags: tags });
                         }}
                         style={{
-                          padding: '4px 10px', borderRadius: '100px',
+                          padding: '4px 10px', borderRadius: 'var(--pl-radius-full)',
                           fontSize: panelText.chip,
                           fontWeight: active ? panelWeight.bold : panelWeight.semibold,
                           fontFamily: 'inherit',
@@ -1511,7 +1511,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               style={{
                 display: 'flex', alignItems: 'center', gap: '4px',
                 padding: '5px 10px',
-                borderRadius: '8px', border: '1px solid var(--pl-chrome-border)',
+                borderRadius: 'var(--pl-radius-md)', border: '1px solid var(--pl-chrome-border)',
                 background: 'var(--pl-chrome-bg)', color: 'var(--pl-chrome-text)',
                 cursor: 'pointer',
                 fontSize: panelText.body,
@@ -1527,7 +1527,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             </button>
             <button onClick={addHotel} style={{
               display: 'flex', alignItems: 'center', gap: '4px',
-              padding: '5px 10px', borderRadius: '8px',
+              padding: '5px 10px', borderRadius: 'var(--pl-radius-md)',
               border: '1px solid var(--pl-chrome-border)',
               background: 'var(--pl-chrome-bg)', color: 'var(--pl-chrome-text)',
               cursor: 'pointer',
@@ -1544,7 +1544,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           <div key={i} style={{
             background: 'var(--pl-chrome-bg)',
             border: '1px solid var(--pl-chrome-border)',
-            borderRadius: '10px', padding: '12px',
+            borderRadius: 'var(--pl-radius-lg)', padding: '12px',
             display: 'flex', flexDirection: 'column', gap: '8px',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1587,7 +1587,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             style={{
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: '5px 12px',
-              borderRadius: '8px',
+              borderRadius: 'var(--pl-radius-md)',
               border: '1px solid var(--pl-chrome-border)',
               background: aiFaqLoading ? '#FAFAFA' : '#F4F4F5',
               color: 'var(--pl-chrome-text)', cursor: aiFaqLoading ? 'wait' : 'pointer',
@@ -1610,7 +1610,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           </button>
           <button onClick={addFaq} style={{
             display: 'flex', alignItems: 'center', gap: '4px',
-            padding: '5px 10px', borderRadius: '8px',
+            padding: '5px 10px', borderRadius: 'var(--pl-radius-md)',
             border: '1px solid var(--pl-chrome-border)',
             background: 'var(--pl-chrome-bg)', color: 'var(--pl-chrome-text)',
             cursor: 'pointer',
@@ -1698,7 +1698,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 features: { ...manifest.features, guestbook: !(manifest.features?.guestbook ?? true) }
               })}
               style={{
-                width: '40px', height: '22px', borderRadius: '10px',
+                width: '40px', height: '22px', borderRadius: 'var(--pl-radius-lg)',
                 background: (manifest.features?.guestbook ?? true) ? '#18181B' : '#E4E4E7',
                 border: 'none', cursor: 'pointer', position: 'relative', transition: 'background var(--pl-dur-fast)',
                 flexShrink: 0,
@@ -1738,7 +1738,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 features: { ...manifest.features, liveUpdates: !(manifest.features?.liveUpdates ?? true) }
               })}
               style={{
-                width: '40px', height: '22px', borderRadius: '10px',
+                width: '40px', height: '22px', borderRadius: 'var(--pl-radius-lg)',
                 background: (manifest.features?.liveUpdates ?? true) ? '#18181B' : '#E4E4E7',
                 border: 'none', cursor: 'pointer', position: 'relative', transition: 'background var(--pl-dur-fast)',
                 flexShrink: 0,
@@ -1778,7 +1778,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 features: { ...manifest.features, photoWall: !(manifest.features?.photoWall ?? false) }
               })}
               style={{
-                width: '40px', height: '22px', borderRadius: '10px',
+                width: '40px', height: '22px', borderRadius: 'var(--pl-radius-lg)',
                 background: (manifest.features?.photoWall ?? false) ? '#18181B' : '#E4E4E7',
                 border: 'none', cursor: 'pointer', position: 'relative', transition: 'background var(--pl-dur-fast)',
                 flexShrink: 0,
@@ -1808,7 +1808,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           }}>
             Drag guests to tables. Add constraints like &quot;keep together&quot; or &quot;near the exit&quot;.
           </div>
-          <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--pl-chrome-border)' }}>
+          <div style={{ borderRadius: 'var(--pl-radius-lg)', overflow: 'hidden', border: '1px solid var(--pl-chrome-border)' }}>
             <SeatingCanvas siteId={subdomain || manifest.coupleId || 'draft'} />
           </div>
         </Section>
@@ -1827,7 +1827,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               justifyContent: 'center',
               gap: '6px',
               padding: '9px 12px',
-              borderRadius: '8px',
+              borderRadius: 'var(--pl-radius-md)',
               border: '1px solid var(--pl-chrome-border)',
               background: 'var(--pl-chrome-bg)',
               color: 'var(--pl-chrome-text)',

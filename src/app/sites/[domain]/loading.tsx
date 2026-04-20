@@ -20,7 +20,7 @@ export default function Loading() {
         alignItems: 'center',
         justifyContent: 'center',
         background: '#FAF8F4',
-        zIndex: 9999,
+        zIndex: 'var(--z-max)',
       }}
     >
       <style

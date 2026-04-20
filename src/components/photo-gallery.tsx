@@ -306,7 +306,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
             transition={{ duration: 0.2 }}
             onClick={() => setLightboxIdx(null)}
             style={{
-              position: 'fixed', inset: 0, zIndex: 100,
+              position: 'fixed', inset: 0, zIndex: 'var(--z-sticky)',
               background: 'rgba(0,0,0,0.92)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               padding: '1.5rem',
@@ -408,7 +408,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
                     padding: '10px 18px',
                     background: 'rgba(0,0,0,0.55)',
                     backdropFilter: 'blur(8px)',
-                    borderRadius: 999,
+                    borderRadius: 'var(--pl-radius-full)',
                     color: '#FAF7F2',
                     fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                     fontSize: '0.66rem',

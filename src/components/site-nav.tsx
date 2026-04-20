@@ -562,7 +562,7 @@ export function SiteNav({
         style={{
           position: inline ? 'sticky' : 'fixed',
           top: 0, left: 0, bottom: 0, width: '240px',
-          zIndex: 100, display: 'flex', flexDirection: 'column',
+          zIndex: 'var(--z-sticky)', display: 'flex', flexDirection: 'column',
           background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
           borderRight: '1px solid rgba(0,0,0,0.05)', boxShadow: '4px 0 24px rgba(43,30,20,0.04)',
           paddingTop: inline ? '0' : 'env(safe-area-inset-top,0px)',
@@ -622,10 +622,10 @@ export function SiteNav({
           aria-label="Open navigation (⌘K)"
           style={{
             position: inline ? 'absolute' : 'fixed',
-            bottom: '24px', right: '24px', zIndex: 100,
+            bottom: '24px', right: '24px', zIndex: 'var(--z-sticky)',
             display: 'flex', alignItems: 'center', gap: '6px',
             padding: '8px 14px',
-            borderRadius: '10px', border: 'none',
+            borderRadius: 'var(--pl-radius-lg)', border: 'none',
             background: 'rgba(24,24,27,0.88)',
             backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
             color: 'rgba(255,255,255,0.9)',
@@ -643,7 +643,7 @@ export function SiteNav({
           <>
             <div
               onClick={() => setCommandOpen(false)}
-              style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
+              style={{ position: 'fixed', inset: 0, zIndex: 'var(--z-max)', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: -8 }}
@@ -652,9 +652,9 @@ export function SiteNav({
               transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
               style={{
                 position: 'fixed', top: '20%', left: '50%', transform: 'translateX(-50%)',
-                zIndex: 9999, width: 'min(480px, 90vw)',
+                zIndex: 'var(--z-max)', width: 'min(480px, 90vw)',
                 background: 'rgba(250,247,242,0.98)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-                borderRadius: '16px', border: '1px solid rgba(0,0,0,0.08)',
+                borderRadius: 'var(--pl-radius-xl)', border: '1px solid rgba(0,0,0,0.08)',
                 boxShadow: '0 16px 64px rgba(0,0,0,0.14)', overflow: 'hidden',
               }}
             >
@@ -675,7 +675,7 @@ export function SiteNav({
                       onClick={() => setCommandOpen(false)}
                       style={{
                         display: 'flex', alignItems: 'center', gap: '12px',
-                        padding: '10px 14px', borderRadius: '10px',
+                        padding: '10px 14px', borderRadius: 'var(--pl-radius-lg)',
                         textDecoration: 'none',
                         color: active ? 'var(--pl-ink)' : 'var(--pl-muted)',
                         background: active ? 'rgba(163,177,138,0.1)' : 'transparent',
@@ -929,7 +929,7 @@ export function SiteNav({
                             alignItems: 'center',
                             gap: '12px',
                             padding: '14px 12px',
-                            borderRadius: '10px',
+                            borderRadius: 'var(--pl-radius-lg)',
                             textDecoration: 'none',
                             color: active ? 'var(--pl-olive)' : 'var(--pl-ink)',
                             background: active ? 'rgba(163,177,138,0.12)' : 'transparent',
@@ -1042,7 +1042,7 @@ export function SiteNav({
         <div style={{
           position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
           zIndex: 99, display: 'flex', alignItems: 'center', gap: '2px',
-          padding: '4px 8px', borderRadius: '100px',
+          padding: '4px 8px', borderRadius: 'var(--pl-radius-full)',
           background: 'rgba(245,241,232,0.96)',
           backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
           border: '1px solid rgba(0,0,0,0.07)',
@@ -1059,7 +1059,7 @@ export function SiteNav({
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   width: active ? 'auto' : '36px', height: '36px',
-                  borderRadius: '100px',
+                  borderRadius: 'var(--pl-radius-full)',
                   padding: active ? '0 12px' : '0',
                   background: active ? 'var(--pl-olive)' : 'transparent',
                   color: active ? '#fff' : 'rgba(0,0,0,0.45)',

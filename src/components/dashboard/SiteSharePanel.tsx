@@ -114,7 +114,7 @@ export function SiteSharePanel({
       background: 'rgba(255,255,255,0.45)',
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
-      borderRadius: '16px',
+      borderRadius: 'var(--pl-radius-xl)',
       border: '1px solid rgba(255,255,255,0.5)',
       padding: '1.5rem',
       boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
@@ -127,7 +127,7 @@ export function SiteSharePanel({
   const urlRow = (url: string, type: 'link' | 'rsvp') => (
     <div style={{
       display: 'flex', alignItems: 'center', gap: '0.6rem',
-      background: 'rgba(255,255,255,0.35)', borderRadius: '12px',
+      background: 'rgba(255,255,255,0.35)', borderRadius: 'var(--pl-radius-lg)',
       backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
       padding: '0.7rem 0.9rem', border: '1px solid rgba(255,255,255,0.4)',
     }}>
@@ -174,7 +174,7 @@ export function SiteSharePanel({
       onClick={onClick}
       style={{
         display: 'flex', alignItems: 'center', gap: '0.4rem',
-        padding: '0.55rem 1rem', borderRadius: '100px',
+        padding: '0.55rem 1rem', borderRadius: 'var(--pl-radius-full)',
         background: primary ? 'var(--pl-olive)' : 'rgba(255,255,255,0.35)',
         backdropFilter: primary ? 'none' : 'blur(8px)',
         WebkitBackdropFilter: primary ? 'none' : 'blur(8px)',
@@ -293,7 +293,7 @@ export function SiteSharePanel({
           {rsvpUrl && (
             <div style={{
               display: 'flex', gap: '0.25rem', marginBottom: '1.25rem',
-              background: 'rgba(255,255,255,0.3)', borderRadius: '12px', padding: '0.2rem',
+              background: 'rgba(255,255,255,0.3)', borderRadius: 'var(--pl-radius-lg)', padding: '0.2rem',
             }}>
               {(['site', 'rsvp'] as const).map(tab => (
                 <button

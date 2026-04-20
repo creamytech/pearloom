@@ -155,7 +155,7 @@ export function PanelInput({
 const panelTextareaStyle: CSSProperties = {
   width: '100%',
   padding: '10px 12px',
-  borderRadius: '8px',
+  borderRadius: 'var(--pl-radius-md)',
   background: 'color-mix(in srgb, var(--pl-chrome-accent) 3%, var(--pl-chrome-bg))',
   border: '1px solid var(--pl-chrome-border)',
   fontFamily: panelFont.body,

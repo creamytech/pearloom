@@ -52,7 +52,7 @@ function PearHelpButton({ label, prompt }: { label: string; prompt: string }) {
         gap: '5px',
         marginTop: '0.75rem',
         padding: '5px 12px',
-        borderRadius: '8px',
+        borderRadius: 'var(--pl-radius-md)',
         background: 'transparent',
         border: `1px solid #E4E4E7`,
         color: OLIVE,
@@ -108,7 +108,7 @@ function PearNudge({ prompt, onDismiss }: { prompt: string; onDismiss: () => voi
         alignItems: 'center',
         gap: '6px',
         padding: '8px 16px',
-        borderRadius: '8px',
+        borderRadius: 'var(--pl-radius-md)',
         background: '#FFFFFF',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
@@ -181,7 +181,7 @@ function LiveCountdown({ targetDate, accentColor, textColor, mutedColor, heading
     <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(0.5rem, 2vw, 1.5rem)', flexWrap: 'wrap' }}>
       {units.map((u) => (
         <div key={u.label} style={{
-          minWidth: '70px', padding: '1rem 0.75rem', borderRadius: '10px',
+          minWidth: '70px', padding: '1rem 0.75rem', borderRadius: 'var(--pl-radius-lg)',
           background: `${accentColor}0D`, border: `1px solid ${accentColor}20`,
         }}>
           <div style={{
@@ -241,7 +241,7 @@ function ContextMenuItem({ label, icon, danger, onClick }: {
       onClick={onClick}
       style={{
         display: 'flex', alignItems: 'center', gap: '8px',
-        width: '100%', padding: '6px 10px', borderRadius: '8px',
+        width: '100%', padding: '6px 10px', borderRadius: 'var(--pl-radius-md)',
         border: 'none', textAlign: 'left', background: 'transparent',
         cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500,
         color: danger ? '#c0392b' : '#18181B', fontFamily: 'inherit',
@@ -295,7 +295,7 @@ const SectionOverlay = React.memo(function SectionOverlay({
     alignItems: 'center',
     justifyContent: 'center',
     border: 'none',
-    borderRadius: 6,
+    borderRadius: 'var(--pl-radius-sm)',
     background: 'transparent',
     color: '#71717A',
     cursor,
@@ -476,7 +476,7 @@ const SectionOverlay = React.memo(function SectionOverlay({
       onPointerLeave={() => setRailHover(false)}
       style={{
         position: 'relative',
-        borderRadius: '4px',
+        borderRadius: 'var(--pl-radius-xs)',
         cursor: editMode ? 'default' : 'default',
         isolation: 'isolate', // Contain z-index within each block — prevents hero from overlapping nav
       }}
@@ -490,7 +490,7 @@ const SectionOverlay = React.memo(function SectionOverlay({
           style={{
             position: 'absolute', left: 0, right: 0, top: -1,
             height: 2, background: '#4a9b8a', zIndex: 99,
-            pointerEvents: 'none', borderRadius: 1,
+            pointerEvents: 'none', borderRadius: 'var(--pl-radius-xs)',
           }}
         />
       )}
@@ -500,7 +500,7 @@ const SectionOverlay = React.memo(function SectionOverlay({
           style={{
             position: 'absolute', left: 0, right: 0, bottom: -1,
             height: 2, background: '#4a9b8a', zIndex: 99,
-            pointerEvents: 'none', borderRadius: 1,
+            pointerEvents: 'none', borderRadius: 'var(--pl-radius-xs)',
           }}
         />
       )}
@@ -521,7 +521,7 @@ const SectionOverlay = React.memo(function SectionOverlay({
             flexDirection: 'column',
             gap: 2,
             padding: 4,
-            borderRadius: 10,
+            borderRadius: 'var(--pl-radius-lg)',
             background: 'rgba(250,247,242,0.92)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
@@ -574,7 +574,7 @@ const SectionOverlay = React.memo(function SectionOverlay({
                 alignItems: 'center',
                 gap: 4,
                 padding: 4,
-                borderRadius: 8,
+                borderRadius: 'var(--pl-radius-md)',
                 background: '#FFFFFF',
                 border: '1px solid #E4E4E7',
                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
@@ -603,8 +603,8 @@ const SectionOverlay = React.memo(function SectionOverlay({
       {editMode && isSelected && (
         <div style={{
           position: 'absolute', top: '-38px', left: '50%', transform: 'translateX(-50%)',
-          zIndex: 100, display: 'flex', alignItems: 'center', gap: '2px',
-          padding: '4px 6px', borderRadius: '999px',
+          zIndex: 'var(--z-sticky)', display: 'flex', alignItems: 'center', gap: '2px',
+          padding: '4px 6px', borderRadius: 'var(--pl-radius-full)',
           background: 'var(--pl-ink, #0E0D0B)',
           color: 'var(--pl-cream, #FAF7F2)',
           border: `1px solid color-mix(in oklab, var(--pl-gold, #B8935A) 40%, transparent)`,
@@ -668,7 +668,7 @@ const SectionOverlay = React.memo(function SectionOverlay({
                 style={{
                   width: '28px', height: '28px',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: 'none', borderRadius: '999px',
+                  border: 'none', borderRadius: 'var(--pl-radius-full)',
                   background: 'transparent',
                   color: (a as { danger?: boolean }).danger
                     ? '#E06B6B'
@@ -702,11 +702,11 @@ const SectionOverlay = React.memo(function SectionOverlay({
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '4px' }} onClick={e => e.stopPropagation()}>
               <span style={{ fontSize: '0.65rem', color: '#F0A0A0', fontWeight: 600, whiteSpace: 'nowrap' }}>Delete?</span>
               <button onClick={(e) => { e.stopPropagation(); onBlockAction?.('delete', blockId); setConfirmDelete(false); }}
-                style={{ padding: '2px 9px', borderRadius: '999px', border: 'none', background: '#E06B6B', color: '#fff', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700 }}>
+                style={{ padding: '2px 9px', borderRadius: 'var(--pl-radius-full)', border: 'none', background: '#E06B6B', color: '#fff', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700 }}>
                 Yes
               </button>
               <button onClick={(e) => { e.stopPropagation(); setConfirmDelete(false); }}
-                style={{ padding: '2px 9px', borderRadius: '999px', border: '1px solid rgba(250,247,242,0.3)', background: 'transparent', color: 'var(--pl-cream)', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 600 }}>
+                style={{ padding: '2px 9px', borderRadius: 'var(--pl-radius-full)', border: '1px solid rgba(250,247,242,0.3)', background: 'transparent', color: 'var(--pl-cream)', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 600 }}>
                 No
               </button>
             </div>
@@ -721,10 +721,10 @@ const SectionOverlay = React.memo(function SectionOverlay({
         <>
           <div style={{ position: 'fixed', inset: 0, zIndex: 9998 }} onClick={() => setShowMenu(false)} />
           <div style={{
-            position: 'fixed', top: menuPos.y, left: menuPos.x, zIndex: 9999,
+            position: 'fixed', top: menuPos.y, left: menuPos.x, zIndex: 'var(--z-max)',
             minWidth: '176px', padding: '4px',
             background: '#FFFFFF',
-            borderRadius: '12px', border: '1px solid #E4E4E7',
+            borderRadius: 'var(--pl-radius-lg)', border: '1px solid #E4E4E7',
             boxShadow: '0 8px 32px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.04)',
           } as React.CSSProperties}>
             {/* Edit in sidebar — always first */}
@@ -2073,7 +2073,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                 type="button"
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-                  padding: '0.5rem 0.9rem', borderRadius: '999px',
+                  padding: '0.5rem 0.9rem', borderRadius: 'var(--pl-radius-full)',
                   background: pal.accent, color: '#fff',
                   border: 'none', fontSize: '0.75rem', fontWeight: 600,
                   cursor: 'pointer', fontFamily: 'inherit',
@@ -2098,7 +2098,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             )}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '8px', maxWidth: '960px', margin: '0 auto' }}>
               {allPhotos.map((photo, i) => (
-                <div key={i} style={{ position: 'relative', aspectRatio: i === 0 ? '2/1' : '1', gridColumn: i === 0 ? 'span 2' : undefined, borderRadius: '10px', overflow: 'hidden' }}>
+                <div key={i} style={{ position: 'relative', aspectRatio: i === 0 ? '2/1' : '1', gridColumn: i === 0 ? 'span 2' : undefined, borderRadius: 'var(--pl-radius-lg)', overflow: 'hidden' }}>
                   {art.blockArt?.photoFrame && (
                     <div
                       aria-hidden="true"
@@ -2184,7 +2184,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         return (
           <section key={key} data-pe-section="spotify" style={{ padding: '3rem 2rem', maxWidth: '700px', margin: '0 auto' }}>
             {embedSrc ? (
-              <iframe src={embedSrc} style={{ width: '100%', height: '352px', borderRadius: '12px', border: 'none' }} allow="encrypted-media" title="Spotify Playlist" />
+              <iframe src={embedSrc} style={{ width: '100%', height: '352px', borderRadius: 'var(--pl-radius-lg)', border: 'none' }} allow="encrypted-media" title="Spotify Playlist" />
             ) : (
               <div className="pl-empty-gradient" style={{ padding: '3rem', textAlign: 'center', borderRadius: '1rem', border: '2px dashed #E4E4E7', color: '#71717A', fontSize: '0.8rem' }}>
                 Add a Spotify playlist URL in the Music panel
@@ -2298,12 +2298,12 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             {quizQuestions.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', textAlign: 'left' }}>
                 {quizQuestions.map((q, qi) => (
-                  <div key={qi} style={{ padding: '1.25rem', borderRadius: '12px', background: `${pal.card}60`, border: `1px solid ${pal.accent}15` }}>
+                  <div key={qi} style={{ padding: '1.25rem', borderRadius: 'var(--pl-radius-lg)', background: `${pal.card}60`, border: `1px solid ${pal.accent}15` }}>
                     <div style={{ fontWeight: 600, color: safeFg, fontSize: '0.9rem', marginBottom: '0.75rem' }}>
                       {qi + 1}. {q.question}
                     </div>
                     {(q.options || []).map((opt, oi) => (
-                      <div key={oi} style={{ padding: '0.5rem 0.75rem', marginBottom: '0.25rem', borderRadius: '8px', background: `${pal.accent}08`, fontSize: '0.8rem', color: safeFg, opacity: 0.8 }}>
+                      <div key={oi} style={{ padding: '0.5rem 0.75rem', marginBottom: '0.25rem', borderRadius: 'var(--pl-radius-md)', background: `${pal.accent}08`, fontSize: '0.8rem', color: safeFg, opacity: 0.8 }}>
                         {opt}
                       </div>
                     ))}
@@ -2350,7 +2350,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             {photos.length > 0 ? (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '8px', maxWidth: '1000px', margin: '0 auto' }}>
                 {photos.map((p, i) => (
-                  <div key={i} style={{ aspectRatio: '1', borderRadius: '8px', overflow: 'hidden' }}>
+                  <div key={i} style={{ aspectRatio: '1', borderRadius: 'var(--pl-radius-md)', overflow: 'hidden' }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={proxyUrl(p.url, 400, 400)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
@@ -2393,7 +2393,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             </h2>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(0.75rem, 2vw, 2rem)', flexWrap: 'wrap' }}>
               {defaultMilestones.map((m, i) => (
-                <div key={i} style={{ padding: '1.25rem 1rem', borderRadius: '10px', background: `${pal.accent}0D`, border: `1px solid ${pal.accent}20`, minWidth: '110px', maxWidth: '140px' }}>
+                <div key={i} style={{ padding: '1.25rem 1rem', borderRadius: 'var(--pl-radius-lg)', background: `${pal.accent}0D`, border: `1px solid ${pal.accent}20`, minWidth: '110px', maxWidth: '140px' }}>
                   <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{m.emoji || '✦'}</div>
                   <div style={{ fontSize: '0.8rem', fontWeight: 600, color: safeFg }}>{m.label}</div>
                   {m.date && <div style={{ fontSize: '0.7rem', color: safeMuted, marginTop: '0.25rem' }}>{m.date}</div>}
@@ -2429,7 +2429,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             <p style={{ color: safeMuted, marginBottom: '2rem' }}>The places that made our story</p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
               {pins.slice(0, 8).map((p, i) => (
-                <div key={i} style={{ padding: '0.75rem 1.25rem', borderRadius: '8px', background: `${pal.accent}10`, border: `1px solid ${pal.accent}20`, fontSize: '0.8rem', color: safeFg, textAlign: 'left' }}>
+                <div key={i} style={{ padding: '0.75rem 1.25rem', borderRadius: 'var(--pl-radius-md)', background: `${pal.accent}10`, border: `1px solid ${pal.accent}20`, fontSize: '0.8rem', color: safeFg, textAlign: 'left' }}>
                   <div>📍 {p.place}</div>
                   {p.when && <div style={{ fontSize: '0.7rem', color: safeMuted, marginTop: '0.2rem' }}>{p.when}</div>}
                   {p.note && <div style={{ fontSize: '0.7rem', color: safeMuted, marginTop: '0.2rem', maxWidth: '180px' }}>{p.note}</div>}
@@ -2523,7 +2523,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               top: '50%',
               transform: 'translateY(-50%)',
               height: isDropTarget ? 68 : 44,
-              borderRadius: 10,
+              borderRadius: 'var(--pl-radius-lg)',
               background: isDropTarget
                 ? 'color-mix(in oklab, var(--pl-chrome-accent, #B8935A) 22%, transparent)'
                 : 'color-mix(in oklab, var(--pl-chrome-accent, #B8935A) 10%, transparent)',
@@ -2553,7 +2553,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                   : 'var(--pl-chrome-accent, #B8935A)',
                 background: isDropTarget ? 'var(--pl-chrome-accent, #B8935A)' : 'transparent',
                 padding: isDropTarget ? '4px 12px' : '0',
-                borderRadius: 999,
+                borderRadius: 'var(--pl-radius-full)',
                 transition: 'all var(--pl-dur-instant)',
               }}
             >
@@ -2568,7 +2568,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             position: 'absolute', left: '5%', right: '5%', top: '50%', transform: 'translateY(-50%)',
             height: '1px',
             background: 'var(--pl-chrome-border)',
-            borderRadius: '2px',
+            borderRadius: 'var(--pl-radius-xs)',
           }} />
         )}
 
@@ -2615,7 +2615,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               zIndex: 99, padding: '8px', minWidth: '200px', maxHeight: '320px', overflowY: 'auto',
               background: 'var(--pl-chrome-surface)',
               backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-              borderRadius: '8px', border: '1px solid var(--pl-chrome-border)',
+              borderRadius: 'var(--pl-radius-md)', border: '1px solid var(--pl-chrome-border)',
               boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
               display: 'flex', flexDirection: 'column', gap: '2px',
             } as React.CSSProperties}>
@@ -2628,7 +2628,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                   onClick={() => { onBlockDrop?.(type, index); setAddMenuIdx(null); }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '8px',
-                    padding: '6px 10px', borderRadius: '8px', border: 'none',
+                    padding: '6px 10px', borderRadius: 'var(--pl-radius-md)', border: 'none',
                     background: 'transparent', cursor: 'pointer', textAlign: 'left',
                     fontSize: '0.75rem', color: 'var(--pl-chrome-text)',
                     transition: 'background 0.1s', width: '100%',

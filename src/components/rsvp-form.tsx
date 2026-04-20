@@ -106,7 +106,7 @@ function ConfettiBurst({ active }: { active: boolean }) {
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 9999,
+        zIndex: 'var(--z-max)',
         pointerEvents: 'none',
         width: '100%',
         height: '100%',
@@ -125,7 +125,7 @@ function StepDots({ current, total }: { current: number; total: number }) {
           style={{
             width: i === current ? '24px' : '6px',
             height: '6px',
-            borderRadius: '100px',
+            borderRadius: 'var(--pl-radius-full)',
             background: i === current ? 'var(--pl-olive)' : 'rgba(0,0,0,0.12)',
             transition: 'all 0.35s ease',
           }}
@@ -345,7 +345,7 @@ export function RsvpForm({ events, siteId, mealOptions }: RsvpFormProps) {
                     style={{
                       flex: 1,
                       padding: '1rem',
-                      borderRadius: '100px',
+                      borderRadius: 'var(--pl-radius-full)',
                       border: `2px solid ${
                         isActive
                           ? isAttending
@@ -466,7 +466,7 @@ export function RsvpForm({ events, siteId, mealOptions }: RsvpFormProps) {
                 justifyContent: 'center',
                 gap: '0.5rem',
                 padding: '1rem 2rem',
-                borderRadius: '100px',
+                borderRadius: 'var(--pl-radius-full)',
                 background: canAdvanceStep0 ? 'var(--pl-olive)' : 'rgba(0,0,0,0.08)',
                 color: canAdvanceStep0 ? '#fff' : 'var(--pl-muted)',
                 fontSize: 'max(16px, 0.9rem)',
@@ -673,7 +673,7 @@ export function RsvpForm({ events, siteId, mealOptions }: RsvpFormProps) {
                   alignItems: 'center',
                   gap: '0.35rem',
                   padding: '0.9rem 1.5rem',
-                  borderRadius: '100px',
+                  borderRadius: 'var(--pl-radius-full)',
                   border: '1.5px solid rgba(0,0,0,0.1)',
                   background: 'transparent',
                   color: 'var(--pl-muted)',
@@ -696,7 +696,7 @@ export function RsvpForm({ events, siteId, mealOptions }: RsvpFormProps) {
                   justifyContent: 'center',
                   gap: '0.5rem',
                   padding: '0.9rem 2rem',
-                  borderRadius: '100px',
+                  borderRadius: 'var(--pl-radius-full)',
                   background: 'var(--pl-olive)',
                   color: '#fff',
                   fontSize: 'max(16px, 0.9rem)',
@@ -770,7 +770,7 @@ export function RsvpForm({ events, siteId, mealOptions }: RsvpFormProps) {
                   alignItems: 'center',
                   gap: '0.35rem',
                   padding: '0.9rem 1.5rem',
-                  borderRadius: '100px',
+                  borderRadius: 'var(--pl-radius-full)',
                   border: '1.5px solid rgba(0,0,0,0.1)',
                   background: 'transparent',
                   color: 'var(--pl-muted)',
@@ -796,7 +796,7 @@ export function RsvpForm({ events, siteId, mealOptions }: RsvpFormProps) {
                   justifyContent: 'center',
                   gap: '0.5rem',
                   padding: '1rem 2rem',
-                  borderRadius: '100px',
+                  borderRadius: 'var(--pl-radius-full)',
                   background: loading
                     ? 'rgba(0,0,0,0.08)'
                     : 'linear-gradient(135deg, var(--pl-olive) 0%, var(--pl-olive-hover) 100%)',

@@ -260,7 +260,7 @@ export function SiteShowroom({ onGetStarted }: SiteShowroomProps) {
             style={{
               width: i === activeIdx ? 18 : 6,
               height: 4,
-              borderRadius: 999,
+              borderRadius: 'var(--pl-radius-full)',
               background: i === activeIdx ? 'var(--pl-olive)' : 'var(--pl-divider)',
               transition: 'all 220ms cubic-bezier(0.22, 1, 0.36, 1)',
             }}
@@ -428,7 +428,7 @@ function ShowroomCard({ entry, index }: { entry: ShowroomEntry; index: number })
                   color: muted,
                   padding: '4px 6px',
                   border: `1px solid ${accent}33`,
-                  borderRadius: 4,
+                  borderRadius: 'var(--pl-radius-xs)',
                 }}
               >
                 {label}

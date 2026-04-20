@@ -59,7 +59,7 @@ export function EmptyState({
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            borderRadius: 999,
+            borderRadius: 'var(--pl-radius-full)',
             background: 'var(--pl-olive-mist)',
             color: 'var(--pl-olive)',
             border: '1px solid var(--pl-divider)',

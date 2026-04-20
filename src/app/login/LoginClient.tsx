@@ -142,7 +142,7 @@ export function LoginClient({ searchParamsPromise }: Props) {
           border: `1px solid ${GOLD_RULE}`,
           boxShadow:
             '0 1px 0 rgba(184,147,90,0.18) inset, 0 24px 60px rgba(40,28,12,0.1), 0 6px 18px rgba(40,28,12,0.05)',
-          borderRadius: 2,
+          borderRadius: 'var(--pl-radius-xs)',
         }}
       >
         {/* Masthead */}
@@ -199,7 +199,7 @@ export function LoginClient({ searchParamsPromise }: Props) {
             style={{
               marginBottom: 18,
               padding: '10px 14px',
-              borderRadius: 2,
+              borderRadius: 'var(--pl-radius-xs)',
               background: 'color-mix(in oklab, var(--pl-plum, #7A2D2D) 10%, transparent)',
               border: `1px solid color-mix(in oklab, var(--pl-plum, #7A2D2D) 32%, transparent)`,
               color: CRIMSON,
@@ -216,7 +216,7 @@ export function LoginClient({ searchParamsPromise }: Props) {
             animate={{ opacity: 1 }}
             style={{
               padding: '22px 18px',
-              borderRadius: 2,
+              borderRadius: 'var(--pl-radius-xs)',
               background: 'color-mix(in oklab, var(--pl-olive, #5C6B3F) 10%, transparent)',
               border: `1px solid color-mix(in oklab, var(--pl-olive, #5C6B3F) 30%, transparent)`,
               textAlign: 'center',
@@ -267,7 +267,7 @@ export function LoginClient({ searchParamsPromise }: Props) {
                 justifyContent: 'center',
                 gap: 10,
                 padding: '14px 18px',
-                borderRadius: 2,
+                borderRadius: 'var(--pl-radius-xs)',
                 fontFamily: FONT_MONO,
                 fontSize: '0.7rem',
                 letterSpacing: '0.26em',
@@ -334,7 +334,7 @@ export function LoginClient({ searchParamsPromise }: Props) {
                   padding: '12px 14px',
                   background: CREAM,
                   border: `1px solid ${GOLD_RULE}`,
-                  borderRadius: 2,
+                  borderRadius: 'var(--pl-radius-xs)',
                   color: INK,
                   fontSize: 'max(16px, 0.95rem)',
                   fontFamily: 'inherit',
@@ -364,7 +364,7 @@ export function LoginClient({ searchParamsPromise }: Props) {
                   background: 'transparent',
                   color: INK,
                   border: `1px solid ${INK}`,
-                  borderRadius: 2,
+                  borderRadius: 'var(--pl-radius-xs)',
                   fontFamily: FONT_MONO,
                   fontSize: '0.68rem',
                   letterSpacing: '0.24em',

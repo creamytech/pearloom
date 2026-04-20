@@ -25,7 +25,7 @@ function StatusBadge({ status }: { status: GuestPhoto['status'] }) {
   return (
     <span style={{
       display: 'inline-block',
-      padding: '2px 8px', borderRadius: '999px',
+      padding: '2px 8px', borderRadius: 'var(--pl-radius-full)',
       fontSize: '0.7rem', fontWeight: 700,
       background: s.bg, color: s.color,
     }}>
@@ -88,7 +88,7 @@ export function PhotoModerationPanel({ siteId }: PhotoModerationPanelProps) {
 
   const tabStyle = (tab: FilterTab): React.CSSProperties => ({
     padding: '0.45rem 1rem',
-    borderRadius: '6px',
+    borderRadius: 'var(--pl-radius-sm)',
     border: 'none',
     cursor: 'pointer',
     fontSize: '0.82rem',
@@ -99,7 +99,7 @@ export function PhotoModerationPanel({ siteId }: PhotoModerationPanelProps) {
   });
 
   return (
-    <div style={{ background: 'rgba(163,177,138,0.05)', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.06)' }}>
+    <div style={{ background: 'rgba(163,177,138,0.05)', borderRadius: 'var(--pl-radius-lg)', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.06)' }}>
       {/* Header */}
       <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
@@ -113,7 +113,7 @@ export function PhotoModerationPanel({ siteId }: PhotoModerationPanelProps) {
         {pendingCount > 0 && (
           <span style={{
             background: 'var(--pl-gold)', color: 'var(--pl-ink)',
-            borderRadius: '999px', padding: '2px 8px',
+            borderRadius: 'var(--pl-radius-full)', padding: '2px 8px',
             fontSize: '0.72rem', fontWeight: 800,
           }}>
             {pendingCount} pending
@@ -127,7 +127,7 @@ export function PhotoModerationPanel({ siteId }: PhotoModerationPanelProps) {
           <button key={tab} style={tabStyle(tab)} onClick={() => setActiveTab(tab)}>
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
             {tab === 'pending' && pendingCount > 0 && (
-              <span style={{ marginLeft: '5px', background: 'var(--pl-gold)', color: 'var(--pl-ink)', borderRadius: '999px', padding: '1px 5px', fontSize: '0.65rem' }}>
+              <span style={{ marginLeft: '5px', background: 'var(--pl-gold)', color: 'var(--pl-ink)', borderRadius: 'var(--pl-radius-full)', padding: '1px 5px', fontSize: '0.65rem' }}>
                 {pendingCount}
               </span>
             )}
@@ -148,7 +148,7 @@ export function PhotoModerationPanel({ siteId }: PhotoModerationPanelProps) {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.75rem' }}>
             {filtered.map(photo => (
-              <div key={photo.id} style={{ borderRadius: '8px', overflow: 'hidden', background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.06)' }}>
+              <div key={photo.id} style={{ borderRadius: 'var(--pl-radius-md)', overflow: 'hidden', background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.06)' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={photo.url}

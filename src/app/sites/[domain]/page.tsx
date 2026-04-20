@@ -994,7 +994,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                 fontSize: '0.9rem', fontWeight: 600,
                 color: 'var(--pl-olive, #5C6B3F)',
                 background: 'rgba(163,177,138,0.08)',
-                padding: '0.3rem 0.75rem', borderRadius: '999px',
+                padding: '0.3rem 0.75rem', borderRadius: 'var(--pl-radius-full)',
                 border: '1px solid rgba(163,177,138,0.2)',
               }}>
                 #{tag.replace(/^#/, '')}
@@ -1241,7 +1241,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                         fontSize: '0.9rem', fontWeight: 600,
                         color: 'var(--pl-olive, #5C6B3F)',
                         background: 'rgba(163,177,138,0.08)',
-                        padding: '0.3rem 0.75rem', borderRadius: '999px',
+                        padding: '0.3rem 0.75rem', borderRadius: 'var(--pl-radius-full)',
                         border: '1px solid rgba(163,177,138,0.2)',
                       }}>
                         #{tag.replace(/^#/, '')}
@@ -1363,7 +1363,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         {showWatermark && (
           <div style={{
             position: 'fixed', bottom: '12px', right: '12px', zIndex: 40,
-            padding: '4px 10px', borderRadius: '100px',
+            padding: '4px 10px', borderRadius: 'var(--pl-radius-full)',
             background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)',
             fontSize: '0.55rem', fontWeight: 600, letterSpacing: '0.08em',
             textTransform: 'uppercase', color: 'rgba(0,0,0,0.3)',

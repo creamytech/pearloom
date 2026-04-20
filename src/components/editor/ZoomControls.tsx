@@ -42,7 +42,7 @@ export function ZoomControls({ zoom, onZoomChange, className }: ZoomControlsProp
         alignItems: 'center',
         gap: '4px',
         background: 'rgba(0,0,0,0.04)',
-        borderRadius: '8px',
+        borderRadius: 'var(--pl-radius-md)',
         padding: '3px',
       }}
     >
@@ -55,7 +55,7 @@ export function ZoomControls({ zoom, onZoomChange, className }: ZoomControlsProp
         title="Zoom out"
         style={{
           padding: '4px 6px',
-          borderRadius: '6px',
+          borderRadius: 'var(--pl-radius-sm)',
           border: 'none',
           background: 'transparent',
           color: zoom <= MIN_ZOOM ? 'rgba(0,0,0,0.08)' : '#3F3F46',
@@ -74,7 +74,7 @@ export function ZoomControls({ zoom, onZoomChange, className }: ZoomControlsProp
         title="Reset zoom to 100%"
         style={{
           padding: '3px 8px',
-          borderRadius: '4px',
+          borderRadius: 'var(--pl-radius-xs)',
           border: 'none',
           background: 'transparent',
           color: zoom === 1 ? '#71717A' : '#18181B',
@@ -102,7 +102,7 @@ export function ZoomControls({ zoom, onZoomChange, className }: ZoomControlsProp
         title="Zoom in"
         style={{
           padding: '4px 6px',
-          borderRadius: '6px',
+          borderRadius: 'var(--pl-radius-sm)',
           border: 'none',
           background: 'transparent',
           color: zoom >= MAX_ZOOM ? 'rgba(0,0,0,0.08)' : '#3F3F46',

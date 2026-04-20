@@ -17,15 +17,15 @@ export interface CardBorderStyle {
 
 export const CARD_BORDERS: CardBorderStyle[] = [
   { id: 'none', name: 'None', css: { border: 'none' }, preview: 'No border' },
-  { id: 'thin-line', name: 'Thin Line', css: { border: '1px solid rgba(0,0,0,0.08)', borderRadius: '16px' }, preview: 'Subtle single line' },
-  { id: 'double-classic', name: 'Double Classic', css: { border: '3px double rgba(0,0,0,0.15)', borderRadius: '8px' }, preview: 'Classic double border' },
-  { id: 'gold-ornamental', name: 'Gold Ornamental', css: { border: '2px solid #C4A96A', borderRadius: '12px', boxShadow: 'inset 0 0 0 4px rgba(196,169,106,0.1)' }, preview: 'Antique gold frame' },
-  { id: 'botanical-vine', name: 'Botanical Vine', css: { border: '2px solid #5C6B3F', borderRadius: '20px', boxShadow: 'inset 0 0 0 3px rgba(163,177,138,0.08)' }, preview: 'Soft botanical frame' },
+  { id: 'thin-line', name: 'Thin Line', css: { border: '1px solid rgba(0,0,0,0.08)', borderRadius: 'var(--pl-radius-xl)' }, preview: 'Subtle single line' },
+  { id: 'double-classic', name: 'Double Classic', css: { border: '3px double rgba(0,0,0,0.15)', borderRadius: 'var(--pl-radius-md)' }, preview: 'Classic double border' },
+  { id: 'gold-ornamental', name: 'Gold Ornamental', css: { border: '2px solid #C4A96A', borderRadius: 'var(--pl-radius-lg)', boxShadow: 'inset 0 0 0 4px rgba(196,169,106,0.1)' }, preview: 'Antique gold frame' },
+  { id: 'botanical-vine', name: 'Botanical Vine', css: { border: '2px solid #5C6B3F', borderRadius: 'var(--pl-radius-2xl)', boxShadow: 'inset 0 0 0 3px rgba(163,177,138,0.08)' }, preview: 'Soft botanical frame' },
   { id: 'art-deco', name: 'Art Deco', css: { border: '2px solid #111', borderRadius: '0', boxShadow: 'inset 0 0 0 7px rgba(0,0,0,0.04)' }, preview: 'Geometric art deco' },
-  { id: 'scalloped', name: 'Scalloped Edge', css: { border: '2px solid rgba(0,0,0,0.1)', borderRadius: '24px' }, preview: 'Soft scalloped corners' },
-  { id: 'watercolor-wash', name: 'Watercolor Wash', css: { border: 'none', borderRadius: '20px', boxShadow: '0 0 0 2px rgba(163,177,138,0.15), 0 0 40px rgba(163,177,138,0.06)' }, preview: 'Soft watercolor glow' },
+  { id: 'scalloped', name: 'Scalloped Edge', css: { border: '2px solid rgba(0,0,0,0.1)', borderRadius: 'var(--pl-radius-2xl)' }, preview: 'Soft scalloped corners' },
+  { id: 'watercolor-wash', name: 'Watercolor Wash', css: { border: 'none', borderRadius: 'var(--pl-radius-2xl)', boxShadow: '0 0 0 2px rgba(163,177,138,0.15), 0 0 40px rgba(163,177,138,0.06)' }, preview: 'Soft watercolor glow' },
   { id: 'minimal-corners', name: 'Minimal Corners', css: { border: 'none', borderRadius: '0' }, preview: 'Corner accents only' },
-  { id: 'shadow-lifted', name: 'Shadow Lifted', css: { border: 'none', borderRadius: '16px', boxShadow: '0 20px 60px rgba(0,0,0,0.08)' }, preview: 'Floating shadow card' },
+  { id: 'shadow-lifted', name: 'Shadow Lifted', css: { border: 'none', borderRadius: 'var(--pl-radius-xl)', boxShadow: '0 20px 60px rgba(0,0,0,0.08)' }, preview: 'Floating shadow card' },
 ];
 
 // ── 2. SECTION BACKGROUNDS ───────────────────────────────────
@@ -44,11 +44,11 @@ export const SECTION_BACKGROUNDS = [
 // ── 3. PHOTO FRAME STYLES ────────────────────────────────────
 
 export const PHOTO_FRAMES = [
-  { id: 'none', name: 'None', containerCss: { borderRadius: '12px', overflow: 'hidden' }, preview: 'Simple rounded' },
-  { id: 'polaroid', name: 'Polaroid', containerCss: { background: '#fff', padding: '12px 12px 48px', borderRadius: '4px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', transform: 'rotate(-1.5deg)' }, preview: 'Classic polaroid' },
+  { id: 'none', name: 'None', containerCss: { borderRadius: 'var(--pl-radius-lg)', overflow: 'hidden' }, preview: 'Simple rounded' },
+  { id: 'polaroid', name: 'Polaroid', containerCss: { background: '#fff', padding: '12px 12px 48px', borderRadius: 'var(--pl-radius-xs)', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', transform: 'rotate(-1.5deg)' }, preview: 'Classic polaroid' },
   { id: 'arch', name: 'Arch', containerCss: { borderRadius: '200px 200px 12px 12px', overflow: 'hidden' }, preview: 'Architectural arch' },
   { id: 'circle', name: 'Circle', containerCss: { borderRadius: '50%', overflow: 'hidden', aspectRatio: '1/1' }, preview: 'Perfect circle' },
-  { id: 'diamond', name: 'Diamond', containerCss: { transform: 'rotate(45deg)', overflow: 'hidden', borderRadius: '8px' }, preview: 'Diamond shape' },
+  { id: 'diamond', name: 'Diamond', containerCss: { transform: 'rotate(45deg)', overflow: 'hidden', borderRadius: 'var(--pl-radius-md)' }, preview: 'Diamond shape' },
   { id: 'torn-edge', name: 'Torn Edge', containerCss: { borderRadius: '0', clipPath: 'polygon(0 2%, 5% 0, 10% 3%, 15% 0, 20% 2%, 25% 0, 30% 3%, 35% 0, 40% 2%, 45% 0, 50% 3%, 55% 0, 60% 2%, 65% 0, 70% 3%, 75% 0, 80% 2%, 85% 0, 90% 3%, 95% 0, 100% 2%, 100% 98%, 95% 100%, 90% 97%, 85% 100%, 80% 98%, 75% 100%, 70% 97%, 65% 100%, 60% 98%, 55% 100%, 50% 97%, 45% 100%, 40% 98%, 35% 100%, 30% 97%, 25% 100%, 20% 98%, 15% 100%, 10% 97%, 5% 100%, 0 98%)' }, preview: 'Vintage torn paper' },
   { id: 'heavy-rounded', name: 'Heavy Rounded', containerCss: { borderRadius: '32px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.08)' }, preview: 'Extra rounded' },
 ];
@@ -112,9 +112,9 @@ export const GUESTBOOK_PROMPTS = [
 // ── 8. COUNTDOWN STYLES ──────────────────────────────────────
 
 export const COUNTDOWN_STYLES = [
-  { id: 'cards', name: 'Classic Cards', numberCss: { background: 'rgba(255,255,255,0.8)', borderRadius: '16px', padding: '1.5rem 1rem', minWidth: '80px', textAlign: 'center' as const, border: '1px solid rgba(0,0,0,0.06)' }, preview: 'Rounded number cards' },
+  { id: 'cards', name: 'Classic Cards', numberCss: { background: 'rgba(255,255,255,0.8)', borderRadius: 'var(--pl-radius-xl)', padding: '1.5rem 1rem', minWidth: '80px', textAlign: 'center' as const, border: '1px solid rgba(0,0,0,0.06)' }, preview: 'Rounded number cards' },
   { id: 'minimal', name: 'Minimal Numbers', numberCss: { padding: '0.5rem', minWidth: '60px', textAlign: 'center' as const }, preview: 'Clean large numbers' },
-  { id: 'flip-clock', name: 'Flip Clock', numberCss: { background: '#1a1a1a', color: '#fff', borderRadius: '8px', padding: '1rem 0.75rem', minWidth: '70px', textAlign: 'center' as const }, preview: 'Airport flip board' },
+  { id: 'flip-clock', name: 'Flip Clock', numberCss: { background: '#1a1a1a', color: '#fff', borderRadius: 'var(--pl-radius-md)', padding: '1rem 0.75rem', minWidth: '70px', textAlign: 'center' as const }, preview: 'Airport flip board' },
   { id: 'circular', name: 'Circular Progress', numberCss: { width: '80px', height: '80px', borderRadius: '50%', border: '3px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center' }, preview: 'Ring progress circles' },
 ];
 

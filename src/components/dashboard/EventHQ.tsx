@@ -342,7 +342,7 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
               gap: 0,
               border: '1px solid var(--pl-divider)',
               borderTop: '2px solid var(--pl-gold)',
-              borderRadius: 2,
+              borderRadius: 'var(--pl-radius-xs)',
               background: 'var(--pl-cream-card)',
               overflow: 'hidden',
             }}
@@ -462,7 +462,7 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
           style={{
             border: '1px solid var(--pl-divider)',
             borderTop: '2px solid var(--pl-gold)',
-            borderRadius: 2,
+            borderRadius: 'var(--pl-radius-xs)',
             background: 'var(--pl-cream-card)',
             overflow: 'hidden',
           }}
@@ -511,7 +511,7 @@ function PearSuggestCard({ site }: { site: EventHQSite }) {
         padding: '28px 30px',
         background: 'var(--pl-cream-card)',
         border: '1px solid var(--pl-divider)',
-        borderRadius: 2,
+        borderRadius: 'var(--pl-radius-xs)',
         overflow: 'hidden',
       }}
     >
@@ -618,7 +618,7 @@ function PearSuggestCard({ site }: { site: EventHQSite }) {
               background: 'var(--pl-ink)',
               color: 'var(--pl-cream)',
               border: 'none',
-              borderRadius: 2,
+              borderRadius: 'var(--pl-radius-xs)',
               cursor: 'pointer',
               fontFamily: 'var(--pl-font-mono)',
               fontSize: '0.58rem',
@@ -772,7 +772,7 @@ function QuickLane({
             justifyContent: 'center',
             width: 24,
             height: 24,
-            borderRadius: 2,
+            borderRadius: 'var(--pl-radius-xs)',
             background: 'var(--pl-cream-deep)',
             border: `1px solid ${accentVar}`,
             color: accentVar,
@@ -943,7 +943,7 @@ function RunOfShow() {
               style={{
                 justifySelf: 'end',
                 padding: '4px 10px',
-                borderRadius: 2,
+                borderRadius: 'var(--pl-radius-xs)',
                 fontSize: '0.5rem',
                 fontFamily: 'var(--pl-font-mono)',
                 fontWeight: 700,

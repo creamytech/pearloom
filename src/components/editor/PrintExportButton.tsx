@@ -25,7 +25,7 @@ export function PrintExportButton({ siteId, style }: PrintExportButtonProps) {
         alignItems: 'center',
         gap: '0.45rem',
         padding: '0.55rem 1.1rem',
-        borderRadius: '8px',
+        borderRadius: 'var(--pl-radius-md)',
         border: '1.5px solid #8A7A4A',
         background: 'transparent',
         color: '#C9B97A',

@@ -26,7 +26,7 @@ const THEME: ThemeSchema = {
   name: 'pearloom-ivory',
   fonts: { heading: 'Fraunces', body: 'Geist' },
   colors: { background: '#F5EFE2', foreground: '#0E0D0B', accent: '#B8935A', accentLight: '#EBE3D2', muted: '#6F6557', cardBg: '#FBF7EE' },
-  borderRadius: '2px',
+  borderRadius: 'var(--pl-radius-xs)',
 };
 
 const EVENTS: WeddingEvent[] = [

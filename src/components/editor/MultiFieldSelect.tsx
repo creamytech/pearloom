@@ -190,7 +190,7 @@ export function MultiFieldSelect() {
           alignItems: 'center',
           gap: 4,
           padding: '4px 6px',
-          borderRadius: 12,
+          borderRadius: 'var(--pl-radius-lg)',
           background: '#18181B',
           boxShadow: '0 6px 24px rgba(0,0,0,0.3)',
           pointerEvents: 'auto',
@@ -235,7 +235,7 @@ function BarBtn({
       style={{
         width: 26, height: 26,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        border: 'none', borderRadius: 8,
+        border: 'none', borderRadius: 'var(--pl-radius-md)',
         background: 'transparent',
         color: 'rgba(255,255,255,0.85)',
         cursor: 'pointer',

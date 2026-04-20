@@ -252,7 +252,7 @@ export function StyleDiscoveryCard({ pairs, onSelect, names }: StyleDiscoveryCar
 
     const cardStyle: React.CSSProperties = {
       flex: 1,
-      borderRadius: '12px',
+      borderRadius: 'var(--pl-radius-lg)',
       padding: '14px 12px',
       border: isSelected ? '2px solid var(--pl-olive)' : `1px solid ${GLASS_BORDER}`,
       background: makeGradientFromColors(option.colors, 0.15),
@@ -407,7 +407,7 @@ function PaletteMiniPreview({ colors: c }: { colors: string[] }) {
 
   return (
     <div style={{
-      width: '100%', height: 96, borderRadius: 2,
+      width: '100%', height: 96, borderRadius: 'var(--pl-radius-xs)',
       background: bg, overflow: 'hidden', position: 'relative',
       border: '1px solid rgba(184,147,90,0.38)',
       borderTop: '1.5px solid rgba(184,147,90,0.7)',
@@ -485,7 +485,7 @@ export function ColorPaletteCard({ palettes, onSelect }: ColorPaletteCardProps) 
             transition={{ delay: idx * 0.07, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             style={{
               position: 'relative',
-              borderRadius: 2,
+              borderRadius: 'var(--pl-radius-xs)',
               padding: 14,
               border: isSelected ? '1px solid rgba(184,147,90,0.75)' : '1px solid rgba(184,147,90,0.28)',
               borderTop: isSelected ? '1.5px solid rgba(184,147,90,0.95)' : '1.5px solid rgba(184,147,90,0.55)',
@@ -536,7 +536,7 @@ export function ColorPaletteCard({ palettes, onSelect }: ColorPaletteCardProps) 
                   animate={{ scale: 1 }}
                   style={{
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    width: 18, height: 18, borderRadius: 2,
+                    width: 18, height: 18, borderRadius: 'var(--pl-radius-xs)',
                     background: '#18181B',
                     border: '1px solid rgba(184,147,90,0.65)',
                   }}
@@ -732,7 +732,7 @@ export function PhotoTimelineCard({ photos, onPhotoTap }: PhotoTimelineCardProps
               <div style={{
                 width: '72px',
                 height: '90px',
-                borderRadius: '6px',
+                borderRadius: 'var(--pl-radius-sm)',
                 overflow: 'hidden',
                 border: '3px solid white',
                 boxShadow: '0 2px 8px rgba(43,30,20,0.1)',
@@ -974,7 +974,7 @@ export function ProgressSummaryCard({ collected, onEdit }: ProgressSummaryCardPr
                         border: 'none',
                         cursor: 'pointer',
                         padding: '4px',
-                        borderRadius: '6px',
+                        borderRadius: 'var(--pl-radius-sm)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -1065,7 +1065,7 @@ export function QuickChips({ chips, onSelect }: QuickChipsProps) {
     display: 'inline-flex',
     alignItems: 'center',
     padding: '6px 14px',
-    borderRadius: '100px',
+    borderRadius: 'var(--pl-radius-full)',
     background: 'rgba(255,255,255,0.5)',
     backdropFilter: 'blur(12px)',
     WebkitBackdropFilter: 'blur(12px)',

@@ -86,7 +86,7 @@ const pillBase: React.CSSProperties = {
   letterSpacing: panelTracking.widest,
   textTransform: 'uppercase',
   padding: '6px 12px',
-  borderRadius: '99px',
+  borderRadius: 'var(--pl-radius-full)',
   cursor: 'pointer',
   transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
   display: 'inline-flex',
@@ -195,7 +195,7 @@ export function VersionHistoryPanel({ manifest, onRestore, siteId }: VersionHist
                   flexDirection: 'column',
                   gap: '10px',
                   padding: '12px 14px',
-                  borderRadius: '10px',
+                  borderRadius: 'var(--pl-radius-lg)',
                   background:
                     'color-mix(in srgb, var(--pl-chrome-accent) 4%, var(--pl-chrome-bg))',
                   border: '1px dashed color-mix(in srgb, var(--pl-chrome-accent) 28%, transparent)',
@@ -250,7 +250,7 @@ export function VersionHistoryPanel({ manifest, onRestore, siteId }: VersionHist
                   transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                   style={{
                     padding: '12px 14px',
-                    borderRadius: '10px',
+                    borderRadius: 'var(--pl-radius-lg)',
                     border: '1px solid var(--pl-chrome-border)',
                     background: isConfirming
                       ? 'color-mix(in srgb, var(--pl-chrome-accent) 8%, var(--pl-chrome-surface))'
@@ -350,7 +350,7 @@ export function VersionHistoryPanel({ manifest, onRestore, siteId }: VersionHist
                                   letterSpacing: panelTracking.wider,
                                   textTransform: 'uppercase',
                                   padding: '2px 6px',
-                                  borderRadius: 4,
+                                  borderRadius: 'var(--pl-radius-xs)',
                                   background: 'color-mix(in srgb, var(--pl-chrome-accent) 12%, transparent)',
                                   color: 'var(--pl-chrome-accent)',
                                   border: '1px solid color-mix(in srgb, var(--pl-chrome-accent) 28%, transparent)',

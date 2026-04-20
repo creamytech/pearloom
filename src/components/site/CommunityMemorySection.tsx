@@ -180,7 +180,7 @@ export default function CommunityMemorySection({
                 <div
                   style={{
                     background: palette.card,
-                    borderRadius: 16,
+                    borderRadius: 'var(--pl-radius-xl)',
                     overflow: 'hidden',
                     boxShadow: '0 4px 24px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)',
                     border: `1px solid ${palette.accent2}33`,
@@ -318,7 +318,7 @@ export default function CommunityMemorySection({
                   background: palette.accent,
                   color: '#fff',
                   border: 'none',
-                  borderRadius: 10,
+                  borderRadius: 'var(--pl-radius-lg)',
                   padding: '14px 32px',
                   fontFamily: vibeSkin.fonts.body,
                   fontSize: 15,

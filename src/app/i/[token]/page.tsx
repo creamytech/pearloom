@@ -59,7 +59,7 @@ export default async function InviteTokenPage({
               width: 56,
               height: 56,
               border: '1px solid rgba(184,147,90,0.35)',
-              borderRadius: 2,
+              borderRadius: 'var(--pl-radius-xs)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

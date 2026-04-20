@@ -1262,7 +1262,7 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
               style={{
                 flex: '0 0 auto', width: '120px',
                 display: 'flex', flexDirection: 'column', alignItems: 'stretch',
-                padding: 0, borderRadius: '8px', border: 'none', cursor: 'pointer',
+                padding: 0, borderRadius: 'var(--pl-radius-md)', border: 'none', cursor: 'pointer',
                 background: '#FFFFFF',
                 outline: isSelected
                   ? '2px solid #6b7c3f'
@@ -1311,7 +1311,7 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
                   fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.08em',
                   textTransform: 'uppercase',
                   background: '#6b7c3f', color: '#fff',
-                  padding: '2px 5px', borderRadius: '3px',
+                  padding: '2px 5px', borderRadius: 'var(--pl-radius-xs)',
                 }}>
                   Active
                 </div>
@@ -1329,7 +1329,7 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
         whileTap={pendingName ? { scale: 0.98 } : {}}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-          padding: '9px 16px', borderRadius: '8px', border: 'none', cursor: pendingName ? 'pointer' : 'not-allowed',
+          padding: '9px 16px', borderRadius: 'var(--pl-radius-md)', border: 'none', cursor: pendingName ? 'pointer' : 'not-allowed',
           background: pendingName ? 'linear-gradient(135deg, #6b7c3f, #8a9e56)' : 'rgba(0,0,0,0.04)',
           color: pendingName ? '#fff' : '#71717A',
           fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.04em',

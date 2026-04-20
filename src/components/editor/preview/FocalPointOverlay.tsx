@@ -140,7 +140,7 @@ export function FocalPointOverlay({
           left: rect.left, top: rect.top,
           width: rect.width, height: rect.height,
           border: '2px solid rgba(255,255,255,0.7)',
-          borderRadius: '4px',
+          borderRadius: 'var(--pl-radius-xs)',
           pointerEvents: 'none',
           boxShadow: '0 0 0 9999px rgba(0,0,0,0.2)',
         }} />
@@ -175,7 +175,7 @@ export function FocalPointOverlay({
             display: 'flex', alignItems: 'center', gap: '8px',
             background: '#18181B',
             color: '#fff',
-            borderRadius: '100px',
+            borderRadius: 'var(--pl-radius-full)',
             padding: '8px 14px',
             fontSize: '0.72rem',
             fontWeight: 600,
@@ -200,7 +200,7 @@ export function FocalPointOverlay({
               aria-label="AI caption"
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                width: '24px', height: '24px', borderRadius: '6px',
+                width: '24px', height: '24px', borderRadius: 'var(--pl-radius-sm)',
                 border: 'none', background: 'rgba(255,255,255,0.1)',
                 color: '#fff', cursor: 'pointer',
               }}
@@ -220,7 +220,7 @@ export function FocalPointOverlay({
                 aria-label="Edit alt text"
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  width: '24px', height: '24px', borderRadius: '6px',
+                  width: '24px', height: '24px', borderRadius: 'var(--pl-radius-sm)',
                   border: 'none',
                   background: altEditorOpen ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.1)',
                   color: '#fff', cursor: 'pointer',
@@ -244,7 +244,7 @@ export function FocalPointOverlay({
                       transform: 'translateX(-50%)',
                       width: 280,
                       padding: 10,
-                      borderRadius: 10,
+                      borderRadius: 'var(--pl-radius-lg)',
                       background: '#FFFFFF',
                       border: '1px solid #E4E4E7',
                       boxShadow: '0 8px 28px rgba(0,0,0,0.18)',
@@ -273,7 +273,7 @@ export function FocalPointOverlay({
                       style={{
                         width: '100%',
                         padding: '7px 9px',
-                        borderRadius: 6,
+                        borderRadius: 'var(--pl-radius-sm)',
                         border: '1px solid #E4E4E7',
                         fontSize: 12,
                         fontFamily: 'inherit',
@@ -284,13 +284,13 @@ export function FocalPointOverlay({
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
                       <button
                         onClick={() => setAltEditorOpen(false)}
-                        style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#F4F4F5', color: '#52525B', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}
+                        style={{ padding: '4px 10px', borderRadius: 'var(--pl-radius-sm)', border: 'none', background: '#F4F4F5', color: '#52525B', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}
                       >
                         Cancel
                       </button>
                       <button
                         onClick={() => { onAltChange(altDraft); setAltEditorOpen(false); }}
-                        style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#18181B', color: '#fff', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+                        style={{ padding: '4px 10px', borderRadius: 'var(--pl-radius-sm)', border: 'none', background: '#18181B', color: '#fff', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
                       >
                         Save
                       </button>
@@ -307,7 +307,7 @@ export function FocalPointOverlay({
               aria-label="Replace photo"
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                width: '24px', height: '24px', borderRadius: '6px',
+                width: '24px', height: '24px', borderRadius: 'var(--pl-radius-sm)',
                 border: 'none', background: 'rgba(255,255,255,0.1)',
                 color: '#fff', cursor: 'pointer',
               }}
@@ -321,7 +321,7 @@ export function FocalPointOverlay({
             onClick={e => { e.stopPropagation(); onCommit(posX, posY); onClose(); }}
             style={{
               display: 'flex', alignItems: 'center', gap: '4px',
-              padding: '3px 8px', borderRadius: '6px',
+              padding: '3px 8px', borderRadius: 'var(--pl-radius-sm)',
               border: 'none', background: 'rgba(255,255,255,0.15)',
               color: '#fff', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
             }}

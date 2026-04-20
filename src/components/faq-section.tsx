@@ -58,7 +58,7 @@ function FaqAccordionItem({
           textAlign: 'left',
           gap: '1.5rem',
           outline: 'none',
-          borderRadius: '4px',
+          borderRadius: 'var(--pl-radius-xs)',
         }}
         className="pl-faq-btn"
         aria-expanded={open}
@@ -309,7 +309,7 @@ export function FaqSection({
                   onClick={() => setActiveCategory(cat)}
                   style={{
                     padding: '0.65rem 1.25rem',
-                    borderRadius: '100px',
+                    borderRadius: 'var(--pl-radius-full)',
                     border: `1.5px solid ${isActive ? 'var(--pl-olive)' : 'rgba(0,0,0,0.1)'}`,
                     background: isActive ? 'var(--pl-olive)' : 'transparent',
                     color: isActive ? '#fff' : 'var(--pl-muted)',

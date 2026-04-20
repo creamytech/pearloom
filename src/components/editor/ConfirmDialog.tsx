@@ -114,7 +114,7 @@ export function ConfirmDialog({
               borderLeft: '1px solid rgba(184,147,90,0.22)',
               borderRight: '1px solid rgba(184,147,90,0.22)',
               borderBottom: '1px solid rgba(184,147,90,0.22)',
-              borderRadius: 2,
+              borderRadius: 'var(--pl-radius-xs)',
               boxShadow: '0 28px 72px rgba(22,16,6,0.32), 0 2px 10px rgba(22,16,6,0.08)',
               padding: '22px 26px 20px',
             }}
@@ -188,7 +188,7 @@ export function ConfirmDialog({
                 onClick={onCancel}
                 style={{
                   padding: '9px 16px',
-                  borderRadius: 2,
+                  borderRadius: 'var(--pl-radius-xs)',
                   border: '1px solid rgba(184,147,90,0.45)',
                   background: 'transparent',
                   color: '#18181B',
@@ -216,7 +216,7 @@ export function ConfirmDialog({
                 onClick={onConfirm}
                 style={{
                   padding: '9px 18px',
-                  borderRadius: 2,
+                  borderRadius: 'var(--pl-radius-xs)',
                   border: 'none',
                   background: danger ? '#8B2D2D' : '#18181B',
                   color: '#FAF7F2',

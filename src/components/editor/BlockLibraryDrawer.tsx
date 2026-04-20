@@ -305,7 +305,7 @@ export function BlockLibraryDrawer({
                   alignItems: 'center',
                   gap: 10,
                   padding: '10px 12px',
-                  borderRadius: 10,
+                  borderRadius: 'var(--pl-radius-lg)',
                   border: '1px solid var(--pl-chrome-border)',
                   background: 'var(--pl-chrome-surface)',
                   transition: 'border-color 0.18s cubic-bezier(0.22, 1, 0.36, 1)',
@@ -404,7 +404,7 @@ export function BlockLibraryDrawer({
                     gridColumn: '1 / -1',
                     padding: '36px 18px',
                     textAlign: 'center',
-                    borderRadius: 12,
+                    borderRadius: 'var(--pl-radius-lg)',
                     border: '1px dashed ' + ACCENT_TINT(22),
                     background: ACCENT_TINT(3),
                   }}
@@ -485,7 +485,7 @@ export function BlockLibraryDrawer({
 
 const kbdStyle: React.CSSProperties = {
   padding: '2px 6px',
-  borderRadius: 4,
+  borderRadius: 'var(--pl-radius-xs)',
   background: 'var(--pl-chrome-surface)',
   border: '1px solid var(--pl-chrome-border)',
   color: 'var(--pl-chrome-text-muted)',
@@ -517,7 +517,7 @@ function CategoryTab({
         gap: 6,
         whiteSpace: 'nowrap',
         padding: '7px 12px',
-        borderRadius: 999,
+        borderRadius: 'var(--pl-radius-full)',
         border: active ? '1px solid var(--pl-chrome-accent)' : '1px solid var(--pl-chrome-border)',
         background: active ? 'var(--pl-chrome-accent)' : 'transparent',
         color: active ? 'var(--pl-chrome-accent-ink)' : 'var(--pl-chrome-text-soft)',
@@ -546,7 +546,7 @@ function CategoryTab({
         style={{
           fontSize: 9,
           padding: '1px 6px',
-          borderRadius: 99,
+          borderRadius: 'var(--pl-radius-full)',
           background: active
             ? 'color-mix(in srgb, var(--pl-chrome-accent-ink) 16%, transparent)'
             : 'var(--pl-chrome-surface)',
@@ -622,7 +622,7 @@ function BlockCard({
         alignItems: 'center',
         gap: 10,
         padding: '10px 12px',
-        borderRadius: 10,
+        borderRadius: 'var(--pl-radius-lg)',
         border: `1px solid ${hovered || dragging ? accent : baseBorder}`,
         background: dragging
           ? `color-mix(in srgb, ${accent} 14%, var(--pl-chrome-surface))`
@@ -646,7 +646,7 @@ function BlockCard({
         style={{
           width: 38,
           height: 38,
-          borderRadius: 8,
+          borderRadius: 'var(--pl-radius-md)',
           background: `color-mix(in srgb, ${accent} 18%, transparent)`,
           border: `1px solid color-mix(in srgb, ${accent} 32%, transparent)`,
           display: 'inline-flex',
@@ -722,7 +722,7 @@ function BlockCard({
             letterSpacing: panelTracking.widest,
             textTransform: 'uppercase',
             padding: '3px 8px',
-            borderRadius: 999,
+            borderRadius: 'var(--pl-radius-full)',
             background: `color-mix(in srgb, ${accent} 16%, transparent)`,
             color: accent,
             lineHeight: 1,

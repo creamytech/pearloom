@@ -249,7 +249,7 @@ export function WeddingDayTimeline({
             bottom: 8,
             width: 2,
             background: `linear-gradient(180deg, ${accentColor} 0%, ${MUTED_50} 100%)`,
-            borderRadius: 1,
+            borderRadius: 'var(--pl-radius-xs)',
           }}
         />
 
@@ -302,7 +302,7 @@ export function WeddingDayTimeline({
                   background: CARD_BG,
                   backdropFilter: 'blur(16px)',
                   WebkitBackdropFilter: 'blur(16px)',
-                  borderRadius: 14,
+                  borderRadius: 'var(--pl-radius-xl)',
                   padding: 'clamp(0.9rem, 2.5vw, 1.2rem) clamp(1rem, 3vw, 1.4rem)',
                   border: item.status === 'current'
                     ? `1.5px solid ${GOLD_40}`
@@ -353,7 +353,7 @@ export function WeddingDayTimeline({
                         color: '#fff',
                         background: GOLD,
                         padding: '3px 10px',
-                        borderRadius: 100,
+                        borderRadius: 'var(--pl-radius-full)',
                       }}
                     >
                       <span

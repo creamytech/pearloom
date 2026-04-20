@@ -111,7 +111,7 @@ function StatusBadge({ status }: { status: VendorStatus }) {
       textTransform: 'uppercase',
       color: meta.color,
       background: meta.bg,
-      padding: '2px 6px', borderRadius: '8px',
+      padding: '2px 6px', borderRadius: 'var(--pl-radius-md)',
       border: `1px solid ${meta.color}30`,
       whiteSpace: 'nowrap',
     }}>
@@ -125,7 +125,7 @@ function StatusBadge({ status }: { status: VendorStatus }) {
 const inputStyle: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box',
   background: '#FFFFFF', border: '1px solid #E4E4E7',
-  borderRadius: '6px', color: '#18181B',
+  borderRadius: 'var(--pl-radius-sm)', color: '#18181B',
   fontSize: 'max(16px, 0.8rem)',
   padding: '6px 10px', outline: 'none',
   fontFamily: 'inherit',
@@ -356,7 +356,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
             display: 'flex', alignItems: 'center', gap: '4px',
             background: showForm ? 'rgba(239,68,68,0.06)' : '#F4F4F5',
             border: `1px solid ${showForm ? 'rgba(239,68,68,0.25)' : '#E4E4E7'}`,
-            borderRadius: '6px',
+            borderRadius: 'var(--pl-radius-sm)',
             color: showForm ? '#b34747' : '#71717A',
             fontSize: panelText.hint,
             fontWeight: panelWeight.bold,
@@ -378,7 +378,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
           >
             <div style={{
               display: 'flex', flexDirection: 'column', gap: '8px',
-              padding: '12px', borderRadius: '10px',
+              padding: '12px', borderRadius: 'var(--pl-radius-lg)',
               background: '#FAFAFA', border: '1px solid #E4E4E7',
             }}>
               <input
@@ -427,7 +427,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                 style={{
                   background: saving || !formData.name.trim() ? '#F4F4F5' : '#18181B',
                   border: 'none',
-                  borderRadius: '6px',
+                  borderRadius: 'var(--pl-radius-sm)',
                   color: saving || !formData.name.trim() ? '#71717A' : '#FFFFFF',
                   fontSize: panelText.body,
                   fontWeight: panelWeight.bold,
@@ -455,7 +455,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
             { label: 'Remaining', value: formatCents(remainingCents), color: '#71717A' },
           ].map(s => (
             <div key={s.label} style={{
-              padding: '8px 10px', borderRadius: '8px',
+              padding: '8px 10px', borderRadius: 'var(--pl-radius-md)',
               background: `${s.color}0d`, border: `1px solid ${s.color}22`,
               textAlign: 'center',
             }}>
@@ -485,7 +485,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
       <PanelSection title={`Vendors (${vendors.length})`} icon={Briefcase} defaultOpen>
         {vendors.length === 0 ? (
           <div style={{
-            padding: '12px', borderRadius: '8px',
+            padding: '12px', borderRadius: 'var(--pl-radius-md)',
             background: '#FAFAFA', border: '1px solid #E4E4E7',
             fontSize: panelText.hint, color: '#71717A', textAlign: 'center',
           }}>
@@ -498,7 +498,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                 {editingId === v.id ? (
                   /* Edit inline form */
                   <div style={{
-                    padding: '10px', borderRadius: '8px',
+                    padding: '10px', borderRadius: 'var(--pl-radius-md)',
                     background: '#F4F4F5', border: '1px solid #E4E4E7',
                     display: 'flex', flexDirection: 'column', gap: '6px',
                   }}>
@@ -516,7 +516,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                     <div style={{ display: 'flex', gap: '6px' }}>
                       <button onClick={saveEdit} disabled={saving} style={{
                         flex: 1, background: '#18181B', border: 'none',
-                        borderRadius: '6px', color: '#FFFFFF',
+                        borderRadius: 'var(--pl-radius-sm)', color: '#FFFFFF',
                         fontSize: panelText.hint, fontWeight: panelWeight.bold,
                         padding: '6px', cursor: 'pointer',
                       }}>
@@ -524,7 +524,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                       </button>
                       <button onClick={() => setEditingId(null)} style={{
                         flex: 1, background: '#FFFFFF', border: '1px solid #E4E4E7',
-                        borderRadius: '6px', color: '#71717A',
+                        borderRadius: 'var(--pl-radius-sm)', color: '#71717A',
                         fontSize: panelText.hint, padding: '6px', cursor: 'pointer',
                       }}>
                         Cancel
@@ -534,7 +534,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                 ) : (
                   /* Vendor row */
                   <div style={{
-                    padding: '8px 10px', borderRadius: '8px',
+                    padding: '8px 10px', borderRadius: 'var(--pl-radius-md)',
                     background: '#FAFAFA', border: '1px solid #E4E4E7',
                     display: 'flex', flexDirection: 'column', gap: '5px',
                   }}>
@@ -564,21 +564,21 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                         <button
                           onClick={() => draftEmail(v)}
                           title="Draft email"
-                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F4F4F5', border: '1px solid #E4E4E7', borderRadius: '6px', cursor: 'pointer', color: '#3F3F46' }}
+                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F4F4F5', border: '1px solid #E4E4E7', borderRadius: 'var(--pl-radius-sm)', cursor: 'pointer', color: '#3F3F46' }}
                         >
                           <Mail size={12} />
                         </button>
                         <button
                           onClick={() => startEdit(v)}
                           title="Edit"
-                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F4F4F5', border: '1px solid #E4E4E7', borderRadius: '6px', cursor: 'pointer', color: '#3F3F46' }}
+                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F4F4F5', border: '1px solid #E4E4E7', borderRadius: 'var(--pl-radius-sm)', cursor: 'pointer', color: '#3F3F46' }}
                         >
                           <Pencil size={12} />
                         </button>
                         <button
                           onClick={() => handleDelete(v.id)}
                           title="Delete"
-                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '6px', cursor: 'pointer', color: '#b34747' }}
+                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 'var(--pl-radius-sm)', cursor: 'pointer', color: '#b34747' }}
                         >
                           <Trash2 size={12} />
                         </button>
@@ -656,7 +656,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
           style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
             background: '#F4F4F5',
-            border: '1px solid #E4E4E7', borderRadius: '8px',
+            border: '1px solid #E4E4E7', borderRadius: 'var(--pl-radius-md)',
             color: '#71717A',
             fontSize: panelText.body,
             fontWeight: panelWeight.bold,
@@ -675,7 +675,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
             padding: '6px 8px',
             background: 'rgba(239,68,68,0.06)',
             border: '1px solid rgba(239,68,68,0.25)',
-            borderRadius: '6px',
+            borderRadius: 'var(--pl-radius-sm)',
           }}>
             {timelineError}
           </div>
@@ -702,7 +702,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                   <div style={{
                     flexShrink: 0, width: '40px',
                     background: '#F4F4F5', border: '1px solid #E4E4E7',
-                    borderRadius: '6px', padding: '3px 4px', textAlign: 'center',
+                    borderRadius: 'var(--pl-radius-sm)', padding: '3px 4px', textAlign: 'center',
                     fontSize: panelText.label,
                     fontWeight: panelWeight.heavy,
                     color: '#71717A', lineHeight: panelLineHeight.tight,

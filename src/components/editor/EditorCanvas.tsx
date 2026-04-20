@@ -1262,7 +1262,7 @@ export function EditorCanvas() {
               position: 'absolute',
               inset: '6px',
               border: '2px dashed var(--pl-chrome-accent, #B8935A)',
-              borderRadius: 10,
+              borderRadius: 'var(--pl-radius-lg)',
               pointerEvents: 'none',
               zIndex: 40,
               boxShadow: '0 0 0 3px color-mix(in oklab, var(--pl-chrome-accent, #B8935A) 18%, transparent) inset',
@@ -1278,7 +1278,7 @@ export function EditorCanvas() {
               zIndex: 41,
               pointerEvents: 'none',
               padding: '8px 18px',
-              borderRadius: 999,
+              borderRadius: 'var(--pl-radius-full)',
               background: 'var(--pl-chrome-accent, #B8935A)',
               color: 'var(--pl-chrome-accent-ink, #FAF7F2)',
               fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
@@ -1603,7 +1603,7 @@ export function EditorCanvas() {
             zIndex: 200,
             // Actionable toasts need pointer events so Undo is clickable.
             pointerEvents: undoToastAction ? 'auto' : 'none',
-            padding: '6px 16px', borderRadius: '8px',
+            padding: '6px 16px', borderRadius: 'var(--pl-radius-md)',
             background: 'color-mix(in oklab, var(--pl-cream-card) 92%, transparent)',
             backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
             border: '1px solid var(--pl-divider)',
@@ -1625,7 +1625,7 @@ export function EditorCanvas() {
               }}
               style={{
                 border: 'none', background: 'transparent',
-                padding: '2px 8px', borderRadius: '6px',
+                padding: '2px 8px', borderRadius: 'var(--pl-radius-sm)',
                 fontSize: '0.65rem', fontWeight: 700,
                 color: 'var(--pl-plum)', cursor: 'pointer',
                 textTransform: 'uppercase', letterSpacing: '0.04em',
@@ -1641,7 +1641,7 @@ export function EditorCanvas() {
       {isPanning && (
         <div style={{
           position: 'absolute', top: '56px', left: '50%', transform: 'translateX(-50%)',
-          zIndex: 200, padding: '4px 12px', borderRadius: '8px',
+          zIndex: 200, padding: '4px 12px', borderRadius: 'var(--pl-radius-md)',
           background: 'var(--pl-ink)', color: 'var(--pl-cream)',
           fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
         }}>

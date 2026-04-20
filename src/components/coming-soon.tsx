@@ -355,7 +355,7 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
             background: 'var(--pl-olive-mist)',
             color: 'var(--pl-olive)',
             padding: '0.65rem 1.75rem',
-            borderRadius: '100px',
+            borderRadius: 'var(--pl-radius-full)',
             fontSize: '0.72rem',
             fontWeight: 700,
             letterSpacing: '0.12em',

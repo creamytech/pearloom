@@ -214,7 +214,7 @@ export function SuggestionBadges() {
                   transition={{ duration: 0.15 }}
                   style={{
                     padding: '5px 9px',
-                    borderRadius: 8,
+                    borderRadius: 'var(--pl-radius-md)',
                     background: 'rgba(24,24,27,0.92)',
                     backdropFilter: 'blur(12px)',
                     WebkitBackdropFilter: 'blur(12px)',

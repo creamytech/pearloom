@@ -149,7 +149,7 @@ export function GuestExperience() {
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '7px',
                     padding: '6px 13px',
-                    borderRadius: '100px',
+                    borderRadius: 'var(--pl-radius-full)',
                     background: `${pill.accent}12`,
                     border: `1px solid ${pill.accent}28`,
                     fontSize: '0.8rem', fontWeight: 600,
@@ -178,7 +178,7 @@ export function GuestExperience() {
                 style={{
                   background: 'var(--pl-cream-card)',
                   border: '1px solid var(--pl-divider)',
-                  borderRadius: '12px',
+                  borderRadius: 'var(--pl-radius-lg)',
                   padding: '1.5rem',
                   boxShadow: '0 1px 4px rgba(43,30,20,0.04)',
                   cursor: 'default',

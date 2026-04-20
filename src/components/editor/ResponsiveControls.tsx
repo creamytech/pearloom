@@ -115,7 +115,7 @@ export function ResponsiveControls<T>({
         <div style={{
           display: 'flex', alignItems: 'center', gap: 1,
           padding: 2,
-          borderRadius: 8,
+          borderRadius: 'var(--pl-radius-md)',
           background: 'var(--pl-cream-card)',
           border: '1px solid var(--pl-divider)',
         } as React.CSSProperties}>
@@ -136,7 +136,7 @@ export function ResponsiveControls<T>({
                 style={{
                   width: 24, height: 24,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  borderRadius: 6, border: 'none',
+                  borderRadius: 'var(--pl-radius-sm)', border: 'none',
                   background: isActive ? 'var(--pl-ink)' : 'transparent',
                   color: isActive
                     ? 'var(--pl-cream)'
@@ -175,7 +175,7 @@ export function ResponsiveControls<T>({
           style={{
             width: 26, height: 26,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            borderRadius: 6,
+            borderRadius: 'var(--pl-radius-sm)',
             border: `1px solid ${isLinked ? 'var(--pl-divider)' : 'color-mix(in oklab, var(--pl-olive) 40%, transparent)'}`,
             background: isLinked
               ? 'color-mix(in oklab, var(--pl-ink) 6%, transparent)'
@@ -213,7 +213,7 @@ export function ResponsiveControls<T>({
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: 5,
               padding: '3px 10px',
-              borderRadius: 999,
+              borderRadius: 'var(--pl-radius-full)',
               background: 'color-mix(in oklab, var(--pl-olive) 12%, transparent)',
               fontSize: 'var(--pl-text-2xs)',
               fontWeight: 700,

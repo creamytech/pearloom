@@ -159,7 +159,7 @@ export function PearCalendar({ onSelect, dark = false }: PearCalendarProps) {
                 alignItems: 'flex-start',
                 gap: 4,
                 padding: '8px 10px',
-                borderRadius: 2,
+                borderRadius: 'var(--pl-radius-xs)',
                 background: active ? activeInk : chipBg,
                 border: active ? `1px solid ${activeInk}` : chipBorder,
                 borderTop: active
@@ -199,7 +199,7 @@ export function PearCalendar({ onSelect, dark = false }: PearCalendarProps) {
 
       {/* Almanac plate */}
       <div style={{
-        borderRadius: 2,
+        borderRadius: 'var(--pl-radius-xs)',
         overflow: 'hidden',
         background: plateBg,
         borderTop: `1.5px solid ${ruleColor}`,
@@ -254,7 +254,7 @@ export function PearCalendar({ onSelect, dark = false }: PearCalendarProps) {
             style={{
               width: 30,
               height: 30,
-              borderRadius: 2,
+              borderRadius: 'var(--pl-radius-xs)',
               border: `1px solid ${plateBorder}`,
               background: 'transparent',
               cursor: 'pointer',
@@ -305,7 +305,7 @@ export function PearCalendar({ onSelect, dark = false }: PearCalendarProps) {
             style={{
               width: 30,
               height: 30,
-              borderRadius: 2,
+              borderRadius: 'var(--pl-radius-xs)',
               border: `1px solid ${plateBorder}`,
               background: 'transparent',
               cursor: 'pointer',
@@ -382,7 +382,7 @@ export function PearCalendar({ onSelect, dark = false }: PearCalendarProps) {
                   style={{
                     width: '100%',
                     aspectRatio: '1',
-                    borderRadius: 2,
+                    borderRadius: 'var(--pl-radius-xs)',
                     border: isSelected
                       ? `1px solid ${activeInk}`
                       : isToday
@@ -444,7 +444,7 @@ export function PearCalendar({ onSelect, dark = false }: PearCalendarProps) {
               alignItems: 'baseline',
               gap: 10,
               padding: '8px 12px',
-              borderRadius: 2,
+              borderRadius: 'var(--pl-radius-xs)',
               borderTop: `1.5px solid ${ruleColor}`,
               borderLeft: `1px solid ${plateBorder}`,
               borderRight: `1px solid ${plateBorder}`,
@@ -483,7 +483,7 @@ export function PearCalendar({ onSelect, dark = false }: PearCalendarProps) {
               style={{
                 width: '100%',
                 padding: '14px 0',
-                borderRadius: 2,
+                borderRadius: 'var(--pl-radius-xs)',
                 background: activeInk,
                 color: activeFg,
                 border: 'none',

@@ -181,7 +181,7 @@ export function InlineStylePicker({
         maxHeight: '70vh',
         overflowY: 'auto',
         zIndex: 160,
-        borderRadius: 2,
+        borderRadius: 'var(--pl-radius-xs)',
         background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
         backdropFilter: 'blur(14px)',
         WebkitBackdropFilter: 'blur(14px)',
@@ -247,7 +247,7 @@ export function InlineStylePicker({
                 alignItems: 'baseline',
                 gap: 10,
                 padding: '8px 10px',
-                borderRadius: 2,
+                borderRadius: 'var(--pl-radius-xs)',
                 background: active ? 'rgba(184,147,90,0.12)' : 'rgba(255,252,245,0.55)',
                 border: active
                   ? '1px solid rgba(184,147,90,0.65)'
@@ -337,7 +337,7 @@ export function InlineStylePicker({
                 flexDirection: 'column',
                 gap: 5,
                 padding: 7,
-                borderRadius: 2,
+                borderRadius: 'var(--pl-radius-xs)',
                 background: active ? 'rgba(184,147,90,0.12)' : 'rgba(255,252,245,0.55)',
                 border: active
                   ? '1px solid rgba(184,147,90,0.65)'
@@ -371,7 +371,7 @@ export function InlineStylePicker({
                 style={{
                   display: 'flex',
                   height: 18,
-                  borderRadius: 1,
+                  borderRadius: 'var(--pl-radius-xs)',
                   overflow: 'hidden',
                   border: '1px solid rgba(184,147,90,0.18)',
                   marginTop: 10,
@@ -416,7 +416,7 @@ export function InlineStylePicker({
               style={{
                 flex: 1,
                 aspectRatio: '1 / 1',
-                borderRadius: 2,
+                borderRadius: 'var(--pl-radius-xs)',
                 background: p.palette.accent,
                 border: active
                   ? '1.5px solid #18181B'
@@ -453,7 +453,7 @@ export function InlineStylePicker({
             gap: 6,
             width: '100%',
             padding: '9px 12px',
-            borderRadius: 2,
+            borderRadius: 'var(--pl-radius-xs)',
             background: 'transparent',
             border: '1px dashed rgba(184,147,90,0.55)',
             color: '#18181B',

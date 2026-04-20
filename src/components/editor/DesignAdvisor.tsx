@@ -43,7 +43,7 @@ function IssueCard({ severity, title, detail, onDismiss }: {
   return (
     <div style={{
       display: 'flex', gap: '9px', padding: '8px 10px',
-      borderRadius: '10px', background: s.bg,
+      borderRadius: 'var(--pl-radius-lg)', background: s.bg,
       border: `1px solid ${s.border}`,
       position: 'relative',
     }}>
@@ -280,7 +280,7 @@ export function DesignAdvisor({ manifest }: DesignAdvisorProps) {
       {aiLoading && aiSuggestions.length === 0 && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: '8px',
-          padding: '8px 10px', borderRadius: '8px',
+          padding: '8px 10px', borderRadius: 'var(--pl-radius-md)',
           background: 'rgba(24,24,27,0.04)',
           border: '1px solid #F4F4F5',
         }}>

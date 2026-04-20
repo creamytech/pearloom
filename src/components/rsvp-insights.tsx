@@ -77,7 +77,7 @@ function StatCard({ label, value, total, color, icon: Icon, delay = 0 }: {
       background: 'rgba(255, 255, 255, 0.50)',
       backdropFilter: 'blur(16px)',
       WebkitBackdropFilter: 'blur(16px)',
-      borderRadius: '16px',
+      borderRadius: 'var(--pl-radius-xl)',
       border: '1px solid rgba(255, 255, 255, 0.4)',
       padding: '1.25rem',
       display: 'flex',
@@ -312,7 +312,7 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
         background: 'linear-gradient(135deg, rgba(163, 177, 138, 0.15), rgba(163, 177, 138, 0.05))',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
-        borderRadius: '16px',
+        borderRadius: 'var(--pl-radius-xl)',
         border: '1px solid rgba(163, 177, 138, 0.25)',
         padding: '1.25rem',
         display: 'flex',
@@ -354,7 +354,7 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
           background: 'rgba(255, 255, 255, 0.50)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          borderRadius: '16px',
+          borderRadius: 'var(--pl-radius-xl)',
           border: '1px solid rgba(255, 255, 255, 0.4)',
           padding: '1.25rem',
           animation: 'ri-fadeInUp 0.5s ease-out 0.4s both',
@@ -377,7 +377,7 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
           background: 'rgba(255, 255, 255, 0.50)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          borderRadius: '16px',
+          borderRadius: 'var(--pl-radius-xl)',
           border: '1px solid rgba(255, 255, 255, 0.4)',
           padding: '1.25rem',
           animation: 'ri-fadeInUp 0.5s ease-out 0.5s both',
@@ -410,14 +410,14 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
                   </div>
                   <div style={{
                     height: '8px',
-                    borderRadius: '4px',
+                    borderRadius: 'var(--pl-radius-xs)',
                     background: 'rgba(255,255,255,0.1)',
                     overflow: 'hidden',
                   }}>
                     <div style={{
                       height: '100%',
                       width: `${pct}%`,
-                      borderRadius: '4px',
+                      borderRadius: 'var(--pl-radius-xs)',
                       background: 'linear-gradient(90deg, #5C6B3F, #C4A265)',
                       transition: 'width 0.6s ease-out',
                     }} />
@@ -435,7 +435,7 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
           background: 'rgba(255, 255, 255, 0.50)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          borderRadius: '16px',
+          borderRadius: 'var(--pl-radius-xl)',
           border: '1px solid rgba(255, 255, 255, 0.4)',
           padding: '1.25rem',
           animation: 'ri-fadeInUp 0.5s ease-out 0.6s both',
@@ -467,7 +467,7 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
                 style={{
                   display: 'flex', alignItems: 'center', gap: '6px',
                   padding: '8px 16px',
-                  borderRadius: '8px',
+                  borderRadius: 'var(--pl-radius-md)',
                   border: '1px solid rgba(163, 177, 138, 0.35)',
                   background: followUpLoading ? 'rgba(163, 177, 138, 0.05)' : 'rgba(163, 177, 138, 0.12)',
                   color: 'var(--pl-olive, #5C6B3F)',
@@ -507,7 +507,7 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
           {followUp && (
             <div style={{
               background: 'rgba(255, 255, 255, 0.08)',
-              borderRadius: '12px',
+              borderRadius: 'var(--pl-radius-lg)',
               border: '1px solid rgba(255, 255, 255, 0.12)',
               padding: '1rem',
               animation: 'ri-scaleIn 0.4s ease-out both',
@@ -561,7 +561,7 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
                   style={{
                     display: 'flex', alignItems: 'center', gap: '6px',
                     padding: '7px 14px',
-                    borderRadius: '8px',
+                    borderRadius: 'var(--pl-radius-md)',
                     border: '1px solid rgba(163, 177, 138, 0.35)',
                     background: copied ? 'rgba(163, 177, 138, 0.2)' : 'rgba(163, 177, 138, 0.1)',
                     color: 'var(--pl-olive, #5C6B3F)',
@@ -578,7 +578,7 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
                   onClick={() => { setFollowUp(null); setFollowUpError(''); }}
                   style={{
                     padding: '7px 14px',
-                    borderRadius: '8px',
+                    borderRadius: 'var(--pl-radius-md)',
                     border: '1px solid rgba(255,255,255,0.2)',
                     background: 'rgba(255,255,255,0.08)',
                     color: 'var(--pl-muted, #9A9488)',

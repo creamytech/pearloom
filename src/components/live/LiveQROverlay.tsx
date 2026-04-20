@@ -34,13 +34,13 @@ export function LiveQROverlay({ domain, occasion }: LiveQROverlayProps) {
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         border: '1px solid rgba(0,0,0,0.08)',
-        borderRadius: '12px',
+        borderRadius: 'var(--pl-radius-lg)',
         padding: '12px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         gap: '6px',
-        zIndex: 100,
+        zIndex: 'var(--z-sticky)',
       }}
     >
       {qrDataUrl && (

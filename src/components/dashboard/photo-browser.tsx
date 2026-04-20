@@ -24,7 +24,7 @@ const cardStyle: React.CSSProperties = {
   textAlign: 'center',
   maxWidth: '600px',
   margin: '0 auto',
-  borderRadius: '20px',
+  borderRadius: 'var(--pl-radius-2xl)',
   background: 'rgba(255,255,255,0.45)',
   backdropFilter: 'blur(20px) saturate(1.2)',
   WebkitBackdropFilter: 'blur(20px) saturate(1.2)',
@@ -324,7 +324,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
             whileTap={{ scale: 0.99 }}
             style={{
               display: 'flex', alignItems: 'center', gap: '14px',
-              padding: '16px 20px', borderRadius: '16px', border: 'none',
+              padding: '16px 20px', borderRadius: 'var(--pl-radius-xl)', border: 'none',
               background: 'rgba(255,255,255,0.5)',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
@@ -332,7 +332,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
               cursor: 'pointer', textAlign: 'left', transition: 'all var(--pl-dur-fast)',
             } as React.CSSProperties}
           >
-            <span style={{ width: 40, height: 40, borderRadius: '12px', background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <span style={{ width: 40, height: 40, borderRadius: 'var(--pl-radius-lg)', background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
                 <path d="M24 4L29.5 14.5H18.5L24 4Z" fill="#EA4335"/>
                 <path d="M4 34.5L14.5 29V40L4 34.5Z" fill="#4285F4"/>
@@ -365,7 +365,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
             whileTap={{ scale: 0.99 }}
             style={{
               display: 'flex', alignItems: 'center', gap: '14px',
-              padding: '16px 20px', borderRadius: '16px', border: 'none',
+              padding: '16px 20px', borderRadius: 'var(--pl-radius-xl)', border: 'none',
               background: 'rgba(255,255,255,0.5)',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
@@ -373,7 +373,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
               cursor: 'pointer', textAlign: 'left', transition: 'all var(--pl-dur-fast)',
             } as React.CSSProperties}
           >
-            <span style={{ width: 40, height: 40, borderRadius: '12px', background: 'rgba(163,177,138,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <span style={{ width: 40, height: 40, borderRadius: 'var(--pl-radius-lg)', background: 'rgba(163,177,138,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <Upload size={18} color="var(--pl-olive)" />
             </span>
             <div style={{ flex: 1 }}>
@@ -402,7 +402,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
                 onClick={onSkipToTemplate}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '14px',
-                  padding: '14px 20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)',
+                  padding: '14px 20px', borderRadius: 'var(--pl-radius-xl)', border: '1px solid rgba(255,255,255,0.5)',
                   background: 'rgba(255,255,255,0.45)',
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
@@ -410,7 +410,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
                   width: '100%',
                 }}
               >
-                <span style={{ width: 40, height: 40, borderRadius: '12px', background: 'rgba(163,177,138,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--pl-olive)' }}>
+                <span style={{ width: 40, height: 40, borderRadius: 'var(--pl-radius-lg)', background: 'rgba(163,177,138,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--pl-olive)' }}>
                   <Sparkles size={18} />
                 </span>
                 <div style={{ flex: 1 }}>
@@ -504,7 +504,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
         <p style={{ color: C.muted, fontSize: '1rem', marginBottom: '1.5rem' }}>
           {uploadProgress.done} of {uploadProgress.total} uploaded
         </p>
-        <div style={{ width: '100%', maxWidth: 320, height: 6, background: `${C.olive}22`, borderRadius: 100, overflow: 'hidden', margin: '0 auto' }}>
+        <div style={{ width: '100%', maxWidth: 320, height: 6, background: `${C.olive}22`, borderRadius: 'var(--pl-radius-full)', overflow: 'hidden', margin: '0 auto' }}>
           <motion.div
             animate={{ width: `${pct}%` }}
             transition={{ duration: 0.4 }}
@@ -542,7 +542,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
             {/* Live wait timer */}
             <div style={{
               position: 'absolute', bottom: '-0.5rem', right: '-0.5rem',
-              background: C.olive, color: '#fff', borderRadius: '100px',
+              background: C.olive, color: '#fff', borderRadius: 'var(--pl-radius-full)',
               fontSize: '0.6rem', fontWeight: 700, padding: '2px 7px',
               display: 'flex', alignItems: 'center', gap: '2px',
             }}>
@@ -730,7 +730,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
           <button
             onClick={selectAll}
             style={{
-              padding: '6px 14px', borderRadius: 100, fontSize: '0.72rem', fontWeight: 600,
+              padding: '6px 14px', borderRadius: 'var(--pl-radius-full)', fontSize: '0.72rem', fontWeight: 600,
               background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.5)',
               backdropFilter: 'blur(8px)', cursor: 'pointer', color: 'var(--pl-ink-soft)',
             }}
@@ -742,7 +742,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
           <button
             onClick={clearSelection}
             style={{
-              padding: '6px 14px', borderRadius: 100, fontSize: '0.72rem', fontWeight: 600,
+              padding: '6px 14px', borderRadius: 'var(--pl-radius-full)', fontSize: '0.72rem', fontWeight: 600,
               background: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.3)',
               cursor: 'pointer', color: C.muted,
             }}
@@ -753,7 +753,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
         <button
           onClick={() => { stopPolling(); startPickerFlow(); }}
           style={{
-            padding: '6px 14px', borderRadius: 100, fontSize: '0.72rem', fontWeight: 600,
+            padding: '6px 14px', borderRadius: 'var(--pl-radius-full)', fontSize: '0.72rem', fontWeight: 600,
             background: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.3)',
             cursor: 'pointer', color: C.muted,
             display: 'flex', alignItems: 'center', gap: 4,
@@ -771,7 +771,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
         maxHeight: '55vh',
         overflowY: 'auto',
         padding: '2px',
-        borderRadius: 16,
+        borderRadius: 'var(--pl-radius-xl)',
       }}>
         <AnimatePresence>
           {photos.map((photo, idx) => {
@@ -802,7 +802,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
                   aspectRatio: isFeature ? '1' : '1',
                   gridColumn: isFeature ? 'span 2' : 'span 1',
                   gridRow: isFeature ? 'span 2' : 'span 1',
-                  borderRadius: 14,
+                  borderRadius: 'var(--pl-radius-xl)',
                   overflow: 'hidden',
                   cursor: 'pointer',
                   padding: 0,
@@ -884,7 +884,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
                 {dateLabel && (
                   <div style={{
                     position: 'absolute', bottom: 8, left: 8,
-                    padding: '3px 10px', borderRadius: 100,
+                    padding: '3px 10px', borderRadius: 'var(--pl-radius-full)',
                     background: 'rgba(0,0,0,0.45)',
                     backdropFilter: 'blur(8px)',
                     fontSize: '0.65rem', fontWeight: 600, color: '#fff',

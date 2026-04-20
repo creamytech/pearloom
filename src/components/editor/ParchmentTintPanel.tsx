@@ -71,7 +71,7 @@ export function ParchmentTintPanel({ currentTint = 'none', onApply }: ParchmentT
             style={{
               margin: '0 0 10px',
               padding: '8px 10px',
-              borderRadius: 6,
+              borderRadius: 'var(--pl-radius-sm)',
               background: 'color-mix(in oklab, var(--pl-gold, #B8935A) 10%, transparent)',
               border: '1px dashed color-mix(in oklab, var(--pl-gold, #B8935A) 30%, transparent)',
               fontFamily: 'var(--pl-font-mono)',

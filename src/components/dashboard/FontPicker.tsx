@@ -127,7 +127,7 @@ export default function FontPicker({
       {/* ── Current pairing preview ── */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '10px',
-        padding: '10px 12px', borderRadius: '10px',
+        padding: '10px 12px', borderRadius: 'var(--pl-radius-lg)',
         background: '#F4F4F5', marginBottom: '8px', border: '1px solid #E4E4E7',
       }}>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -191,7 +191,7 @@ export default function FontPicker({
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
                   style={{
-                    border: 'none', borderRadius: '6px', cursor: 'pointer',
+                    border: 'none', borderRadius: 'var(--pl-radius-sm)', cursor: 'pointer',
                     padding: '4px 9px', fontSize: '0.68rem', fontWeight: 600,
                     fontFamily: 'inherit', letterSpacing: '0.02em',
                     transition: 'all var(--pl-dur-instant)',
@@ -233,7 +233,7 @@ export default function FontPicker({
                   style={{
                     all: 'unset',
                     display: 'flex', alignItems: 'stretch', gap: '0',
-                    borderRadius: '10px', cursor: 'pointer',
+                    borderRadius: 'var(--pl-radius-lg)', cursor: 'pointer',
                     background: selected ? 'rgba(163,177,138,0.12)' : '#FAFAFA',
                     border: selected ? '1.5px solid var(--pl-olive)' : '1.5px solid #E4E4E7',
                     overflow: 'hidden', boxSizing: 'border-box', width: '100%',
@@ -291,13 +291,13 @@ export default function FontPicker({
                         fontSize: '0.57rem', fontWeight: 600, letterSpacing: '0.06em',
                         textTransform: 'uppercase', color: 'var(--pl-olive)',
                         background: 'rgba(163,177,138,0.12)', padding: '1px 5px',
-                        borderRadius: '3px',
+                        borderRadius: 'var(--pl-radius-xs)',
                       }}>
                         {CATEGORY_LABELS[pair.category]}
                       </span>
                       <span style={{
                         fontSize: '0.57rem', fontWeight: 500, color: '#A1A1AA',
-                        background: '#F0EFE9', padding: '1px 5px', borderRadius: '3px',
+                        background: '#F0EFE9', padding: '1px 5px', borderRadius: 'var(--pl-radius-xs)',
                       }}>
                         {pair.mood}
                       </span>
@@ -352,7 +352,7 @@ export default function FontPicker({
                 value={search}
                 onChange={e => onSearch(e.target.value)}
                 style={{
-                  width: '100%', padding: '7px 10px', borderRadius: '8px',
+                  width: '100%', padding: '7px 10px', borderRadius: 'var(--pl-radius-md)',
                   border: '1px solid #E4E4E7', background: '#FAFAFA',
                   color: '#18181B', fontSize: '0.78rem', outline: 'none',
                   boxSizing: 'border-box', marginBottom: '6px', fontFamily: 'inherit',

@@ -129,7 +129,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
           style={{
             ...pillMono,
             padding: '9px 12px',
-            borderRadius: '10px',
+            borderRadius: 'var(--pl-radius-lg)',
             border: '1px dashed color-mix(in srgb, var(--pl-chrome-accent) 30%, transparent)',
             background: 'color-mix(in srgb, var(--pl-chrome-accent) 4%, transparent)',
             color: 'var(--pl-chrome-text-soft)',
@@ -146,7 +146,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
             flexDirection: 'column',
             gap: '10px',
             padding: '12px 14px',
-            borderRadius: '10px',
+            borderRadius: 'var(--pl-radius-lg)',
             background: 'color-mix(in srgb, var(--pl-chrome-accent) 4%, var(--pl-chrome-bg))',
             border: '1px solid color-mix(in srgb, var(--pl-chrome-accent) 24%, transparent)',
           }}
@@ -201,7 +201,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
               style={{
                 ...pillMono,
                 padding: '7px 12px',
-                borderRadius: '99px',
+                borderRadius: 'var(--pl-radius-full)',
                 border: '1px solid var(--pl-chrome-border)',
                 background: 'transparent',
                 color: 'var(--pl-chrome-text-soft)',
@@ -216,7 +216,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
               style={{
                 ...pillMono,
                 padding: '7px 14px',
-                borderRadius: '99px',
+                borderRadius: 'var(--pl-radius-full)',
                 border: '1px solid var(--pl-chrome-accent)',
                 background: 'var(--pl-chrome-accent)',
                 color: 'var(--pl-chrome-accent-ink)',
@@ -240,7 +240,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
             fontSize: panelText.hint,
             color: 'var(--pl-chrome-text-muted)',
             border: '1px dashed color-mix(in srgb, var(--pl-chrome-accent) 22%, transparent)',
-            borderRadius: '10px',
+            borderRadius: 'var(--pl-radius-lg)',
             background: 'color-mix(in srgb, var(--pl-chrome-accent) 3%, transparent)',
           }}
         >
@@ -258,7 +258,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
                 alignItems: 'center',
                 gap: '10px',
                 padding: '10px 12px',
-                borderRadius: '10px',
+                borderRadius: 'var(--pl-radius-lg)',
                 background:
                   hoveredId === preset.id
                     ? 'color-mix(in srgb, var(--pl-chrome-accent) 6%, var(--pl-chrome-surface))'
@@ -330,7 +330,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
                 style={{
                   ...pillMono,
                   padding: '6px 10px',
-                  borderRadius: '99px',
+                  borderRadius: 'var(--pl-radius-full)',
                   border: '1px solid var(--pl-chrome-accent)',
                   background: 'color-mix(in srgb, var(--pl-chrome-accent) 12%, transparent)',
                   color: 'var(--pl-chrome-accent)',

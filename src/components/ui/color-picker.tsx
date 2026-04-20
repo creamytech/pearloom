@@ -225,7 +225,7 @@ export function ColorPicker({ value, onChange, label, className }: ColorPickerPr
                   alignItems: 'center',
                   gap: '4px',
                   padding: '6px 8px',
-                  borderRadius: '8px',
+                  borderRadius: 'var(--pl-radius-md)',
                   background: '#FFFFFF',
                   border: '1px solid rgba(0,0,0,0.08)',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
@@ -235,7 +235,7 @@ export function ColorPicker({ value, onChange, label, className }: ColorPickerPr
                   style={{
                     width: '32px',
                     height: '32px',
-                    borderRadius: '6px',
+                    borderRadius: 'var(--pl-radius-sm)',
                     background: hoverSwatch.color,
                     border: '1px solid rgba(0,0,0,0.08)',
                   }}

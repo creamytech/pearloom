@@ -159,7 +159,7 @@ export default function ProfilePage() {
                   padding: '16px 18px',
                   marginBottom: 22,
                   background: 'var(--pl-cream-deep)',
-                  borderRadius: 10,
+                  borderRadius: 'var(--pl-radius-lg)',
                   border: '1px solid rgba(14,13,11,0.08)',
                   overflow: 'hidden',
                 }}>
@@ -317,7 +317,7 @@ export default function ProfilePage() {
                   padding: '18px 20px',
                   background: 'var(--pl-cream-deep)',
                   border: '1px solid rgba(184,147,90,0.30)',
-                  borderRadius: 10,
+                  borderRadius: 'var(--pl-radius-lg)',
                   position: 'relative',
                   overflow: 'hidden',
                 }}>

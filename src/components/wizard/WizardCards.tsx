@@ -182,7 +182,7 @@ export function OccasionCard({ occasions, onSelect }: OccasionCardProps) {
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   width: 30, height: 30,
                   border: '1px solid rgba(184,147,90,0.35)',
-                  borderRadius: 2,
+                  borderRadius: 'var(--pl-radius-xs)',
                   color: isSelected ? COLOR_INK : COLOR_INK_SOFT,
                   background: 'rgba(250,247,242,0.6)',
                 }}>
@@ -227,7 +227,7 @@ export function OccasionCard({ occasions, onSelect }: OccasionCardProps) {
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                     width: 16, height: 16,
                     border: `1px solid ${COLOR_ACCENT}`,
-                    borderRadius: 2,
+                    borderRadius: 'var(--pl-radius-xs)',
                     background: '#18181B',
                   }}
                 >
@@ -604,7 +604,7 @@ export function SitePreviewCard({ names, occasion, date, vibe, venue }: SitePrev
             letterSpacing: '0.28em', textTransform: 'uppercase',
             color: isDarkVibe ? 'rgba(240,212,132,0.75)' : 'rgba(255,255,255,0.75)',
             background: 'rgba(22,16,6,0.22)', backdropFilter: 'blur(6px)',
-            padding: '3px 8px', borderRadius: 2,
+            padding: '3px 8px', borderRadius: 'var(--pl-radius-xs)',
             border: isDarkVibe ? '1px solid rgba(240,212,132,0.35)' : '1px solid rgba(255,255,255,0.3)',
           }}>The Cover</span>
           <p style={{

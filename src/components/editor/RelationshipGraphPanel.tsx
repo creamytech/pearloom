@@ -187,7 +187,7 @@ export function RelationshipGraphPanel({ siteId }: { siteId: string }) {
           flexDirection: 'column',
           gap: '6px',
           padding: '14px 16px',
-          borderRadius: '10px',
+          borderRadius: 'var(--pl-radius-lg)',
           background:
             'color-mix(in srgb, var(--pl-chrome-accent) 4%, var(--pl-chrome-surface))',
           border: '1px solid var(--pl-chrome-border)',
@@ -229,7 +229,7 @@ export function RelationshipGraphPanel({ siteId }: { siteId: string }) {
             style={{
               ...pillMono,
               padding: '8px 14px',
-              borderRadius: '99px',
+              borderRadius: 'var(--pl-radius-full)',
               background: 'var(--pl-chrome-accent)',
               color: 'var(--pl-chrome-accent-ink)',
               border: '1px solid var(--pl-chrome-accent)',
@@ -275,7 +275,7 @@ export function RelationshipGraphPanel({ siteId }: { siteId: string }) {
             alignItems: 'flex-start',
             gap: '10px',
             padding: '10px 14px',
-            borderRadius: '10px',
+            borderRadius: 'var(--pl-radius-lg)',
             background: 'color-mix(in srgb, var(--pl-chrome-danger) 10%, transparent)',
             border: '1px solid color-mix(in srgb, var(--pl-chrome-danger) 28%, transparent)',
             color: 'var(--pl-chrome-danger)',
@@ -301,7 +301,7 @@ export function RelationshipGraphPanel({ siteId }: { siteId: string }) {
                 letterSpacing: panelTracking.wider,
                 color: 'var(--pl-chrome-accent)',
                 padding: '3px 9px',
-                borderRadius: '99px',
+                borderRadius: 'var(--pl-radius-full)',
                 background: 'var(--pl-chrome-accent-soft)',
               }}
             >
@@ -318,7 +318,7 @@ export function RelationshipGraphPanel({ siteId }: { siteId: string }) {
                     padding: '12px 14px',
                     background:
                       'color-mix(in srgb, var(--pl-chrome-accent) 3%, var(--pl-chrome-surface))',
-                    borderRadius: '10px',
+                    borderRadius: 'var(--pl-radius-lg)',
                     border: '1px dashed color-mix(in srgb, var(--pl-chrome-accent) 32%, transparent)',
                     display: 'flex',
                     flexDirection: 'column',
@@ -376,7 +376,7 @@ export function RelationshipGraphPanel({ siteId }: { siteId: string }) {
                         textTransform: 'uppercase',
                         color: 'var(--pl-chrome-text-muted)',
                         padding: '3px 8px',
-                        borderRadius: '99px',
+                        borderRadius: 'var(--pl-radius-full)',
                         background: 'color-mix(in srgb, var(--pl-chrome-accent) 6%, transparent)',
                       }}
                     >
@@ -415,7 +415,7 @@ export function RelationshipGraphPanel({ siteId }: { siteId: string }) {
                       style={{
                         ...pillMono,
                         padding: '6px 12px',
-                        borderRadius: '99px',
+                        borderRadius: 'var(--pl-radius-full)',
                         border: '1px solid var(--pl-chrome-accent)',
                         background: missingMatch
                           ? 'color-mix(in srgb, var(--pl-chrome-accent) 8%, transparent)'
@@ -433,7 +433,7 @@ export function RelationshipGraphPanel({ siteId }: { siteId: string }) {
                       style={{
                         ...pillMono,
                         padding: '6px 12px',
-                        borderRadius: '99px',
+                        borderRadius: 'var(--pl-radius-full)',
                         border: '1px solid var(--pl-chrome-border)',
                         background: 'transparent',
                         color: 'var(--pl-chrome-text-soft)',
@@ -461,7 +461,7 @@ export function RelationshipGraphPanel({ siteId }: { siteId: string }) {
               letterSpacing: panelTracking.wider,
               color: 'var(--pl-chrome-text-muted)',
               padding: '3px 9px',
-              borderRadius: '99px',
+              borderRadius: 'var(--pl-radius-full)',
               background: 'var(--pl-chrome-accent-soft)',
             }}
           >
@@ -493,7 +493,7 @@ export function RelationshipGraphPanel({ siteId }: { siteId: string }) {
               fontSize: panelText.hint,
               color: 'var(--pl-chrome-text-muted)',
               border: '1px dashed color-mix(in srgb, var(--pl-chrome-accent) 24%, transparent)',
-              borderRadius: '10px',
+              borderRadius: 'var(--pl-radius-lg)',
               background: 'color-mix(in srgb, var(--pl-chrome-accent) 3%, transparent)',
               lineHeight: panelLineHeight.normal,
             }}
@@ -508,7 +508,7 @@ export function RelationshipGraphPanel({ siteId }: { siteId: string }) {
                 style={{
                   padding: '12px 14px',
                   background: 'var(--pl-chrome-surface)',
-                  borderRadius: '10px',
+                  borderRadius: 'var(--pl-radius-lg)',
                   border: '1px solid var(--pl-chrome-border)',
                   display: 'flex',
                   flexDirection: 'column',
@@ -566,7 +566,7 @@ export function RelationshipGraphPanel({ siteId }: { siteId: string }) {
                     textTransform: 'uppercase',
                     color: 'var(--pl-chrome-text-muted)',
                     padding: '3px 8px',
-                    borderRadius: '99px',
+                    borderRadius: 'var(--pl-radius-full)',
                     background: 'color-mix(in srgb, var(--pl-chrome-accent) 6%, transparent)',
                   }}
                 >

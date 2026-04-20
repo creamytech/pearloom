@@ -301,7 +301,7 @@ export function MobileBottomNav({ activeTab, onTabChange, onBuild }: MobileBotto
                   style={{
                     width: 40,
                     height: 4,
-                    borderRadius: 999,
+                    borderRadius: 'var(--pl-radius-full)',
                     background: 'var(--pl-divider)',
                   }}
                 />
@@ -347,7 +347,7 @@ export function MobileBottomNav({ activeTab, onTabChange, onBuild }: MobileBotto
                   style={{
                     width: 40,
                     height: 40,
-                    borderRadius: 999,
+                    borderRadius: 'var(--pl-radius-full)',
                     border: '1px solid var(--pl-divider)',
                     background: 'transparent',
                     display: 'flex',
@@ -397,7 +397,7 @@ export function MobileBottomNav({ activeTab, onTabChange, onBuild }: MobileBotto
                               textDecoration: 'none',
                               color: 'var(--pl-ink)',
                               background: active ? 'var(--pl-olive-mist)' : 'transparent',
-                              borderRadius: 12,
+                              borderRadius: 'var(--pl-radius-lg)',
                               minHeight: 56,
                             }}
                           >
@@ -405,7 +405,7 @@ export function MobileBottomNav({ activeTab, onTabChange, onBuild }: MobileBotto
                               style={{
                                 width: 38,
                                 height: 38,
-                                borderRadius: 10,
+                                borderRadius: 'var(--pl-radius-lg)',
                                 background: active
                                   ? 'var(--pl-olive-deep)'
                                   : 'color-mix(in oklab, var(--pl-olive) 14%, transparent)',

@@ -179,7 +179,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
 
   const inputBase: React.CSSProperties = {
     padding: '0.7rem 1rem',
-    borderRadius: '12px',
+    borderRadius: 'var(--pl-radius-lg)',
     border: '1px solid rgba(255,255,255,0.4)',
     outline: 'none',
     fontSize: 'max(16px, 0.9rem)',
@@ -211,7 +211,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
             key={s.label}
             style={{
               display: 'inline-flex', alignItems: 'center',
-              padding: '0.3rem 0.8rem', borderRadius: '100px',
+              padding: '0.3rem 0.8rem', borderRadius: 'var(--pl-radius-full)',
               fontSize: '0.75rem', fontWeight: 700,
               color: s.color, background: s.bg,
             }}
@@ -243,7 +243,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
             onChange={(e) => setFilterStatus(e.target.value as typeof filterStatus)}
             style={{
               padding: '0.7rem 2.5rem 0.7rem 1rem',
-              borderRadius: '12px',
+              borderRadius: 'var(--pl-radius-lg)',
               border: '1px solid rgba(255,255,255,0.4)',
               background: 'rgba(255,255,255,0.35)',
               backdropFilter: 'blur(8px)',
@@ -264,7 +264,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
         <button
           onClick={fetchGuests}
           aria-label="Refresh guest list"
-          style={{ padding: '0.7rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', cursor: 'pointer', display: 'flex', color: 'var(--pl-muted)', transition: 'background var(--pl-dur-instant)' } as React.CSSProperties}
+          style={{ padding: '0.7rem', borderRadius: 'var(--pl-radius-lg)', border: '1px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', cursor: 'pointer', display: 'flex', color: 'var(--pl-muted)', transition: 'background var(--pl-dur-instant)' } as React.CSSProperties}
           onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.55)'; }}
           onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.35)'; }}
         >
@@ -275,7 +275,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
           onClick={exportCsv}
           style={{
             display: 'flex', alignItems: 'center', gap: '0.4rem',
-            padding: '0.7rem 1rem', borderRadius: '12px',
+            padding: '0.7rem 1rem', borderRadius: 'var(--pl-radius-lg)',
             border: '1px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.35)',
             backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
             cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
@@ -293,7 +293,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
           onClick={() => setAddOpen(true)}
           style={{
             display: 'flex', alignItems: 'center', gap: '0.4rem',
-            padding: '0.7rem 1.25rem', borderRadius: '12px',
+            padding: '0.7rem 1.25rem', borderRadius: 'var(--pl-radius-lg)',
             background: 'var(--pl-olive)', color: '#fff', border: 'none',
             cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700,
             fontFamily: 'var(--pl-font-body)',
@@ -316,7 +316,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
               background: 'rgba(255,255,255,0.45)',
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
-              borderRadius: '16px',
+              borderRadius: 'var(--pl-radius-xl)',
               border: '1px solid rgba(255,255,255,0.5)',
               boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
               padding: '1.5rem',
@@ -360,7 +360,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                 />
               </div>
               {addError && (
-                <div style={{ gridColumn: '1 / -1', padding: '0.6rem 0.8rem', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '12px', fontSize: '0.8rem', color: 'var(--pl-ink-soft)' } as React.CSSProperties}>
+                <div style={{ gridColumn: '1 / -1', padding: '0.6rem 0.8rem', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: 'var(--pl-radius-lg)', fontSize: '0.8rem', color: 'var(--pl-ink-soft)' } as React.CSSProperties}>
                   {addError}
                 </div>
               )}
@@ -382,7 +382,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                 </button>
                 <button
                   onClick={() => setAddOpen(false)}
-                  style={{ padding: '0.7rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', cursor: 'pointer', display: 'flex', color: 'var(--pl-muted)' } as React.CSSProperties}
+                  style={{ padding: '0.7rem', borderRadius: 'var(--pl-radius-lg)', border: '1px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', cursor: 'pointer', display: 'flex', color: 'var(--pl-muted)' } as React.CSSProperties}
                 >
                   <X size={14} />
                 </button>
@@ -400,7 +400,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           border: '1px solid rgba(255,255,255,0.5)',
-          borderRadius: '16px', padding: '0.75rem 1rem',
+          borderRadius: 'var(--pl-radius-xl)', padding: '0.75rem 1rem',
           boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
           display: 'flex', alignItems: 'center', gap: '0.75rem',
           marginBottom: '0.75rem',
@@ -413,7 +413,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
               key={status}
               onClick={() => bulkUpdateStatus(status)}
               style={{
-                padding: '0.35rem 0.75rem', borderRadius: '12px',
+                padding: '0.35rem 0.75rem', borderRadius: 'var(--pl-radius-lg)',
                 background: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.4)',
                 cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
                 textTransform: 'capitalize',
@@ -432,7 +432,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
       )}
 
       {/* ── Guest Table / Cards ── */}
-      <div style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', overflow: 'hidden' } as React.CSSProperties}>
+      <div style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 'var(--pl-radius-xl)', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', overflow: 'hidden' } as React.CSSProperties}>
         {/* Table header (desktop) */}
         <div
           className="guest-table-header"
@@ -475,7 +475,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
         ) : fetchError ? (
           <div style={{ padding: '3rem', textAlign: 'center' }}>
             <p style={{ color: 'var(--pl-ink-soft)', fontSize: '0.875rem', marginBottom: '1rem' }}>{fetchError}</p>
-            <button onClick={fetchGuests} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.25rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: 'var(--pl-ink)', fontFamily: 'var(--pl-font-body)' } as React.CSSProperties}>
+            <button onClick={fetchGuests} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.25rem', borderRadius: 'var(--pl-radius-lg)', border: '1px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: 'var(--pl-ink)', fontFamily: 'var(--pl-font-body)' } as React.CSSProperties}>
               <RefreshCw size={13} /> Retry
             </button>
           </div>
@@ -494,7 +494,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                 onClick={copyShareLink}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                  padding: '0.75rem 1.5rem', borderRadius: '100px',
+                  padding: '0.75rem 1.5rem', borderRadius: 'var(--pl-radius-full)',
                   background: copiedShare ? 'rgba(34,197,94,0.1)' : 'rgba(163,177,138,0.1)',
                   color: copiedShare ? '#16a34a' : 'var(--pl-olive)',
                   border: `1px solid ${copiedShare ? 'rgba(34,197,94,0.2)' : 'rgba(163,177,138,0.2)'}`,
@@ -582,7 +582,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                   <div>
                     <span style={{
                       display: 'inline-block',
-                      padding: '0.22rem 0.7rem', borderRadius: '100px',
+                      padding: '0.22rem 0.7rem', borderRadius: 'var(--pl-radius-full)',
                       fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.06em',
                       background: sc.bg, color: sc.color,
                     }}>
@@ -662,7 +662,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
       </div>
 
       {deleteError && (
-        <div style={{ padding: '0.7rem 1rem', background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.5)', borderRadius: '16px', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', fontSize: '0.8rem', color: 'var(--pl-ink-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' } as React.CSSProperties}>
+        <div style={{ padding: '0.7rem 1rem', background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.5)', borderRadius: 'var(--pl-radius-xl)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', fontSize: '0.8rem', color: 'var(--pl-ink-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' } as React.CSSProperties}>
           <span>{deleteError}</span>
           <button onClick={() => setDeleteError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-ink-soft)', padding: 0, fontSize: '1rem', lineHeight: 1 }}>×</button>
         </div>

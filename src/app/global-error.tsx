@@ -104,7 +104,7 @@ export default function GlobalError({
             onClick={() => unstable_retry()}
             style={{
               padding: '13px 28px',
-              borderRadius: 2,
+              borderRadius: 'var(--pl-radius-xs)',
               background: INK,
               color: CREAM,
               border: 'none',

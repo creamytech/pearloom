@@ -47,7 +47,7 @@ function ActionBtn({
       disabled={disabled}
       style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-        padding: '8px 10px', borderRadius: 10, border: 'none',
+        padding: '8px 10px', borderRadius: 'var(--pl-radius-lg)', border: 'none',
         background: danger ? 'rgba(239,68,68,0.12)' : 'rgba(0,0,0,0.04)',
         color: danger ? '#fca5a5' : '#18181B',
         cursor: disabled ? 'not-allowed' : 'pointer',
@@ -80,7 +80,7 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 
 // ── Input field (dark theme) ────────────────────────────────────
 const fieldStyle: React.CSSProperties = {
-  width: '100%', padding: '10px 12px', borderRadius: 10,
+  width: '100%', padding: '10px 12px', borderRadius: 'var(--pl-radius-lg)',
   border: '1.5px solid rgba(0,0,0,0.06)',
   background: 'rgba(24,24,27,0.04)',
   color: '#18181B',
@@ -183,7 +183,7 @@ export function MobileChapterActionSheet({
         <div style={{ flexShrink: 0, padding: '10px 16px 8px' }}>
           {/* Drag pill */}
           <div style={{
-            width: 48, height: 4, borderRadius: 100,
+            width: 48, height: 4, borderRadius: 'var(--pl-radius-full)',
             background: '#A1A1AA',
             margin: '0 auto 12px',
           }} />
@@ -193,11 +193,11 @@ export function MobileChapterActionSheet({
             {thumb ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={thumb} alt="" style={{
-                width: 44, height: 44, borderRadius: 8, objectFit: 'cover', flexShrink: 0,
+                width: 44, height: 44, borderRadius: 'var(--pl-radius-md)', objectFit: 'cover', flexShrink: 0,
               }} />
             ) : (
               <div style={{
-                width: 44, height: 44, borderRadius: 8, flexShrink: 0,
+                width: 44, height: 44, borderRadius: 'var(--pl-radius-md)', flexShrink: 0,
                 background: 'rgba(0,0,0,0.04)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: '#71717A', fontSize: '0.7rem', fontWeight: 700,
@@ -222,7 +222,7 @@ export function MobileChapterActionSheet({
               aria-label="Close"
               onClick={onClose}
               style={{
-                width: 44, height: 44, borderRadius: 8, border: 'none',
+                width: 44, height: 44, borderRadius: 'var(--pl-radius-md)', border: 'none',
                 background: 'rgba(0,0,0,0.06)', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: '#3F3F46', flexShrink: 0,
@@ -295,7 +295,7 @@ export function MobileChapterActionSheet({
                   onClick={() => onUpdate(chapter.id, { layout: opt.id })}
                   style={{
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                    padding: '10px 4px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                    padding: '10px 4px', borderRadius: 'var(--pl-radius-md)', border: 'none', cursor: 'pointer',
                     background: chapter.layout === opt.id ? 'rgba(24,24,27,0.1)' : 'rgba(24,24,27,0.04)',
                     color: chapter.layout === opt.id ? '#18181B' : '#3F3F46',
                     fontSize: '0.75rem', fontWeight: 600,

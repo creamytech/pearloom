@@ -98,7 +98,7 @@ export function PearRegenerateButton({
           alignItems: 'center',
           gap: 5,
           padding: compact ? '3px 8px' : '4px 10px',
-          borderRadius: 999,
+          borderRadius: 'var(--pl-radius-full)',
           border: '1px solid color-mix(in oklab, var(--pl-olive, #5C6B3F) 28%, transparent)',
           background: 'color-mix(in oklab, var(--pl-olive, #5C6B3F) 10%, transparent)',
           color: 'var(--pl-olive, #5C6B3F)',

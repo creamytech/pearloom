@@ -230,7 +230,7 @@ export function LanguageSwitcher({
           alignItems: 'center',
           gap: '0.45rem',
           padding: '0.55rem 1rem',
-          borderRadius: '100px',
+          borderRadius: 'var(--pl-radius-full)',
           background: palette.card,
           color: palette.foreground,
           border: `1px solid ${palette.accent}30`,

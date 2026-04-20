@@ -279,7 +279,7 @@ function ChapterIconsCard({
                   position: 'relative',
                   aspectRatio: '1/1',
                   background: '#FAF7F2',
-                  borderRadius: '8px',
+                  borderRadius: 'var(--pl-radius-md)',
                   border: '1px solid rgba(0,0,0,0.05)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   padding: '6px', color: C.ink,
@@ -531,7 +531,7 @@ export function ArtManager({ manifest, coupleNames, onUpdate }: ArtManagerProps)
       {(error || gpError) && (
         <div style={{
           background: 'rgba(220,60,60,0.12)', border: '1px solid rgba(220,60,60,0.3)',
-          borderRadius: '8px', padding: '8px 12px', fontSize: '0.8rem',
+          borderRadius: 'var(--pl-radius-md)', padding: '8px 12px', fontSize: '0.8rem',
           color: '#ff6b6b', fontWeight: 600,
         }}>
           {error || gpError}

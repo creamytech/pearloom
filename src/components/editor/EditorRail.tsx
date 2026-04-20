@@ -174,7 +174,7 @@ function WorkspacePill({
         justifyContent: 'center',
         gap: 3,
         border: 'none',
-        borderRadius: 12,
+        borderRadius: 'var(--pl-radius-lg)',
         background: isActive
           ? 'var(--pl-olive-mist)'
           : isOpen
@@ -247,7 +247,7 @@ function WorkspaceFlyout({
         width: 268,
         background: 'var(--pl-cream-card)',
         border: '1px solid var(--pl-divider)',
-        borderRadius: 14,
+        borderRadius: 'var(--pl-radius-xl)',
         padding: 8,
         boxShadow: 'var(--pl-shadow-xl)',
         zIndex: 60,
@@ -378,7 +378,7 @@ function WorkspaceFlyout({
                       padding: '2px 6px',
                       background: 'var(--pl-cream-deep)',
                       border: '1px solid var(--pl-divider)',
-                      borderRadius: 4,
+                      borderRadius: 'var(--pl-radius-xs)',
                       color: 'var(--pl-muted)',
                     }}
                   >
@@ -471,7 +471,7 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
         alignItems: 'center',
         gap: 4,
         padding: 8,
-        borderRadius: 16,
+        borderRadius: 'var(--pl-radius-xl)',
         background: 'var(--pl-cream-card)',
         border: '1px solid var(--pl-divider)',
         boxShadow: 'var(--pl-shadow-md)',
@@ -482,7 +482,7 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
         style={{
           width: 28,
           height: 28,
-          borderRadius: 8,
+          borderRadius: 'var(--pl-radius-md)',
           background: 'var(--pl-ink)',
           color: 'var(--pl-cream)',
           display: 'flex',
@@ -512,7 +512,7 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
           justifyContent: 'center',
           gap: 3,
           border: 'none',
-          borderRadius: 12,
+          borderRadius: 'var(--pl-radius-lg)',
           background: 'color-mix(in oklab, var(--pl-gold, #B8860B) 14%, transparent)',
           color: 'var(--pl-ink)',
           cursor: 'pointer',

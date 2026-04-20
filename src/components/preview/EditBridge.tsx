@@ -608,7 +608,7 @@ export function EditBridge({ enabled }: EditBridgeProps) {
           background: 'rgba(22,18,14,0.95)',
           backdropFilter: 'blur(16px)',
           border: '1px solid rgba(163,177,138,0.3)',
-          borderRadius: '100px',
+          borderRadius: 'var(--pl-radius-full)',
           padding: '10px 20px',
           display: 'flex', alignItems: 'center', gap: '10px',
           boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
@@ -699,7 +699,7 @@ function PhotoActionBtn({
         gap: '6px',
         padding: '8px 14px',
         minHeight: '44px', // WCAG touch target
-        borderRadius: '100px',
+        borderRadius: 'var(--pl-radius-full)',
         border: `1px solid ${danger ? 'rgba(248,113,113,0.35)' : accent ? 'rgba(163,177,138,0.4)' : 'rgba(0,0,0,0.08)'}`,
         background: danger
           ? 'rgba(40,10,10,0.92)'

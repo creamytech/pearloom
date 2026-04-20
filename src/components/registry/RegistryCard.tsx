@@ -380,7 +380,7 @@ export function RegistryCard({ source, onEdit, onDelete, editable = false }: Reg
             style={{
               display: 'inline-block',
               padding: '0.2rem 0.7rem',
-              borderRadius: '999px',
+              borderRadius: 'var(--pl-radius-full)',
               background: `${brand.accent}18`,
               color: brand.accent,
               fontSize: '0.7rem',

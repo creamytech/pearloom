@@ -37,7 +37,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
           padding: '2rem',
           textAlign: 'center',
           background: 'var(--pl-cream, #F5F1E8)',
-          borderRadius: '12px',
+          borderRadius: 'var(--pl-radius-lg)',
           border: '1px solid rgba(255,59,48,0.15)',
           margin: '1rem',
         }}>
@@ -51,7 +51,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               background: 'var(--pl-ink, #2B2B2B)',
               color: 'var(--pl-cream, #F5F1E8)',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: 'var(--pl-radius-md)',
               cursor: 'pointer',
               fontSize: '0.85rem',
             }}

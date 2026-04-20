@@ -155,7 +155,7 @@ const sealedStyles: Record<string, React.CSSProperties> = {
   card: {
     background: 'rgba(214,198,168,0.06)',
     border: '1px solid rgba(214,198,168,0.18)',
-    borderRadius: '16px',
+    borderRadius: 'var(--pl-radius-xl)',
     padding: '48px 40px',
     maxWidth: '440px',
     width: '100%',
@@ -191,7 +191,7 @@ const sealedStyles: Record<string, React.CSSProperties> = {
     display: 'inline-block',
     background: 'rgba(214,198,168,0.1)',
     border: '1px solid rgba(214,198,168,0.25)',
-    borderRadius: '8px',
+    borderRadius: 'var(--pl-radius-md)',
     color: 'var(--pl-muted)',
     textDecoration: 'none',
     fontSize: '14px',

@@ -142,7 +142,7 @@ export function SectionHoverToolbar() {
             padding: '0 4px',
             background: 'var(--pl-chrome-surface)',
             border: '1px solid var(--pl-chrome-border)',
-            borderRadius: '10px',
+            borderRadius: 'var(--pl-radius-lg)',
             boxShadow: '0 2px 8px rgba(0,0,0,0.06), 0 12px 40px rgba(0,0,0,0.10), 0 0 0 3px color-mix(in srgb, var(--pl-chrome-accent) 10%, transparent)',
             overflow: 'visible',
             whiteSpace: 'nowrap',
@@ -152,7 +152,7 @@ export function SectionHoverToolbar() {
           <div style={{
             position: 'absolute', top: '-1px', left: '12px', right: '12px',
             height: '1px', background: 'var(--pl-chrome-accent)', opacity: 0.55,
-            borderRadius: '1px',
+            borderRadius: 'var(--pl-radius-xs)',
             pointerEvents: 'none',
           }} />
 
@@ -196,7 +196,7 @@ export function SectionHoverToolbar() {
                     position: 'absolute', top: 'calc(100% + 8px)', right: 0,
                     background: 'var(--pl-chrome-surface)',
                     border: '1px solid var(--pl-chrome-border)',
-                    borderRadius: '10px',
+                    borderRadius: 'var(--pl-radius-lg)',
                     boxShadow: '0 12px 36px rgba(0,0,0,0.14)',
                     padding: '5px',
                     minWidth: '150px',

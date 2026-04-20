@@ -187,7 +187,7 @@ export function AccessibilityAuditPanel({ manifest }: AccessibilityAuditPanelPro
             alignItems: 'center',
             gap: '10px',
             padding: '12px 14px',
-            borderRadius: '10px',
+            borderRadius: 'var(--pl-radius-lg)',
             background: 'color-mix(in srgb, var(--pl-chrome-accent) 6%, transparent)',
             border: '1px solid color-mix(in srgb, var(--pl-chrome-accent) 28%, transparent)',
           }}
@@ -253,7 +253,7 @@ export function AccessibilityAuditPanel({ manifest }: AccessibilityAuditPanelPro
             letterSpacing: panelTracking.wider,
             color: 'var(--pl-chrome-text-muted)',
             padding: '3px 9px',
-            borderRadius: '99px',
+            borderRadius: 'var(--pl-radius-full)',
             background: 'var(--pl-chrome-accent-soft)',
           }}
         >
@@ -271,7 +271,7 @@ export function AccessibilityAuditPanel({ manifest }: AccessibilityAuditPanelPro
                 display: 'flex',
                 gap: '10px',
                 padding: '12px 14px 12px 12px',
-                borderRadius: '10px',
+                borderRadius: 'var(--pl-radius-lg)',
                 background: s.bg,
                 border: `1px solid ${s.border}`,
                 position: 'relative',
@@ -340,7 +340,7 @@ export function AccessibilityAuditPanel({ manifest }: AccessibilityAuditPanelPro
                   color: 'var(--pl-chrome-text-muted)',
                   padding: '2px',
                   lineHeight: 1,
-                  borderRadius: '4px',
+                  borderRadius: 'var(--pl-radius-xs)',
                 }}
                 aria-label="Dismiss"
               >

@@ -294,9 +294,9 @@ function OverflowMenu({ site, onShare, onDelete, onTogglePin, isPinned, isCopied
               position: 'fixed',
               top: menuPos.top,
               right: menuPos.right,
-              zIndex: 9999,
+              zIndex: 'var(--z-max)',
               minWidth: '208px',
-              borderRadius: '10px',
+              borderRadius: 'var(--pl-radius-lg)',
               overflow: 'hidden',
               background: 'var(--pl-cream-card)',
               border: '1px solid rgba(14,13,11,0.10)',
@@ -618,7 +618,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
               return (
                 <div style={{
                   display: 'flex', alignItems: 'stretch',
-                  borderRadius: '8px',
+                  borderRadius: 'var(--pl-radius-md)',
                   border: '1px solid rgba(184,147,90,0.40)',
                   background: 'var(--pl-cream-card)',
                   overflow: 'hidden',
@@ -662,7 +662,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '8px',
                 padding: '10px 18px',
-                borderRadius: '8px',
+                borderRadius: 'var(--pl-radius-md)',
                 background: 'var(--pl-ink)',
                 color: 'var(--pl-cream)',
                 border: '1px solid var(--pl-ink)',
@@ -751,7 +751,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                   display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
                   gap: '12px',
                   padding: '20px 20px 18px',
-                  borderRadius: '10px',
+                  borderRadius: 'var(--pl-radius-lg)',
                   background: 'var(--pl-cream-card)',
                   border: '1px solid rgba(14,13,11,0.09)',
                   cursor: 'pointer',
@@ -852,7 +852,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
           style={{
             maxWidth: '520px',
             padding: '48px 32px',
-            borderRadius: '14px',
+            borderRadius: 'var(--pl-radius-xl)',
             background: 'var(--pl-cream-card)',
             border: '1px solid rgba(14,13,11,0.10)',
             boxShadow: '0 2px 8px rgba(14,13,11,0.04), 0 18px 44px rgba(14,13,11,0.08)',
@@ -910,7 +910,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
             style={{
               position: 'relative',
               padding: '56px 40px 48px',
-              borderRadius: '16px',
+              borderRadius: 'var(--pl-radius-xl)',
               background: 'var(--pl-cream-card)',
               border: '1px dashed rgba(184,147,90,0.55)',
               marginBottom: '20px',
@@ -963,7 +963,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '8px',
                   padding: '11px 22px',
-                  borderRadius: '8px',
+                  borderRadius: 'var(--pl-radius-md)',
                   background: 'var(--pl-ink)',
                   color: 'var(--pl-cream)',
                   border: '1px solid var(--pl-ink)',
@@ -984,7 +984,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '8px',
                   padding: '11px 22px',
-                  borderRadius: '8px',
+                  borderRadius: 'var(--pl-radius-md)',
                   background: 'transparent',
                   color: 'var(--pl-ink)',
                   border: '1px solid rgba(14,13,11,0.22)',
@@ -1029,7 +1029,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                   style={{
                     position: 'relative',
                     padding: '20px 18px 18px',
-                    borderRadius: '10px',
+                    borderRadius: 'var(--pl-radius-lg)',
                     background: 'var(--pl-cream-card)',
                     border: '1px solid rgba(14,13,11,0.08)',
                   }}
@@ -1163,7 +1163,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                     alignItems: 'center',
                     columnGap: '18px',
                     padding: '16px 18px',
-                    borderRadius: '10px',
+                    borderRadius: 'var(--pl-radius-lg)',
                     background: 'var(--pl-cream-card)',
                     border: '1px solid rgba(14,13,11,0.08)',
                     cursor: 'pointer',
@@ -1227,7 +1227,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                       <span style={{
                         display: 'inline-flex', alignItems: 'center', gap: '6px',
                         padding: '3px 9px 3px 8px',
-                        borderRadius: '3px',
+                        borderRadius: 'var(--pl-radius-xs)',
                         background: isLive ? 'rgba(92,107,63,0.08)' : 'rgba(184,147,90,0.10)',
                         border: isLive ? '1px solid rgba(92,107,63,0.30)' : '1px solid rgba(184,147,90,0.35)',
                         fontFamily: 'var(--pl-font-mono)',
@@ -1321,7 +1321,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                           style={{
                             display: 'inline-flex', alignItems: 'center', gap: '5px',
                             padding: '2px 8px',
-                            borderRadius: '3px',
+                            borderRadius: 'var(--pl-radius-xs)',
                             background: 'rgba(184,147,90,0.12)',
                             border: '1px solid rgba(184,147,90,0.38)',
                             fontFamily: 'var(--pl-font-mono)',
@@ -1418,7 +1418,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
               color: '#b91c1c',
               background: 'rgba(220,38,38,0.06)',
               border: '1px solid rgba(220,38,38,0.28)',
-              borderRadius: '8px',
+              borderRadius: 'var(--pl-radius-md)',
               padding: '10px 14px',
               margin: '0 0 18px',
               textAlign: 'left',

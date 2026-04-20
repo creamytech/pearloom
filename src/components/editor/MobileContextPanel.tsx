@@ -262,7 +262,7 @@ export function MobileContextPanel({
               )}
               {events.map((ev, i) => (
                 <div key={ev.id} style={{
-                  padding: 12, borderRadius: 10,
+                  padding: 12, borderRadius: 'var(--pl-radius-lg)',
                   border: '1px solid var(--pl-black-6)',
                   background: 'var(--pl-glass-light)',
                 }}>
@@ -291,7 +291,7 @@ export function MobileContextPanel({
                   scheduleManifestUpdate({ events: [...events, newEvent] });
                 }}
                 style={{
-                  width: '100%', padding: '12px', borderRadius: 10,
+                  width: '100%', padding: '12px', borderRadius: 'var(--pl-radius-lg)',
                   border: '2px dashed #E4E4E7', background: 'rgba(24,24,27,0.03)',
                   color: '#18181B', fontSize: '0.8rem', fontWeight: 600,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -390,7 +390,7 @@ export function MobileContextPanel({
       <div style={headerStyle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
           <div style={{
-            width: 32, height: 32, borderRadius: 10,
+            width: 32, height: 32, borderRadius: 'var(--pl-radius-lg)',
             background: 'rgba(24,24,27,0.04)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: '#18181B',
@@ -481,7 +481,7 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
 
       {/* Current photo preview */}
       {currentPhoto && (
-        <div style={{ marginBottom: 8, borderRadius: 12, overflow: 'hidden', position: 'relative' }}>
+        <div style={{ marginBottom: 8, borderRadius: 'var(--pl-radius-lg)', overflow: 'hidden', position: 'relative' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={currentPhoto} alt="Cover" style={{ width: '100%', height: 120, objectFit: 'cover', display: 'block' }} />
           <div style={{
@@ -515,7 +515,7 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
           }}
           style={{
             display: 'flex', alignItems: 'center', gap: 12,
-            padding: '10px 12px', borderRadius: 12, cursor: 'pointer',
+            padding: '10px 12px', borderRadius: 'var(--pl-radius-lg)', cursor: 'pointer',
             border: `1.5px dashed ${dragOver ? '#71717A' : 'rgba(255,255,255,0.5)'}`,
             background: dragOver ? 'rgba(24,24,27,0.04)' : 'rgba(255,255,255,0.35)',
             textAlign: 'left' as const, width: '100%',
@@ -545,7 +545,7 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
           }}
           style={{
             display: 'flex', alignItems: 'center', gap: 12,
-            padding: '10px 12px', borderRadius: 12, cursor: 'pointer',
+            padding: '10px 12px', borderRadius: 'var(--pl-radius-lg)', cursor: 'pointer',
             border: '1px solid #E4E4E7',
             background: '#FFFFFF',
             textAlign: 'left' as const, width: '100%',
@@ -572,7 +572,7 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
           onClick={() => setGalleryOpen(true)}
           style={{
             display: 'flex', alignItems: 'center', gap: 12,
-            padding: '10px 12px', borderRadius: 12, cursor: 'pointer',
+            padding: '10px 12px', borderRadius: 'var(--pl-radius-lg)', cursor: 'pointer',
             border: '1.5px dashed #E4E4E7',
             background: 'rgba(24,24,27,0.04)',
             textAlign: 'left' as const, width: '100%',
@@ -658,7 +658,7 @@ function HeroSettings({
                 style={{
                   flex: 1,
                   padding: '8px 10px',
-                  borderRadius: 10,
+                  borderRadius: 'var(--pl-radius-lg)',
                   border: '1px solid var(--pl-black-6)',
                   background: i === 0 ? 'rgba(24,24,27,0.06)' : 'transparent',
                   color: i === 0 ? '#18181B' : '#71717A',
@@ -729,7 +729,7 @@ function ChapterSettings({
               whileTap={{ scale: 0.9 }}
               style={{
                 display: 'flex', alignItems: 'center', gap: 5,
-                padding: '5px 10px', borderRadius: 16,
+                padding: '5px 10px', borderRadius: 'var(--pl-radius-xl)',
                 border: '1px solid rgba(24,24,27,0.15)',
                 background: 'rgba(24,24,27,0.04)',
                 color: isRewriting ? 'rgba(24,24,27,0.2)' : '#18181B',
@@ -778,7 +778,7 @@ function ChapterSettings({
                     flexShrink: 0,
                     display: 'flex', flexDirection: 'column',
                     alignItems: 'center', gap: 5,
-                    padding: '8px 10px', borderRadius: 10,
+                    padding: '8px 10px', borderRadius: 'var(--pl-radius-lg)',
                     border: active ? '1px solid rgba(24,24,27,0.25)' : '1px solid var(--pl-black-6)',
                     background: active ? 'rgba(24,24,27,0.06)' : 'rgba(24,24,27,0.03)',
                     color: active ? '#18181B' : '#71717A',
@@ -974,7 +974,7 @@ function DesignSettings({
                     key={mode.id}
                     onClick={() => onUpdate({ pageMode: mode.id })}
                     style={{
-                      padding: '10px 6px', borderRadius: 12, textAlign: 'center',
+                      padding: '10px 6px', borderRadius: 'var(--pl-radius-lg)', textAlign: 'center',
                       border: active ? '2px solid #18181B' : '1px solid rgba(0,0,0,0.06)',
                       background: active ? 'rgba(24,24,27,0.04)' : 'rgba(255,255,255,0.75)',
                       cursor: 'pointer', transition: 'all var(--pl-dur-instant)',
@@ -1001,7 +1001,7 @@ function DesignSettings({
                     key={s.id}
                     onClick={() => onUpdate({ navStyle: s.id as StoryManifest['navStyle'] })}
                     style={{
-                      padding: '10px 6px', borderRadius: 10, textAlign: 'center',
+                      padding: '10px 6px', borderRadius: 'var(--pl-radius-lg)', textAlign: 'center',
                       border: active ? '2px solid #18181B' : '1px solid rgba(0,0,0,0.06)',
                       background: active ? 'rgba(24,24,27,0.04)' : 'rgba(255,255,255,0.75)',
                       cursor: 'pointer', transition: 'all var(--pl-dur-instant)',
@@ -1028,7 +1028,7 @@ function DesignSettings({
                     key={s.id}
                     onClick={() => onUpdate({ mobileNavStyle: s.id as StoryManifest['mobileNavStyle'] })}
                     style={{
-                      padding: '10px 6px', borderRadius: 10, textAlign: 'center',
+                      padding: '10px 6px', borderRadius: 'var(--pl-radius-lg)', textAlign: 'center',
                       border: active ? '2px solid #18181B' : '1px solid rgba(0,0,0,0.06)',
                       background: active ? 'rgba(24,24,27,0.04)' : 'rgba(255,255,255,0.75)',
                       cursor: 'pointer', transition: 'all var(--pl-dur-instant)',
@@ -1068,7 +1068,7 @@ function DesignSettings({
                     key={p.label}
                     onClick={() => onUpdate({ navBackground: p.value || undefined })}
                     style={{
-                      padding: '6px 12px', borderRadius: 8, fontSize: '0.65rem', fontWeight: 600,
+                      padding: '6px 12px', borderRadius: 'var(--pl-radius-md)', fontSize: '0.65rem', fontWeight: 600,
                       border: active ? '2px solid #18181B' : '1px solid rgba(0,0,0,0.06)',
                       background: active ? 'rgba(24,24,27,0.04)' : 'rgba(255,255,255,0.75)',
                       color: active ? '#18181B' : '#71717A',
@@ -1091,7 +1091,7 @@ function DesignSettings({
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <input type="color" value={colors.background || '#FFFDF8'}
               onChange={e => onUpdate({ theme: { ...theme, colors: { ...colors, background: e.target.value } } })}
-              style={{ width: 52, height: 44, padding: 3, borderRadius: 10, border: '1px solid rgba(0,0,0,0.08)', cursor: 'pointer', background: 'transparent', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
+              style={{ width: 52, height: 44, padding: 3, borderRadius: 'var(--pl-radius-lg)', border: '1px solid rgba(0,0,0,0.08)', cursor: 'pointer', background: 'transparent', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
             />
             <span style={{ fontSize: '0.65rem', color: '#71717A', fontFamily: 'monospace' }}>{colors.background || '#FFFDF8'}</span>
           </div>
@@ -1102,7 +1102,7 @@ function DesignSettings({
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <input type="color" value={colors.accent || '#71717A'}
               onChange={e => onUpdate({ theme: { ...theme, colors: { ...colors, accent: e.target.value } } })}
-              style={{ width: 52, height: 44, padding: 3, borderRadius: 10, border: '1px solid rgba(0,0,0,0.08)', cursor: 'pointer', background: 'transparent', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
+              style={{ width: 52, height: 44, padding: 3, borderRadius: 'var(--pl-radius-lg)', border: '1px solid rgba(0,0,0,0.08)', cursor: 'pointer', background: 'transparent', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
             />
             <span style={{ fontSize: '0.65rem', color: '#71717A', fontFamily: 'monospace' }}>{colors.accent || '#71717A'}</span>
           </div>
@@ -1233,7 +1233,7 @@ function RegistrySettings({
           <label style={lbl}>Registry Links</label>
           {(registry.entries || []).map((entry, i) => (
             <div key={i} style={{
-              padding: 12, borderRadius: 10, marginBottom: 8,
+              padding: 12, borderRadius: 'var(--pl-radius-lg)', marginBottom: 8,
               border: '1px solid var(--pl-black-6)', background: 'var(--pl-glass-light)',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -1265,7 +1265,7 @@ function RegistrySettings({
               onUpdate({ registry: { ...registry, entries } });
             }}
             style={{
-              width: '100%', padding: '12px', borderRadius: 10,
+              width: '100%', padding: '12px', borderRadius: 'var(--pl-radius-lg)',
               border: '2px dashed #E4E4E7', background: 'rgba(24,24,27,0.03)',
               color: '#18181B', fontSize: '0.8rem', fontWeight: 600,
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -1323,7 +1323,7 @@ function TravelSettings({
           <label style={lbl}>Hotels</label>
           {(travel.hotels || []).map((hotel, i) => (
             <div key={i} style={{
-              padding: 12, borderRadius: 10, marginBottom: 8,
+              padding: 12, borderRadius: 'var(--pl-radius-lg)', marginBottom: 8,
               border: '1px solid var(--pl-black-6)', background: 'var(--pl-glass-light)',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -1361,7 +1361,7 @@ function TravelSettings({
           <button
             onClick={() => onUpdate({ travelInfo: { ...travel, hotels: [...(travel.hotels || []), { name: '', address: '' }] } })}
             style={{
-              width: '100%', padding: '12px', borderRadius: 10,
+              width: '100%', padding: '12px', borderRadius: 'var(--pl-radius-lg)',
               border: '2px dashed #E4E4E7', background: 'rgba(24,24,27,0.03)',
               color: '#18181B', fontSize: '0.8rem', fontWeight: 600,
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -1407,7 +1407,7 @@ function FaqSettings({
         )}
         {faqs.map((faq, i) => (
           <div key={faq.id} style={{
-            padding: 12, borderRadius: 10,
+            padding: 12, borderRadius: 'var(--pl-radius-lg)',
             border: '1px solid var(--pl-black-6)',
             background: 'var(--pl-glass-light)',
           }}>
@@ -1434,7 +1434,7 @@ function FaqSettings({
         <button
           onClick={addFaq}
           style={{
-            width: '100%', padding: '12px', borderRadius: 10,
+            width: '100%', padding: '12px', borderRadius: 'var(--pl-radius-lg)',
             border: '2px dashed #E4E4E7', background: 'rgba(24,24,27,0.03)',
             color: '#18181B', fontSize: '0.8rem', fontWeight: 600,
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -1801,7 +1801,7 @@ function MobileStoryLayoutRow({
                 alignItems: 'stretch',
                 gap: 4,
                 padding: 6,
-                borderRadius: 10,
+                borderRadius: 'var(--pl-radius-lg)',
                 background: isActive ? '#FFFFFF' : 'transparent',
                 border: '1px solid',
                 borderColor: isActive ? '#18181B' : 'rgba(24,24,27,0.08)',
@@ -1936,7 +1936,7 @@ function QuickStyleSection({
                 gap: 10,
                 minHeight: 44,
                 padding: '10px 12px',
-                borderRadius: 10,
+                borderRadius: 'var(--pl-radius-lg)',
                 background: active ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.6)',
                 border: active
                   ? '1px solid rgba(24,24,27,0.25)'
@@ -2007,7 +2007,7 @@ function QuickStyleSection({
                 gap: 6,
                 minHeight: 56,
                 padding: 8,
-                borderRadius: 10,
+                borderRadius: 'var(--pl-radius-lg)',
                 background: active ? 'rgba(24,24,27,0.06)' : 'rgba(255,255,255,0.6)',
                 border: active
                   ? '1px solid rgba(24,24,27,0.25)'
@@ -2098,7 +2098,7 @@ function QuickStyleSection({
             gap: 4,
             padding: '8px 10px',
             minHeight: 36,
-            borderRadius: 8,
+            borderRadius: 'var(--pl-radius-md)',
             background: 'transparent',
             border: 'none',
             color: '#71717A',

@@ -182,12 +182,12 @@ export default function EditorClient({ manifest: initialManifest, siteSlug, name
             left: '50%',
             transform: 'translateX(-50%)',
             padding: '7px 16px',
-            borderRadius: 999,
+            borderRadius: 'var(--pl-radius-full)',
             fontSize: '0.7rem',
             fontWeight: 700,
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
-            zIndex: 9998,
+            zIndex: 'var(--z-max)',
             pointerEvents: 'none',
             background:
               saveStatus === 'error'

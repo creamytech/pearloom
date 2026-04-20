@@ -180,7 +180,7 @@ export function PanelSection({
             fontFamily: panelFont.mono,
             fontSize: panelText.meta,
             padding: '3px 8px',
-            borderRadius: '99px',
+            borderRadius: 'var(--pl-radius-full)',
             background: 'var(--pl-chrome-accent-soft)',
             color: 'var(--pl-chrome-accent)',
             fontWeight: panelWeight.bold,

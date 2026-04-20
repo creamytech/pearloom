@@ -89,7 +89,7 @@ function TimelineEntry({
         gap: '10px',
         width: '100%',
         padding: '8px 10px',
-        borderRadius: '10px',
+        borderRadius: 'var(--pl-radius-lg)',
         border: isCurrent ? '1.5px solid #18181B' : '1.5px solid transparent',
         background: isCurrent ? 'rgba(110,140,92,0.1)' : 'transparent',
         cursor: 'pointer',
@@ -108,7 +108,7 @@ function TimelineEntry({
         <div style={{
           width: '28px',
           height: '28px',
-          borderRadius: '8px',
+          borderRadius: 'var(--pl-radius-md)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -207,7 +207,7 @@ export function UndoTimeline({ open, onClose }: UndoTimelinePopupProps) {
             style={{
               position: 'fixed',
               inset: 0,
-              zIndex: 9998,
+              zIndex: 'var(--z-max)',
             }}
           />
 
@@ -222,13 +222,13 @@ export function UndoTimeline({ open, onClose }: UndoTimelinePopupProps) {
               top: '48px',
               left: '50%',
               transform: 'translateX(-50%)',
-              zIndex: 9999,
+              zIndex: 'var(--z-max)',
               width: '320px',
               maxHeight: '420px',
               display: 'flex',
               flexDirection: 'column',
               background: 'var(--pl-white-20)',
-              borderRadius: '8px',
+              borderRadius: 'var(--pl-radius-md)',
               border: '1px solid var(--pl-white-30)',
               boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px var(--pl-black-6)',
               overflow: 'hidden',
@@ -354,7 +354,7 @@ export function UndoTimelinePanel() {
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '8px 10px',
-        borderRadius: '10px',
+        borderRadius: 'var(--pl-radius-lg)',
         background: 'var(--pl-white-20)',
         border: '1px solid var(--pl-white-30)',
       } as React.CSSProperties}>
@@ -362,7 +362,7 @@ export function UndoTimelinePanel() {
           <div style={{
             width: '28px',
             height: '28px',
-            borderRadius: '8px',
+            borderRadius: 'var(--pl-radius-md)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -399,7 +399,7 @@ export function UndoTimelinePanel() {
             style={{
               width: '28px',
               height: '28px',
-              borderRadius: '6px',
+              borderRadius: 'var(--pl-radius-sm)',
               border: 'none',
               background: state.canUndo ? 'var(--pl-black-6)' : 'transparent',
               color: state.canUndo ? '#3F3F46' : 'rgba(0,0,0,0.15)',
@@ -420,7 +420,7 @@ export function UndoTimelinePanel() {
             style={{
               width: '28px',
               height: '28px',
-              borderRadius: '6px',
+              borderRadius: 'var(--pl-radius-sm)',
               border: 'none',
               background: state.canRedo ? 'var(--pl-black-6)' : 'transparent',
               color: state.canRedo ? '#3F3F46' : 'rgba(0,0,0,0.15)',
@@ -437,7 +437,7 @@ export function UndoTimelinePanel() {
 
       {/* Timeline card */}
       <div style={{
-        borderRadius: '12px',
+        borderRadius: 'var(--pl-radius-lg)',
         background: 'var(--pl-white-20)',
         border: '1px solid var(--pl-white-30)',
         boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
@@ -499,7 +499,7 @@ export function UndoTimelinePanel() {
               <div style={{
                 width: '40px',
                 height: '40px',
-                borderRadius: '12px',
+                borderRadius: 'var(--pl-radius-lg)',
                 background: 'var(--pl-black-4)',
                 display: 'flex',
                 alignItems: 'center',
@@ -554,7 +554,7 @@ export function UndoTimelinePanel() {
           style={{
             width: '100%',
             padding: '8px 10px',
-            borderRadius: '10px',
+            borderRadius: 'var(--pl-radius-lg)',
             border: '1px solid var(--pl-white-30)',
             background: 'rgba(24,24,27,0.08)',
             cursor: 'pointer',

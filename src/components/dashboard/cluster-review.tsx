@@ -296,7 +296,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
           background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           color: 'var(--pl-olive)',
-          padding: '0.4rem 1.1rem', borderRadius: '100px',
+          padding: '0.4rem 1.1rem', borderRadius: 'var(--pl-radius-full)',
           border: '1px solid rgba(255,255,255,0.5)',
           boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
           fontSize: text.sm, fontWeight: 600, letterSpacing: '0.04em',
@@ -329,7 +329,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                 background: 'rgba(255,255,255,0.45)',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
-                borderRadius: '16px',
+                borderRadius: 'var(--pl-radius-xl)',
                 border: hasLocation ? '1px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.5)',
                 overflow: 'hidden',
                 boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
@@ -389,7 +389,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                           style={{
                             width: '100%', boxSizing: 'border-box',
                             padding: '0.6rem 0.75rem 0.6rem 2.25rem',
-                            borderRadius: '12px',
+                            borderRadius: 'var(--pl-radius-lg)',
                             border: '1px solid rgba(255,255,255,0.4)',
                             fontSize: 'max(16px, 0.9rem)', fontFamily: 'var(--pl-font-body)',
                             outline: 'none',
@@ -404,7 +404,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                         }}
                         disabled={isGeocoding}
                         style={{
-                          padding: '0.6rem 1rem', borderRadius: '12px',
+                          padding: '0.6rem 1rem', borderRadius: 'var(--pl-radius-lg)',
                           background: 'var(--pl-olive)', color: '#fff',
                           border: 'none', cursor: 'pointer', fontSize: text.sm,
                           fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem',
@@ -416,7 +416,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                       </button>
                       <button
                         onClick={() => { setEditingIdx(null); setDraftLocation(''); }}
-                        style={{ padding: '0.6rem', borderRadius: '12px', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.4)', cursor: 'pointer', color: 'var(--pl-muted)', fontSize: text.sm } as React.CSSProperties}
+                        style={{ padding: '0.6rem', borderRadius: 'var(--pl-radius-lg)', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.4)', cursor: 'pointer', color: 'var(--pl-muted)', fontSize: text.sm } as React.CSSProperties}
                       >
                         <X size={12} />
                       </button>
@@ -439,7 +439,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                             <div style={{
                               display: 'flex', alignItems: 'center', gap: '0.5rem',
                               fontSize: text.sm, color: 'var(--pl-olive-deep)',
-                              padding: '0.5rem 0.75rem', borderRadius: '12px',
+                              padding: '0.5rem 0.75rem', borderRadius: 'var(--pl-radius-lg)',
                               background: 'rgba(163,177,138,0.08)',
                               border: '1px solid rgba(163,177,138,0.15)',
                             }}>
@@ -450,7 +450,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                             {aiSuggestions[idx] && aiSuggestions[idx].location && (
                               <div style={{
                                 display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem',
-                                padding: '0.5rem 0.75rem', borderRadius: '12px',
+                                padding: '0.5rem 0.75rem', borderRadius: 'var(--pl-radius-lg)',
                                 background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)',
                                 border: '1px solid rgba(255,255,255,0.4)',
                               } as React.CSSProperties}>
@@ -469,7 +469,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                                 <button
                                   onClick={() => acceptSuggestion(idx)}
                                   style={{
-                                    padding: '0.3rem 0.7rem', borderRadius: '100px',
+                                    padding: '0.3rem 0.7rem', borderRadius: 'var(--pl-radius-full)',
                                     background: 'var(--pl-olive)', color: '#fff', border: 'none',
                                     fontSize: text.xs, fontWeight: 600, cursor: 'pointer', flexShrink: 0,
                                   }}
@@ -477,7 +477,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                                 <button
                                   onClick={() => setAiSuggestions(prev => { const n = { ...prev }; delete n[idx]; return n; })}
                                   style={{
-                                    padding: '0.3rem 0.5rem', borderRadius: '100px',
+                                    padding: '0.3rem 0.5rem', borderRadius: 'var(--pl-radius-full)',
                                     background: 'rgba(255,255,255,0.35)', color: 'var(--pl-muted)',
                                     border: '1px solid rgba(255,255,255,0.4)',
                                     backdropFilter: 'blur(8px)',
@@ -501,7 +501,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                             disabled={aiSuggesting === idx}
                             style={{
                               display: 'flex', alignItems: 'center', gap: '0.35rem',
-                              padding: '0.45rem 0.9rem', borderRadius: '100px',
+                              padding: '0.45rem 0.9rem', borderRadius: 'var(--pl-radius-full)',
                               border: '1px solid rgba(255,255,255,0.5)',
                               background: 'rgba(255,255,255,0.45)',
                               backdropFilter: 'blur(20px)',
@@ -524,7 +524,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                           }}
                           style={{
                             display: 'flex', alignItems: 'center', gap: '0.35rem',
-                            padding: '0.45rem 0.9rem', borderRadius: '100px',
+                            padding: '0.45rem 0.9rem', borderRadius: 'var(--pl-radius-full)',
                             border: '1px solid rgba(255,255,255,0.5)',
                             background: 'rgba(255,255,255,0.45)',
                             backdropFilter: 'blur(20px)',
@@ -554,7 +554,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                         title="Split this group into two"
                         style={{
                           display: 'flex', alignItems: 'center', gap: '0.35rem',
-                          padding: '0.4rem 0.85rem', borderRadius: '100px',
+                          padding: '0.4rem 0.85rem', borderRadius: 'var(--pl-radius-full)',
                           border: '1px solid rgba(163,177,138,0.25)',
                           background: 'rgba(163,177,138,0.08)',
                           color: 'var(--pl-olive-deep)', fontSize: text.xs, fontWeight: 600,
@@ -571,7 +571,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                         title="Merge with the group below"
                         style={{
                           display: 'flex', alignItems: 'center', gap: '0.35rem',
-                          padding: '0.4rem 0.85rem', borderRadius: '100px',
+                          padding: '0.4rem 0.85rem', borderRadius: 'var(--pl-radius-full)',
                           border: '1px solid rgba(163,177,138,0.25)',
                           background: 'rgba(163,177,138,0.08)',
                           color: 'var(--pl-olive-deep)', fontSize: text.xs, fontWeight: 600,
@@ -600,7 +600,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                         style={{
                           width: '100%', boxSizing: 'border-box',
                           padding: '0.55rem 0.75rem',
-                          borderRadius: '12px',
+                          borderRadius: 'var(--pl-radius-lg)',
                           border: '1px solid rgba(255,255,255,0.4)',
                           fontSize: 'max(16px, 0.9rem)',
                           fontFamily: 'var(--pl-font-body)',
@@ -651,7 +651,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
             background: 'rgba(255,255,255,0.45)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
-            borderRadius: '16px',
+            borderRadius: 'var(--pl-radius-xl)',
             border: '1px solid rgba(255,255,255,0.5)',
             boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
           } as React.CSSProperties}
@@ -682,7 +682,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
         <button
           onClick={onBack}
           style={{
-            padding: '0.9rem 1.75rem', borderRadius: '16px',
+            padding: '0.9rem 1.75rem', borderRadius: 'var(--pl-radius-xl)',
             border: '1px solid rgba(255,255,255,0.5)',
             background: 'rgba(255,255,255,0.45)',
             backdropFilter: 'blur(20px)',
@@ -698,7 +698,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
         <button
           onClick={() => onConfirm(clusters)}
           style={{
-            flex: 1, padding: '1rem 1.5rem', borderRadius: '16px',
+            flex: 1, padding: '1rem 1.5rem', borderRadius: 'var(--pl-radius-xl)',
             background: 'var(--pl-ink)', color: '#fff',
             border: 'none', fontSize: text.base, fontWeight: 600,
             cursor: 'pointer', display: 'flex', alignItems: 'center',

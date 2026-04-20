@@ -104,7 +104,7 @@ export function SidebarSection({
         </span>
         {badge !== undefined && (
           <span style={{
-            fontSize: '0.58rem', padding: '2px 7px', borderRadius: '8px',
+            fontSize: '0.58rem', padding: '2px 7px', borderRadius: 'var(--pl-radius-md)',
             background: 'var(--pl-chrome-surface-2)', color: 'var(--pl-chrome-text)',
             fontWeight: 700,
           }}>
@@ -268,7 +268,7 @@ export function EditorSidebar({
                   gap: '2px',
                   border: 'none',
                   cursor: 'pointer',
-                  borderRadius: '6px',
+                  borderRadius: 'var(--pl-radius-sm)',
                   margin: '1px 4px',
                   position: 'relative',
                   background: isActive && !collapsed
@@ -294,7 +294,7 @@ export function EditorSidebar({
                         transform: 'translateX(-50%)',
                         width: '24px',
                         height: '3px',
-                        borderRadius: '8px',
+                        borderRadius: 'var(--pl-radius-md)',
                         background: 'var(--pl-chrome-rail-ink)',
                       }}
                     />
@@ -348,7 +348,7 @@ export function EditorSidebar({
             justifyContent: 'center',
             border: 'none',
             cursor: 'pointer',
-            borderRadius: '6px',
+            borderRadius: 'var(--pl-radius-sm)',
             margin: '2px',
             background: 'transparent',
             color: 'var(--pl-chrome-rail-ink-faint)',
@@ -419,7 +419,7 @@ export function EditorSidebar({
                   justifyContent: 'center',
                   border: 'none',
                   cursor: 'pointer',
-                  borderRadius: '4px',
+                  borderRadius: 'var(--pl-radius-xs)',
                   background: isAtMax ? 'var(--pl-chrome-accent-soft)' : 'transparent',
                   color: isAtMax ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-muted)',
                   fontSize: '14px',
@@ -488,7 +488,7 @@ export function EditorSidebar({
             style={{
               width: '2px',
               height: '40px',
-              borderRadius: '1px',
+              borderRadius: 'var(--pl-radius-xs)',
               background: isResizing || isResizeHover
                 ? 'var(--pl-chrome-accent)'
                 : 'var(--pl-chrome-border)',

@@ -40,7 +40,7 @@ export function CanvasPhotoBlockOverlay({ rect, blockId }: CanvasPhotoBlockOverl
         style={{
           display: 'flex', alignItems: 'center', gap: '8px',
           padding: '10px 18px',
-          borderRadius: '100px',
+          borderRadius: 'var(--pl-radius-full)',
           background: '#18181B',
           color: 'rgba(255,255,255,0.9)',
           border: 'none', cursor: 'pointer',

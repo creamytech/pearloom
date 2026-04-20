@@ -96,7 +96,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
               position: 'absolute', top: 'calc(100% + 8px)', right: 0,
               background: '#FFFFFF', backdropFilter: 'blur(16px)', border: '1px solid rgba(0,0,0,0.06)',
               borderRadius: '0.75rem', boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-              padding: '0.75rem', minWidth: '220px', zIndex: 100,
+              padding: '0.75rem', minWidth: '220px', zIndex: 'var(--z-sticky)',
             }}
             onClick={e => e.stopPropagation()}
           >
@@ -112,7 +112,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
                   onClick={() => handleRewrite(s.id)}
                   disabled={loading}
                   style={{
-                    padding: '0.35rem 0.65rem', borderRadius: '8px',
+                    padding: '0.35rem 0.65rem', borderRadius: 'var(--pl-radius-md)',
                     border: `1.5px solid ${activeStyle === s.id ? '#71717A' : 'rgba(0,0,0,0.08)'}`,
                     background: activeStyle === s.id ? 'rgba(24,24,27,0.06)' : '#fff',
                     fontSize: '0.75rem', fontWeight: 500, cursor: loading ? 'wait' : 'pointer',
@@ -146,7 +146,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
                   <button
                     onClick={() => { setOpen(false); setResult(null); setActiveStyle(null); }}
                     style={{
-                      padding: '0.35rem 0.75rem', borderRadius: '8px',
+                      padding: '0.35rem 0.75rem', borderRadius: 'var(--pl-radius-md)',
                       border: '1px solid rgba(0,0,0,0.08)', background: '#fff',
                       fontSize: '0.75rem', cursor: 'pointer', color: '#9A9488',
                     }}
@@ -159,7 +159,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
                       setActiveStyle(null);
                     }}
                     style={{
-                      padding: '0.35rem 0.75rem', borderRadius: '8px',
+                      padding: '0.35rem 0.75rem', borderRadius: 'var(--pl-radius-md)',
                       border: 'none', background: '#71717A', color: '#fff',
                       fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
                     }}

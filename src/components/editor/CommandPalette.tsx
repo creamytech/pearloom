@@ -305,7 +305,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
               width: '100%', maxWidth: '600px',
               zIndex: 2001,
               background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
-              borderRadius: 2,
+              borderRadius: 'var(--pl-radius-xs)',
               borderTop: '2px solid rgba(184,147,90,0.55)',
               borderLeft: '1px solid rgba(184,147,90,0.22)',
               borderRight: '1px solid rgba(184,147,90,0.22)',
@@ -379,7 +379,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                 />
                 <kbd style={{
                   padding: '3px 8px',
-                  borderRadius: 2,
+                  borderRadius: 'var(--pl-radius-xs)',
                   fontSize: 9,
                   fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                   fontWeight: 700,
@@ -409,7 +409,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                   padding: '32px 16px',
                   textAlign: 'center',
                   border: '1px dashed rgba(184,147,90,0.45)',
-                  borderRadius: 2,
+                  borderRadius: 'var(--pl-radius-xs)',
                   background: 'rgba(255,252,245,0.55)',
                 }}>
                   <div style={{
@@ -483,7 +483,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                             gap: '10px',
                             width: '100%',
                             padding: '9px 10px',
-                            borderRadius: 2,
+                            borderRadius: 'var(--pl-radius-xs)',
                             border: 'none',
                             boxShadow: isSelected ? 'inset 2px 0 0 rgba(184,147,90,0.75)' : 'none',
                             cursor: 'pointer',
@@ -507,7 +507,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                           </span>
                           {/* Icon */}
                           <div style={{
-                            width: '30px', height: '30px', borderRadius: 2,
+                            width: '30px', height: '30px', borderRadius: 'var(--pl-radius-xs)',
                             background: isSelected ? 'rgba(184,147,90,0.20)' : 'rgba(255,252,245,0.65)',
                             border: isSelected
                               ? '1px solid rgba(184,147,90,0.55)'
@@ -554,7 +554,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                           {cmd.shortcut ? (
                             <kbd style={{
                               padding: '3px 8px',
-                              borderRadius: 2,
+                              borderRadius: 'var(--pl-radius-xs)',
                               fontSize: 9,
                               fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                               fontWeight: 700,
@@ -591,7 +591,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                 <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <kbd style={{
                     padding: '2px 7px',
-                    borderRadius: 2,
+                    borderRadius: 'var(--pl-radius-xs)',
                     fontSize: 8.5,
                     fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                     fontWeight: 700,

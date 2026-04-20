@@ -235,7 +235,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               position: 'absolute', bottom: 'clamp(24px, 5vh, 48px)', left: '50%',
               transform: 'translateX(-50%)', zIndex: 5,
               display: 'flex', gap: 8, alignItems: 'center',
-              padding: '8px 14px', borderRadius: 100,
+              padding: '8px 14px', borderRadius: 'var(--pl-radius-full)',
               background: 'rgba(0,0,0,0.25)', backdropFilter: 'blur(12px)',
               border: '1px solid rgba(255,255,255,0.15)',
             }}>
@@ -244,7 +244,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
                   key={i}
                   style={{
                     width: i === photoIdx ? 24 : 6,
-                    height: 6, borderRadius: 100,
+                    height: 6, borderRadius: 'var(--pl-radius-full)',
                     background: i === photoIdx ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.35)',
                     transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
                   }}
@@ -422,20 +422,20 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
           const badgeStyles: Record<string, React.CSSProperties> = {
             pill: {
               display: 'inline-flex', alignItems: 'center', gap: '0.5em',
-              padding: '0.6rem 1.75rem', borderRadius: '100px',
+              padding: '0.6rem 1.75rem', borderRadius: 'var(--pl-radius-full)',
               background: hasPhoto ? 'rgba(0,0,0,0.25)' : 'rgba(163,177,138,0.12)',
               backdropFilter: 'blur(16px)',
               border: hasPhoto ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(163,177,138,0.22)',
             },
             outlined: {
               display: 'inline-flex', alignItems: 'center', gap: '0.5em',
-              padding: '0.55rem 1.5rem', borderRadius: '100px',
+              padding: '0.55rem 1.5rem', borderRadius: 'var(--pl-radius-full)',
               background: 'transparent',
               border: `1.5px solid ${heroTextColor}`,
             },
             card: {
               display: 'inline-flex', alignItems: 'center', gap: '0.75em',
-              padding: '0.75rem 2rem', borderRadius: '12px',
+              padding: '0.75rem 2rem', borderRadius: 'var(--pl-radius-lg)',
               background: hasPhoto ? 'rgba(0,0,0,0.35)' : 'rgba(245,241,232,0.7)',
               backdropFilter: 'blur(20px)',
               border: 'none',

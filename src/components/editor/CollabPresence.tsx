@@ -267,7 +267,7 @@ export function CollabPresence({ siteId, userEmail, userName }: Props) {
                 letterSpacing: '0.14em',
                 textTransform: 'uppercase',
                 fontWeight: 700,
-                borderRadius: 2,
+                borderRadius: 'var(--pl-radius-xs)',
                 whiteSpace: 'nowrap',
                 boxShadow: '0 2px 4px rgba(14,13,11,0.2)',
               }}

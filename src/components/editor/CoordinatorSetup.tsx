@@ -96,7 +96,7 @@ export default function CoordinatorSetup({ manifest, onChange }: CoordinatorSetu
           alignItems: 'center',
           gap: '8px',
           padding: '8px 10px',
-          borderRadius: '10px',
+          borderRadius: 'var(--pl-radius-lg)',
           backgroundColor: hasVenueInfo ? '#eef7ee' : '#fff8ed',
           border: `1px solid ${hasVenueInfo ? '#b8ddb8' : '#f0d9a0'}`,
           marginBottom: '20px',
@@ -127,7 +127,7 @@ export default function CoordinatorSetup({ manifest, onChange }: CoordinatorSetu
           padding: '10px 12px',
           backgroundColor: '#fff',
           border: '1px solid rgba(0,0,0,0.1)',
-          borderRadius: '12px',
+          borderRadius: 'var(--pl-radius-lg)',
         }}
       >
         <div>
@@ -143,7 +143,7 @@ export default function CoordinatorSetup({ manifest, onChange }: CoordinatorSetu
           style={{
             width: '44px',
             height: '24px',
-            borderRadius: '12px',
+            borderRadius: 'var(--pl-radius-lg)',
             border: 'none',
             backgroundColor: coordinatorEnabled ? '#6b7c5e' : '#d0cac4',
             cursor: 'pointer',
@@ -184,7 +184,7 @@ export default function CoordinatorSetup({ manifest, onChange }: CoordinatorSetu
                 backgroundColor: '#6b7c5e',
                 color: '#fff',
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: 'var(--pl-radius-md)',
                 padding: '7px 13px',
                 fontSize: '13px',
                 fontWeight: 600,
@@ -204,7 +204,7 @@ export default function CoordinatorSetup({ manifest, onChange }: CoordinatorSetu
               padding: '20px',
               backgroundColor: '#faf7f2',
               border: '1.5px dashed #d0c8be',
-              borderRadius: '12px',
+              borderRadius: 'var(--pl-radius-lg)',
               textAlign: 'center',
               color: '#9a8e85',
               fontSize: '13px',
@@ -221,7 +221,7 @@ export default function CoordinatorSetup({ manifest, onChange }: CoordinatorSetu
               style={{
                 backgroundColor: '#fff',
                 border: '1px solid rgba(0,0,0,0.09)',
-                borderRadius: '12px',
+                borderRadius: 'var(--pl-radius-lg)',
                 padding: '14px',
                 position: 'relative',
               }}
@@ -259,7 +259,7 @@ export default function CoordinatorSetup({ manifest, onChange }: CoordinatorSetu
                   style={{
                     width: '100%',
                     border: '1.5px solid rgba(0,0,0,0.1)',
-                    borderRadius: '8px',
+                    borderRadius: 'var(--pl-radius-md)',
                     padding: '8px 10px',
                     fontSize: '13px',
                     fontFamily: 'inherit',
@@ -285,7 +285,7 @@ export default function CoordinatorSetup({ manifest, onChange }: CoordinatorSetu
                   style={{
                     width: '100%',
                     border: '1.5px solid rgba(0,0,0,0.1)',
-                    borderRadius: '8px',
+                    borderRadius: 'var(--pl-radius-md)',
                     padding: '8px 10px',
                     fontSize: '13px',
                     fontFamily: 'inherit',
@@ -316,7 +316,7 @@ export default function CoordinatorSetup({ manifest, onChange }: CoordinatorSetu
           backgroundColor: 'transparent',
           border: '1.5px solid #6b7c5e',
           color: '#6b7c5e',
-          borderRadius: '10px',
+          borderRadius: 'var(--pl-radius-lg)',
           padding: '10px 18px',
           fontSize: '14px',
           fontWeight: 600,
@@ -355,7 +355,7 @@ export default function CoordinatorSetup({ manifest, onChange }: CoordinatorSetu
           <div
             style={{
               backgroundColor: '#faf7f2',
-              borderRadius: '10px',
+              borderRadius: 'var(--pl-radius-lg)',
               padding: '24px',
               width: 'min(440px, 100%)',
               position: 'relative',
@@ -385,7 +385,7 @@ export default function CoordinatorSetup({ manifest, onChange }: CoordinatorSetu
               your live site.
             </p>
             {/* Inline preview — render the widget in a contained preview box */}
-            <div style={{ position: 'relative', height: '460px', borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.1)' }}>
+            <div style={{ position: 'relative', height: '460px', borderRadius: 'var(--pl-radius-lg)', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.1)' }}>
               <PreviewCoordinator
                 siteId={coupleId || 'preview'}
                 coupleNames={
@@ -482,7 +482,7 @@ function PreviewCoordinator({ siteId, coupleNames, vibeSkin }: PreviewCoordinato
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {SUGGESTED_QUESTIONS.map(q => (
                 <button key={q.label} onClick={() => sendMessage(q.label)}
-                  style={{ backgroundColor: 'var(--pl-cream)', border: `1.5px solid ${accentColor}30`, borderRadius: '10px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer', color: foreground, display: 'flex', alignItems: 'center', gap: '4px', fontFamily: 'inherit' }}>
+                  style={{ backgroundColor: 'var(--pl-cream)', border: `1.5px solid ${accentColor}30`, borderRadius: 'var(--pl-radius-lg)', padding: '6px 12px', fontSize: '13px', cursor: 'pointer', color: foreground, display: 'flex', alignItems: 'center', gap: '4px', fontFamily: 'inherit' }}>
                   <span>{QUESTION_ICONS[q.icon] || q.icon}</span> {q.label}
                 </button>
               ))}
@@ -507,9 +507,9 @@ function PreviewCoordinator({ siteId, coupleNames, vibeSkin }: PreviewCoordinato
       {/* Input */}
       <div style={{ borderTop: '1px solid rgba(0,0,0,0.08)', padding: '10px 12px', display: 'flex', gap: '10px', alignItems: 'flex-end', backgroundColor: '#18181B' }}>
         <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Type a question..." rows={1}
-          style={{ flex: 1, border: '1.5px solid rgba(0,0,0,0.12)', borderRadius: '12px', padding: '9px 13px', fontSize: '14px', fontFamily: 'inherit', resize: 'none', outline: 'none', backgroundColor: 'var(--pl-cream)', color: foreground, lineHeight: 1.5, maxHeight: '80px', overflowY: 'auto' }} />
+          style={{ flex: 1, border: '1.5px solid rgba(0,0,0,0.12)', borderRadius: 'var(--pl-radius-lg)', padding: '9px 13px', fontSize: '14px', fontFamily: 'inherit', resize: 'none', outline: 'none', backgroundColor: 'var(--pl-cream)', color: foreground, lineHeight: 1.5, maxHeight: '80px', overflowY: 'auto' }} />
         <button onClick={() => sendMessage(input)} disabled={loading || !input.trim()}
-          style={{ backgroundColor: accentColor, color: '#fff', border: 'none', borderRadius: '12px', padding: '9px 16px', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: loading || !input.trim() ? 'not-allowed' : 'pointer', opacity: loading || !input.trim() ? 0.5 : 1, flexShrink: 0 }}>
+          style={{ backgroundColor: accentColor, color: '#fff', border: 'none', borderRadius: 'var(--pl-radius-lg)', padding: '9px 16px', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: loading || !input.trim() ? 'not-allowed' : 'pointer', opacity: loading || !input.trim() ? 0.5 : 1, flexShrink: 0 }}>
           Send →
         </button>
       </div>

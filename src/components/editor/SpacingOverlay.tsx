@@ -125,7 +125,7 @@ export function SpacingOverlay() {
               left: gap.centerX,
               transform: 'translate(-50%, -50%)',
               padding: '3px 10px',
-              borderRadius: '8px',
+              borderRadius: 'var(--pl-radius-md)',
               background: '#18181B',
               color: 'white',
               fontSize: 'var(--pl-text-2xs)',

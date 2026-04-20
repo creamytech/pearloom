@@ -37,7 +37,7 @@ export function UpgradePrompt({ feature, onDismiss }: UpgradePromptProps) {
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         border: '1px solid rgba(255,255,255,0.5)',
-        borderRadius: '16px', padding: '1.5rem',
+        borderRadius: 'var(--pl-radius-xl)', padding: '1.5rem',
         boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
         textAlign: 'center',
       }}
@@ -60,7 +60,7 @@ export function UpgradePrompt({ feature, onDismiss }: UpgradePromptProps) {
           whileHover={loading ? {} : { scale: 1.04, y: -1 }}
           whileTap={loading ? {} : { scale: 0.97 }}
           style={{
-            padding: '0.6rem 1.5rem', borderRadius: '12px',
+            padding: '0.6rem 1.5rem', borderRadius: 'var(--pl-radius-lg)',
             background: 'var(--pl-olive)', color: 'var(--pl-cream)',
             border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
             fontWeight: 600, fontSize: '0.9rem',
@@ -73,7 +73,7 @@ export function UpgradePrompt({ feature, onDismiss }: UpgradePromptProps) {
             onClick={onDismiss}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
-            style={{ padding: '0.6rem 1rem', borderRadius: '12px', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.9rem', color: 'var(--pl-ink)' } as React.CSSProperties}
+            style={{ padding: '0.6rem 1rem', borderRadius: 'var(--pl-radius-lg)', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.9rem', color: 'var(--pl-ink)' } as React.CSSProperties}
           >
             Not now
           </motion.button>

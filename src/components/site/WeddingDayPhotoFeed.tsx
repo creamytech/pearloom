@@ -321,7 +321,7 @@ export function WeddingDayPhotoFeed({ siteId, vibeSkin }: WeddingDayPhotoFeedPro
                 breakInside: 'avoid',
                 marginBottom: '16px',
                 background: '#fff',
-                borderRadius: '4px',
+                borderRadius: 'var(--pl-radius-xs)',
                 padding: '10px 10px 14px',
                 boxShadow: `0 4px 14px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08)`,
                 display: 'inline-block',
@@ -336,7 +336,7 @@ export function WeddingDayPhotoFeed({ siteId, vibeSkin }: WeddingDayPhotoFeedPro
                 style={{
                   width: '100%',
                   display: 'block',
-                  borderRadius: '2px',
+                  borderRadius: 'var(--pl-radius-xs)',
                   objectFit: 'cover',
                 }}
               />

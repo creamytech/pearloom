@@ -272,7 +272,7 @@ export function EditorWing({
                   background: meta.bg,
                   border: `1px solid ${meta.color}30`,
                   padding: '2px 8px',
-                  borderRadius: 999,
+                  borderRadius: 'var(--pl-radius-full)',
                   lineHeight: '16px',
                   display: 'inline-block',
                   marginTop: 8,
@@ -319,7 +319,7 @@ export function EditorWing({
                       letterSpacing: '0.1em', textTransform: 'uppercase',
                       color: 'var(--pl-olive)',
                       padding: '3px 8px',
-                      borderRadius: 999,
+                      borderRadius: 'var(--pl-radius-full)',
                       background: 'color-mix(in oklab, var(--pl-olive) 14%, transparent)',
                     }}
                   >
@@ -335,7 +335,7 @@ export function EditorWing({
                   style={{
                     width: 28, height: 28,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    borderRadius: 8, border: 'none',
+                    borderRadius: 'var(--pl-radius-md)', border: 'none',
                     background: 'transparent',
                     color: 'var(--pl-muted)',
                     cursor: 'pointer',

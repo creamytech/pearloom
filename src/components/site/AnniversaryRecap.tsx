@@ -229,7 +229,7 @@ export function AnniversaryRecap({
                     padding: '20px 22px',
                     background: CREAM_DEEP,
                     border: `1px solid ${GOLD_RULE}`,
-                    borderRadius: 2,
+                    borderRadius: 'var(--pl-radius-xs)',
                     position: 'relative',
                   }}
                 >
@@ -300,7 +300,7 @@ export function AnniversaryRecap({
                     gridArea: p.span,
                     position: 'relative',
                     overflow: 'hidden',
-                    borderRadius: 2,
+                    borderRadius: 'var(--pl-radius-xs)',
                   }}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -329,7 +329,7 @@ export function AnniversaryRecap({
                         letterSpacing: '0.16em',
                         textTransform: 'uppercase',
                         color: CREAM,
-                        borderRadius: 2,
+                        borderRadius: 'var(--pl-radius-xs)',
                       }}
                     >
                       {p.by}
@@ -391,7 +391,7 @@ export function AnniversaryRecap({
               textAlign: 'center',
               padding: '80px 24px',
               border: `1px dashed ${GOLD_RULE}`,
-              borderRadius: 2,
+              borderRadius: 'var(--pl-radius-xs)',
             }}
           >
             <p

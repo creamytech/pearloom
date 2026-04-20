@@ -75,12 +75,12 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
   const c = color || '#71717A';
   return (
     <div style={{
-      padding: '8px 10px', borderRadius: '10px',
+      padding: '8px 10px', borderRadius: 'var(--pl-radius-lg)',
       background: `${c}0d`, border: `1px solid ${c}22`,
       display: 'flex', alignItems: 'center', gap: '10px',
     }}>
       <div style={{
-        width: '32px', height: '32px', borderRadius: '8px',
+        width: '32px', height: '32px', borderRadius: 'var(--pl-radius-md)',
         background: `${c}1a`, display: 'flex', alignItems: 'center', justifyContent: 'center',
         flexShrink: 0,
       }}>
@@ -123,12 +123,12 @@ function ProgressBar({ label, value, total, color }: { label: string; value: num
         flexShrink: 0,
       }}>{label}</div>
       <div style={{
-        flex: 1, height: '5px', borderRadius: '3px',
+        flex: 1, height: '5px', borderRadius: 'var(--pl-radius-xs)',
         background: '#F4F4F5',
         overflow: 'hidden',
       }}>
         <div style={{
-          height: '100%', width: `${pct}%`, borderRadius: '3px',
+          height: '100%', width: `${pct}%`, borderRadius: 'var(--pl-radius-xs)',
           background: color, transition: 'width 0.6s ease',
         }} />
       </div>
@@ -359,7 +359,7 @@ function TopSectionsList({ sections }: { sections: SectionStat[] }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               {/* Rank badge */}
               <div style={{
-                width: '18px', height: '18px', borderRadius: '6px',
+                width: '18px', height: '18px', borderRadius: 'var(--pl-radius-sm)',
                 background: '#F4F4F5',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: panelText.label,
@@ -387,13 +387,13 @@ function TopSectionsList({ sections }: { sections: SectionStat[] }) {
             </div>
             {/* Bar indicator */}
             <div style={{
-              height: '4px', borderRadius: '2px',
+              height: '4px', borderRadius: 'var(--pl-radius-xs)',
               background: '#F4F4F5',
               overflow: 'hidden',
               marginLeft: '26px',
             }}>
               <div style={{
-                height: '100%', width: `${pct}%`, borderRadius: '2px',
+                height: '100%', width: `${pct}%`, borderRadius: 'var(--pl-radius-xs)',
                 background: barColor,
                 transition: 'width 0.6s ease',
               }} />
@@ -435,7 +435,7 @@ function ActivityFeed({ events }: { events: ActivityEvent[] }) {
   if (events.length === 0) {
     return (
       <div style={{
-        padding: '10px 12px', borderRadius: '10px',
+        padding: '10px 12px', borderRadius: 'var(--pl-radius-lg)',
         background: '#F4F4F5', border: '1px solid #E4E4E7',
         fontSize: panelText.body,
         color: '#3F3F46',
@@ -462,7 +462,7 @@ function ActivityFeed({ events }: { events: ActivityEvent[] }) {
             )}
             {/* Icon */}
             <div style={{
-              width: '20px', height: '20px', borderRadius: '6px',
+              width: '20px', height: '20px', borderRadius: 'var(--pl-radius-sm)',
               background: `${typeof color === 'string' && color.startsWith('#') ? color : '#71717A'}12`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0, marginTop: '2px', zIndex: 1,
@@ -500,11 +500,11 @@ function ShareStatsCard({ stats }: { stats: ShareStats }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       <div style={{
         display: 'flex', alignItems: 'center', gap: '12px',
-        padding: '10px 12px', borderRadius: '12px',
+        padding: '10px 12px', borderRadius: 'var(--pl-radius-lg)',
         background: '#FAFAFA', border: '1px solid #E4E4E7',
       }}>
         <div style={{
-          width: '36px', height: '36px', borderRadius: '10px',
+          width: '36px', height: '36px', borderRadius: 'var(--pl-radius-lg)',
           background: '#F4F4F5',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           flexShrink: 0,
@@ -532,7 +532,7 @@ function ShareStatsCard({ stats }: { stats: ShareStats }) {
 
       <div style={{ display: 'flex', gap: '8px' }}>
         <div style={{
-          flex: 1, padding: '8px 10px', borderRadius: '8px',
+          flex: 1, padding: '8px 10px', borderRadius: 'var(--pl-radius-md)',
           background: '#FAFAFA', border: '1px solid #E4E4E7',
           textAlign: 'center',
         }}>
@@ -548,7 +548,7 @@ function ShareStatsCard({ stats }: { stats: ShareStats }) {
           }}>Link copied</div>
         </div>
         <div style={{
-          flex: 1, padding: '8px 10px', borderRadius: '8px',
+          flex: 1, padding: '8px 10px', borderRadius: 'var(--pl-radius-md)',
           background: '#FAFAFA', border: '1px solid #E4E4E7',
           textAlign: 'center',
         }}>
@@ -768,7 +768,7 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
 
         {rsvpConversionRate !== null && (
           <div style={{
-            padding: '8px 10px', borderRadius: '8px',
+            padding: '8px 10px', borderRadius: 'var(--pl-radius-md)',
             background: '#F4F4F5', border: '1px solid #E4E4E7',
             fontSize: panelText.body,
             color: '#3F3F46',

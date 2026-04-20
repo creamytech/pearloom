@@ -202,7 +202,7 @@ export function InlineStoryLayoutSwitcher() {
         pointerEvents: 'auto',
         maxWidth: `min(${Math.max(anchor.width - 24, 320)}px, calc(100vw - 32px))`,
         padding: '10px 12px 12px',
-        borderRadius: 2,
+        borderRadius: 'var(--pl-radius-xs)',
         background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
         backdropFilter: 'blur(18px)',
         WebkitBackdropFilter: 'blur(18px)',
@@ -286,7 +286,7 @@ export function InlineStoryLayoutSwitcher() {
                 alignItems: 'stretch',
                 gap: '5px',
                 padding: '8px 7px 9px',
-                borderRadius: 2,
+                borderRadius: 'var(--pl-radius-xs)',
                 background: isActive ? 'rgba(184,147,90,0.12)' : 'rgba(255,252,245,0.55)',
                 border: isActive
                   ? '1px solid rgba(184,147,90,0.65)'
@@ -329,7 +329,7 @@ export function InlineStoryLayoutSwitcher() {
                 padding: 3,
                 background: '#FFFCF6',
                 border: '1px solid rgba(184,147,90,0.18)',
-                borderRadius: 1,
+                borderRadius: 'var(--pl-radius-xs)',
               }}>
                 <MiniDiagram type={opt.type} />
               </div>

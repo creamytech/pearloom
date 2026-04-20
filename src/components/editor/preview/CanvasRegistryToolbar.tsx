@@ -31,7 +31,7 @@ function ToolBtn({
       style={{
         width: '28px', height: '28px',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        border: 'none', borderRadius: '8px',
+        border: 'none', borderRadius: 'var(--pl-radius-md)',
         background: 'transparent',
         color: danger ? '#f87171' : 'rgba(255,255,255,0.85)',
         cursor: 'pointer', transition: 'background 0.12s, color 0.12s',
@@ -70,7 +70,7 @@ export function CanvasRegistryToolbar({ rect, onAction }: CanvasRegistryToolbarP
         zIndex: 200,
         display: 'flex', alignItems: 'center', gap: '2px',
         padding: '3px 4px',
-        borderRadius: '12px',
+        borderRadius: 'var(--pl-radius-lg)',
         background: '#18181B',
         boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
         userSelect: 'none',

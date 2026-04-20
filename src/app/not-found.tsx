@@ -65,7 +65,7 @@ export default function NotFound() {
         style={{
           display: 'inline-block',
           padding: '13px 28px',
-          borderRadius: 2,
+          borderRadius: 'var(--pl-radius-xs)',
           background: 'var(--pl-ink, #0E0D0B)',
           color: 'var(--pl-cream, #FAF7F2)',
           fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',

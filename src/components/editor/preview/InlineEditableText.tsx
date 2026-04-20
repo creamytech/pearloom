@@ -106,7 +106,7 @@ export function InlineEditableText({
         cursor: 'text',
         outline: '2px solid #71717A',
         outlineOffset: '2px',
-        borderRadius: '4px',
+        borderRadius: 'var(--pl-radius-xs)',
         minWidth: '40px',
         minHeight: '1em',
       },

@@ -155,7 +155,7 @@ function MoodBadge({ mood, light = false }: { mood?: string; light?: boolean }) 
         textTransform: 'uppercase',
         fontVariant: 'small-caps',
         padding: '0.28rem 0.8rem',
-        borderRadius: '100px',
+        borderRadius: 'var(--pl-radius-full)',
         background: light ? 'rgba(0,0,0,0.07)' : 'var(--pl-plum-mist)',
         color: light ? 'var(--pl-ink)' : 'var(--pl-plum)',
         border: light ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(109,89,122,0.15)',
@@ -176,7 +176,7 @@ function LocationPill({ label, light = false }: { label: string; light?: boolean
       alignItems: 'center',
       gap: '0.4rem',
       padding: '0.3rem 0.8rem',
-      borderRadius: '100px',
+      borderRadius: 'var(--pl-radius-full)',
       background: light ? 'rgba(43,30,20,0.05)' : 'rgba(163,177,138,0.1)',
       border: light ? '1px solid rgba(0,0,0,0.07)' : '1px solid rgba(163,177,138,0.2)',
       color: light ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
@@ -279,7 +279,7 @@ function CollapsibleVideo({ videoUrl }: { videoUrl: string }) {
           gap: '0.4rem',
           background: 'none',
           border: '1px solid var(--pl-olive)',
-          borderRadius: '100px',
+          borderRadius: 'var(--pl-radius-full)',
           padding: '0.35rem 0.9rem',
           fontSize: '0.72rem',
           fontWeight: 700,
@@ -307,7 +307,7 @@ function CollapsibleVideo({ videoUrl }: { videoUrl: string }) {
 // Photo with hover effect
 function ChapterPhoto({ src, alt, style }: { src: string; alt: string; style?: React.CSSProperties }) {
   return (
-    <div style={{ overflow: 'hidden', borderRadius: '6px', ...style }}>
+    <div style={{ overflow: 'hidden', borderRadius: 'var(--pl-radius-sm)', ...style }}>
       <img
         src={src}
         alt={alt}
@@ -407,7 +407,7 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
         >
           {/* Cover image — full width, 4:3 */}
           {mainImage && (
-            <div style={{ borderRadius: '20px', overflow: 'hidden', aspectRatio: '4/3', marginBottom: '1.5rem', position: 'relative' }}>
+            <div style={{ borderRadius: 'var(--pl-radius-2xl)', overflow: 'hidden', aspectRatio: '4/3', marginBottom: '1.5rem', position: 'relative' }}>
               <img
                 src={proxyUrl(mainImage, 900, 675)}
                 alt={chapter.images?.[chapter.heroPhotoIndex ?? 0]?.alt || chapter.title}
@@ -415,7 +415,7 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
               />
               {/* Second image tucked corner */}
               {secondImage && (
-                <div style={{ position: 'absolute', bottom: '12px', right: '12px', width: '80px', height: '80px', borderRadius: '6px', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.28)', border: '2px solid var(--pl-ink-soft)' }}>
+                <div style={{ position: 'absolute', bottom: '12px', right: '12px', width: '80px', height: '80px', borderRadius: 'var(--pl-radius-sm)', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.28)', border: '2px solid var(--pl-ink-soft)' }}>
                   <img src={proxyUrl(secondImage, 160, 160)} alt={chapter.images?.[1]?.alt || chapter.title} className="pl-glow-hover" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 </div>
               )}
@@ -487,7 +487,7 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
                 position: 'absolute',
                 width: secondImage ? '78%' : '100%',
                 aspectRatio: '3/4',
-                borderRadius: '6px',
+                borderRadius: 'var(--pl-radius-sm)',
                 overflow: 'hidden',
                 zIndex: 2,
                 y: imgY1,
@@ -512,7 +512,7 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
                 position: 'absolute',
                 width: '55%',
                 aspectRatio: '4/5',
-                borderRadius: '6px',
+                borderRadius: 'var(--pl-radius-sm)',
                 overflow: 'hidden',
                 zIndex: 1,
                 y: imgY2,
@@ -648,7 +648,7 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
             style={{
               position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 20,
               background: 'rgba(0,0,0,0.55)', color: '#fff', border: '1px solid var(--pl-muted)',
-              borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.75rem',
+              borderRadius: 'var(--pl-radius-sm)', padding: '0.4rem 0.8rem', fontSize: '0.75rem',
               cursor: 'pointer', letterSpacing: '0.08em',
             }}
           >
@@ -714,7 +714,7 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
             background: 'rgba(0,0,0,0.25)',
             backdropFilter: 'blur(2px)',
             WebkitBackdropFilter: 'blur(2px)',
-            borderRadius: '8px',
+            borderRadius: 'var(--pl-radius-md)',
             filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.6))',
           }} className="max-md:px-5 max-md:py-6 max-md:max-w-[90vw] max-md:mx-auto p-8">
             <MoodBadge mood={chapter.mood} light />
@@ -795,7 +795,7 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
               style={{
                 position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 20,
                 background: 'rgba(0,0,0,0.55)', color: '#fff', border: '1px solid var(--pl-muted)',
-                borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.75rem',
+                borderRadius: 'var(--pl-radius-sm)', padding: '0.4rem 0.8rem', fontSize: '0.75rem',
                 cursor: 'pointer', letterSpacing: '0.08em',
               }}
             >
@@ -927,7 +927,7 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
           <div
             style={isMobile
               ? { width: '100%', height: '280px', position: 'relative', zIndex: 1, overflow: 'hidden', borderRadius: '0' }
-              : { flex: '0 0 50%', height: '660px', position: 'relative', zIndex: 1, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 30px 70px rgba(0,0,0,0.12)' }
+              : { flex: '0 0 50%', height: '660px', position: 'relative', zIndex: 1, borderRadius: 'var(--pl-radius-md)', overflow: 'hidden', boxShadow: '0 30px 70px rgba(0,0,0,0.12)' }
             }
           >
             <img
@@ -1073,7 +1073,7 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
             {/* Mobile: lead image 4:3, remaining in 2-col row */}
             {images[0] && (
               <motion.div
-                style={{ position: 'relative', overflow: 'hidden', borderRadius: '8px', aspectRatio: '4/3', background: 'var(--pl-olive-mist)' }}
+                style={{ position: 'relative', overflow: 'hidden', borderRadius: 'var(--pl-radius-md)', aspectRatio: '4/3', background: 'var(--pl-olive-mist)' }}
                 initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               >
                 <img src={proxyUrl(images[0].url, 900, 675)} alt={images[0].alt || chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), display: 'block' }} />
@@ -1082,7 +1082,7 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
             {images.length > 1 && (
               <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(images.length - 1, 3)}, 1fr)`, gap: '0.5rem' }}>
                 {images.slice(1, 4).map((img, i) => (
-                  <motion.div key={img.id} style={{ position: 'relative', overflow: 'hidden', borderRadius: '6px', aspectRatio: '1/1', background: 'var(--pl-olive-mist)' }}
+                  <motion.div key={img.id} style={{ position: 'relative', overflow: 'hidden', borderRadius: 'var(--pl-radius-sm)', aspectRatio: '1/1', background: 'var(--pl-olive-mist)' }}
                     initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
                   >
                     <img src={proxyUrl(img.url, 400, 400)} alt={img.alt || chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), display: 'block' }} />
@@ -1101,7 +1101,7 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
           }}>
             {images[0] && (
               <motion.div
-                style={{ gridColumn: images.length >= 3 ? '1 / 8' : 'auto', gridRow: images.length >= 3 ? '1 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--pl-olive-mist)', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}
+                style={{ gridColumn: images.length >= 3 ? '1 / 8' : 'auto', gridRow: images.length >= 3 ? '1 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: 'var(--pl-radius-sm)', background: 'var(--pl-olive-mist)', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}
                 initial={{ opacity: 0, scale: 0.96, y: 20 }} whileInView={{ opacity: 1, scale: 1, y: 0 }} viewport={{ once: true, margin: '-80px' }}
                 transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
                 onMouseOver={() => setHoveredIdx(0)} onMouseOut={() => setHoveredIdx(null)}
@@ -1112,7 +1112,7 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
             )}
             {images[1] && (
               <motion.div
-                style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '1 / 2' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--pl-olive-mist)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
+                style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '1 / 2' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: 'var(--pl-radius-sm)', background: 'var(--pl-olive-mist)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
                 initial={{ opacity: 0, scale: 0.96, y: 20 }} whileInView={{ opacity: 1, scale: 1, y: 0 }} viewport={{ once: true, margin: '-80px' }}
                 transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: 0.18 }}
                 onMouseOver={() => setHoveredIdx(1)} onMouseOut={() => setHoveredIdx(null)}
@@ -1123,7 +1123,7 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
             )}
             {images[2] && (
               <motion.div
-                style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '2 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--pl-olive-mist)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
+                style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '2 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: 'var(--pl-radius-sm)', background: 'var(--pl-olive-mist)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
                 initial={{ opacity: 0, scale: 0.96, y: 20 }} whileInView={{ opacity: 1, scale: 1, y: 0 }} viewport={{ once: true, margin: '-80px' }}
                 transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: 0.32 }}
                 onMouseOver={() => setHoveredIdx(2)} onMouseOut={() => setHoveredIdx(null)}
@@ -1134,7 +1134,7 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
             )}
             {images[3] && (
               <motion.div
-                style={{ gridColumn: 'auto', gridRow: 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--pl-olive-mist)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
+                style={{ gridColumn: 'auto', gridRow: 'auto', position: 'relative', overflow: 'hidden', borderRadius: 'var(--pl-radius-sm)', background: 'var(--pl-olive-mist)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
                 initial={{ opacity: 0, scale: 0.96, y: 20 }} whileInView={{ opacity: 1, scale: 1, y: 0 }} viewport={{ once: true, margin: '-80px' }}
                 transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: 0.46 }}
                 onMouseOver={() => setHoveredIdx(3)} onMouseOut={() => setHoveredIdx(null)}
@@ -1264,7 +1264,7 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
                     background: '#fff',
                     padding: '8px 8px 28px',
                     boxShadow: '0 10px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(43,30,20,0.05)',
-                    borderRadius: '2px',
+                    borderRadius: 'var(--pl-radius-xs)',
                     position: 'relative',
                   }}>
                     <div style={{ aspectRatio: '1/1', overflow: 'hidden', background: 'var(--pl-olive-mist)', position: 'relative' }}>
@@ -1305,7 +1305,7 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
                   background: '#fff',
                   padding: isFirst ? '10px 10px 36px' : '8px 8px 28px',
                   boxShadow: '0 10px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(43,30,20,0.05)',
-                  borderRadius: '2px',
+                  borderRadius: 'var(--pl-radius-xs)',
                 }}>
                   <div style={{ aspectRatio: isFirst ? '4/5' : '1/1', overflow: 'hidden', background: 'var(--pl-olive-mist)', position: 'relative' }}>
                     <img src={proxyUrl(img.url, 600, 800)} alt={img.alt || chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), display: 'block' }} />
@@ -1417,7 +1417,7 @@ function BentoLayout({ chapter, index }: TimelineItemProps) {
             <div style={{
               background: 'rgba(255,255,255,0.5)',
               backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-              borderRadius: '20px', padding: '1.5rem',
+              borderRadius: 'var(--pl-radius-2xl)', padding: '1.5rem',
               border: '1px solid rgba(255,255,255,0.6)',
               boxShadow: '0 2px 12px rgba(43,30,20,0.04)',
             } as React.CSSProperties}>
@@ -1446,7 +1446,7 @@ function BentoLayout({ chapter, index }: TimelineItemProps) {
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.08, duration: 0.5 }}
                   style={{
-                    borderRadius: '16px', overflow: 'hidden',
+                    borderRadius: 'var(--pl-radius-xl)', overflow: 'hidden',
                     aspectRatio: i === 0 ? '4/5' : '1',
                     gridColumn: i === 0 ? 'span 2' : undefined,
                   }}
@@ -1470,7 +1470,7 @@ function BentoLayout({ chapter, index }: TimelineItemProps) {
             {/* Hero image — large, top-left, spans 2 cols */}
             {images[0] && (
               <motion.div
-                style={{ gridArea: 'hero', borderRadius: '20px', overflow: 'hidden', minHeight: '280px' }}
+                style={{ gridArea: 'hero', borderRadius: 'var(--pl-radius-2xl)', overflow: 'hidden', minHeight: '280px' }}
                 initial={{ opacity: 0, scale: 0.96 }} whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }} transition={{ duration: 0.6 }}
               >
@@ -1485,7 +1485,7 @@ function BentoLayout({ chapter, index }: TimelineItemProps) {
               gridArea: 'text',
               background: 'rgba(255,255,255,0.5)',
               backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-              borderRadius: '20px', padding: '2rem',
+              borderRadius: 'var(--pl-radius-2xl)', padding: '2rem',
               border: '1px solid rgba(255,255,255,0.6)',
               boxShadow: '0 4px 20px rgba(43,30,20,0.04), inset 0 1px 0 rgba(255,255,255,0.4)',
               display: 'flex', flexDirection: 'column', justifyContent: 'center',
@@ -1513,7 +1513,7 @@ function BentoLayout({ chapter, index }: TimelineItemProps) {
               return (
                 <motion.div
                   key={img.id || i}
-                  style={{ gridArea: areas[i], borderRadius: '16px', overflow: 'hidden' }}
+                  style={{ gridArea: areas[i], borderRadius: 'var(--pl-radius-xl)', overflow: 'hidden' }}
                   initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }} transition={{ delay: 0.1 + i * 0.1, duration: 0.5 }}
                 >

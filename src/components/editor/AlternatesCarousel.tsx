@@ -39,7 +39,7 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
             color: '#71717A', display: 'flex', padding: '4px',
-            borderRadius: '4px',
+            borderRadius: 'var(--pl-radius-xs)',
           }}
           aria-label="Close alternatives"
         >
@@ -66,7 +66,7 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
               flex: '0 0 260px',
               background: 'rgba(22,18,28,0.96)',
               border: '1px solid rgba(0,0,0,0.06)',
-              borderRadius: '12px',
+              borderRadius: 'var(--pl-radius-lg)',
               padding: '16px',
               display: 'flex',
               flexDirection: 'column',
@@ -79,7 +79,7 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
               textTransform: 'uppercase',
               color: '#18181B',
               background: 'rgba(24,24,27,0.06)',
-              borderRadius: '8px',
+              borderRadius: 'var(--pl-radius-md)',
               padding: '3px 8px',
               alignSelf: 'flex-start',
             }}>
@@ -102,7 +102,7 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
               onClick={() => { onSelect(desc); onClose(); }}
               style={{
                 padding: '8px 14px',
-                borderRadius: '6px',
+                borderRadius: 'var(--pl-radius-sm)',
                 border: '1px solid #E4E4E7',
                 background: '#F4F4F5',
                 color: '#18181B',

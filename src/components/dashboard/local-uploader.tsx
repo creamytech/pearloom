@@ -160,7 +160,7 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
             color: '#dc2626',
-            borderRadius: '16px', marginBottom: '1.25rem', fontSize: text.sm,
+            borderRadius: 'var(--pl-radius-xl)', marginBottom: '1.25rem', fontSize: text.sm,
             display: 'flex', alignItems: 'center', gap: '0.5rem',
             border: '1px solid rgba(255,255,255,0.5)',
             boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
@@ -185,7 +185,7 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
           position: 'relative', overflow: 'hidden',
           padding: files.length > 0 ? '1.5rem' : '3.5rem 2rem',
           border: '2px dashed rgba(255,255,255,0.5)',
-          borderRadius: '16px', textAlign: 'center',
+          borderRadius: 'var(--pl-radius-xl)', textAlign: 'center',
           cursor: 'pointer', transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
@@ -230,7 +230,7 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
                     exit={{ opacity: 0, scale: 0.8 }}
                     transition={{ duration: 0.2 }}
                     style={{
-                      position: 'relative', aspectRatio: '1', borderRadius: '12px',
+                      position: 'relative', aspectRatio: '1', borderRadius: 'var(--pl-radius-lg)',
                       overflow: 'hidden',
                       border: entry.status === 'error'
                         ? '2px solid rgba(220,38,38,0.4)'
@@ -300,7 +300,7 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
               {!isUploading && files.length < maxFiles && (
                 <div
                   style={{
-                    aspectRatio: '1', borderRadius: '12px',
+                    aspectRatio: '1', borderRadius: 'var(--pl-radius-lg)',
                     border: '2px dashed rgba(255,255,255,0.5)',
                     background: 'rgba(255,255,255,0.35)',
                     backdropFilter: 'blur(8px)',
@@ -330,11 +330,11 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
           {/* Progress bar (during upload) */}
           {isUploading && (
             <div style={{ marginBottom: '1rem' }}>
-              <div style={{ height: '3px', background: 'rgba(255,255,255,0.35)', borderRadius: '2px', overflow: 'hidden' }}>
+              <div style={{ height: '3px', background: 'rgba(255,255,255,0.35)', borderRadius: 'var(--pl-radius-xs)', overflow: 'hidden' }}>
                 <motion.div
                   animate={{ width: `${progress}%` }}
                   transition={{ duration: 0.3 }}
-                  style={{ height: '100%', background: 'var(--pl-olive)', borderRadius: '2px' }}
+                  style={{ height: '100%', background: 'var(--pl-olive)', borderRadius: 'var(--pl-radius-xs)' }}
                 />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.35rem', fontSize: text.xs, color: 'var(--pl-muted)' }}>
@@ -349,7 +349,7 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
             disabled={isUploading || files.every(f => f.status === 'done')}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              gap: '0.5rem', padding: '1rem 2rem', borderRadius: '16px',
+              gap: '0.5rem', padding: '1rem 2rem', borderRadius: 'var(--pl-radius-xl)',
               background: 'var(--pl-ink)', color: '#fff', fontSize: text.base,
               fontWeight: 600, cursor: isUploading ? 'wait' : 'pointer', border: 'none',
               transition: 'opacity 0.2s, box-shadow 0.2s',

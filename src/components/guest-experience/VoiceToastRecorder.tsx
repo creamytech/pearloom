@@ -211,7 +211,7 @@ function primaryBtn(accent: string): React.CSSProperties {
     background: accent,
     color: '#FFFFFF',
     border: 'none',
-    borderRadius: '999px',
+    borderRadius: 'var(--pl-radius-full)',
     fontSize: '0.9rem',
     fontWeight: 600,
     cursor: 'pointer',
@@ -224,7 +224,7 @@ function secondaryBtn(): React.CSSProperties {
     background: 'transparent',
     color: '#2B2B2B',
     border: '1px solid #EEE8DC',
-    borderRadius: '999px',
+    borderRadius: 'var(--pl-radius-full)',
     fontSize: '0.9rem',
     cursor: 'pointer',
   };

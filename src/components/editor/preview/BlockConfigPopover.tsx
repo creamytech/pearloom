@@ -138,7 +138,7 @@ export function BlockConfigPopover({
         maxHeight: `${popHeight}px`,
         overflowY: 'auto',
         zIndex: 160,
-        borderRadius: '14px',
+        borderRadius: 'var(--pl-radius-xl)',
         background: 'rgba(24,24,27,0.92)',
         backdropFilter: 'blur(18px) saturate(1.4)',
         WebkitBackdropFilter: 'blur(18px) saturate(1.4)',
@@ -189,7 +189,7 @@ export function BlockConfigPopover({
             style={{
               alignSelf: 'flex-start',
               padding: '6px 10px',
-              borderRadius: 6,
+              borderRadius: 'var(--pl-radius-sm)',
               background: 'rgba(255,255,255,0.08)',
               border: '1px solid rgba(255,255,255,0.14)',
               color: 'rgba(255,255,255,0.92)',
@@ -220,7 +220,7 @@ export function BlockConfigPopover({
               style={{
                 marginTop: 4,
                 padding: '8px 10px',
-                borderRadius: 8,
+                borderRadius: 'var(--pl-radius-md)',
                 background: 'rgba(255,255,255,0.04)',
                 border: '1px dashed rgba(255,255,255,0.12)',
                 display: 'flex',
@@ -251,7 +251,7 @@ export function BlockConfigPopover({
                 style={{
                   flexShrink: 0,
                   padding: '4px 8px',
-                  borderRadius: 6,
+                  borderRadius: 'var(--pl-radius-sm)',
                   background: 'rgba(255,255,255,0.08)',
                   border: '1px solid rgba(255,255,255,0.14)',
                   color: 'rgba(255,255,255,0.92)',
@@ -275,7 +275,7 @@ export function BlockConfigPopover({
 const INPUT_STYLE: React.CSSProperties = {
   width: '100%',
   padding: '6px 8px',
-  borderRadius: 6,
+  borderRadius: 'var(--pl-radius-sm)',
   background: 'rgba(255,255,255,0.06)',
   border: '1px solid rgba(255,255,255,0.12)',
   color: 'rgba(255,255,255,0.92)',

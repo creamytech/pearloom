@@ -291,7 +291,7 @@ export function MobileBlockList({ onSelectBlock, onScrollToBlock }: MobileBlockL
                 onClick={() => setDeleteConfirmId(null)}
                 style={{
                   padding: '8px 14px',
-                  borderRadius: 6,
+                  borderRadius: 'var(--pl-radius-sm)',
                   border: '1px solid var(--pl-black-7)',
                   background: 'transparent',
                   fontSize: 'var(--pl-text-sm, 13px)',
@@ -308,7 +308,7 @@ export function MobileBlockList({ onSelectBlock, onScrollToBlock }: MobileBlockL
                 onClick={() => deleteBlock(deleteConfirmId)}
                 style={{
                   padding: '8px 14px',
-                  borderRadius: 6,
+                  borderRadius: 'var(--pl-radius-sm)',
                   border: 'none',
                   background: '#ef4444',
                   color: '#fff',
@@ -645,7 +645,7 @@ function AddBlockSheet({
           <div style={{
             width: 36,
             height: 4,
-            borderRadius: 2,
+            borderRadius: 'var(--pl-radius-xs)',
             background: 'var(--pl-black-10, rgba(0,0,0,0.1))',
           }} />
         </div>
@@ -678,7 +678,7 @@ function AddBlockSheet({
               color: 'var(--pl-ink-soft, #6B5E52)',
               minWidth: 44,
               minHeight: 44,
-              borderRadius: 8,
+              borderRadius: 'var(--pl-radius-md)',
               WebkitTapHighlightColor: 'transparent',
             }}
           >

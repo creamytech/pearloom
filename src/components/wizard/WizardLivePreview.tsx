@@ -318,7 +318,7 @@ export function WizardLivePreview({
           width: '100%',
           maxWidth: 640,
           margin: '0 auto',
-          borderRadius: 2,
+          borderRadius: 'var(--pl-radius-xs)',
           overflow: 'hidden',
           boxShadow:
             '0 22px 60px rgba(22,16,6,0.22), 0 2px 8px rgba(22,16,6,0.08), 0 0 0 1px rgba(184,147,90,0.28)',
@@ -406,7 +406,7 @@ function EmptyPreview() {
         style={{
           width: 72,
           height: 72,
-          borderRadius: 2,
+          borderRadius: 'var(--pl-radius-xs)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

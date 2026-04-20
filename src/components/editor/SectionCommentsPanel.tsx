@@ -159,7 +159,7 @@ export function SectionCommentsPanel({
         flexDirection: 'column',
         background: 'var(--pl-cream-card, #FBF7EE)',
         border: '1px solid color-mix(in oklab, var(--pl-gold, #B8935A) 35%, transparent)',
-        borderRadius: 6,
+        borderRadius: 'var(--pl-radius-sm)',
         boxShadow: '0 18px 48px rgba(40,28,12,0.14), 0 4px 12px rgba(40,28,12,0.08)',
         overflow: 'hidden',
       }}
@@ -214,7 +214,7 @@ export function SectionCommentsPanel({
             border: 'none',
             color: 'var(--pl-ink-soft)',
             cursor: 'pointer',
-            borderRadius: 6,
+            borderRadius: 'var(--pl-radius-sm)',
           }}
         >
           <X size={14} />
@@ -406,7 +406,7 @@ export function SectionCommentsPanel({
             background: 'var(--pl-cream-card)',
             color: 'var(--pl-ink)',
             border: '1px solid var(--pl-divider)',
-            borderRadius: 4,
+            borderRadius: 'var(--pl-radius-xs)',
             padding: '8px 10px',
             fontFamily: 'inherit',
             fontSize: '0.88rem',
@@ -446,7 +446,7 @@ export function SectionCommentsPanel({
               background: draft.trim() ? 'var(--pl-ink)' : 'var(--pl-divider)',
               color: draft.trim() ? 'var(--pl-cream)' : 'var(--pl-muted)',
               border: 'none',
-              borderRadius: 999,
+              borderRadius: 'var(--pl-radius-full)',
               fontFamily: 'var(--pl-font-mono)',
               fontSize: '0.6rem',
               letterSpacing: '0.22em',

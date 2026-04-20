@@ -178,7 +178,7 @@ export function LocationAutocomplete({
             fontWeight: 400,
             letterSpacing: '-0.003em',
             fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-            borderRadius: 2,
+            borderRadius: 'var(--pl-radius-xs)',
             border: inputBorder,
             borderTop: focused
               ? `1.5px solid ${ruleColor}`
@@ -202,7 +202,7 @@ export function LocationAutocomplete({
           right: 0,
           zIndex: 50,
           marginTop: 6,
-          borderRadius: 2,
+          borderRadius: 'var(--pl-radius-xs)',
           overflow: 'hidden',
           background: dropBg,
           borderTop: `1.5px solid ${ruleColor}`,

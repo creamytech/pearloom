@@ -116,7 +116,7 @@ function FilmStripLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
         {/* Film perforations — top */}
         <div style={{ position: 'sticky', left: 0, display: 'flex', gap: 0, background: 'var(--pl-olive-mist)', padding: '8px 24px', minWidth: 'max-content' }}>
           {chapters.map((_, i) => (
-            <div key={i} style={{ width: '20px', height: '14px', marginRight: '80px', borderRadius: '2px', background: 'rgba(0,0,0,0.07)', border: '1px solid rgba(0,0,0,0.04)', flexShrink: 0 }} />
+            <div key={i} style={{ width: '20px', height: '14px', marginRight: '80px', borderRadius: 'var(--pl-radius-xs)', background: 'rgba(0,0,0,0.07)', border: '1px solid rgba(0,0,0,0.04)', flexShrink: 0 }} />
           ))}
         </div>
 
@@ -135,7 +135,7 @@ function FilmStripLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
                   width: 'clamp(150px, 30vw, 220px)', flexShrink: 0, cursor: 'pointer',
                   background: isActive ? 'rgba(163,177,138,0.15)' : 'rgba(163,177,138,0.05)',
                   border: `2px solid ${isActive ? 'rgba(163,177,138,0.6)' : 'rgba(0,0,0,0.06)'}`,
-                  borderRadius: '2px',
+                  borderRadius: 'var(--pl-radius-xs)',
                   overflow: 'hidden',
                   boxShadow: isActive ? '0 20px 60px rgba(0,0,0,0.6)' : '0 4px 20px rgba(0,0,0,0.4)',
                   transition: 'border-color 0.2s, background 0.2s',
@@ -155,7 +155,7 @@ function FilmStripLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
                   </div>
                   {/* Mood badge */}
                   {chapter.mood && (
-                    <div style={{ position: 'absolute', bottom: '8px', right: '8px', fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-ink)', background: 'rgba(0,0,0,0.5)', padding: '2px 6px', borderRadius: '100px', backdropFilter: 'blur(4px)' }}>
+                    <div style={{ position: 'absolute', bottom: '8px', right: '8px', fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-ink)', background: 'rgba(0,0,0,0.5)', padding: '2px 6px', borderRadius: 'var(--pl-radius-full)', backdropFilter: 'blur(4px)' }}>
                       {chapter.mood}
                     </div>
                   )}
@@ -174,7 +174,7 @@ function FilmStripLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
         {/* Film perforations — bottom */}
         <div style={{ display: 'flex', gap: 0, background: 'var(--pl-olive-mist)', padding: '8px 24px', minWidth: 'max-content' }}>
           {chapters.map((_, i) => (
-            <div key={i} style={{ width: '20px', height: '14px', marginRight: '80px', borderRadius: '2px', background: 'rgba(0,0,0,0.07)', border: '1px solid rgba(0,0,0,0.04)', flexShrink: 0 }} />
+            <div key={i} style={{ width: '20px', height: '14px', marginRight: '80px', borderRadius: 'var(--pl-radius-xs)', background: 'rgba(0,0,0,0.07)', border: '1px solid rgba(0,0,0,0.04)', flexShrink: 0 }} />
           ))}
         </div>
       </div>
@@ -278,7 +278,7 @@ function ScrapbookLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
                 </div>
 
                 {/* Tape strip decorations */}
-                <div style={{ position: 'absolute', top: '-8px', left: '50%', transform: 'translateX(-50%)', width: '48px', height: '16px', background: 'rgba(214,198,168,0.6)', borderRadius: '2px', backdropFilter: 'blur(2px)' }} />
+                <div style={{ position: 'absolute', top: '-8px', left: '50%', transform: 'translateX(-50%)', width: '48px', height: '16px', background: 'rgba(214,198,168,0.6)', borderRadius: 'var(--pl-radius-xs)', backdropFilter: 'blur(2px)' }} />
               </motion.div>
             );
           })}
@@ -377,7 +377,7 @@ function MagazineLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?
               {chapter.images.length > 1 && (
                 <div style={{ display: 'flex', gap: '0.75rem', marginTop: '2.5rem', overflowX: 'auto' }}>
                   {chapter.images.slice(1, 5).map((img, j) => (
-                    <div key={img.id} style={{ width: '160px', height: '120px', flexShrink: 0, borderRadius: '4px', overflow: 'hidden' }}>
+                    <div key={img.id} style={{ width: '160px', height: '120px', flexShrink: 0, borderRadius: 'var(--pl-radius-xs)', overflow: 'hidden' }}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={img.url} alt={img.alt} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: `saturate(${0.9 + j * 0.05})` }} />
                     </div>

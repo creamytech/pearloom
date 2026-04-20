@@ -83,7 +83,7 @@ export function StoryMapSection({ chapters, vibeSkin, coupleNames }: StoryMapSec
         {/* Map container or empty state */}
         {hasLocations ? (
           <div style={{
-            borderRadius: '16px',
+            borderRadius: 'var(--pl-radius-xl)',
             overflow: 'hidden',
             boxShadow: '0 8px 48px rgba(0,0,0,0.10), 0 2px 16px rgba(0,0,0,0.06)',
           }}>
@@ -94,7 +94,7 @@ export function StoryMapSection({ chapters, vibeSkin, coupleNames }: StoryMapSec
           </div>
         ) : (
           <div style={{
-            borderRadius: '16px',
+            borderRadius: 'var(--pl-radius-xl)',
             background: palette.card,
             border: `1px solid ${palette.accent2}33`,
             padding: '5rem 2rem',
@@ -135,7 +135,7 @@ export function StoryMapSection({ chapters, vibeSkin, coupleNames }: StoryMapSec
                   alignItems: 'center',
                   gap: '0.4rem',
                   padding: '0.3rem 0.9rem',
-                  borderRadius: '100px',
+                  borderRadius: 'var(--pl-radius-full)',
                   background: palette.card,
                   border: `1px solid ${palette.accent}33`,
                   fontSize: '0.7rem',

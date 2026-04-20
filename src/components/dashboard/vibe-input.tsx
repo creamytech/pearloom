@@ -57,7 +57,7 @@ function VenueAestheticChip({ loading, style, mood }: { loading: boolean; style:
     <div
       style={{
         display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-        padding: '0.35rem 0.75rem', borderRadius: '100px',
+        padding: '0.35rem 0.75rem', borderRadius: 'var(--pl-radius-full)',
         background: loading ? 'rgba(163,177,138,0.07)' : 'rgba(163,177,138,0.12)',
         border: '1px solid rgba(163,177,138,0.22)',
         fontSize: '0.72rem', color: 'var(--pl-olive)',
@@ -104,7 +104,7 @@ function AccordionSection({ title, icon, children, defaultOpen = true }: {
       background: 'rgba(255,255,255,0.5)',
       backdropFilter: 'blur(16px) saturate(1.2)',
       WebkitBackdropFilter: 'blur(16px) saturate(1.2)',
-      borderRadius: '16px',
+      borderRadius: 'var(--pl-radius-xl)',
       border: '1px solid rgba(255,255,255,0.6)',
       boxShadow: '0 2px 16px rgba(43,30,20,0.04), inset 0 1px 0 rgba(255,255,255,0.4)',
       overflow: 'hidden',
@@ -410,7 +410,7 @@ const DRESSCODE_OPTIONS = [
 ];
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '1.25rem', borderRadius: '12px',
+  width: '100%', padding: '1.25rem', borderRadius: 'var(--pl-radius-lg)',
   border: '2px solid var(--pl-divider, #E6DFD2)', background: 'rgba(255,255,255,0.45)',
   backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
   fontSize: '1.1rem', fontFamily: 'var(--pl-font-body)', color: 'var(--pl-ink)',
@@ -433,7 +433,7 @@ const getBlurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement
 
 function FormatMiniPreview({ id }: { id: string }) {
   const base: React.CSSProperties = {
-    width: '100%', height: '52px', borderRadius: '6px',
+    width: '100%', height: '52px', borderRadius: 'var(--pl-radius-sm)',
     background: 'rgba(0,0,0,0.06)', overflow: 'hidden',
     marginBottom: '8px', position: 'relative',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -832,7 +832,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
 
     const pillStyle = (active: boolean): React.CSSProperties => ({
       padding: '0.55rem 1.15rem',
-      borderRadius: '100px',
+      borderRadius: 'var(--pl-radius-full)',
       border: `1.5px solid ${active ? 'var(--pl-olive)' : 'rgba(0,0,0,0.12)'}`,
       background: active ? '#556B2F' : '#FAF7F2',
       color: active ? '#fff' : 'var(--pl-ink)',
@@ -1377,7 +1377,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
 
           {/* ── STORY / JUST BECAUSE ── */}
           {occasion === 'story' && (
-            <div style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', padding: '2rem', border: '1px solid rgba(255,255,255,0.5)', textAlign: 'center', color: 'var(--pl-muted)', lineHeight: 1.6, position: 'relative', overflow: 'hidden', boxShadow: '0 4px 20px rgba(43,30,20,0.06)' } as React.CSSProperties}>
+            <div style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 'var(--pl-radius-xl)', padding: '2rem', border: '1px solid rgba(255,255,255,0.5)', textAlign: 'center', color: 'var(--pl-muted)', lineHeight: 1.6, position: 'relative', overflow: 'hidden', boxShadow: '0 4px 20px rgba(43,30,20,0.06)' } as React.CSSProperties}>
               No extra details needed. We&apos;ll build entirely from your photos and vibe — just hit &ldquo;Build my site&rdquo; below.
             </div>
           )}
@@ -1395,10 +1395,10 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
             {inspoKeywords.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', paddingLeft: '2rem' }}>
                 {inspoKeywords.map(kw => (
-                  <span key={kw} style={{ padding: '0.2rem 0.65rem', borderRadius: '100px', background: 'var(--pl-olive)', color: '#fff', fontSize: '0.78rem', fontWeight: 600 }}>{kw}</span>
+                  <span key={kw} style={{ padding: '0.2rem 0.65rem', borderRadius: 'var(--pl-radius-full)', background: 'var(--pl-olive)', color: '#fff', fontSize: '0.78rem', fontWeight: 600 }}>{kw}</span>
                 ))}
                 {hasInspirationUrls && (
-                  <span style={{ padding: '0.2rem 0.65rem', borderRadius: '100px', background: 'rgba(0,0,0,0.07)', color: 'var(--pl-muted)', fontSize: '0.78rem' }}>
+                  <span style={{ padding: '0.2rem 0.65rem', borderRadius: 'var(--pl-radius-full)', background: 'rgba(0,0,0,0.07)', color: 'var(--pl-muted)', fontSize: '0.78rem' }}>
                     +{inspirationUrls.filter(u => u.trim().match(/^https?:\/\/.+/)).length} image{inspirationUrls.filter(u => u.trim().match(/^https?:\/\/.+/)).length !== 1 ? 's' : ''}
                   </span>
                 )}
@@ -1408,7 +1408,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
         )}
 
         {/* URL slug picker */}
-        <div style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', marginTop: '2rem', position: 'relative', overflow: 'hidden' } as React.CSSProperties}>
+        <div style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 'var(--pl-radius-xl)', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', marginTop: '2rem', position: 'relative', overflow: 'hidden' } as React.CSSProperties}>
           <div style={{ position: 'absolute', bottom: -24, right: -16, pointerEvents: 'none', zIndex: 0 }} aria-hidden="true">
             <PearBackground color="var(--pl-olive, #5C6B3F)" opacity={0.055} size={110} />
           </div>
@@ -1417,7 +1417,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
           <p style={{ fontSize: '0.85rem', color: 'var(--pl-muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
             This is where your site will live. You can always change it later.
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid rgba(255,255,255,0.4)', borderRadius: '12px', overflow: 'hidden', transition: 'border-color var(--pl-dur-fast)', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } as React.CSSProperties}
+          <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid rgba(255,255,255,0.4)', borderRadius: 'var(--pl-radius-lg)', overflow: 'hidden', transition: 'border-color var(--pl-dur-fast)', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } as React.CSSProperties}
             onFocus={() => {}} onBlur={() => {}}>
             <div style={{ padding: '0.85rem 0.4rem 0.85rem 1rem', background: 'rgba(0,0,0,0.03)', color: 'var(--pl-muted)', fontWeight: 500, borderRight: '1px solid rgba(0,0,0,0.08)', whiteSpace: 'nowrap', fontSize: '0.9rem' }}>
               pearloom.com/{occasion || 'wedding'}/
@@ -1517,7 +1517,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
         background: 'rgba(255,255,255,0.45)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        borderRadius: '16px',
+        borderRadius: 'var(--pl-radius-xl)',
         border: '1px solid rgba(255,255,255,0.5)',
         boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
         padding: '1.1rem 1.25rem',
@@ -1604,7 +1604,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <span style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-                    padding: '0.3rem 0.75rem', borderRadius: '100px',
+                    padding: '0.3rem 0.75rem', borderRadius: 'var(--pl-radius-full)',
                     background: 'rgba(163,177,138,0.1)', border: '1px solid rgba(163,177,138,0.2)',
                     fontSize: '0.8rem', fontWeight: 600, color: 'var(--pl-ink)',
                   }}>
@@ -1619,7 +1619,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                     <span key={kw} style={{
                       fontSize: '0.68rem', color: 'var(--pl-muted)', fontWeight: 500,
                       background: 'rgba(0,0,0,0.04)', padding: '0.2rem 0.55rem',
-                      borderRadius: '100px', border: '1px solid rgba(0,0,0,0.07)',
+                      borderRadius: 'var(--pl-radius-full)', border: '1px solid rgba(0,0,0,0.07)',
                     }}>
                       {kw}
                     </span>
@@ -1802,14 +1802,14 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
           </span>
         </div>
         {/* Progress bar */}
-        <div style={{ height: '3px', background: 'var(--pl-divider)', borderRadius: 100, overflow: 'hidden' }}>
+        <div style={{ height: '3px', background: 'var(--pl-divider)', borderRadius: 'var(--pl-radius-full)', overflow: 'hidden' }}>
           <motion.div
             animate={{ width: `${Math.round((step / (totalSteps + 1)) * 100)}%` }}
             transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
             style={{
               height: '100%',
               background: 'linear-gradient(90deg, var(--pl-olive) 0%, var(--pl-olive-hover) 100%)',
-              borderRadius: 100,
+              borderRadius: 'var(--pl-radius-full)',
               boxShadow: '0 0 8px rgba(163,177,138,0.5)',
             }}
           />
@@ -1949,7 +1949,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                     transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                     style={{
                       display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem',
-                      padding: '1.75rem 1.25rem', borderRadius: '16px', textAlign: 'center',
+                      padding: '1.75rem 1.25rem', borderRadius: 'var(--pl-radius-xl)', textAlign: 'center',
                       border: `2.5px solid ${active ? accent : 'rgba(0,0,0,0.06)'}`,
                       background: active ? `${accent}12` : '#fff',
                       cursor: 'pointer', transition: 'background 0.2s, border-color 0.2s',
@@ -1969,7 +1969,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                     )}
                     <span style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      width: '48px', height: '48px', borderRadius: '14px',
+                      width: '48px', height: '48px', borderRadius: 'var(--pl-radius-xl)',
                       background: active ? `${accent}20` : 'rgba(163,177,138,0.08)',
                       transition: 'all var(--pl-dur-fast)',
                     }}>
@@ -2109,7 +2109,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                     {inspoKeywords.map(kw => (
                       <span key={kw} style={{
                         display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                        padding: '0.35rem 0.85rem', borderRadius: '100px',
+                        padding: '0.35rem 0.85rem', borderRadius: 'var(--pl-radius-full)',
                         background: 'var(--pl-olive)', color: '#fff',
                         fontSize: '0.88rem', fontWeight: 600,
                       }}>
@@ -2173,7 +2173,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                       onClick={() => setInspoKeywords(prev => [...prev, s.label])}
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-                        padding: '0.35rem 0.85rem', borderRadius: '100px',
+                        padding: '0.35rem 0.85rem', borderRadius: 'var(--pl-radius-full)',
                         background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)',
                         color: 'var(--pl-ink)', fontSize: '0.84rem', cursor: 'pointer',
                         transition: 'all var(--pl-dur-instant)',
@@ -2267,7 +2267,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                 onClick={() => setPalette('custom')}
                 style={{
                   width: '100%', padding: '1rem 1.25rem', marginBottom: '1rem',
-                  borderRadius: '12px', border: '2px solid rgba(163,177,138,0.3)',
+                  borderRadius: 'var(--pl-radius-lg)', border: '2px solid rgba(163,177,138,0.3)',
                   background: 'linear-gradient(135deg, rgba(163,177,138,0.08), rgba(196,169,106,0.06))',
                   cursor: 'pointer', textAlign: 'left',
                   display: 'flex', alignItems: 'center', gap: '0.75rem',
@@ -2278,7 +2278,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                   <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--pl-ink)' }}>Let AI pick colors for you</div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--pl-muted)', marginTop: '0.15rem' }}>Recommended — matches your vibe perfectly</div>
                 </div>
-                <div style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 700, color: 'var(--pl-olive)', padding: '0.25rem 0.6rem', borderRadius: '100px', background: 'rgba(163,177,138,0.12)' }}>
+                <div style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 700, color: 'var(--pl-olive)', padding: '0.25rem 0.6rem', borderRadius: 'var(--pl-radius-full)', background: 'rgba(163,177,138,0.12)' }}>
                   Recommended
                 </div>
               </motion.button>
@@ -2352,7 +2352,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                             style={{
                               width: '20px',
                               height: '20px',
-                              borderRadius: '4px',
+                              borderRadius: 'var(--pl-radius-xs)',
                               background: color,
                               border: '1px solid rgba(0,0,0,0.08)',
                               flexShrink: 0,
@@ -2404,40 +2404,40 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                       {fmt.preview === 'cascade' && (
                         <>
                           <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
-                            <div style={{ width: '28px', height: '14px', borderRadius: '2px', background: active ? 'var(--pl-olive)' : 'var(--pl-divider, #E6DFD2)', flexShrink: 0 }} />
+                            <div style={{ width: '28px', height: '14px', borderRadius: 'var(--pl-radius-xs)', background: active ? 'var(--pl-olive)' : 'var(--pl-divider, #E6DFD2)', flexShrink: 0 }} />
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', justifyContent: 'center' }}>
-                              <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#bbb' }} />
-                              <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#bbb', width: '70%' }} />
+                              <div style={{ height: '2px', borderRadius: 'var(--pl-radius-xs)', background: active ? '#8FA876' : '#bbb' }} />
+                              <div style={{ height: '2px', borderRadius: 'var(--pl-radius-xs)', background: active ? '#8FA876' : '#bbb', width: '70%' }} />
                             </div>
                           </div>
                           <div style={{ display: 'flex', gap: '4px' }}>
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', justifyContent: 'center' }}>
-                              <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#bbb' }} />
-                              <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#bbb', width: '60%' }} />
+                              <div style={{ height: '2px', borderRadius: 'var(--pl-radius-xs)', background: active ? '#8FA876' : '#bbb' }} />
+                              <div style={{ height: '2px', borderRadius: 'var(--pl-radius-xs)', background: active ? '#8FA876' : '#bbb', width: '60%' }} />
                             </div>
-                            <div style={{ width: '28px', height: '14px', borderRadius: '2px', background: active ? 'var(--pl-olive)' : 'var(--pl-divider, #E6DFD2)', flexShrink: 0 }} />
+                            <div style={{ width: '28px', height: '14px', borderRadius: 'var(--pl-radius-xs)', background: active ? 'var(--pl-olive)' : 'var(--pl-divider, #E6DFD2)', flexShrink: 0 }} />
                           </div>
                         </>
                       )}
                       {fmt.preview === 'filmstrip' && (
                         <>
                           <div style={{ display: 'flex', gap: '2px', marginBottom: '2px' }}>
-                            {[...Array(6)].map((_, i) => <div key={i} style={{ width: '7px', height: '3px', borderRadius: '1px', background: active ? 'rgba(163,177,138,0.5)' : 'rgba(0,0,0,0.15)' }} />)}
+                            {[...Array(6)].map((_, i) => <div key={i} style={{ width: '7px', height: '3px', borderRadius: 'var(--pl-radius-xs)', background: active ? 'rgba(163,177,138,0.5)' : 'rgba(0,0,0,0.15)' }} />)}
                           </div>
                           <div style={{ display: 'flex', gap: '2px', marginBottom: '2px' }}>
-                            {[...Array(3)].map((_, i) => <div key={i} style={{ width: '18px', height: '22px', borderRadius: '1px', background: active ? `rgba(163,177,138,${0.5 + i * 0.15})` : `rgba(0,0,0,${0.1 + i * 0.05})` }} />)}
+                            {[...Array(3)].map((_, i) => <div key={i} style={{ width: '18px', height: '22px', borderRadius: 'var(--pl-radius-xs)', background: active ? `rgba(163,177,138,${0.5 + i * 0.15})` : `rgba(0,0,0,${0.1 + i * 0.05})` }} />)}
                           </div>
                           <div style={{ display: 'flex', gap: '2px' }}>
-                            {[...Array(6)].map((_, i) => <div key={i} style={{ width: '7px', height: '3px', borderRadius: '1px', background: active ? 'rgba(163,177,138,0.5)' : 'rgba(0,0,0,0.15)' }} />)}
+                            {[...Array(6)].map((_, i) => <div key={i} style={{ width: '7px', height: '3px', borderRadius: 'var(--pl-radius-xs)', background: active ? 'rgba(163,177,138,0.5)' : 'rgba(0,0,0,0.15)' }} />)}
                           </div>
                         </>
                       )}
                       {fmt.preview === 'scrapbook' && (
                         <>
-                          <div style={{ position: 'absolute', left: '6px', top: '5px', width: '28px', height: '32px', background: active ? '#C4D4A8' : '#ddd', borderRadius: '1px', transform: 'rotate(-5deg)', boxShadow: '1px 2px 4px rgba(0,0,0,0.15)' }}>
+                          <div style={{ position: 'absolute', left: '6px', top: '5px', width: '28px', height: '32px', background: active ? '#C4D4A8' : '#ddd', borderRadius: 'var(--pl-radius-xs)', transform: 'rotate(-5deg)', boxShadow: '1px 2px 4px rgba(0,0,0,0.15)' }}>
                             <div style={{ width: '100%', height: '22px', background: active ? 'var(--pl-olive)' : 'var(--pl-divider, #E6DFD2)', borderRadius: '1px 1px 0 0' }} />
                           </div>
-                          <div style={{ position: 'absolute', right: '6px', top: '8px', width: '26px', height: '30px', background: active ? '#D6C6A8' : '#e8e8e8', borderRadius: '1px', transform: 'rotate(4deg)', boxShadow: '1px 2px 4px rgba(0,0,0,0.12)' }}>
+                          <div style={{ position: 'absolute', right: '6px', top: '8px', width: '26px', height: '30px', background: active ? '#D6C6A8' : '#e8e8e8', borderRadius: 'var(--pl-radius-xs)', transform: 'rotate(4deg)', boxShadow: '1px 2px 4px rgba(0,0,0,0.12)' }}>
                             <div style={{ width: '100%', height: '20px', background: active ? '#C4B490' : '#d0d0d0', borderRadius: '1px 1px 0 0' }} />
                           </div>
                         </>
@@ -2445,12 +2445,12 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                       {fmt.preview === 'magazine' && (
                         <>
                           <div style={{ display: 'flex', gap: '4px', height: '40px' }}>
-                            <div style={{ width: '36px', height: '100%', background: active ? 'var(--pl-olive)' : 'var(--pl-divider, #E6DFD2)', borderRadius: '2px' }} />
+                            <div style={{ width: '36px', height: '100%', background: active ? 'var(--pl-olive)' : 'var(--pl-divider, #E6DFD2)', borderRadius: 'var(--pl-radius-xs)' }} />
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '3px', justifyContent: 'center' }}>
-                              <div style={{ height: '4px', borderRadius: 1, background: active ? 'var(--pl-olive-deep)' : 'var(--pl-muted)' }} />
-                              <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#ccc' }} />
-                              <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : 'var(--pl-divider, #E6DFD2)', width: '80%' }} />
-                              <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : 'var(--pl-divider, #E6DFD2)', width: '60%' }} />
+                              <div style={{ height: '4px', borderRadius: 'var(--pl-radius-xs)', background: active ? 'var(--pl-olive-deep)' : 'var(--pl-muted)' }} />
+                              <div style={{ height: '2px', borderRadius: 'var(--pl-radius-xs)', background: active ? '#8FA876' : '#ccc' }} />
+                              <div style={{ height: '2px', borderRadius: 'var(--pl-radius-xs)', background: active ? '#8FA876' : 'var(--pl-divider, #E6DFD2)', width: '80%' }} />
+                              <div style={{ height: '2px', borderRadius: 'var(--pl-radius-xs)', background: active ? '#8FA876' : 'var(--pl-divider, #E6DFD2)', width: '60%' }} />
                             </div>
                           </div>
                         </>
@@ -2458,7 +2458,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                       {fmt.preview === 'chapters' && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', padding: '2px' }}>
                           {[{ w: '100%', open: true }, { w: '80%', open: false }, { w: '70%', open: false }].map((c, i) => (
-                            <div key={i} style={{ width: c.w, height: c.open ? '14px' : '8px', borderRadius: '2px', background: c.open ? (active ? 'var(--pl-olive)' : '#bbb') : (active ? 'rgba(163,177,138,0.35)' : 'rgba(0,0,0,0.07)'), transition: 'all var(--pl-dur-fast)' }} />
+                            <div key={i} style={{ width: c.w, height: c.open ? '14px' : '8px', borderRadius: 'var(--pl-radius-xs)', background: c.open ? (active ? 'var(--pl-olive)' : '#bbb') : (active ? 'rgba(163,177,138,0.35)' : 'rgba(0,0,0,0.07)'), transition: 'all var(--pl-dur-fast)' }} />
                           ))}
                         </div>
                       )}
@@ -2481,7 +2481,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <span style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.05rem', fontWeight: 600, color: 'var(--pl-ink)' }}>{fmt.name}</span>
                         {active && (
-                          <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--pl-olive)', background: 'rgba(163,177,138,0.18)', padding: '0.15rem 0.45rem', borderRadius: '100px' }}>Selected</span>
+                          <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--pl-olive)', background: 'rgba(163,177,138,0.18)', padding: '0.15rem 0.45rem', borderRadius: 'var(--pl-radius-full)' }}>Selected</span>
                         )}
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--pl-olive)', fontWeight: 600, marginTop: '0.1rem', letterSpacing: '0.02em' }}>{fmt.tagline}</div>
@@ -2536,7 +2536,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                   onClick={() => { if (!meetCute.trim()) setMeetCute(chip.text); }}
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-                    padding: '0.45rem 0.85rem', borderRadius: '100px',
+                    padding: '0.45rem 0.85rem', borderRadius: 'var(--pl-radius-full)',
                     border: '1.5px solid rgba(163,177,138,0.25)',
                     background: 'rgba(163,177,138,0.06)',
                     color: 'var(--pl-ink)', fontSize: '0.85rem', fontWeight: 500,

@@ -121,7 +121,7 @@ export function PhotoReposition({
         width,
         height,
         overflow: 'hidden',
-        borderRadius: '8px',
+        borderRadius: 'var(--pl-radius-md)',
         cursor: repositionMode ? (isDragging ? 'grabbing' : 'crosshair') : 'default',
         userSelect: 'none',
       }}
@@ -196,7 +196,7 @@ export function PhotoReposition({
           style={{
             position: 'absolute', bottom: '6px', right: '6px',
             display: 'flex', alignItems: 'center', gap: '4px',
-            padding: '4px 8px', borderRadius: '6px',
+            padding: '4px 8px', borderRadius: 'var(--pl-radius-sm)',
             background: 'rgba(0,0,0,0.08)', border: '1px solid #71717A',
             color: '#fff', cursor: 'pointer', fontSize: '0.6rem', fontWeight: 700,
             backdropFilter: 'blur(6px)',

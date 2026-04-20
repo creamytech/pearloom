@@ -77,7 +77,7 @@ export default function ErrorPage({
         onClick={() => unstable_retry()}
         style={{
           padding: '13px 28px',
-          borderRadius: 2,
+          borderRadius: 'var(--pl-radius-xs)',
           background: 'var(--pl-ink, #0E0D0B)',
           color: 'var(--pl-cream, #FAF7F2)',
           border: 'none',

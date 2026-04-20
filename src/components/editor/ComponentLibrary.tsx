@@ -177,26 +177,26 @@ function BlockPreview({ type, config }: { type: string; config?: Record<string, 
       case 'hero':
         return (
           <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px' }}>
-            <div style={{ width: '60%', height: '3px', borderRadius: '2px', background: 'rgba(24,24,27,0.2)' }} />
-            <div style={{ width: '40%', height: '2px', borderRadius: '2px', background: 'rgba(24,24,27,0.1)' }} />
-            <div style={{ width: '20%', height: '2px', borderRadius: '2px', background: 'rgba(24,24,27,0.08)', marginTop: '2px' }} />
+            <div style={{ width: '60%', height: '3px', borderRadius: 'var(--pl-radius-xs)', background: 'rgba(24,24,27,0.2)' }} />
+            <div style={{ width: '40%', height: '2px', borderRadius: 'var(--pl-radius-xs)', background: 'rgba(24,24,27,0.1)' }} />
+            <div style={{ width: '20%', height: '2px', borderRadius: 'var(--pl-radius-xs)', background: 'rgba(24,24,27,0.08)', marginTop: '2px' }} />
           </div>
         );
       case 'gallery': case 'photos': case 'photoWall':
         return (
           <div style={{ width: '100%', height: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '2px', padding: '4px' }}>
             {[...Array(6)].map((_, i) => (
-              <div key={i} style={{ borderRadius: '2px', background: `rgba(163,177,138,${0.15 + (i % 3) * 0.08})` }} />
+              <div key={i} style={{ borderRadius: 'var(--pl-radius-xs)', background: `rgba(163,177,138,${0.15 + (i % 3) * 0.08})` }} />
             ))}
           </div>
         );
       case 'story': case 'text':
         return (
           <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', gap: '2px', padding: '6px 8px', justifyContent: 'center' }}>
-            <div style={{ width: '70%', height: '2px', borderRadius: '1px', background: 'rgba(24,24,27,0.15)' }} />
-            <div style={{ width: '100%', height: '2px', borderRadius: '1px', background: 'rgba(24,24,27,0.1)' }} />
-            <div style={{ width: '85%', height: '2px', borderRadius: '1px', background: 'rgba(24,24,27,0.1)' }} />
-            <div style={{ width: '60%', height: '2px', borderRadius: '1px', background: 'rgba(24,24,27,0.08)' }} />
+            <div style={{ width: '70%', height: '2px', borderRadius: 'var(--pl-radius-xs)', background: 'rgba(24,24,27,0.15)' }} />
+            <div style={{ width: '100%', height: '2px', borderRadius: 'var(--pl-radius-xs)', background: 'rgba(24,24,27,0.1)' }} />
+            <div style={{ width: '85%', height: '2px', borderRadius: 'var(--pl-radius-xs)', background: 'rgba(24,24,27,0.1)' }} />
+            <div style={{ width: '60%', height: '2px', borderRadius: 'var(--pl-radius-xs)', background: 'rgba(24,24,27,0.08)' }} />
           </div>
         );
       case 'faq':
@@ -204,8 +204,8 @@ function BlockPreview({ type, config }: { type: string; config?: Record<string, 
           <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', gap: '3px', padding: '5px 6px', justifyContent: 'center' }}>
             {[...Array(3)].map((_, i) => (
               <div key={i} style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
-                <div style={{ width: '4px', height: '4px', borderRadius: '1px', background: 'rgba(24,24,27,0.2)', flexShrink: 0 }} />
-                <div style={{ flex: 1, height: '2px', borderRadius: '1px', background: `rgba(163,177,138,${0.25 - i * 0.05})` }} />
+                <div style={{ width: '4px', height: '4px', borderRadius: 'var(--pl-radius-xs)', background: 'rgba(24,24,27,0.2)', flexShrink: 0 }} />
+                <div style={{ flex: 1, height: '2px', borderRadius: 'var(--pl-radius-xs)', background: `rgba(163,177,138,${0.25 - i * 0.05})` }} />
               </div>
             ))}
           </div>
@@ -213,9 +213,9 @@ function BlockPreview({ type, config }: { type: string; config?: Record<string, 
       case 'rsvp':
         return (
           <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', gap: '3px', padding: '5px 8px', justifyContent: 'center' }}>
-            <div style={{ width: '50%', height: '2px', borderRadius: '1px', background: 'rgba(24,24,27,0.15)', margin: '0 auto' }} />
-            <div style={{ width: '80%', height: '6px', borderRadius: '3px', border: '1px solid rgba(24,24,27,0.1)', margin: '1px auto 0' }} />
-            <div style={{ width: '40%', height: '5px', borderRadius: '3px', background: 'rgba(24,24,27,0.15)', margin: '1px auto 0' }} />
+            <div style={{ width: '50%', height: '2px', borderRadius: 'var(--pl-radius-xs)', background: 'rgba(24,24,27,0.15)', margin: '0 auto' }} />
+            <div style={{ width: '80%', height: '6px', borderRadius: 'var(--pl-radius-xs)', border: '1px solid rgba(24,24,27,0.1)', margin: '1px auto 0' }} />
+            <div style={{ width: '40%', height: '5px', borderRadius: 'var(--pl-radius-xs)', background: 'rgba(24,24,27,0.15)', margin: '1px auto 0' }} />
           </div>
         );
       case 'event': case 'countdown':
@@ -392,7 +392,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
         <div style={{ padding: '0 12px 8px' }}>
           <div style={{
             display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '6px 10px', borderRadius: '10px',
+            padding: '6px 10px', borderRadius: 'var(--pl-radius-lg)',
             background: 'var(--pl-white-20)',
             border: '1px solid rgba(24,24,27,0.08)',
             boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
@@ -461,7 +461,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
             style={{
               background: showBuiltIns ? 'rgba(24,24,27,0.06)' : 'rgba(24,24,27,0.08)',
               border: '1px solid rgba(24,24,27,0.1)',
-              borderRadius: '6px', padding: '3px 8px',
+              borderRadius: 'var(--pl-radius-sm)', padding: '3px 8px',
               fontSize: 'var(--pl-text-2xs)', fontWeight: 700,
               color: showBuiltIns ? '#18181B' : '#71717A',
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
@@ -479,7 +479,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
             padding: '24px 16px', textAlign: 'center',
           }}>
             <div style={{
-              width: '48px', height: '48px', borderRadius: '8px',
+              width: '48px', height: '48px', borderRadius: 'var(--pl-radius-md)',
               background: 'var(--pl-white-20)',
               border: '1px solid rgba(24,24,27,0.08)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -528,7 +528,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
                   exit={{ opacity: 0, scale: 0.93, height: 0 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 28 }}
                   style={{
-                    borderRadius: '8px',
+                    borderRadius: 'var(--pl-radius-md)',
                     background: 'var(--pl-white-20)',
                     border: isBuiltIn
                       ? '1px solid rgba(24,24,27,0.1)'
@@ -547,7 +547,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
                   {isBuiltIn && (
                     <div style={{
                       position: 'absolute', top: '4px', right: '4px',
-                      padding: '1px 5px', borderRadius: '4px',
+                      padding: '1px 5px', borderRadius: 'var(--pl-radius-xs)',
                       background: '#18181B',
                       fontSize: '0.5rem', fontWeight: 800,
                       color: 'white', letterSpacing: '0.05em',
@@ -611,7 +611,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
                         fontSize: '0.52rem', fontWeight: 700,
                         color: catMeta.color, letterSpacing: '0.06em',
                         textTransform: 'uppercase',
-                        padding: '1px 4px', borderRadius: '3px',
+                        padding: '1px 4px', borderRadius: 'var(--pl-radius-xs)',
                         background: `${catMeta.color}15`,
                       }}>
                         {typeLabel}
@@ -744,7 +744,7 @@ function CategoryChip({ label, count, active, color, onClick }: {
       whileTap={{ scale: 0.95 }}
       style={{
         padding: '3px 8px',
-        borderRadius: '8px',
+        borderRadius: 'var(--pl-radius-md)',
         border: `1px solid ${active ? color : 'rgba(24,24,27,0.08)'}`,
         background: active ? `${color}18` : 'rgba(24,24,27,0.08)',
         color: active ? color : '#71717A',
@@ -763,7 +763,7 @@ function CategoryChip({ label, count, active, color, onClick }: {
           fontSize: '0.5rem',
           background: active ? `${color}25` : 'rgba(24,24,27,0.08)',
           padding: '0px 4px',
-          borderRadius: '4px',
+          borderRadius: 'var(--pl-radius-xs)',
           fontWeight: 800,
         }}>
           {count}

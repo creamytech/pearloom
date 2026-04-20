@@ -122,7 +122,7 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
         className="relative z-10 w-full max-w-[960px] max-h-[88vh] flex flex-col"
         style={{
-          borderRadius: 16,
+          borderRadius: 'var(--pl-radius-xl)',
           background: 'var(--pl-cream-card)',
           border: '1px solid var(--pl-divider)',
           boxShadow: '0 24px 64px color-mix(in oklab, var(--pl-ink) 20%, transparent)',
@@ -185,7 +185,7 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
               style={{
                 width: 36,
                 height: 36,
-                borderRadius: 999,
+                borderRadius: 'var(--pl-radius-full)',
                 border: '1px solid var(--pl-divider)',
                 background: 'var(--pl-cream-card)',
                 cursor: 'pointer',
@@ -218,7 +218,7 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
                 alignItems: 'center',
                 gap: 8,
                 padding: '8px 12px',
-                borderRadius: 999,
+                borderRadius: 'var(--pl-radius-full)',
                 border: '1px solid var(--pl-divider)',
                 background: 'var(--pl-cream-card)',
               }}
@@ -246,7 +246,7 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
               style={{
                 display: 'inline-flex',
                 padding: 3,
-                borderRadius: 999,
+                borderRadius: 'var(--pl-radius-full)',
                 border: '1px solid var(--pl-divider)',
                 background: 'var(--pl-cream-card)',
               }}
@@ -261,7 +261,7 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
                     onClick={() => { setMode(m); setSelected(null); }}
                     style={{
                       padding: '6px 14px',
-                      borderRadius: 999,
+                      borderRadius: 'var(--pl-radius-full)',
                       border: 'none',
                       fontSize: '0.7rem',
                       fontWeight: 700,
@@ -287,7 +287,7 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
                     onClick={() => { setFilter(f.id); setSearch(''); }}
                     style={{
                       padding: '7px 14px',
-                      borderRadius: 999,
+                      borderRadius: 'var(--pl-radius-full)',
                       fontSize: '0.7rem',
                       fontWeight: 700,
                       letterSpacing: '0.08em',
@@ -342,7 +342,7 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
                       onMouseLeave={() => setHoveredId(null)}
                       className="text-left"
                       style={{
-                        borderRadius: 14,
+                        borderRadius: 'var(--pl-radius-xl)',
                         overflow: 'hidden',
                         border: isSelected
                           ? '1.5px solid var(--pl-olive)'
@@ -406,7 +406,7 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
                             <span key={tag} style={{
                               fontSize: '0.55rem', fontWeight: 600,
                               letterSpacing: '0.12em', textTransform: 'uppercase',
-                              padding: '2px 8px', borderRadius: 999,
+                              padding: '2px 8px', borderRadius: 'var(--pl-radius-full)',
                               background: 'color-mix(in oklab, var(--pl-ink) 6%, transparent)',
                               color: 'var(--pl-ink-soft)',
                               fontFamily: 'var(--pl-font-mono)',
@@ -450,7 +450,7 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
                     onMouseLeave={() => setHoveredId(null)}
                     className="text-left"
                     style={{
-                      borderRadius: 14,
+                      borderRadius: 'var(--pl-radius-xl)',
                       overflow: 'hidden',
                       border: isSelected
                         ? '1.5px solid var(--pl-olive)'
@@ -516,7 +516,7 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
                             alignItems: 'center',
                             gap: 4,
                             padding: '3px 9px',
-                            borderRadius: 999,
+                            borderRadius: 'var(--pl-radius-full)',
                             background: 'color-mix(in oklab, var(--pl-cream-card) 92%, transparent)',
                             border: '1px solid var(--pl-divider)',
                             fontSize: '0.55rem',
@@ -577,7 +577,7 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
                               letterSpacing: '0.12em',
                               textTransform: 'uppercase',
                               padding: '2px 8px',
-                              borderRadius: 999,
+                              borderRadius: 'var(--pl-radius-full)',
                               background: 'color-mix(in oklab, var(--pl-ink) 6%, transparent)',
                               color: 'var(--pl-ink-soft)',
                               fontFamily: 'var(--pl-font-mono)',

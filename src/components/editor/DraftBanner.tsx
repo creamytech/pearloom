@@ -19,7 +19,7 @@ export function DraftBanner({ onRestore, onDismiss }: DraftBannerProps) {
       <button
         onClick={onRestore}
         style={{
-          background: '#18181B', color: '#fff', border: 'none', borderRadius: '4px',
+          background: '#18181B', color: '#fff', border: 'none', borderRadius: 'var(--pl-radius-xs)',
           padding: '3px 10px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer',
         }}
       >

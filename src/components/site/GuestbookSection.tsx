@@ -281,7 +281,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
                 background: 'var(--pl-plum, #6D597A)',
                 color: '#fff',
                 border: 'none',
-                borderRadius: '100px',
+                borderRadius: 'var(--pl-radius-full)',
                 padding: '0.9rem 2.5rem',
                 fontSize: '0.95rem',
                 fontWeight: 700,
@@ -470,7 +470,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
                 onClick={() => { setShowForm(false); setSubmitError(null); }}
                 style={{
                   padding: '0.65rem 1.25rem',
-                  borderRadius: '100px',
+                  borderRadius: 'var(--pl-radius-full)',
                   border: '1px solid var(--pl-divider, #E6DFD2)',
                   background: 'transparent',
                   color: 'var(--pl-muted, #9A9488)',
@@ -487,7 +487,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
                 disabled={submitting || !name.trim() || !message.trim()}
                 style={{
                   padding: '0.65rem 1.75rem',
-                  borderRadius: '100px',
+                  borderRadius: 'var(--pl-radius-full)',
                   border: 'none',
                   background: 'var(--pl-plum, #6D597A)',
                   color: '#fff',

@@ -226,9 +226,9 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
           borderLeft: '1px solid rgba(184,147,90,0.22)',
           borderRight: '1px solid rgba(184,147,90,0.22)',
           borderBottom: '1px solid rgba(184,147,90,0.22)',
-          borderRadius: 2,
+          borderRadius: 'var(--pl-radius-xs)',
           boxShadow: '0 20px 48px rgba(28,22,10,0.24), 0 2px 8px rgba(28,22,10,0.06)',
-          zIndex: 9999,
+          zIndex: 'var(--z-max)',
           padding: '10px 10px 8px',
           fontFamily: 'var(--pl-font-body)',
         }}
@@ -276,7 +276,7 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
                 color: 'rgba(184,147,90,0.95)',
                 padding: '3px 8px',
                 border: '1px solid rgba(184,147,90,0.35)',
-                borderRadius: 2,
+                borderRadius: 'var(--pl-radius-xs)',
                 background: 'rgba(255,252,245,0.7)',
                 textTransform: 'uppercase',
               }}
@@ -296,7 +296,7 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
               fontFamily: 'var(--pl-font-display)',
               fontStyle: 'italic',
               border: '1px dashed rgba(184,147,90,0.45)',
-              borderRadius: 2,
+              borderRadius: 'var(--pl-radius-xs)',
               background: 'rgba(255,252,245,0.45)',
             }}
           >
@@ -332,7 +332,7 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
                   gap: 10,
                   width: '100%',
                   padding: '9px 10px',
-                  borderRadius: 2,
+                  borderRadius: 'var(--pl-radius-xs)',
                   border: 'none',
                   background: selected
                     ? 'rgba(184,147,90,0.12)'
@@ -365,7 +365,7 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
                     justifyContent: 'center',
                     width: 28,
                     height: 28,
-                    borderRadius: 2,
+                    borderRadius: 'var(--pl-radius-xs)',
                     background: selected
                       ? 'rgba(184,147,90,0.20)'
                       : 'rgba(255,252,245,0.65)',

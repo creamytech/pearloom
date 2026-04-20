@@ -126,8 +126,8 @@ function CompletionDot({ filled, tooltip }: { filled: boolean; tooltip: string }
           position: 'absolute', bottom: '130%', left: '50%', transform: 'translateX(-50%)',
           background: 'rgba(20,18,15,0.97)', color: '#18181B',
           fontSize: '0.6rem', fontWeight: 600, whiteSpace: 'nowrap',
-          padding: '3px 6px', borderRadius: '4px', pointerEvents: 'none',
-          zIndex: 100, border: '1px solid rgba(0,0,0,0.06)',
+          padding: '3px 6px', borderRadius: 'var(--pl-radius-xs)', pointerEvents: 'none',
+          zIndex: 'var(--z-sticky)', border: '1px solid rgba(0,0,0,0.06)',
         }}>
           {tooltip}
         </div>
@@ -159,7 +159,7 @@ function LayoutSwitcher({ current, onChange }: { current: string; onChange: (l: 
         title={`Layout: ${active.label}`}
         style={{
           display: 'flex', alignItems: 'center', gap: '4px',
-          padding: '4px 7px', height: '26px', borderRadius: '6px',
+          padding: '4px 7px', height: '26px', borderRadius: 'var(--pl-radius-sm)',
           border: `1px solid ${open ? '#A1A1AA' : 'rgba(0,0,0,0.07)'}`,
           background: open ? '#F4F4F5' : '#F4F4F5',
           color: open ? '#18181B' : '#3F3F46',
@@ -178,7 +178,7 @@ function LayoutSwitcher({ current, onChange }: { current: string; onChange: (l: 
         <div style={{
           position: 'absolute', bottom: 'calc(100% + 6px)', left: 0,
           background: 'rgba(18,16,13,0.98)', border: '1px solid rgba(0,0,0,0.06)',
-          borderRadius: '10px', padding: '6px',
+          borderRadius: 'var(--pl-radius-lg)', padding: '6px',
           display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px',
           zIndex: 300, boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
         }}>
@@ -193,7 +193,7 @@ function LayoutSwitcher({ current, onChange }: { current: string; onChange: (l: 
                 onMouseLeave={() => setHovered(null)}
                 style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
-                  padding: '8px 6px', borderRadius: '6px', border: 'none', cursor: 'pointer',
+                  padding: '8px 6px', borderRadius: 'var(--pl-radius-sm)', border: 'none', cursor: 'pointer',
                   background: isActive ? 'rgba(24,24,27,0.08)' : isHov ? 'rgba(0,0,0,0.06)' : 'transparent',
                   color: isActive ? '#18181B' : isHov ? '#18181B' : '#3F3F46',
                   transition: 'all var(--pl-dur-instant)',
@@ -345,7 +345,7 @@ export function ChapterActions({
           onClick={() => !rewriting && setShowToneMenu(v => !v)}
           style={{
             display: 'flex', alignItems: 'center', gap: '4px',
-            padding: '4px 8px', borderRadius: '6px',
+            padding: '4px 8px', borderRadius: 'var(--pl-radius-sm)',
             border: '1px solid #E4E4E7',
             background: rewriting ? 'rgba(24,24,27,0.04)' : 'rgba(24,24,27,0.06)',
             color: rewriting ? '#71717A' : '#18181B',
@@ -368,7 +368,7 @@ export function ChapterActions({
           <div style={{
             position: 'absolute', top: '100%', left: 0, marginTop: '4px',
             background: 'rgba(22,20,17,0.98)', border: '1px solid rgba(0,0,0,0.06)',
-            borderRadius: '8px', padding: '4px', minWidth: '148px',
+            borderRadius: 'var(--pl-radius-md)', padding: '4px', minWidth: '148px',
             zIndex: 200, boxShadow: '0 8px 32px rgba(0,0,0,0.06)',
           }}>
             {TONE_OPTS.map(({ value, label, desc }) => (
@@ -377,7 +377,7 @@ export function ChapterActions({
                 onClick={() => handleRewrite(value)}
                 style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
-                  width: '100%', padding: '6px 8px', borderRadius: '6px',
+                  width: '100%', padding: '6px 8px', borderRadius: 'var(--pl-radius-sm)',
                   border: 'none', background: 'transparent', cursor: 'pointer',
                   textAlign: 'left', transition: 'background 0.1s',
                 }}
@@ -399,7 +399,7 @@ export function ChapterActions({
           onClick={handleSortPhotos}
           style={{
             display: 'flex', alignItems: 'center', gap: '4px',
-            padding: '4px 8px', borderRadius: '6px',
+            padding: '4px 8px', borderRadius: 'var(--pl-radius-sm)',
             border: '1px solid rgba(0,0,0,0.06)',
             background: sortingPhotos ? 'rgba(24,24,27,0.02)' : '#F4F4F5',
             color: sortingPhotos ? '#71717A' : 'rgba(255,255,255,0.45)',

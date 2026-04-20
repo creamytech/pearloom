@@ -217,7 +217,7 @@ export function ThemedLoader({
         alignItems: 'center',
         justifyContent: 'center',
         background: backgroundColor,
-        zIndex: 9999,
+        zIndex: 'var(--z-max)',
       }}
     >
       {/* Scoped keyframes */}

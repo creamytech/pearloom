@@ -524,7 +524,7 @@ export default function DashboardClient() {
               style={{
                 width: 40,
                 height: 40,
-                borderRadius: 12,
+                borderRadius: 'var(--pl-radius-lg)',
                 background: 'var(--pl-ink)',
                 color: 'var(--pl-cream)',
                 display: 'flex',

@@ -210,7 +210,7 @@ export function PearPublishAudit({ manifest, coupleNames, onProceed, onClose }: 
           onClick={(e) => e.stopPropagation()}
           style={{
             background: 'rgba(250, 247, 242, 0.95)',
-            borderRadius: '10px',
+            borderRadius: 'var(--pl-radius-lg)',
             border: '1px solid #E4E4E7',
             boxShadow: '0 24px 80px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.03)',
             maxWidth: '480px',
@@ -284,7 +284,7 @@ export function PearPublishAudit({ manifest, coupleNames, onProceed, onClose }: 
                 alignItems: 'center',
                 gap: '10px',
                 padding: '16px',
-                borderRadius: '8px',
+                borderRadius: 'var(--pl-radius-md)',
                 background: 'rgba(24,24,27,0.06)',
                 border: '1px solid rgba(24,24,27,0.1)',
               }}
@@ -365,7 +365,7 @@ export function PearPublishAudit({ manifest, coupleNames, onProceed, onClose }: 
                     justifyContent: 'center',
                     gap: '6px',
                     padding: '10px 16px',
-                    borderRadius: '8px',
+                    borderRadius: 'var(--pl-radius-md)',
                     border: 'none',
                     background: OLIVE,
                     color: '#fff',
@@ -389,7 +389,7 @@ export function PearPublishAudit({ manifest, coupleNames, onProceed, onClose }: 
                   style={{
                     flex: 1,
                     padding: '10px 16px',
-                    borderRadius: '8px',
+                    borderRadius: 'var(--pl-radius-md)',
                     border: '1px solid rgba(0,0,0,0.08)',
                     background: 'rgba(0,0,0,0.03)',
                     color: 'var(--pl-ink-soft, #3D3530)',
@@ -421,7 +421,7 @@ function IssueRow({ issue, fixing, onFix }: { issue: AuditIssue; fixing: boolean
       alignItems: 'center',
       gap: '10px',
       padding: '8px 10px',
-      borderRadius: '12px',
+      borderRadius: 'var(--pl-radius-lg)',
       background: isWarning ? 'rgba(196,138,63,0.06)' : 'rgba(0,0,0,0.02)',
       border: `1px solid ${isWarning ? 'rgba(196,138,63,0.15)' : 'rgba(0,0,0,0.04)'}`,
     }}>
@@ -449,7 +449,7 @@ function IssueRow({ issue, fixing, onFix }: { issue: AuditIssue; fixing: boolean
           alignItems: 'center',
           gap: '4px',
           padding: '4px 10px',
-          borderRadius: '8px',
+          borderRadius: 'var(--pl-radius-md)',
           border: `1px solid #E4E4E7`,
           background: 'transparent',
           color: OLIVE,

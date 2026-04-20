@@ -125,9 +125,9 @@ export function GettingStartedChecklist() {
           position: 'fixed',
           bottom: '20px',
           left: '72px',
-          zIndex: 100,
+          zIndex: 'var(--z-sticky)',
           width: '290px',
-          borderRadius: '10px',
+          borderRadius: 'var(--pl-radius-lg)',
           background: 'rgba(250, 247, 242, 0.88)',
           border: '1px solid #E4E4E7',
           boxShadow: '0 8px 36px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,0.4)',
@@ -159,7 +159,7 @@ export function GettingStartedChecklist() {
               fontSize: '0.6rem', fontWeight: 700,
               color: '#18181B',
               background: '#F4F4F5',
-              padding: '2px 7px', borderRadius: '8px',
+              padding: '2px 7px', borderRadius: 'var(--pl-radius-md)',
             }}>
               {completedCount}/{ITEMS.length}
             </span>
@@ -196,10 +196,10 @@ export function GettingStartedChecklist() {
         <div style={{
           height: '3px', background: 'rgba(0,0,0,0.04)',
           margin: '0 16px 0',
-          borderRadius: '8px', overflow: 'hidden',
+          borderRadius: 'var(--pl-radius-md)', overflow: 'hidden',
         }}>
           <div style={{
-            height: '100%', borderRadius: '8px',
+            height: '100%', borderRadius: 'var(--pl-radius-md)',
             background: 'linear-gradient(90deg, #18181B, #8a9d72)',
             width: `${progressPct}%`,
             transition: 'width 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -250,7 +250,7 @@ export function GettingStartedChecklist() {
                     style={{
                       display: 'flex', alignItems: 'center', gap: '10px',
                       padding: '7px 8px',
-                      borderRadius: '10px',
+                      borderRadius: 'var(--pl-radius-lg)',
                       background: isNextUp
                         ? 'color-mix(in oklab, var(--pl-gold, #B8935A) 12%, transparent)'
                         : 'transparent',
@@ -268,7 +268,7 @@ export function GettingStartedChecklist() {
                   >
                     {/* Checkbox */}
                     <div style={{
-                      width: '18px', height: '18px', borderRadius: '6px', flexShrink: 0,
+                      width: '18px', height: '18px', borderRadius: 'var(--pl-radius-sm)', flexShrink: 0,
                       border: done ? 'none' : '1.5px solid rgba(0,0,0,0.15)',
                       background: done ? '#18181B' : 'rgba(255,255,255,0.5)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -298,7 +298,7 @@ export function GettingStartedChecklist() {
                       <button
                         onClick={() => handleGo(item)}
                         style={{
-                          padding: '3px 10px', borderRadius: '8px',
+                          padding: '3px 10px', borderRadius: 'var(--pl-radius-md)',
                           border: '1px solid #E4E4E7',
                           background: 'rgba(24,24,27,0.04)',
                           color: '#18181B',
@@ -334,7 +334,7 @@ export function GettingStartedChecklist() {
                       width: '100%',
                       marginTop: 10,
                       padding: '10px 14px',
-                      borderRadius: 8,
+                      borderRadius: 'var(--pl-radius-md)',
                       background: 'var(--pl-ink, #18181B)',
                       color: 'var(--pl-cream, #FAF7F2)',
                       border: 'none',

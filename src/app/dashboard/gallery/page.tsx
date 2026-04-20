@@ -173,7 +173,7 @@ export default function GalleryPage() {
                   alignItems: 'center',
                   gap: 10,
                   padding: '11px 20px',
-                  borderRadius: 8,
+                  borderRadius: 'var(--pl-radius-md)',
                   background: 'var(--pl-ink)',
                   color: 'var(--pl-cream)',
                   border: '1px solid var(--pl-ink)',
@@ -224,7 +224,7 @@ export default function GalleryPage() {
               <div
                 key={i}
                 className="aspect-square skeleton"
-                style={{ borderRadius: 6, border: '1px solid rgba(14,13,11,0.06)' }}
+                style={{ borderRadius: 'var(--pl-radius-sm)', border: '1px solid rgba(14,13,11,0.06)' }}
               />
             ))}
           </div>
@@ -234,7 +234,7 @@ export default function GalleryPage() {
             textAlign: 'center',
             padding: '72px 28px',
             border: '1px dashed rgba(184,147,90,0.55)',
-            borderRadius: 16,
+            borderRadius: 'var(--pl-radius-xl)',
             background: 'var(--pl-cream-card)',
           }}>
             <span style={{
@@ -290,7 +290,7 @@ export default function GalleryPage() {
               alignItems: 'center',
               gap: 10,
               padding: '11px 22px',
-              borderRadius: 8,
+              borderRadius: 'var(--pl-radius-md)',
               background: 'var(--pl-ink)',
               color: 'var(--pl-cream)',
               border: '1px solid var(--pl-ink)',
@@ -315,7 +315,7 @@ export default function GalleryPage() {
                 transition={{ delay: Math.min(i * 0.02, 0.4), duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
                 className="group relative aspect-square overflow-hidden cursor-pointer"
                 style={{
-                  borderRadius: 6,
+                  borderRadius: 'var(--pl-radius-sm)',
                   background: 'var(--pl-cream-deep)',
                   border: '1px solid rgba(14,13,11,0.08)',
                   transition: 'border-color 0.2s, box-shadow 0.24s cubic-bezier(0.22,1,0.36,1)',

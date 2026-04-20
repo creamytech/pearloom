@@ -133,7 +133,7 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
                 alignItems: 'center',
                 gap: 4,
                 padding: '6px 10px',
-                borderRadius: 8,
+                borderRadius: 'var(--pl-radius-md)',
                 border: 'none',
                 background: 'transparent',
                 color: 'var(--pl-muted)',
@@ -247,7 +247,7 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
                     alignItems: 'center',
                     gap: 6,
                     padding: '5px 12px',
-                    borderRadius: 999,
+                    borderRadius: 'var(--pl-radius-full)',
                     border: pearMode
                       ? '1px solid color-mix(in oklab, var(--pl-olive) 50%, transparent)'
                       : '1px solid var(--pl-divider)',
@@ -313,7 +313,7 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
                   alignItems: 'center',
                   gap: 5,
                   padding: '6px 12px',
-                  borderRadius: 999,
+                  borderRadius: 'var(--pl-radius-full)',
                   border: '1px solid var(--pl-divider)',
                   background: shareCopied
                     ? 'color-mix(in oklab, var(--pl-olive) 18%, transparent)'
@@ -344,7 +344,7 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
                 alignItems: 'center',
                 gap: 5,
                 padding: '4px 9px',
-                borderRadius: 999,
+                borderRadius: 'var(--pl-radius-full)',
                 fontSize: '0.58rem',
                 fontWeight: 700,
                 letterSpacing: '0.12em',
@@ -429,7 +429,7 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
                 alignItems: 'center',
                 gap: 6,
                 padding: isMobile ? '6px 14px' : '7px 18px',
-                borderRadius: 999,
+                borderRadius: 'var(--pl-radius-full)',
                 border: blocked ? 'none' : undefined,
                 background: blocked ? 'var(--pl-muted-soft, var(--pl-divider))' : undefined,
                 color: blocked ? 'var(--pl-muted)' : undefined,
@@ -535,7 +535,7 @@ function ToolBtn({
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: 8,
+        borderRadius: 'var(--pl-radius-md)',
         border: 'none',
         background: active ? 'color-mix(in oklab, var(--pl-olive) 14%, transparent)' : 'transparent',
         color: disabled

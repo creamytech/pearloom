@@ -193,7 +193,7 @@ export default function HelpClient() {
                     gridTemplateColumns: '1fr 1fr',
                     gap: 0,
                     border: '1px solid var(--pl-divider)',
-                    borderRadius: 2,
+                    borderRadius: 'var(--pl-radius-xs)',
                     overflow: 'hidden',
                     minWidth: 220,
                   }}
@@ -230,7 +230,7 @@ export default function HelpClient() {
                     padding: '14px 18px',
                     background: 'var(--pl-cream-card)',
                     border: '1px solid var(--pl-divider)',
-                    borderRadius: 2,
+                    borderRadius: 'var(--pl-radius-xs)',
                     boxShadow: 'inset 0 -2px 0 rgba(184,147,90,0.22)',
                     transition: 'box-shadow 300ms cubic-bezier(0.22, 1, 0.36, 1)',
                   }}
@@ -302,7 +302,7 @@ export default function HelpClient() {
                   gap: 0,
                   border: '1px solid var(--pl-divider)',
                   borderTop: '2px solid var(--pl-gold)',
-                  borderRadius: 2,
+                  borderRadius: 'var(--pl-radius-xs)',
                   background: 'var(--pl-cream-card)',
                   overflow: 'hidden',
                 }}
@@ -521,7 +521,7 @@ export default function HelpClient() {
                 style={{
                   border: '1px solid var(--pl-divider)',
                   borderTop: '2px solid var(--pl-gold)',
-                  borderRadius: 2,
+                  borderRadius: 'var(--pl-radius-xs)',
                   background: 'var(--pl-cream-card)',
                   overflow: 'hidden',
                 }}
@@ -632,7 +632,7 @@ export default function HelpClient() {
                 position: 'relative',
                 padding: '44px 28px',
                 border: '1px dashed rgba(184,147,90,0.5)',
-                borderRadius: 2,
+                borderRadius: 'var(--pl-radius-xs)',
                 textAlign: 'center',
                 background:
                   'radial-gradient(ellipse at top, rgba(184,147,90,0.06), transparent 70%)',
@@ -736,7 +736,7 @@ export default function HelpClient() {
                     padding: '12px 22px',
                     background: 'var(--pl-ink)',
                     color: 'var(--pl-cream)',
-                    borderRadius: 2,
+                    borderRadius: 'var(--pl-radius-xs)',
                     textDecoration: 'none',
                     fontFamily: 'var(--pl-font-mono)',
                     fontSize: '0.62rem',
@@ -895,7 +895,7 @@ function QuickTile({
             justifyContent: 'center',
             width: 28,
             height: 28,
-            borderRadius: 2,
+            borderRadius: 'var(--pl-radius-xs)',
             background: 'var(--pl-cream-deep)',
             border: `1px solid ${accentColor}`,
             color: accentColor,
@@ -1098,7 +1098,7 @@ function FaqRow({
                       textTransform: 'uppercase',
                       color: 'var(--pl-olive)',
                       background: 'var(--pl-olive-mist)',
-                      borderRadius: 2,
+                      borderRadius: 'var(--pl-radius-xs)',
                     }}
                   >
                     # {t}

@@ -114,7 +114,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                 style={{
                   display: 'flex', alignItems: 'center', gap: '8px',
                   padding: '10px 10px 10px 12px',
-                  borderRadius: '8px',
+                  borderRadius: 'var(--pl-radius-md)',
                   background: isHidden ? 'var(--pl-chrome-bg)' : 'var(--pl-chrome-surface)',
                   border: '1px solid #E4E4E7',
                   transition: 'all var(--pl-dur-instant)',
@@ -138,7 +138,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                     onClick={() => onPreviewPage(page.slug || null)}
                     title="Preview this page"
                     style={{
-                      width: '24px', height: '24px', borderRadius: '6px', border: 'none',
+                      width: '24px', height: '24px', borderRadius: 'var(--pl-radius-sm)', border: 'none',
                       background: previewPage === page.slug ? 'var(--pl-chrome-bg)' : 'transparent',
                       color: previewPage === page.slug ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-muted)',
                       cursor: 'pointer',
@@ -154,7 +154,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                     onClick={() => togglePageVisibility(page.id)}
                     title={isHidden ? 'Show page' : 'Hide page'}
                     style={{
-                      width: '24px', height: '24px', borderRadius: '6px', border: 'none',
+                      width: '24px', height: '24px', borderRadius: 'var(--pl-radius-sm)', border: 'none',
                       background: 'transparent',
                       color: isHidden ? '#e87070' : 'var(--pl-chrome-text-muted)',
                       cursor: 'pointer',
@@ -179,7 +179,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                 style={{
                   display: 'flex', alignItems: 'center', gap: '8px',
                   padding: '10px 10px 10px 12px',
-                  borderRadius: '8px',
+                  borderRadius: 'var(--pl-radius-md)',
                   background: 'var(--pl-chrome-bg)',
                   border: '1px solid #E4E4E7',
                 }}
@@ -205,7 +205,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                 <button
                   onClick={() => deleteCustomPage(page.id)}
                   style={{
-                    width: '24px', height: '24px', borderRadius: '6px', border: 'none',
+                    width: '24px', height: '24px', borderRadius: 'var(--pl-radius-sm)', border: 'none',
                     background: 'transparent', color: 'var(--pl-chrome-text-muted)', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}
@@ -225,7 +225,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
           whileTap={{ scale: 0.98 }}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            padding: '10px', borderRadius: '10px', width: '100%',
+            padding: '10px', borderRadius: 'var(--pl-radius-lg)', width: '100%',
             border: '1.5px dashed #E4E4E7',
             background: 'var(--pl-chrome-bg)', color: 'var(--pl-chrome-text)',
             cursor: 'pointer',
@@ -262,7 +262,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                       lineHeight: 1.5,
                       color: 'var(--pl-plum)',
                       padding: '6px 8px',
-                      borderRadius: 6,
+                      borderRadius: 'var(--pl-radius-sm)',
                       background: 'color-mix(in oklab, var(--pl-plum) 10%, transparent)',
                       border: '1px solid color-mix(in oklab, var(--pl-plum) 30%, transparent)',
                     }}
@@ -274,7 +274,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                   <button
                     onClick={() => { setShowAddPage(false); setNewPageTitle(''); }}
                     style={{
-                      flex: 1, padding: '9px', borderRadius: '8px',
+                      flex: 1, padding: '9px', borderRadius: 'var(--pl-radius-md)',
                       border: '1px solid #E4E4E7',
                       background: 'var(--pl-chrome-surface)', color: 'var(--pl-chrome-text-muted)',
                       cursor: 'pointer',
@@ -290,7 +290,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                     onClick={addCustomPage}
                     disabled={!newPageTitle.trim()}
                     style={{
-                      flex: 1, padding: '9px', borderRadius: '8px', border: 'none',
+                      flex: 1, padding: '9px', borderRadius: 'var(--pl-radius-md)', border: 'none',
                       background: newPageTitle.trim() ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-border)',
                       color: newPageTitle.trim() ? 'var(--pl-chrome-surface)' : 'var(--pl-chrome-text-muted)',
                       cursor: newPageTitle.trim() ? 'pointer' : 'default',

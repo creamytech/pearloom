@@ -249,7 +249,7 @@ function CozyDecorator({ light }: { light: boolean }) {
             width: '2px',
             height: '40px',
             background: `linear-gradient(to top, ${light ? 'var(--pl-muted)' : 'rgba(201,168,124,0.3)'}, transparent)`,
-            borderRadius: '2px',
+            borderRadius: 'var(--pl-radius-xs)',
             transformOrigin: 'bottom',
           }}
           animate={{ scaleY: [0.4, 1, 0.4], x: [0, i % 2 === 0 ? 8 : -8, 0], opacity: [0.3, 0.7, 0.3] }}
@@ -376,7 +376,7 @@ export function MoodDecoratedHeader({
             display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
             fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.2em',
             textTransform: 'uppercase', padding: '0.25rem 0.75rem',
-            borderRadius: '100px',
+            borderRadius: 'var(--pl-radius-full)',
             background: light ? 'rgba(0,0,0,0.06)' : 'var(--pl-plum-mist)',
             color: light ? 'var(--pl-ink)' : 'var(--pl-plum)',
             border: light ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(109,89,122,0.12)',

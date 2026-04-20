@@ -751,7 +751,7 @@ export function AICommandBar() {
                       ? 'color-mix(in oklab, var(--pl-plum) 12%, transparent)'
                       : 'color-mix(in oklab, var(--pl-ink) 6%, transparent)',
                     padding: '3px 9px',
-                    borderRadius: 999,
+                    borderRadius: 'var(--pl-radius-full)',
                     fontFamily: 'var(--pl-font-mono)',
                     marginLeft: 4,
                   }}>
@@ -764,7 +764,7 @@ export function AICommandBar() {
                     color: 'var(--pl-olive)',
                     background: 'color-mix(in oklab, var(--pl-olive) 14%, transparent)',
                     padding: '3px 10px',
-                    borderRadius: 999,
+                    borderRadius: 'var(--pl-radius-full)',
                     fontFamily: 'var(--pl-font-mono)',
                     marginLeft: 4,
                   }}>
@@ -780,7 +780,7 @@ export function AICommandBar() {
                 style={{
                   width: 28, height: 28,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  borderRadius: 8, border: 'none',
+                  borderRadius: 'var(--pl-radius-md)', border: 'none',
                   background: 'transparent',
                   color: 'var(--pl-muted)',
                   cursor: 'pointer',
@@ -821,7 +821,7 @@ export function AICommandBar() {
                   <div style={{
                     maxWidth: '85%',
                     padding: '10px 12px',
-                    borderRadius: 14,
+                    borderRadius: 'var(--pl-radius-xl)',
                     fontSize: '0.82rem',
                     lineHeight: 1.55,
                     whiteSpace: 'pre-wrap',
@@ -856,7 +856,7 @@ export function AICommandBar() {
                   <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'color-mix(in oklab, var(--pl-olive) 16%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <PearIcon size={14} color={OLIVE} />
                   </div>
-                  <div style={{ padding: '8px 10px', borderRadius: 16, background: 'color-mix(in oklab, var(--pl-cream-card) 80%, transparent)', fontSize: '0.8rem', color: 'var(--pl-muted)' }}>
+                  <div style={{ padding: '8px 10px', borderRadius: 'var(--pl-radius-xl)', background: 'color-mix(in oklab, var(--pl-cream-card) 80%, transparent)', fontSize: '0.8rem', color: 'var(--pl-muted)' }}>
                     <span style={{ animation: 'pulse 1.5s infinite' }}>Pear is thinking...</span>
                   </div>
                 </div>
@@ -882,7 +882,7 @@ export function AICommandBar() {
                     onClick={() => handleQuickAction(action)}
                     style={{
                       padding: '5px 12px',
-                      borderRadius: 100,
+                      borderRadius: 'var(--pl-radius-full)',
                       background: 'color-mix(in oklab, var(--pl-ink) 6%, transparent)',
                       border: '1px solid var(--pl-divider)',
                       color: OLIVE,
@@ -954,7 +954,7 @@ export function AICommandBar() {
                     <PearIcon size={20} color={OLIVE} />
                   </div>
                   <div style={{
-                    padding: '8px 10px', borderRadius: 16,
+                    padding: '8px 10px', borderRadius: 'var(--pl-radius-xl)',
                     background: 'color-mix(in oklab, var(--pl-cream-card) 80%, transparent)',
                     border: '1px solid var(--pl-divider)',
                     fontSize: '0.8rem', lineHeight: 1.55,
@@ -970,7 +970,7 @@ export function AICommandBar() {
                 <div style={{
                   width: '100%',
                   padding: '16px',
-                  borderRadius: 16,
+                  borderRadius: 'var(--pl-radius-xl)',
                   background: 'var(--pl-cream-card)',
                   backdropFilter: 'blur(12px)',
                   WebkitBackdropFilter: 'blur(12px)',
@@ -994,7 +994,7 @@ export function AICommandBar() {
                     onClick={() => { window.location.href = '/dashboard?upgrade=true'; }}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 6,
-                      padding: '10px 24px', borderRadius: 100,
+                      padding: '10px 24px', borderRadius: 'var(--pl-radius-full)',
                       background: 'var(--pl-olive)', color: 'var(--pl-cream)',
                       border: 'none', cursor: 'pointer',
                       fontSize: '0.8rem', fontWeight: 700,
@@ -1189,7 +1189,7 @@ export function AICommandBar() {
                   alignItems: 'center',
                   gap: '8px',
                   padding: '10px 20px',
-                  borderRadius: '8px',
+                  borderRadius: 'var(--pl-radius-md)',
                   background: 'color-mix(in oklab, var(--pl-cream-card) 92%, transparent)',
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
@@ -1215,7 +1215,7 @@ export function AICommandBar() {
                 Ask Pear anything...
                 <kbd style={{
                   padding: '2px 6px',
-                  borderRadius: '4px',
+                  borderRadius: 'var(--pl-radius-xs)',
                   fontSize: '0.6rem',
                   background: 'color-mix(in oklab, var(--pl-ink) 6%, transparent)',
                   color: 'var(--pl-muted)',
@@ -1235,7 +1235,7 @@ export function AICommandBar() {
                 style={{
                   pointerEvents: 'auto',
                   width: isMobile ? '100%' : '480px',
-                  borderRadius: '24px',
+                  borderRadius: 'var(--pl-radius-2xl)',
                   background: 'color-mix(in oklab, var(--pl-cream-card) 86%, transparent)',
                   backdropFilter: 'blur(24px)',
                   WebkitBackdropFilter: 'blur(24px)',
@@ -1256,7 +1256,7 @@ export function AICommandBar() {
                         position: 'absolute',
                         inset: 0,
                         zIndex: 10,
-                        borderRadius: '24px',
+                        borderRadius: 'var(--pl-radius-2xl)',
                         overflow: 'hidden',
                         pointerEvents: 'none',
                       }}
@@ -1293,7 +1293,7 @@ export function AICommandBar() {
                           </div>
                         )}
                         <div style={{
-                          maxWidth: '80%', padding: '8px 12px', borderRadius: '8px',
+                          maxWidth: '80%', padding: '8px 12px', borderRadius: 'var(--pl-radius-md)',
                           fontSize: '0.8rem', lineHeight: 1.5, whiteSpace: 'pre-wrap',
                           background: msg.role === 'user'
                             ? 'var(--pl-ink)'
@@ -1325,7 +1325,7 @@ export function AICommandBar() {
                         <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'color-mix(in oklab, var(--pl-olive) 16%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                           <PearIcon size={13} color={OLIVE} />
                         </div>
-                        <div style={{ padding: '8px 12px', borderRadius: 14, background: 'color-mix(in oklab, var(--pl-cream-card) 80%, transparent)', fontSize: '0.8rem', color: 'var(--pl-muted)' }}>
+                        <div style={{ padding: '8px 12px', borderRadius: 'var(--pl-radius-xl)', background: 'color-mix(in oklab, var(--pl-cream-card) 80%, transparent)', fontSize: '0.8rem', color: 'var(--pl-muted)' }}>
                           <span style={{ animation: 'pulse 1.5s infinite' }}>Pear is thinking...</span>
                         </div>
                       </div>
@@ -1474,7 +1474,7 @@ export function AICommandBar() {
                         onClick={() => handleQuickAction(action)}
                         style={{
                           padding: '5px 12px',
-                          borderRadius: '8px',
+                          borderRadius: 'var(--pl-radius-md)',
                           background: 'color-mix(in oklab, var(--pl-ink) 6%, transparent)',
                           border: '1px solid var(--pl-divider)',
                           color: OLIVE,

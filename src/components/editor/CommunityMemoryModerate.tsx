@@ -125,7 +125,7 @@ export default function CommunityMemoryModerate({
     <div
       style={{
         background: '#1A1A2E',
-        borderRadius: 16,
+        borderRadius: 'var(--pl-radius-xl)',
         padding: '28px 24px',
         color: '#E8E8F0',
         fontFamily:
@@ -162,7 +162,7 @@ export default function CommunityMemoryModerate({
           style={{
             background: 'transparent',
             border: '1px solid #3A3A5C',
-            borderRadius: 8,
+            borderRadius: 'var(--pl-radius-md)',
             padding: '6px 14px',
             color: '#9B9BAF',
             fontSize: 13,
@@ -177,7 +177,7 @@ export default function CommunityMemoryModerate({
       <div
         style={{
           background: '#13132A',
-          borderRadius: 10,
+          borderRadius: 'var(--pl-radius-lg)',
           padding: '12px 18px',
           display: 'flex',
           gap: 24,
@@ -238,7 +238,7 @@ export default function CommunityMemoryModerate({
                 key={memory.id}
                 style={{
                   background: '#21213A',
-                  borderRadius: 12,
+                  borderRadius: 'var(--pl-radius-lg)',
                   padding: '16px 18px',
                   border: memory.approved
                     ? '1px solid #10B98133'
@@ -268,7 +268,7 @@ export default function CommunityMemoryModerate({
                         color: memory.approved ? '#10B981' : '#F59E0B',
                         background: memory.approved ? '#10B98120' : '#F59E0B20',
                         padding: '2px 8px',
-                        borderRadius: 4,
+                        borderRadius: 'var(--pl-radius-xs)',
                       }}
                     >
                       {memory.approved ? 'Approved' : 'Pending'}
@@ -322,7 +322,7 @@ export default function CommunityMemoryModerate({
                         width: 72,
                         height: 72,
                         objectFit: 'cover',
-                        borderRadius: 8,
+                        borderRadius: 'var(--pl-radius-md)',
                         border: '2px solid #3A3A5C',
                       }}
                     />
@@ -339,7 +339,7 @@ export default function CommunityMemoryModerate({
                         background: '#065F46',
                         color: '#D1FAE5',
                         border: 'none',
-                        borderRadius: 8,
+                        borderRadius: 'var(--pl-radius-md)',
                         padding: '7px 16px',
                         fontSize: 13,
                         fontWeight: 600,
@@ -360,7 +360,7 @@ export default function CommunityMemoryModerate({
                       background: '#7F1D1D',
                       color: '#FEE2E2',
                       border: 'none',
-                      borderRadius: 8,
+                      borderRadius: 'var(--pl-radius-md)',
                       padding: '7px 16px',
                       fontSize: 13,
                       fontWeight: 600,

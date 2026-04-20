@@ -444,7 +444,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
                   position: 'absolute',
                   top: 'calc(100% + 0.25rem)',
                   left: 0,
-                  zIndex: 100,
+                  zIndex: 'var(--z-sticky)',
                   background: '#fff',
                   border: '1.5px solid var(--pl-divider)',
                   borderRadius: '0.75rem',
@@ -528,12 +528,12 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
               {tables.length} {tables.length === 1 ? 'table' : 'tables'} · {totalSeats} seats · {assignedSeats} assigned
             </span>
             {totalSeats > 0 && (
-              <div style={{ marginTop: '4px', height: '3px', background: 'rgba(0,0,0,0.06)', borderRadius: '100px', overflow: 'hidden' }}>
+              <div style={{ marginTop: '4px', height: '3px', background: 'rgba(0,0,0,0.06)', borderRadius: 'var(--pl-radius-full)', overflow: 'hidden' }}>
                 <div style={{
                   height: '100%',
                   width: `${Math.round((assignedSeats / totalSeats) * 100)}%`,
                   background: 'rgba(163,177,138,0.8)',
-                  borderRadius: '100px',
+                  borderRadius: 'var(--pl-radius-full)',
                   transition: 'width 0.4s ease',
                 }} />
               </div>
@@ -596,7 +596,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
                 width: CANVAS_W - ROOM_MARGIN * 2,
                 height: CANVAS_H - ROOM_MARGIN * 2,
                 border: '2px dashed rgba(0,0,0,0.07)',
-                borderRadius: '12px',
+                borderRadius: 'var(--pl-radius-lg)',
                 pointerEvents: 'none',
               }}
             />

@@ -260,7 +260,7 @@ function AssetTile({ asset }: { asset: AssetRow }) {
       style={{
         position: 'relative',
         aspectRatio: '1 / 1',
-        borderRadius: 6,
+        borderRadius: 'var(--pl-radius-sm)',
         overflow: 'hidden',
         background: 'var(--pl-chrome-bg)',
         border: '1px solid var(--pl-chrome-border)',

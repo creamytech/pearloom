@@ -266,7 +266,7 @@ function MilestoneRow({
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
             <div style={{
               display: 'flex', alignItems: 'center', gap: '4px',
-              padding: '3px 8px', borderRadius: '100px',
+              padding: '3px 8px', borderRadius: 'var(--pl-radius-full)',
               background: expanded ? 'rgba(163,177,138,0.15)' : 'rgba(163,177,138,0.08)',
               border: '1px solid rgba(163,177,138,0.2)',
             }}>
@@ -301,7 +301,7 @@ function MilestoneRow({
               background: 'rgba(255,255,255,0.45)',
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
-              borderRadius: '16px',
+              borderRadius: 'var(--pl-radius-xl)',
               border: '1px solid rgba(255,255,255,0.5)',
               boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
             }}>
@@ -331,7 +331,7 @@ function MilestoneRow({
                       disabled={applied}
                       style={{
                         display: 'flex', alignItems: 'center', gap: '5px',
-                        padding: '5px 12px', borderRadius: '6px', border: 'none',
+                        padding: '5px 12px', borderRadius: 'var(--pl-radius-sm)', border: 'none',
                         background: applied ? 'var(--pl-olive)' : 'linear-gradient(135deg, var(--pl-olive), color-mix(in oklab, var(--pl-olive) 75%, var(--pl-ink)))',
                         color: 'var(--pl-cream)', fontSize: '0.7rem', fontWeight: 700,
                         cursor: applied ? 'default' : 'pointer', transition: 'all var(--pl-dur-fast)',
@@ -342,7 +342,7 @@ function MilestoneRow({
                     <button
                       onClick={fetchSuggestion}
                       style={{
-                        padding: '5px 10px', borderRadius: '6px',
+                        padding: '5px 10px', borderRadius: 'var(--pl-radius-sm)',
                         border: '1px solid rgba(163,177,138,0.2)',
                         background: 'transparent', color: 'var(--pl-olive)',
                         fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer',
@@ -480,12 +480,12 @@ export function SiteCompletenessPanel({
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {/* Mini progress bar */}
-        <div style={{ flex: 1, height: '4px', background: 'rgba(0,0,0,0.07)', borderRadius: '100px', overflow: 'hidden' }}>
+        <div style={{ flex: 1, height: '4px', background: 'rgba(0,0,0,0.07)', borderRadius: 'var(--pl-radius-full)', overflow: 'hidden' }}>
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${score}%` }}
             transition={{ duration: 0.9, ease: 'easeOut', delay: 0.3 }}
-            style={{ height: '100%', background: scoreColor, borderRadius: '100px' }}
+            style={{ height: '100%', background: scoreColor, borderRadius: 'var(--pl-radius-full)' }}
           />
         </div>
         <span style={{ fontSize: '0.65rem', fontWeight: 800, color: scoreColor, flexShrink: 0 }}>
@@ -506,7 +506,7 @@ export function SiteCompletenessPanel({
       background: 'rgba(255,255,255,0.45)',
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
-      borderRadius: '16px',
+      borderRadius: 'var(--pl-radius-xl)',
       border: '1px solid rgba(255,255,255,0.5)',
       boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
       overflow: 'hidden',

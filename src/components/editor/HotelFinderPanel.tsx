@@ -152,7 +152,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
         style={{
           position: 'fixed',
           inset: 0,
-          zIndex: 9999,
+          zIndex: 'var(--z-max)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -171,7 +171,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
             width: '100%',
             maxWidth: '580px',
             maxHeight: '85vh',
-            borderRadius: '14px',
+            borderRadius: 'var(--pl-radius-xl)',
             border: '1px solid var(--pl-chrome-border)',
             background: 'var(--pl-chrome-surface)',
             boxShadow:
@@ -282,7 +282,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                   alignItems: 'center',
                   gap: '6px',
                   padding: '9px 16px',
-                  borderRadius: '99px',
+                  borderRadius: 'var(--pl-radius-full)',
                   border: '1px solid var(--pl-chrome-accent)',
                   background: loading
                     ? 'color-mix(in srgb, var(--pl-chrome-accent) 18%, transparent)'
@@ -330,7 +330,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                   <div
                     key={i}
                     style={{
-                      borderRadius: '10px',
+                      borderRadius: 'var(--pl-radius-lg)',
                       padding: '16px',
                       background: 'color-mix(in srgb, var(--pl-chrome-accent) 4%, transparent)',
                       border: '1px solid var(--pl-chrome-border)',
@@ -343,7 +343,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                         style={{
                           width: '55%',
                           height: '16px',
-                          borderRadius: '8px',
+                          borderRadius: 'var(--pl-radius-md)',
                           background: 'color-mix(in srgb, var(--pl-chrome-accent) 14%, transparent)',
                         }}
                       />
@@ -351,7 +351,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                         style={{
                           width: '60px',
                           height: '16px',
-                          borderRadius: '8px',
+                          borderRadius: 'var(--pl-radius-md)',
                           background: 'color-mix(in srgb, var(--pl-chrome-accent) 10%, transparent)',
                         }}
                       />
@@ -360,7 +360,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                       style={{
                         width: '80%',
                         height: '12px',
-                        borderRadius: '6px',
+                        borderRadius: 'var(--pl-radius-sm)',
                         background: 'color-mix(in srgb, var(--pl-chrome-accent) 8%, transparent)',
                         marginBottom: '8px',
                       }}
@@ -369,7 +369,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                       style={{
                         width: '65%',
                         height: '12px',
-                        borderRadius: '6px',
+                        borderRadius: 'var(--pl-radius-sm)',
                         background: 'color-mix(in srgb, var(--pl-chrome-accent) 6%, transparent)',
                       }}
                     />
@@ -387,7 +387,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                     <div
                       key={i}
                       style={{
-                        borderRadius: '12px',
+                        borderRadius: 'var(--pl-radius-lg)',
                         padding: '16px 18px',
                         background: 'var(--pl-chrome-surface)',
                         border: '1px solid var(--pl-chrome-border)',
@@ -446,7 +446,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                           <span
                             style={{
                               padding: '3px 10px',
-                              borderRadius: '99px',
+                              borderRadius: 'var(--pl-radius-full)',
                               fontFamily: panelFont.mono,
                               fontSize: panelText.meta,
                               fontWeight: panelWeight.bold,
@@ -495,7 +495,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                               key={j}
                               style={{
                                 padding: '3px 9px',
-                                borderRadius: '99px',
+                                borderRadius: 'var(--pl-radius-full)',
                                 fontFamily: panelFont.mono,
                                 fontSize: panelText.meta,
                                 fontWeight: panelWeight.bold,
@@ -517,7 +517,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                         <div
                           style={{
                             padding: '10px 12px',
-                            borderRadius: '10px',
+                            borderRadius: 'var(--pl-radius-lg)',
                             background:
                               'color-mix(in srgb, var(--pl-chrome-accent) 8%, transparent)',
                             border: '1px solid color-mix(in srgb, var(--pl-chrome-accent) 26%, transparent)',
@@ -570,7 +570,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                             alignItems: 'center',
                             gap: '5px',
                             padding: '8px 14px',
-                            borderRadius: '99px',
+                            borderRadius: 'var(--pl-radius-full)',
                             border: isAdded ? '1px solid var(--pl-chrome-border)' : '1px solid var(--pl-chrome-accent)',
                             background: isAdded
                               ? 'color-mix(in srgb, var(--pl-chrome-accent) 6%, transparent)'
@@ -599,7 +599,7 @@ export function HotelFinderPanel({ manifest, onChange, onClose }: HotelFinderPan
                               alignItems: 'center',
                               gap: '5px',
                               padding: '8px 14px',
-                              borderRadius: '99px',
+                              borderRadius: 'var(--pl-radius-full)',
                               border: '1px solid var(--pl-chrome-border)',
                               background: 'transparent',
                               color: 'var(--pl-chrome-text-soft)',

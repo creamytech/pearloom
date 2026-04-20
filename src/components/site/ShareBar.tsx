@@ -37,7 +37,7 @@ export function ShareBar({ url, title, accent, bgColor }: ShareBarProps) {
 
   const btnBase: React.CSSProperties = {
     display: 'inline-flex', alignItems: 'center', gap: '6px',
-    padding: '6px 14px', borderRadius: '100px',
+    padding: '6px 14px', borderRadius: 'var(--pl-radius-full)',
     fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.06em',
     cursor: 'pointer', textDecoration: 'none',
     border: `1px solid ${accent}40`,

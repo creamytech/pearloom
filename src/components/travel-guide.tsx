@@ -74,7 +74,7 @@ function GlassCard({ children, delay = 0, style }: { children: React.ReactNode; 
       background: 'rgba(255, 255, 255, 0.50)',
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
-      borderRadius: '20px',
+      borderRadius: 'var(--pl-radius-2xl)',
       border: '1px solid rgba(255, 255, 255, 0.4)',
       padding: 'clamp(1.25rem, 3vw, 2rem)',
       animation: `tg-fadeInUp 0.6s ease-out ${delay}s both`,
@@ -90,7 +90,7 @@ function SectionHeader({ icon: Icon, title }: { icon: React.ComponentType<{ size
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
       <div style={{
-        width: '40px', height: '40px', borderRadius: '12px',
+        width: '40px', height: '40px', borderRadius: 'var(--pl-radius-lg)',
         background: 'rgba(163, 177, 138, 0.2)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         flexShrink: 0,
@@ -117,7 +117,7 @@ function DistanceBadge({ text }: { text: string }) {
     <span style={{
       display: 'inline-block',
       padding: '3px 10px',
-      borderRadius: '100px',
+      borderRadius: 'var(--pl-radius-full)',
       background: 'rgba(163, 177, 138, 0.15)',
       color: 'var(--pl-accent, #5C6B3F)',
       fontSize: '0.72rem',
@@ -262,7 +262,7 @@ export function TravelGuide({ venueAddress, venueCity, eventDate, suggestions }:
               <div style={{
                 marginTop: '1rem',
                 padding: '0.75rem 1rem',
-                borderRadius: '12px',
+                borderRadius: 'var(--pl-radius-lg)',
                 background: 'rgba(163, 177, 138, 0.08)',
                 display: 'flex',
                 alignItems: 'flex-start',
@@ -285,7 +285,7 @@ export function TravelGuide({ venueAddress, venueCity, eventDate, suggestions }:
               {restaurants.map((r, i) => (
                 <div key={i} style={{
                   padding: '0.75rem 1rem',
-                  borderRadius: '12px',
+                  borderRadius: 'var(--pl-radius-lg)',
                   background: 'rgba(255, 255, 255, 0.1)',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
                   animation: `tg-scaleIn 0.4s ease-out ${0.3 + i * 0.1}s both`,
@@ -322,7 +322,7 @@ export function TravelGuide({ venueAddress, venueCity, eventDate, suggestions }:
               {activities.map((a, i) => (
                 <div key={i} style={{
                   padding: '0.75rem 1rem',
-                  borderRadius: '12px',
+                  borderRadius: 'var(--pl-radius-lg)',
                   background: 'rgba(255, 255, 255, 0.1)',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
                   animation: `tg-scaleIn 0.4s ease-out ${0.4 + i * 0.1}s both`,
@@ -368,7 +368,7 @@ export function TravelGuide({ venueAddress, venueCity, eventDate, suggestions }:
               flexWrap: 'wrap',
             }}>
               <div style={{
-                width: '56px', height: '56px', borderRadius: '16px',
+                width: '56px', height: '56px', borderRadius: 'var(--pl-radius-xl)',
                 background: 'rgba(163, 177, 138, 0.15)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0,
@@ -398,7 +398,7 @@ export function TravelGuide({ venueAddress, venueCity, eventDate, suggestions }:
               {weather.packingTip && (
                 <div style={{
                   padding: '0.65rem 1rem',
-                  borderRadius: '12px',
+                  borderRadius: 'var(--pl-radius-lg)',
                   background: 'rgba(255, 255, 255, 0.15)',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
                   fontSize: '0.82rem',

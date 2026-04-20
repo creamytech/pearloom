@@ -99,7 +99,7 @@ export function StickyRsvpPill({
             alignItems: 'center',
             gap: 10,
             padding: '12px 20px 12px 18px',
-            borderRadius: 999,
+            borderRadius: 'var(--pl-radius-full)',
             background: accent,
             color: '#FAF7F2',
             textDecoration: 'none',

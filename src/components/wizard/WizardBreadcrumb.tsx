@@ -250,7 +250,7 @@ export function WizardBreadcrumb({
                   justifyContent: 'space-between',
                   gap: 4,
                   padding: '8px 10px 10px',
-                  borderRadius: 2,
+                  borderRadius: 'var(--pl-radius-xs)',
                   border: `1px solid ${isActive ? palette.activeBorder : 'transparent'}`,
                   background: isActive ? palette.activeBg : 'transparent',
                   borderTop: `1.5px solid ${isActive ? palette.activeBorder : isDone ? palette.accent : palette.rule}`,

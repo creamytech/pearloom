@@ -101,7 +101,7 @@ export function SpotifyPanel() {
               gap: '6px',
               width: '100%',
               padding: '8px 12px',
-              borderRadius: '8px',
+              borderRadius: 'var(--pl-radius-md)',
               border: '1px solid #E4E4E7',
               background: loading ? '#F4F4F5' : '#FFFFFF',
               color: loading ? '#A1A1AA' : '#18181B',
@@ -152,7 +152,7 @@ export function SpotifyPanel() {
                     justifyContent: 'space-between',
                     gap: '8px',
                     padding: '8px 10px',
-                    borderRadius: '8px',
+                    borderRadius: 'var(--pl-radius-md)',
                     background: '#FAFAFA',
                     border: '1px solid #E4E4E7',
                   }}
@@ -181,7 +181,7 @@ export function SpotifyPanel() {
                         color: '#71717A',
                         background: '#F4F4F5',
                         border: '1px solid #E4E4E7',
-                        borderRadius: '4px',
+                        borderRadius: 'var(--pl-radius-xs)',
                         padding: '1px 5px',
                       }}
                     >
@@ -199,7 +199,7 @@ export function SpotifyPanel() {
                       justifyContent: 'center',
                       width: '26px',
                       height: '26px',
-                      borderRadius: '6px',
+                      borderRadius: 'var(--pl-radius-sm)',
                       background: '#FAFAFA',
                       border: '1px solid #E4E4E7',
                       color: '#3F3F46',
@@ -243,7 +243,7 @@ export function SpotifyPanel() {
       {/* ── Embed preview ── */}
       {embedUrl && (
         <PanelSection title="Preview" defaultOpen={false}>
-          <div style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid #E4E4E7' }}>
+          <div style={{ borderRadius: 'var(--pl-radius-lg)', overflow: 'hidden', border: '1px solid #E4E4E7' }}>
             <iframe
               src={embedUrl}
               width="100%"

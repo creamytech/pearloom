@@ -23,7 +23,7 @@ export function ThemeToggle({ size = 'md' }: { size?: 'sm' | 'md' }) {
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: '999px',
+        borderRadius: 'var(--pl-radius-full)',
         border: '1px solid var(--pl-divider)',
         background: 'var(--pl-cream-card)',
         color: 'var(--pl-ink)',

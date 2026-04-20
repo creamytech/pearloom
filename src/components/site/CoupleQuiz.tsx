@@ -317,7 +317,7 @@ export function CoupleQuiz({ coupleNames, vibeSkin, chapters }: CoupleQuizProps)
                   onClick={handleShare}
                   style={{
                     padding: '0.8rem 1.75rem',
-                    borderRadius: '100px',
+                    borderRadius: 'var(--pl-radius-full)',
                     background: palette.accent,
                     color: '#fff',
                     border: 'none',
@@ -336,7 +336,7 @@ export function CoupleQuiz({ coupleNames, vibeSkin, chapters }: CoupleQuizProps)
                   onClick={handleRestart}
                   style={{
                     padding: '0.8rem 1.75rem',
-                    borderRadius: '100px',
+                    borderRadius: 'var(--pl-radius-full)',
                     background: 'transparent',
                     color: palette.accent,
                     border: `1.5px solid ${palette.accent}`,
@@ -390,7 +390,7 @@ export function CoupleQuiz({ coupleNames, vibeSkin, chapters }: CoupleQuizProps)
                 <div
                   style={{
                     height: '4px',
-                    borderRadius: '100px',
+                    borderRadius: 'var(--pl-radius-full)',
                     background: `${palette.accent}22`,
                     overflow: 'hidden',
                   }}
@@ -402,7 +402,7 @@ export function CoupleQuiz({ coupleNames, vibeSkin, chapters }: CoupleQuizProps)
                     style={{
                       height: '100%',
                       background: palette.accent,
-                      borderRadius: '100px',
+                      borderRadius: 'var(--pl-radius-full)',
                     }}
                   />
                 </div>
@@ -534,7 +534,7 @@ export function CoupleQuiz({ coupleNames, vibeSkin, chapters }: CoupleQuizProps)
                       onClick={handleNext}
                       style={{
                         padding: '0.7rem 1.5rem',
-                        borderRadius: '100px',
+                        borderRadius: 'var(--pl-radius-full)',
                         background: palette.accent,
                         color: '#fff',
                         border: 'none',

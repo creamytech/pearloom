@@ -1058,7 +1058,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
 
           <div style={{
             background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
-            borderRadius: 2,
+            borderRadius: 'var(--pl-radius-xs)',
             padding: '28px 26px 22px',
             border: '1px solid rgba(184,147,90,0.28)',
             borderTop: '2px solid rgba(139,45,45,0.65)',
@@ -1094,7 +1094,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
 
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
-              padding: '6px 12px', borderRadius: 2,
+              padding: '6px 12px', borderRadius: 'var(--pl-radius-xs)',
               background: 'rgba(184,147,90,0.1)',
               border: '1px solid rgba(184,147,90,0.38)',
               borderTop: '1.5px solid rgba(184,147,90,0.65)',
@@ -1113,7 +1113,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
             }}>
               <button onClick={() => { setPhase('chat'); setGenError(null); }}
                 style={{
-                  padding: '10px 20px', borderRadius: 2,
+                  padding: '10px 20px', borderRadius: 'var(--pl-radius-xs)',
                   background: 'transparent', border: '1px solid rgba(184,147,90,0.45)',
                   fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                   fontSize: 10, fontWeight: 700,
@@ -1133,7 +1133,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
               {retryCount < 3 && (
                 <button onClick={() => { setPhase('chat'); setGenError(null); setTimeout(() => handleBuild(), 50); }}
                   style={{
-                    padding: '10px 20px', borderRadius: 2,
+                    padding: '10px 20px', borderRadius: 'var(--pl-radius-xs)',
                     background: '#18181B', border: 'none',
                     fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                     fontSize: 10, fontWeight: 700,
@@ -1179,7 +1179,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
           style={{
             position: 'relative', zIndex: 10, maxWidth: 520, width: '92%',
             background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
-            borderRadius: 2,
+            borderRadius: 'var(--pl-radius-xs)',
             padding: '36px 32px 28px',
             border: '1px solid rgba(184,147,90,0.28)',
             borderTop: '2px solid rgba(212,175,55,0.8)',
@@ -1234,7 +1234,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
             style={{
               background: 'rgba(250,247,242,0.8)',
-              borderRadius: 2,
+              borderRadius: 'var(--pl-radius-xs)',
               padding: '16px 20px 14px',
               marginBottom: 22,
               border: '1px solid rgba(184,147,90,0.28)',
@@ -1262,7 +1262,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
             }}>{siteUrl}</p>
             <button onClick={() => navigator.clipboard?.writeText(`https://${siteUrl}`)}
               style={{
-                padding: '6px 14px', borderRadius: 2,
+                padding: '6px 14px', borderRadius: 'var(--pl-radius-xs)',
                 background: 'transparent',
                 border: '1px solid rgba(184,147,90,0.45)',
                 fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
@@ -1291,7 +1291,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
           >
             <button onClick={() => onComplete(completedData.manifest, completedData.names, completedData.subdomain)}
               style={{
-                width: '100%', padding: '14px 0', borderRadius: 2,
+                width: '100%', padding: '14px 0', borderRadius: 'var(--pl-radius-xs)',
                 background: '#18181B', border: 'none',
                 borderTop: '2px solid rgba(212,175,55,0.8)',
                 fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
@@ -1304,7 +1304,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
             >Enter the Studio</button>
             <button onClick={() => window.open(`https://${siteUrl}`, '_blank')}
               style={{
-                width: '100%', padding: '12px 0', borderRadius: 2,
+                width: '100%', padding: '12px 0', borderRadius: 'var(--pl-radius-xs)',
                 background: 'transparent',
                 border: '1px solid rgba(184,147,90,0.45)',
                 fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
@@ -1355,7 +1355,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
           position: 'fixed', top: 22, left: 22, zIndex: 20,
           display: 'inline-flex', alignItems: 'center', gap: 8,
           padding: '9px 14px 9px 12px',
-          borderRadius: 2,
+          borderRadius: 'var(--pl-radius-xs)',
           background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
           border: '1px solid rgba(184,147,90,0.35)',
           borderTop: '1.5px solid rgba(184,147,90,0.7)',
@@ -1416,7 +1416,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
 
         <div style={{
           background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
-          borderRadius: 2,
+          borderRadius: 'var(--pl-radius-xs)',
           border: '1px solid rgba(184,147,90,0.28)',
           borderTop: '2px solid rgba(184,147,90,0.65)',
           boxShadow: '0 24px 60px rgba(22,16,6,0.14), 0 2px 8px rgba(22,16,6,0.06)',
@@ -1531,7 +1531,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       marginTop: 14,
                       width: '100%',
                       padding: '12px 14px',
-                      borderRadius: 2,
+                      borderRadius: 'var(--pl-radius-xs)',
                       background: 'transparent',
                       border: '1px dashed rgba(184,147,90,0.55)',
                       color: '#18181B',
@@ -1600,7 +1600,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                         width: '100%',
                         padding: '14px 16px',
                         paddingRight: dictation.supported ? 56 : 16,
-                        borderRadius: 2,
+                        borderRadius: 'var(--pl-radius-xs)',
                         border: inputBorder,
                         borderTop: '1.5px solid rgba(184,147,90,0.7)',
                         background: inputBg,
@@ -1632,7 +1632,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                           right: 10,
                           width: 36,
                           height: 36,
-                          borderRadius: 2,
+                          borderRadius: 'var(--pl-radius-xs)',
                           border: dictation.listening ? 'none' : '1px solid rgba(184,147,90,0.45)',
                           background: dictation.listening
                             ? '#18181B'
@@ -1690,7 +1690,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                         color: '#7A2323',
                         background: 'rgba(139,45,45,0.08)',
                         padding: '10px 14px',
-                        borderRadius: 2,
+                        borderRadius: 'var(--pl-radius-xs)',
                         borderLeft: '2px solid rgba(139,45,45,0.6)',
                       }}
                     >
@@ -1720,7 +1720,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                         flex: 1,
                         minHeight: 46,
                         padding: '0 16px',
-                        borderRadius: 2,
+                        borderRadius: 'var(--pl-radius-xs)',
                         background: ghostBg,
                         border: ghostBorder,
                         fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
@@ -1751,7 +1751,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                         flex: 1.4,
                         minHeight: 46,
                         padding: '0 18px',
-                        borderRadius: 2,
+                        borderRadius: 'var(--pl-radius-xs)',
                         background: freeformText.trim().length < 3
                           ? 'rgba(24,24,27,0.4)'
                           : '#18181B',
@@ -1818,7 +1818,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       fontStyle: 'italic',
                       fontSize: '1.1rem',
                       fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                      borderRadius: 2,
+                      borderRadius: 'var(--pl-radius-xs)',
                       border: inputBorder,
                       borderTop: '1.5px solid rgba(184,147,90,0.7)',
                       background: inputBg,
@@ -1834,7 +1834,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                     className="pear-btn"
                     style={{
                       marginTop: 14, width: '100%', minHeight: 48,
-                      padding: '0 16px', borderRadius: 2,
+                      padding: '0 16px', borderRadius: 'var(--pl-radius-xs)',
                       background: input.trim() ? '#18181B' : 'rgba(24,24,27,0.4)',
                       border: 'none',
                       fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
@@ -1876,7 +1876,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       type="button"
                       onClick={handleVenueSkip}
                       style={{
-                        flex: 1, minHeight: 48, padding: '0 16px', borderRadius: 2,
+                        flex: 1, minHeight: 48, padding: '0 16px', borderRadius: 'var(--pl-radius-xs)',
                         background: 'transparent', border: ghostBorder,
                         fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                         fontSize: 10, fontWeight: 700,
@@ -1897,7 +1897,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       onClick={() => { if (input.trim()) handleVenueSubmit(); }}
                       disabled={!input.trim()}
                       style={{
-                        flex: 1, minHeight: 48, padding: '0 16px', borderRadius: 2,
+                        flex: 1, minHeight: 48, padding: '0 16px', borderRadius: 'var(--pl-radius-xs)',
                         background: input.trim() ? '#18181B' : 'rgba(24,24,27,0.4)',
                         border: 'none',
                         fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
@@ -1945,7 +1945,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                         <div
                           style={{
                             padding: '18px 14px',
-                            borderRadius: 10,
+                            borderRadius: 'var(--pl-radius-lg)',
                             background: '#F4F4F5',
                             border: '1px dashed #D4D4D8',
                             fontSize: '0.74rem',
@@ -1997,7 +1997,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                                 alignItems: 'center',
                                 gap: 12,
                                 padding: '10px 14px',
-                                borderRadius: 2,
+                                borderRadius: 'var(--pl-radius-xs)',
                                 border: '1px solid rgba(184,147,90,0.28)',
                                 borderTop: '1.5px solid rgba(184,147,90,0.65)',
                                 background: 'rgba(250,247,242,0.85)',
@@ -2094,7 +2094,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       placeholder="e.g. country western, rustic barn, horses..."
                       className="pear-input"
                       style={{
-                        width: '100%', height: 52, padding: '0 18px', borderRadius: 2,
+                        width: '100%', height: 52, padding: '0 18px', borderRadius: 'var(--pl-radius-xs)',
                         border: inputBorder,
                         borderTop: '1.5px solid rgba(184,147,90,0.7)',
                         background: inputBg,
@@ -2113,7 +2113,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       disabled={!input.trim()}
                       className="pear-btn"
                       style={{
-                        marginTop: 14, width: '100%', minHeight: 48, padding: '0 16px', borderRadius: 2,
+                        marginTop: 14, width: '100%', minHeight: 48, padding: '0 16px', borderRadius: 'var(--pl-radius-xs)',
                         background: input.trim() ? '#18181B' : 'rgba(24,24,27,0.4)',
                         color: '#FAF7F2',
                         border: 'none',
@@ -2145,7 +2145,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                     }}
                     className="pear-btn"
                     style={{
-                      marginTop: 8, width: '100%', minHeight: 46, padding: '0 16px', borderRadius: 2,
+                      marginTop: 8, width: '100%', minHeight: 46, padding: '0 16px', borderRadius: 'var(--pl-radius-xs)',
                       background: 'transparent', border: '1px dashed rgba(184,147,90,0.55)',
                       fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                       fontSize: 10, fontWeight: 700,
@@ -2213,7 +2213,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       }
                     }}
                     style={{
-                      marginTop: 16, width: '100%', padding: '14px 0', borderRadius: 2,
+                      marginTop: 16, width: '100%', padding: '14px 0', borderRadius: 'var(--pl-radius-xs)',
                       background: pendingPalette ? '#18181B' : 'rgba(24,24,27,0.3)',
                       border: 'none',
                       fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
@@ -2235,7 +2235,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       setDirection(-1);
                     }}
                     style={{
-                      marginTop: 8, width: '100%', padding: '12px 0', borderRadius: 2,
+                      marginTop: 8, width: '100%', padding: '12px 0', borderRadius: 'var(--pl-radius-xs)',
                       background: 'transparent', border: ghostBorder,
                       fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                       fontSize: 10, fontWeight: 700,
@@ -2294,7 +2294,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       width: '100%',
                       minHeight: 50,
                       padding: '12px 16px',
-                      borderRadius: 2,
+                      borderRadius: 'var(--pl-radius-xs)',
                       background: 'rgba(250,247,242,0.85)',
                       border: '1px solid rgba(184,147,90,0.38)',
                       borderTop: '1.5px solid rgba(184,147,90,0.7)',
@@ -2394,7 +2394,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                           color: '#FAF7F2',
                           background: 'rgba(22,16,6,0.4)',
                           backdropFilter: 'blur(10px)',
-                          padding: '5px 10px', borderRadius: 2,
+                          padding: '5px 10px', borderRadius: 'var(--pl-radius-xs)',
                           border: '1px solid rgba(240,212,132,0.4)',
                           borderTop: '1.5px solid rgba(240,212,132,0.8)',
                         }}>
@@ -2407,7 +2407,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                             fontSize: '0.82rem', color: '#FAF7F2',
                             background: 'rgba(22,16,6,0.4)',
                             backdropFilter: 'blur(10px)',
-                            padding: '5px 12px', borderRadius: 2,
+                            padding: '5px 12px', borderRadius: 'var(--pl-radius-xs)',
                             border: '1px solid rgba(240,212,132,0.35)',
                             fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
                           }}>
@@ -2421,7 +2421,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                           <div style={{
                             display: 'inline-flex', alignItems: 'center', gap: 8,
                             background: 'rgba(22,16,6,0.4)', backdropFilter: 'blur(10px)',
-                            padding: '6px 12px', borderRadius: 2,
+                            padding: '6px 12px', borderRadius: 'var(--pl-radius-xs)',
                             border: '1px solid rgba(240,212,132,0.35)',
                           }}>
                             <div style={{
@@ -2443,7 +2443,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                           <div style={{
                             display: 'inline-flex', alignItems: 'center', gap: 8,
                             background: 'rgba(22,16,6,0.4)', backdropFilter: 'blur(10px)',
-                            padding: '6px 12px', borderRadius: 2,
+                            padding: '6px 12px', borderRadius: 'var(--pl-radius-xs)',
                             border: '1px solid rgba(240,212,132,0.4)',
                             borderTop: '1.5px solid rgba(240,212,132,0.8)',
                           }}>
@@ -2496,7 +2496,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                             width: '100%', height: 46, padding: '0 14px 0 34px',
                             fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
                             fontStyle: 'italic',
-                            fontSize: '0.95rem', borderRadius: 2,
+                            fontSize: '0.95rem', borderRadius: 'var(--pl-radius-xs)',
                             border: inputBorder,
                             borderTop: '1.5px solid rgba(184,147,90,0.7)',
                             background: inputBg,
@@ -2514,7 +2514,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                           onClick={() => setReviewDone(true)}
                           className="pear-btn"
                           style={{
-                            flex: 1, minHeight: 46, padding: '0 16px', borderRadius: 2,
+                            flex: 1, minHeight: 46, padding: '0 16px', borderRadius: 'var(--pl-radius-xs)',
                             background: 'transparent', border: ghostBorder,
                             fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                             fontSize: 10, fontWeight: 700,
@@ -2531,7 +2531,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                           onClick={() => isLast ? setReviewDone(true) : setPhotoReviewIndex(prev => prev + 1)}
                           className="pear-btn pl-pearl-accent"
                           style={{
-                            flex: 1, minHeight: 46, padding: '0 16px', borderRadius: 2,
+                            flex: 1, minHeight: 46, padding: '0 16px', borderRadius: 'var(--pl-radius-xs)',
                             fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                             fontSize: 10, fontWeight: 700,
                             letterSpacing: '0.22em', textTransform: 'uppercase',
@@ -2566,7 +2566,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                     }}
                     className="pl-pearl-accent"
                     style={{
-                      marginTop: 18, width: '100%', padding: '14px 0', borderRadius: 2,
+                      marginTop: 18, width: '100%', padding: '14px 0', borderRadius: 'var(--pl-radius-xs)',
                       fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                       fontSize: 10, fontWeight: 700,
                       letterSpacing: '0.26em', textTransform: 'uppercase',
@@ -2614,7 +2614,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                         width: '100%',
                         height: 52,
                         padding: '0 46px 0 16px',
-                        borderRadius: 2,
+                        borderRadius: 'var(--pl-radius-xs)',
                         border: inputBorder,
                         borderTop: '1.5px solid rgba(184,147,90,0.7)',
                         background: inputBg,
@@ -2651,7 +2651,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                         flex: 1,
                         minHeight: 48,
                         padding: '0 16px',
-                        borderRadius: 2,
+                        borderRadius: 'var(--pl-radius-xs)',
                         background: 'transparent',
                         border: ghostBorder,
                         fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
@@ -2677,7 +2677,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                         flex: 1.2,
                         minHeight: 48,
                         padding: '0 18px',
-                        borderRadius: 2,
+                        borderRadius: 'var(--pl-radius-xs)',
                         background: (collected.songUrl || '').trim()
                           ? '#18181B'
                           : 'rgba(24,24,27,0.4)',
@@ -2728,7 +2728,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                       marginTop: 18,
                       width: '100%',
                       padding: '18px 0',
-                      borderRadius: 2,
+                      borderRadius: 'var(--pl-radius-xs)',
                       background: '#18181B',
                       border: 'none',
                       borderTop: '2px solid rgba(212,175,55,0.8)',
@@ -2785,7 +2785,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
               style={{
                 background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
-                borderRadius: 2,
+                borderRadius: 'var(--pl-radius-xs)',
                 padding: 24, maxWidth: 600, width: '92%',
                 maxHeight: '82vh', overflow: 'auto',
                 border: '1px solid rgba(184,147,90,0.28)',
@@ -2825,7 +2825,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                 <button
                   onClick={handlePhotosSkip}
                   style={{
-                    padding: '10px 22px', borderRadius: 2,
+                    padding: '10px 22px', borderRadius: 'var(--pl-radius-xs)',
                     background: 'transparent', border: ghostBorder,
                     fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                     fontSize: 10, fontWeight: 700,
@@ -2841,7 +2841,7 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
                 <button
                   onClick={handlePhotosDone}
                   style={{
-                    padding: '10px 22px', borderRadius: 2,
+                    padding: '10px 22px', borderRadius: 'var(--pl-radius-xs)',
                     background: selectedPhotos.length > 0 ? '#18181B' : 'rgba(24,24,27,0.4)',
                     border: 'none',
                     fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
@@ -3079,7 +3079,7 @@ function GeneratingStage({
 
           {/* Progress bar */}
           <div style={{
-            width: '100%', height: 3, borderRadius: 2,
+            width: '100%', height: 3, borderRadius: 'var(--pl-radius-xs)',
             background: '#F4F4F5',
             overflow: 'hidden',
             position: 'relative',
@@ -3089,7 +3089,7 @@ function GeneratingStage({
               transition={{ duration: 0.3, ease: 'easeOut' }}
               style={{
                 height: '100%',
-                borderRadius: 2,
+                borderRadius: 'var(--pl-radius-xs)',
                 background: '#18181B',
               }}
             />
@@ -3111,7 +3111,7 @@ function GeneratingStage({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             style={{
-              borderRadius: 12,
+              borderRadius: 'var(--pl-radius-lg)',
               overflow: 'hidden',
               border: '1px solid #E4E4E7',
               maxHeight: '78vh',
@@ -3151,7 +3151,7 @@ function GeneratingStage({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             style={{
-              borderRadius: 12, overflow: 'hidden',
+              borderRadius: 'var(--pl-radius-lg)', overflow: 'hidden',
               boxShadow: '0 8px 32px rgba(0,0,0,0.06)',
               border: '1px solid #E4E4E7',
               background: '#FFFFFF',

@@ -168,7 +168,7 @@ export function InlineColorCustomButton({
                 zIndex: 10000,
                 width: 240,
                 padding: 12,
-                borderRadius: 12,
+                borderRadius: 'var(--pl-radius-lg)',
                 background: 'rgba(24,24,27,0.96)',
                 border: '1px solid rgba(255,255,255,0.1)',
                 boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
@@ -182,7 +182,7 @@ export function InlineColorCustomButton({
                 type="range" min={0} max={360} value={hsl[0]}
                 onChange={(e) => updateFromHSL(parseInt(e.target.value, 10), hsl[1], hsl[2])}
                 style={{
-                  width: '100%', height: 10, borderRadius: 999, cursor: 'pointer',
+                  width: '100%', height: 10, borderRadius: 'var(--pl-radius-full)', cursor: 'pointer',
                   background: 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)',
                   appearance: 'none', WebkitAppearance: 'none',
                   margin: '4px 0 10px',
@@ -212,7 +212,7 @@ export function InlineColorCustomButton({
               {/* Hex input + preview */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{
-                  width: 30, height: 30, borderRadius: 8,
+                  width: 30, height: 30, borderRadius: 'var(--pl-radius-md)',
                   background: hex,
                   border: '1px solid rgba(255,255,255,0.12)',
                   flexShrink: 0,
@@ -226,7 +226,7 @@ export function InlineColorCustomButton({
                   style={{
                     flex: 1,
                     padding: '6px 8px',
-                    borderRadius: 6,
+                    borderRadius: 'var(--pl-radius-sm)',
                     border: '1px solid rgba(255,255,255,0.12)',
                     background: 'rgba(255,255,255,0.06)',
                     color: '#FAF7F2',

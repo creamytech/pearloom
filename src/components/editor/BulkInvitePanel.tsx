@@ -162,7 +162,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
       {loadError ? (
         <div style={{
           padding: '14px',
-          borderRadius: '10px',
+          borderRadius: 'var(--pl-radius-lg)',
           background: 'color-mix(in oklab, var(--pl-plum) 10%, transparent)',
           border: '1px solid color-mix(in oklab, var(--pl-plum) 35%, transparent)',
           fontSize: panelText.body,
@@ -176,7 +176,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
       ) : guestsWithEmail.length === 0 ? (
         <div style={{
           padding: '14px',
-          borderRadius: '10px',
+          borderRadius: 'var(--pl-radius-lg)',
           background: 'var(--pl-cream-deep)',
           border: '1px solid var(--pl-divider)',
           fontSize: panelText.body,
@@ -210,7 +210,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
                   <Check size={12} color="#18181B" />
                 ) : (
                   <div style={{
-                    width: '12px', height: '12px', borderRadius: '3px',
+                    width: '12px', height: '12px', borderRadius: 'var(--pl-radius-xs)',
                     border: '1px solid #A1A1AA',
                   }} />
                 )}
@@ -236,7 +236,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
                       style={{
                         display: 'flex', alignItems: 'center', gap: '10px',
                         padding: '8px 10px',
-                        borderRadius: '8px',
+                        borderRadius: 'var(--pl-radius-md)',
                         background: isSelected ? '#F4F4F5' : '#FFFFFF',
                         border: `1px solid ${isSelected ? '#A1A1AA' : '#E4E4E7'}`,
                         cursor: 'pointer',
@@ -245,7 +245,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
                       }}
                     >
                       <div style={{
-                        width: '16px', height: '16px', borderRadius: '4px', flexShrink: 0,
+                        width: '16px', height: '16px', borderRadius: 'var(--pl-radius-xs)', flexShrink: 0,
                         border: `1px solid ${isSelected ? '#18181B' : '#A1A1AA'}`,
                         background: isSelected ? '#18181B' : '#FFFFFF',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -303,7 +303,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
               style={{
                 width: '100%',
                 padding: '10px 12px',
-                borderRadius: '8px',
+                borderRadius: 'var(--pl-radius-md)',
                 border: '1px solid #E4E4E7',
                 background: '#FFFFFF',
                 color: '#18181B',
@@ -346,7 +346,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 style={{
-                  borderRadius: '10px',
+                  borderRadius: 'var(--pl-radius-lg)',
                   overflow: 'hidden',
                   border: '1px solid #E4E4E7',
                   background: '#FAFAFA',
@@ -378,7 +378,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
                       padding: '8px 20px',
                       background: '#18181B',
                       color: '#FFFFFF',
-                      borderRadius: '6px',
+                      borderRadius: 'var(--pl-radius-sm)',
                       fontSize: panelText.chip,
                       fontWeight: panelWeight.bold,
                       letterSpacing: panelTracking.wider,
@@ -396,7 +396,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
           {result && (
             <div style={{
               padding: '10px 12px',
-              borderRadius: '10px',
+              borderRadius: 'var(--pl-radius-lg)',
               background: result.failed === 0 ? '#F4F4F5' : 'rgba(239,68,68,0.08)',
               border: `1px solid ${result.failed === 0 ? '#E4E4E7' : 'rgba(239,68,68,0.25)'}`,
               fontSize: panelText.body,
@@ -420,7 +420,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               padding: '10px 12px',
-              borderRadius: '8px',
+              borderRadius: 'var(--pl-radius-md)',
               border: 'none',
               background: canSend ? '#18181B' : '#E4E4E7',
               color: canSend ? '#FFFFFF' : '#71717A',

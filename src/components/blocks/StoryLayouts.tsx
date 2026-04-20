@@ -42,26 +42,26 @@ function buildCardStyle(style: CardStyle | undefined): React.CSSProperties {
         backdropFilter: 'blur(16px) saturate(140%)',
         WebkitBackdropFilter: 'blur(16px) saturate(140%)',
         border: `1px solid ${divider}`,
-        borderRadius: '12px',
+        borderRadius: 'var(--pl-radius-lg)',
         boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
       };
     case 'outlined':
       return {
         background: 'transparent',
         border: `1px solid ${divider}`,
-        borderRadius: '12px',
+        borderRadius: 'var(--pl-radius-lg)',
       };
     case 'minimal':
       return {
         background: 'transparent',
         border: 'none',
-        borderRadius: '12px',
+        borderRadius: 'var(--pl-radius-lg)',
       };
     case 'elevated':
       return {
         background: cardBg,
         border: `1px solid ${divider}`,
-        borderRadius: '12px',
+        borderRadius: 'var(--pl-radius-lg)',
         boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
       };
     case 'solid':
@@ -69,7 +69,7 @@ function buildCardStyle(style: CardStyle | undefined): React.CSSProperties {
       return {
         background: cardBg,
         border: `1px solid ${divider}`,
-        borderRadius: '12px',
+        borderRadius: 'var(--pl-radius-lg)',
         boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
       };
   }
@@ -168,7 +168,7 @@ function LocationBadge({ label, color, background, style }: LocationBadgeProps) 
         alignItems: 'center',
         gap: '0.4rem',
         padding: '4px 10px',
-        borderRadius: '999px',
+        borderRadius: 'var(--pl-radius-full)',
         background: bg,
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
@@ -211,7 +211,11 @@ function useAutoTextColor(
   photoUrl: string | undefined,
   options: { light?: string; dark?: string } = {},
 ): { textColor: string; overlayOpacity: number } {
-  const { light = '#F5F1E8', dark = '#1A1A1A' } = options;
+  // Default to canonical cream + ink so overlay text is always on-brand
+  // when callers don't override. These are string defaults (not CSS vars)
+  // because the function returns a color literal used in inline style,
+  // and useAutoTextColor may run pre-hydration.
+  const { light = '#F5EFE2', dark = '#0E0D0B' } = options;
   const [choice, setChoice] = useState<'light' | 'dark' | null>(null);
 
   useEffect(() => {
@@ -454,7 +458,7 @@ export function FilmStrip({
         display: 'inline-block',
         width: '14px',
         height: '8px',
-        borderRadius: '3px',
+        borderRadius: 'var(--pl-radius-xs)',
         background: colors.cream,
       }}
     />
@@ -504,7 +508,7 @@ export function FilmStrip({
               transform: 'rotate(-2deg)',
               background: colors.ink,
               padding: '24px 10px',
-              borderRadius: '6px',
+              borderRadius: 'var(--pl-radius-sm)',
               boxShadow: shadow.lg,
             }}
           >
@@ -547,7 +551,7 @@ export function FilmStrip({
                   width: '100%',
                   aspectRatio: '4 / 3',
                   objectFit: 'cover',
-                  borderRadius: '2px',
+                  borderRadius: 'var(--pl-radius-xs)',
                 }}
               />
             ) : (
@@ -556,7 +560,7 @@ export function FilmStrip({
                   width: '100%',
                   aspectRatio: '4 / 3',
                   background: colors.inkSoft,
-                  borderRadius: '2px',
+                  borderRadius: 'var(--pl-radius-xs)',
                 }}
               />
             )}
@@ -1377,7 +1381,7 @@ export function BentoGrid({
   const formattedDate = formatChapterDate(date, dateFormat);
 
   const cellBase: React.CSSProperties = {
-    borderRadius: '16px',
+    borderRadius: 'var(--pl-radius-xl)',
     overflow: 'hidden',
     background: colors.oliveMist,
     position: 'relative',
@@ -1618,18 +1622,18 @@ export function MiniDiagram({ type }: { type: StoryLayoutType }) {
     width: '100%',
     height: '72px',
     background: '#F4F4F5',
-    borderRadius: '6px',
+    borderRadius: 'var(--pl-radius-sm)',
     position: 'relative',
     overflow: 'hidden',
   };
   const photoFill: React.CSSProperties = {
     background: '#A1A1AA',
-    borderRadius: '3px',
+    borderRadius: 'var(--pl-radius-xs)',
   };
   const line: React.CSSProperties = {
     background: '#71717A',
     height: '2px',
-    borderRadius: '1px',
+    borderRadius: 'var(--pl-radius-xs)',
     opacity: 0.55,
   };
 
@@ -1661,7 +1665,7 @@ export function MiniDiagram({ type }: { type: StoryLayoutType }) {
                 background: '#FAFAFA',
                 height: '4px',
                 width: '100%',
-                borderRadius: '1px',
+                borderRadius: 'var(--pl-radius-xs)',
               }}
             />
             <div
@@ -1669,7 +1673,7 @@ export function MiniDiagram({ type }: { type: StoryLayoutType }) {
                 background: '#FAFAFA',
                 height: '2px',
                 width: '70%',
-                borderRadius: '1px',
+                borderRadius: 'var(--pl-radius-xs)',
                 margin: '0 auto',
               }}
             />
@@ -1812,7 +1816,7 @@ export function MiniDiagram({ type }: { type: StoryLayoutType }) {
                 background: '#FAFAFA',
                 height: '3px',
                 width: '70%',
-                borderRadius: '1px',
+                borderRadius: 'var(--pl-radius-xs)',
               }}
             />
             <div
@@ -1820,7 +1824,7 @@ export function MiniDiagram({ type }: { type: StoryLayoutType }) {
                 background: '#FAFAFA',
                 height: '2px',
                 width: '50%',
-                borderRadius: '1px',
+                borderRadius: 'var(--pl-radius-xs)',
               }}
             />
           </div>
@@ -1851,7 +1855,7 @@ export function MiniDiagram({ type }: { type: StoryLayoutType }) {
             style={{
               background: 'rgba(255,255,255,0.82)',
               border: '1px solid #E4E4E7',
-              borderRadius: '3px',
+              borderRadius: 'var(--pl-radius-xs)',
             }}
           />
         </div>
@@ -2247,7 +2251,7 @@ export function StorySection({
                 }}
                 style={{
                   position: 'absolute', top: '14px', right: '14px', zIndex: 20,
-                  padding: '5px 10px', borderRadius: '20px', border: 'none',
+                  padding: '5px 10px', borderRadius: 'var(--pl-radius-2xl)', border: 'none',
                   background: 'rgba(24,24,27,0.72)', backdropFilter: 'blur(8px)',
                   WebkitBackdropFilter: 'blur(8px)',
                   color: '#fff', fontSize: '0.62rem', fontWeight: 600,
@@ -2399,7 +2403,7 @@ export function StoryLayoutPicker({
               padding: '10px',
               background: isSelected ? '#F4F4F5' : '#FFFFFF',
               border: `2px solid ${isSelected ? '#18181B' : '#E4E4E7'}`,
-              borderRadius: '10px',
+              borderRadius: 'var(--pl-radius-lg)',
               boxShadow: isSelected ? '0 0 0 1px #18181B' : '0 1px 2px rgba(0,0,0,0.04)',
               cursor: 'pointer',
               display: 'flex',

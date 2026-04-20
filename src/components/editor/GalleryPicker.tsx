@@ -120,7 +120,7 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
           style={{
             position: 'fixed',
             inset: 0,
-            zIndex: 9999,
+            zIndex: 'var(--z-max)',
             background: 'rgba(0,0,0,0.4)',
             display: 'flex',
             alignItems: 'center',
@@ -140,7 +140,7 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
               maxHeight: '85dvh',
               display: 'flex',
               flexDirection: 'column',
-              borderRadius: '12px',
+              borderRadius: 'var(--pl-radius-lg)',
               background: '#FFFFFF',
               boxShadow: '0 16px 40px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.05)',
               border: '1px solid #E4E4E7',
@@ -174,7 +174,7 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
                   justifyContent: 'center',
                   width: '32px',
                   height: '32px',
-                  borderRadius: '8px',
+                  borderRadius: 'var(--pl-radius-md)',
                   border: 'none',
                   background: 'rgba(0,0,0,0.04)',
                   cursor: 'pointer',
@@ -199,7 +199,7 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
                 alignItems: 'center',
                 gap: '8px',
                 padding: '8px 12px',
-                borderRadius: '12px',
+                borderRadius: 'var(--pl-radius-lg)',
                 background: '#FFFFFF',
                 border: '1px solid rgba(0,0,0,0.06)',
               }}>
@@ -240,7 +240,7 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
                       key={i}
                       style={{
                         aspectRatio: '1',
-                        borderRadius: '12px',
+                        borderRadius: 'var(--pl-radius-lg)',
                         background: 'rgba(0,0,0,0.06)',
                         animation: 'pulse 1.5s ease-in-out infinite',
                       }}
@@ -260,7 +260,7 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
                   <div style={{
                     width: '56px',
                     height: '56px',
-                    borderRadius: '10px',
+                    borderRadius: 'var(--pl-radius-lg)',
                     background: 'rgba(24,24,27,0.08)',
                     display: 'flex',
                     alignItems: 'center',
@@ -298,7 +298,7 @@ export function GalleryPicker({ open, onClose, onSelect }: GalleryPickerProps) {
                       style={{
                         position: 'relative',
                         aspectRatio: '1',
-                        borderRadius: '12px',
+                        borderRadius: 'var(--pl-radius-lg)',
                         overflow: 'hidden',
                         border: '1px solid rgba(0,0,0,0.06)',
                         background: 'rgba(0,0,0,0.03)',

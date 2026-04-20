@@ -53,7 +53,7 @@ function ToolBtn({
       style={{
         width: '28px', height: '28px',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        border: 'none', borderRadius: '8px',
+        border: 'none', borderRadius: 'var(--pl-radius-md)',
         background: 'transparent',
         color: danger ? '#f87171' : 'rgba(255,255,255,0.85)',
         cursor: 'pointer', transition: 'background 0.12s, color 0.12s',
@@ -108,7 +108,7 @@ export function CanvasChapterToolbar({ rect, chapterIndex, chapterCount, onActio
         zIndex: 200,
         display: 'flex', alignItems: 'center', gap: '2px',
         padding: '3px 4px',
-        borderRadius: '12px',
+        borderRadius: 'var(--pl-radius-lg)',
         background: '#18181B',
         boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
         userSelect: 'none',
@@ -133,7 +133,7 @@ export function CanvasChapterToolbar({ rect, chapterIndex, chapterCount, onActio
               transition={{ duration: 0.12 }}
               style={{
                 position: 'absolute', top: 'calc(100% + 8px)', right: 0,
-                background: '#FFFFFF', borderRadius: '12px',
+                background: '#FFFFFF', borderRadius: 'var(--pl-radius-lg)',
                 border: '1px solid #E4E4E7',
                 boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
                 padding: '4px', minWidth: '128px',
@@ -146,7 +146,7 @@ export function CanvasChapterToolbar({ rect, chapterIndex, chapterCount, onActio
                   key={opt.id}
                   onClick={() => { onAction({ layout: opt.id }); setShowLayoutPicker(false); }}
                   style={{
-                    padding: '6px 10px', borderRadius: '8px', border: 'none',
+                    padding: '6px 10px', borderRadius: 'var(--pl-radius-md)', border: 'none',
                     background: 'transparent', cursor: 'pointer',
                     fontSize: '0.72rem', fontWeight: 500,
                     color: '#18181B', textAlign: 'left', fontFamily: 'inherit',
@@ -184,7 +184,7 @@ export function CanvasChapterToolbar({ rect, chapterIndex, chapterCount, onActio
               transition={{ duration: 0.12 }}
               style={{
                 position: 'absolute', top: 'calc(100% + 8px)', right: 0,
-                background: '#FFFFFF', borderRadius: '12px',
+                background: '#FFFFFF', borderRadius: 'var(--pl-radius-lg)',
                 border: '1px solid #E4E4E7',
                 boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
                 padding: '4px', minWidth: '128px',
@@ -213,7 +213,7 @@ function MoreMenuItem({ icon: Icon, label, danger, onClick }: {
       onClick={onClick}
       style={{
         display: 'flex', alignItems: 'center', gap: '8px',
-        padding: '6px 10px', borderRadius: '8px', border: 'none',
+        padding: '6px 10px', borderRadius: 'var(--pl-radius-md)', border: 'none',
         background: 'transparent', cursor: 'pointer',
         fontSize: '0.72rem', fontWeight: 500,
         color: danger ? '#c0392b' : '#18181B',

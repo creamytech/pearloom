@@ -60,7 +60,7 @@ const inputBase: React.CSSProperties = {
   width: '100%',
   background: '#FFFFFF',
   border: '1px solid #E4E4E7',
-  borderRadius: '8px',
+  borderRadius: 'var(--pl-radius-md)',
   color: '#18181B',
   padding: '10px 12px',
   fontSize: 'max(16px, 0.8rem)',
@@ -259,7 +259,7 @@ export function GuestMessagingPanel() {
                 transition={{ duration: 0.2 }}
                 style={{
                   padding: '10px 12px',
-                  borderRadius: '10px',
+                  borderRadius: 'var(--pl-radius-lg)',
                   background: sendResult.ok ? '#F4F4F5' : 'rgba(239,68,68,0.08)',
                   border: `1px solid ${sendResult.ok ? '#E4E4E7' : 'rgba(239,68,68,0.25)'}`,
                   fontSize: panelText.body,
@@ -284,7 +284,7 @@ export function GuestMessagingPanel() {
             style={{
               width: '100%',
               padding: '10px 12px',
-              borderRadius: '8px',
+              borderRadius: 'var(--pl-radius-md)',
               border: 'none',
               background: canSend ? '#18181B' : '#E4E4E7',
               color: canSend ? '#FFFFFF' : '#71717A',
@@ -343,7 +343,7 @@ export function GuestMessagingPanel() {
         {!loadingHistory && messages.length === 0 && (
           <div style={{
             padding: '20px 16px',
-            borderRadius: '12px',
+            borderRadius: 'var(--pl-radius-lg)',
             border: '1.5px dashed #E4E4E7',
             background: '#FAFAFA',
             textAlign: 'center',
@@ -384,7 +384,7 @@ export function GuestMessagingPanel() {
                   style={{
                     background: '#FFFFFF',
                     border: '1px solid #E4E4E7',
-                    borderRadius: '10px',
+                    borderRadius: 'var(--pl-radius-lg)',
                     padding: '10px 12px',
                     cursor: 'pointer',
                     transition: 'all var(--pl-dur-instant)',
@@ -423,7 +423,7 @@ export function GuestMessagingPanel() {
                         <span>{formatDate(msg.sentAt)}</span>
                         <span style={{
                           padding: '2px 8px',
-                          borderRadius: '100px',
+                          borderRadius: 'var(--pl-radius-full)',
                           background: '#F4F4F5',
                           color: '#18181B',
                           fontWeight: panelWeight.bold,

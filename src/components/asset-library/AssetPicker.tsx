@@ -27,7 +27,7 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
     background: 'var(--pl-cream-deep)',
     color: 'var(--pl-ink)',
     fontFamily: 'inherit',
-    borderRadius: '8px',
+    borderRadius: 'var(--pl-radius-md)',
     overflow: 'hidden',
     width: '100%',
   };
@@ -76,7 +76,7 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
     gap: '4px',
     padding: '8px 4px',
     border: isSelected ? '2px solid #5C6B3F' : '2px solid rgba(0,0,0,0.06)',
-    borderRadius: '6px',
+    borderRadius: 'var(--pl-radius-sm)',
     cursor: 'pointer',
     background: isSelected ? 'rgba(163,177,138,0.08)' : 'transparent',
     transition: 'border-color 0.15s, background 0.15s',
@@ -88,7 +88,7 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
     gap: '10px',
     padding: '8px',
     border: isSelected ? '2px solid #5C6B3F' : '2px solid rgba(0,0,0,0.06)',
-    borderRadius: '6px',
+    borderRadius: 'var(--pl-radius-sm)',
     cursor: 'pointer',
     background: isSelected ? 'rgba(163,177,138,0.08)' : 'transparent',
     transition: 'border-color 0.15s, background 0.15s',
@@ -140,7 +140,7 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
               onKeyDown={(e) => e.key === 'Enter' && onSelect({ id: name, type: 'illustrations', name })}
             >
               {addedId === name && (
-                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#5C6B3F', color: 'var(--pl-ink)', padding: '2px 5px', borderRadius: '4px' }}>Added!</span>
+                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#5C6B3F', color: 'var(--pl-ink)', padding: '2px 5px', borderRadius: 'var(--pl-radius-xs)' }}>Added!</span>
               )}
               <Comp size={32} color="var(--pl-ink)" />
               <span style={labelStyle}>{name.replace('Illustration', '')}</span>
@@ -181,7 +181,7 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
               onKeyDown={(e) => e.key === 'Enter' && onSelect({ id: name, type: 'accents', name })}
             >
               {addedId === name && (
-                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#5C6B3F', color: 'var(--pl-ink)', padding: '2px 5px', borderRadius: '4px' }}>Added!</span>
+                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#5C6B3F', color: 'var(--pl-ink)', padding: '2px 5px', borderRadius: 'var(--pl-radius-xs)' }}>Added!</span>
               )}
               <Comp size={32} color="var(--pl-ink)" />
               <span style={labelStyle}>{name.replace('Accent', '')}</span>
@@ -217,7 +217,7 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
               onKeyDown={(e) => e.key === 'Enter' && onSelect({ id: name, type: 'dividers', name })}
             >
               {addedId === name && (
-                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#5C6B3F', color: 'var(--pl-ink)', padding: '2px 5px', borderRadius: '4px' }}>Added!</span>
+                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#5C6B3F', color: 'var(--pl-ink)', padding: '2px 5px', borderRadius: 'var(--pl-radius-xs)' }}>Added!</span>
               )}
               <div style={{ flex: 1, height: '32px', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
                 <Comp width="100%" height={32} color="var(--pl-ink)" />

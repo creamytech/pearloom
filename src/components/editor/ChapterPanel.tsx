@@ -128,7 +128,7 @@ export function ChapterPanel({
               disabled={isRewriting}
               style={{
                 display: 'flex', alignItems: 'center', gap: '4px',
-                padding: '4px 9px', borderRadius: '6px',
+                padding: '4px 9px', borderRadius: 'var(--pl-radius-sm)',
                 border: '1px solid var(--pl-chrome-border)', background: 'var(--pl-chrome-surface-2)',
                 color: 'var(--pl-chrome-text)',
                 fontSize: panelText.chip,
@@ -148,7 +148,7 @@ export function ChapterPanel({
                 disabled={isLoadingAlternates}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '4px',
-                  padding: '4px 9px', borderRadius: '6px',
+                  padding: '4px 9px', borderRadius: 'var(--pl-radius-sm)',
                   border: '1px solid var(--pl-chrome-border)', background: 'var(--pl-chrome-surface-2)',
                   color: 'var(--pl-chrome-text)',
                   fontSize: panelText.chip,
@@ -228,7 +228,7 @@ export function ChapterPanel({
                 onClick={() => upd({ mood: m.label.toLowerCase() })}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '6px',
-                  padding: '6px 11px', borderRadius: '100px',
+                  padding: '6px 11px', borderRadius: 'var(--pl-radius-full)',
                   border: isActive ? `2px solid ${m.color}` : '1px solid var(--pl-chrome-border)',
                   background: isActive ? `${m.color}1A` : 'var(--pl-chrome-surface)',
                   cursor: 'pointer',

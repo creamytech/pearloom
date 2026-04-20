@@ -58,7 +58,7 @@ export function StatTile({ label, value, hint, trend, accent = 'olive', icon }: 
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              borderRadius: 8,
+              borderRadius: 'var(--pl-radius-md)',
               background: 'var(--pl-olive-mist)',
               color: 'var(--pl-olive)',
             }}

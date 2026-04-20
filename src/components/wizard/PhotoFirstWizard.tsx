@@ -185,7 +185,7 @@ export function PhotoFirstWizard() {
             style={{
               padding: 'clamp(32px, 6vw, 72px) 24px',
               border: `2px dashed ${dragOver ? OLIVE : GOLD_RULE}`,
-              borderRadius: 6,
+              borderRadius: 'var(--pl-radius-sm)',
               background: dragOver
                 ? 'color-mix(in oklab, var(--pl-olive, #5C6B3F) 10%, transparent)'
                 : CREAM_CARD,
@@ -238,7 +238,7 @@ export function PhotoFirstWizard() {
                 background: INK,
                 color: CREAM,
                 border: 'none',
-                borderRadius: 2,
+                borderRadius: 'var(--pl-radius-xs)',
                 fontFamily: FONT_MONO,
                 fontSize: '0.66rem',
                 letterSpacing: '0.24em',
@@ -313,7 +313,7 @@ function AnalyzingCard({ progress, phase }: { progress: number; phase: Phase }) 
       style={{
         padding: '48px 32px',
         border: `1px solid ${GOLD_RULE}`,
-        borderRadius: 6,
+        borderRadius: 'var(--pl-radius-sm)',
         background: CREAM_CARD,
         textAlign: 'center',
       }}
@@ -334,7 +334,7 @@ function AnalyzingCard({ progress, phase }: { progress: number; phase: Phase }) 
         style={{
           height: 3,
           background: 'color-mix(in oklab, var(--pl-gold, #B8935A) 20%, transparent)',
-          borderRadius: 999,
+          borderRadius: 'var(--pl-radius-full)',
           overflow: 'hidden',
           margin: '0 auto',
           maxWidth: 360,
@@ -346,7 +346,7 @@ function AnalyzingCard({ progress, phase }: { progress: number; phase: Phase }) 
           style={{
             height: '100%',
             background: 'var(--pl-olive, #5C6B3F)',
-            borderRadius: 999,
+            borderRadius: 'var(--pl-radius-full)',
           }}
         />
       </div>
@@ -379,7 +379,7 @@ function ResultCard({
       style={{
         padding: 'clamp(28px, 5vw, 48px)',
         border: `1px solid ${GOLD_RULE}`,
-        borderRadius: 6,
+        borderRadius: 'var(--pl-radius-sm)',
         background: CREAM_CARD,
       }}
     >
@@ -443,7 +443,7 @@ function ResultCard({
             background: INK,
             color: CREAM,
             border: 'none',
-            borderRadius: 2,
+            borderRadius: 'var(--pl-radius-xs)',
             fontFamily: FONT_MONO,
             fontSize: '0.66rem',
             letterSpacing: '0.24em',

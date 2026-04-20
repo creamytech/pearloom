@@ -171,7 +171,7 @@ export default function DayOfPage() {
                   padding: 56,
                   textAlign: 'center',
                   border: '1px dashed rgba(184,147,90,0.4)',
-                  borderRadius: 2,
+                  borderRadius: 'var(--pl-radius-xs)',
                 }}
               >
                 <div
@@ -205,7 +205,7 @@ export default function DayOfPage() {
                   position: 'relative',
                   padding: '64px 32px',
                   border: '1px dashed rgba(184,147,90,0.5)',
-                  borderRadius: 2,
+                  borderRadius: 'var(--pl-radius-xs)',
                   textAlign: 'center',
                   background:
                     'radial-gradient(ellipse at top, rgba(184,147,90,0.06), transparent 70%)',
@@ -289,7 +289,7 @@ export default function DayOfPage() {
                     padding: '12px 22px',
                     background: 'var(--pl-ink)',
                     color: 'var(--pl-cream)',
-                    borderRadius: 2,
+                    borderRadius: 'var(--pl-radius-xs)',
                     textDecoration: 'none',
                     fontFamily: 'var(--pl-font-mono)',
                     fontSize: '0.62rem',
@@ -403,7 +403,7 @@ function StationCard({
         position: 'relative',
         background: 'var(--pl-cream-card)',
         border: '1px solid var(--pl-divider)',
-        borderRadius: 2,
+        borderRadius: 'var(--pl-radius-xs)',
         overflow: 'hidden',
       }}
     >

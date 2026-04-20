@@ -103,7 +103,7 @@ export function GuestsLifecyclePanel({ manifest, subdomain }: Props) {
                 alignItems: 'center',
                 gap: 4,
                 padding: '10px 6px',
-                borderRadius: 8,
+                borderRadius: 'var(--pl-radius-md)',
                 border: on ? '1px solid var(--pl-ink, #18181B)' : '1px solid var(--pl-divider, #E4E4E7)',
                 background: on ? 'var(--pl-ink, #18181B)' : '#FFFFFF',
                 color: on ? 'var(--pl-cream, #FAF7F2)' : '#71717A',

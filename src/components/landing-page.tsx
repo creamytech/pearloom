@@ -579,7 +579,7 @@ export function LandingPage({ handleSignIn: _handleSignIn, status }: LandingPage
                 style={{
                   width: 52,
                   height: 52,
-                  borderRadius: 14,
+                  borderRadius: 'var(--pl-radius-xl)',
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',

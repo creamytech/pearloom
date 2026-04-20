@@ -266,7 +266,7 @@ export function NavItem({ href, icon, active, badge, children }: NavItemProps) {
             bottom: 8,
             width: 2,
             background: 'var(--pl-olive)',
-            borderRadius: 2,
+            borderRadius: 'var(--pl-radius-xs)',
           }}
         />
       )}

@@ -77,7 +77,7 @@ export function MessagingPanel({ siteId, subdomain }: MessagingPanelProps) {
           <div
             style={{
               padding: '8px 10px',
-              borderRadius: 10,
+              borderRadius: 'var(--pl-radius-lg)',
               background: result.failed === 0 ? '#F4F4F5' : 'rgba(248,113,113,0.1)',
               border: `1px solid ${result.failed === 0 ? '#E4E4E7' : 'rgba(248,113,113,0.3)'}`,
               fontSize: '0.75rem',
@@ -104,7 +104,7 @@ export function MessagingPanel({ siteId, subdomain }: MessagingPanelProps) {
               justifyContent: 'center',
               gap: 6,
               padding: '10px 14px',
-              borderRadius: 10,
+              borderRadius: 'var(--pl-radius-lg)',
               border: '1px solid #18181B',
               background: ready ? '#18181B' : '#F4F4F5',
               color: ready ? '#fff' : '#A1A1AA',

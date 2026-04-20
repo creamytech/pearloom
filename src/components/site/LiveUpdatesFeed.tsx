@@ -138,7 +138,7 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
               gap: '0.5rem',
               background: 'rgba(163,177,138,0.12)',
               border: '1px solid rgba(163,177,138,0.3)',
-              borderRadius: '100px',
+              borderRadius: 'var(--pl-radius-full)',
               padding: '0.4rem 1rem',
               marginBottom: '1.25rem',
               fontSize: '0.8rem',

@@ -142,7 +142,7 @@ export function ResponsivePreviewFrame({
           alignItems: 'center',
           gap: 6,
           padding: '4px 10px',
-          borderRadius: 999,
+          borderRadius: 'var(--pl-radius-full)',
           background: '#18181B',
           color: '#FAF7F2',
           fontSize: 11,
@@ -157,7 +157,7 @@ export function ResponsivePreviewFrame({
         <span>{width}px</span>
         <span style={{
           padding: '1px 6px',
-          borderRadius: 999,
+          borderRadius: 'var(--pl-radius-full)',
           background: 'rgba(255,255,255,0.12)',
           color: 'rgba(255,255,255,0.75)',
           fontWeight: 700,
@@ -174,7 +174,7 @@ export function ResponsivePreviewFrame({
             onClick={() => onWidthChange(preset)}
             style={{
               padding: '1px 6px',
-              borderRadius: 6,
+              borderRadius: 'var(--pl-radius-sm)',
               border: 'none',
               background: width === preset ? 'rgba(255,255,255,0.18)' : 'transparent',
               color: width === preset ? '#FAF7F2' : 'rgba(255,255,255,0.55)',
@@ -212,6 +212,6 @@ const handleStyle: React.CSSProperties = {
 const handleGrip: React.CSSProperties = {
   width: 4,
   height: 36,
-  borderRadius: 4,
+  borderRadius: 'var(--pl-radius-xs)',
   background: 'rgba(24,24,27,0.35)',
 };

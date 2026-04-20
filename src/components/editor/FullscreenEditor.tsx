@@ -1057,7 +1057,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
           padding: '8px 12px',
           background: 'var(--pl-ink, #18181B)',
           color: 'var(--pl-cream, #FFF)',
-          borderRadius: 6,
+          borderRadius: 'var(--pl-radius-sm)',
           fontSize: 14,
           fontWeight: 600,
           textDecoration: 'none',
@@ -1361,7 +1361,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
               backdropFilter: 'saturate(140%) blur(14px)',
               WebkitBackdropFilter: 'saturate(140%) blur(14px)',
               border: '1px solid var(--pl-divider)',
-              borderRadius: 999, padding: '8px 18px',
+              borderRadius: 'var(--pl-radius-full)', padding: '8px 18px',
               display: 'flex', alignItems: 'center', gap: 8,
               boxShadow: '0 8px 24px color-mix(in oklab, var(--pl-ink) 12%, transparent)',
             } as React.CSSProperties}>
@@ -1380,7 +1380,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
               backdropFilter: 'saturate(140%) blur(14px)',
               WebkitBackdropFilter: 'saturate(140%) blur(14px)',
               border: '1px solid color-mix(in oklab, var(--pl-plum) 30%, transparent)',
-              borderRadius: 999, padding: '8px 18px',
+              borderRadius: 'var(--pl-radius-full)', padding: '8px 18px',
               display: 'flex', alignItems: 'center', gap: 8,
               boxShadow: '0 8px 24px color-mix(in oklab, var(--pl-plum) 18%, transparent)',
             } as React.CSSProperties}>
@@ -1404,7 +1404,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
               backdropFilter: 'saturate(140%) blur(14px)',
               WebkitBackdropFilter: 'saturate(140%) blur(14px)',
               border: '1px solid color-mix(in oklab, var(--pl-cream) 14%, transparent)',
-              borderRadius: 999, padding: '8px 18px',
+              borderRadius: 'var(--pl-radius-full)', padding: '8px 18px',
               display: 'flex', alignItems: 'center', gap: 8,
               boxShadow: '0 8px 24px color-mix(in oklab, var(--pl-ink) 22%, transparent)',
             } as React.CSSProperties}
@@ -1493,7 +1493,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                 maxWidth: 1280,
                 background: 'var(--pl-cream-card)',
                 border: '1px solid var(--pl-divider)',
-                borderRadius: 16,
+                borderRadius: 'var(--pl-radius-xl)',
                 display: 'flex',
                 flexDirection: 'column',
                 overflow: 'hidden',
@@ -1538,7 +1538,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                         onClick={() => setPreviewOverlayDevice(d)}
                         style={{
                           padding: '5px 12px',
-                          borderRadius: 6,
+                          borderRadius: 'var(--pl-radius-sm)',
                           background: on ? 'var(--pl-ink)' : 'transparent',
                           color: on ? 'var(--pl-cream)' : 'var(--pl-ink-soft)',
                           border: `1px solid ${on ? 'var(--pl-ink)' : 'var(--pl-divider)'}`,
@@ -1560,7 +1560,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                   onClick={() => setPreviewOverlayOpen(false)}
                   style={{
                     padding: '6px 16px',
-                    borderRadius: 6,
+                    borderRadius: 'var(--pl-radius-sm)',
                     background: 'var(--pl-ink)',
                     color: 'var(--pl-cream)',
                     border: 'none',
@@ -1632,7 +1632,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
             padding: '8px 14px',
             background: 'var(--pl-ink)',
             color: 'var(--pl-cream)',
-            borderRadius: 999,
+            borderRadius: 'var(--pl-radius-full)',
             fontSize: '0.72rem',
             fontWeight: 700,
             letterSpacing: '0.06em',
@@ -1685,7 +1685,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
             right: 12,
             zIndex: 1200,
             padding: '4px 6px',
-            borderRadius: 999,
+            borderRadius: 'var(--pl-radius-full)',
             background: 'color-mix(in oklab, var(--pl-cream-card, #FBF7EE) 92%, transparent)',
             border: '1px solid var(--pl-divider)',
             boxShadow: '0 4px 12px rgba(40,28,12,0.08)',
@@ -1865,7 +1865,7 @@ function PublishModalInline() {
                     background: 'color-mix(in oklab, var(--pl-ink) 5%, transparent)',
                     border: '1px solid var(--pl-divider)',
                     padding: '0.7rem 2.8rem 0.7rem 1.2rem',
-                    borderRadius: 10,
+                    borderRadius: 'var(--pl-radius-lg)',
                     fontSize: '0.8rem',
                     color: 'var(--pl-ink)',
                     fontFamily: 'var(--pl-font-mono)',
@@ -1890,7 +1890,7 @@ function PublishModalInline() {
                     whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}
                     style={{
                       flex: 1, padding: '0.95rem',
-                      borderRadius: 999,
+                      borderRadius: 'var(--pl-radius-full)',
                       background: 'var(--pl-ink)',
                       color: 'var(--pl-cream)',
                       textDecoration: 'none',
@@ -1905,7 +1905,7 @@ function PublishModalInline() {
                     whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}
                     style={{
                       flex: 1, padding: '0.95rem',
-                      borderRadius: 999,
+                      borderRadius: 'var(--pl-radius-full)',
                       background: 'transparent',
                       border: '1px solid var(--pl-divider)',
                       color: 'var(--pl-ink)',
@@ -1994,7 +1994,7 @@ function PublishModalInline() {
                     marginBottom: 20,
                     background: 'color-mix(in oklab, var(--pl-olive) 5%, transparent)',
                     border: '1px solid color-mix(in oklab, var(--pl-olive) 18%, transparent)',
-                    borderRadius: 12,
+                    borderRadius: 'var(--pl-radius-lg)',
                     textAlign: 'left',
                   }}
                 >
@@ -2117,7 +2117,7 @@ function PublishModalInline() {
                       background: 'color-mix(in oklab, var(--pl-plum) 12%, transparent)',
                       border: '1px solid color-mix(in oklab, var(--pl-plum) 28%, transparent)',
                       color: 'var(--pl-plum)',
-                      borderRadius: 12,
+                      borderRadius: 'var(--pl-radius-lg)',
                       padding: '0.75rem 1rem',
                       marginBottom: '1.25rem',
                       fontSize: '0.8rem',
@@ -2135,7 +2135,7 @@ function PublishModalInline() {
                       style={{
                         flexShrink: 0,
                         padding: '3px 10px',
-                        borderRadius: 999,
+                        borderRadius: 'var(--pl-radius-full)',
                         background: 'color-mix(in oklab, var(--pl-plum) 18%, transparent)',
                         border: '1px solid color-mix(in oklab, var(--pl-plum) 40%, transparent)',
                         color: 'var(--pl-plum)',
@@ -2153,7 +2153,7 @@ function PublishModalInline() {
                 <div style={{
                   display: 'flex', alignItems: 'center',
                   background: 'color-mix(in oklab, var(--pl-ink) 4%, transparent)',
-                  borderRadius: 12,
+                  borderRadius: 'var(--pl-radius-lg)',
                   border: '1px solid var(--pl-divider)',
                   overflow: 'hidden',
                   marginBottom: '1.5rem',
@@ -2184,7 +2184,7 @@ function PublishModalInline() {
                     whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }}
                     style={{
                       flex: 1, padding: '0.95rem',
-                      borderRadius: 999,
+                      borderRadius: 'var(--pl-radius-full)',
                       background: 'transparent',
                       border: '1px solid var(--pl-divider)',
                       color: 'var(--pl-ink-soft)',
@@ -2201,7 +2201,7 @@ function PublishModalInline() {
                       flex: 2,
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                       padding: '0.95rem',
-                      borderRadius: 999,
+                      borderRadius: 'var(--pl-radius-full)',
                       background: 'var(--pl-ink)',
                       color: 'var(--pl-cream)',
                       border: 'none',
@@ -2245,7 +2245,7 @@ function ShareChip({ onClick, Icon, label, active = false }: ShareChipProps) {
         alignItems: 'center',
         gap: 6,
         padding: '8px 12px',
-        borderRadius: 999,
+        borderRadius: 'var(--pl-radius-full)',
         background: active
           ? 'color-mix(in oklab, var(--pl-olive) 16%, transparent)'
           : 'var(--pl-cream-card)',

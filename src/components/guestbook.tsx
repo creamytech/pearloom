@@ -537,7 +537,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                         onClick={() => setMessage((prev) => prev ? prev : pill.starter)}
                         style={{
                           padding: '0.35rem 0.8rem',
-                          borderRadius: '100px',
+                          borderRadius: 'var(--pl-radius-full)',
                           border: '1px solid color-mix(in srgb, var(--pl-olive) 30%, transparent)',
                           background: 'color-mix(in srgb, var(--pl-olive-mist) 50%, transparent)',
                           color: 'var(--pl-olive)',
@@ -575,7 +575,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                       alignItems: 'center',
                       gap: '0.45rem',
                       padding: '0.45rem 1rem',
-                      borderRadius: '100px',
+                      borderRadius: 'var(--pl-radius-full)',
                       border: '1.5px dashed rgba(0,0,0,0.15)',
                       background: 'transparent',
                       color: 'var(--pl-muted)',
@@ -751,7 +751,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                     justifyContent: 'center',
                     gap: '0.5rem',
                     padding: '0.9rem 2rem',
-                    borderRadius: '100px',
+                    borderRadius: 'var(--pl-radius-full)',
                     background:
                       submitting || !name.trim() || !message.trim() || isOverLimit
                         ? 'rgba(0,0,0,0.08)'

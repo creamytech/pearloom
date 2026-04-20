@@ -250,7 +250,7 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
         style={{
           background: 'rgba(255,255,255,0.55)',
           borderLeft: '3px solid #18181B',
-          borderRadius: '12px',
+          borderRadius: 'var(--pl-radius-lg)',
           padding: '10px 12px',
           position: 'relative',
           border: '1px solid #E4E4E7',
@@ -291,7 +291,7 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
                 fontWeight: 600,
                 color: '#71717A',
                 background: 'rgba(24,24,27,0.13)',
-                borderRadius: 10,
+                borderRadius: 'var(--pl-radius-lg)',
                 padding: '1px 7px',
                 marginLeft: 2,
               }}
@@ -351,7 +351,7 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
                       background: '#18181B',
                       color: '#fff',
                       border: 'none',
-                      borderRadius: 6,
+                      borderRadius: 'var(--pl-radius-sm)',
                       padding: '4px 12px',
                       fontSize: '0.75rem',
                       fontWeight: 700,

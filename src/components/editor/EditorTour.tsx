@@ -331,7 +331,7 @@ export function EditorTour({ onComplete }: { onComplete?: () => void }) {
                 background: 'none', border: 'none', cursor: 'pointer',
                 fontSize: '0.65rem', fontWeight: 600,
                 color: 'var(--pl-muted, #8a8472)',
-                padding: '2px 6px', borderRadius: '6px',
+                padding: '2px 6px', borderRadius: 'var(--pl-radius-sm)',
                 transition: 'background var(--pl-dur-instant)',
               }}
               onMouseEnter={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.04)')}
@@ -373,7 +373,7 @@ export function EditorTour({ onComplete }: { onComplete?: () => void }) {
                 style={{
                   width: i === step ? '18px' : '6px',
                   height: '6px',
-                  borderRadius: '8px',
+                  borderRadius: 'var(--pl-radius-md)',
                   background: i === step ? '#18181B' : i < step ? '#18181B' : 'rgba(0,0,0,0.1)',
                   opacity: i <= step ? 1 : 0.5,
                   transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -388,7 +388,7 @@ export function EditorTour({ onComplete }: { onComplete?: () => void }) {
               <button
                 onClick={handleBack}
                 style={{
-                  padding: '8px 18px', borderRadius: '8px',
+                  padding: '8px 18px', borderRadius: 'var(--pl-radius-md)',
                   border: '1px solid rgba(0,0,0,0.08)',
                   background: '#FFFFFF',
                   color: 'var(--pl-ink-soft, #5a4f42)',
@@ -404,7 +404,7 @@ export function EditorTour({ onComplete }: { onComplete?: () => void }) {
             <button
               onClick={handleNext}
               style={{
-                padding: '8px 22px', borderRadius: '8px', border: 'none',
+                padding: '8px 22px', borderRadius: 'var(--pl-radius-md)', border: 'none',
                 background: '#18181B',
                 color: '#fff', cursor: 'pointer',
                 fontSize: '0.75rem', fontWeight: 700,

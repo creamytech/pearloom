@@ -94,7 +94,7 @@ const lbl: React.CSSProperties = {
 const inp: React.CSSProperties = {
   width: '100%',
   padding: '8px 10px',
-  borderRadius: '6px',
+  borderRadius: 'var(--pl-radius-sm)',
   border: '1px solid #E4E4E7',
   background: '#FFFFFF',
   color: '#18181B',
@@ -151,7 +151,7 @@ function EventsEditor({ events, onChange }: { events: WeddingEvent[]; onChange: 
       {events.map(evt => (
         <div key={evt.id} style={{
           background: '#FAFAFA',
-          borderRadius: '10px',
+          borderRadius: 'var(--pl-radius-lg)',
           border: '1px solid #E4E4E7',
           overflow: 'hidden',
         }}>
@@ -199,7 +199,7 @@ function EventsEditor({ events, onChange }: { events: WeddingEvent[]; onChange: 
                     onClick={() => remove(evt.id)}
                     style={{
                       alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px',
-                      padding: '5px 10px', borderRadius: '6px',
+                      padding: '5px 10px', borderRadius: 'var(--pl-radius-sm)',
                       border: '1px solid rgba(239,68,68,0.25)',
                       background: 'rgba(239,68,68,0.06)',
                       color: '#e87a7a',
@@ -220,7 +220,7 @@ function EventsEditor({ events, onChange }: { events: WeddingEvent[]; onChange: 
       ))}
       <button onClick={add} style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-        padding: '10px', borderRadius: '10px',
+        padding: '10px', borderRadius: 'var(--pl-radius-lg)',
         border: '1.5px dashed #E4E4E7',
         background: '#FAFAFA', color: '#18181B',
         cursor: 'pointer',
@@ -250,7 +250,7 @@ function FaqEditor({ faqs, onChange }: { faqs: FaqItem[]; onChange: (f: FaqItem[
       {faqs.map((faq, i) => (
         <div key={faq.id} style={{
           background: '#FAFAFA',
-          borderRadius: '10px',
+          borderRadius: 'var(--pl-radius-lg)',
           border: '1px solid #E4E4E7',
           padding: '12px',
           display: 'flex', flexDirection: 'column', gap: '8px',
@@ -268,7 +268,7 @@ function FaqEditor({ faqs, onChange }: { faqs: FaqItem[]; onChange: (f: FaqItem[
           <MiniField label="Answer" value={faq.answer} onChange={v => upd(faq.id, { answer: v })} rows={2} placeholder="We'd love for you to..." />
           <button onClick={() => remove(faq.id)} style={{
           alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px',
-          padding: '4px 8px', borderRadius: '6px',
+          padding: '4px 8px', borderRadius: 'var(--pl-radius-sm)',
           border: '1px solid rgba(239,68,68,0.25)',
           background: 'rgba(239,68,68,0.06)',
           color: '#e87a7a',
@@ -284,7 +284,7 @@ function FaqEditor({ faqs, onChange }: { faqs: FaqItem[]; onChange: (f: FaqItem[
       ))}
       <button onClick={add} style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-        padding: '10px', borderRadius: '10px',
+        padding: '10px', borderRadius: 'var(--pl-radius-lg)',
         border: '1.5px dashed #E4E4E7',
         background: '#FAFAFA', color: '#18181B',
         cursor: 'pointer',
@@ -328,7 +328,7 @@ function TravelEditor({ travel, onChange }: { travel: TravelInfo; onChange: (t: 
       {(travel.hotels || []).map((h, i) => (
         <div key={i} style={{
           background: '#FAFAFA',
-          borderRadius: '10px',
+          borderRadius: 'var(--pl-radius-lg)',
           border: '1px solid #E4E4E7',
           padding: '12px',
           display: 'flex', flexDirection: 'column', gap: '8px',
@@ -349,7 +349,7 @@ function TravelEditor({ travel, onChange }: { travel: TravelInfo; onChange: (t: 
           <MiniField label="Notes" value={h.notes || ''} onChange={v => updHotel(i, { notes: v })} placeholder="Our recommended hotel, 10 min from venue" />
           <button onClick={() => removeHotel(i)} style={{
           alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px',
-          padding: '4px 8px', borderRadius: '6px',
+          padding: '4px 8px', borderRadius: 'var(--pl-radius-sm)',
           border: '1px solid rgba(239,68,68,0.25)',
           background: 'rgba(239,68,68,0.06)',
           color: '#e87a7a',
@@ -365,7 +365,7 @@ function TravelEditor({ travel, onChange }: { travel: TravelInfo; onChange: (t: 
       ))}
       <button onClick={addHotel} style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-        padding: '10px', borderRadius: '10px',
+        padding: '10px', borderRadius: 'var(--pl-radius-lg)',
         border: '1.5px dashed #E4E4E7',
         background: '#FAFAFA', color: '#18181B',
         cursor: 'pointer',
@@ -411,7 +411,7 @@ function RegistryEditor({ registry, onChange }: {
       {entries.map((entry, i) => (
         <div key={i} style={{
           background: '#FAFAFA',
-          borderRadius: '10px',
+          borderRadius: 'var(--pl-radius-lg)',
           border: '1px solid #E4E4E7',
           padding: '12px',
           display: 'flex', flexDirection: 'column', gap: '8px',
@@ -421,7 +421,7 @@ function RegistryEditor({ registry, onChange }: {
           <MiniField label="Note" value={entry.note || ''} onChange={v => updEntry(i, { note: v })} placeholder="Our main registry..." />
           <button onClick={() => removeEntry(i)} style={{
           alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px',
-          padding: '4px 8px', borderRadius: '6px',
+          padding: '4px 8px', borderRadius: 'var(--pl-radius-sm)',
           border: '1px solid rgba(239,68,68,0.25)',
           background: 'rgba(239,68,68,0.06)',
           color: '#e87a7a',
@@ -437,7 +437,7 @@ function RegistryEditor({ registry, onChange }: {
       ))}
       <button onClick={addEntry} style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-        padding: '10px', borderRadius: '10px',
+        padding: '10px', borderRadius: 'var(--pl-radius-lg)',
         border: '1.5px dashed #E4E4E7',
         background: '#FAFAFA', color: '#18181B',
         cursor: 'pointer',
@@ -489,7 +489,7 @@ function BlockCard({
       layout
       style={{
         background: '#FFFFFF',
-        borderRadius: '12px',
+        borderRadius: 'var(--pl-radius-lg)',
         border: `1px solid ${isApplied ? `${block.color}50` : '#E4E4E7'}`,
         overflow: 'hidden',
         boxShadow: isApplied ? `0 0 0 1px ${block.color}30` : 'none',
@@ -505,7 +505,7 @@ function BlockCard({
         }}
       >
         <div style={{
-          width: '32px', height: '32px', borderRadius: '8px', flexShrink: 0,
+          width: '32px', height: '32px', borderRadius: 'var(--pl-radius-md)', flexShrink: 0,
           background: `${block.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <Icon size={15} color={block.color} />
@@ -527,7 +527,7 @@ function BlockCard({
                 textTransform: 'uppercase',
                 color: block.color,
                 background: `${block.color}15`,
-                padding: '2px 7px', borderRadius: '100px',
+                padding: '2px 7px', borderRadius: 'var(--pl-radius-full)',
                 fontFamily: 'inherit',
                 lineHeight: panelLineHeight.tight,
               }}>
@@ -581,7 +581,7 @@ function BlockCard({
                 whileTap={{ scale: 0.98 }}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                  padding: '10px', borderRadius: '8px', border: 'none',
+                  padding: '10px', borderRadius: 'var(--pl-radius-md)', border: 'none',
                   background: isGenerating
                     ? '#F4F4F5'
                     : `linear-gradient(135deg, ${block.color}, ${block.color}cc)`,
@@ -603,7 +603,7 @@ function BlockCard({
                   onClick={onApply}
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                    padding: '8px', borderRadius: '8px',
+                    padding: '8px', borderRadius: 'var(--pl-radius-md)',
                     border: `1px solid ${block.color}40`, background: 'transparent',
                     color: block.color,
                     fontSize: panelText.hint,
@@ -628,16 +628,16 @@ function BlockCard({
 function SkeletonCard() {
   return (
     <div style={{
-      background: '#FAFAFA', borderRadius: '12px',
+      background: '#FAFAFA', borderRadius: 'var(--pl-radius-lg)',
       border: '1px solid #E4E4E7', padding: '12px',
       display: 'flex', flexDirection: 'column', gap: '8px',
       animation: 'skeletonPulse 1.4s ease-in-out infinite',
     }}>
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-        <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#E4E4E7' }} />
+        <div style={{ width: '32px', height: '32px', borderRadius: 'var(--pl-radius-md)', background: '#E4E4E7' }} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <div style={{ height: '11px', borderRadius: '4px', background: '#E4E4E7', width: '55%' }} />
-          <div style={{ height: '9px', borderRadius: '4px', background: '#F4F4F5', width: '80%' }} />
+          <div style={{ height: '11px', borderRadius: 'var(--pl-radius-xs)', background: '#E4E4E7', width: '55%' }} />
+          <div style={{ height: '9px', borderRadius: 'var(--pl-radius-xs)', background: '#F4F4F5', width: '80%' }} />
         </div>
       </div>
     </div>
@@ -775,7 +775,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
           onClick={handleRegenerate}
           style={{
             display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0,
-            padding: '6px 10px', borderRadius: '8px',
+            padding: '6px 10px', borderRadius: 'var(--pl-radius-md)',
             border: '1px solid #E4E4E7',
             background: '#F4F4F5',
             color: '#18181B',
@@ -797,7 +797,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
           onClick={() => setActiveCategory('all')}
           style={{
             display: 'flex', alignItems: 'center', gap: '5px',
-            padding: '5px 11px', borderRadius: '100px',
+            padding: '5px 11px', borderRadius: 'var(--pl-radius-full)',
             border: activeCategory === 'all' ? '2px solid #18181B' : '1px solid #E4E4E7',
             cursor: 'pointer',
             background: activeCategory === 'all' ? '#F4F4F5' : '#FFFFFF',
@@ -814,7 +814,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
             background: activeCategory === 'all' ? '#18181B' : '#F4F4F5',
             color: activeCategory === 'all' ? '#FFFFFF' : '#3F3F46',
             padding: '1px 6px',
-            borderRadius: '100px',
+            borderRadius: 'var(--pl-radius-full)',
             fontSize: panelText.meta,
             fontWeight: panelWeight.bold,
             fontFamily: 'inherit',
@@ -832,7 +832,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
               onClick={() => setActiveCategory(isActive ? 'all' : block.id)}
               style={{
                 display: 'flex', alignItems: 'center', gap: '5px',
-                padding: '5px 11px', borderRadius: '100px',
+                padding: '5px 11px', borderRadius: 'var(--pl-radius-full)',
                 border: isActive ? `2px solid ${block.color}` : '1px solid #E4E4E7',
                 cursor: 'pointer',
                 background: isActive ? `${block.color}15` : '#FFFFFF',
@@ -851,7 +851,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
                   background: `${block.color}25`,
                   color: block.color,
                   padding: '2px 5px',
-                  borderRadius: '100px',
+                  borderRadius: 'var(--pl-radius-full)',
                   display: 'inline-flex', alignItems: 'center',
                 }}>
                   <Check size={8} />
@@ -866,7 +866,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
         <div style={{
           background: 'rgba(239,68,68,0.08)',
           border: '1px solid rgba(239,68,68,0.25)',
-          borderRadius: '8px',
+          borderRadius: 'var(--pl-radius-md)',
           padding: '8px 12px',
           fontSize: panelText.body,
           fontWeight: panelWeight.semibold,
@@ -899,7 +899,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
       {generatedCount > 0 && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: '8px',
-          padding: '10px 12px', borderRadius: '10px',
+          padding: '10px 12px', borderRadius: 'var(--pl-radius-lg)',
           background: '#F4F4F5', border: '1px solid #E4E4E7',
         }}>
           <Check size={13} color="#4ade80" />
@@ -926,7 +926,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
             transition={{ duration: 0.22 }}
             style={{
               background: '#FAFAFA',
-              borderRadius: '12px',
+              borderRadius: 'var(--pl-radius-lg)',
               border: '1px solid #E4E4E7',
               padding: '14px',
             }}

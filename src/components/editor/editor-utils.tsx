@@ -64,7 +64,7 @@ export const sectionHeading: React.CSSProperties = {
 export const inp: React.CSSProperties = {
   width: '100%',
   padding: '9px 4px 8px',
-  borderRadius: '2px',
+  borderRadius: 'var(--pl-radius-xs)',
   border: '1px solid transparent',
   borderBottom: '1px solid var(--pl-chrome-border)',
   background: 'color-mix(in srgb, var(--pl-chrome-accent) 3%, transparent)',
@@ -132,7 +132,7 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type, m
     ...errInpStyle,
     padding: '10px 12px',
     border: '1px solid var(--pl-chrome-border)',
-    borderRadius: '4px',
+    borderRadius: 'var(--pl-radius-xs)',
     background: 'color-mix(in srgb, var(--pl-chrome-accent) 3%, var(--pl-chrome-bg))',
     resize: 'vertical',
     lineHeight: 1.65,
@@ -222,7 +222,7 @@ export function FieldGroup({ title, children, columns }: {
     <div style={{
       position: 'relative',
       padding: `${spacing.md} ${spacing.md} ${spacing.md}`,
-      borderRadius: '2px',
+      borderRadius: 'var(--pl-radius-xs)',
       background: 'var(--pl-chrome-surface-2)',
       border: '1px solid var(--pl-chrome-border)',
       borderTop: '2px solid color-mix(in srgb, var(--pl-chrome-accent) 55%, transparent)',
@@ -279,7 +279,7 @@ export function ActionButton({ label, icon, onClick, variant = 'default', size =
       }}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: spacing.xs,
-        padding, borderRadius: '2px', cursor: 'pointer',
+        padding, borderRadius: 'var(--pl-radius-xs)', cursor: 'pointer',
         border: `1px solid ${colors.border}`,
         background: colors.bg, color: colors.color,
         fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
@@ -331,7 +331,7 @@ export function PillToggle({ label, value, onChange }: {
           onClick={() => onChange(!value)}
           aria-pressed={value}
           style={{
-            width: '40px', height: '18px', borderRadius: '2px',
+            width: '40px', height: '18px', borderRadius: 'var(--pl-radius-xs)',
             background: value
               ? 'color-mix(in srgb, var(--pl-chrome-accent) 22%, transparent)'
               : 'var(--pl-chrome-surface-2)',
@@ -344,7 +344,7 @@ export function PillToggle({ label, value, onChange }: {
         >
           <span style={{
             position: 'absolute', top: '2px', left: value ? '22px' : '2px',
-            width: '12px', height: '12px', borderRadius: '1px',
+            width: '12px', height: '12px', borderRadius: 'var(--pl-radius-xs)',
             background: value ? 'var(--pl-chrome-accent)' : 'var(--pl-chrome-text-faint)',
             transition: 'left 0.22s cubic-bezier(0.22, 1, 0.36, 1), background 0.22s ease',
             display: 'block',
@@ -367,7 +367,7 @@ export function EmptyState({ icon, title, description, action, onAction }: {
     <div style={{
       position: 'relative',
       padding: `${spacing.xl} ${spacing.lg}`, textAlign: 'center',
-      borderRadius: '2px',
+      borderRadius: 'var(--pl-radius-xs)',
       border: '1px dashed color-mix(in srgb, var(--pl-chrome-accent) 45%, transparent)',
       background: 'color-mix(in srgb, var(--pl-chrome-accent) 3%, transparent)',
     }}>
@@ -411,7 +411,7 @@ export function EmptyState({ icon, title, description, action, onAction }: {
           style={{
             marginTop: spacing.md,
             padding: `7px 14px`,
-            borderRadius: '2px',
+            borderRadius: 'var(--pl-radius-xs)',
             border: '1px solid var(--pl-chrome-accent)',
             background: 'var(--pl-chrome-accent-soft)',
             color: 'var(--pl-chrome-accent)',

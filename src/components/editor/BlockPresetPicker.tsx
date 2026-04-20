@@ -112,7 +112,7 @@ export function BlockPresetPicker({ pending, onPick, onClose }: BlockPresetPicke
             borderLeft: '1px solid rgba(184,147,90,0.22)',
             borderRight: '1px solid rgba(184,147,90,0.22)',
             borderBottom: '1px solid rgba(184,147,90,0.22)',
-            borderRadius: 2,
+            borderRadius: 'var(--pl-radius-xs)',
             boxShadow: '0 32px 80px rgba(22,16,6,0.32), 0 2px 10px rgba(22,16,6,0.08)',
             padding: '26px 28px 24px',
             color: '#18181B',
@@ -179,7 +179,7 @@ export function BlockPresetPicker({ pending, onPick, onClose }: BlockPresetPicke
                   flexDirection: 'column',
                   gap: 10,
                   padding: 12,
-                  borderRadius: 2,
+                  borderRadius: 'var(--pl-radius-xs)',
                   background: 'rgba(250,247,242,0.75)',
                   borderTop: '1.5px solid rgba(184,147,90,0.55)',
                   borderLeft: '1px solid rgba(184,147,90,0.3)',
@@ -283,7 +283,7 @@ export function BlockPresetPicker({ pending, onPick, onClose }: BlockPresetPicke
               onClick={() => onPick(null)}
               style={{
                 padding: '8px 14px',
-                borderRadius: 2,
+                borderRadius: 'var(--pl-radius-xs)',
                 border: '1px solid rgba(184,147,90,0.45)',
                 background: 'transparent',
                 color: '#18181B',
@@ -317,7 +317,7 @@ const kbdStyle: React.CSSProperties = {
   display: 'inline-block',
   padding: '1px 5px',
   marginRight: 4,
-  borderRadius: 2,
+  borderRadius: 'var(--pl-radius-xs)',
   background: 'rgba(184,147,90,0.18)',
   border: '1px solid rgba(184,147,90,0.35)',
   fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
@@ -335,7 +335,7 @@ function PresetPreview({ preset, blockType }: { preset: BlockPreset; blockType: 
       style={{
         width: '100%',
         aspectRatio: '16 / 10',
-        borderRadius: 2,
+        borderRadius: 'var(--pl-radius-xs)',
         background: preset.swatch,
         position: 'relative',
         overflow: 'hidden',
@@ -364,7 +364,7 @@ function PresetPreview({ preset, blockType }: { preset: BlockPreset; blockType: 
             height: '22%',
             background: preset.ink,
             opacity: 0.85,
-            borderRadius: 1,
+            borderRadius: 'var(--pl-radius-xs)',
           }} />
           <div style={{
             position: 'absolute',
@@ -386,7 +386,7 @@ function PresetPreview({ preset, blockType }: { preset: BlockPreset; blockType: 
             height: '46%',
             background: preset.ink,
             opacity: 0.25,
-            borderRadius: 1,
+            borderRadius: 'var(--pl-radius-xs)',
           }} />
           <div style={{
             position: 'absolute',
@@ -431,7 +431,7 @@ function PresetPreview({ preset, blockType }: { preset: BlockPreset; blockType: 
               style={{
                 width: 14,
                 height: 22,
-                borderRadius: 1,
+                borderRadius: 'var(--pl-radius-xs)',
                 background: preset.ink,
                 opacity: 0.75 - i * 0.08,
               }}

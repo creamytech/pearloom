@@ -121,7 +121,7 @@ export default function CommunityMemorySubmit({
       <div
         style={{
           background: 'var(--pl-cream, #F5F1E8)',
-          borderRadius: 20,
+          borderRadius: 'var(--pl-radius-2xl)',
           padding: '48px 40px',
           textAlign: 'center',
           maxWidth: 560,
@@ -160,7 +160,7 @@ export default function CommunityMemorySubmit({
               background: palette.accent,
               color: '#fff',
               border: 'none',
-              borderRadius: 10,
+              borderRadius: 'var(--pl-radius-lg)',
               padding: '12px 28px',
               fontFamily: vibeSkin.fonts.body,
               fontSize: 14,
@@ -177,7 +177,7 @@ export default function CommunityMemorySubmit({
                 background: 'transparent',
                 color: palette.muted,
                 border: `1.5px solid ${palette.accent2}`,
-                borderRadius: 10,
+                borderRadius: 'var(--pl-radius-lg)',
                 padding: '12px 28px',
                 fontFamily: vibeSkin.fonts.body,
                 fontSize: 14,
@@ -198,7 +198,7 @@ export default function CommunityMemorySubmit({
     <div
       style={{
         background: '#F5F1E8',
-        borderRadius: 20,
+        borderRadius: 'var(--pl-radius-2xl)',
         padding: '40px 40px 44px',
         maxWidth: 600,
         margin: '0 auto',
@@ -302,7 +302,7 @@ export default function CommunityMemorySubmit({
               style={{
                 background: 'transparent',
                 border: `1.5px dashed ${palette.accent2}`,
-                borderRadius: 10,
+                borderRadius: 'var(--pl-radius-lg)',
                 padding: '10px 20px',
                 fontFamily: vibeSkin.fonts.body,
                 fontSize: 14,
@@ -333,7 +333,7 @@ export default function CommunityMemorySubmit({
                     width: 64,
                     height: 64,
                     objectFit: 'cover',
-                    borderRadius: 8,
+                    borderRadius: 'var(--pl-radius-md)',
                     border: `2px solid ${palette.accent2}`,
                   }}
                 />
@@ -382,7 +382,7 @@ export default function CommunityMemorySubmit({
             style={{
               background: 'color-mix(in oklab, #EF4444 12%, var(--pl-cream-card, #fff))',
               border: '1px solid color-mix(in oklab, #EF4444 40%, transparent)',
-              borderRadius: 8,
+              borderRadius: 'var(--pl-radius-md)',
               padding: '10px 14px',
               fontFamily: vibeSkin.fonts.body,
               fontSize: 14,
@@ -401,7 +401,7 @@ export default function CommunityMemorySubmit({
             background: submitState === 'submitting' ? palette.muted : palette.accent,
             color: '#fff',
             border: 'none',
-            borderRadius: 12,
+            borderRadius: 'var(--pl-radius-lg)',
             padding: '15px 32px',
             fontFamily: vibeSkin.fonts.body,
             fontSize: 15,
@@ -438,7 +438,7 @@ function inputStyle(palette: VibeSkin['palette']): React.CSSProperties {
     width: '100%',
     background: palette.card,
     border: `1.5px solid ${palette.accent2}66`,
-    borderRadius: 10,
+    borderRadius: 'var(--pl-radius-lg)',
     padding: '11px 14px',
     fontFamily: 'inherit',
     fontSize: 15,

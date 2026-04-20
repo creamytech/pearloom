@@ -156,7 +156,7 @@ export function VendorBookingsPanel({ siteId }: { siteId: string }) {
                 </div>
                 <span style={{
                   padding: '0.2rem 0.6rem',
-                  borderRadius: '999px',
+                  borderRadius: 'var(--pl-radius-full)',
                   fontSize: '0.7rem',
                   fontWeight: 600,
                   textTransform: 'capitalize',
@@ -211,7 +211,7 @@ export function VendorBookingsPanel({ siteId }: { siteId: string }) {
                     background: checkingOut === b.id ? 'var(--pl-muted)' : 'var(--pl-olive)',
                     color: 'var(--pl-cream)',
                     border: 'none',
-                    borderRadius: '999px',
+                    borderRadius: 'var(--pl-radius-full)',
                     fontSize: '0.78rem',
                     fontWeight: 600,
                     cursor: checkingOut === b.id ? 'not-allowed' : 'pointer',

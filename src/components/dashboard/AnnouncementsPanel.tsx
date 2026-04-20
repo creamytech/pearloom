@@ -205,7 +205,7 @@ export function AnnouncementsPanel({ siteId }: { siteId: string }) {
               background: submitting || !body.trim() ? 'var(--pl-muted)' : 'var(--pl-olive)',
               color: 'var(--pl-cream)',
               border: 'none',
-              borderRadius: '999px',
+              borderRadius: 'var(--pl-radius-full)',
               fontSize: '0.9rem',
               fontWeight: 600,
               cursor: submitting || !body.trim() ? 'not-allowed' : 'pointer',
@@ -276,7 +276,7 @@ export function AnnouncementsPanel({ siteId }: { siteId: string }) {
                   <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
                     <span style={{
                       padding: '0.15rem 0.5rem',
-                      borderRadius: '999px',
+                      borderRadius: 'var(--pl-radius-full)',
                       fontSize: '0.7rem',
                       fontWeight: 600,
                       background: `color-mix(in oklab, ${status.color} 14%, transparent)`,

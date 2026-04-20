@@ -435,7 +435,7 @@ function PreviewContent() {
                   <div key={i} style={{
                     aspectRatio: i === 0 ? '2/1' : '1',
                     gridColumn: i === 0 ? 'span 2' : undefined,
-                    borderRadius: '10px', overflow: 'hidden',
+                    borderRadius: 'var(--pl-radius-lg)', overflow: 'hidden',
                     boxShadow: `0 8px 30px ${pal.foreground}12`,
                   }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}

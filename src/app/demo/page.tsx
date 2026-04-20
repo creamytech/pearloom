@@ -321,7 +321,7 @@ export default function DemoPage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '8px', maxWidth: '960px', margin: '0 auto' }}>
             {CHAPTERS.flatMap(ch => ch.images || []).map((img, i) => (
-              <div key={i} style={{ aspectRatio: i === 0 ? '2/1' : '1', gridColumn: i === 0 ? 'span 2' : undefined, borderRadius: '10px', overflow: 'hidden' }}>
+              <div key={i} style={{ aspectRatio: i === 0 ? '2/1' : '1', gridColumn: i === 0 ? 'span 2' : undefined, borderRadius: 'var(--pl-radius-lg)', overflow: 'hidden' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={img.url} alt={img.alt || ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               </div>

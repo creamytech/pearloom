@@ -106,7 +106,7 @@ export function AmbientSpotifyPlayer({
             backdropFilter: 'blur(18px) saturate(1.2)',
             WebkitBackdropFilter: 'blur(18px) saturate(1.2)',
             border: `1px solid ${accent}55`,
-            borderRadius: 12,
+            borderRadius: 'var(--pl-radius-lg)',
             overflow: 'hidden',
             boxShadow:
               '0 20px 60px rgba(0,0,0,0.32), 0 4px 12px rgba(0,0,0,0.24)',
@@ -142,7 +142,7 @@ export function AmbientSpotifyPlayer({
                 padding: '4px 10px',
                 background: 'transparent',
                 border: `1px solid ${accent}55`,
-                borderRadius: 4,
+                borderRadius: 'var(--pl-radius-xs)',
                 color: accent,
                 fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                 fontSize: '0.54rem',

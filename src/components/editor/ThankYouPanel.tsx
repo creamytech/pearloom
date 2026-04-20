@@ -60,7 +60,7 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
 
   return (
     <div style={{
-      borderRadius: '12px',
+      borderRadius: 'var(--pl-radius-lg)',
       border: '1px solid #E4E4E7',
       background: '#FAFAFA',
       overflow: 'hidden',
@@ -86,7 +86,7 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
               fontSize: panelText.hint,
               fontWeight: panelWeight.bold,
               padding: '2px 7px',
-              borderRadius: '6px',
+              borderRadius: 'var(--pl-radius-sm)',
               border: '1px solid #E4E4E7',
               background: editing ? '#F4F4F5' : 'transparent',
               color: '#3F3F46',
@@ -100,7 +100,7 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
             title={copied === 'fail' ? 'Copy failed — select manually' : 'Copy to clipboard'}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              width: '24px', height: '24px', borderRadius: '6px',
+              width: '24px', height: '24px', borderRadius: 'var(--pl-radius-sm)',
               border: copied === 'fail'
                 ? '1px solid color-mix(in oklab, var(--pl-plum) 50%, transparent)'
                 : '1px solid var(--pl-divider)',
@@ -126,7 +126,7 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
             style={{
               width: '100%', minHeight: '90px', resize: 'vertical',
               background: '#FFFFFF', border: '1px solid #E4E4E7',
-              borderRadius: '6px', padding: '7px', color: '#18181B',
+              borderRadius: 'var(--pl-radius-sm)', padding: '7px', color: '#18181B',
               fontSize: 'max(16px, 0.8rem)',
               lineHeight: panelLineHeight.snug,
               fontFamily: 'inherit', outline: 'none',
@@ -312,7 +312,7 @@ export function ThankYouPanel() {
               key={entry.id}
               style={{
                 display: 'flex', flexDirection: 'column', gap: '6px',
-                padding: '8px 10px', borderRadius: '8px',
+                padding: '8px 10px', borderRadius: 'var(--pl-radius-md)',
                 border: '1px solid #E4E4E7',
                 background: '#FAFAFA',
                 position: 'relative',
@@ -388,7 +388,7 @@ export function ThankYouPanel() {
             onClick={addEntry}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-              padding: '7px', borderRadius: '8px',
+              padding: '7px', borderRadius: 'var(--pl-radius-md)',
               border: '1.5px dashed #E4E4E7',
               background: 'transparent',
               color: '#71717A', cursor: 'pointer',
@@ -408,7 +408,7 @@ export function ThankYouPanel() {
           whileTap={canGenerate ? { scale: 0.98 } : {}}
           style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            padding: '11px', borderRadius: '10px',
+            padding: '11px', borderRadius: 'var(--pl-radius-lg)',
             border: 'none',
             background: canGenerate ? '#18181B' : '#F4F4F5',
             color: canGenerate ? '#FFFFFF' : '#71717A',
@@ -464,7 +464,7 @@ export function ThankYouPanel() {
             style={{
               width: '100%',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
-              padding: '10px', borderRadius: '8px',
+              padding: '10px', borderRadius: 'var(--pl-radius-md)',
               border: '1px solid #E4E4E7',
               background: '#FAFAFA',
               color: '#71717A', cursor: 'pointer',

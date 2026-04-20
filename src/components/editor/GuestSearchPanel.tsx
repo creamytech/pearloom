@@ -43,7 +43,7 @@ interface GuestSearchPanelProps {
 const inputBase: React.CSSProperties = {
   width: '100%',
   padding: '10px 12px',
-  borderRadius: '8px',
+  borderRadius: 'var(--pl-radius-md)',
   border: '1px solid #E4E4E7',
   background: '#FFFFFF',
   color: '#18181B',
@@ -196,7 +196,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
               onClick={() => setStatusFilter(s)}
               style={{
                 padding: '6px 12px',
-                borderRadius: '100px',
+                borderRadius: 'var(--pl-radius-full)',
                 fontSize: panelText.chip,
                 fontWeight: isActive ? panelWeight.bold : panelWeight.semibold,
                 fontFamily: 'inherit',
@@ -239,7 +239,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
             onClick={() => setQuery('')}
             style={{
               position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
-              width: '24px', height: '24px', borderRadius: '6px', border: 'none',
+              width: '24px', height: '24px', borderRadius: 'var(--pl-radius-sm)', border: 'none',
               background: 'transparent', cursor: 'pointer', color: '#71717A',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
@@ -269,7 +269,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
           <div style={{
             textAlign: 'center',
             padding: '20px 16px',
-            borderRadius: '12px',
+            borderRadius: 'var(--pl-radius-lg)',
             border: '1.5px dashed #E4E4E7',
             background: '#FAFAFA',
           }}>
@@ -300,7 +300,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
               style={{
                 display: 'flex', alignItems: 'center', gap: '10px',
                 padding: '8px 10px',
-                borderRadius: '8px',
+                borderRadius: 'var(--pl-radius-md)',
                 background: '#FFFFFF',
                 border: '1px solid #E4E4E7',
                 transition: 'all var(--pl-dur-instant)',
@@ -353,7 +353,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
                 onClick={() => handleDelete(guest.id)}
                 title="Remove guest"
                 style={{
-                  width: '24px', height: '24px', borderRadius: '6px', border: 'none',
+                  width: '24px', height: '24px', borderRadius: 'var(--pl-radius-sm)', border: 'none',
                   background: 'transparent', color: '#71717A', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0,
@@ -390,7 +390,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
             onClick={handleAdd}
             disabled={adding || !addName.trim()}
             style={{
-              padding: '9px 12px', borderRadius: '8px', border: 'none',
+              padding: '9px 12px', borderRadius: 'var(--pl-radius-md)', border: 'none',
               background: addName.trim() ? '#18181B' : '#E4E4E7',
               color: addName.trim() ? '#FFFFFF' : '#71717A',
               cursor: addName.trim() ? 'pointer' : 'default',
@@ -418,7 +418,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
             Upload a CSV with <code style={{
               background: '#F4F4F5',
               padding: '1px 5px',
-              borderRadius: '4px',
+              borderRadius: 'var(--pl-radius-xs)',
               fontSize: panelText.hint,
               fontFamily: 'monospace',
             }}>name,email</code> columns (up to 200 guests).
@@ -435,7 +435,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
             disabled={csvLoading}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-              padding: '10px', borderRadius: '10px',
+              padding: '10px', borderRadius: 'var(--pl-radius-lg)',
               border: '1.5px dashed #E4E4E7',
               background: '#FAFAFA', color: '#18181B',
               cursor: csvLoading ? 'wait' : 'pointer',
@@ -454,7 +454,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
               fontSize: panelText.hint,
               fontWeight: panelWeight.semibold,
               padding: '8px 10px',
-              borderRadius: '8px',
+              borderRadius: 'var(--pl-radius-md)',
               background: csvResult.includes('failed') ? 'rgba(239,68,68,0.08)' : '#F4F4F5',
               border: `1px solid ${csvResult.includes('failed') ? 'rgba(239,68,68,0.25)' : '#E4E4E7'}`,
               color: csvResult.includes('failed') ? '#b34747' : '#3F3F46',

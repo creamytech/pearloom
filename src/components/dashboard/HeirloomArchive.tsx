@@ -58,7 +58,7 @@ function RestorationProgress({ progress }: { progress: number }) {
         </span>
       </div>
       <div style={{
-        height: '4px', borderRadius: '2px',
+        height: '4px', borderRadius: 'var(--pl-radius-xs)',
         background: 'var(--pl-cream-deep)',
         overflow: 'hidden',
       }}>
@@ -67,7 +67,7 @@ function RestorationProgress({ progress }: { progress: number }) {
           animate={{ width: `${progress}%` }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           style={{
-            height: '100%', borderRadius: '2px',
+            height: '100%', borderRadius: 'var(--pl-radius-xs)',
             background: progress === 100
               ? 'var(--pl-olive-deep)'
               : 'linear-gradient(90deg, var(--pl-olive), var(--pl-gold))',
@@ -93,7 +93,7 @@ function InventorySyncCard({ lastSynced }: { lastSynced?: string }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
         <div style={{
           width: '36px', height: '36px',
-          borderRadius: '10px',
+          borderRadius: 'var(--pl-radius-lg)',
           background: 'var(--pl-cream-deep)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
@@ -305,7 +305,7 @@ export function HeirloomArchive({ entries = [], onStartCurator }: HeirloomArchiv
       }}>
         <div style={{
           width: '64px', height: '64px',
-          borderRadius: '16px',
+          borderRadius: 'var(--pl-radius-xl)',
           background: 'var(--pl-cream-deep)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           margin: '0 auto 20px',
@@ -387,7 +387,7 @@ export function HeirloomArchive({ entries = [], onStartCurator }: HeirloomArchiv
         <Card variant="elevated" padding="md">
           <div style={{
             background: 'linear-gradient(135deg, var(--pl-gold), color-mix(in oklab, var(--pl-gold) 70%, var(--pl-ink)))',
-            borderRadius: '12px',
+            borderRadius: 'var(--pl-radius-lg)',
             padding: '20px',
             color: 'var(--pl-cream)',
           }}>

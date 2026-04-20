@@ -146,7 +146,7 @@ export function CanvasInlineFormatBar({
         alignItems: 'center',
         gap: '2px',
         padding: '0 8px',
-        borderRadius: '10px',
+        borderRadius: 'var(--pl-radius-lg)',
         background: 'rgba(24,24,27,0.92)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',

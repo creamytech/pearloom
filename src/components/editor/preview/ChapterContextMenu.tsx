@@ -37,7 +37,7 @@ function MenuItem({
       onClick={onClick}
       style={{
         display: 'flex', alignItems: 'center', gap: 8,
-        width: '100%', padding: '6px 10px', border: 'none', borderRadius: 8,
+        width: '100%', padding: '6px 10px', border: 'none', borderRadius: 'var(--pl-radius-md)',
         background: 'transparent', cursor: 'pointer',
         fontSize: '0.8rem', fontWeight: 500,
         color: danger ? '#ef4444' : '#18181B',
@@ -102,10 +102,10 @@ export function ChapterContextMenu({
         position: 'fixed',
         top: clampedY,
         left: clampedX,
-        zIndex: 9999,
+        zIndex: 'var(--z-max)',
         minWidth: menuWidth,
         background: '#FFFFFF', backdropFilter: 'blur(16px)',
-        borderRadius: 12,
+        borderRadius: 'var(--pl-radius-lg)',
         border: '1px solid rgba(0,0,0,0.08)',
         boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
         padding: 4,
@@ -130,7 +130,7 @@ export function ChapterContextMenu({
             title={opt.label}
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-              padding: '6px 4px', border: 'none', borderRadius: 6, cursor: 'pointer',
+              padding: '6px 4px', border: 'none', borderRadius: 'var(--pl-radius-sm)', cursor: 'pointer',
               background: currentLayout === opt.id ? 'rgba(24,24,27,0.08)' : 'transparent',
               color: currentLayout === opt.id ? '#18181B' : '#71717A',
               fontSize: '0.65rem', fontWeight: 600, transition: 'background var(--pl-dur-instant)',

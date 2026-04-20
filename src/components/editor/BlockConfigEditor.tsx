@@ -200,7 +200,7 @@ function ListControl({
           style={{
             padding: '14px 12px',
             border: '1px dashed var(--pl-chrome-border)',
-            borderRadius: 10,
+            borderRadius: 'var(--pl-radius-lg)',
             background: 'var(--pl-chrome-surface-2)',
             color: 'var(--pl-chrome-text-muted)',
             fontSize: '0.78rem',
@@ -216,7 +216,7 @@ function ListControl({
           style={{
             padding: 12,
             border: '1px solid var(--pl-chrome-border)',
-            borderRadius: 12,
+            borderRadius: 'var(--pl-radius-lg)',
             background: 'var(--pl-chrome-surface)',
             display: 'flex',
             flexDirection: 'column',
@@ -296,7 +296,7 @@ function ListControl({
           justifyContent: 'center',
           gap: 6,
           padding: '9px 12px',
-          borderRadius: 10,
+          borderRadius: 'var(--pl-radius-lg)',
           border: '1px dashed var(--pl-chrome-border)',
           background: 'transparent',
           color: 'var(--pl-chrome-text)',
@@ -349,7 +349,7 @@ function IconBtn({
         border: '1px solid var(--pl-chrome-border)',
         background: 'var(--pl-chrome-surface-2)',
         color: danger ? 'var(--pl-chrome-danger)' : 'var(--pl-chrome-text-muted)',
-        borderRadius: 6,
+        borderRadius: 'var(--pl-radius-sm)',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.4 : 1,
         transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
@@ -390,7 +390,7 @@ function PropControl({
               display: 'flex',
               alignItems: 'center',
               padding: '1px 4px',
-              borderRadius: '4px',
+              borderRadius: 'var(--pl-radius-xs)',
               fontSize: '0.55rem',
             }}
           >
@@ -498,7 +498,7 @@ export function BlockConfigEditor({ block, onChange }: BlockConfigEditorProps) {
           style={{
             width: '36px',
             height: '36px',
-            borderRadius: '10px',
+            borderRadius: 'var(--pl-radius-lg)',
             background: 'var(--pl-chrome-surface-2)',
             display: 'flex',
             alignItems: 'center',
@@ -537,7 +537,7 @@ export function BlockConfigEditor({ block, onChange }: BlockConfigEditorProps) {
           style={{
             marginBottom: '16px',
             padding: '12px',
-            borderRadius: '12px',
+            borderRadius: 'var(--pl-radius-lg)',
             background: groupCount > 1 ? 'var(--pl-chrome-surface-2)' : 'transparent',
             border: groupCount > 1 ? '1px solid var(--pl-chrome-border)' : 'none',
           }}

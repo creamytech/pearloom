@@ -132,7 +132,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
             {LOCALES.filter(l => done.has(l.code)).map(locale => (
               <div key={locale.code} style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
-                padding: '6px 10px', borderRadius: '10px',
+                padding: '6px 10px', borderRadius: 'var(--pl-radius-lg)',
                 background: '#FAFAFA',
                 border: '1px solid #E4E4E7',
               }}>
@@ -143,7 +143,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                     letterSpacing: '0.16em',
                     textTransform: 'uppercase',
                     padding: '3px 6px',
-                    borderRadius: 4,
+                    borderRadius: 'var(--pl-radius-xs)',
                     background: 'var(--pl-cream-deep, #F0ECE3)',
                     color: 'var(--pl-ink-soft, #3A332C)',
                   }}
@@ -163,7 +163,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                   onClick={() => handleGenerate(locale.code)}
                   disabled={generating === locale.code}
                   style={{
-                    padding: '3px 8px', borderRadius: '6px',
+                    padding: '3px 8px', borderRadius: 'var(--pl-radius-sm)',
                     border: '1px solid #E4E4E7',
                     background: 'none', color: '#3F3F46',
                     cursor: 'pointer',
@@ -177,7 +177,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                 <button
                   onClick={() => handleRemove(locale.code)}
                   style={{
-                    padding: '3px', borderRadius: '6px',
+                    padding: '3px', borderRadius: 'var(--pl-radius-sm)',
                     border: 'none', background: 'none',
                     color: '#71717A', cursor: 'pointer',
                   }}
@@ -203,7 +203,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                 whileTap={{ scale: 0.97 }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '10px',
-                  width: '100%', padding: '8px 10px', borderRadius: '10px',
+                  width: '100%', padding: '8px 10px', borderRadius: 'var(--pl-radius-lg)',
                   border: '1px solid #E4E4E7',
                   background: '#FFFFFF',
                   cursor: generating ? 'wait' : 'pointer',
@@ -218,7 +218,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                     letterSpacing: '0.16em',
                     textTransform: 'uppercase',
                     padding: '3px 6px',
-                    borderRadius: 4,
+                    borderRadius: 'var(--pl-radius-xs)',
                     background: 'var(--pl-cream-deep, #F0ECE3)',
                     color: 'var(--pl-ink-soft, #3A332C)',
                     minWidth: 28,
@@ -278,7 +278,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
       {chapters.length === 0 && (
         <div style={{
           margin: '0 8px',
-          padding: '8px 10px', borderRadius: '10px',
+          padding: '8px 10px', borderRadius: 'var(--pl-radius-lg)',
           background: 'rgba(234,179,8,0.07)', border: '1px solid rgba(234,179,8,0.2)',
           fontSize: panelText.hint, color: '#3F3F46',
         }}>

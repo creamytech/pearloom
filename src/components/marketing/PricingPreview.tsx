@@ -141,7 +141,7 @@ export function PricingPreview({ onGetStarted }: PricingPreviewProps = {}) {
               >
                 <div
                   style={{
-                    borderRadius: '14px',
+                    borderRadius: 'var(--pl-radius-xl)',
                     background: 'var(--pl-cream-card)',
                     border: isHighlighted
                       ? `2.5px solid ${tier.accent}`
@@ -163,7 +163,7 @@ export function PricingPreview({ onGetStarted }: PricingPreviewProps = {}) {
                       <span style={{
                         display: 'inline-flex', alignItems: 'center',
                         padding: '2px 10px',
-                        borderRadius: '100px',
+                        borderRadius: 'var(--pl-radius-full)',
                         fontSize: '0.66rem', fontWeight: 700,
                         letterSpacing: '0.06em', textTransform: 'uppercase',
                         background: `${tier.accent}16`,
@@ -235,7 +235,7 @@ export function PricingPreview({ onGetStarted }: PricingPreviewProps = {}) {
                     style={{
                       width: '100%',
                       padding: '11px 16px',
-                      borderRadius: '8px',
+                      borderRadius: 'var(--pl-radius-md)',
                       border: isHighlighted ? undefined : `1px solid ${tier.accent}38`,
                       background: isHighlighted ? undefined : `${tier.accent}12`,
                       color: isHighlighted ? undefined : tier.accent,

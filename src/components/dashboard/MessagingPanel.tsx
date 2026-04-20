@@ -183,7 +183,7 @@ export function MessagingPanel({ siteId, manifest }: MessagingPanelProps) {
                 transition={{ type: 'spring', stiffness: 400, damping: 22 }}
                 style={{
                   padding: '0.4rem 0.875rem',
-                  borderRadius: '100px',
+                  borderRadius: 'var(--pl-radius-full)',
                   border: isActive
                     ? '1px solid rgba(163,177,138,0.4)'
                     : '1px solid rgba(0,0,0,0.06)',
@@ -232,7 +232,7 @@ export function MessagingPanel({ siteId, manifest }: MessagingPanelProps) {
             style={{
               background: 'rgba(163,177,138,0.12)',
               border: '1px solid rgba(163,177,138,0.25)',
-              borderRadius: '100px',
+              borderRadius: 'var(--pl-radius-full)',
               color: 'var(--pl-olive)',
               fontSize: '0.72rem',
               fontWeight: 600,

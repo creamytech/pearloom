@@ -50,7 +50,7 @@ const INPUT_STYLE = {
   padding: '12px 14px',
   background: CREAM,
   border: `1px solid ${GOLD_RULE}`,
-  borderRadius: 2,
+  borderRadius: 'var(--pl-radius-xs)',
   color: INK,
   fontSize: '0.95rem',
   fontFamily: 'inherit',
@@ -241,7 +241,7 @@ export function InviteRsvpForm({
                 padding: '14px 10px',
                 background: on ? `${color}12` : CREAM,
                 border: `1px solid ${on ? color : GOLD_RULE}`,
-                borderRadius: 2,
+                borderRadius: 'var(--pl-radius-xs)',
                 cursor: 'pointer',
                 fontFamily: FONT_DISPLAY,
                 fontStyle: 'italic',
@@ -300,7 +300,7 @@ export function InviteRsvpForm({
                   padding: '12px 14px',
                   background: plusOne ? GOLD_MIST : CREAM,
                   border: `1px solid ${GOLD_RULE}`,
-                  borderRadius: 2,
+                  borderRadius: 'var(--pl-radius-xs)',
                 }}
               >
                 <input
@@ -344,7 +344,7 @@ export function InviteRsvpForm({
                           padding: '10px 14px',
                           background: on ? GOLD_MIST : CREAM,
                           border: `1px solid ${GOLD_RULE}`,
-                          borderRadius: 2,
+                          borderRadius: 'var(--pl-radius-xs)',
                           cursor: 'pointer',
                         }}
                       >
@@ -391,7 +391,7 @@ export function InviteRsvpForm({
                         background: on ? GOLD : CREAM,
                         color: on ? CREAM : INK_SOFT,
                         border: `1px solid ${GOLD_RULE}`,
-                        borderRadius: 2,
+                        borderRadius: 'var(--pl-radius-xs)',
                         cursor: 'pointer',
                       }}
                     >
@@ -473,7 +473,7 @@ export function InviteRsvpForm({
           background: status && name.trim() ? INK : CREAM_DEEP,
           color: status && name.trim() ? CREAM : MUTED,
           border: `1px solid ${status && name.trim() ? INK : GOLD_RULE}`,
-          borderRadius: 2,
+          borderRadius: 'var(--pl-radius-xs)',
           fontFamily: FONT_MONO,
           fontSize: '0.72rem',
           letterSpacing: '0.28em',
@@ -521,7 +521,7 @@ function PriorResponseCard({
         textAlign: 'center',
         padding: '28px 24px',
         border: `1px solid ${GOLD_RULE}`,
-        borderRadius: 2,
+        borderRadius: 'var(--pl-radius-xs)',
         background: CREAM,
       }}
     >
@@ -562,7 +562,7 @@ function PriorResponseCard({
           padding: '12px 24px',
           background: CREAM,
           border: `1px solid ${INK}`,
-          borderRadius: 2,
+          borderRadius: 'var(--pl-radius-xs)',
           color: INK,
           fontFamily: FONT_MONO,
           fontSize: '0.7rem',
@@ -680,7 +680,7 @@ function SuccessCard({
         textAlign: 'center',
         padding: '32px 24px',
         border: `1px solid ${GOLD_RULE}`,
-        borderRadius: 2,
+        borderRadius: 'var(--pl-radius-xs)',
         background: CREAM,
       }}
     >
@@ -777,7 +777,7 @@ function SuccessCard({
             fontSize: '0.68rem',
             letterSpacing: '0.24em',
             textTransform: 'uppercase',
-            borderRadius: 2,
+            borderRadius: 'var(--pl-radius-xs)',
           }}
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

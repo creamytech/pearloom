@@ -160,7 +160,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
               animate={{ opacity: 1, y: 0 }}
               style={{
                 textAlign: 'center', padding: '20px 16px',
-                borderRadius: '12px', border: '1.5px dashed #E4E4E7',
+                borderRadius: 'var(--pl-radius-lg)', border: '1.5px dashed #E4E4E7',
                 background: '#FAFAFA',
               }}
             >
@@ -191,7 +191,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                 whileTap={{ scale: 0.97 }}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '6px',
-                  padding: '8px 14px', borderRadius: '8px',
+                  padding: '8px 14px', borderRadius: 'var(--pl-radius-md)',
                   background: '#18181B', color: '#FAFAFA',
                   border: 'none', cursor: 'pointer',
                   fontSize: panelText.body,
@@ -213,7 +213,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                 key={evt.id}
                 layout
                 style={{
-                  borderRadius: '12px',
+                  borderRadius: 'var(--pl-radius-lg)',
                   background: '#FFFFFF',
                   border: isExpanded ? `1.5px solid ${typeColor}` : '1px solid #E4E4E7',
                   overflow: 'hidden', transition: 'all var(--pl-dur-instant)',
@@ -356,7 +356,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                             onClick={() => duplicateEvent(evt.id)}
                             style={{
                               display: 'flex', alignItems: 'center', gap: '4px',
-                              padding: '5px 10px', borderRadius: '6px',
+                              padding: '5px 10px', borderRadius: 'var(--pl-radius-sm)',
                               border: '1px solid #E4E4E7',
                               background: '#F4F4F5',
                               color: '#18181B',
@@ -373,7 +373,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                             onClick={() => removeEvent(evt.id)}
                             style={{
                               display: 'flex', alignItems: 'center', gap: '4px',
-                              padding: '5px 10px', borderRadius: '6px',
+                              padding: '5px 10px', borderRadius: 'var(--pl-radius-sm)',
                               border: '1px solid rgba(239,68,68,0.25)',
                               background: 'rgba(239,68,68,0.06)',
                               color: '#e87a7a',
@@ -402,7 +402,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
             whileTap={{ scale: 0.98 }}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-              padding: '10px', borderRadius: '10px',
+              padding: '10px', borderRadius: 'var(--pl-radius-lg)',
               border: '1.5px dashed #E4E4E7',
               background: '#FAFAFA', color: '#18181B',
               cursor: 'pointer',
@@ -424,7 +424,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                 download="event.ics"
                 style={{
                   flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-                  padding: '8px', borderRadius: '8px',
+                  padding: '8px', borderRadius: 'var(--pl-radius-md)',
                   background: '#F4F4F5', border: '1px solid #E4E4E7',
                   color: '#18181B',
                   fontSize: panelText.body,
@@ -441,7 +441,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                 target="_blank" rel="noopener noreferrer"
                 style={{
                   flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-                  padding: '7px', borderRadius: '8px',
+                  padding: '7px', borderRadius: 'var(--pl-radius-md)',
                   background: '#FAFAFA', border: '1px solid #E4E4E7',
                   color: '#3F3F46',
                   fontSize: panelText.hint,

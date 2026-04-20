@@ -433,7 +433,7 @@ export function InviteReveal({
               margin: '0 0 48px',
               background: CREAM_DEEP,
               border: `1px solid ${GOLD_RULE}`,
-              borderRadius: 2,
+              borderRadius: 'var(--pl-radius-xs)',
             }}
           >
             {headlineDate && (
@@ -528,7 +528,7 @@ export function InviteReveal({
                       fontSize: '0.6rem',
                       letterSpacing: '0.2em',
                       textTransform: 'uppercase',
-                      borderRadius: 2,
+                      borderRadius: 'var(--pl-radius-xs)',
                       transition: 'background 0.18s ease, border-color 0.18s ease',
                     }}
                   >
@@ -554,7 +554,7 @@ export function InviteReveal({
                       fontSize: '0.6rem',
                       letterSpacing: '0.2em',
                       textTransform: 'uppercase',
-                      borderRadius: 2,
+                      borderRadius: 'var(--pl-radius-xs)',
                     }}
                   >
                     <MapPin size={12} />

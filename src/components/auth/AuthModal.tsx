@@ -80,7 +80,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
             background: 'rgba(255,255,255,0.92)',
             backdropFilter: 'blur(40px) saturate(1.4)',
             WebkitBackdropFilter: 'blur(40px) saturate(1.4)',
-            borderRadius: '24px',
+            borderRadius: 'var(--pl-radius-2xl)',
             border: '1px solid rgba(255,255,255,0.6)',
             boxShadow: '0 24px 80px rgba(43,30,20,0.15), 0 8px 24px rgba(43,30,20,0.06), inset 0 1px 0 rgba(255,255,255,0.5)',
           } as React.CSSProperties}

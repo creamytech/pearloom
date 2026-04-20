@@ -166,7 +166,7 @@ function PreviewBanner({ token }: { token: string }) {
         style={{
           position: 'sticky',
           top: 0,
-          zIndex: 9999,
+          zIndex: 'var(--z-max)',
           background: 'rgba(30,27,22,0.97)',
           backdropFilter: 'blur(12px)',
           borderBottom: '1px solid rgba(0,0,0,0.06)',

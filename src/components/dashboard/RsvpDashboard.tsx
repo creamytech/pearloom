@@ -445,7 +445,7 @@ export function RsvpDashboard({
               <div style={{
                 display: 'flex', alignItems: 'stretch',
                 border: '1px solid rgba(184,147,90,0.40)',
-                borderRadius: 10,
+                borderRadius: 'var(--pl-radius-lg)',
                 overflow: 'hidden',
                 background: 'var(--pl-cream-card)',
               }}>
@@ -703,7 +703,7 @@ export function RsvpDashboard({
                         left: 12, right: 12, bottom: -1,
                         height: 2,
                         background: 'var(--pl-gold)',
-                        borderRadius: 1,
+                        borderRadius: 'var(--pl-radius-xs)',
                       }}
                     />
                   )}
@@ -902,7 +902,7 @@ function GuestDetailDrawer({
               padding: '14px 16px',
               background: 'color-mix(in oklab, var(--pl-gold) 8%, transparent)',
               border: '1px solid color-mix(in oklab, var(--pl-gold) 24%, transparent)',
-              borderRadius: 8,
+              borderRadius: 'var(--pl-radius-md)',
               fontFamily: 'var(--pl-font-display)',
               fontStyle: 'italic',
               fontSize: '0.98rem',
@@ -925,7 +925,7 @@ function GuestDetailDrawer({
                 padding: '9px 14px',
                 background: 'var(--pl-ink)',
                 color: 'var(--pl-cream)',
-                borderRadius: 999,
+                borderRadius: 'var(--pl-radius-full)',
                 textDecoration: 'none',
                 fontFamily: 'var(--pl-font-mono)',
                 fontSize: '0.64rem',
@@ -945,7 +945,7 @@ function GuestDetailDrawer({
               background: 'transparent',
               color: 'var(--pl-ink-soft)',
               border: '1px solid var(--pl-divider)',
-              borderRadius: 999,
+              borderRadius: 'var(--pl-radius-full)',
               cursor: 'pointer',
               fontFamily: 'var(--pl-font-mono)',
               fontSize: '0.64rem',

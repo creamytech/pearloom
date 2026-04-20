@@ -132,7 +132,7 @@ function SvgPreview({ svg, bg, label }: { svg: string; bg: string; label?: strin
   return (
     <div style={{ position: 'relative' }}>
       <div style={{
-        width: '100%', height: '100px', borderRadius: '8px',
+        width: '100%', height: '100px', borderRadius: 'var(--pl-radius-md)',
         background: bg,
         backgroundImage: `url("${dataUri}")`,
         backgroundSize: 'cover',
@@ -151,7 +151,7 @@ function SvgPreview({ svg, bg, label }: { svg: string; bg: string; label?: strin
           position: 'absolute', bottom: '8px', left: '8px',
           fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em',
           textTransform: 'uppercase', color: '#3F3F46',
-          padding: '2px 6px', borderRadius: '4px',
+          padding: '2px 6px', borderRadius: 'var(--pl-radius-xs)',
         }}>{label}</div>
       )}
     </div>
@@ -289,14 +289,14 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
       {/* Tab strip */}
       <div style={{
         display: 'flex', gap: '2px',
-        background: '#F4F4F5', padding: '3px', borderRadius: '8px',
+        background: '#F4F4F5', padding: '3px', borderRadius: 'var(--pl-radius-md)',
       }}>
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
             style={{
-              flex: 1, padding: '5px 0', borderRadius: '6px', border: 'none',
+              flex: 1, padding: '5px 0', borderRadius: 'var(--pl-radius-sm)', border: 'none',
               background: activeTab === t.id ? '#FFFFFF' : 'transparent',
               color: activeTab === t.id ? '#18181B' : '#71717A',
               cursor: 'pointer', fontSize: '0.65rem', fontWeight: 600,
@@ -317,7 +317,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
           <div
             style={{
               padding: '6px 10px',
-              borderRadius: 6,
+              borderRadius: 'var(--pl-radius-sm)',
               background: 'color-mix(in oklab, var(--pl-gold, #B8935A) 8%, transparent)',
               border: '1px dashed color-mix(in oklab, var(--pl-gold, #B8935A) 28%, transparent)',
               fontFamily: 'var(--pl-font-mono)',
@@ -354,7 +354,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
             onClick={() => applyPreset(PRESET_PALETTES[0])}
             style={{
               display: 'flex', alignItems: 'center', gap: '4px',
-              padding: '6px 10px', borderRadius: '6px',
+              padding: '6px 10px', borderRadius: 'var(--pl-radius-sm)',
               border: '1px solid rgba(0,0,0,0.06)', background: 'transparent',
               color: '#71717A', cursor: 'pointer', fontSize: '0.65rem',
             }}
@@ -372,7 +372,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
           <div style={{
             background: '#FAFAFA',
             border: '1px solid #E4E4E7',
-            borderRadius: '10px', padding: '10px',
+            borderRadius: 'var(--pl-radius-lg)', padding: '10px',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
               <Sparkles size={12} color="#18181B" />
@@ -401,7 +401,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                 onChange={e => setPlace(e.target.value)}
                 placeholder="Santorini, Japanese garden, Tuscany vineyard, the Alps…"
                 style={{
-                  width: '100%', padding: '8px 10px', borderRadius: '6px',
+                  width: '100%', padding: '8px 10px', borderRadius: 'var(--pl-radius-sm)',
                   border: '1px solid #E4E4E7', background: '#FFFFFF',
                   color: '#18181B', fontSize: 'max(16px, 0.8rem)', outline: 'none', fontFamily: 'inherit',
                   boxSizing: 'border-box',
@@ -427,7 +427,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                     onClick={() => setArtStyle(s.id)}
                     title={s.hint}
                     style={{
-                      padding: '5px 4px', borderRadius: '6px',
+                      padding: '5px 4px', borderRadius: 'var(--pl-radius-sm)',
                       border: `1px solid ${artStyle === s.id ? '#18181B' : '#E4E4E7'}`,
                       background: artStyle === s.id ? '#18181B' : '#FFFFFF',
                       color: artStyle === s.id ? '#FFFFFF' : '#3F3F46',
@@ -456,7 +456,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                 rows={2}
                 placeholder="We met hiking in the mountains, we love jazz, our dog is a golden retriever…"
                 style={{
-                  width: '100%', padding: '8px 10px', borderRadius: '6px',
+                  width: '100%', padding: '8px 10px', borderRadius: 'var(--pl-radius-sm)',
                   border: '1px solid #E4E4E7', background: '#FFFFFF',
                   color: '#18181B', fontSize: '0.8rem', outline: 'none', fontFamily: 'inherit',
                   boxSizing: 'border-box', resize: 'vertical', lineHeight: 1.5,
@@ -475,7 +475,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
             whileTap={{ scale: 0.98 }}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-              padding: '12px', borderRadius: '8px', border: 'none',
+              padding: '12px', borderRadius: 'var(--pl-radius-md)', border: 'none',
               background: generating
                 ? 'rgba(0,0,0,0.04)'
                 : 'linear-gradient(135deg, #9b7fd9, #18181B)',
@@ -516,7 +516,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
           {genError && (
             <div style={{
               display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 10px',
-              borderRadius: '6px', background: 'rgba(24,24,27,0.06)',
+              borderRadius: 'var(--pl-radius-sm)', background: 'rgba(24,24,27,0.06)',
               border: '1px solid rgba(24,24,27,0.1)', fontSize: '0.65rem', color: '#71717A',
             }}>
               <AlertTriangle size={12} /> {genError}
@@ -550,7 +550,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                     disabled={generating}
                     style={{
                       flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      gap: '4px', padding: '7px', borderRadius: '6px',
+                      gap: '4px', padding: '7px', borderRadius: 'var(--pl-radius-sm)',
                       border: '1px solid #E4E4E7', background: 'rgba(24,24,27,0.04)',
                       color: '#18181B', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700,
                     }}
@@ -560,7 +560,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                   <button
                     onClick={removeBackground}
                     style={{
-                      padding: '6px 10px', borderRadius: '6px',
+                      padding: '6px 10px', borderRadius: 'var(--pl-radius-sm)',
                       border: '1px solid rgba(0,0,0,0.06)', background: 'transparent',
                       color: '#71717A', cursor: 'pointer', fontSize: '0.7rem',
                     }}
@@ -588,7 +588,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                     onClick={() => applyHistorySvg(svg)}
                     title={`Apply generation ${i + 1}`}
                     style={{
-                      flex: 1, height: '48px', borderRadius: '6px',
+                      flex: 1, height: '48px', borderRadius: 'var(--pl-radius-sm)',
                       background: bg,
                       backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(svg)}")`,
                       backgroundSize: 'cover',

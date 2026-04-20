@@ -168,7 +168,7 @@ export function SectionsPanel({ manifest, onChange }: {
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 padding: '6px 8px',
-                borderRadius: '6px',
+                borderRadius: 'var(--pl-radius-sm)',
                 background: isSelected ? 'var(--pl-chrome-accent-soft)' : 'var(--pl-chrome-surface)',
                 border: isSelected ? '1px solid var(--pl-chrome-accent)' : '1px solid var(--pl-chrome-border)',
                 opacity: isHidden ? 0.45 : 1,
@@ -195,7 +195,7 @@ export function SectionsPanel({ manifest, onChange }: {
                 title={isHidden ? 'Show' : 'Hide'}
                 style={{
                   all: 'unset', cursor: 'pointer', display: 'flex',
-                  padding: '3px', borderRadius: '4px',
+                  padding: '3px', borderRadius: 'var(--pl-radius-xs)',
                   color: isHidden ? 'var(--pl-chrome-text-faint)' : 'var(--pl-chrome-text-muted)',
                 }}
               >
@@ -209,7 +209,7 @@ export function SectionsPanel({ manifest, onChange }: {
                   title="Remove"
                   style={{
                     all: 'unset', cursor: 'pointer', display: 'flex',
-                    padding: '3px', borderRadius: '4px',
+                    padding: '3px', borderRadius: 'var(--pl-radius-xs)',
                     color: 'var(--pl-chrome-text-faint)',
                   }}
                 >
@@ -264,7 +264,7 @@ export function SectionsPanel({ manifest, onChange }: {
                 title={`Click to append ${meta.label}, or drag onto the canvas`}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '5px',
-                  padding: '6px 10px', borderRadius: '8px',
+                  padding: '6px 10px', borderRadius: 'var(--pl-radius-md)',
                   border: '1px solid var(--pl-chrome-border)',
                   background: 'var(--pl-chrome-surface)',
                   color: 'var(--pl-chrome-text-soft)',
@@ -302,7 +302,7 @@ export function SectionsPanel({ manifest, onChange }: {
                       border: '1px solid var(--pl-chrome-border)',
                       textAlign: 'left', width: '100%',
                       padding: '8px 10px',
-                      borderRadius: '10px',
+                      borderRadius: 'var(--pl-radius-lg)',
                       background: 'var(--pl-chrome-surface)',
                     }}
                   >

@@ -78,7 +78,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
   };
 
   const textareaStyle: React.CSSProperties = {
-    width: '100%', padding: '10px 12px', borderRadius: '8px',
+    width: '100%', padding: '10px 12px', borderRadius: 'var(--pl-radius-md)',
     border: '1px solid #E4E4E7',
     fontSize: 'max(16px, 0.8rem)',
     background: '#FFFFFF', fontFamily: 'inherit',
@@ -112,7 +112,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     style={{
-                      background: '#FAFAFA', borderRadius: '10px',
+                      background: '#FAFAFA', borderRadius: 'var(--pl-radius-lg)',
                       padding: '10px 12px',
                       border: '1px solid #E4E4E7',
                       display: 'flex', alignItems: 'flex-start', gap: '8px',
@@ -133,7 +133,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
                       onClick={() => removeSample(i)}
                       title="Remove sample"
                       style={{
-                        width: '24px', height: '24px', borderRadius: '6px', border: 'none',
+                        width: '24px', height: '24px', borderRadius: 'var(--pl-radius-sm)', border: 'none',
                         background: 'transparent', color: '#71717A', cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         flexShrink: 0,
@@ -164,7 +164,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
               disabled={!newSample.trim()}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                padding: '9px 12px', borderRadius: '8px',
+                padding: '9px 12px', borderRadius: 'var(--pl-radius-md)',
                 background: newSample.trim() ? '#18181B' : '#E4E4E7',
                 color: newSample.trim() ? '#FFFFFF' : '#71717A',
                 border: 'none',
@@ -186,7 +186,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
             <button
               onClick={loadExamples}
               style={{
-                padding: '9px 12px', borderRadius: '8px',
+                padding: '9px 12px', borderRadius: 'var(--pl-radius-md)',
                 border: '1.5px dashed #E4E4E7', background: '#FAFAFA',
                 color: '#3F3F46',
                 fontSize: panelText.hint,
@@ -208,7 +208,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
               disabled={training}
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                padding: '10px', borderRadius: '8px', border: 'none',
+                padding: '10px', borderRadius: 'var(--pl-radius-md)', border: 'none',
                 background: training ? '#F4F4F5' : '#18181B',
                 color: training ? '#71717A' : '#FFFFFF',
                 cursor: training ? 'not-allowed' : 'pointer',
@@ -229,7 +229,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
             <div style={{
               marginTop: '4px',
               padding: '12px',
-              borderRadius: '12px',
+              borderRadius: 'var(--pl-radius-lg)',
               background: '#FAFAFA',
               border: '1px solid #E4E4E7',
               display: 'flex', flexDirection: 'column', gap: '8px',
@@ -244,7 +244,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
                 ].map(({ label, value }) => (
                   <div key={label} style={{
                     padding: '8px',
-                    borderRadius: '10px',
+                    borderRadius: 'var(--pl-radius-lg)',
                     background: '#FFFFFF',
                     border: '1px solid #E4E4E7',
                     textAlign: 'center',
@@ -290,7 +290,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                     {voiceProfile.signaturePhrases.slice(0, 5).map(phrase => (
                       <span key={phrase} style={{
-                        padding: '3px 8px', borderRadius: '100px',
+                        padding: '3px 8px', borderRadius: 'var(--pl-radius-full)',
                         background: '#FFFFFF',
                         border: '1px solid #E4E4E7',
                         color: '#18181B',

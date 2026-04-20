@@ -51,7 +51,7 @@ export function BlockStyleEditor({ block, onChange }: BlockStyleEditorProps) {
   };
 
   const pillBtnStyle = (active: boolean): React.CSSProperties => ({
-    padding: '5px 10px', borderRadius: '6px',
+    padding: '5px 10px', borderRadius: 'var(--pl-radius-sm)',
     border: active ? '1.5px solid #18181B' : '1.5px solid rgba(255,255,255,0.25)',
     background: active ? 'rgba(24,24,27,0.06)' : 'transparent',
     color: active ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-muted)',

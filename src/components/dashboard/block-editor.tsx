@@ -137,7 +137,7 @@ function ChapterCard({
         background: 'rgba(255,255,255,0.45)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        borderRadius: '16px',
+        borderRadius: 'var(--pl-radius-xl)',
         border: isEditing ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.5)',
         overflow: 'hidden',
         boxShadow: isEditing
@@ -186,7 +186,7 @@ function ChapterCard({
               position: 'absolute', top: '6px', left: '6px',
               background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
               color: '#fff', fontSize: '0.6rem', fontWeight: 800,
-              padding: '2px 6px', borderRadius: '100px', letterSpacing: '0.06em',
+              padding: '2px 6px', borderRadius: 'var(--pl-radius-full)', letterSpacing: '0.06em',
             }}>
               {index + 1}
             </div>
@@ -200,7 +200,7 @@ function ChapterCard({
                 fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.18em',
                 textTransform: 'uppercase', color: 'var(--pl-olive)',
                 background: 'var(--pl-olive-mist)', padding: '2px 7px',
-                borderRadius: '100px',
+                borderRadius: 'var(--pl-radius-full)',
               }}>
                 {cfg.label}
               </span>
@@ -210,7 +210,7 @@ function ChapterCard({
                   fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.1em',
                   textTransform: 'uppercase', color: 'rgba(0,0,0,0.35)',
                   background: 'rgba(0,0,0,0.05)', padding: '2px 7px',
-                  borderRadius: '100px', display: 'flex', alignItems: 'center', gap: '3px',
+                  borderRadius: 'var(--pl-radius-full)', display: 'flex', alignItems: 'center', gap: '3px',
                 }}>
                   <Layout size={9} />
                   {LAYOUT_LABELS[chapter.layout] || chapter.layout}
@@ -424,7 +424,7 @@ const labelStyle: React.CSSProperties = {
 };
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '0.7rem 0.9rem', borderRadius: '12px',
+  width: '100%', padding: '0.7rem 0.9rem', borderRadius: 'var(--pl-radius-lg)',
   border: '1px solid rgba(255,255,255,0.4)', outline: 'none',
   fontSize: '0.88rem', background: 'rgba(255,255,255,0.35)',
   backdropFilter: 'blur(8px)',
@@ -474,7 +474,7 @@ function AIBlockGenerator({ onGenerated, manifest }: { onGenerated: (block: Canv
 
   return (
     <div style={{
-      borderRadius: '16px', overflow: 'hidden',
+      borderRadius: 'var(--pl-radius-xl)', overflow: 'hidden',
       border: '1px solid rgba(255,255,255,0.5)',
       background: 'rgba(255,255,255,0.45)',
       backdropFilter: 'blur(20px)',
@@ -521,7 +521,7 @@ function AIBlockGenerator({ onGenerated, manifest }: { onGenerated: (block: Canv
                 placeholder={'e.g. "Write about our first trip to Paris"'}
                 rows={3}
                 style={{
-                  width: '100%', padding: '0.75rem', borderRadius: '12px',
+                  width: '100%', padding: '0.75rem', borderRadius: 'var(--pl-radius-lg)',
                   border: '1px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.35)',
                   backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
                   color: 'var(--pl-ink)', fontSize: '0.82rem', lineHeight: 1.6, resize: 'none',
@@ -536,7 +536,7 @@ function AIBlockGenerator({ onGenerated, manifest }: { onGenerated: (block: Canv
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
                   width: '100%', marginTop: '0.6rem', padding: '0.7rem',
-                  borderRadius: '12px', border: 'none', cursor: prompt.trim() ? 'pointer' : 'not-allowed',
+                  borderRadius: 'var(--pl-radius-lg)', border: 'none', cursor: prompt.trim() ? 'pointer' : 'not-allowed',
                   background: prompt.trim() ? 'var(--pl-olive)' : 'rgba(255,255,255,0.25)',
                   color: prompt.trim() ? '#fff' : 'var(--pl-muted)',
                   fontWeight: 700, fontSize: '0.8rem', letterSpacing: '0.04em',
@@ -718,7 +718,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
           {[{ label: 'Blocks', value: blocks.length }, { label: 'AI Made', value: aiCount }].map(s => (
             <div key={s.label} style={{
               background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-              borderRadius: '16px', padding: '0.875rem 1rem',
+              borderRadius: 'var(--pl-radius-xl)', padding: '0.875rem 1rem',
               border: '1px solid rgba(255,255,255,0.5)', textAlign: 'center',
               boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
             } as React.CSSProperties}>
@@ -734,7 +734,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
         {/* Block Palette */}
         <div style={{
           background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-          borderRadius: '16px',
+          borderRadius: 'var(--pl-radius-xl)',
           border: '1px solid rgba(255,255,255,0.5)',
           overflow: 'hidden', boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
         } as React.CSSProperties}>
@@ -776,7 +776,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           marginBottom: '1.25rem', padding: '0.875rem 1.25rem',
           background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-          borderRadius: '16px',
+          borderRadius: 'var(--pl-radius-xl)',
           border: '1px solid rgba(255,255,255,0.5)',
           boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
         }}>
@@ -815,7 +815,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
                 justifyContent: 'center', minHeight: '320px',
                 background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-                borderRadius: '16px',
+                borderRadius: 'var(--pl-radius-xl)',
                 border: '2px dashed rgba(255,255,255,0.5)',
                 boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
                 color: 'var(--pl-muted)', gap: '1rem',
@@ -836,7 +836,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
                 onClick={() => addBlock('chapter')}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '0.5rem',
-                  padding: '0.7rem 1.5rem', borderRadius: '100px',
+                  padding: '0.7rem 1.5rem', borderRadius: 'var(--pl-radius-full)',
                   background: 'var(--pl-olive)', color: '#fff', border: 'none',
                   cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem',
                   boxShadow: '0 8px 20px rgba(163,177,138,0.3)',

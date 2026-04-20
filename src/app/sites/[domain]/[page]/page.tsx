@@ -246,7 +246,7 @@ export default async function SiteSubPage(
                     display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
                     marginTop: '1.5rem', padding: '0.65rem 1.5rem',
                     background: 'var(--pl-ink)', color: '#fff',
-                    borderRadius: '100px', fontSize: '0.8rem', fontWeight: 700,
+                    borderRadius: 'var(--pl-radius-full)', fontSize: '0.8rem', fontWeight: 700,
                     textDecoration: 'none', letterSpacing: '0.05em',
                   }}
                 >

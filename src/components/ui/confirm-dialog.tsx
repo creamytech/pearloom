@@ -120,7 +120,7 @@ export function DialogProvider({ children }: { children: ReactNode }) {
               exit={{ opacity: 0 }}
               onClick={close}
               style={{
-                position: 'fixed', inset: 0, zIndex: 9998,
+                position: 'fixed', inset: 0, zIndex: 'var(--z-max)',
                 background: 'rgba(250,247,242,0.8)',
                 backdropFilter: 'blur(8px)',
               }}
@@ -136,10 +136,10 @@ export function DialogProvider({ children }: { children: ReactNode }) {
                 position: 'fixed',
                 top: '50%', left: '50%',
                 transform: 'translate(-50%, -50%)',
-                zIndex: 9999,
+                zIndex: 'var(--z-max)',
                 width: '100%', maxWidth: '400px',
                 padding: '28px',
-                borderRadius: '20px',
+                borderRadius: 'var(--pl-radius-2xl)',
                 background: 'rgba(255,255,255,0.95)',
                 backdropFilter: 'blur(24px)',
                 border: '1px solid rgba(0,0,0,0.06)',
@@ -151,7 +151,7 @@ export function DialogProvider({ children }: { children: ReactNode }) {
                 onClick={close}
                 style={{
                   position: 'absolute', top: '12px', right: '12px',
-                  width: '28px', height: '28px', borderRadius: '8px',
+                  width: '28px', height: '28px', borderRadius: 'var(--pl-radius-md)',
                   border: 'none', background: 'transparent',
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: 'var(--pl-muted)',
@@ -169,7 +169,7 @@ export function DialogProvider({ children }: { children: ReactNode }) {
                 )}
                 {dialog.type === 'confirm' && (
                   <div style={{
-                    width: '48px', height: '48px', borderRadius: '14px',
+                    width: '48px', height: '48px', borderRadius: 'var(--pl-radius-xl)',
                     background: dialog.options.variant === 'danger' ? 'rgba(196,93,62,0.1)' : 'var(--pl-olive-mist)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     margin: '0 auto 16px',

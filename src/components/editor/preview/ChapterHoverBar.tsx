@@ -22,7 +22,7 @@ interface ChapterHoverBarProps {
 }
 
 const barBtnStyle: React.CSSProperties = {
-  width: 28, height: 28, borderRadius: 4, border: 'none',
+  width: 28, height: 28, borderRadius: 'var(--pl-radius-xs)', border: 'none',
   background: 'transparent', cursor: 'pointer',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   transition: 'background 0.12s, color 0.12s',
@@ -83,7 +83,7 @@ export function ChapterHoverBar({
           style={{
             position: 'absolute', top: 8, right: 8, zIndex: 20,
             display: 'flex', alignItems: 'center', gap: 2,
-            padding: '3px 4px', borderRadius: 8,
+            padding: '3px 4px', borderRadius: 'var(--pl-radius-md)',
             background: '#18181B',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',

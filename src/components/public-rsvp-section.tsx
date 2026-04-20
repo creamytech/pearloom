@@ -258,7 +258,7 @@ export function PublicRsvpSection({
               style={{
                 background: 'linear-gradient(135deg, var(--pl-cream) 0%, var(--pl-cream-deep) 100%)',
                 border: '1px solid rgba(196,169,106,0.3)',
-                borderRadius: '12px',
+                borderRadius: 'var(--pl-radius-lg)',
                 padding: 0,
                 overflow: 'hidden',
                 boxShadow:
@@ -399,7 +399,7 @@ export function PublicRsvpSection({
               style={{
                 background: 'linear-gradient(135deg, var(--pl-cream) 0%, var(--pl-cream-deep) 100%)',
                 border: '1px solid rgba(196,169,106,0.3)',
-                borderRadius: '12px',
+                borderRadius: 'var(--pl-radius-lg)',
                 overflow: 'hidden',
                 boxShadow:
                   '0 8px 40px rgba(43,30,20,0.12), 0 0 0 1px rgba(196,169,106,0.15)',

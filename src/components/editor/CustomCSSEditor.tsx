@@ -73,7 +73,7 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
         <span style={{
           fontSize: '0.55rem', fontWeight: 600,
           color: '#71717A',
-          padding: '2px 6px', borderRadius: '4px',
+          padding: '2px 6px', borderRadius: 'var(--pl-radius-xs)',
           background: '#FAFAFA',
         }}>
           Advanced
@@ -169,7 +169,7 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
         fontSize: '0.6rem', color: '#71717A',
         marginTop: '8px', lineHeight: 1.4,
       }}>
-        CSS is scoped to this block. Use <code style={{ fontSize: '0.58rem', background: '#FAFAFA', padding: '1px 4px', borderRadius: '3px' }}>.block</code> to target the wrapper.
+        CSS is scoped to this block. Use <code style={{ fontSize: '0.58rem', background: '#FAFAFA', padding: '1px 4px', borderRadius: 'var(--pl-radius-xs)' }}>.block</code> to target the wrapper.
       </p>
     </div>
   );

@@ -209,7 +209,7 @@ function PhotoCard({ photo, isNew }: { photo: GuestPhoto; isNew: boolean }) {
       transition={{ type: 'spring', stiffness: 300, damping: 28 }}
       whileHover={{ scale: 1.02 }}
       style={{
-        borderRadius: '12px',
+        borderRadius: 'var(--pl-radius-lg)',
         overflow: 'hidden',
         marginBottom: '12px',
         breakInside: 'avoid',

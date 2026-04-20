@@ -685,7 +685,7 @@ export function MobileEditorSheet() {
               background: 'transparent',
               color: 'var(--pl-ink)',
               cursor: 'pointer',
-              borderRadius: 8,
+              borderRadius: 'var(--pl-radius-md)',
             }}
           >
             <ArrowLeft size={20} />
@@ -746,7 +746,7 @@ export function MobileEditorSheet() {
               background: 'color-mix(in oklab, var(--pl-olive) 14%, transparent)',
               color: 'var(--pl-olive)',
               border: '1px solid color-mix(in oklab, var(--pl-olive) 32%, transparent)',
-              borderRadius: 999,
+              borderRadius: 'var(--pl-radius-full)',
               fontFamily: 'var(--pl-font-mono)',
               fontSize: '0.58rem',
               letterSpacing: '0.2em',
@@ -766,7 +766,7 @@ export function MobileEditorSheet() {
               background: 'var(--pl-ink)',
               color: 'var(--pl-cream)',
               border: 'none',
-              borderRadius: 999,
+              borderRadius: 'var(--pl-radius-full)',
               fontFamily: 'var(--pl-font-mono)',
               fontSize: '0.6rem',
               letterSpacing: '0.22em',
@@ -831,7 +831,7 @@ export function MobileEditorSheet() {
           whileTap={{ scale: 0.85 }}
           aria-label="Back to dashboard"
           style={{
-            width: 44, height: 44, borderRadius: 12,
+            width: 44, height: 44, borderRadius: 'var(--pl-radius-lg)',
             border: 'none', background: 'transparent',
             color: '#3F3F46',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -860,7 +860,7 @@ export function MobileEditorSheet() {
             whileTap={{ scale: 0.85 }}
             aria-label="More options"
             style={{
-              width: 44, height: 44, borderRadius: 12,
+              width: 44, height: 44, borderRadius: 'var(--pl-radius-lg)',
               border: 'none',
               background: showMenu ? 'rgba(24,24,27,0.06)' : 'transparent',
               color: '#3F3F46',
@@ -890,7 +890,7 @@ export function MobileEditorSheet() {
                   transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
                   style={{
                     position: 'absolute', top: '100%', right: 0,
-                    marginTop: 4, width: 180, zIndex: 100,
+                    marginTop: 4, width: 180, zIndex: 'var(--z-sticky)',
                     background: 'var(--pl-glass-heavy)',
                     backdropFilter: 'var(--pl-glass-blur)',
                     WebkitBackdropFilter: 'var(--pl-glass-blur)',
@@ -1085,7 +1085,7 @@ export function MobileEditorSheet() {
                   layoutId="mobile-tab-pill"
                   style={{
                     position: 'absolute', inset: '4px 8px',
-                    borderRadius: 10,
+                    borderRadius: 'var(--pl-radius-lg)',
                     background: 'rgba(24,24,27,0.08)',
                     border: '1px solid rgba(24,24,27,0.1)',
                   }}
@@ -1158,7 +1158,7 @@ function MobileReadinessChip({ onPublish }: { onPublish: () => void }) {
         padding: '8px 12px',
         background: 'var(--pl-cream-card)',
         border: '1px solid color-mix(in oklab, var(--pl-gold, #B8935A) 32%, transparent)',
-        borderRadius: 999,
+        borderRadius: 'var(--pl-radius-full)',
         boxShadow: '0 6px 20px rgba(40,28,12,0.08)',
         cursor: 'pointer',
         textAlign: 'left',
@@ -1181,7 +1181,7 @@ function MobileReadinessChip({ onPublish }: { onPublish: () => void }) {
           flex: 1,
           height: 3,
           background: 'color-mix(in oklab, var(--pl-gold, #B8935A) 18%, transparent)',
-          borderRadius: 999,
+          borderRadius: 'var(--pl-radius-full)',
           overflow: 'hidden',
         }}
       >

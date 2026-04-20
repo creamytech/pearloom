@@ -147,7 +147,7 @@ export function RsvpLiveCounter({ siteId, coupleNames }: RsvpLiveCounterProps) {
             {/* Progress bar */}
             <div style={{ marginBottom: '0.75rem' }}>
               <div style={{
-                background: 'rgba(0,0,0,0.06)', borderRadius: '100px',
+                background: 'rgba(0,0,0,0.06)', borderRadius: 'var(--pl-radius-full)',
                 height: '8px', overflow: 'hidden',
               }}>
                 <motion.div
@@ -156,7 +156,7 @@ export function RsvpLiveCounter({ siteId, coupleNames }: RsvpLiveCounterProps) {
                   viewport={{ once: true }}
                   transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
                   style={{
-                    height: '100%', borderRadius: '100px',
+                    height: '100%', borderRadius: 'var(--pl-radius-full)',
                     background: 'linear-gradient(90deg, #10b981, #34d399)',
                     boxShadow: '0 2px 8px rgba(16,185,129,0.3)',
                   }}

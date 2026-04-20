@@ -654,7 +654,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
                   title={disabled ? 'Add a photo to your site to use this variant' : undefined}
                   style={{
                     padding: '10px 10px',
-                    borderRadius: 8,
+                    borderRadius: 'var(--pl-radius-md)',
                     border: `1px solid ${on ? v.accent : '#E4E4E7'}`,
                     background: on ? `${v.accent}18` : v.swatch,
                     color: on ? v.ink : '#3F3F46',
@@ -714,7 +714,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
                   onClick={() => setAspect(id)}
                   style={{
                     padding: '10px 10px',
-                    borderRadius: 8,
+                    borderRadius: 'var(--pl-radius-md)',
                     border: `1px solid ${on ? '#18181B' : '#E4E4E7'}`,
                     background: on ? '#18181B' : '#FFFFFF',
                     color: on ? '#FAF7F2' : '#3F3F46',
@@ -781,7 +781,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
                       className={on ? 'pl-pearl-border' : undefined}
                       style={{
                         padding: '10px 10px',
-                        borderRadius: 8,
+                        borderRadius: 'var(--pl-radius-md)',
                         border: on ? undefined : '1px solid #E4E4E7',
                         background: on ? undefined : '#FFFFFF',
                         color: '#18181B',
@@ -814,7 +814,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
               <div
                 style={{
                   padding: '8px 10px',
-                  borderRadius: 8,
+                  borderRadius: 'var(--pl-radius-md)',
                   background: 'rgba(220,38,38,0.06)',
                   border: '1px solid rgba(220,38,38,0.2)',
                   fontSize: panelText.hint,
@@ -846,7 +846,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
             style={{
               width: '100%',
               padding: '8px 10px',
-              borderRadius: 8,
+              borderRadius: 'var(--pl-radius-md)',
               border: '1px solid #E4E4E7',
               background: '#FFFFFF',
               color: '#18181B',
@@ -868,7 +868,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
             width: '100%',
             maxWidth: aspect === 'portrait' ? 280 : '100%',
             margin: aspect === 'portrait' ? '0 auto' : undefined,
-            borderRadius: 8,
+            borderRadius: 'var(--pl-radius-md)',
             overflow: 'hidden',
             border: '1px solid #E4E4E7',
             background: variant.paper,
@@ -891,7 +891,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
           <div
             style={{
               padding: '8px 10px',
-              borderRadius: 8,
+              borderRadius: 'var(--pl-radius-md)',
               background: 'rgba(234,179,8,0.07)',
               border: '1px solid rgba(234,179,8,0.2)',
               fontSize: panelText.hint,
@@ -918,7 +918,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
               justifyContent: 'center',
               gap: 8,
               padding: 11,
-              borderRadius: 8,
+              borderRadius: 'var(--pl-radius-md)',
               cursor: sending ? 'wait' : 'pointer',
               fontSize: panelText.body,
               fontWeight: panelWeight.bold,
@@ -945,7 +945,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
                 justifyContent: 'center',
                 gap: 8,
                 padding: 10,
-                borderRadius: 8,
+                borderRadius: 'var(--pl-radius-md)',
                 border: '1px solid #B8935A',
                 background: '#FAF7F2',
                 color: '#8C6E3D',
@@ -974,7 +974,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
                 justifyContent: 'center',
                 gap: 6,
                 padding: 9,
-                borderRadius: 8,
+                borderRadius: 'var(--pl-radius-md)',
                 border: '1px solid #E4E4E7',
                 background: '#F4F4F5',
                 color: '#3F3F46',
@@ -998,7 +998,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
                 justifyContent: 'center',
                 gap: 6,
                 padding: 9,
-                borderRadius: 8,
+                borderRadius: 'var(--pl-radius-md)',
                 border: '1px solid #E4E4E7',
                 background: '#F4F4F5',
                 color: '#3F3F46',
@@ -1016,7 +1016,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
             <div
               style={{
                 padding: '8px 10px',
-                borderRadius: 8,
+                borderRadius: 'var(--pl-radius-md)',
                 background: 'rgba(234,179,8,0.07)',
                 border: '1px solid rgba(234,179,8,0.2)',
                 fontSize: panelText.hint,
@@ -1039,7 +1039,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
               justifyContent: 'center',
               gap: 8,
               padding: 10,
-              borderRadius: 8,
+              borderRadius: 'var(--pl-radius-md)',
               border: '1px dashed #B8935A',
               background: 'rgba(184,147,90,0.08)',
               color: '#8C6E3D',
@@ -1058,7 +1058,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
             <div
               style={{
                 padding: '10px 12px',
-                borderRadius: 8,
+                borderRadius: 'var(--pl-radius-md)',
                 background: 'rgba(184,147,90,0.06)',
                 border: '1px solid rgba(184,147,90,0.25)',
                 fontSize: panelText.hint,

@@ -74,7 +74,7 @@ export function SpacingHandle({ value, min = 16, max = 200, onChange }: SpacingH
           alignItems: 'center',
           gap: '8px',
           padding: '4px 12px',
-          borderRadius: '8px',
+          borderRadius: 'var(--pl-radius-md)',
           background: dragging ? '#18181B' : 'rgba(24,24,27,0.08)',
           border: `1px solid ${dragging ? '#18181B' : '#E4E4E7'}`,
           color: dragging ? 'white' : '#18181B',

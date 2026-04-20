@@ -54,7 +54,7 @@ function PickerGrid<T extends { id: string; name: string; preview: string }>({
                 ? 'var(--pl-chrome-accent-soft)'
                 : 'var(--pl-chrome-surface)',
               color: 'var(--pl-chrome-text)',
-              borderRadius: '12px',
+              borderRadius: 'var(--pl-radius-lg)',
               textAlign: 'center',
               cursor: 'pointer',
               position: 'relative',
@@ -162,7 +162,7 @@ export function CustomizationPanel({ customization, onChange, names, accentColor
                   background: active
                     ? 'var(--pl-chrome-accent-soft)'
                     : 'var(--pl-chrome-surface)',
-                  borderRadius: '12px',
+                  borderRadius: 'var(--pl-radius-lg)',
                   transition: 'all var(--pl-dur-instant)',
                 }}
               >

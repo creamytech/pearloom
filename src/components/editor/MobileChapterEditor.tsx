@@ -130,7 +130,7 @@ export function MobileChapterEditor({
             alignItems: 'center',
             gap: 4,
             padding: '8px 12px',
-            borderRadius: 20,
+            borderRadius: 'var(--pl-radius-2xl)',
             border: 'none',
             background: 'rgba(0,0,0,0.05)',
             color: '#3F3F46',
@@ -296,7 +296,7 @@ export function MobileChapterEditor({
                   alignItems: 'center',
                   gap: 5,
                   padding: '6px 12px',
-                  borderRadius: 20,
+                  borderRadius: 'var(--pl-radius-2xl)',
                   border: '1px solid #E4E4E7',
                   background: 'rgba(24,24,27,0.09)',
                   color:
@@ -326,7 +326,7 @@ export function MobileChapterEditor({
               style={{
                 width: '100%',
                 border: '1px solid rgba(0,0,0,0.07)',
-                borderRadius: 14,
+                borderRadius: 'var(--pl-radius-xl)',
                 background: 'rgba(255,255,255,0.025)',
                 outline: 'none',
                 resize: 'none',
@@ -421,7 +421,7 @@ export function MobileChapterEditor({
               style={{
                 width: '100%',
                 padding: '8px 10px',
-                borderRadius: 10,
+                borderRadius: 'var(--pl-radius-lg)',
                 border: '1px solid rgba(0,0,0,0.07)',
                 background: 'rgba(24,24,27,0.03)',
                 color: '#3F3F46',
@@ -444,7 +444,7 @@ export function MobileChapterEditor({
               style={{
                 width: '100%',
                 padding: '8px 10px',
-                borderRadius: 10,
+                borderRadius: 'var(--pl-radius-lg)',
                 border: '1px solid rgba(0,0,0,0.07)',
                 background: 'rgba(24,24,27,0.03)',
                 color: '#3F3F46',

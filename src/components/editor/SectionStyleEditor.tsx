@@ -100,7 +100,7 @@ export function SectionStyleEditor({
           <button
             onClick={() => upd({ textColor: vibeSkin.palette.ink })}
             style={{
-              flex: 1, padding: '6px 10px', borderRadius: '6px', border: 'none',
+              flex: 1, padding: '6px 10px', borderRadius: 'var(--pl-radius-sm)', border: 'none',
               cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
               background: isDark ? '#71717A' : 'rgba(0,0,0,0.05)',
               color: isDark ? '#fff' : '#3F3F46',
@@ -113,7 +113,7 @@ export function SectionStyleEditor({
           <button
             onClick={() => upd({ textColor: vibeSkin.palette.card })}
             style={{
-              flex: 1, padding: '6px 10px', borderRadius: '6px', border: 'none',
+              flex: 1, padding: '6px 10px', borderRadius: 'var(--pl-radius-sm)', border: 'none',
               cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
               background: !isDark ? '#71717A' : 'rgba(0,0,0,0.05)',
               color: !isDark ? '#fff' : '#3F3F46',
@@ -135,7 +135,7 @@ export function SectionStyleEditor({
               key={opt.value}
               onClick={() => upd({ padding: opt.value })}
               style={{
-                flex: 1, padding: '7px 6px', borderRadius: '6px', border: 'none',
+                flex: 1, padding: '7px 6px', borderRadius: 'var(--pl-radius-sm)', border: 'none',
                 cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
                 background: padding === opt.value ? '#71717A' : 'rgba(0,0,0,0.05)',
                 color: padding === opt.value ? '#fff' : '#3F3F46',
@@ -157,7 +157,7 @@ export function SectionStyleEditor({
           <button
             onClick={() => upd({ fullWidth: !currentOverrides.fullWidth })}
             style={{
-              width: '36px', height: '20px', borderRadius: '8px', flexShrink: 0,
+              width: '36px', height: '20px', borderRadius: 'var(--pl-radius-md)', flexShrink: 0,
               background: currentOverrides.fullWidth ? '#18181B' : 'rgba(0,0,0,0.07)',
               border: 'none', cursor: 'pointer', position: 'relative', transition: 'background var(--pl-dur-fast)',
             }}
@@ -176,7 +176,7 @@ export function SectionStyleEditor({
           <button
             onClick={() => upd({ dividerBefore: !currentOverrides.dividerBefore })}
             style={{
-              width: '36px', height: '20px', borderRadius: '8px', flexShrink: 0,
+              width: '36px', height: '20px', borderRadius: 'var(--pl-radius-md)', flexShrink: 0,
               background: currentOverrides.dividerBefore ? '#18181B' : 'rgba(0,0,0,0.07)',
               border: 'none', cursor: 'pointer', position: 'relative', transition: 'background var(--pl-dur-fast)',
             }}
@@ -195,7 +195,7 @@ export function SectionStyleEditor({
           <button
             onClick={() => upd({ dividerAfter: !currentOverrides.dividerAfter })}
             style={{
-              width: '36px', height: '20px', borderRadius: '8px', flexShrink: 0,
+              width: '36px', height: '20px', borderRadius: 'var(--pl-radius-md)', flexShrink: 0,
               background: currentOverrides.dividerAfter ? '#18181B' : 'rgba(0,0,0,0.07)',
               border: 'none', cursor: 'pointer', position: 'relative', transition: 'background var(--pl-dur-fast)',
             }}

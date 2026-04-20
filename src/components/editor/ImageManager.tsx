@@ -304,7 +304,7 @@ export function ImageManager({
               title="Replace the chapter photo"
               style={{
                 display: 'flex', alignItems: 'center', gap: '3px',
-                padding: '3px 8px', borderRadius: '4px', border: '1px solid #E4E4E7',
+                padding: '3px 8px', borderRadius: 'var(--pl-radius-xs)', border: '1px solid #E4E4E7',
                 background: '#F4F4F5', color: '#18181B',
                 fontSize: '0.6rem', fontWeight: 600, cursor: uploading ? 'not-allowed' : 'pointer',
                 opacity: uploading ? 0.6 : 1,
@@ -322,7 +322,7 @@ export function ImageManager({
                 title="Pick from Google Photos"
                 style={{
                   display: 'flex', alignItems: 'center', gap: '3px',
-                  padding: '3px 8px', borderRadius: '4px', border: '1px solid #E4E4E7',
+                  padding: '3px 8px', borderRadius: 'var(--pl-radius-xs)', border: '1px solid #E4E4E7',
                   background: '#fff', color: '#18181B',
                   fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer',
                   transition: 'all var(--pl-dur-instant)',
@@ -338,7 +338,7 @@ export function ImageManager({
                 title="Choose from Gallery"
                 style={{
                   display: 'flex', alignItems: 'center', gap: '3px',
-                  padding: '3px 8px', borderRadius: '4px', border: '1px solid #E4E4E7',
+                  padding: '3px 8px', borderRadius: 'var(--pl-radius-xs)', border: '1px solid #E4E4E7',
                   background: '#fff', color: '#18181B',
                   fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer',
                   transition: 'all var(--pl-dur-instant)',
@@ -352,7 +352,7 @@ export function ImageManager({
                 disabled={uploading}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '3px',
-                  padding: '3px 8px', borderRadius: '4px', border: '1px solid #E4E4E7',
+                  padding: '3px 8px', borderRadius: 'var(--pl-radius-xs)', border: '1px solid #E4E4E7',
                   background: '#F4F4F5', color: '#18181B',
                   fontSize: '0.6rem', fontWeight: 600, cursor: uploading ? 'not-allowed' : 'pointer',
                   opacity: uploading ? 0.6 : 1,
@@ -370,7 +370,7 @@ export function ImageManager({
       {isSinglePhotoLayout && images.length >= 1 && (
         <div style={{
           fontSize: '0.62rem', color: '#71717A', marginBottom: '8px',
-          padding: '6px 8px', borderRadius: '6px', background: '#F9F9F9',
+          padding: '6px 8px', borderRadius: 'var(--pl-radius-sm)', background: '#F9F9F9',
           border: '1px solid #F0F0F0', lineHeight: 1.4,
         }}>
           This layout uses 1 photo per chapter. Switch to <strong>Ken Burns</strong> or <strong>Bento Grid</strong> to show multiple photos.
@@ -418,7 +418,7 @@ export function ImageManager({
           if (files.length > 0) handleFileUpload(files);
         }}
         style={{
-          borderRadius: '10px',
+          borderRadius: 'var(--pl-radius-lg)',
           border: isDragging ? '2px dashed #71717A' : '2px dashed transparent',
           background: isDragging ? 'rgba(24,24,27,0.04)' : 'transparent',
           transition: 'border-color 0.2s, background 0.2s',
@@ -431,7 +431,7 @@ export function ImageManager({
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               gap: '8px', width: '100%', padding: '1.5rem',
-              border: '2px dashed #E4E4E7', borderRadius: '10px',
+              border: '2px dashed #E4E4E7', borderRadius: 'var(--pl-radius-lg)',
               background: 'transparent', cursor: 'pointer', color: '#71717A',
             }}
             onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = '#E4E4E7'; (e.currentTarget as HTMLElement).style.color = '#18181B'; }}
@@ -443,7 +443,7 @@ export function ImageManager({
         ) : viewMode === 'grid' ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
             {images.map((img, i) => (
-              <div key={img.id || i} style={{ position: 'relative', aspectRatio: '1', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.06)' }}>
+              <div key={img.id || i} style={{ position: 'relative', aspectRatio: '1', borderRadius: 'var(--pl-radius-md)', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.06)' }}>
                 {/* Cover image uses PhotoReposition */}
                 {i === 0 && onPositionChange ? (
                   <PhotoReposition
@@ -481,7 +481,7 @@ export function ImageManager({
                     position: 'absolute', bottom: '4px', left: '4px',
                     background: '#18181B', color: '#fff',
                     fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.1em',
-                    textTransform: 'uppercase', padding: '2px 5px', borderRadius: '3px',
+                    textTransform: 'uppercase', padding: '2px 5px', borderRadius: 'var(--pl-radius-xs)',
                     zIndex: 2,
                   }}>Cover</div>
                 )}
@@ -491,7 +491,7 @@ export function ImageManager({
             <button
               onClick={() => fileInputRef.current?.click()}
               style={{
-                aspectRatio: '1', borderRadius: '8px',
+                aspectRatio: '1', borderRadius: 'var(--pl-radius-md)',
                 border: '2px dashed #E4E4E7', background: 'transparent',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: '#71717A', transition: 'all var(--pl-dur-instant)',
@@ -508,7 +508,7 @@ export function ImageManager({
             <div
               style={{
                 background: '#1a1a1a',
-                borderRadius: '12px',
+                borderRadius: 'var(--pl-radius-lg)',
                 minHeight: '360px',
                 position: 'relative',
                 overflow: 'hidden',
@@ -619,7 +619,7 @@ export function ImageManager({
               onClick={() => fileInputRef.current?.click()}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                width: '100%', marginTop: '8px', padding: '6px 10px', borderRadius: '8px',
+                width: '100%', marginTop: '8px', padding: '6px 10px', borderRadius: 'var(--pl-radius-md)',
                 border: '2px dashed #E4E4E7', background: 'transparent',
                 cursor: 'pointer', color: '#71717A', transition: 'all var(--pl-dur-instant)',
               }}
@@ -638,7 +638,7 @@ export function ImageManager({
         <div
           role="alert"
           style={{
-            marginTop: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: '6px',
+            marginTop: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: 'var(--pl-radius-sm)',
             background: 'rgba(185,28,28,0.15)', border: '1px solid rgba(185,28,28,0.3)',
             color: '#fca5a5', fontSize: '0.75rem', lineHeight: 1.4,
             display: 'flex', alignItems: 'flex-start', gap: '8px',
@@ -674,7 +674,7 @@ export function ImageManager({
           }}>
           {[0, 1, 2].map(i => (
             <div key={i} style={{
-              aspectRatio: '1', borderRadius: '8px',
+              aspectRatio: '1', borderRadius: 'var(--pl-radius-md)',
               background: 'linear-gradient(90deg, #F4F4F5 0%, #E4E4E7 50%, #F4F4F5 100%)',
               backgroundSize: '200% 100%',
               animation: 'pl-shimmer 1.4s linear infinite',
@@ -692,7 +692,7 @@ export function ImageManager({
             disabled={generatingCaptions}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '4px',
-              padding: '4px 10px', borderRadius: '4px',
+              padding: '4px 10px', borderRadius: 'var(--pl-radius-xs)',
               border: '1px solid #E4E4E7',
               background: '#fff',
               color: generatingCaptions ? '#A1A1AA' : '#18181B',
@@ -710,7 +710,7 @@ export function ImageManager({
           </button>
           {captionError && (
             <div style={{
-              marginTop: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: '6px',
+              marginTop: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: 'var(--pl-radius-sm)',
               background: 'rgba(185,28,28,0.15)', border: '1px solid rgba(185,28,28,0.3)',
               color: '#fca5a5', fontSize: '0.75rem', lineHeight: 1.4,
             }}>
@@ -725,7 +725,7 @@ export function ImageManager({
         <div style={{
           marginTop: '0.6rem',
           display: 'flex', alignItems: 'center', gap: '8px',
-          padding: '8px 12px', borderRadius: '8px',
+          padding: '8px 12px', borderRadius: 'var(--pl-radius-md)',
           background: 'rgba(255,255,255,0.7)',
           border: '1px solid rgba(24,24,27,0.12)',
           boxShadow: '0 2px 12px rgba(0,0,0,0.04)',

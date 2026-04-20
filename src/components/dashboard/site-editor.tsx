@@ -113,10 +113,10 @@ function ColorPreviewSwatch({ colors }: { colors: Record<string, string> }) {
           The beginning of everything.
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <div style={{ background: colors.accent, color: '#fff', padding: '0.3rem 0.8rem', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 700 }}>
+          <div style={{ background: colors.accent, color: '#fff', padding: '0.3rem 0.8rem', borderRadius: 'var(--pl-radius-full)', fontSize: '0.7rem', fontWeight: 700 }}>
             View Story
           </div>
-          <div style={{ background: colors.accentLight, color: colors.accent, padding: '0.3rem 0.8rem', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 600 }}>
+          <div style={{ background: colors.accentLight, color: colors.accent, padding: '0.3rem 0.8rem', borderRadius: 'var(--pl-radius-full)', fontSize: '0.7rem', fontWeight: 600 }}>
             RSVP
           </div>
         </div>
@@ -192,14 +192,14 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
         background: 'rgba(255,255,255,0.45)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        borderRadius: '16px',
+        borderRadius: 'var(--pl-radius-xl)',
         border: '1px solid rgba(255,255,255,0.5)',
         boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
         gap: '1rem', flexWrap: 'wrap',
       }}
 >
         {/* Tab group */}
-        <div style={{ display: 'flex', gap: '0.25rem', background: 'rgba(255,255,255,0.3)', borderRadius: '12px', padding: '0.3rem' }}>
+        <div style={{ display: 'flex', gap: '0.25rem', background: 'rgba(255,255,255,0.3)', borderRadius: 'var(--pl-radius-lg)', padding: '0.3rem' }}>
           {/* Builder gets accent highlight — it's the premium DnD mode */}
           <button
             onClick={() => setActiveTab('builder')}
@@ -230,7 +230,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
               onClick={onPreview}
               style={{
                 display: 'flex', alignItems: 'center', gap: '0.5rem',
-                padding: '0.6rem 1.25rem', borderRadius: '100px',
+                padding: '0.6rem 1.25rem', borderRadius: 'var(--pl-radius-full)',
                 border: '1.5px solid rgba(255,255,255,0.5)', background: 'transparent',
                 color: 'var(--pl-ink)', fontSize: '0.78rem', fontWeight: 700,
                 cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase',
@@ -248,7 +248,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
               onClick={onSave}
               style={{
                 display: 'flex', alignItems: 'center', gap: '0.5rem',
-                padding: '0.65rem 1.5rem', borderRadius: '100px',
+                padding: '0.65rem 1.5rem', borderRadius: 'var(--pl-radius-full)',
                 background: 'linear-gradient(135deg, var(--pl-cream-deep), var(--pl-cream))',
                 color: '#fff', border: 'none',
                 fontSize: '0.78rem', fontWeight: 700,
@@ -304,7 +304,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
               <motion.div
                 key={chapter.id}
                 layout
-                style={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', overflow: 'hidden', boxShadow: '0 4px 20px rgba(43,30,20,0.06)' } as React.CSSProperties}
+                style={{ borderRadius: 'var(--pl-radius-xl)', border: '1px solid rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', overflow: 'hidden', boxShadow: '0 4px 20px rgba(43,30,20,0.06)' } as React.CSSProperties}
               >
                 {editingId === chapter.id ? (
                   <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -364,7 +364,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                             <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '0.5rem' }}>Mood</label>
                             <input type="text" value={chapter.mood} onChange={(e) => updateChapter(chapter.id, { mood: e.target.value })}
                               placeholder="e.g. Romantic"
-                              style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.4)', outline: 'none', fontSize: '0.85rem', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', boxSizing: 'border-box' }} />
+                              style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: 'var(--pl-radius-lg)', border: '1px solid rgba(255,255,255,0.4)', outline: 'none', fontSize: '0.85rem', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', boxSizing: 'border-box' }} />
                           </div>
                         </div>
                       </div>
@@ -376,7 +376,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                           placeholder="Write your beautiful memory here..."
                           style={{
                             width: '100%', height: '180px', padding: '0.9rem 1rem',
-                            borderRadius: '12px', border: '1px solid rgba(255,255,255,0.4)',
+                            borderRadius: 'var(--pl-radius-lg)', border: '1px solid rgba(255,255,255,0.4)',
                             outline: 'none', fontSize: '0.9rem', lineHeight: 1.7,
                             resize: 'none', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', boxSizing: 'border-box',
                           }}
@@ -462,7 +462,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
           <motion.div key="design" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
             {/* Color system */}
-            <div style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', overflow: 'hidden' }}>
+            <div style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 'var(--pl-radius-xl)', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', overflow: 'hidden' }}>
               <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.2)' }}>
                 <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--pl-ink)' }}>Color Palette</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--pl-muted)', marginTop: '0.25rem' }}>Customize your site-wide colors. Preview updates live.</div>
@@ -483,7 +483,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
             </div>
 
             {/* Typography */}
-            <div style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', overflow: 'hidden' }}>
+            <div style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 'var(--pl-radius-xl)', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', overflow: 'hidden' }}>
               <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.2)' }}>
                 <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--pl-ink)' }}>Typography</div>
               </div>
@@ -536,7 +536,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
             </div>
 
             {/* Background pattern */}
-            <div style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', overflow: 'hidden' }}>
+            <div style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 'var(--pl-radius-xl)', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', overflow: 'hidden' }}>
               <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.2)' }}>
                 <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--pl-ink)' }}>Background Pattern</div>
               </div>
@@ -565,7 +565,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
           <motion.div key="details" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
             {/* Coming Soon editor */}
-            <div style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', overflow: 'hidden' }}>
+            <div style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 'var(--pl-radius-xl)', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', overflow: 'hidden' }}>
               <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.2)' }}>
                 <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--pl-ink)' }}>Coming Soon Section</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--pl-muted)', marginTop: '0.25rem' }}>The bottom section teasing what&apos;s next.</div>
@@ -577,7 +577,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                     type="text"
                     value={manifest.comingSoon?.title || 'The Next Chapter'}
                     onChange={(e) => onChange({ ...manifest, comingSoon: { ...manifest.comingSoon, title: e.target.value, enabled: true, passwordProtected: false } })}
-                    style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.4)', outline: 'none', fontSize: '0.95rem', fontFamily: `"${manifest.theme.fonts.heading}", serif`, background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: 'var(--pl-radius-lg)', border: '1px solid rgba(255,255,255,0.4)', outline: 'none', fontSize: '0.95rem', fontFamily: `"${manifest.theme.fonts.heading}", serif`, background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', boxSizing: 'border-box' }}
                   />
                 </div>
                 <div>
@@ -587,7 +587,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                     value={manifest.comingSoon?.subtitle || ''}
                     onChange={(e) => onChange({ ...manifest, comingSoon: { ...manifest.comingSoon, subtitle: e.target.value, title: manifest.comingSoon?.title || 'The Next Chapter', enabled: true, passwordProtected: false } })}
                     placeholder="e.g. Our wedding day, September 14th 2025"
-                    style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.4)', outline: 'none', fontSize: '0.9rem', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: 'var(--pl-radius-lg)', border: '1px solid rgba(255,255,255,0.4)', outline: 'none', fontSize: '0.9rem', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', boxSizing: 'border-box' }}
                   />
                 </div>
                 <div>
@@ -601,7 +601,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
             </div>
 
             {/* Password protection */}
-            <div style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', overflow: 'hidden' }}>
+            <div style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 'var(--pl-radius-xl)', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', overflow: 'hidden' }}>
               <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
                   <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--pl-ink)' }}>Password Protection</div>
@@ -630,7 +630,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                     value={manifest.comingSoon?.password || ''}
                     onChange={(e) => onChange({ ...manifest, comingSoon: { ...manifest.comingSoon!, password: e.target.value } })}
                     placeholder="Enter a password for guests"
-                    style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.4)', outline: 'none', fontSize: '0.9rem', fontFamily: 'monospace', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: 'var(--pl-radius-lg)', border: '1px solid rgba(255,255,255,0.4)', outline: 'none', fontSize: '0.9rem', fontFamily: 'monospace', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', boxSizing: 'border-box' }}
                   />
                 </div>
               )}

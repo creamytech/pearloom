@@ -80,7 +80,7 @@ function ToggleChip({
     <button
       onClick={onClick}
       style={{
-        padding: '6px 10px', borderRadius: '8px',
+        padding: '6px 10px', borderRadius: 'var(--pl-radius-md)',
         border: `1px solid ${active ? '#18181B' : '#E4E4E7'}`,
         background: active ? '#18181B' : '#FFFFFF',
         color: active ? '#FFFFFF' : '#3F3F46',
@@ -120,14 +120,14 @@ function MeshPresetPicker({ value, onChange }: { value: MeshPreset; onChange: (v
             title={p.label}
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
-              padding: '6px 8px', borderRadius: '8px',
+              padding: '6px 8px', borderRadius: 'var(--pl-radius-md)',
               border: active ? '2px solid #18181B' : '1px solid #E4E4E7',
               background: active ? 'rgba(24,24,27,0.05)' : '#FFFFFF',
               cursor: 'pointer', transition: 'all var(--pl-dur-instant)',
             }}
           >
             <div style={{
-              width: '32px', height: '20px', borderRadius: '4px', overflow: 'hidden',
+              width: '32px', height: '20px', borderRadius: 'var(--pl-radius-xs)', overflow: 'hidden',
               background: p.id === 'none'
                 ? '#F4F4F5'
                 : `linear-gradient(135deg, ${p.colors[0]}, ${p.colors[1]}, ${p.colors[2]})`,
@@ -320,7 +320,7 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
               key={d.id}
               onClick={() => set('sectionDivider', { ...divider, style: d.id })}
               style={{
-                padding: '6px 10px', borderRadius: '8px',
+                padding: '6px 10px', borderRadius: 'var(--pl-radius-md)',
                 border: `1px solid ${divider.style === d.id ? '#18181B' : '#E4E4E7'}`,
                 background: divider.style === d.id ? '#18181B' : '#FFFFFF',
                 color: divider.style === d.id ? '#FFFFFF' : '#3F3F46',
@@ -343,7 +343,7 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
                 key={d.id}
                 onClick={() => set('sectionDivider', { ...divider, style: d.id })}
                 style={{
-                  padding: '6px 10px', borderRadius: '8px',
+                  padding: '6px 10px', borderRadius: 'var(--pl-radius-md)',
                   border: `1px solid ${divider.style === d.id ? '#71717A' : 'rgba(0,0,0,0.06)'}`,
                   background: divider.style === d.id ? '#F4F4F5' : 'rgba(24,24,27,0.04)',
                   color: divider.style === d.id ? '#18181B' : '#3F3F46',
@@ -442,7 +442,7 @@ function EffectBlock({
   return (
     <div style={{
       marginBottom: '6px', marginInline: '8px',
-      borderRadius: '12px', background: '#FFFFFF',
+      borderRadius: 'var(--pl-radius-lg)', background: '#FFFFFF',
       border: '1px solid #E4E4E7', overflow: 'hidden',
     }}>
       <button
@@ -478,7 +478,7 @@ function EffectBlock({
             color: '#18181B',
             background: '#F4F4F5',
             padding: '2px 6px',
-            borderRadius: '8px',
+            borderRadius: 'var(--pl-radius-md)',
           }}>
             ON
           </span>

@@ -77,7 +77,7 @@ export function VoiceToastsPanel({ siteId }: { siteId: string }) {
               style={{
                 padding: '0.4rem 0.9rem',
                 fontSize: '0.8rem',
-                borderRadius: '999px',
+                borderRadius: 'var(--pl-radius-full)',
                 border: 'none',
                 cursor: 'pointer',
                 background: tab === t ? 'var(--pl-ink)' : 'color-mix(in oklab, var(--pl-cream-card) 60%, transparent)',
@@ -168,7 +168,7 @@ function btn(bg: string, color: string): React.CSSProperties {
   return {
     padding: '0.4rem 1rem',
     fontSize: '0.8rem',
-    borderRadius: '999px',
+    borderRadius: 'var(--pl-radius-full)',
     border: 'none',
     cursor: 'pointer',
     background: bg,

@@ -68,7 +68,7 @@ export function FloatingToolbar() {
         pointerEvents: 'auto',
         background: 'var(--pl-chrome-surface)',
         border: '1px solid var(--pl-chrome-border)',
-        borderRadius: '14px',
+        borderRadius: 'var(--pl-radius-xl)',
         boxShadow: '0 2px 10px rgba(0,0,0,0.05), 0 18px 44px rgba(0,0,0,0.10)',
         position: 'relative',
         overflow: 'visible',
@@ -207,7 +207,7 @@ function EditorDockBtn({
           gap: '4px',
           border: 'none',
           cursor: disabled ? 'not-allowed' : 'pointer',
-          borderRadius: '10px',
+          borderRadius: 'var(--pl-radius-lg)',
           padding: '7px 12px',
           background: isActive ? 'var(--pl-chrome-accent-soft)' : 'transparent',
           color: isActive

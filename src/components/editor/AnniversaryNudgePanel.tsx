@@ -147,7 +147,7 @@ export function AnniversaryNudgePanel() {
           padding: '16px 18px',
           background: '#FAFAFA',
           border: '1px solid #E4E4E7',
-          borderRadius: 12,
+          borderRadius: 'var(--pl-radius-lg)',
           position: 'relative',
         }}
       >
@@ -185,7 +185,7 @@ export function AnniversaryNudgePanel() {
             padding: '3px 10px',
             background: '#F4F4F5',
             border: '1px solid #E4E4E7',
-            borderRadius: 20,
+            borderRadius: 'var(--pl-radius-2xl)',
             fontSize: panelText.hint,
             letterSpacing: panelTracking.wider,
             textTransform: 'uppercase',
@@ -241,7 +241,7 @@ export function AnniversaryNudgePanel() {
                 padding: '9px 18px',
                 background: loading ? '#F4F4F5' : '#18181B',
                 border: 'none',
-                borderRadius: 8,
+                borderRadius: 'var(--pl-radius-md)',
                 color: loading ? '#71717A' : '#FFFFFF',
                 fontSize: panelText.body,
                 fontWeight: panelWeight.semibold,

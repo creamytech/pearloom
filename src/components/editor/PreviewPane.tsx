@@ -157,7 +157,7 @@ function HeroSection({
         {manifest.logistics?.date && (
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '8px',
-            padding: '8px 20px', borderRadius: '8px',
+            padding: '8px 20px', borderRadius: 'var(--pl-radius-md)',
             background: coverPhoto ? 'rgba(0,0,0,0.07)' : `${accent}15`,
             border: `1px solid ${coverPhoto ? '#71717A' : `${accent}35`}`,
             fontSize: '13px', fontWeight: 600, color: coverPhoto ? '#fff' : accent, fontFamily: bodyFont,
@@ -247,7 +247,7 @@ function ChapterCard({
 
   if (isCinematic) {
     return (
-      <div {...commonProps} style={{ position: 'relative', height: '240px', overflow: 'hidden', cursor: onClick ? 'pointer' : 'default', borderRadius: '12px', marginBottom: '12px', background: '#1a1a18' }}>
+      <div {...commonProps} style={{ position: 'relative', height: '240px', overflow: 'hidden', cursor: onClick ? 'pointer' : 'default', borderRadius: 'var(--pl-radius-lg)', marginBottom: '12px', background: '#1a1a18' }}>
         {hoverBar}
         {thumb && <img src={thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.5 }} />}
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', textAlign: 'center' }}>
@@ -307,7 +307,7 @@ function ChapterCard({
     <div {...commonProps} style={{ background: bg, padding: '48px 60px', cursor: onClick ? 'pointer' : 'default', position: 'relative' }}>
       {hoverBar}
       {thumb && (
-        <div style={{ width: '100%', height: '240px', borderRadius: '12px', overflow: 'hidden', marginBottom: '28px' }}>
+        <div style={{ width: '100%', height: '240px', borderRadius: 'var(--pl-radius-lg)', overflow: 'hidden', marginBottom: '28px' }}>
           <img src={thumb} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         </div>
       )}
@@ -331,7 +331,7 @@ function DropZone({ id, accent }: { id: string; accent: string }) {
       ref={setNodeRef}
       style={{
         height: isOver ? '80px' : '24px',
-        margin: '0 48px', borderRadius: '8px',
+        margin: '0 48px', borderRadius: 'var(--pl-radius-md)',
         border: isOver ? `2px solid ${accent}` : `2px dotted ${accent}30`,
         background: isOver ? `${accent}22` : `${accent}06`,
         transition: 'all 0.18s ease',
@@ -404,14 +404,14 @@ export function PreviewPane({
         }}>
           Live Preview
         </span>
-        <div style={{ display: 'flex', gap: '2px', background: 'rgba(0,0,0,0.04)', borderRadius: '6px', padding: '2px' }}>
+        <div style={{ display: 'flex', gap: '2px', background: 'rgba(0,0,0,0.04)', borderRadius: 'var(--pl-radius-sm)', padding: '2px' }}>
           {(['desktop', 'mobile'] as PreviewDevice[]).map(d => (
             <button
               key={d}
               onClick={() => setPreviewDevice(d)}
               title={d === 'desktop' ? 'Desktop (1280px)' : 'Mobile (390px)'}
               style={{
-                padding: '4px 8px', borderRadius: '4px', border: 'none', cursor: 'pointer',
+                padding: '4px 8px', borderRadius: 'var(--pl-radius-xs)', border: 'none', cursor: 'pointer',
                 background: previewDevice === d ? 'rgba(255,255,255,0.14)' : 'transparent',
                 color: previewDevice === d ? '#fff' : '#71717A',
                 display: 'flex', alignItems: 'center', transition: 'all var(--pl-dur-instant)',
@@ -478,7 +478,7 @@ export function PreviewPane({
                     <div style={{
                       outline: '2px solid #71717A',
                       outlineOffset: '-2px',
-                      borderRadius: '4px',
+                      borderRadius: 'var(--pl-radius-xs)',
                       position: 'relative',
                     }}>
                       {chapterCard}
