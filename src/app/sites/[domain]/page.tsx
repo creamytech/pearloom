@@ -36,6 +36,7 @@ import { AmbientSpotifyPlayer } from '@/components/site/AmbientSpotifyPlayer';
 import { StickyRsvpPill } from '@/components/site/StickyRsvpPill';
 import { LinkedEventsStrip } from '@/components/site/LinkedEventsStrip';
 import { GrooveSiteHero } from '@/components/site/groove/GrooveSiteHero';
+import { GrooveSiteStory } from '@/components/site/groove/GrooveSiteStory';
 import { resolveThemeFamily } from '@/lib/event-os/theme-family';
 import { CoupleQuiz } from '@/components/site/CoupleQuiz';
 import { ShareBar } from '@/components/site/ShareBar';
@@ -407,7 +408,30 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           </div>
         );
       }
-      case 'story':
+      case 'story': {
+        const storyFamily = resolveThemeFamily(manifest);
+        if (storyFamily === 'groove') {
+          return (
+            <GrooveSiteStory
+              key={key}
+              chapters={(manifest.chapters || []).map((c) => ({
+                id: c.id,
+                title: c.title,
+                subtitle: c.subtitle,
+                description: c.description,
+                date: c.date,
+                images: c.images,
+              }))}
+              accent={pal.accent}
+              accent2={pal.accent2}
+              foreground={pal.foreground}
+              background={pal.background}
+              muted={pal.muted}
+              headingFont={vibeSkin.fonts.heading}
+              bodyFont={vibeSkin.fonts.body}
+            />
+          );
+        }
         return (
           <section key={key} id="our-story" style={{ position: 'relative' }}>
             <StorySection
@@ -425,6 +449,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             />
           </section>
         );
+      }
       case 'event':
         if (!manifest.events?.length) return null;
         return (

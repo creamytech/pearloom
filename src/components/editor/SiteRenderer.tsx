@@ -19,6 +19,7 @@ import { WeddingEvents } from '@/components/wedding-events';
 import { VisualTimeline } from '@/components/visual-timeline';
 import { ItineraryBlock } from '@/components/site/ItineraryBlock';
 import { GrooveSiteHero } from '@/components/site/groove/GrooveSiteHero';
+import { GrooveSiteStory } from '@/components/site/groove/GrooveSiteStory';
 import { resolveThemeFamily } from '@/lib/event-os/theme-family';
 import { CostSplitterBlock } from '@/components/site/CostSplitterBlock';
 import { PackingListBlock } from '@/components/site/PackingListBlock';
@@ -1763,6 +1764,30 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         );
       }
       case 'story': {
+        const storyFamily = resolveThemeFamily(manifest);
+        if (storyFamily === 'groove') {
+          return (
+            <div key={key} data-pe-section="story" style={blockStyle}>
+              <GrooveSiteStory
+                chapters={(manifest.chapters || []).map((c) => ({
+                  id: c.id,
+                  title: c.title,
+                  subtitle: c.subtitle,
+                  description: c.description,
+                  date: c.date,
+                  images: c.images,
+                }))}
+                accent={pal.accent}
+                accent2={pal.accent2}
+                foreground={safeFg}
+                background={pal.background}
+                muted={safeMuted}
+                headingFont={vibeSkin.fonts.heading}
+                bodyFont={vibeSkin.fonts.body}
+              />
+            </div>
+          );
+        }
         return (
           <section key={key} id="our-story" data-pe-section="story" style={{ position: 'relative', ...blockStyle }}>
             <StorySection
