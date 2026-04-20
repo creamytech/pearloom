@@ -12,6 +12,9 @@ import {
   Download,
   ArrowLeft,
   Music,
+  X,
+  Mail,
+  Calendar,
 } from 'lucide-react';
 import { LoomThreadIcon } from '@/components/icons/PearloomIcons';
 import Link from 'next/link';
@@ -198,6 +201,7 @@ function exportCsv(guests: Guest[], domain: string) {
 function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
   const [sortKey, setSortKey] = useState<SortKey>('responded_at');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
 
   const handleSort = useCallback(
     (key: SortKey) => {
@@ -355,12 +359,17 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
               {sorted.map((g, i) => (
                 <tr
                   key={g.id}
+                  onClick={() => setSelectedGuest(g)}
                   style={{
                     borderBottom:
                       i < sorted.length - 1
                         ? '1px solid rgba(0,0,0,0.04)'
                         : 'none',
+                    cursor: 'pointer',
+                    transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
                   }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'color-mix(in oklab, var(--pl-olive) 4%, transparent)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = ''; }}
                 >
                   <td
                     style={{
@@ -465,9 +474,11 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
           {sorted.map((g) => (
             <div
               key={g.id}
+              onClick={() => setSelectedGuest(g)}
               style={{
                 padding: '1rem 1.25rem',
                 borderBottom: '1px solid rgba(0,0,0,0.05)',
+                cursor: 'pointer',
               }}
             >
               <div
@@ -588,7 +599,293 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
           .rsvp-mobile-cards  { display: block; }
         }
       `}</style>
+
+      {selectedGuest && (
+        <GuestDetailDrawer
+          guest={selectedGuest}
+          onClose={() => setSelectedGuest(null)}
+        />
+      )}
     </>
+  );
+}
+
+// ─── Guest Detail Drawer ──────────────────────────────────────
+// Opens when a host clicks a row. Shows every field Pearloom has
+// recorded for this guest: legacy wedding columns, preset
+// answers, contact, and timeline.
+
+function GuestDetailDrawer({
+  guest,
+  onClose,
+}: {
+  guest: Guest;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [onClose]);
+
+  // Merge legacy columns + preset answers into one ordered list.
+  const rows: { label: string; value: React.ReactNode; mono?: boolean }[] = [];
+  if (guest.plus_one) {
+    rows.push({
+      label: 'Plus one',
+      value: guest.plus_one_name ? guest.plus_one_name : 'Yes',
+    });
+  }
+  if (guest.meal_preference) rows.push({ label: 'Meal', value: guest.meal_preference });
+  if (guest.dietary_restrictions) rows.push({ label: 'Dietary', value: guest.dietary_restrictions });
+  if (guest.song_request) rows.push({ label: 'Song request', value: guest.song_request });
+  if (guest.message) rows.push({ label: 'Message', value: guest.message });
+
+  // Preset answers not already covered by legacy columns.
+  const answers = guest.rsvp_answers;
+  if (answers && typeof answers === 'object') {
+    for (const [kind, value] of Object.entries(answers)) {
+      if (typeof value !== 'string' || !value.trim()) continue;
+      if (['meal', 'dietary', 'song-request', 'comments'].includes(kind)) continue;
+      rows.push({
+        label: PRESET_LABEL[kind] ?? kind,
+        value: humanizeAnswer(kind, value),
+      });
+    }
+  }
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 'var(--z-modal)',
+        background: 'rgba(14,13,11,0.42)',
+        backdropFilter: 'blur(2px)',
+        display: 'flex',
+        justifyContent: 'flex-end',
+        animation: 'pl-enter-fade-in var(--pl-dur-base) var(--pl-ease-out)',
+      }}
+    >
+      <aside
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Details for ${guest.name}`}
+        style={{
+          width: 'min(440px, 100%)',
+          height: '100%',
+          background: 'var(--pl-cream)',
+          borderLeft: '1px solid var(--pl-divider)',
+          overflowY: 'auto',
+          padding: '32px 28px 48px',
+          boxShadow: 'var(--pl-shadow-xl)',
+        }}
+      >
+        {/* Close */}
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          style={{
+            position: 'absolute',
+            top: 18,
+            right: 18,
+            width: 32,
+            height: 32,
+            borderRadius: 'var(--pl-radius-full)',
+            border: '1px solid var(--pl-divider)',
+            background: 'var(--pl-cream-card)',
+            color: 'var(--pl-ink)',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <X size={14} />
+        </button>
+
+        {/* Header */}
+        <div style={{ marginBottom: 24 }}>
+          <div
+            className="pl-overline"
+            style={{ color: 'var(--pl-olive)', marginBottom: 8 }}
+          >
+            Guest response
+          </div>
+          <h2
+            className="pl-display"
+            style={{
+              margin: 0,
+              fontStyle: 'italic',
+              fontSize: 'clamp(1.6rem, 3vw, 2rem)',
+              color: 'var(--pl-ink)',
+              lineHeight: 1.05,
+            }}
+          >
+            {guest.name}
+          </h2>
+          <div style={{ marginTop: 12 }}>
+            <StatusBadge status={guest.status ?? 'pending'} />
+          </div>
+        </div>
+
+        {/* Contact */}
+        {guest.email && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '10px 14px',
+              borderRadius: 'var(--pl-radius-sm)',
+              background: 'var(--pl-cream-card)',
+              border: '1px solid var(--pl-divider)',
+              marginBottom: 12,
+              fontSize: '0.88rem',
+              color: 'var(--pl-ink)',
+              wordBreak: 'break-all',
+            }}
+          >
+            <Mail size={13} color="var(--pl-muted)" />
+            <a
+              href={`mailto:${guest.email}`}
+              style={{ color: 'inherit', textDecoration: 'none' }}
+            >
+              {guest.email}
+            </a>
+          </div>
+        )}
+
+        {/* Timeline */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '10px 14px',
+            borderRadius: 'var(--pl-radius-sm)',
+            background: 'var(--pl-cream-card)',
+            border: '1px solid var(--pl-divider)',
+            marginBottom: 24,
+            fontSize: '0.82rem',
+            color: 'var(--pl-muted)',
+          }}
+        >
+          <Calendar size={13} color="var(--pl-muted)" />
+          {guest.responded_at ? (
+            <>
+              Replied{' '}
+              <span style={{ color: 'var(--pl-ink)', fontWeight: 500 }}>
+                {new Date(guest.responded_at).toLocaleString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                })}
+              </span>
+            </>
+          ) : guest.created_at ? (
+            <>
+              Invited{' '}
+              <span style={{ color: 'var(--pl-ink)', fontWeight: 500 }}>
+                {new Date(guest.created_at).toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </span>{' '}
+              · awaiting reply
+            </>
+          ) : (
+            <>No timestamp on record</>
+          )}
+        </div>
+
+        {/* Preset label */}
+        {guest.rsvp_preset && (
+          <div
+            style={{
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.62rem',
+              fontWeight: 700,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: 'var(--pl-olive)',
+              marginBottom: 10,
+            }}
+          >
+            {guest.rsvp_preset} preset
+          </div>
+        )}
+
+        {/* Answers */}
+        {rows.length === 0 ? (
+          <div
+            style={{
+              padding: '32px 16px',
+              textAlign: 'center',
+              color: 'var(--pl-muted)',
+              fontStyle: 'italic',
+              border: '1px dashed var(--pl-divider)',
+              borderRadius: 'var(--pl-radius-lg)',
+              background: 'var(--pl-cream-card)',
+            }}
+          >
+            Nothing beyond status recorded yet.
+          </div>
+        ) : (
+          <dl style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {rows.map((row, i) => (
+              <div
+                key={i}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4,
+                  padding: '12px 14px',
+                  borderRadius: 'var(--pl-radius-sm)',
+                  background: 'var(--pl-cream-card)',
+                  border: '1px solid var(--pl-divider)',
+                }}
+              >
+                <dt
+                  style={{
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.58rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.2em',
+                    textTransform: 'uppercase',
+                    color: 'var(--pl-olive)',
+                  }}
+                >
+                  {row.label}
+                </dt>
+                <dd
+                  style={{
+                    margin: 0,
+                    color: 'var(--pl-ink)',
+                    fontSize: '0.95rem',
+                    lineHeight: 1.5,
+                    whiteSpace: 'pre-wrap',
+                  }}
+                >
+                  {row.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+      </aside>
+    </div>
   );
 }
 
