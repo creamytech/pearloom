@@ -21,7 +21,7 @@
 
 import { motion, useScroll, useTransform, useReducedMotion, useMotionValueEvent, type MotionValue } from 'framer-motion';
 import { useRef, useState } from 'react';
-import { BlurFade } from '@/components/brand/groove';
+import { BlurFade, CurvedText } from '@/components/brand/groove';
 
 interface WeavingScrollSectionProps {
   /** Optional couple/honoree names used in the finished page. */
@@ -134,16 +134,31 @@ export function WeavingScrollSection({
             zIndex: 20,
           }}
         >
+          {/* Curved "Watch it weave" kicker — rides a gentle arc
+              above the pinned stage, tying the section label to
+              the wavy brand language. */}
           <div
+            aria-hidden
             style={{
-              fontFamily: 'var(--pl-font-body)',
-              fontSize: '0.92rem',
-              fontWeight: 500,
               color: 'var(--pl-groove-terra)',
-              marginBottom: 8,
+              display: 'flex',
+              justifyContent: 'center',
+              marginBottom: 0,
             }}
           >
-            Watch it weave
+            <CurvedText
+              variant="arc"
+              width={360}
+              amplitude={22}
+              fontFamily='"Fraunces", Georgia, serif'
+              fontSize={22}
+              fontStyle="italic"
+              fontWeight={400}
+              letterSpacing={1.5}
+              aria-label="Watch it weave"
+            >
+              ✧  Watch it weave  ✧
+            </CurvedText>
           </div>
           <h2
             style={{

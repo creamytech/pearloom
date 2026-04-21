@@ -21,3 +21,4 @@ export { AnimatedList } from './AnimatedList';
 export { useMagneticPointer } from './useMagneticPointer';
 export { MagneticHover } from './MagneticHover';
 export { useScrollProgress } from './useScrollProgress';
+export { CurvedText, type CurvedTextVariant } from './CurvedText';

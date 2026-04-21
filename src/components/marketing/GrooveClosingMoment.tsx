@@ -12,6 +12,7 @@
 import { ArrowRight } from 'lucide-react';
 import {
   BlurFade,
+  CurvedText,
   GrooveBlob,
   MagneticHover,
   RipeningPear,
@@ -51,22 +52,43 @@ export function GrooveClosingMoment({ onGetStarted }: GrooveClosingMomentProps) 
       />
 
       <div style={{ position: 'relative', zIndex: 1, maxWidth: 820, margin: '0 auto' }}>
+        {/* Curved kicker — "The loom is open" arches above the
+            pear, following the outer curve of the blob atmosphere.
+            Rendered in the display font italic so it reads as a
+            celebratory label rather than a UI chip. */}
         <BlurFade>
-          <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'center' }}>
-            <RipeningPear size={220} scrollDriven={false} ripeness={0.72} />
-          </div>
-        </BlurFade>
-        <BlurFade delay={0.1}>
           <div
             style={{
-              fontFamily: 'var(--pl-font-body)',
-              fontSize: '0.92rem',
-              fontWeight: 500,
-              color: 'var(--pl-groove-terra)',
-              marginBottom: 14,
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              marginBottom: 20,
             }}
           >
-            The loom is open
+            <div
+              aria-hidden
+              style={{
+                color: 'var(--pl-groove-terra)',
+                marginBottom: -28,
+                zIndex: 1,
+              }}
+            >
+              <CurvedText
+                variant="arc"
+                width={460}
+                amplitude={36}
+                fontFamily='"Fraunces", Georgia, serif'
+                fontSize={26}
+                fontStyle="italic"
+                fontWeight={400}
+                letterSpacing={2}
+                aria-label="The loom is open"
+              >
+                ✦  The loom is open  ✦
+              </CurvedText>
+            </div>
+            <RipeningPear size={220} scrollDriven={false} ripeness={0.72} />
           </div>
         </BlurFade>
         <BlurFade delay={0.18}>
