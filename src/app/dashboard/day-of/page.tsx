@@ -17,6 +17,7 @@ import { VendorBookingsPanel } from '@/components/dashboard/VendorBookingsPanel'
 import { SiteSelector } from '@/components/shell';
 import type { SiteOption } from '@/components/shell';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
+import { CurvedText } from '@/components/brand/groove';
 
 interface SiteSummary {
   id: string;
@@ -90,15 +91,25 @@ export default function DayOfPage() {
               >
                 <div style={{ flex: 1, minWidth: 260 }}>
                   <div
+                    aria-hidden
                     style={{
-                      fontFamily: 'var(--pl-font-body)',
-                      fontSize: '0.92rem',
-                      fontWeight: 500,
                       color: 'var(--pl-groove-terra)',
-                      marginBottom: 10,
+                      marginBottom: 2,
+                      marginLeft: -6,
                     }}
                   >
-                    The day-of room
+                    <CurvedText
+                      variant="wave"
+                      width={280}
+                      amplitude={10}
+                      fontFamily='var(--pl-font-body)'
+                      fontSize={14}
+                      fontWeight={500}
+                      letterSpacing={1.4}
+                      aria-label="The day-of room"
+                    >
+                      ✦  The day-of room  ✦
+                    </CurvedText>
                   </div>
                   <h1
                     style={{

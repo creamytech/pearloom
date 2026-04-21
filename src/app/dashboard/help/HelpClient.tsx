@@ -18,7 +18,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
-import { BlurFade, GrooveBlob } from '@/components/brand/groove';
+import { BlurFade, CurvedText, GrooveBlob } from '@/components/brand/groove';
 
 interface FaqEntry {
   q: string;
@@ -149,15 +149,25 @@ export default function HelpClient() {
               >
                 <div style={{ flex: 1, minWidth: 260 }}>
                   <div
+                    aria-hidden
                     style={{
-                      fontFamily: 'var(--pl-font-body)',
-                      fontSize: '0.92rem',
-                      fontWeight: 500,
                       color: 'var(--pl-groove-terra)',
-                      marginBottom: 12,
+                      marginBottom: 4,
+                      marginLeft: -6,
                     }}
                   >
-                    Help center
+                    <CurvedText
+                      variant="wave"
+                      width={240}
+                      amplitude={10}
+                      fontFamily='var(--pl-font-body)'
+                      fontSize={14}
+                      fontWeight={500}
+                      letterSpacing={1.5}
+                      aria-label="Help center"
+                    >
+                      ✦  Help center  ✦
+                    </CurvedText>
                   </div>
                   <h1
                     style={{

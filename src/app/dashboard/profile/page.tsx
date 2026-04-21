@@ -21,7 +21,7 @@ import { Switch } from '@/components/ui/switch';
 import { PageCard } from '@/components/shell';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
 import { downloadFile } from '@/lib/guest-services';
-import { BlurFade, GrooveBlob } from '@/components/brand/groove';
+import { BlurFade, CurvedText, GrooveBlob } from '@/components/brand/groove';
 
 export default function ProfilePage() {
   const { data: session } = useSession();
@@ -108,15 +108,25 @@ export default function ProfilePage() {
               }}
             >
               <div
+                aria-hidden
                 style={{
-                  marginBottom: 12,
+                  marginBottom: 4,
+                  marginLeft: -6,
                   color: 'var(--pl-groove-terra)',
-                  fontSize: '0.92rem',
-                  fontWeight: 500,
-                  fontFamily: 'var(--pl-font-body)',
                 }}
               >
-                Account &amp; preferences
+                <CurvedText
+                  variant="arc"
+                  width={320}
+                  amplitude={14}
+                  fontFamily='var(--pl-font-body)'
+                  fontSize={14}
+                  fontWeight={500}
+                  letterSpacing={1.5}
+                  aria-label="Account & preferences"
+                >
+                  ✦  Account &amp; preferences  ✦
+                </CurvedText>
               </div>
               <h1
                 style={{

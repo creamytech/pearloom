@@ -24,6 +24,7 @@ import { MARKETPLACE_PACKS, searchPacks } from '@/lib/marketplace-assets';
 import { generateCardIllustration } from '@/lib/card-illustrations';
 import { Button } from '@/components/ui/button';
 import { DashboardSidebar } from '@/components/dashboard/sidebar';
+import { CurvedText } from '@/components/brand/groove';
 
 type TabId = 'templates' | 'themes' | 'blocks' | 'assets' | 'community';
 
@@ -157,9 +158,20 @@ export default function MarketplacePage() {
                 pointerEvents: 'none',
               }}
             />
-            <p className="relative text-[0.92rem] font-medium mb-2" style={{ color: 'var(--pl-groove-terra)' }}>
-              Marketplace
-            </p>
+            <div aria-hidden className="relative" style={{ color: 'var(--pl-groove-terra)', marginBottom: 2, marginLeft: -6 }}>
+              <CurvedText
+                variant="arc"
+                width={240}
+                amplitude={14}
+                fontFamily='var(--pl-font-body)'
+                fontSize={14}
+                fontWeight={500}
+                letterSpacing={1.6}
+                aria-label="Marketplace"
+              >
+                ✦  Marketplace  ✦
+              </CurvedText>
+            </div>
             <h1
               className="relative text-[clamp(1.8rem,3.6vw,2.6rem)] leading-[1.1] mb-3 tracking-[-0.02em]"
               style={{ fontFamily: 'var(--pl-font-body)', fontWeight: 700, color: 'var(--pl-groove-ink)' }}
