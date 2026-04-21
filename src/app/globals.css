@@ -2043,6 +2043,14 @@ body > * { position: relative; z-index: 1; }
 @keyframes pl-orbit-ccw { to { transform: rotate(-360deg); } }
 @keyframes pl-counter-cw { to { transform: rotate(-360deg); } }
 @keyframes pl-counter-ccw { to { transform: rotate(360deg); } }
+@keyframes pl-float-y { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes pl-ripen { 0% { filter: hue-rotate(-10deg) saturate(0.85); } 50% { filter: hue-rotate(0deg) saturate(1.1); } 100% { filter: hue-rotate(-10deg) saturate(0.85); } }
+@keyframes pl-pearl-shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+@keyframes pl-blob-morph {
+  0%, 100% { border-radius: 62% 38% 54% 46% / 49% 58% 42% 51%; }
+  33%      { border-radius: 38% 62% 42% 58% / 62% 39% 61% 38%; }
+  66%      { border-radius: 55% 45% 38% 62% / 38% 52% 48% 62%; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .pl-glyph-spin, .pl-glyph-bloom, .pl-glyph-thread, .pl-glyph-orbit {
