@@ -1,18 +1,18 @@
 'use client';
 
-// ─────────────────────────────────────────────────────────────
-// Pearloom / marketing/BlocksLibrary.tsx
-//
-// "The parts of a day, as small blocks." Interactive showcase
-// of Pearloom's 26 block types. Click an icon tile to bring its
-// preview into the left-hand stage — RSVP shows form fields,
-// Photo wall shows a live grid, Toast signup shows a seating-
-// style name list, etc. Each preview is a tiny editorial
-// sketch, not a full working block.
-// ─────────────────────────────────────────────────────────────
+// Faithful port of design bundle's blocks.jsx. 26 blocks, click
+// a tile to see its preview. Exact match:
+// - straight mono Pill kicker with Sparkle (not CurvedText)
+// - Fraunces display headline, 40-72px, "as small blocks." italic olive
+// - 0.9fr / 1fr two-column grid, gap 60
+// - preview panel: paper3 bg, border rgba(31,36,24,0.14), radius 24
+//   (NOT a blob shape), Bloom drifting in top-right
+// - tile grid: 8 columns, aspect-ratio 1, rounded 18px, ink-filled
+//   when selected, paper3 on rest
 
 import { useState, type CSSProperties } from 'react';
-import { BlurFade, Bloom, Worm, CurvedText } from '@/components/brand/groove';
+import { Bloom, Sparkle, Worm } from '@/components/brand/groove';
+import { Pearl, Pill, PD, DISPLAY_STYLE, MONO_STYLE } from './design/DesignAtoms';
 
 type BlockKey =
   | 'cover' | 'story' | 'rsvp' | 'run' | 'travel' | 'toast' | 'tribute'
@@ -57,205 +57,159 @@ const BLOCKS: Block[] = [
 ];
 
 export function BlocksLibrary() {
-  const [sel, setSel] = useState<Block>(BLOCKS[2]); // RSVP opens first — most-used block
+  const [sel, setSel] = useState<Block>(BLOCKS[0]);
 
   return (
     <section
       style={{
+        padding: '140px 24px',
+        background: PD.paper,
         position: 'relative',
-        padding: 'clamp(96px, 14vh, 160px) clamp(20px, 5vw, 64px)',
-        background: 'var(--pl-groove-cream)',
         overflow: 'hidden',
       }}
     >
-      {/* Decorative worm drifting across the top-left */}
-      <div style={{ position: 'absolute', top: 60, left: -80, opacity: 0.3, pointerEvents: 'none' }}>
-        <Worm width={420} height={80} color="var(--pl-groove-terra)" segments={4} />
+      <div style={{ position: 'absolute', top: 60, left: -60, opacity: 0.3 }} aria-hidden>
+        <Worm width={400} height={80} color={PD.gold} segments={4} />
       </div>
 
       <div style={{ maxWidth: 1320, margin: '0 auto' }}>
         <div
+          className="pd-blocks-grid"
           style={{
             display: 'grid',
-            gridTemplateColumns: 'minmax(0, 0.9fr) minmax(0, 1fr)',
-            gap: 'clamp(32px, 5vw, 64px)',
+            gridTemplateColumns: '0.9fr 1fr',
+            gap: 60,
             alignItems: 'start',
             marginBottom: 40,
           }}
-          className="pl-blocks-library-grid"
         >
           {/* Left — copy */}
           <div>
-            <BlurFade>
+            <Pill style={{ marginBottom: 16 }}>
+              <Sparkle size={12} color={PD.olive} /> TWENTY-SIX BLOCKS, AND COUNTING
+            </Pill>
+            <h2
+              style={{
+                ...DISPLAY_STYLE,
+                fontSize: 'clamp(40px, 5.2vw, 72px)',
+                lineHeight: 0.95,
+                margin: '0 0 20px',
+                fontWeight: 400,
+                letterSpacing: '-0.025em',
+                color: PD.ink,
+              }}
+            >
+              The parts of a day,
+              <br />
+              <span
+                style={{
+                  fontStyle: 'italic',
+                  color: PD.olive,
+                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                }}
+              >
+                as small blocks.
+              </span>
+            </h2>
+            <p
+              style={{
+                fontFamily: 'var(--pl-font-body)',
+                fontSize: 17,
+                lineHeight: 1.6,
+                color: PD.inkSoft,
+                margin: '0 0 12px',
+                maxWidth: 480,
+              }}
+            >
+              Your RSVP asks the right questions. Your run of show shows guests where the day is
+              going. Your photo wall fills up as it happens. Tap one to see it as a block, the
+              way Pear threads it into your site.
+            </p>
+            <div style={{ ...MONO_STYLE, fontSize: 10, opacity: 0.55, marginTop: 18 }}>
+              → CLICK A BLOCK
+            </div>
+          </div>
+
+          {/* Preview panel — rectangular rounded card, NOT a blob */}
+          <div
+            style={{
+              background: PD.paper3,
+              border: '1px solid rgba(31,36,24,0.14)',
+              borderRadius: 24,
+              padding: '28px 30px',
+              minHeight: 280,
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <div style={{ position: 'absolute', top: -20, right: -20, opacity: 0.5 }} aria-hidden>
+              <Bloom size={120} color={PD.pear} centerColor={PD.olive} speed={6} />
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                marginBottom: 12,
+                position: 'relative',
+              }}
+            >
               <div
-                aria-hidden
                 style={{
-                  color: 'var(--pl-groove-plum)',
-                  marginBottom: 8,
-                  marginLeft: -6,
+                  width: 46,
+                  height: 46,
+                  borderRadius: 999,
+                  background: PD.ink,
+                  color: PD.paper,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 20,
+                  fontFamily: '"Fraunces", Georgia, serif',
+                  flexShrink: 0,
                 }}
               >
-                <CurvedText
-                  variant="wave"
-                  width={360}
-                  amplitude={10}
-                  fontFamily="var(--pl-font-body)"
-                  fontSize={14}
-                  fontWeight={500}
-                  letterSpacing={1.4}
-                  aria-label="Twenty-six blocks, and counting"
-                >
-                  ✦  Twenty-six blocks, and counting  ✦
-                </CurvedText>
+                {sel.icon}
               </div>
-            </BlurFade>
-            <BlurFade delay={0.08}>
-              <h2
-                style={{
-                  margin: '0 0 20px',
-                  fontFamily: 'var(--pl-font-body)',
-                  fontSize: 'clamp(2.2rem, 5vw, 3.6rem)',
-                  fontWeight: 700,
-                  lineHeight: 1.04,
-                  letterSpacing: '-0.025em',
-                  color: 'var(--pl-groove-ink)',
-                }}
-              >
-                The parts of a day,
-                <br />
-                <span
+              <div>
+                <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55 }}>
+                  BLOCK · {sel.k.toUpperCase()}
+                </div>
+                <div
                   style={{
-                    fontFamily: '"Fraunces", Georgia, serif',
+                    ...DISPLAY_STYLE,
+                    fontSize: 28,
                     fontStyle: 'italic',
                     fontWeight: 400,
-                    color: 'var(--pl-groove-sage)',
+                    lineHeight: 1,
                     fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
                   }}
                 >
-                  as small blocks.
-                </span>
-              </h2>
-            </BlurFade>
-            <BlurFade delay={0.16}>
-              <p
-                style={{
-                  margin: '0 0 12px',
-                  maxWidth: '46ch',
-                  fontFamily: 'var(--pl-font-body)',
-                  fontSize: '1.04rem',
-                  lineHeight: 1.6,
-                  color: 'color-mix(in oklab, var(--pl-groove-ink) 70%, transparent)',
-                }}
-              >
-                Your RSVP asks the right questions. Your run of show shows guests where
-                the day is going. Your photo wall fills up as it happens. Tap one to see
-                it as a block, the way Pear threads it into your site.
-              </p>
-              <div
-                style={{
-                  fontFamily: 'var(--pl-font-body)',
-                  fontSize: '0.82rem',
-                  fontWeight: 500,
-                  letterSpacing: '0.06em',
-                  color: 'var(--pl-groove-terra)',
-                  marginTop: 18,
-                }}
-              >
-                → click a block
-              </div>
-            </BlurFade>
-          </div>
-
-          {/* Right — preview panel */}
-          <BlurFade delay={0.16}>
-            <div
-              style={{
-                background: 'color-mix(in oklab, var(--pl-groove-butter) 22%, var(--pl-groove-cream))',
-                border: '1px solid color-mix(in oklab, var(--pl-groove-terra) 22%, transparent)',
-                borderRadius: 'var(--pl-groove-radius-blob-5)',
-                padding: 'clamp(24px, 3vw, 36px)',
-                minHeight: 320,
-                position: 'relative',
-                overflow: 'hidden',
-              }}
-            >
-              <div style={{ position: 'absolute', top: -30, right: -30, opacity: 0.38, pointerEvents: 'none' }}>
-                <Bloom size={140} color="var(--pl-groove-sage)" centerColor="var(--pl-groove-ink)" speed={8} />
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14, position: 'relative' }}>
-                <div
-                  style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: 999,
-                    background: 'var(--pl-groove-ink)',
-                    color: 'var(--pl-groove-cream)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 22,
-                    fontFamily: '"Fraunces", Georgia, serif',
-                    flexShrink: 0,
-                  }}
-                >
-                  {sel.icon}
+                  {sel.name}
                 </div>
-                <div>
-                  <div
-                    style={{
-                      fontFamily: 'var(--pl-font-body)',
-                      fontSize: '0.72rem',
-                      fontWeight: 500,
-                      letterSpacing: '0.18em',
-                      textTransform: 'uppercase',
-                      color: 'color-mix(in oklab, var(--pl-groove-ink) 55%, transparent)',
-                      marginBottom: 2,
-                    }}
-                  >
-                    Block · {sel.k}
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: '"Fraunces", Georgia, serif',
-                      fontStyle: 'italic',
-                      fontSize: 32,
-                      fontWeight: 400,
-                      lineHeight: 1,
-                      color: 'var(--pl-groove-ink)',
-                      fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                    }}
-                  >
-                    {sel.name}
-                  </div>
-                </div>
-              </div>
-              <p
-                style={{
-                  margin: '10px 0 20px',
-                  maxWidth: '42ch',
-                  fontFamily: 'var(--pl-font-body)',
-                  fontSize: '0.96rem',
-                  lineHeight: 1.55,
-                  color: 'color-mix(in oklab, var(--pl-groove-ink) 72%, transparent)',
-                  position: 'relative',
-                }}
-              >
-                {sel.desc}
-              </p>
-              <div style={{ position: 'relative' }}>
-                <BlockPreview block={sel.k} />
               </div>
             </div>
-          </BlurFade>
+            <p
+              style={{
+                fontFamily: 'var(--pl-font-body)',
+                fontSize: 15,
+                lineHeight: 1.55,
+                color: PD.inkSoft,
+                margin: '12px 0 18px',
+                maxWidth: 420,
+              }}
+            >
+              {sel.desc}
+            </p>
+
+            <BlockPreview block={sel.k} />
+          </div>
         </div>
 
-        {/* Tile grid — all 26 blocks */}
+        {/* Tile grid — 8 columns, square tiles */}
         <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
-            gap: 10,
-          }}
+          className="pd-block-tiles"
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 10 }}
         >
           {BLOCKS.map((b) => {
             const isSel = sel.k === b.k;
@@ -268,37 +222,28 @@ export function BlocksLibrary() {
                   border: 'none',
                   cursor: 'pointer',
                   fontFamily: 'inherit',
-                  background: isSel
-                    ? 'var(--pl-groove-ink)'
-                    : 'color-mix(in oklab, var(--pl-groove-butter) 16%, var(--pl-groove-cream))',
-                  color: isSel ? 'var(--pl-groove-cream)' : 'var(--pl-groove-ink)',
+                  background: isSel ? PD.ink : PD.paper3,
+                  color: isSel ? PD.paper : PD.ink,
                   borderRadius: 18,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 6,
+                  gap: 4,
                   padding: 8,
-                  transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-groove-ease-bloom)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
+                  transition: 'all 180ms',
                 }}
                 aria-pressed={isSel}
                 aria-label={`Preview ${b.name} block`}
               >
-                <div style={{ fontSize: 24, fontFamily: '"Fraunces", Georgia, serif' }}>{b.icon}</div>
+                <div style={{ fontSize: 22, fontFamily: '"Fraunces", Georgia, serif' }}>{b.icon}</div>
                 <div
                   style={{
-                    fontSize: 11,
+                    fontSize: 10.5,
                     fontWeight: 500,
                     lineHeight: 1.1,
                     textAlign: 'center',
                     fontFamily: 'var(--pl-font-body)',
-                    letterSpacing: '-0.005em',
                   }}
                 >
                   {b.name}
@@ -310,9 +255,17 @@ export function BlocksLibrary() {
       </div>
 
       <style jsx>{`
-        @media (max-width: 820px) {
-          .pl-blocks-library-grid {
+        @media (max-width: 1100px) {
+          :global(.pd-blocks-grid) {
             grid-template-columns: 1fr !important;
+          }
+          :global(.pd-block-tiles) {
+            grid-template-columns: repeat(6, 1fr) !important;
+          }
+        }
+        @media (max-width: 640px) {
+          :global(.pd-block-tiles) {
+            grid-template-columns: repeat(4, 1fr) !important;
           }
         }
       `}</style>
@@ -321,14 +274,12 @@ export function BlocksLibrary() {
 }
 
 // ─── Per-block tiny previews ───────────────────────────────────
-// Editorial sketches, not full renderers. Each is a one-screen
-// demonstration of what the block does.
 
 const card: CSSProperties = {
-  background: 'color-mix(in oklab, var(--pl-groove-cream) 85%, transparent)',
+  background: PD.paper,
   borderRadius: 14,
   padding: 14,
-  border: '1px solid color-mix(in oklab, var(--pl-groove-ink) 10%, transparent)',
+  border: '1px solid rgba(31,36,24,0.1)',
 };
 
 function BlockPreview({ block }: { block: BlockKey }) {
@@ -343,8 +294,9 @@ function BlockPreview({ block }: { block: BlockKey }) {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 10,
-                padding: '9px 0',
-                borderBottom: i < 2 ? '1px solid color-mix(in oklab, var(--pl-groove-ink) 8%, transparent)' : 'none',
+                padding: '8px 0',
+                borderBottom: i < 2 ? '1px solid rgba(31,36,24,0.08)' : 'none',
+                fontFamily: 'var(--pl-font-body)',
               }}
             >
               <div
@@ -352,12 +304,12 @@ function BlockPreview({ block }: { block: BlockKey }) {
                   width: 14,
                   height: 14,
                   borderRadius: 4,
-                  border: '1.5px solid var(--pl-groove-sage)',
-                  background: i === 0 ? 'var(--pl-groove-sage)' : 'transparent',
+                  border: `1.5px solid ${PD.olive}`,
+                  background: i === 0 ? PD.olive : 'transparent',
                   flexShrink: 0,
                 }}
               />
-              <div style={{ fontSize: 13, fontFamily: 'var(--pl-font-body)' }}>{q}</div>
+              <div style={{ fontSize: 13 }}>{q}</div>
             </div>
           ))}
         </div>
@@ -365,20 +317,11 @@ function BlockPreview({ block }: { block: BlockKey }) {
     case 'photo':
       return (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4 }}>
-          {[
-            'var(--pl-groove-terra)',
-            'var(--pl-groove-rose)',
-            'var(--pl-groove-sage)',
-            'var(--pl-groove-butter)',
-            'var(--pl-groove-plum)',
-            'color-mix(in oklab, var(--pl-groove-terra) 70%, var(--pl-groove-butter))',
-            'var(--pl-groove-sage)',
-            'color-mix(in oklab, var(--pl-groove-sage) 40%, var(--pl-groove-cream))',
-            'var(--pl-groove-rose)',
-            'color-mix(in oklab, var(--pl-groove-butter) 60%, var(--pl-groove-cream))',
-          ].map((c, i) => (
-            <div key={i} style={{ aspectRatio: '1', background: c, borderRadius: 4 }} />
-          ))}
+          {[PD.stone, PD.rose, PD.pear, PD.butter, PD.plum, PD.gold, PD.olive, PD.pearSkin, PD.terra, PD.paper2].map(
+            (c, i) => (
+              <div key={i} style={{ aspectRatio: '1', background: c, borderRadius: 4 }} />
+            ),
+          )}
         </div>
       );
     case 'seat':
@@ -390,15 +333,14 @@ function BlockPreview({ block }: { block: BlockKey }) {
               style={{
                 aspectRatio: '1',
                 borderRadius: 10,
-                background: i === 4 ? 'var(--pl-groove-terra)' : 'var(--pl-groove-cream)',
-                border: '1px solid color-mix(in oklab, var(--pl-groove-ink) 15%, transparent)',
+                background: i === 4 ? PD.terra : PD.paper,
+                border: '1px solid rgba(31,36,24,0.15)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: 11,
+                fontSize: 10,
                 fontFamily: 'var(--pl-font-body)',
-                fontWeight: 600,
-                color: i === 4 ? 'var(--pl-groove-cream)' : 'var(--pl-groove-ink)',
+                color: i === 4 ? PD.paper : PD.ink,
               }}
             >
               T{i + 1}
@@ -408,26 +350,26 @@ function BlockPreview({ block }: { block: BlockKey }) {
       );
     case 'run':
       return (
-        <div style={{ position: 'relative', height: 40 }}>
+        <div style={{ position: 'relative', height: 36 }}>
           <div
             style={{
               position: 'absolute',
-              top: 16,
+              top: 14,
               left: 0,
               right: 0,
               height: 3,
-              background: 'color-mix(in oklab, var(--pl-groove-ink) 12%, transparent)',
+              background: PD.line,
               borderRadius: 99,
             }}
           />
           <div
             style={{
               position: 'absolute',
-              top: 16,
+              top: 14,
               left: 0,
               width: '52%',
               height: 3,
-              background: 'linear-gradient(90deg, var(--pl-groove-sage), var(--pl-groove-terra))',
+              background: `linear-gradient(90deg, ${PD.olive}, ${PD.gold})`,
               borderRadius: 99,
             }}
           />
@@ -437,12 +379,12 @@ function BlockPreview({ block }: { block: BlockKey }) {
               style={{
                 position: 'absolute',
                 left: `${p}%`,
-                top: 10,
+                top: 8,
                 width: 14,
                 height: 14,
                 borderRadius: 99,
-                background: 'var(--pl-groove-cream)',
-                border: `1.5px solid ${i < 3 ? 'var(--pl-groove-sage)' : 'color-mix(in oklab, var(--pl-groove-ink) 20%, transparent)'}`,
+                background: PD.paper,
+                border: `1.5px solid ${i < 3 ? PD.olive : PD.stone}`,
                 transform: 'translateX(-50%)',
               }}
             />
@@ -451,7 +393,7 @@ function BlockPreview({ block }: { block: BlockKey }) {
       );
     case 'cost':
       return (
-        <div style={{ ...card, fontSize: 13 }}>
+        <div style={{ ...card, fontSize: 12.5 }}>
           {([
             ['Cabin', '$1,240', '6 ways'],
             ['Groceries', '$385', '6 ways'],
@@ -462,8 +404,8 @@ function BlockPreview({ block }: { block: BlockKey }) {
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                padding: '8px 0',
-                borderBottom: i < 2 ? '1px solid color-mix(in oklab, var(--pl-groove-ink) 8%, transparent)' : 'none',
+                padding: '7px 0',
+                borderBottom: i < 2 ? '1px solid rgba(31,36,24,0.08)' : 'none',
                 fontFamily: 'var(--pl-font-body)',
               }}
             >
@@ -489,7 +431,7 @@ function BlockPreview({ block }: { block: BlockKey }) {
                 alignItems: 'center',
                 gap: 10,
                 padding: '8px 12px',
-                background: 'var(--pl-groove-cream)',
+                background: PD.paper,
                 borderRadius: 10,
                 fontFamily: 'var(--pl-font-body)',
               }}
@@ -499,8 +441,8 @@ function BlockPreview({ block }: { block: BlockKey }) {
                   width: 26,
                   height: 26,
                   borderRadius: 99,
-                  background: 'var(--pl-groove-sage)',
-                  color: 'var(--pl-groove-cream)',
+                  background: PD.olive,
+                  color: PD.paper,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -524,29 +466,28 @@ function BlockPreview({ block }: { block: BlockKey }) {
     case 'book':
       return (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
-          {[
-            'She taught me to bake without a recipe.',
-            "I'll never forget the laugh.",
-            'Kind above all. Generous to a fault.',
-            'She loved jazz on Sundays.',
-            'A second mother to me.',
-            'Thank you for the afternoons.',
-          ].map((note, i) => (
+          {[PD.paper, PD.paper2, PD.paperDeep, PD.sand, PD.paperCard, PD.paper3].map((c, i) => (
             <div
               key={i}
               style={{
-                background: 'color-mix(in oklab, var(--pl-groove-butter) 14%, var(--pl-groove-cream))',
+                background: c,
                 padding: 10,
                 borderRadius: 8,
-                fontSize: 10.5,
+                fontSize: 10,
                 fontStyle: 'italic',
                 fontFamily: '"Fraunces", Georgia, serif',
                 lineHeight: 1.4,
                 transform: `rotate(${[-2, 1, -1, 2, -1, 1][i]}deg)`,
-                border: '1px solid color-mix(in oklab, var(--pl-groove-terra) 18%, transparent)',
               }}
             >
-              {note}
+              {[
+                'She taught me to bake without a recipe.',
+                "I'll never forget the laugh.",
+                'Kind above all. Generous to a fault.',
+                'She loved jazz on Sundays.',
+                'A second mother to me.',
+                'Thank you for the afternoons.',
+              ][i]}
             </div>
           ))}
         </div>
@@ -561,8 +502,8 @@ function BlockPreview({ block }: { block: BlockKey }) {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 10,
-                padding: '7px 0',
-                borderBottom: i < 2 ? '1px solid color-mix(in oklab, var(--pl-groove-ink) 8%, transparent)' : 'none',
+                padding: '6px 0',
+                borderBottom: i < 2 ? '1px solid rgba(31,36,24,0.08)' : 'none',
                 fontSize: 12,
                 fontFamily: 'var(--pl-font-body)',
               }}
@@ -572,8 +513,8 @@ function BlockPreview({ block }: { block: BlockKey }) {
                   width: 20,
                   height: 20,
                   borderRadius: 99,
-                  background: 'var(--pl-groove-sage)',
-                  color: 'var(--pl-groove-cream)',
+                  background: PD.olive,
+                  color: PD.paper,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -592,17 +533,21 @@ function BlockPreview({ block }: { block: BlockKey }) {
         <svg viewBox="0 0 300 120" width="100%" height="140" style={{ display: 'block' }}>
           <path
             d="M 10 90 Q 60 20, 120 60 T 240 50 L 290 30"
-            stroke="var(--pl-groove-sage)"
+            stroke={PD.olive}
             strokeWidth="2"
             fill="none"
             strokeDasharray="4 4"
           />
-          <circle cx="10" cy="90" r="5" fill="var(--pl-groove-terra)" />
-          <circle cx="120" cy="60" r="5" fill="var(--pl-groove-butter)" />
-          <circle cx="240" cy="50" r="5" fill="var(--pl-groove-butter)" />
-          <circle cx="290" cy="30" r="6" fill="var(--pl-groove-sage)" />
-          <text x="16" y="110" fontSize="10" fill="currentColor" fontFamily="Fraunces" fontStyle="italic">home</text>
-          <text x="256" y="25" fontSize="10" fill="currentColor" fontFamily="Fraunces" fontStyle="italic">the vow</text>
+          <circle cx="10" cy="90" r="5" fill={PD.terra} />
+          <circle cx="120" cy="60" r="5" fill={PD.gold} />
+          <circle cx="240" cy="50" r="5" fill={PD.gold} />
+          <circle cx="290" cy="30" r="6" fill={PD.olive} />
+          <text x="16" y="110" fontSize="9" fill={PD.ink} fontFamily="Fraunces" fontStyle="italic">
+            home
+          </text>
+          <text x="260" y="25" fontSize="9" fill={PD.ink} fontFamily="Fraunces" fontStyle="italic">
+            the vow
+          </text>
         </svg>
       );
     case 'count':
@@ -616,8 +561,8 @@ function BlockPreview({ block }: { block: BlockKey }) {
             <div
               key={l}
               style={{
-                background: 'var(--pl-groove-ink)',
-                color: 'var(--pl-groove-cream)',
+                background: PD.ink,
+                color: PD.paper,
                 padding: '14px 18px',
                 borderRadius: 14,
                 textAlign: 'center',
@@ -626,11 +571,11 @@ function BlockPreview({ block }: { block: BlockKey }) {
             >
               <div
                 style={{
-                  fontSize: 30,
+                  ...DISPLAY_STYLE,
+                  fontSize: 28,
                   lineHeight: 1,
                   fontStyle: 'italic',
-                  fontFamily: '"Fraunces", Georgia, serif',
-                  color: 'var(--pl-groove-butter)',
+                  color: PD.butter,
                   fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
                 }}
               >
@@ -638,12 +583,10 @@ function BlockPreview({ block }: { block: BlockKey }) {
               </div>
               <div
                 style={{
-                  fontSize: 10,
-                  opacity: 0.7,
+                  ...MONO_STYLE,
+                  fontSize: 9,
+                  opacity: 0.65,
                   marginTop: 4,
-                  letterSpacing: '0.14em',
-                  textTransform: 'uppercase',
-                  fontFamily: 'var(--pl-font-body)',
                 }}
               >
                 {l}
@@ -657,7 +600,7 @@ function BlockPreview({ block }: { block: BlockKey }) {
         <div
           style={{
             fontSize: 13,
-            color: 'color-mix(in oklab, var(--pl-groove-ink) 60%, transparent)',
+            color: PD.inkSoft,
             fontStyle: 'italic',
             fontFamily: '"Fraunces", Georgia, serif',
             padding: '20px 4px',
@@ -666,16 +609,7 @@ function BlockPreview({ block }: { block: BlockKey }) {
             gap: 10,
           }}
         >
-          <span
-            style={{
-              display: 'inline-block',
-              width: 10,
-              height: 10,
-              borderRadius: 999,
-              background: 'var(--pl-groove-blob-sunrise, linear-gradient(135deg, var(--pl-groove-butter), var(--pl-groove-rose)))',
-            }}
-          />
-          Preview in the editor.
+          <Pearl size={8} /> Preview in the editor.
         </div>
       );
   }
