@@ -33,23 +33,42 @@ interface PearSpotlightProps {
 }
 
 interface Collected {
-  /** High-level category chosen in step 1, used to filter event options in step 2. */
+  /** High-level category chosen in step 1 — also drives tone + consent rails server-side. */
   category?: 'wedding-arc' | 'family' | 'milestone' | 'cultural' | 'commemoration';
   occasion?: string;
   names?: [string, string];
   date?: string;
+  /** How precise the user's date answer is. Pass 4 uses this to decide whether to write
+   *  "a warm evening in late August" vs "October 12, 2026". */
+  dateMode?: 'specific' | 'season' | 'year' | 'tba';
+  dateSeason?: string;
   venue?: string;
+  /** Expected size — shapes hero density, schedule treatment, RSVP flow. */
+  guestCount?: number | 'small' | 'medium' | 'large';
+  /** Who's running this event (not necessarily the honoree). Shifts invitation voice. */
+  hostRole?: 'principal' | 'co-host' | 'family' | 'organizer';
   vibe?: string;
-  /** User-picked story layout — maps to manifest.storyLayout on generation. */
+  /** Raw user words — preserved untouched so the poetry pass can honor their literal voice. */
+  vibeName?: string;
+  /** Optional ground-truth anchors Pass 1 must draw from (and Pass 1.5 grounds against). */
+  factSheet?: {
+    howWeMet?: string;
+    why?: string;
+    favorite?: string;
+  };
+  /** User-picked story layout — maps to manifest.storyLayout on generation.
+   *  Default 'auto' lets the server pick based on chapter count. */
   storyLayout?: StoryLayoutType;
+  storyLayoutPreference?: 'auto' | StoryLayoutType;
   /** Optional Spotify or YouTube URL that powers a music block. */
   songUrl?: string;
+  /** Song title/artist so Pass 2 can weight vibeSkin by the track's mood. */
+  songMeta?: { title: string; artist?: string };
+  /** Overrides for the category-derived defaults. */
+  visibility?: 'public' | 'unlisted' | 'private';
+  tonePolicy?: 'celebratory' | 'reflective' | 'mixed';
   /**
    * Event-specific details captured in the 'event-details' step.
-   * Only populated for occasions that benefit from extra context
-   * (bachelor/ette + reunion: days; memorial/funeral: livestream +
-   * memory line; graduation: school). Passed to /api/generate so
-   * downstream LLM passes can use it when drafting content.
    */
   eventDetails?: {
     days?: number;
@@ -1145,30 +1164,41 @@ export function PearSpotlight({ onComplete, onBack }: PearSpotlightProps) {
 
     const requestBody = JSON.stringify({
       photos,
-      // Send the vibe string + any explicit hex colors the user picked so the
-      // design engine honors the chosen palette.
+      // Back-compat composite string (occasion + vibe + venue). Pass 2 still
+      // reads this, but pass 4 (poetry) now prefers `vibeName` when present.
       vibeString: `${c.occasion} ${c.vibe || ''} ${c.venue || ''}`.trim(),
+      // Raw user words — untouched so the poetry pass honors literal voice.
+      vibeName: c.vibeName || c.vibe || undefined,
+      // Category + tone rails. Memorial/funeral → visibility=unlisted and
+      // tone=reflective by default; the user can override either.
+      category: c.category,
       names: c.names,
       occasion: c.occasion,
       eventDate: c.date,
+      dateMode: c.dateMode,
+      dateSeason: c.dateSeason,
+      guestCount: c.guestCount,
+      hostRole: c.hostRole,
+      factSheet:
+        c.factSheet && Object.values(c.factSheet).some((v) => (v ?? '').toString().trim().length > 0)
+          ? c.factSheet
+          : undefined,
+      songMeta: c.songMeta && c.songMeta.title ? c.songMeta : undefined,
+      visibility: c.visibility,
+      tonePolicy: c.tonePolicy,
       eventVenue: c.venue,
       celebrationVenue: c.venue,
       layoutFormat: 'cascade',
-      // User-picked story layout from the wizard — persisted to
-      // manifest.storyLayout so the final site renders with it.
-      storyLayout: c.storyLayout || 'parallax',
+      // Hard pick + preference both go through — server uses the pref when
+      // storyLayout is undefined or 'auto', falling back to chapter-count
+      // heuristics.
+      storyLayout: c.storyLayout,
+      storyLayoutPreference: c.storyLayoutPreference ?? (c.storyLayout ? undefined : 'auto'),
       // Chosen color palette from the wizard — must be honored as the final palette.
       selectedPaletteColors: selectedPaletteColors || undefined,
       // Per-photo notes + manual locations collected during photo review.
       photoNotes: Object.keys(photoNotesById).length > 0 ? photoNotesById : undefined,
-      // Optional song URL — Spotify/YouTube link the user pasted
-      // on the song step. The server adds a music block to the
-      // manifest when this is set.
       songUrl: c.songUrl?.trim() || undefined,
-      // Event-specific details collected on the 'event-details'
-      // step (bachelor days, memorial livestream, grad school,
-      // etc.). Server can use these to seed block configs and
-      // steer LLM prompts; safe to ignore server-side for now.
       eventDetails:
         c.eventDetails && Object.keys(c.eventDetails).length > 0
           ? c.eventDetails

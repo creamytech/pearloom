@@ -11,6 +11,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { clusterPhotos, reverseGeocode } from '@/lib/google-photos';
 import { generateStoryManifest } from '@/lib/memory-engine';
+import type { StoryManifest } from '@/types';
 import type { GooglePhotoMetadata, PhotoCluster, WeddingEvent, LogoIconId } from '@/types';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import pLimit from 'p-limit';
@@ -251,9 +252,20 @@ export async function POST(req: Request) {
     photos,
     clusters: prebuiltClusters,
     vibeString,
+    vibeName,
+    category,
     names,
     occasion,
     eventDate,
+    dateMode,
+    dateSeason,
+    guestCount,
+    hostRole,
+    factSheet,
+    songMeta,
+    visibility: visibilityIn,
+    tonePolicy: tonePolicyIn,
+    storyLayoutPreference,
     ceremonyVenue,
     ceremonyAddress,
     ceremonyTime,
@@ -279,9 +291,41 @@ export async function POST(req: Request) {
     photos: GooglePhotoMetadata[];
     clusters?: PhotoCluster[];
     vibeString: string;
+    /** Raw user description, untouched — lets poetry pass honor their literal words. */
+    vibeName?: string;
+    /** 'wedding-arc'|'family'|'milestone'|'cultural'|'commemoration' — drives tone + consent rails. */
+    category?: string;
     names: [string, string];
     occasion?: string;
     eventDate?: string;
+    /** 'specific'|'season'|'year'|'tba' — lets poetry avoid fake dates when user hasn't locked it. */
+    dateMode?: 'specific' | 'season' | 'year' | 'tba';
+    dateSeason?: string;
+    /** Exact number or bucket — shapes hero density + schedule treatment. */
+    guestCount?: number | 'small' | 'medium' | 'large';
+    /** 'principal'|'co-host'|'family'|'organizer' — shifts invitation voice. */
+    hostRole?: 'principal' | 'co-host' | 'family' | 'organizer';
+    /** Optional factual anchors Pass 1 must draw from (and Pass 1.5 grounds against). */
+    factSheet?: {
+      howWeMet?: string;
+      why?: string;
+      favorite?: string;
+    };
+    /** Song title/artist so Pass 2 can weight vibeSkin by mood. */
+    songMeta?: { title: string; artist?: string };
+    /** Default: derived from category (memorial/funeral → unlisted); overridable. */
+    visibility?: 'public' | 'unlisted' | 'private';
+    /** Default: derived from tone/occasion; overridable. */
+    tonePolicy?: 'celebratory' | 'reflective' | 'mixed';
+    /** Lets the pipeline pick the layout after chapter count is known. */
+    storyLayoutPreference?:
+      | 'auto'
+      | 'parallax'
+      | 'filmstrip'
+      | 'magazine'
+      | 'timeline'
+      | 'kenburns'
+      | 'bento';
     ceremonyVenue?: string;
     ceremonyAddress?: string;
     ceremonyTime?: string;
@@ -309,6 +353,22 @@ export async function POST(req: Request) {
       school?: string;
     };
   };
+
+  // Derive defaults from category / occasion when the wizard didn't
+  // provide them explicitly.
+  const isMemorialish =
+    category === 'commemoration' ||
+    occasion === 'memorial' ||
+    occasion === 'funeral' ||
+    occasion === 'celebration-life';
+
+  const visibility =
+    visibilityIn ??
+    (isMemorialish ? 'unlisted' : 'public');
+
+  const tonePolicy: 'celebratory' | 'reflective' | 'mixed' =
+    tonePolicyIn ??
+    (isMemorialish ? 'reflective' : 'celebratory');
 
   if (!photos?.length) {
     return new Response(JSON.stringify({ error: 'No photos selected' }), { status: 400 });
@@ -639,10 +699,61 @@ export async function POST(req: Request) {
           manifest.coverPhoto = permanentHeroUrls[0];
           manifest.heroSlideshow = permanentHeroUrls.slice(0, 5);
         }
-        // Persist the wizard's story layout pick onto the final manifest so
-        // the published site renders with it.
-        if (storyLayout) {
-          manifest.storyLayout = storyLayout;
+        // ── Story layout resolution ───────────────────────────
+        // If the wizard picked a specific layout, honor it. If they
+        // left it on "auto" (or didn't set one), pick the layout
+        // that suits the chapter count now that we know it.
+        const chapterCount = (manifest.chapters ?? []).length;
+        const chosenLayout =
+          storyLayout && storyLayout !== undefined
+            ? storyLayout
+            : storyLayoutPreference && storyLayoutPreference !== 'auto'
+            ? storyLayoutPreference
+            : chapterCount <= 2
+            ? 'magazine'
+            : chapterCount <= 4
+            ? 'parallax'
+            : chapterCount <= 7
+            ? 'timeline'
+            : 'filmstrip';
+        manifest.storyLayout = chosenLayout;
+
+        // ── Consent + tone rails ──────────────────────────────
+        // Write the wizard's soft signals onto the manifest so the
+        // editor can read them and the published site can honor them.
+        // Memorial sites default to unlisted + reflective tone; the
+        // user can override via explicit body.visibility.
+        manifest.visibility = visibility;
+        manifest.tonePolicy = tonePolicy;
+        if (category) manifest.category = category as StoryManifest['category'];
+        if (dateMode) manifest.dateMode = dateMode;
+        if (dateSeason) manifest.dateSeason = dateSeason;
+        if (guestCount !== undefined) manifest.guestCount = guestCount;
+        if (hostRole) manifest.hostRole = hostRole;
+        if (factSheet && Object.keys(factSheet).length > 0) {
+          manifest.factSheet = factSheet;
+        }
+        if (vibeName) manifest.vibeName = vibeName;
+        if (songMeta && songMeta.title) {
+          manifest.songMeta = songMeta;
+        }
+
+        // ── Block visibility policy ──────────────────────────
+        // For memorial/funeral/celebration-of-life: hide countdown,
+        // registry (unless donation-in-lieu is explicit), and any
+        // plus-one/RSVP celebratory copy. For non-specific dates:
+        // hide countdown (it has nothing to count to).
+        const suppressCelebratoryBlocks =
+          isMemorialish || tonePolicy === 'reflective';
+        const hideCountdown = suppressCelebratoryBlocks || dateMode !== 'specific';
+        const hideRegistry = suppressCelebratoryBlocks && !eventDetails?.inMemoryOf;
+
+        if (Array.isArray(manifest.blocks)) {
+          manifest.blocks = manifest.blocks.map((b) => {
+            if (b.type === 'countdown' && hideCountdown) return { ...b, visible: false };
+            if (b.type === 'registry' && hideRegistry) return { ...b, visible: false };
+            return b;
+          });
         }
 
         // Insert a Spotify/YouTube music block if the user

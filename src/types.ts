@@ -219,6 +219,33 @@ export interface StoryManifest {
   customization?: import("./types").SiteCustomization;
   /** Saved reusable components (symbols) */
   savedComponents?: SavedComponent[];
+
+  // ── Wizard soft-signal fields ────────────────────────────────
+  // Captured from the wizard, persisted here so the editor + published
+  // site can honor them (visibility rails, reflective tone, date-mode
+  // phrasing, etc.). See /api/generate/stream for the rails that
+  // derive defaults from these at generation time.
+  category?: 'wedding-arc' | 'family' | 'milestone' | 'cultural' | 'commemoration';
+  visibility?: 'public' | 'unlisted' | 'private';
+  tonePolicy?: 'celebratory' | 'reflective' | 'mixed';
+  dateMode?: 'specific' | 'season' | 'year' | 'tba';
+  dateSeason?: string;
+  guestCount?: number | 'small' | 'medium' | 'large';
+  hostRole?: 'principal' | 'co-host' | 'family' | 'organizer';
+  /** Raw user words from the vibe step — preserved so the poetry pass
+   *  can quote them literally. `vibeString` is the derived composite. */
+  vibeName?: string;
+  /** Optional factual anchors the user gave the wizard. Pass 1 is
+   *  instructed to draw from these; Pass 1.5 grounds chapters against them. */
+  factSheet?: {
+    howWeMet?: string;
+    why?: string;
+    favorite?: string;
+  };
+  /** Track title/artist the user pasted on the song step, used by
+   *  vibeSkin weighting so a Bon Iver song pulls the palette muted/cool
+   *  even if the photos are warm. */
+  songMeta?: { title: string; artist?: string };
 }
 
 export type ComponentCategory = 'layout' | 'content' | 'media' | 'interactive';
