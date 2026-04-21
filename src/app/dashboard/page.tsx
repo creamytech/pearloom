@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import type { Metadata } from 'next';
-import DashboardClient from './DashboardClient';
+import { DashSites } from '@/components/marketing/design/dash/DashSites';
 
 export const metadata: Metadata = {
   title: 'Dashboard | Pearloom',
@@ -9,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardPage() {
-  return <DashboardClient />;
+  return <DashSites />;
 }

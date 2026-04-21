@@ -1,13 +1,13 @@
+export const dynamic = 'force-dynamic';
+
 import type { Metadata } from 'next';
-import AnalyticsClient from './AnalyticsClient';
+import { DashAnalytics } from '@/components/marketing/design/dash/DashAnalytics';
 
 export const metadata: Metadata = {
   title: 'Analytics | Pearloom',
-  description: 'Who visits, what they read, where they came from.',
+  description: 'Quiet numbers, warm readings.',
 };
 
-export const dynamic = 'force-dynamic';
-
 export default function AnalyticsPage() {
-  return <AnalyticsClient />;
+  return <DashAnalytics />;
 }
