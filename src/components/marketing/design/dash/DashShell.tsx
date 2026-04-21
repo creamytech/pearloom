@@ -3,22 +3,27 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / marketing/design/dash/DashShell.tsx
 //
-// Shared dashboard chrome from the Claude Design bundle:
-// sidebar (4 groups, Pear credits card at the bottom), global
-// topbar (search + status + avatar), Topbar (per-page title),
-// Panel + SectionTitle primitives. Uses the design's exact PD
-// palette — nothing groove-token.
+// Shared dashboard chrome. Every page in /marketing/design/dash/
+// mounts <DashShell/>. The shell renders:
+//   • Sidebar     — nav groups + Pear credits card (read from
+//                    site count until a real credits API exists)
+//   • TopbarGlobal — Pear search (⌘K), site selector pill, live
+//                    avatar from NextAuth session
+//   • Topbar (per-page)
+//   • Panel / SectionTitle primitives
 // ─────────────────────────────────────────────────────────────
 
 import Link from 'next/link';
-import { useState, type CSSProperties, type ReactNode } from 'react';
-import { usePathname } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
+import { useSession, signIn } from 'next-auth/react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { Bloom } from '@/components/brand/groove';
 import { Pear, PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
+import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 
 interface NavGroup {
   group: string;
-  items: Array<{ k: string; l: string; i: string; href: string }>;
+  items: Array<{ k: string; l: string; i: string; href: string; needsSite?: boolean }>;
 }
 
 const NAV: NavGroup[] = [
@@ -26,15 +31,15 @@ const NAV: NavGroup[] = [
     group: 'YOUR LOOM',
     items: [
       { k: 'sites',    l: 'Sites',        i: '✦', href: '/dashboard' },
-      { k: 'director', l: 'The Director', i: '❧', href: '/dashboard/director' },
+      { k: 'director', l: 'The Director', i: '❧', href: '/dashboard/director', needsSite: true },
     ],
   },
   {
     group: 'PER EVENT',
     items: [
-      { k: 'dayof',       l: 'Day-of room', i: '◉', href: '/dashboard/day-of' },
-      { k: 'guests',      l: 'Guests',      i: '☞', href: '/dashboard/rsvp' },
-      { k: 'submissions', l: 'Submissions', i: '✢', href: '/dashboard/submissions' },
+      { k: 'dayof',       l: 'Day-of room', i: '◉', href: '/dashboard/day-of',      needsSite: true },
+      { k: 'guests',      l: 'Guests',      i: '☞', href: '/dashboard/rsvp',        needsSite: true },
+      { k: 'submissions', l: 'Submissions', i: '✢', href: '/dashboard/submissions', needsSite: true },
       { k: 'gallery',     l: 'The Reel',    i: '◎', href: '/dashboard/gallery' },
       { k: 'connections', l: 'Connections', i: '∞', href: '/dashboard/connections' },
     ],
@@ -43,7 +48,7 @@ const NAV: NavGroup[] = [
     group: 'THE HOUSE',
     items: [
       { k: 'marketplace', l: 'Marketplace', i: '⛉', href: '/marketplace' },
-      { k: 'analytics',   l: 'Analytics',   i: '▲', href: '/dashboard/analytics' },
+      { k: 'analytics',   l: 'Analytics',   i: '▲', href: '/dashboard/analytics', needsSite: true },
     ],
   },
   {
@@ -54,7 +59,58 @@ const NAV: NavGroup[] = [
   },
 ];
 
-export function DashShell({ children }: { children: ReactNode }) {
+interface DashShellProps {
+  children: ReactNode;
+  /** Skip the per-page topbar wrap. (Advanced — rarely needed.) */
+  bare?: boolean;
+}
+
+export function DashShell({ children }: DashShellProps) {
+  const { status } = useSession();
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      void signIn();
+    }
+  }, [status]);
+
+  if (status === 'loading') {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          background: PD.paper,
+          color: PD.ink,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            fontFamily: 'var(--pl-font-body)',
+          }}
+        >
+          <Pear size={44} color={PD.pear} stem={PD.oliveDeep} leaf={PD.olive} animated />
+          <div
+            style={{
+              ...DISPLAY_STYLE,
+              fontStyle: 'italic',
+              fontSize: 22,
+              color: PD.olive,
+              fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+            }}
+          >
+            Threading…
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       style={{
@@ -77,12 +133,24 @@ export function DashShell({ children }: { children: ReactNode }) {
 // ── Sidebar ──────────────────────────────────────────────────
 function Sidebar() {
   const pathname = usePathname() ?? '/dashboard';
+  const { data: session } = useSession();
+  const { sites } = useUserSites();
+  const { site } = useSelectedSite();
 
-  // Match by longest prefix so /dashboard/day-of doesn't also match /dashboard.
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === '/dashboard';
     return pathname === href || pathname.startsWith(href + '/');
   };
+
+  // First name from session; fall back to email handle.
+  const firstName =
+    session?.user?.name?.split(' ')[0]?.trim() ||
+    session?.user?.email?.split('@')[0] ||
+    'Host';
+
+  const sitesCount = sites?.length ?? 0;
+  const displayedLoom =
+    site ? siteDisplayName(site).toUpperCase() : `${firstName.toUpperCase()}'S LOOM`;
 
   return (
     <aside
@@ -113,7 +181,7 @@ function Sidebar() {
         }}
       >
         <Pear size={34} color={PD.pear} stem={PD.oliveDeep} leaf={PD.olive} animated />
-        <div>
+        <div style={{ minWidth: 0 }}>
           <div
             style={{
               ...DISPLAY_STYLE,
@@ -125,7 +193,21 @@ function Sidebar() {
           >
             Pearloom
           </div>
-          <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.5, marginTop: 3 }}>SCOTT&rsquo;S LOOM</div>
+          <div
+            style={{
+              ...MONO_STYLE,
+              fontSize: 9,
+              opacity: 0.5,
+              marginTop: 3,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              maxWidth: 180,
+            }}
+            title={displayedLoom}
+          >
+            {displayedLoom}
+          </div>
         </div>
       </Link>
 
@@ -143,10 +225,13 @@ function Sidebar() {
           </div>
           {g.items.map((it) => {
             const active = isActive(it.href);
+            const disabled = it.needsSite && sitesCount === 0;
+            const href = disabled ? '/dashboard' : it.href;
             return (
               <Link
                 key={it.k}
-                href={it.href}
+                href={href}
+                aria-disabled={disabled}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -157,7 +242,8 @@ function Sidebar() {
                   color: active ? PD.paper : PD.ink,
                   border: 'none',
                   borderRadius: 12,
-                  cursor: 'pointer',
+                  cursor: disabled ? 'not-allowed' : 'pointer',
+                  opacity: disabled ? 0.4 : 1,
                   fontSize: 14,
                   fontWeight: active ? 600 : 500,
                   fontFamily: 'inherit',
@@ -167,10 +253,10 @@ function Sidebar() {
                   textDecoration: 'none',
                 }}
                 onMouseEnter={(e) => {
-                  if (!active) e.currentTarget.style.background = 'rgba(31,36,24,0.05)';
+                  if (!active && !disabled) e.currentTarget.style.background = 'rgba(31,36,24,0.05)';
                 }}
                 onMouseLeave={(e) => {
-                  if (!active) e.currentTarget.style.background = 'transparent';
+                  if (!active && !disabled) e.currentTarget.style.background = 'transparent';
                 }}
               >
                 <span
@@ -195,7 +281,8 @@ function Sidebar() {
       ))}
 
       <div style={{ flex: 1 }} />
-      {/* Pear credits card */}
+
+      {/* Your loom — count card. Updates live with sites count. */}
       <div
         style={{
           background: `linear-gradient(135deg, ${PD.paper2} 0%, ${PD.paper} 100%)`,
@@ -209,7 +296,7 @@ function Sidebar() {
         <div style={{ position: 'absolute', top: -14, right: -14, opacity: 0.5 }} aria-hidden>
           <Bloom size={50} color={PD.butter} centerColor={PD.terra} speed={10} />
         </div>
-        <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.6, marginBottom: 6 }}>PEAR CREDITS</div>
+        <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.6, marginBottom: 6 }}>YOUR LOOM</div>
         <div
           style={{
             ...DISPLAY_STYLE,
@@ -219,27 +306,25 @@ function Sidebar() {
             fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
           }}
         >
-          13 of 15 <span style={{ color: PD.olive }}>left</span>
+          {sitesCount} <span style={{ color: PD.olive }}>
+            {sitesCount === 1 ? 'site' : 'sites'}
+          </span>
         </div>
         <div
           style={{
-            height: 5,
-            background: PD.line,
-            borderRadius: 99,
-            marginTop: 8,
-            overflow: 'hidden',
+            fontFamily: 'var(--pl-font-body)',
+            fontSize: 11,
+            color: PD.inkSoft,
+            marginTop: 6,
+            lineHeight: 1.4,
           }}
         >
-          <div
-            style={{
-              width: '87%',
-              height: '100%',
-              background: `linear-gradient(90deg, ${PD.olive}, ${PD.gold})`,
-              borderRadius: 99,
-            }}
-          />
+          {sitesCount === 0
+            ? 'Begin your first thread'
+            : `Hosted by ${session?.user?.email ?? 'you'}`}
         </div>
-        <button
+        <Link
+          href="/wizard/photo-first"
           style={{
             marginTop: 10,
             width: '100%',
@@ -252,10 +337,14 @@ function Sidebar() {
             fontWeight: 500,
             cursor: 'pointer',
             fontFamily: 'inherit',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textDecoration: 'none',
           }}
         >
-          Top up →
-        </button>
+          {sitesCount === 0 ? 'Begin a thread →' : 'New site →'}
+        </Link>
       </div>
     </aside>
   );
@@ -263,7 +352,15 @@ function Sidebar() {
 
 // ── TopbarGlobal ─────────────────────────────────────────────
 function TopbarGlobal() {
+  const { data: session } = useSession();
+  const { sites, site, selectSite } = useSelectedSite();
   const [focus, setFocus] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const name = session?.user?.name ?? session?.user?.email ?? '';
+  const initial = (session?.user?.name?.[0] || session?.user?.email?.[0] || 'P').toUpperCase();
+  const image = session?.user?.image ?? null;
+
   return (
     <div
       style={{
@@ -322,44 +419,148 @@ function TopbarGlobal() {
           ⌘K
         </span>
       </div>
+
       <div style={{ flex: 1 }} />
-      <button
-        style={{
-          border: '1px solid rgba(31,36,24,0.14)',
-          background: 'transparent',
-          borderRadius: 999,
-          padding: '7px 12px',
-          fontSize: 12.5,
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          fontFamily: 'inherit',
-          color: PD.ink,
-        }}
-      >
-        <span style={{ width: 7, height: 7, borderRadius: 99, background: PD.olive }} />
-        All quiet
-      </button>
-      <div style={{ position: 'relative', width: 34, height: 34, cursor: 'pointer' }}>
-        <div
-          style={{
-            width: 34,
-            height: 34,
-            borderRadius: 999,
-            background: `linear-gradient(135deg, ${PD.pear}, ${PD.olive})`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: PD.paper,
-            fontSize: 13,
-            fontWeight: 600,
-            fontFamily: '"Fraunces", Georgia, serif',
-            fontStyle: 'italic',
-          }}
-        >
-          S
+
+      {sites && sites.length > 1 && (
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setPickerOpen((v) => !v)}
+            style={{
+              border: '1px solid rgba(31,36,24,0.14)',
+              background: 'transparent',
+              borderRadius: 999,
+              padding: '7px 12px',
+              fontSize: 12.5,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              fontFamily: 'inherit',
+              color: PD.ink,
+              maxWidth: 240,
+            }}
+          >
+            <span style={{ width: 7, height: 7, borderRadius: 99, background: PD.olive }} />
+            <span
+              style={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {site ? siteDisplayName(site) : 'All sites'}
+            </span>
+            <span style={{ opacity: 0.55 }}>⌄</span>
+          </button>
+          {pickerOpen && (
+            <div
+              role="menu"
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 6px)',
+                right: 0,
+                minWidth: 240,
+                background: PD.paperCard,
+                border: '1px solid rgba(31,36,24,0.14)',
+                borderRadius: 14,
+                padding: 6,
+                boxShadow: '0 18px 40px -16px rgba(31,36,24,0.3)',
+                zIndex: 30,
+              }}
+            >
+              {sites.map((s) => {
+                const active = site?.id === s.id;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => {
+                      selectSite(s.id);
+                      setPickerOpen(false);
+                    }}
+                    style={{
+                      display: 'flex',
+                      width: '100%',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: '10px 12px',
+                      background: active ? PD.paper2 : 'transparent',
+                      border: 'none',
+                      borderRadius: 10,
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      color: PD.ink,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 99,
+                        background: active ? PD.olive : PD.stone,
+                      }}
+                    />
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 500,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        {siteDisplayName(s)}
+                      </div>
+                      <div style={{ fontSize: 11, color: '#6A6A56' }}>
+                        {s.occasion ?? 'site'} · {s.domain}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
+      )}
+
+      <div
+        style={{ position: 'relative', width: 34, height: 34, cursor: 'pointer' }}
+        title={name}
+      >
+        {image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={image}
+            alt={name}
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: 999,
+              objectFit: 'cover',
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: 999,
+              background: `linear-gradient(135deg, ${PD.pear}, ${PD.olive})`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: PD.paper,
+              fontSize: 13,
+              fontWeight: 600,
+              fontFamily: '"Fraunces", Georgia, serif',
+              fontStyle: 'italic',
+            }}
+          >
+            {initial}
+          </div>
+        )}
         <span
           style={{
             position: 'absolute',
@@ -431,7 +632,7 @@ export function Topbar({ subtitle, title, actions, children }: TopbarProps) {
           </div>
         )}
       </div>
-      {actions && <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>{actions}</div>}
+      {actions && <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>{actions}</div>}
     </header>
   );
 }
@@ -523,7 +724,49 @@ export function SectionTitle({
   );
 }
 
-// ── Button styles re-exported for pages ──────────────────────
+// ── Common empty / loading placeholders ──────────────────────
+export function EmptyShell({ message }: { message: string }) {
+  return (
+    <main style={{ padding: '60px 40px 80px', maxWidth: 720 }}>
+      <Panel bg={PD.paper3} style={{ padding: 40, textAlign: 'center' }}>
+        <Pear size={48} color={PD.pear} stem={PD.oliveDeep} leaf={PD.olive} />
+        <div
+          style={{
+            ...DISPLAY_STYLE,
+            fontStyle: 'italic',
+            fontSize: 22,
+            color: PD.olive,
+            marginTop: 14,
+            fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+          }}
+        >
+          {message}
+        </div>
+        <Link
+          href="/dashboard"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            marginTop: 20,
+            padding: '10px 16px',
+            background: PD.ink,
+            color: PD.paper,
+            borderRadius: 999,
+            fontSize: 13,
+            fontWeight: 500,
+            textDecoration: 'none',
+            fontFamily: 'var(--pl-font-body)',
+          }}
+        >
+          ← Back to Sites
+        </Link>
+      </Panel>
+    </main>
+  );
+}
+
+// ── Button styles ────────────────────────────────────────────
 export const btnInk: CSSProperties = {
   background: PD.ink,
   color: PD.paper,
