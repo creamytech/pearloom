@@ -19,7 +19,7 @@
 // motion: renders the final composed frame without animation.
 // ─────────────────────────────────────────────────────────────
 
-import { motion, useScroll, useTransform, useReducedMotion, useMotionValueEvent, type MotionValue } from 'framer-motion';
+import { AnimatePresence, motion, useScroll, useTransform, useReducedMotion, useMotionValueEvent, type MotionValue } from 'framer-motion';
 import { useRef, useState } from 'react';
 import { BlurFade, CurvedText } from '@/components/brand/groove';
 
@@ -106,7 +106,10 @@ export function WeavingScrollSection({
       ref={ref}
       style={{
         position: 'relative',
-        height: reduced ? 'auto' : '260vh',
+        // 420vh gives ~84vh of stuck scroll per beat. Anything tighter
+        // zips past the user on high-DPI trackpads before they can
+        // read a single beat label.
+        height: reduced ? 'auto' : '420vh',
         background: 'var(--pl-groove-cream)',
       }}
     >
@@ -121,22 +124,20 @@ export function WeavingScrollSection({
           overflow: 'hidden',
         }}
       >
-        {/* Section intro copy — centered above the stage, fades OUT as
-            the weave takes over around 30% scroll. */}
+        {/* Section intro copy — visible at beat 0, fully gone by the
+            time beat 2 (photos) lands so the stage is unobstructed. */}
         <motion.div
           style={{
             position: 'absolute',
-            top: 'clamp(64px, 10vh, 120px)',
+            top: 'clamp(48px, 8vh, 96px)',
             left: 0,
             right: 0,
             textAlign: 'center',
-            opacity: useTransform(p, [0, 0.12, 0.28, 0.94], [1, 1, 0.4, 0.4]),
+            opacity: useTransform(p, [0, 0.1, 0.26], [1, 1, 0]),
+            pointerEvents: 'none',
             zIndex: 20,
           }}
         >
-          {/* Curved "Watch it weave" kicker — rides a gentle arc
-              above the pinned stage, tying the section label to
-              the wavy brand language. */}
           <div
             aria-hidden
             style={{
@@ -173,19 +174,6 @@ export function WeavingScrollSection({
           >
             From blank page to published in five beats.
           </h2>
-          <p
-            style={{
-              marginTop: 14,
-              fontFamily: 'var(--pl-font-body)',
-              fontSize: '1rem',
-              color: 'color-mix(in oklab, var(--pl-groove-ink) 64%, transparent)',
-              maxWidth: '52ch',
-              marginInline: 'auto',
-              lineHeight: 1.55,
-            }}
-          >
-            {beatLabel}
-          </p>
         </motion.div>
 
         {/* The stage — a device mock-up the weave takes place inside. */}
@@ -463,7 +451,9 @@ export function WeavingScrollSection({
           </motion.div>
         </div>
 
-        {/* Progress dots — 6 beats bottom-center */}
+        {/* Progress tracker — always-visible beat label + 6 dots.
+            Sits below the stage so the user can read which beat is
+            active even while the intro has faded. */}
         <div
           style={{
             position: 'absolute',
@@ -471,27 +461,56 @@ export function WeavingScrollSection({
             left: '50%',
             transform: 'translateX(-50%)',
             display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
             gap: 10,
             zIndex: 20,
           }}
         >
-          {[0, 1, 2, 3, 4, 5].map((i) => (
-            <motion.span
-              key={i}
-              aria-hidden
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={beatIdx}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
               style={{
-                display: 'block',
-                width: 26,
-                height: 4,
-                borderRadius: 4,
-                background:
-                  beatIdx === i
-                    ? 'var(--pl-groove-blob-sunrise)'
-                    : 'color-mix(in oklab, var(--pl-groove-ink) 18%, transparent)',
-                transition: 'background var(--pl-dur-base) var(--pl-ease-out)',
+                fontFamily: 'var(--pl-font-body)',
+                fontSize: '0.92rem',
+                fontWeight: 600,
+                letterSpacing: '-0.005em',
+                color: 'var(--pl-groove-ink)',
+                padding: '6px 16px',
+                borderRadius: 'var(--pl-groove-radius-pill)',
+                background: 'color-mix(in oklab, var(--pl-groove-cream) 85%, transparent)',
+                backdropFilter: 'saturate(140%) blur(8px)',
+                WebkitBackdropFilter: 'saturate(140%) blur(8px)',
+                border: '1px solid color-mix(in oklab, var(--pl-groove-terra) 22%, transparent)',
+                whiteSpace: 'nowrap',
               }}
-            />
-          ))}
+            >
+              {beatLabel}
+            </motion.div>
+          </AnimatePresence>
+          <div style={{ display: 'flex', gap: 10 }}>
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <motion.span
+                key={i}
+                aria-hidden
+                style={{
+                  display: 'block',
+                  width: 26,
+                  height: 4,
+                  borderRadius: 4,
+                  background:
+                    beatIdx === i
+                      ? 'var(--pl-groove-blob-sunrise)'
+                      : 'color-mix(in oklab, var(--pl-groove-ink) 18%, transparent)',
+                  transition: 'background var(--pl-dur-base) var(--pl-ease-out)',
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
 

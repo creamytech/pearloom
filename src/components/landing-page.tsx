@@ -179,8 +179,8 @@ export function LandingPage({ handleSignIn: _handleSignIn, status: _status }: La
   return (
     <GrooveMotion>
     <div
-      className="min-h-dvh font-body overflow-x-hidden"
-      style={{ background: 'var(--pl-groove-cream)', color: 'var(--pl-groove-ink)' }}
+      className="min-h-dvh font-body"
+      style={{ background: 'var(--pl-groove-cream)', color: 'var(--pl-groove-ink)', overflowX: 'clip' }}
     >
       {/* ── Nav ───────────────────────────────────────────────── */}
       <MarketingNav onGetStarted={openAuth} />
