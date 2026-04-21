@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import { Sparkles, ChevronRight } from 'lucide-react';
 import { PageCard, EmptyState, SkeletonCard } from '@/components/shell';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
+import { BlurFade, CurvedText, GrooveBlob } from '@/components/brand/groove';
 
 interface Msg {
   role: 'user' | 'assistant';
@@ -83,24 +84,53 @@ function SitePicker() {
   }, []);
 
   return (
-    <div>
+    <div style={{ position: 'relative' }}>
+      <GrooveBlob
+        palette="petal"
+        size={420}
+        blur={80}
+        opacity={0.28}
+        style={{ position: 'absolute', top: '-100px', right: '-80px', zIndex: 0, pointerEvents: 'none' }}
+      />
+      <BlurFade>
       <div
         style={{
+          position: 'relative',
+          zIndex: 1,
           marginBottom: 32,
           paddingBottom: 24,
-          borderBottom: '1px solid var(--pl-divider)',
+          borderBottom: '1px solid color-mix(in oklab, var(--pl-groove-terra) 20%, transparent)',
         }}
       >
-        <div className="pl-overline" style={{ marginBottom: 14 }}>
-          Your AI planner · Director
+        <div
+          aria-hidden
+          style={{
+            marginBottom: 4,
+            marginLeft: -6,
+            color: 'var(--pl-groove-plum)',
+          }}
+        >
+          <CurvedText
+            variant="arc"
+            width={320}
+            amplitude={14}
+            fontFamily='var(--pl-font-body)'
+            fontSize={14}
+            fontWeight={500}
+            letterSpacing={1.5}
+            aria-label="Your AI planner · Director"
+          >
+            ✦  Your AI planner · Director  ✦
+          </CurvedText>
         </div>
         <h1
-          className="pl-display"
           style={{
             margin: 0,
-            fontSize: 'clamp(1.8rem, 3.2vw, 2.4rem)',
-            color: 'var(--pl-ink)',
-            lineHeight: 1.05,
+            fontFamily: 'var(--pl-font-body)',
+            fontWeight: 700,
+            fontSize: 'clamp(2rem, 4.2vw, 2.8rem)',
+            color: 'var(--pl-groove-ink)',
+            lineHeight: 1.1,
             letterSpacing: '-0.02em',
           }}
         >
@@ -108,17 +138,18 @@ function SitePicker() {
         </h1>
         <p
           style={{
-            margin: '8px 0 0',
-            color: 'var(--pl-muted)',
-            fontSize: '0.95rem',
-            lineHeight: 1.55,
+            margin: '14px 0 0',
             maxWidth: '56ch',
+            color: 'color-mix(in oklab, var(--pl-groove-ink) 70%, transparent)',
+            fontSize: 'clamp(0.96rem, 1.2vw, 1.06rem)',
+            lineHeight: 1.6,
           }}
         >
-          Pick a site and I&apos;ll pick up where you left off — budget, venues,
+          Pick a site and I&rsquo;ll pick up where you left off — budget, venues,
           vendors, timeline, the quiet little checklist.
         </p>
       </div>
+      </BlurFade>
 
       {error && (
         <div
@@ -162,12 +193,13 @@ function SitePicker() {
                 alignItems: 'center',
                 gap: 8,
                 padding: '10px 18px',
-                background: 'var(--pl-ink)',
-                color: 'var(--pl-cream)',
-                borderRadius: 'var(--pl-radius-full)',
+                background: 'var(--pl-groove-blob-sunrise)',
+                color: '#fff',
+                borderRadius: 'var(--pl-groove-radius-pill)',
                 textDecoration: 'none',
                 fontSize: '0.86rem',
                 fontWeight: 600,
+                boxShadow: '0 6px 18px rgba(139,74,106,0.24), 0 2px 6px rgba(43,30,20,0.08)',
               }}
             >
               <Sparkles size={14} />
@@ -185,6 +217,13 @@ function SitePicker() {
         >
           {sites.map((s, i) => {
             const label = s.names?.filter(Boolean).join(' & ') || s.domain;
+            const tones = ['sunrise', 'orchard', 'petal'] as const;
+            const tintMap = {
+              sunrise: 'var(--pl-groove-butter)',
+              orchard: 'var(--pl-groove-sage)',
+              petal:   'var(--pl-groove-rose)',
+            } as const;
+            const tint = tintMap[tones[i % tones.length]];
             return (
               <button
                 key={s.id}
@@ -194,82 +233,55 @@ function SitePicker() {
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'flex-start',
-                  gap: 14,
+                  gap: 12,
                   textAlign: 'left',
                   width: '100%',
                   padding: '22px 22px 20px',
-                  background: 'var(--pl-cream-card)',
-                  border: '1px solid rgba(14,13,11,0.09)',
-                  borderRadius: 'var(--pl-radius-lg)',
+                  background: `color-mix(in oklab, ${tint} 22%, var(--pl-groove-cream))`,
+                  border: `1px solid color-mix(in oklab, ${tint} 48%, transparent)`,
+                  borderRadius: i % 2 === 0 ? 'var(--pl-groove-radius-blob)' : '28px',
                   cursor: 'pointer',
-                  transition: 'transform 0.18s cubic-bezier(0.22,1,0.36,1), border-color 0.18s, box-shadow 0.24s',
-                  color: 'var(--pl-ink)',
+                  transition: 'transform var(--pl-dur-base) var(--pl-groove-ease-bloom), box-shadow var(--pl-dur-base) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
+                  color: 'var(--pl-groove-ink)',
                   fontFamily: 'inherit',
-                  overflow: 'hidden',
+                  boxShadow: `0 2px 6px rgba(43,30,20,0.04), 0 14px 40px color-mix(in oklab, ${tint} 16%, transparent)`,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.borderColor = 'rgba(184,147,90,0.55)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(14,13,11,0.04), 0 14px 36px rgba(14,13,11,0.10), 0 0 0 3px rgba(184,147,90,0.10)';
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = `0 6px 14px rgba(43,30,20,0.06), 0 28px 56px color-mix(in oklab, ${tint} 26%, transparent)`;
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.borderColor = 'rgba(14,13,11,0.09)';
-                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.boxShadow = `0 2px 6px rgba(43,30,20,0.04), 0 14px 40px color-mix(in oklab, ${tint} 16%, transparent)`;
                 }}
               >
-                <span style={{
-                  position: 'absolute', top: 0, left: 16, right: 16,
-                  height: 1, background: 'rgba(184,147,90,0.45)',
-                }} />
                 <div style={{
-                  display: 'flex', justifyContent: 'space-between',
-                  alignItems: 'baseline', width: '100%',
+                  fontFamily: 'var(--pl-font-body)',
+                  fontSize: '0.74rem',
+                  fontWeight: 500,
+                  color: 'var(--pl-groove-terra)',
                 }}>
-                  <span style={{
-                    fontFamily: 'var(--pl-font-mono)',
-                    fontSize: '0.56rem', fontWeight: 700,
-                    letterSpacing: '0.26em', textTransform: 'uppercase',
-                    color: 'var(--pl-olive)',
-                  }}>
-                    № {String(i + 1).padStart(2, '0')}
-                  </span>
-                  <span style={{
-                    fontFamily: 'var(--pl-font-mono)',
-                    fontSize: '0.5rem', fontWeight: 600,
-                    letterSpacing: '0.06em',
-                    color: 'rgba(14,13,11,0.45)',
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    maxWidth: '60%',
-                  }}>
-                    {s.domain}
-                  </span>
+                  {s.domain}
                 </div>
                 <div style={{
-                  fontFamily: 'var(--pl-font-display)',
-                  fontStyle: 'italic',
-                  fontWeight: 400,
-                  fontSize: '1.7rem',
-                  lineHeight: 1.05,
-                  letterSpacing: '-0.005em',
-                  color: 'var(--pl-ink)',
+                  fontFamily: 'var(--pl-font-body)',
+                  fontWeight: 700,
+                  fontSize: '1.35rem',
+                  lineHeight: 1.15,
+                  letterSpacing: '-0.015em',
+                  color: 'var(--pl-groove-ink)',
                 }}>
                   {label}
                 </div>
                 <div style={{
                   display: 'inline-flex', alignItems: 'center', gap: 6,
-                  padding: '6px 10px',
-                  borderRadius: 'var(--pl-radius-xs)',
-                  background: 'rgba(184,147,90,0.10)',
-                  border: '1px solid rgba(184,147,90,0.35)',
-                  fontFamily: 'var(--pl-font-mono)',
-                  fontSize: '0.48rem',
-                  fontWeight: 700,
-                  letterSpacing: '0.26em',
-                  textTransform: 'uppercase',
-                  color: 'var(--pl-gold)',
+                  fontFamily: 'var(--pl-font-body)',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  color: 'var(--pl-groove-plum)',
+                  marginTop: 4,
                 }}>
-                  Open director <ChevronRight size={10} strokeWidth={2.4} />
+                  Open director <ChevronRight size={14} strokeWidth={2.2} />
                 </div>
               </button>
             );
@@ -360,64 +372,79 @@ function DirectorBody({ siteId }: { siteId: string }) {
   }, [input, sending, siteId]);
 
   return (
-    <div>
-      {/* Editorial masthead */}
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-          <span style={{
-            fontFamily: 'var(--pl-font-mono)',
-            fontSize: '0.52rem', fontWeight: 700,
-            letterSpacing: '0.32em', textTransform: 'uppercase',
-            color: 'var(--pl-olive)',
-          }}>
-            The Script · AI Director
-          </span>
-          <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.45)' }} />
+    <div style={{ position: 'relative' }}>
+      <GrooveBlob
+        palette="sunrise"
+        size={360}
+        blur={80}
+        opacity={0.22}
+        style={{ position: 'absolute', top: '-80px', right: '-60px', zIndex: 0, pointerEvents: 'none' }}
+      />
+      <BlurFade>
+      <div style={{ position: 'relative', zIndex: 1, marginBottom: 28 }}>
+        <div
+          aria-hidden
+          style={{
+            marginBottom: 4,
+            marginLeft: -6,
+            color: 'var(--pl-groove-terra)',
+          }}
+        >
+          <CurvedText
+            variant="wave"
+            width={300}
+            amplitude={10}
+            fontFamily='var(--pl-font-body)'
+            fontSize={14}
+            fontWeight={500}
+            letterSpacing={1.5}
+            aria-label="The Script · AI Director"
+          >
+            ✦  The Script · AI Director  ✦
+          </CurvedText>
         </div>
         <h1 style={{
           margin: 0,
-          fontFamily: 'var(--pl-font-display)',
-          fontStyle: 'italic',
-          fontWeight: 400,
-          fontSize: 'clamp(2.2rem, 4.8vw, 3.2rem)',
-          lineHeight: 1.02,
-          letterSpacing: '-0.01em',
-          color: 'var(--pl-ink)',
+          fontFamily: 'var(--pl-font-body)',
+          fontWeight: 700,
+          fontSize: 'clamp(2rem, 4.2vw, 2.8rem)',
+          lineHeight: 1.1,
+          letterSpacing: '-0.02em',
+          color: 'var(--pl-groove-ink)',
         }}>
           Your planner
         </h1>
         {(state.targetCity || state.targetDate || typeof state.budgetCents === 'number' || typeof state.guestCountEstimate === 'number') && (
           <div style={{
-            marginTop: 14,
-            padding: '10px 16px',
-            background: 'var(--pl-cream-card)',
-            border: '1px solid rgba(184,147,90,0.30)',
-            borderRadius: 'var(--pl-radius-md)',
+            marginTop: 18,
+            padding: '12px 18px',
+            background: 'color-mix(in oklab, var(--pl-groove-butter) 22%, var(--pl-groove-cream))',
+            border: '1px solid color-mix(in oklab, var(--pl-groove-terra) 26%, transparent)',
+            borderRadius: 'var(--pl-groove-radius-pill)',
             display: 'flex',
-            gap: 18,
+            gap: 20,
             flexWrap: 'wrap',
-            fontFamily: 'var(--pl-font-mono)',
-            fontSize: '0.54rem',
-            fontWeight: 700,
-            letterSpacing: '0.20em',
-            textTransform: 'uppercase',
-            color: 'rgba(14,13,11,0.60)',
+            fontFamily: 'var(--pl-font-body)',
+            fontSize: '0.82rem',
+            fontWeight: 600,
+            color: 'var(--pl-groove-ink)',
           }}>
             {state.targetCity && (
-              <span><span style={{ color: 'rgba(14,13,11,0.40)' }}>City · </span>{state.targetCity}</span>
+              <span><span style={{ color: 'var(--pl-groove-terra)', fontWeight: 500 }}>City · </span>{state.targetCity}</span>
             )}
             {state.targetDate && (
-              <span><span style={{ color: 'rgba(14,13,11,0.40)' }}>Date · </span>{new Date(state.targetDate).toLocaleDateString()}</span>
+              <span><span style={{ color: 'var(--pl-groove-terra)', fontWeight: 500 }}>Date · </span>{new Date(state.targetDate).toLocaleDateString()}</span>
             )}
             {typeof state.budgetCents === 'number' && (
-              <span><span style={{ color: 'rgba(14,13,11,0.40)' }}>Budget · </span>${(state.budgetCents / 100).toLocaleString()}</span>
+              <span><span style={{ color: 'var(--pl-groove-terra)', fontWeight: 500 }}>Budget · </span>${(state.budgetCents / 100).toLocaleString()}</span>
             )}
             {typeof state.guestCountEstimate === 'number' && (
-              <span><span style={{ color: 'rgba(14,13,11,0.40)' }}>Guests · </span>{state.guestCountEstimate}</span>
+              <span><span style={{ color: 'var(--pl-groove-terra)', fontWeight: 500 }}>Guests · </span>{state.guestCountEstimate}</span>
             )}
           </div>
         )}
       </div>
+      </BlurFade>
 
       <div
         style={{

@@ -10,6 +10,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Check, EyeOff, Flag, RefreshCw } from 'lucide-react';
+import { BlurFade, CurvedText } from '@/components/brand/groove';
 
 type State = 'approved' | 'hidden' | 'flagged';
 
@@ -100,26 +101,50 @@ export function SubmissionsModeration({ siteId, initialEntries = [] }: Props) {
 
   return (
     <section>
+      <BlurFade>
       <header style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
         <div>
           <div
-            className="pl-overline"
-            style={{ color: 'var(--pl-olive)', marginBottom: 8 }}
+            aria-hidden
+            style={{
+              marginBottom: 2,
+              marginLeft: -6,
+              color: 'var(--pl-groove-plum)',
+            }}
           >
-            Advice + tribute wall
+            <CurvedText
+              variant="arc"
+              width={280}
+              amplitude={12}
+              fontFamily='var(--pl-font-body)'
+              fontSize={14}
+              fontWeight={500}
+              letterSpacing={1.5}
+              aria-label="Advice + tribute wall"
+            >
+              ✦  Advice + tribute wall  ✦
+            </CurvedText>
           </div>
           <h1
-            className="pl-display"
             style={{
               margin: 0,
-              fontStyle: 'italic',
-              fontSize: 'clamp(1.8rem, 4vw, 2.4rem)',
-              color: 'var(--pl-ink)',
+              fontFamily: 'var(--pl-font-body)',
+              fontWeight: 700,
+              fontSize: 'clamp(2rem, 4.2vw, 2.8rem)',
+              lineHeight: 1.1,
+              letterSpacing: '-0.02em',
+              color: 'var(--pl-groove-ink)',
             }}
           >
             Guest submissions
           </h1>
-          <p style={{ margin: '6px 0 0', color: 'var(--pl-muted)', fontSize: '0.92rem', lineHeight: 1.5 }}>
+          <p style={{
+            margin: '12px 0 0',
+            color: 'color-mix(in oklab, var(--pl-groove-ink) 70%, transparent)',
+            fontSize: 'clamp(0.96rem, 1.2vw, 1.04rem)',
+            lineHeight: 1.55,
+            maxWidth: '58ch',
+          }}>
             Everything guests have posted to advice walls, tribute walls, and memory walls on this site.
           </p>
         </div>
@@ -127,22 +152,24 @@ export function SubmissionsModeration({ siteId, initialEntries = [] }: Props) {
           onClick={() => { void refresh(); }}
           disabled={loading}
           style={{
-            padding: '8px 14px',
-            borderRadius: 'var(--pl-radius-full)',
-            border: '1px solid var(--pl-divider)',
-            background: 'var(--pl-cream-card)',
-            color: 'var(--pl-ink)',
-            fontSize: '0.8rem',
+            padding: '10px 16px',
+            borderRadius: 'var(--pl-groove-radius-pill)',
+            border: '1px solid color-mix(in oklab, var(--pl-groove-terra) 30%, transparent)',
+            background: 'var(--pl-groove-cream)',
+            color: 'var(--pl-groove-ink)',
+            fontSize: '0.84rem',
+            fontWeight: 500,
             cursor: loading ? 'wait' : 'pointer',
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 6,
+            gap: 8,
           }}
         >
-          <RefreshCw size={12} className={loading ? 'animate-spin' : undefined} />
+          <RefreshCw size={13} className={loading ? 'animate-spin' : undefined} />
           Refresh
         </button>
       </header>
+      </BlurFade>
 
       {/* Filter chips */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>

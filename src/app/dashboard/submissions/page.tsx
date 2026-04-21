@@ -60,17 +60,24 @@ export default async function SubmissionsPage({
       ) : (
         <div style={{ maxWidth: 640, margin: '0 auto', padding: '60px 24px', textAlign: 'center' }}>
           <h1
-            className="pl-display"
             style={{
               margin: 0,
-              fontStyle: 'italic',
-              fontSize: 'clamp(1.6rem, 3.5vw, 2.2rem)',
-              color: 'var(--pl-ink)',
+              fontFamily: 'var(--pl-font-body)',
+              fontWeight: 700,
+              fontSize: 'clamp(1.8rem, 3.5vw, 2.4rem)',
+              lineHeight: 1.1,
+              letterSpacing: '-0.02em',
+              color: 'var(--pl-groove-ink)',
             }}
           >
             No sites yet
           </h1>
-          <p style={{ color: 'var(--pl-muted)', marginTop: 12 }}>
+          <p style={{
+            color: 'color-mix(in oklab, var(--pl-groove-ink) 70%, transparent)',
+            marginTop: 12,
+            fontSize: '0.96rem',
+            lineHeight: 1.55,
+          }}>
             Publish a site with an advice or tribute wall and submissions will appear here.
           </p>
         </div>

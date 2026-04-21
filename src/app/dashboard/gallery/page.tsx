@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Image as ImageIcon, Upload, Loader2 } from 'lucide-react';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
+import { BlurFade, CurvedText, GrooveBlob } from '@/components/brand/groove';
 
 interface PhotoItem {
   id: string;
@@ -107,31 +108,36 @@ export default function GalleryPage() {
 
   return (
     <DashboardShell eyebrow="Gallery">
-      <div
+      <div style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
+        <GrooveBlob
+          palette="orchard"
+          size={400}
+          blur={80}
+          opacity={0.24}
+          style={{ position: 'absolute', top: '-100px', right: '-80px', zIndex: 0, pointerEvents: 'none' }}
+        />
+        <BlurFade>
+        <div style={{ position: 'relative', zIndex: 1, marginBottom: 32 }}>
+          <div
+            aria-hidden
             style={{
-              display: 'flex', flexDirection: 'column',
+              marginBottom: 4,
+              marginLeft: -6,
+              color: 'var(--pl-groove-terra)',
             }}
           >
-        {/* Editorial masthead */}
-        <div style={{ marginBottom: 32 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-            <span style={{
-              fontFamily: 'var(--pl-font-mono)',
-              fontSize: '0.52rem', fontWeight: 700,
-              letterSpacing: '0.32em', textTransform: 'uppercase',
-              color: 'var(--pl-olive)',
-            }}>
-              The Reel · Gallery
-            </span>
-            <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.45)' }} />
-            <span style={{
-              fontFamily: 'var(--pl-font-mono)',
-              fontSize: '0.52rem', fontWeight: 700,
-              letterSpacing: '0.26em', textTransform: 'uppercase',
-              color: 'rgba(14,13,11,0.55)',
-            }}>
-              {photos.length > 0 ? `${photos.length.toLocaleString()} frames` : 'empty reel'}
-            </span>
+            <CurvedText
+              variant="wave"
+              width={260}
+              amplitude={10}
+              fontFamily='var(--pl-font-body)'
+              fontSize={14}
+              fontWeight={500}
+              letterSpacing={1.5}
+              aria-label="The Reel · Gallery"
+            >
+              ✦  The Reel · Gallery  ✦
+            </CurvedText>
           </div>
           <div style={{
             display: 'flex',
@@ -143,26 +149,36 @@ export default function GalleryPage() {
             <div style={{ maxWidth: 560 }}>
               <h1 style={{
                 margin: 0,
-                fontFamily: 'var(--pl-font-display)',
-                fontStyle: 'italic',
-                fontWeight: 400,
-                fontSize: 'clamp(2.4rem, 5.2vw, 3.6rem)',
-                lineHeight: 1.02,
-                letterSpacing: '-0.01em',
-                color: 'var(--pl-ink)',
+                fontFamily: 'var(--pl-font-body)',
+                fontWeight: 700,
+                fontSize: 'clamp(2rem, 4.2vw, 2.8rem)',
+                lineHeight: 1.1,
+                letterSpacing: '-0.02em',
+                color: 'var(--pl-groove-ink)',
               }}>
                 {photos.length > 0 ? 'The moments' : 'Every frame'}
               </h1>
               <p style={{
-                margin: '12px 0 0',
+                margin: '14px 0 0',
                 fontFamily: 'var(--pl-font-body)',
-                fontSize: '0.85rem',
-                lineHeight: 1.55,
-                color: 'var(--pl-ink-soft)',
-                maxWidth: 420,
+                fontSize: 'clamp(0.96rem, 1.2vw, 1.06rem)',
+                lineHeight: 1.6,
+                color: 'color-mix(in oklab, var(--pl-groove-ink) 70%, transparent)',
+                maxWidth: 480,
               }}>
                 A single room for every photograph across your sites. Upload new ones — they file themselves for your next celebration.
               </p>
+              {photos.length > 0 && (
+                <div style={{
+                  marginTop: 12,
+                  fontFamily: 'var(--pl-font-body)',
+                  fontSize: '0.82rem',
+                  fontWeight: 500,
+                  color: 'var(--pl-groove-plum)',
+                }}>
+                  {photos.length.toLocaleString()} frames
+                </div>
+              )}
             </div>
             <div>
               <button
@@ -172,36 +188,27 @@ export default function GalleryPage() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 10,
-                  padding: '11px 20px',
-                  borderRadius: 'var(--pl-radius-md)',
-                  background: 'var(--pl-ink)',
-                  color: 'var(--pl-cream)',
-                  border: '1px solid var(--pl-ink)',
-                  boxShadow: '0 0 0 3px rgba(184,147,90,0.18)',
-                  fontFamily: 'var(--pl-font-mono)',
-                  fontSize: '0.58rem',
-                  fontWeight: 700,
-                  letterSpacing: '0.24em',
-                  textTransform: 'uppercase',
+                  padding: '12px 22px',
+                  borderRadius: 'var(--pl-groove-radius-pill)',
+                  background: 'var(--pl-groove-blob-sunrise)',
+                  color: '#fff',
+                  border: 'none',
+                  boxShadow: '0 6px 18px rgba(139,74,106,0.24), 0 2px 6px rgba(43,30,20,0.08)',
+                  fontFamily: 'var(--pl-font-body)',
+                  fontSize: '0.92rem',
+                  fontWeight: 600,
+                  letterSpacing: '-0.005em',
                   cursor: uploading ? 'not-allowed' : 'pointer',
                   opacity: uploading ? 0.6 : 1,
-                  transition: 'transform 0.18s, box-shadow 0.18s',
+                  transition: 'transform var(--pl-dur-fast) var(--pl-groove-ease-squish)',
                 }}
-                onMouseEnter={(e) => {
-                  if (!uploading) {
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,147,90,0.28), 0 6px 18px rgba(14,13,11,0.18)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,147,90,0.18)';
-                }}
+                onMouseEnter={(e) => { if (!uploading) e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
               >
                 {uploading ? (
-                  <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
+                  <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />
                 ) : (
-                  <Upload size={13} strokeWidth={2} />
+                  <Upload size={15} strokeWidth={2} />
                 )}
                 {uploading ? 'Uploading…' : 'Upload photos'}
               </button>
@@ -216,6 +223,7 @@ export default function GalleryPage() {
             </div>
           </div>
         </div>
+        </BlurFade>
 
         {/* Gallery grid */}
         {loading ? (
@@ -233,54 +241,37 @@ export default function GalleryPage() {
             position: 'relative',
             textAlign: 'center',
             padding: '72px 28px',
-            border: '1px dashed rgba(184,147,90,0.55)',
-            borderRadius: 'var(--pl-radius-xl)',
-            background: 'var(--pl-cream-card)',
+            borderRadius: 'var(--pl-groove-radius-blob)',
+            background: 'color-mix(in oklab, var(--pl-groove-butter) 16%, var(--pl-groove-cream))',
+            border: '1px solid color-mix(in oklab, var(--pl-groove-terra) 22%, transparent)',
           }}>
-            <span style={{
-              position: 'absolute', top: 12, left: 16,
-              fontFamily: 'var(--pl-font-mono)',
-              fontSize: '0.48rem', fontWeight: 700,
-              letterSpacing: '0.28em', textTransform: 'uppercase',
-              color: 'var(--pl-olive)',
-            }}>
-              Silent frame
-            </span>
-            <span style={{
-              position: 'absolute', top: 12, right: 16,
-              fontFamily: 'var(--pl-font-mono)',
-              fontSize: '0.48rem', fontWeight: 700,
-              letterSpacing: '0.28em', textTransform: 'uppercase',
-              color: 'rgba(14,13,11,0.40)',
-            }}>
-              № 00
-            </span>
             <div style={{
-              width: 72, height: 72,
-              borderRadius: '50%',
-              border: '1px solid rgba(184,147,90,0.55)',
-              background: 'rgba(184,147,90,0.08)',
+              width: 84, height: 84,
+              borderRadius: 'var(--pl-groove-radius-blob)',
+              background: 'var(--pl-groove-blob-sunrise)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 20px',
-              boxShadow: '0 0 0 6px rgba(184,147,90,0.06)',
+              margin: '0 auto 22px',
+              boxShadow: '0 14px 36px rgba(139,74,106,0.22)',
             }}>
-              <ImageIcon size={28} style={{ color: 'var(--pl-ink)' }} />
+              <ImageIcon size={32} style={{ color: '#fff' }} />
             </div>
             <h3 style={{
-              fontFamily: 'var(--pl-font-display)',
-              fontStyle: 'italic', fontWeight: 400,
-              fontSize: '2rem', lineHeight: 1.05,
-              color: 'var(--pl-ink)',
-              margin: '0 0 10px',
+              fontFamily: 'var(--pl-font-body)',
+              fontWeight: 700,
+              fontSize: '1.6rem',
+              lineHeight: 1.15,
+              letterSpacing: '-0.02em',
+              color: 'var(--pl-groove-ink)',
+              margin: '0 0 12px',
             }}>
               The reel is empty
             </h3>
             <p style={{
               fontFamily: 'var(--pl-font-body)',
-              fontSize: '0.84rem',
+              fontSize: '0.96rem',
               lineHeight: 1.55,
-              color: 'var(--pl-ink-soft)',
-              maxWidth: 380,
+              color: 'color-mix(in oklab, var(--pl-groove-ink) 70%, transparent)',
+              maxWidth: 400,
               margin: '0 auto 24px',
             }}>
               Create a site, upload a photograph, or simply begin — your moments will file themselves here.
@@ -288,19 +279,16 @@ export default function GalleryPage() {
             <Link href="/dashboard" style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 10,
-              padding: '11px 22px',
-              borderRadius: 'var(--pl-radius-md)',
-              background: 'var(--pl-ink)',
-              color: 'var(--pl-cream)',
-              border: '1px solid var(--pl-ink)',
-              boxShadow: '0 0 0 3px rgba(184,147,90,0.18)',
+              gap: 8,
+              padding: '12px 22px',
+              borderRadius: 'var(--pl-groove-radius-pill)',
+              background: 'var(--pl-groove-blob-sunrise)',
+              color: '#fff',
               textDecoration: 'none',
-              fontFamily: 'var(--pl-font-mono)',
-              fontSize: '0.58rem',
-              fontWeight: 700,
-              letterSpacing: '0.24em',
-              textTransform: 'uppercase',
+              fontFamily: 'var(--pl-font-body)',
+              fontSize: '0.92rem',
+              fontWeight: 600,
+              boxShadow: '0 6px 18px rgba(139,74,106,0.24), 0 2px 6px rgba(43,30,20,0.08)',
             }}>
               Create a site
             </Link>
@@ -315,18 +303,20 @@ export default function GalleryPage() {
                 transition={{ delay: Math.min(i * 0.02, 0.4), duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
                 className="group relative aspect-square overflow-hidden cursor-pointer"
                 style={{
-                  borderRadius: 'var(--pl-radius-sm)',
-                  background: 'var(--pl-cream-deep)',
-                  border: '1px solid rgba(14,13,11,0.08)',
-                  transition: 'border-color 0.2s, box-shadow 0.24s cubic-bezier(0.22,1,0.36,1)',
+                  borderRadius: 'var(--pl-radius-lg)',
+                  background: 'color-mix(in oklab, var(--pl-groove-butter) 12%, var(--pl-groove-cream))',
+                  border: '1px solid color-mix(in oklab, var(--pl-groove-terra) 16%, transparent)',
+                  transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), box-shadow var(--pl-dur-base) var(--pl-ease-out), transform var(--pl-dur-base) var(--pl-groove-ease-bloom)',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(184,147,90,0.55)';
-                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(14,13,11,0.12), 0 0 0 3px rgba(184,147,90,0.14)';
+                  e.currentTarget.style.borderColor = 'color-mix(in oklab, var(--pl-groove-plum) 42%, transparent)';
+                  e.currentTarget.style.boxShadow = '0 6px 14px rgba(43,30,20,0.06), 0 20px 44px color-mix(in oklab, var(--pl-groove-plum) 20%, transparent)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(14,13,11,0.08)';
+                  e.currentTarget.style.borderColor = 'color-mix(in oklab, var(--pl-groove-terra) 16%, transparent)';
                   e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -336,56 +326,37 @@ export default function GalleryPage() {
                   loading="lazy"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                 />
-                {/* Folio kicker — always visible, subtle */}
-                <span
-                  className="absolute top-2 left-2 px-1.5 py-0.5 rounded-[2px] pointer-events-none"
-                  style={{
-                    fontFamily: 'var(--pl-font-mono)',
-                    fontSize: '0.42rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.2em',
-                    textTransform: 'uppercase',
-                    color: 'var(--pl-cream)',
-                    background: 'rgba(14,13,11,0.45)',
-                    backdropFilter: 'blur(4px)',
-                    WebkitBackdropFilter: 'blur(4px)',
-                    opacity: 0.85,
-                  }}
-                >
-                  № {String(i + 1).padStart(3, '0')}
-                </span>
 
-                {/* Hover caption — editorial overlay */}
+                {/* Hover caption — groove overlay */}
                 <div
                   className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end"
                   style={{
-                    background: 'linear-gradient(to top, rgba(14,13,11,0.78) 0%, rgba(14,13,11,0.35) 40%, transparent 75%)',
-                    padding: '10px 12px 12px',
+                    background: 'linear-gradient(to top, rgba(43,30,20,0.82) 0%, rgba(43,30,20,0.40) 40%, transparent 75%)',
+                    padding: '12px 14px 14px',
                   }}
                 >
                   <span style={{
-                    fontFamily: 'var(--pl-font-mono)',
-                    fontSize: '0.42rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.26em',
-                    textTransform: 'uppercase',
-                    color: 'var(--pl-gold)',
+                    fontFamily: 'var(--pl-font-body)',
+                    fontSize: '0.72rem',
+                    fontWeight: 500,
+                    letterSpacing: '0.02em',
+                    color: 'color-mix(in oklab, var(--pl-groove-butter) 60%, #fff)',
                     marginBottom: 4,
                   }}>
                     {photo.siteName}
                   </span>
                   <span style={{
-                    fontFamily: 'var(--pl-font-display)',
-                    fontStyle: 'italic',
-                    fontWeight: 400,
-                    fontSize: '0.9rem',
-                    lineHeight: 1.15,
-                    color: 'var(--pl-cream)',
+                    fontFamily: 'var(--pl-font-body)',
+                    fontWeight: 600,
+                    fontSize: '0.92rem',
+                    lineHeight: 1.2,
+                    letterSpacing: '-0.005em',
+                    color: '#fff',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                   }}>
-                    {photo.alt || 'Untitled frame'}
+                    {photo.alt || 'Untitled moment'}
                   </span>
                 </div>
               </motion.div>

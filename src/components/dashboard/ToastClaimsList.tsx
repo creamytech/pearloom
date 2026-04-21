@@ -9,6 +9,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { RefreshCw, Mic, X } from 'lucide-react';
+import { CurvedText } from '@/components/brand/groove';
 
 interface Claim {
   id: string;
@@ -81,38 +82,59 @@ export function ToastClaimsList({ siteId }: Props) {
     <section style={{ marginTop: 48 }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, marginBottom: 16 }}>
         <div>
-          <div className="pl-overline" style={{ color: 'var(--pl-olive)', marginBottom: 6 }}>
-            Toast signups
-          </div>
-          <h2
-            className="pl-display"
+          <div
+            aria-hidden
             style={{
-              margin: 0,
-              fontStyle: 'italic',
-              fontSize: 'clamp(1.2rem, 2.5vw, 1.6rem)',
-              color: 'var(--pl-ink)',
+              marginBottom: 2,
+              marginLeft: -6,
+              color: 'var(--pl-groove-terra)',
             }}
           >
-            Who\u2019s speaking
+            <CurvedText
+              variant="wave"
+              width={220}
+              amplitude={10}
+              fontFamily='var(--pl-font-body)'
+              fontSize={13}
+              fontWeight={500}
+              letterSpacing={1.4}
+              aria-label="Toast signups"
+            >
+              ✦  Toast signups  ✦
+            </CurvedText>
+          </div>
+          <h2
+            style={{
+              margin: 0,
+              fontFamily: 'var(--pl-font-body)',
+              fontWeight: 700,
+              fontSize: 'clamp(1.4rem, 2.8vw, 1.8rem)',
+              lineHeight: 1.15,
+              letterSpacing: '-0.015em',
+              color: 'var(--pl-groove-ink)',
+            }}
+          >
+            Who&rsquo;s speaking
           </h2>
         </div>
         <button
           onClick={() => { void refresh(); }}
           disabled={loading}
           style={{
-            padding: '6px 12px',
-            borderRadius: 'var(--pl-radius-full)',
-            border: '1px solid var(--pl-divider)',
-            background: 'var(--pl-cream-card)',
-            color: 'var(--pl-ink)',
-            fontSize: '0.78rem',
+            padding: '8px 14px',
+            borderRadius: 'var(--pl-groove-radius-pill)',
+            border: '1px solid color-mix(in oklab, var(--pl-groove-terra) 30%, transparent)',
+            background: 'var(--pl-groove-cream)',
+            color: 'var(--pl-groove-ink)',
+            fontSize: '0.8rem',
+            fontWeight: 500,
             cursor: loading ? 'wait' : 'pointer',
             display: 'inline-flex',
             alignItems: 'center',
             gap: 6,
           }}
         >
-          <RefreshCw size={11} className={loading ? 'animate-spin' : undefined} />
+          <RefreshCw size={12} className={loading ? 'animate-spin' : undefined} />
           Refresh
         </button>
       </header>

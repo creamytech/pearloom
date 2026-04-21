@@ -25,6 +25,7 @@ import {
 } from '@/components/shell';
 import type { SiteOption } from '@/components/shell';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
+import { BlurFade, CurvedText, GrooveBlob } from '@/components/brand/groove';
 
 interface SiteSummary {
   id: string;
@@ -116,68 +117,89 @@ export default function AnalyticsClient() {
 
   return (
     <DashboardShell eyebrow="Grow · Analytics">
-            {/* Editorial header */}
-            <div
-              style={{
-                marginBottom: 32,
-                display: 'flex',
-                alignItems: 'flex-end',
-                justifyContent: 'space-between',
-                gap: 24,
-                flexWrap: 'wrap',
-                paddingBottom: 24,
-                borderBottom: '1px solid var(--pl-divider)',
-              }}
-            >
-              <div>
-                <div className="pl-overline" style={{ marginBottom: 14 }}>
-                  Grow · Analytics
-                </div>
-                <h1
-                  className="pl-display"
-                  style={{
-                    margin: 0,
-                    fontSize: 'clamp(1.8rem, 3.2vw, 2.4rem)',
-                    color: 'var(--pl-ink)',
-                    lineHeight: 1.05,
-                    letterSpacing: '-0.02em',
-                  }}
-                >
-                  Who&apos;s{' '}
-                  <em
+            <div style={{ position: 'relative' }}>
+              <GrooveBlob
+                palette="sunrise"
+                size={380}
+                blur={80}
+                opacity={0.26}
+                style={{ position: 'absolute', top: '-80px', right: '-80px', zIndex: 0, pointerEvents: 'none' }}
+              />
+              <BlurFade>
+              <div
+                style={{
+                  position: 'relative',
+                  zIndex: 1,
+                  marginBottom: 32,
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  justifyContent: 'space-between',
+                  gap: 24,
+                  flexWrap: 'wrap',
+                  paddingBottom: 24,
+                  borderBottom: '1px solid color-mix(in oklab, var(--pl-groove-terra) 20%, transparent)',
+                }}
+              >
+                <div>
+                  <div
+                    aria-hidden
                     style={{
-                      color: 'var(--pl-olive)',
-                      fontStyle: 'italic',
-                      fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                      marginBottom: 4,
+                      marginLeft: -6,
+                      color: 'var(--pl-groove-terra)',
                     }}
                   >
-                    reading
-                  </em>
-                  .
-                </h1>
-                <p
-                  style={{
-                    margin: '8px 0 0',
-                    color: 'var(--pl-muted)',
-                    fontSize: '0.95rem',
-                    lineHeight: 1.55,
-                    maxWidth: '56ch',
-                  }}
-                >
-                  Gentle, privacy-respecting signals — visits, devices, and the
-                  sections your guests dwell on. No creepy trackers.
-                </p>
-              </div>
-
-              {sites.length > 0 && (
-                <div style={{ minWidth: 240 }}>
-                  <SiteSelector
-                    options={siteOptions}
-                    value={selected}
-                    onChange={setSelected}
-                  />
+                    <CurvedText
+                      variant="wave"
+                      width={280}
+                      amplitude={10}
+                      fontFamily='var(--pl-font-body)'
+                      fontSize={14}
+                      fontWeight={500}
+                      letterSpacing={1.5}
+                      aria-label="Grow · Analytics"
+                    >
+                      ✦  Grow · Analytics  ✦
+                    </CurvedText>
+                  </div>
+                  <h1
+                    style={{
+                      margin: 0,
+                      fontFamily: 'var(--pl-font-body)',
+                      fontWeight: 700,
+                      fontSize: 'clamp(2rem, 4.2vw, 2.8rem)',
+                      color: 'var(--pl-groove-ink)',
+                      lineHeight: 1.1,
+                      letterSpacing: '-0.02em',
+                    }}
+                  >
+                    Who&rsquo;s reading.
+                  </h1>
+                  <p
+                    style={{
+                      margin: '14px 0 0',
+                      maxWidth: '56ch',
+                      color: 'color-mix(in oklab, var(--pl-groove-ink) 70%, transparent)',
+                      fontSize: 'clamp(0.96rem, 1.2vw, 1.06rem)',
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    Gentle, privacy-respecting signals — visits, devices, and the
+                    sections your guests dwell on. No creepy trackers.
+                  </p>
                 </div>
-              )}
+
+                {sites.length > 0 && (
+                  <div style={{ minWidth: 240 }}>
+                    <SiteSelector
+                      options={siteOptions}
+                      value={selected}
+                      onChange={setSelected}
+                    />
+                  </div>
+                )}
+              </div>
+              </BlurFade>
             </div>
 
             {loadingSites ? (
@@ -196,12 +218,13 @@ export default function AnalyticsClient() {
                       alignItems: 'center',
                       gap: 8,
                       padding: '10px 18px',
-                      background: 'var(--pl-ink)',
-                      color: 'var(--pl-cream)',
-                      borderRadius: 'var(--pl-radius-full)',
+                      background: 'var(--pl-groove-blob-sunrise)',
+                      color: '#fff',
+                      borderRadius: 'var(--pl-groove-radius-pill)',
                       textDecoration: 'none',
                       fontSize: '0.86rem',
                       fontWeight: 600,
+                      boxShadow: '0 6px 18px rgba(139,74,106,0.24), 0 2px 6px rgba(43,30,20,0.08)',
                     }}
                   >
                     Create a site
@@ -286,15 +309,14 @@ export default function AnalyticsClient() {
                         columnGap: 16,
                         paddingBottom: 10,
                         marginBottom: 6,
-                        borderBottom: '1px solid rgba(184,147,90,0.40)',
-                        fontFamily: 'var(--pl-font-mono)',
-                        fontSize: '0.46rem',
-                        fontWeight: 700,
-                        letterSpacing: '0.28em',
-                        textTransform: 'uppercase',
-                        color: 'rgba(14,13,11,0.55)',
+                        borderBottom: '1px solid color-mix(in oklab, var(--pl-groove-terra) 28%, transparent)',
+                        fontFamily: 'var(--pl-font-body)',
+                        fontSize: '0.68rem',
+                        fontWeight: 600,
+                        letterSpacing: '0.04em',
+                        color: 'color-mix(in oklab, var(--pl-groove-ink) 55%, transparent)',
                       }}>
-                        <span>Rank</span>
+                        <span>#</span>
                         <span>Section</span>
                         <span style={{ textAlign: 'right' }}>Views</span>
                         <span style={{ textAlign: 'right', minWidth: 72 }}>Avg dwell</span>
@@ -311,7 +333,7 @@ export default function AnalyticsClient() {
                               flexDirection: 'column',
                               gap: 6,
                               padding: '10px 0 12px',
-                              borderBottom: i < topSections.length - 1 ? '1px dotted rgba(14,13,11,0.10)' : 'none',
+                              borderBottom: i < topSections.length - 1 ? '1px dotted color-mix(in oklab, var(--pl-groove-ink) 10%, transparent)' : 'none',
                             }}
                           >
                             <div style={{
@@ -320,24 +342,23 @@ export default function AnalyticsClient() {
                               alignItems: 'baseline',
                               columnGap: 16,
                             }}>
-                              {/* Rank folio */}
+                              {/* Rank */}
                               <span style={{
-                                fontFamily: 'var(--pl-font-mono)',
-                                fontSize: '0.58rem',
+                                fontFamily: 'var(--pl-font-body)',
+                                fontSize: '0.86rem',
                                 fontWeight: 700,
-                                letterSpacing: '0.2em',
-                                color: isTop ? 'var(--pl-gold)' : 'rgba(14,13,11,0.45)',
+                                color: isTop ? 'var(--pl-groove-plum)' : 'color-mix(in oklab, var(--pl-groove-ink) 50%, transparent)',
                               }}>
-                                № {String(i + 1).padStart(2, '0')}
+                                {String(i + 1).padStart(2, '0')}
                               </span>
-                              {/* Italic section name */}
+                              {/* Section name */}
                               <span style={{
-                                fontFamily: 'var(--pl-font-display)',
-                                fontStyle: 'italic',
-                                fontWeight: 400,
-                                fontSize: '1.05rem',
-                                lineHeight: 1.1,
-                                color: 'var(--pl-ink)',
+                                fontFamily: 'var(--pl-font-body)',
+                                fontWeight: 600,
+                                fontSize: '0.98rem',
+                                lineHeight: 1.15,
+                                letterSpacing: '-0.005em',
+                                color: 'var(--pl-groove-ink)',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
                                 whiteSpace: 'nowrap',
@@ -349,7 +370,7 @@ export default function AnalyticsClient() {
                                 fontFamily: 'var(--pl-font-mono)',
                                 fontSize: '0.78rem',
                                 fontWeight: 600,
-                                color: 'var(--pl-ink)',
+                                color: 'var(--pl-groove-ink)',
                                 textAlign: 'right',
                               }}>
                                 {s.views.toLocaleString()}
@@ -360,29 +381,31 @@ export default function AnalyticsClient() {
                                 fontSize: '0.62rem',
                                 fontWeight: 600,
                                 letterSpacing: '0.12em',
-                                color: 'rgba(14,13,11,0.55)',
+                                color: 'color-mix(in oklab, var(--pl-groove-ink) 55%, transparent)',
                                 textAlign: 'right',
                                 minWidth: 72,
                               }}>
                                 {formatDuration(s.avgDurationMs)}
                               </span>
                             </div>
-                            {/* Meter — gold hairline rail, filled portion thicker */}
+                            {/* Meter — soft groove rail, filled portion thicker */}
                             <div style={{
                               marginLeft: 44,
                               position: 'relative',
                               height: 2,
-                              background: 'rgba(14,13,11,0.06)',
+                              background: 'color-mix(in oklab, var(--pl-groove-ink) 6%, transparent)',
                               overflow: 'visible',
+                              borderRadius: 'var(--pl-radius-full)',
                             }}>
                               <div style={{
                                 position: 'absolute',
                                 left: 0, top: -1,
                                 width: `${pct}%`,
                                 height: 4,
+                                borderRadius: 'var(--pl-radius-full)',
                                 background: isTop
-                                  ? 'linear-gradient(90deg, var(--pl-gold), #D4B072)'
-                                  : 'var(--pl-olive)',
+                                  ? 'linear-gradient(90deg, var(--pl-groove-terra), var(--pl-groove-plum))'
+                                  : 'var(--pl-groove-sage)',
                                 transition: 'width 0.7s cubic-bezier(0.22, 1, 0.36, 1)',
                               }} />
                             </div>
@@ -397,12 +420,11 @@ export default function AnalyticsClient() {
                 <p
                   style={{
                     marginTop: 24,
-                    fontSize: '0.78rem',
-                    color: 'var(--pl-muted)',
-                    fontStyle: 'italic',
-                    fontFamily: 'var(--pl-font-display)',
-                    fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                    fontSize: '0.82rem',
+                    color: 'color-mix(in oklab, var(--pl-groove-ink) 60%, transparent)',
+                    fontFamily: 'var(--pl-font-body)',
                     maxWidth: '60ch',
+                    lineHeight: 1.55,
                   }}
                 >
                   Pearloom analytics are host-only and aggregate. We never
