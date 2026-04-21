@@ -84,6 +84,23 @@ function chipsFor(answers: WizardAnswers): Array<{ k: StepKey; l: string; v: str
 }
 
 // ── Generation request builder ────────────────────────────────
+// Strip user-entered overlay fields (note/location/date/source)
+// off each photo before we send it to the pipeline. The server
+// expects GooglePhotoMetadata shape for clustering; per-photo
+// notes ride alongside in `photoNotes` keyed by id.
+function toGooglePhotoMeta(p: import('./wizardAnswers').PhotoEntry) {
+  return {
+    id: p.id,
+    filename: p.filename,
+    mimeType: p.mimeType,
+    creationTime: p.creationTime,
+    width: p.width,
+    height: p.height,
+    baseUrl: p.baseUrl,
+    description: p.description,
+  };
+}
+
 function buildRequestBody(a: WizardAnswers): string {
   const names: [string, string] = [a.nameA ?? '', a.nameB ?? ''];
   const photoNotesById: Record<string, { note?: string; location?: string; date?: string }> = {};
@@ -98,14 +115,21 @@ function buildRequestBody(a: WizardAnswers): string {
     }
   });
 
+  // eventDate must be ISO YYYY-MM-DD or omitted — the server uses it
+  // directly in logistics + countdown. Wizard only sets it when
+  // dateMode='specific'; for season/year/tba we leave it undefined
+  // so the server falls back to photo-derived dates.
+  const eventDate =
+    a.dateMode === 'specific' && a.date ? a.date : undefined;
+
   return JSON.stringify({
-    photos: a.photos ?? [],
+    photos: (a.photos ?? []).map(toGooglePhotoMeta),
     vibeString: `${a.occasion ?? ''} ${a.vibe ?? ''} ${a.venue ?? ''}`.trim(),
     vibeName: a.vibeName || a.vibe || undefined,
     category: a.category,
     names,
     occasion: a.occasion,
-    eventDate: a.date,
+    eventDate,
     dateMode: a.dateMode,
     dateSeason: a.dateSeason,
     guestCount: a.guestCount,

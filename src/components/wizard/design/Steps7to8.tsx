@@ -1,38 +1,170 @@
 'use client';
 
-// Steps 7-8: Photos drop zone, then per-photo Review (caption + place).
-// Photos fuel Pass 2 (palette) and get clustered into chapters; captions
-// become the voice anchors for Pass 1.
+// Steps 7-8: Photos (upload + Google picker) and per-photo Review.
+// Files selected locally go through /api/photos/upload which writes
+// them to R2 and returns GooglePhotoMetadata-shaped records. The
+// Google Photos picker uses the existing useGooglePhotosPicker
+// hook. Both sources end up in the same `answers.photos` array
+// with the same shape.
 
 import { useCallback, useRef, useState } from 'react';
 import { PD, DISPLAY_STYLE, MONO_STYLE, Leaf } from '../../marketing/design/DesignAtoms';
 import { Scene, SceneDeco, StepHead, StepNav } from './WizardShell';
+import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
 import type { PhotoEntry, StepProps } from './wizardAnswers';
 
-// ── Step 7: PHOTOS drop zone ─────────────────────────────────
+interface UploadedPhotoMeta {
+  id: string;
+  filename: string;
+  mimeType: string;
+  creationTime: string;
+  width: number;
+  height: number;
+  baseUrl: string;
+  description?: string;
+}
+
+const MAX_PHOTOS = 40;
+const MAX_BYTES_PER_PHOTO = 12 * 1024 * 1024; // matches /api/photos/upload
+
+function readAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result as string);
+    r.onerror = () => reject(r.error ?? new Error('FileReader error'));
+    r.readAsDataURL(file);
+  });
+}
+
+function imageDims(dataUrl: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve({ width: img.width || 1200, height: img.height || 1200 });
+    img.onerror = () => resolve({ width: 1200, height: 1200 });
+    img.src = dataUrl;
+  });
+}
+
+// ── Step 7: PHOTOS ────────────────────────────────────────────
 export function StepPhotos({ answers, set, next, back, skip, dark }: StepProps) {
   const [dragging, setDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const photos = answers.photos ?? [];
+  const picker = useGooglePhotosPicker();
 
-  const ingest = useCallback(
-    (files: FileList | File[]) => {
-      const incoming: PhotoEntry[] = [];
-      Array.from(files)
-        .filter((f) => f.type.startsWith('image/'))
-        .slice(0, 40)
-        .forEach((f) => {
-          const id = `${f.name}-${f.size}-${f.lastModified}`;
-          if (photos.some((p) => p.id === id)) return;
-          const url = URL.createObjectURL(f);
-          incoming.push({ id, url });
-        });
-      if (incoming.length) set({ photos: [...photos, ...incoming] });
+  const addPhotos = useCallback(
+    (incoming: PhotoEntry[]) => {
+      if (incoming.length === 0) return;
+      const existing = new Set(photos.map((p) => p.id));
+      const deduped = incoming.filter((p) => !existing.has(p.id));
+      if (deduped.length === 0) return;
+      set({ photos: [...photos, ...deduped] });
     },
     [photos, set],
   );
 
+  const uploadLocal = useCallback(
+    async (files: File[]) => {
+      const images = files.filter((f) => f.type.startsWith('image/'));
+      if (images.length === 0) return;
+
+      const oversized = images.find((f) => f.size > MAX_BYTES_PER_PHOTO);
+      if (oversized) {
+        setError(`${oversized.name} is too large (max 12MB)`);
+        return;
+      }
+      const slotsLeft = MAX_PHOTOS - photos.length;
+      const batch = images.slice(0, slotsLeft);
+      if (images.length > slotsLeft) {
+        setError(`Only ${slotsLeft} more can be added (cap is ${MAX_PHOTOS})`);
+      } else {
+        setError(null);
+      }
+
+      setUploading(true);
+      try {
+        const payload = await Promise.all(
+          batch.map(async (file) => {
+            const [base64, dims] = await Promise.all([
+              readAsDataUrl(file),
+              readAsDataUrl(file).then(imageDims),
+            ]);
+            return {
+              id: `upload-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+              filename: file.name,
+              mimeType: file.type || 'image/jpeg',
+              base64,
+              capturedAt: file.lastModified
+                ? new Date(file.lastModified).toISOString()
+                : undefined,
+              width: dims.width,
+              height: dims.height,
+            };
+          }),
+        );
+        const res = await fetch('/api/photos/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ photos: payload }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || `Upload failed (${res.status})`);
+        }
+        const data = (await res.json()) as {
+          photos: UploadedPhotoMeta[];
+          failures?: Array<{ index: number; error: string }>;
+        };
+        if (data.failures?.length) {
+          setError(`${data.failures.length} photo${data.failures.length === 1 ? '' : 's'} didn’t upload`);
+        }
+        addPhotos(
+          data.photos.map((p) => ({
+            id: p.id,
+            baseUrl: p.baseUrl,
+            filename: p.filename,
+            mimeType: p.mimeType,
+            creationTime: p.creationTime,
+            width: p.width,
+            height: p.height,
+            description: p.description,
+            source: 'upload' as const,
+          })),
+        );
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Upload failed');
+      } finally {
+        setUploading(false);
+      }
+    },
+    [photos.length, addPhotos],
+  );
+
+  const importGoogle = useCallback(() => {
+    picker.pick((picked: PickedPhoto[]) => {
+      addPhotos(
+        picked.map((p) => ({
+          id: p.id,
+          baseUrl: p.baseUrl,
+          filename: p.filename,
+          mimeType: p.mimeType,
+          creationTime: new Date().toISOString(),
+          width: p.width || 1200,
+          height: p.height || 1200,
+          source: 'google' as const,
+        })),
+      );
+    });
+  }, [picker, addPhotos]);
+
   const remove = (id: string) => set({ photos: photos.filter((p) => p.id !== id) });
+
+  const pickerBusy =
+    picker.state === 'creating' ||
+    picker.state === 'waiting' ||
+    picker.state === 'fetching';
 
   return (
     <Scene deco={<SceneDeco variant="rose-br" />} dark={dark}>
@@ -47,9 +179,11 @@ export function StepPhotos({ answers, set, next, back, skip, dark }: StepProps) 
         onDrop={(e) => {
           e.preventDefault();
           setDragging(false);
-          if (e.dataTransfer?.files?.length) ingest(e.dataTransfer.files);
+          if (e.dataTransfer?.files?.length) {
+            uploadLocal(Array.from(e.dataTransfer.files));
+          }
         }}
-        onClick={() => inputRef.current?.click()}
+        onClick={() => !uploading && inputRef.current?.click()}
         role="button"
         tabIndex={0}
         style={{
@@ -64,7 +198,7 @@ export function StepPhotos({ answers, set, next, back, skip, dark }: StepProps) 
           borderRadius: 24,
           padding: photos.length ? '24px' : '64px 32px',
           textAlign: 'center',
-          cursor: 'pointer',
+          cursor: uploading ? 'wait' : 'pointer',
           transition: 'all 200ms',
           minHeight: photos.length ? 'auto' : 260,
           display: 'flex',
@@ -72,6 +206,7 @@ export function StepPhotos({ answers, set, next, back, skip, dark }: StepProps) 
           alignItems: 'center',
           justifyContent: 'center',
           gap: 12,
+          opacity: uploading ? 0.7 : 1,
         }}
       >
         <input
@@ -80,7 +215,7 @@ export function StepPhotos({ answers, set, next, back, skip, dark }: StepProps) 
           multiple
           accept="image/*"
           onChange={(e) => {
-            if (e.target.files?.length) ingest(e.target.files);
+            if (e.target.files?.length) uploadLocal(Array.from(e.target.files));
             e.target.value = '';
           }}
           style={{ display: 'none' }}
@@ -105,7 +240,7 @@ export function StepPhotos({ answers, set, next, back, skip, dark }: StepProps) 
               ↑
             </div>
             <div style={{ ...DISPLAY_STYLE, fontSize: 24, color: dark ? PD.paper : PD.ink }}>
-              Drop photos here
+              {uploading ? 'Reading the photos…' : 'Drop photos here'}
             </div>
             <div
               style={{
@@ -114,7 +249,7 @@ export function StepPhotos({ answers, set, next, back, skip, dark }: StepProps) 
                 fontFamily: 'var(--pl-font-body)',
               }}
             >
-              Or click. Up to 40. JPG, PNG, HEIC.
+              Or click. Up to {MAX_PHOTOS}. JPG, PNG, HEIC.
             </div>
           </>
         ) : (
@@ -132,9 +267,10 @@ export function StepPhotos({ answers, set, next, back, skip, dark }: StepProps) 
                 style={{ position: 'relative', aspectRatio: '1 / 1' }}
                 onClick={(e) => e.stopPropagation()}
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={p.url}
-                  alt=""
+                  src={p.baseUrl}
+                  alt={p.filename || ''}
                   style={{
                     width: '100%',
                     height: '100%',
@@ -143,6 +279,26 @@ export function StepPhotos({ answers, set, next, back, skip, dark }: StepProps) 
                     display: 'block',
                   }}
                 />
+                {p.source === 'google' && (
+                  <div
+                    aria-hidden
+                    style={{
+                      position: 'absolute',
+                      left: 6,
+                      top: 6,
+                      padding: '2px 8px',
+                      borderRadius: 999,
+                      background: 'rgba(31,36,24,0.72)',
+                      color: PD.paper,
+                      fontSize: 9,
+                      letterSpacing: '0.12em',
+                      textTransform: 'uppercase',
+                      fontFamily: 'var(--pl-font-mono)',
+                    }}
+                  >
+                    Google
+                  </div>
+                )}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -186,26 +342,88 @@ export function StepPhotos({ answers, set, next, back, skip, dark }: StepProps) 
         )}
       </div>
 
-      {photos.length > 0 && (
+      <div
+        style={{
+          marginTop: 16,
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 10,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <button
+          onClick={importGoogle}
+          disabled={pickerBusy || uploading || photos.length >= MAX_PHOTOS}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            background: 'transparent',
+            color: dark ? PD.paper : PD.ink,
+            border: '1px solid rgba(31,36,24,0.22)',
+            borderRadius: 999,
+            padding: '10px 16px',
+            fontSize: 13,
+            fontWeight: 500,
+            cursor: pickerBusy || uploading ? 'wait' : 'pointer',
+            opacity: pickerBusy || uploading ? 0.6 : 1,
+            fontFamily: 'inherit',
+          }}
+        >
+          <GoogleGlyph />
+          {picker.state === 'waiting' || picker.state === 'creating'
+            ? 'Opening Google Photos…'
+            : picker.state === 'fetching'
+            ? 'Fetching picks…'
+            : 'Pick from Google Photos'}
+        </button>
+        {photos.length > 0 && (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              fontSize: 11.5,
+              color: dark ? 'rgba(244,236,216,0.7)' : PD.inkSoft,
+              fontFamily: 'var(--pl-font-body)',
+            }}
+          >
+            <Leaf size={10} color={PD.olive} />
+            {photos.length} photo{photos.length === 1 ? '' : 's'} added
+          </span>
+        )}
+      </div>
+
+      {(error || picker.error) && (
         <div
           style={{
             marginTop: 12,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 10,
-            fontSize: 11.5,
-            color: dark ? 'rgba(244,236,216,0.7)' : PD.inkSoft,
+            textAlign: 'center',
+            fontSize: 12.5,
+            color: PD.terra,
             fontFamily: 'var(--pl-font-body)',
           }}
         >
-          <Leaf size={10} color={PD.olive} />
-          {photos.length} photo{photos.length === 1 ? '' : 's'} added
+          {error || picker.error}
         </div>
       )}
 
-      <StepNav onBack={back} onNext={next} onSkip={skip} nextDisabled={photos.length === 0} />
+      {/* Photos are required — the pipeline can't generate without at
+          least one, so no skip here. */}
+      <StepNav onBack={back} onNext={next} nextDisabled={photos.length === 0} />
     </Scene>
+  );
+}
+
+function GoogleGlyph() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 48 48" aria-hidden>
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+    </svg>
   );
 }
 
@@ -270,9 +488,10 @@ export function StepPhotoReview({ answers, set, next, back, skip, dark }: StepPr
           }}
         >
           {active && (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={active.url}
-              alt=""
+              src={active.baseUrl}
+              alt={active.filename || ''}
               style={{
                 width: '100%',
                 aspectRatio: '4 / 5',
@@ -409,8 +628,9 @@ export function StepPhotoReview({ answers, set, next, back, skip, dark }: StepPr
               overflow: 'hidden',
             }}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={p.url}
+              src={p.baseUrl}
               alt=""
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
             />

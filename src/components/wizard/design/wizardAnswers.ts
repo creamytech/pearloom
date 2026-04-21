@@ -25,8 +25,20 @@ export interface Palette {
 }
 
 export interface PhotoEntry {
+  // GooglePhotoMetadata-compatible — these flow straight to the
+  // /api/generate/stream clustering + pipeline. `baseUrl` must be
+  // a stable URL (R2 upload or Google Photos picker URL); blob:
+  // URLs break server-side clustering.
   id: string;
-  url: string;
+  baseUrl: string;
+  filename: string;
+  mimeType: string;
+  creationTime: string; // ISO 8601 — critical for cluster date math
+  width: number;
+  height: number;
+  description?: string;
+  source?: 'upload' | 'google';
+  // User-provided overlays from the Review step
   note?: string;
   location?: string;
   date?: string;
