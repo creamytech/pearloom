@@ -30,6 +30,12 @@ export async function generateStoryManifest(
   layoutFormat?: string,
   onProgress?: (pass: number, snapshot?: StoryManifest) => void,
   preferredPalette?: string[],
+  /**
+   * Optional factual anchors the user gave the wizard. Pass 1.5
+   * (grounding) checks chapter sentences against these + cluster
+   * notes and flags ungrounded claims for Pass 1.2 to strip.
+   */
+  factSheet?: { howWeMet?: string; why?: string; favorite?: string },
 ): Promise<StoryManifest> {
   onProgress?.(0);
 
@@ -291,7 +297,28 @@ export async function generateStoryManifest(
     }))
     .filter(cn => cn.note.length > 0);
 
-  const chaptersSnapshot = manifest.chapters;
+  // ── Pass 1.5 grounding (early) ──────────────────────────────
+  // Run this BEFORE Pass 1.2 so the critique pass sees chapters
+  // with `[UNGROUNDED: ...]` markers where Pass 1 invented facts.
+  // Pass 1.2's existing refine prompt already knows how to rewrite
+  // around bracketed markers — we just make sure the flags are
+  // there when it runs.
+  let chaptersSnapshot = manifest.chapters;
+  try {
+    const { groundChaptersAgainstNotes } = await import('./grounding');
+    const grounded = await groundChaptersAgainstNotes({
+      chapters: chaptersSnapshot,
+      clusterNotes,
+      factSheet,
+    });
+    chaptersSnapshot = grounded.chapters;
+    manifest.chapters = grounded.chapters;
+    if (grounded.flaggedCount > 0) {
+      log(`[Memory Engine] Pass 1.5: grounded ${grounded.flaggedCount} ungrounded sentence(s)`);
+    }
+  } catch (err) {
+    logWarn('[Memory Engine] Grounding pass failed — continuing:', err);
+  }
 
   const [pass12Result, pass15Result, pass4Result] = await Promise.allSettled([
     // Pass 1.2: Chapter quality gate
@@ -334,6 +361,19 @@ export async function generateStoryManifest(
     log('[Memory Engine] Pass 1.2: Chapter quality gate complete');
   } else {
     logWarn('[Memory Engine] Chapter quality gate failed (non-fatal):', pass12Result.reason);
+  }
+
+  // Belt-and-braces: strip any `[UNGROUNDED: ...]` markers the critique
+  // pass didn't rewrite away. We'd rather drop a sentence than ship a
+  // flagged claim as-is.
+  try {
+    const { stripUngroundedMarkers } = await import('./grounding');
+    manifest.chapters = manifest.chapters.map((c) => ({
+      ...c,
+      description: c.description ? stripUngroundedMarkers(c.description) : c.description,
+    }));
+  } catch {
+    /* grounding module already logs — don't double-log */
   }
 
   let coupleProfile: CoupleProfile | undefined;
