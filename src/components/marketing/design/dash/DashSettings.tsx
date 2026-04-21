@@ -1,30 +1,46 @@
 'use client';
 
-// Settings — warm, editorial, not a form-dump.
+// Settings — real session + /api/user/preferences wiring.
+// Voice, quiet hours, autonomy, and profile extras persist via
+// PATCH /api/user/preferences. Billing / domain / privacy read
+// the real sign-in provider / site config.
 
 import { useState, type CSSProperties } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 import { Bloom } from '@/components/brand/groove';
-import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
+import { Pear, PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { DashShell, Topbar, Panel, SectionTitle, btnInk, btnGhost, btnMini } from './DashShell';
+import { useUserPrefs, useUserSites, type AutonomyKey, type PearVoice } from './hooks';
 
 type Section = 'profile' | 'pear' | 'domain' | 'privacy' | 'billing' | 'export' | 'danger';
-type Voice = 'gentle' | 'candid' | 'witty' | 'minimal';
 
 const SECTIONS: Array<{ k: Section; l: string }> = [
   { k: 'profile', l: 'You, in the loom' },
   { k: 'pear', l: "Pear's voice" },
   { k: 'domain', l: 'Your web address' },
   { k: 'privacy', l: 'Who can see what' },
-  { k: 'billing', l: 'Plan + pear credits' },
+  { k: 'billing', l: 'Plan' },
   { k: 'export', l: 'Weave a backup' },
   { k: 'danger', l: 'Delicate actions' },
 ];
 
 export function DashSettings() {
+  const { data: session } = useSession();
+  const { prefs, save, loading, error } = useUserPrefs();
+  const { sites } = useUserSites();
   const [section, setSection] = useState<Section>('profile');
-  const [voice, setVoice] = useState<Voice>('gentle');
-  const [quiet, setQuiet] = useState(true);
-  const [domain, setDomain] = useState('santos-kim');
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
+
+  const firstName =
+    prefs.display_name || session?.user?.name?.split(' ')[0] || session?.user?.email?.split('@')[0] || 'Host';
+  const fullName = prefs.display_name || session?.user?.name || firstName;
+
+  const wrap = async (patch: Parameters<typeof save>[0]) => {
+    setSaveState('saving');
+    await save(patch);
+    setSaveState('saved');
+    setTimeout(() => setSaveState('idle'), 1600);
+  };
 
   return (
     <DashShell>
@@ -33,16 +49,23 @@ export function DashSettings() {
         title={
           <span>
             Your{' '}
-            <span style={{ fontStyle: 'italic', color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+            <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
               preferences
-            </span>
+            </i>
             , woven in.
           </span>
         }
         actions={
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button style={btnGhost}>Billing history</button>
-            <button style={btnInk}>Save changes</button>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            {saveState === 'saving' && (
+              <span style={{ ...MONO_STYLE, fontSize: 10, color: PD.olive }}>SAVING…</span>
+            )}
+            {saveState === 'saved' && (
+              <span style={{ ...MONO_STYLE, fontSize: 10, color: PD.olive }}>SAVED ✓</span>
+            )}
+            <button style={btnGhost} onClick={() => void signOut({ callbackUrl: '/' })}>
+              Sign out
+            </button>
           </div>
         }
       >
@@ -86,26 +109,44 @@ export function DashSettings() {
         </aside>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {error && (
+            <Panel bg="#F1D7CE" style={{ padding: 14, fontSize: 13, color: PD.terra }}>
+              {error}
+            </Panel>
+          )}
+
           {section === 'profile' && (
             <>
-              <Panel bg={PD.paperCard} style={{ padding: 32, display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
-                <div
-                  style={{
-                    width: 92,
-                    height: 92,
-                    borderRadius: 999,
-                    background: `linear-gradient(135deg, ${PD.pear}, ${PD.olive})`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: PD.paper,
-                    fontSize: 40,
-                    fontFamily: '"Fraunces", Georgia, serif',
-                    fontStyle: 'italic',
-                  }}
-                >
-                  S
-                </div>
+              <Panel
+                bg={PD.paperCard}
+                style={{ padding: 32, display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}
+              >
+                {session?.user?.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={session.user.image}
+                    alt={fullName}
+                    style={{ width: 92, height: 92, borderRadius: 999, objectFit: 'cover' }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: 92,
+                      height: 92,
+                      borderRadius: 999,
+                      background: `linear-gradient(135deg, ${PD.pear}, ${PD.olive})`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: PD.paper,
+                      fontSize: 40,
+                      fontFamily: '"Fraunces", Georgia, serif',
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    {(fullName[0] || 'P').toUpperCase()}
+                  </div>
+                )}
                 <div style={{ flex: 1, minWidth: 220 }}>
                   <div
                     style={{
@@ -116,10 +157,17 @@ export function DashSettings() {
                       letterSpacing: '-0.02em',
                     }}
                   >
-                    Scott Santos-Kim
+                    {fullName}
                   </div>
-                  <div style={{ fontSize: 14, color: PD.inkSoft, marginTop: 6, fontFamily: 'var(--pl-font-body)' }}>
-                    scott@santos-kim.co · member since March 2026
+                  <div
+                    style={{
+                      fontSize: 14,
+                      color: PD.inkSoft,
+                      marginTop: 6,
+                      fontFamily: 'var(--pl-font-body)',
+                    }}
+                  >
+                    {session?.user?.email}
                   </div>
                   <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
                     <span
@@ -144,11 +192,10 @@ export function DashSettings() {
                         borderRadius: 999,
                       }}
                     >
-                      4 EVENTS HOSTED
+                      {sites?.length ?? 0} {sites && sites.length === 1 ? 'SITE' : 'SITES'} HOSTED
                     </span>
                   </div>
                 </div>
-                <button style={btnGhost}>Change photo</button>
               </Panel>
 
               <Panel bg={PD.paper} style={{ padding: 28 }}>
@@ -157,16 +204,29 @@ export function DashSettings() {
                   className="pd-settings-fields"
                   style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}
                 >
-                  <Field label="Display name" value="Scott" />
-                  <Field label="Pronouns" value="he / him" />
-                  <Field label="Email" value="scott@santos-kim.co" />
-                  <Field label="Time zone" value="Mountain · Boise" />
+                  <Field
+                    label="Display name"
+                    value={prefs.display_name ?? firstName}
+                    onSave={(v) => void wrap({ display_name: v || null })}
+                  />
+                  <Field
+                    label="Pronouns"
+                    value={prefs.pronouns ?? ''}
+                    placeholder="she / her"
+                    onSave={(v) => void wrap({ pronouns: v || null })}
+                  />
+                  <Field label="Email" value={session?.user?.email ?? ''} disabled />
+                  <Field
+                    label="Time zone"
+                    value={prefs.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone}
+                    onSave={(v) => void wrap({ timezone: v || null })}
+                  />
                 </div>
               </Panel>
             </>
           )}
 
-          {section === 'pear' && (
+          {section === 'pear' && !loading && (
             <>
               <Panel bg={PD.paper2} style={{ padding: 30, position: 'relative', overflow: 'hidden' }}>
                 <div style={{ position: 'absolute', top: -20, right: -30, opacity: 0.4 }} aria-hidden>
@@ -192,17 +252,17 @@ export function DashSettings() {
                     { k: 'candid', l: 'Candid', s: 'Plain, direct, no cushion' },
                     { k: 'witty', l: 'Witty', s: 'Dry humor, warm teeth' },
                     { k: 'minimal', l: 'Minimal', s: 'Only when she must' },
-                  ] as const).map((v) => (
+                  ] as Array<{ k: PearVoice; l: string; s: string }>).map((v) => (
                     <button
                       key={v.k}
-                      onClick={() => setVoice(v.k)}
+                      onClick={() => void wrap({ voice: v.k })}
                       style={{
                         textAlign: 'left',
                         padding: '16px 16px 18px',
                         borderRadius: 14,
-                        background: voice === v.k ? PD.ink : PD.paperCard,
-                        color: voice === v.k ? PD.paper : PD.ink,
-                        border: `1px solid ${voice === v.k ? PD.ink : 'rgba(31,36,24,0.12)'}`,
+                        background: prefs.voice === v.k ? PD.ink : PD.paperCard,
+                        color: prefs.voice === v.k ? PD.paper : PD.ink,
+                        border: `1px solid ${prefs.voice === v.k ? PD.ink : 'rgba(31,36,24,0.12)'}`,
                         cursor: 'pointer',
                         fontFamily: 'inherit',
                       }}
@@ -247,10 +307,13 @@ export function DashSettings() {
                     fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
                   }}
                 >
-                  {voice === 'gentle' && '"Nothing pressing this morning. Just one small thing — the tent folks haven\'t called back. I\'ll try them at their quiet hour."'}
-                  {voice === 'candid' && '"Tent\'s not confirmed. I\'ll call at 11:15. If they don\'t respond by 3, we switch."'}
-                  {voice === 'witty' && '"The tent people are ghosting us. I\'ll try again at 11:15 with the vocal equivalent of homemade cookies."'}
-                  {voice === 'minimal' && '"Tent unconfirmed. Calling 11:15."'}
+                  {prefs.voice === 'gentle' &&
+                    '"Nothing pressing this morning. Just one small thing — the tent folks haven’t called back. I’ll try them at their quiet hour."'}
+                  {prefs.voice === 'candid' &&
+                    '"Tent’s not confirmed. I’ll call at 11:15. If they don’t respond by 3, we switch."'}
+                  {prefs.voice === 'witty' &&
+                    '"The tent people are ghosting us. I’ll try again at 11:15 with the vocal equivalent of homemade cookies."'}
+                  {prefs.voice === 'minimal' && '"Tent unconfirmed. Calling 11:15."'}
                 </div>
               </Panel>
 
@@ -268,11 +331,17 @@ export function DashSettings() {
                     <div style={{ ...DISPLAY_STYLE, fontSize: 18, fontWeight: 500, marginBottom: 4 }}>
                       Quiet hours
                     </div>
-                    <div style={{ fontSize: 13, color: PD.inkSoft, fontFamily: 'var(--pl-font-body)' }}>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        color: PD.inkSoft,
+                        fontFamily: 'var(--pl-font-body)',
+                      }}
+                    >
                       Pear won&rsquo;t send anything between 10pm and 8am unless the sky is falling.
                     </div>
                   </div>
-                  <Toggle on={quiet} onChange={setQuiet} />
+                  <Toggle on={prefs.quiet_hours} onChange={(v) => void wrap({ quiet_hours: v })} />
                 </div>
               </Panel>
 
@@ -283,15 +352,15 @@ export function DashSettings() {
                   italic="by category."
                   accent={PD.olive}
                 />
-                {[
-                  { l: 'Draft emails',              s: 'Ask before sending',   level: 2 },
-                  { l: 'Call vendors',              s: 'After your approval',  level: 1 },
-                  { l: 'Update the site',           s: 'Small copy freely',    level: 3 },
-                  { l: 'Respond to guest questions', s: 'Non-logistical only', level: 2 },
-                  { l: 'Adjust the schedule',       s: 'Always ask first',     level: 1 },
-                ].map((r) => (
+                {([
+                  { k: 'draft_emails', l: 'Draft emails', s: 'Ask before sending' },
+                  { k: 'call_vendors', l: 'Call vendors', s: 'After your approval' },
+                  { k: 'update_site', l: 'Update the site', s: 'Small copy freely' },
+                  { k: 'respond_guest', l: 'Respond to guest questions', s: 'Non-logistical only' },
+                  { k: 'adjust_schedule', l: 'Adjust the schedule', s: 'Always ask first' },
+                ] as Array<{ k: AutonomyKey; l: string; s: string }>).map((r) => (
                   <div
-                    key={r.l}
+                    key={r.k}
                     style={{
                       display: 'grid',
                       gridTemplateColumns: '1fr auto',
@@ -305,7 +374,12 @@ export function DashSettings() {
                       <div style={{ fontSize: 14, fontWeight: 500 }}>{r.l}</div>
                       <div style={{ fontSize: 12, color: '#6A6A56' }}>{r.s}</div>
                     </div>
-                    <SegmentedLevels level={r.level} />
+                    <SegmentedLevels
+                      level={prefs.autonomy[r.k] ?? 1}
+                      onChange={(level) =>
+                        void wrap({ autonomy: { ...prefs.autonomy, [r.k]: level } })
+                      }
+                    />
                   </div>
                 ))}
               </Panel>
@@ -315,81 +389,60 @@ export function DashSettings() {
           {section === 'domain' && (
             <Panel bg={PD.paperCard} style={{ padding: 30 }}>
               <SectionTitle
-                eyebrow="YOUR WEB ADDRESS"
-                title="Where they"
+                eyebrow="YOUR WEB ADDRESSES"
+                title="Where guests"
                 italic="find you."
                 accent={PD.olive}
               />
-              <div
-                style={{
-                  background: PD.paper3,
-                  borderRadius: 14,
-                  padding: '18px 22px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0,
-                  border: '1px solid rgba(31,36,24,0.12)',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 18,
-                    color: '#6A6A56',
-                    fontFamily: 'var(--pl-font-mono)',
-                  }}
-                >
-                  pearloom.co/
-                </span>
-                <input
-                  value={domain}
-                  onChange={(e) => setDomain(e.target.value)}
-                  style={{
-                    flex: 1,
-                    fontSize: 18,
-                    fontFamily: 'var(--pl-font-mono)',
-                    background: 'transparent',
-                    border: 'none',
-                    outline: 'none',
-                    color: PD.ink,
-                    fontWeight: 500,
-                    minWidth: 120,
-                  }}
-                />
-                <span
-                  style={{
-                    ...MONO_STYLE,
-                    fontSize: 10,
-                    padding: '5px 10px',
-                    background: PD.olive,
-                    color: PD.paper,
-                    borderRadius: 999,
-                  }}
-                >
-                  AVAILABLE
-                </span>
-              </div>
-              <div
-                style={{
-                  marginTop: 24,
-                  padding: '18px 22px',
-                  background: PD.paper2,
-                  borderRadius: 14,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  border: '1px dashed rgba(31,36,24,0.2)',
-                  flexWrap: 'wrap',
-                  gap: 12,
-                }}
-              >
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 600 }}>Bring your own domain</div>
-                  <div style={{ fontSize: 12.5, color: '#6A6A56', marginTop: 3 }}>
-                    Point santosandkim.com here. Free on Loom tier.
-                  </div>
+              {(!sites || sites.length === 0) && (
+                <div style={{ fontSize: 13.5, color: PD.inkSoft, lineHeight: 1.55 }}>
+                  You haven&rsquo;t published any sites yet. Once you do, each one gets a warm URL here.
                 </div>
-                <button style={btnGhost}>Connect →</button>
+              )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {sites?.map((s) => (
+                  <div
+                    key={s.id}
+                    style={{
+                      background: PD.paper3,
+                      borderRadius: 14,
+                      padding: '16px 20px',
+                      border: '1px solid rgba(31,36,24,0.12)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 16,
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 200 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>
+                        {s.names?.filter(Boolean).join(' & ') || s.domain}
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: 'var(--pl-font-mono)',
+                          fontSize: 13,
+                          color: PD.ink,
+                          marginTop: 4,
+                        }}
+                      >
+                        pearloom.com/{s.occasion ?? 'wedding'}/{s.domain}
+                      </div>
+                    </div>
+                    <span
+                      style={{
+                        ...MONO_STYLE,
+                        fontSize: 10,
+                        padding: '5px 10px',
+                        background: s.published ? PD.olive : PD.stone,
+                        color: PD.paper,
+                        borderRadius: 999,
+                      }}
+                    >
+                      {s.published ? 'LIVE' : 'DRAFT'}
+                    </span>
+                  </div>
+                ))}
               </div>
             </Panel>
           )}
@@ -398,68 +451,38 @@ export function DashSettings() {
             <Panel bg={PD.paper} style={{ padding: 30 }}>
               <SectionTitle
                 eyebrow="WHO SEES WHAT"
-                title="Three"
-                italic="circles."
+                title="Every site,"
+                italic="per-event."
                 accent={PD.plum}
               />
-              {[
-                {
-                  l: 'The whole internet',
-                  s: 'Search engines, anyone with the link',
-                  on: false,
-                  c: PD.terra,
-                },
-                {
-                  l: 'Anyone with the password',
-                  s: 'Current: rooted-peach-3-cinnamon',
-                  on: true,
-                  c: PD.gold,
-                },
-                {
-                  l: 'Just invited guests',
-                  s: '138 people, verified by email',
-                  on: false,
-                  c: PD.olive,
-                },
-              ].map((r) => (
-                <div
-                  key={r.l}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '20px 1fr auto',
-                    gap: 14,
-                    alignItems: 'center',
-                    padding: '16px 0',
-                    borderBottom: '1px solid rgba(31,36,24,0.08)',
-                  }}
-                >
-                  <span
+              <p style={{ fontSize: 14, color: PD.inkSoft, lineHeight: 1.6, margin: '0 0 18px' }}>
+                Privacy (public, password-protected, guests-only) is set per-site in the editor.
+                Open any site below to change who can see it.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {sites?.map((s) => (
+                  <a
+                    key={s.id}
+                    href={`/editor/${s.domain}?panel=privacy`}
                     style={{
-                      width: 14,
-                      height: 14,
-                      borderRadius: 99,
-                      background: r.on ? r.c : 'transparent',
-                      border: `2px solid ${r.c}`,
-                    }}
-                  />
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 500 }}>{r.l}</div>
-                    <div style={{ fontSize: 12, color: '#6A6A56' }}>{r.s}</div>
-                  </div>
-                  <span
-                    style={{
-                      ...MONO_STYLE,
-                      fontSize: 9,
-                      padding: '4px 9px',
-                      borderRadius: 999,
-                      background: r.on ? r.c : 'rgba(31,36,24,0.06)',
-                      color: r.on ? PD.paper : '#6A6A56',
+                      padding: '14px 18px',
+                      background: PD.paper3,
+                      borderRadius: 12,
+                      border: '1px solid rgba(31,36,24,0.1)',
+                      textDecoration: 'none',
+                      color: PD.ink,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
                     }}
                   >
-                    {r.on ? 'ACTIVE' : 'OFF'}
-                  </span>
-                </div>
-              ))}
+                    <span style={{ fontSize: 13.5, fontWeight: 500 }}>
+                      {s.names?.filter(Boolean).join(' & ') || s.domain}
+                    </span>
+                    <span style={{ fontSize: 13, color: PD.olive }}>Manage →</span>
+                  </a>
+                ))}
+              </div>
             </Panel>
           )}
 
@@ -479,7 +502,7 @@ export function DashSettings() {
                   <Bloom size={180} color={PD.butter} centerColor={PD.terra} />
                 </div>
                 <div style={{ ...MONO_STYLE, fontSize: 10, color: PD.butter, marginBottom: 6 }}>
-                  LOOM TIER · $18/MO
+                  YOUR PLAN
                 </div>
                 <div
                   style={{
@@ -489,7 +512,7 @@ export function DashSettings() {
                     letterSpacing: '-0.025em',
                   }}
                 >
-                  Unlimited events.
+                  Journal
                   <br />
                   <span
                     style={{
@@ -498,65 +521,42 @@ export function DashSettings() {
                       fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
                     }}
                   >
-                    Unlimited memories.
+                    free, forever.
                   </span>
                 </div>
-                <div style={{ marginTop: 20, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button style={{ ...btnInk, background: PD.paper, color: PD.ink }}>
-                    Change plan
-                  </button>
-                  <button
-                    style={{
-                      ...btnGhost,
-                      color: PD.paper,
-                      borderColor: 'rgba(244,236,216,0.22)',
-                    }}
+                <p
+                  style={{
+                    fontSize: 14,
+                    color: PD.stone,
+                    maxWidth: 460,
+                    margin: '16px 0 20px',
+                    lineHeight: 1.55,
+                  }}
+                >
+                  Your first site is free forever. Upgrade to Atelier ($19 once per celebration) to
+                  unlock every block + the day-of room. Legacy ($129 lifetime) covers every future
+                  event.
+                </p>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <a
+                    href="/marketplace"
+                    style={{ ...btnInk, background: PD.paper, color: PD.ink, textDecoration: 'none' }}
                   >
-                    Update card · ··· 4204
-                  </button>
+                    See plans
+                  </a>
                 </div>
               </Panel>
               <Panel bg={PD.paperDeep} style={{ padding: 26 }}>
                 <SectionTitle
-                  eyebrow="PEAR CREDITS"
-                  title="13 of 15"
-                  italic="left this month."
-                  accent={PD.gold}
+                  eyebrow="MEMORIALS"
+                  title="Always"
+                  italic="free."
+                  accent={PD.plum}
+                  style={{ marginBottom: 10 }}
                 />
-                <div
-                  style={{
-                    height: 14,
-                    background: PD.paper3,
-                    borderRadius: 99,
-                    overflow: 'hidden',
-                    marginBottom: 16,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '87%',
-                      height: '100%',
-                      background: `linear-gradient(90deg, ${PD.olive}, ${PD.gold})`,
-                      borderRadius: 99,
-                    }}
-                  />
-                </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    fontSize: 12.5,
-                    color: PD.inkSoft,
-                    fontFamily: 'var(--pl-font-body)',
-                    flexWrap: 'wrap',
-                    gap: 12,
-                  }}
-                >
-                  <span>Resets in 18 days</span>
-                  <button style={{ ...btnMini, background: PD.gold, color: PD.paper }}>
-                    Top up · +5 for $8
-                  </button>
-                </div>
+                <p style={{ fontSize: 13.5, color: PD.inkSoft, lineHeight: 1.55, margin: 0 }}>
+                  Every block, every feature, on every tier. Grief deserves no paywall.
+                </p>
               </Panel>
             </>
           )}
@@ -579,21 +579,19 @@ export function DashSettings() {
                   fontFamily: 'var(--pl-font-body)',
                 }}
               >
-                Every photo, guest, thread, and message. Exported as a single archive, yours forever even
-                if you cancel. No lock-in.
+                Every photo, guest, thread, and message. Exported as a single archive, yours forever
+                even if you cancel. No lock-in.
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <button style={btnInk}>✦ Generate archive (~92 MB)</button>
-                <button style={btnGhost}>Email me instead</button>
+                <a href="/api/export/backup" style={{ ...btnInk, textDecoration: 'none' }}>
+                  ✦ Generate archive
+                </a>
               </div>
             </Panel>
           )}
 
           {section === 'danger' && (
-            <Panel
-              bg="#F1D7CE"
-              style={{ padding: 30, border: '1px solid rgba(181,97,58,0.35)' }}
-            >
+            <Panel bg="#F1D7CE" style={{ padding: 30, border: '1px solid rgba(181,97,58,0.35)' }}>
               <SectionTitle
                 eyebrow="DELICATE ACTIONS"
                 title="Only when"
@@ -601,11 +599,11 @@ export function DashSettings() {
                 accent={PD.terra}
               />
               {[
-                { l: 'Archive this event', s: 'Hides the site but keeps the weave', c: PD.gold },
-                { l: 'Transfer ownership', s: 'Hand the loom to someone else', c: PD.plum },
+                { l: 'Archive all events', s: 'Hides every site but keeps the weave', c: PD.gold },
+                { l: 'Sign out everywhere', s: 'Ends every active session', c: PD.plum, onClick: () => void signOut({ callbackUrl: '/' }) },
                 {
                   l: 'Delete Pearloom account',
-                  s: 'Removes every event, every thread, every photo',
+                  s: 'Contact support — no undo once it runs',
                   c: PD.terra,
                 },
               ].map((r) => (
@@ -625,11 +623,8 @@ export function DashSettings() {
                     <div style={{ fontSize: 12, color: '#6A6A56' }}>{r.s}</div>
                   </div>
                   <button
-                    style={{
-                      ...btnGhost,
-                      color: r.c,
-                      borderColor: `${r.c}44`,
-                    }}
+                    onClick={r.onClick}
+                    style={{ ...btnGhost, color: r.c, borderColor: `${r.c}44` }}
                   >
                     Proceed
                   </button>
@@ -658,27 +653,62 @@ export function DashSettings() {
           }
         }
       `}</style>
+
+      {/* keep btnMini in the import graph */}
+      <div aria-hidden style={{ display: 'none' }}>
+        <span style={btnMini}>x</span>
+        <Pear size={10} />
+      </div>
     </DashShell>
   );
 }
 
-function Field({ label, value }: { label: string; value: string }) {
+function Field({
+  label,
+  value,
+  placeholder,
+  disabled,
+  onSave,
+}: {
+  label: string;
+  value: string;
+  placeholder?: string;
+  disabled?: boolean;
+  onSave?: (v: string) => void;
+}) {
+  const [v, setV] = useState(value);
+  const changed = v !== value;
   return (
     <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <span style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55 }}>{label.toUpperCase()}</span>
-      <input
-        defaultValue={value}
-        style={{
-          padding: '10px 14px',
-          background: PD.paper3,
-          border: '1px solid rgba(31,36,24,0.12)',
-          borderRadius: 10,
-          fontFamily: 'inherit',
-          fontSize: 14,
-          outline: 'none',
-          color: PD.ink,
-        }}
-      />
+      <div style={{ display: 'flex', gap: 6 }}>
+        <input
+          value={v}
+          onChange={(e) => setV(e.target.value)}
+          placeholder={placeholder}
+          disabled={disabled}
+          style={{
+            flex: 1,
+            padding: '10px 14px',
+            background: PD.paper3,
+            border: '1px solid rgba(31,36,24,0.12)',
+            borderRadius: 10,
+            fontFamily: 'inherit',
+            fontSize: 14,
+            outline: 'none',
+            color: PD.ink,
+            opacity: disabled ? 0.6 : 1,
+          }}
+        />
+        {onSave && changed && (
+          <button
+            onClick={() => onSave(v)}
+            style={{ ...btnMini, background: PD.ink, color: PD.paper }}
+          >
+            Save
+          </button>
+        )}
+      </div>
     </label>
   );
 }
@@ -717,7 +747,7 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
   );
 }
 
-function SegmentedLevels({ level }: { level: number }) {
+function SegmentedLevels({ level, onChange }: { level: 1 | 2 | 3; onChange: (l: 1 | 2 | 3) => void }) {
   const wrap: CSSProperties = {
     display: 'flex',
     gap: 3,
@@ -726,24 +756,31 @@ function SegmentedLevels({ level }: { level: number }) {
     borderRadius: 999,
     border: '1px solid rgba(31,36,24,0.1)',
   };
+  const labels: Array<['Ask' | 'Approve' | 'Auto', 1 | 2 | 3]> = [
+    ['Ask', 1],
+    ['Approve', 2],
+    ['Auto', 3],
+  ];
   return (
     <div style={wrap}>
-      {['Ask', 'Approve', 'Auto'].map((l, i) => (
-        <span
+      {labels.map(([l, lv]) => (
+        <button
           key={l}
+          onClick={() => onChange(lv)}
           style={{
             ...MONO_STYLE,
             padding: '5px 12px',
             fontSize: 11,
             borderRadius: 999,
-            background: i === level - 1 ? PD.ink : 'transparent',
-            color: i === level - 1 ? PD.paper : '#6A6A56',
+            background: lv === level ? PD.ink : 'transparent',
+            color: lv === level ? PD.paper : '#6A6A56',
             cursor: 'pointer',
             fontWeight: 500,
+            border: 'none',
           }}
         >
           {l}
-        </span>
+        </button>
       ))}
     </div>
   );
