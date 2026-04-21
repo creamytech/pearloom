@@ -155,6 +155,73 @@ function getDefaultBlocks(occasion: string, _hasEvents: boolean, _hasDate: boole
 }
 
 /** Generate a custom logo SVG icon via AI based on the couple's vibe + occasion */
+/**
+ * Default logo: a typographic monogram in the chosen serif.
+ * Cheaper, more tasteful, higher keep-rate than an AI-drawn SVG
+ * for event sites. Returns the same shape as generateLogoIcon so
+ * the call site doesn't care which path produced it.
+ *
+ * Shape variants:
+ *   - couple: interlocking initials "A & J" style
+ *   - solo:   single initial with a gold rule under it
+ *   - memorial: single initial set in a ring
+ */
+function buildMonogram(
+  occasion: string | undefined,
+  names: [string, string],
+): { logoIcon: LogoIconId; logoSvg?: string } {
+  const fallbackIcon: LogoIconId = occasion === 'wedding'
+    ? 'wedding-rings'
+    : occasion === 'anniversary'
+    ? 'champagne'
+    : occasion === 'engagement'
+    ? 'heart'
+    : occasion === 'birthday'
+    ? 'gift'
+    : occasion === 'memorial' || occasion === 'funeral' || occasion === 'celebration-life'
+    ? 'pearl'
+    : 'pear';
+
+  const initial = (s: string | undefined) =>
+    (s?.trim().charAt(0) || '').toUpperCase();
+  const a = initial(names[0]);
+  const b = initial(names[1]);
+  const isMemorial =
+    occasion === 'memorial' || occasion === 'funeral' || occasion === 'celebration-life';
+
+  // Escape safely — initials are already single letters but be paranoid.
+  const esc = (c: string) => c.replace(/[<>&]/g, '');
+  const A = esc(a);
+  const B = esc(b);
+
+  // Couple monogram: two italic initials with an ampersand between.
+  if (A && B) {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+<text x="8" y="44" font-family="Fraunces, Georgia, serif" font-size="36" font-style="italic" font-weight="500" fill="currentColor">${A}</text>
+<text x="26" y="42" font-family="Fraunces, Georgia, serif" font-size="16" font-style="italic" fill="currentColor" opacity="0.5">&amp;</text>
+<text x="38" y="50" font-family="Fraunces, Georgia, serif" font-size="36" font-style="italic" font-weight="500" fill="currentColor">${B}</text>
+</svg>`;
+    return { logoIcon: fallbackIcon, logoSvg: svg };
+  }
+
+  // Solo initial: memorial gets a ring, everyone else gets a gold rule.
+  if (A) {
+    const svg = isMemorial
+      ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+<circle cx="32" cy="32" r="26" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
+<text x="32" y="44" font-family="Fraunces, Georgia, serif" font-size="30" font-style="italic" font-weight="500" fill="currentColor" text-anchor="middle">${A}</text>
+</svg>`
+      : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+<text x="32" y="42" font-family="Fraunces, Georgia, serif" font-size="38" font-style="italic" font-weight="500" fill="currentColor" text-anchor="middle">${A}</text>
+<line x1="22" y1="52" x2="42" y2="52" stroke="#B89244" stroke-width="1.5" stroke-linecap="round"/>
+</svg>`;
+    return { logoIcon: fallbackIcon, logoSvg: svg };
+  }
+
+  // No usable name — ship the occasion icon alone.
+  return { logoIcon: fallbackIcon };
+}
+
 async function generateLogoIcon(occasion: string | undefined, vibeString: string | undefined, names: [string, string], apiKey: string): Promise<{ logoIcon: LogoIconId; logoSvg?: string }> {
   const fallbackIcon: LogoIconId = occasion === 'wedding' ? 'wedding-rings'
     : occasion === 'anniversary' ? 'champagne'
@@ -266,6 +333,7 @@ export async function POST(req: Request) {
     visibility: visibilityIn,
     tonePolicy: tonePolicyIn,
     storyLayoutPreference,
+    optInAILogo,
     ceremonyVenue,
     ceremonyAddress,
     ceremonyTime,
@@ -326,6 +394,10 @@ export async function POST(req: Request) {
       | 'timeline'
       | 'kenburns'
       | 'bento';
+    /** Default false — skip the AI-drawn logo pass (most users turn it
+     *  off first thing) and ship a typographic monogram instead. The
+     *  wizard can enable this via an explicit opt-in toggle. */
+    optInAILogo?: boolean;
     ceremonyVenue?: string;
     ceremonyAddress?: string;
     ceremonyTime?: string;
@@ -665,8 +737,14 @@ export async function POST(req: Request) {
             return chapter;
           })),
 
-          // 2. Generate custom AI logo icon
-          generateLogoIcon(occasion, vibeString, names, apiKey),
+          // 2. Logo — now opt-in. Most event-site users turn the
+          //    AI SVG off on first open, so the default is a
+          //    tasteful typographic monogram (initials in the chosen
+          //    serif). The wizard's opt-in flag flips this to the
+          //    AI-drawn SVG only when explicitly asked.
+          optInAILogo
+            ? generateLogoIcon(occasion, vibeString, names, apiKey)
+            : Promise.resolve(buildMonogram(occasion, names)),
 
           // 3. Pre-upload hero photos to R2 while the OAuth token is fresh
           heroUploadPromise,
