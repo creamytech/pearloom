@@ -13,6 +13,7 @@
 // ripens the fruit.
 // ─────────────────────────────────────────────────────────────
 
+import { useEffect, useState } from 'react';
 import { GooeyText } from '@/components/brand/GooeyText';
 import {
   BlurFade,
@@ -29,6 +30,24 @@ interface GrooveHeroProps {
 
 const ROTATING_NOUN = ['wedding', 'anniversary', 'memorial', 'birthday', 'reunion', 'milestone'];
 
+// What Pear is "doing" right now — cycles every 1.5s under the
+// hero CTA so the visitor sees the drafter as an active thing,
+// not a waiting button. Matches the tone of the "basting in"
+// metaphor from the brand bible.
+const THREADING_STEPS = [
+  'reading your photos',
+  'pressing a palette',
+  'writing your story',
+  'weaving your RSVP',
+  'setting the type',
+];
+
+const HERO_STATS: Array<{ n: string; l: string; c: string }> = [
+  { n: '42,000',  l: 'days, already threaded',   c: 'var(--pl-groove-sage)' },
+  { n: '28',      l: 'occasions, one voice each', c: 'var(--pl-groove-terra)' },
+  { n: '8 min',   l: 'from hello to published',  c: 'var(--pl-groove-plum)' },
+];
+
 // The hero previously tracked scrollY in React state and passed
 // ripeness down, which re-rendered the whole subtree 60×/sec —
 // noticeable jank once Lenis + framer useScroll + two TracingThreads
@@ -36,6 +55,12 @@ const ROTATING_NOUN = ['wedding', 'anniversary', 'memorial', 'birthday', 'reunio
 // + rAF, so this component is static after mount.
 
 export function GrooveHero({ onGetStarted }: GrooveHeroProps) {
+  const [draftStep, setDraftStep] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setDraftStep((s) => (s + 1) % THREADING_STEPS.length), 1500);
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <section
       className="pl-grain"
@@ -177,10 +202,66 @@ export function GrooveHero({ onGetStarted }: GrooveHeroProps) {
             </p>
           </BlurFade>
 
-          <BlurFade delay={0.45}>
+          <BlurFade delay={0.4}>
             <div
               style={{
-                marginTop: 32,
+                marginTop: 28,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '8px 16px',
+                borderRadius: 'var(--pl-groove-radius-pill)',
+                background: 'color-mix(in oklab, var(--pl-groove-butter) 22%, var(--pl-groove-cream))',
+                border: '1px solid color-mix(in oklab, var(--pl-groove-terra) 26%, transparent)',
+              }}
+              aria-live="polite"
+              aria-label={`Pear is ${THREADING_STEPS[draftStep]}`}
+            >
+              <span
+                style={{
+                  width: 9,
+                  height: 9,
+                  borderRadius: 999,
+                  background:
+                    'var(--pl-groove-blob-sunrise, linear-gradient(135deg, var(--pl-groove-butter), var(--pl-groove-rose)))',
+                  flexShrink: 0,
+                }}
+              />
+              <span
+                style={{
+                  fontFamily: 'var(--pl-font-body)',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  color: 'color-mix(in oklab, var(--pl-groove-ink) 55%, transparent)',
+                }}
+              >
+                Pear is
+              </span>
+              <span
+                key={draftStep}
+                style={{
+                  fontFamily: '"Fraunces", Georgia, serif',
+                  fontStyle: 'italic',
+                  fontWeight: 400,
+                  fontSize: 14,
+                  color: 'var(--pl-groove-sage)',
+                  minWidth: 172,
+                  display: 'inline-block',
+                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                  animation: 'pl-enter-fade-in 280ms cubic-bezier(0.22, 1, 0.36, 1)',
+                }}
+              >
+                {THREADING_STEPS[draftStep]}…
+              </span>
+            </div>
+          </BlurFade>
+
+          <BlurFade delay={0.48}>
+            <div
+              style={{
+                marginTop: 20,
                 display: 'flex',
                 flexWrap: 'wrap',
                 gap: 12,
@@ -217,6 +298,69 @@ export function GrooveHero({ onGetStarted }: GrooveHeroProps) {
               Free to start · No credit card · Your first site is{' '}
               <span style={{ color: 'var(--pl-groove-terra)', fontWeight: 600 }}>yours to keep</span>.
             </p>
+          </BlurFade>
+
+          <BlurFade delay={0.72}>
+            <div
+              style={{
+                marginTop: 34,
+                paddingTop: 26,
+                borderTop: '1px solid color-mix(in oklab, var(--pl-groove-terra) 20%, transparent)',
+                display: 'flex',
+                gap: 'clamp(20px, 3vw, 36px)',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+              }}
+            >
+              {HERO_STATS.map((s, i) => (
+                <div
+                  key={s.l}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 'clamp(20px, 3vw, 36px)',
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontFamily: '"Fraunces", Georgia, serif',
+                        fontStyle: 'italic',
+                        fontWeight: 400,
+                        fontSize: 26,
+                        lineHeight: 1,
+                        color: s.c,
+                        fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                      }}
+                    >
+                      {s.n}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: 'var(--pl-font-body)',
+                        fontSize: 12,
+                        color: 'color-mix(in oklab, var(--pl-groove-ink) 62%, transparent)',
+                        marginTop: 4,
+                        maxWidth: 150,
+                        lineHeight: 1.35,
+                      }}
+                    >
+                      {s.l}
+                    </div>
+                  </div>
+                  {i < HERO_STATS.length - 1 && (
+                    <div
+                      aria-hidden
+                      style={{
+                        width: 1,
+                        height: 40,
+                        background: 'color-mix(in oklab, var(--pl-groove-ink) 12%, transparent)',
+                      }}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
           </BlurFade>
         </div>
 

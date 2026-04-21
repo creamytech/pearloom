@@ -2032,6 +2032,24 @@ body > * { position: relative; z-index: 1; }
   --pl-groove-radius-leaf: 0 100% 0 100% / 0 100% 0 100%;
 }
 
+/* Groovy glyph keyframes — consumed by Bloom, Worm, Swirl,
+   Sparkle, and the orbit marquee. Each respects reduced-motion
+   via the matching @media block below. */
+@keyframes pl-spin-slow { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+@keyframes pl-bloom-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+@keyframes pl-thread-dash { to { stroke-dashoffset: -40; } }
+@keyframes pl-draw-in { to { stroke-dashoffset: 0; } }
+@keyframes pl-orbit-cw { to { transform: rotate(360deg); } }
+@keyframes pl-orbit-ccw { to { transform: rotate(-360deg); } }
+@keyframes pl-counter-cw { to { transform: rotate(-360deg); } }
+@keyframes pl-counter-ccw { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-glyph-spin, .pl-glyph-bloom, .pl-glyph-thread, .pl-glyph-orbit {
+    animation: none !important;
+  }
+}
+
 /* Pear-breathe keyframe — matches PearMascot cadence so the
    3D pear and the 2D mascot feel like one family. */
 @keyframes pl-groove-breathe {

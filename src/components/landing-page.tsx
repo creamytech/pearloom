@@ -28,6 +28,10 @@ import { MarketingNav } from './marketing/MarketingNav';
 import { GrooveHero } from './marketing/GrooveHero';
 import { GrooveEventOS } from './marketing/GrooveEventOS';
 import { WeavingScrollSection } from './marketing/WeavingScrollSection';
+import { OccasionOrbit } from './marketing/OccasionOrbit';
+import { BlocksLibrary } from './marketing/BlocksLibrary';
+import { DirectorTimeline } from './marketing/DirectorTimeline';
+import { PearsPromise } from './marketing/PearsPromise';
 import { InteractiveFeatureGrid } from './marketing/InteractiveFeatureGrid';
 import { GrooveProofPricing } from './marketing/GrooveProofPricing';
 import { GrooveClosingMoment } from './marketing/GrooveClosingMoment';
@@ -350,10 +354,20 @@ export function LandingPage({ handleSignIn: _handleSignIn, status: _status }: La
         </div>
       </section>
 
-      <Wave color="var(--pl-groove-cream)" depth="medium" height={90} />
+      <Wave color="color-mix(in oklab, var(--pl-groove-butter) 10%, var(--pl-groove-cream))" depth="medium" height={90} />
+
+      {/* ── Occasion orbit — 28 event types in two drifting rings ─ */}
+      <OccasionOrbit />
+
+      <Wave color="var(--pl-groove-cream)" depth="shallow" height={72} />
 
       {/* ── 4. Event OS — 3 pillars ───────────────────────────── */}
       <GrooveEventOS onGetStarted={openAuth} />
+
+      <Wave color="var(--pl-groove-cream)" depth="medium" height={80} />
+
+      {/* ── Director — Pear as planner + timeline thread ───────── */}
+      <DirectorTimeline onGetStarted={openAuth} />
 
       <Wave color="color-mix(in oklab, var(--pl-groove-butter) 10%, var(--pl-groove-cream))" depth="shallow" height={72} />
 
@@ -430,6 +444,11 @@ export function LandingPage({ handleSignIn: _handleSignIn, status: _status }: La
 
       <Wave color="var(--pl-groove-cream)" depth="medium" height={90} />
 
+      {/* ── Blocks library — 26 click-to-preview blocks ──────────── */}
+      <BlocksLibrary />
+
+      <Wave color="color-mix(in oklab, var(--pl-groove-rose) 6%, var(--pl-groove-cream))" depth="shallow" height={72} />
+
       {/* ── 6. Interactive feature grid ───────────────────────── */}
       <InteractiveFeatureGrid />
 
@@ -451,6 +470,11 @@ export function LandingPage({ handleSignIn: _handleSignIn, status: _status }: La
         headingFont="Fraunces"
         bodyFont="Geist"
       />
+
+      <Wave color="color-mix(in oklab, var(--pl-groove-plum) 6%, var(--pl-groove-cream))" depth="shallow" height={72} />
+
+      {/* ── Pear's promise — memorials always free ──────────────── */}
+      <PearsPromise />
 
       <Wave color="color-mix(in oklab, var(--pl-groove-butter) 14%, var(--pl-groove-cream))" depth="shallow" height={72} />
 
