@@ -291,6 +291,24 @@ function ShareDemo() {
   );
 }
 
+// Each tile gets a unique blob radius + a tiny resting tilt so
+// the six shapes never feel like copies of each other. Hovering
+// un-tilts and lifts. The shape/tilt pair is kept in sync with
+// the tone so every tile reads as its own little object.
+interface TileShape {
+  radius: string;
+  restTilt: number; // deg
+}
+
+const TILE_SHAPES: TileShape[] = [
+  { radius: 'var(--pl-groove-radius-blob-1)', restTilt: -2.2 },
+  { radius: 'var(--pl-groove-radius-blob-2)', restTilt:  1.6 },
+  { radius: 'var(--pl-groove-radius-blob-3)', restTilt: -1.0 },
+  { radius: 'var(--pl-groove-radius-blob-4)', restTilt:  2.4 },
+  { radius: 'var(--pl-groove-radius-blob-5)', restTilt: -0.6 },
+  { radius: 'var(--pl-groove-radius-blob-6)', restTilt:  1.8 },
+];
+
 const TILES: Tile[] = [
   {
     id: 'rsvp',
@@ -408,11 +426,12 @@ export function InteractiveFeatureGrid() {
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: 16,
+            gap: 'clamp(20px, 2.4vw, 32px)',
           }}
         >
           {TILES.map((tile, i) => {
             const active = hoveredId === tile.id;
+            const shape = TILE_SHAPES[i % TILE_SHAPES.length];
             return (
               <BlurFade key={tile.id} delay={0.08 + i * 0.05}>
                 <article
@@ -423,18 +442,24 @@ export function InteractiveFeatureGrid() {
                   tabIndex={0}
                   style={{
                     position: 'relative',
-                    padding: 'clamp(22px, 3vw, 28px)',
-                    minHeight: 260,
-                    borderRadius: i % 2 === 0
-                      ? 'var(--pl-groove-radius-blob)'
-                      : '28px',
+                    // Generous padding keeps text inside the blob's "meat"
+                    // so the narrow corners of the organic radius don't
+                    // clip copy on the butter/rose/sage pinch points.
+                    padding: 'clamp(32px, 3.8vw, 44px) clamp(30px, 3.4vw, 40px)',
+                    minHeight: 288,
+                    borderRadius: shape.radius,
                     background: TONE_WASH[tile.tone],
                     border: `1px solid color-mix(in oklab, ${TONE_INK[tile.tone]} 22%, transparent)`,
                     transition:
                       'transform var(--pl-dur-base) var(--pl-groove-ease-bloom),' +
                       ' box-shadow var(--pl-dur-base) var(--pl-ease-out),' +
                       ' border-color var(--pl-dur-fast) var(--pl-ease-out)',
-                    transform: active ? 'translateY(-4px)' : '',
+                    // Resting tilt gives each tile its own personality; on
+                    // hover we straighten it and lift — like picking up a
+                    // flat pebble.
+                    transform: active
+                      ? 'translateY(-6px) rotate(0deg)'
+                      : `rotate(${shape.restTilt}deg)`,
                     boxShadow: active
                       ? `0 4px 10px rgba(43,30,20,0.05), 0 26px 56px color-mix(in oklab, ${TONE_INK[tile.tone]} 24%, transparent)`
                       : `0 1px 2px rgba(43,30,20,0.04), 0 14px 40px color-mix(in oklab, ${TONE_INK[tile.tone]} 10%, transparent)`,
@@ -444,7 +469,8 @@ export function InteractiveFeatureGrid() {
                 >
                   <h3
                     style={{
-                      margin: '0 0 8px',
+                      margin: '0 0 10px',
+                      maxWidth: '16ch',
                       fontFamily: 'var(--pl-font-body)',
                       fontWeight: 700,
                       fontSize: '1.12rem',
@@ -457,8 +483,8 @@ export function InteractiveFeatureGrid() {
                   </h3>
                   <p
                     style={{
-                      margin: '0 0 18px',
-                      maxWidth: '36ch',
+                      margin: '0 0 20px',
+                      maxWidth: '28ch',
                       fontFamily: 'var(--pl-font-body)',
                       fontSize: '0.92rem',
                       lineHeight: 1.5,

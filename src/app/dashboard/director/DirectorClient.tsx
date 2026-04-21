@@ -223,7 +223,20 @@ function SitePicker() {
               orchard: 'var(--pl-groove-sage)',
               petal:   'var(--pl-groove-rose)',
             } as const;
+            const blobShapes = [
+              'var(--pl-groove-radius-blob-1)',
+              'var(--pl-groove-radius-blob-2)',
+              'var(--pl-groove-radius-blob-3)',
+              'var(--pl-groove-radius-blob-4)',
+              'var(--pl-groove-radius-blob-5)',
+              'var(--pl-groove-radius-blob-6)',
+              'var(--pl-groove-radius-blob-7)',
+              'var(--pl-groove-radius-blob-8)',
+            ];
+            const restTilts = [-1.8, 1.4, -0.8, 2.0, -2.2, 0.6, -1.2, 1.8];
             const tint = tintMap[tones[i % tones.length]];
+            const radius = blobShapes[i % blobShapes.length];
+            const tilt = restTilts[i % restTilts.length];
             return (
               <button
                 key={s.id}
@@ -236,22 +249,23 @@ function SitePicker() {
                   gap: 12,
                   textAlign: 'left',
                   width: '100%',
-                  padding: '22px 22px 20px',
+                  padding: '30px 30px 26px',
                   background: `color-mix(in oklab, ${tint} 22%, var(--pl-groove-cream))`,
                   border: `1px solid color-mix(in oklab, ${tint} 48%, transparent)`,
-                  borderRadius: i % 2 === 0 ? 'var(--pl-groove-radius-blob)' : '28px',
+                  borderRadius: radius,
                   cursor: 'pointer',
+                  transform: `rotate(${tilt}deg)`,
                   transition: 'transform var(--pl-dur-base) var(--pl-groove-ease-bloom), box-shadow var(--pl-dur-base) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
                   color: 'var(--pl-groove-ink)',
                   fontFamily: 'inherit',
                   boxShadow: `0 2px 6px rgba(43,30,20,0.04), 0 14px 40px color-mix(in oklab, ${tint} 16%, transparent)`,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.transform = 'translateY(-6px) rotate(0deg)';
                   e.currentTarget.style.boxShadow = `0 6px 14px rgba(43,30,20,0.06), 0 28px 56px color-mix(in oklab, ${tint} 26%, transparent)`;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.transform = `rotate(${tilt}deg)`;
                   e.currentTarget.style.boxShadow = `0 2px 6px rgba(43,30,20,0.04), 0 14px 40px color-mix(in oklab, ${tint} 16%, transparent)`;
                 }}
               >

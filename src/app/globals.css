@@ -2016,9 +2016,19 @@ body > * { position: relative; z-index: 1; }
 
   /* Asymmetric radii — the signature "not-a-rectangle" shape.
      Use --pl-groove-radius-blob for cards that want a little
-     organic wobble; --pl-groove-radius-leaf for hero illos. */
+     organic wobble; --pl-groove-radius-leaf for hero illos.
+     The blob-1..8 variants let grids of tiles feel genuinely
+     unique instead of copy-pasting the same pebble six times. */
   --pl-groove-radius-pill: 999px;
   --pl-groove-radius-blob: 42% 58% 70% 30% / 45% 30% 70% 55%;
+  --pl-groove-radius-blob-1: 42% 58% 70% 30% / 45% 30% 70% 55%;
+  --pl-groove-radius-blob-2: 68% 32% 48% 52% / 34% 64% 36% 66%;
+  --pl-groove-radius-blob-3: 36% 64% 56% 44% / 62% 38% 68% 32%;
+  --pl-groove-radius-blob-4: 58% 42% 36% 64% / 66% 34% 56% 44%;
+  --pl-groove-radius-blob-5: 72% 28% 54% 46% / 48% 52% 28% 72%;
+  --pl-groove-radius-blob-6: 44% 56% 32% 68% / 70% 30% 62% 38%;
+  --pl-groove-radius-blob-7: 30% 70% 66% 34% / 52% 48% 66% 34%;
+  --pl-groove-radius-blob-8: 62% 38% 42% 58% / 38% 62% 54% 46%;
   --pl-groove-radius-leaf: 0 100% 0 100% / 0 100% 0 100%;
 }
 

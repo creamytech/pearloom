@@ -311,13 +311,22 @@ export function GrooveProofPricing({ onGetStarted }: GrooveProofPricingProps) {
           {TIERS.map((tier, i) => {
             const wash = TONE_WASH[tier.tone];
             const ink = TONE_INK[tier.tone];
+            // Three distinct blobs so the tiers don't feel like siblings
+            // stamped from the same mould. Recommended tier gets the
+            // softer, bulgier shape so the eye lands there first.
+            const tierShapes = [
+              'var(--pl-groove-radius-blob-3)',
+              'var(--pl-groove-radius-blob-5)',
+              'var(--pl-groove-radius-blob-7)',
+            ];
+            const tierTilts = [-1.4, 0, 1.4];
             return (
               <BlurFade key={tier.name} delay={0.24 + i * 0.08}>
                 <article
                   style={{
                     position: 'relative',
-                    padding: 'clamp(24px, 3vw, 32px)',
-                    borderRadius: tier.recommended ? 'var(--pl-groove-radius-blob)' : '28px',
+                    padding: 'clamp(28px, 3.4vw, 38px) clamp(26px, 3vw, 32px)',
+                    borderRadius: tierShapes[i % tierShapes.length],
                     background: tier.recommended ? 'var(--pl-groove-blob-sunrise)' : wash,
                     border: tier.recommended
                       ? 'none'
@@ -326,7 +335,9 @@ export function GrooveProofPricing({ onGetStarted }: GrooveProofPricingProps) {
                     boxShadow: tier.recommended
                       ? '0 18px 48px rgba(139,74,106,0.28), 0 6px 14px rgba(43,30,20,0.1)'
                       : `0 2px 6px rgba(43,30,20,0.04), 0 14px 40px color-mix(in oklab, ${ink} 14%, transparent)`,
-                    transform: tier.recommended ? 'translateY(-6px)' : '',
+                    transform: tier.recommended
+                      ? `translateY(-8px) rotate(${tierTilts[i]}deg)`
+                      : `rotate(${tierTilts[i]}deg)`,
                   }}
                 >
                   {tier.recommended && (

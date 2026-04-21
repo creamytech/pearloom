@@ -258,7 +258,7 @@ export function LandingPage({ handleSignIn: _handleSignIn, status: _status }: La
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: 14,
+              gap: 'clamp(16px, 2vw, 24px)',
             }}
           >
             {OCCASIONS.map((o, i) => {
@@ -268,8 +268,23 @@ export function LandingPage({ handleSignIn: _handleSignIn, status: _status }: La
                 orchard: 'var(--pl-groove-sage)',
                 petal:   'var(--pl-groove-rose)',
               } as const;
+              // Cycle all 8 blob shapes + a per-tile rest tilt so
+              // no two tiles look like copies of each other.
+              const blobShapes = [
+                'var(--pl-groove-radius-blob-1)',
+                'var(--pl-groove-radius-blob-2)',
+                'var(--pl-groove-radius-blob-3)',
+                'var(--pl-groove-radius-blob-4)',
+                'var(--pl-groove-radius-blob-5)',
+                'var(--pl-groove-radius-blob-6)',
+                'var(--pl-groove-radius-blob-7)',
+                'var(--pl-groove-radius-blob-8)',
+              ];
+              const restTilts = [-2.0, 1.4, -0.8, 2.2, -1.6, 1.0, -2.4, 0.8];
               const tone = tones[i % tones.length];
               const tint = tintMap[tone];
+              const radius = blobShapes[i % blobShapes.length];
+              const tilt = restTilts[i % restTilts.length];
               return (
                 <BlurFade key={o.label} delay={0.08 + i * 0.04}>
                   <a
@@ -279,12 +294,13 @@ export function LandingPage({ handleSignIn: _handleSignIn, status: _status }: La
                       display: 'flex',
                       flexDirection: 'column',
                       gap: 10,
-                      padding: 'clamp(20px, 2.6vw, 26px)',
+                      padding: 'clamp(26px, 3vw, 34px) clamp(24px, 2.6vw, 30px)',
                       background: `color-mix(in oklab, ${tint} 24%, var(--pl-groove-cream))`,
-                      borderRadius: i % 2 === 0 ? 'var(--pl-groove-radius-blob)' : '28px',
+                      borderRadius: radius,
                       border: `1px solid color-mix(in oklab, ${tint} 48%, transparent)`,
                       textDecoration: 'none',
                       color: 'var(--pl-groove-ink)',
+                      transform: `rotate(${tilt}deg)`,
                       transition:
                         'transform var(--pl-dur-base) var(--pl-groove-ease-bloom),' +
                         ' box-shadow var(--pl-dur-base) var(--pl-ease-out),' +
@@ -292,12 +308,12 @@ export function LandingPage({ handleSignIn: _handleSignIn, status: _status }: La
                       boxShadow: `0 2px 6px rgba(43,30,20,0.04), 0 14px 40px color-mix(in oklab, ${tint} 16%, transparent)`,
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.transform = 'translateY(-6px) rotate(0deg)';
                       e.currentTarget.style.boxShadow =
                         '0 6px 14px rgba(43,30,20,0.06), 0 28px 56px color-mix(in oklab, ' + tint + ' 26%, transparent)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = '';
+                      e.currentTarget.style.transform = `rotate(${tilt}deg)`;
                       e.currentTarget.style.boxShadow =
                         '0 2px 6px rgba(43,30,20,0.04), 0 14px 40px color-mix(in oklab, ' + tint + ' 16%, transparent)';
                     }}
@@ -307,6 +323,7 @@ export function LandingPage({ handleSignIn: _handleSignIn, status: _status }: La
                         fontFamily: 'var(--pl-font-body)',
                         fontSize: '1.12rem',
                         fontWeight: 700,
+                        maxWidth: '14ch',
                         color: 'var(--pl-groove-ink)',
                         letterSpacing: '-0.015em',
                       }}
@@ -316,6 +333,7 @@ export function LandingPage({ handleSignIn: _handleSignIn, status: _status }: La
                     <p
                       style={{
                         margin: 0,
+                        maxWidth: '22ch',
                         fontSize: '0.9rem',
                         lineHeight: 1.5,
                         color: 'color-mix(in oklab, var(--pl-groove-ink) 70%, transparent)',

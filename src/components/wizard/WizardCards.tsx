@@ -152,15 +152,22 @@ export function OccasionCard({ occasions, onSelect }: OccasionCardProps) {
           const meta = getOccasionMeta(occ.value);
           const isSelected = selected === occ.value;
           const tone = TONES[idx % TONES.length];
-          // Alternate card radii so the grid reads like a bolt
-          // of fabric, not a regular checkerboard.
-          const radius = idx % 3 === 0
-            ? 'var(--pl-groove-radius-blob)'
-            : idx % 3 === 1
-            ? '28px 28px 28px 6px'
-            : '28px';
+          // Cycle all 8 blob shapes so no two cards are copies —
+          // the wizard grid has a lot of cards, and repetition
+          // made it feel manufactured rather than hand-woven.
+          const radiusCycle = [
+            'var(--pl-groove-radius-blob-1)',
+            'var(--pl-groove-radius-blob-2)',
+            'var(--pl-groove-radius-blob-3)',
+            'var(--pl-groove-radius-blob-4)',
+            'var(--pl-groove-radius-blob-5)',
+            'var(--pl-groove-radius-blob-6)',
+            'var(--pl-groove-radius-blob-7)',
+            'var(--pl-groove-radius-blob-8)',
+          ];
+          const radius = radiusCycle[idx % radiusCycle.length];
           const blobRadius = idx % 2 === 0
-            ? 'var(--pl-groove-radius-blob)'
+            ? 'var(--pl-groove-radius-blob-3)'
             : '50%';
 
           return (
