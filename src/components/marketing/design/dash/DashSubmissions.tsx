@@ -1,120 +1,244 @@
 'use client';
 
-// Submissions — friends submit photos, toasts, songs; moderation feed.
+// Submissions — real /api/event-os/* moderation wiring.
+// Merges tribute/advice/memory submissions + song/toast claims +
+// activity-vote tallies into a single moderated feed per site.
 
-import { useState } from 'react';
-import { Worm } from '@/components/brand/groove';
-import { PD, MONO_STYLE } from '../DesignAtoms';
-import { DashShell, Topbar, Panel, btnInk, btnGhost, btnMini, btnMiniGhost } from './DashShell';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
+import { DashShell, Topbar, Panel, EmptyShell, btnInk, btnGhost, btnMini, btnMiniGhost } from './DashShell';
+import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 
-type SubKind = 'photo' | 'song' | 'note';
-type SubStatus = 'pending' | 'approved' | 'flag';
+type SubKind = 'photo' | 'note' | 'toast' | 'vote';
+type SubStatus = 'approved' | 'hidden' | 'flagged';
 
 interface Submission {
-  k: SubKind;
+  id: string;
+  kind: SubKind;
   from: string;
   when: string;
-  t: string;
-  img?: { bg: string; accent: string; shape: 'circle' | 'wave' | 'blob' };
+  body: string;
   status: SubStatus;
+  blockId?: string;
 }
 
-const SUBS: Submission[] = [
-  { k: 'photo', from: 'Hailey Chen',    when: '2 hr',      t: 'Rehearsal dinner at the inn — the whole table laughing.', img: { bg: PD.gold, accent: PD.paperDeep, shape: 'circle' }, status: 'pending' },
-  { k: 'song',  from: 'Marcus Kim',     when: '4 hr',      t: 'Bill Withers — Lovely Day (for the father-daughter)', status: 'approved' },
-  { k: 'note',  from: 'Aunt Ines',      when: '6 hr',      t: 'To Priya and Dev: I remember when you two first met in my kitchen on the Fourth. You stole a peach. The rest is history. Love you both.', status: 'pending' },
-  { k: 'photo', from: 'Halide Studios', when: 'yesterday', t: "Couple's session in the meadow.", img: { bg: PD.olive, accent: PD.butter, shape: 'wave' }, status: 'approved' },
-  { k: 'song',  from: 'Jenna + Theo',   when: 'yesterday', t: 'Sade — By Your Side', status: 'approved' },
-  { k: 'photo', from: 'Oscar Santos',   when: '2 d',       t: 'Dad teaching you to tie your shoes, 1994. Peach sauce on your cheek.', img: { bg: PD.rose, accent: PD.plum, shape: 'blob' }, status: 'flag' },
-  { k: 'note',  from: 'Dr. Wen',        when: '2 d',       t: "I'm on call but my heart is on the lawn. Love you both. W.", status: 'approved' },
-  { k: 'song',  from: 'DJ Harriet',     when: '3 d',       t: 'Curated the first-dance run-up (12 tracks). Need your blessing.', status: 'pending' },
-];
+interface TributeEntry {
+  id: string;
+  blockId: string;
+  from: string;
+  body: string;
+  state: SubStatus;
+  at: string;
+}
 
-const iconFor = (k: SubKind) => (k === 'photo' ? '◎' : k === 'song' ? '♫' : '✢');
-const colorFor = (k: SubKind) => (k === 'photo' ? PD.olive : k === 'song' ? PD.plum : PD.gold);
+interface ToastClaim {
+  id: string;
+  blockId: string;
+  slotLabel?: string;
+  claimedBy: string;
+  at: string;
+}
 
-function SubImage({ img }: { img: NonNullable<Submission['img']> }) {
-  return (
-    <div
-      style={{
-        height: 140,
-        background: img.bg,
-        borderRadius: 12,
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }}>
-        {img.shape === 'circle' && (
-          <div style={{ width: 90, height: 90, borderRadius: 999, background: img.accent, opacity: 0.85 }} />
-        )}
-        {img.shape === 'wave' && (
-          <Worm width={220} height={80} color={img.accent} strokeWidth={4} segments={3} />
-        )}
-        {img.shape === 'blob' && (
-          <div
-            style={{
-              width: 110,
-              height: 110,
-              background: img.accent,
-              borderRadius: '62% 38% 54% 46% / 49% 58% 42% 51%',
-              animation: 'pl-blob-morph 14s ease-in-out infinite',
-            }}
-          />
-        )}
-      </div>
-      <div
-        style={{
-          ...MONO_STYLE,
-          position: 'absolute',
-          bottom: 8,
-          left: 10,
-          fontSize: 9,
-          color: PD.paper,
-          opacity: 0.85,
-        }}
-      >
-        PLACEHOLDER · AWAITING UPLOAD
-      </div>
-    </div>
-  );
+function iconFor(k: SubKind) {
+  if (k === 'photo') return '◎';
+  if (k === 'toast') return '♫';
+  if (k === 'vote') return '⚘';
+  return '✢';
+}
+
+function colorFor(k: SubKind) {
+  if (k === 'photo') return PD.olive;
+  if (k === 'toast') return PD.plum;
+  if (k === 'vote') return PD.gold;
+  return PD.terra;
+}
+
+function timeAgo(iso: string) {
+  try {
+    const ms = Date.now() - new Date(iso).getTime();
+    const h = Math.floor(ms / 3600000);
+    if (h < 1) return 'just now';
+    if (h < 24) return `${h} hr`;
+    const d = Math.floor(h / 24);
+    if (d < 2) return 'yesterday';
+    return `${d} d`;
+  } catch {
+    return '';
+  }
 }
 
 export function DashSubmissions() {
-  const [tab, setTab] = useState<SubStatus | 'all'>('pending');
-  const filtered = SUBS.filter((s) => tab === 'all' || s.status === tab);
+  const { site, loading: siteLoading } = useSelectedSite();
+  const { sites } = useUserSites();
+  const [subs, setSubs] = useState<Submission[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [tab, setTab] = useState<'pending' | 'approved' | 'flag' | 'all'>('approved');
+  const [pendingId, setPendingId] = useState<string | null>(null);
+
+  const loadAll = useCallback(async (domain: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [subsRes, toastsRes] = await Promise.all([
+        fetch(`/api/event-os/submissions/moderation?siteId=${encodeURIComponent(domain)}`, {
+          cache: 'no-store',
+        }),
+        fetch(`/api/event-os/toasts/moderation?siteId=${encodeURIComponent(domain)}`, {
+          cache: 'no-store',
+        }),
+      ]);
+      const [subsData, toastsData] = await Promise.all([
+        subsRes.json().catch(() => ({})),
+        toastsRes.json().catch(() => ({})),
+      ]);
+
+      const tribute: Submission[] = (subsData.entries as TributeEntry[] | undefined ?? []).map((e) => ({
+        id: e.id,
+        kind: /photo/i.test(e.blockId) ? 'photo' : 'note',
+        from: e.from || 'Guest',
+        when: timeAgo(e.at),
+        body: e.body || '',
+        status: e.state,
+        blockId: e.blockId,
+      }));
+
+      const toasts: Submission[] = (toastsData.claims as ToastClaim[] | undefined ?? []).map((c) => ({
+        id: c.id,
+        kind: 'toast',
+        from: c.claimedBy || 'Guest',
+        when: timeAgo(c.at),
+        body: c.slotLabel ? `Claimed "${c.slotLabel}" · toast signup` : 'Toast signup claim',
+        status: 'approved',
+        blockId: c.blockId,
+      }));
+
+      setSubs(
+        [...tribute, ...toasts].sort(
+          (a, b) => (a.when > b.when ? -1 : 1),
+        ),
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!site?.domain) {
+      setLoading(false);
+      return;
+    }
+    void loadAll(site.domain);
+  }, [site?.domain, loadAll]);
+
+  const counts = useMemo(() => {
+    const c = { pending: 0, approved: 0, flag: 0, all: subs.length };
+    for (const s of subs) {
+      if (s.status === 'flagged') c.flag += 1;
+      else if (s.status === 'approved') c.approved += 1;
+      else c.pending += 1;
+    }
+    return c;
+  }, [subs]);
+
+  const filtered = useMemo(() => {
+    return subs.filter((s) => {
+      if (tab === 'all') return true;
+      if (tab === 'flag') return s.status === 'flagged';
+      if (tab === 'approved') return s.status === 'approved';
+      return s.status === 'hidden';
+    });
+  }, [subs, tab]);
+
+  const moderate = async (id: string, nextState: SubStatus) => {
+    if (!site?.domain) return;
+    setPendingId(id);
+    const prev = subs;
+    setSubs((rows) => rows.map((r) => (r.id === id ? { ...r, status: nextState } : r)));
+    try {
+      const r = await fetch('/api/event-os/submissions/moderation', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, state: nextState }),
+      });
+      if (!r.ok) throw new Error(`mod ${r.status}`);
+    } catch (err) {
+      setSubs(prev);
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setPendingId(null);
+    }
+  };
+
+  if (!siteLoading && (!sites || sites.length === 0)) {
+    return (
+      <DashShell>
+        <EmptyShell message="Create a site first — Pear needs somewhere for submissions to land." />
+      </DashShell>
+    );
+  }
+  if (!site) {
+    return (
+      <DashShell>
+        <EmptyShell message="Pick a site from the top-right menu to see its submissions." />
+      </DashShell>
+    );
+  }
+
+  const siteName = siteDisplayName(site);
 
   return (
     <DashShell>
       <Topbar
-        subtitle="SUBMISSIONS · INBOX"
+        subtitle={`SUBMISSIONS · ${siteName.toUpperCase()}`}
         title={
-          <span>
-            Friends are{' '}
-            <span style={{ fontStyle: 'italic', color: PD.terra, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-              weaving
-            </span>{' '}
-            the reel.
-          </span>
+          subs.length > 0 ? (
+            <span>
+              Friends are{' '}
+              <i style={{ color: PD.terra, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+                weaving
+              </i>{' '}
+              the reel.
+            </span>
+          ) : (
+            <span>
+              <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+                Nothing yet.
+              </i>{' '}
+              Share the submission link.
+            </span>
+          )
         }
         actions={
           <div style={{ display: 'flex', gap: 10 }}>
             <button style={btnGhost}>Submission link</button>
-            <button style={btnInk}>✦ Ask Pear to pre-sort</button>
+            <button style={btnInk} onClick={() => void loadAll(site.domain)}>
+              ↻ Refresh
+            </button>
           </div>
         }
       >
-        Photos, toasts, and song requests come here first. Approve, edit, or tuck away. Pear has pre-flagged
-        one that might be sensitive.
+        Photos, toasts, and tribute notes come here first. Approve what fits, tuck away what doesn&rsquo;t.
       </Topbar>
 
       <main style={{ padding: '20px 40px 60px' }}>
+        {error && (
+          <Panel
+            bg="#F1D7CE"
+            style={{ padding: 14, marginBottom: 16, fontSize: 13, color: PD.terra }}
+          >
+            {error}
+          </Panel>
+        )}
+
         <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
           {([
-            { k: 'pending', l: 'Pending · 3', c: PD.gold },
-            { k: 'approved', l: 'Approved · 4', c: PD.olive },
-            { k: 'flag', l: 'Flagged · 1', c: PD.terra },
-            { k: 'all', l: 'All · 8', c: PD.ink },
+            { k: 'pending', l: `Pending · ${counts.pending}`, c: PD.gold },
+            { k: 'approved', l: `Approved · ${counts.approved}`, c: PD.olive },
+            { k: 'flag', l: `Flagged · ${counts.flag}`, c: PD.terra },
+            { k: 'all', l: `All · ${counts.all}`, c: PD.ink },
           ] as const).map((t) => (
             <button
               key={t.k}
@@ -136,125 +260,141 @@ export function DashSubmissions() {
           ))}
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(320px,1fr))',
-            gap: 16,
-          }}
-        >
-          {filtered.map((s, i) => (
-            <Panel
-              key={i}
-              bg={s.status === 'flag' ? '#F1D7CE' : PD.paperCard}
-              style={{ padding: 18 }}
+        {loading ? (
+          <div style={{ padding: 60, textAlign: 'center', color: PD.inkSoft, fontSize: 13 }}>
+            Threading submissions…
+          </div>
+        ) : filtered.length === 0 ? (
+          <Panel bg={PD.paperCard} style={{ padding: 60, textAlign: 'center' }}>
+            <div
+              style={{
+                ...DISPLAY_STYLE,
+                fontSize: 22,
+                fontStyle: 'italic',
+                color: PD.olive,
+                marginBottom: 10,
+                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+              }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-                <div
-                  style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: 12,
-                    background: colorFor(s.k),
-                    color: PD.paper,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 16,
-                    fontFamily: '"Fraunces", Georgia, serif',
-                  }}
-                >
-                  {iconFor(s.k)}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 600 }}>{s.from}</div>
-                  <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55 }}>
-                    {s.k.toUpperCase()} · {s.when}
-                  </div>
-                </div>
-                {s.status === 'flag' && (
-                  <span
-                    style={{
-                      ...MONO_STYLE,
-                      fontSize: 9,
-                      padding: '4px 9px',
-                      borderRadius: 999,
-                      background: PD.terra,
-                      color: PD.paper,
-                    }}
-                  >
-                    PEAR FLAGGED
-                  </span>
-                )}
-                {s.status === 'approved' && (
-                  <span
-                    style={{
-                      ...MONO_STYLE,
-                      fontSize: 9,
-                      padding: '4px 9px',
-                      borderRadius: 999,
-                      background: PD.olive,
-                      color: PD.paper,
-                    }}
-                  >
-                    APPROVED
-                  </span>
-                )}
-              </div>
-
-              {s.img && <SubImage img={s.img} />}
-              <div
-                style={{
-                  fontSize: s.k === 'note' ? 14.5 : 13.5,
-                  color: PD.ink,
-                  lineHeight: 1.55,
-                  marginTop: s.img ? 14 : 0,
-                  fontFamily: s.k === 'note' ? '"Fraunces", Georgia, serif' : 'var(--pl-font-body)',
-                  fontStyle: s.k === 'note' ? 'italic' : 'normal',
-                  fontVariationSettings: s.k === 'note' ? '"opsz" 144, "SOFT" 80, "WONK" 1' : undefined,
-                }}
+              Nothing to review.
+            </div>
+            <div style={{ fontSize: 13.5, color: PD.inkSoft, maxWidth: 460, margin: '0 auto', lineHeight: 1.55 }}>
+              Add a tribute wall, photo wall, or toast-signup block to your site and guests can start
+              submitting from the published page.
+            </div>
+          </Panel>
+        ) : (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+              gap: 16,
+            }}
+          >
+            {filtered.map((s) => (
+              <Panel
+                key={s.id}
+                bg={s.status === 'flagged' ? '#F1D7CE' : PD.paperCard}
+                style={{ padding: 18 }}
               >
-                {s.t}
-              </div>
-
-              {s.status === 'flag' && (
-                <div
-                  style={{
-                    marginTop: 12,
-                    padding: '10px 12px',
-                    background: 'rgba(255,255,255,0.6)',
-                    borderRadius: 10,
-                    borderLeft: `3px solid ${PD.terra}`,
-                  }}
-                >
-                  <div style={{ ...MONO_STYLE, fontSize: 9, color: PD.terra, marginBottom: 3 }}>
-                    PEAR&rsquo;S NOTE
-                  </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                   <div
                     style={{
-                      fontSize: 12,
-                      color: PD.inkSoft,
-                      lineHeight: 1.45,
-                      fontFamily: 'var(--pl-font-body)',
+                      width: 34,
+                      height: 34,
+                      borderRadius: 12,
+                      background: colorFor(s.kind),
+                      color: PD.paper,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 16,
+                      fontFamily: '"Fraunces", Georgia, serif',
                     }}
                   >
-                    The couple asked no childhood embarrassment photos. You decide.
+                    {iconFor(s.kind)}
                   </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 600 }}>{s.from}</div>
+                    <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55 }}>
+                      {s.kind.toUpperCase()} · {s.when}
+                    </div>
+                  </div>
+                  {s.status === 'flagged' && (
+                    <span
+                      style={{
+                        ...MONO_STYLE,
+                        fontSize: 9,
+                        padding: '4px 9px',
+                        borderRadius: 999,
+                        background: PD.terra,
+                        color: PD.paper,
+                      }}
+                    >
+                      FLAGGED
+                    </span>
+                  )}
+                  {s.status === 'approved' && (
+                    <span
+                      style={{
+                        ...MONO_STYLE,
+                        fontSize: 9,
+                        padding: '4px 9px',
+                        borderRadius: 999,
+                        background: PD.olive,
+                        color: PD.paper,
+                      }}
+                    >
+                      APPROVED
+                    </span>
+                  )}
                 </div>
-              )}
+                <div
+                  style={{
+                    fontSize: s.kind === 'note' ? 14.5 : 13.5,
+                    color: PD.ink,
+                    lineHeight: 1.55,
+                    fontFamily: s.kind === 'note' ? '"Fraunces", Georgia, serif' : 'var(--pl-font-body)',
+                    fontStyle: s.kind === 'note' ? 'italic' : 'normal',
+                    fontVariationSettings: s.kind === 'note' ? '"opsz" 144, "SOFT" 80, "WONK" 1' : undefined,
+                  }}
+                >
+                  {s.body || <span style={{ opacity: 0.5 }}>(no text)</span>}
+                </div>
 
-              {s.status !== 'approved' && (
-                <div style={{ display: 'flex', gap: 6, marginTop: 14 }}>
-                  <button style={{ ...btnMini, background: PD.ink, color: PD.paper, flex: 1 }}>
-                    Approve
-                  </button>
-                  <button style={btnMiniGhost}>Reply</button>
-                  <button style={btnMiniGhost}>Tuck away</button>
+                <div style={{ display: 'flex', gap: 6, marginTop: 14, flexWrap: 'wrap' }}>
+                  {s.status !== 'approved' && (
+                    <button
+                      disabled={pendingId === s.id}
+                      onClick={() => void moderate(s.id, 'approved')}
+                      style={{ ...btnMini, background: PD.ink, color: PD.paper, flex: 1, opacity: pendingId === s.id ? 0.5 : 1 }}
+                    >
+                      Approve
+                    </button>
+                  )}
+                  {s.status !== 'hidden' && (
+                    <button
+                      disabled={pendingId === s.id}
+                      onClick={() => void moderate(s.id, 'hidden')}
+                      style={{ ...btnMiniGhost, opacity: pendingId === s.id ? 0.5 : 1 }}
+                    >
+                      Hide
+                    </button>
+                  )}
+                  {s.status !== 'flagged' && (
+                    <button
+                      disabled={pendingId === s.id}
+                      onClick={() => void moderate(s.id, 'flagged')}
+                      style={{ ...btnMiniGhost, opacity: pendingId === s.id ? 0.5 : 1 }}
+                    >
+                      Flag
+                    </button>
+                  )}
                 </div>
-              )}
-            </Panel>
-          ))}
-        </div>
+              </Panel>
+            ))}
+          </div>
+        )}
       </main>
     </DashShell>
   );

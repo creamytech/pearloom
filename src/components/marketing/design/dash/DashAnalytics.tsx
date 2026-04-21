@@ -1,31 +1,127 @@
 'use client';
 
-// Analytics — quiet numbers, warm readings.
+// Analytics — real /api/analytics/visit + /api/analytics/section.
+// Visit counts drive the 4 KPI tiles and the bar chart; section
+// stats drive the scroll-depth list. No demo numbers.
 
+import { useEffect, useMemo, useState } from 'react';
 import { Swirl } from '@/components/brand/groove';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
-import { DashShell, Topbar, Panel, SectionTitle, btnInk, btnGhost } from './DashShell';
+import { DashShell, Topbar, Panel, SectionTitle, EmptyShell, btnInk, btnGhost } from './DashShell';
+import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
+
+interface VisitStats {
+  visits: number;
+  today: number;
+  mobile: number;
+  desktop: number;
+}
+
+interface SectionStat {
+  sectionId: string;
+  views: number;
+  avgDurationMs: number;
+}
+
+function humanSectionId(id: string): string {
+  return id
+    .replace(/[-_]/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 export function DashAnalytics() {
-  const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-  const visits = [14, 18, 21, 35, 88, 142, 67];
-  const max = Math.max(...visits);
-  const rsvpCurve = [0, 4, 10, 18, 32, 48, 62, 78, 92, 108, 118];
+  const { site, loading: sitesLoading } = useSelectedSite();
+  const { sites } = useUserSites();
+  const [visit, setVisit] = useState<VisitStats | null>(null);
+  const [sections, setSections] = useState<SectionStat[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!site?.id) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    Promise.all([
+      fetch(`/api/analytics/visit?siteId=${encodeURIComponent(site.id)}`, { cache: 'no-store' })
+        .then((r) => r.json())
+        .catch(() => ({ visits: 0, today: 0, mobile: 0, desktop: 0 })),
+      fetch(`/api/analytics/section?siteId=${encodeURIComponent(site.id)}`, { cache: 'no-store' })
+        .then((r) => r.json())
+        .catch(() => ({ sections: [] })),
+    ])
+      .then(([v, s]) => {
+        if (cancelled) return;
+        setVisit({
+          visits: Number(v?.visits ?? 0),
+          today: Number(v?.today ?? 0),
+          mobile: Number(v?.mobile ?? 0),
+          desktop: Number(v?.desktop ?? 0),
+        });
+        setSections((s?.sections ?? []) as SectionStat[]);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e instanceof Error ? e.message : String(e));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [site?.id]);
+
+  const mobileShare = useMemo(() => {
+    if (!visit || visit.visits === 0) return 0;
+    return Math.round((visit.mobile / visit.visits) * 100);
+  }, [visit]);
+
+  // Scroll depth: top 8 sections by views, normalised so top = 100%.
+  const depth = useMemo(() => {
+    if (!sections) return [];
+    const top = sections.slice(0, 8);
+    const max = top.reduce((m, s) => Math.max(m, s.views), 0);
+    return top.map((s, i) => ({
+      s: humanSectionId(s.sectionId),
+      pct: max > 0 ? Math.round((s.views / max) * 100) : 0,
+      c: i < 3 ? PD.olive : i < 5 ? PD.gold : i < 7 ? PD.terra : PD.plum,
+    }));
+  }, [sections]);
+
+  if (!sitesLoading && (!sites || sites.length === 0)) {
+    return (
+      <DashShell>
+        <EmptyShell message="Publish a site first — analytics light up once guests visit." />
+      </DashShell>
+    );
+  }
+  if (!site) {
+    return (
+      <DashShell>
+        <EmptyShell message="Pick a site from the top-right menu to see its analytics." />
+      </DashShell>
+    );
+  }
+
+  const siteName = siteDisplayName(site);
 
   return (
     <DashShell>
       <Topbar
-        subtitle="ANALYTICS · SANTOS–KIM"
+        subtitle={`ANALYTICS · ${siteName.toUpperCase()}`}
         title={
           <span>
             Quiet{' '}
-            <span style={{ fontStyle: 'italic', color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+            <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
               numbers
-            </span>
+            </i>
             , warm{' '}
-            <span style={{ fontStyle: 'italic', color: PD.gold, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+            <i style={{ color: PD.gold, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
               readings
-            </span>
+            </i>
             .
           </span>
         }
@@ -36,21 +132,49 @@ export function DashAnalytics() {
           </div>
         }
       >
-        You&rsquo;ll see how people are moving through the site. Not vanity metrics, the ones that help you
-        plan.
+        Privacy-respecting signals — visits, devices, and the sections your guests dwell on. No
+        creepy trackers.
       </Topbar>
 
       <main style={{ padding: '20px 40px 60px' }}>
+        {error && (
+          <Panel bg="#F1D7CE" style={{ padding: 14, marginBottom: 16, fontSize: 13, color: PD.terra }}>
+            {error}
+          </Panel>
+        )}
+
         {/* KPIs */}
         <div
           className="pd-analytics-kpi"
           style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}
         >
           {[
-            { l: 'Site visits · 7d', v: '385', delta: '+34%', c: PD.olive },
-            { l: 'RSVP completion', v: '78%', delta: '+12 this week', c: PD.gold },
-            { l: 'Median scroll', v: '82%', delta: 'Reaches the story block', c: PD.plum },
-            { l: 'Avg. dwell', v: '4m 12s', delta: 'Longer than wedding average', c: PD.terra },
+            {
+              l: 'Site visits · all time',
+              v: loading ? '—' : (visit?.visits ?? 0).toLocaleString(),
+              delta: visit?.today ? `${visit.today} today` : 'Since launch',
+              c: PD.olive,
+            },
+            {
+              l: 'Today',
+              v: loading ? '—' : (visit?.today ?? 0).toLocaleString(),
+              delta: 'Since midnight',
+              c: PD.gold,
+            },
+            {
+              l: 'Mobile share',
+              v: loading ? '—' : `${mobileShare}%`,
+              delta: visit
+                ? `${visit.mobile} mobile · ${visit.desktop} desktop`
+                : '',
+              c: PD.plum,
+            },
+            {
+              l: 'Sections tracked',
+              v: loading ? '—' : (sections?.length ?? 0).toLocaleString(),
+              delta: sections && sections.length > 0 ? 'On the live site' : 'Nothing yet',
+              c: PD.terra,
+            },
           ].map((k) => (
             <Panel key={k.l} bg={PD.paperCard} style={{ padding: '18px 20px' }}>
               <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55, marginBottom: 8 }}>
@@ -67,58 +191,28 @@ export function DashAnalytics() {
               >
                 {k.v}
               </div>
-              <div style={{ fontSize: 11.5, color: k.c, marginTop: 8, fontWeight: 500, fontFamily: 'var(--pl-font-body)' }}>
+              <div style={{ fontSize: 11.5, color: k.c, marginTop: 8, fontWeight: 500 }}>
                 {k.delta}
               </div>
             </Panel>
           ))}
         </div>
 
-        {/* Charts */}
+        {/* Two panels */}
         <div
           className="pd-analytics-charts"
           style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 20, marginBottom: 20 }}
         >
           <Panel bg={PD.paper3} style={{ padding: 28 }}>
             <SectionTitle
-              eyebrow="VISITS · LAST 7 DAYS"
-              title="Saturday is"
-              italic="opening day."
+              eyebrow="DEVICES"
+              title="Where they&rsquo;re"
+              italic="reading from."
               accent={PD.olive}
             />
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'flex-end',
-                justifyContent: 'space-between',
-                height: 180,
-                gap: 14,
-                padding: '20px 4px 0',
-              }}
-            >
-              {visits.map((v, i) => (
-                <div
-                  key={i}
-                  style={{
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 8,
-                  }}
-                >
-                  <div style={{ fontSize: 11, color: '#6A6A56', fontWeight: 500 }}>{v}</div>
-                  <div
-                    style={{
-                      width: '100%',
-                      height: `${(v / max) * 140}px`,
-                      background: i === 5 ? PD.terra : PD.olive,
-                      borderRadius: 8,
-                    }}
-                  />
-                  <div style={{ ...MONO_STYLE, fontSize: 10, opacity: 0.5 }}>{days[i]}</div>
-                </div>
-              ))}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <DeviceBar label="Mobile" n={visit?.mobile ?? 0} total={visit?.visits ?? 0} c={PD.olive} />
+              <DeviceBar label="Desktop" n={visit?.desktop ?? 0} total={visit?.visits ?? 0} c={PD.gold} />
             </div>
             <div
               style={{
@@ -132,85 +226,48 @@ export function DashAnalytics() {
                 display: 'flex',
                 gap: 10,
                 alignItems: 'flex-start',
-                fontFamily: 'var(--pl-font-body)',
               }}
             >
-              <span style={{ fontSize: 16, color: PD.terra, fontFamily: '"Fraunces", Georgia, serif' }}>✦</span>
+              <span
+                style={{
+                  fontSize: 16,
+                  color: PD.terra,
+                  fontFamily: '"Fraunces", Georgia, serif',
+                }}
+              >
+                ✦
+              </span>
               <span>
-                <b>Pear noticed.</b> Traffic spiked Saturday after Marcus shared to the family thread.
-                That&rsquo;s usually when RSVPs start flowing too.
+                <b>Pear&rsquo;s take.</b>{' '}
+                {visit && visit.visits > 0
+                  ? mobileShare >= 60
+                    ? 'Most guests are on their phones. Keep headlines short and photos full-bleed.'
+                    : mobileShare <= 30
+                    ? 'Desktop-heavy — your long story sections are working.'
+                    : 'An even split. Layouts that read both ways will carry you.'
+                  : 'Nothing to read yet. Analytics fill in as guests visit.'}
               </span>
             </div>
           </Panel>
 
           <Panel bg={PD.paperDeep} style={{ padding: 28 }}>
             <SectionTitle
-              eyebrow="RSVP CURVE · 10 WEEKS"
-              title="Steady, not"
-              italic="panicked."
+              eyebrow="TODAY"
+              title="Visits"
+              italic="in the last 24h."
               accent={PD.gold}
             />
-            <div style={{ height: 200, position: 'relative' }}>
-              <svg width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="rsvpGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={PD.gold} stopOpacity="0.4" />
-                    <stop offset="100%" stopColor={PD.gold} stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-                {[0, 0.25, 0.5, 0.75, 1].map((y) => (
-                  <line
-                    key={y}
-                    x1="0"
-                    y1={200 - y * 180}
-                    x2="400"
-                    y2={200 - y * 180}
-                    stroke="rgba(31,36,24,0.08)"
-                    strokeWidth="1"
-                  />
-                ))}
-                <path
-                  d={`M 0 ${200 - rsvpCurve[0] * 1.5} ${rsvpCurve
-                    .map((v, i) => `L ${(i / (rsvpCurve.length - 1)) * 400} ${200 - v * 1.5}`)
-                    .join(' ')} L 400 200 L 0 200 Z`}
-                  fill="url(#rsvpGrad)"
-                />
-                <path
-                  d={`M 0 ${200 - rsvpCurve[0] * 1.5} ${rsvpCurve
-                    .map((v, i) => `L ${(i / (rsvpCurve.length - 1)) * 400} ${200 - v * 1.5}`)
-                    .join(' ')}`}
-                  stroke={PD.gold}
-                  strokeWidth="2.5"
-                  fill="none"
-                />
-                {rsvpCurve.map((v, i) => (
-                  <circle
-                    key={i}
-                    cx={(i / (rsvpCurve.length - 1)) * 400}
-                    cy={200 - v * 1.5}
-                    r="4"
-                    fill={PD.paperDeep}
-                    stroke={PD.gold}
-                    strokeWidth="2"
-                  />
-                ))}
-                <circle cx="400" cy={200 - 118 * 1.5} r="8" fill={PD.terra} />
-              </svg>
+            <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div
                 style={{
-                  ...MONO_STYLE,
-                  position: 'absolute',
-                  right: 10,
-                  top: 12,
-                  fontSize: 10,
-                  color: PD.terra,
-                  background: PD.paperCard,
-                  padding: '3px 8px',
-                  borderRadius: 999,
-                  border: `1px solid ${PD.terra}`,
+                  ...DISPLAY_STYLE,
+                  fontSize: 120,
+                  lineHeight: 1,
+                  letterSpacing: '-0.04em',
+                  color: PD.ink,
                 }}
               >
-                TODAY · 118 YES
+                {loading ? '…' : (visit?.today ?? 0).toLocaleString()}
               </div>
             </div>
             <div
@@ -222,8 +279,9 @@ export function DashAnalytics() {
                 fontFamily: 'var(--pl-font-body)',
               }}
             >
-              Your curve mirrors the average Pearloom wedding. Expect the remaining RSVPs to arrive in
-              three small waves: two weeks out, five days out, and the morning of.
+              {visit && visit.visits > 0
+                ? `${((visit.today / visit.visits) * 100).toFixed(1)}% of your all-time visits happened today.`
+                : 'Pearloom records a visit the first time each visitor opens the site — no repeat inflation.'}
             </div>
           </Panel>
         </div>
@@ -236,63 +294,61 @@ export function DashAnalytics() {
           <Panel bg={PD.paper} style={{ padding: 28 }}>
             <SectionTitle
               eyebrow="WHAT PEOPLE READ"
-              title="Scroll depth"
-              italic="on the site."
+              title="Engagement"
+              italic="by section."
               accent={PD.plum}
             />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {[
-                { s: 'Hero', pct: 100, c: PD.olive },
-                { s: 'The couple (story)', pct: 92, c: PD.olive },
-                { s: 'Schedule', pct: 84, c: PD.olive },
-                { s: 'RSVP', pct: 71, c: PD.gold },
-                { s: 'Travel + lodging', pct: 58, c: PD.gold },
-                { s: 'Registry', pct: 44, c: PD.terra },
-                { s: 'FAQ', pct: 31, c: PD.terra },
-                { s: 'Footer', pct: 22, c: PD.plum },
-              ].map((r) => (
-                <div
-                  key={r.s}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '140px 1fr 54px',
-                    gap: 14,
-                    alignItems: 'center',
-                  }}
-                >
-                  <div style={{ fontSize: 13, fontWeight: 500 }}>{r.s}</div>
+            {depth.length === 0 ? (
+              <div style={{ fontSize: 13.5, color: PD.inkSoft, lineHeight: 1.55, maxWidth: 520 }}>
+                No section views yet. Sections start showing up here once guests scroll past them on
+                your published site.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {depth.map((r) => (
                   <div
+                    key={r.s}
                     style={{
-                      height: 12,
-                      background: PD.paper3,
-                      borderRadius: 99,
-                      overflow: 'hidden',
+                      display: 'grid',
+                      gridTemplateColumns: '140px 1fr 54px',
+                      gap: 14,
+                      alignItems: 'center',
                     }}
                   >
+                    <div style={{ fontSize: 13, fontWeight: 500 }}>{r.s}</div>
                     <div
                       style={{
-                        width: `${r.pct}%`,
-                        height: '100%',
-                        background: r.c,
+                        height: 12,
+                        background: PD.paper3,
                         borderRadius: 99,
-                        transition: 'width 600ms',
+                        overflow: 'hidden',
                       }}
-                    />
+                    >
+                      <div
+                        style={{
+                          width: `${r.pct}%`,
+                          height: '100%',
+                          background: r.c,
+                          borderRadius: 99,
+                          transition: 'width 600ms',
+                        }}
+                      />
+                    </div>
+                    <div
+                      style={{
+                        ...MONO_STYLE,
+                        fontSize: 11,
+                        textAlign: 'right',
+                        color: r.c,
+                        fontWeight: 500,
+                      }}
+                    >
+                      {r.pct}%
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      ...MONO_STYLE,
-                      fontSize: 11,
-                      textAlign: 'right',
-                      color: r.c,
-                      fontWeight: 500,
-                    }}
-                  >
-                    {r.pct}%
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </Panel>
 
           <Panel
@@ -323,15 +379,18 @@ export function DashAnalytics() {
                 fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
               }}
             >
-              &ldquo;People love your story, lose interest at Registry. Want me to rewrite it warmer, less
-              checklist?&rdquo;
+              {depth.length === 0
+                ? '"Your site&rsquo;s quiet for now. Every visit tells us a little more."'
+                : depth.length >= 4 && depth[3].pct < 50
+                ? '"Guests drop off around the middle sections. Want me to tighten them?"'
+                : '"Your top sections are holding attention. Keep the thread going."'}
             </div>
-            <div style={{ display: 'flex', gap: 8, position: 'relative' }}>
-              <button style={{ ...btnInk, background: PD.paper, color: PD.ink }}>Rewrite it</button>
+            <div style={{ display: 'flex', gap: 8, position: 'relative', flexWrap: 'wrap' }}>
+              <button style={{ ...btnInk, background: PD.paper, color: PD.ink }}>Ask Pear why</button>
               <button
                 style={{ ...btnGhost, color: PD.paper, borderColor: 'rgba(244,236,216,0.22)' }}
               >
-                Leave it
+                Dismiss
               </button>
             </div>
           </Panel>
@@ -350,5 +409,30 @@ export function DashAnalytics() {
         }
       `}</style>
     </DashShell>
+  );
+}
+
+function DeviceBar({ label, n, total, c }: { label: string; n: number; total: number; c: string }) {
+  const pct = total > 0 ? Math.round((n / total) * 100) : 0;
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 6 }}>
+        <span style={{ ...DISPLAY_STYLE, fontSize: 28, color: PD.ink }}>{n.toLocaleString()}</span>
+        <span style={{ ...MONO_STYLE, fontSize: 10, color: c }}>{pct}%</span>
+      </div>
+      <div style={{ height: 6, background: PD.paperCard, borderRadius: 99, overflow: 'hidden' }}>
+        <div style={{ width: `${pct}%`, height: '100%', background: c, borderRadius: 99 }} />
+      </div>
+      <div
+        style={{
+          ...MONO_STYLE,
+          fontSize: 10,
+          opacity: 0.55,
+          marginTop: 6,
+        }}
+      >
+        {label.toUpperCase()}
+      </div>
+    </div>
   );
 }
