@@ -37,6 +37,7 @@ import {
   Wave,
   GrooveBlob,
   BlurFade,
+  CurvedText,
   MagneticHover,
   SquishyButton,
 } from '@/components/brand/groove';
@@ -215,15 +216,25 @@ export function LandingPage({ handleSignIn: _handleSignIn, status: _status }: La
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 1180, margin: '0 auto' }}>
           <BlurFade>
             <div
+              aria-hidden
               style={{
-                fontFamily: 'var(--pl-font-body)',
-                fontSize: '0.92rem',
-                fontWeight: 500,
                 color: 'var(--pl-groove-plum)',
-                marginBottom: 14,
+                marginBottom: 6,
+                marginLeft: -6,
               }}
             >
-              Every occasion
+              <CurvedText
+                variant="arc"
+                width={260}
+                amplitude={14}
+                fontFamily='var(--pl-font-body)'
+                fontSize={14}
+                fontWeight={500}
+                letterSpacing={1.5}
+                aria-label="Every occasion"
+              >
+                ✦  Every occasion  ✦
+              </CurvedText>
             </div>
           </BlurFade>
           <BlurFade delay={0.08}>
@@ -342,15 +353,26 @@ export function LandingPage({ handleSignIn: _handleSignIn, status: _status }: La
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
           <BlurFade>
             <div
+              aria-hidden
               style={{
-                marginBottom: 14,
-                fontFamily: 'var(--pl-font-body)',
-                fontSize: '0.92rem',
-                fontWeight: 500,
                 color: 'var(--pl-groove-terra)',
+                marginBottom: 4,
+                display: 'flex',
+                justifyContent: 'center',
               }}
             >
-              Try it · no signup
+              <CurvedText
+                variant="arc"
+                width={260}
+                amplitude={16}
+                fontFamily='var(--pl-font-body)'
+                fontSize={14}
+                fontWeight={500}
+                letterSpacing={1.6}
+                aria-label="Try it · no signup"
+              >
+                ✧  Try it · no signup  ✧
+              </CurvedText>
             </div>
           </BlurFade>
           <BlurFade delay={0.08}>

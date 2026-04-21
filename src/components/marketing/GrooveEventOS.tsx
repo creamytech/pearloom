@@ -18,7 +18,7 @@
 // auto-responsive break.
 // ─────────────────────────────────────────────────────────────
 
-import { BlurFade, GrooveBento, type GrooveBentoCell } from '@/components/brand/groove';
+import { BlurFade, CurvedText, GrooveBento, type GrooveBentoCell } from '@/components/brand/groove';
 
 const PILLAR_CELLS: GrooveBentoCell[] = [
   {
@@ -119,17 +119,25 @@ export function GrooveEventOS({ onGetStarted }: GrooveEventOSProps) {
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <BlurFade>
           <div
+            aria-hidden
             style={{
-              fontFamily: 'var(--pl-font-mono)',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
               color: 'var(--pl-groove-terra)',
-              marginBottom: 14,
+              marginBottom: 4,
+              marginLeft: -6,
             }}
           >
-            Event OS
+            <CurvedText
+              variant="wave"
+              width={320}
+              amplitude={12}
+              fontFamily='var(--pl-font-body)'
+              fontSize={14}
+              fontWeight={600}
+              letterSpacing={1.8}
+              aria-label="The whole celebration, one loom"
+            >
+              ✦  The whole celebration, one loom  ✦
+            </CurvedText>
           </div>
         </BlurFade>
         <BlurFade delay={0.08}>

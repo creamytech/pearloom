@@ -19,7 +19,7 @@
 
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useState, type ReactNode } from 'react';
-import { BlurFade } from '@/components/brand/groove';
+import { BlurFade, CurvedText } from '@/components/brand/groove';
 
 interface Tile {
   id: string;
@@ -351,15 +351,25 @@ export function InteractiveFeatureGrid() {
       <div style={{ maxWidth: 1180, margin: '0 auto' }}>
         <BlurFade>
           <div
+            aria-hidden
             style={{
-              fontFamily: 'var(--pl-font-body)',
-              fontSize: '0.92rem',
-              fontWeight: 500,
               color: 'var(--pl-groove-terra)',
-              marginBottom: 10,
+              marginBottom: 4,
+              marginLeft: -6,
             }}
           >
-            Everything in, nothing bolted on
+            <CurvedText
+              variant="wave"
+              width={420}
+              amplitude={10}
+              fontFamily='var(--pl-font-body)'
+              fontSize={14}
+              fontWeight={500}
+              letterSpacing={1.2}
+              aria-label="Everything in, nothing bolted on"
+            >
+              Everything in, nothing bolted on
+            </CurvedText>
           </div>
         </BlurFade>
         <BlurFade delay={0.08}>

@@ -21,7 +21,7 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { Shield, Lock, Zap, Globe, Check } from 'lucide-react';
-import { BlurFade, MagneticHover, SquishyButton } from '@/components/brand/groove';
+import { BlurFade, CurvedText, MagneticHover, SquishyButton } from '@/components/brand/groove';
 
 interface GrooveProofPricingProps {
   onGetStarted: () => void;
@@ -127,15 +127,25 @@ export function GrooveProofPricing({ onGetStarted }: GrooveProofPricingProps) {
         {/* ── Eyebrow + headline ── */}
         <BlurFade>
           <div
+            aria-hidden
             style={{
-              fontFamily: 'var(--pl-font-body)',
-              fontSize: '0.92rem',
-              fontWeight: 500,
               color: 'var(--pl-groove-plum)',
-              marginBottom: 10,
+              marginBottom: 4,
+              marginLeft: -6,
             }}
           >
-            Proof &amp; pricing
+            <CurvedText
+              variant="arc"
+              width={260}
+              amplitude={14}
+              fontFamily='var(--pl-font-body)'
+              fontSize={14}
+              fontWeight={500}
+              letterSpacing={1.6}
+              aria-label="Proof & pricing"
+            >
+              ✦  Proof &amp; pricing  ✦
+            </CurvedText>
           </div>
         </BlurFade>
         <BlurFade delay={0.08}>
