@@ -3,9 +3,9 @@ import type { StoryManifest } from '@/types';
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / wizard-state.ts
-// Minimal reducer for the dashboard shell. The legacy multi-step
-// wizard (photos → clusters → vibe → generating → guests) was
-// removed; PearSpotlight is now the only create-site entry point.
+// Minimal reducer for the dashboard shell. WizardV2 (the category
+// → occasion → names → … → generating flow under the 'pear-crafts'
+// step key) is the single create-site entry point.
 // ─────────────────────────────────────────────────────────────
 
 export type WizardStep = 'dashboard' | 'pear-crafts' | 'edit';

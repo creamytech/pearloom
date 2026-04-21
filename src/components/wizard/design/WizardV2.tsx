@@ -5,7 +5,9 @@
 //
 // The new wizard orchestrator. Pulls together the shell, helper,
 // voice-first alt path, all 11 step components, and the generate
-// handoff. Mount this from `/wizard-v2/page.tsx`.
+// handoff. Mounted from DashboardClient when state.step is
+// 'pear-crafts'. The parent owns the site-save + editor handoff
+// via the onComplete prop.
 //
 // Answers persist to localStorage so the wizard survives reloads.
 // Generation is opaque about implementation — the user sees
@@ -13,8 +15,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { PD } from '../../marketing/design/DesignAtoms';
+import type { StoryManifest } from '@/types';
 import {
   ProgressThread,
   ReturnPill,
@@ -131,8 +133,12 @@ function buildRequestBody(a: WizardAnswers): string {
 }
 
 // ── Orchestrator ──────────────────────────────────────────────
-export function WizardV2() {
-  const router = useRouter();
+export interface WizardV2Props {
+  onComplete: (manifest: StoryManifest, names: [string, string], subdomain: string) => void;
+  onBack: () => void;
+}
+
+export function WizardV2({ onComplete, onBack }: WizardV2Props) {
   const [answers, setAnswers] = useState<WizardAnswers>({});
   const [current, setCurrent] = useState<StepKey>('category');
   const [dark, setDark] = useState(false);
@@ -145,7 +151,7 @@ export function WizardV2() {
   const [genDone, setGenDone] = useState(false);
   const [genError, setGenError] = useState<string | null>(null);
   const [completed, setCompleted] = useState<{
-    manifest: unknown;
+    manifest: StoryManifest;
     subdomain: string;
   } | null>(null);
 
@@ -282,7 +288,7 @@ export function WizardV2() {
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
-        let manifest: unknown = null;
+        let manifest: StoryManifest | null = null;
 
         while (true) {
           const { done, value } = await reader.read();
@@ -346,28 +352,21 @@ export function WizardV2() {
   }, [current, runGeneration]);
 
   // ── Handoff on curtain reveal ───────────────────────────────
-  const handleCurtainDone = useCallback(async () => {
+  // The parent (DashboardClient) owns site-save + editor handoff so
+  // the transition stays SPA-fast. We just clear local draft state.
+  const handleCurtainDone = useCallback(() => {
     if (!completed) return;
-    try {
-      await fetch('/api/sites', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          subdomain: completed.subdomain,
-          manifest: completed.manifest,
-          names: [answers.nameA ?? '', answers.nameB ?? ''],
-        }),
-      });
-    } catch {
-      /* non-fatal — editor will resave */
-    }
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {
       /* ignore */
     }
-    router.push(`/editor/${completed.subdomain}`);
-  }, [completed, router, answers.nameA, answers.nameB]);
+    onComplete(
+      completed.manifest,
+      [answers.nameA ?? '', answers.nameB ?? ''],
+      completed.subdomain,
+    );
+  }, [completed, onComplete, answers.nameA, answers.nameB]);
 
   // ── Step props ──────────────────────────────────────────────
   const sharedProps = { answers, set, next, back, skip, goTo, dark };
@@ -428,7 +427,7 @@ export function WizardV2() {
     <div style={{ background: dark ? PD.ink : PD.paper, minHeight: '100vh' }}>
       {current !== 'generating' && (
         <>
-          <ReturnPill onClick={() => router.push('/dashboard')} dark={dark} />
+          <ReturnPill onClick={onBack} dark={dark} />
           <ProgressThread current={current} visible={visible} goTo={goTo} dark={dark} />
           <ContinuingStrip
             chips={chips.filter((c) => {

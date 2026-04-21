@@ -2,10 +2,10 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / DashboardClient.tsx — Dashboard composition root
-// Mounts: Landing → Dashboard → PearSpotlight → Editor
-// The legacy multi-step wizard (Photos/Clusters/Vibe/Generating/
-// Guests) has been removed; PearSpotlight is the single entry
-// point for creating new sites.
+// Mounts: Landing → Dashboard → Wizard → Editor
+// WizardV2 (category → occasion → names → date → venue → details
+// → photos → photoreview → vibe → layout → song → ready →
+// generating) is the single entry point for creating new sites.
 // ─────────────────────────────────────────────────────────────
 
 const isDev = process.env.NODE_ENV === 'development';
@@ -29,7 +29,7 @@ import { DashboardStep } from '@/components/wizard/DashboardStep';
 import { DashboardSidebar } from '@/components/dashboard/sidebar';
 import { UserNav } from '@/components/dashboard/user-nav';
 import { ThemeToggle } from '@/components/shell';
-import { PearSpotlight } from '@/components/wizard/PearSpotlight';
+import { WizardV2 } from '@/components/wizard/design/WizardV2';
 import { TemplateGallery } from '@/components/dashboard/TemplateGallery';
 import { MobileBottomNav } from '@/components/dashboard/MobileBottomNav';
 import { DialogProvider } from '@/components/ui/confirm-dialog';
@@ -461,17 +461,17 @@ export default function DashboardClient() {
     );
   }
 
-  // ── Pear Spotlight wizard takes over ─────────────────────────
+  // ── Wizard takes over ────────────────────────────────────────
   if (state.step === 'pear-crafts') {
     return (
-      <PearSpotlight
+      <WizardV2
         onComplete={(manifest: StoryManifest, names: [string, string], subdomain: string) => {
           // Save site to database FIRST, then enter editor
           fetch('/api/sites', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ subdomain, manifest, names }),
-          }).catch(err => logError('[PearSpotlight] Failed to save site draft:', err));
+          }).catch(err => logError('[Wizard] Failed to save site draft:', err));
 
           dispatch({ type: 'EDIT_SITE', manifest, subdomain, names });
         }}

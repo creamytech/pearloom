@@ -5,7 +5,7 @@
 // supports. One registry drives:
 //   • URL prefix (site-urls.ts → SiteOccasion)
 //   • Proxy rewrite allowlist (proxy.ts)
-//   • Wizard category → event picker (PearSpotlight)
+//   • Wizard category → event picker (WizardV2)
 //   • Default block set for a new site (SiteRenderer)
 //   • RSVP field preset (rsvp-presets.ts)
 //   • Pear AI drafting voice (memory-engine)

@@ -4,7 +4,7 @@
 // DashboardShell — shared chrome for every /dashboard/* subroute.
 // Replaces the hand-rolled header + sidebar that each page used
 // to inline. Keeps main /dashboard free to render its own frame
-// (it owns the fullscreen editor + PearSpotlight hand-offs).
+// (it owns the fullscreen editor + wizard hand-offs).
 //
 // Cohesion rule: this shell's header is the SAME shape as
 // DashboardClient's top bar — wordmark on the left, theme

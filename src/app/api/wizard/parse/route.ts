@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / api/wizard/parse/route.ts
 //
-// Natural-language entry point for the PearSpotlight wizard.
+// Natural-language entry point for the WizardV2 voice-first flow.
 // Takes a freeform description like
 //
 //   "October 28 wedding in Cape Cod for Alex & Jordan, beachy
