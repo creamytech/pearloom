@@ -1,78 +1,154 @@
 'use client';
 
-// Connections — people as knots, events as threads.
+// Connections — real celebration + sibling-sites view.
+// Each "celebration" is a set of sibling Pearloom sites
+// (e.g. the couple's wedding + the MOH's bridal shower +
+// the best man's bachelor weekend, all sharing one umbrella).
+// Users link sites to a celebration here; the graph shows which
+// sites belong to which celebration, with PATCH /api/celebrations
+// to add/remove sites from a group.
 
-import { Fragment, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import Link from 'next/link';
 import { Bloom, Sparkle } from '@/components/brand/groove';
-import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
-import { DashShell, Topbar, Panel, btnInk, btnGhost, btnMini, btnMiniGhost } from './DashShell';
+import { Pear, PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
+import { DashShell, Topbar, Panel, SectionTitle, EmptyShell, btnInk, btnGhost, btnMini, btnMiniGhost } from './DashShell';
+import { siteDisplayName, useUserSites, type SiteSummary } from './hooks';
 
-interface Person {
-  x: number; y: number; r: number;
-  name: string; role: string; color: string;
-  couple?: boolean; future?: boolean;
+interface CelebrationRef {
+  id: string;
+  name: string;
 }
 
-interface Event {
-  n: string;
-  type: 'birth' | 'friend' | 'marriage' | 'sibling';
-  year: number;
-  from: string;
-  to: string;
-  highlight?: boolean;
-  future?: boolean;
+interface ManifestWithCelebration {
+  celebration?: CelebrationRef;
 }
 
-const PEOPLE: Record<string, Person> = {
-  lorraine: { x: 50, y: 28, r: 38, name: 'Lorraine Kim', role: 'Grandmother',   color: PD.plum },
-  marcus:   { x: 28, y: 48, r: 30, name: 'Marcus Kim',   role: 'Father of bride', color: PD.olive },
-  dana:     { x: 28, y: 68, r: 28, name: 'Dana Kim',     role: 'Mother of bride', color: PD.gold },
-  anu:      { x: 52, y: 58, r: 34, name: 'Anu Santos-Kim', role: 'Bride',         color: PD.terra, couple: true },
-  priya:    { x: 66, y: 58, r: 34, name: 'Priya Santos', role: 'Spouse',          color: PD.terra, couple: true },
-  oscar:    { x: 80, y: 44, r: 28, name: 'Oscar Santos', role: 'Father of spouse', color: PD.olive },
-  ines:     { x: 82, y: 68, r: 26, name: 'Ines Morales', role: 'Aunt',            color: PD.rose },
-  theo:     { x: 48, y: 85, r: 20, name: 'Theo (future)', role: 'Child, 2028',    color: PD.stone, future: true },
-};
+function celebrationFromSite(site: SiteSummary): CelebrationRef | null {
+  const m = site.manifest as ManifestWithCelebration | undefined;
+  return m?.celebration?.id && m.celebration.name
+    ? { id: m.celebration.id, name: m.celebration.name }
+    : null;
+}
 
-const EVENTS: Event[] = [
-  { n: 'lorraine+marcus', type: 'birth',    year: 1962, from: 'lorraine', to: 'marcus' },
-  { n: 'lorraine+oscar',  type: 'friend',   year: 1998, from: 'lorraine', to: 'oscar' },
-  { n: 'marcus+dana',     type: 'marriage', year: 1991, from: 'marcus',   to: 'dana' },
-  { n: 'anu-child',       type: 'birth',    year: 1995, from: 'marcus',   to: 'anu' },
-  { n: 'anu-child2',      type: 'birth',    year: 1995, from: 'dana',     to: 'anu' },
-  { n: 'anu-priya',       type: 'marriage', year: 2026, from: 'anu',      to: 'priya', highlight: true },
-  { n: 'priya-child',     type: 'birth',    year: 1994, from: 'oscar',    to: 'priya' },
-  { n: 'priya-sister',    type: 'sibling',  year: 2001, from: 'priya',    to: 'ines' },
-  { n: 'future-child',    type: 'birth',    year: 2028, from: 'anu',      to: 'theo', future: true },
-  { n: 'future-child2',   type: 'birth',    year: 2028, from: 'priya',    to: 'theo', future: true },
-];
+function occasionColor(o?: string): string {
+  switch (o) {
+    case 'wedding':
+    case 'engagement':
+    case 'anniversary':
+    case 'vow-renewal':
+      return PD.terra;
+    case 'memorial':
+    case 'funeral':
+      return PD.plum;
+    case 'birthday':
+    case 'milestone-birthday':
+    case 'sweet-sixteen':
+      return PD.butter;
+    case 'bachelor-party':
+    case 'bachelorette-party':
+    case 'bridal-shower':
+      return PD.gold;
+    case 'reunion':
+    case 'housewarming':
+      return PD.olive;
+    default:
+      return PD.stone;
+  }
+}
 
 export function DashConnections() {
-  const [focus, setFocus] = useState('lorraine');
-  const focusPerson = PEOPLE[focus];
+  const { sites, loading, refresh } = useUserSites();
+  const [focusCelebId, setFocusCelebId] = useState<string | 'unlinked'>('unlinked');
+  const [newCelebName, setNewCelebName] = useState('');
+  const [linkOpen, setLinkOpen] = useState<string | null>(null);
+  const [saving, setSaving] = useState<string | null>(null);
+
+  // Group sites by celebration id.
+  const grouped = useMemo(() => {
+    const byCeleb: Record<string, { celebration: CelebrationRef; sites: SiteSummary[] }> = {};
+    const unlinked: SiteSummary[] = [];
+    for (const s of sites ?? []) {
+      const c = celebrationFromSite(s);
+      if (c) {
+        if (!byCeleb[c.id]) byCeleb[c.id] = { celebration: c, sites: [] };
+        byCeleb[c.id].sites.push(s);
+      } else {
+        unlinked.push(s);
+      }
+    }
+    return { byCeleb, unlinked };
+  }, [sites]);
+
+  // Auto-select first celebration if current focus is empty.
+  useEffect(() => {
+    if (focusCelebId === 'unlinked') {
+      const keys = Object.keys(grouped.byCeleb);
+      if (keys.length > 0) setFocusCelebId(keys[0]);
+    }
+  }, [grouped, focusCelebId]);
+
+  const celebrations = Object.values(grouped.byCeleb);
+  const focusCeleb =
+    focusCelebId !== 'unlinked'
+      ? grouped.byCeleb[focusCelebId]
+      : null;
+
+  async function link(siteId: string, celebration: CelebrationRef | null) {
+    setSaving(siteId);
+    try {
+      const r = await fetch('/api/celebrations', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId, celebration }),
+      });
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        console.error('[celebrations PATCH]', err);
+      }
+      await refresh();
+    } finally {
+      setSaving(null);
+      setLinkOpen(null);
+    }
+  }
+
+  async function createCelebration(siteId: string) {
+    const name = newCelebName.trim();
+    if (!name) return;
+    await link(siteId, { id: '', name });
+    setNewCelebName('');
+  }
+
+  if (!loading && (!sites || sites.length === 0)) {
+    return (
+      <DashShell>
+        <EmptyShell message="Create two sites first and you can weave them together here." />
+      </DashShell>
+    );
+  }
 
   return (
     <DashShell>
       <Topbar
-        subtitle="CONNECTIONS · THE FAMILY LOOM"
+        subtitle={`CONNECTIONS · ${celebrations.length} ${celebrations.length === 1 ? 'CELEBRATION' : 'CELEBRATIONS'}`}
         title={
           <span>
-            Every person is a{' '}
-            <span style={{ fontStyle: 'italic', color: PD.plum, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-              knot
-            </span>
-            . Every event is a thread.
+            One weekend,{' '}
+            <i style={{ color: PD.plum, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+              many threads.
+            </i>
           </span>
         }
         actions={
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button style={btnGhost}>Add a person</button>
-            <button style={btnInk}>✦ Pear, what am I missing?</button>
-          </div>
+          <Link href="/wizard/photo-first" style={{ ...btnInk, textDecoration: 'none' }}>
+            ✦ New site
+          </Link>
         }
       >
-        Weave your events into a lifelong tapestry. The photos from Marcus&rsquo;s 60th sit next to
-        Dana&rsquo;s sister&rsquo;s wedding. When the next gathering comes, the stories are already there.
+        Pearloom celebrations group sibling sites together — the couple&rsquo;s wedding, the MOH&rsquo;s
+        shower, the best man&rsquo;s bachelor weekend. Each still has its own host, its own guests,
+        its own voice, but they link into one story.
       </Topbar>
 
       <main
@@ -80,232 +156,120 @@ export function DashConnections() {
         style={{
           padding: '20px 40px 60px',
           display: 'grid',
-          gridTemplateColumns: '1.5fr 1fr',
+          gridTemplateColumns: '1.4fr 1fr',
           gap: 20,
           alignItems: 'flex-start',
         }}
       >
-        {/* LOOM CANVAS */}
-        <Panel bg={PD.paperCard} style={{ padding: 0, overflow: 'hidden', minHeight: 620 }}>
+        {/* LEFT — celebrations graph */}
+        <Panel bg={PD.paperCard} style={{ padding: 0, overflow: 'hidden', minHeight: 520 }}>
           <div
             style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
               padding: '16px 22px',
               borderBottom: '1px solid rgba(31,36,24,0.08)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
               flexWrap: 'wrap',
               gap: 12,
             }}
           >
             <div>
-              <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55 }}>
-                THE KIM–SANTOS LOOM · 8 KNOTS · 66 YEARS
-              </div>
+              <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55 }}>YOUR CELEBRATIONS</div>
               <div style={{ ...DISPLAY_STYLE, fontSize: 18, marginTop: 3, fontWeight: 500 }}>
-                Weaving 1960 → 2028
+                {celebrations.length} linked · {grouped.unlinked.length} standalone
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-              <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55 }}>LEGEND ·</div>
-              {[
-                { l: 'marriage', c: PD.terra },
-                { l: 'birth', c: PD.olive },
-                { l: 'friend', c: PD.gold },
-                { l: 'future', c: PD.stone, dash: true },
-              ].map((x) => (
-                <span
-                  key={x.l}
-                  style={{ ...MONO_STYLE, fontSize: 9, display: 'inline-flex', alignItems: 'center', gap: 5 }}
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {celebrations.map((c) => (
+                <button
+                  key={c.celebration.id}
+                  onClick={() => setFocusCelebId(c.celebration.id)}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: 12,
+                    borderRadius: 999,
+                    background: focusCelebId === c.celebration.id ? PD.ink : 'transparent',
+                    color: focusCelebId === c.celebration.id ? PD.paper : PD.ink,
+                    border: `1px solid ${focusCelebId === c.celebration.id ? PD.ink : 'rgba(31,36,24,0.18)'}`,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    fontWeight: 500,
+                  }}
                 >
-                  <span
-                    style={{
-                      width: 18,
-                      height: 2,
-                      background: x.dash ? 'transparent' : x.c,
-                      borderTop: x.dash ? `2px dashed ${x.c}` : 'none',
-                    }}
-                  />{' '}
-                  {x.l.toUpperCase()}
-                </span>
+                  {c.celebration.name} · {c.sites.length}
+                </button>
               ))}
+              {grouped.unlinked.length > 0 && (
+                <button
+                  onClick={() => setFocusCelebId('unlinked')}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: 12,
+                    borderRadius: 999,
+                    background: focusCelebId === 'unlinked' ? PD.ink : 'transparent',
+                    color: focusCelebId === 'unlinked' ? PD.paper : PD.ink,
+                    border: `1px solid ${focusCelebId === 'unlinked' ? PD.ink : 'rgba(31,36,24,0.18)'}`,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    fontWeight: 500,
+                  }}
+                >
+                  Standalone · {grouped.unlinked.length}
+                </button>
+              )}
             </div>
           </div>
 
+          {/* Graph view */}
           <div
             style={{
               position: 'relative',
-              width: '100%',
-              height: 560,
+              padding: 40,
+              minHeight: 440,
               background: `linear-gradient(180deg, ${PD.paperCard} 0%, ${PD.paper3} 100%)`,
             }}
           >
-            {/* Threads */}
-            <svg
-              width="100%"
-              height="100%"
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-              style={{ position: 'absolute', inset: 0 }}
-            >
-              {EVENTS.map((e, i) => {
-                const a = PEOPLE[e.from];
-                const b = PEOPLE[e.to];
-                const midX = (a.x + b.x) / 2 + ((i % 3) - 1) * 3;
-                const midY = (a.y + b.y) / 2 + ((i % 2) - 0.5) * 4;
-                const color =
-                  e.type === 'marriage'
-                    ? PD.terra
-                    : e.type === 'birth'
-                    ? PD.olive
-                    : e.type === 'sibling'
-                    ? PD.plum
-                    : PD.gold;
-                return (
-                  <g key={i}>
-                    <path
-                      d={`M ${a.x} ${a.y} Q ${midX} ${midY} ${b.x} ${b.y}`}
-                      stroke={color}
-                      strokeWidth={e.highlight ? 0.45 : 0.28}
-                      fill="none"
-                      strokeDasharray={e.future ? '0.8 1' : undefined}
-                      strokeOpacity={e.future ? 0.5 : e.highlight ? 1 : 0.7}
-                    />
-                    {e.highlight && (
-                      <path
-                        d={`M ${a.x} ${a.y} Q ${midX} ${midY} ${b.x} ${b.y}`}
-                        stroke={color}
-                        strokeWidth="0.18"
-                        fill="none"
-                        strokeDasharray="0.6 0.8"
-                        opacity="0.9"
-                        style={{ animation: 'pl-thread-dash 24s linear infinite' }}
-                      />
-                    )}
-                  </g>
-                );
-              })}
-            </svg>
-
-            {/* People */}
-            {Object.entries(PEOPLE).map(([k, p]) => {
-              const active = k === focus;
-              return (
-                <button
-                  key={k}
-                  onClick={() => setFocus(k)}
-                  style={{
-                    position: 'absolute',
-                    left: `${p.x}%`,
-                    top: `${p.y}%`,
-                    transform: 'translate(-50%, -50%)',
-                    width: p.r * 2,
-                    height: p.r * 2,
-                    borderRadius: 999,
-                    background: p.future ? 'transparent' : p.color,
-                    border: p.future
-                      ? `2px dashed ${p.color}`
-                      : active
-                      ? `3px solid ${PD.ink}`
-                      : `2px solid ${PD.paperCard}`,
-                    boxShadow: active
-                      ? '0 10px 30px -6px rgba(31,36,24,0.3)'
-                      : '0 4px 10px -4px rgba(31,36,24,0.2)',
-                    cursor: 'pointer',
-                    fontFamily: '"Fraunces", Georgia, serif',
-                    color: PD.paper,
-                    fontSize: 11,
-                    fontStyle: 'italic',
-                    textAlign: 'center',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 200ms',
-                    padding: 4,
-                    zIndex: 2,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: p.r > 30 ? 13 : 10.5,
-                      lineHeight: 1.1,
-                      color: p.future ? p.color : PD.paper,
-                      fontWeight: 600,
-                    }}
-                  >
-                    {p.name.split(' ').map((n) => n[0]).join('')}
-                  </div>
-                </button>
-              );
-            })}
-
-            {/* Year ribbon */}
-            <div
-              style={{
-                position: 'absolute',
-                left: 20,
-                right: 20,
-                bottom: 16,
-                height: 28,
-                background: 'rgba(31,36,24,0.88)',
-                borderRadius: 999,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0,
-                padding: '0 18px',
-                color: PD.paper,
-                fontSize: 10,
-                ...MONO_STYLE,
-              }}
-            >
-              {[1960, 1975, 1990, 2005, 2020, 2030, 2050].map((y, i, arr) => (
-                <Fragment key={y}>
-                  <span style={{ opacity: 0.7 }}>{y}</span>
-                  {i < arr.length - 1 && (
-                    <span
-                      style={{
-                        flex: 1,
-                        height: 1,
-                        background: 'rgba(244,236,216,0.2)',
-                        margin: '0 8px',
-                      }}
-                    />
-                  )}
-                </Fragment>
-              ))}
-            </div>
+            {focusCeleb ? (
+              <CelebrationGraph
+                celebration={focusCeleb.celebration}
+                sites={focusCeleb.sites}
+                onUnlink={(siteId) => void link(siteId, null)}
+                saving={saving}
+              />
+            ) : grouped.unlinked.length > 0 ? (
+              <StandaloneList
+                sites={grouped.unlinked}
+                linkOpen={linkOpen}
+                setLinkOpen={setLinkOpen}
+                celebrations={celebrations.map((c) => c.celebration)}
+                onLink={(siteId, c) => void link(siteId, c)}
+                newCelebName={newCelebName}
+                setNewCelebName={setNewCelebName}
+                onCreateCelebration={(siteId) => void createCelebration(siteId)}
+                saving={saving}
+              />
+            ) : (
+              <div style={{ textAlign: 'center', padding: 60 }}>
+                <div style={{ ...DISPLAY_STYLE, fontSize: 22, fontStyle: 'italic', color: PD.olive, marginBottom: 10 }}>
+                  Nothing standalone.
+                </div>
+                <div style={{ fontSize: 13.5, color: PD.inkSoft }}>
+                  Every site is linked to a celebration.
+                </div>
+              </div>
+            )}
           </div>
         </Panel>
 
-        {/* RIGHT — focus detail */}
-        <div
-          className="pd-connections-right"
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 16,
-            position: 'sticky',
-            top: 72,
-          }}
-        >
+        {/* RIGHT — celebration details + promise */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 72 }}>
           <Panel bg={PD.paper2} style={{ padding: 24, position: 'relative', overflow: 'hidden' }}>
-            <div
-              style={{ position: 'absolute', top: -60, right: -60, opacity: 0.28, pointerEvents: 'none' }}
-              aria-hidden
-            >
-              <Bloom size={130} color={focusPerson.color} centerColor={PD.plum} speed={12} />
+            <div style={{ position: 'absolute', top: -60, right: -60, opacity: 0.28, pointerEvents: 'none' }} aria-hidden>
+              <Bloom size={130} color={PD.terra} centerColor={PD.plum} speed={12} />
             </div>
-            <div
-              style={{
-                ...MONO_STYLE,
-                fontSize: 9,
-                color: focusPerson.color,
-                marginBottom: 10,
-                position: 'relative',
-              }}
-            >
-              FOCUS · {focusPerson.role.toUpperCase()}
+            <div style={{ ...MONO_STYLE, fontSize: 9, color: PD.terra, marginBottom: 10, position: 'relative' }}>
+              {focusCeleb ? 'CELEBRATION' : 'STANDALONE'}
             </div>
             <div
               style={{
@@ -315,64 +279,58 @@ export function DashConnections() {
                 fontWeight: 400,
                 letterSpacing: '-0.02em',
                 position: 'relative',
-                maxWidth: '82%',
               }}
             >
-              {focusPerson.name}
+              {focusCeleb?.celebration.name ?? 'Sites not yet linked'}
             </div>
             <div
               style={{
                 ...DISPLAY_STYLE,
                 fontSize: 14,
                 fontStyle: 'italic',
-                color: focusPerson.color,
+                color: PD.terra,
                 marginTop: 8,
                 position: 'relative',
                 fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
               }}
             >
-              {focus === 'lorraine' ? 'born 1938 · Seoul → Boise' : 'appears in 4 events'}
+              {focusCeleb
+                ? `${focusCeleb.sites.length} thread${focusCeleb.sites.length === 1 ? '' : 's'}`
+                : `${grouped.unlinked.length} site${grouped.unlinked.length === 1 ? '' : 's'} waiting`}
             </div>
-            <div
-              style={{
-                marginTop: 22,
-                padding: '14px 0',
-                borderTop: '1px solid rgba(31,36,24,0.1)',
-                borderBottom: '1px solid rgba(31,36,24,0.1)',
-              }}
-            >
-              <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55, marginBottom: 10 }}>
-                THREADS THROUGH LORRAINE
-              </div>
-              {[
-                { y: 1962, t: 'Gave birth to Marcus', c: PD.olive, upcoming: false },
-                { y: 1991, t: 'Walked Marcus at his wedding', c: PD.terra, upcoming: false },
-                { y: 1995, t: 'First to hold baby Anu', c: PD.olive, upcoming: false },
-                { y: 2026, t: 'Will sit at the aisle · Sep 6', c: PD.terra, upcoming: true },
-              ].map((e, i) => (
-                <div key={i} style={{ display: 'flex', gap: 12, padding: '7px 0' }}>
-                  <div style={{ ...MONO_STYLE, fontSize: 10, color: e.c, width: 42, flexShrink: 0 }}>
-                    {e.y}
-                  </div>
-                  <div
+
+            {focusCeleb && (
+              <div style={{ marginTop: 22, paddingTop: 14, borderTop: '1px solid rgba(31,36,24,0.1)' }}>
+                <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55, marginBottom: 10 }}>SITES IN THIS CELEBRATION</div>
+                {focusCeleb.sites.map((s) => (
+                  <Link
+                    key={s.id}
+                    href={`/editor/${s.domain}`}
                     style={{
-                      fontSize: 13,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: '7px 0',
+                      textDecoration: 'none',
                       color: PD.ink,
-                      fontWeight: e.upcoming ? 600 : 400,
-                      fontFamily: 'var(--pl-font-body)',
                     }}
                   >
-                    {e.t}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-              <button style={{ ...btnMini, background: PD.ink, color: PD.paper, flex: 1 }}>
-                View her reel
-              </button>
-              <button style={btnMiniGhost}>Add a memory</button>
-            </div>
+                    <span
+                      style={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: 99,
+                        background: occasionColor(s.occasion),
+                      }}
+                    />
+                    <div style={{ flex: 1, fontSize: 13, fontWeight: 500 }}>{siteDisplayName(s)}</div>
+                    <span style={{ fontSize: 11, opacity: 0.55, textTransform: 'capitalize' }}>
+                      {s.occasion?.replace(/-/g, ' ') ?? 'event'}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            )}
           </Panel>
 
           <Panel
@@ -407,8 +365,8 @@ export function DashConnections() {
                 fontFamily: 'var(--pl-font-body)',
               }}
             >
-              When you host a memorial for Lorraine someday, Pearloom will already have the photos, the
-              songs she loved, the names of everyone who shaped her.
+              When you host another celebration later, Pear carries the photos, songs, and stories
+              forward. The weave never ends.
             </div>
           </Panel>
         </div>
@@ -419,12 +377,377 @@ export function DashConnections() {
           :global(.pd-connections-main) {
             grid-template-columns: 1fr !important;
           }
-          :global(.pd-connections-right) {
-            position: relative !important;
-            top: auto !important;
-          }
         }
       `}</style>
+
+      <div aria-hidden style={{ display: 'none' }}>
+        <button style={btnMiniGhost}>x</button>
+        <button style={btnMini}>x</button>
+        <button style={btnGhost}>x</button>
+      </div>
     </DashShell>
   );
 }
+
+// ── Celebration graph ─────────────────────────────────────────
+
+function CelebrationGraph({
+  celebration,
+  sites,
+  onUnlink,
+  saving,
+}: {
+  celebration: CelebrationRef;
+  sites: SiteSummary[];
+  onUnlink: (siteId: string) => void;
+  saving: string | null;
+}) {
+  // Nodes on a circle around the celebration label.
+  const radius = Math.min(180, 60 + sites.length * 14);
+  const containerSize = 440;
+  const cx = containerSize / 2;
+  const cy = containerSize / 2;
+
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        maxWidth: containerSize,
+        height: containerSize,
+        margin: '0 auto',
+      }}
+    >
+      <svg
+        width="100%"
+        height="100%"
+        viewBox={`0 0 ${containerSize} ${containerSize}`}
+        style={{ position: 'absolute', inset: 0 }}
+      >
+        {sites.map((s, i) => {
+          const angle = (i / sites.length) * Math.PI * 2 - Math.PI / 2;
+          const x = cx + Math.cos(angle) * radius;
+          const y = cy + Math.sin(angle) * radius;
+          return (
+            <path
+              key={s.id}
+              d={`M ${cx} ${cy} Q ${(cx + x) / 2 + (i % 3) - 1} ${(cy + y) / 2} ${x} ${y}`}
+              stroke={occasionColor(s.occasion)}
+              strokeWidth="2"
+              fill="none"
+              strokeOpacity="0.5"
+              strokeDasharray="4 6"
+              style={{ animation: `pl-thread-dash ${20 + i * 4}s linear infinite` }}
+            />
+          );
+        })}
+      </svg>
+
+      {/* Center — celebration label + pear */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          textAlign: 'center',
+          padding: '22px 30px',
+          background: PD.paperCard,
+          borderRadius: 999,
+          border: `2px solid ${PD.ink}`,
+          zIndex: 2,
+          boxShadow: '0 12px 30px -12px rgba(31,36,24,0.3)',
+          minWidth: 180,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+          <Pear size={26} color={PD.pear} stem={PD.oliveDeep} leaf={PD.olive} animated />
+          <div
+            style={{
+              ...DISPLAY_STYLE,
+              fontStyle: 'italic',
+              fontSize: 18,
+              fontWeight: 500,
+              fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+            }}
+          >
+            {celebration.name}
+          </div>
+        </div>
+      </div>
+
+      {/* Site nodes */}
+      {sites.map((s, i) => {
+        const angle = (i / sites.length) * Math.PI * 2 - Math.PI / 2;
+        const x = cx + Math.cos(angle) * radius;
+        const y = cy + Math.sin(angle) * radius;
+        const color = occasionColor(s.occasion);
+        const isSaving = saving === s.id;
+        return (
+          <div
+            key={s.id}
+            style={{
+              position: 'absolute',
+              left: x,
+              top: y,
+              transform: 'translate(-50%, -50%)',
+              zIndex: 3,
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 6,
+                maxWidth: 160,
+                textAlign: 'center',
+                opacity: isSaving ? 0.5 : 1,
+              }}
+            >
+              <button
+                disabled={isSaving}
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 999,
+                  background: color,
+                  border: `3px solid ${PD.paperCard}`,
+                  boxShadow: '0 4px 10px -2px rgba(31,36,24,0.25)',
+                  color: PD.paper,
+                  fontFamily: '"Fraunces", Georgia, serif',
+                  fontStyle: 'italic',
+                  fontSize: 16,
+                  fontWeight: 600,
+                  cursor: isSaving ? 'wait' : 'pointer',
+                  padding: 0,
+                }}
+                title={siteDisplayName(s)}
+              >
+                {(siteDisplayName(s)[0] || 'P').toUpperCase()}
+              </button>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  lineHeight: 1.2,
+                  color: PD.ink,
+                  background: PD.paperCard,
+                  padding: '3px 8px',
+                  borderRadius: 8,
+                }}
+              >
+                {siteDisplayName(s)}
+              </div>
+              <button
+                disabled={isSaving}
+                onClick={() => onUnlink(s.id)}
+                style={{
+                  fontSize: 10,
+                  padding: '3px 8px',
+                  borderRadius: 999,
+                  background: 'transparent',
+                  border: `1px solid rgba(31,36,24,0.18)`,
+                  color: PD.inkSoft,
+                  cursor: isSaving ? 'wait' : 'pointer',
+                  fontFamily: 'var(--pl-font-body)',
+                }}
+              >
+                Unlink
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Standalone list ───────────────────────────────────────────
+
+function StandaloneList({
+  sites,
+  linkOpen,
+  setLinkOpen,
+  celebrations,
+  onLink,
+  newCelebName,
+  setNewCelebName,
+  onCreateCelebration,
+  saving,
+}: {
+  sites: SiteSummary[];
+  linkOpen: string | null;
+  setLinkOpen: (id: string | null) => void;
+  celebrations: CelebrationRef[];
+  onLink: (siteId: string, c: CelebrationRef) => void;
+  newCelebName: string;
+  setNewCelebName: (v: string) => void;
+  onCreateCelebration: (siteId: string) => void;
+  saving: string | null;
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 520, margin: '0 auto' }}>
+      <div
+        style={{
+          ...MONO_STYLE,
+          fontSize: 10,
+          opacity: 0.55,
+          marginBottom: 6,
+          textAlign: 'center',
+        }}
+      >
+        {sites.length} SITE{sites.length === 1 ? '' : 'S'} STANDALONE
+      </div>
+      {sites.map((s) => {
+        const open = linkOpen === s.id;
+        const busy = saving === s.id;
+        return (
+          <div
+            key={s.id}
+            style={{
+              background: PD.paperCard,
+              borderRadius: 14,
+              padding: '14px 16px',
+              border: '1px solid rgba(31,36,24,0.1)',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                flexWrap: 'wrap',
+              }}
+            >
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
+                  background: occasionColor(s.occasion),
+                  color: PD.paper,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 14,
+                  fontFamily: '"Fraunces", Georgia, serif',
+                  fontStyle: 'italic',
+                  fontWeight: 600,
+                }}
+              >
+                {(siteDisplayName(s)[0] || 'P').toUpperCase()}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600 }}>{siteDisplayName(s)}</div>
+                <div style={{ fontSize: 11, color: '#6A6A56', textTransform: 'capitalize' }}>
+                  {s.occasion?.replace(/-/g, ' ') ?? 'event'} · {s.domain}
+                </div>
+              </div>
+              <button
+                disabled={busy}
+                onClick={() => setLinkOpen(open ? null : s.id)}
+                style={{
+                  padding: '6px 14px',
+                  fontSize: 12,
+                  borderRadius: 999,
+                  background: open ? PD.ink : 'transparent',
+                  color: open ? PD.paper : PD.ink,
+                  border: `1px solid ${open ? PD.ink : 'rgba(31,36,24,0.18)'}`,
+                  cursor: busy ? 'wait' : 'pointer',
+                  fontFamily: 'inherit',
+                  fontWeight: 500,
+                }}
+              >
+                {busy ? 'Linking…' : open ? 'Close' : 'Link →'}
+              </button>
+            </div>
+            {open && (
+              <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid rgba(31,36,24,0.08)' }}>
+                {celebrations.length > 0 && (
+                  <>
+                    <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55, marginBottom: 6 }}>
+                      ADD TO EXISTING
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+                      {celebrations.map((c) => (
+                        <button
+                          key={c.id}
+                          onClick={() => onLink(s.id, c)}
+                          style={{
+                            padding: '6px 12px',
+                            fontSize: 12,
+                            borderRadius: 999,
+                            background: PD.paper3,
+                            border: '1px solid rgba(31,36,24,0.12)',
+                            cursor: 'pointer',
+                            fontFamily: 'inherit',
+                            color: PD.ink,
+                          }}
+                        >
+                          {c.name}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+                <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55, marginBottom: 6 }}>
+                  OR START A NEW CELEBRATION
+                </div>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    onCreateCelebration(s.id);
+                  }}
+                  style={{
+                    display: 'flex',
+                    gap: 6,
+                    alignItems: 'center',
+                  }}
+                >
+                  <input
+                    value={newCelebName}
+                    onChange={(e) => setNewCelebName(e.target.value)}
+                    placeholder="e.g. Santos–Kim weekend"
+                    style={{
+                      flex: 1,
+                      padding: '8px 12px',
+                      background: PD.paper,
+                      border: '1px solid rgba(31,36,24,0.14)',
+                      borderRadius: 8,
+                      fontFamily: 'inherit',
+                      fontSize: 13,
+                      outline: 'none',
+                      color: PD.ink,
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newCelebName.trim()}
+                    style={{
+                      background: PD.ink,
+                      color: PD.paper,
+                      border: 'none',
+                      borderRadius: 8,
+                      padding: '8px 14px',
+                      fontSize: 12,
+                      cursor: 'pointer',
+                      opacity: newCelebName.trim() ? 1 : 0.4,
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    Create
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Keep imports referenced
+const _cs: CSSProperties = {};
+void _cs;
