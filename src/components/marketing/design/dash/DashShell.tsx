@@ -15,7 +15,7 @@
 
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { useSession, signIn } from 'next-auth/react';
+import { useSession, signIn, signOut } from 'next-auth/react';
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { Bloom } from '@/components/brand/groove';
 import { Pear, PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
@@ -324,7 +324,7 @@ function Sidebar() {
             : `Hosted by ${session?.user?.email ?? 'you'}`}
         </div>
         <Link
-          href="/wizard/photo-first"
+          href="/wizard/new"
           style={{
             marginTop: 10,
             width: '100%',
@@ -356,8 +356,17 @@ function TopbarGlobal() {
   const { sites, site, selectSite } = useSelectedSite();
   const [focus, setFocus] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const close = () => setMenuOpen(false);
+    window.addEventListener('click', close);
+    return () => window.removeEventListener('click', close);
+  }, [menuOpen]);
 
   const name = session?.user?.name ?? session?.user?.email ?? '';
+  const email = session?.user?.email ?? '';
   const initial = (session?.user?.name?.[0] || session?.user?.email?.[0] || 'P').toUpperCase();
   const image = session?.user?.image ?? null;
 
@@ -525,58 +534,168 @@ function TopbarGlobal() {
         </div>
       )}
 
-      <div
-        style={{ position: 'relative', width: 34, height: 34, cursor: 'pointer' }}
-        title={name}
-      >
-        {image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={image}
-            alt={name}
+      <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+        <button
+          onClick={() => setMenuOpen((v) => !v)}
+          title={name}
+          aria-label="Account menu"
+          aria-expanded={menuOpen}
+          style={{
+            position: 'relative',
+            width: 34,
+            height: 34,
+            padding: 0,
+            border: 'none',
+            background: 'transparent',
+            cursor: 'pointer',
+            borderRadius: 999,
+          }}
+        >
+          {image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={image}
+              alt={name}
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 999,
+                objectFit: 'cover',
+                display: 'block',
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 999,
+                background: `linear-gradient(135deg, ${PD.pear}, ${PD.olive})`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: PD.paper,
+                fontSize: 13,
+                fontWeight: 600,
+                fontFamily: '"Fraunces", Georgia, serif',
+                fontStyle: 'italic',
+              }}
+            >
+              {initial}
+            </div>
+          )}
+          <span
+            aria-hidden
             style={{
-              width: 34,
-              height: 34,
-              borderRadius: 999,
-              objectFit: 'cover',
+              position: 'absolute',
+              right: -1,
+              bottom: -1,
+              width: 10,
+              height: 10,
+              borderRadius: 99,
+              background: PD.olive,
+              border: `2px solid ${PD.paper}`,
             }}
           />
-        ) : (
+        </button>
+        {menuOpen && (
           <div
+            role="menu"
             style={{
-              width: 34,
-              height: 34,
-              borderRadius: 999,
-              background: `linear-gradient(135deg, ${PD.pear}, ${PD.olive})`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: PD.paper,
-              fontSize: 13,
-              fontWeight: 600,
-              fontFamily: '"Fraunces", Georgia, serif',
-              fontStyle: 'italic',
+              position: 'absolute',
+              top: 'calc(100% + 8px)',
+              right: 0,
+              minWidth: 220,
+              background: PD.paperCard,
+              border: '1px solid rgba(31,36,24,0.14)',
+              borderRadius: 14,
+              padding: 6,
+              boxShadow: '0 18px 40px -16px rgba(31,36,24,0.3)',
+              zIndex: 40,
+              fontFamily: 'inherit',
             }}
           >
-            {initial}
+            <div
+              style={{
+                padding: '10px 12px 12px',
+                borderBottom: '1px solid rgba(31,36,24,0.08)',
+                marginBottom: 4,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: PD.ink,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {session?.user?.name || 'You'}
+              </div>
+              {email && (
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: '#6A6A56',
+                    marginTop: 2,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {email}
+                </div>
+              )}
+            </div>
+            <Link
+              href="/dashboard/profile"
+              onClick={() => setMenuOpen(false)}
+              style={menuItemStyle}
+            >
+              Profile
+            </Link>
+            <Link
+              href="/dashboard/connections"
+              onClick={() => setMenuOpen(false)}
+              style={menuItemStyle}
+            >
+              Connections
+            </Link>
+            <Link
+              href="/dashboard/help"
+              onClick={() => setMenuOpen(false)}
+              style={menuItemStyle}
+            >
+              Help
+            </Link>
+            <div style={{ height: 1, background: 'rgba(31,36,24,0.08)', margin: '4px 0' }} />
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                signOut({ callbackUrl: '/' });
+              }}
+              style={{ ...menuItemStyle, color: PD.terra, background: 'transparent', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}
+            >
+              Sign out
+            </button>
           </div>
         )}
-        <span
-          style={{
-            position: 'absolute',
-            right: -1,
-            bottom: -1,
-            width: 10,
-            height: 10,
-            borderRadius: 99,
-            background: PD.olive,
-            border: `2px solid ${PD.paper}`,
-          }}
-        />
       </div>
     </div>
   );
 }
+
+const menuItemStyle: CSSProperties = {
+  display: 'block',
+  padding: '9px 12px',
+  fontSize: 13,
+  color: PD.ink,
+  borderRadius: 8,
+  textDecoration: 'none',
+  fontFamily: 'inherit',
+};
 
 // ── Topbar (per-page) ────────────────────────────────────────
 interface TopbarProps {

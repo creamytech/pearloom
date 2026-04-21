@@ -141,7 +141,7 @@ export function DashConnections() {
           </span>
         }
         actions={
-          <Link href="/wizard/photo-first" style={{ ...btnInk, textDecoration: 'none' }}>
+          <Link href="/wizard/new" style={{ ...btnInk, textDecoration: 'none' }}>
             ✦ New site
           </Link>
         }

@@ -297,7 +297,7 @@ export function DashMarketplace() {
                     </div>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <Link
-                        href={`/wizard/photo-first?template=${t.id}`}
+                        href={`/wizard/new?template=${t.id}`}
                         style={{
                           ...btnMini,
                           background: PD.ink,

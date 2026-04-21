@@ -6,8 +6,8 @@
 // to inline. Keeps main /dashboard free to render its own frame
 // (it owns the fullscreen editor + wizard hand-offs).
 //
-// Cohesion rule: this shell's header is the SAME shape as
-// DashboardClient's top bar — wordmark on the left, theme
+// Cohesion rule: this shell's header matches the DashShell top
+// bar shape — wordmark on the left, theme
 // toggle + UserNav on the right. Both inherit the root theme
 // (pl-theme), no inner ThemeProvider, so dark-mode toggling
 // flips every dashboard page together.

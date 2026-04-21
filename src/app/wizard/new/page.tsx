@@ -1,16 +1,19 @@
 // ─────────────────────────────────────────────────────────────
-// Pearloom / app/wizard/photo-first/page.tsx
-// Photo-first onboarding — drop 10+ photos, get a site in 30 s.
+// Pearloom / app/wizard/new/page.tsx
+// Standalone entry for WizardV2. Owns /api/sites save + editor
+// redirect so the wizard works from any dashboard surface.
 // ─────────────────────────────────────────────────────────────
 
 import type { Metadata } from 'next';
-import { PhotoFirstWizard } from '@/components/wizard/PhotoFirstWizard';
+import { WizardNewClient } from './WizardNewClient';
 
 export const metadata: Metadata = {
-  title: 'Start from photos · Pearloom',
-  description: 'Drop a folder of photos and Pearloom will build the rest.',
+  title: 'Begin a thread · Pearloom',
+  description: 'Pear walks you through it. One step at a time, or all at once.',
 };
 
-export default function PhotoFirstWizardPage() {
-  return <PhotoFirstWizard />;
+export const dynamic = 'force-dynamic';
+
+export default function WizardNewPage() {
+  return <WizardNewClient />;
 }

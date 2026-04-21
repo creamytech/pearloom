@@ -5,9 +5,8 @@
 //
 // The new wizard orchestrator. Pulls together the shell, helper,
 // voice-first alt path, all 11 step components, and the generate
-// handoff. Mounted from DashboardClient when state.step is
-// 'pear-crafts'. The parent owns the site-save + editor handoff
-// via the onComplete prop.
+// handoff. Mounted from /wizard/new/page.tsx — the parent owns
+// the site-save + editor handoff via the onComplete prop.
 //
 // Answers persist to localStorage so the wizard survives reloads.
 // Generation is opaque about implementation — the user sees
@@ -352,8 +351,8 @@ export function WizardV2({ onComplete, onBack }: WizardV2Props) {
   }, [current, runGeneration]);
 
   // ── Handoff on curtain reveal ───────────────────────────────
-  // The parent (DashboardClient) owns site-save + editor handoff so
-  // the transition stays SPA-fast. We just clear local draft state.
+  // The parent owns site-save + editor handoff. We just clear
+  // local draft state before firing onComplete.
   const handleCurtainDone = useCallback(() => {
     if (!completed) return;
     try {

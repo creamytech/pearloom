@@ -13,7 +13,7 @@ import { siteDisplayName, useUserSites, type SiteSummary } from './hooks';
 const PATHS = [
   {
     k: 'pear',
-    href: '/wizard/photo-first',
+    href: '/wizard/new',
     icon: '✦',
     label: 'Let Pear draft it',
     sub: 'Answer three questions. Pear presses a palette, story, RSVP, schedule. Takes about eight minutes.',
@@ -25,7 +25,7 @@ const PATHS = [
   },
   {
     k: 'photos',
-    href: '/wizard/photo-first?mode=photos',
+    href: '/wizard/new?mode=photos',
     icon: '◎',
     label: 'Start with photos',
     sub: 'Drop in twelve or so pictures. We read the light, the faces, and weave a site around them.',
@@ -121,7 +121,7 @@ export function DashSites() {
               </div>
             </div>
             <Link
-              href="/wizard/photo-first"
+              href="/wizard/new"
               style={{
                 background: PD.ink,
                 color: PD.paper,
@@ -374,7 +374,7 @@ function formatDate(iso: string) {
 function NewSiteTile() {
   return (
     <Link
-      href="/wizard/photo-first"
+      href="/wizard/new"
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -649,7 +649,7 @@ function EmptyInvitation() {
             </p>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <Link
-                href="/wizard/photo-first"
+                href="/wizard/new"
                 style={{
                   background: PD.ink,
                   color: PD.paper,
