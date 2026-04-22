@@ -11,8 +11,8 @@ import { PD, DISPLAY_STYLE, MONO_STYLE, Pear } from '../design/DesignAtoms';
 import { Sparkle } from '@/components/brand/groove';
 import { siteDisplayName, useSelectedSite, type SiteSummary } from '../design/dash/hooks';
 import { useDashStats, useLinkedCelebrations, useDaysToGo } from './useDashStats';
-
-const AVATAR_FALLBACK = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=96&q=80';
+import { EDITOR } from '@/lib/assets';
+import { BrandImage } from './BrandImage';
 
 export function DashHome() {
   const { data: session } = useSession();
@@ -757,13 +757,26 @@ function HelpStrip() {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <Image
-          src={AVATAR_FALLBACK}
-          alt=""
-          width={48}
-          height={48}
-          style={{ borderRadius: 999, objectFit: 'cover' }}
-        />
+        <div
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: 999,
+            background: '#FFFEF7',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            flexShrink: 0,
+          }}
+        >
+          <BrandImage
+            src={EDITOR.coffeeMug}
+            alt=""
+            style={{ width: 42, height: 42, objectFit: 'contain' }}
+            fallback={<Pear size={28} color={PD.pear} stem={PD.oliveDeep} leaf={PD.olive} />}
+          />
+        </div>
         <div>
           <div style={{ fontSize: 14, fontWeight: 500, color: PD.ink, marginBottom: 2 }}>
             Need help with your site?
