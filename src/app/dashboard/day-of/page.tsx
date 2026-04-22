@@ -1,7 +1,8 @@
 export const dynamic = 'force-dynamic';
 
 import type { Metadata } from 'next';
-import { DashDayOf } from '@/components/marketing/design/dash/DashDayOf';
+import { DashShell } from '@/components/marketing/v2/DashShell';
+import { DayOfV2 } from '@/components/marketing/v2/DayOfV2';
 
 export const metadata: Metadata = {
   title: 'Day-of room | Pearloom',
@@ -9,5 +10,9 @@ export const metadata: Metadata = {
 };
 
 export default function DayOfPage() {
-  return <DashDayOf />;
+  return (
+    <DashShell>
+      <DayOfV2 />
+    </DashShell>
+  );
 }
