@@ -23,22 +23,42 @@ export interface StepSpec {
   n: number;
   l: string;
   s: string;
+  /** The 1-of-6 visible phase this step collapses into. */
+  phase: PhaseKey;
 }
 
+export type PhaseKey = 'occasion' | 'vibe' | 'layout' | 'details' | 'polish' | 'publish';
+
+export interface PhaseSpec {
+  k: PhaseKey;
+  n: number;
+  l: string;
+}
+
+/** The 6 visible phases that render on the progress thread. */
+export const PHASES: PhaseSpec[] = [
+  { k: 'occasion', n: 1, l: 'Occasion' },
+  { k: 'vibe', n: 2, l: 'Vibe' },
+  { k: 'layout', n: 3, l: 'Layout' },
+  { k: 'details', n: 4, l: 'Details' },
+  { k: 'polish', n: 5, l: 'Polish' },
+  { k: 'publish', n: 6, l: 'Publish' },
+];
+
 export const STEPS: StepSpec[] = [
-  { k: 'category', n: 1, l: 'Category', s: 'What kind of moment?' },
-  { k: 'occasion', n: 2, l: 'Occasion', s: 'What are we celebrating?' },
-  { k: 'names', n: 3, l: 'Names', s: "Who's gathering?" },
-  { k: 'date', n: 4, l: 'Date', s: "When's the date?" },
-  { k: 'venue', n: 5, l: 'Venue', s: "Where's it happening?" },
-  { k: 'details', n: 5.5, l: 'Details', s: 'A few specifics' },
-  { k: 'photos', n: 6, l: 'Photos', s: 'Bring the moments' },
-  { k: 'photoreview', n: 6.5, l: 'Review', s: 'Caption + place' },
-  { k: 'vibe', n: 7, l: 'Vibe', s: 'Mood & color' },
-  { k: 'layout', n: 8, l: 'Layout', s: 'How it reads' },
-  { k: 'song', n: 9, l: 'Song', s: 'A sound for it' },
-  { k: 'ready', n: 10, l: 'Ready', s: 'One button' },
-  { k: 'generating', n: 11, l: 'Weaving', s: 'Pear weaves it' },
+  { k: 'category', n: 1, l: 'Category', s: 'What kind of moment?', phase: 'occasion' },
+  { k: 'occasion', n: 2, l: 'Occasion', s: 'What are we celebrating?', phase: 'occasion' },
+  { k: 'names', n: 3, l: 'Names', s: "Who's gathering?", phase: 'occasion' },
+  { k: 'date', n: 4, l: 'Date', s: "When's the date?", phase: 'occasion' },
+  { k: 'venue', n: 5, l: 'Venue', s: "Where's it happening?", phase: 'occasion' },
+  { k: 'details', n: 5.5, l: 'Details', s: 'A few specifics', phase: 'details' },
+  { k: 'photos', n: 6, l: 'Photos', s: 'Bring the moments', phase: 'details' },
+  { k: 'photoreview', n: 6.5, l: 'Review', s: 'Caption + place', phase: 'details' },
+  { k: 'vibe', n: 7, l: 'Vibe', s: 'Mood & color', phase: 'vibe' },
+  { k: 'layout', n: 8, l: 'Layout', s: 'How it reads', phase: 'layout' },
+  { k: 'song', n: 9, l: 'Song', s: 'A sound for it', phase: 'layout' },
+  { k: 'ready', n: 10, l: 'Ready', s: 'One button', phase: 'polish' },
+  { k: 'generating', n: 11, l: 'Weaving', s: 'Pear weaves it', phase: 'publish' },
 ];
 
 export type CategoryKey =
