@@ -44,6 +44,10 @@ export function LoginClient({ searchParamsPromise }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState<'google' | 'email' | null>(null);
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(false);
+  const [forgotNotice, setForgotNotice] = useState(false);
   const [sent, setSent] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
 
@@ -324,7 +328,7 @@ export function LoginClient({ searchParamsPromise }: Props) {
                   <span style={{ flex: 1, height: 1, background: 'rgba(31,36,24,0.08)' }} />
                 </div>
 
-                {/* Email magic link */}
+                {/* Email magic link — styled as password-style form per mockup */}
                 <form onSubmit={handleEmail}>
                   <label
                     htmlFor="pl-login-email"
@@ -359,6 +363,129 @@ export function LoginClient({ searchParamsPromise }: Props) {
                       boxSizing: 'border-box',
                     }}
                   />
+
+                  <label
+                    htmlFor="pl-login-password"
+                    style={{
+                      display: 'block',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: PD.ink,
+                      marginTop: 14,
+                      marginBottom: 6,
+                    }}
+                  >
+                    Password
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      id="pl-login-password"
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      style={{
+                        width: '100%',
+                        padding: '12px 40px 12px 14px',
+                        background: PD.paper,
+                        border: '1px solid rgba(31,36,24,0.12)',
+                        borderRadius: 10,
+                        color: PD.ink,
+                        fontSize: 15,
+                        fontFamily: 'inherit',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      style={{
+                        position: 'absolute',
+                        right: 10,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        width: 28,
+                        height: 28,
+                        borderRadius: 999,
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: PD.inkSoft,
+                        fontSize: 14,
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      {showPassword ? '🙈' : '👁'}
+                    </button>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginTop: 14,
+                      gap: 12,
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <label
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        fontSize: 13,
+                        color: PD.inkSoft,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={remember}
+                        onChange={(e) => setRemember(e.target.checked)}
+                        style={{ accentColor: PD.olive, cursor: 'pointer' }}
+                      />
+                      Remember me
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setForgotNotice(true)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        fontSize: 13,
+                        color: '#6E5BA8',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        padding: 0,
+                      }}
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+
+                  {forgotNotice && (
+                    <div
+                      style={{
+                        marginTop: 12,
+                        padding: '10px 12px',
+                        fontSize: 12,
+                        background: 'rgba(110,91,168,0.08)',
+                        border: '1px solid rgba(110,91,168,0.2)',
+                        borderRadius: 10,
+                        color: PD.ink,
+                        lineHeight: 1.55,
+                      }}
+                    >
+                      Pearloom signs you in through a secure email link — enter your email above
+                      and hit <strong>Sign in</strong> to receive one.
+                    </div>
+                  )}
+
                   {emailError && (
                     <p
                       style={{
@@ -389,7 +516,7 @@ export function LoginClient({ searchParamsPromise }: Props) {
                       opacity: busy || !email.trim() ? 0.5 : 1,
                     }}
                   >
-                    {busy === 'email' ? 'Sending…' : 'Send me a sign-in link'}
+                    {busy === 'email' ? 'Sending…' : 'Sign in'}
                   </motion.button>
                 </form>
               </>
