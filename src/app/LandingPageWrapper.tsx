@@ -1,9 +1,7 @@
 'use client';
 
-import { useSession, signIn } from 'next-auth/react';
-import { LandingPage } from '@/components/landing-page';
+import { LandingV2 } from '@/components/marketing/v2/LandingV2';
 
 export default function LandingPageWrapper() {
-  const { status } = useSession();
-  return <LandingPage handleSignIn={() => signIn('google')} status={status} />;
+  return <LandingV2 />;
 }
