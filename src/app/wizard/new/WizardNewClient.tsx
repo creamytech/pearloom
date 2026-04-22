@@ -1,14 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { WizardV2 } from '@/components/wizard/design/WizardV2';
+import { WizardV3 } from '@/components/wizard/design/WizardV3';
 import type { StoryManifest } from '@/types';
 
 export function WizardNewClient() {
   const router = useRouter();
 
   return (
-    <WizardV2
+    <WizardV3
       onComplete={(manifest: StoryManifest, names: [string, string], subdomain: string) => {
         // Fire-and-forget site save — the editor will also save on first edit.
         fetch('/api/sites', {

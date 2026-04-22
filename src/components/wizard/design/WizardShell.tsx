@@ -16,11 +16,19 @@
 // state + routing live in the page.
 // ─────────────────────────────────────────────────────────────
 
-import { type CSSProperties, type ReactNode } from 'react';
+import { createContext, useContext, type CSSProperties, type ReactNode } from 'react';
 import { Bloom, Swirl } from '@/components/brand/groove';
 import { PD, DISPLAY_STYLE, MONO_STYLE, Pear, Leaf } from '../../marketing/design/DesignAtoms';
 import type { StepKey, StepSpec } from './wizardSpec';
 import { PEAR_COPY } from './wizardSpec';
+
+// When WizardV3 mounts its own shell, it pushes embed=true into
+// this context so every Scene in any step renders inline instead
+// of taking over the viewport.
+const SceneEmbedContext = createContext(false);
+export function SceneEmbedProvider({ children }: { children: ReactNode }) {
+  return <SceneEmbedContext.Provider value={true}>{children}</SceneEmbedContext.Provider>;
+}
 
 // ── Scene ──────────────────────────────────────────────────────
 export function Scene({
@@ -28,12 +36,24 @@ export function Scene({
   bg = PD.paper,
   deco,
   dark,
+  embed = false,
 }: {
   children: ReactNode;
   bg?: string;
   deco?: ReactNode;
   dark?: boolean;
+  /** When true, render without full-viewport chrome so the step
+   *  can be composed inside an outer shell (WizardV3). */
+  embed?: boolean;
 }) {
+  const ctxEmbed = useContext(SceneEmbedContext);
+  if (embed || ctxEmbed) {
+    return (
+      <div style={{ width: '100%', animation: 'pl-enter-up 420ms cubic-bezier(.2,.8,.2,1) both' }}>
+        {children}
+      </div>
+    );
+  }
   return (
     <div
       style={{
@@ -79,6 +99,8 @@ export function StepHead({
   dark?: boolean;
 }) {
   const copy = PEAR_COPY[stepKey] ?? PEAR_COPY.category;
+  const embedded = useContext(SceneEmbedContext);
+  if (embedded) return null;
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18, marginBottom: 36, flexWrap: 'wrap' }}>
       <div style={{ position: 'relative', flexShrink: 0 }}>
