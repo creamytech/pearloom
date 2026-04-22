@@ -92,6 +92,7 @@ export function applyThemePack(manifest: StoryManifest, pack: ThemePack): StoryM
   return {
     ...manifest,
     theme: {
+      ...(current ?? {}),
       name: pack.name,
       fonts: {
         heading: pack.displayFont,
@@ -105,7 +106,7 @@ export function applyThemePack(manifest: StoryManifest, pack: ThemePack): StoryM
         muted: current?.colors?.muted ?? PD.inkSoft,
         cardBg: pack.palette[2] ?? PD.paperCard,
       },
-      ...(current?.dark ? { dark: current.dark } : {}),
+      borderRadius: current?.borderRadius ?? '0.75rem',
     },
   };
 }
