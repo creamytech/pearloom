@@ -88,6 +88,7 @@ export function LoginClient({ searchParamsPromise }: Props) {
 
   return (
     <div
+      className="pl-login-root"
       style={{
         minHeight: '100vh',
         background: PD.paper,
@@ -451,6 +452,7 @@ export function LoginClient({ searchParamsPromise }: Props) {
 
       {/* ═══════ RIGHT COLUMN — editorial hero ═══════ */}
       <div
+        className="pl-login-hero"
         style={{
           position: 'relative',
           minHeight: '100vh',
@@ -503,8 +505,11 @@ export function LoginClient({ searchParamsPromise }: Props) {
       {/* Responsive: collapse to single column on small screens */}
       <style jsx>{`
         @media (max-width: 900px) {
-          :global(div[data-pl-login-root]) {
+          :global(.pl-login-root) {
             grid-template-columns: 1fr !important;
+          }
+          :global(.pl-login-hero) {
+            display: none !important;
           }
         }
       `}</style>

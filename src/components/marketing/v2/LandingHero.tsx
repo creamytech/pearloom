@@ -12,7 +12,7 @@ export function LandingHero({ onStart }: { onStart: () => void }) {
     <section
       style={{
         position: 'relative',
-        padding: '40px 40px 80px',
+        padding: 'clamp(24px, 4vw, 40px) clamp(20px, 4vw, 40px) clamp(40px, 6vw, 80px)',
         overflow: 'hidden',
         background: PD.paper,
       }}
@@ -159,10 +159,12 @@ export function LandingHero({ onStart }: { onStart: () => void }) {
 
         {/* Right — product composition */}
         <div
+          className="pl-landing-hero-art"
           style={{
             position: 'relative',
             aspectRatio: '1 / 1',
             maxWidth: 620,
+            width: '100%',
             marginLeft: 'auto',
           }}
         >
@@ -261,6 +263,19 @@ export function LandingHero({ onStart }: { onStart: () => void }) {
         @media (max-width: 900px) {
           :global(.pl-landing-hero-grid) {
             grid-template-columns: 1fr !important;
+            gap: 32px !important;
+          }
+          :global(.pl-landing-hero-art) {
+            max-width: 440px !important;
+            margin: 0 auto !important;
+          }
+        }
+        @media (max-width: 600px) {
+          :global(.pl-landing-hero-grid) {
+            gap: 24px !important;
+          }
+          :global(.pl-landing-hero-art) {
+            max-width: 340px !important;
           }
         }
       `}</style>

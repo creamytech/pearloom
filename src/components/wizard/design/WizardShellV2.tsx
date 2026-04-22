@@ -28,6 +28,7 @@ export function WizardTopbar({
 }) {
   return (
     <div
+      className="pl-wizard-topbar"
       style={{
         position: 'sticky',
         top: 0,
@@ -36,10 +37,10 @@ export function WizardTopbar({
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(10px)',
         borderBottom: '1px solid rgba(31,36,24,0.06)',
-        padding: '14px 32px',
+        padding: '14px clamp(16px, 4vw, 32px)',
         display: 'flex',
         alignItems: 'center',
-        gap: 18,
+        gap: 12,
         fontFamily: 'var(--pl-font-body)',
       }}
     >
@@ -63,8 +64,29 @@ export function WizardTopbar({
           Pearloom
         </span>
       </button>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ fontSize: 14, fontWeight: 500, color: PD.ink }}>{title}</span>
+      <div
+        className="pl-wizard-topbar-title"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          minWidth: 0,
+          flex: 1,
+        }}
+      >
+        <span
+          style={{
+            fontSize: 14,
+            fontWeight: 500,
+            color: PD.ink,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            maxWidth: 280,
+          }}
+        >
+          {title}
+        </span>
         {draft && (
           <span
             style={{
@@ -73,16 +95,16 @@ export function WizardTopbar({
               background: PD.paperCard,
               padding: '2px 8px',
               borderRadius: 999,
+              flexShrink: 0,
             }}
           >
             Draft
           </span>
         )}
-        <span style={{ fontSize: 10, color: PD.inkSoft, opacity: 0.6 }}>▾</span>
       </div>
-      <div style={{ flex: 1 }} />
       {onSave && (
         <button
+          className="pl-wizard-topbar-save"
           onClick={onSave}
           style={{
             background: 'transparent',
@@ -96,6 +118,7 @@ export function WizardTopbar({
             display: 'inline-flex',
             alignItems: 'center',
             gap: 6,
+            flexShrink: 0,
           }}
         >
           ☁ Save draft
@@ -114,11 +137,19 @@ export function WizardTopbar({
             fontWeight: 500,
             cursor: 'pointer',
             fontFamily: 'inherit',
+            flexShrink: 0,
           }}
         >
-          Preview site
+          Preview
         </button>
       )}
+      <style jsx>{`
+        @media (max-width: 640px) {
+          :global(.pl-wizard-topbar-save) {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
@@ -136,8 +167,9 @@ export function ProgressThread6({
   const activeIdx = PHASES.findIndex((p) => p.k === current);
   return (
     <div
+      className="pl-wizard-thread"
       style={{
-        padding: '22px 32px 16px',
+        padding: '22px clamp(16px, 4vw, 32px) 16px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -204,6 +236,7 @@ export function ProgressThread6({
                   {done ? '✓' : p.n}
                 </span>
                 <span
+                  className="pl-wizard-thread-label"
                   style={{
                     fontSize: 12,
                     color: active ? PD.ink : PD.inkSoft,
@@ -216,10 +249,11 @@ export function ProgressThread6({
               {i < PHASES.length - 1 && (
                 <span
                   aria-hidden
+                  className="pl-wizard-thread-line"
                   style={{
                     flex: 1,
                     height: 1.5,
-                    minWidth: 40,
+                    minWidth: 20,
                     margin: '0 10px',
                     background: done
                       ? PD.olive
@@ -233,6 +267,17 @@ export function ProgressThread6({
           );
         })}
       </div>
+      <style jsx>{`
+        @media (max-width: 680px) {
+          :global(.pl-wizard-thread-label) {
+            display: none !important;
+          }
+          :global(.pl-wizard-thread-line) {
+            min-width: 10px !important;
+            margin: 0 6px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
