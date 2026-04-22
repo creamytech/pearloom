@@ -15,6 +15,8 @@ import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { PD, DISPLAY_STYLE, MONO_STYLE, Pear } from '@/components/marketing/design/DesignAtoms';
 import { Sparkle } from '@/components/brand/groove';
+import { EDITOR, WIZARD } from '@/lib/assets';
+import { BrandImage } from '@/components/marketing/v2/BrandImage';
 
 const ERROR_COPY: Record<string, string> = {
   OAuthCallback: 'Google sign-in couldn’t complete. Try once more.',
@@ -477,16 +479,77 @@ export function LoginClient({ searchParamsPromise }: Props) {
           </clipPath>
         </svg>
 
-        {/* Image */}
-        <div style={{ position: 'absolute', inset: 0 }}>
+        {/* Composition using real asset crops when available, Unsplash fallback */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: PD.paperCard,
+          }}
+        >
           <Image
             src={HERO_IMAGE}
             alt="Pressed flowers, a Pearloom card on a wooden tray, a coffee mug"
             fill
             priority
             sizes="50vw"
-            style={{ objectFit: 'cover' }}
+            style={{ objectFit: 'cover', opacity: 0.9 }}
           />
+          {/* Still-life elements layered over the photo */}
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              top: '18%',
+              left: '20%',
+              width: 210,
+              opacity: 0.95,
+            }}
+          >
+            <BrandImage
+              src={EDITOR.vaseLinenStill}
+              alt=""
+              style={{ width: '100%' }}
+              fallback={<span aria-hidden />}
+            />
+          </div>
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              top: '42%',
+              right: '18%',
+              width: 130,
+              transform: 'rotate(-8deg)',
+              opacity: 0.92,
+              filter: 'drop-shadow(0 12px 18px rgba(31,36,24,0.2))',
+            }}
+          >
+            <BrandImage
+              src={WIZARD.pearloomCardFront}
+              alt=""
+              style={{ width: '100%' }}
+              fallback={<span aria-hidden />}
+            />
+          </div>
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              bottom: '14%',
+              right: '10%',
+              width: 110,
+              opacity: 0.9,
+              filter: 'drop-shadow(0 10px 14px rgba(31,36,24,0.2))',
+            }}
+          >
+            <BrandImage
+              src={EDITOR.coffeeMug}
+              alt=""
+              style={{ width: '100%' }}
+              fallback={<span aria-hidden />}
+            />
+          </div>
         </div>
 
         {/* Soft vignette */}

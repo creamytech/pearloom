@@ -2,8 +2,11 @@
 
 import Image from 'next/image';
 import { PD, DISPLAY_STYLE, MONO_STYLE, Pear } from '../design/DesignAtoms';
+import { EDITOR, WIZARD, REMEMBER } from '@/lib/assets';
+import { BrandImage } from './BrandImage';
 
-// Pressed flower + pear still-life placeholder asset.
+// Real pear-with-flowers still used as the focal point of the
+// hero composition.
 const HERO_IMAGE =
   'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=1400&q=80';
 
@@ -218,42 +221,50 @@ export function LandingHero({ onStart }: { onStart: () => void }) {
             <PhoneMockContent />
           </div>
 
-          {/* Floating flowers top-left */}
+          {/* Floating lavender cosmos top-left */}
           <div
             aria-hidden
             style={{
               position: 'absolute',
-              top: '2%',
-              left: '2%',
-              fontSize: 34,
-              color: '#B89EBF',
+              top: '-2%',
+              left: '0%',
+              width: 140,
               transform: 'rotate(-10deg)',
               pointerEvents: 'none',
             }}
           >
-            <SmallFlowerSprig />
+            <BrandImage
+              src={WIZARD.flowerLavenderCosmos}
+              alt=""
+              style={{ width: '100%' }}
+              fallback={<SmallFlowerSprig />}
+            />
           </div>
 
-          {/* Floating pear right */}
+          {/* Floating pear + thankyou still right */}
           <div
             aria-hidden
             style={{
               position: 'absolute',
               right: '-4%',
-              bottom: '10%',
-              width: '28%',
-              aspectRatio: '3 / 4',
-              borderRadius: '52% 48% 38% 62% / 38% 42% 58% 62%',
-              overflow: 'hidden',
-              boxShadow: '0 16px 40px rgba(139,106,44,0.2)',
+              bottom: '4%',
+              width: '36%',
+              filter: 'drop-shadow(0 16px 30px rgba(31,36,24,0.18))',
             }}
           >
-            <Image
-              src={HERO_IMAGE}
+            <BrandImage
+              src={EDITOR.pearPhoto}
               alt=""
-              fill
-              sizes="220px"
-              style={{ objectFit: 'cover' }}
+              style={{ width: '100%' }}
+              fallback={
+                <Image
+                  src={HERO_IMAGE}
+                  alt=""
+                  width={220}
+                  height={300}
+                  style={{ objectFit: 'cover', borderRadius: '52% 48% 38% 62% / 38% 42% 58% 62%' }}
+                />
+              }
             />
           </div>
         </div>
