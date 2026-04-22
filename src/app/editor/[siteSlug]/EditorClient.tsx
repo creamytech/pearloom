@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { PublishModal } from '@/components/shared/PublishModal';
+import { EditorTabBar } from '@/components/marketing/v2/EditorTabBar';
 import { stripArtForStorage } from '@/lib/editor-state';
 import type { StoryManifest, ChapterImage } from '@/types';
 
@@ -162,6 +163,28 @@ export default function EditorClient({ manifest: initialManifest, siteSlug, name
 
   return (
     <>
+      <EditorTabBar
+        manifest={manifest}
+        names={names}
+        subdomain={siteSlug}
+        onManifestChange={handleChange}
+        onBack={() => router.push('/dashboard')}
+        onPreview={() => window.open(`/sites/${siteSlug}/v2`, '_blank')}
+        onShare={() => {
+          if (typeof navigator === 'undefined') return;
+          const nav = navigator as Navigator & {
+            share?: (d: { title?: string; url?: string }) => Promise<void>;
+            clipboard?: { writeText: (t: string) => Promise<void> };
+          };
+          if (nav.share) {
+            nav.share({ title: 'My Pearloom site', url: `/sites/${siteSlug}` }).catch(() => {});
+          } else if (nav.clipboard) {
+            nav.clipboard
+              .writeText(`${window.location.origin}/sites/${siteSlug}`)
+              .catch(() => {});
+          }
+        }}
+      />
       <ErrorBoundary>
         <FullscreenEditor
           manifest={manifest}
