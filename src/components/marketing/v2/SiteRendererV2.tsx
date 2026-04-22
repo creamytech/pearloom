@@ -21,6 +21,12 @@ import {
   SiteV2Footer,
   type LinkedSibling,
 } from './SiteV2Sections';
+import {
+  ScheduleSection,
+  PhotosGallery,
+  RSVPSection,
+  FAQSection,
+} from './SiteV2Blocks';
 import type { StoryManifest } from '@/types';
 
 interface SiteRendererV2Props {
@@ -128,6 +134,10 @@ export function SiteRendererV2({
       />
       <OurStoryCard manifest={manifest} siteDomain={domain} />
       <ActionRail siteDomain={domain} onRsvp={onRsvp} />
+      <ScheduleSection events={manifest.events ?? []} />
+      <PhotosGallery manifest={manifest} />
+      <RSVPSection domain={domain} deadline={manifest.logistics?.rsvpDeadline} />
+      <FAQSection faqs={(manifest.faqs ?? []).map((f) => ({ q: f.question, a: f.answer }))} />
       <LinkedEventsStrip siblings={siblings} loading={siblingsLoading} />
       <SiteV2Footer names={names} email={hostEmail} items={footerItems} />
 
