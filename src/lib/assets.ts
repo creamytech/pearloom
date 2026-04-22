@@ -1,126 +1,90 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / lib/assets.ts
-// Public-path registry for the v2 design asset sheets. After
-// running `npm run assets:extract`, each entry resolves to a real
-// PNG. Until then the paths 404 (use `onError` fallback in the
-// consumer or swap to inline SVG placeholders).
+// Semantic asset registry. After extracting + renaming the sheets
+// (see scripts/extract-assets.ts + scripts/rename-assets.ts), each
+// entry resolves to a real PNG in public/assets/v2/.
 // ─────────────────────────────────────────────────────────────
 
 const BASE = '/assets/v2';
 
-export const V2_ASSETS = {
-  // Editorial still-lifes (sheet 1 — 12 items, ordered row-by-row)
-  stills: {
-    pear: `${BASE}/stills/still-01.png`,
-    floralCard: `${BASE}/stills/still-02.png`,
-    vase: `${BASE}/stills/still-03.png`,
-    linen: `${BASE}/stills/still-04.png`,
-    envelope: `${BASE}/stills/still-05.png`,
-    waxSeal: `${BASE}/stills/still-06.png`,
-    cup: `${BASE}/stills/still-07.png`,
-    polaroids: `${BASE}/stills/still-08.png`,
-    journal: `${BASE}/stills/still-09.png`,
-    giftBox: `${BASE}/stills/still-10.png`,
-    ribbonTag: `${BASE}/stills/still-11.png`,
-    lavenderCard: `${BASE}/stills/still-12.png`,
-  },
-  // Pressed flowers (sheet 5 — ordered row-by-row)
-  flowers: {
-    oliveSprig: `${BASE}/flowers/flower-01.png`,
-    lavenderStems: `${BASE}/flowers/flower-02.png`,
-    babyBreath: `${BASE}/flowers/flower-03.png`,
-    cosmos: `${BASE}/flowers/flower-04.png`,
-    leafSprig: `${BASE}/flowers/flower-05.png`,
-    lavenderBouquet: `${BASE}/flowers/flower-06.png`,
-    delicateStems: `${BASE}/flowers/flower-07.png`,
-    whiteCosmo: `${BASE}/flowers/flower-08.png`,
-    lavenderSingle: `${BASE}/flowers/flower-09.png`,
-    statice: `${BASE}/flowers/flower-10.png`,
-    leafBranch: `${BASE}/flowers/flower-11.png`,
-    cornerSpray: `${BASE}/flowers/flower-12.png`,
-    smallSprig: `${BASE}/flowers/flower-13.png`,
-    pressedBlooms: `${BASE}/flowers/flower-14.png`,
-    babyBreathTall: `${BASE}/flowers/flower-15.png`,
-    cosmosStem: `${BASE}/flowers/flower-16.png`,
-    trailingLeaves: `${BASE}/flowers/flower-17.png`,
-    lavenderCluster: `${BASE}/flowers/flower-18.png`,
-    lavenderCorner: `${BASE}/flowers/flower-19.png`,
-  },
-  // Pear logos (sheet 3)
-  pears: {
-    filled: `${BASE}/pears/pear-01.png`,
-    outline: `${BASE}/pears/pear-02.png`,
-    filledBloom: `${BASE}/pears/pear-03.png`,
-    circleOutline: `${BASE}/pears/pear-04.png`,
-    roundedBadge: `${BASE}/pears/pear-05.png`,
-    slim: `${BASE}/pears/pear-06.png`,
-    cute: `${BASE}/pears/pear-07.png`,
-    purpleHalo: `${BASE}/pears/pear-08.png`,
-    ovalCrest: `${BASE}/pears/pear-09.png`,
-    bouquet: `${BASE}/pears/pear-10.png`,
-    scallopBadge: `${BASE}/pears/pear-11.png`,
-    withHeart: `${BASE}/pears/pear-12.png`,
-    tinySparkle: `${BASE}/pears/pear-13.png`,
-    flowerBadge: `${BASE}/pears/pear-14.png`,
-    stemOnly: `${BASE}/pears/pear-15.png`,
-    laurelCrest: `${BASE}/pears/pear-16.png`,
-  },
-  // Thread dividers + corner flourishes (sheet 4)
-  threads: {
-    loopTopper: `${BASE}/threads/thread-01.png`,
-    waveGold: `${BASE}/threads/thread-02.png`,
-    scrollGold: `${BASE}/threads/thread-03.png`,
-    waveOlive: `${BASE}/threads/thread-04.png`,
-    sparkDivider: `${BASE}/threads/thread-05.png`,
-    braidedRow: `${BASE}/threads/thread-06.png`,
-    knotOlive: `${BASE}/threads/thread-07.png`,
-    beadedGold: `${BASE}/threads/thread-08.png`,
-    dottedNodes: `${BASE}/threads/thread-09.png`,
-    scrollFlourish: `${BASE}/threads/thread-10.png`,
-    fineRule: `${BASE}/threads/thread-11.png`,
-    xBowGold: `${BASE}/threads/thread-12.png`,
-    xBowOlive: `${BASE}/threads/thread-13.png`,
-    cornerOliveL: `${BASE}/threads/thread-14.png`,
-    cornerGoldL: `${BASE}/threads/thread-15.png`,
-    rayBurst: `${BASE}/threads/thread-16.png`,
-    cornerGoldR: `${BASE}/threads/thread-17.png`,
-    cornerOliveR: `${BASE}/threads/thread-18.png`,
-    leafVine: `${BASE}/threads/thread-19.png`,
-    braidedGold: `${BASE}/threads/thread-20.png`,
-    lavenderVine: `${BASE}/threads/thread-21.png`,
-  },
-  // Line icons (sheet 2)
-  icons: {
-    windowScene: `${BASE}/icons/icon-01.png`,
-    envelopeHeart: `${BASE}/icons/icon-02.png`,
-    calendar: `${BASE}/icons/icon-03.png`,
-    suitcase: `${BASE}/icons/icon-04.png`,
-    giftTag: `${BASE}/icons/icon-05.png`,
-    camera: `${BASE}/icons/icon-06.png`,
-    openBook: `${BASE}/icons/icon-07.png`,
-    map: `${BASE}/icons/icon-08.png`,
-    laptopPlay: `${BASE}/icons/icon-09.png`,
-    toastGlasses: `${BASE}/icons/icon-10.png`,
-    photoBoard: `${BASE}/icons/icon-11.png`,
-    chatHeart: `${BASE}/icons/icon-12.png`,
-    bed: `${BASE}/icons/icon-13.png`,
-    calculator: `${BASE}/icons/icon-14.png`,
-    ballotBox: `${BASE}/icons/icon-15.png`,
-    card: `${BASE}/icons/icon-16.png`,
-    cloche: `${BASE}/icons/icon-17.png`,
-    hangerTowel: `${BASE}/icons/icon-18.png`,
-    speechBubbles: `${BASE}/icons/icon-19.png`,
-    gardenGate: `${BASE}/icons/icon-20.png`,
-    bannerFlags: `${BASE}/icons/icon-21.png`,
-    rings: `${BASE}/icons/icon-22.png`,
-    clipboardQ: `${BASE}/icons/icon-23.png`,
-    donationBox: `${BASE}/icons/icon-24.png`,
-  },
+// Wizard-adjacent (sheet 6)
+export const WIZARD = {
+  pearNoteCard: `${BASE}/wizard/pear-note-card.png`,
+  helperAndStill: `${BASE}/wizard/merged_helper-and-still.png`,
+  vibeWarm: `${BASE}/wizard/vibe-pill-warm.png`,
+  vibeBotanical: `${BASE}/wizard/vibe-pill-botanical.png`,
+  vibeRomantic: `${BASE}/wizard/vibe-pill-romantic.png`,
+  paletteGarden: `${BASE}/wizard/palette-garden.png`,
+  paletteSunwashed: `${BASE}/wizard/palette-sunwashed.png`,
+  paletteSage: `${BASE}/wizard/palette-sage.png`,
+  paletteBlush: `${BASE}/wizard/palette-blush.png`,
+  btnContinueGoogle: `${BASE}/wizard/btn-continue-google.png`,
+  btnSignIn: `${BASE}/wizard/btn-sign-in.png`,
+  btnSaveDraft: `${BASE}/wizard/btn-save-draft.png`,
+  layoutStoryLed: `${BASE}/wizard/layout-story-led.png`,
+  flowerCosmosBunch: `${BASE}/wizard/flower-cosmos-bunch.png`,
+  flowerLavenderCosmos: `${BASE}/wizard/flower-lavender-cosmos.png`,
+  pearloomCardFront: `${BASE}/wizard/pearloom-card-front.png`,
+  pearloomCardsStack: `${BASE}/wizard/pearloom-cards-stack.png`,
+  lavenderCard: `${BASE}/wizard/lavender-card.png`,
 } as const;
 
-export type V2Category = keyof typeof V2_ASSETS;
-export type V2AssetKey<C extends V2Category> = keyof (typeof V2_ASSETS)[C];
+// Editor-adjacent (sheet 7)
+export const EDITOR = {
+  navDashboardIcon: `${BASE}/editor/nav-dashboard-icon.png`,
+  progressBarOlive: `${BASE}/editor/progress-bar-olive-full.png`,
+  progressBarLavender: `${BASE}/editor/progress-bar-lavender.png`,
+  btnPublishSite: `${BASE}/editor/btn-publish-site.png`,
+  btnSaveChanges: `${BASE}/editor/btn-save-changes.png`,
+  btnMicPurple: `${BASE}/editor/btn-mic-purple.png`,
+  chipPrimary: `${BASE}/editor/chip-primary.png`,
+  chipEvent: `${BASE}/editor/chip-event.png`,
+  chipRegistry: `${BASE}/editor/chip-registry.png`,
+  chipLive: `${BASE}/editor/chip-live.png`,
+  swatchOlive: `${BASE}/editor/swatch-olive.png`,
+  swatchLavender: `${BASE}/editor/swatch-lavender.png`,
+  swatchLavenderLight: `${BASE}/editor/swatch-lavender-light.png`,
+  swatchTan: `${BASE}/editor/swatch-tan.png`,
+  videoPreviewCeremony: `${BASE}/editor/video-preview-ceremony.png`,
+  flowerDaisy: `${BASE}/editor/flower-daisy.png`,
+  pearPhoto: `${BASE}/editor/pear-photo.png`,
+  coffeeMug: `${BASE}/editor/coffee-mug.png`,
+  vaseLinenStill: `${BASE}/editor/vase-linen-still.png`,
+  storyIconsRow: `${BASE}/editor/merged_story-icons-row.png`,
+} as const;
 
-export function asset<C extends V2Category>(cat: C, key: V2AssetKey<C>): string {
-  return (V2_ASSETS[cat] as Record<string, string>)[key as string];
-}
+// Remember-adjacent (sheet 9)
+export const REMEMBER = {
+  videoPlayerCouple: `${BASE}/remember/video-player-couple.png`,
+  thankyouTag: `${BASE}/remember/thankyou-tag.png`,
+  timeCapsuleBottle: `${BASE}/remember/time-capsule-bottle.png`,
+  avatarMom: `${BASE}/remember/avatar-round-mom.png`,
+  polaroidCoupleWalk: `${BASE}/remember/polaroid-couple-walk.png`,
+  tableCardArrangement: `${BASE}/remember/table-card-arrangement.png`,
+  pearThankyouStill: `${BASE}/remember/pear-thankyou-still.png`,
+  receptionPhotosCover: `${BASE}/remember/reception-photos-cover.png`,
+  flowerPurpleDaisies: `${BASE}/remember/flower-purple-daisies.png`,
+  pearOutlineSad: `${BASE}/remember/pear-outline-sad.png`,
+  flowerLavenderStem: `${BASE}/remember/flower-lavender-stem.png`,
+  flowerBabysbreathDaisy: `${BASE}/remember/flower-babysbreath-daisy.png`,
+  flowerLavenderDaisies: `${BASE}/remember/flower-lavender-daisies.png`,
+  foreverStoryCard: `${BASE}/remember/forever-story-card.png`,
+  keepsakeArchiveBadge: `${BASE}/remember/keepsake-archive-badge.png`,
+  btnShareKeepsake: `${BASE}/remember/btn-share-keepsake.png`,
+  avatarsLovedOnes: `${BASE}/remember/avatars-loved-ones.png`,
+} as const;
+
+// Timeline + branding: still raw-numbered. Add entries as we
+// manually inventory them.
+export const TIMELINE_RAW = (n: number) =>
+  `${BASE}/timeline/timeline-${String(n).padStart(2, '0')}.png`;
+export const BRANDING_RAW = (n: number) =>
+  `${BASE}/branding/branding-${String(n).padStart(2, '0')}.png`;
+
+// Kept for backwards compat with earlier v2 components that used the
+// nested V2_ASSETS registry. Resolves to the new flat maps above.
+export const V2_ASSETS = {
+  wizard: WIZARD,
+  editor: EDITOR,
+  remember: REMEMBER,
+} as const;
