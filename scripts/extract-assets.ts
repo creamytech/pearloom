@@ -30,23 +30,38 @@ interface SheetSpec {
   minArea?: number;
   /** Max gap between components that still merges them. */
   mergeGap?: number;
-  /** Alpha threshold (0-255) — pixels below this are treated as transparent. */
+  /**
+   * Mode 'alpha' uses the alpha channel; 'white' treats near-white
+   * RGB pixels as background. Defaults to 'white' which is what
+   * most exported design-tool PNGs actually are (opaque with a
+   * white background even if the preview shows a checkerboard).
+   */
+  mode?: 'alpha' | 'white';
+  /** Alpha threshold (0-255) — pixels below this are treated as transparent (alpha mode). */
   alphaThreshold?: number;
+  /**
+   * White-mode: pixels where R, G, B are each >= this value are
+   * treated as background. Default 245.
+   */
+  whiteThreshold?: number;
   /** Extra padding (px) around each final crop. */
   padding?: number;
 }
 
+// Composite UI reference sheets — mix of decorative PNGs + pre-
+// rendered UI cards. The decorations we keep; the UI cards get
+// rebuilt in React.
+//
+// Merge gaps are tight here (4–8px) because each sheet packs many
+// distinct elements with narrow gutters. Anti-aliased edges plus the
+// 20-px alpha threshold still let connected components catch their
+// own soft shadows.
 const SHEETS: SheetSpec[] = [
-  // Editorial still-lifes — large-ish objects, few merges needed.
-  { file: 'sheet-1-stills.png', dir: 'stills', prefix: 'still', minArea: 5000, mergeGap: 20, padding: 8 },
-  // Line icons — small, many items, don't merge aggressively.
-  { file: 'sheet-2-icons.png', dir: 'icons', prefix: 'icon', minArea: 800, mergeGap: 12, padding: 6 },
-  // Pear logos — medium, some have detached sparkles.
-  { file: 'sheet-3-pears.png', dir: 'pears', prefix: 'pear', minArea: 1500, mergeGap: 28, padding: 8 },
-  // Threads — thin lines, large bboxes, need bigger merge gap.
-  { file: 'sheet-4-threads.png', dir: 'threads', prefix: 'thread', minArea: 300, mergeGap: 40, padding: 6 },
-  // Pressed flowers — delicate stems/petals easily disconnect.
-  { file: 'sheet-5-flowers.png', dir: 'flowers', prefix: 'flower', minArea: 1200, mergeGap: 35, padding: 10 },
+  { file: 'sheet-6-wizard.png', dir: 'wizard', prefix: 'wizard', minArea: 1500, mergeGap: 4, padding: 8, mode: 'white', whiteThreshold: 238 },
+  { file: 'sheet-7-editor.png', dir: 'editor', prefix: 'editor', minArea: 1200, mergeGap: 6, padding: 8, mode: 'white', whiteThreshold: 240 },
+  { file: 'sheet-8-timeline.png', dir: 'timeline', prefix: 'timeline', minArea: 1500, mergeGap: 4, padding: 8, mode: 'white', whiteThreshold: 238 },
+  { file: 'sheet-9-remember.png', dir: 'remember', prefix: 'remember', minArea: 1500, mergeGap: 4, padding: 8, mode: 'white', whiteThreshold: 238 },
+  { file: 'sheet-10-branding.png', dir: 'branding', prefix: 'branding', minArea: 1200, mergeGap: 3, padding: 8, mode: 'white', whiteThreshold: 235 },
 ];
 
 const SHEETS_DIR = path.join(process.cwd(), 'public', 'assets', 'sheets');
@@ -98,12 +113,26 @@ async function extract(sheet: SheetSpec): Promise<number> {
     .toBuffer({ resolveWithObject: true });
   const { width, height, channels } = info;
   const alphaIdx = channels - 1;
-  const threshold = sheet.alphaThreshold ?? 20;
+  const mode = sheet.mode ?? 'white';
+  const alphaT = sheet.alphaThreshold ?? 20;
+  const whiteT = sheet.whiteThreshold ?? 245;
 
-  // Alpha mask (0/1 byte per pixel)
+  // Foreground mask (1 = element pixel, 0 = background).
   const mask = new Uint8Array(width * height);
   for (let i = 0; i < width * height; i++) {
-    mask[i] = data[i * channels + alphaIdx] > threshold ? 1 : 0;
+    const base = i * channels;
+    const a = data[base + alphaIdx];
+    if (mode === 'alpha') {
+      mask[i] = a > alphaT ? 1 : 0;
+    } else {
+      // White-background mode: opaque pixel counts as element
+      // unless all channels are above whiteT (then it's paper/white).
+      const r = data[base];
+      const g = data[base + 1];
+      const b = data[base + 2];
+      const isBackground = a < alphaT || (r >= whiteT && g >= whiteT && b >= whiteT);
+      mask[i] = isBackground ? 0 : 1;
+    }
   }
 
   // 8-connectivity flood-fill → components
