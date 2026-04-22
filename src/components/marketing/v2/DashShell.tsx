@@ -63,6 +63,24 @@ const NAV_GROUPS: NavGroup[] = [
 
 export function DashShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Close drawer when pathname changes (user navigated)
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [pathname]);
+
+  // Lock scroll when drawer is open
+  useEffect(() => {
+    if (drawerOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [drawerOpen]);
+
   return (
     <div
       style={{
@@ -77,9 +95,99 @@ export function DashShell({ children }: { children: ReactNode }) {
     >
       <Sidebar pathname={pathname} />
       <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <Topbar />
-        <div style={{ flex: 1, padding: '32px 40px 80px' }}>{children}</div>
+        <Topbar onToggleDrawer={() => setDrawerOpen((v) => !v)} />
+        <div
+          style={{ flex: 1, padding: 'clamp(20px, 4vw, 32px) clamp(16px, 4vw, 40px) 80px' }}
+        >
+          {children}
+        </div>
       </div>
+
+      {/* Mobile drawer */}
+      {drawerOpen && (
+        <>
+          <div
+            className="pl-dash-v2-scrim"
+            onClick={() => setDrawerOpen(false)}
+            aria-hidden
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(31,36,24,0.42)',
+              zIndex: 60,
+              animation: 'pl-enter-fade-in 180ms ease',
+            }}
+          />
+          <div
+            className="pl-dash-v2-drawer"
+            role="dialog"
+            aria-label="Navigation"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              bottom: 0,
+              width: 'min(82vw, 320px)',
+              background: PD.paper,
+              zIndex: 61,
+              boxShadow: '0 0 60px rgba(31,36,24,0.22)',
+              overflowY: 'auto',
+              padding: '22px 16px',
+              animation: 'pl-drawer-slide-in 260ms cubic-bezier(.22,1,.36,1)',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 8,
+              }}
+            >
+              <Link
+                href="/dashboard"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  textDecoration: 'none',
+                  color: PD.ink,
+                }}
+              >
+                <Pear size={26} color={PD.pear} stem={PD.oliveDeep} leaf={PD.olive} />
+                <span
+                  style={{
+                    ...DISPLAY_STYLE,
+                    fontSize: 20,
+                    fontWeight: 400,
+                    letterSpacing: '-0.02em',
+                  }}
+                >
+                  Pearloom
+                </span>
+              </Link>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                aria-label="Close menu"
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 999,
+                  background: PD.paperCard,
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: 16,
+                  color: PD.ink,
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <SidebarBody pathname={pathname} />
+          </div>
+        </>
+      )}
+
       <style jsx>{`
         @media (max-width: 900px) {
           :global(.pl-dash-v2-root) {
@@ -88,6 +196,25 @@ export function DashShell({ children }: { children: ReactNode }) {
           :global(.pl-dash-v2-sidebar) {
             display: none !important;
           }
+          :global(.pl-dash-v2-hamburger) {
+            display: inline-flex !important;
+          }
+        }
+        @media (max-width: 640px) {
+          :global(.pl-dash-v2-search) {
+            display: none !important;
+          }
+          :global(.pl-dash-v2-username) {
+            display: none !important;
+          }
+        }
+        @keyframes pl-drawer-slide-in {
+          from {
+            transform: translateX(-100%);
+          }
+          to {
+            transform: translateX(0);
+          }
         }
       `}</style>
     </div>
@@ -95,7 +222,6 @@ export function DashShell({ children }: { children: ReactNode }) {
 }
 
 function Sidebar({ pathname }: { pathname: string | null }) {
-  const { sites } = useSelectedSite();
   return (
     <aside
       className="pl-dash-v2-sidebar"
@@ -128,7 +254,15 @@ function Sidebar({ pathname }: { pathname: string | null }) {
           Pearloom
         </span>
       </Link>
+      <SidebarBody pathname={pathname} />
+    </aside>
+  );
+}
 
+function SidebarBody({ pathname }: { pathname: string | null }) {
+  const { sites } = useSelectedSite();
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
       <NavLink
         href="/dashboard"
         label="Dashboard"
@@ -241,7 +375,7 @@ function Sidebar({ pathname }: { pathname: string | null }) {
           Link a celebration →
         </Link>
       </div>
-    </aside>
+    </div>
   );
 }
 
@@ -316,7 +450,7 @@ function NavLink({
   );
 }
 
-function Topbar() {
+function Topbar({ onToggleDrawer }: { onToggleDrawer: () => void }) {
   const { data: session } = useSession();
   const router = useRouter();
   const { sites, site, selectSite } = useSelectedSite();
@@ -350,12 +484,36 @@ function Topbar() {
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(10px)',
         borderBottom: '1px solid rgba(31,36,24,0.06)',
-        padding: '14px 40px',
+        padding: '14px clamp(16px, 4vw, 40px)',
         display: 'flex',
         alignItems: 'center',
-        gap: 16,
+        gap: 12,
       }}
     >
+      {/* Hamburger — mobile only */}
+      <button
+        className="pl-dash-v2-hamburger"
+        onClick={onToggleDrawer}
+        aria-label="Open menu"
+        style={{
+          display: 'none',
+          width: 40,
+          height: 40,
+          borderRadius: 999,
+          background: '#FFFEF7',
+          border: '1px solid rgba(31,36,24,0.08)',
+          cursor: 'pointer',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontFamily: 'inherit',
+          fontSize: 18,
+          color: PD.ink,
+          flexShrink: 0,
+        }}
+      >
+        ☰
+      </button>
+
       {/* Site picker */}
       <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
         <button
@@ -374,7 +532,17 @@ function Topbar() {
             color: PD.ink,
           }}
         >
-          <span style={{ fontWeight: 500 }}>{site ? siteDisplayName(site) : 'Pick a site'}</span>
+          <span
+            style={{
+              fontWeight: 500,
+              maxWidth: 180,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {site ? siteDisplayName(site) : 'Pick a site'}
+          </span>
           <span style={{ fontSize: 10, opacity: 0.6 }}>▾</span>
         </button>
         {picker && sites && sites.length > 0 && (
@@ -421,7 +589,10 @@ function Topbar() {
       </div>
 
       {/* Search */}
-      <div style={{ flex: 1, maxWidth: 520, position: 'relative' }}>
+      <div
+        className="pl-dash-v2-search"
+        style={{ flex: 1, maxWidth: 520, position: 'relative' }}
+      >
         <span
           aria-hidden
           style={{
@@ -560,7 +731,12 @@ function Topbar() {
               {initial}
             </span>
           )}
-          <span style={{ fontSize: 13, fontWeight: 500 }}>{firstName}</span>
+          <span
+            className="pl-dash-v2-username"
+            style={{ fontSize: 13, fontWeight: 500 }}
+          >
+            {firstName}
+          </span>
           <span style={{ fontSize: 10, opacity: 0.6 }}>▾</span>
         </button>
         {menu && (

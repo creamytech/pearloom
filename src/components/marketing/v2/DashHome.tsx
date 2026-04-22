@@ -9,14 +9,18 @@ import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import { PD, DISPLAY_STYLE, MONO_STYLE, Pear } from '../design/DesignAtoms';
 import { Sparkle } from '@/components/brand/groove';
-import { siteDisplayName, useUserSites, type SiteSummary } from '../design/dash/hooks';
+import { siteDisplayName, useSelectedSite, type SiteSummary } from '../design/dash/hooks';
+import { useDashStats, useLinkedCelebrations, useDaysToGo } from './useDashStats';
 
 const AVATAR_FALLBACK = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=96&q=80';
 
 export function DashHome() {
   const { data: session } = useSession();
-  const { sites, loading } = useUserSites();
+  const { sites, site, loading } = useSelectedSite();
+  const stats = useDashStats(site?.id);
+  const linked = useLinkedCelebrations(site?.id);
   const first = (session?.user?.name || session?.user?.email || 'there').split(/[\s@]/)[0];
+  const openRsvps = stats.rsvps; // surrogate for "guest tasks"
 
   return (
     <div
@@ -28,13 +32,13 @@ export function DashHome() {
       className="pl-dash-home-grid"
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-        <Welcome firstName={first} />
+        <Welcome firstName={first} openTasks={openRsvps} />
         <StartRail />
         <SiteList sites={sites} loading={loading} />
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <AtAGlance />
-        <LinkedCelebrations />
+        <AtAGlance stats={stats} siteDomain={site?.domain} />
+        <LinkedCelebrationsPanel linked={linked} />
       </div>
       <div style={{ gridColumn: '1 / -1' }}>
         <HelpStrip />
@@ -50,7 +54,7 @@ export function DashHome() {
   );
 }
 
-function Welcome({ firstName }: { firstName: string }) {
+function Welcome({ firstName, openTasks }: { firstName: string; openTasks: number }) {
   return (
     <div
       style={{
@@ -84,13 +88,15 @@ function Welcome({ firstName }: { firstName: string }) {
       </div>
       <div
         style={{
-          display: 'inline-flex',
+          display: 'flex',
           alignItems: 'center',
           gap: 12,
           padding: '14px 18px',
           background: PD.paperCard,
           borderRadius: 14,
           border: '1px solid rgba(31,36,24,0.06)',
+          flexWrap: 'wrap',
+          maxWidth: '100%',
         }}
       >
         <span
@@ -108,8 +114,12 @@ function Welcome({ firstName }: { firstName: string }) {
           ⚇
         </span>
         <div>
-          <div style={{ fontSize: 13, fontWeight: 500, color: PD.ink }}>3 guest tasks left</div>
-          <div style={{ fontSize: 11.5, color: PD.inkSoft }}>We&rsquo;ll help you finish.</div>
+          <div style={{ fontSize: 13, fontWeight: 500, color: PD.ink }}>
+            {openTasks === 0 ? 'All caught up' : `${openTasks} guest ${openTasks === 1 ? 'reply' : 'replies'}`}
+          </div>
+          <div style={{ fontSize: 11.5, color: PD.inkSoft }}>
+            {openTasks === 0 ? 'Nothing waiting on you.' : 'Fresh RSVPs to review.'}
+          </div>
         </div>
         <Link
           href="/rsvps"
@@ -478,12 +488,18 @@ function SiteRow({ site, primary }: { site: SiteSummary; primary: boolean }) {
   );
 }
 
-function AtAGlance() {
-  const stats = [
-    { k: 'visits', l: 'Site visits', v: '842', delta: '+18%', up: true },
-    { k: 'rsvps', l: 'RSVPs', v: '124', delta: '+22%', up: true },
-    { k: 'messages', l: 'Messages', v: '9', delta: '−8%', up: false },
-    { k: 'registry', l: 'Registry clicks', v: '56', delta: '+14%', up: true },
+function AtAGlance({
+  stats,
+  siteDomain,
+}: {
+  stats: ReturnType<typeof useDashStats>;
+  siteDomain?: string;
+}) {
+  const cells = [
+    { k: 'visits', l: 'Site visits', v: stats.visits, todayLabel: `${stats.today} today` },
+    { k: 'rsvps', l: 'RSVPs', v: stats.rsvps },
+    { k: 'messages', l: 'Messages', v: stats.messages },
+    { k: 'registry', l: 'Registry clicks', v: stats.registryClicks },
   ];
   return (
     <div
@@ -505,41 +521,45 @@ function AtAGlance() {
         <div style={{ ...DISPLAY_STYLE, fontSize: 20, fontWeight: 400, letterSpacing: '-0.015em' }}>
           At a glance
         </div>
-        <span style={{ fontSize: 11.5, color: PD.inkSoft }}>This week ▾</span>
+        <span style={{ fontSize: 11.5, color: PD.inkSoft }}>This week</span>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
-        {stats.map((s) => (
-          <div key={s.k}>
-            <div style={{ fontSize: 11.5, color: PD.inkSoft, marginBottom: 4 }}>{s.l}</div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              <div
-                style={{
-                  ...DISPLAY_STYLE,
-                  fontSize: 24,
-                  fontWeight: 400,
-                  letterSpacing: '-0.015em',
-                }}
-              >
-                {s.v}
+      {!siteDomain ? (
+        <div style={{ fontSize: 12.5, color: PD.inkSoft, padding: '16px 0' }}>
+          Pick a site above to see its numbers.
+        </div>
+      ) : (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+            {cells.map((s) => (
+              <div key={s.k}>
+                <div style={{ fontSize: 11.5, color: PD.inkSoft, marginBottom: 4 }}>{s.l}</div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                  <div
+                    style={{
+                      ...DISPLAY_STYLE,
+                      fontSize: 24,
+                      fontWeight: 400,
+                      letterSpacing: '-0.015em',
+                    }}
+                  >
+                    {stats.loading ? '—' : s.v}
+                  </div>
+                  {s.todayLabel && !stats.loading && (
+                    <div style={{ fontSize: 11, color: PD.olive, fontWeight: 500 }}>
+                      {s.todayLabel}
+                    </div>
+                  )}
+                </div>
               </div>
-              <div
-                style={{
-                  fontSize: 11,
-                  color: s.up ? PD.olive : '#C47A4A',
-                  fontWeight: 500,
-                }}
-              >
-                {s.up ? '↑' : '↓'} {s.delta}
-              </div>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <div style={{ marginTop: 14, height: 70, position: 'relative' }}>
-        <Sparkline />
-      </div>
+          <div style={{ marginTop: 14, height: 70, position: 'relative' }}>
+            <Sparkline pts={stats.series} />
+          </div>
+        </>
+      )}
       <Link
-        href="/dashboard/analytics"
+        href={`/dashboard/analytics${siteDomain ? `?site=${siteDomain}` : ''}`}
         style={{
           display: 'block',
           marginTop: 10,
@@ -555,10 +575,8 @@ function AtAGlance() {
   );
 }
 
-function Sparkline() {
-  // 7 points with a peak Wed.
-  const pts = [180, 240, 420, 842, 520, 380, 300];
-  const max = Math.max(...pts);
+function Sparkline({ pts }: { pts: number[] }) {
+  const max = Math.max(1, ...pts);
   const w = 300;
   const h = 70;
   const path = pts
@@ -579,17 +597,24 @@ function Sparkline() {
       </defs>
       <path d={fill} fill="url(#pl-sparkfill)" />
       <path d={path} stroke="#6E5BA8" strokeWidth="1.6" fill="none" />
-      <circle cx={(3 / 6) * w} cy={h - (842 / max) * h} r="4" fill="#6E5BA8" />
+      {pts.length > 0 && (
+        <circle
+          cx={((pts.indexOf(Math.max(...pts))) / (pts.length - 1)) * w}
+          cy={h - (Math.max(...pts) / max) * h}
+          r="4"
+          fill="#6E5BA8"
+        />
+      )}
     </svg>
   );
 }
 
-function LinkedCelebrations() {
-  const items = [
-    { name: 'Parker Welcome Party', date: 'June 12, 2025', status: 'Published' },
-    { name: 'Rehearsal Dinner', date: 'June 13, 2025', status: 'Draft' },
-    { name: 'Bridal Shower', date: 'May 3, 2025', status: 'Published' },
-  ];
+function LinkedCelebrationsPanel({
+  linked,
+}: {
+  linked: ReturnType<typeof useLinkedCelebrations>;
+}) {
+  const count = linked.siblings.length;
   return (
     <div
       style={{
@@ -621,7 +646,7 @@ function LinkedCelebrations() {
               verticalAlign: 'middle',
             }}
           >
-            3
+            {count}
           </span>
         </div>
         <Link
@@ -639,48 +664,67 @@ function LinkedCelebrations() {
           Manage
         </Link>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        {items.map((i) => (
-          <div
-            key={i.name}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '10px 0',
-              borderBottom: '1px solid rgba(31,36,24,0.04)',
-            }}
-          >
-            <span
+      {linked.loading ? (
+        <div style={{ fontSize: 12.5, color: PD.inkSoft, padding: '12px 0' }}>Threading…</div>
+      ) : count === 0 ? (
+        <div style={{ fontSize: 12.5, color: PD.inkSoft, padding: '10px 0 16px' }}>
+          No linked events yet. Link a bridal shower, rehearsal, or welcome party.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {linked.siblings.map((s) => (
+            <Link
+              key={s.domain}
+              href={`/editor/${s.domain}`}
               style={{
-                width: 26,
-                height: 26,
-                borderRadius: 8,
-                background: PD.paperCard,
-                display: 'inline-flex',
+                display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 13,
+                gap: 10,
+                padding: '10px 0',
+                borderBottom: '1px solid rgba(31,36,24,0.04)',
+                textDecoration: 'none',
+                color: PD.ink,
               }}
             >
-              ✦
-            </span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 500 }}>{i.name}</div>
-              <div style={{ fontSize: 11, color: PD.inkSoft }}>{i.date}</div>
-            </div>
-            <span
-              style={{
-                fontSize: 11,
-                color: i.status === 'Published' ? PD.olive : PD.gold,
-                fontWeight: 500,
-              }}
-            >
-              ● {i.status}
-            </span>
-          </div>
-        ))}
-      </div>
+              <span
+                style={{
+                  width: 26,
+                  height: 26,
+                  borderRadius: 8,
+                  background: PD.paperCard,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 13,
+                }}
+              >
+                ✦
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 500 }}>{s.title}</div>
+                <div style={{ fontSize: 11, color: PD.inkSoft }}>
+                  {s.date
+                    ? new Date(s.date).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })
+                    : s.occasion || '—'}
+                </div>
+              </div>
+              <span
+                style={{
+                  fontSize: 11,
+                  color: s.published ? PD.olive : PD.gold,
+                  fontWeight: 500,
+                }}
+              >
+                ● {s.published ? 'Published' : 'Draft'}
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
       <Link
         href="/dashboard/connections"
         style={{
@@ -692,7 +736,7 @@ function LinkedCelebrations() {
           fontWeight: 500,
         }}
       >
-        Add or link another →
+        {count === 0 ? 'Link a celebration →' : 'Add or link another →'}
       </Link>
     </div>
   );
