@@ -212,6 +212,23 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   }
 
   const manifest = siteConfig.manifest;
+
+  // New renderer: short-circuit to the v2 editorial layout when the
+  // manifest opts in. Existing classic render continues below.
+  if (manifest.rendererVersion === 'v2') {
+    const { SiteRendererV2 } = await import('@/components/marketing/v2/SiteRendererV2');
+    const names = Array.isArray(siteConfig.names) && siteConfig.names.length >= 2
+      ? ([siteConfig.names[0], siteConfig.names[1]] as [string, string])
+      : (['Our', 'Story'] as [string, string]);
+    return (
+      <SiteRendererV2
+        manifest={manifest}
+        siteId={domain}
+        domain={domain}
+        names={names}
+      />
+    );
+  }
   
   // Format the name elegantly "Shauna & Ben"
   const safeNames: [string, string] = Array.isArray(siteConfig.names) && siteConfig.names.length >= 2

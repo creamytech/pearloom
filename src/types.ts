@@ -76,6 +76,10 @@ export interface StoryManifest {
   travelInfo?: TravelInfo;
   // Real text samples from the couple — used to train the Ask the Couple AI chatbot
   voiceSamples?: string[];
+  // Public-site renderer version. 'v2' uses the editorial Alex-&-Jamie
+  // layout (SiteRendererV2); omitted or 'classic' uses the legacy
+  // block-driven renderer. Set on new wizard generations.
+  rendererVersion?: 'classic' | 'v2';
   // Free-canvas block order and visibility
   blocks?: PageBlock[];
   // Custom SVG background pattern CSS (e.g. url("data:image/svg+xml,..."))

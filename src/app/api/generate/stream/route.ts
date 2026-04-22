@@ -797,6 +797,9 @@ export async function POST(req: Request) {
             : 'filmstrip';
         manifest.storyLayout = chosenLayout;
 
+        // ── Renderer version — new sites default to v2 ─────────
+        manifest.rendererVersion = 'v2';
+
         // ── Consent + tone rails ──────────────────────────────
         // Write the wizard's soft signals onto the manifest so the
         // editor can read them and the published site can honor them.
