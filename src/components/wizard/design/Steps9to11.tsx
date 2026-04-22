@@ -20,10 +20,39 @@ const PALETTE_LIBRARY: Palette[] = [
   { id: 'plum-velvet', name: 'plum velvet', colors: ['#704A5A', '#B5613A', '#E8C77A', '#F1E6C8'] },
 ];
 
+const VIBE_WORDS = [
+  'Warm',
+  'Botanical',
+  'Romantic',
+  'Timeless',
+  'Playful',
+  'Modern',
+  'Minimal',
+  'Elegant',
+  'Coastal',
+  'Rustic',
+  'Garden',
+  'Intimate',
+];
+
 // ── Step 9: VIBE ─────────────────────────────────────────────
 export function StepVibe({ answers, set, next, back, skip, dark }: StepProps) {
-  const [words, setWords] = useState(answers.vibeName ?? '');
   const [longer, setLonger] = useState(answers.vibe ?? '');
+  const selectedWords = (answers.vibeName ?? '')
+    .split(',')
+    .map((w) => w.trim())
+    .filter(Boolean);
+  const [expanded, setExpanded] = useState(false);
+
+  const toggleWord = (word: string) => {
+    const cur = new Set(selectedWords);
+    if (cur.has(word)) cur.delete(word);
+    else cur.add(word);
+    const joined = Array.from(cur).join(', ');
+    set({ vibeName: joined });
+  };
+
+  const visibleWords = expanded ? VIBE_WORDS : VIBE_WORDS.slice(0, 9);
 
   return (
     <Scene deco={<SceneDeco variant="ink" />} dark={dark}>
@@ -34,46 +63,90 @@ export function StepVibe({ answers, set, next, back, skip, dark }: StepProps) {
           border: '1px solid rgba(31,36,24,0.1)',
           borderRadius: 24,
           padding: '32px 36px',
-          maxWidth: 780,
+          maxWidth: 820,
           margin: '0 auto',
           display: 'grid',
-          gap: 22,
+          gap: 28,
         }}
       >
+        {/* Section 1 — Vibe words */}
         <div>
-          <div style={{ ...MONO_STYLE, fontSize: 10, opacity: 0.55, marginBottom: 8 }}>
-            THREE WORDS
-          </div>
-          <input
-            autoFocus
-            value={words}
-            onChange={(e) => {
-              setWords(e.target.value);
-              set({ vibeName: e.target.value });
-            }}
-            placeholder="warm, held, slightly wild"
+          <div
             style={{
-              width: '100%',
-              background: 'transparent',
-              border: 'none',
-              borderBottom: '2px solid rgba(31,36,24,0.25)',
-              outline: 'none',
-              padding: '8px 2px',
-              fontFamily: '"Fraunces", Georgia, serif',
-              fontStyle: 'italic',
-              fontSize: 'clamp(22px, 2.6vw, 30px)',
-              color: dark ? PD.paper : PD.ink,
-              fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+              ...MONO_STYLE,
+              fontSize: 10.5,
+              opacity: 0.75,
+              letterSpacing: '0.22em',
+              marginBottom: 6,
             }}
-          />
+          >
+            1. VIBE WORDS
+          </div>
+          <div style={{ fontSize: 13, color: PD.inkSoft, marginBottom: 14 }}>
+            Pick 3–5 words that capture the feeling you want your day to have.
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {visibleWords.map((w) => {
+              const on = selectedWords.includes(w);
+              return (
+                <button
+                  key={w}
+                  onClick={() => toggleWord(w)}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: 999,
+                    background: on ? '#E8DFE9' : 'transparent',
+                    color: PD.ink,
+                    border: `1px solid ${on ? '#6E5BA8' : 'rgba(31,36,24,0.18)'}`,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontWeight: on ? 500 : 400,
+                  }}
+                >
+                  {w}
+                  {on && <span style={{ fontSize: 11, color: '#6E5BA8' }}>✓</span>}
+                </button>
+              );
+            })}
+            {!expanded && VIBE_WORDS.length > 9 && (
+              <button
+                onClick={() => setExpanded(true)}
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: 999,
+                  background: 'transparent',
+                  color: PD.inkSoft,
+                  border: 'none',
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Show more ▾
+              </button>
+            )}
+          </div>
         </div>
 
+        {/* Section 2 — Optional sentence */}
         <div>
-          <div style={{ ...MONO_STYLE, fontSize: 10, opacity: 0.55, marginBottom: 8 }}>
-            OR A FEW SENTENCES (OPTIONAL)
+          <div
+            style={{
+              ...MONO_STYLE,
+              fontSize: 10.5,
+              opacity: 0.75,
+              letterSpacing: '0.22em',
+              marginBottom: 6,
+            }}
+          >
+            2. OR A FEW SENTENCES (OPTIONAL)
           </div>
           <textarea
-            rows={3}
+            rows={2}
             value={longer}
             onChange={(e) => {
               setLonger(e.target.value);
@@ -92,19 +165,31 @@ export function StepVibe({ answers, set, next, back, skip, dark }: StepProps) {
               color: dark ? PD.paper : PD.ink,
               resize: 'vertical',
               lineHeight: 1.5,
+              boxSizing: 'border-box',
             }}
           />
         </div>
 
-        {/* Starter palette picker — all optional */}
-        <div style={{ paddingTop: 18, borderTop: '1px solid rgba(31,36,24,0.1)' }}>
-          <div style={{ ...MONO_STYLE, fontSize: 10, opacity: 0.55, marginBottom: 14 }}>
-            OR START FROM A PALETTE
+        {/* Section 3 — Palette */}
+        <div>
+          <div
+            style={{
+              ...MONO_STYLE,
+              fontSize: 10.5,
+              opacity: 0.75,
+              letterSpacing: '0.22em',
+              marginBottom: 6,
+            }}
+          >
+            3. PALETTE
+          </div>
+          <div style={{ fontSize: 13, color: PD.inkSoft, marginBottom: 14 }}>
+            Choose a color palette to set the tone.
           </div>
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
               gap: 10,
             }}
           >
@@ -115,35 +200,62 @@ export function StepVibe({ answers, set, next, back, skip, dark }: StepProps) {
                   key={p.id}
                   onClick={() => set({ palette: p })}
                   style={{
-                    padding: '12px 14px',
-                    borderRadius: 14,
-                    background: active ? (dark ? 'rgba(184,146,68,0.15)' : '#FFFEF7') : 'transparent',
-                    border: `1.5px solid ${active ? PD.gold : 'rgba(31,36,24,0.1)'}`,
+                    padding: 14,
+                    borderRadius: 16,
+                    background: active ? '#FFFEF7' : 'transparent',
+                    border: `1.5px solid ${active ? '#6E5BA8' : 'rgba(31,36,24,0.1)'}`,
                     cursor: 'pointer',
                     textAlign: 'left',
                     fontFamily: 'inherit',
-                    color: dark ? PD.paper : PD.ink,
+                    color: PD.ink,
+                    position: 'relative',
                   }}
                 >
-                  <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
-                    {p.colors.map((c, i) => (
+                  {active && (
+                    <span
+                      aria-hidden
+                      style={{
+                        position: 'absolute',
+                        top: 10,
+                        left: 10,
+                        width: 20,
+                        height: 20,
+                        borderRadius: 999,
+                        background: '#6E5BA8',
+                        color: '#FFFEF7',
+                        fontSize: 10,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      ✓
+                    </span>
+                  )}
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(2, 1fr)',
+                      gap: 4,
+                      marginBottom: 12,
+                      marginTop: active ? 24 : 0,
+                    }}
+                  >
+                    {p.colors.slice(0, 4).map((c, i) => (
                       <div
                         key={i}
-                        style={{
-                          flex: 1,
-                          height: 24,
-                          background: c,
-                          borderRadius: i === 0 ? '6px 0 0 6px' : i === p.colors.length - 1 ? '0 6px 6px 0' : 0,
-                        }}
+                        style={{ height: 28, background: c, borderRadius: 6 }}
                       />
                     ))}
                   </div>
                   <div
                     style={{
-                      ...DISPLAY_STYLE,
-                      fontSize: 15,
-                      fontStyle: 'italic',
-                      fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      textAlign: 'center',
+                      paddingTop: 4,
+                      borderTop: '1px solid rgba(31,36,24,0.06)',
+                      textTransform: 'capitalize',
                     }}
                   >
                     {p.name}
@@ -152,29 +264,13 @@ export function StepVibe({ answers, set, next, back, skip, dark }: StepProps) {
               );
             })}
           </div>
-          {answers.palette && (
-            <button
-              onClick={() => set({ palette: undefined })}
-              style={{
-                marginTop: 12,
-                background: 'transparent',
-                border: 'none',
-                ...MONO_STYLE,
-                fontSize: 9,
-                color: PD.terra,
-                cursor: 'pointer',
-                padding: 0,
-              }}
-            >
-              CLEAR
-            </button>
-          )}
         </div>
       </div>
-      <StepNav onBack={back} onNext={next} onSkip={skip} nextDisabled={!words.trim()} />
+      <StepNav onBack={back} onNext={next} onSkip={skip} nextDisabled={selectedWords.length === 0} />
     </Scene>
   );
 }
+
 
 // ── Step 10: LAYOUT ───────────────────────────────────────────
 interface LayoutOption {
