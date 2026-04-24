@@ -81,10 +81,10 @@ function KickoffCards({ occasion }: { occasion?: string | null }) {
         <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600 }}>{eyebrow}</span>
       </div>
       <div className="pl8-kickoff">
-        {cards.map((c) => (
+        {cards.map((c, i) => (
           <div
             key={c.title}
-            className="card"
+            className="card pl8-kickoff-card"
             style={{
               padding: 20,
               background:
@@ -97,6 +97,17 @@ function KickoffCards({ occasion }: { occasion?: string | null }) {
               display: 'flex',
               gap: 16,
               alignItems: 'flex-start',
+              transition:
+                'transform 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 260ms cubic-bezier(0.22, 1, 0.36, 1)',
+              animation: `pl8-kickoff-in 420ms cubic-bezier(0.22, 1, 0.36, 1) ${i * 70}ms both`,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-3px)';
+              e.currentTarget.style.boxShadow = '0 14px 28px rgba(61,74,31,0.12)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = '';
+              e.currentTarget.style.boxShadow = '';
             }}
           >
             <div
@@ -143,6 +154,17 @@ function KickoffCards({ occasion }: { occasion?: string | null }) {
           </div>
         ))}
       </div>
+      <style jsx>{`
+        @keyframes pl8-kickoff-in {
+          from { opacity: 0; transform: translateY(10px) scale(0.985); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          @keyframes pl8-kickoff-in {
+            from { opacity: 0; } to { opacity: 1; }
+          }
+        }
+      `}</style>
     </div>
   );
 }
@@ -823,7 +845,7 @@ export function DashHomeV8() {
 
       <div style={{ padding: '0 32px 24px', maxWidth: 1240 }}>
         <KickoffCards occasion={site?.occasion} />
-        <div className="pl8-dash-threecol" style={{ marginTop: 24 }}>
+        <div className="pl8-dash-threecol pl8-dash-stagger" style={{ marginTop: 24 }}>
           <EventSites sites={sites ?? []} loading={loading} />
           <Milestones eventDate={site?.eventDate ?? null} />
           <GuestTasks
@@ -837,7 +859,7 @@ export function DashHomeV8() {
             needSong={stats.needSong}
           />
         </div>
-        <div className="pl8-dash-threecol-b" style={{ marginTop: 16 }}>
+        <div className="pl8-dash-threecol-b pl8-dash-stagger" style={{ marginTop: 16 }}>
           <Moments />
           <LinkedCelebrations items={linkedItems} />
           <PearAssistant />
