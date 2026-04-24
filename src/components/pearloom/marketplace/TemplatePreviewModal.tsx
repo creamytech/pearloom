@@ -3,51 +3,28 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / marketplace/TemplatePreviewModal.tsx
 //
-// Full-site preview modal. Opens when the user clicks a tile on
-// /templates and renders a scrollable miniature of the template
-// stack — hero → story → event → photos → rsvp → footer — with
-// the tile's actual palette and (when available) the real
-// SITE_TEMPLATES motif + poetry data.
+// Full-site preview modal. Previously this rendered a hand-coded
+// mock that visually *didn't match* what SiteV8Renderer actually
+// produces — the user saw one thing in the preview and got a
+// different site in the editor.
 //
-// IMPORTANT — this component mounts into document.body via a
-// portal. The marketplace wrapper uses `.pl8 { overflow-x:
-// hidden }` which can clip `position: fixed` children when any
-// ancestor creates a containing block (transform, filter,
-// backdrop-filter, etc.). Portaling out avoids that entirely.
+// Now: we seed a plausible manifest for the template and mount
+// the real <SiteV8Renderer> inside the scroll pane. What you see
+// here is exactly what the editor will render on day one.
+//
+// The left pane is the real site. The right pane keeps a slim
+// meta summary + CTA to start the wizard with the template.
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { Blob, Icon, Pear, Sparkle, Squiggle } from '../motifs';
-import type { Template, TemplatePalette } from './templates-data';
+import { Icon, Sparkle } from '../motifs';
+import type { Template } from './templates-data';
 import { findMatchingSiteTemplate } from './template-matcher';
 import { resolveTemplateDesign } from './template-themes';
-
-interface PaletteTones {
-  paper: string;
-  cardBg: string;
-  ink: string;
-  inkSoft: string;
-  accent: string;
-  accentLight: string;
-  deep: string;
-  mid: string;
-  soft: string;
-}
-
-// Marketplace palette IDs → tone swatches matching what the v8 tile uses.
-// Kept local so this file is self-contained and the preview stays stable
-// even if TemplatePreview.tsx is refactored.
-const PALETTE_TONES: Record<TemplatePalette, PaletteTones> = {
-  'groovy-garden': { paper: '#F4F7F1', cardBg: '#FFFFFF', ink: '#1E2A1A', inkSoft: '#4A5642', accent: '#6A8F5A', accentLight: '#DDEBD4', deep: '#3D4A1F', mid: '#8B9C5A', soft: '#CBD29E' },
-  'dusk-meadow':   { paper: '#F5F1E6', cardBg: '#FFFDF8', ink: '#3A2F52', inkSoft: '#6B5A8C', accent: '#9F86C8', accentLight: '#E0D5F0', deep: '#4A3F6B', mid: '#B7A4D0', soft: '#D7CCE5' },
-  'warm-linen':    { paper: '#F3E9D4', cardBg: '#FFFAEE', ink: '#5B3520', inkSoft: '#8B4720', accent: '#C6703D', accentLight: '#F4D8BE', deep: '#8B4720', mid: '#EAB286', soft: '#F7DDC2' },
-  'olive-gold':    { paper: '#F5F2E5', cardBg: '#FFFEF6', ink: '#2B341A', inkSoft: '#4A5431', accent: '#D4A95D', accentLight: '#E9E0C6', deep: '#3D4A1F', mid: '#6D7D3F', soft: '#CBD29E' },
-  'lavender-ink':  { paper: '#EDE7F5', cardBg: '#FBF9FE', ink: '#1F1A2E', inkSoft: '#3E3356', accent: '#7B5FB0', accentLight: '#D8CCEA', deep: '#2A2340', mid: '#6B5A8C', soft: '#C0B2D6' },
-  'cream-sage':    { paper: '#F3EFE3', cardBg: '#FFFCF4', ink: '#2E3620', inkSoft: '#50583E', accent: '#8B9C5A', accentLight: '#DAE0C4', deep: '#3D4A1F', mid: '#6D7D3F', soft: '#CBD29E' },
-  'peach-cream':   { paper: '#FAEDD6', cardBg: '#FFF8EB', ink: '#5C2E18', inkSoft: '#8B4720', accent: '#E89261', accentLight: '#F9D6BB', deep: '#8B4720', mid: '#EAB286', soft: '#F7DDC2' },
-};
+import { seedPreviewManifest } from './seed-preview-manifest';
+import { SiteV8Renderer } from '../site/SiteV8Renderer';
 
 interface Props {
   open: boolean;
@@ -63,11 +40,9 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
     setPortalTarget(typeof document !== 'undefined' ? document.body : null);
   }, []);
 
-  // Inject a Google Fonts <link> for the current template's font
-  // pair so the modal preview renders in true type. One link per
-  // unique pair; removed when the modal closes. Kept out of
-  // next/font because the font list is dynamic (56 templates ×
-  // whatever pairings we ship).
+  // Inject Google Fonts for the template's font pair so the
+  // seeded manifest's --font-display / --font-sans CSS vars
+  // resolve to real glyphs inside the preview.
   useEffect(() => {
     if (!open || !template) return;
     const design = resolveTemplateDesign(template.id);
@@ -89,10 +64,9 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
     };
   }, [open, template]);
 
-  // Lookup the rich SITE_TEMPLATES entry via the marketplace matcher.
-  // When found, it gives us real hero copy and motif data; otherwise
-  // we render with marketplace-level fallback copy.
   const site = useMemo(() => (template ? findMatchingSiteTemplate(template) : null), [template]);
+  const seed = useMemo(() => (template ? seedPreviewManifest(template) : null), [template]);
+  const design = useMemo(() => (template ? resolveTemplateDesign(template.id) : null), [template]);
 
   const handleKey = useCallback(
     (e: KeyboardEvent) => {
@@ -111,35 +85,17 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
     };
   }, [open, handleKey]);
 
-  if (!open || !template || !portalTarget) return null;
+  if (!open || !template || !portalTarget || !seed || !design) return null;
 
-  // Bespoke design spec — actual palette + font pair the template
-  // will render with in the editor. Trumps the palette-token tones.
-  const design = resolveTemplateDesign(template.id);
-  const legacyTones = PALETTE_TONES[template.palette] ?? PALETTE_TONES['groovy-garden'];
-  const tones: PaletteTones = {
-    paper: design.theme.background,
-    cardBg: design.theme.cardBg ?? design.theme.background,
-    ink: design.theme.foreground,
-    inkSoft: design.theme.muted,
-    accent: design.theme.accent,
-    accentLight: design.theme.accentLight,
-    deep: design.theme.foreground,
-    mid: design.theme.accent,
-    soft: design.theme.accentLight,
-  };
-  // Silence unused legacy fallback (kept around in case data drifts).
-  void legacyTones;
   const fontHeading = design.fonts.heading;
   const fontBody = design.fonts.body;
   const headingStack = `"${fontHeading}", Georgia, serif`;
-  const bodyStack = `"${fontBody}", system-ui, -apple-system, sans-serif`;
-  // Prefer the real SITE_TEMPLATE poetry when we found a match.
-  const heroName = template.heroWord ?? template.name;
-  const heroScript = site?.poetry?.heroTagline ?? template.heroScript ?? template.tagline ?? 'a day worth keeping';
-  const welcome = site?.poetry?.welcomeStatement ?? template.description;
-  const closing = site?.poetry?.closingLine ?? 'with love · made on Pearloom';
-  const stampText = site?.motifs?.stamp?.text ?? 'SAVE · THE · DATE';
+  const swatches = [
+    design.theme.background,
+    design.theme.accentLight,
+    design.theme.accent,
+    design.theme.foreground,
+  ];
 
   return createPortal(
     <div
@@ -153,10 +109,6 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
         zIndex: 1200,
         background: 'rgba(14,13,11,0.58)',
         backdropFilter: 'blur(6px)',
-        // Flex (not grid) so the child's width: 100%/maxWidth resolves
-        // against a concrete parent — `display:grid; placeItems:center`
-        // without grid-template-columns creates a circular width
-        // reference that collapses the card to 0 on some browsers.
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -170,192 +122,32 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
         className="pl8"
         style={{
           width: '100%',
-          maxWidth: 1080,
-          height: 'min(720px, calc(100vh - 48px))',
+          maxWidth: 1180,
+          height: 'min(780px, calc(100vh - 48px))',
           background: 'var(--cream, #FDFAF0)',
           borderRadius: 24,
           boxShadow: '0 32px 80px rgba(14,13,11,0.35)',
           overflow: 'hidden',
           display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 0.9fr)',
+          gridTemplateColumns: 'minmax(0, 1.35fr) minmax(0, 0.8fr)',
         }}
       >
-        {/* ── LEFT: site preview (scroll) ── */}
+        {/* ── LEFT: real SiteV8Renderer scroll pane ── */}
         <div
           style={{
-            background: tones.paper,
-            color: tones.ink,
+            background: 'var(--paper, #FDFAF0)',
             height: '100%',
             minHeight: 0,
             overflowY: 'auto',
-            padding: 0,
+            position: 'relative',
           }}
         >
-          {/* Hero */}
-          <div
-            style={{
-              position: 'relative',
-              padding: '56px 40px 48px',
-              overflow: 'hidden',
-              background: `linear-gradient(160deg, ${tones.paper} 0%, ${tones.soft} 100%)`,
-            }}
-          >
-            <Blob tone="lavender" size={280} opacity={0.35} seed={0} style={{ position: 'absolute', top: -80, left: -80 }} />
-            <Blob tone="peach" size={220} opacity={0.32} seed={1} style={{ position: 'absolute', top: 40, right: -60 }} />
-            <Squiggle variant={1} width={180} stroke={tones.accent} style={{ position: 'absolute', bottom: 60, left: 60, opacity: 0.55 }} />
-
-            <div style={{ position: 'relative' }}>
-              <div
-                style={{
-                  fontFamily: 'var(--font-mono, ui-monospace, monospace)',
-                  fontSize: 10,
-                  letterSpacing: '0.24em',
-                  textTransform: 'uppercase',
-                  color: tones.accent,
-                  marginBottom: 10,
-                }}
-              >
-                {stampText}
-              </div>
-              <div
-                style={{
-                  fontFamily: headingStack,
-                  fontSize: 'clamp(42px, 5vw, 60px)',
-                  lineHeight: 1.02,
-                  margin: 0,
-                  color: tones.ink,
-                  fontWeight: 500,
-                }}
-              >
-                {heroName}
-              </div>
-              <div
-                style={{
-                  fontFamily: headingStack,
-                  fontSize: 'clamp(18px, 2vw, 22px)',
-                  fontStyle: 'italic',
-                  color: tones.inkSoft,
-                  marginTop: 10,
-                  maxWidth: 520,
-                }}
-              >
-                {heroScript}
-              </div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
-                <MiniButton tones={tones} filled>
-                  RSVP
-                </MiniButton>
-                <MiniButton tones={tones}>View details</MiniButton>
-              </div>
-            </div>
-          </div>
-
-          {/* Divider */}
-          <SectionRule tones={tones} />
-
-          {/* Story teaser */}
-          <section style={{ padding: '36px 40px', fontFamily: bodyStack }}>
-            <MiniEyebrow tones={tones}>Our story</MiniEyebrow>
-            <div
-              style={{ fontFamily: headingStack, fontSize: 24, marginTop: 4, marginBottom: 10, color: tones.ink, fontStyle: 'italic' }}
-            >
-              {welcome.slice(0, 80)}
-              {welcome.length > 80 ? '…' : ''}
-            </div>
-            <StoryShimmer tones={tones} />
-          </section>
-
-          <SectionRule tones={tones} />
-
-          {/* Event strip */}
-          <section style={{ padding: '36px 40px' }}>
-            <MiniEyebrow tones={tones}>The day</MiniEyebrow>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: 12,
-                marginTop: 10,
-              }}
-            >
-              {['Ceremony', 'Reception', 'Brunch'].map((label, i) => (
-                <div
-                  key={label}
-                  style={{
-                    background: tones.cardBg,
-                    border: `1px solid ${tones.accentLight}`,
-                    borderRadius: 12,
-                    padding: 14,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-mono, ui-monospace, monospace)',
-                      fontSize: 9,
-                      letterSpacing: '0.2em',
-                      textTransform: 'uppercase',
-                      color: tones.accent,
-                      marginBottom: 6,
-                    }}
-                  >
-                    Stage 0{i + 1}
-                  </div>
-                  <div style={{ fontFamily: headingStack, fontSize: 16, fontStyle: 'italic', color: tones.ink }}>
-                    {label}
-                  </div>
-                  <div style={{ fontSize: 11, color: tones.inkSoft, marginTop: 4 }}>
-                    {i === 0 ? 'Saturday · 4pm' : i === 1 ? 'Saturday · 6pm' : 'Sunday · 10am'}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <SectionRule tones={tones} />
-
-          {/* Photo grid */}
-          <section style={{ padding: '36px 40px' }}>
-            <MiniEyebrow tones={tones}>Moments</MiniEyebrow>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: 8,
-                marginTop: 10,
-              }}
-            >
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div
-                  key={i}
-                  style={{
-                    aspectRatio: '1 / 1',
-                    background: i % 2 === 0 ? tones.mid : tones.soft,
-                    borderRadius: 8,
-                    opacity: 0.85,
-                  }}
-                />
-              ))}
-            </div>
-          </section>
-
-          <SectionRule tones={tones} />
-
-          {/* Closing */}
-          <section style={{ padding: '36px 40px 56px', textAlign: 'center' }}>
-            <div
-              style={{
-                fontFamily: headingStack,
-                fontStyle: 'italic',
-                fontSize: 20,
-                color: tones.inkSoft,
-                maxWidth: 520,
-                margin: '0 auto',
-                lineHeight: 1.4,
-              }}
-            >
-              {closing}
-            </div>
-          </section>
+          <SiteV8Renderer
+            manifest={seed.manifest}
+            names={seed.names}
+            siteSlug={seed.slug}
+            prettyUrl={seed.prettyUrl}
+          />
         </div>
 
         {/* ── RIGHT: meta + CTA ── */}
@@ -401,15 +193,14 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
                 fontSize: 11,
                 letterSpacing: '0.2em',
                 textTransform: 'uppercase',
-                color: tones.accent,
+                color: design.theme.accent,
                 marginBottom: 6,
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 8,
               }}
             >
-              <Sparkle size={11} color="var(--gold, #C19A4B)" />
-              Live preview
+              <Sparkle size={11} /> Live preview
             </div>
             <h3
               style={{
@@ -444,7 +235,6 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
           <MetaRow label="Typography" value={`${fontHeading} / ${fontBody}`} />
           <MetaRow label="Vibes" value={template.vibes.join(' · ')} />
 
-          {/* Palette swatch */}
           <div>
             <div
               style={{
@@ -459,7 +249,7 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
               Color plan
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
-              {[tones.paper, tones.accent, tones.mid, tones.deep, tones.ink].map((c, i) => (
+              {swatches.map((c, i) => (
                 <div
                   key={i}
                   title={c}
@@ -493,21 +283,6 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
           >
             Keep browsing
           </button>
-          {!site && (
-            <div
-              style={{
-                fontFamily: 'var(--font-mono, ui-monospace, monospace)',
-                fontSize: 9.5,
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                color: 'var(--ink-muted, #6F6557)',
-                textAlign: 'center',
-                marginTop: -4,
-              }}
-            >
-              <Pear size={10} tone="sage" shadow={false} /> preview built from tile palette
-            </div>
-          )}
         </div>
       </div>
 
@@ -519,71 +294,6 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
       `}</style>
     </div>,
     portalTarget,
-  );
-}
-
-function SectionRule({ tones }: { tones: PaletteTones }) {
-  return (
-    <div style={{ padding: '0 40px' }}>
-      <div style={{ height: 1, background: tones.accentLight, opacity: 0.8 }} />
-    </div>
-  );
-}
-
-function MiniEyebrow({ children, tones }: { children: React.ReactNode; tones: PaletteTones }) {
-  return (
-    <div
-      style={{
-        fontFamily: 'var(--font-mono, ui-monospace, monospace)',
-        fontSize: 9.5,
-        letterSpacing: '0.2em',
-        textTransform: 'uppercase',
-        color: tones.accent,
-        fontWeight: 700,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function MiniButton({ children, tones, filled }: { children: React.ReactNode; tones: PaletteTones; filled?: boolean }) {
-  return (
-    <span
-      style={{
-        fontSize: 12,
-        padding: '8px 14px',
-        borderRadius: 999,
-        fontWeight: 600,
-        background: filled ? tones.ink : 'transparent',
-        color: filled ? tones.paper : tones.ink,
-        border: filled ? 'none' : `1px solid ${tones.ink}`,
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 4,
-      }}
-    >
-      {children}
-    </span>
-  );
-}
-
-function StoryShimmer({ tones }: { tones: PaletteTones }) {
-  return (
-    <div style={{ display: 'grid', gap: 6, marginTop: 10 }}>
-      {[86, 92, 74].map((w, i) => (
-        <div
-          key={i}
-          style={{
-            height: 10,
-            width: `${w}%`,
-            background: tones.mid,
-            opacity: 0.28,
-            borderRadius: 6,
-          }}
-        />
-      ))}
-    </div>
   );
 }
 

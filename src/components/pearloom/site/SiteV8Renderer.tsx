@@ -379,6 +379,30 @@ function HeroSection({
           </span>
         </div>
 
+        {manifest.motifs?.stamp?.text && (
+          <div style={{ textAlign: 'center', marginBottom: 18 }}>
+            <span
+              className="pl8-motif-stamp"
+              style={{
+                display: 'inline-block',
+                padding: '10px 20px',
+                border: '2px solid var(--peach-ink)',
+                color: 'var(--peach-ink)',
+                fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                fontSize: 12,
+                fontWeight: 800,
+                letterSpacing: '0.28em',
+                textTransform: 'uppercase',
+                borderRadius: 4,
+                transform: `rotate(${manifest.motifs.stamp.rotation ?? -3}deg)`,
+                background: 'transparent',
+              }}
+            >
+              {manifest.motifs.stamp.text}
+            </span>
+          </div>
+        )}
+
         <div style={{ textAlign: 'center', position: 'relative' }}>
           <h1
             className="display pl8-hero-names"
@@ -2226,9 +2250,47 @@ export function SiteV8Renderer({
     }
   };
 
+  // Template theme colors → CSS var overrides. Each site reads its
+  // own manifest.theme.colors (seeded by applyTemplateToManifest)
+  // and overrides the v8 base palette in-scope so the hero strip,
+  // eyebrows, and card surfaces take on the template's actual look.
+  const themeColors = (manifest as unknown as {
+    theme?: { colors?: { background?: string; foreground?: string; accent?: string; accentLight?: string; muted?: string; cardBg?: string } };
+  }).theme?.colors;
+  const themeFonts = (manifest as unknown as {
+    theme?: { fonts?: { heading?: string; body?: string } };
+  }).theme?.fonts;
+  const themeStyle: React.CSSProperties = themeColors
+    ? ({
+        background: 'var(--paper)',
+        minHeight: '100vh',
+        // Surfaces
+        ['--paper' as string]: themeColors.background ?? undefined,
+        ['--cream' as string]: themeColors.background ?? undefined,
+        ['--cream-2' as string]: themeColors.cardBg ?? themeColors.background ?? undefined,
+        ['--card' as string]: themeColors.cardBg ?? themeColors.background ?? undefined,
+        // Ink
+        ['--ink' as string]: themeColors.foreground ?? undefined,
+        ['--ink-soft' as string]: themeColors.muted ?? undefined,
+        ['--ink-muted' as string]: themeColors.muted ?? undefined,
+        // Lines
+        ['--card-ring' as string]: themeColors.accentLight ?? undefined,
+        ['--line' as string]: themeColors.accentLight ?? undefined,
+        ['--line-soft' as string]: themeColors.accentLight ?? undefined,
+        // Primary accent — drives eyebrows, CTAs, current-state highlights
+        ['--peach-ink' as string]: themeColors.accent ?? undefined,
+        ['--peach-bg' as string]: themeColors.accentLight ?? undefined,
+        ['--peach-2' as string]: themeColors.accent ?? undefined,
+        // Keep motif tones (sage/lavender/dusk) intact so each card
+        // band still reads distinctly.
+        ...(themeFonts?.heading ? { ['--font-display' as string]: `"${themeFonts.heading}", Georgia, serif` } : {}),
+        ...(themeFonts?.body ? { ['--font-sans' as string]: `"${themeFonts.body}", system-ui, -apple-system, sans-serif` } : {}),
+      })
+    : { background: 'var(--paper)', minHeight: '100vh' };
+
   return (
     <EditorCanvasProvider value={{ editMode }}>
-      <div className="pl8-guest" style={{ background: 'var(--paper)', minHeight: '100vh' }}>
+      <div className="pl8-guest" style={themeStyle}>
         <EventNav names={names} hasRsvp={hasRsvp} />
         <HeroSection names={names} manifest={manifest} onEditField={onEditField} onEditNames={onEditNames} />
         {blockOrder.map(renderBlock)}

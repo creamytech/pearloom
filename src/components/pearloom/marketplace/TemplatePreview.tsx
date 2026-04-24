@@ -8,6 +8,7 @@
 import { Pear, Sparkle, Squiggle } from '../motifs';
 import type { Template, TemplateLayout, TemplatePalette } from './templates-data';
 import { resolveTemplateDesign } from './template-themes';
+import { findMatchingSiteTemplate } from './template-matcher';
 
 type Tone = { deep: string; mid: string; soft: string; paper: string; ink: string; accent: string };
 
@@ -48,6 +49,9 @@ export function TemplatePreview({ template, small = false }: { template: Templat
   // (acceptable for a miniature). The modal preview loads fonts
   // via <link> so the full-size preview always shows true type.
   const headingStack = `"${fontHeading}", Georgia, serif`;
+  // Pull the template's signature stamp motif for the tile hero.
+  const site = findMatchingSiteTemplate(template);
+  const stampText = site?.motifs?.stamp?.text ?? template.name.toUpperCase();
   return (
     <div
       style={{
@@ -86,8 +90,19 @@ export function TemplatePreview({ template, small = false }: { template: Templat
           <div style={{ width: 28, height: 10, borderRadius: 4, background: t.deep }} />
         </div>
 
-        {/* Hero body */}
-        <LayoutBody layout={template.layout} tone={t} name={name} sub={sub} scale={scale} headingStack={headingStack} />
+        {/* Hero body — mirrors SiteV8Renderer's hero treatment so
+            the tile is fidelity-matched to the editor output. The
+            layout prop still sub-decorates the area beneath the
+            hero, but the hero itself is consistent. */}
+        <V8HeroBody
+          tone={t}
+          name={name}
+          sub={sub}
+          scale={scale}
+          headingStack={headingStack}
+          stampText={stampText}
+          layout={template.layout}
+        />
 
         {/* Footer strip */}
         <div
@@ -111,7 +126,168 @@ export function TemplatePreview({ template, small = false }: { template: Templat
   );
 }
 
-function LayoutBody({
+function V8HeroBody({
+  tone: t,
+  name,
+  sub,
+  scale,
+  headingStack,
+  stampText,
+  layout,
+}: {
+  tone: Tone;
+  name: string;
+  sub: string;
+  scale: number;
+  headingStack: string;
+  stampText: string;
+  layout: TemplateLayout;
+}) {
+  // Split an "A & B" or "A and B" name into two parts so the tile
+  // can mimic the real hero's "<A> and <B>" italic middle word.
+  const parts = name.split(/\s+(?:&|and)\s+/i);
+  const n1 = parts[0] ?? name;
+  const n2 = parts[1] ?? '';
+  const nameFontSize = Math.round(28 * scale);
+  const italicFontSize = Math.round(20 * scale);
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 6 }}>
+      {/* Stamp motif — matches SiteV8Renderer hero stamp */}
+      <div
+        style={{
+          fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+          fontSize: Math.round(8 * scale),
+          fontWeight: 800,
+          letterSpacing: '0.22em',
+          color: t.accent,
+          border: `1.4px solid ${t.accent}`,
+          padding: '3px 8px',
+          borderRadius: 3,
+          textTransform: 'uppercase',
+          transform: 'rotate(-3deg)',
+          maxWidth: '90%',
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
+          textOverflow: 'ellipsis',
+        }}
+      >
+        {stampText.slice(0, 20)}
+      </div>
+
+      {/* Names — big serif + italic "and" mirror */}
+      <div style={{ fontFamily: headingStack, color: t.ink, lineHeight: 0.95, fontWeight: 600, fontSize: nameFontSize }}>
+        {n1}
+      </div>
+      {n2 && (
+        <>
+          <div
+            style={{
+              fontFamily: headingStack,
+              fontStyle: 'italic',
+              fontWeight: 400,
+              fontSize: italicFontSize,
+              color: t.deep,
+              opacity: 0.82,
+              lineHeight: 0.9,
+              marginTop: -2,
+              marginBottom: -2,
+            }}
+          >
+            and
+          </div>
+          <div style={{ fontFamily: headingStack, color: t.ink, lineHeight: 0.95, fontWeight: 600, fontSize: nameFontSize }}>
+            {n2}
+          </div>
+        </>
+      )}
+
+      {/* Italic tagline — mirrors heroTagline */}
+      <div
+        style={{
+          fontFamily: headingStack,
+          fontStyle: 'italic',
+          fontSize: Math.round(11 * scale),
+          color: t.deep,
+          opacity: 0.85,
+          marginTop: 4,
+          maxWidth: '90%',
+        }}
+      >
+        {sub}
+      </div>
+
+      {/* Photo-strip hint — mirrors SiteV8Renderer photostrip */}
+      <LayoutHint layout={layout} tone={t} scale={scale} />
+    </div>
+  );
+}
+
+function LayoutHint({ layout, tone: t, scale }: { layout: TemplateLayout; tone: Tone; scale: number }) {
+  // Small decorative hint below the hero body that varies with the
+  // template's declared layout. Kept lightweight so the hero always
+  // reads as v8 but the tile still telegraphs its story treatment.
+  const h = Math.round(14 * scale);
+  if (layout === 'timeline') {
+    return (
+      <div style={{ marginTop: 6, display: 'flex', gap: 5, alignItems: 'center' }}>
+        {[t.soft, t.accent, t.soft, t.soft].map((c, i) => (
+          <div key={i} style={{ width: h, height: h, borderRadius: '50%', background: c, border: `1px solid ${t.mid}` }} />
+        ))}
+      </div>
+    );
+  }
+  if (layout === 'filmstrip' || layout === 'mosaic') {
+    return (
+      <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 3, width: '80%' }}>
+        {[t.accent, t.soft, t.mid, t.soft, t.accent].map((c, i) => (
+          <div key={i} style={{ aspectRatio: '3/4', background: c, borderRadius: 2, transform: `rotate(${i % 2 === 0 ? -1 : 1}deg)` }} />
+        ))}
+      </div>
+    );
+  }
+  if (layout === 'bento') {
+    return (
+      <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridAutoRows: Math.round(12 * scale), gap: 3, width: '80%' }}>
+        <div style={{ gridRow: 'span 2', background: t.accent, borderRadius: 3 }} />
+        <div style={{ background: t.soft, borderRadius: 3 }} />
+        <div style={{ background: t.mid, borderRadius: 3 }} />
+        <div style={{ gridColumn: 'span 2', background: t.mid, borderRadius: 3 }} />
+      </div>
+    );
+  }
+  if (layout === 'kenburns') {
+    return (
+      <div style={{ marginTop: 8, width: '80%', height: Math.round(24 * scale), borderRadius: 4, background: `linear-gradient(145deg, ${t.deep}, ${t.accent})` }} />
+    );
+  }
+  if (layout === 'magazine') {
+    return (
+      <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: '40% 1fr', gap: 5, width: '80%' }}>
+        <div style={{ height: Math.round(20 * scale), background: t.mid, borderRadius: 2 }} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, justifyContent: 'center' }}>
+          {[1, 2, 3].map((i) => (
+            <div key={i} style={{ height: 2, borderRadius: 1, background: t.ink, opacity: 0.35 }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+  // parallax + default
+  return (
+    <div style={{ marginTop: 8, display: 'flex', gap: 4, justifyContent: 'center' }}>
+      {[t.soft, t.mid, t.accent].map((c, i) => (
+        <div key={i} style={{ width: Math.round(12 * scale), height: Math.round(12 * scale), borderRadius: '50%', background: c }} />
+      ))}
+    </div>
+  );
+}
+
+// Legacy — kept for reference but no longer invoked. TemplatePreview
+// now uses V8HeroBody + LayoutHint so every tile's hero matches the
+// real SiteV8Renderer output, with a small layout-flavored decoration
+// below. If we ever need per-layout heroes again, revive this switch.
+function _LegacyLayoutBody({
   layout,
   tone: t,
   name,
