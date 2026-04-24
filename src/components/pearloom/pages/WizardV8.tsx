@@ -850,36 +850,65 @@ export function WizardV8() {
         const decoder = new TextDecoder();
         let buffer = '';
         let finalManifest: Record<string, unknown> | null = null;
+        let streamError: string | null = null;
+
+        const processFrame = (part: string) => {
+          const line = part.split('\n').find((l) => l.startsWith('data: '));
+          if (!line) return;
+          let ev: Record<string, unknown> | null = null;
+          try {
+            ev = JSON.parse(line.slice(6));
+          } catch {
+            // Truly partial / malformed frame — drop it.
+            return;
+          }
+          if (!ev) return;
+          // NOTE: don't put an ev.type === 'error' throw inside a
+          // try/catch — the surrounding "ignore parse errors"
+          // guard used to swallow the real server error and
+          // bubble up a misleading "No manifest received".
+          if (ev.type === 'progress') {
+            const label = (ev.label ?? ev.message) as string | undefined;
+            if (label) setGenStep(label);
+          } else if (ev.type === 'pass' && typeof ev.message === 'string') {
+            setGenStep(ev.message);
+          } else if (ev.type === 'complete' && ev.manifest) {
+            finalManifest = ev.manifest as Record<string, unknown>;
+          } else if (ev.type === 'error') {
+            streamError = (ev.message as string) ?? 'Generation failed';
+          }
+        };
+
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
           buffer += decoder.decode(value, { stream: true });
           const parts = buffer.split('\n\n');
           buffer = parts.pop() ?? '';
-          for (const part of parts) {
-            const line = part.split('\n').find((l) => l.startsWith('data: '));
-            if (!line) continue;
-            try {
-              const ev = JSON.parse(line.slice(6));
-              if (ev?.type === 'progress') {
-                const label: string = ev.label ?? ev.message ?? '';
-                if (label) setGenStep(label);
-              } else if (ev?.type === 'pass' && typeof ev.message === 'string') {
-                setGenStep(ev.message);
-              } else if (ev?.type === 'complete' && ev.manifest) {
-                finalManifest = ev.manifest as Record<string, unknown>;
-              } else if (ev?.type === 'error') {
-                throw new Error(ev.message ?? 'Generation failed');
-              }
-            } catch {
-              /* partial frame, ignore */
-            }
-          }
+          for (const part of parts) processFrame(part);
+          if (streamError) break;
         }
-        if (!finalManifest) throw new Error('No manifest received');
+        // Flush: the final frame may live in `buffer` if the server
+        // closed before writing the trailing blank line. Replay it
+        // through the same parser so `complete` isn't lost.
+        buffer += decoder.decode();
+        if (buffer.trim()) {
+          for (const part of buffer.split('\n\n')) processFrame(part);
+        }
+        if (streamError) throw new Error(streamError);
+        // Capture the closure-assigned value into a local so TS can
+        // narrow it — `finalManifest` is referenced by `processFrame`
+        // so the compiler keeps it as `Record<string, unknown> | null`
+        // even after a null guard.
+        const resolvedManifest = finalManifest as Record<string, unknown> | null;
+        if (!resolvedManifest) {
+          throw new Error(
+            'Pear finished without sending your manifest — try again in a minute, or contact support if this keeps happening.',
+          );
+        }
         manifest = {
-          ...finalManifest,
-          themeFamily: (finalManifest as { themeFamily?: string }).themeFamily ?? 'v8',
+          ...resolvedManifest,
+          themeFamily: (resolvedManifest as { themeFamily?: string }).themeFamily ?? 'v8',
           templateId: st.templateId,
         };
       } else {

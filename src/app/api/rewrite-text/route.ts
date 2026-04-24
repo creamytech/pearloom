@@ -72,37 +72,70 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { text, context, style } = body as {
-      text: unknown;
-      context: unknown;
-      style: unknown;
+    // The endpoint accepts TWO request shapes:
+    //   (a) legacy rewrite:  { text, context, style }   — editor rewrite buttons
+    //   (b) v8 instruction:  { instruction, tone? }     — wizard + PearCommand + HeroPanel + InviteDesigner
+    // Both return a response containing { text, rewrite, rewritten, result }
+    // so every caller can read whichever field it prefers.
+    const { text, context, style, instruction, tone } = body as {
+      text?: unknown;
+      context?: unknown;
+      style?: unknown;
+      instruction?: unknown;
+      tone?: unknown;
     };
 
-    // Validate text
-    if (!text || typeof text !== 'string' || text.trim().length === 0) {
-      return NextResponse.json({ error: 'text is required and must be a non-empty string' }, { status: 400 });
-    }
-    if (text.length > MAX_TEXT_LENGTH) {
-      return NextResponse.json(
-        { error: `text exceeds maximum length of ${MAX_TEXT_LENGTH} characters` },
-        { status: 400 }
-      );
-    }
+    let prompt: string;
 
-    // Validate context
-    if (!context || typeof context !== 'string') {
-      return NextResponse.json({ error: 'context is required and must be a string' }, { status: 400 });
-    }
+    if (typeof instruction === 'string' && instruction.trim().length > 0) {
+      // ── (b) v8 instruction path ─────────────────────────────
+      if (instruction.length > 4000) {
+        return NextResponse.json(
+          { error: 'instruction exceeds maximum length of 4000 characters' },
+          { status: 400 }
+        );
+      }
+      const toneHint =
+        typeof tone === 'string' && tone.trim().length > 0
+          ? `Tone: ${tone.trim()}.`
+          : 'Tone: warm, specific, human.';
+      prompt = `You are Pear, Pearloom's celebration-site writing assistant.
 
-    // Validate style
-    if (!style || !(VALID_STYLES as readonly string[]).includes(style as string)) {
-      return NextResponse.json(
-        { error: `style must be one of: ${VALID_STYLES.join(', ')}` },
-        { status: 400 }
-      );
-    }
+${toneHint}
 
-    const prompt = `You are a writing assistant for Pearloom, a premium wedding website platform.
+Task:
+${instruction}
+
+Rules:
+- Write like a friend, not a brand.
+- No exclamation marks unless the instruction explicitly allows them.
+- No clichés ("tying the knot", "happily ever after", "magical day").
+- Return ONLY the requested text — no quotes, no labels, no explanation, no markdown fences.`;
+    } else {
+      // ── (a) legacy rewrite path ─────────────────────────────
+      if (!text || typeof text !== 'string' || text.trim().length === 0) {
+        return NextResponse.json(
+          { error: 'text or instruction is required' },
+          { status: 400 }
+        );
+      }
+      if (text.length > MAX_TEXT_LENGTH) {
+        return NextResponse.json(
+          { error: `text exceeds maximum length of ${MAX_TEXT_LENGTH} characters` },
+          { status: 400 }
+        );
+      }
+      if (!context || typeof context !== 'string') {
+        return NextResponse.json({ error: 'context is required and must be a string' }, { status: 400 });
+      }
+      if (!style || !(VALID_STYLES as readonly string[]).includes(style as string)) {
+        return NextResponse.json(
+          { error: `style must be one of: ${VALID_STYLES.join(', ')}` },
+          { status: 400 }
+        );
+      }
+
+      prompt = `You are a writing assistant for Pearloom, a premium wedding website platform.
 
 ${STYLE_INSTRUCTIONS[style as RewriteStyle]}
 
@@ -115,14 +148,27 @@ Rules:
 - Maintain the same meaning and key information
 - Match the wedding site's tone based on the context provided
 - Return ONLY the rewritten text, nothing else — no quotes, no labels, no explanation`;
+    }
 
-    const rewrite = await callGemini(prompt, apiKey);
+    const raw = await callGemini(prompt, apiKey);
+    // Strip common LLM artefacts: leading/trailing quotes, markdown fences.
+    const cleaned = raw
+      .replace(/^```[a-z]*\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .replace(/^["'“”]+|["'“”]+$/g, '')
+      .trim();
 
-    if (!rewrite) {
+    if (!cleaned) {
       return NextResponse.json({ error: 'Rewrite generation failed' }, { status: 500 });
     }
 
-    return NextResponse.json({ rewrite });
+    // Return every alias so either contract's clients read successfully.
+    return NextResponse.json({
+      text: cleaned,
+      rewrite: cleaned,
+      rewritten: cleaned,
+      result: cleaned,
+    });
   } catch (err) {
     console.error('[rewrite-text] Error:', err);
     return NextResponse.json({ error: 'Rewrite failed' }, { status: 500 });
