@@ -7,16 +7,17 @@
 // /templates and renders a scrollable miniature of the template
 // stack — hero → story → event → photos → rsvp → footer — with
 // the tile's actual palette and (when available) the real
-// SITE_TEMPLATES motif + poetry data. This replaces the old
-// "click goes straight to wizard" behaviour the user flagged as
-// misleading because the tile art and the generated site often
-// diverged.
+// SITE_TEMPLATES motif + poetry data.
 //
-// Esc + outside-click close. "Use this template" CTA navigates
-// to the wizard with ?template=<id>.
+// IMPORTANT — this component mounts into document.body via a
+// portal. The marketplace wrapper uses `.pl8 { overflow-x:
+// hidden }` which can clip `position: fixed` children when any
+// ancestor creates a containing block (transform, filter,
+// backdrop-filter, etc.). Portaling out avoids that entirely.
 // ─────────────────────────────────────────────────────────────
 
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { Blob, Icon, Pear, Sparkle, Squiggle } from '../motifs';
 import type { Template, TemplatePalette } from './templates-data';
@@ -54,6 +55,13 @@ interface Props {
 }
 
 export function TemplatePreviewModal({ open, template, onClose }: Props) {
+  // Portal target — document.body, resolved once mounted so SSR
+  // doesn't try to touch `document`.
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setPortalTarget(typeof document !== 'undefined' ? document.body : null);
+  }, []);
+
   // Lookup the rich SITE_TEMPLATES entry via the marketplace matcher.
   // When found, it gives us real hero copy and motif data; otherwise
   // we render with marketplace-level fallback copy.
@@ -76,7 +84,7 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
     };
   }, [open, handleKey]);
 
-  if (!open || !template) return null;
+  if (!open || !template || !portalTarget) return null;
 
   // Fallback to groovy-garden if a template ships an unrecognised
   // palette key — prevents a blank modal when the data drifts.
@@ -88,7 +96,7 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
   const closing = site?.poetry?.closingLine ?? 'with love · made on Pearloom';
   const stampText = site?.motifs?.stamp?.text ?? 'SAVE · THE · DATE';
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -452,7 +460,8 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
           to   { opacity: 1; transform: translateY(0) scale(1); }
         }
       `}</style>
-    </div>
+    </div>,
+    portalTarget,
   );
 }
 
