@@ -39,6 +39,12 @@ export async function corePassClaude(
     layoutFormat?: string;
     /** Voice from EventType — shifts tone + pronoun + banned list. */
     voice?: PoetryVoice;
+    /** Anchors collected from the wizard — the story must quote these. */
+    factSheet?: {
+      howWeMet?: string;
+      why?: string;
+      favorite?: string;
+    };
   }
 ): Promise<Pass1Result> {
   const prompt = buildPrompt(
@@ -52,13 +58,37 @@ export async function corePassClaude(
   );
 
   const voice: PoetryVoice = opts.voice ?? 'celebratory';
+
+  // factSheet is a HARD anchor, not a hint. The story must weave
+  // these facts in — the grounding pass flags and rewrites anything
+  // that contradicts, but this prompt ensures the AI uses them
+  // proactively rather than inventing substitutes.
+  const fs = opts.factSheet ?? {};
+  const hasFactSheet = Boolean(fs.howWeMet || fs.why || fs.favorite);
+  const factSheetBlock = hasFactSheet
+    ? `\n\nFACT-SHEET — these are the user's own words. Weave them into the chapters naturally. Quote them back (paraphrasing allowed; contradicting them is forbidden):\n` +
+      [
+        fs.howWeMet ? `  • HOW THEY GOT HERE: "${fs.howWeMet}"` : null,
+        fs.why ? `  • WHY THIS CELEBRATION: "${fs.why}"` : null,
+        fs.favorite ? `  • FAVOURITE MEMORY: "${fs.favorite}"` : null,
+      ]
+        .filter(Boolean)
+        .join('\n') +
+      `\n\nHARD RULES:\n` +
+      `  - Chapter 1 MUST reference "HOW THEY GOT HERE" if present.\n` +
+      `  - At least one chapter MUST reference "WHY THIS CELEBRATION" if present.\n` +
+      `  - The final chapter MUST reference "FAVOURITE MEMORY" if present.\n` +
+      `  - Never invent alternative origin stories when the user's words are provided.`
+    : '';
+
   const voiceSystem =
     `You are Pearloom's Memory Engine — a literary editor and web designer rolled into one. ` +
     `You turn a photo archive into a cohesive, emotionally layered celebration website. ` +
     `Your output is always valid JSON matching the schema supplied in the user prompt.\n\n` +
     `Voice for this event (${voice}): ${VOICE_GUIDANCE[voice]}\n` +
     `Pronouns: ${VOICE_PRONOUNS[voice]}\n` +
-    `Banned clichés (never use): ${VOICE_BANNED[voice].map((w) => `"${w}"`).join(', ')}.`;
+    `Banned clichés (never use): ${VOICE_BANNED[voice].map((w) => `"${w}"`).join(', ')}.` +
+    factSheetBlock;
 
   // We split the prompt into a "stable" cacheable prefix (the system rules
   // and the cluster data block that won't change between revisions) and a
