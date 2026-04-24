@@ -117,10 +117,54 @@ export function EditorV8({
     () => previewPathOverride ?? buildSitePath(siteSlug, '', occasion),
     [siteSlug, occasion, previewPathOverride]
   );
+  // Editor iframe points at /preview (which listens for postMessage
+  // updates) instead of the live /sites/[slug] route, so theme and
+  // content edits show instantly without waiting on a DB round-trip.
+  // We pass a sessionStorage key so the preview page can rehydrate
+  // on a hard refresh too. Falls back to prettyPath when a dev
+  // overrides the path.
+  const previewKey = useMemo(() => `pearloom-editor-preview:${siteSlug}`, [siteSlug]);
+  const iframePath = useMemo(
+    () => previewPathOverride ?? `/preview?siteSlug=${encodeURIComponent(siteSlug)}&key=${encodeURIComponent(previewKey)}&editor=1`,
+    [previewKey, siteSlug, previewPathOverride]
+  );
   const prettyUrl = useMemo(() => formatSiteDisplayUrl(siteSlug, '', occasion), [siteSlug, occasion]);
   const displayNames = useMemo(() => names.filter(Boolean).join(' & ') || siteSlug, [names, siteSlug]);
 
-  // Debounced autosave on every change
+  // Push the latest manifest + names into the preview iframe
+  // immediately. The /preview page listens for
+  // `pearloom-preview-update` and re-renders without a round-trip
+  // to the DB — so theme, palette, block content, and name edits
+  // all show INSTANTLY in the iframe. Also stashes the manifest
+  // in sessionStorage so a hard refresh of the iframe picks it up.
+  const broadcastToPreview = useCallback(
+    (nextManifest: StoryManifest, nextNames: [string, string]) => {
+      try {
+        if (typeof window !== 'undefined' && window.sessionStorage) {
+          window.sessionStorage.setItem(
+            previewKey,
+            JSON.stringify({ manifest: nextManifest, names: nextNames }),
+          );
+        }
+      } catch {
+        /* sessionStorage full or blocked — preview still works via postMessage */
+      }
+      const frame = iframeRef.current?.contentWindow;
+      if (!frame) return;
+      try {
+        frame.postMessage(
+          { type: 'pearloom-preview-update', manifest: nextManifest, names: nextNames },
+          '*',
+        );
+      } catch {
+        /* cross-origin isolated in dev? — fall through; DB save will catch up */
+      }
+    },
+    [previewKey],
+  );
+
+  // Debounced autosave on every change. Save keeps the DB in sync
+  // for publish + reload; broadcast is the instant visual path.
   const queueSave = useCallback(
     (nextManifest: StoryManifest, nextNames: [string, string]) => {
       setSaveStatus('saving');
@@ -135,8 +179,6 @@ export function EditorV8({
           });
           if (!res.ok) throw new Error(String(res.status));
           setSaveStatus('saved');
-          // Reload the iframe to reflect the change
-          iframeRef.current?.contentWindow?.location.reload();
           setTimeout(() => setSaveStatus('idle'), 1400);
         } catch {
           setSaveStatus('error');
@@ -149,18 +191,42 @@ export function EditorV8({
   const onManifestChange = useCallback(
     (next: StoryManifest) => {
       setManifest(next);
+      broadcastToPreview(next, names);
       queueSave(next, names);
     },
-    [names, queueSave]
+    [names, queueSave, broadcastToPreview]
   );
 
   const onNamesChange = useCallback(
     (nextNames: [string, string]) => {
       setNames(nextNames);
+      broadcastToPreview(manifest, nextNames);
       queueSave(manifest, nextNames);
     },
-    [manifest, queueSave]
+    [manifest, queueSave, broadcastToPreview]
   );
+
+  // Seed sessionStorage immediately on mount so the iframe can
+  // hydrate before any user edits. Without this the preview would
+  // show a blank state until the first postMessage arrives.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.sessionStorage.setItem(
+        previewKey,
+        JSON.stringify({ manifest, names }),
+      );
+    } catch { /* best-effort */ }
+    // Run once per slug — subsequent edits are handled by broadcastToPreview.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [siteSlug]);
+
+  // When the iframe loads (first mount or device-toggle reload),
+  // re-broadcast so it hydrates from our current state rather
+  // than whatever was last persisted server-side.
+  const onIframeLoad = useCallback(() => {
+    broadcastToPreview(manifest, names);
+  }, [manifest, names, broadcastToPreview]);
 
   async function handlePublish() {
     const next = { ...manifest, published: true } as StoryManifest;
@@ -332,7 +398,7 @@ export function EditorV8({
           onReorder={reorderBlocks}
           onToggleHidden={toggleBlockHidden}
         />
-        <Preview device={device} prettyPath={prettyPath} iframeRef={iframeRef} />
+        <Preview device={device} prettyPath={iframePath} iframeRef={iframeRef} onIframeLoad={onIframeLoad} />
         <Inspector
           block={block}
           manifest={manifest}
@@ -827,10 +893,12 @@ function Preview({
   device,
   prettyPath,
   iframeRef,
+  onIframeLoad,
 }: {
   device: DeviceKey;
   prettyPath: string;
   iframeRef: React.MutableRefObject<HTMLIFrameElement | null>;
+  onIframeLoad?: () => void;
 }) {
   const w = DEVICE_WIDTH[device];
   return (
@@ -862,6 +930,7 @@ function Preview({
           ref={iframeRef}
           title="Live site preview"
           src={prettyPath}
+          onLoad={onIframeLoad}
           style={{
             width: '100%',
             height: 'calc(100vh - 180px)',
