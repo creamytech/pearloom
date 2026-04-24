@@ -224,7 +224,7 @@ export function GenerationProgress({
 
           {/* Preview content area */}
           <div className="relative min-h-[220px] md:min-h-[280px] p-5 md:p-7 flex flex-col gap-4 overflow-hidden" style={{
-            background: idx >= 1 ? 'linear-gradient(180deg, #FAF7F2 0%, #F0EBE0 100%)' : '#FFFFFF',
+            background: idx >= 1 ? 'linear-gradient(180deg, #FDFAF0 0%, #F0EBE0 100%)' : '#FFFFFF',
             transition: 'background 1.2s ease',
           }}>
 

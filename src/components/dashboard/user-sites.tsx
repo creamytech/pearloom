@@ -301,14 +301,14 @@ function OverflowMenu({ site, onShare, onDelete, onTogglePin, isPinned, isCopied
               overflow: 'hidden',
               background: 'var(--pl-cream-card)',
               border: '1px solid rgba(14,13,11,0.10)',
-              boxShadow: '0 2px 8px rgba(14,13,11,0.06), 0 18px 44px rgba(14,13,11,0.14), 0 0 0 3px rgba(184,147,90,0.08)',
+              boxShadow: '0 2px 8px rgba(14,13,11,0.06), 0 18px 44px rgba(14,13,11,0.14), 0 0 0 3px rgba(193,154,75,0.08)',
             } as React.CSSProperties}
           >
             {/* Editorial menu header — gold hairline */}
             <div style={{
               padding: '9px 14px 8px',
-              borderBottom: '1px solid rgba(184,147,90,0.32)',
-              background: 'rgba(184,147,90,0.06)',
+              borderBottom: '1px solid rgba(193,154,75,0.32)',
+              background: 'rgba(193,154,75,0.06)',
             }}>
               <span style={{
                 fontFamily: 'var(--pl-font-mono)',
@@ -625,15 +625,15 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                 <div style={{
                   display: 'flex', alignItems: 'stretch',
                   borderRadius: 'var(--pl-radius-md)',
-                  border: '1px solid rgba(184,147,90,0.40)',
+                  border: '1px solid rgba(193,154,75,0.40)',
                   background: 'var(--pl-cream-card)',
                   overflow: 'hidden',
                 }}>
                   <div style={{
                     padding: '6px 10px',
-                    borderRight: '1px solid rgba(184,147,90,0.32)',
+                    borderRight: '1px solid rgba(193,154,75,0.32)',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    background: 'rgba(184,147,90,0.08)',
+                    background: 'rgba(193,154,75,0.08)',
                   }}>
                     <Sparkles size={12} style={{ color: 'var(--pl-gold)' }} />
                   </div>
@@ -779,8 +779,8 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                   transition: 'border-color 0.18s, box-shadow 0.24s cubic-bezier(0.22,1,0.36,1)',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(184,147,90,0.55)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(14,13,11,0.04), 0 14px 36px rgba(14,13,11,0.10), 0 0 0 3px rgba(184,147,90,0.18)';
+                  e.currentTarget.style.borderColor = 'rgba(193,154,75,0.55)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(14,13,11,0.04), 0 14px 36px rgba(14,13,11,0.10), 0 0 0 3px rgba(193,154,75,0.18)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.borderColor = isPrimary
@@ -794,7 +794,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                 {/* Gold hairline at top */}
                 <span style={{
                   position: 'absolute', top: 0, left: '16px', right: '16px',
-                  height: '1px', background: 'rgba(184,147,90,0.45)',
+                  height: '1px', background: 'rgba(193,154,75,0.45)',
                 }} />
 
                 {/* Recommended ribbon for the primary card */}
@@ -891,7 +891,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
         >
           <span style={{
             position: 'absolute', top: '1px', left: '20%', right: '20%',
-            height: '1px', background: 'rgba(184,147,90,0.55)',
+            height: '1px', background: 'rgba(193,154,75,0.55)',
           }} />
           <span style={{
             fontFamily: 'var(--pl-font-mono)',
@@ -1141,7 +1141,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
           display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
           gap: '12px', marginBottom: '16px',
           paddingBottom: '10px',
-          borderBottom: '1px solid rgba(184,147,90,0.40)',
+          borderBottom: '1px solid rgba(193,154,75,0.40)',
         }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '14px' }}>
             <span style={{
@@ -1235,8 +1235,8 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                     transition: 'border-color 0.18s, box-shadow 0.24s cubic-bezier(0.22,1,0.36,1), transform 0.12s',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(184,147,90,0.50)';
-                    e.currentTarget.style.boxShadow = '0 2px 6px rgba(14,13,11,0.04), 0 12px 32px rgba(14,13,11,0.08), 0 0 0 3px rgba(184,147,90,0.08)';
+                    e.currentTarget.style.borderColor = 'rgba(193,154,75,0.50)';
+                    e.currentTarget.style.boxShadow = '0 2px 6px rgba(14,13,11,0.04), 0 12px 32px rgba(14,13,11,0.08), 0 0 0 3px rgba(193,154,75,0.08)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.borderColor = 'rgba(14,13,11,0.08)';
@@ -1293,8 +1293,8 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                         display: 'inline-flex', alignItems: 'center', gap: '6px',
                         padding: '3px 9px 3px 8px',
                         borderRadius: 'var(--pl-radius-xs)',
-                        background: isLive ? 'rgba(92,107,63,0.08)' : 'rgba(184,147,90,0.10)',
-                        border: isLive ? '1px solid rgba(92,107,63,0.30)' : '1px solid rgba(184,147,90,0.35)',
+                        background: isLive ? 'rgba(92,107,63,0.08)' : 'rgba(193,154,75,0.10)',
+                        border: isLive ? '1px solid rgba(92,107,63,0.30)' : '1px solid rgba(193,154,75,0.35)',
                         fontFamily: 'var(--pl-font-mono)',
                         fontSize: '0.48rem',
                         fontWeight: 700,
@@ -1327,7 +1327,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                       {occ && (
                         <>
                           <span>{occ.label}</span>
-                          <span style={{ color: 'rgba(184,147,90,0.55)' }}>·</span>
+                          <span style={{ color: 'rgba(193,154,75,0.55)' }}>·</span>
                         </>
                       )}
                       {dateDisplay && (
@@ -1336,13 +1336,13 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                             <Calendar size={9} strokeWidth={1.8} />
                             {dateDisplay}
                           </span>
-                          <span style={{ color: 'rgba(184,147,90,0.55)' }}>·</span>
+                          <span style={{ color: 'rgba(193,154,75,0.55)' }}>·</span>
                         </>
                       )}
                       <span style={{ color: 'rgba(14,13,11,0.40)', textTransform: 'lowercase', letterSpacing: '0.08em' }}>
                         {site.domain}
                       </span>
-                      <span style={{ color: 'rgba(184,147,90,0.55)' }}>·</span>
+                      <span style={{ color: 'rgba(193,154,75,0.55)' }}>·</span>
                       <span
                         aria-label={isPublished ? 'Published' : 'Draft'}
                         style={{
@@ -1374,7 +1374,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                       </span>
                       {lastEditedRel && (
                         <>
-                          <span style={{ color: 'rgba(184,147,90,0.55)' }}>·</span>
+                          <span style={{ color: 'rgba(193,154,75,0.55)' }}>·</span>
                           <span style={{ color: 'rgba(14,13,11,0.52)' }}>
                             Edited {lastEditedRel}
                           </span>
@@ -1387,8 +1387,8 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                             display: 'inline-flex', alignItems: 'center', gap: '5px',
                             padding: '2px 8px',
                             borderRadius: 'var(--pl-radius-xs)',
-                            background: 'rgba(184,147,90,0.12)',
-                            border: '1px solid rgba(184,147,90,0.38)',
+                            background: 'rgba(193,154,75,0.12)',
+                            border: '1px solid rgba(193,154,75,0.38)',
                             fontFamily: 'var(--pl-font-mono)',
                             fontSize: '0.5rem',
                             fontWeight: 700,
@@ -1432,7 +1432,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
         <div style={{ position: 'relative', textAlign: 'center', paddingTop: '6px' }}>
           <span style={{
             position: 'absolute', top: '-18px', left: '18%', right: '18%',
-            height: '1px', background: 'rgba(184,147,90,0.55)',
+            height: '1px', background: 'rgba(193,154,75,0.55)',
           }} />
           <span style={{
             fontFamily: 'var(--pl-font-mono)',

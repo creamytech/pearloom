@@ -594,7 +594,7 @@ export function VoiceToasts({
             color: PD.plum,
             marginBottom: 10,
             padding: '6px 10px',
-            background: 'rgba(122,45,45,0.08)',
+            background: 'rgba(198,86,61,0.08)',
             borderRadius: 8,
           }}
         >

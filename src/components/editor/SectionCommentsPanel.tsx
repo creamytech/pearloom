@@ -158,7 +158,7 @@ export function SectionCommentsPanel({
         display: 'flex',
         flexDirection: 'column',
         background: 'var(--pl-cream-card, #FBF7EE)',
-        border: '1px solid color-mix(in oklab, var(--pl-gold, #B8935A) 35%, transparent)',
+        border: '1px solid color-mix(in oklab, var(--pl-gold, #C19A4B) 35%, transparent)',
         borderRadius: 'var(--pl-radius-sm)',
         boxShadow: '0 18px 48px rgba(40,28,12,0.14), 0 4px 12px rgba(40,28,12,0.08)',
         overflow: 'hidden',
@@ -171,7 +171,7 @@ export function SectionCommentsPanel({
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '14px 16px',
-          borderBottom: '1px solid color-mix(in oklab, var(--pl-gold, #B8935A) 22%, transparent)',
+          borderBottom: '1px solid color-mix(in oklab, var(--pl-gold, #C19A4B) 22%, transparent)',
           background: 'var(--pl-cream, #F5EFE2)',
         }}
       >
@@ -385,7 +385,7 @@ export function SectionCommentsPanel({
       <div
         style={{
           padding: '12px 14px',
-          borderTop: '1px solid color-mix(in oklab, var(--pl-gold, #B8935A) 22%, transparent)',
+          borderTop: '1px solid color-mix(in oklab, var(--pl-gold, #C19A4B) 22%, transparent)',
           background: 'var(--pl-cream, #F5EFE2)',
         }}
       >

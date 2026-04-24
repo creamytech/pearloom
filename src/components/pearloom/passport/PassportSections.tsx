@@ -268,7 +268,7 @@ function CountdownCard({
           </div>
         ))}
       </div>
-      <div style={{ fontSize: '0.88rem', color: '#3A332C', marginTop: 14 }}>
+      <div style={{ fontSize: '0.88rem', color: '#4A5642', marginTop: 14 }}>
         {new Date(iso).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
         {time ? ` · ${time}` : ''}
         {venue ? ` · ${venue}` : ''}
@@ -290,7 +290,7 @@ function SeatIntroCard({
     <Card accent={accent}>
       <Eyebrow label={intro.table_label ? `Your table · ${intro.table_label}` : 'Your table'} accent={accent} />
       <Title text="Who you'll sit with" headingFont={headingFont} />
-      <p style={{ fontSize: '0.95rem', lineHeight: 1.6, margin: '10px 0 14px', color: '#3A332C' }}>{intro.intro}</p>
+      <p style={{ fontSize: '0.95rem', lineHeight: 1.6, margin: '10px 0 14px', color: '#4A5642' }}>{intro.intro}</p>
       {Array.isArray(intro.seatmates) && intro.seatmates.length > 0 && (
         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: 8 }}>
           {intro.seatmates.map((m, i) => (
@@ -356,7 +356,7 @@ function MemoryPromptCard({
     <Card accent={accent}>
       <Eyebrow label={isSolemn ? 'A memory request' : 'A story they asked for'} accent={accent} />
       <Title text={isSolemn ? 'Share a memory' : 'Tell them a story'} headingFont={headingFont} />
-      <p style={{ fontSize: '0.95rem', lineHeight: 1.6, margin: '10px 0 12px', color: '#3A332C', fontStyle: 'italic' }}>
+      <p style={{ fontSize: '0.95rem', lineHeight: 1.6, margin: '10px 0 12px', color: '#4A5642', fontStyle: 'italic' }}>
         {initial.prompt}
       </p>
       <textarea
@@ -455,7 +455,7 @@ function WhisperCard({
             borderRadius: 10,
             background: `${accent}15`,
             fontSize: '0.9rem',
-            color: '#3A332C',
+            color: '#4A5642',
             border: `1px dashed ${accent}44`,
           }}
         >
@@ -592,7 +592,7 @@ function CapsuleCard({
               padding: '6px 14px',
               borderRadius: 999,
               background: years === y ? accent : 'transparent',
-              color: years === y ? '#F5EFE2' : '#3A332C',
+              color: years === y ? '#F5EFE2' : '#4A5642',
               border: years === y ? 'none' : `1px solid ${accent}44`,
               fontSize: '0.85rem',
               fontWeight: 600,

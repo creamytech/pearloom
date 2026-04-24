@@ -160,7 +160,7 @@ export function LandingClosing({ onStart }: { onStart: () => void }) {
                 top: -6,
                 right: 14,
                 fontSize: 10,
-                color: '#B8935A',
+                color: '#C19A4B',
               }}
             >
               ♡

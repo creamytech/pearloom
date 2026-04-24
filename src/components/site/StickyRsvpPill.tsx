@@ -102,7 +102,7 @@ export function StickyRsvpPill({
             minHeight: 48,
             borderRadius: 'var(--pl-radius-full)',
             background: accent,
-            color: '#FAF7F2',
+            color: '#FDFAF0',
             textDecoration: 'none',
             fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
             fontSize: 'clamp(0.82rem, 1.4vw, 0.88rem)',

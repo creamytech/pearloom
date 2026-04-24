@@ -240,16 +240,16 @@ export default function HelpClient() {
                     background: 'var(--pl-cream-card)',
                     border: '1px solid var(--pl-divider)',
                     borderRadius: 'var(--pl-radius-xs)',
-                    boxShadow: 'inset 0 -2px 0 rgba(184,147,90,0.22)',
+                    boxShadow: 'inset 0 -2px 0 rgba(193,154,75,0.22)',
                     transition: 'box-shadow 300ms cubic-bezier(0.22, 1, 0.36, 1)',
                   }}
                   onFocusCapture={(e) => {
                     (e.currentTarget as HTMLLabelElement).style.boxShadow =
-                      'inset 0 -2px 0 rgba(184,147,90,0.9)';
+                      'inset 0 -2px 0 rgba(193,154,75,0.9)';
                   }}
                   onBlurCapture={(e) => {
                     (e.currentTarget as HTMLLabelElement).style.boxShadow =
-                      'inset 0 -2px 0 rgba(184,147,90,0.22)';
+                      'inset 0 -2px 0 rgba(193,154,75,0.22)';
                   }}
                 >
                   <Search size={15} color="var(--pl-olive)" />
@@ -417,10 +417,10 @@ export default function HelpClient() {
                       position: 'relative',
                       padding: '48px 24px',
                       textAlign: 'center',
-                      border: '1px dashed rgba(184,147,90,0.45)',
+                      border: '1px dashed rgba(193,154,75,0.45)',
                       borderTop: 'none',
                       background:
-                        'repeating-linear-gradient(135deg, transparent 0, transparent 12px, rgba(184,147,90,0.04) 12px, rgba(184,147,90,0.04) 13px)',
+                        'repeating-linear-gradient(135deg, transparent 0, transparent 12px, rgba(193,154,75,0.04) 12px, rgba(193,154,75,0.04) 13px)',
                     }}
                   >
                     <div
@@ -641,11 +641,11 @@ export default function HelpClient() {
               style={{
                 position: 'relative',
                 padding: '44px 28px',
-                border: '1px dashed rgba(184,147,90,0.5)',
+                border: '1px dashed rgba(193,154,75,0.5)',
                 borderRadius: 'var(--pl-radius-xs)',
                 textAlign: 'center',
                 background:
-                  'radial-gradient(ellipse at top, rgba(184,147,90,0.06), transparent 70%)',
+                  'radial-gradient(ellipse at top, rgba(193,154,75,0.06), transparent 70%)',
               }}
             >
               {/* Corner folio marks */}
@@ -687,8 +687,8 @@ export default function HelpClient() {
                     height: 60,
                     borderRadius: '50%',
                     background: 'var(--pl-cream-card)',
-                    border: '1px solid rgba(184,147,90,0.5)',
-                    boxShadow: '0 0 0 4px rgba(184,147,90,0.08)',
+                    border: '1px solid rgba(193,154,75,0.5)',
+                    boxShadow: '0 0 0 4px rgba(193,154,75,0.08)',
                     color: 'var(--pl-olive)',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -753,7 +753,7 @@ export default function HelpClient() {
                     fontWeight: 700,
                     letterSpacing: '0.24em',
                     textTransform: 'uppercase',
-                    boxShadow: '0 0 0 3px rgba(184,147,90,0.18)',
+                    boxShadow: '0 0 0 3px rgba(193,154,75,0.18)',
                     transition: 'transform 300ms cubic-bezier(0.22, 1, 0.36, 1)',
                   }}
                   onMouseEnter={(e) => {

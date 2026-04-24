@@ -622,9 +622,9 @@ const SectionOverlay = React.memo(function SectionOverlay({
           zIndex: 'var(--z-sticky)', display: 'flex', alignItems: 'center', gap: '2px',
           padding: '4px 6px', borderRadius: 'var(--pl-radius-full)',
           background: 'var(--pl-ink, #0E0D0B)',
-          color: 'var(--pl-cream, #FAF7F2)',
-          border: `1px solid color-mix(in oklab, var(--pl-gold, #B8935A) 40%, transparent)`,
-          boxShadow: '0 10px 28px rgba(14,13,11,0.25), 0 0 0 3px color-mix(in oklab, var(--pl-gold, #B8935A) 18%, transparent)',
+          color: 'var(--pl-cream, #FDFAF0)',
+          border: `1px solid color-mix(in oklab, var(--pl-gold, #C19A4B) 40%, transparent)`,
+          boxShadow: '0 10px 28px rgba(14,13,11,0.25), 0 0 0 3px color-mix(in oklab, var(--pl-gold, #C19A4B) 18%, transparent)',
         } as React.CSSProperties}>
           {/* Drag handle — grab to reorder */}
           <div
@@ -636,7 +636,7 @@ const SectionOverlay = React.memo(function SectionOverlay({
               minWidth: 24, minHeight: 24,
               padding: '6px', display: 'flex',
               alignItems: 'center', justifyContent: 'center',
-              color: 'color-mix(in oklab, var(--pl-cream, #FAF7F2) 60%, transparent)',
+              color: 'color-mix(in oklab, var(--pl-cream, #FDFAF0) 60%, transparent)',
               touchAction: 'none',
             }}
             title="Drag to reorder"
@@ -688,7 +688,7 @@ const SectionOverlay = React.memo(function SectionOverlay({
                   background: 'transparent',
                   color: (a as { danger?: boolean }).danger
                     ? '#E06B6B'
-                    : 'color-mix(in oklab, var(--pl-cream, #FAF7F2) 85%, transparent)',
+                    : 'color-mix(in oklab, var(--pl-cream, #FDFAF0) 85%, transparent)',
                   cursor: 'pointer',
                   transition: 'background 0.14s, color 0.14s',
                 }}
@@ -699,14 +699,14 @@ const SectionOverlay = React.memo(function SectionOverlay({
                     : 'rgba(250,247,242,0.14)';
                   t.style.color = (a as { danger?: boolean }).danger
                     ? '#F0A0A0'
-                    : 'var(--pl-cream, #FAF7F2)';
+                    : 'var(--pl-cream, #FDFAF0)';
                 }}
                 onMouseLeave={(e) => {
                   const t = e.currentTarget as HTMLButtonElement;
                   t.style.background = 'transparent';
                   t.style.color = (a as { danger?: boolean }).danger
                     ? '#E06B6B'
-                    : 'color-mix(in oklab, var(--pl-cream, #FAF7F2) 85%, transparent)';
+                    : 'color-mix(in oklab, var(--pl-cream, #FDFAF0) 85%, transparent)';
                 }}
               >
                 <Icon size={13} strokeWidth={2} />
@@ -2992,13 +2992,13 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               height: isDropTarget ? 68 : 44,
               borderRadius: 'var(--pl-radius-lg)',
               background: isDropTarget
-                ? 'color-mix(in oklab, var(--pl-chrome-accent, #B8935A) 22%, transparent)'
-                : 'color-mix(in oklab, var(--pl-chrome-accent, #B8935A) 10%, transparent)',
+                ? 'color-mix(in oklab, var(--pl-chrome-accent, #C19A4B) 22%, transparent)'
+                : 'color-mix(in oklab, var(--pl-chrome-accent, #C19A4B) 10%, transparent)',
               border: `1.5px dashed ${isDropTarget
-                ? 'var(--pl-chrome-accent, #B8935A)'
-                : 'color-mix(in oklab, var(--pl-chrome-accent, #B8935A) 55%, transparent)'}`,
+                ? 'var(--pl-chrome-accent, #C19A4B)'
+                : 'color-mix(in oklab, var(--pl-chrome-accent, #C19A4B) 55%, transparent)'}`,
               boxShadow: isDropTarget
-                ? '0 0 0 3px color-mix(in oklab, var(--pl-chrome-accent, #B8935A) 22%, transparent), 0 8px 24px rgba(40,28,12,0.14)'
+                ? '0 0 0 3px color-mix(in oklab, var(--pl-chrome-accent, #C19A4B) 22%, transparent), 0 8px 24px rgba(40,28,12,0.14)'
                 : 'none',
               transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
               animation: !isDropTarget ? 'pl-dropzone-pulse 1.8s ease-in-out infinite' : undefined,
@@ -3017,8 +3017,8 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                 fontWeight: 700,
                 color: isDropTarget
                   ? 'var(--pl-chrome-accent-ink, #0E0D0B)'
-                  : 'var(--pl-chrome-accent, #B8935A)',
-                background: isDropTarget ? 'var(--pl-chrome-accent, #B8935A)' : 'transparent',
+                  : 'var(--pl-chrome-accent, #C19A4B)',
+                background: isDropTarget ? 'var(--pl-chrome-accent, #C19A4B)' : 'transparent',
                 padding: isDropTarget ? '4px 12px' : '0',
                 borderRadius: 'var(--pl-radius-full)',
                 transition: 'all var(--pl-dur-instant)',

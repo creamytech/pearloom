@@ -149,7 +149,7 @@ export function generateEmbedCode(partner: Partner, widgetType: EmbedWidget['typ
       return `<a href="${referralUrl}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:100px;background:#6E8C5C;color:#fff;font-family:Georgia,serif;font-size:14px;font-weight:600;text-decoration:none;letter-spacing:0.05em;text-transform:uppercase">Create Your Site on Pearloom</a>`;
 
     case 'banner':
-      return `<div style="padding:20px;border-radius:16px;background:linear-gradient(135deg,#FAF7F2,#F0EBE0);border:1px solid rgba(0,0,0,0.06);text-align:center;font-family:Georgia,serif">
+      return `<div style="padding:20px;border-radius:16px;background:linear-gradient(135deg,#FDFAF0,#F0EBE0);border:1px solid rgba(0,0,0,0.06);text-align:center;font-family:Georgia,serif">
   <p style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#7A756E;margin:0 0 8px">Recommended by ${partner.businessName}</p>
   <p style="font-size:20px;font-style:italic;color:#3D3530;margin:0 0 16px">Create your celebration site with Pearloom</p>
   <a href="${referralUrl}" target="_blank" rel="noopener" style="display:inline-block;padding:10px 20px;border-radius:100px;background:#6E8C5C;color:#fff;font-size:12px;font-weight:700;text-decoration:none;letter-spacing:0.08em;text-transform:uppercase">Get Started Free</a>

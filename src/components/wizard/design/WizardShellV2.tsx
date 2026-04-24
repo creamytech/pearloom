@@ -610,7 +610,7 @@ export function PearSidebar({
               style={{
                 ...MONO_STYLE,
                 fontSize: 9,
-                color: '#B8935A',
+                color: '#C19A4B',
                 marginBottom: 4,
                 letterSpacing: '0.22em',
                 display: 'inline-flex',

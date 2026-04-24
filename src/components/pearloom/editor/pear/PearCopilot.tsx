@@ -430,7 +430,7 @@ function SuggestionCard({
           : 'var(--ink-soft)';
   const bg =
     sev === 'critical'
-      ? 'rgba(122,45,45,0.06)'
+      ? 'rgba(198,86,61,0.06)'
       : sev === 'should-fix'
         ? 'var(--peach-bg)'
         : sev === 'nice-to-have'
@@ -442,7 +442,7 @@ function SuggestionCard({
       style={{
         padding: 12,
         background: bg,
-        border: `1px solid ${sev === 'critical' ? 'rgba(122,45,45,0.22)' : 'var(--line-soft)'}`,
+        border: `1px solid ${sev === 'critical' ? 'rgba(198,86,61,0.22)' : 'var(--line-soft)'}`,
         borderRadius: 12,
       }}
     >

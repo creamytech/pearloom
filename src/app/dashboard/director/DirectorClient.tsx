@@ -538,7 +538,7 @@ function DirectorBody({ siteId }: { siteId: string }) {
                     padding: isUser ? '13px 16px' : '14px 16px 14px 18px',
                     background: isUser ? 'var(--pl-ink)' : 'var(--pl-cream-card)',
                     color: isUser ? 'var(--pl-cream)' : 'var(--pl-ink)',
-                    border: isUser ? 'none' : '1px solid rgba(184,147,90,0.35)',
+                    border: isUser ? 'none' : '1px solid rgba(193,154,75,0.35)',
                     borderRadius: isUser
                       ? '10px 10px 2px 10px'
                       : '2px 10px 10px 10px',
@@ -548,7 +548,7 @@ function DirectorBody({ siteId }: { siteId: string }) {
                     whiteSpace: 'pre-wrap',
                     boxShadow: isUser
                       ? '0 2px 6px rgba(14,13,11,0.12)'
-                      : '0 1px 3px rgba(14,13,11,0.04), 0 0 0 3px rgba(184,147,90,0.06)',
+                      : '0 1px 3px rgba(14,13,11,0.04), 0 0 0 3px rgba(193,154,75,0.06)',
                   }}>
                     {!isUser && (
                       <span style={{
@@ -579,7 +579,7 @@ function DirectorBody({ siteId }: { siteId: string }) {
                   display: 'inline-flex', alignItems: 'center', gap: 10,
                   padding: '12px 16px',
                   background: 'var(--pl-cream-card)',
-                  border: '1px solid rgba(184,147,90,0.35)',
+                  border: '1px solid rgba(193,154,75,0.35)',
                   borderRadius: '2px 10px 10px 10px',
                   fontFamily: 'var(--pl-font-display)',
                   fontStyle: 'italic',
@@ -605,7 +605,7 @@ function DirectorBody({ siteId }: { siteId: string }) {
           <div style={{
             position: 'relative',
             padding: 14,
-            borderTop: '1px solid rgba(184,147,90,0.35)',
+            borderTop: '1px solid rgba(193,154,75,0.35)',
             background: 'var(--pl-cream-deep)',
           }}>
             {/* Mono compose kicker */}
@@ -652,8 +652,8 @@ function DirectorBody({ siteId }: { siteId: string }) {
                   transition: 'border-color 0.18s, box-shadow 0.18s',
                 }}
                 onFocus={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(184,147,90,0.55)';
-                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,147,90,0.10)';
+                  e.currentTarget.style.borderColor = 'rgba(193,154,75,0.55)';
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(193,154,75,0.10)';
                 }}
                 onBlur={(e) => {
                   e.currentTarget.style.borderColor = 'rgba(14,13,11,0.15)';
@@ -684,7 +684,7 @@ function DirectorBody({ siteId }: { siteId: string }) {
                   letterSpacing: '0.26em',
                   textTransform: 'uppercase',
                   cursor: sending || !input.trim() ? 'not-allowed' : 'pointer',
-                  boxShadow: input.trim() ? '0 0 0 3px rgba(184,147,90,0.18)' : 'none',
+                  boxShadow: input.trim() ? '0 0 0 3px rgba(193,154,75,0.18)' : 'none',
                   transition: 'background 0.18s, box-shadow 0.18s',
                   alignSelf: 'stretch',
                 }}

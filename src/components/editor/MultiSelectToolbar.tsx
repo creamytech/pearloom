@@ -84,11 +84,11 @@ export function MultiSelectToolbar({
           gap: 0,
           padding: 0,
           borderRadius: 'var(--pl-radius-xs)',
-          background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
-          borderTop: '2px solid rgba(184,147,90,0.55)',
-          borderLeft: '1px solid rgba(184,147,90,0.22)',
-          borderRight: '1px solid rgba(184,147,90,0.22)',
-          borderBottom: '1px solid rgba(184,147,90,0.22)',
+          background: 'linear-gradient(180deg, #FDFAF0 0%, #F3EFE7 100%)',
+          borderTop: '2px solid rgba(193,154,75,0.55)',
+          borderLeft: '1px solid rgba(193,154,75,0.22)',
+          borderRight: '1px solid rgba(193,154,75,0.22)',
+          borderBottom: '1px solid rgba(193,154,75,0.22)',
           boxShadow: '0 18px 48px rgba(28,22,10,0.22), 0 2px 10px rgba(28,22,10,0.08)',
         } as React.CSSProperties}
       >
@@ -98,7 +98,7 @@ export function MultiSelectToolbar({
           flexDirection: 'column',
           justifyContent: 'center',
           padding: '8px 16px 8px 14px',
-          borderRight: '1px solid rgba(184,147,90,0.28)',
+          borderRight: '1px solid rgba(193,154,75,0.28)',
           minWidth: 110,
         }}>
           <span style={{
@@ -107,7 +107,7 @@ export function MultiSelectToolbar({
             fontWeight: 700,
             letterSpacing: '0.28em',
             textTransform: 'uppercase',
-            color: 'rgba(184,147,90,0.85)',
+            color: 'rgba(193,154,75,0.85)',
           }}>
             Ledger · multi
           </span>
@@ -135,7 +135,7 @@ export function MultiSelectToolbar({
           <motion.button
             key={action.label}
             onClick={action.onClick}
-            whileHover={{ backgroundColor: action.danger ? 'rgba(139,45,45,0.08)' : 'rgba(184,147,90,0.10)' }}
+            whileHover={{ backgroundColor: action.danger ? 'rgba(139,45,45,0.08)' : 'rgba(193,154,75,0.10)' }}
             whileTap={{ scale: 0.96 }}
             title={action.label}
             style={{
@@ -143,10 +143,10 @@ export function MultiSelectToolbar({
               alignItems: 'center', justifyContent: 'center', gap: '4px',
               padding: '8px 14px', borderRadius: 0,
               border: 'none',
-              borderRight: '1px solid rgba(184,147,90,0.22)',
+              borderRight: '1px solid rgba(193,154,75,0.22)',
               background: 'transparent',
               cursor: 'pointer',
-              color: action.danger ? '#8B2D2D' : '#18181B',
+              color: action.danger ? '#C6563D' : '#18181B',
               transition: 'background 180ms cubic-bezier(0.22,1,0.36,1)',
               position: 'relative',
             }}
@@ -156,7 +156,7 @@ export function MultiSelectToolbar({
               fontSize: '0.4rem',
               fontWeight: 700,
               letterSpacing: '0.24em',
-              color: action.danger ? 'rgba(139,45,45,0.65)' : 'rgba(184,147,90,0.75)',
+              color: action.danger ? 'rgba(139,45,45,0.65)' : 'rgba(193,154,75,0.75)',
               position: 'absolute',
               top: 4,
               left: 6,
@@ -179,7 +179,7 @@ export function MultiSelectToolbar({
         {/* Close */}
         <motion.button
           onClick={onClearSelection}
-          whileHover={{ backgroundColor: 'rgba(184,147,90,0.10)' }}
+          whileHover={{ backgroundColor: 'rgba(193,154,75,0.10)' }}
           whileTap={{ scale: 0.94 }}
           aria-label="Clear selection"
           title="Clear selection"

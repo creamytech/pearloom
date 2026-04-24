@@ -523,7 +523,7 @@ export function RSVPSection({
               fontSize: 12.5,
               color: PD.plum,
               padding: '8px 12px',
-              background: 'rgba(122,45,45,0.08)',
+              background: 'rgba(198,86,61,0.08)',
               borderRadius: 8,
             }}
           >

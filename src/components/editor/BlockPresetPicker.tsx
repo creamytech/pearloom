@@ -107,11 +107,11 @@ export function BlockPresetPicker({ pending, onPick, onClose }: BlockPresetPicke
           style={{
             width: '100%',
             maxWidth: 820,
-            background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
-            borderTop: '2px solid rgba(184,147,90,0.65)',
-            borderLeft: '1px solid rgba(184,147,90,0.22)',
-            borderRight: '1px solid rgba(184,147,90,0.22)',
-            borderBottom: '1px solid rgba(184,147,90,0.22)',
+            background: 'linear-gradient(180deg, #FDFAF0 0%, #F3EFE7 100%)',
+            borderTop: '2px solid rgba(193,154,75,0.65)',
+            borderLeft: '1px solid rgba(193,154,75,0.22)',
+            borderRight: '1px solid rgba(193,154,75,0.22)',
+            borderBottom: '1px solid rgba(193,154,75,0.22)',
             borderRadius: 'var(--pl-radius-xs)',
             boxShadow: '0 32px 80px rgba(22,16,6,0.32), 0 2px 10px rgba(22,16,6,0.08)',
             padding: '26px 28px 24px',
@@ -131,17 +131,17 @@ export function BlockPresetPicker({ pending, onPick, onClose }: BlockPresetPicke
               fontWeight: 700,
               letterSpacing: '0.32em',
               textTransform: 'uppercase',
-              color: 'rgba(184,147,90,0.85)',
+              color: 'rgba(193,154,75,0.85)',
             }}>
               New block · {blockLabel} · pick a variant
             </span>
-            <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.45)' }} />
+            <span style={{ flex: 1, height: 1, background: 'rgba(193,154,75,0.45)' }} />
             <span style={{
               fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
               fontSize: 8.5,
               fontWeight: 700,
               letterSpacing: '0.28em',
-              color: 'rgba(184,147,90,0.75)',
+              color: 'rgba(193,154,75,0.75)',
             }}>
               № 00 / 03
             </span>
@@ -181,10 +181,10 @@ export function BlockPresetPicker({ pending, onPick, onClose }: BlockPresetPicke
                   padding: 12,
                   borderRadius: 'var(--pl-radius-xs)',
                   background: 'rgba(250,247,242,0.75)',
-                  borderTop: '1.5px solid rgba(184,147,90,0.55)',
-                  borderLeft: '1px solid rgba(184,147,90,0.3)',
-                  borderRight: '1px solid rgba(184,147,90,0.3)',
-                  borderBottom: '1px solid rgba(184,147,90,0.3)',
+                  borderTop: '1.5px solid rgba(193,154,75,0.55)',
+                  borderLeft: '1px solid rgba(193,154,75,0.3)',
+                  borderRight: '1px solid rgba(193,154,75,0.3)',
+                  borderBottom: '1px solid rgba(193,154,75,0.3)',
                   cursor: 'pointer',
                   textAlign: 'left',
                   fontFamily: 'inherit',
@@ -192,12 +192,12 @@ export function BlockPresetPicker({ pending, onPick, onClose }: BlockPresetPicke
                   transition: 'box-shadow 180ms ease, border-color 180ms ease',
                 }}
                 onFocus={(e) => {
-                  (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px rgba(184,147,90,0.22)';
-                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.85)';
+                  (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px rgba(193,154,75,0.22)';
+                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(193,154,75,0.85)';
                 }}
                 onBlur={(e) => {
                   (e.currentTarget as HTMLElement).style.boxShadow = 'none';
-                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.3)';
+                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(193,154,75,0.3)';
                 }}
               >
                 {/* Mini mock-up preview */}
@@ -209,7 +209,7 @@ export function BlockPresetPicker({ pending, onPick, onClose }: BlockPresetPicke
                   alignItems: 'baseline',
                   gap: 8,
                   paddingTop: 2,
-                  borderTop: '1px dashed rgba(184,147,90,0.35)',
+                  borderTop: '1px dashed rgba(193,154,75,0.35)',
                   marginTop: 2,
                 }}>
                   <span style={{
@@ -217,7 +217,7 @@ export function BlockPresetPicker({ pending, onPick, onClose }: BlockPresetPicke
                     fontSize: 8,
                     fontWeight: 700,
                     letterSpacing: '0.28em',
-                    color: 'rgba(184,147,90,0.9)',
+                    color: 'rgba(193,154,75,0.9)',
                     paddingTop: 6,
                   }}>
                     № 0{i + 1}
@@ -256,7 +256,7 @@ export function BlockPresetPicker({ pending, onPick, onClose }: BlockPresetPicke
           <div style={{
             marginTop: 20,
             paddingTop: 14,
-            borderTop: '1px solid rgba(184,147,90,0.28)',
+            borderTop: '1px solid rgba(193,154,75,0.28)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -284,7 +284,7 @@ export function BlockPresetPicker({ pending, onPick, onClose }: BlockPresetPicke
               style={{
                 padding: '8px 14px',
                 borderRadius: 'var(--pl-radius-xs)',
-                border: '1px solid rgba(184,147,90,0.45)',
+                border: '1px solid rgba(193,154,75,0.45)',
                 background: 'transparent',
                 color: '#18181B',
                 fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
@@ -296,12 +296,12 @@ export function BlockPresetPicker({ pending, onPick, onClose }: BlockPresetPicke
                 transition: 'background 160ms ease, border-color 160ms ease',
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.background = 'rgba(184,147,90,0.1)';
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.75)';
+                (e.currentTarget as HTMLElement).style.background = 'rgba(193,154,75,0.1)';
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(193,154,75,0.75)';
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLElement).style.background = 'transparent';
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.45)';
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(193,154,75,0.45)';
               }}
             >
               Skip · use defaults
@@ -318,8 +318,8 @@ const kbdStyle: React.CSSProperties = {
   padding: '1px 5px',
   marginRight: 4,
   borderRadius: 'var(--pl-radius-xs)',
-  background: 'rgba(184,147,90,0.18)',
-  border: '1px solid rgba(184,147,90,0.35)',
+  background: 'rgba(193,154,75,0.18)',
+  border: '1px solid rgba(193,154,75,0.35)',
   fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
   fontSize: 8,
   fontWeight: 700,
@@ -339,7 +339,7 @@ function PresetPreview({ preset, blockType }: { preset: BlockPreset; blockType: 
         background: preset.swatch,
         position: 'relative',
         overflow: 'hidden',
-        border: '1px solid rgba(184,147,90,0.22)',
+        border: '1px solid rgba(193,154,75,0.22)',
       }}
     >
       {/* Top kicker line */}

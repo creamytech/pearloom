@@ -72,13 +72,13 @@ export function ParchmentTintPanel({ currentTint = 'none', onApply }: ParchmentT
               margin: '0 0 10px',
               padding: '8px 10px',
               borderRadius: 'var(--pl-radius-sm)',
-              background: 'color-mix(in oklab, var(--pl-gold, #B8935A) 10%, transparent)',
-              border: '1px dashed color-mix(in oklab, var(--pl-gold, #B8935A) 30%, transparent)',
+              background: 'color-mix(in oklab, var(--pl-gold, #C19A4B) 10%, transparent)',
+              border: '1px dashed color-mix(in oklab, var(--pl-gold, #C19A4B) 30%, transparent)',
               fontFamily: 'var(--pl-font-mono)',
               fontSize: '0.6rem',
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
-              color: 'var(--pl-ink-soft, #3A332C)',
+              color: 'var(--pl-ink-soft, #4A5642)',
               lineHeight: 1.5,
             }}
           >

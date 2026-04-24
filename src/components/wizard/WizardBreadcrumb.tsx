@@ -145,13 +145,13 @@ export function WizardBreadcrumb({
 
   const palette = dark
     ? {
-        rule: 'rgba(184,147,90,0.55)',
+        rule: 'rgba(193,154,75,0.55)',
         eyebrow: 'rgba(212,175,55,0.85)',
         folio: 'rgba(212,175,55,0.75)',
         folioIdle: 'rgba(255,255,255,0.35)',
         label: 'rgba(250,247,242,0.85)',
         labelIdle: 'rgba(250,247,242,0.45)',
-        value: '#FAF7F2',
+        value: '#FDFAF0',
         activeBg: 'rgba(212,175,55,0.18)',
         activeBorder: 'rgba(212,175,55,0.65)',
         activeFolio: '#F0D484',
@@ -159,18 +159,18 @@ export function WizardBreadcrumb({
         accent: 'rgba(212,175,55,0.85)',
       }
     : {
-        rule: 'rgba(184,147,90,0.45)',
-        eyebrow: 'rgba(184,147,90,0.85)',
-        folio: 'rgba(184,147,90,0.85)',
-        folioIdle: 'rgba(184,147,90,0.35)',
+        rule: 'rgba(193,154,75,0.45)',
+        eyebrow: 'rgba(193,154,75,0.85)',
+        folio: 'rgba(193,154,75,0.85)',
+        folioIdle: 'rgba(193,154,75,0.35)',
         label: 'var(--pl-ink, #18181B)',
         labelIdle: 'rgba(82,82,91,0.55)',
         value: 'var(--pl-ink, #18181B)',
-        activeBg: 'rgba(184,147,90,0.14)',
-        activeBorder: 'rgba(184,147,90,0.65)',
-        activeFolio: 'rgba(184,147,90,1)',
+        activeBg: 'rgba(193,154,75,0.14)',
+        activeBorder: 'rgba(193,154,75,0.65)',
+        activeFolio: 'rgba(193,154,75,1)',
         doneValue: 'var(--pl-ink, #18181B)',
-        accent: 'rgba(184,147,90,0.95)',
+        accent: 'rgba(193,154,75,0.95)',
       };
 
   return (

@@ -118,8 +118,8 @@ export function GettingStartedChecklist() {
           100% { transform: scale(1); opacity: 1; }
         }
         @keyframes pl-checklist-pulse {
-          0%, 100% { box-shadow: 0 0 0 4px color-mix(in oklab, var(--pl-gold, #B8935A) 22%, transparent); }
-          50% { box-shadow: 0 0 0 8px color-mix(in oklab, var(--pl-gold, #B8935A) 8%, transparent); }
+          0%, 100% { box-shadow: 0 0 0 4px color-mix(in oklab, var(--pl-gold, #C19A4B) 22%, transparent); }
+          50% { box-shadow: 0 0 0 8px color-mix(in oklab, var(--pl-gold, #C19A4B) 8%, transparent); }
         }
       `}</style>
 
@@ -171,12 +171,12 @@ export function GettingStartedChecklist() {
             {collapsed && remaining > 0 && (
               <span style={{
                 width: '18px', height: '18px', borderRadius: '50%',
-                background: 'var(--pl-gold, #B8935A)',
-                color: 'var(--pl-cream, #FAF7F2)',
+                background: 'var(--pl-gold, #C19A4B)',
+                color: 'var(--pl-cream, #FDFAF0)',
                 fontSize: '0.58rem', fontWeight: 800,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 lineHeight: 1,
-                boxShadow: '0 0 0 4px color-mix(in oklab, var(--pl-gold, #B8935A) 22%, transparent)',
+                boxShadow: '0 0 0 4px color-mix(in oklab, var(--pl-gold, #C19A4B) 22%, transparent)',
                 animation: 'pl-checklist-pulse 2.4s ease-in-out infinite',
               }}>
                 {remaining}
@@ -255,10 +255,10 @@ export function GettingStartedChecklist() {
                       padding: '7px 8px',
                       borderRadius: 'var(--pl-radius-lg)',
                       background: isNextUp
-                        ? 'color-mix(in oklab, var(--pl-gold, #B8935A) 12%, transparent)'
+                        ? 'color-mix(in oklab, var(--pl-gold, #C19A4B) 12%, transparent)'
                         : 'transparent',
                       border: isNextUp
-                        ? '1px solid color-mix(in oklab, var(--pl-gold, #B8935A) 28%, transparent)'
+                        ? '1px solid color-mix(in oklab, var(--pl-gold, #C19A4B) 28%, transparent)'
                         : '1px solid transparent',
                       transition: 'background var(--pl-dur-instant)',
                     }}
@@ -339,7 +339,7 @@ export function GettingStartedChecklist() {
                       padding: '10px 14px',
                       borderRadius: 'var(--pl-radius-md)',
                       background: 'var(--pl-ink, #18181B)',
-                      color: 'var(--pl-cream, #FAF7F2)',
+                      color: 'var(--pl-cream, #FDFAF0)',
                       border: 'none',
                       fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                       fontSize: '0.64rem',

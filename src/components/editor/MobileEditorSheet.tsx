@@ -1157,7 +1157,7 @@ function MobileReadinessChip({ onPublish }: { onPublish: () => void }) {
         gap: 12,
         padding: '8px 12px',
         background: 'var(--card)',
-        border: '1px solid color-mix(in oklab, var(--pl-gold, #B8935A) 32%, transparent)',
+        border: '1px solid color-mix(in oklab, var(--pl-gold, #C19A4B) 32%, transparent)',
         borderRadius: 'var(--pl-radius-full)',
         boxShadow: '0 6px 20px rgba(40,28,12,0.08)',
         cursor: 'pointer',
@@ -1180,7 +1180,7 @@ function MobileReadinessChip({ onPublish }: { onPublish: () => void }) {
         style={{
           flex: 1,
           height: 3,
-          background: 'color-mix(in oklab, var(--pl-gold, #B8935A) 18%, transparent)',
+          background: 'color-mix(in oklab, var(--pl-gold, #C19A4B) 18%, transparent)',
           borderRadius: 'var(--pl-radius-full)',
           overflow: 'hidden',
         }}

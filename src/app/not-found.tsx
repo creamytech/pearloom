@@ -29,9 +29,9 @@ export default function NotFound() {
           color: 'var(--pl-muted, #6F6557)',
         }}
       >
-        <span style={{ width: 20, height: 1, background: 'var(--pl-gold, #B8935A)' }} />
+        <span style={{ width: 20, height: 1, background: 'var(--pl-gold, #C19A4B)' }} />
         404 · Not found
-        <span style={{ width: 20, height: 1, background: 'var(--pl-gold, #B8935A)' }} />
+        <span style={{ width: 20, height: 1, background: 'var(--pl-gold, #C19A4B)' }} />
       </div>
       <h1
         style={{
@@ -49,7 +49,7 @@ export default function NotFound() {
       </h1>
       <p
         style={{
-          color: 'var(--pl-ink-soft, #3A332C)',
+          color: 'var(--pl-ink-soft, #4A5642)',
           fontSize: '1rem',
           maxWidth: 440,
           lineHeight: 1.6,
@@ -67,7 +67,7 @@ export default function NotFound() {
           padding: '13px 28px',
           borderRadius: 'var(--pl-radius-xs)',
           background: 'var(--pl-ink, #0E0D0B)',
-          color: 'var(--pl-cream, #FAF7F2)',
+          color: 'var(--pl-cream, #FDFAF0)',
           fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
           fontWeight: 700,
           fontSize: '0.66rem',

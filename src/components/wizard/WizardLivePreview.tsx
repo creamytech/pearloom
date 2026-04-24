@@ -287,19 +287,19 @@ export function WizardLivePreview({
             fontWeight: 700,
             letterSpacing: '0.32em',
             textTransform: 'uppercase',
-            color: 'rgba(184,147,90,0.85)',
+            color: 'rgba(193,154,75,0.85)',
           }}
         >
           Live preview · {year}
         </span>
-        <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.45)' }} />
+        <span style={{ flex: 1, height: 1, background: 'rgba(193,154,75,0.45)' }} />
         <span
           style={{
             fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
             fontSize: 9,
             fontWeight: 700,
             letterSpacing: '0.3em',
-            color: 'rgba(184,147,90,0.85)',
+            color: 'rgba(193,154,75,0.85)',
           }}
         >
           Step {folio} of 4
@@ -321,9 +321,9 @@ export function WizardLivePreview({
           borderRadius: 'var(--pl-radius-xs)',
           overflow: 'hidden',
           boxShadow:
-            '0 22px 60px rgba(22,16,6,0.22), 0 2px 8px rgba(22,16,6,0.08), 0 0 0 1px rgba(184,147,90,0.28)',
-          borderTop: '1.5px solid rgba(184,147,90,0.65)',
-          background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
+            '0 22px 60px rgba(22,16,6,0.22), 0 2px 8px rgba(22,16,6,0.08), 0 0 0 1px rgba(193,154,75,0.28)',
+          borderTop: '1.5px solid rgba(193,154,75,0.65)',
+          background: 'linear-gradient(180deg, #FDFAF0 0%, #F3EFE7 100%)',
           height: 400,
           position: 'relative',
         }}
@@ -397,7 +397,7 @@ function EmptyPreview() {
           fontWeight: 700,
           letterSpacing: '0.34em',
           textTransform: 'uppercase',
-          color: 'rgba(184,147,90,0.85)',
+          color: 'rgba(193,154,75,0.85)',
         }}
       >
         Empty preview
@@ -410,14 +410,14 @@ function EmptyPreview() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          border: '1px solid rgba(184,147,90,0.45)',
-          borderTop: '1.5px solid rgba(184,147,90,0.75)',
+          border: '1px solid rgba(193,154,75,0.45)',
+          borderTop: '1.5px solid rgba(193,154,75,0.75)',
           background: 'rgba(250,247,242,0.65)',
           fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
           fontStyle: 'italic',
           fontSize: '2rem',
           fontWeight: 400,
-          color: 'rgba(184,147,90,0.9)',
+          color: 'rgba(193,154,75,0.9)',
           letterSpacing: '-0.02em',
           fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
         }}
@@ -438,7 +438,7 @@ function EmptyPreview() {
       >
         your story begins here
       </div>
-      <div style={{ width: 42, height: 1, background: 'rgba(184,147,90,0.55)' }} />
+      <div style={{ width: 42, height: 1, background: 'rgba(193,154,75,0.55)' }} />
       <div
         style={{
           fontSize: '0.78rem',

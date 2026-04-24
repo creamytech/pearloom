@@ -182,13 +182,13 @@ export function InlineStylePicker({
         overflowY: 'auto',
         zIndex: 160,
         borderRadius: 'var(--pl-radius-xs)',
-        background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
+        background: 'linear-gradient(180deg, #FDFAF0 0%, #F3EFE7 100%)',
         backdropFilter: 'blur(14px)',
         WebkitBackdropFilter: 'blur(14px)',
-        borderTop: '2px solid rgba(184,147,90,0.55)',
-        borderLeft: '1px solid rgba(184,147,90,0.22)',
-        borderRight: '1px solid rgba(184,147,90,0.22)',
-        borderBottom: '1px solid rgba(184,147,90,0.22)',
+        borderTop: '2px solid rgba(193,154,75,0.55)',
+        borderLeft: '1px solid rgba(193,154,75,0.22)',
+        borderRight: '1px solid rgba(193,154,75,0.22)',
+        borderBottom: '1px solid rgba(193,154,75,0.22)',
         boxShadow: '0 20px 48px rgba(28,22,10,0.22), 0 2px 10px rgba(28,22,10,0.06)',
         color: '#18181B',
         padding: '14px 16px 14px',
@@ -202,7 +202,7 @@ export function InlineStylePicker({
         gap: 2,
         paddingBottom: 10,
         marginBottom: 12,
-        borderBottom: '1px solid rgba(184,147,90,0.28)',
+        borderBottom: '1px solid rgba(193,154,75,0.28)',
       }}>
         <span style={{
           fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
@@ -210,7 +210,7 @@ export function InlineStylePicker({
           fontWeight: 700,
           letterSpacing: '0.28em',
           textTransform: 'uppercase',
-          color: 'rgba(184,147,90,0.85)',
+          color: 'rgba(193,154,75,0.85)',
         }}>
           Style
         </span>
@@ -248,18 +248,18 @@ export function InlineStylePicker({
                 gap: 10,
                 padding: '8px 10px',
                 borderRadius: 'var(--pl-radius-xs)',
-                background: active ? 'rgba(184,147,90,0.12)' : 'rgba(255,252,245,0.55)',
+                background: active ? 'rgba(193,154,75,0.12)' : 'rgba(255,252,245,0.55)',
                 border: active
-                  ? '1px solid rgba(184,147,90,0.65)'
-                  : '1px solid rgba(184,147,90,0.18)',
+                  ? '1px solid rgba(193,154,75,0.65)'
+                  : '1px solid rgba(193,154,75,0.18)',
                 color: '#18181B',
                 cursor: 'pointer',
                 textAlign: 'left',
-                boxShadow: active ? '0 0 0 2px rgba(184,147,90,0.14)' : 'none',
+                boxShadow: active ? '0 0 0 2px rgba(193,154,75,0.14)' : 'none',
                 transition: 'background 180ms cubic-bezier(0.22,1,0.36,1), border-color 180ms ease, box-shadow 180ms ease',
               }}
               onMouseEnter={(e) => {
-                if (!active) e.currentTarget.style.background = 'rgba(184,147,90,0.08)';
+                if (!active) e.currentTarget.style.background = 'rgba(193,154,75,0.08)';
               }}
               onMouseLeave={(e) => {
                 if (!active) e.currentTarget.style.background = 'rgba(255,252,245,0.55)';
@@ -271,7 +271,7 @@ export function InlineStylePicker({
                   fontSize: 9,
                   fontWeight: 700,
                   letterSpacing: '0.22em',
-                  color: active ? 'rgba(184,147,90,0.95)' : 'rgba(184,147,90,0.55)',
+                  color: active ? 'rgba(193,154,75,0.95)' : 'rgba(193,154,75,0.55)',
                   alignSelf: 'center',
                 }}
               >
@@ -338,18 +338,18 @@ export function InlineStylePicker({
                 gap: 5,
                 padding: 7,
                 borderRadius: 'var(--pl-radius-xs)',
-                background: active ? 'rgba(184,147,90,0.12)' : 'rgba(255,252,245,0.55)',
+                background: active ? 'rgba(193,154,75,0.12)' : 'rgba(255,252,245,0.55)',
                 border: active
-                  ? '1px solid rgba(184,147,90,0.65)'
-                  : '1px solid rgba(184,147,90,0.18)',
+                  ? '1px solid rgba(193,154,75,0.65)'
+                  : '1px solid rgba(193,154,75,0.18)',
                 cursor: 'pointer',
                 textAlign: 'left',
-                boxShadow: active ? '0 0 0 2px rgba(184,147,90,0.14)' : 'none',
+                boxShadow: active ? '0 0 0 2px rgba(193,154,75,0.14)' : 'none',
                 transition: 'background 180ms cubic-bezier(0.22,1,0.36,1), border-color 180ms ease, box-shadow 180ms ease',
                 position: 'relative',
               }}
               onMouseEnter={(e) => {
-                if (!active) e.currentTarget.style.background = 'rgba(184,147,90,0.08)';
+                if (!active) e.currentTarget.style.background = 'rgba(193,154,75,0.08)';
               }}
               onMouseLeave={(e) => {
                 if (!active) e.currentTarget.style.background = 'rgba(255,252,245,0.55)';
@@ -363,7 +363,7 @@ export function InlineStylePicker({
                 fontSize: 7.5,
                 fontWeight: 700,
                 letterSpacing: '0.22em',
-                color: active ? 'rgba(184,147,90,0.95)' : 'rgba(184,147,90,0.45)',
+                color: active ? 'rgba(193,154,75,0.95)' : 'rgba(193,154,75,0.45)',
               }}>
                 № {String(idx + 1).padStart(2, '0')}
               </span>
@@ -373,7 +373,7 @@ export function InlineStylePicker({
                   height: 18,
                   borderRadius: 'var(--pl-radius-xs)',
                   overflow: 'hidden',
-                  border: '1px solid rgba(184,147,90,0.18)',
+                  border: '1px solid rgba(193,154,75,0.18)',
                   marginTop: 10,
                 }}
               >
@@ -420,8 +420,8 @@ export function InlineStylePicker({
                 background: p.palette.accent,
                 border: active
                   ? '1.5px solid #18181B'
-                  : '1px solid rgba(184,147,90,0.28)',
-                boxShadow: active ? '0 0 0 3px rgba(184,147,90,0.35)' : 'none',
+                  : '1px solid rgba(193,154,75,0.28)',
+                boxShadow: active ? '0 0 0 3px rgba(193,154,75,0.35)' : 'none',
                 cursor: 'pointer',
                 padding: 0,
                 transition: 'transform 180ms cubic-bezier(0.22,1,0.36,1), box-shadow 180ms ease',
@@ -440,7 +440,7 @@ export function InlineStylePicker({
         style={{
           marginTop: 14,
           paddingTop: 10,
-          borderTop: '1px solid rgba(184,147,90,0.28)',
+          borderTop: '1px solid rgba(193,154,75,0.28)',
         }}
       >
         <button
@@ -455,7 +455,7 @@ export function InlineStylePicker({
             padding: '9px 12px',
             borderRadius: 'var(--pl-radius-xs)',
             background: 'transparent',
-            border: '1px dashed rgba(184,147,90,0.55)',
+            border: '1px dashed rgba(193,154,75,0.55)',
             color: '#18181B',
             fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
             fontSize: 10,
@@ -467,19 +467,19 @@ export function InlineStylePicker({
             transition: 'background 180ms cubic-bezier(0.22,1,0.36,1), border-color 180ms ease, color 180ms ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(184,147,90,0.10)';
-            e.currentTarget.style.borderColor = 'rgba(184,147,90,0.75)';
+            e.currentTarget.style.background = 'rgba(193,154,75,0.10)';
+            e.currentTarget.style.borderColor = 'rgba(193,154,75,0.75)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.borderColor = 'rgba(184,147,90,0.55)';
+            e.currentTarget.style.borderColor = 'rgba(193,154,75,0.55)';
           }}
         >
           <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{
               fontSize: 9,
               letterSpacing: '0.28em',
-              color: 'rgba(184,147,90,0.95)',
+              color: 'rgba(193,154,75,0.95)',
             }}>
               →
             </span>
@@ -501,7 +501,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
         fontWeight: 700,
         letterSpacing: '0.26em',
         textTransform: 'uppercase',
-        color: 'rgba(184,147,90,0.85)',
+        color: 'rgba(193,154,75,0.85)',
         marginBottom: 7,
       }}
     >

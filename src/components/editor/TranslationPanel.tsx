@@ -144,8 +144,8 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                     textTransform: 'uppercase',
                     padding: '3px 6px',
                     borderRadius: 'var(--pl-radius-xs)',
-                    background: 'var(--pl-cream-deep, #F0ECE3)',
-                    color: 'var(--pl-ink-soft, #3A332C)',
+                    background: 'var(--pl-cream-deep, #FBF7EE)',
+                    color: 'var(--pl-ink-soft, #4A5642)',
                   }}
                 >
                   {locale.code}
@@ -219,8 +219,8 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                     textTransform: 'uppercase',
                     padding: '3px 6px',
                     borderRadius: 'var(--pl-radius-xs)',
-                    background: 'var(--pl-cream-deep, #F0ECE3)',
-                    color: 'var(--pl-ink-soft, #3A332C)',
+                    background: 'var(--pl-cream-deep, #FBF7EE)',
+                    color: 'var(--pl-ink-soft, #4A5642)',
                     minWidth: 28,
                     textAlign: 'center',
                   }}

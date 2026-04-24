@@ -117,7 +117,7 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type, m
   const labelNode = required ? (
     <label style={lbl}>
       {label}
-      <span aria-hidden style={{ marginLeft: 4, color: 'var(--pl-gold, #B8935A)' }}>*</span>
+      <span aria-hidden style={{ marginLeft: 4, color: 'var(--pl-gold, #C19A4B)' }}>*</span>
       <span className="sr-only"> (required)</span>
     </label>
   ) : (
@@ -140,7 +140,7 @@ export function Field({ label, value, onChange, rows, placeholder, hint, type, m
   const textareaFocus = (e: React.FocusEvent<HTMLTextAreaElement>) => {
     e.currentTarget.style.borderColor = 'var(--pl-chrome-accent)';
     e.currentTarget.style.borderBottomWidth = '1px';
-    e.currentTarget.style.boxShadow = 'inset 0 -2px 0 rgba(184,147,90,0.35)';
+    e.currentTarget.style.boxShadow = 'inset 0 -2px 0 rgba(193,154,75,0.35)';
   };
   const textareaBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
     e.currentTarget.style.borderColor = 'var(--pl-chrome-border)';
@@ -264,7 +264,7 @@ export function ActionButton({ label, icon, onClick, variant = 'default', size =
       onMouseEnter={(e) => {
         if (variant === 'accent') {
           (e.currentTarget as HTMLButtonElement).style.boxShadow =
-            '0 0 0 3px rgba(184,147,90,0.18)';
+            '0 0 0 3px rgba(193,154,75,0.18)';
         } else if (variant === 'default') {
           (e.currentTarget as HTMLButtonElement).style.borderColor =
             'var(--pl-chrome-accent)';
@@ -348,7 +348,7 @@ export function PillToggle({ label, value, onChange }: {
             background: value ? 'var(--pl-chrome-accent)' : 'var(--pl-chrome-text-faint)',
             transition: 'left 0.22s cubic-bezier(0.22, 1, 0.36, 1), background 0.22s ease',
             display: 'block',
-            boxShadow: value ? '0 0 0 2px rgba(184,147,90,0.22)' : 'none',
+            boxShadow: value ? '0 0 0 2px rgba(193,154,75,0.22)' : 'none',
           }} />
         </button>
       </div>
@@ -403,7 +403,7 @@ export function EmptyState({ icon, title, description, action, onAction }: {
           onClick={onAction}
           onMouseEnter={(e) => {
             (e.currentTarget as HTMLButtonElement).style.boxShadow =
-              '0 0 0 3px rgba(184,147,90,0.2)';
+              '0 0 0 3px rgba(193,154,75,0.2)';
           }}
           onMouseLeave={(e) => {
             (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';

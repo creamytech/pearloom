@@ -409,7 +409,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
                     background: 'rgba(0,0,0,0.55)',
                     backdropFilter: 'blur(8px)',
                     borderRadius: 'var(--pl-radius-full)',
-                    color: '#FAF7F2',
+                    color: '#FDFAF0',
                     fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                     fontSize: '0.66rem',
                     letterSpacing: '0.24em',

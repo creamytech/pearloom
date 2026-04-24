@@ -229,7 +229,7 @@ export function InlineColorCustomButton({
                     borderRadius: 'var(--pl-radius-sm)',
                     border: '1px solid rgba(255,255,255,0.12)',
                     background: 'rgba(255,255,255,0.06)',
-                    color: '#FAF7F2',
+                    color: '#FDFAF0',
                     fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
                     fontSize: 12,
                     outline: 'none',

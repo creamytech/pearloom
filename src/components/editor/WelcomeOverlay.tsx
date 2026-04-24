@@ -109,11 +109,11 @@ function getDispatch(stats: SiteStats | null): string {
 const CREAM = 'var(--pl-cream, #F5EFE2)';
 const CREAM_CARD = 'var(--pl-cream-card, #FBF7EE)';
 const INK = 'var(--pl-ink, #0E0D0B)';
-const INK_SOFT = 'var(--pl-ink-soft, #3A332C)';
+const INK_SOFT = 'var(--pl-ink-soft, #4A5642)';
 const MUTED = 'var(--pl-muted, #6F6557)';
-const GOLD = 'var(--pl-gold, #B8935A)';
-const GOLD_RULE = 'color-mix(in oklab, var(--pl-gold, #B8935A) 35%, transparent)';
-const GOLD_MIST = 'color-mix(in oklab, var(--pl-gold, #B8935A) 14%, transparent)';
+const GOLD = 'var(--pl-gold, #C19A4B)';
+const GOLD_RULE = 'color-mix(in oklab, var(--pl-gold, #C19A4B) 35%, transparent)';
+const GOLD_MIST = 'color-mix(in oklab, var(--pl-gold, #C19A4B) 14%, transparent)';
 const OLIVE = 'var(--pl-olive, #5C6B3F)';
 
 const FONT_DISPLAY = 'var(--pl-font-heading, "Fraunces", Georgia, serif)';
@@ -224,7 +224,7 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
           background: CREAM_CARD,
           border: `1px solid ${GOLD_RULE}`,
           boxShadow:
-            '0 1px 0 rgba(184,147,90,0.18) inset, 0 24px 72px rgba(40,28,12,0.12), 0 6px 18px rgba(40,28,12,0.06)',
+            '0 1px 0 rgba(193,154,75,0.18) inset, 0 24px 72px rgba(40,28,12,0.12), 0 6px 18px rgba(40,28,12,0.06)',
           borderRadius: 'var(--pl-radius-xs)',
           cursor: 'default',
         }}

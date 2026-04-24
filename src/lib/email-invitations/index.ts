@@ -57,7 +57,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     bodyTemplate: `
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#FAF7F2;font-family:Georgia,serif">
+<body style="margin:0;padding:0;background:#FDFAF0;font-family:Georgia,serif">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(43,30,20,0.06)">
   <tr><td style="padding:40px 32px;text-align:center">
     <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7A756E;margin:0 0 16px">Save the Date</p>
@@ -69,7 +69,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     <a href="{{ rsvp_url }}" style="display:inline-block;padding:14px 32px;background:#6E8C5C;color:#fff;border-radius:100px;text-decoration:none;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase">RSVP Now</a>
     <p style="font-size:12px;color:#7A756E;margin:24px 0 0">View our site at <a href="{{ site_url }}" style="color:#5C6B3F">{{ site_url }}</a></p>
   </td></tr>
-  <tr><td style="padding:16px 32px;background:#FAF7F2;text-align:center">
+  <tr><td style="padding:16px 32px;background:#FDFAF0;text-align:center">
     <p style="font-size:10px;color:#7A756E;margin:0">Made with Pearloom</p>
   </td></tr>
 </table>
@@ -85,7 +85,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     bodyTemplate: `
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#FAF7F2;font-family:Georgia,serif">
+<body style="margin:0;padding:0;background:#FDFAF0;font-family:Georgia,serif">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(43,30,20,0.06)">
   <tr><td style="padding:48px 32px;text-align:center;border:2px solid #E0D8CA;border-radius:16px;margin:8px">
     <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#5C6B3F;margin:0 0 20px">You're Cordially Invited</p>
@@ -112,7 +112,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     bodyTemplate: `
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#FAF7F2;font-family:Georgia,serif">
+<body style="margin:0;padding:0;background:#FDFAF0;font-family:Georgia,serif">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(43,30,20,0.06)">
   <tr><td style="padding:40px 32px;text-align:center">
     <p style="font-size:24px;margin:0 0 16px">♡</p>
@@ -134,7 +134,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     bodyTemplate: `
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#FAF7F2;font-family:Georgia,serif">
+<body style="margin:0;padding:0;background:#FDFAF0;font-family:Georgia,serif">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(43,30,20,0.06)">
   <tr><td style="padding:40px 32px;text-align:center">
     <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#5C6B3F;margin:0 0 16px">Thank You</p>

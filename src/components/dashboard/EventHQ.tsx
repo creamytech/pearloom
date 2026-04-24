@@ -620,7 +620,7 @@ function PearSuggestCard({ site }: { site: EventHQSite }) {
               fontWeight: 700,
               letterSpacing: '0.24em',
               textTransform: 'uppercase',
-              boxShadow: '0 0 0 3px rgba(184,147,90,0.18)',
+              boxShadow: '0 0 0 3px rgba(193,154,75,0.18)',
             }}
           >
             {suggestion.cta} →

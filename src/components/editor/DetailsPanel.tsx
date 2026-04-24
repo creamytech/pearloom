@@ -350,7 +350,7 @@ function WeddingPartyEditor({ manifest, onChange }: { manifest: StoryManifest; o
                 fontFamily: 'var(--pl-font-mono, monospace)',
                 fontSize: '0.54rem', fontWeight: 700,
                 letterSpacing: '0.22em', textTransform: 'uppercase',
-                boxShadow: newName.trim() ? '0 0 0 3px rgba(184,147,90,0.18)' : 'none',
+                boxShadow: newName.trim() ? '0 0 0 3px rgba(193,154,75,0.18)' : 'none',
               }}
             >
               Add member →

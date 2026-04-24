@@ -147,7 +147,7 @@ export function DesignAdvisor({
                         textTransform: 'uppercase',
                         background:
                           s.severity === 'should-fix'
-                            ? 'rgba(122,45,45,0.1)'
+                            ? 'rgba(198,86,61,0.1)'
                             : s.severity === 'nice-to-have'
                               ? 'var(--peach-bg)'
                               : 'var(--cream-2)',

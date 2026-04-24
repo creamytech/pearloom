@@ -98,18 +98,18 @@ export function PearCalendar({ onSelect, dark = false }: PearCalendarProps) {
   })();
 
   // Editorial palette
-  const textColor = dark ? '#FAF7F2' : '#18181B';
+  const textColor = dark ? '#FDFAF0' : '#18181B';
   const mutedColor = dark ? 'rgba(250,247,242,0.55)' : '#52525B';
-  const ruleColor = dark ? 'rgba(212,175,55,0.55)' : 'rgba(184,147,90,0.55)';
-  const kickerColor = dark ? 'rgba(212,175,55,0.85)' : 'rgba(184,147,90,0.85)';
-  const plateBorder = dark ? 'rgba(212,175,55,0.32)' : 'rgba(184,147,90,0.3)';
+  const ruleColor = dark ? 'rgba(212,175,55,0.55)' : 'rgba(193,154,75,0.55)';
+  const kickerColor = dark ? 'rgba(212,175,55,0.85)' : 'rgba(193,154,75,0.85)';
+  const plateBorder = dark ? 'rgba(212,175,55,0.32)' : 'rgba(193,154,75,0.3)';
   const plateBg = dark
     ? 'rgba(22,16,6,0.35)'
-    : 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)';
+    : 'linear-gradient(180deg, #FDFAF0 0%, #F3EFE7 100%)';
   const chipBg = dark ? 'rgba(22,16,6,0.4)' : 'rgba(250,247,242,0.65)';
-  const chipBorder = dark ? '1px solid rgba(212,175,55,0.38)' : '1px solid rgba(184,147,90,0.38)';
-  const activeInk = dark ? '#FAF7F2' : '#18181B';
-  const activeFg = dark ? '#18181B' : '#FAF7F2';
+  const chipBorder = dark ? '1px solid rgba(212,175,55,0.38)' : '1px solid rgba(193,154,75,0.38)';
+  const activeInk = dark ? '#FDFAF0' : '#18181B';
+  const activeFg = dark ? '#18181B' : '#FDFAF0';
 
   return (
     <div>
@@ -163,9 +163,9 @@ export function PearCalendar({ onSelect, dark = false }: PearCalendarProps) {
                 background: active ? activeInk : chipBg,
                 border: active ? `1px solid ${activeInk}` : chipBorder,
                 borderTop: active
-                  ? `1.5px solid ${dark ? 'rgba(212,175,55,0.95)' : 'rgba(184,147,90,0.95)'}`
+                  ? `1.5px solid ${dark ? 'rgba(212,175,55,0.95)' : 'rgba(193,154,75,0.95)'}`
                   : `1.5px solid ${ruleColor}`,
-                boxShadow: active ? '0 0 0 3px rgba(184,147,90,0.22)' : 'none',
+                boxShadow: active ? '0 0 0 3px rgba(193,154,75,0.22)' : 'none',
                 cursor: 'pointer',
                 fontFamily: FONT_MONO,
                 textAlign: 'left',
@@ -207,7 +207,7 @@ export function PearCalendar({ onSelect, dark = false }: PearCalendarProps) {
         borderRight: `1px solid ${plateBorder}`,
         borderBottom: `1px solid ${plateBorder}`,
         padding: '14px 14px 16px',
-        boxShadow: dark ? 'none' : '0 1px 0 rgba(184,147,90,0.04)',
+        boxShadow: dark ? 'none' : '0 1px 0 rgba(193,154,75,0.04)',
       }}>
         {/* Masthead */}
         <div style={{
@@ -267,7 +267,7 @@ export function PearCalendar({ onSelect, dark = false }: PearCalendarProps) {
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLElement).style.background = dark
                 ? 'rgba(212,175,55,0.1)'
-                : 'rgba(184,147,90,0.08)';
+                : 'rgba(193,154,75,0.08)';
               (e.currentTarget as HTMLElement).style.borderColor = ruleColor;
             }}
             onMouseLeave={(e) => {
@@ -318,7 +318,7 @@ export function PearCalendar({ onSelect, dark = false }: PearCalendarProps) {
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLElement).style.background = dark
                 ? 'rgba(212,175,55,0.1)'
-                : 'rgba(184,147,90,0.08)';
+                : 'rgba(193,154,75,0.08)';
               (e.currentTarget as HTMLElement).style.borderColor = ruleColor;
             }}
             onMouseLeave={(e) => {
@@ -406,13 +406,13 @@ export function PearCalendar({ onSelect, dark = false }: PearCalendarProps) {
                     justifyContent: 'center',
                     transition: 'background 180ms ease, border-color 180ms ease',
                     padding: 0,
-                    boxShadow: isSelected ? '0 0 0 2px rgba(184,147,90,0.22)' : 'none',
+                    boxShadow: isSelected ? '0 0 0 2px rgba(193,154,75,0.22)' : 'none',
                   }}
                   onMouseEnter={(e) => {
                     if (!isSelected && !isPast) {
                       (e.currentTarget as HTMLElement).style.background = dark
                         ? 'rgba(212,175,55,0.1)'
-                        : 'rgba(184,147,90,0.08)';
+                        : 'rgba(193,154,75,0.08)';
                     }
                   }}
                   onMouseLeave={(e) => {
@@ -487,21 +487,21 @@ export function PearCalendar({ onSelect, dark = false }: PearCalendarProps) {
                 background: activeInk,
                 color: activeFg,
                 border: 'none',
-                borderTop: `1.5px solid ${dark ? 'rgba(212,175,55,0.9)' : 'rgba(184,147,90,0.95)'}`,
+                borderTop: `1.5px solid ${dark ? 'rgba(212,175,55,0.9)' : 'rgba(193,154,75,0.95)'}`,
                 fontFamily: FONT_MONO,
                 fontSize: 10,
                 fontWeight: 700,
                 letterSpacing: '0.22em',
                 textTransform: 'uppercase',
                 cursor: 'pointer',
-                boxShadow: '0 0 0 3px rgba(184,147,90,0.22)',
+                boxShadow: '0 0 0 3px rgba(193,154,75,0.22)',
                 transition: 'box-shadow 180ms ease',
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 4px rgba(184,147,90,0.32)';
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 4px rgba(193,154,75,0.32)';
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px rgba(184,147,90,0.22)';
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px rgba(193,154,75,0.22)';
               }}
             >
               Set the Date · ↵

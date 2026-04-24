@@ -203,13 +203,13 @@ export function InlineStoryLayoutSwitcher() {
         maxWidth: `min(${Math.max(anchor.width - 24, 320)}px, calc(100vw - 32px))`,
         padding: '10px 12px 12px',
         borderRadius: 'var(--pl-radius-xs)',
-        background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
+        background: 'linear-gradient(180deg, #FDFAF0 0%, #F3EFE7 100%)',
         backdropFilter: 'blur(18px)',
         WebkitBackdropFilter: 'blur(18px)',
-        borderTop: '2px solid rgba(184,147,90,0.55)',
-        borderLeft: '1px solid rgba(184,147,90,0.22)',
-        borderRight: '1px solid rgba(184,147,90,0.22)',
-        borderBottom: '1px solid rgba(184,147,90,0.22)',
+        borderTop: '2px solid rgba(193,154,75,0.55)',
+        borderLeft: '1px solid rgba(193,154,75,0.22)',
+        borderRight: '1px solid rgba(193,154,75,0.22)',
+        borderBottom: '1px solid rgba(193,154,75,0.22)',
         boxShadow: '0 18px 44px rgba(28,22,10,0.20), 0 2px 8px rgba(28,22,10,0.06)',
         overflowX: 'auto',
         overflowY: 'hidden',
@@ -223,7 +223,7 @@ export function InlineStoryLayoutSwitcher() {
         gap: 12,
         marginBottom: 10,
         paddingBottom: 8,
-        borderBottom: '1px solid rgba(184,147,90,0.28)',
+        borderBottom: '1px solid rgba(193,154,75,0.28)',
       }}>
         <span style={{
           fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
@@ -231,7 +231,7 @@ export function InlineStoryLayoutSwitcher() {
           fontWeight: 700,
           letterSpacing: '0.28em',
           textTransform: 'uppercase',
-          color: 'rgba(184,147,90,0.85)',
+          color: 'rgba(193,154,75,0.85)',
         }}>
           Layout · Story
         </span>
@@ -287,11 +287,11 @@ export function InlineStoryLayoutSwitcher() {
                 gap: '5px',
                 padding: '8px 7px 9px',
                 borderRadius: 'var(--pl-radius-xs)',
-                background: isActive ? 'rgba(184,147,90,0.12)' : 'rgba(255,252,245,0.55)',
+                background: isActive ? 'rgba(193,154,75,0.12)' : 'rgba(255,252,245,0.55)',
                 border: isActive
-                  ? '1px solid rgba(184,147,90,0.65)'
-                  : '1px solid rgba(184,147,90,0.18)',
-                boxShadow: isActive ? '0 0 0 3px rgba(184,147,90,0.18)' : 'none',
+                  ? '1px solid rgba(193,154,75,0.65)'
+                  : '1px solid rgba(193,154,75,0.18)',
+                boxShadow: isActive ? '0 0 0 3px rgba(193,154,75,0.18)' : 'none',
                 cursor: 'pointer',
                 transition: 'background 180ms cubic-bezier(0.22,1,0.36,1), border-color 180ms ease, box-shadow 180ms ease',
                 fontFamily: 'inherit',
@@ -301,7 +301,7 @@ export function InlineStoryLayoutSwitcher() {
               }}
               onMouseEnter={(e) => {
                 if (!isActive) {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(184,147,90,0.08)';
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(193,154,75,0.08)';
                 }
               }}
               onMouseLeave={(e) => {
@@ -318,7 +318,7 @@ export function InlineStoryLayoutSwitcher() {
                 fontSize: 7.5,
                 fontWeight: 700,
                 letterSpacing: '0.22em',
-                color: isActive ? 'rgba(184,147,90,0.95)' : 'rgba(184,147,90,0.45)',
+                color: isActive ? 'rgba(193,154,75,0.95)' : 'rgba(193,154,75,0.45)',
               }}>
                 № {String(idx + 1).padStart(2, '0')}
               </span>
@@ -328,7 +328,7 @@ export function InlineStoryLayoutSwitcher() {
                 marginTop: 8,
                 padding: 3,
                 background: '#FFFCF6',
-                border: '1px solid rgba(184,147,90,0.18)',
+                border: '1px solid rgba(193,154,75,0.18)',
                 borderRadius: 'var(--pl-radius-xs)',
               }}>
                 <MiniDiagram type={opt.type} />

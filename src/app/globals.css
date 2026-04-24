@@ -13,25 +13,25 @@
 /* ─── LIGHT (Editorial Paper) ─── */
 :root,
 [data-theme='light'] {
-  /* ── Core surfaces ── */
-  --pl-cream:        #F5EFE2;   /* warm paper                          */
-  --pl-cream-deep:   #EBE3D2;   /* alternating sections                */
+  /* ── Core surfaces (v8 tokens — product-wide design language) ── */
+  --pl-cream:        #FDFAF0;   /* v8 paper                            */
+  --pl-cream-deep:   #F7F0E0;   /* alternating sections                */
   --pl-cream-card:   #FBF7EE;   /* elevated cards on cream             */
-  --pl-ink:          #0E0D0B;   /* warm rich black                     */
-  --pl-ink-soft:     #3A332C;   /* secondary headings                  */
+  --pl-ink:          #18181B;   /* v8 ink                              */
+  --pl-ink-soft:     #4A5642;   /* v8 sage-deep-soft (replaces editorial ink-soft) */
   --pl-muted:        #6F6557;   /* secondary text (WCAG AA on cream)   */
-  --pl-divider:      #D8CFB8;   /* warm tan border                     */
-  --pl-divider-soft: #E5DCC4;   /* near-invisible separators           */
+  --pl-divider:      #E2D9C3;   /* warm tan border                     */
+  --pl-divider-soft: #ECE4CF;   /* near-invisible separators           */
 
-  /* ── Brand: olive · gold leaf · oxblood ── */
-  --pl-olive:        #5C6B3F;   /* deep editorial olive — primary      */
+  /* ── Brand: sage · peach-gold · peach-ink ── */
+  --pl-olive:        #5C6B3F;   /* v8 sage-deep — primary              */
   --pl-olive-hover:  #4A5731;
   --pl-olive-deep:   #363F22;
   --pl-olive-mist:   #E0DDC9;
-  --pl-gold:         #B8935A;   /* gold leaf accent                    */
-  --pl-gold-mist:    rgba(184,147,90,0.10);
-  --pl-plum:         #7A2D2D;   /* oxblood — destructive/state         */
-  --pl-plum-mist:    rgba(122,45,45,0.10);
+  --pl-gold:         #C19A4B;   /* v8 peach-gold accent (warmer)       */
+  --pl-gold-mist:    rgba(193,154,75,0.10);
+  --pl-plum:         #C6563D;   /* v8 peach-ink — destructive/state    */
+  --pl-plum-mist:    rgba(198,86,61,0.10);
 
   /* ── Authoring/dark surfaces (editor chrome on dark canvas) ── */
   --pl-dark-bg:      #0D0B07;

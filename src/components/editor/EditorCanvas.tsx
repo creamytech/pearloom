@@ -1261,11 +1261,11 @@ export function EditorCanvas() {
             style={{
               position: 'absolute',
               inset: '6px',
-              border: '2px dashed var(--pl-chrome-accent, #B8935A)',
+              border: '2px dashed var(--pl-chrome-accent, #C19A4B)',
               borderRadius: 'var(--pl-radius-lg)',
               pointerEvents: 'none',
               zIndex: 40,
-              boxShadow: '0 0 0 3px color-mix(in oklab, var(--pl-chrome-accent, #B8935A) 18%, transparent) inset',
+              boxShadow: '0 0 0 3px color-mix(in oklab, var(--pl-chrome-accent, #C19A4B) 18%, transparent) inset',
             }}
           />
           <div
@@ -1279,8 +1279,8 @@ export function EditorCanvas() {
               pointerEvents: 'none',
               padding: '8px 18px',
               borderRadius: 'var(--pl-radius-full)',
-              background: 'var(--pl-chrome-accent, #B8935A)',
-              color: 'var(--pl-chrome-accent-ink, #FAF7F2)',
+              background: 'var(--pl-chrome-accent, #C19A4B)',
+              color: 'var(--pl-chrome-accent-ink, #FDFAF0)',
               fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
               fontSize: '0.64rem',
               letterSpacing: '0.24em',

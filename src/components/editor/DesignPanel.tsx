@@ -1634,7 +1634,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               {([
                 { label: 'Theme',  value: '', hex: 'Inherit' },
                 { label: 'White',  value: '#ffffff', hex: '#FFFFFF' },
-                { label: 'Cream',  value: '#FAF7F2', hex: '#FAF7F2' },
+                { label: 'Cream',  value: '#FDFAF0', hex: '#FDFAF0' },
                 { label: 'Warm',   value: '#F5EFE6', hex: '#F5EFE6' },
                 { label: 'Blush',  value: '#FDF0F3', hex: '#FDF0F3' },
                 { label: 'Sage',   value: '#EEF2ED', hex: '#EEF2ED' },
@@ -1647,7 +1647,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                   <button
                     key={bg.label}
                     onClick={() => {
-                      const newColors = { ...colors, background: bg.value || (vibeSkin?.palette?.background || '#FAF7F2') };
+                      const newColors = { ...colors, background: bg.value || (vibeSkin?.palette?.background || '#FDFAF0') };
                       onChange({ ...manifest, theme: { ...manifest.theme, colors: newColors } });
                     }}
                     title={bg.label}
@@ -1665,7 +1665,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                   >
                     <div style={{
                       width: '100%', height: '26px',
-                      background: bg.value || 'linear-gradient(135deg, #FAF7F2, #E8D5C4)',
+                      background: bg.value || 'linear-gradient(135deg, #FDFAF0, #E8D5C4)',
                       borderBottom: '1px solid var(--pl-chrome-border)',
                     }} />
                     <div style={{ padding: '4px 5px 5px', textAlign: 'left' }}>
@@ -1802,8 +1802,8 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
           {([
-            { name: 'Blush & Sage',       colors: ['#D4A0A0', '#71717A', '#FAF7F2', '#3D3530', '#F5F1E8'], kicker: 'warm · soft' },
-            { name: 'Navy & Gold',        colors: ['#2C3E6B', '#C4A96A', '#FAF7F2', '#1C1C1C', '#F5F1E8'], kicker: 'formal · jewel' },
+            { name: 'Blush & Sage',       colors: ['#D4A0A0', '#71717A', '#FDFAF0', '#3D3530', '#F5F1E8'], kicker: 'warm · soft' },
+            { name: 'Navy & Gold',        colors: ['#2C3E6B', '#C4A96A', '#FDFAF0', '#1C1C1C', '#F5F1E8'], kicker: 'formal · jewel' },
             { name: 'Terracotta & Cream', colors: ['#C67B5C', '#E8B89D', '#FFF8F2', '#3D2E24', '#F5ECE4'], kicker: 'earthy · sun' },
             { name: 'Lavender Dream',     colors: ['#9B8EC1', '#D4A0C4', '#F8F5FD', '#2D2640', '#F0ECF8'], kicker: 'dreamy · soft' },
             { name: 'Coastal Blue',       colors: ['#5B9BD5', '#B8D4E8', '#F0F7FF', '#1E4D8C', '#E8F0F8'], kicker: 'seaside · airy' },

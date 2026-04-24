@@ -203,11 +203,11 @@ export function ThemeRemixMode({ manifest, onApply }: ThemeRemixModeProps) {
           maxWidth: 560,
           padding: '14px 18px 12px',
           borderRadius: 'var(--pl-radius-xs)',
-          background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
-          borderTop: '2px solid rgba(184,147,90,0.8)',
-          borderLeft: '1px solid rgba(184,147,90,0.28)',
-          borderRight: '1px solid rgba(184,147,90,0.28)',
-          borderBottom: '1px solid rgba(184,147,90,0.28)',
+          background: 'linear-gradient(180deg, #FDFAF0 0%, #F3EFE7 100%)',
+          borderTop: '2px solid rgba(193,154,75,0.8)',
+          borderLeft: '1px solid rgba(193,154,75,0.28)',
+          borderRight: '1px solid rgba(193,154,75,0.28)',
+          borderBottom: '1px solid rgba(193,154,75,0.28)',
           boxShadow: '0 22px 48px rgba(22,16,6,0.22), 0 2px 8px rgba(22,16,6,0.08)',
           color: '#18181B',
         }}
@@ -218,7 +218,7 @@ export function ThemeRemixMode({ manifest, onApply }: ThemeRemixModeProps) {
           alignItems: 'center',
           gap: 10,
           paddingBottom: 8,
-          borderBottom: '1px dashed rgba(184,147,90,0.35)',
+          borderBottom: '1px dashed rgba(193,154,75,0.35)',
           marginBottom: 10,
         }}>
           <span style={{
@@ -227,7 +227,7 @@ export function ThemeRemixMode({ manifest, onApply }: ThemeRemixModeProps) {
             fontWeight: 700,
             letterSpacing: '0.32em',
             textTransform: 'uppercase',
-            color: 'rgba(184,147,90,0.9)',
+            color: 'rgba(193,154,75,0.9)',
           }}>
             Remix · palette cycler
           </span>
@@ -237,7 +237,7 @@ export function ThemeRemixMode({ manifest, onApply }: ThemeRemixModeProps) {
             fontSize: 9,
             fontWeight: 700,
             letterSpacing: '0.3em',
-            color: 'rgba(184,147,90,0.85)',
+            color: 'rgba(193,154,75,0.85)',
           }}>
             № {folio} / {total}
           </span>
@@ -255,7 +255,7 @@ export function ThemeRemixMode({ manifest, onApply }: ThemeRemixModeProps) {
             display: 'flex',
             alignItems: 'stretch',
             gap: 0,
-            border: '1px solid rgba(184,147,90,0.28)',
+            border: '1px solid rgba(193,154,75,0.28)',
             borderRadius: 'var(--pl-radius-xs)',
             overflow: 'hidden',
             minWidth: 72,
@@ -322,7 +322,7 @@ export function ThemeRemixMode({ manifest, onApply }: ThemeRemixModeProps) {
                 flex: 1,
                 padding: '9px 14px',
                 borderRadius: 'var(--pl-radius-xs)',
-                border: '1px solid rgba(184,147,90,0.45)',
+                border: '1px solid rgba(193,154,75,0.45)',
                 background: 'transparent',
                 color: '#18181B',
                 fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
@@ -334,12 +334,12 @@ export function ThemeRemixMode({ manifest, onApply }: ThemeRemixModeProps) {
                 transition: 'background 160ms ease, border-color 160ms ease',
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.background = 'rgba(184,147,90,0.1)';
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.75)';
+                (e.currentTarget as HTMLElement).style.background = 'rgba(193,154,75,0.1)';
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(193,154,75,0.75)';
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLElement).style.background = 'transparent';
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.45)';
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(193,154,75,0.45)';
               }}
             >
               Revert · Esc
@@ -353,23 +353,23 @@ export function ThemeRemixMode({ manifest, onApply }: ThemeRemixModeProps) {
                 padding: '9px 16px',
                 borderRadius: 'var(--pl-radius-xs)',
                 background: '#18181B',
-                color: '#FAF7F2',
+                color: '#FDFAF0',
                 border: 'none',
-                borderTop: '1.5px solid rgba(184,147,90,0.95)',
+                borderTop: '1.5px solid rgba(193,154,75,0.95)',
                 fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                 fontSize: 10,
                 fontWeight: 700,
                 letterSpacing: '0.22em',
                 textTransform: 'uppercase',
                 cursor: 'pointer',
-                boxShadow: '0 0 0 3px rgba(184,147,90,0.22)',
+                boxShadow: '0 0 0 3px rgba(193,154,75,0.22)',
                 transition: 'box-shadow 180ms ease',
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 4px rgba(184,147,90,0.32)';
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 4px rgba(193,154,75,0.32)';
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px rgba(184,147,90,0.22)';
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px rgba(193,154,75,0.22)';
               }}
             >
               Keep this · ↵

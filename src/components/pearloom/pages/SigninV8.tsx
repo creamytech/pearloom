@@ -143,8 +143,8 @@ export function SigninV8({
                   marginBottom: 18,
                   padding: '12px 16px',
                   borderRadius: 12,
-                  background: 'rgba(122,45,45,0.08)',
-                  border: '1px solid rgba(122,45,45,0.22)',
+                  background: 'rgba(198,86,61,0.08)',
+                  border: '1px solid rgba(198,86,61,0.22)',
                   color: '#7A2D2D',
                   fontSize: 13.5,
                 }}

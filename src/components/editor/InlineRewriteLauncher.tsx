@@ -194,11 +194,11 @@ export function InlineRewriteLauncher({ root }: InlineRewriteLauncherProps = {})
           gap: 6,
           padding: '6px 10px 6px 8px',
           borderRadius: 'var(--pl-radius-xs)',
-          borderTop: '1.5px solid rgba(184,147,90,0.95)',
-          borderLeft: '1px solid rgba(184,147,90,0.32)',
-          borderRight: '1px solid rgba(184,147,90,0.32)',
-          borderBottom: '1px solid rgba(184,147,90,0.32)',
-          background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
+          borderTop: '1.5px solid rgba(193,154,75,0.95)',
+          borderLeft: '1px solid rgba(193,154,75,0.32)',
+          borderRight: '1px solid rgba(193,154,75,0.32)',
+          borderBottom: '1px solid rgba(193,154,75,0.32)',
+          background: 'linear-gradient(180deg, #FDFAF0 0%, #F3EFE7 100%)',
           color: '#18181B',
           fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
           fontSize: 9,
@@ -207,7 +207,7 @@ export function InlineRewriteLauncher({ root }: InlineRewriteLauncherProps = {})
           textTransform: 'uppercase',
           cursor: 'pointer',
           boxShadow:
-            '0 6px 18px rgba(22,16,6,0.16), 0 1px 4px rgba(22,16,6,0.06), 0 0 0 3px rgba(184,147,90,0.16)',
+            '0 6px 18px rgba(22,16,6,0.16), 0 1px 4px rgba(22,16,6,0.06), 0 0 0 3px rgba(193,154,75,0.16)',
           whiteSpace: 'nowrap',
         }}
       >
@@ -221,7 +221,7 @@ export function InlineRewriteLauncher({ root }: InlineRewriteLauncherProps = {})
             height: 14,
           }}
         >
-          <PearIcon size={12} color="#8B2D2D" />
+          <PearIcon size={12} color="#C6563D" />
         </span>
         Rewrite with Pear
         <span
@@ -233,7 +233,7 @@ export function InlineRewriteLauncher({ root }: InlineRewriteLauncherProps = {})
             padding: '0 4px',
             marginLeft: 2,
             borderRadius: 'var(--pl-radius-xs)',
-            background: 'rgba(184,147,90,0.18)',
+            background: 'rgba(193,154,75,0.18)',
             color: 'rgba(82,82,91,0.9)',
             fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
             fontSize: 8,

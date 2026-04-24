@@ -167,7 +167,7 @@ export function ScopeBubble() {
             padding: '3px 8px',
             borderRadius: 'var(--pl-radius-full)',
             background: '#18181B',
-            color: '#FAF7F2',
+            color: '#FDFAF0',
             fontSize: 10,
             fontWeight: 700,
             letterSpacing: '0.06em',

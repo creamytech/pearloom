@@ -13,14 +13,14 @@ import { Heart, Cake, Sparkles, Diamond, BookOpen, Users, Mountain, Crown, Globe
 // ── Shared tokens ─────────────────────
 
 const CARD_BG = 'rgba(250,247,242,0.72)';
-const CARD_BG_ACTIVE = 'rgba(184,147,90,0.1)';
-const CARD_BORDER = '1px solid rgba(184,147,90,0.3)';
-const CARD_BORDER_ACTIVE_VAL = '1px solid rgba(184,147,90,0.75)';
-const CARD_TOP_RULE = '1.5px solid rgba(184,147,90,0.55)';
-const CARD_TOP_RULE_ACTIVE = '1.5px solid rgba(184,147,90,0.95)';
+const CARD_BG_ACTIVE = 'rgba(193,154,75,0.1)';
+const CARD_BORDER = '1px solid rgba(193,154,75,0.3)';
+const CARD_BORDER_ACTIVE_VAL = '1px solid rgba(193,154,75,0.75)';
+const CARD_TOP_RULE = '1.5px solid rgba(193,154,75,0.55)';
+const CARD_TOP_RULE_ACTIVE = '1.5px solid rgba(193,154,75,0.95)';
 const CARD_SHADOW = '0 1px 2px rgba(22,16,6,0.04)';
 const CARD_SHADOW_HOVER = '0 2px 10px rgba(22,16,6,0.08)';
-const CARD_HALO_ACTIVE = '0 0 0 3px rgba(184,147,90,0.18)';
+const CARD_HALO_ACTIVE = '0 0 0 3px rgba(193,154,75,0.18)';
 const RADIUS = 2;
 
 const FONT_DISPLAY = 'var(--pl-font-display, "Fraunces", serif)';
@@ -29,8 +29,8 @@ const FONT_BODY = 'var(--pl-font-body, inherit)';
 const COLOR_INK = '#18181B';
 const COLOR_INK_SOFT = '#3F3F46';
 const COLOR_MUTED = '#52525B';
-const COLOR_ACCENT = 'rgba(184,147,90,0.95)';
-const COLOR_ACCENT_SOFT = 'rgba(184,147,90,0.65)';
+const COLOR_ACCENT = 'rgba(193,154,75,0.95)';
+const COLOR_ACCENT_SOFT = 'rgba(193,154,75,0.65)';
 
 const fadeIn = {
   initial: { opacity: 0, y: 8 },
@@ -418,7 +418,7 @@ export function CountdownCard({ date }: CountdownCardProps) {
         <div style={{
           position: 'absolute', top: 0, left: 0,
           width: 3, height: '100%',
-          background: 'linear-gradient(180deg, rgba(184,147,90,0.85) 0%, rgba(212,175,55,0.75) 100%)',
+          background: 'linear-gradient(180deg, rgba(193,154,75,0.85) 0%, rgba(212,175,55,0.75) 100%)',
         }} />
         <div style={{
           fontFamily: FONT_MONO,
@@ -487,7 +487,7 @@ export function VenueMapCard({ venue, address, onConfirm, onEdit }: VenueMapCard
       }}>
         <div style={{
           padding: '14px 16px 10px',
-          borderBottom: '1px solid rgba(184,147,90,0.28)',
+          borderBottom: '1px solid rgba(193,154,75,0.28)',
           display: 'flex', alignItems: 'center', gap: 10,
         }}>
           <span style={{
@@ -495,7 +495,7 @@ export function VenueMapCard({ venue, address, onConfirm, onEdit }: VenueMapCard
             letterSpacing: '0.3em', textTransform: 'uppercase',
             color: COLOR_ACCENT,
           }}>Venue · mapped</span>
-          <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.28)' }} />
+          <span style={{ flex: 1, height: 1, background: 'rgba(193,154,75,0.28)' }} />
         </div>
         <div style={{
           padding: '14px 16px 6px',
@@ -513,21 +513,21 @@ export function VenueMapCard({ venue, address, onConfirm, onEdit }: VenueMapCard
           margin: '6px 16px 0',
           height: 110,
           borderRadius: RADIUS,
-          background: 'rgba(184,147,90,0.08)',
-          border: '1px solid rgba(184,147,90,0.28)',
+          background: 'rgba(193,154,75,0.08)',
+          border: '1px solid rgba(193,154,75,0.28)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           {/* faint grid */}
           <div aria-hidden="true" style={{
             position: 'absolute', inset: 0,
             backgroundImage:
-              'repeating-linear-gradient(0deg, rgba(184,147,90,0.2) 0 1px, transparent 1px 20px),' +
-              'repeating-linear-gradient(90deg, rgba(184,147,90,0.2) 0 1px, transparent 1px 20px)',
+              'repeating-linear-gradient(0deg, rgba(193,154,75,0.2) 0 1px, transparent 1px 20px),' +
+              'repeating-linear-gradient(90deg, rgba(193,154,75,0.2) 0 1px, transparent 1px 20px)',
           }} />
           <svg width="24" height="32" viewBox="0 0 24 32" fill="none" style={{ position: 'relative' }}>
             <path d="M12 1C6.5 1 2 5.5 2 11c0 7 10 19 10 19s10-12 10-19c0-5.5-4.5-10-10-10z"
-              fill="rgba(184,147,90,0.85)" />
-            <circle cx="12" cy="11" r="4" fill="#FAF7F2" />
+              fill="rgba(193,154,75,0.85)" />
+            <circle cx="12" cy="11" r="4" fill="#FDFAF0" />
           </svg>
         </div>
         {address && (
@@ -542,25 +542,25 @@ export function VenueMapCard({ venue, address, onConfirm, onEdit }: VenueMapCard
           display: 'flex', gap: 8,
           padding: '14px 16px 16px',
           marginTop: 10,
-          borderTop: '1px solid rgba(184,147,90,0.22)',
+          borderTop: '1px solid rgba(193,154,75,0.22)',
         }}>
           <button onClick={onConfirm} style={{
             flex: 1, padding: '11px 14px', borderRadius: RADIUS, border: 'none',
             background: COLOR_INK,
             fontFamily: FONT_MONO, fontSize: 10, fontWeight: 700,
             letterSpacing: '0.24em', textTransform: 'uppercase',
-            color: '#FAF7F2', cursor: 'pointer',
-            boxShadow: '0 0 0 3px rgba(184,147,90,0.22)',
+            color: '#FDFAF0', cursor: 'pointer',
+            boxShadow: '0 0 0 3px rgba(193,154,75,0.22)',
             transition: 'box-shadow 180ms ease, background 180ms ease',
           }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 4px rgba(184,147,90,0.32)'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px rgba(184,147,90,0.22)'; }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 4px rgba(193,154,75,0.32)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px rgba(193,154,75,0.22)'; }}
           >
             Confirm
           </button>
           <button onClick={onEdit} style={{
             flex: 1, padding: '11px 14px', borderRadius: RADIUS,
-            border: '1px solid rgba(184,147,90,0.45)',
+            border: '1px solid rgba(193,154,75,0.45)',
             background: 'transparent',
             fontFamily: FONT_MONO, fontSize: 10, fontWeight: 700,
             letterSpacing: '0.24em', textTransform: 'uppercase',
@@ -568,12 +568,12 @@ export function VenueMapCard({ venue, address, onConfirm, onEdit }: VenueMapCard
             transition: 'background 180ms ease, border-color 180ms ease',
           }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'rgba(184,147,90,0.1)';
-              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.75)';
+              (e.currentTarget as HTMLElement).style.background = 'rgba(193,154,75,0.1)';
+              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(193,154,75,0.75)';
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLElement).style.background = 'transparent';
-              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.45)';
+              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(193,154,75,0.45)';
             }}
           >
             Revise
@@ -621,8 +621,8 @@ export function SitePreviewCard({ names, occasion, date, vibe, venue }: SitePrev
       <div style={{
         marginTop: 12,
         borderRadius: RADIUS,
-        background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
-        border: '1px solid rgba(184,147,90,0.32)',
+        background: 'linear-gradient(180deg, #FDFAF0 0%, #F3EFE7 100%)',
+        border: '1px solid rgba(193,154,75,0.32)',
         borderTop: '2px solid rgba(212,175,55,0.72)',
         boxShadow: '0 8px 26px rgba(22,16,6,0.1)',
         overflow: 'hidden',
@@ -631,14 +631,14 @@ export function SitePreviewCard({ names, occasion, date, vibe, venue }: SitePrev
         <div style={{
           display: 'flex', alignItems: 'center', gap: 10,
           padding: '12px 16px 10px',
-          borderBottom: '1px solid rgba(184,147,90,0.28)',
+          borderBottom: '1px solid rgba(193,154,75,0.28)',
         }}>
           <span style={{
             fontFamily: FONT_MONO, fontSize: 9, fontWeight: 700,
             letterSpacing: '0.32em', textTransform: 'uppercase',
             color: COLOR_ACCENT,
           }}>Live preview · {new Date().getFullYear()}</span>
-          <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.32)' }} />
+          <span style={{ flex: 1, height: 1, background: 'rgba(193,154,75,0.32)' }} />
           <span style={{
             fontFamily: FONT_MONO, fontSize: 9, fontWeight: 700,
             letterSpacing: '0.28em', textTransform: 'uppercase',
@@ -655,7 +655,7 @@ export function SitePreviewCard({ names, occasion, date, vibe, venue }: SitePrev
           textAlign: 'center',
           position: 'relative',
           overflow: 'hidden',
-          border: '1px solid rgba(184,147,90,0.25)',
+          border: '1px solid rgba(193,154,75,0.25)',
         }}>
           {/* Faint corner folio on hero */}
           <span style={{
@@ -711,7 +711,7 @@ export function SitePreviewCard({ names, occasion, date, vibe, venue }: SitePrev
                 gap: 10,
                 alignItems: 'baseline',
                 paddingBottom: 6,
-                borderBottom: i < metaRows.length - 1 ? '1px dashed rgba(184,147,90,0.28)' : 'none',
+                borderBottom: i < metaRows.length - 1 ? '1px dashed rgba(193,154,75,0.28)' : 'none',
               }}>
                 <span style={{
                   fontFamily: FONT_MONO,

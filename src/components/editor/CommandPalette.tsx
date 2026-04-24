@@ -304,12 +304,12 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
               transform: 'translateX(-50%)',
               width: '100%', maxWidth: '600px',
               zIndex: 2001,
-              background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
+              background: 'linear-gradient(180deg, #FDFAF0 0%, #F3EFE7 100%)',
               borderRadius: 'var(--pl-radius-xs)',
-              borderTop: '2px solid rgba(184,147,90,0.55)',
-              borderLeft: '1px solid rgba(184,147,90,0.22)',
-              borderRight: '1px solid rgba(184,147,90,0.22)',
-              borderBottom: '1px solid rgba(184,147,90,0.22)',
+              borderTop: '2px solid rgba(193,154,75,0.55)',
+              borderLeft: '1px solid rgba(193,154,75,0.22)',
+              borderRight: '1px solid rgba(193,154,75,0.22)',
+              borderBottom: '1px solid rgba(193,154,75,0.22)',
               boxShadow: '0 32px 80px rgba(22,16,6,0.45), 0 2px 10px rgba(22,16,6,0.12)',
               overflow: 'hidden',
             }}
@@ -317,7 +317,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
             {/* Masthead */}
             <div style={{
               padding: '14px 18px 10px',
-              borderBottom: '1px solid rgba(184,147,90,0.28)',
+              borderBottom: '1px solid rgba(193,154,75,0.28)',
               display: 'flex',
               flexDirection: 'column',
               gap: 6,
@@ -333,7 +333,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                   fontWeight: 700,
                   letterSpacing: '0.32em',
                   textTransform: 'uppercase',
-                  color: 'rgba(184,147,90,0.85)',
+                  color: 'rgba(193,154,75,0.85)',
                 }}>
                   The Index · ⌘K
                 </span>
@@ -342,7 +342,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                   fontSize: 8.5,
                   fontWeight: 700,
                   letterSpacing: '0.24em',
-                  color: 'rgba(184,147,90,0.55)',
+                  color: 'rgba(193,154,75,0.55)',
                 }}>
                   № 00
                 </span>
@@ -371,9 +371,9 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                     fontSize: '1.15rem',
                     fontWeight: 400,
                     letterSpacing: '-0.005em',
-                    caretColor: 'rgba(184,147,90,1)',
+                    caretColor: 'rgba(193,154,75,1)',
                     paddingBottom: 4,
-                    borderBottom: '1.5px solid rgba(184,147,90,0.45)',
+                    borderBottom: '1.5px solid rgba(193,154,75,0.45)',
                     fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
                   }}
                 />
@@ -387,8 +387,8 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                   textTransform: 'uppercase',
                   background: 'rgba(255,252,245,0.7)',
                   color: '#52525B',
-                  border: '1px solid rgba(184,147,90,0.28)',
-                  boxShadow: 'inset 0 -1px 0 rgba(184,147,90,0.18)',
+                  border: '1px solid rgba(193,154,75,0.28)',
+                  boxShadow: 'inset 0 -1px 0 rgba(193,154,75,0.18)',
                 }}>ESC</kbd>
               </div>
             </div>
@@ -408,7 +408,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                   margin: '18px 8px',
                   padding: '32px 16px',
                   textAlign: 'center',
-                  border: '1px dashed rgba(184,147,90,0.45)',
+                  border: '1px dashed rgba(193,154,75,0.45)',
                   borderRadius: 'var(--pl-radius-xs)',
                   background: 'rgba(255,252,245,0.55)',
                 }}>
@@ -418,7 +418,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                     fontWeight: 700,
                     letterSpacing: '0.28em',
                     textTransform: 'uppercase',
-                    color: 'rgba(184,147,90,0.85)',
+                    color: 'rgba(193,154,75,0.85)',
                     marginBottom: 8,
                   }}>
                     Blank folio · № 00
@@ -449,14 +449,14 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                         fontWeight: 700,
                         letterSpacing: '0.28em',
                         textTransform: 'uppercase',
-                        color: 'rgba(184,147,90,0.85)',
+                        color: 'rgba(193,154,75,0.85)',
                       }}>
                         {groupName}
                       </span>
                       <span style={{
                         flex: 1,
                         height: 1,
-                        background: 'rgba(184,147,90,0.28)',
+                        background: 'rgba(193,154,75,0.28)',
                       }} />
                     </div>
 
@@ -472,7 +472,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                           onMouseEnter={() => setSelectedIndex(idx)}
                           animate={{
                             background: isSelected
-                              ? 'rgba(184,147,90,0.12)'
+                              ? 'rgba(193,154,75,0.12)'
                               : 'transparent',
                           }}
                           transition={{ duration: 0.14 }}
@@ -485,10 +485,10 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                             padding: '9px 10px',
                             borderRadius: 'var(--pl-radius-xs)',
                             border: 'none',
-                            boxShadow: isSelected ? 'inset 2px 0 0 rgba(184,147,90,0.75)' : 'none',
+                            boxShadow: isSelected ? 'inset 2px 0 0 rgba(193,154,75,0.75)' : 'none',
                             cursor: 'pointer',
                             textAlign: 'left',
-                            background: isSelected ? 'rgba(184,147,90,0.12)' : 'transparent',
+                            background: isSelected ? 'rgba(193,154,75,0.12)' : 'transparent',
                             transition: 'box-shadow 180ms cubic-bezier(0.22,1,0.36,1)',
                             position: 'relative',
                           }}
@@ -499,7 +499,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                             fontSize: 8.5,
                             fontWeight: 700,
                             letterSpacing: '0.22em',
-                            color: isSelected ? 'rgba(184,147,90,1)' : 'rgba(184,147,90,0.5)',
+                            color: isSelected ? 'rgba(193,154,75,1)' : 'rgba(193,154,75,0.5)',
                             textAlign: 'right',
                             paddingRight: 2,
                           }}>
@@ -508,10 +508,10 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                           {/* Icon */}
                           <div style={{
                             width: '30px', height: '30px', borderRadius: 'var(--pl-radius-xs)',
-                            background: isSelected ? 'rgba(184,147,90,0.20)' : 'rgba(255,252,245,0.65)',
+                            background: isSelected ? 'rgba(193,154,75,0.20)' : 'rgba(255,252,245,0.65)',
                             border: isSelected
-                              ? '1px solid rgba(184,147,90,0.55)'
-                              : '1px solid rgba(184,147,90,0.18)',
+                              ? '1px solid rgba(193,154,75,0.55)'
+                              : '1px solid rgba(193,154,75,0.18)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             flexShrink: 0,
                             transition: 'background 180ms ease, border-color 180ms ease',
@@ -562,7 +562,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                               textTransform: 'uppercase',
                               background: 'rgba(255,252,245,0.7)',
                               color: '#52525B',
-                              border: '1px solid rgba(184,147,90,0.28)',
+                              border: '1px solid rgba(193,154,75,0.28)',
                               flexShrink: 0,
                             }}>
                               {cmd.shortcut}
@@ -581,7 +581,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
             {/* Footer hint */}
             <div style={{
               padding: '10px 18px',
-              borderTop: '1px solid rgba(184,147,90,0.28)',
+              borderTop: '1px solid rgba(193,154,75,0.28)',
               background: 'rgba(248,244,236,0.7)',
               display: 'flex',
               gap: '18px',
@@ -599,7 +599,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                     textTransform: 'uppercase',
                     background: 'rgba(255,252,245,0.85)',
                     color: '#52525B',
-                    border: '1px solid rgba(184,147,90,0.28)',
+                    border: '1px solid rgba(193,154,75,0.28)',
                   }}>{key}</kbd>
                   <span style={{
                     fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
@@ -617,7 +617,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                 fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
                 fontStyle: 'italic',
                 fontSize: 11,
-                color: 'rgba(184,147,90,0.85)',
+                color: 'rgba(193,154,75,0.85)',
               }}>
                 ⌘K · toggle
               </div>

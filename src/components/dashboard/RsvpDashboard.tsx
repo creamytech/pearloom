@@ -393,7 +393,7 @@ export function RsvpDashboard({
             }}>
               Guest list
             </span>
-            <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.45)' }} />
+            <span style={{ flex: 1, height: 1, background: 'rgba(193,154,75,0.45)' }} />
             <span style={{
               fontFamily: 'var(--pl-font-mono)',
               fontSize: '0.52rem', fontWeight: 700,
@@ -444,7 +444,7 @@ export function RsvpDashboard({
             {guests.length > 0 && (
               <div style={{
                 display: 'flex', alignItems: 'stretch',
-                border: '1px solid rgba(184,147,90,0.40)',
+                border: '1px solid rgba(193,154,75,0.40)',
                 borderRadius: 'var(--pl-radius-lg)',
                 overflow: 'hidden',
                 background: 'var(--pl-cream-card)',
@@ -465,7 +465,7 @@ export function RsvpDashboard({
                 </div>
                 <div style={{
                   padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 2, minWidth: 72, alignItems: 'center',
-                  background: 'rgba(184,147,90,0.06)',
+                  background: 'rgba(193,154,75,0.06)',
                 }}>
                   <span style={{
                     fontFamily: 'var(--pl-font-mono)', fontSize: '0.46rem', fontWeight: 700,

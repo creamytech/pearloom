@@ -184,7 +184,7 @@ export function VoiceDictateButton({
       whileTap={{ scale: 0.94 }}
       animate={
         listening
-          ? { boxShadow: ['0 0 0 0 rgba(184,147,90,0.45)', '0 0 0 6px rgba(184,147,90,0)', '0 0 0 0 rgba(184,147,90,0)'] }
+          ? { boxShadow: ['0 0 0 0 rgba(193,154,75,0.45)', '0 0 0 6px rgba(193,154,75,0)', '0 0 0 0 rgba(193,154,75,0)'] }
           : {}
       }
       transition={listening ? { repeat: Infinity, duration: 1.4 } : {}}
@@ -202,18 +202,18 @@ export function VoiceDictateButton({
         border: error
           ? '1px solid var(--pl-plum, #7A2D2D)'
           : listening
-            ? '1px solid var(--pl-gold, #B8935A)'
+            ? '1px solid var(--pl-gold, #C19A4B)'
             : '1px solid var(--pl-divider, #D8CFB8)',
         background: error
           ? 'color-mix(in oklab, var(--pl-plum, #7A2D2D) 14%, transparent)'
           : listening
-            ? 'color-mix(in oklab, var(--pl-gold, #B8935A) 22%, transparent)'
+            ? 'color-mix(in oklab, var(--pl-gold, #C19A4B) 22%, transparent)'
             : 'var(--pl-cream-card, #FBF7EE)',
         color: error
           ? 'var(--pl-plum, #7A2D2D)'
           : listening
-            ? 'var(--pl-gold, #B8935A)'
-            : 'var(--pl-ink-soft, #3A332C)',
+            ? 'var(--pl-gold, #C19A4B)'
+            : 'var(--pl-ink-soft, #4A5642)',
         cursor: 'pointer',
         flexShrink: 0,
         transition: 'border-color 0.15s, background 0.15s',

@@ -109,11 +109,11 @@ export function ConfirmDialog({
               transform: 'translate(-50%, -50%)',
               zIndex: 3001,
               width: '100%', maxWidth: 380,
-              background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
-              borderTop: `2px solid ${danger ? 'rgba(139,45,45,0.65)' : 'rgba(184,147,90,0.55)'}`,
-              borderLeft: '1px solid rgba(184,147,90,0.22)',
-              borderRight: '1px solid rgba(184,147,90,0.22)',
-              borderBottom: '1px solid rgba(184,147,90,0.22)',
+              background: 'linear-gradient(180deg, #FDFAF0 0%, #F3EFE7 100%)',
+              borderTop: `2px solid ${danger ? 'rgba(139,45,45,0.65)' : 'rgba(193,154,75,0.55)'}`,
+              borderLeft: '1px solid rgba(193,154,75,0.22)',
+              borderRight: '1px solid rgba(193,154,75,0.22)',
+              borderBottom: '1px solid rgba(193,154,75,0.22)',
               borderRadius: 'var(--pl-radius-xs)',
               boxShadow: '0 28px 72px rgba(22,16,6,0.32), 0 2px 10px rgba(22,16,6,0.08)',
               padding: '22px 26px 20px',
@@ -131,7 +131,7 @@ export function ConfirmDialog({
                 fontWeight: 700,
                 letterSpacing: '0.32em',
                 textTransform: 'uppercase',
-                color: danger ? 'rgba(139,45,45,0.85)' : 'rgba(184,147,90,0.85)',
+                color: danger ? 'rgba(139,45,45,0.85)' : 'rgba(193,154,75,0.85)',
               }}>
                 {danger ? 'Heads up' : 'Confirm'}
               </span>
@@ -140,7 +140,7 @@ export function ConfirmDialog({
                 fontSize: 8.5,
                 fontWeight: 700,
                 letterSpacing: '0.28em',
-                color: 'rgba(184,147,90,0.65)',
+                color: 'rgba(193,154,75,0.65)',
               }}>
                 № 00
               </span>
@@ -178,7 +178,7 @@ export function ConfirmDialog({
             <div style={{
               marginTop: 22,
               paddingTop: 14,
-              borderTop: '1px solid rgba(184,147,90,0.28)',
+              borderTop: '1px solid rgba(193,154,75,0.28)',
               display: 'flex',
               justifyContent: 'flex-end',
               gap: 8,
@@ -189,7 +189,7 @@ export function ConfirmDialog({
                 style={{
                   padding: '9px 16px',
                   borderRadius: 'var(--pl-radius-xs)',
-                  border: '1px solid rgba(184,147,90,0.45)',
+                  border: '1px solid rgba(193,154,75,0.45)',
                   background: 'transparent',
                   color: '#18181B',
                   fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
@@ -201,12 +201,12 @@ export function ConfirmDialog({
                   transition: 'background 180ms ease, border-color 180ms ease',
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.background = 'rgba(184,147,90,0.10)';
-                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.75)';
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(193,154,75,0.10)';
+                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(193,154,75,0.75)';
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLElement).style.background = 'transparent';
-                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.45)';
+                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(193,154,75,0.45)';
                 }}
               >
                 {cancelLabel}
@@ -218,8 +218,8 @@ export function ConfirmDialog({
                   padding: '9px 18px',
                   borderRadius: 'var(--pl-radius-xs)',
                   border: 'none',
-                  background: danger ? '#8B2D2D' : '#18181B',
-                  color: '#FAF7F2',
+                  background: danger ? '#C6563D' : '#18181B',
+                  color: '#FDFAF0',
                   fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                   fontSize: 10,
                   fontWeight: 700,
@@ -228,18 +228,18 @@ export function ConfirmDialog({
                   cursor: 'pointer',
                   boxShadow: danger
                     ? '0 0 0 3px rgba(139,45,45,0.22)'
-                    : '0 0 0 3px rgba(184,147,90,0.22)',
+                    : '0 0 0 3px rgba(193,154,75,0.22)',
                   transition: 'box-shadow 180ms ease',
                 }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLElement).style.boxShadow = danger
                     ? '0 0 0 4px rgba(139,45,45,0.32)'
-                    : '0 0 0 4px rgba(184,147,90,0.32)';
+                    : '0 0 0 4px rgba(193,154,75,0.32)';
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLElement).style.boxShadow = danger
                     ? '0 0 0 3px rgba(139,45,45,0.22)'
-                    : '0 0 0 3px rgba(184,147,90,0.22)';
+                    : '0 0 0 3px rgba(193,154,75,0.22)';
                 }}
               >
                 {confirmLabel}

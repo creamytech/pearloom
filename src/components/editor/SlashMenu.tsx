@@ -219,13 +219,13 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
           width: 296,
           maxHeight: 360,
           overflowY: 'auto',
-          background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
+          background: 'linear-gradient(180deg, #FDFAF0 0%, #F3EFE7 100%)',
           backdropFilter: 'saturate(160%) blur(16px)',
           WebkitBackdropFilter: 'saturate(160%) blur(16px)',
-          borderTop: '2px solid rgba(184,147,90,0.55)',
-          borderLeft: '1px solid rgba(184,147,90,0.22)',
-          borderRight: '1px solid rgba(184,147,90,0.22)',
-          borderBottom: '1px solid rgba(184,147,90,0.22)',
+          borderTop: '2px solid rgba(193,154,75,0.55)',
+          borderLeft: '1px solid rgba(193,154,75,0.22)',
+          borderRight: '1px solid rgba(193,154,75,0.22)',
+          borderBottom: '1px solid rgba(193,154,75,0.22)',
           borderRadius: 'var(--pl-radius-xs)',
           boxShadow: '0 20px 48px rgba(28,22,10,0.24), 0 2px 8px rgba(28,22,10,0.06)',
           zIndex: 'var(--z-max)',
@@ -240,7 +240,7 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
             alignItems: 'end',
             gap: 10,
             padding: '2px 8px 8px',
-            borderBottom: '1px solid rgba(184,147,90,0.28)',
+            borderBottom: '1px solid rgba(193,154,75,0.28)',
             marginBottom: 8,
           }}
         >
@@ -251,7 +251,7 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
               fontWeight: 700,
               letterSpacing: '0.28em',
               textTransform: 'uppercase',
-              color: 'rgba(184,147,90,0.85)',
+              color: 'rgba(193,154,75,0.85)',
             }}>
               Slash · compose
             </span>
@@ -273,9 +273,9 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
                 fontFamily: 'var(--pl-font-mono)',
                 fontSize: '0.6rem',
                 letterSpacing: '0.12em',
-                color: 'rgba(184,147,90,0.95)',
+                color: 'rgba(193,154,75,0.95)',
                 padding: '3px 8px',
-                border: '1px solid rgba(184,147,90,0.35)',
+                border: '1px solid rgba(193,154,75,0.35)',
                 borderRadius: 'var(--pl-radius-xs)',
                 background: 'rgba(255,252,245,0.7)',
                 textTransform: 'uppercase',
@@ -295,7 +295,7 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
               textAlign: 'center',
               fontFamily: 'var(--pl-font-display)',
               fontStyle: 'italic',
-              border: '1px dashed rgba(184,147,90,0.45)',
+              border: '1px dashed rgba(193,154,75,0.45)',
               borderRadius: 'var(--pl-radius-xs)',
               background: 'rgba(255,252,245,0.45)',
             }}
@@ -307,7 +307,7 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
               fontWeight: 700,
               letterSpacing: '0.28em',
               textTransform: 'uppercase',
-              color: 'rgba(184,147,90,0.85)',
+              color: 'rgba(193,154,75,0.85)',
               fontStyle: 'normal',
               marginBottom: 4,
             }}>
@@ -335,7 +335,7 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
                   borderRadius: 'var(--pl-radius-xs)',
                   border: 'none',
                   background: selected
-                    ? 'rgba(184,147,90,0.12)'
+                    ? 'rgba(193,154,75,0.12)'
                     : 'transparent',
                   color: 'var(--ink)',
                   cursor: 'pointer',
@@ -344,7 +344,7 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
                   fontSize: 12,
                   position: 'relative',
                   transition: 'background 180ms cubic-bezier(0.22,1,0.36,1)',
-                  boxShadow: selected ? 'inset 2px 0 0 rgba(184,147,90,0.75)' : 'none',
+                  boxShadow: selected ? 'inset 2px 0 0 rgba(193,154,75,0.75)' : 'none',
                 }}
               >
                 <span style={{
@@ -352,7 +352,7 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
                   fontSize: 8.5,
                   fontWeight: 700,
                   letterSpacing: '0.22em',
-                  color: selected ? 'rgba(184,147,90,1)' : 'rgba(184,147,90,0.5)',
+                  color: selected ? 'rgba(193,154,75,1)' : 'rgba(193,154,75,0.5)',
                   textAlign: 'right',
                   paddingRight: 2,
                 }}>
@@ -367,11 +367,11 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
                     height: 28,
                     borderRadius: 'var(--pl-radius-xs)',
                     background: selected
-                      ? 'rgba(184,147,90,0.20)'
+                      ? 'rgba(193,154,75,0.20)'
                       : 'rgba(255,252,245,0.65)',
                     border: selected
-                      ? '1px solid rgba(184,147,90,0.55)'
-                      : '1px solid rgba(184,147,90,0.18)',
+                      ? '1px solid rgba(193,154,75,0.55)'
+                      : '1px solid rgba(193,154,75,0.18)',
                     flexShrink: 0,
                     transition: 'background 180ms ease, border-color 180ms ease',
                   }}
@@ -417,7 +417,7 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
                       fontWeight: 700,
                       letterSpacing: '0.18em',
                       textTransform: 'uppercase',
-                      color: 'rgba(184,147,90,0.95)',
+                      color: 'rgba(193,154,75,0.95)',
                       flexShrink: 0,
                       paddingLeft: 4,
                     }}

@@ -128,8 +128,8 @@ function buildEmailHtml(opts: {
       const dateLine = [formatDateLong(e.date), e.time].filter(Boolean).join(' · ');
       return `
         <tr>
-          <td style="padding:14px 0;border-bottom:1px solid rgba(184,147,90,0.22);">
-            <div style="font-family:'Geist Mono','JetBrains Mono',ui-monospace,monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#B8935A;margin-bottom:4px;">${esc(e.name)}</div>
+          <td style="padding:14px 0;border-bottom:1px solid rgba(193,154,75,0.22);">
+            <div style="font-family:'Geist Mono','JetBrains Mono',ui-monospace,monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#C19A4B;margin-bottom:4px;">${esc(e.name)}</div>
             ${dateLine ? `<div style="font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:15px;color:#18181B;">${esc(dateLine)}</div>` : ''}
             ${e.venue ? `<div style="font-size:12px;color:#6F6557;margin-top:2px;">${esc(e.venue)}${e.address ? ` · ${esc(e.address)}` : ''}</div>` : ''}
           </td>
@@ -138,7 +138,7 @@ function buildEmailHtml(opts: {
     .join('');
 
   const urgencyBadge = urgent
-    ? `<div style="margin:20px auto 0;display:inline-block;padding:6px 14px;background:rgba(139,45,45,0.08);border:1px solid rgba(139,45,45,0.3);border-radius:2px;font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#8B2D2D;">Response Requested</div>`
+    ? `<div style="margin:20px auto 0;display:inline-block;padding:6px 14px;background:rgba(139,45,45,0.08);border:1px solid rgba(139,45,45,0.3);border-radius:2px;font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#C6563D;">Response Requested</div>`
     : '';
 
   return `
@@ -149,8 +149,8 @@ function buildEmailHtml(opts: {
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>${esc(`You are invited — ${coupleDisplay}`)}</title>
 </head>
-<body style="margin:0;padding:0;background:#F0ECE3;font-family:'Geist','Helvetica Neue',Arial,sans-serif;color:#18181B;">
-<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#F0ECE3;padding:40px 16px;">
+<body style="margin:0;padding:0;background:#FBF7EE;font-family:'Geist','Helvetica Neue',Arial,sans-serif;color:#18181B;">
+<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#FBF7EE;padding:40px 16px;">
   <tr>
     <td align="center">
       <table width="580" cellpadding="0" cellspacing="0" role="presentation" style="max-width:580px;width:100%;">
@@ -159,16 +159,16 @@ function buildEmailHtml(opts: {
         <tr>
           <td align="center" style="padding-bottom:22px;">
             <table cellpadding="0" cellspacing="0" role="presentation"><tr>
-              <td style="width:18px;height:1px;background:#B8935A;"></td>
+              <td style="width:18px;height:1px;background:#C19A4B;"></td>
               <td style="padding:0 10px;font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#6F6557;">Invitation · No. 01</td>
-              <td style="width:18px;height:1px;background:#B8935A;"></td>
+              <td style="width:18px;height:1px;background:#C19A4B;"></td>
             </tr></table>
           </td>
         </tr>
 
         <!-- Paper card -->
         <tr>
-          <td style="background:#FAF7F2;border:1px solid rgba(184,147,90,0.35);padding:48px 40px;text-align:center;">
+          <td style="background:#FDFAF0;border:1px solid rgba(193,154,75,0.35);padding:48px 40px;text-align:center;">
             <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#6F6557;margin-bottom:24px;">
               Together with their families
             </div>
@@ -176,13 +176,13 @@ function buildEmailHtml(opts: {
             <h1 style="margin:0;padding:0;font-family:'Fraunces','Playfair Display',Georgia,serif;font-style:italic;font-weight:400;font-size:42px;line-height:1.05;color:#18181B;letter-spacing:-0.01em;">
               ${esc(firstName)}
             </h1>
-            <div style="font-family:'Fraunces',Georgia,serif;font-style:italic;color:#B8935A;font-size:18px;margin:6px 0;">&amp;</div>
+            <div style="font-family:'Fraunces',Georgia,serif;font-style:italic;color:#C19A4B;font-size:18px;margin:6px 0;">&amp;</div>
             <h1 style="margin:0;padding:0;font-family:'Fraunces','Playfair Display',Georgia,serif;font-style:italic;font-weight:400;font-size:42px;line-height:1.05;color:#18181B;letter-spacing:-0.01em;">
               ${esc(secondName || firstName)}
             </h1>
 
             <div style="margin:24px 0 20px;">
-              <span style="display:inline-block;width:32px;height:1px;background:#B8935A;vertical-align:middle;"></span>
+              <span style="display:inline-block;width:32px;height:1px;background:#C19A4B;vertical-align:middle;"></span>
             </div>
 
             <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#6F6557;">
@@ -193,9 +193,9 @@ function buildEmailHtml(opts: {
 
         <!-- Guest salutation + message -->
         <tr>
-          <td style="background:#FAF7F2;border-left:1px solid rgba(184,147,90,0.35);border-right:1px solid rgba(184,147,90,0.35);padding:0 40px 28px;text-align:center;">
-            ${guestName ? `<p style="margin:0 0 12px;font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:18px;color:#3A332C;">Dear ${esc(guestName)},</p>` : ''}
-            <p style="margin:0;font-size:14px;line-height:1.7;color:#3A332C;">
+          <td style="background:#FDFAF0;border-left:1px solid rgba(193,154,75,0.35);border-right:1px solid rgba(193,154,75,0.35);padding:0 40px 28px;text-align:center;">
+            ${guestName ? `<p style="margin:0 0 12px;font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:18px;color:#4A5642;">Dear ${esc(guestName)},</p>` : ''}
+            <p style="margin:0;font-size:14px;line-height:1.7;color:#4A5642;">
               ${esc(message)}
             </p>
           </td>
@@ -206,10 +206,10 @@ function buildEmailHtml(opts: {
             ? `
         <!-- Event itinerary -->
         <tr>
-          <td style="background:#FAF7F2;border-left:1px solid rgba(184,147,90,0.35);border-right:1px solid rgba(184,147,90,0.35);padding:0 40px 20px;">
+          <td style="background:#FDFAF0;border-left:1px solid rgba(193,154,75,0.35);border-right:1px solid rgba(193,154,75,0.35);padding:0 40px 20px;">
             <div style="text-align:center;margin-bottom:10px;">
-              <span style="display:inline-block;font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#6F6557;background:#FAF7F2;padding:0 12px;position:relative;top:7px;">The day at a glance</span>
-              <div style="height:1px;background:rgba(184,147,90,0.28);"></div>
+              <span style="display:inline-block;font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#6F6557;background:#FDFAF0;padding:0 12px;position:relative;top:7px;">The day at a glance</span>
+              <div style="height:1px;background:rgba(193,154,75,0.28);"></div>
             </div>
             <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
               ${eventRows}
@@ -221,17 +221,17 @@ function buildEmailHtml(opts: {
 
         <!-- CTA -->
         <tr>
-          <td style="background:#FAF7F2;border-left:1px solid rgba(184,147,90,0.35);border-right:1px solid rgba(184,147,90,0.35);border-bottom:1px solid rgba(184,147,90,0.35);padding:20px 40px 44px;text-align:center;">
-            <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#B8935A;margin-bottom:18px;">
+          <td style="background:#FDFAF0;border-left:1px solid rgba(193,154,75,0.35);border-right:1px solid rgba(193,154,75,0.35);border-bottom:1px solid rgba(193,154,75,0.35);padding:20px 40px 44px;text-align:center;">
+            <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#C19A4B;margin-bottom:18px;">
               ${deadlineLine}
             </div>
             <a href="${esc(ctaUrl)}"
-               style="display:inline-block;padding:16px 36px;background:#18181B;color:#FAF7F2;text-decoration:none;font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;letter-spacing:4px;text-transform:uppercase;border-radius:2px;">
+               style="display:inline-block;padding:16px 36px;background:#18181B;color:#FDFAF0;text-decoration:none;font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;letter-spacing:4px;text-transform:uppercase;border-radius:2px;">
               Open Invitation &amp; RSVP
             </a>
             ${urgencyBadge}
             <div style="margin-top:24px;font-size:12px;color:#6F6557;">
-              or visit <a href="${esc(siteUrl)}" style="color:#B8935A;text-decoration:none;">${esc(siteUrl.replace(/^https?:\/\//, ''))}</a>
+              or visit <a href="${esc(siteUrl)}" style="color:#C19A4B;text-decoration:none;">${esc(siteUrl.replace(/^https?:\/\//, ''))}</a>
             </div>
           </td>
         </tr>

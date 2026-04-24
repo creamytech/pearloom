@@ -262,8 +262,8 @@ export function InlineArtHoverToolbar({
           background: 'linear-gradient(180deg, rgba(20,20,22,0.96) 0%, rgba(12,12,14,0.96) 100%)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
-          borderTop: '1.5px solid rgba(184,147,90,0.55)',
-          boxShadow: '0 6px 16px rgba(0,0,0,0.28), 0 0 0 1px rgba(184,147,90,0.22)',
+          borderTop: '1.5px solid rgba(193,154,75,0.55)',
+          boxShadow: '0 6px 16px rgba(0,0,0,0.28), 0 0 0 1px rgba(193,154,75,0.22)',
           pointerEvents: 'auto',
           opacity: hover || busy || panelOpen ? 1 : 0.55,
           transform: hover || busy || panelOpen ? 'translateY(0)' : 'translateY(-2px)',
@@ -281,8 +281,8 @@ export function InlineArtHoverToolbar({
             fontWeight: 700,
             letterSpacing: '0.28em',
             textTransform: 'uppercase',
-            color: 'rgba(184,147,90,0.82)',
-            borderRight: '1px solid rgba(184,147,90,0.22)',
+            color: 'rgba(193,154,75,0.82)',
+            borderRight: '1px solid rgba(193,154,75,0.22)',
           }}
         >ART</span>
         {settingKey && (
@@ -327,13 +327,13 @@ export function InlineArtHoverToolbar({
             zIndex: 'var(--z-max)',
             padding: '14px 14px 12px',
             borderRadius: 'var(--pl-radius-xs)',
-            background: 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)',
+            background: 'linear-gradient(180deg, #FDFAF0 0%, #F3EFE7 100%)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
-            borderTop: '2px solid rgba(184,147,90,0.55)',
-            borderLeft: '1px solid rgba(184,147,90,0.18)',
-            borderRight: '1px solid rgba(184,147,90,0.18)',
-            borderBottom: '1px solid rgba(184,147,90,0.18)',
+            borderTop: '2px solid rgba(193,154,75,0.55)',
+            borderLeft: '1px solid rgba(193,154,75,0.18)',
+            borderRight: '1px solid rgba(193,154,75,0.18)',
+            borderBottom: '1px solid rgba(193,154,75,0.18)',
             boxShadow: '0 20px 48px rgba(28,22,10,0.22), 0 2px 10px rgba(28,22,10,0.06)',
             fontFamily: 'inherit',
             color: '#18181B',
@@ -346,7 +346,7 @@ export function InlineArtHoverToolbar({
             gap: 10,
             paddingBottom: 8,
             marginBottom: 12,
-            borderBottom: '1px solid rgba(184,147,90,0.28)',
+            borderBottom: '1px solid rgba(193,154,75,0.28)',
           }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <span style={{
@@ -355,7 +355,7 @@ export function InlineArtHoverToolbar({
                 fontWeight: 700,
                 letterSpacing: '0.28em',
                 textTransform: 'uppercase',
-                color: 'rgba(184,147,90,0.82)',
+                color: 'rgba(193,154,75,0.82)',
               }}>
                 Variant · {String(index != null ? index + 1 : 1).padStart(2, '0')}
               </span>
@@ -376,7 +376,7 @@ export function InlineArtHoverToolbar({
               onClick={() => setPanelOpen(false)}
               aria-label="Close"
               style={{
-                border: '1px solid rgba(184,147,90,0.45)',
+                border: '1px solid rgba(193,154,75,0.45)',
                 background: 'transparent',
                 color: '#52525B',
                 cursor: 'pointer',
@@ -393,7 +393,7 @@ export function InlineArtHoverToolbar({
                 transition: 'background 180ms ease, color 180ms ease',
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.background = 'rgba(184,147,90,0.14)';
+                (e.currentTarget as HTMLElement).style.background = 'rgba(193,154,75,0.14)';
                 (e.currentTarget as HTMLElement).style.color = '#18181B';
               }}
               onMouseLeave={(e) => {
@@ -457,8 +457,8 @@ export function InlineArtHoverToolbar({
                       style={{
                         padding: '7px 4px',
                         borderRadius: 'var(--pl-radius-xs)',
-                        border: on ? '1px solid rgba(184,147,90,0.65)' : '1px solid rgba(184,147,90,0.18)',
-                        background: on ? 'rgba(184,147,90,0.12)' : 'rgba(255,252,245,0.7)',
+                        border: on ? '1px solid rgba(193,154,75,0.65)' : '1px solid rgba(193,154,75,0.18)',
+                        background: on ? 'rgba(193,154,75,0.12)' : 'rgba(255,252,245,0.7)',
                         color: '#18181B',
                         fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                         fontSize: 8,
@@ -466,7 +466,7 @@ export function InlineArtHoverToolbar({
                         letterSpacing: '0.18em',
                         textTransform: 'uppercase',
                         cursor: 'pointer',
-                        boxShadow: on ? '0 0 0 2px rgba(184,147,90,0.14)' : 'none',
+                        boxShadow: on ? '0 0 0 2px rgba(193,154,75,0.14)' : 'none',
                         transition: 'background 180ms ease, border-color 180ms ease, box-shadow 180ms ease',
                       }}
                     >
@@ -524,11 +524,11 @@ export function InlineArtHoverToolbar({
                     style={{
                       width: 24, height: 24, padding: 0,
                       borderRadius: 'var(--pl-radius-xs)',
-                      border: on ? '1.5px solid #18181B' : '1px solid rgba(184,147,90,0.28)',
-                      background: c.value || 'linear-gradient(135deg,#FAF7F2,#C9B98E)',
+                      border: on ? '1.5px solid #18181B' : '1px solid rgba(193,154,75,0.28)',
+                      background: c.value || 'linear-gradient(135deg,#FDFAF0,#C9B98E)',
                       cursor: 'pointer',
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                      boxShadow: on ? '0 0 0 2px rgba(184,147,90,0.35)' : 'none',
+                      boxShadow: on ? '0 0 0 2px rgba(193,154,75,0.35)' : 'none',
                       transition: 'box-shadow 180ms ease, border-color 180ms ease',
                     }}
                   >
@@ -551,7 +551,7 @@ export function InlineArtHoverToolbar({
                 aria-label="Custom color"
                 style={{
                   width: 24, height: 24, padding: 0,
-                  border: '1px dashed rgba(184,147,90,0.55)',
+                  border: '1px dashed rgba(193,154,75,0.55)',
                   borderRadius: 'var(--pl-radius-xs)',
                   cursor: 'pointer',
                   background: 'transparent',
@@ -566,7 +566,7 @@ export function InlineArtHoverToolbar({
             gap: 6,
             marginTop: 14,
             paddingTop: 10,
-            borderTop: '1px solid rgba(184,147,90,0.28)',
+            borderTop: '1px solid rgba(193,154,75,0.28)',
           }}>
             <button
               type="button"
@@ -582,21 +582,21 @@ export function InlineArtHoverToolbar({
                 borderRadius: 'var(--pl-radius-xs)',
                 border: '1px solid #18181B',
                 background: '#18181B',
-                color: '#FAF7F2',
+                color: '#FDFAF0',
                 fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                 fontSize: 10,
                 fontWeight: 700,
                 letterSpacing: '0.22em',
                 textTransform: 'uppercase',
                 cursor: busy ? 'wait' : 'pointer',
-                boxShadow: '0 0 0 3px rgba(184,147,90,0.18)',
+                boxShadow: '0 0 0 3px rgba(193,154,75,0.18)',
                 transition: 'box-shadow 180ms ease, transform 180ms ease',
               }}
               onMouseEnter={(e) => {
-                if (!busy) (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 4px rgba(184,147,90,0.28)';
+                if (!busy) (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 4px rgba(193,154,75,0.28)';
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px rgba(184,147,90,0.18)';
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px rgba(193,154,75,0.18)';
               }}
             >
               {busy === 'regenerate'
@@ -619,7 +619,7 @@ export function InlineArtHoverToolbar({
                 borderRadius: 'var(--pl-radius-xs)',
                 border: '1px solid rgba(139,45,45,0.45)',
                 background: 'transparent',
-                color: '#8B2D2D',
+                color: '#C6563D',
                 fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                 fontSize: 10,
                 fontWeight: 700,
@@ -659,7 +659,7 @@ function PopoverSection({ label, children }: { label: string; children: React.Re
         fontWeight: 700,
         letterSpacing: '0.24em',
         textTransform: 'uppercase',
-        color: 'rgba(184,147,90,0.85)',
+        color: 'rgba(193,154,75,0.85)',
         marginBottom: 6,
       }}>
         {label}
@@ -691,12 +691,12 @@ function PresetTile({
         gap: 3,
         padding: 5,
         borderRadius: 'var(--pl-radius-xs)',
-        border: active ? '1px solid rgba(184,147,90,0.65)' : '1px solid rgba(184,147,90,0.18)',
-        background: active ? 'rgba(184,147,90,0.10)' : 'rgba(255,252,245,0.7)',
+        border: active ? '1px solid rgba(193,154,75,0.65)' : '1px solid rgba(193,154,75,0.18)',
+        background: active ? 'rgba(193,154,75,0.10)' : 'rgba(255,252,245,0.7)',
         cursor: 'pointer',
         fontFamily: 'inherit',
         position: 'relative',
-        boxShadow: active ? '0 0 0 3px rgba(184,147,90,0.14)' : 'none',
+        boxShadow: active ? '0 0 0 3px rgba(193,154,75,0.14)' : 'none',
         transition: 'background 180ms ease, box-shadow 180ms ease, border-color 180ms ease',
       }}
     >
@@ -724,9 +724,9 @@ function PresetTile({
           width: 14, height: 14,
           borderRadius: '50%',
           background: '#18181B',
-          color: 'rgba(184,147,90,1)',
+          color: 'rgba(193,154,75,1)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 0 0 2px #FAF7F2',
+          boxShadow: '0 0 0 2px #FDFAF0',
         }}>
           <Check size={9} />
         </span>

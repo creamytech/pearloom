@@ -1470,8 +1470,8 @@ function RSVPSection({
                   marginBottom: 16,
                   padding: '10px 14px',
                   borderRadius: 12,
-                  background: 'rgba(122,45,45,0.08)',
-                  border: '1px solid rgba(122,45,45,0.22)',
+                  background: 'rgba(198,86,61,0.08)',
+                  border: '1px solid rgba(198,86,61,0.22)',
                   color: '#7A2D2D',
                   fontSize: 13,
                 }}

@@ -38,7 +38,7 @@ export function SiteSharePanel({
   siteName,
   coupleNames,
   accentColor = '#5C6B3F',
-  bgColor = '#FAF7F2',
+  bgColor = '#FDFAF0',
   tagline = '',
   dateStr = '',
   coverPhoto = '',

@@ -318,17 +318,17 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
             style={{
               padding: '6px 10px',
               borderRadius: 'var(--pl-radius-sm)',
-              background: 'color-mix(in oklab, var(--pl-gold, #B8935A) 8%, transparent)',
-              border: '1px dashed color-mix(in oklab, var(--pl-gold, #B8935A) 28%, transparent)',
+              background: 'color-mix(in oklab, var(--pl-gold, #C19A4B) 8%, transparent)',
+              border: '1px dashed color-mix(in oklab, var(--pl-gold, #C19A4B) 28%, transparent)',
               fontFamily: 'var(--pl-font-mono)',
               fontSize: '0.6rem',
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
-              color: 'var(--pl-ink-soft, #3A332C)',
+              color: 'var(--pl-ink-soft, #4A5642)',
               lineHeight: 1.5,
             }}
           >
-            <span style={{ color: 'var(--pl-gold, #B8935A)' }}>Tip</span>
+            <span style={{ color: 'var(--pl-gold, #C19A4B)' }}>Tip</span>
             {' · hold '}
             <kbd
               style={{

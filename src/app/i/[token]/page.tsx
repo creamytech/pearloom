@@ -43,12 +43,12 @@ export default async function InviteTokenPage({
       <div
         style={{
           minHeight: '100vh',
-          background: '#FAF7F2',
+          background: '#FDFAF0',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           fontFamily: 'var(--pl-font-body, system-ui, -apple-system, sans-serif)',
-          color: '#3A332C',
+          color: '#4A5642',
           textAlign: 'center',
           padding: '2rem',
         }}
@@ -58,7 +58,7 @@ export default async function InviteTokenPage({
             style={{
               width: 56,
               height: 56,
-              border: '1px solid rgba(184,147,90,0.35)',
+              border: '1px solid rgba(193,154,75,0.35)',
               borderRadius: 'var(--pl-radius-xs)',
               display: 'flex',
               alignItems: 'center',
@@ -67,8 +67,8 @@ export default async function InviteTokenPage({
               fontSize: 22,
               fontFamily: 'var(--pl-font-heading, "Fraunces", Georgia, serif)',
               fontStyle: 'italic',
-              color: '#B8935A',
-              background: '#F0ECE3',
+              color: '#C19A4B',
+              background: '#FBF7EE',
             }}
           >
             ✦

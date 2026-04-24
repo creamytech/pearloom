@@ -107,7 +107,7 @@ export function GuestsLifecyclePanel({ manifest, subdomain }: Props) {
                 borderRadius: 'var(--pl-radius-md)',
                 border: on ? '1px solid var(--pl-ink, #18181B)' : '1px solid var(--pl-divider, #E4E4E7)',
                 background: on ? 'var(--pl-ink, #18181B)' : '#FFFFFF',
-                color: on ? 'var(--pl-cream, #FAF7F2)' : '#71717A',
+                color: on ? 'var(--pl-cream, #FDFAF0)' : '#71717A',
                 cursor: 'pointer',
                 transition: 'all var(--pl-dur-instant)',
               }}

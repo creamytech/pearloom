@@ -42,20 +42,20 @@ export function LocationAutocomplete({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Editorial palette
-  const textColor = dark ? '#FAF7F2' : '#18181B';
+  const textColor = dark ? '#FDFAF0' : '#18181B';
   const mutedColor = dark ? 'rgba(250,247,242,0.6)' : '#52525B';
-  const kickerColor = dark ? 'rgba(212,175,55,0.85)' : 'rgba(184,147,90,0.85)';
-  const ruleColor = dark ? 'rgba(212,175,55,0.55)' : 'rgba(184,147,90,0.55)';
+  const kickerColor = dark ? 'rgba(212,175,55,0.85)' : 'rgba(193,154,75,0.85)';
+  const ruleColor = dark ? 'rgba(212,175,55,0.55)' : 'rgba(193,154,75,0.55)';
   const inputBorder = dark
     ? '1px solid rgba(212,175,55,0.38)'
-    : '1px solid rgba(184,147,90,0.38)';
+    : '1px solid rgba(193,154,75,0.38)';
   const inputBg = dark ? 'rgba(22,16,6,0.35)' : 'rgba(250,247,242,0.65)';
   const dropBg = dark
     ? 'rgba(22,16,6,0.96)'
-    : 'linear-gradient(180deg, #FAF7F2 0%, #F3EFE7 100%)';
+    : 'linear-gradient(180deg, #FDFAF0 0%, #F3EFE7 100%)';
   const hoverBg = dark
     ? 'rgba(212,175,55,0.12)'
-    : 'rgba(184,147,90,0.1)';
+    : 'rgba(193,154,75,0.1)';
 
   const search = useCallback(async (q: string) => {
     if (q.length < 2) { setSuggestions([]); return; }
@@ -128,7 +128,7 @@ export function LocationAutocomplete({
             left: 14,
             top: -8,
             padding: '0 6px',
-            background: dark ? '#1a1305' : '#FAF7F2',
+            background: dark ? '#1a1305' : '#FDFAF0',
             fontFamily: FONT_MONO,
             fontSize: 8,
             fontWeight: 700,
@@ -188,7 +188,7 @@ export function LocationAutocomplete({
             color: textColor,
             transition: 'border-color 180ms ease, box-shadow 180ms ease',
             boxSizing: 'border-box' as const,
-            boxShadow: focused ? '0 0 0 3px rgba(184,147,90,0.18)' : 'none',
+            boxShadow: focused ? '0 0 0 3px rgba(193,154,75,0.18)' : 'none',
           } as React.CSSProperties}
         />
       </div>
@@ -245,7 +245,7 @@ export function LocationAutocomplete({
                   padding: '10px 14px',
                   border: 'none',
                   borderTop: i === 0 ? `1px dashed ${ruleColor}` : 'none',
-                  borderBottom: `1px dashed ${dark ? 'rgba(212,175,55,0.2)' : 'rgba(184,147,90,0.2)'}`,
+                  borderBottom: `1px dashed ${dark ? 'rgba(212,175,55,0.2)' : 'rgba(193,154,75,0.2)'}`,
                   background: active ? hoverBg : 'transparent',
                   cursor: 'pointer',
                   textAlign: 'left',

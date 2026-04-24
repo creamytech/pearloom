@@ -170,7 +170,7 @@ function SvgSlotCard({
     }}>
       {/* Preview area — light background so coloured SVG strokes read clearly */}
       <div style={{
-        aspectRatio: slot.aspect, background: '#FAF7F2', position: 'relative',
+        aspectRatio: slot.aspect, background: '#FDFAF0', position: 'relative',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         overflow: 'hidden', padding: '10px',
       }}>
@@ -278,7 +278,7 @@ function ChapterIconsCard({
                 style={{
                   position: 'relative',
                   aspectRatio: '1/1',
-                  background: '#FAF7F2',
+                  background: '#FDFAF0',
                   borderRadius: 'var(--pl-radius-md)',
                   border: '1px solid rgba(0,0,0,0.05)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',

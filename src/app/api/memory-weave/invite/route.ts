@@ -47,16 +47,16 @@ function emailHtml({
   <table role="presentation" cellspacing="0" cellpadding="0" width="100%" style="background:#F5EFE2;padding:32px 16px;">
     <tr><td align="center">
       <table role="presentation" cellspacing="0" cellpadding="0" width="560" style="background:#FBF7EE;border-radius:16px;padding:36px 32px;">
-        <tr><td style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#B8935A;margin-bottom:12px;">
+        <tr><td style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#C19A4B;margin-bottom:12px;">
           A story they asked for
         </td></tr>
         <tr><td style="padding-top:6px;font-family:Fraunces,Georgia,serif;font-size:28px;line-height:1.2;color:#0E0D0B;">
           ${escape(guestFirstName)}, would you share a memory?
         </td></tr>
-        <tr><td style="padding-top:16px;font-size:15px;line-height:1.65;color:#3A332C;">
+        <tr><td style="padding-top:16px;font-size:15px;line-height:1.65;color:#4A5642;">
           ${escape(names)} are gathering memories for their celebration. Pear wrote you a prompt:
         </td></tr>
-        <tr><td style="padding-top:16px;font-style:italic;font-size:15px;line-height:1.6;color:#3A332C;border-left:2px solid #B8935A;padding-left:14px;">
+        <tr><td style="padding-top:16px;font-style:italic;font-size:15px;line-height:1.6;color:#4A5642;border-left:2px solid #C19A4B;padding-left:14px;">
           ${escape(prompt)}
         </td></tr>
         <tr><td style="padding-top:24px;">

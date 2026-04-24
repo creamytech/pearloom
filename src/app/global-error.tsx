@@ -8,9 +8,9 @@ import { useEffect } from 'react';
 // this page still reads as Pearloom even when everything else has
 // failed.
 const INK = '#0E0D0B';
-const INK_SOFT = '#3A332C';
+const INK_SOFT = '#4A5642';
 const CREAM = '#F5EFE2';
-const GOLD = '#B8935A';
+const GOLD = '#C19A4B';
 const MUTED = '#6F6557';
 
 export default function GlobalError({

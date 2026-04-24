@@ -84,17 +84,17 @@ export function PhotoDropZone({
 
   const accentBorder = dark
     ? 'rgba(212,175,55,0.45)'
-    : 'rgba(184,147,90,0.45)';
+    : 'rgba(193,154,75,0.45)';
   const activeBorder = dark
     ? 'rgba(212,175,55,0.9)'
-    : 'rgba(184,147,90,0.95)';
+    : 'rgba(193,154,75,0.95)';
   const cardBg = dark
     ? 'rgba(22,16,6,0.35)'
     : 'rgba(250,247,242,0.7)';
-  const textColor = dark ? '#FAF7F2' : '#18181B';
+  const textColor = dark ? '#FDFAF0' : '#18181B';
   const mutedColor = dark ? 'rgba(250,247,242,0.65)' : '#52525B';
-  const kickerColor = dark ? 'rgba(212,175,55,0.85)' : 'rgba(184,147,90,0.85)';
-  const ruleColor = dark ? 'rgba(212,175,55,0.55)' : 'rgba(184,147,90,0.55)';
+  const kickerColor = dark ? 'rgba(212,175,55,0.85)' : 'rgba(193,154,75,0.85)';
+  const ruleColor = dark ? 'rgba(212,175,55,0.55)' : 'rgba(193,154,75,0.55)';
   const FONT_DISPLAY = 'var(--pl-font-display, "Fraunces", serif)';
   const FONT_MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
 
@@ -258,12 +258,12 @@ export function PhotoDropZone({
           border: `1px dashed ${dragOver ? activeBorder : accentBorder}`,
           borderTop: `1.5px solid ${dragOver ? activeBorder : ruleColor}`,
           background: dragOver
-            ? (dark ? 'rgba(212,175,55,0.14)' : 'rgba(184,147,90,0.1)')
+            ? (dark ? 'rgba(212,175,55,0.14)' : 'rgba(193,154,75,0.1)')
             : cardBg,
           boxShadow: dragOver
             ? (dark
                 ? '0 0 0 3px rgba(212,175,55,0.22)'
-                : '0 0 0 3px rgba(184,147,90,0.18)')
+                : '0 0 0 3px rgba(193,154,75,0.18)')
             : 'none',
           cursor: 'pointer',
           transition: 'background 180ms cubic-bezier(0.22,1,0.36,1), border-color 180ms ease, box-shadow 180ms ease',
@@ -384,7 +384,7 @@ export function PhotoDropZone({
                     fontSize: 7.5,
                     fontWeight: 700,
                     letterSpacing: '0.22em',
-                    color: '#FAF7F2',
+                    color: '#FDFAF0',
                     textShadow: '0 1px 2px rgba(22,16,6,0.6)',
                     pointerEvents: 'none',
                   }}
@@ -405,7 +405,7 @@ export function PhotoDropZone({
                     borderRadius: 'var(--pl-radius-xs)',
                     border: '1px solid rgba(250,247,242,0.55)',
                     background: 'rgba(22,16,6,0.62)',
-                    color: '#FAF7F2',
+                    color: '#FDFAF0',
                     cursor: uploading ? 'default' : 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -435,7 +435,7 @@ export function PhotoDropZone({
             borderLeft: '1px solid rgba(139,45,45,0.28)',
             borderRight: '1px solid rgba(139,45,45,0.28)',
             borderBottom: '1px solid rgba(139,45,45,0.28)',
-            color: '#8B2D2D',
+            color: '#C6563D',
             fontFamily: FONT_MONO,
             fontSize: 9,
             fontWeight: 700,
@@ -489,10 +489,10 @@ export function PhotoDropZone({
               minHeight: 42,
               padding: '0 18px',
               borderRadius: 'var(--pl-radius-xs)',
-              background: dark ? '#FAF7F2' : '#18181B',
-              color: dark ? '#18181B' : '#FAF7F2',
+              background: dark ? '#FDFAF0' : '#18181B',
+              color: dark ? '#18181B' : '#FDFAF0',
               border: 'none',
-              borderTop: `1.5px solid ${dark ? 'rgba(212,175,55,0.85)' : 'rgba(184,147,90,0.95)'}`,
+              borderTop: `1.5px solid ${dark ? 'rgba(212,175,55,0.85)' : 'rgba(193,154,75,0.95)'}`,
               fontFamily: FONT_MONO,
               fontSize: 10,
               fontWeight: 700,
@@ -503,7 +503,7 @@ export function PhotoDropZone({
               alignItems: 'center',
               justifyContent: 'center',
               gap: 8,
-              boxShadow: '0 0 0 3px rgba(184,147,90,0.22)',
+              boxShadow: '0 0 0 3px rgba(193,154,75,0.22)',
               transition: 'box-shadow 180ms ease',
             }}
           >
@@ -517,7 +517,7 @@ export function PhotoDropZone({
                     height: 11,
                     borderRadius: '50%',
                     border: `1.5px solid ${dark ? 'rgba(22,16,6,0.35)' : 'rgba(250,247,242,0.35)'}`,
-                    borderTopColor: dark ? '#18181B' : '#FAF7F2',
+                    borderTopColor: dark ? '#18181B' : '#FDFAF0',
                   }}
                 />
                 Uploading photos

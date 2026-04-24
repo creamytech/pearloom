@@ -409,8 +409,8 @@ function PaletteMiniPreview({ colors: c }: { colors: string[] }) {
     <div style={{
       width: '100%', height: 96, borderRadius: 'var(--pl-radius-xs)',
       background: bg, overflow: 'hidden', position: 'relative',
-      border: '1px solid rgba(184,147,90,0.38)',
-      borderTop: '1.5px solid rgba(184,147,90,0.7)',
+      border: '1px solid rgba(193,154,75,0.38)',
+      borderTop: '1.5px solid rgba(193,154,75,0.7)',
     }}>
       {/* Hero photo plate */}
       <div style={{
@@ -450,7 +450,7 @@ function PaletteMiniPreview({ colors: c }: { colors: string[] }) {
         {c.slice(0, 4).map((color, i) => (
           <div key={i} style={{
             flex: 1, background: color,
-            borderRight: i < Math.min(c.length, 4) - 1 ? '1px solid rgba(184,147,90,0.35)' : 'none',
+            borderRight: i < Math.min(c.length, 4) - 1 ? '1px solid rgba(193,154,75,0.35)' : 'none',
           }} />
         ))}
       </div>
@@ -487,12 +487,12 @@ export function ColorPaletteCard({ palettes, onSelect }: ColorPaletteCardProps) 
               position: 'relative',
               borderRadius: 'var(--pl-radius-xs)',
               padding: 14,
-              border: isSelected ? '1px solid rgba(184,147,90,0.75)' : '1px solid rgba(184,147,90,0.28)',
-              borderTop: isSelected ? '1.5px solid rgba(184,147,90,0.95)' : '1.5px solid rgba(184,147,90,0.55)',
-              background: isSelected ? 'rgba(184,147,90,0.12)' : 'rgba(250,247,242,0.78)',
+              border: isSelected ? '1px solid rgba(193,154,75,0.75)' : '1px solid rgba(193,154,75,0.28)',
+              borderTop: isSelected ? '1.5px solid rgba(193,154,75,0.95)' : '1.5px solid rgba(193,154,75,0.55)',
+              background: isSelected ? 'rgba(193,154,75,0.12)' : 'rgba(250,247,242,0.78)',
               cursor: 'pointer',
               transition: 'all 220ms cubic-bezier(0.22,1,0.36,1)',
-              boxShadow: isSelected ? '0 0 0 3px rgba(184,147,90,0.2)' : '0 1px 2px rgba(22,16,6,0.04)',
+              boxShadow: isSelected ? '0 0 0 3px rgba(193,154,75,0.2)' : '0 1px 2px rgba(22,16,6,0.04)',
               display: 'grid',
               gridTemplateColumns: '1fr',
               gap: 12,
@@ -505,13 +505,13 @@ export function ColorPaletteCard({ palettes, onSelect }: ColorPaletteCardProps) 
             }}
             onMouseEnter={(e) => {
               if (!isSelected) {
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.6)';
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(193,154,75,0.6)';
                 (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 10px rgba(22,16,6,0.08)';
               }
             }}
             onMouseLeave={(e) => {
               if (!isSelected) {
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,147,90,0.28)';
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(193,154,75,0.28)';
                 (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 2px rgba(22,16,6,0.04)';
               }
             }}
@@ -524,12 +524,12 @@ export function ColorPaletteCard({ palettes, onSelect }: ColorPaletteCardProps) 
                 fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                 fontSize: 9, fontWeight: 700,
                 letterSpacing: '0.3em', textTransform: 'uppercase',
-                color: isSelected ? 'rgba(184,147,90,0.95)' : 'rgba(184,147,90,0.7)',
+                color: isSelected ? 'rgba(193,154,75,0.95)' : 'rgba(193,154,75,0.7)',
                 lineHeight: 1,
               }}>
                 Plate № {folio}
               </span>
-              <span style={{ flex: 1, height: 1, background: 'rgba(184,147,90,0.28)' }} />
+              <span style={{ flex: 1, height: 1, background: 'rgba(193,154,75,0.28)' }} />
               {isSelected && (
                 <motion.span
                   initial={{ scale: 0 }}
@@ -538,7 +538,7 @@ export function ColorPaletteCard({ palettes, onSelect }: ColorPaletteCardProps) 
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                     width: 18, height: 18, borderRadius: 'var(--pl-radius-xs)',
                     background: '#18181B',
-                    border: '1px solid rgba(184,147,90,0.65)',
+                    border: '1px solid rgba(193,154,75,0.65)',
                   }}
                 >
                   <CheckIcon size={10} color="#F0D484" />
@@ -552,14 +552,14 @@ export function ColorPaletteCard({ palettes, onSelect }: ColorPaletteCardProps) 
             {/* Swatch ribbon — no gaps, editorial paint chip */}
             <div style={{
               display: 'flex',
-              border: '1px solid rgba(184,147,90,0.42)',
+              border: '1px solid rgba(193,154,75,0.42)',
               flexShrink: 0,
             }}>
               {palette.colors.slice(0, 5).map((color, i) => (
                 <div key={i} style={{
                   flex: 1, height: 26,
                   background: color,
-                  borderRight: i < Math.min(palette.colors.length, 5) - 1 ? '1px solid rgba(184,147,90,0.3)' : 'none',
+                  borderRight: i < Math.min(palette.colors.length, 5) - 1 ? '1px solid rgba(193,154,75,0.3)' : 'none',
                 }} />
               ))}
             </div>
@@ -585,7 +585,7 @@ export function ColorPaletteCard({ palettes, onSelect }: ColorPaletteCardProps) 
                   fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
                   fontSize: 8.5, fontWeight: 700,
                   letterSpacing: '0.22em', textTransform: 'uppercase',
-                  color: isSelected ? 'rgba(184,147,90,0.95)' : 'rgba(82,82,91,0.7)',
+                  color: isSelected ? 'rgba(193,154,75,0.95)' : 'rgba(82,82,91,0.7)',
                   lineHeight: 1.35,
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}>

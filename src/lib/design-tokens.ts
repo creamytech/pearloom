@@ -9,25 +9,25 @@
 // ── Color Palette (light) ──────────────────────────────────────
 
 export const colors = {
-  // Surfaces
-  cream:       '#F5EFE2',
-  deep:        '#EBE3D2',
+  // Surfaces (v8 tokens — product-wide design)
+  cream:       '#FDFAF0',
+  deep:        '#F7F0E0',
   card:        '#FBF7EE',
-  ink:         '#0E0D0B',
-  inkSoft:     '#3A332C',
+  ink:         '#18181B',
+  inkSoft:     '#4A5642',
   muted:       '#6F6557',
-  divider:     '#D8CFB8',
-  dividerSoft: '#E5DCC4',
+  divider:     '#E2D9C3',
+  dividerSoft: '#ECE4CF',
 
-  // Brand
+  // Brand (v8 tokens)
   olive:       '#5C6B3F',
   oliveHover:  '#4A5731',
   oliveDeep:   '#363F22',
   oliveMist:   '#E0DDC9',
-  gold:        '#B8935A',
-  goldMist:    'rgba(184,147,90,0.10)',
-  plum:        '#7A2D2D',          // oxblood — destructive
-  plumMist:    'rgba(122,45,45,0.10)',
+  gold:        '#C19A4B',
+  goldMist:    'rgba(193,154,75,0.10)',
+  plum:        '#C6563D',
+  plumMist:    'rgba(198,86,61,0.10)',
 
   // Authoring/dark surfaces
   darkBg:      '#0D0B07',

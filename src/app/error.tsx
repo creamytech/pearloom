@@ -42,9 +42,9 @@ export default function ErrorPage({
           color: 'var(--pl-muted, #6F6557)',
         }}
       >
-        <span style={{ width: 20, height: 1, background: 'var(--pl-gold, #B8935A)' }} />
+        <span style={{ width: 20, height: 1, background: 'var(--pl-gold, #C19A4B)' }} />
         Something went sideways
-        <span style={{ width: 20, height: 1, background: 'var(--pl-gold, #B8935A)' }} />
+        <span style={{ width: 20, height: 1, background: 'var(--pl-gold, #C19A4B)' }} />
       </div>
       <h1
         style={{
@@ -62,7 +62,7 @@ export default function ErrorPage({
       </h1>
       <p
         style={{
-          color: 'var(--pl-ink-soft, #3A332C)',
+          color: 'var(--pl-ink-soft, #4A5642)',
           fontSize: '1rem',
           maxWidth: 440,
           lineHeight: 1.6,
@@ -79,7 +79,7 @@ export default function ErrorPage({
           padding: '13px 28px',
           borderRadius: 'var(--pl-radius-xs)',
           background: 'var(--pl-ink, #0E0D0B)',
-          color: 'var(--pl-cream, #FAF7F2)',
+          color: 'var(--pl-cream, #FDFAF0)',
           border: 'none',
           fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
           fontWeight: 700,

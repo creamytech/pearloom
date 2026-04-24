@@ -15,7 +15,7 @@ import { cn } from '@/lib/cn';
 
 const PRESET_COLORS = [
   '#1A1A1A', '#3D3530', '#6B665F', '#5C6B3F', '#6E8C5C',
-  '#C4A96A', '#6D597A', '#C45D3E', '#FFFFFF', '#FAF7F2',
+  '#C4A96A', '#6D597A', '#C45D3E', '#FFFFFF', '#FDFAF0',
   '#F0EBE0', '#E0D8CA', '#c9706a', '#3a7ca8', '#d4829a',
 ];
 

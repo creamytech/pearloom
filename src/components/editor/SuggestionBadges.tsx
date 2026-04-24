@@ -218,7 +218,7 @@ export function SuggestionBadges() {
                     background: 'rgba(24,24,27,0.92)',
                     backdropFilter: 'blur(12px)',
                     WebkitBackdropFilter: 'blur(12px)',
-                    color: '#FAF7F2',
+                    color: '#FDFAF0',
                     fontSize: 11,
                     fontWeight: 600,
                     letterSpacing: '0.01em',

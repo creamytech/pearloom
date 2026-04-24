@@ -300,7 +300,7 @@ function AssetTile({ asset }: { asset: AssetRow }) {
           fontSize: '0.52rem',
           letterSpacing: '0.12em',
           textTransform: 'uppercase',
-          color: 'var(--pl-cream, #FAF7F2)',
+          color: 'var(--pl-cream, #FDFAF0)',
           lineHeight: panelLineHeight.tight,
         }}
       >
@@ -316,7 +316,7 @@ function AssetTile({ asset }: { asset: AssetRow }) {
             padding: '2px 5px',
             borderRadius: 3,
             background: 'rgba(14,13,11,0.55)',
-            color: 'var(--pl-cream, #FAF7F2)',
+            color: 'var(--pl-cream, #FDFAF0)',
             fontFamily: panelFont.mono,
             fontSize: '0.5rem',
             letterSpacing: '0.14em',

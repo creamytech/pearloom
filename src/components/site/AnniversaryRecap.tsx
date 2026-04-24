@@ -38,13 +38,13 @@ interface Props {
   subdomain: string;
 }
 
-const CREAM = '#FAF7F2';
-const CREAM_DEEP = '#F0ECE3';
+const CREAM = '#FDFAF0';
+const CREAM_DEEP = '#FBF7EE';
 const INK = '#18181B';
-const INK_SOFT = '#3A332C';
+const INK_SOFT = '#4A5642';
 const MUTED = '#6F6557';
-const GOLD = '#B8935A';
-const GOLD_RULE = 'rgba(184,147,90,0.28)';
+const GOLD = '#C19A4B';
+const GOLD_RULE = 'rgba(193,154,75,0.28)';
 
 const FONT_DISPLAY = 'var(--pl-font-heading, "Fraunces", Georgia, serif)';
 const FONT_BODY = 'var(--pl-font-body, system-ui, -apple-system, sans-serif)';

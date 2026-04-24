@@ -500,7 +500,7 @@ function BlockRow({
           transition: 'all 0.2s cubic-bezier(0.22, 1, 0.36, 1)',
           position: 'relative',
           userSelect: 'none',
-          boxShadow: isActive ? `0 0 0 3px rgba(184,147,90,0.14)` : 'none',
+          boxShadow: isActive ? `0 0 0 3px rgba(193,154,75,0.14)` : 'none',
         }}
       >
         {/* Folio number */}
@@ -2067,7 +2067,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                     height: '2px',
                     transform: 'translateY(-50%)',
                     background: 'linear-gradient(90deg, transparent 0%, var(--pl-chrome-accent) 10%, var(--pl-chrome-accent) 90%, transparent 100%)',
-                    boxShadow: '0 0 10px rgba(184,147,90,0.5)',
+                    boxShadow: '0 0 10px rgba(193,154,75,0.5)',
                   }} />
                   <span style={{
                     position: 'absolute',
@@ -2140,7 +2140,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                     background: 'linear-gradient(90deg, transparent 0%, var(--pl-chrome-accent) 10%, var(--pl-chrome-accent) 90%, transparent 100%)',
                     borderRadius: 'var(--pl-radius-xs)',
                     marginBottom: '6px',
-                    boxShadow: '0 0 10px rgba(184,147,90,0.55)',
+                    boxShadow: '0 0 10px rgba(193,154,75,0.55)',
                   }}>
                     <span style={{
                       position: 'absolute',
@@ -2233,7 +2233,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                     background: 'linear-gradient(90deg, transparent 0%, var(--pl-chrome-accent) 10%, var(--pl-chrome-accent) 90%, transparent 100%)',
                     borderRadius: 'var(--pl-radius-xs)',
                     marginTop: '6px',
-                    boxShadow: '0 0 10px rgba(184,147,90,0.55)',
+                    boxShadow: '0 0 10px rgba(193,154,75,0.55)',
                   }}>
                     <span style={{
                       position: 'absolute',
@@ -2274,7 +2274,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                           height: '2px',
                           transform: 'translateY(-50%)',
                           background: 'linear-gradient(90deg, transparent 0%, var(--pl-chrome-accent) 10%, var(--pl-chrome-accent) 90%, transparent 100%)',
-                          boxShadow: '0 0 10px rgba(184,147,90,0.5)',
+                          boxShadow: '0 0 10px rgba(193,154,75,0.5)',
                         }} />
                         <span style={{
                           position: 'absolute',

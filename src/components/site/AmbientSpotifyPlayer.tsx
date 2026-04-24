@@ -38,7 +38,7 @@ function isValidSpotifyUrl(url: string): boolean {
 export function AmbientSpotifyPlayer({
   spotifyUrl,
   anchorId = 'soundtrack',
-  accent = '#B8935A',
+  accent = '#C19A4B',
 }: AmbientSpotifyPlayerProps) {
   const [show, setShow] = useState(false);
   const [dismissed, setDismissed] = useState(false);
