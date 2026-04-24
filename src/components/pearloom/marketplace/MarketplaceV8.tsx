@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Footbar, TopNav } from '../chrome';
 import { Blob, Icon, Pear, Sparkle, Squiggle } from '../motifs';
+import { Reveal, Float } from '../motion';
 import {
   OCCASION_GROUPS,
   OCCASION_LABELS,
@@ -115,41 +116,49 @@ export function MarketplaceV8() {
         <Squiggle variant={2} width={220} style={{ position: 'absolute', top: 120, right: 260, transform: 'rotate(-12deg)' }} />
 
         <div style={{ maxWidth: 960, margin: '0 auto', textAlign: 'center', position: 'relative' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '6px 14px',
-              borderRadius: 999,
-              background: 'rgba(255,255,255,0.72)',
-              border: '1px solid rgba(61,74,31,0.12)',
-              fontSize: 11.5,
-              fontWeight: 700,
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              color: 'var(--ink-soft)',
-              marginBottom: 20,
-            }}
-          >
-            <Icon name="sparkles" size={12} /> {totalTemplates} lovingly designed templates
-          </div>
-          <h1 className="display" style={{ fontSize: 'clamp(56px, 8vw, 96px)', margin: 0, lineHeight: 0.96 }}>
-            Start from a <span className="display-italic">story</span>
-            <br />
-            that feels like <span className="display-italic">yours.</span>
-          </h1>
-          <p style={{ fontSize: 17, color: 'var(--ink-soft)', maxWidth: 620, margin: '22px auto 0', lineHeight: 1.55 }}>
-            Every template is a full site — pages, flow, tone, and type — ready for your people, photos, and moments.
-          </p>
-          <div style={{ marginTop: 26, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/wizard/new" className="btn btn-primary">
-              Start from scratch <Icon name="arrow-right" size={13} />
-            </Link>
-            <Link href="/wizard/new?mode=pear" className="btn btn-outline">
-              <Icon name="wand" size={13} /> Describe it to Pear
-            </Link>
-          </div>
+          <Reveal delay={80} y={8}>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '6px 14px',
+                borderRadius: 999,
+                background: 'rgba(255,255,255,0.72)',
+                border: '1px solid rgba(61,74,31,0.12)',
+                fontSize: 11.5,
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                color: 'var(--ink-soft)',
+                marginBottom: 20,
+              }}
+            >
+              <Icon name="sparkles" size={12} /> {totalTemplates} lovingly designed templates
+            </div>
+          </Reveal>
+          <Reveal delay={180} y={22}>
+            <h1 className="display" style={{ fontSize: 'clamp(56px, 8vw, 96px)', margin: 0, lineHeight: 0.96 }}>
+              Start from a <span className="display-italic">story</span>
+              <br />
+              that feels like <span className="display-italic">yours.</span>
+            </h1>
+          </Reveal>
+          <Reveal delay={320}>
+            <p style={{ fontSize: 17, color: 'var(--ink-soft)', maxWidth: 620, margin: '22px auto 0', lineHeight: 1.55 }}>
+              Every template is a full site — pages, flow, tone, and type — ready for your people, photos, and moments.
+            </p>
+          </Reveal>
+          <Reveal delay={460}>
+            <div style={{ marginTop: 26, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link href="/wizard/new" className="btn btn-primary">
+                Start from scratch <Icon name="arrow-right" size={13} />
+              </Link>
+              <Link href="/wizard/new?mode=pear" className="btn btn-outline">
+                <Icon name="wand" size={13} /> Describe it to Pear
+              </Link>
+            </div>
+          </Reveal>
         </div>
       </section>
 
@@ -425,44 +434,49 @@ export function MarketplaceV8() {
         </aside>
 
         <main>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 18 }}>
-            <h2 className="display" style={{ fontSize: 30, margin: 0 }}>
-              {occasion
-                ? OCCASION_LABELS[occasion]
-                : group === 'all'
-                  ? 'The whole library'
-                  : OCCASION_GROUPS.find((g) => g.id === group)?.label}
-              <span style={{ fontSize: 15, color: 'var(--ink-muted)', marginLeft: 10, fontWeight: 400 }}>
-                {activeOccasionCount} {activeOccasionCount === 1 ? 'template' : 'templates'}
-              </span>
-            </h2>
-          </div>
+          <Reveal delay={40} y={10}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 18 }}>
+              <h2 className="display" style={{ fontSize: 30, margin: 0 }}>
+                {occasion
+                  ? OCCASION_LABELS[occasion]
+                  : group === 'all'
+                    ? 'The whole library'
+                    : OCCASION_GROUPS.find((g) => g.id === group)?.label}
+                <span style={{ fontSize: 15, color: 'var(--ink-muted)', marginLeft: 10, fontWeight: 400 }}>
+                  {activeOccasionCount} {activeOccasionCount === 1 ? 'template' : 'templates'}
+                </span>
+              </h2>
+            </div>
+          </Reveal>
 
           {featured.length > 0 && !occasion && (
             <section style={{ marginBottom: 32 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <Sparkle size={12} />
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    letterSpacing: '0.12em',
-                    color: 'var(--peach-ink)',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Featured this month
-                </span>
-              </div>
+              <Reveal delay={100} y={8}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                  <Sparkle size={12} />
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      letterSpacing: '0.12em',
+                      color: 'var(--peach-ink)',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Featured this month
+                  </span>
+                </div>
+              </Reveal>
               <div className="pl8-mkt-grid pl8-mkt-grid-lg">
-                {featured.map((t) => (
-                  <TemplateTile
-                    key={t.id}
-                    t={t}
-                    size="lg"
-                    hovered={hovered === t.id}
-                    onHover={(on) => setHovered(on ? t.id : null)}
-                  />
+                {featured.map((t, i) => (
+                  <Reveal key={t.id} delay={60 + i * 80} y={18} duration={620}>
+                    <TemplateTile
+                      t={t}
+                      size="lg"
+                      hovered={hovered === t.id}
+                      onHover={(on) => setHovered(on ? t.id : null)}
+                    />
+                  </Reveal>
                 ))}
               </div>
             </section>
@@ -471,14 +485,15 @@ export function MarketplaceV8() {
           {rest.length > 0 && (
             <section>
               <div className="pl8-mkt-grid pl8-mkt-grid-md">
-                {rest.map((t) => (
-                  <TemplateTile
-                    key={t.id}
-                    t={t}
-                    size="md"
-                    hovered={hovered === t.id}
-                    onHover={(on) => setHovered(on ? t.id : null)}
-                  />
+                {rest.map((t, i) => (
+                  <Reveal key={t.id} delay={Math.min(80 + i * 48, 560)} y={16} duration={560}>
+                    <TemplateTile
+                      t={t}
+                      size="md"
+                      hovered={hovered === t.id}
+                      onHover={(on) => setHovered(on ? t.id : null)}
+                    />
+                  </Reveal>
                 ))}
               </div>
             </section>
@@ -508,59 +523,63 @@ export function MarketplaceV8() {
           )}
 
           {/* Pear custom sketch */}
-          <section style={{ marginTop: 56 }}>
-            <div
-              style={{
-                position: 'relative',
-                overflow: 'hidden',
-                background: 'linear-gradient(125deg, var(--sage-tint) 0%, var(--peach-bg) 65%, var(--lavender-bg) 100%)',
-                borderRadius: 28,
-                padding: '40px 48px',
-                border: '1px solid var(--card-ring)',
-                display: 'grid',
-                gridTemplateColumns: '1fr 180px',
-                alignItems: 'center',
-                gap: 24,
-              }}
-            >
-              <Squiggle variant={1} width={240} style={{ position: 'absolute', top: 28, right: 220, opacity: 0.5 }} />
-              <div style={{ position: 'relative' }}>
-                <div
-                  style={{
-                    fontSize: 11.5,
-                    fontWeight: 700,
-                    letterSpacing: '0.12em',
-                    color: 'var(--peach-ink)',
-                    textTransform: 'uppercase',
-                    marginBottom: 10,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                  }}
-                >
-                  <Icon name="wand" size={12} /> Can't find the right fit?
+          <Reveal delay={80} y={20} duration={720}>
+            <section style={{ marginTop: 56 }}>
+              <div
+                style={{
+                  position: 'relative',
+                  overflow: 'hidden',
+                  background: 'linear-gradient(125deg, var(--sage-tint) 0%, var(--peach-bg) 65%, var(--lavender-bg) 100%)',
+                  borderRadius: 28,
+                  padding: '40px 48px',
+                  border: '1px solid var(--card-ring)',
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 180px',
+                  alignItems: 'center',
+                  gap: 24,
+                }}
+              >
+                <Squiggle variant={1} width={240} style={{ position: 'absolute', top: 28, right: 220, opacity: 0.5 }} />
+                <div style={{ position: 'relative' }}>
+                  <div
+                    style={{
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      letterSpacing: '0.12em',
+                      color: 'var(--peach-ink)',
+                      textTransform: 'uppercase',
+                      marginBottom: 10,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}
+                  >
+                    <Icon name="wand" size={12} /> Can't find the right fit?
+                  </div>
+                  <h3 className="display" style={{ fontSize: 'clamp(32px, 4vw, 44px)', margin: '0 0 10px' }}>
+                    Tell Pear what you're <span className="display-italic">imagining.</span>
+                  </h3>
+                  <p style={{ fontSize: 15, color: 'var(--ink-soft)', lineHeight: 1.6, maxWidth: 520, margin: '0 0 18px' }}>
+                    Describe the event, the feeling, the people. Pear will sketch a template just for you — layout, tone,
+                    palette, and all.
+                  </p>
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    <Link href="/wizard/new?mode=pear" className="btn btn-primary">
+                      Describe my event <Icon name="arrow-right" size={13} />
+                    </Link>
+                    <Link href="/wizard/new?mode=voice" className="btn btn-outline">
+                      <Icon name="mic" size={13} /> Or just talk
+                    </Link>
+                  </div>
                 </div>
-                <h3 className="display" style={{ fontSize: 'clamp(32px, 4vw, 44px)', margin: '0 0 10px' }}>
-                  Tell Pear what you're <span className="display-italic">imagining.</span>
-                </h3>
-                <p style={{ fontSize: 15, color: 'var(--ink-soft)', lineHeight: 1.6, maxWidth: 520, margin: '0 0 18px' }}>
-                  Describe the event, the feeling, the people. Pear will sketch a template just for you — layout, tone,
-                  palette, and all.
-                </p>
-                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                  <Link href="/wizard/new?mode=pear" className="btn btn-primary">
-                    Describe my event <Icon name="arrow-right" size={13} />
-                  </Link>
-                  <Link href="/wizard/new?mode=voice" className="btn btn-outline">
-                    <Icon name="mic" size={13} /> Or just talk
-                  </Link>
+                <div style={{ display: 'grid', placeItems: 'center' }}>
+                  <Float amplitude={8} duration={6}>
+                    <Pear size={140} tone="sage" sparkle />
+                  </Float>
                 </div>
               </div>
-              <div style={{ display: 'grid', placeItems: 'center' }}>
-                <Pear size={140} tone="sage" sparkle />
-              </div>
-            </div>
-          </section>
+            </section>
+          </Reveal>
         </main>
       </div>
 
