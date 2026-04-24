@@ -78,7 +78,9 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
 
   if (!open || !template) return null;
 
-  const tones = PALETTE_TONES[template.palette];
+  // Fallback to groovy-garden if a template ships an unrecognised
+  // palette key — prevents a blank modal when the data drifts.
+  const tones = PALETTE_TONES[template.palette] ?? PALETTE_TONES['groovy-garden'];
   // Prefer the real SITE_TEMPLATE poetry when we found a match.
   const heroName = template.heroWord ?? template.name;
   const heroScript = site?.poetry?.heroTagline ?? template.heroScript ?? template.tagline ?? 'a day worth keeping';
@@ -98,8 +100,13 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
         zIndex: 1200,
         background: 'rgba(14,13,11,0.58)',
         backdropFilter: 'blur(6px)',
-        display: 'grid',
-        placeItems: 'center',
+        // Flex (not grid) so the child's width: 100%/maxWidth resolves
+        // against a concrete parent — `display:grid; placeItems:center`
+        // without grid-template-columns creates a circular width
+        // reference that collapses the card to 0 on some browsers.
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         padding: '24px 20px',
         overflowY: 'auto',
         animation: 'pear-modal-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both',
@@ -109,10 +116,8 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
         className="pl8"
         style={{
-          width: 'min(1080px, 100%)',
-          // Explicit height pins the grid rows. Without it the left column's
-          // ~1500px content pushes the grid row height past the card's
-          // overflow clip and the whole thing renders off-screen.
+          width: '100%',
+          maxWidth: 1080,
           height: 'min(720px, calc(100vh - 48px))',
           background: 'var(--cream, #FDFAF0)',
           borderRadius: 24,
