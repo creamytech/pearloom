@@ -186,6 +186,23 @@ export function ThemePanel({
         </Field>
       </PanelSection>
 
+      <PanelSection
+        label="Hero decoration"
+        hint="Occasion-aware shapes match your event; classic keeps the v8 cream blobs; off is clean."
+      >
+        <SegmentedToggle<string>
+          value={read<string>(manifest, 'decorStyle', 'occasion')}
+          onChange={(v) => update({ decorStyle: v })}
+          options={[
+            { value: 'occasion', label: 'By occasion' },
+            { value: 'classic', label: 'Classic' },
+            { value: 'off', label: 'Off' },
+          ]}
+        />
+      </PanelSection>
+
+      <AiAccentSection manifest={manifest} onChange={onChange} />
+
       <div
         style={{
           padding: 16,
@@ -208,5 +225,107 @@ export function ThemePanel({
         </div>
       </div>
     </div>
+  );
+}
+
+/* ========================================================================
+   AI accent section — asks GPT Image 2 to draft a hero-edge flourish
+   using the site's occasion + venue + palette. Sets manifest.aiAccentUrl
+   on success; the renderer composites the PNG over the hero at 38%
+   opacity with multiply blend so it reads as an integrated flourish.
+   ======================================================================== */
+function AiAccentSection({
+  manifest,
+  onChange,
+}: {
+  manifest: StoryManifest;
+  onChange: (m: StoryManifest) => void;
+}) {
+  const existing = (manifest as unknown as { aiAccentUrl?: string }).aiAccentUrl;
+  const occasion = (manifest as unknown as { occasion?: string }).occasion ?? 'wedding';
+  const venue = manifest.logistics?.venue ?? '';
+  const theme = (manifest as unknown as { theme?: { colors?: Record<string, string> } }).theme?.colors;
+  const paletteHex = theme
+    ? [theme.background, theme.accent, theme.accentLight, theme.foreground, theme.muted].filter(Boolean) as string[]
+    : undefined;
+  const siteId = (manifest as unknown as { subdomain?: string }).subdomain ?? 'preview';
+
+  async function generate() {
+    const btn = document.getElementById('pl-ai-accent-btn') as HTMLButtonElement | null;
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Drafting…';
+    }
+    try {
+      const res = await fetch('/api/decor/ai-accent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId,
+          occasion,
+          venue,
+          paletteHex,
+          vibe: (manifest as unknown as { vibeString?: string }).vibeString ?? '',
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { error?: string }).error ?? String(res.status));
+      }
+      const data = (await res.json()) as { url?: string };
+      if (data.url) {
+        onChange({ ...manifest, aiAccentUrl: data.url } as unknown as StoryManifest);
+      }
+    } catch (err) {
+      console.error('[ai-accent]', err);
+      if (btn) btn.textContent = 'Try again';
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        if (btn.textContent !== 'Try again') btn.textContent = existing ? 'Draft a new one' : 'Draft an accent';
+      }
+    }
+  }
+
+  function clear() {
+    onChange({ ...manifest, aiAccentUrl: undefined } as unknown as StoryManifest);
+  }
+
+  return (
+    <PanelSection
+      label="AI hero accent"
+      hint="Have Pear draft a hand-drawn flourish that matches your venue, palette, and occasion. Uses GPT Image 2."
+    >
+      {existing && (
+        <div
+          style={{
+            position: 'relative',
+            aspectRatio: '3/2',
+            borderRadius: 10,
+            overflow: 'hidden',
+            marginBottom: 10,
+            backgroundImage: `url(${existing})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            border: '1px solid var(--line-soft)',
+          }}
+        />
+      )}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button
+          id="pl-ai-accent-btn"
+          type="button"
+          onClick={generate}
+          className="btn btn-outline btn-sm"
+        >
+          {existing ? 'Draft a new one' : 'Draft an accent'}
+        </button>
+        {existing && (
+          <button type="button" onClick={clear} className="btn btn-ghost btn-sm">
+            Remove
+          </button>
+        )}
+      </div>
+    </PanelSection>
   );
 }

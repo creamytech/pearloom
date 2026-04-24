@@ -96,6 +96,18 @@ export interface StoryManifest {
     postIt?: { text: string; tone?: string; rotation?: number };
     polaroid?: boolean;
   };
+  /** Hero decoration library.
+   *  - `occasion` (default): per-event shape set (disco ball for sweet-16,
+   *    candles for memorial, balloons for baby shower, etc.) drawn by
+   *    OccasionDecor. Adapts to the template palette automatically.
+   *  - `classic`: the original v8 cream-blobs + squiggle look that ships
+   *    with most wedding templates today.
+   *  - `off`: clean hero, no ambient decoration. */
+  decorStyle?: 'occasion' | 'classic' | 'off';
+  /** AI-generated hero graphic — cached PNG URL. When set, the renderer
+   *  overlays this accent alongside the OccasionDecor set. Produced by
+   *  /api/decor/ai-accent from venue + palette + occasion. */
+  aiAccentUrl?: string;
   // Ordered list of block types (matches PageBlock['type']) that the
   // renderer should follow when a template imposes a specific structure.
   blockOrder?: string[];

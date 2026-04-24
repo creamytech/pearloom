@@ -29,23 +29,34 @@ export interface PreviewManifestBuild {
 type SampleKey =
   | 'wedding'
   | 'birthday'
+  | 'first-birthday'
+  | 'sweet-sixteen'
   | 'milestone-birthday'
   | 'retirement'
   | 'graduation'
   | 'anniversary'
   | 'engagement'
+  | 'vow-renewal'
   | 'baby-shower'
+  | 'gender-reveal'
+  | 'sip-and-see'
   | 'bridal-shower'
+  | 'bridal-luncheon'
   | 'rehearsal-dinner'
+  | 'welcome-party'
+  | 'brunch'
   | 'bachelor-party'
   | 'bachelorette-party'
   | 'reunion'
   | 'memorial'
   | 'funeral'
+  | 'celebration-life'
   | 'quinceanera'
   | 'bar-mitzvah'
   | 'bat-mitzvah'
   | 'baptism'
+  | 'first-communion'
+  | 'confirmation'
   | 'housewarming'
   | 'story';
 
@@ -198,28 +209,42 @@ function pickSample<K extends SampleKey, T>(
   return source[key] ?? source[fallback] ?? source.wedding ?? (undefined as unknown as T);
 }
 
+// Solo-honoree occasions get one name only — second string is empty so
+// the hero renders just "Mira" instead of "Mira and Jamie". Keep names
+// culturally varied per occasion.
 const SAMPLE_NAMES: Record<SampleKey, [string, string]> = {
   wedding: ['Alex', 'Jamie'],
   engagement: ['Alex', 'Jamie'],
   anniversary: ['Alex', 'Jamie'],
+  'vow-renewal': ['Alex', 'Jamie'],
   birthday: ['Mira', ''],
+  'first-birthday': ['Noa', ''],
+  'sweet-sixteen': ['Lily', ''],
   'milestone-birthday': ['Mira', ''],
   retirement: ['Richard', ''],
   graduation: ['Sam', ''],
-  'baby-shower': ['Baby', 'Alex & Jamie'],
-  'bridal-shower': ['Alex', 'Jamie'],
+  'baby-shower': ['Baby Park', ''],
+  'gender-reveal': ['Baby Park', ''],
+  'sip-and-see': ['Baby Noa', ''],
+  'bridal-shower': ['Alex', ''],
+  'bridal-luncheon': ['Alex', ''],
   'rehearsal-dinner': ['Alex', 'Jamie'],
+  'welcome-party': ['Alex', 'Jamie'],
+  brunch: ['Alex', 'Jamie'],
   'bachelor-party': ['Jamie', ''],
   'bachelorette-party': ['Alex', ''],
   reunion: ['Class of', '2010'],
-  memorial: ['Ruth', 'Ellen'],
-  funeral: ['Ruth', 'Ellen'],
+  memorial: ['Ruth Ellen', ''],
+  funeral: ['Ruth Ellen', ''],
+  'celebration-life': ['Ruth Ellen', ''],
   quinceanera: ['Sofia', ''],
   'bar-mitzvah': ['Daniel', ''],
   'bat-mitzvah': ['Maya', ''],
-  baptism: ['Baby', ''],
-  housewarming: ['The Park', 'Family'],
-  story: ['A', 'Story'],
+  baptism: ['Baby Olivia', ''],
+  'first-communion': ['Clara', ''],
+  confirmation: ['Mateo', ''],
+  housewarming: ['The Park Family', ''],
+  story: ['A small story', ''],
 };
 
 export function seedPreviewManifest(template: Template): PreviewManifestBuild {

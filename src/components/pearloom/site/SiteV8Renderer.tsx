@@ -25,6 +25,7 @@ import { EditableText } from '../editor/canvas/EditableText';
 import { SortableChapters } from '../editor/canvas/SortableChapters';
 import { HoverToolbar } from '../editor/canvas/HoverToolbar';
 import { PhotoDropTarget } from '../editor/canvas/PhotoDropTarget';
+import { OccasionDecor } from './OccasionDecor';
 import { ActivityVoteBlock } from '@/components/site/ActivityVoteBlock';
 import { AdviceWallBlock } from '@/components/site/AdviceWallBlock';
 import { CostSplitterBlock } from '@/components/site/CostSplitterBlock';
@@ -349,13 +350,41 @@ function HeroSection({
   const coverPhoto = manifest.coverPhoto;
   const photos = manifest.heroSlideshow ?? (manifest.chapters?.flatMap((c) => (c.images ?? []).slice(0, 1).map((i) => i.url)) ?? []);
 
+  // Decor mode — 'occasion' (per-event shape library),
+  // 'classic' (the original v8 blobs + squiggles, for templates
+  // that ship that look), or 'off' (clean hero).
+  const occasionRaw = (manifest as unknown as { occasion?: string }).occasion;
+  const decorMode =
+    ((manifest as unknown as { decorStyle?: 'classic' | 'occasion' | 'off' }).decorStyle) ??
+    'occasion';
   return (
     <section id="top" style={{ position: 'relative', padding: 'clamp(48px, 8vw, 80px) 32px clamp(48px, 8vw, 110px)', overflow: 'hidden' }}>
-      <Blob tone="lavender" size={520} opacity={0.55} style={{ position: 'absolute', top: -100, left: -120 }} />
-      <Blob tone="peach" size={440} opacity={0.5} style={{ position: 'absolute', top: 80, right: -140 }} />
-      <Blob tone="sage" size={380} opacity={0.4} style={{ position: 'absolute', bottom: -120, left: '30%' }} />
-      <Squiggle variant={1} width={260} style={{ position: 'absolute', top: 140, right: 200, transform: 'rotate(-14deg)', opacity: 0.8 }} />
-      <Squiggle variant={3} width={180} style={{ position: 'absolute', bottom: 140, left: 120, transform: 'rotate(24deg)', opacity: 0.8 }} />
+      {decorMode === 'classic' && (
+        <>
+          <Blob tone="lavender" size={520} opacity={0.55} style={{ position: 'absolute', top: -100, left: -120 }} />
+          <Blob tone="peach" size={440} opacity={0.5} style={{ position: 'absolute', top: 80, right: -140 }} />
+          <Blob tone="sage" size={380} opacity={0.4} style={{ position: 'absolute', bottom: -120, left: '30%' }} />
+          <Squiggle variant={1} width={260} style={{ position: 'absolute', top: 140, right: 200, transform: 'rotate(-14deg)', opacity: 0.8 }} />
+          <Squiggle variant={3} width={180} style={{ position: 'absolute', bottom: 140, left: 120, transform: 'rotate(24deg)', opacity: 0.8 }} />
+        </>
+      )}
+      {decorMode === 'occasion' && <OccasionDecor occasion={occasionRaw} variant="hero" />}
+      {(manifest as unknown as { aiAccentUrl?: string }).aiAccentUrl && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: `url(${(manifest as unknown as { aiAccentUrl: string }).aiAccentUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            mixBlendMode: 'multiply',
+            opacity: 0.38,
+            pointerEvents: 'none',
+            zIndex: 0,
+          }}
+        />
+      )}
 
       <div style={{ maxWidth: 1160, margin: '0 auto', position: 'relative' }}>
         <div style={{ textAlign: 'center', marginBottom: 22 }}>
@@ -1889,19 +1918,24 @@ function RSVPSection({
           </form>
         )}
 
-        <div style={{ textAlign: 'center', marginTop: 26 }}>
-          <PostIt tone="cream" width={280} rotation={2} style={{ display: 'inline-block' }}>
-            Thank you for being
-            <br />
-            in our story, truly.
-            {initials && (
-              <>
-                <br />
-                <span style={{ fontSize: 16, color: 'var(--ink-muted)' }}>— {initials}</span>
-              </>
-            )}
-          </PostIt>
-        </div>
+        {manifest.motifs?.postIt?.text && (
+          <div style={{ textAlign: 'center', marginTop: 26 }}>
+            <PostIt
+              tone={(manifest.motifs.postIt.tone as 'sage' | 'peach' | 'lavender' | 'cream' | undefined) ?? 'cream'}
+              width={280}
+              rotation={manifest.motifs.postIt.rotation ?? 2}
+              style={{ display: 'inline-block' }}
+            >
+              {manifest.motifs.postIt.text}
+              {initials && (
+                <>
+                  <br />
+                  <span style={{ fontSize: 16, color: 'var(--ink-muted)' }}>— {initials}</span>
+                </>
+              )}
+            </PostIt>
+          </div>
+        )}
       </div>
     </section>
   );
