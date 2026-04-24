@@ -191,14 +191,55 @@ function PreviewContent() {
 
   if (!manifest) {
     return (
-      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F5F1E8' }}>
-        <div style={{ textAlign: 'center', padding: '2rem' }}>
-          <h1 style={{ fontSize: '2rem', fontWeight: 300, letterSpacing: '0.04em', color: '#2B2B2B', marginBottom: '0.75rem' }}>
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FDFAF0', padding: 32 }}>
+        <div style={{ textAlign: 'center', maxWidth: 440 }}>
+          <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 40, fontStyle: 'italic', color: '#18181B', margin: '0 0 10px', fontWeight: 500 }}>
             Preview
           </h1>
-          <p style={{ color: '#9A9488', fontSize: '0.95rem' }}>
-            No story data yet. Generate your story from the dashboard.
+          <p style={{ color: '#4A5642', fontSize: 14.5, margin: '0 0 26px', lineHeight: 1.55 }}>
+            There's no story here yet. Start a site from a template, or jump into the
+            dashboard to generate one from your photos.
           </p>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <a
+              href="/templates"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '10px 18px',
+                borderRadius: 999,
+                background: '#18181B',
+                color: '#FDFAF0',
+                fontSize: 14,
+                fontWeight: 600,
+                textDecoration: 'none',
+              }}
+            >
+              Browse templates
+            </a>
+            <a
+              href="/dashboard"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '10px 18px',
+                borderRadius: 999,
+                background: 'transparent',
+                color: '#18181B',
+                fontSize: 14,
+                fontWeight: 600,
+                border: '1.5px solid #E2D9C3',
+                textDecoration: 'none',
+              }}
+            >
+              Go to dashboard
+            </a>
+          </div>
+          <div style={{ marginTop: 28, fontSize: 12, color: '#6F6557' }}>
+            <a href="/" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: 3 }}>
+              ← Back to Pearloom
+            </a>
+          </div>
         </div>
       </div>
     );

@@ -19,18 +19,23 @@ export function PageShell({
   hideFooter = false,
   ctaText,
   ctaHref,
+  footerVariant = 'marketing',
 }: {
   children: ReactNode;
   background?: string;
   hideFooter?: boolean;
   ctaText?: string;
   ctaHref?: string;
+  /** 'marketing' — promotional CTA + stamp.
+   *  'quiet'     — slim footer with legal links only. Use on
+   *                privacy/terms/registry/partners/etc. */
+  footerVariant?: 'marketing' | 'quiet';
 }) {
   return (
     <div className="pl8" style={{ minHeight: '100vh', background, display: 'flex', flexDirection: 'column' }}>
       <TopNav ctaText={ctaText} ctaHref={ctaHref} />
       <main style={{ flex: 1, minWidth: 0 }}>{children}</main>
-      {!hideFooter && <Footbar />}
+      {!hideFooter && <Footbar variant={footerVariant} />}
     </div>
   );
 }

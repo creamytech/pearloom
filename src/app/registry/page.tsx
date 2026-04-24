@@ -24,7 +24,7 @@ export default async function RegistryPage({ searchParams }: RegistryPageProps) 
   const siteId = params.siteId || params.domain || 'demo';
 
   return (
-    <PageShell>
+    <PageShell footerVariant="quiet">
       <div style={{ maxWidth: 880, margin: '0 auto', padding: 'clamp(40px, 6vw, 72px) 24px 60px' }}>
         <div style={{ marginBottom: 36 }}>
           <div
@@ -70,40 +70,25 @@ export default async function RegistryPage({ searchParams }: RegistryPageProps) 
 
         <div
           style={{
-            marginTop: 40,
-            background: 'var(--lavender-bg)',
-            border: '1px solid rgba(107,90,140,0.18)',
-            borderRadius: 18,
-            padding: 24,
+            marginTop: 32,
+            padding: '14px 18px',
+            borderRadius: 14,
+            background: 'var(--cream-2)',
+            border: '1px solid var(--line-soft)',
             display: 'flex',
-            gap: 16,
-            alignItems: 'flex-start',
+            gap: 12,
+            alignItems: 'center',
+            fontSize: 13,
+            color: 'var(--ink-soft)',
+            lineHeight: 1.5,
           }}
         >
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 12,
-              background: 'var(--lavender-2)',
-              display: 'grid',
-              placeItems: 'center',
-              flexShrink: 0,
-              color: 'var(--cream)',
-            }}
-          >
-            <Icon name="gift" size={20} />
-          </div>
-          <div>
-            <div className="display" style={{ fontSize: 18, marginBottom: 4, color: 'var(--lavender-ink)' }}>
-              Add a Cash Fund
-            </div>
-            <p style={{ margin: 0, fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.6 }}>
-              Many couples include a Honeymoon Fund or Cash Fund via Venmo, PayPal, or Honeyfund.
-              Just paste the link and set the category to &ldquo;Cash Fund&rdquo; — we&apos;ll style
-              it with a heart icon.
-            </p>
-          </div>
+          <Icon name="gift" size={18} color="var(--lavender-ink)" />
+          <span>
+            Adding a <strong style={{ color: 'var(--ink)' }}>Honeymoon or Cash Fund</strong>?
+            Paste any Venmo / PayPal / Honeyfund link above and set the category to
+            &ldquo;Cash Fund&rdquo; — we&apos;ll style it with a heart.
+          </span>
         </div>
       </div>
     </PageShell>

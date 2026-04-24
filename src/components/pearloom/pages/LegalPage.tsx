@@ -33,7 +33,7 @@ export function LegalPage({ title, subtitle, children }: { title: string; subtit
       >
         {children}
       </article>
-      <Footbar />
+      <Footbar variant="quiet" />
     </div>
   );
 }

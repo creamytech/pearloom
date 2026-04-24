@@ -62,7 +62,7 @@ export default function PartnersPage() {
   // ── Landing View ──
   if (view === 'landing') {
     return (
-      <PageShell>
+      <PageShell footerVariant="quiet">
         <section className="max-w-[1080px] mx-auto px-4 md:px-8 py-16">
           {/* Hero */}
           <div className="text-center mb-16">
@@ -83,8 +83,19 @@ export default function PartnersPage() {
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 max-w-[600px] mx-auto mb-16">
+          {/* Gold hairline separator between the hero CTA row and the
+              proof stats below — keeps the two clusters from fighting
+              for attention. */}
+          <div
+            className="mx-auto my-12"
+            style={{
+              width: 72,
+              height: 1,
+              background: 'var(--gold, #C19A4B)',
+              opacity: 0.5,
+            }}
+          />
+          <div className="grid grid-cols-3 gap-4 max-w-[600px] mx-auto mb-20">
             {[
               { value: '30%', label: 'Commission', sub: 'for Elite partners' },
               { value: '90s', label: 'Setup Time', sub: 'for your clients' },
@@ -152,7 +163,7 @@ export default function PartnersPage() {
   // ── Registration View ──
   if (view === 'register') {
     return (
-      <PageShell>
+      <PageShell footerVariant="quiet">
         <div className="max-w-[800px] mx-auto px-4 md:px-8 py-6">
           <button onClick={() => setView('landing')} className="flex items-center gap-2 bg-transparent border-none cursor-pointer text-[var(--ink-soft)]">
             <ArrowLeft size={16} /> Back
@@ -246,7 +257,7 @@ export default function PartnersPage() {
 
   // ── Dashboard View ──
   return (
-    <PageShell>
+    <PageShell footerVariant="quiet">
       <main className="max-w-[1080px] mx-auto px-4 md:px-8 py-8">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

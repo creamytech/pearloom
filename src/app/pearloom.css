@@ -659,10 +659,45 @@ button.pl8-mobile-only { display: none !important; }
   .pl8-mkt-grid-md { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   .pl8-mkt-grid-lg { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 }
+/* Mobile-only pagination: hide tiles past the initial 12 at ≤720px */
+.pl8-mkt-show-more { display: none; }
+/* Widen the search input on narrow screens so it fills the stack */
 @media (max-width: 720px) {
-  .pl8-mkt-sidebar { grid-template-columns: 1fr !important; }
+  .pl8-mkt-search { width: 100% !important; }
+  .pl8-mkt-search > div { width: 100% !important; }
+}
+@media (max-width: 720px) {
+  .pl8-mkt-tile-hidden-mobile { display: none !important; }
+  /* Reveal the "Show more" button only on narrow screens — desktop
+     sees the full grid at load. */
+  .pl8-mkt-show-more { display: block !important; }
+  /* Collapse the occasion sidebar to a horizontally-scrolling chip
+     rail so the mobile templates page doesn't become 30k pixels
+     tall. Apply to the direct sidebar *container* only; its inner
+     group/occasion lists stay as-is. */
+  .pl8-mkt-sidebar {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 10px !important;
+    padding: 10px 20px 14px !important;
+    margin: 0 -20px !important;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+  .pl8-mkt-sidebar > * {
+    flex: 0 0 auto;
+    min-width: 128px;
+    max-width: 180px;
+  }
+  /* Keep a 2-column grid on mobile — 1 col × 56 tiles makes
+     an endless scroll. 2 tiles fit comfortably at 390px with
+     reduced gap. */
   .pl8-mkt-grid-md,
-  .pl8-mkt-grid-lg { grid-template-columns: 1fr !important; }
+  .pl8-mkt-grid-lg {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
   .pl8-mkt-filterbar { grid-template-columns: 1fr !important; }
 }
 

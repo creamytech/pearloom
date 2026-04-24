@@ -198,13 +198,56 @@ export function Footbar({
   primaryText = 'Made for meaningful moments.',
   ctaText = 'Create your event',
   ctaHref = '/wizard/new',
+  variant = 'marketing',
   extras,
 }: {
   primaryText?: string;
   ctaText?: string | null;
   ctaHref?: string;
+  /** 'marketing' — full promotional footer (default).
+   *  'quiet'     — no CTA, no tagline, no stamp — legal/privacy/partners. */
+  variant?: 'marketing' | 'quiet';
   extras?: ReactNode;
 }) {
+  if (variant === 'quiet') {
+    return (
+      <div className="footbar footbar-quiet" style={{ padding: '18px 32px' }}>
+        <div
+          className="footbar-inner"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+            maxWidth: 1200,
+            margin: '0 auto',
+            flexWrap: 'wrap',
+          }}
+        >
+          <Pear size={28} tone="cream" shadow={false} />
+          <div style={{ fontSize: 13, color: 'var(--cream)', opacity: 0.8 }}>
+            © {new Date().getFullYear()} Pearloom
+          </div>
+          <div style={{ flex: 1 }} />
+          <Link href="/" style={{ fontSize: 13, color: 'var(--cream)', opacity: 0.75, textDecoration: 'none' }}>
+            Home
+          </Link>
+          <Link href="/privacy" style={{ fontSize: 13, color: 'var(--cream)', opacity: 0.75, textDecoration: 'none' }}>
+            Privacy
+          </Link>
+          <Link href="/terms" style={{ fontSize: 13, color: 'var(--cream)', opacity: 0.75, textDecoration: 'none' }}>
+            Terms
+          </Link>
+          <a
+            href="mailto:hello@pearloom.com"
+            style={{ fontSize: 13, color: 'var(--cream)', opacity: 0.75, textDecoration: 'none' }}
+          >
+            hello@pearloom.com
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="footbar">
       <div className="footbar-inner">

@@ -70,6 +70,11 @@ export function MarketplaceV8() {
   const [q, setQ] = useState('');
   const [hovered, setHovered] = useState<string | null>(null);
   const [previewing, setPreviewing] = useState<Template | null>(null);
+  // Mobile pagination — show 12 tiles initially, expand on demand.
+  // Desktop gets the full grid immediately; this only kicks in at
+  // ≤720px where scroll length was the real bug.
+  const [showAllRest, setShowAllRest] = useState(false);
+  const MOBILE_REST_LIMIT = 12;
 
   function toggleVibe(v: TemplateVibe) {
     setVibes((prev) => (prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]));
@@ -218,8 +223,8 @@ export function MarketplaceV8() {
               );
             })}
           </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <div style={{ position: 'relative' }}>
+          <div className="pl8-mkt-search" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div style={{ position: 'relative', width: '100%' }}>
               <Icon
                 name="search"
                 size={14}
@@ -237,7 +242,8 @@ export function MarketplaceV8() {
                   background: 'var(--cream-2)',
                   fontSize: 13,
                   fontFamily: 'var(--font-ui)',
-                  width: 240,
+                  width: '100%',
+                  minWidth: 220,
                   color: 'var(--ink)',
                 }}
               />
@@ -489,7 +495,20 @@ export function MarketplaceV8() {
             <section>
               <div className="pl8-mkt-grid pl8-mkt-grid-md">
                 {rest.map((t, i) => (
-                  <Reveal key={t.id} delay={Math.min(80 + i * 48, 560)} y={16} duration={560}>
+                  <Reveal
+                    key={t.id}
+                    delay={Math.min(80 + i * 48, 560)}
+                    y={16}
+                    duration={560}
+                    // CSS class, not inline display, so desktop still
+                    // shows every tile while mobile hides past the
+                    // pagination threshold until "Show more" is tapped.
+                    className={
+                      !showAllRest && i >= MOBILE_REST_LIMIT
+                        ? 'pl8-mkt-tile-hidden-mobile'
+                        : undefined
+                    }
+                  >
                     <TemplateTile
                       t={t}
                       size="md"
@@ -500,6 +519,17 @@ export function MarketplaceV8() {
                   </Reveal>
                 ))}
               </div>
+              {!showAllRest && rest.length > MOBILE_REST_LIMIT && (
+                <div className="pl8-mkt-show-more" style={{ marginTop: 20, textAlign: 'center' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowAllRest(true)}
+                    className="btn btn-outline"
+                  >
+                    Show {rest.length - MOBILE_REST_LIMIT} more templates
+                  </button>
+                </div>
+              )}
             </section>
           )}
 

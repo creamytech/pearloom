@@ -20,7 +20,7 @@ import {
   Sparkle,
   Stamp,
 } from '../motifs';
-import { Reveal } from '../motion';
+import { Reveal, Float } from '../motion';
 
 const ERROR_COPY: Record<string, string> = {
   OAuthCallback: 'Google sign-in couldn’t complete. Try once more.',
@@ -368,70 +368,76 @@ export function SigninV8({
           <Blob tone="sage" size={280} opacity={0.75} style={{ position: 'absolute', bottom: 60, right: -40, zIndex: 0 }} />
           <Blob tone="peach" size={260} opacity={0.7} style={{ position: 'absolute', bottom: 120, left: 100, zIndex: 0 }} />
 
-          <div
-            style={{
-              position: 'absolute',
-              top: 70,
-              left: 30,
-              width: 220,
-              height: 290,
-              background: '#C4B5D9',
-              borderRadius: '3px 12px 12px 3px',
-              boxShadow: '0 20px 40px rgba(61,74,31,0.16), inset 10px 0 0 rgba(0,0,0,0.08)',
-              padding: '32px 28px',
-              transform: 'rotate(-4deg)',
-              zIndex: 3,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 30, lineHeight: 1.1, color: 'var(--ink)' }}>
-              The best
-              <br />
-              memories
-              <br />
-              come from
-              <br />
-              being
-              <br />
-              together.
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontFamily: 'var(--font-script)', fontSize: 24, color: 'var(--ink-soft)' }}>~</div>
-              <Pear size={42} tone="sage" shadow={false} />
-            </div>
+          <div style={{ position: 'absolute', top: 70, left: 30, zIndex: 3 }}>
+            <Float amplitude={6} duration={7}>
+              <div
+                style={{
+                  width: 220,
+                  height: 290,
+                  background: '#C4B5D9',
+                  borderRadius: '3px 12px 12px 3px',
+                  boxShadow: '0 20px 40px rgba(61,74,31,0.16), inset 10px 0 0 rgba(0,0,0,0.08)',
+                  padding: '32px 28px',
+                  transform: 'rotate(-4deg)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 30, lineHeight: 1.1, color: 'var(--ink)' }}>
+                  The best
+                  <br />
+                  memories
+                  <br />
+                  come from
+                  <br />
+                  being
+                  <br />
+                  together.
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontFamily: 'var(--font-script)', fontSize: 24, color: 'var(--ink-soft)' }}>~</div>
+                  <Pear size={42} tone="sage" shadow={false} />
+                </div>
+              </div>
+            </Float>
           </div>
 
-          <div style={{ position: 'absolute', top: 40, right: 20, width: 260, zIndex: 5, transform: 'rotate(3deg)' }}>
-            <div style={{ background: '#fff', padding: '14px 14px 50px', boxShadow: '0 20px 40px rgba(61,74,31,0.2)', position: 'relative' }}>
-              <div style={{ position: 'absolute', top: -12, right: 30, width: 80, height: 26, background: 'rgba(234,178,134,0.55)', transform: 'rotate(-3deg)' }} />
-              <PhotoPlaceholder tone="warm" aspect="1/1" label="together" />
-            </div>
+          <div style={{ position: 'absolute', top: 40, right: 20, width: 260, zIndex: 5 }}>
+            <Float amplitude={8} duration={6} delay={0.5}>
+              <div style={{ transform: 'rotate(3deg)' }}>
+                <div style={{ background: '#fff', padding: '14px 14px 50px', boxShadow: '0 20px 40px rgba(61,74,31,0.2)', position: 'relative' }}>
+                  <div style={{ position: 'absolute', top: -12, right: 30, width: 80, height: 26, background: 'rgba(234,178,134,0.55)', transform: 'rotate(-3deg)' }} />
+                  <PhotoPlaceholder tone="warm" aspect="1/1" label="together" />
+                </div>
+              </div>
+            </Float>
           </div>
 
           <div style={{ position: 'absolute', bottom: 40, left: 20, zIndex: 6 }}>
-            <div
-              style={{
-                background: 'var(--cream-2)',
-                padding: '20px 28px',
-                border: '1px dashed rgba(61,74,31,0.3)',
-                borderRadius: 3,
-                transform: 'rotate(-6deg)',
-                fontFamily: 'var(--font-display)',
-                fontStyle: 'italic',
-                fontSize: 24,
-                color: 'var(--ink)',
-                maxWidth: 230,
-                boxShadow: '0 14px 30px rgba(61,74,31,0.15)',
-                position: 'relative',
-              }}
-            >
-              Little moments,
-              <br />
-              big meaning.
-              <Heart size={14} style={{ marginLeft: 8 }} />
-            </div>
+            <Float amplitude={5} duration={8} delay={1}>
+              <div
+                style={{
+                  background: 'var(--cream-2)',
+                  padding: '20px 28px',
+                  border: '1px dashed rgba(61,74,31,0.3)',
+                  borderRadius: 3,
+                  transform: 'rotate(-6deg)',
+                  fontFamily: 'var(--font-display)',
+                  fontStyle: 'italic',
+                  fontSize: 24,
+                  color: 'var(--ink)',
+                  maxWidth: 230,
+                  boxShadow: '0 14px 30px rgba(61,74,31,0.15)',
+                  position: 'relative',
+                }}
+              >
+                Little moments,
+                <br />
+                big meaning.
+                <Heart size={14} style={{ marginLeft: 8 }} />
+              </div>
+            </Float>
           </div>
 
           <div style={{ position: 'absolute', top: 0, left: 120, zIndex: 7 }}>

@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { ArrowLeft, Building2, Sparkles, Loader2 } from 'lucide-react';
 import { VenueSearch, type VenuePartial } from '@/components/venue/VenueSearch';
 import { VenueProfile, type VenueData } from '@/components/venue/VenueProfile';
+import { TopNav } from '@/components/pearloom/chrome';
 
 // ─────────────────────────────────────────────────────────────
 
@@ -88,41 +89,95 @@ export default function VenuePage() {
     return (
       <div
         className="pl8"
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: '#FAF7F0',
-          gap: '1.5rem',
-        }}
+        style={{ minHeight: '100vh', background: 'var(--cream)', position: 'relative' }}
       >
-        <h1
+        <TopNav active="Venues" />
+        <div
           style={{
-            fontFamily: "'Playfair Display', Georgia, serif",
-            fontSize: '2rem',
-            color: '#2C2416',
+            maxWidth: 880,
+            margin: '0 auto',
+            padding: '72px 32px 96px',
+            textAlign: 'center',
           }}
         >
-          Sign in to manage your venue
-        </h1>
-        <button
-          onClick={() => signIn('google')}
-          style={{
-            padding: '0.75rem 2rem',
-            background: 'linear-gradient(135deg, #7A6B3F 0%, #8B774B 100%)',
-            color: '#FEFCF8',
-            border: 'none',
-            borderRadius: '0.875rem',
-            fontSize: '1rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-          }}
-        >
-          Sign in with Google
-        </button>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '6px 14px',
+              borderRadius: 999,
+              background: 'rgba(255,255,255,0.72)',
+              border: '1px solid rgba(61,74,31,0.12)',
+              fontSize: 11.5,
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-soft)',
+              marginBottom: 24,
+            }}
+          >
+            <Sparkles size={12} /> For venues & event spaces
+          </div>
+          <h1
+            className="display"
+            style={{ fontSize: 'clamp(40px, 6vw, 64px)', margin: '0 0 18px', lineHeight: 1.02 }}
+          >
+            Get discovered by the couples <span className="display-italic">using Pearloom.</span>
+          </h1>
+          <p
+            style={{
+              fontSize: 17,
+              color: 'var(--ink-soft)',
+              maxWidth: 560,
+              margin: '0 auto 32px',
+              lineHeight: 1.55,
+            }}
+          >
+            List your venue once and appear inside every Pearloom wedding wizard
+            that searches your region — with your photos, contact details, and the
+            warm context a couple actually reads.
+          </p>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 40 }}>
+            <button
+              onClick={() => signIn('google')}
+              className="btn btn-primary btn-lg"
+            >
+              Sign in with Google
+            </button>
+            <Link href="/" className="btn btn-outline btn-lg">
+              Back to Pearloom
+            </Link>
+          </div>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: 16,
+              maxWidth: 640,
+              margin: '0 auto',
+            }}
+          >
+            {[
+              { n: '$0', label: 'To list' },
+              { n: 'Verified', label: 'Google Places' },
+              { n: '24h', label: 'Setup' },
+            ].map((s) => (
+              <div
+                key={s.label}
+                style={{
+                  background: '#fff',
+                  border: '1px solid var(--line-soft)',
+                  borderRadius: 14,
+                  padding: 16,
+                }}
+              >
+                <div className="display" style={{ fontSize: 22, margin: 0 }}>{s.n}</div>
+                <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 4 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

@@ -485,12 +485,17 @@ function slugify(s: string) {
     .slice(0, 40);
 }
 
-function ProgressThread({ active }: { active: number }) {
+function ProgressThread({ active, hiddenSteps }: { active: number; hiddenSteps?: StepKey[] }) {
+  // When a template is selected the Vibe/Palette/Layout steps are
+  // skipped — hide them from the progress thread too so the dots
+  // line up with the real flow.
+  const visibleSteps = STEPS.filter((s) => !(hiddenSteps ?? []).includes(s));
   return (
     <div className="pl8-wizard-progress" style={{ display: 'flex', alignItems: 'center', gap: 0, padding: '18px 0', flex: 1, overflow: 'hidden' }}>
-      {STEPS.map((s, i) => {
-        const done = i < active;
-        const cur = i === active;
+      {visibleSteps.map((s, i) => {
+        const originalIndex = STEPS.indexOf(s);
+        const done = originalIndex < active;
+        const cur = originalIndex === active;
         return (
           <Fragment key={s}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flex: '0 0 auto' }}>
@@ -522,7 +527,7 @@ function ProgressThread({ active }: { active: number }) {
                 {s}
               </div>
             </div>
-            {i < STEPS.length - 1 && (
+            {i < visibleSteps.length - 1 && (
               <div
                 style={{
                   flex: 1,
@@ -779,13 +784,36 @@ export function WizardV8() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
+  // Steps that are redundant when a template is selected — the
+  // template already picked the occasion, vibes, palette, and
+  // layout. Skip them on forward navigation; still reachable via
+  // the progress bar if the user wants to override.
+  const isTemplateRedundant = (stepName: StepKey): boolean => {
+    if (!st.templateId) return false;
+    return stepName === 'Vibe' || stepName === 'Palette' || stepName === 'Layout';
+  };
+
+  /** Next index, skipping template-redundant steps. */
+  const nextStepIndex = (from: number): number => {
+    let next = Math.min(from + 1, STEPS.length - 1);
+    while (next < STEPS.length - 1 && isTemplateRedundant(STEPS[next])) next += 1;
+    return next;
+  };
+
+  /** Previous index, also skipping template-redundant steps. */
+  const prevStepIndex = (from: number): number => {
+    let prev = Math.max(0, from - 1);
+    while (prev > 0 && isTemplateRedundant(STEPS[prev])) prev -= 1;
+    return prev;
+  };
+
   // Auto-advance to the next step after a single-choice selection.
   // Small delay so the user sees the checkmark animation before the
-  // step transitions. Only fires on steps where a single pick
-  // completes the step (Occasion, Palette, Layout).
+  // step transitions. Skips Vibe/Palette/Layout when a template is
+  // active since those are pre-set by the template itself.
   const autoAdvance = (ms = 380) => {
     window.setTimeout(() => {
-      setStepIndex((i) => Math.min(i + 1, STEPS.length - 1));
+      setStepIndex((i) => nextStepIndex(i));
     }, ms);
   };
 
@@ -1055,7 +1083,10 @@ export function WizardV8() {
         <Link href="/">
           <PearloomLogo />
         </Link>
-        <ProgressThread active={stepIndex} />
+        <ProgressThread
+          active={stepIndex}
+          hiddenSteps={st.templateId ? ['Vibe', 'Palette', 'Layout'] : []}
+        />
         <div style={{ display: 'flex', gap: 8 }}>
           <Link href="/dashboard" className="btn btn-outline btn-sm">
             Save draft
@@ -2012,7 +2043,7 @@ export function WizardV8() {
                 <button
                   type="button"
                   className="btn btn-ghost"
-                  onClick={() => setStepIndex((i) => Math.max(0, i - 1))}
+                  onClick={() => setStepIndex((i) => prevStepIndex(i))}
                   disabled={stepIndex === 0}
                 >
                   <Icon name="arrow-left" size={14} /> Back
@@ -2022,7 +2053,7 @@ export function WizardV8() {
                     type="button"
                     className="btn btn-primary"
                     disabled={!canContinue}
-                    onClick={() => setStepIndex((i) => Math.min(STEPS.length - 1, i + 1))}
+                    onClick={() => setStepIndex((i) => nextStepIndex(i))}
                   >
                     Continue <Icon name="arrow-right" size={14} />
                   </button>
