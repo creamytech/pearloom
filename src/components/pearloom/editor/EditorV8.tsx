@@ -34,6 +34,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 import { CanvasStage } from './canvas/CanvasStage';
+import { useEditorHistory } from './canvas/useEditorHistory';
 import { HeroPanel } from './panels/HeroPanel';
 import { StoryPanel } from './panels/StoryPanel';
 import { DetailsPanel } from './panels/DetailsPanel';
@@ -150,20 +151,34 @@ export function EditorV8({
     [siteSlug]
   );
 
+  // Undo/redo — maintains an in-memory manifest+names stack and
+  // listens for Cmd/Ctrl+Z / Shift+Z globally (skipping inputs).
+  const restoreFromHistory = useCallback(
+    (nextManifest: StoryManifest, nextNames: [string, string]) => {
+      setManifest(nextManifest);
+      setNames(nextNames);
+      queueSave(nextManifest, nextNames);
+    },
+    [queueSave],
+  );
+  const history = useEditorHistory(manifest, names, restoreFromHistory);
+
   const onManifestChange = useCallback(
     (next: StoryManifest) => {
       setManifest(next);
+      history.record(next, names);
       queueSave(next, names);
     },
-    [names, queueSave]
+    [names, queueSave, history]
   );
 
   const onNamesChange = useCallback(
     (nextNames: [string, string]) => {
       setNames(nextNames);
+      history.record(manifest, nextNames);
       queueSave(manifest, nextNames);
     },
-    [manifest, queueSave]
+    [manifest, queueSave, history]
   );
 
   async function handlePublish() {
@@ -299,6 +314,10 @@ export function EditorV8({
         saveStatus={saveStatus}
         onPublish={handlePublish}
         onOpenAdvisor={() => setAdvisorOpen(true)}
+        canUndo={history.canUndo}
+        canRedo={history.canRedo}
+        onUndo={history.undo}
+        onRedo={history.redo}
       />
       <div className="pl8-editor-main" style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         <Outline
@@ -363,6 +382,10 @@ function EditorTopbar({
   saveStatus,
   onPublish,
   onOpenAdvisor,
+  canUndo,
+  canRedo,
+  onUndo,
+  onRedo,
 }: {
   displayNames: string;
   prettyUrl: string;
@@ -372,6 +395,10 @@ function EditorTopbar({
   saveStatus: 'idle' | 'saving' | 'saved' | 'error';
   onPublish: () => void;
   onOpenAdvisor: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
+  onUndo: () => void;
+  onRedo: () => void;
 }) {
   return (
     <header
@@ -449,6 +476,30 @@ function EditorTopbar({
         {saveStatus === 'error' && 'Save failed'}
       </span>
       <KbdHint />
+
+      {/* Undo / Redo — also bound to Cmd/Ctrl+Z and Cmd/Ctrl+Shift+Z. */}
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm"
+        onClick={onUndo}
+        disabled={!canUndo}
+        aria-label="Undo (Cmd+Z)"
+        title="Undo (Cmd+Z)"
+        style={{ opacity: canUndo ? 1 : 0.4 }}
+      >
+        <Icon name="arrow-left" size={13} /> Undo
+      </button>
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm"
+        onClick={onRedo}
+        disabled={!canRedo}
+        aria-label="Redo (Cmd+Shift+Z)"
+        title="Redo (Cmd+Shift+Z)"
+        style={{ opacity: canRedo ? 1 : 0.4 }}
+      >
+        Redo <Icon name="arrow-right" size={13} />
+      </button>
 
       <button type="button" className="btn btn-outline btn-sm" onClick={onOpenAdvisor} aria-label="Ask Pear to review">
         <Icon name="sparkles" size={13} /> Ask Pear

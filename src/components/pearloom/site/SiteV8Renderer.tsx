@@ -23,6 +23,7 @@ import {
 import { EditorCanvasProvider, useIsEditMode } from '../editor/canvas/EditorCanvasContext';
 import { EditableText } from '../editor/canvas/EditableText';
 import { SortableChapters } from '../editor/canvas/SortableChapters';
+import { HoverToolbar } from '../editor/canvas/HoverToolbar';
 
 // Callback passed down for inline edits. Parent (CanvasStage)
 // owns the manifest and wires each field edit back.
@@ -449,10 +450,10 @@ function HeroSection({
         </div>
 
         <div style={{ textAlign: 'center', maxWidth: 560, margin: '30px auto 36px' }}>
-          <EditableText
-            as="p"
+          <HoverToolbar
+            context="hero tagline"
             value={heroCopy}
-            onSave={(next) =>
+            onResult={(next) =>
               onEditField?.((m) => ({
                 ...m,
                 poetry: {
@@ -464,12 +465,29 @@ function HeroSection({
                 },
               }))
             }
-            placeholder="Add a warm hero tagline…"
-            ariaLabel="Hero tagline"
-            multiline
-            maxLength={280}
-            style={{ fontSize: 17, lineHeight: 1.6, color: 'var(--ink-soft)', margin: 0 }}
-          />
+          >
+            <EditableText
+              as="p"
+              value={heroCopy}
+              onSave={(next) =>
+                onEditField?.((m) => ({
+                  ...m,
+                  poetry: {
+                    heroTagline: next,
+                    closingLine: m.poetry?.closingLine ?? '',
+                    rsvpIntro: m.poetry?.rsvpIntro ?? '',
+                    welcomeStatement: m.poetry?.welcomeStatement,
+                    milestones: m.poetry?.milestones,
+                  },
+                }))
+              }
+              placeholder="Add a warm hero tagline…"
+              ariaLabel="Hero tagline"
+              multiline
+              maxLength={280}
+              style={{ fontSize: 17, lineHeight: 1.6, color: 'var(--ink-soft)', margin: 0 }}
+            />
+          </HoverToolbar>
         </div>
 
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -717,16 +735,18 @@ function ChapterCard({
           maxLength={120}
           style={{ fontSize: 26, marginBottom: 8 }}
         />
-        <EditableText
-          as="p"
-          value={copy}
-          onSave={patchChapter('description')}
-          placeholder="Tell the story of this moment…"
-          ariaLabel={`Chapter ${chapterIndex + 1} description`}
-          multiline
-          maxLength={800}
-          style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.55, margin: 0 }}
-        />
+        <HoverToolbar context={`chapter ${chapterIndex + 1}`} value={copy} onResult={patchChapter('description')}>
+          <EditableText
+            as="p"
+            value={copy}
+            onSave={patchChapter('description')}
+            placeholder="Tell the story of this moment…"
+            ariaLabel={`Chapter ${chapterIndex + 1} description`}
+            multiline
+            maxLength={800}
+            style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.55, margin: 0 }}
+          />
+        </HoverToolbar>
       </div>
       <PhotoPlaceholder tone={tone} aspect="1/1" src={src} style={{ borderRadius: 14 }} />
     </div>

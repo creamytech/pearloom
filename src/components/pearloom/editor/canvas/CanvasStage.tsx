@@ -30,6 +30,8 @@
 import { forwardRef, useMemo } from 'react';
 import type { StoryManifest } from '@/types';
 import { SiteV8Renderer } from '../../site/SiteV8Renderer';
+import { ThemeQuickBar } from './ThemeQuickBar';
+import { EditorCanvasProvider } from './EditorCanvasContext';
 
 // Match EditorV8's device contract exactly so ref + prop pass
 // through without type friction.
@@ -103,6 +105,18 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
             onEditNames={onNamesChange}
           />
         </div>
+        {/* Floating theme quick bar — SiteV8Renderer's internal
+            context doesn't reach here, so wrap in a sibling
+            provider to activate edit mode for the toolbar. */}
+        <EditorCanvasProvider value={{ editMode: true }}>
+          <ThemeQuickBar
+            manifest={manifest}
+            names={names}
+            onApply={(nextTheme) =>
+              onManifestChange({ ...manifest, theme: nextTheme ?? manifest.theme })
+            }
+          />
+        </EditorCanvasProvider>
       </div>
     );
   },
