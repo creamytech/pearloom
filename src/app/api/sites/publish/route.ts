@@ -117,12 +117,14 @@ export async function POST(req: NextRequest) {
     const host = req.headers.get('host') || 'localhost:3000';
     const origin = process.env.NEXT_PUBLIC_SITE_URL
       || (host.includes('localhost') ? `http://${host}` : `https://${host}`);
-    const finalUrl = buildSiteUrl(
-      cleanSubdomain,
-      '',
-      origin,
+    // Always emit an occasion-prefixed URL. Default to 'wedding' so
+    // pre-v2026 manifests (no occasion field) still land at
+    // /wedding/<slug> rather than the legacy /sites/<slug>.
+    const { normalizeOccasion } = await import('@/lib/site-urls');
+    const resolvedOccasion = normalizeOccasion(
       (persistManifest as { occasion?: string } | null)?.occasion,
     );
+    const finalUrl = buildSiteUrl(cleanSubdomain, '', origin, resolvedOccasion);
 
     // Generate a preview token and store it alongside the published site
     let previewToken: string | null = null;

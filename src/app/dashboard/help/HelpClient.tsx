@@ -2,23 +2,14 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / dashboard/help/HelpClient.tsx
-// Editorial help centre for hosts already in the app. Mirrors the
-// marketing aesthetic (Fraunces display, olive accents, cream),
-// not the public demo FAQ.
+// V8-styled help centre — cream paper, sage accents, Fraunces
+// display. Matches the rest of the dashboard + editor.
 // ─────────────────────────────────────────────────────────────
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import {
-  Search,
-  Sparkles,
-  Mail,
-  Keyboard,
-  MessageCircle,
-  ChevronDown,
-} from 'lucide-react';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
-import { BlurFade, CurvedText, GrooveBlob } from '@/components/brand/groove';
+import { Icon, Pear, Sparkle } from '@/components/pearloom/motifs';
 
 interface FaqEntry {
   q: string;
@@ -27,64 +18,24 @@ interface FaqEntry {
 }
 
 const FAQ: FaqEntry[] = [
-  {
-    q: 'How do I create my first site?',
-    a: 'From the dashboard, click "New Site" (or "Let Pear handle it") and answer a few questions about your occasion, names, and date. Pear drafts a site in about twenty seconds; you can edit every block after.',
-    tags: ['start', 'site'],
-  },
-  {
-    q: 'Can I change the theme after the site is generated?',
-    a: 'Yes. Open the editor, then Theme in the top bar. Swap fonts, palettes, and the vibe skin without regenerating. Your words and photos are preserved.',
-    tags: ['theme', 'editor'],
-  },
-  {
-    q: 'How do I invite guests to RSVP?',
-    a: 'Open your site in the editor and add the RSVP block. Publish, then share the public URL. Guest responses show up in Dashboard → Guests · RSVP with meal preferences and plus-ones.',
-    tags: ['rsvp', 'guests'],
-  },
-  {
-    q: 'What does the Director do?',
-    a: 'The Director is your AI event planner — budgets, venues, vendors, timelines, and a checklist in one conversation. Open Dashboard → Director and choose a site to get started.',
-    tags: ['director', 'ai'],
-  },
-  {
-    q: 'How do photo uploads work?',
-    a: 'Guests upload via the Photo Wall block on your site. You can curate everything in Dashboard → Gallery — hide, star, or download originals. Storage scales with your plan.',
-    tags: ['photos', 'gallery'],
-  },
-  {
-    q: 'Can guests leave voice toasts?',
-    a: 'Absolutely. Add the Guestbook block with voice enabled. Toasts appear in Dashboard → Day-of for you to approve, reject, or feature on the day.',
-    tags: ['guests', 'day-of'],
-  },
-  {
-    q: 'How do I publish and share my site?',
-    a: 'In the editor, hit Publish. Your site goes live at pearloom.com/wedding/yourname (or the occasion you chose) instantly. Attach a custom domain from Dashboard → Profile → Domains.',
-    tags: ['publish', 'domain'],
-  },
-  {
-    q: 'What happens after the event?',
-    a: 'Your site stays online forever on every plan, including the free tier. Guests can keep leaving memories, and you can download everything as a keepsake film or zip.',
-    tags: ['after', 'keepsake'],
-  },
-  {
-    q: 'Can I collaborate with a partner or planner?',
-    a: 'Yes. Open Dashboard → Profile → Collaborators and invite them by email. Everyone you invite can edit the site and run day-of ops with you.',
-    tags: ['team', 'collab'],
-  },
-  {
-    q: 'How do I cancel or change my plan?',
-    a: 'Dashboard → Profile → Billing. You keep everything you\u2019ve created on any tier — no lock-in.',
-    tags: ['billing'],
-  },
+  { q: 'How do I create my first site?', a: 'From the dashboard, click "New Site" and answer a few questions about your occasion, names, and date. Pear drafts a site in about twenty seconds; you can edit every block after.', tags: ['start', 'site'] },
+  { q: 'Can I change the theme after the site is generated?', a: 'Yes. Open the editor and use the Theme panel. Swap fonts, palettes, and the decor library without regenerating. Your words and photos are preserved.', tags: ['theme', 'editor'] },
+  { q: 'How do I invite guests to RSVP?', a: 'Open your site in the editor and keep the RSVP block visible. Publish, then share the public URL. Guest responses show up in Dashboard → Guests with meal preferences and plus-ones.', tags: ['rsvp', 'guests'] },
+  { q: 'What does the Director do?', a: 'The Director is your AI event planner — budgets, venues, vendors, timelines, and a checklist in one conversation. Open Dashboard → Director and choose a site to get started.', tags: ['director', 'ai'] },
+  { q: 'How do photo uploads work?', a: 'Guests upload via the Photo Wall block on your site. You can curate everything in Dashboard → Gallery — hide, star, or download originals. Storage scales with your plan.', tags: ['photos', 'gallery'] },
+  { q: 'Can guests leave voice toasts?', a: 'Yes. Add the Guestbook block with voice enabled. Toasts appear in Dashboard → Day-of for you to approve, reject, or feature on the day.', tags: ['guests', 'day-of'] },
+  { q: 'How do I publish and share my site?', a: 'In the editor, hit Publish. Your site goes live at pearloom.com/{occasion}/{yourname} (e.g. /wedding/alex-and-jamie) instantly. Attach a custom domain from Dashboard → Profile → Domains.', tags: ['publish', 'domain'] },
+  { q: 'What happens after the event?', a: 'Your site stays online forever on every plan, including the free tier. Guests can keep leaving memories, and you can download everything as a keepsake film or zip.', tags: ['after', 'keepsake'] },
+  { q: 'Can I collaborate with a partner or planner?', a: 'Yes. Open Dashboard → Profile → Collaborators and invite them by email. Everyone you invite can edit the site and run day-of ops with you.', tags: ['team', 'collab'] },
+  { q: 'How do I cancel or change my plan?', a: "Dashboard → Profile → Billing. You keep everything you've created on any tier — no lock-in.", tags: ['billing'] },
 ];
 
 const SHORTCUTS: Array<{ keys: string[]; label: string }> = [
-  { keys: ['\u2318', 'K'], label: 'Open Pear command bar' },
-  { keys: ['\u2318', 'S'], label: 'Save manifest in editor' },
-  { keys: ['\u2318', 'Z'], label: 'Undo' },
-  { keys: ['\u2318', '\u21E7', 'Z'], label: 'Redo' },
-  { keys: ['\u2318', '.'], label: 'Toggle block library drawer' },
+  { keys: ['⌘', 'K'], label: 'Open Pear command bar' },
+  { keys: ['⌘', 'S'], label: 'Save manifest in editor' },
+  { keys: ['⌘', 'Z'], label: 'Undo' },
+  { keys: ['⌘', '⇧', 'Z'], label: 'Redo' },
+  { keys: ['⌘', '.'], label: 'Toggle block library drawer' },
   { keys: ['Esc'], label: 'Close overlays / drawers' },
 ];
 
@@ -103,1023 +54,301 @@ export default function HelpClient() {
     );
   }, [query]);
 
-  const year = new Date().getFullYear();
-
   return (
-    <DashLayout active="help" title="Help & docs" subtitle="Shortcuts, recipes, and answers — the way Pear explains them.">
-      <div style={{ padding: '0 32px 40px', maxWidth: 980, margin: '0 auto', position: 'relative' }}>
-            <GrooveBlob
-              palette="sunrise"
-              size={460}
-              blur={80}
-              opacity={0.22}
-              style={{ position: 'absolute', top: '-100px', right: '-60px', zIndex: 0, pointerEvents: 'none' }}
+    <DashLayout
+      active="help"
+      title="Help & docs"
+      subtitle="Shortcuts, recipes, and answers — the way Pear explains them."
+    >
+      <div className="pl8" style={{ padding: '0 32px 56px', maxWidth: 980, margin: '0 auto', position: 'relative' }}>
+        {/* Editorial masthead */}
+        <header
+          style={{
+            position: 'relative',
+            marginBottom: 36,
+            paddingBottom: 28,
+            borderBottom: '1px solid var(--line-soft)',
+          }}
+        >
+          <div
+            style={{
+              fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: 'var(--peach-ink)',
+              marginBottom: 10,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            <Sparkle size={12} /> The help centre
+          </div>
+          <h1
+            className="display"
+            style={{ fontSize: 'clamp(40px, 6vw, 60px)', margin: 0, lineHeight: 1.05, color: 'var(--ink)' }}
+          >
+            Answers, <span className="display-italic">at a glance.</span>
+          </h1>
+          <p style={{ fontSize: 15, color: 'var(--ink-soft)', marginTop: 10, maxWidth: 560, lineHeight: 1.6 }}>
+            Real host questions, answered the way Pear would. Search by keyword or skim the list.
+          </p>
+
+          <div
+            style={{
+              position: 'relative',
+              marginTop: 20,
+              maxWidth: 480,
+            }}
+          >
+            <Icon
+              name="search"
+              size={15}
+              style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-soft)' }}
             />
-            <BlurFade>
-            {/* Editorial masthead */}
-            <header
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search: rsvp, domain, theme, photos…"
               style={{
-                position: 'relative',
-                zIndex: 1,
-                marginBottom: 40,
-                paddingBottom: 32,
-                borderBottom: '1px solid color-mix(in oklab, var(--pl-groove-terra) 20%, transparent)',
+                width: '100%',
+                padding: '12px 16px 12px 38px',
+                borderRadius: 12,
+                border: '1px solid var(--line)',
+                background: 'var(--card)',
+                fontSize: 14,
+                color: 'var(--ink)',
+                outline: 'none',
               }}
-            >
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 3,
-                  background:
-                    'linear-gradient(90deg, var(--pl-groove-terra) 0%, var(--pl-groove-butter) 40%, transparent 75%)',
-                  borderRadius: 'var(--pl-groove-radius-pill)',
-                }}
-              />
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  justifyContent: 'space-between',
-                  gap: 24,
-                  flexWrap: 'wrap',
-                  paddingTop: 18,
-                }}
-              >
-                <div style={{ flex: 1, minWidth: 260 }}>
-                  <div
-                    aria-hidden
-                    style={{
-                      color: 'var(--pl-groove-terra)',
-                      marginBottom: 4,
-                      marginLeft: -6,
-                    }}
-                  >
-                    <CurvedText
-                      variant="wave"
-                      width={240}
-                      amplitude={10}
-                      fontFamily='var(--pl-font-body)'
-                      fontSize={14}
-                      fontWeight={500}
-                      letterSpacing={1.5}
-                      aria-label="Help center"
-                    >
-                      ✦  Help center  ✦
-                    </CurvedText>
-                  </div>
-                  <h1
-                    style={{
-                      margin: 0,
-                      fontFamily: 'var(--pl-font-body)',
-                      fontWeight: 700,
-                      fontSize: 'clamp(2rem, 4.2vw, 2.8rem)',
-                      color: 'var(--pl-groove-ink)',
-                      lineHeight: 1.1,
-                      letterSpacing: '-0.02em',
-                    }}
-                  >
-                    How can we help?
-                  </h1>
-                  <p
-                    style={{
-                      margin: '18px 0 0',
-                      maxWidth: '58ch',
-                      color: 'var(--pl-ink-soft)',
-                      fontSize: 'clamp(0.96rem, 1.2vw, 1.06rem)',
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    Host-facing docs — not the public FAQ. For anything a search
-                    can&apos;t solve, our team answers every email inside a day.
-                  </p>
-                </div>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: 0,
-                    border: '1px solid var(--pl-divider)',
-                    borderRadius: 'var(--pl-radius-xs)',
-                    overflow: 'hidden',
-                    minWidth: 220,
-                  }}
-                >
-                  <Dossier kicker="Entries" value={String(FAQ.length).padStart(2, '0')} />
-                  <Dossier
-                    kicker="Reply · sla"
-                    value="< 1 day"
-                    divider
-                  />
-                </div>
-              </div>
+            />
+          </div>
+        </header>
 
-              {/* Concordance search */}
-              <div style={{ marginTop: 32, maxWidth: 540 }}>
-                <div
-                  style={{
-                    fontFamily: 'var(--pl-font-mono)',
-                    fontSize: '0.48rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.28em',
-                    textTransform: 'uppercase',
-                    color: 'var(--pl-olive)',
-                    marginBottom: 8,
-                  }}
-                >
-                  Search · concordance
-                </div>
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '14px 18px',
-                    background: 'var(--pl-cream-card)',
-                    border: '1px solid var(--pl-divider)',
-                    borderRadius: 'var(--pl-radius-xs)',
-                    boxShadow: 'inset 0 -2px 0 rgba(193,154,75,0.22)',
-                    transition: 'box-shadow 300ms cubic-bezier(0.22, 1, 0.36, 1)',
-                  }}
-                  onFocusCapture={(e) => {
-                    (e.currentTarget as HTMLLabelElement).style.boxShadow =
-                      'inset 0 -2px 0 rgba(193,154,75,0.9)';
-                  }}
-                  onBlurCapture={(e) => {
-                    (e.currentTarget as HTMLLabelElement).style.boxShadow =
-                      'inset 0 -2px 0 rgba(193,154,75,0.22)';
-                  }}
-                >
-                  <Search size={15} color="var(--pl-olive)" />
-                  <input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Look up a question…"
-                    style={{
-                      flex: 1,
-                      border: 'none',
-                      background: 'transparent',
-                      outline: 'none',
-                      fontSize: '0.98rem',
-                      fontFamily: 'var(--pl-font-display)',
-                      fontStyle: 'italic',
-                      color: 'var(--pl-ink)',
-                    }}
-                  />
-                  {query && (
-                    <span
-                      style={{
-                        fontFamily: 'var(--pl-font-mono)',
-                        fontSize: '0.5rem',
-                        fontWeight: 700,
-                        letterSpacing: '0.22em',
-                        textTransform: 'uppercase',
-                        color: 'var(--pl-muted)',
-                      }}
-                    >
-                      {visible.length} / {FAQ.length}
-                    </span>
-                  )}
-                </label>
-              </div>
-            </header>
-            </BlurFade>
-
-            {/* Three-column dossier: shortcuts to help surfaces */}
-            <section
-              style={{ marginBottom: 44 }}
-              aria-label="Quick routes"
-            >
-              <div
-                style={{
-                  fontFamily: 'var(--pl-font-mono)',
-                  fontSize: '0.48rem',
-                  fontWeight: 700,
-                  letterSpacing: '0.28em',
-                  textTransform: 'uppercase',
-                  color: 'var(--pl-olive)',
-                  marginBottom: 14,
-                }}
-              >
-                Three ways to reach us
-              </div>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                  gap: 0,
-                  border: '1px solid var(--pl-divider)',
-                  borderTop: '2px solid var(--pl-gold)',
-                  borderRadius: 'var(--pl-radius-xs)',
-                  background: 'var(--pl-cream-card)',
-                  overflow: 'hidden',
-                }}
-              >
-                <QuickTile
-                  index={1}
-                  href="/dashboard/director"
-                  icon={<Sparkles size={14} />}
-                  eyebrow="AI · Director"
-                  title="Ask the planner"
-                  description="Budgets, vendors, timelines."
-                  accent="olive"
-                />
-                <QuickTile
-                  index={2}
-                  href="mailto:help@pearloom.com"
-                  icon={<Mail size={14} />}
-                  eyebrow="Email · < 1 day"
-                  title="Write the team"
-                  description="help@pearloom.com"
-                  accent="gold"
-                  divider
-                />
-                <QuickTile
-                  index={3}
-                  href="#shortcuts"
-                  icon={<Keyboard size={14} />}
-                  eyebrow="Editor · keys"
-                  title="Keyboard shortcuts"
-                  description="Jump faster."
-                  accent="plum"
-                  divider
-                />
-              </div>
-            </section>
-
-            {/* FAQ ledger */}
-            <section id="faq" style={{ marginBottom: 56 }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'baseline',
-                  justifyContent: 'space-between',
-                  marginBottom: 20,
-                  paddingBottom: 12,
-                  borderBottom: '1px solid var(--pl-divider)',
-                }}
-              >
-                <div>
-                  <div
-                    style={{
-                      fontFamily: 'var(--pl-font-mono)',
-                      fontSize: '0.48rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.28em',
-                      textTransform: 'uppercase',
-                      color: 'var(--pl-olive)',
-                      marginBottom: 6,
-                    }}
-                  >
-                    Chapter I · Entries
-                  </div>
-                  <h2
-                    style={{
-                      margin: 0,
-                      fontFamily: 'var(--pl-font-display)',
-                      fontStyle: 'italic',
-                      fontVariationSettings:
-                        '"opsz" 144, "SOFT" 80, "WONK" 1',
-                      fontSize: '1.7rem',
-                      letterSpacing: '-0.01em',
-                      color: 'var(--pl-ink)',
-                    }}
-                  >
-                    Common questions
-                  </h2>
-                </div>
-                <span
-                  style={{
-                    fontFamily: 'var(--pl-font-mono)',
-                    fontSize: '0.52rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.24em',
-                    textTransform: 'uppercase',
-                    color: 'var(--pl-muted)',
-                  }}
-                >
-                  № 01—{String(FAQ.length).padStart(2, '0')}
-                </span>
-              </div>
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 0,
-                  borderTop: '1px solid var(--pl-divider)',
-                }}
-              >
-                {visible.length === 0 ? (
-                  <div
-                    style={{
-                      position: 'relative',
-                      padding: '48px 24px',
-                      textAlign: 'center',
-                      border: '1px dashed rgba(193,154,75,0.45)',
-                      borderTop: 'none',
-                      background:
-                        'repeating-linear-gradient(135deg, transparent 0, transparent 12px, rgba(193,154,75,0.04) 12px, rgba(193,154,75,0.04) 13px)',
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontFamily: 'var(--pl-font-mono)',
-                        fontSize: '0.5rem',
-                        fontWeight: 700,
-                        letterSpacing: '0.28em',
-                        textTransform: 'uppercase',
-                        color: 'var(--pl-gold)',
-                        marginBottom: 10,
-                      }}
-                    >
-                      № 00 · Null result
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: 'var(--pl-font-display)',
-                        fontStyle: 'italic',
-                        fontVariationSettings:
-                          '"opsz" 144, "SOFT" 80, "WONK" 1',
-                        fontSize: '1.3rem',
-                        color: 'var(--pl-ink)',
-                        letterSpacing: '-0.01em',
-                      }}
-                    >
-                      Nothing matches &ldquo;{query}&rdquo;.
-                    </div>
-                    <div
-                      style={{
-                        marginTop: 8,
-                        fontSize: '0.9rem',
-                        color: 'var(--pl-ink-soft)',
-                      }}
-                    >
-                      Try emailing us — we answer every one.
-                    </div>
-                  </div>
-                ) : (
-                  visible.map((f, i) => (
-                    <FaqRow
-                      key={f.q}
-                      index={i}
-                      entry={f}
-                      open={openIdx === i}
-                      onToggle={() => setOpenIdx(openIdx === i ? null : i)}
-                    />
-                  ))
-                )}
-              </div>
-            </section>
-
-            {/* Shortcuts ledger */}
-            <section id="shortcuts" style={{ marginBottom: 56 }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'baseline',
-                  justifyContent: 'space-between',
-                  marginBottom: 20,
-                  paddingBottom: 12,
-                  borderBottom: '1px solid var(--pl-divider)',
-                }}
-              >
-                <div>
-                  <div
-                    style={{
-                      fontFamily: 'var(--pl-font-mono)',
-                      fontSize: '0.48rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.28em',
-                      textTransform: 'uppercase',
-                      color: 'var(--pl-olive)',
-                      marginBottom: 6,
-                    }}
-                  >
-                    Chapter II · Keyboard
-                  </div>
-                  <h2
-                    style={{
-                      margin: 0,
-                      fontFamily: 'var(--pl-font-display)',
-                      fontStyle: 'italic',
-                      fontVariationSettings:
-                        '"opsz" 144, "SOFT" 80, "WONK" 1',
-                      fontSize: '1.7rem',
-                      letterSpacing: '-0.01em',
-                      color: 'var(--pl-ink)',
-                    }}
-                  >
-                    Keys that save the day
-                  </h2>
-                </div>
-                <span
-                  style={{
-                    fontFamily: 'var(--pl-font-mono)',
-                    fontSize: '0.52rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.24em',
-                    textTransform: 'uppercase',
-                    color: 'var(--pl-muted)',
-                  }}
-                >
-                  № {String(SHORTCUTS.length).padStart(2, '0')}
-                </span>
-              </div>
-              <div
-                style={{
-                  border: '1px solid var(--pl-divider)',
-                  borderTop: '2px solid var(--pl-gold)',
-                  borderRadius: 'var(--pl-radius-xs)',
-                  background: 'var(--pl-cream-card)',
-                  overflow: 'hidden',
-                }}
-              >
-                {/* Column header */}
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '44px 1fr 1fr',
-                    gap: 12,
-                    padding: '10px 18px',
-                    borderBottom: '1px solid var(--pl-divider)',
-                    background: 'var(--pl-cream-deep)',
-                    fontFamily: 'var(--pl-font-mono)',
-                    fontSize: '0.46rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.28em',
-                    textTransform: 'uppercase',
-                    color: 'var(--pl-muted)',
-                  }}
-                >
-                  <span>№</span>
-                  <span>Combination</span>
-                  <span>Action</span>
-                </div>
-                {SHORTCUTS.map((s, i) => (
-                  <div
-                    key={s.label}
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: '44px 1fr 1fr',
-                      gap: 12,
-                      alignItems: 'center',
-                      padding: '14px 18px',
-                      borderBottom:
-                        i === SHORTCUTS.length - 1
-                          ? 'none'
-                          : '1px solid var(--pl-divider)',
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontFamily: 'var(--pl-font-mono)',
-                        fontSize: '0.54rem',
-                        fontWeight: 700,
-                        letterSpacing: '0.22em',
-                        color: 'var(--pl-gold)',
-                      }}
-                    >
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    <div style={{ display: 'inline-flex', gap: 5, flexWrap: 'wrap' }}>
-                      {s.keys.map((k, ki) => (
-                        <span key={`${k}-${ki}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                          <kbd
-                            style={{
-                              padding: '4px 9px',
-                              fontFamily: 'var(--pl-font-mono)',
-                              fontSize: '0.72rem',
-                              fontWeight: 600,
-                              background: 'var(--pl-cream-deep)',
-                              border: '1px solid var(--pl-divider)',
-                              borderBottom: '2px solid var(--pl-divider)',
-                              borderRadius: 3,
-                              color: 'var(--pl-ink)',
-                              minWidth: 22,
-                              textAlign: 'center',
-                              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)',
-                            }}
-                          >
-                            {k}
-                          </kbd>
-                          {ki < s.keys.length - 1 && (
-                            <span
-                              style={{
-                                fontFamily: 'var(--pl-font-mono)',
-                                fontSize: '0.58rem',
-                                color: 'var(--pl-muted)',
-                              }}
-                            >
-                              +
-                            </span>
-                          )}
-                        </span>
-                      ))}
-                    </div>
-                    <span
-                      style={{
-                        fontFamily: 'var(--pl-font-display)',
-                        fontStyle: 'italic',
-                        fontVariationSettings:
-                          '"opsz" 144, "SOFT" 80, "WONK" 1',
-                        fontSize: '0.98rem',
-                        color: 'var(--pl-ink-soft)',
-                        letterSpacing: '-0.005em',
-                      }}
-                    >
-                      {s.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Colophon: still stuck */}
-            <section
-              style={{
-                position: 'relative',
-                padding: '44px 28px',
-                border: '1px dashed rgba(193,154,75,0.5)',
-                borderRadius: 'var(--pl-radius-xs)',
-                textAlign: 'center',
-                background:
-                  'radial-gradient(ellipse at top, rgba(193,154,75,0.06), transparent 70%)',
-              }}
-            >
-              {/* Corner folio marks */}
-              <span
-                style={{
-                  position: 'absolute',
-                  top: 10,
-                  left: 12,
-                  fontFamily: 'var(--pl-font-mono)',
-                  fontSize: '0.46rem',
-                  fontWeight: 700,
-                  letterSpacing: '0.28em',
-                  textTransform: 'uppercase',
-                  color: 'var(--pl-gold)',
-                }}
-              >
-                Still stuck
-              </span>
-              <span
-                style={{
-                  position: 'absolute',
-                  top: 10,
-                  right: 12,
-                  fontFamily: 'var(--pl-font-mono)',
-                  fontSize: '0.46rem',
-                  fontWeight: 700,
-                  letterSpacing: '0.28em',
-                  textTransform: 'uppercase',
-                  color: 'var(--pl-gold)',
-                }}
-              >
-                № 03
-              </span>
-              <div style={{ maxWidth: 520, margin: '0 auto' }}>
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    width: 60,
-                    height: 60,
-                    borderRadius: '50%',
-                    background: 'var(--pl-cream-card)',
-                    border: '1px solid rgba(193,154,75,0.5)',
-                    boxShadow: '0 0 0 4px rgba(193,154,75,0.08)',
-                    color: 'var(--pl-olive)',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: 18,
-                  }}
-                >
-                  <MessageCircle size={22} />
-                </span>
-                <div
-                  style={{
-                    fontFamily: 'var(--pl-font-mono)',
-                    fontSize: '0.48rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.3em',
-                    textTransform: 'uppercase',
-                    color: 'var(--pl-olive)',
-                    marginBottom: 10,
-                  }}
-                >
-                  A postscript
-                </div>
-                <h3
-                  style={{
-                    fontFamily: 'var(--pl-font-display)',
-                    fontSize: '2rem',
-                    margin: 0,
-                    color: 'var(--pl-ink)',
-                    fontStyle: 'italic',
-                    fontVariationSettings:
-                      '"opsz" 144, "SOFT" 80, "WONK" 1',
-                    letterSpacing: '-0.01em',
-                    lineHeight: 1.05,
-                  }}
-                >
-                  Still stuck?
-                </h3>
-                <p
-                  style={{
-                    margin: '12px auto 22px',
-                    color: 'var(--pl-ink-soft)',
-                    fontSize: '0.98rem',
-                    lineHeight: 1.6,
-                    maxWidth: '46ch',
-                  }}
-                >
-                  We answer every email personally. Usually within a few hours —
-                  always within a day.
-                </p>
-                <a
-                  href="mailto:help@pearloom.com"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: '12px 22px',
-                    background: 'var(--pl-ink)',
-                    color: 'var(--pl-cream)',
-                    borderRadius: 'var(--pl-radius-xs)',
-                    textDecoration: 'none',
-                    fontFamily: 'var(--pl-font-mono)',
-                    fontSize: '0.62rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.24em',
-                    textTransform: 'uppercase',
-                    boxShadow: '0 0 0 3px rgba(193,154,75,0.18)',
-                    transition: 'transform 300ms cubic-bezier(0.22, 1, 0.36, 1)',
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.transform =
-                      'translateY(-2px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.transform =
-                      'translateY(0)';
-                  }}
-                >
-                  <Mail size={13} />
-                  help@pearloom.com →
-                </a>
-              </div>
-            </section>
-      </div>
-    </DashLayout>
-  );
-}
-
-// ─── Subcomponents ──────────────────────────────────────────
-
-function Dossier({
-  kicker,
-  value,
-  divider,
-}: {
-  kicker: string;
-  value: string;
-  divider?: boolean;
-}) {
-  return (
-    <div
-      style={{
-        padding: '14px 16px',
-        borderLeft: divider ? '1px solid var(--pl-divider)' : 'none',
-        background: 'var(--pl-cream-card)',
-      }}
-    >
-      <div
-        style={{
-          fontFamily: 'var(--pl-font-mono)',
-          fontSize: '0.46rem',
-          fontWeight: 700,
-          letterSpacing: '0.28em',
-          textTransform: 'uppercase',
-          color: 'var(--pl-muted)',
-          marginBottom: 6,
-        }}
-      >
-        {kicker}
-      </div>
-      <div
-        style={{
-          fontFamily: 'var(--pl-font-display)',
-          fontStyle: 'italic',
-          fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-          fontSize: '1.3rem',
-          color: 'var(--pl-ink)',
-          letterSpacing: '-0.01em',
-          lineHeight: 1,
-        }}
-      >
-        {value}
-      </div>
-    </div>
-  );
-}
-
-function QuickTile({
-  index,
-  href,
-  icon,
-  eyebrow,
-  title,
-  description,
-  accent,
-  divider,
-}: {
-  index: number;
-  href: string;
-  icon: React.ReactNode;
-  eyebrow: string;
-  title: string;
-  description: string;
-  accent: 'olive' | 'gold' | 'plum';
-  divider?: boolean;
-}) {
-  const accentColor =
-    accent === 'olive'
-      ? 'var(--pl-olive)'
-      : accent === 'gold'
-        ? 'var(--pl-gold)'
-        : 'var(--pl-plum)';
-  return (
-    <Link
-      href={href}
-      style={{
-        position: 'relative',
-        display: 'block',
-        padding: '22px 20px 20px',
-        background: 'var(--pl-cream-card)',
-        borderLeft: divider ? '1px solid var(--pl-divider)' : 'none',
-        textDecoration: 'none',
-        transition:
-          'background 240ms cubic-bezier(0.22, 1, 0.36, 1), transform 240ms cubic-bezier(0.22, 1, 0.36, 1)',
-        overflow: 'hidden',
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLAnchorElement).style.background =
-          'var(--pl-cream-deep)';
-        const arrow = e.currentTarget.querySelector(
-          '[data-arrow]',
-        ) as HTMLSpanElement | null;
-        if (arrow) arrow.style.transform = 'translateX(4px)';
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLAnchorElement).style.background =
-          'var(--pl-cream-card)';
-        const arrow = e.currentTarget.querySelector(
-          '[data-arrow]',
-        ) as HTMLSpanElement | null;
-        if (arrow) arrow.style.transform = 'translateX(0)';
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 14,
-        }}
-      >
-        <span
-          style={{
-            fontFamily: 'var(--pl-font-mono)',
-            fontSize: '0.5rem',
-            fontWeight: 700,
-            letterSpacing: '0.26em',
-            color: 'var(--pl-gold)',
-          }}
-        >
-          № {String(index).padStart(2, '0')}
-        </span>
-        <span
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 28,
-            height: 28,
-            borderRadius: 'var(--pl-radius-xs)',
-            background: 'var(--pl-cream-deep)',
-            border: `1px solid ${accentColor}`,
-            color: accentColor,
-          }}
-        >
-          {icon}
-        </span>
-      </div>
-      <div
-        style={{
-          fontFamily: 'var(--pl-font-mono)',
-          fontSize: '0.46rem',
-          fontWeight: 700,
-          letterSpacing: '0.28em',
-          textTransform: 'uppercase',
-          color: 'var(--pl-olive)',
-          marginBottom: 8,
-        }}
-      >
-        {eyebrow}
-      </div>
-      <div
-        style={{
-          fontFamily: 'var(--pl-font-display)',
-          fontStyle: 'italic',
-          fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-          fontSize: '1.35rem',
-          color: 'var(--pl-ink)',
-          letterSpacing: '-0.01em',
-          marginBottom: 6,
-          lineHeight: 1.05,
-        }}
-      >
-        {title}
-      </div>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 8,
-          fontSize: '0.82rem',
-          color: 'var(--pl-ink-soft)',
-        }}
-      >
-        <span>{description}</span>
-        <span
-          data-arrow
-          style={{
-            fontFamily: 'var(--pl-font-mono)',
-            fontSize: '0.72rem',
-            color: accentColor,
-            transition: 'transform 240ms cubic-bezier(0.22, 1, 0.36, 1)',
-          }}
-        >
-          →
-        </span>
-      </div>
-    </Link>
-  );
-}
-
-function FaqRow({
-  entry,
-  index,
-  open,
-  onToggle,
-}: {
-  entry: FaqEntry;
-  index: number;
-  open: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <article
-      style={{
-        position: 'relative',
-        background: open ? 'var(--pl-cream-card)' : 'transparent',
-        borderBottom: '1px solid var(--pl-divider)',
-        transition: 'background 240ms cubic-bezier(0.22, 1, 0.36, 1)',
-      }}
-    >
-      {/* Gold vertical accent when open */}
-      {open && (
-        <span
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            width: 2,
-            background: 'var(--pl-gold)',
-          }}
-        />
-      )}
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={open}
-        style={{
-          width: '100%',
-          display: 'grid',
-          gridTemplateColumns: '48px 1fr auto',
-          alignItems: 'center',
-          gap: 16,
-          padding: '20px 22px',
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          textAlign: 'left',
-          color: 'var(--pl-ink)',
-          fontFamily: 'inherit',
-        }}
-      >
-        <span
-          style={{
-            fontFamily: 'var(--pl-font-mono)',
-            fontSize: '0.54rem',
-            fontWeight: 700,
-            letterSpacing: '0.22em',
-            color: open ? 'var(--pl-gold)' : 'var(--pl-muted)',
-            transition: 'color 240ms cubic-bezier(0.22, 1, 0.36, 1)',
-          }}
-        >
-          {String(index + 1).padStart(2, '0')}
-        </span>
-        <span
-          style={{
-            fontFamily: 'var(--pl-font-display)',
-            fontStyle: 'italic',
-            fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-            fontSize: '1.15rem',
-            letterSpacing: '-0.005em',
-            color: 'var(--pl-ink)',
-            lineHeight: 1.3,
-          }}
-        >
-          {entry.q}
-        </span>
-        <span
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 28,
-            height: 28,
-            borderRadius: '50%',
-            border: '1px solid var(--pl-divider)',
-            background: open ? 'var(--pl-ink)' : 'transparent',
-            color: open ? 'var(--pl-cream)' : 'var(--pl-muted)',
-            transition:
-              'transform 320ms cubic-bezier(0.22, 1, 0.36, 1), background 240ms, color 240ms',
-            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-            flexShrink: 0,
-          }}
-        >
-          <ChevronDown size={14} />
-        </span>
-      </button>
-      {open && (
+        {/* Two-column on desktop, stacked on mobile */}
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '48px 1fr',
-            gap: 16,
-            padding: '0 22px 22px',
+            gridTemplateColumns: 'minmax(0, 1fr) 280px',
+            gap: 40,
+            alignItems: 'flex-start',
           }}
+          className="pl8-help-grid"
         >
-          <span />
+          {/* FAQ accordion */}
           <div>
-            <p
+            <div
               style={{
-                margin: 0,
-                color: 'var(--pl-ink-soft)',
-                fontSize: '0.96rem',
-                lineHeight: 1.65,
-                maxWidth: '62ch',
+                fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                fontSize: 10.5,
+                fontWeight: 700,
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                color: 'var(--sage-deep)',
+                marginBottom: 14,
               }}
             >
-              {entry.a}
-            </p>
-            {entry.tags.length > 0 && (
-              <div
-                style={{
-                  marginTop: 14,
-                  display: 'inline-flex',
-                  gap: 6,
-                  flexWrap: 'wrap',
-                }}
-              >
-                {entry.tags.map((t) => (
-                  <span
-                    key={t}
-                    style={{
-                      padding: '4px 10px',
-                      fontFamily: 'var(--pl-font-mono)',
-                      fontSize: '0.5rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.22em',
-                      textTransform: 'uppercase',
-                      color: 'var(--pl-olive)',
-                      background: 'var(--pl-olive-mist)',
-                      borderRadius: 'var(--pl-radius-xs)',
-                    }}
-                  >
-                    # {t}
-                  </span>
-                ))}
+              Frequently asked
+            </div>
+            {visible.length === 0 ? (
+              <div style={{ padding: 24, color: 'var(--ink-soft)', fontSize: 14, background: 'var(--cream-2)', borderRadius: 14 }}>
+                No match. Try a different keyword, or{' '}
+                <a href="mailto:hello@pearloom.com" style={{ color: 'var(--peach-ink)' }}>
+                  email us
+                </a>
+                .
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {visible.map((f, i) => {
+                  const open = openIdx === i;
+                  return (
+                    <div
+                      key={f.q}
+                      style={{
+                        background: 'var(--card)',
+                        border: '1px solid var(--line-soft)',
+                        borderRadius: 14,
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setOpenIdx(open ? null : i)}
+                        style={{
+                          width: '100%',
+                          padding: '16px 20px',
+                          background: 'transparent',
+                          border: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: 16,
+                          cursor: 'pointer',
+                          color: 'var(--ink)',
+                          textAlign: 'left',
+                        }}
+                      >
+                        <span style={{ fontSize: 15, fontWeight: 600, fontFamily: 'var(--pl-font-display, Georgia, serif)' }}>
+                          {f.q}
+                        </span>
+                        <Icon
+                          name="chev-down"
+                          size={16}
+                          style={{
+                            flexShrink: 0,
+                            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+                            transition: 'transform 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+                            color: 'var(--ink-soft)',
+                          }}
+                        />
+                      </button>
+                      {open && (
+                        <div
+                          style={{
+                            padding: '0 20px 18px',
+                            fontSize: 14,
+                            color: 'var(--ink-soft)',
+                            lineHeight: 1.65,
+                          }}
+                        >
+                          {f.a}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
+
+          {/* Shortcuts + contact */}
+          <aside style={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <div
+              style={{
+                background: 'var(--cream-2)',
+                border: '1px solid var(--line-soft)',
+                borderRadius: 16,
+                padding: 20,
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.2em',
+                  textTransform: 'uppercase',
+                  color: 'var(--sage-deep)',
+                  marginBottom: 12,
+                }}
+              >
+                Keyboard shortcuts
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {SHORTCUTS.map((s) => (
+                  <div
+                    key={s.label}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 12,
+                      fontSize: 13,
+                      color: 'var(--ink-soft)',
+                    }}
+                  >
+                    <span>{s.label}</span>
+                    <span style={{ display: 'inline-flex', gap: 4 }}>
+                      {s.keys.map((k, i) => (
+                        <kbd
+                          key={i}
+                          style={{
+                            padding: '3px 8px',
+                            minWidth: 22,
+                            textAlign: 'center',
+                            borderRadius: 6,
+                            background: 'var(--card)',
+                            border: '1px solid var(--line)',
+                            fontSize: 11,
+                            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                            color: 'var(--ink)',
+                          }}
+                        >
+                          {k}
+                        </kbd>
+                      ))}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div
+              style={{
+                background: 'var(--sage-tint)',
+                border: '1px solid var(--sage-deep)',
+                borderRadius: 16,
+                padding: 20,
+                display: 'flex',
+                gap: 12,
+              }}
+            >
+              <Pear size={36} tone="sage" sparkle />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--sage-deep)', marginBottom: 4 }}>
+                  Still stuck?
+                </div>
+                <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5, marginBottom: 10 }}>
+                  Real humans, quick replies. We answer inside a day.
+                </div>
+                <a
+                  href="mailto:hello@pearloom.com"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '6px 12px',
+                    borderRadius: 999,
+                    background: 'var(--ink)',
+                    color: 'var(--cream)',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                  }}
+                >
+                  <Icon name="mail" size={13} /> hello@pearloom.com
+                </a>
+              </div>
+            </div>
+
+            <Link
+              href="/dashboard"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 13,
+                color: 'var(--ink-soft)',
+                textDecoration: 'none',
+                padding: '6px 2px',
+              }}
+            >
+              <Icon name="arrow-left" size={13} /> Back to dashboard
+            </Link>
+          </aside>
         </div>
-      )}
-    </article>
+      </div>
+
+      <style jsx>{`
+        @media (max-width: 900px) {
+          .pl8-help-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
+    </DashLayout>
   );
 }

@@ -804,8 +804,19 @@ export async function POST(req: Request) {
             : 'filmstrip';
         manifest.storyLayout = chosenLayout;
 
-        // ── Renderer version — new sites default to v2 ─────────
+        // ── Renderer version — v8 is the only renderer now.
+        //    Keep rendererVersion=v2 for legacy DB consumers that
+        //    still dispatch on it, but the site route prioritises
+        //    themeFamily='v8' first so the right layout ships.
         manifest.rendererVersion = 'v2';
+        (manifest as unknown as { themeFamily?: string }).themeFamily = 'v8';
+
+        // Persist the wizard's occasion onto the manifest so the
+        // publish URL ends up at /{occasion}/{slug} instead of
+        // /sites/{slug}. Dashboard lookups also key on this.
+        if (occasion) {
+          (manifest as unknown as { occasion?: string }).occasion = occasion;
+        }
 
         // ── User-picked palette wins over AI-generated vibeSkin ──
         // When the wizard user picked a palette (either a preset or

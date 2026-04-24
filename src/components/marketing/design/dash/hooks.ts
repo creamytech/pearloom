@@ -45,7 +45,17 @@ export interface UserSitesState {
 // each fire their own /api/sites call. Simple module-level
 // memoisation — enough for dashboard navigation.
 let sitesCache: SiteSummary[] | null = null;
+let sitesCacheAt = 0;
+const SITES_CACHE_TTL_MS = 30_000;
 const sitesSubscribers: Set<() => void> = new Set();
+
+/** Lets producers (wizard completion, publish flow) invalidate the
+ *  cache so the next dashboard view shows the freshly-created site. */
+export function invalidateSitesCache(): void {
+  sitesCache = null;
+  sitesCacheAt = 0;
+  notifySitesSubscribers();
+}
 
 interface ApiSitesResponse {
   sites: Array<{
@@ -101,6 +111,7 @@ export function useUserSites(): UserSitesState {
         };
       });
       sitesCache = shaped;
+      sitesCacheAt = Date.now();
       notifySitesSubscribers();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -112,7 +123,8 @@ export function useUserSites(): UserSitesState {
   useEffect(() => {
     const sub = () => tick((t) => t + 1);
     sitesSubscribers.add(sub);
-    if (sitesCache === null) void refresh();
+    const stale = sitesCache === null || Date.now() - sitesCacheAt > SITES_CACHE_TTL_MS;
+    if (stale) void refresh();
     else setLoading(false);
     return () => {
       sitesSubscribers.delete(sub);

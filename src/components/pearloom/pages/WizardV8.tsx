@@ -1116,6 +1116,12 @@ export function WizardV8() {
         const data = await res.json().catch(() => null);
         throw new Error(data?.error ?? `Failed to create site (${res.status})`);
       }
+      // Invalidate the shared sites cache so the dashboard renders
+      // this freshly-created site the next time the user lands on it.
+      try {
+        const { invalidateSitesCache } = await import('@/components/marketing/design/dash/hooks');
+        invalidateSitesCache();
+      } catch {}
       router.push(`/editor/${derivedSubdomain}`);
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Something went wrong');

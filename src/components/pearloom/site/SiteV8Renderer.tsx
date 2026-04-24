@@ -1166,10 +1166,90 @@ function ScheduleSection({ manifest, names, onEditField }: { manifest: StoryMani
 }
 
 /* ==================== TRAVEL ==================== */
-function VenueMap({ venue, address }: { venue: string; address: string }) {
+function VenueHero({ venue, address, manifest, onEditField }: { venue: string; address: string; manifest: StoryManifest; onEditField?: FieldEditor }) {
+  // Priority order for what we render:
+  //   1. Custom photo the user uploaded (manifest.logistics.venuePhoto)
+  //   2. Stylized AI rendition (manifest.logistics.venuePhotoStylized)
+  //   3. Real Places photo via /api/venue/photo
+  //   4. Hand-drawn SVG fallback
+  const logistics = manifest.logistics as Record<string, string | undefined> | undefined;
+  const customPhoto = logistics?.venuePhoto;
+  const stylizedPhoto = logistics?.venuePhotoStylized;
+  const showStylized = Boolean(stylizedPhoto && logistics?.venuePhotoMode === 'stylized');
+  const query = [venue, address].filter(Boolean).join(', ');
+  const photoSrc = showStylized
+    ? stylizedPhoto!
+    : customPhoto
+      ? customPhoto
+      : query
+        ? `/api/venue/photo?q=${encodeURIComponent(query)}&w=1200&h=800`
+        : '';
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
-  const query = address || venue;
-  const mapSrc = query ? `/api/venue/map?q=${encodeURIComponent(query)}&w=600&h=360&zoom=15` : '';
+  const edit = useIsEditMode();
+
+  // Stylize the current venue photo via GPT Image 2 (editorial
+  // illustration). Host-only; the output URL persists on manifest
+  // so every guest sees the same rendition.
+  const [stylizing, setStylizing] = useState(false);
+  async function handleStylize() {
+    if (!photoSrc || stylizing) return;
+    setStylizing(true);
+    try {
+      // Fetch the current photo bytes (follows our proxy if external)
+      // and send base64 to /api/photos/stylize.
+      const res = await fetch(photoSrc);
+      if (!res.ok) throw new Error('Could not read venue photo');
+      const blob = await res.blob();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(String(r.result ?? ''));
+        r.onerror = () => reject(r.error);
+        r.readAsDataURL(blob);
+      });
+      const stylRes = await fetch('/api/photos/stylize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageBase64: base64,
+          style: 'watercolor',
+          prompt: `Editorial watercolor rendering of ${venue}. Warm cream + sage palette. Hand-drawn feel, no typography.`,
+        }),
+      });
+      if (!stylRes.ok) {
+        const body = await stylRes.json().catch(() => ({}));
+        throw new Error((body as { error?: string }).error ?? `Stylize ${stylRes.status}`);
+      }
+      const data = (await stylRes.json()) as { url?: string };
+      if (!data.url) throw new Error('Stylize returned no url');
+      onEditField?.((m) => {
+        const l = (m.logistics ?? {}) as Record<string, unknown>;
+        return {
+          ...m,
+          logistics: { ...l, venuePhotoStylized: data.url, venuePhotoMode: 'stylized' },
+        } as StoryManifest;
+      });
+    } catch (err) {
+      console.error('[venue stylize]', err);
+      window.alert(err instanceof Error ? err.message : 'Stylize failed');
+    } finally {
+      setStylizing(false);
+    }
+  }
+
+  function togglePhotoMode() {
+    onEditField?.((m) => {
+      const l = (m.logistics ?? {}) as Record<string, unknown>;
+      const next = l.venuePhotoMode === 'stylized' ? 'real' : 'stylized';
+      return { ...m, logistics: { ...l, venuePhotoMode: next } } as StoryManifest;
+    });
+  }
+
+  const mapsHref = address
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
+    : venue
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue)}`
+      : '';
+
   return (
     <div
       style={{
@@ -1182,10 +1262,10 @@ function VenueMap({ venue, address }: { venue: string; address: string }) {
         marginBottom: 14,
       }}
     >
-      {mapSrc && status !== 'error' && (
+      {photoSrc && status !== 'error' && (
         <img
-          src={mapSrc}
-          alt={`Map showing ${venue}`}
+          src={photoSrc}
+          alt={`A photo of ${venue}`}
           onLoad={() => setStatus('ready')}
           onError={() => setStatus('error')}
           style={{
@@ -1194,33 +1274,106 @@ function VenueMap({ venue, address }: { venue: string; address: string }) {
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            // Duotone treatment: olive shadows + cream highlights so
-            // the satellite/roadmap reads as an editorial illustration.
-            filter: 'sepia(0.3) saturate(0.85) hue-rotate(22deg) brightness(1.02)',
             opacity: status === 'ready' ? 1 : 0,
-            transition: 'opacity 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+            transition: 'opacity 260ms cubic-bezier(0.22, 1, 0.36, 1)',
           }}
         />
       )}
-      {/* Label overlay — sits above the real map or the SVG fallback */}
+      {/* Soft vignette for legibility of the overlay */}
+      {photoSrc && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(to top, rgba(14,13,11,0.45), rgba(14,13,11,0) 55%)',
+            pointerEvents: 'none',
+            zIndex: 1,
+          }}
+        />
+      )}
+      {/* Venue label + Maps link */}
       <div
         style={{
           position: 'absolute',
-          bottom: 10,
-          left: 12,
-          background: 'rgba(243,233,212,0.92)',
-          padding: '6px 12px',
-          borderRadius: 10,
-          fontSize: 12,
-          fontWeight: 600,
-          color: '#3D4A1F',
-          boxShadow: '0 4px 10px rgba(61,74,31,0.18)',
+          bottom: 14,
+          left: 14,
+          right: 14,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+          gap: 12,
           zIndex: 2,
         }}
       >
-        {venue}
+        <div
+          style={{
+            background: 'rgba(243,233,212,0.94)',
+            padding: '6px 14px',
+            borderRadius: 10,
+            fontSize: 13,
+            fontWeight: 600,
+            color: '#3D4A1F',
+            boxShadow: '0 4px 10px rgba(61,74,31,0.18)',
+          }}
+        >
+          {venue}
+        </div>
+        {mapsHref && (
+          <a
+            href={mapsHref}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '6px 12px',
+              borderRadius: 10,
+              background: 'var(--ink)',
+              color: 'var(--cream)',
+              fontSize: 12,
+              fontWeight: 600,
+              textDecoration: 'none',
+              boxShadow: '0 4px 10px rgba(14,13,11,0.25)',
+            }}
+          >
+            <Icon name="compass" size={13} /> Open in Maps
+          </a>
+        )}
       </div>
-      {/* Fallback SVG — shown when the map endpoint 404s (no API key) */}
+      {/* Stylize / un-stylize toggle — edit mode only */}
+      {edit && photoSrc && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            display: 'flex',
+            gap: 6,
+            zIndex: 3,
+          }}
+        >
+          {stylizedPhoto && (
+            <button
+              type="button"
+              onClick={togglePhotoMode}
+              style={pillBtn()}
+            >
+              {showStylized ? 'Show real photo' : 'Show stylized'}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleStylize}
+            disabled={stylizing}
+            style={pillBtn()}
+          >
+            {stylizing ? 'Stylizing…' : stylizedPhoto ? 'Re-stylize' : 'Stylize with Pear'}
+          </button>
+        </div>
+      )}
+      {/* Fallback SVG when the photo endpoint 404s */}
       {status === 'error' && (
         <svg viewBox="0 0 500 300" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" style={{ position: 'absolute', inset: 0 }}>
           <rect width="500" height="300" fill="#E3E6C8" />
@@ -1234,7 +1387,20 @@ function VenueMap({ venue, address }: { venue: string; address: string }) {
   );
 }
 
-function TravelSection({ manifest }: { manifest: StoryManifest }) {
+function pillBtn(): React.CSSProperties {
+  return {
+    padding: '6px 12px',
+    borderRadius: 999,
+    border: '1px solid rgba(255,255,255,0.6)',
+    background: 'rgba(14,13,11,0.72)',
+    color: '#fff',
+    fontSize: 11.5,
+    fontWeight: 600,
+    cursor: 'pointer',
+  };
+}
+
+function TravelSection({ manifest, onEditField }: { manifest: StoryManifest; onEditField?: FieldEditor }) {
   const edit = useIsEditMode();
   const venue = manifest.logistics?.venue ?? 'Our venue';
   const address = manifest.logistics?.venueAddress ?? '';
@@ -1270,7 +1436,7 @@ function TravelSection({ manifest }: { manifest: StoryManifest }) {
             {address && (
               <p style={{ fontSize: 15, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 20 }}>{address}</p>
             )}
-            <VenueMap venue={venue} address={address} />
+            <VenueHero venue={venue} address={address} manifest={manifest} onEditField={onEditField} />
             <div style={{ display: 'flex', gap: 10 }}>
               {address && (
                 <a
@@ -2343,7 +2509,7 @@ export function SiteV8Renderer({
       case 'schedule':
         return <ScheduleSection key="schedule" manifest={manifest} names={names} onEditField={onEditField} />;
       case 'travel':
-        return <TravelSection key="travel" manifest={manifest} />;
+        return <TravelSection key="travel" manifest={manifest} onEditField={onEditField} />;
       case 'registry':
         return <RegistrySection key="registry" manifest={manifest} />;
       case 'gallery':
