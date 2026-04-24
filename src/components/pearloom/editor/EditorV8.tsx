@@ -33,6 +33,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
+import { CanvasStage } from './canvas/CanvasStage';
 import { HeroPanel } from './panels/HeroPanel';
 import { StoryPanel } from './panels/StoryPanel';
 import { DetailsPanel } from './panels/DetailsPanel';
@@ -109,62 +110,23 @@ export function EditorV8({
   const [device, setDevice] = useState<DeviceKey>('desktop');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [advisorOpen, setAdvisorOpen] = useState(false);
-  const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Ref to the canvas stage container — used for scroll-to-block
+  // and click-to-select behaviour since the canvas now lives in
+  // the same document as the editor chrome (no more iframe).
+  const canvasRef = useRef<HTMLDivElement | null>(null);
 
   const occasion = useMemo(() => normalizeOccasion((manifest as unknown as { occasion?: string }).occasion), [manifest]);
   const prettyPath = useMemo(
     () => previewPathOverride ?? buildSitePath(siteSlug, '', occasion),
     [siteSlug, occasion, previewPathOverride]
   );
-  // Editor iframe points at /preview (which listens for postMessage
-  // updates) instead of the live /sites/[slug] route, so theme and
-  // content edits show instantly without waiting on a DB round-trip.
-  // We pass a sessionStorage key so the preview page can rehydrate
-  // on a hard refresh too. Falls back to prettyPath when a dev
-  // overrides the path.
-  const previewKey = useMemo(() => `pearloom-editor-preview:${siteSlug}`, [siteSlug]);
-  const iframePath = useMemo(
-    () => previewPathOverride ?? `/preview?siteSlug=${encodeURIComponent(siteSlug)}&key=${encodeURIComponent(previewKey)}&editor=1`,
-    [previewKey, siteSlug, previewPathOverride]
-  );
   const prettyUrl = useMemo(() => formatSiteDisplayUrl(siteSlug, '', occasion), [siteSlug, occasion]);
   const displayNames = useMemo(() => names.filter(Boolean).join(' & ') || siteSlug, [names, siteSlug]);
 
-  // Push the latest manifest + names into the preview iframe
-  // immediately. The /preview page listens for
-  // `pearloom-preview-update` and re-renders without a round-trip
-  // to the DB — so theme, palette, block content, and name edits
-  // all show INSTANTLY in the iframe. Also stashes the manifest
-  // in sessionStorage so a hard refresh of the iframe picks it up.
-  const broadcastToPreview = useCallback(
-    (nextManifest: StoryManifest, nextNames: [string, string]) => {
-      try {
-        if (typeof window !== 'undefined' && window.sessionStorage) {
-          window.sessionStorage.setItem(
-            previewKey,
-            JSON.stringify({ manifest: nextManifest, names: nextNames }),
-          );
-        }
-      } catch {
-        /* sessionStorage full or blocked — preview still works via postMessage */
-      }
-      const frame = iframeRef.current?.contentWindow;
-      if (!frame) return;
-      try {
-        frame.postMessage(
-          { type: 'pearloom-preview-update', manifest: nextManifest, names: nextNames },
-          '*',
-        );
-      } catch {
-        /* cross-origin isolated in dev? — fall through; DB save will catch up */
-      }
-    },
-    [previewKey],
-  );
-
-  // Debounced autosave on every change. Save keeps the DB in sync
-  // for publish + reload; broadcast is the instant visual path.
+  // Debounced autosave on every change. Since the canvas renders
+  // in-DOM (CanvasStage), React state IS the preview — no
+  // postMessage needed, edits show instantly.
   const queueSave = useCallback(
     (nextManifest: StoryManifest, nextNames: [string, string]) => {
       setSaveStatus('saving');
@@ -191,42 +153,18 @@ export function EditorV8({
   const onManifestChange = useCallback(
     (next: StoryManifest) => {
       setManifest(next);
-      broadcastToPreview(next, names);
       queueSave(next, names);
     },
-    [names, queueSave, broadcastToPreview]
+    [names, queueSave]
   );
 
   const onNamesChange = useCallback(
     (nextNames: [string, string]) => {
       setNames(nextNames);
-      broadcastToPreview(manifest, nextNames);
       queueSave(manifest, nextNames);
     },
-    [manifest, queueSave, broadcastToPreview]
+    [manifest, queueSave]
   );
-
-  // Seed sessionStorage immediately on mount so the iframe can
-  // hydrate before any user edits. Without this the preview would
-  // show a blank state until the first postMessage arrives.
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      window.sessionStorage.setItem(
-        previewKey,
-        JSON.stringify({ manifest, names }),
-      );
-    } catch { /* best-effort */ }
-    // Run once per slug — subsequent edits are handled by broadcastToPreview.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [siteSlug]);
-
-  // When the iframe loads (first mount or device-toggle reload),
-  // re-broadcast so it hydrates from our current state rather
-  // than whatever was last persisted server-side.
-  const onIframeLoad = useCallback(() => {
-    broadcastToPreview(manifest, names);
-  }, [manifest, names, broadcastToPreview]);
 
   async function handlePublish() {
     const next = { ...manifest, published: true } as StoryManifest;
@@ -247,85 +185,58 @@ export function EditorV8({
     }
   }
 
-  // When the user picks a block, scroll the preview to its section
-  // AND paint a temporary highlight outline on that section so the user
-  // immediately sees what they're editing.
+  // When the user picks a block in the outline rail, scroll that
+  // section of the canvas into view and paint a temporary ring.
+  // Now operates on the in-document canvas (`canvasRef`) — no
+  // iframe, so a simple document query works.
   useEffect(() => {
     const target = BLOCKS_BY_KEY[block];
-    if (!target || !iframeRef.current) return;
-    try {
-      const doc = iframeRef.current.contentDocument;
-      if (!doc) return;
-      const anchor = target.anchor;
+    const scope = canvasRef.current;
+    if (!target || !scope) return;
+    // Clear previous highlights
+    scope.querySelectorAll<HTMLElement>('[data-pl8-active="1"]').forEach((el) => {
+      el.removeAttribute('data-pl8-active');
+      el.style.outline = '';
+      el.style.outlineOffset = '';
+      el.style.transition = '';
+    });
 
-      // Clear previous highlights
-      doc.querySelectorAll<HTMLElement>('[data-pl8-active="1"]').forEach((el) => {
-        el.removeAttribute('data-pl8-active');
-        el.style.boxShadow = '';
-        el.style.outline = '';
-        el.style.outlineOffset = '';
-        el.style.transition = '';
-      });
-
-      if (anchor === 'top') {
-        iframeRef.current.contentWindow?.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      }
-      const el = doc.getElementById(anchor);
-      if (!el) return;
-      if (typeof el.scrollIntoView === 'function') {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-      // Highlight: warm lavender ring. Injected via inline style so we
-      // don't need to touch the rendered CSS.
-      el.setAttribute('data-pl8-active', '1');
-      el.style.transition = 'outline 220ms cubic-bezier(0.16, 1, 0.3, 1), outline-offset 220ms';
-      el.style.outline = '3px solid var(--lavender-ink, #6B5A8C)';
-      el.style.outlineOffset = '-8px';
-    } catch {
-      /* cross-origin — ignore */
+    const anchor = target.anchor;
+    if (anchor === 'top') {
+      scope.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
     }
+    // Anchors are known kebab-case identifiers (top, our-story,
+    // schedule, rsvp, etc.) — safe to interpolate directly.
+    const el = scope.querySelector<HTMLElement>(`#${anchor}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    el.setAttribute('data-pl8-active', '1');
+    el.style.transition = 'outline 220ms cubic-bezier(0.16, 1, 0.3, 1), outline-offset 220ms';
+    el.style.outline = '3px solid var(--lavender-ink, #6B5A8C)';
+    el.style.outlineOffset = '-8px';
   }, [block]);
 
-  // Listen for click events inside the iframe so the outline follows
-  // whatever the user clicks on.
+  // When a block section on the canvas is clicked, select the
+  // matching block in the outline rail. EditableText fields call
+  // stopPropagation so their clicks don't bubble up; any other
+  // click inside a section selects the block.
   useEffect(() => {
-    function wire() {
-      const doc = iframeRef.current?.contentDocument;
-      if (!doc) return;
-      const handler = (e: Event) => {
-        const path = (e.composedPath?.() ?? []) as Array<HTMLElement | Document | Window>;
-        for (const node of path) {
-          if (!(node instanceof HTMLElement)) continue;
-          if (node.id && BLOCKS.some((b) => b.anchor === node.id)) {
-            const hit = BLOCKS.find((b) => b.anchor === node.id);
-            if (hit) setBlock(hit.key);
-            return;
-          }
-          const ancestor = node.closest?.('[id]') as HTMLElement | null;
-          if (ancestor && BLOCKS.some((b) => b.anchor === ancestor.id)) {
-            const hit = BLOCKS.find((b) => b.anchor === ancestor.id);
-            if (hit) setBlock(hit.key);
-            return;
-          }
+    const scope = canvasRef.current;
+    if (!scope) return;
+    const handler = (e: Event) => {
+      const path = (e.composedPath?.() ?? []) as Array<EventTarget>;
+      for (const node of path) {
+        if (!(node instanceof HTMLElement)) continue;
+        if (node.id && BLOCKS.some((b) => b.anchor === node.id)) {
+          const hit = BLOCKS.find((b) => b.anchor === node.id);
+          if (hit) setBlock(hit.key);
+          return;
         }
-      };
-      doc.addEventListener('click', handler, true);
-      return () => doc.removeEventListener('click', handler, true);
-    }
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-    let cleanup: (() => void) | undefined;
-    const attach = () => {
-      cleanup?.();
-      cleanup = wire() ?? undefined;
+      }
     };
-    iframe.addEventListener('load', attach);
-    attach();
-    return () => {
-      iframe.removeEventListener('load', attach);
-      cleanup?.();
-    };
+    scope.addEventListener('click', handler, true);
+    return () => scope.removeEventListener('click', handler, true);
   }, []);
 
   // Block order + visibility — read/write into manifest.blockOrder / hiddenBlocks.
@@ -398,7 +309,16 @@ export function EditorV8({
           onReorder={reorderBlocks}
           onToggleHidden={toggleBlockHidden}
         />
-        <Preview device={device} prettyPath={iframePath} iframeRef={iframeRef} onIframeLoad={onIframeLoad} />
+        <CanvasStage
+          ref={canvasRef}
+          manifest={manifest}
+          names={names}
+          siteSlug={siteSlug}
+          prettyUrl={prettyUrl}
+          device={device}
+          onManifestChange={onManifestChange}
+          onNamesChange={onNamesChange}
+        />
         <Inspector
           block={block}
           manifest={manifest}
@@ -888,61 +808,8 @@ function BlockRow({
   );
 }
 
-/* ---------- Center preview iframe ---------- */
-function Preview({
-  device,
-  prettyPath,
-  iframeRef,
-  onIframeLoad,
-}: {
-  device: DeviceKey;
-  prettyPath: string;
-  iframeRef: React.MutableRefObject<HTMLIFrameElement | null>;
-  onIframeLoad?: () => void;
-}) {
-  const w = DEVICE_WIDTH[device];
-  return (
-    <div
-      className="pl8-editor-canvas"
-      style={{
-        flex: 1,
-        minWidth: 0,
-        overflowY: 'auto',
-        padding: 24,
-        background: 'var(--cream-2)',
-        display: 'grid',
-        placeItems: 'start center',
-      }}
-    >
-      <div
-        style={{
-          width: w,
-          maxWidth: '100%',
-          background: 'var(--paper)',
-          borderRadius: 20,
-          border: '1px solid var(--card-ring)',
-          boxShadow: 'var(--shadow-md)',
-          overflow: 'hidden',
-          transition: 'width 240ms cubic-bezier(0.16, 1, 0.3, 1)',
-        }}
-      >
-        <iframe
-          ref={iframeRef}
-          title="Live site preview"
-          src={prettyPath}
-          onLoad={onIframeLoad}
-          style={{
-            width: '100%',
-            height: 'calc(100vh - 180px)',
-            border: 0,
-            display: 'block',
-            background: 'var(--paper)',
-          }}
-        />
-      </div>
-    </div>
-  );
-}
+// (Old iframe-based Preview component removed — replaced by
+//  CanvasStage which renders SiteV8Renderer in-DOM.)
 
 /* ---------- Right inspector ---------- */
 function Inspector({

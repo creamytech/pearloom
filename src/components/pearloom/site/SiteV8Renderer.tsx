@@ -20,6 +20,12 @@ import {
   Squiggle,
   Stamp,
 } from '../motifs';
+import { EditorCanvasProvider, useIsEditMode } from '../editor/canvas/EditorCanvasContext';
+import { EditableText } from '../editor/canvas/EditableText';
+
+// Callback passed down for inline edits. Parent (CanvasStage)
+// owns the manifest and wires each field edit back.
+type FieldEditor = (patch: (m: StoryManifest) => StoryManifest) => void;
 
 type Tone = 'warm' | 'field' | 'dusk' | 'lavender' | 'peach' | 'sage' | 'cream';
 
@@ -310,9 +316,13 @@ function CountdownPill({ eventDate }: { eventDate?: string | null }) {
 function HeroSection({
   names,
   manifest,
+  onEditField,
+  onEditNames,
 }: {
   names: [string, string];
   manifest: StoryManifest;
+  onEditField?: FieldEditor;
+  onEditNames?: (next: [string, string]) => void;
 }) {
   const [n1, n2] = names;
   const dateInfo = fmtEventDate(manifest.logistics?.date);
@@ -365,18 +375,33 @@ function HeroSection({
               letterSpacing: '-0.02em',
             }}
           >
-            {n1 || 'Your'}{' '}
-            {n2 && (
+            <EditableText
+              as="span"
+              value={n1 || ''}
+              onSave={(next) => onEditNames?.([next, n2])}
+              placeholder="Your"
+              ariaLabel="First host name"
+              maxLength={80}
+            />
+            {n2 || onEditNames ? (
               <>
+                {' '}
                 <span
                   className="display-italic"
                   style={{ fontSize: 'clamp(60px, 10vw, 132px)', fontWeight: 400, color: 'var(--ink-soft)' }}
                 >
                   and
                 </span>{' '}
-                {n2}
+                <EditableText
+                  as="span"
+                  value={n2 || ''}
+                  onSave={(next) => onEditNames?.([n1, next])}
+                  placeholder="Partner"
+                  ariaLabel="Second host name"
+                  maxLength={80}
+                />
               </>
-            )}
+            ) : null}
           </h1>
           {dateInfo && (
             <div className="pl8-hide-mobile" style={{ position: 'absolute', top: -20, right: 60, transform: 'rotate(10deg)' }}>
@@ -423,7 +448,27 @@ function HeroSection({
         </div>
 
         <div style={{ textAlign: 'center', maxWidth: 560, margin: '30px auto 36px' }}>
-          <p style={{ fontSize: 17, lineHeight: 1.6, color: 'var(--ink-soft)' }}>{heroCopy}</p>
+          <EditableText
+            as="p"
+            value={heroCopy}
+            onSave={(next) =>
+              onEditField?.((m) => ({
+                ...m,
+                poetry: {
+                  heroTagline: next,
+                  closingLine: m.poetry?.closingLine ?? '',
+                  rsvpIntro: m.poetry?.rsvpIntro ?? '',
+                  welcomeStatement: m.poetry?.welcomeStatement,
+                  milestones: m.poetry?.milestones,
+                },
+              }))
+            }
+            placeholder="Add a warm hero tagline…"
+            ariaLabel="Hero tagline"
+            multiline
+            maxLength={280}
+            style={{ fontSize: 17, lineHeight: 1.6, color: 'var(--ink-soft)', margin: 0 }}
+          />
         </div>
 
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -485,7 +530,7 @@ function HeroSection({
 }
 
 /* ==================== TIMELINE ==================== */
-function TimelineSection({ chapters }: { chapters: Chapter[] }) {
+function TimelineSection({ chapters, onEditField }: { chapters: Chapter[]; onEditField?: FieldEditor }) {
   if (!chapters.length) return null;
   return (
     <section id="our-story" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
@@ -535,6 +580,7 @@ function TimelineSection({ chapters }: { chapters: Chapter[] }) {
                 >
                   {left ? (
                     <ChapterCard
+                      chapterIndex={i}
                       year={year}
                       title={c.title}
                       place={c.location?.label ?? c.subtitle ?? ''}
@@ -542,6 +588,7 @@ function TimelineSection({ chapters }: { chapters: Chapter[] }) {
                       tone={tone}
                       src={c.images?.[0]?.url}
                       cur={isCurrent}
+                      onEditField={onEditField}
                     />
                   ) : (
                     <div />
@@ -575,6 +622,7 @@ function TimelineSection({ chapters }: { chapters: Chapter[] }) {
                   </div>
                   {!left ? (
                     <ChapterCard
+                      chapterIndex={i}
                       year={year}
                       title={c.title}
                       place={c.location?.label ?? c.subtitle ?? ''}
@@ -582,6 +630,7 @@ function TimelineSection({ chapters }: { chapters: Chapter[] }) {
                       tone={tone}
                       src={c.images?.[0]?.url}
                       cur={isCurrent}
+                      onEditField={onEditField}
                     />
                   ) : (
                     <div />
@@ -597,6 +646,7 @@ function TimelineSection({ chapters }: { chapters: Chapter[] }) {
 }
 
 function ChapterCard({
+  chapterIndex,
   year,
   title,
   place,
@@ -604,7 +654,9 @@ function ChapterCard({
   tone,
   cur,
   src,
+  onEditField,
 }: {
+  chapterIndex: number;
   year: string;
   title: string;
   place: string;
@@ -612,7 +664,19 @@ function ChapterCard({
   tone: Tone;
   cur?: boolean;
   src?: string;
+  onEditField?: FieldEditor;
 }) {
+  // Chapter edit helpers — each call patches the nth chapter in
+  // the manifest's chapters array with the provided field update.
+  const patchChapter = (field: 'title' | 'description' | 'subtitle') => (next: string) => {
+    onEditField?.((m) => {
+      const chapters = [...(m.chapters ?? [])];
+      const ch = chapters[chapterIndex];
+      if (!ch) return m;
+      chapters[chapterIndex] = { ...ch, [field]: next };
+      return { ...m, chapters };
+    });
+  };
   return (
     <div
       style={{
@@ -640,10 +704,26 @@ function ChapterCard({
         >
           {[year, place].filter(Boolean).join(' · ')}
         </div>
-        <div className="display" style={{ fontSize: 26, marginBottom: 8 }}>
-          {title}
-        </div>
-        <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.55, margin: 0 }}>{copy}</p>
+        <EditableText
+          as="div"
+          className="display"
+          value={title}
+          onSave={patchChapter('title')}
+          placeholder="Chapter title"
+          ariaLabel={`Chapter ${chapterIndex + 1} title`}
+          maxLength={120}
+          style={{ fontSize: 26, marginBottom: 8 }}
+        />
+        <EditableText
+          as="p"
+          value={copy}
+          onSave={patchChapter('description')}
+          placeholder="Tell the story of this moment…"
+          ariaLabel={`Chapter ${chapterIndex + 1} description`}
+          multiline
+          maxLength={800}
+          style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.55, margin: 0 }}
+        />
       </div>
       <PhotoPlaceholder tone={tone} aspect="1/1" src={src} style={{ borderRadius: 14 }} />
     </div>
@@ -1607,14 +1687,26 @@ export function SiteV8Renderer({
   names,
   siteSlug,
   prettyUrl,
+  // Optional — only passed when rendered inside the editor canvas.
+  // Presence of onEditField flips edit-mode chrome on for every
+  // EditableText inside the tree.
+  onEditField,
+  onEditNames,
 }: {
   manifest: StoryManifest;
   names: [string, string];
   siteSlug: string;
   prettyUrl: string;
+  /** When provided, enables inline edit mode. Each editable field
+   *  calls this with a pure `(manifest) => newManifest` patch. */
+  onEditField?: FieldEditor;
+  /** Name changes ship outside the manifest (they live on the
+   *  editor state), so they get their own callback. */
+  onEditNames?: (next: [string, string]) => void;
 }) {
   const chapters = manifest.chapters ?? [];
   const hasRsvp = !!manifest.logistics?.date;
+  const editMode = Boolean(onEditField);
 
   const blockOrderRaw =
     (manifest as unknown as { blockOrder?: SiteBlockKey[] }).blockOrder ?? DEFAULT_ORDER;
@@ -1633,7 +1725,7 @@ export function SiteV8Renderer({
     if (hidden.has(key)) return null;
     switch (key) {
       case 'story':
-        return chapters.length > 0 ? <TimelineSection key="story" chapters={chapters} /> : null;
+        return chapters.length > 0 ? <TimelineSection key="story" chapters={chapters} onEditField={onEditField} /> : null;
       case 'details':
         return <DetailsStrip key="details" manifest={manifest} />;
       case 'schedule':
@@ -1654,11 +1746,13 @@ export function SiteV8Renderer({
   };
 
   return (
-    <div className="pl8-guest" style={{ background: 'var(--paper)', minHeight: '100vh' }}>
-      <EventNav names={names} hasRsvp={hasRsvp} />
-      <HeroSection names={names} manifest={manifest} />
-      {blockOrder.map(renderBlock)}
-      <SiteFooter names={names} prettyUrl={prettyUrl} />
-    </div>
+    <EditorCanvasProvider value={{ editMode }}>
+      <div className="pl8-guest" style={{ background: 'var(--paper)', minHeight: '100vh' }}>
+        <EventNav names={names} hasRsvp={hasRsvp} />
+        <HeroSection names={names} manifest={manifest} onEditField={onEditField} onEditNames={onEditNames} />
+        {blockOrder.map(renderBlock)}
+        <SiteFooter names={names} prettyUrl={prettyUrl} />
+      </div>
+    </EditorCanvasProvider>
   );
 }
