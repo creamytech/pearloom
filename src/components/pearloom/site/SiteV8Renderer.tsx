@@ -22,6 +22,7 @@ import {
 } from '../motifs';
 import { EditorCanvasProvider, useIsEditMode } from '../editor/canvas/EditorCanvasContext';
 import { EditableText } from '../editor/canvas/EditableText';
+import { SortableChapters } from '../editor/canvas/SortableChapters';
 
 // Callback passed down for inline edits. Parent (CanvasStage)
 // owns the manifest and wires each field edit back.
@@ -566,15 +567,17 @@ function TimelineSection({ chapters, onEditField }: { chapters: Chapter[]; onEdi
             <path d="M 2 0 L 2 1000" stroke="#D4A95D" strokeWidth="1.5" strokeDasharray="3 6" />
           </svg>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 56 }}>
-            {chapters.map((c, i) => {
+          <SortableChapters
+            chapters={chapters}
+            onReorder={(next) => onEditField?.((m) => ({ ...m, chapters: next }))}
+          >
+            {(c, i) => {
               const left = i % 2 === 0;
               const tone = CHAPTER_TONES[i % CHAPTER_TONES.length];
               const isCurrent = i === chapters.length - 1;
               const year = c.date ? new Date(c.date).getFullYear().toString() : String(i + 1);
               return (
                 <div
-                  key={c.id ?? i}
                   className="pl8-timeline-row"
                   style={{ display: 'grid', gridTemplateColumns: '1fr 80px 1fr', alignItems: 'center', gap: 20 }}
                 >
@@ -637,8 +640,8 @@ function TimelineSection({ chapters, onEditField }: { chapters: Chapter[]; onEdi
                   )}
                 </div>
               );
-            })}
-          </div>
+            }}
+          </SortableChapters>
         </div>
       </div>
     </section>
@@ -1203,9 +1206,19 @@ function GallerySection({ chapters }: { chapters: Chapter[] }) {
 }
 
 /* ==================== FAQ ==================== */
-function FaqSection({ manifest }: { manifest: StoryManifest }) {
-  const faq = ((manifest as unknown as { faq?: Array<{ id?: string; question: string; answer: string }> }).faq ?? []);
+function FaqSection({ manifest, onEditField }: { manifest: StoryManifest; onEditField?: FieldEditor }) {
+  type FaqItem = { id?: string; question: string; answer: string };
+  const faq = ((manifest as unknown as { faq?: FaqItem[] }).faq ?? []);
   if (!faq.length) return null;
+  const patchFaq = (index: number, field: 'question' | 'answer') => (next: string) => {
+    onEditField?.((m) => {
+      const arr = [...(((m as unknown as { faq?: FaqItem[] }).faq ?? []))];
+      const item = arr[index];
+      if (!item) return m;
+      arr[index] = { ...item, [field]: next };
+      return { ...(m as unknown as Record<string, unknown>), faq: arr } as unknown as StoryManifest;
+    });
+  };
   return (
     <section id="faq" style={{ padding: 'clamp(48px, 8vw, 100px) 32px' }}>
       <div style={{ maxWidth: 760, margin: '0 auto' }}>
@@ -1245,13 +1258,26 @@ function FaqSection({ manifest }: { manifest: StoryManifest }) {
                 borderBottom: i < faq.length - 1 ? '1px solid var(--line-soft)' : 'none',
               }}
             >
-              <div
+              <EditableText
+                as="div"
                 className="display"
+                value={item.question}
+                onSave={patchFaq(i, 'question')}
+                placeholder="Question?"
+                ariaLabel={`FAQ ${i + 1} question`}
+                maxLength={240}
                 style={{ fontSize: 20, fontWeight: 600, marginBottom: 6, color: 'var(--ink)' }}
-              >
-                {item.question}
-              </div>
-              <div style={{ fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.65 }}>{item.answer}</div>
+              />
+              <EditableText
+                as="div"
+                value={item.answer}
+                onSave={patchFaq(i, 'answer')}
+                placeholder="Write the answer here…"
+                ariaLabel={`FAQ ${i + 1} answer`}
+                multiline
+                maxLength={800}
+                style={{ fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.65 }}
+              />
             </div>
           ))}
         </div>
@@ -1737,7 +1763,7 @@ export function SiteV8Renderer({
       case 'gallery':
         return <GallerySection key="gallery" chapters={chapters} />;
       case 'faq':
-        return <FaqSection key="faq" manifest={manifest} />;
+        return <FaqSection key="faq" manifest={manifest} onEditField={onEditField} />;
       case 'rsvp':
         return <RSVPSection key="rsvp" names={names} manifest={manifest} siteSlug={siteSlug} />;
       default:
