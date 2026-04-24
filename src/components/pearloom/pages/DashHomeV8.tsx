@@ -7,7 +7,7 @@
 
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Heart, Icon, PhotoPlaceholder, Pear, PostIt, Sparkle, Stamp } from '../motifs';
 import { DashLayout } from '../dash/DashShell';
 import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
@@ -328,14 +328,35 @@ function Milestones({ eventDate }: { eventDate?: string | null }) {
   );
 }
 
-function GuestTasks({ rsvps }: { rsvps: number }) {
+interface GuestTasksProps {
+  /** Real RSVP-stats passed in from the dashboard data loader.
+   *  When the host hasn't imported any guests yet, pass
+   *  all zeros and the component renders an empty-state card
+   *  instead of fake percentages. */
+  invited?: number;
+  responded?: number;
+  yes?: number;
+  no?: number;
+  awaiting?: number;
+  needRsvp?: number;
+  needMeal?: number;
+  needSong?: number;
+}
+
+function GuestTasks({ invited = 0, responded = 0, yes = 0, no = 0, awaiting = 0, needRsvp = 0, needMeal = 0, needSong = 0 }: GuestTasksProps) {
   const stats = [
-    { label: 'Invited', val: rsvps + 37 },
-    { label: 'Responded', val: rsvps },
-    { label: 'Yes', val: Math.max(0, Math.floor(rsvps * 0.84)) },
-    { label: 'No', val: Math.max(0, rsvps - Math.floor(rsvps * 0.84)) },
-    { label: 'Awaiting', val: 37 },
+    { label: 'Invited', val: invited },
+    { label: 'Responded', val: responded },
+    { label: 'Yes', val: yes },
+    { label: 'No', val: no },
+    { label: 'Awaiting', val: awaiting },
   ];
+  const tasks = [
+    { label: 'Need to RSVP', count: needRsvp },
+    { label: 'Need meal selection', count: needMeal },
+    { label: 'Need to submit song request', count: needSong },
+  ].filter((t) => t.count > 0);
+  const hasAny = invited > 0 || responded > 0;
   return (
     <Section
       title="Guest tasks & RSVPs"
@@ -346,26 +367,47 @@ function GuestTasks({ rsvps }: { rsvps: number }) {
         </Link>
       }
     >
-      <div className="pl8-cols-5" style={{ gap: 6, marginBottom: 14 }}>
-        {stats.map((s) => (
-          <div key={s.label} style={{ background: 'var(--cream-2)', borderRadius: 10, padding: '10px 8px', textAlign: 'center' }}>
-            <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{s.label}</div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600 }}>{s.val}</div>
+      {hasAny ? (
+        <>
+          <div className="pl8-cols-5" style={{ gap: 6, marginBottom: 14 }}>
+            {stats.map((s) => (
+              <div key={s.label} style={{ background: 'var(--cream-2)', borderRadius: 10, padding: '10px 8px', textAlign: 'center' }}>
+                <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{s.label}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600 }}>{s.val}</div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <div style={{ fontSize: 12, color: 'var(--ink-soft)', fontWeight: 600, marginBottom: 6 }}>Outstanding tasks</div>
-      {[
-        { label: 'Need to RSVP', count: 37 },
-        { label: 'Need meal selection', count: 18 },
-        { label: 'Need to submit song request', count: 9 },
-      ].map((t) => (
-        <div key={t.label} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 6px' }}>
-          <div style={{ width: 14, height: 14, borderRadius: 5, border: '1.5px solid var(--line)', flexShrink: 0 }} />
-          <div style={{ flex: 1, fontSize: 13 }}>{t.label}</div>
-          <span style={{ fontSize: 12, color: 'var(--ink-muted)' }}>{t.count}</span>
+          {tasks.length > 0 && (
+            <>
+              <div style={{ fontSize: 12, color: 'var(--ink-soft)', fontWeight: 600, marginBottom: 6 }}>Outstanding tasks</div>
+              {tasks.map((t) => (
+                <div key={t.label} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 6px' }}>
+                  <div style={{ width: 14, height: 14, borderRadius: 5, border: '1.5px solid var(--line)', flexShrink: 0 }} />
+                  <div style={{ flex: 1, fontSize: 13 }}>{t.label}</div>
+                  <span style={{ fontSize: 12, color: 'var(--ink-muted)' }}>{t.count}</span>
+                </div>
+              ))}
+            </>
+          )}
+        </>
+      ) : (
+        <div
+          style={{
+            padding: 16,
+            textAlign: 'center',
+            background: 'var(--cream-2)',
+            borderRadius: 12,
+            border: '1px dashed var(--line)',
+          }}
+        >
+          <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginBottom: 10 }}>
+            No guests yet. Import your list to start tracking RSVPs.
+          </div>
+          <Link href="/dashboard/rsvp" className="btn btn-outline btn-sm">
+            <Icon name="users" size={13} /> Add guests
+          </Link>
         </div>
-      ))}
+      )}
       <div style={{ marginTop: 10 }}>
         <Link href="/dashboard/rsvp" className="btn btn-outline btn-sm">
           <Icon name="mail" size={13} /> Message guests
@@ -491,29 +533,141 @@ function LinkedCelebrations({
   );
 }
 
+interface PearChatMessage {
+  role: 'pear' | 'user';
+  text: string;
+}
+
 function PearAssistant() {
+  const [messages, setMessages] = useState<PearChatMessage[]>([
+    {
+      role: 'pear',
+      text:
+        "Hi! I'm Pear. Ask me to draft a guest reminder, brainstorm menu ideas, write invite copy, or anything else — I'll help.",
+    },
+  ]);
+  const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const send = async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || busy) return;
+    setMessages((prev) => [...prev, { role: 'user', text: trimmed }]);
+    setInput('');
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/ai-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: trimmed,
+          // Dashboard-level chat has no single active manifest; send an
+          // empty one and a dashboard siteState so Pear knows this is
+          // general guidance, not a specific-site edit.
+          manifest: {},
+          siteState: 'dashboard',
+          names: null,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.error ?? `Pear is unavailable (${res.status})`);
+      }
+      const reply: string =
+        typeof data?.reply === 'string'
+          ? data.reply
+          : typeof data?.message === 'string'
+            ? data.message
+            : typeof data?.text === 'string'
+              ? data.text
+              : "I'm here whenever you need me. — Pear";
+      setMessages((prev) => [...prev, { role: 'pear', text: reply }]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Pear is resting. Try again in a moment.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const quickActions = [
+    'Write a save-the-date reminder',
+    'Draft a welcome message for guests',
+    'Brainstorm menu ideas',
+  ];
+
   return (
     <Section title="Pear Assistant" icon="sparkles">
-      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 14 }}>
-        <Pear size={48} tone="sage" sparkle />
-        <div
-          style={{
-            background: 'var(--cream-2)',
-            padding: '10px 12px',
-            borderRadius: 12,
-            borderBottomLeftRadius: 2,
-            fontSize: 13,
-            color: 'var(--ink-soft)',
-            lineHeight: 1.45,
-            flex: 1,
-          }}
-        >
-          Hi! I can help with content, design ideas, guest messages, and more.
-        </div>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+          marginBottom: 14,
+          maxHeight: 280,
+          overflowY: 'auto',
+          paddingRight: 4,
+        }}
+      >
+        {messages.map((m, i) => {
+          const mine = m.role === 'user';
+          return (
+            <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', justifyContent: mine ? 'flex-end' : 'flex-start' }}>
+              {!mine && <Pear size={36} tone="sage" sparkle />}
+              <div
+                style={{
+                  background: mine ? 'var(--ink, #18181B)' : 'var(--cream-2)',
+                  color: mine ? 'var(--cream, #FDFAF0)' : 'var(--ink-soft)',
+                  padding: '10px 14px',
+                  borderRadius: 14,
+                  borderBottomLeftRadius: mine ? 14 : 2,
+                  borderBottomRightRadius: mine ? 2 : 14,
+                  fontSize: 13,
+                  lineHeight: 1.5,
+                  maxWidth: '82%',
+                  whiteSpace: 'pre-wrap',
+                }}
+              >
+                {m.text}
+              </div>
+            </div>
+          );
+        })}
+        {busy && (
+          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <Pear size={36} tone="sage" sparkle />
+            <div
+              style={{
+                background: 'var(--cream-2)',
+                padding: '10px 14px',
+                borderRadius: 14,
+                borderBottomLeftRadius: 2,
+                fontSize: 13,
+                color: 'var(--ink-muted)',
+                fontStyle: 'italic',
+              }}
+            >
+              Pear is thinking…
+            </div>
+          </div>
+        )}
       </div>
-      <div style={{ position: 'relative', marginBottom: 10 }}>
+      {error && (
+        <div style={{ fontSize: 12, color: 'var(--peach-ink)', marginBottom: 8 }}>{error}</div>
+      )}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void send(input);
+        }}
+        style={{ position: 'relative', marginBottom: 10 }}
+      >
         <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
           placeholder="Ask Pear anything…"
+          disabled={busy}
           style={{
             width: '100%',
             padding: '12px 48px 12px 16px',
@@ -527,6 +681,8 @@ function PearAssistant() {
           }}
         />
         <button
+          type="submit"
+          disabled={busy || !input.trim()}
           style={{
             position: 'absolute',
             right: 6,
@@ -534,22 +690,34 @@ function PearAssistant() {
             width: 34,
             height: 34,
             borderRadius: '50%',
-            background: 'var(--lavender)',
+            background: input.trim() ? 'var(--lavender-ink, #6B5A8C)' : 'var(--line)',
             display: 'grid',
             placeItems: 'center',
             border: 0,
-            cursor: 'pointer',
+            cursor: busy ? 'wait' : input.trim() ? 'pointer' : 'not-allowed',
           }}
           aria-label="Send"
         >
           <Icon name="arrow-right" size={14} color="#fff" strokeWidth={2.5} />
         </button>
-      </div>
+      </form>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        {['Write invite text', 'Guest reminder', 'Menu ideas'].map((c) => (
-          <span key={c} className="pill pill-cream" style={{ fontSize: 11 }}>
+        {quickActions.map((c) => (
+          <button
+            key={c}
+            type="button"
+            onClick={() => void send(c)}
+            disabled={busy}
+            className="pill pill-cream"
+            style={{
+              fontSize: 11,
+              cursor: busy ? 'wait' : 'pointer',
+              border: 'none',
+              fontFamily: 'inherit',
+            }}
+          >
             {c}
-          </span>
+          </button>
         ))}
       </div>
     </Section>
@@ -658,7 +826,16 @@ export function DashHomeV8() {
         <div className="pl8-dash-threecol" style={{ marginTop: 24 }}>
           <EventSites sites={sites ?? []} loading={loading} />
           <Milestones eventDate={site?.eventDate ?? null} />
-          <GuestTasks rsvps={stats.rsvps} />
+          <GuestTasks
+            invited={stats.invited}
+            responded={stats.rsvps}
+            yes={stats.yes}
+            no={stats.no}
+            awaiting={stats.awaiting}
+            needRsvp={stats.awaiting}
+            needMeal={stats.needMeal}
+            needSong={stats.needSong}
+          />
         </div>
         <div className="pl8-dash-threecol-b" style={{ marginTop: 16 }}>
           <Moments />

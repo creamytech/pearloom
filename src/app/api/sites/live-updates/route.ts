@@ -30,32 +30,8 @@ function getSupabase() {
   return createClient(url, key);
 }
 
-const MOCK_UPDATES = [
-  {
-    id: '1',
-    subdomain: 'demo',
-    message: 'We just arrived at the venue — it looks absolutely magical!',
-    photo_url: null,
-    type: 'ceremony',
-    created_at: new Date(Date.now() - 7200000).toISOString(),
-  },
-  {
-    id: '2',
-    subdomain: 'demo',
-    message: 'The ceremony has begun. We said "I do!" 💍',
-    photo_url: null,
-    type: 'ceremony',
-    created_at: new Date(Date.now() - 3600000).toISOString(),
-  },
-  {
-    id: '3',
-    subdomain: 'demo',
-    message: 'Cocktail hour underway — the garden is gorgeous!',
-    photo_url: null,
-    type: 'cocktail',
-    created_at: new Date(Date.now() - 1800000).toISOString(),
-  },
-];
+// Supabase-missing responses return an empty list rather than
+// demo live-update messages. Real sites only show what hosts posted.
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -67,10 +43,7 @@ export async function GET(req: NextRequest) {
 
   const supabase = getSupabase();
   if (!supabase) {
-    return NextResponse.json({
-      updates: MOCK_UPDATES.filter(u => u.subdomain === subdomain || subdomain === 'demo'),
-      mock: true,
-    });
+    return NextResponse.json({ updates: [] });
   }
 
   try {

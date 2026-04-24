@@ -7,7 +7,20 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 export interface DashStats {
   visits: number;
   today: number;
+  /** Anyone who has set attending to true OR false (not null). */
   rsvps: number;
+  /** Full invite list (guests table row count). */
+  invited: number;
+  /** attending === true */
+  yes: number;
+  /** attending === false */
+  no: number;
+  /** attending === null (invited but not yet responded). */
+  awaiting: number;
+  /** No meal selected yet — counts attending: true guests without meal. */
+  needMeal: number;
+  /** No song request yet — counts attending: true guests without song. */
+  needSong: number;
   registryClicks: number;
   messages: number;
   // Prior 7-day window so we can compute a delta.
@@ -34,6 +47,12 @@ export function useDashStats(siteId?: string | null): DashStats {
     visits: 0,
     today: 0,
     rsvps: 0,
+    invited: 0,
+    yes: 0,
+    no: 0,
+    awaiting: 0,
+    needMeal: 0,
+    needSong: 0,
     registryClicks: 0,
     messages: 0,
     visitsPrior: 0,
@@ -69,13 +88,32 @@ export function useDashStats(siteId?: string | null): DashStats {
           : { guests: [] };
         const reg =
           regRes && regRes.ok ? await regRes.json().catch(() => ({ clicks: 0 })) : { clicks: 0 };
-        const rsvpCount = Array.isArray(rsvp.guests)
-          ? rsvp.guests.filter((g: { attending?: boolean | null }) => g.attending !== null).length
-          : 0;
+        type Guest = {
+          attending?: boolean | null;
+          meal_preference?: string | null;
+          meal?: string | null;
+          song_request?: string | null;
+          song?: string | null;
+        };
+        const guests: Guest[] = Array.isArray(rsvp.guests) ? (rsvp.guests as Guest[]) : [];
+        const invited = guests.length;
+        const responded = guests.filter((g) => g.attending !== null && g.attending !== undefined).length;
+        const yes = guests.filter((g) => g.attending === true).length;
+        const no = guests.filter((g) => g.attending === false).length;
+        const awaiting = Math.max(0, invited - responded);
+        const attending = guests.filter((g) => g.attending === true);
+        const needMeal = attending.filter((g) => !g.meal_preference && !g.meal).length;
+        const needSong = attending.filter((g) => !g.song_request && !g.song).length;
         setState({
           visits: Number(visits.visits) || 0,
           today: Number(visits.today) || 0,
-          rsvps: rsvpCount,
+          rsvps: responded,
+          invited,
+          yes,
+          no,
+          awaiting,
+          needMeal,
+          needSong,
           registryClicks: Number(reg.clicks) || 0,
           messages: 0,
           visitsPrior: 0,

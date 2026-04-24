@@ -757,34 +757,55 @@ function ChapterCard({
 function DetailsStrip({ manifest }: { manifest: StoryManifest }) {
   const l = manifest.logistics ?? {};
   const dateInfo = fmtEventDate(l.date);
-  const time = l.time;
-  const dresscode = l.dresscode ?? 'Garden party';
-  const notes = l.notes ?? 'Bring a light layer — it cools off after dark.';
-  const ceremonyTime = time ?? '4:00 PM';
+  const events = manifest.events ?? [];
 
-  const items = [
-    {
+  // Build items from actual manifest data — only surface what the
+  // host has filled in. If they haven't set anything, the whole
+  // strip hides rather than advertising demo copy.
+  type Item = { t: string; v: string; s: string; icon: string; tone: 'lavender' | 'peach' | 'sage' };
+  const items: Item[] = [];
+
+  const ceremony = events.find((e) => e.type === 'ceremony');
+  if (ceremony) {
+    items.push({
       t: 'Ceremony',
-      v: ceremonyTime,
-      s: l.venue ?? 'Our venue',
+      v: ceremony.time || (dateInfo?.pretty ?? ''),
+      s: ceremony.venue || l.venue || '',
       icon: 'calendar-check',
-      tone: 'lavender' as const,
-    },
-    {
+      tone: 'lavender',
+    });
+  } else if (l.time || l.venue) {
+    items.push({
+      t: 'Ceremony',
+      v: l.time ?? (dateInfo?.pretty ?? ''),
+      s: l.venue ?? '',
+      icon: 'calendar-check',
+      tone: 'lavender',
+    });
+  }
+
+  const reception = events.find((e) => e.type === 'reception');
+  if (reception) {
+    items.push({
       t: 'Reception',
-      v: 'To follow',
-      s: 'Dinner, toasts, dancing',
+      v: reception.time || '',
+      s: reception.venue || '',
       icon: 'sparkles',
-      tone: 'peach' as const,
-    },
-    {
+      tone: 'peach',
+    });
+  }
+
+  if (l.dresscode) {
+    items.push({
       t: 'Dress code',
-      v: dresscode,
-      s: notes,
+      v: l.dresscode,
+      s: l.notes ?? '',
       icon: 'type',
-      tone: 'sage' as const,
-    },
-  ];
+      tone: 'sage',
+    });
+  }
+
+  if (items.length === 0) return null;
   void dateInfo;
 
   return (
@@ -851,22 +872,41 @@ function DetailsStrip({ manifest }: { manifest: StoryManifest }) {
 /* ==================== SCHEDULE ==================== */
 function ScheduleSection({ manifest, names }: { manifest: StoryManifest; names: [string, string] }) {
   const dateInfo = fmtEventDate(manifest.logistics?.date);
-  const rows = [
-    { time: '3:30', title: 'Arrive & settle', d: 'Grab a drink, grab a seat.', tag: 'Welcome' },
-    { time: '4:00', title: 'Ceremony', d: 'Forty minutes, give or take a few happy tears.', tag: 'Ceremony', cur: true },
-    { time: '4:45', title: 'Cocktail hour', d: 'Signature drinks. Lawn games for the brave.', tag: 'Reception' },
-    { time: '6:00', title: 'Dinner', d: 'Family-style, local. Toasts from family.', tag: 'Reception' },
-    { time: '8:30', title: 'First dance + open floor', d: 'We’re doing the slow one and the loud one back to back.', tag: 'Party' },
-    { time: '10:30', title: 'Late-night bites', d: 'Because you’ll be hungry again, promise.', tag: 'Party' },
-    { time: '11:30', title: 'Send-off', d: 'We’ll see you soon. Safe travels.', tag: 'Send-off' },
-  ];
+  const events = manifest.events ?? [];
+  // Hide the whole section rather than ship a demo schedule.
+  if (events.length === 0) return null;
+
+  const tagFromType: Record<string, string> = {
+    ceremony: 'Ceremony',
+    reception: 'Reception',
+    rehearsal: 'Rehearsal',
+    brunch: 'Brunch',
+    'welcome-party': 'Welcome',
+    other: 'Other',
+  };
   const tagClass: Record<string, string> = {
     Welcome: 'chip-sage',
     Ceremony: 'chip-peach',
     Reception: 'chip-lavender',
-    Party: 'chip-gold',
-    'Send-off': 'chip-cream',
+    Rehearsal: 'chip-cream',
+    Brunch: 'chip-gold',
+    Other: 'chip-cream',
   };
+  // Real host-authored events, ordered by time (or by `order` if the
+  // host dragged them in the editor).
+  const sorted = [...events].sort((a, b) => {
+    const ao = a.order ?? 0;
+    const bo = b.order ?? 0;
+    if (ao !== bo) return ao - bo;
+    return (a.time ?? '').localeCompare(b.time ?? '');
+  });
+  const rows = sorted.map((e) => ({
+    time: e.time ?? '',
+    title: e.name,
+    d: e.description ?? '',
+    tag: tagFromType[e.type] ?? 'Other',
+    cur: e.type === 'ceremony',
+  }));
   void names;
 
   return (
@@ -1059,20 +1099,51 @@ function TravelSection({ manifest }: { manifest: StoryManifest }) {
 
 /* ==================== REGISTRY ==================== */
 function RegistrySection({ manifest }: { manifest: StoryManifest }) {
-  const registryLinks = (manifest as unknown as { registry?: Array<{ label: string; url: string }> }).registry ?? [];
-  const gifts = registryLinks.length
-    ? registryLinks.slice(0, 3).map((r, i) => ({
-        name: r.label,
-        d: r.url.replace(/^https?:\/\//, '').split('/')[0],
-        url: r.url,
-        icon: ['gift', 'compass', 'image'][i % 3],
-        tone: (['peach', 'sage', 'lavender'] as const)[i % 3],
-      }))
-    : [
-        { name: 'Honeymoon fund', d: 'A trip worth the wait. Thank you, truly.', url: '#', icon: 'compass', tone: 'peach' as const },
-        { name: 'A good kitchen', d: 'Pans, knives, the one heavy pot.', url: '#', icon: 'gift', tone: 'sage' as const },
-        { name: 'The wall gallery', d: 'Prints, frames, that hallway.', url: '#', icon: 'image', tone: 'lavender' as const },
-      ];
+  // Pull from the real manifest shape: registry.entries[] +
+  // registry.cashFundUrl / message. When nothing is set, the
+  // whole section hides so we never ship "Honeymoon fund / A
+  // good kitchen" demo copy.
+  type RegistryEntry = { name?: string; label?: string; url: string; note?: string };
+  const reg = manifest.registry as undefined | {
+    enabled?: boolean;
+    entries?: RegistryEntry[];
+    cashFundUrl?: string;
+    cashFundMessage?: string;
+    message?: string;
+  };
+  const entries = reg?.entries ?? [];
+  const hasCashFund = Boolean(reg?.cashFundUrl);
+  // Legacy shape — registry sometimes lived as a flat array on the manifest.
+  const legacyList = (manifest as unknown as { registry?: Array<{ label: string; url: string }> }).registry;
+  const legacyEntries = Array.isArray(legacyList) ? legacyList : [];
+  const combined = [
+    ...entries.map((e, i) => ({
+      name: e.name ?? e.label ?? 'Registry',
+      d: e.note ?? (e.url ? e.url.replace(/^https?:\/\//, '').split('/')[0] : ''),
+      url: e.url,
+      icon: ['gift', 'compass', 'image'][i % 3],
+      tone: (['peach', 'sage', 'lavender'] as const)[i % 3],
+    })),
+    ...legacyEntries.map((r, i) => ({
+      name: r.label,
+      d: r.url.replace(/^https?:\/\//, '').split('/')[0],
+      url: r.url,
+      icon: ['gift', 'compass', 'image'][i % 3],
+      tone: (['peach', 'sage', 'lavender'] as const)[i % 3],
+    })),
+  ];
+  if (hasCashFund && reg?.cashFundUrl) {
+    combined.unshift({
+      name: 'Cash fund',
+      d: reg.cashFundMessage ?? '',
+      url: reg.cashFundUrl,
+      icon: 'compass',
+      tone: 'peach' as const,
+    });
+  }
+  const gifts = combined.slice(0, 6);
+  // No user-provided registry? Don't render demo gifts.
+  if (gifts.length === 0) return null;
 
   return (
     <section id="registry" style={{ padding: 'clamp(48px, 8vw, 100px) 32px' }}>
