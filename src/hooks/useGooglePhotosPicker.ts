@@ -21,7 +21,11 @@ export interface PickedPhoto {
 type PickerState = 'idle' | 'creating' | 'waiting' | 'fetching' | 'done' | 'error';
 
 const MAX_POLL_MS = 30 * 60 * 1000; // 30 minutes
-const GRACE_MS = 8_000; // wait after popup closes before giving up
+// Google often takes 15–25s after the popup closes to register the
+// selection — 8s was too tight and made the picker feel broken.
+// Also, users frequently dismiss the popup once they're *starting*
+// to pick and come back later; keep polling well past that.
+const GRACE_MS = 45_000; // wait after popup closes before giving up
 
 export function useGooglePhotosPicker() {
   const [state, setState] = useState<PickerState>('idle');

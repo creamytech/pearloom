@@ -255,10 +255,15 @@ function WizardPhotoUpload({
   }
 
   function handleGoogle() {
-    picker.pick((picked: PickedPhoto[]) => {
+    picker.pick(async (picked: PickedPhoto[]) => {
       const remaining = MAX_WIZARD_PHOTOS - photos.length;
       const accepted = picked.slice(0, Math.max(0, remaining));
-      const next: WizardPhoto[] = accepted.map((g) => ({
+      if (accepted.length === 0) return;
+
+      // 1. Stage immediately with the Google CDN URL so the thumbnails
+      //    paint while the server mirrors in the background. The mirror
+      //    step replaces `url` with a permanent R2 URL once it lands.
+      const staged: WizardPhoto[] = accepted.map((g) => ({
         id: g.id,
         url: g.baseUrl,
         previewUrl: g.baseUrl,
@@ -267,9 +272,65 @@ function WizardPhotoUpload({
         width: g.width,
         height: g.height,
         source: 'google' as const,
-        uploading: false,
+        uploading: true,
       }));
-      onChange([...photos, ...next]);
+      onChange([...photos, ...staged]);
+
+      // 2. Mirror each Google URL to R2 via /api/photos/upload. The
+      //    server fetches each URL with the session's OAuth token and
+      //    writes the bytes to R2 — same path as device uploads. This
+      //    guarantees the photo survives past Google's ~1h CDN expiry.
+      try {
+        const res = await fetch('/api/photos/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            photos: staged.map((p, i) => ({
+              id: p.id,
+              filename: p.name ?? `google-${i}.jpg`,
+              mimeType: p.mimeType ?? 'image/jpeg',
+              sourceUrl: p.previewUrl,
+              capturedAt: p.takenAt,
+              width: p.width,
+              height: p.height,
+            })),
+          }),
+        });
+        if (!res.ok) throw new Error(`mirror ${res.status}`);
+        const data = (await res.json()) as {
+          photos?: Array<{ id: string; baseUrl: string; width?: number; height?: number }>;
+        };
+        const byId = new Map(data.photos?.map((p) => [p.id, p]) ?? []);
+        // Patch staged photos with the mirrored R2 URL. Use the freshest
+        // photos array from state to avoid racing with other edits.
+        onChange([
+          ...photos,
+          ...staged.map((s) => {
+            const hit = byId.get(s.id);
+            if (!hit?.baseUrl) {
+              // Mirror failed but we still have the Google CDN URL;
+              // keep it so the user sees their photo. The manifest
+              // pipeline also runs `mirrorManifestPhotos` at publish,
+              // so this becomes a secondary safety net.
+              return { ...s, uploading: false };
+            }
+            return {
+              ...s,
+              uploading: false,
+              url: hit.baseUrl,
+              previewUrl: hit.baseUrl,
+              width: hit.width ?? s.width,
+              height: hit.height ?? s.height,
+            };
+          }),
+        ]);
+      } catch (err) {
+        console.warn('[wizard] Google mirror failed:', err);
+        onChange([
+          ...photos,
+          ...staged.map((s) => ({ ...s, uploading: false })),
+        ]);
+      }
     });
   }
 

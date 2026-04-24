@@ -46,8 +46,17 @@ interface UploadPayload {
   /**
    * Base64-encoded image bytes — can be a full data URL
    * (`data:image/jpeg;base64,…`) or a raw base64 string.
+   * Mutually exclusive with `sourceUrl`.
    */
-  base64: string;
+  base64?: string;
+  /**
+   * Remote source URL (typically a Google Photos / picker URL) that
+   * the server should fetch using the session's OAuth access token
+   * and mirror to R2. Mutually exclusive with `base64`. Used by the
+   * Google Photos picker flow so wizard photos flow to R2 like
+   * device uploads instead of relying on the short-lived CDN URL.
+   */
+  sourceUrl?: string;
   /**
    * Original capture time from `file.lastModified` if the
    * browser exposed it. ISO 8601. Falls back to request time.
@@ -114,18 +123,42 @@ export async function POST(req: NextRequest) {
       | { ok: false; error: string; index: number }
     > => {
       try {
-        if (!p.base64 || typeof p.base64 !== 'string') {
-          return { ok: false, error: 'Missing base64 data', index: idx };
+        // Resolve bytes from either base64 body or a remote URL. The
+        // Google Photos picker path sends `sourceUrl` so the server
+        // fetches with the session's OAuth token and mirrors straight
+        // to R2 — wizard photos end up on R2 exactly like device
+        // uploads instead of holding a 1h-expiring Google CDN URL.
+        let buffer: Buffer;
+        let fetchedMime: string | undefined;
+        if (p.base64 && typeof p.base64 === 'string') {
+          const commaIdx = p.base64.indexOf(',');
+          const rawB64 =
+            commaIdx > -1 && p.base64.startsWith('data:')
+              ? p.base64.slice(commaIdx + 1)
+              : p.base64;
+          buffer = Buffer.from(rawB64, 'base64');
+        } else if (p.sourceUrl && typeof p.sourceUrl === 'string') {
+          try {
+            const isGoogle = p.sourceUrl.includes('googleusercontent.com');
+            const sizedUrl = isGoogle && !p.sourceUrl.includes('=') ? `${p.sourceUrl}=w1600-h1200` : p.sourceUrl;
+            const headers: Record<string, string> = {};
+            if (isGoogle && session.accessToken) {
+              headers['Authorization'] = `Bearer ${session.accessToken as string}`;
+            }
+            const fetched = await fetch(sizedUrl, { headers, signal: AbortSignal.timeout(30_000) });
+            if (!fetched.ok) {
+              return { ok: false, error: `Source fetch ${fetched.status}`, index: idx };
+            }
+            buffer = Buffer.from(await fetched.arrayBuffer());
+            fetchedMime = fetched.headers.get('content-type') ?? undefined;
+          } catch (err) {
+            console.warn(`[upload] sourceUrl fetch failed at ${idx}:`, err);
+            return { ok: false, error: 'Failed to fetch source URL', index: idx };
+          }
+        } else {
+          return { ok: false, error: 'Missing base64 or sourceUrl', index: idx };
         }
 
-        // Strip `data:image/jpeg;base64,` prefix if present.
-        const commaIdx = p.base64.indexOf(',');
-        const rawB64 =
-          commaIdx > -1 && p.base64.startsWith('data:')
-            ? p.base64.slice(commaIdx + 1)
-            : p.base64;
-
-        const buffer = Buffer.from(rawB64, 'base64');
         if (buffer.length === 0) {
           return { ok: false, error: 'Empty photo', index: idx };
         }
@@ -137,7 +170,7 @@ export async function POST(req: NextRequest) {
           };
         }
 
-        const mimeType = p.mimeType || 'image/jpeg';
+        const mimeType = fetchedMime || p.mimeType || 'image/jpeg';
         const ext = extFromMime(mimeType);
         const safeId = (p.id || `photo-${idx}`).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64);
         const path = `uploads/${userSlug}/${sessionSlug}/${safeId}.${ext}`;
