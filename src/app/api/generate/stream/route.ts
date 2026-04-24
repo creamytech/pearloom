@@ -807,6 +807,34 @@ export async function POST(req: Request) {
         // ── Renderer version — new sites default to v2 ─────────
         manifest.rendererVersion = 'v2';
 
+        // ── User-picked palette wins over AI-generated vibeSkin ──
+        // When the wizard user picked a palette (either a preset or
+        // an AI-suggested one), honour their choice on `manifest.theme.colors`
+        // — that's what SiteV8Renderer reads. Without this, we spent
+        // pipeline time on colour picking and then ignored the user's
+        // actual selection.
+        if (Array.isArray(selectedPaletteColors) && selectedPaletteColors.length >= 3) {
+          const [bg, accent, accentLight, foreground, muted] = [
+            selectedPaletteColors[0] ?? '#F5EFE2',
+            selectedPaletteColors[1] ?? '#5C6B3F',
+            selectedPaletteColors[2] ?? '#E0DDC9',
+            selectedPaletteColors[3] ?? '#0E0D0B',
+            selectedPaletteColors[4] ?? '#6F6557',
+          ];
+          manifest.theme = {
+            ...(manifest.theme ?? {}),
+            colors: {
+              ...(manifest.theme?.colors ?? {}),
+              background: bg,
+              foreground,
+              accent,
+              accentLight,
+              muted,
+              cardBg: bg,
+            },
+          } as StoryManifest['theme'];
+        }
+
         // ── Consent + tone rails ──────────────────────────────
         // Write the wizard's soft signals onto the manifest so the
         // editor can read them and the published site can honor them.

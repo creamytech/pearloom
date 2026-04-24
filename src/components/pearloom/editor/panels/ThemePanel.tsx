@@ -6,11 +6,40 @@ import { Blob, Pear, Sparkle, Squiggle } from '../../motifs';
 import { DecorLibraryPanel } from './DecorLibraryPanel';
 import { StickerTrayPanel } from './StickerTrayPanel';
 
-const PALETTES = [
-  { id: 'groovy-garden', name: 'Groovy Garden', colors: ['#3D4A1F', '#8B9C5A', '#C4B5D9', '#F3E9D4', '#2A3512', '#D7CCE5'] },
-  { id: 'dusk-meadow', name: 'Dusk Meadow', colors: ['#6B5A8C', '#B7A4D0', '#CBD29E', '#F3E9D4', '#4A3F6B', '#D7CCE5'] },
-  { id: 'warm-linen', name: 'Warm Linen', colors: ['#8B4720', '#EAB286', '#F7DDC2', '#F3E9D4', '#C6703D', '#FBE8D6'] },
-  { id: 'olive-gold', name: 'Olive & Gold', colors: ['#3D4A1F', '#6d7d3f', '#D4A95D', '#F3E9D4', '#B89244', '#CBD29E'] },
+interface ThemePreset {
+  id: string;
+  name: string;
+  /** Swatch-display row (order: accent, secondary, tertiary, paper, deep, soft). */
+  colors: string[];
+  /** Canonical theme colors the renderer consumes. */
+  theme: { background: string; foreground: string; accent: string; accentLight: string; muted: string; cardBg: string };
+}
+
+const PALETTES: ThemePreset[] = [
+  {
+    id: 'groovy-garden',
+    name: 'Groovy Garden',
+    colors: ['#3D4A1F', '#8B9C5A', '#C4B5D9', '#F3E9D4', '#2A3512', '#D7CCE5'],
+    theme: { background: '#F3E9D4', foreground: '#2A3512', accent: '#3D4A1F', accentLight: '#D7CCE5', muted: '#6D7D3F', cardBg: '#FBF4E0' },
+  },
+  {
+    id: 'dusk-meadow',
+    name: 'Dusk Meadow',
+    colors: ['#6B5A8C', '#B7A4D0', '#CBD29E', '#F3E9D4', '#4A3F6B', '#D7CCE5'],
+    theme: { background: '#F3E9D4', foreground: '#4A3F6B', accent: '#6B5A8C', accentLight: '#D7CCE5', muted: '#8A7DAE', cardBg: '#FBF4E0' },
+  },
+  {
+    id: 'warm-linen',
+    name: 'Warm Linen',
+    colors: ['#8B4720', '#EAB286', '#F7DDC2', '#F3E9D4', '#C6703D', '#FBE8D6'],
+    theme: { background: '#F3E9D4', foreground: '#5B3520', accent: '#C6703D', accentLight: '#FBE8D6', muted: '#8B4720', cardBg: '#FBF4E0' },
+  },
+  {
+    id: 'olive-gold',
+    name: 'Olive & Gold',
+    colors: ['#3D4A1F', '#6d7d3f', '#D4A95D', '#F3E9D4', '#B89244', '#CBD29E'],
+    theme: { background: '#F3E9D4', foreground: '#2B341A', accent: '#D4A95D', accentLight: '#E9E0C6', muted: '#6D7D3F', cardBg: '#FBF4E0' },
+  },
 ];
 
 const MOTIFS = [
@@ -61,6 +90,38 @@ export function ThemePanel({
     onChange({ ...manifest, ...patch } as unknown as StoryManifest);
   }
 
+  /** Writes the preset's full theme to manifest.theme.colors so
+   *  SiteV8Renderer's themeStyle CSS-var overrides see the change
+   *  the moment the user picks a swatch. Also keeps the legacy
+   *  `palette` / `themeName` fields in sync for older consumers. */
+  function applyPalette(preset: ThemePreset) {
+    const existingTheme = (manifest as unknown as { theme?: Record<string, unknown> }).theme ?? {};
+    onChange({
+      ...manifest,
+      palette: preset.id,
+      themeName: preset.name,
+      theme: {
+        ...existingTheme,
+        colors: preset.theme,
+      },
+    } as unknown as StoryManifest);
+  }
+
+  /** Patches manifest.theme.fonts.{heading|body} so typography
+   *  changes from this panel flow through to SiteV8Renderer. */
+  function applyFont(slot: 'heading' | 'body', value: string) {
+    const existingTheme = ((manifest as unknown as { theme?: { fonts?: Record<string, string> } }).theme ?? {}) as Record<string, unknown>;
+    const existingFonts = ((existingTheme.fonts as Record<string, string> | undefined) ?? {}) as Record<string, string>;
+    onChange({
+      ...manifest,
+      [slot === 'heading' ? 'headingFont' : 'bodyFont']: value,
+      theme: {
+        ...existingTheme,
+        fonts: { ...existingFonts, [slot]: value },
+      },
+    } as unknown as StoryManifest);
+  }
+
   return (
     <div>
       <PanelSection label="Active theme" hint="Pearloom themes bundle palette, motif, and typography into a named look.">
@@ -103,7 +164,7 @@ export function ThemePanel({
               <button
                 key={p.id}
                 type="button"
-                onClick={() => update({ palette: p.id, themeName: p.name })}
+                onClick={() => applyPalette(p)}
                 style={{
                   padding: 14,
                   borderRadius: 14,
@@ -178,10 +239,10 @@ export function ThemePanel({
 
       <PanelSection label="Typography" hint="Headlines, body, and handwriting touch.">
         <Field label="Headings">
-          <SelectInput value={headingFont} onChange={(v) => update({ headingFont: v })} options={HEADING_FONTS} />
+          <SelectInput value={headingFont} onChange={(v) => applyFont('heading', v)} options={HEADING_FONTS} />
         </Field>
         <Field label="Body">
-          <SelectInput value={bodyFont} onChange={(v) => update({ bodyFont: v })} options={BODY_FONTS} />
+          <SelectInput value={bodyFont} onChange={(v) => applyFont('body', v)} options={BODY_FONTS} />
         </Field>
         <Field label="Script">
           <SelectInput value={scriptFont} onChange={(v) => update({ scriptFont: v })} options={SCRIPT_FONTS} />
@@ -208,28 +269,6 @@ export function ThemePanel({
       <DecorLibraryPanel manifest={manifest} onChange={onChange} />
 
       <StickerTrayPanel manifest={manifest} onChange={onChange} />
-
-      <div
-        style={{
-          padding: 16,
-          background: 'var(--lavender-bg)',
-          border: '1px solid rgba(107,90,140,0.18)',
-          borderRadius: 14,
-          display: 'flex',
-          gap: 12,
-          alignItems: 'flex-start',
-        }}
-      >
-        <Pear size={36} tone="sage" />
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--lavender-ink)', marginBottom: 2 }}>
-            Try Pear Assistant <Sparkle size={10} />
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
-            Want a new combination? Tell Pear the vibe and it'll suggest a palette + motif.
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

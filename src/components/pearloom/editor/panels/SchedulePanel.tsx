@@ -1,27 +1,26 @@
 'use client';
 
-import type { StoryManifest } from '@/types';
+import type { StoryManifest, WeddingEvent } from '@/types';
 import { AddRowButton, EmptyBlockState, Field, PanelSection, SelectInput, TextArea, TextInput } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 
-type ScheduleItem = {
-  id: string;
-  time: string;
-  title: string;
-  description?: string;
-  tag?: 'Welcome' | 'Ceremony' | 'Reception' | 'Party' | 'Send-off';
-};
+// The canvas renderer reads `manifest.events` — keep this panel on
+// the same shape so edits flow through. (Earlier versions wrote to
+// `manifest.schedule` which the v8 renderer never read, so panel
+// changes silently did nothing.)
 
-const TAGS: Array<{ value: string; label: string }> = [
-  { value: 'Welcome', label: 'Welcome' },
-  { value: 'Ceremony', label: 'Ceremony' },
-  { value: 'Reception', label: 'Reception' },
-  { value: 'Party', label: 'Party' },
-  { value: 'Send-off', label: 'Send-off' },
+const TYPE_OPTIONS: Array<{ value: WeddingEvent['type']; label: string }> = [
+  { value: 'welcome-party', label: 'Welcome' },
+  { value: 'rehearsal', label: 'Rehearsal' },
+  { value: 'ceremony', label: 'Ceremony' },
+  { value: 'reception', label: 'Reception' },
+  { value: 'brunch', label: 'Brunch' },
+  { value: 'other', label: 'Other' },
 ];
 
-function getSchedule(manifest: StoryManifest): ScheduleItem[] {
-  return ((manifest as unknown as { schedule?: ScheduleItem[] }).schedule ?? []) as ScheduleItem[];
+function getEvents(manifest: StoryManifest): WeddingEvent[] {
+  const arr = (manifest as unknown as { events?: WeddingEvent[] }).events;
+  return Array.isArray(arr) ? arr : [];
 }
 
 export function SchedulePanel({
@@ -31,32 +30,43 @@ export function SchedulePanel({
   manifest: StoryManifest;
   onChange: (m: StoryManifest) => void;
 }) {
-  const items = getSchedule(manifest);
+  const items = getEvents(manifest);
 
-  function set(next: ScheduleItem[]) {
-    onChange({ ...manifest, schedule: next } as unknown as StoryManifest);
+  function set(next: WeddingEvent[]) {
+    onChange({ ...manifest, events: next.map((e, i) => ({ ...e, order: i })) } as unknown as StoryManifest);
   }
 
-  function update(idx: number, patch: Partial<ScheduleItem>) {
+  function update(idx: number, patch: Partial<WeddingEvent>) {
     set(items.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
   }
 
   function add() {
     set([
       ...items,
-      { id: `evt-${Date.now().toString(36)}`, time: '4:00', title: 'New moment', description: '', tag: 'Reception' },
+      {
+        id: `evt-${Date.now().toString(36)}`,
+        name: 'New moment',
+        type: 'reception',
+        date: manifest.logistics?.date ?? '',
+        time: '4:00',
+        venue: '',
+        address: '',
+        description: '',
+        order: items.length,
+      } as WeddingEvent,
     ]);
   }
 
   function preset() {
+    const d = manifest.logistics?.date ?? '';
     set([
-      { id: 'evt-arrive', time: '3:30', title: 'Arrive & settle', description: 'Grab a drink, grab a seat.', tag: 'Welcome' },
-      { id: 'evt-ceremony', time: '4:00', title: 'Ceremony', description: 'Forty minutes, give or take a few happy tears.', tag: 'Ceremony' },
-      { id: 'evt-cocktail', time: '4:45', title: 'Cocktail hour', description: 'Signature drinks. Lawn games for the brave.', tag: 'Reception' },
-      { id: 'evt-dinner', time: '6:00', title: 'Dinner', description: 'Family-style, local. Toasts from family.', tag: 'Reception' },
-      { id: 'evt-dance', time: '8:30', title: 'First dance + open floor', description: 'The slow one, then the loud one.', tag: 'Party' },
-      { id: 'evt-pie', time: '10:30', title: 'Late-night bites', description: "You'll be hungry again, promise.", tag: 'Party' },
-      { id: 'evt-sendoff', time: '11:30', title: 'Send-off', description: 'Safe travels.', tag: 'Send-off' },
+      { id: 'evt-arrive', name: 'Arrive & settle', type: 'welcome-party', date: d, time: '3:30', venue: '', address: '', description: 'Grab a drink, grab a seat.', order: 0 } as WeddingEvent,
+      { id: 'evt-ceremony', name: 'Ceremony', type: 'ceremony', date: d, time: '4:00', venue: '', address: '', description: 'Forty minutes, give or take a few happy tears.', order: 1 } as WeddingEvent,
+      { id: 'evt-cocktail', name: 'Cocktail hour', type: 'reception', date: d, time: '4:45', venue: '', address: '', description: 'Signature drinks. Lawn games for the brave.', order: 2 } as WeddingEvent,
+      { id: 'evt-dinner', name: 'Dinner', type: 'reception', date: d, time: '6:00', venue: '', address: '', description: 'Family-style, local. Toasts from family.', order: 3 } as WeddingEvent,
+      { id: 'evt-dance', name: 'First dance + open floor', type: 'reception', date: d, time: '8:30', venue: '', address: '', description: 'The slow one, then the loud one.', order: 4 } as WeddingEvent,
+      { id: 'evt-pie', name: 'Late-night bites', type: 'reception', date: d, time: '10:30', venue: '', address: '', description: "You'll be hungry again, promise.", order: 5 } as WeddingEvent,
+      { id: 'evt-sendoff', name: 'Send-off', type: 'other', date: d, time: '11:30', venue: '', address: '', description: 'Safe travels.', order: 6 } as WeddingEvent,
     ]);
   }
 
@@ -68,8 +78,8 @@ export function SchedulePanel({
         action={items.length > 0 ? <AddRowButton label="Add moment" onClick={add} /> : null}
       >
         <SortableList
-          items={items}
-          onReorder={set}
+          items={items as unknown as Array<{ id: string }>}
+          onReorder={(next) => set(next as unknown as WeddingEvent[])}
           emptyState={
             <EmptyBlockState
               icon="clock"
@@ -87,22 +97,23 @@ export function SchedulePanel({
               }
             />
           }
-          renderItem={(it, { handle }) => {
+          renderItem={(itRaw, { handle }) => {
+            const it = itRaw as unknown as WeddingEvent;
             const i = items.findIndex((x) => x.id === it.id);
             return (
               <SortableRowCard handle={handle} onDelete={() => set(items.filter((_, idx) => idx !== i))}>
                 <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr 130px', gap: 10 }}>
                   <Field label="Time">
-                    <TextInput value={it.time} onChange={(e) => update(i, { time: e.target.value })} placeholder="4:00" />
+                    <TextInput value={it.time ?? ''} onChange={(e) => update(i, { time: e.target.value })} placeholder="4:00" />
                   </Field>
                   <Field label="Title">
-                    <TextInput value={it.title} onChange={(e) => update(i, { title: e.target.value })} placeholder="Ceremony" />
+                    <TextInput value={it.name ?? ''} onChange={(e) => update(i, { name: e.target.value })} placeholder="Ceremony" />
                   </Field>
-                  <Field label="Tag">
+                  <Field label="Type">
                     <SelectInput
-                      value={it.tag ?? 'Reception'}
-                      onChange={(v) => update(i, { tag: v as ScheduleItem['tag'] })}
-                      options={TAGS}
+                      value={(it.type ?? 'reception') as string}
+                      onChange={(v) => update(i, { type: v as WeddingEvent['type'] })}
+                      options={TYPE_OPTIONS.map((o) => ({ value: o.value as string, label: o.label }))}
                     />
                   </Field>
                 </div>

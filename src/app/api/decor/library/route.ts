@@ -23,7 +23,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { openaiGenerateImage } from '@/lib/memory-engine/openai-image';
+import { openaiGenerateImage, getLastOpenAIError } from '@/lib/memory-engine/openai-image';
 import { uploadToR2, getR2Url } from '@/lib/r2';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import {
@@ -142,17 +142,17 @@ async function generateDivider(apiKey: string, ctx: DecorContext, siteId: string
   const result = await openaiGenerateImage({
     apiKey,
     prompt: dividerPrompt(ctx),
-    size: '2048x1024',
+    size: '1536x1024',
     quality: 'high',
     format: 'png',
   });
-  if (!result?.base64) throw new Error('Empty divider response');
-  // Crop to the central ~25% band (horizontal-only) so the divider
-  // reads tight against the paper grain, with 200px padding preserved
-  // top and bottom so the ornament has breathing room.
+  if (!result?.base64) throw new Error(`Divider failed: ${getLastOpenAIError() ?? 'no response'}`);
+  // The model returns 1536×1024; grab the middle ~25% band so the
+  // divider reads tight against the paper grain when rendered as a
+  // repeating horizontal strip.
   const buf = Buffer.from(result.base64, 'base64');
   const cropped = await sharp(buf)
-    .extract({ left: 0, top: 340, width: 2048, height: 340 })
+    .extract({ left: 0, top: 340, width: 1536, height: 340 })
     .png()
     .toBuffer();
 
@@ -166,19 +166,21 @@ async function generateSectionStamps(
   ctx: DecorContext,
   siteId: string,
 ): Promise<Record<string, string>> {
+  // The model's widest supported size is 1536×1024; we lay six stamps
+  // out 3×2 into that frame and slice client-side.
   const result = await openaiGenerateImage({
     apiKey,
     prompt: sectionStampsPrompt(ctx),
-    size: '2048x1536',
+    size: '1536x1024',
     quality: 'high',
     format: 'png',
   });
-  if (!result?.base64) throw new Error('Empty stamp-sheet response');
+  if (!result?.base64) throw new Error(`Stamps failed: ${getLastOpenAIError() ?? 'no response'}`);
 
   const buf = Buffer.from(result.base64, 'base64');
-  // Slice into 3 cols × 2 rows of tiles. Each tile is 683×768.
-  const tileW = Math.floor(2048 / 3);
-  const tileH = Math.floor(1536 / 2);
+  // 3 cols × 2 rows inside a 1536×1024 sheet → each tile 512×512.
+  const tileW = 512;
+  const tileH = 512;
   const stamps: Record<string, string> = {};
   const timestamp = Date.now();
   for (let i = 0; i < 6; i++) {
@@ -186,7 +188,6 @@ async function generateSectionStamps(
     const row = Math.floor(i / 3);
     const tile = await sharp(buf)
       .extract({ left: col * tileW, top: row * tileH, width: tileW, height: tileH })
-      // Trim generous padding so the stamp reads as a small icon.
       .resize(512, 512, { fit: 'inside' })
       .png()
       .toBuffer();
@@ -205,7 +206,7 @@ async function generateConfetti(apiKey: string, ctx: DecorContext, siteId: strin
     quality: 'high',
     format: 'png',
   });
-  if (!result?.base64) throw new Error('Empty confetti response');
+  if (!result?.base64) throw new Error(`Confetti failed: ${getLastOpenAIError() ?? 'no response'}`);
   const key = `decor/${siteId}/${Date.now()}-confetti.png`;
   await uploadToR2(key, Buffer.from(result.base64, 'base64'), 'image/png');
   return getR2Url(key);
@@ -223,7 +224,7 @@ async function generateFooterBouquet(
     quality: 'high',
     format: 'png',
   });
-  if (!result?.base64) throw new Error('Empty bouquet response');
+  if (!result?.base64) throw new Error(`Bouquet failed: ${getLastOpenAIError() ?? 'no response'}`);
   const key = `decor/${siteId}/${Date.now()}-bouquet.png`;
   await uploadToR2(key, Buffer.from(result.base64, 'base64'), 'image/png');
   return getR2Url(key);

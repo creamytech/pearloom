@@ -77,9 +77,35 @@ export function TravelPanel({
   const logistics = manifest.logistics ?? {};
 
   function setTravel(patch: { hotels?: Hotel[]; intro?: string; blockCode?: string }) {
+    // Write to BOTH the legacy shape (manifest.travel) used by older
+    // consumers AND the canonical shape (manifest.travelInfo) that the
+    // v8 canvas reads. Without this second write hotels added here
+    // never rendered on the site — the canvas only reads travelInfo.
+    const existingLegacy = (manifest as unknown as { travel?: Record<string, unknown> }).travel ?? {};
+    const nextLegacy = { ...existingLegacy, ...patch };
+
+    // Project Hotel[] → HotelBlock[] for the renderer.
+    const hotelsForRender = patch.hotels
+      ? patch.hotels.map((h) => ({
+          name: h.name,
+          address: h.distance ?? '',
+          bookingUrl: h.bookingUrl,
+          groupRate: h.price,
+          notes: h.description,
+        }))
+      : undefined;
+
+    const existingInfo = manifest.travelInfo ?? { airports: [], hotels: [] };
+    const nextInfo = {
+      ...existingInfo,
+      airports: existingInfo.airports ?? [],
+      hotels: hotelsForRender ?? existingInfo.hotels ?? [],
+    };
+
     onChange({
       ...manifest,
-      travel: { ...(manifest as unknown as { travel?: Record<string, unknown> }).travel, ...patch },
+      travel: nextLegacy,
+      travelInfo: nextInfo,
     } as unknown as StoryManifest);
   }
 

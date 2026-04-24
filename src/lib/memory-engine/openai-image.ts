@@ -1,19 +1,19 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / lib/memory-engine/openai-image.ts
 //
-// OpenAI GPT Image 2 (gpt-image-2) client — higher-quality,
-// reasoning-aware image generator. Released 2026-04-21.
+// OpenAI GPT Image client (gpt-image-1).
 //
-// vs gpt-image-1 (the previous version we were on):
-//   - Arbitrary sizes up to 3840×3840 (multiples of 16, aspect ≤3:1)
-//   - `format` param (was `output_format`)
-//   - `output_compression` knob for jpeg/webp
+// Params the API actually takes:
+//   - `output_format: 'png' | 'jpeg' | 'webp'` (NOT `format`)
+//   - `output_compression: number` (0–100, jpeg/webp only)
+//   - `quality: 'low' | 'medium' | 'high' | 'auto'`
+//   - `size: '1024x1024' | '1024x1536' | '1536x1024' | 'auto'`
+//   - `n: 1` (only 1 supported at high quality)
+//   - `background: 'transparent' | 'opaque' | 'auto'`
 //   - `moderation: 'auto' | 'low'`
-//   - No `input_fidelity` — the model always processes at high fidelity
-//   - No transparent backgrounds
-//   - Dense multilingual text rendering (JA/KO/ZH/HI/BN) works natively
 //
-// Docs: https://developers.openai.com/api/docs/models/gpt-image-2
+// We log the real API error body on failure so empty responses
+// stop showing up with no explanation in the editor UI.
 // ─────────────────────────────────────────────────────────────
 
 import { log, logError } from './gemini-client';
@@ -22,29 +22,35 @@ import type { GeminiImageInput, GeminiImageResult } from './gemini-client';
 const OPENAI_IMAGES_URL = 'https://api.openai.com/v1/images/generations';
 const OPENAI_EDITS_URL = 'https://api.openai.com/v1/images/edits';
 
-/** Pinned to the current model. Bump when OpenAI ships a new
- *  default — using the bare alias `gpt-image-2` auto-rolls. */
-export const GPT_IMAGE_MODEL = 'gpt-image-2';
+/** Pinned to the current shipping model. */
+export const GPT_IMAGE_MODEL = 'gpt-image-1';
 
 export type ImageQuality = 'low' | 'medium' | 'high' | 'auto';
 
-/** gpt-image-2 accepts arbitrary sizes under these constraints:
- *    - Max edge: 3840px
- *    - Both edges: multiples of 16
- *    - Aspect ratio: ≤3:1
- *    - Total pixels: 655_360–8_294_400
- *  These presets cover every Pearloom use case. */
+/** gpt-image-1 accepts a fixed set of sizes — no arbitrary dimensions.
+ *  Anything else is a 400 BadRequest. */
 export type ImageSize =
   | '1024x1024'
   | '1536x1024'
   | '1024x1536'
-  | '2048x2048'
-  | '2048x1024'
-  | '1024x2048'
-  | '1536x2048'
-  | '2048x1536'
-  | '3840x2160'
   | 'auto';
+
+/** Clamps a requested size to the closest supported one. Used by
+ *  callers that previously passed 2048×… which now silently fail. */
+export function normalizeSize(requested: string): ImageSize {
+  const supported = new Set(['1024x1024', '1536x1024', '1024x1536', 'auto']);
+  if (supported.has(requested)) return requested as ImageSize;
+  // Aspect-based fallback.
+  const m = /^(\d+)x(\d+)$/.exec(requested);
+  if (m) {
+    const w = Number(m[1]);
+    const h = Number(m[2]);
+    if (w > h * 1.3) return '1536x1024';
+    if (h > w * 1.3) return '1024x1536';
+    return '1024x1024';
+  }
+  return '1024x1024';
+}
 
 export type ImageFormat = 'png' | 'jpeg' | 'webp';
 export type ImageModeration = 'auto' | 'low';
@@ -74,9 +80,17 @@ function mimeFromFormat(f: ImageFormat): string {
   return f === 'jpeg' ? 'image/jpeg' : `image/${f}`;
 }
 
-/** Generate or edit an image with gpt-image-2. Returns the same
+// Last OpenAI error text — exported so higher-level routes can relay
+// the real failure to the UI instead of saying "empty response".
+let lastOpenAIError: string | null = null;
+export function getLastOpenAIError(): string | null {
+  return lastOpenAIError;
+}
+
+/** Generate or edit an image with gpt-image-1. Returns the same
  *  shape as `geminiGenerateImage` so call sites stay interchangeable. */
 export async function openaiGenerateImage(opts: OpenAIImageOpts): Promise<GeminiImageResult | null> {
+  lastOpenAIError = null;
   const {
     apiKey,
     prompt,
@@ -94,14 +108,15 @@ export async function openaiGenerateImage(opts: OpenAIImageOpts): Promise<Gemini
   const isEdit = Boolean(inputImage || inputImages?.length);
 
   try {
+    const normalizedSize = normalizeSize(size);
     if (isEdit) {
       const form = new FormData();
       form.append('model', GPT_IMAGE_MODEL);
       form.append('prompt', prompt);
       form.append('quality', quality);
-      form.append('size', size);
+      form.append('size', normalizedSize);
       form.append('n', String(n));
-      form.append('format', format);
+      form.append('output_format', format);
       form.append('moderation', moderation);
       if (outputCompression != null && (format === 'jpeg' || format === 'webp')) {
         form.append('output_compression', String(outputCompression));
@@ -132,6 +147,7 @@ export async function openaiGenerateImage(opts: OpenAIImageOpts): Promise<Gemini
       });
       if (!res.ok) {
         const errText = await res.text().catch(() => '');
+        lastOpenAIError = `edit ${res.status}: ${errText.slice(0, 300)}`;
         logError(`[openai-image/edit] ${res.status}:`, errText.slice(0, 400));
         return null;
       }
@@ -146,9 +162,9 @@ export async function openaiGenerateImage(opts: OpenAIImageOpts): Promise<Gemini
       model: GPT_IMAGE_MODEL,
       prompt,
       quality,
-      size,
+      size: normalizedSize,
       n,
-      format,
+      output_format: format,
       moderation,
     };
     if (outputCompression != null && (format === 'jpeg' || format === 'webp')) {
@@ -165,17 +181,20 @@ export async function openaiGenerateImage(opts: OpenAIImageOpts): Promise<Gemini
     });
     if (!res.ok) {
       const errText = await res.text().catch(() => '');
+      lastOpenAIError = `${res.status}: ${errText.slice(0, 300)}`;
       logError(`[openai-image] ${res.status}:`, errText.slice(0, 400));
       return null;
     }
     const data = (await res.json()) as { data?: Array<{ b64_json?: string }> };
     const b64 = data.data?.[0]?.b64_json;
     if (!b64) {
+      lastOpenAIError = 'Empty response (no b64_json in data[0])';
       log('[openai-image] Empty response');
       return null;
     }
     return { base64: b64, mimeType: mimeFromFormat(format) };
   } catch (err) {
+    lastOpenAIError = err instanceof Error ? err.message : String(err);
     logError('[openai-image] Error:', err);
     return null;
   }

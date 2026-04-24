@@ -15,7 +15,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { openaiGenerateImage } from '@/lib/memory-engine/openai-image';
+import { openaiGenerateImage, getLastOpenAIError } from '@/lib/memory-engine/openai-image';
 import { uploadToR2, getR2Url } from '@/lib/r2';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { stickerPrompt } from '@/lib/decor/prompts';
@@ -82,7 +82,11 @@ export async function POST(req: NextRequest) {
     });
 
     if (!result?.base64) {
-      return NextResponse.json({ error: 'Sticker generation returned empty.' }, { status: 502 });
+      const detail = getLastOpenAIError();
+      return NextResponse.json(
+        { error: detail ? `Sticker generation failed: ${detail}` : 'Sticker generation returned empty.' },
+        { status: 502 },
+      );
     }
 
     const key = `decor/${siteId}/stickers/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.png`;

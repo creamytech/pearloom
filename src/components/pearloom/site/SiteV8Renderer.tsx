@@ -409,7 +409,23 @@ function HeroSection({
               color: 'var(--ink-soft)',
             }}
           >
-            <Sparkle size={12} /> {dateInfo ? `Together, ${dateInfo.weekday}` : 'Save the date'}
+            <Sparkle size={12} />{' '}
+            <EditableText
+              as="span"
+              value={
+                (manifest as unknown as { heroKicker?: string }).heroKicker ??
+                (dateInfo ? `Together, ${dateInfo.weekday}` : 'Save the date')
+              }
+              onSave={(next) =>
+                onEditField?.((m) => ({
+                  ...(m as unknown as Record<string, unknown>),
+                  heroKicker: next,
+                }) as unknown as StoryManifest)
+              }
+              placeholder="Save the date"
+              ariaLabel="Hero kicker"
+              maxLength={60}
+            />
           </span>
         </div>
 
@@ -486,9 +502,11 @@ function HeroSection({
               />
             </div>
           )}
-          <div className="pl8-hide-mobile" style={{ position: 'absolute', bottom: 10, left: 40, transform: 'rotate(-6deg)' }}>
-            <Heart size={32} color="var(--peach-2)" />
-          </div>
+          {manifest.motifs?.heart !== false && (
+            <div className="pl8-hide-mobile" style={{ position: 'absolute', bottom: 10, left: 40, transform: 'rotate(-6deg)' }}>
+              <Heart size={32} color="var(--peach-2)" />
+            </div>
+          )}
         </div>
 
         <div
@@ -1148,6 +1166,74 @@ function ScheduleSection({ manifest, names, onEditField }: { manifest: StoryMani
 }
 
 /* ==================== TRAVEL ==================== */
+function VenueMap({ venue, address }: { venue: string; address: string }) {
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const query = address || venue;
+  const mapSrc = query ? `/api/venue/map?q=${encodeURIComponent(query)}&w=600&h=360&zoom=15` : '';
+  return (
+    <div
+      style={{
+        background: '#E3E6C8',
+        borderRadius: 18,
+        overflow: 'hidden',
+        border: '1px solid var(--card-ring)',
+        aspectRatio: '5/3',
+        position: 'relative',
+        marginBottom: 14,
+      }}
+    >
+      {mapSrc && status !== 'error' && (
+        <img
+          src={mapSrc}
+          alt={`Map showing ${venue}`}
+          onLoad={() => setStatus('ready')}
+          onError={() => setStatus('error')}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            // Duotone treatment: olive shadows + cream highlights so
+            // the satellite/roadmap reads as an editorial illustration.
+            filter: 'sepia(0.3) saturate(0.85) hue-rotate(22deg) brightness(1.02)',
+            opacity: status === 'ready' ? 1 : 0,
+            transition: 'opacity 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+        />
+      )}
+      {/* Label overlay — sits above the real map or the SVG fallback */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 10,
+          left: 12,
+          background: 'rgba(243,233,212,0.92)',
+          padding: '6px 12px',
+          borderRadius: 10,
+          fontSize: 12,
+          fontWeight: 600,
+          color: '#3D4A1F',
+          boxShadow: '0 4px 10px rgba(61,74,31,0.18)',
+          zIndex: 2,
+        }}
+      >
+        {venue}
+      </div>
+      {/* Fallback SVG — shown when the map endpoint 404s (no API key) */}
+      {status === 'error' && (
+        <svg viewBox="0 0 500 300" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" style={{ position: 'absolute', inset: 0 }}>
+          <rect width="500" height="300" fill="#E3E6C8" />
+          <path d="M 0 160 Q 100 140, 180 180 T 500 120" stroke="#CBD29E" strokeWidth="30" fill="none" />
+          <path d="M 60 0 L 100 120 L 80 200 L 130 300" stroke="rgba(212,169,93,0.6)" strokeWidth="2" strokeDasharray="4 4" fill="none" />
+          <circle cx="320" cy="150" r="4" fill="#3D4A1F" />
+          <circle cx="320" cy="150" r="14" fill="none" stroke="#3D4A1F" strokeWidth="1" strokeDasharray="2 3" />
+        </svg>
+      )}
+    </div>
+  );
+}
+
 function TravelSection({ manifest }: { manifest: StoryManifest }) {
   const edit = useIsEditMode();
   const venue = manifest.logistics?.venue ?? 'Our venue';
@@ -1184,34 +1270,7 @@ function TravelSection({ manifest }: { manifest: StoryManifest }) {
             {address && (
               <p style={{ fontSize: 15, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 20 }}>{address}</p>
             )}
-            <div
-              style={{
-                background: '#E3E6C8',
-                borderRadius: 18,
-                overflow: 'hidden',
-                border: '1px solid var(--card-ring)',
-                aspectRatio: '5/3',
-                position: 'relative',
-                marginBottom: 14,
-              }}
-            >
-              <svg viewBox="0 0 500 300" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
-                <rect width="500" height="300" fill="#E3E6C8" />
-                <path d="M 0 160 Q 100 140, 180 180 T 500 120" stroke="#CBD29E" strokeWidth="30" fill="none" />
-                <path
-                  d="M 60 0 L 100 120 L 80 200 L 130 300"
-                  stroke="rgba(212,169,93,0.6)"
-                  strokeWidth="2"
-                  strokeDasharray="4 4"
-                  fill="none"
-                />
-                <circle cx="320" cy="150" r="4" fill="#3D4A1F" />
-                <circle cx="320" cy="150" r="14" fill="none" stroke="#3D4A1F" strokeWidth="1" strokeDasharray="2 3" />
-                <text x="330" y="145" fontSize="11" fill="#3D4A1F" fontFamily="Inter" fontWeight={600}>
-                  {venue}
-                </text>
-              </svg>
-            </div>
+            <VenueMap venue={venue} address={address} />
             <div style={{ display: 'flex', gap: 10 }}>
               {address && (
                 <a

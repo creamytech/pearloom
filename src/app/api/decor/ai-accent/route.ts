@@ -19,7 +19,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { openaiGenerateImage } from '@/lib/memory-engine/openai-image';
+import { openaiGenerateImage, getLastOpenAIError } from '@/lib/memory-engine/openai-image';
 import { uploadToR2, getR2Url } from '@/lib/r2';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
@@ -78,7 +78,11 @@ export async function POST(req: NextRequest) {
     });
 
     if (!result?.base64) {
-      return NextResponse.json({ error: 'AI could not draft an accent. Try again.' }, { status: 502 });
+      const detail = getLastOpenAIError();
+      return NextResponse.json(
+        { error: detail ? `AI accent failed: ${detail}` : 'AI could not draft an accent. Try again.' },
+        { status: 502 },
+      );
     }
 
     const key = `decor/${siteId}/${Date.now()}-accent.png`;
