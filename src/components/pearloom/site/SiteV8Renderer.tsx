@@ -24,6 +24,7 @@ import { EditorCanvasProvider, useIsEditMode } from '../editor/canvas/EditorCanv
 import { EditableText } from '../editor/canvas/EditableText';
 import { SortableChapters } from '../editor/canvas/SortableChapters';
 import { HoverToolbar } from '../editor/canvas/HoverToolbar';
+import { PhotoDropTarget } from '../editor/canvas/PhotoDropTarget';
 import { ActivityVoteBlock } from '@/components/site/ActivityVoteBlock';
 import { AdviceWallBlock } from '@/components/site/AdviceWallBlock';
 import { CostSplitterBlock } from '@/components/site/CostSplitterBlock';
@@ -529,26 +530,42 @@ function HeroSection({
             { tone: 'lavender' as const, aspect: '1/1', mt: 20 },
             { tone: 'dusk' as const, aspect: '5/4', mt: -20 },
             { tone: 'peach' as const, aspect: '4/5', mt: 10 },
-          ].map((p, i) => (
-            <div
-              key={i}
-              style={{
-                marginTop: p.mt,
-                transform: `rotate(${(i % 2 === 0 ? -1 : 1) * 1.2}deg)`,
-              }}
-            >
+          ].map((p, i) => {
+            const isHeroCover = i === 2;
+            const onDrop = (url: string) => {
+              if (isHeroCover) {
+                onEditField?.((m) => ({ ...m, coverPhoto: url }));
+              } else {
+                onEditField?.((m) => {
+                  const next = [...(m.heroSlideshow ?? [])];
+                  next[i] = url;
+                  return { ...m, heroSlideshow: next };
+                });
+              }
+            };
+            return (
               <div
+                key={i}
                 style={{
-                  background: '#fff',
-                  padding: 8,
-                  boxShadow: '0 16px 36px rgba(61,74,31,0.14), 0 1px 2px rgba(0,0,0,0.05)',
-                  borderRadius: 2,
+                  marginTop: p.mt,
+                  transform: `rotate(${(i % 2 === 0 ? -1 : 1) * 1.2}deg)`,
                 }}
               >
-                <PhotoPlaceholder tone={p.tone} aspect={p.aspect} src={i === 2 ? coverPhoto ?? photos[0] : photos[i]} />
+                <PhotoDropTarget onDrop={onDrop} label={isHeroCover ? 'Drop to set cover' : 'Drop a photo'}>
+                  <div
+                    style={{
+                      background: '#fff',
+                      padding: 8,
+                      boxShadow: '0 16px 36px rgba(61,74,31,0.14), 0 1px 2px rgba(0,0,0,0.05)',
+                      borderRadius: 2,
+                    }}
+                  >
+                    <PhotoPlaceholder tone={p.tone} aspect={p.aspect} src={isHeroCover ? coverPhoto ?? photos[0] : photos[i]} />
+                  </div>
+                </PhotoDropTarget>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 40, color: 'var(--ink-muted)', fontSize: 13 }}>
@@ -746,6 +763,18 @@ function ChapterCard({
       return { ...m, chapters };
     });
   };
+  const onChapterPhotoDrop = (url: string) => {
+    onEditField?.((m) => {
+      const chapters = [...(m.chapters ?? [])];
+      const ch = chapters[chapterIndex];
+      if (!ch) return m;
+      const images = [...((ch.images as Array<{ url: string }> | undefined) ?? [])];
+      if (images.length === 0) images.push({ url });
+      else images[0] = { ...images[0], url };
+      chapters[chapterIndex] = { ...ch, images } as typeof ch;
+      return { ...m, chapters };
+    });
+  };
   return (
     <div
       style={{
@@ -796,7 +825,9 @@ function ChapterCard({
           />
         </HoverToolbar>
       </div>
-      <PhotoPlaceholder tone={tone} aspect="1/1" src={src} style={{ borderRadius: 14 }} />
+      <PhotoDropTarget onDrop={onChapterPhotoDrop} label="Drop a photo">
+        <PhotoPlaceholder tone={tone} aspect="1/1" src={src} style={{ borderRadius: 14 }} />
+      </PhotoDropTarget>
     </div>
   );
 }

@@ -201,16 +201,23 @@ export function EditorV8({
   );
 
   async function handlePublish() {
-    const next = { ...manifest, published: true } as StoryManifest;
-    setManifest(next);
+    // Real publish: hits /api/sites/publish which mirrors photos to
+    // permanent storage, generates the vibe skin, and upserts the
+    // published site row. The autosave endpoint only saves the draft.
+    const saveable = stripArtForStorage(manifest);
     setSaveStatus('saving');
     try {
-      const res = await fetch('/api/sites', {
+      const res = await fetch('/api/sites/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subdomain: siteSlug, manifest: next, names, published: true }),
+        body: JSON.stringify({ subdomain: siteSlug, manifest: saveable, names }),
       });
-      if (!res.ok) throw new Error(String(res.status));
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { error?: string }).error || String(res.status));
+      }
+      const next = { ...manifest, published: true } as StoryManifest;
+      setManifest(next);
       setSaveStatus('saved');
       window.open(prettyPath, '_blank');
       setTimeout(() => setSaveStatus('idle'), 1500);
