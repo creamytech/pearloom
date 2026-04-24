@@ -14,7 +14,11 @@ import { Reveal } from '../motion';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { TEMPLATES_BY_ID } from '../marketplace/templates-data';
 import { EVENT_TYPES, getEventType, type EventCategory } from '@/lib/event-os/event-types';
+import { nameModeFor, nameModeIsValid } from '@/lib/event-os/name-mode';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
+import { LocationAutocomplete } from '@/components/wizard/LocationAutocomplete';
+import { WizardDatePicker } from '../wizard/WizardDatePicker';
+import { GeneratingScreen } from '../wizard/GeneratingScreen';
 
 const STEPS = ['Occasion', 'Basics', 'Details', 'Photos', 'Vibe', 'Palette', 'Layout', 'Review'] as const;
 type StepKey = (typeof STEPS)[number];
@@ -103,6 +107,15 @@ interface WizardPhoto {
   error?: string;
 }
 
+interface SmartPalette {
+  id: string;
+  name: string;
+  rationale: string;
+  colors: [string, string, string, string];
+  tone: string;
+  source: string;
+}
+
 interface WizardState {
   occasion: string;
   names: [string, string];
@@ -110,6 +123,9 @@ interface WizardState {
   location: string;
   vibes: string[];
   palette: string;
+  /** Hex colors from the currently-selected palette — flows to /api/generate/stream
+   *  as `selectedPaletteColors` so Pass 2 honors them. */
+  paletteColors?: string[];
   layout: string;
   subdomain: string;
   templateId?: string;
@@ -124,6 +140,10 @@ interface WizardState {
   detailSchool?: string;
   // Photos
   photos: WizardPhoto[];
+  // AI-suggested palettes (from /api/wizard/smart-palette)
+  smartPalettes?: SmartPalette[];
+  smartPalettesLoading?: boolean;
+  smartPalettesError?: string;
 }
 
 const defaultState: WizardState = {
@@ -749,7 +769,7 @@ export function WizardV8() {
       case 'Occasion':
         return !!st.occasion;
       case 'Basics':
-        return st.names[0].trim().length > 0;
+        return nameModeIsValid(st.occasion, st.names);
       case 'Vibe':
         return st.vibes.length > 0;
       case 'Palette':
@@ -757,7 +777,7 @@ export function WizardV8() {
       case 'Layout':
         return !!st.layout;
       case 'Review':
-        return st.names[0].trim().length > 0 && !!st.occasion;
+        return nameModeIsValid(st.occasion, st.names) && !!st.occasion;
       default:
         return true;
     }
@@ -833,6 +853,7 @@ export function WizardV8() {
           },
           layoutFormat: st.layout,
           templateId: st.templateId,
+          selectedPaletteColors: st.paletteColors,
         };
         setGenStep('Pear is reading your photos…');
         const res = await fetch('/api/generate/stream', {
@@ -1088,7 +1109,9 @@ export function WizardV8() {
                 </>
               )}
 
-              {step === 'Basics' && (
+              {step === 'Basics' && (() => {
+                const nameSpec = nameModeFor(st.occasion);
+                return (
                 <>
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
                     Who, when, and <span className="display-italic">where.</span>
@@ -1096,44 +1119,69 @@ export function WizardV8() {
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
                     Just the bones — you can make anything optional later.
                   </p>
-                  <div className="pl8-basics-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                    <div>
-                      <label className="field-label">Name 1</label>
+                  <div
+                    className="pl8-basics-grid"
+                    style={{
+                      display: 'grid',
+                      // Solo and group modes get a single-column name row;
+                      // couple modes use the two-up layout.
+                      gridTemplateColumns: nameSpec.mode === 'couple' ? '1fr 1fr' : '1fr',
+                      gap: 16,
+                    }}
+                  >
+                    <div style={{ gridColumn: nameSpec.mode === 'couple' ? 'auto' : 'span 1' }}>
+                      <label className="field-label">{nameSpec.primaryLabel}</label>
                       <input
                         className="input"
                         value={st.names[0]}
                         onChange={(e) => setSt((s) => ({ ...s, names: [e.target.value, s.names[1]] }))}
-                        placeholder="Alex"
+                        placeholder={nameSpec.primaryPlaceholder}
                       />
                     </div>
-                    <div>
-                      <label className="field-label">Name 2 (optional)</label>
-                      <input
-                        className="input"
-                        value={st.names[1]}
-                        onChange={(e) => setSt((s) => ({ ...s, names: [s.names[0], e.target.value] }))}
-                        placeholder="Jamie"
-                      />
-                    </div>
+                    {nameSpec.mode === 'couple' && (
+                      <div>
+                        <label className="field-label">{nameSpec.secondaryLabel ?? 'Second name'}</label>
+                        <input
+                          className="input"
+                          value={st.names[1]}
+                          onChange={(e) => setSt((s) => ({ ...s, names: [s.names[0], e.target.value] }))}
+                          placeholder={nameSpec.secondaryPlaceholder ?? ''}
+                        />
+                      </div>
+                    )}
+                    {nameSpec.hint && (
+                      <div
+                        style={{
+                          gridColumn: nameSpec.mode === 'couple' ? 'span 2' : 'auto',
+                          fontSize: 12,
+                          color: 'var(--ink-muted)',
+                          marginTop: -6,
+                          fontStyle: 'italic',
+                        }}
+                      >
+                        {nameSpec.hint}
+                      </div>
+                    )}
                     <div>
                       <label className="field-label">Date</label>
-                      <input
-                        className="input"
-                        type="date"
+                      <WizardDatePicker
                         value={st.eventDate}
-                        onChange={(e) => setSt((s) => ({ ...s, eventDate: e.target.value }))}
+                        onChange={(iso) => setSt((s) => ({ ...s, eventDate: iso }))}
+                        placeholder="Pick a date"
                       />
                     </div>
                     <div>
                       <label className="field-label">Location</label>
-                      <input
-                        className="input"
+                      <LocationAutocomplete
                         value={st.location}
-                        onChange={(e) => setSt((s) => ({ ...s, location: e.target.value }))}
-                        placeholder="Portland, Oregon"
+                        onChange={(v) => setSt((s) => ({ ...s, location: v }))}
+                        onSelect={(place) =>
+                          setSt((s) => ({ ...s, location: place.name ? `${place.name}${place.address ? ` · ${place.address}` : ''}` : place.address }))
+                        }
+                        placeholder="Madison Square Garden · New York"
                       />
                     </div>
-                    <div style={{ gridColumn: 'span 2' }}>
+                    <div style={{ gridColumn: nameSpec.mode === 'couple' ? 'span 2' : 'span 1' }}>
                       <label className="field-label">Site link</label>
                       <div style={{ display: 'flex', gap: 0, alignItems: 'stretch', flexWrap: 'wrap' }}>
                         <div
@@ -1167,7 +1215,8 @@ export function WizardV8() {
                     </div>
                   </div>
                 </>
-              )}
+                );
+              })()}
 
               {step === 'Details' && (() => {
                 const e = getEventType(st.occasion as never);
@@ -1371,16 +1420,212 @@ export function WizardV8() {
                     Choose a <span className="display-italic">palette.</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
-                    Fine-tune specific shades later in the design studio.
+                    Let Pear read your venue + vibes, or pick a classic below.
                   </p>
-                  <div className="pl8-palette-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+
+                  {/* ── Smart palettes header ──────────────────── */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 12,
+                      marginBottom: 12,
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+                        fontSize: 11,
+                        letterSpacing: '0.14em',
+                        textTransform: 'uppercase',
+                        color: 'var(--peach-ink)',
+                      }}
+                    >
+                      <Sparkle size={11} color="var(--gold)" /> Pear's picks for you
+                    </div>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setSt((s) => ({ ...s, smartPalettesLoading: true, smartPalettesError: undefined }));
+                        try {
+                          const res = await fetch('/api/wizard/smart-palette', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              occasion: st.occasion,
+                              names: st.names,
+                              venue: st.location,
+                              city: st.location,
+                              vibes: st.vibes,
+                              howWeMet: st.howWeMet,
+                              whyCelebrate: st.whyCelebrate,
+                            }),
+                          });
+                          const data = await res.json();
+                          if (!res.ok) throw new Error(data?.error ?? 'Palette advisor unavailable.');
+                          setSt((s) => ({
+                            ...s,
+                            smartPalettes: (data.palettes ?? []) as SmartPalette[],
+                            smartPalettesLoading: false,
+                          }));
+                        } catch (err) {
+                          setSt((s) => ({
+                            ...s,
+                            smartPalettesLoading: false,
+                            smartPalettesError: err instanceof Error ? err.message : 'Palette advisor failed.',
+                          }));
+                        }
+                      }}
+                      className="btn btn-outline btn-sm"
+                      disabled={!!st.smartPalettesLoading}
+                      style={{ whiteSpace: 'nowrap' }}
+                    >
+                      <Icon name="wand" size={12} />{' '}
+                      {st.smartPalettesLoading
+                        ? 'Mixing palette…'
+                        : (st.smartPalettes?.length ?? 0) > 0
+                          ? 'Re-read my event'
+                          : 'Ask Pear'}
+                    </button>
+                  </div>
+
+                  {st.smartPalettesError && (
+                    <div style={{ fontSize: 12, color: 'var(--peach-ink)', marginBottom: 10 }}>
+                      {st.smartPalettesError}
+                    </div>
+                  )}
+
+                  {(st.smartPalettes?.length ?? 0) > 0 && (
+                    <div
+                      className="pl8-palette-grid"
+                      style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}
+                    >
+                      {st.smartPalettes!.map((p) => {
+                        const on = st.palette === p.id;
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() =>
+                              setSt((s) => ({
+                                ...s,
+                                palette: p.id,
+                                paletteColors: p.colors,
+                              }))
+                            }
+                            style={{
+                              padding: 16,
+                              borderRadius: 16,
+                              background: 'var(--card)',
+                              border: on ? '2px solid var(--ink)' : '1.5px solid var(--line)',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 10,
+                              cursor: 'pointer',
+                              position: 'relative',
+                              textAlign: 'left',
+                            }}
+                          >
+                            {on && (
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  top: 10,
+                                  right: 10,
+                                  width: 22,
+                                  height: 22,
+                                  borderRadius: '50%',
+                                  background: 'var(--ink)',
+                                  display: 'grid',
+                                  placeItems: 'center',
+                                }}
+                              >
+                                <Icon name="check" size={11} color="#fff" strokeWidth={3} />
+                              </div>
+                            )}
+                            <div style={{ display: 'flex', gap: 4 }}>
+                              {p.colors.map((c, i) => (
+                                <div
+                                  key={i}
+                                  style={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: '50%',
+                                    background: c,
+                                    border: '1.5px solid rgba(255,255,255,0.45)',
+                                  }}
+                                />
+                              ))}
+                            </div>
+                            <div
+                              className="display"
+                              style={{
+                                fontSize: 18,
+                                fontStyle: 'italic',
+                                margin: 0,
+                                lineHeight: 1.2,
+                              }}
+                            >
+                              {p.name}
+                            </div>
+                            <div style={{ fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
+                              {p.rationale}
+                            </div>
+                            <div
+                              style={{
+                                fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+                                fontSize: 9.5,
+                                letterSpacing: '0.16em',
+                                textTransform: 'uppercase',
+                                color: 'var(--ink-muted)',
+                              }}
+                            >
+                              {p.source === 'venue' ? 'Venue-aware' : p.source === 'vibe' ? 'Vibe-aware' : p.source}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* ── Classic presets ───────────────────────── */}
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+                      fontSize: 11,
+                      letterSpacing: '0.14em',
+                      textTransform: 'uppercase',
+                      color: 'var(--ink-muted)',
+                      marginBottom: 10,
+                    }}
+                  >
+                    Classic presets
+                  </div>
+                  <div
+                    className="pl8-palette-grid"
+                    style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}
+                  >
                     {PALETTES.map((p) => {
                       const on = st.palette === p.id;
                       return (
                         <button
                           key={p.id}
                           type="button"
-                          onClick={() => setSt((s) => ({ ...s, palette: p.id }))}
+                          onClick={() =>
+                            setSt((s) => ({
+                              ...s,
+                              palette: p.id,
+                              paletteColors: p.colors,
+                            }))
+                          }
                           style={{
                             padding: 14,
                             borderRadius: 14,
@@ -1637,53 +1882,7 @@ export function WizardV8() {
         <PearHelper step={step} />
       </div>
 
-      {busy && (
-        <div
-          role="status"
-          aria-live="polite"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(14,13,11,0.58)',
-            backdropFilter: 'blur(6px)',
-            display: 'grid',
-            placeItems: 'center',
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              background: 'var(--cream)',
-              padding: '28px 32px',
-              borderRadius: 18,
-              boxShadow: '0 24px 60px rgba(14,13,11,0.2)',
-              maxWidth: 460,
-              textAlign: 'center',
-            }}
-          >
-            <Pear size={48} tone="sage" shadow sparkle />
-            <div className="display" style={{ fontSize: 22, margin: '12px 0 6px' }}>
-              Weaving your site<span className="display-italic">…</span>
-            </div>
-            <div style={{ fontSize: 13, color: 'var(--ink-soft)', minHeight: 18 }}>
-              {genStep || 'Threading…'}
-            </div>
-            <div
-              style={{
-                marginTop: 14,
-                fontSize: 11,
-                color: 'var(--ink-muted)',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-              }}
-            >
-              {st.photos.length > 0
-                ? '7 AI passes · usually 30–90 seconds'
-                : 'Saving…'}
-            </div>
-          </div>
-        </div>
-      )}
+      {busy && <GeneratingScreen genStep={genStep} photoCount={st.photos.length} />}
     </div>
   );
 }
