@@ -127,6 +127,9 @@ export interface StoryManifest {
     /** ISO timestamp of the last full-library regeneration. Used by
      *  the editor to decide whether a re-prompt is cheap or costly. */
     updatedAt?: string;
+    /** Visual prominence of the divider band between sections.
+     *  subtle ≈ 44px, standard (default) ≈ 84px, tall ≈ 120px. */
+    dividerStrength?: 'subtle' | 'standard' | 'tall';
   };
   // (stickers array declared below — the existing StickerItem
   // interface has been extended with optional url + blockId + scale

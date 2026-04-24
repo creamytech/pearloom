@@ -150,6 +150,46 @@ export function DecorLibraryPanel({
         Each full-library draft costs one slot per piece (4 total). Individual tile regen counts against your hourly
         budget of 3 full libraries.
       </p>
+
+      {/* Divider strength — only relevant once a divider exists. */}
+      {lib?.divider && (
+        <div style={{ marginTop: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-muted)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 6 }}>
+            Divider presence
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {(['subtle', 'standard', 'tall'] as const).map((s) => {
+              const active = (lib?.dividerStrength ?? 'standard') === s;
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() =>
+                    onChange({
+                      ...manifest,
+                      decorLibrary: { ...(lib ?? {}), dividerStrength: s },
+                    } as StoryManifest)
+                  }
+                  style={{
+                    flex: 1,
+                    padding: '6px 10px',
+                    borderRadius: 8,
+                    border: active ? '1.5px solid var(--ink)' : '1px solid var(--line)',
+                    background: active ? 'var(--cream-2)' : 'var(--card)',
+                    fontSize: 12,
+                    fontWeight: active ? 700 : 500,
+                    color: 'var(--ink)',
+                    cursor: 'pointer',
+                    textTransform: 'capitalize',
+                  }}
+                >
+                  {s}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </PanelSection>
   );
 }

@@ -38,16 +38,31 @@ function PhotoChaptersAI({
     );
     const occasion = (manifest as unknown as { occasion?: string }).occasion ?? 'wedding';
     const vibes = (manifest as unknown as { vibes?: string[] }).vibes?.join(' ') ?? 'warm';
-    const res = await fetch('/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        clusters,
-        vibeString: vibes,
-        coupleNames: names,
-        occasion,
-      }),
-    });
+    // 120s timeout — protects against hung uploads locking the UI.
+    // The 7-pass engine normally returns in 30-90s.
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 120_000);
+    let res: Response;
+    try {
+      res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clusters,
+          vibeString: vibes,
+          coupleNames: names,
+          occasion,
+        }),
+        signal: ctl.signal,
+      });
+    } catch (err) {
+      if ((err as { name?: string }).name === 'AbortError') {
+        throw new Error("Pear took too long to draft chapters. Try again with fewer photos.");
+      }
+      throw err;
+    } finally {
+      clearTimeout(timer);
+    }
     if (!res.ok) {
       const data = (await res.json().catch(() => null)) as { error?: string } | null;
       throw new Error(data?.error ?? `Pear couldn't write chapters (${res.status})`);

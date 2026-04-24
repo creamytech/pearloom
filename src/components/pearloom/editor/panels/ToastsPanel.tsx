@@ -44,7 +44,18 @@ export function ToastsPanel({
   const { state, error, run } = useAICall(async () => {
     const occasion = (manifest as unknown as { occasion?: string }).occasion ?? 'wedding';
     const vibes = ((manifest as unknown as { vibes?: string[] }).vibes ?? []).join(', ');
-    const chapters = (manifest.chapters ?? []).map((c) => `- ${c.title}: ${c.description}`).join('\n');
+    // Sanitize chapter title/description so a rogue character (backtick,
+    // hash, asterisk, pipe) doesn't end up breaking the prompt's
+    // markdown framing. Collapse whitespace + trim to 400 chars.
+    const sanitize = (s: string | undefined) =>
+      (s ?? '')
+        .replace(/[`*#|_\r\n]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 400);
+    const chapters = (manifest.chapters ?? [])
+      .map((c) => `- ${sanitize(c.title)}: ${sanitize(c.description)}`)
+      .join('\n');
     const prompt =
       kind === 'vows'
         ? `Write wedding vows for ${names[0] || 'one person'} addressing ${names[1] || 'their partner'}. ${length} length. Tone: ${tone}. No cliches. Specific, warm, at least one concrete memory. Return ONLY the vows, no preamble.`

@@ -20,12 +20,18 @@ interface Props {
   index?: number;
   /** Renders dramatically smaller/softer — used between tighter sections. */
   compact?: boolean;
+  /** 'subtle' | 'standard' | 'tall' — host-configurable height. */
+  strength?: 'subtle' | 'standard' | 'tall';
   style?: CSSProperties;
 }
 
-export function DecorDivider({ url, index = 0, compact, style }: Props) {
+export function DecorDivider({ url, index = 0, compact, strength = 'standard', style }: Props) {
   if (!url) return null;
-  const height = compact ? 56 : 84;
+  const baseHeight =
+    strength === 'subtle' ? 44 :
+    strength === 'tall' ? 120 :
+    84;
+  const height = compact ? Math.max(32, baseHeight - 28) : baseHeight;
   const flip = index % 2 === 1;
 
   return (

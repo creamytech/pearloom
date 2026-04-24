@@ -2575,6 +2575,8 @@ export function SiteV8Renderer({
     : { background: 'var(--paper)', minHeight: '100vh' };
 
   const dividerUrl = manifest.decorLibrary?.divider;
+  const dividerStrength = (manifest as unknown as { decorLibrary?: { dividerStrength?: 'subtle' | 'standard' | 'tall' } })
+    .decorLibrary?.dividerStrength ?? 'standard';
   const bouquetUrl = manifest.decorLibrary?.footerBouquet;
 
   return (
@@ -2593,7 +2595,7 @@ export function SiteV8Renderer({
           if (!block) return null;
           return (
             <div key={key}>
-              <DecorDivider url={dividerUrl} index={i} />
+              <DecorDivider url={dividerUrl} index={i} strength={dividerStrength} />
               <StickerLayer
                 blockId={key}
                 stickers={manifest.stickers}
