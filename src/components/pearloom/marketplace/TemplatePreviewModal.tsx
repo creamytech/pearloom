@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { Blob, Icon, Pear, Sparkle, Squiggle } from '../motifs';
 import type { Template, TemplatePalette } from './templates-data';
 import { findMatchingSiteTemplate } from './template-matcher';
+import { resolveTemplateDesign } from './template-themes';
 
 interface PaletteTones {
   paper: string;
@@ -62,6 +63,32 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
     setPortalTarget(typeof document !== 'undefined' ? document.body : null);
   }, []);
 
+  // Inject a Google Fonts <link> for the current template's font
+  // pair so the modal preview renders in true type. One link per
+  // unique pair; removed when the modal closes. Kept out of
+  // next/font because the font list is dynamic (56 templates ×
+  // whatever pairings we ship).
+  useEffect(() => {
+    if (!open || !template) return;
+    const design = resolveTemplateDesign(template.id);
+    const families = [design.fonts.heading, design.fonts.body]
+      .filter((f, i, arr) => f && arr.indexOf(f) === i)
+      .map((f) => `family=${encodeURIComponent(f)}:wght@400;500;600;700`)
+      .join('&');
+    if (!families) return;
+    const id = `pearloom-template-fonts-${template.id}`;
+    if (document.getElementById(id)) return;
+    const link = document.createElement('link');
+    link.id = id;
+    link.rel = 'stylesheet';
+    link.href = `https://fonts.googleapis.com/css2?${families}&display=swap`;
+    document.head.appendChild(link);
+    return () => {
+      // Leave the link in place — other modals may use the same
+      // families and re-fetching is wasteful. Browser caches anyway.
+    };
+  }, [open, template]);
+
   // Lookup the rich SITE_TEMPLATES entry via the marketplace matcher.
   // When found, it gives us real hero copy and motif data; otherwise
   // we render with marketplace-level fallback copy.
@@ -86,9 +113,27 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
 
   if (!open || !template || !portalTarget) return null;
 
-  // Fallback to groovy-garden if a template ships an unrecognised
-  // palette key — prevents a blank modal when the data drifts.
-  const tones = PALETTE_TONES[template.palette] ?? PALETTE_TONES['groovy-garden'];
+  // Bespoke design spec — actual palette + font pair the template
+  // will render with in the editor. Trumps the palette-token tones.
+  const design = resolveTemplateDesign(template.id);
+  const legacyTones = PALETTE_TONES[template.palette] ?? PALETTE_TONES['groovy-garden'];
+  const tones: PaletteTones = {
+    paper: design.theme.background,
+    cardBg: design.theme.cardBg ?? design.theme.background,
+    ink: design.theme.foreground,
+    inkSoft: design.theme.muted,
+    accent: design.theme.accent,
+    accentLight: design.theme.accentLight,
+    deep: design.theme.foreground,
+    mid: design.theme.accent,
+    soft: design.theme.accentLight,
+  };
+  // Silence unused legacy fallback (kept around in case data drifts).
+  void legacyTones;
+  const fontHeading = design.fonts.heading;
+  const fontBody = design.fonts.body;
+  const headingStack = `"${fontHeading}", Georgia, serif`;
+  const bodyStack = `"${fontBody}", system-ui, -apple-system, sans-serif`;
   // Prefer the real SITE_TEMPLATE poetry when we found a match.
   const heroName = template.heroWord ?? template.name;
   const heroScript = site?.poetry?.heroTagline ?? template.heroScript ?? template.tagline ?? 'a day worth keeping';
@@ -173,19 +218,20 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
                 {stampText}
               </div>
               <div
-                className="display"
                 style={{
+                  fontFamily: headingStack,
                   fontSize: 'clamp(42px, 5vw, 60px)',
                   lineHeight: 1.02,
                   margin: 0,
                   color: tones.ink,
+                  fontWeight: 500,
                 }}
               >
                 {heroName}
               </div>
               <div
-                className="display-italic"
                 style={{
+                  fontFamily: headingStack,
                   fontSize: 'clamp(18px, 2vw, 22px)',
                   fontStyle: 'italic',
                   color: tones.inkSoft,
@@ -208,11 +254,10 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
           <SectionRule tones={tones} />
 
           {/* Story teaser */}
-          <section style={{ padding: '36px 40px' }}>
+          <section style={{ padding: '36px 40px', fontFamily: bodyStack }}>
             <MiniEyebrow tones={tones}>Our story</MiniEyebrow>
             <div
-              className="display"
-              style={{ fontSize: 24, marginTop: 4, marginBottom: 10, color: tones.ink, fontStyle: 'italic' }}
+              style={{ fontFamily: headingStack, fontSize: 24, marginTop: 4, marginBottom: 10, color: tones.ink, fontStyle: 'italic' }}
             >
               {welcome.slice(0, 80)}
               {welcome.length > 80 ? '…' : ''}
@@ -255,7 +300,7 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
                   >
                     Stage 0{i + 1}
                   </div>
-                  <div className="display" style={{ fontSize: 16, fontStyle: 'italic', color: tones.ink }}>
+                  <div style={{ fontFamily: headingStack, fontSize: 16, fontStyle: 'italic', color: tones.ink }}>
                     {label}
                   </div>
                   <div style={{ fontSize: 11, color: tones.inkSoft, marginTop: 4 }}>
@@ -298,8 +343,8 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
           {/* Closing */}
           <section style={{ padding: '36px 40px 56px', textAlign: 'center' }}>
             <div
-              className="display-italic"
               style={{
+                fontFamily: headingStack,
                 fontStyle: 'italic',
                 fontSize: 20,
                 color: tones.inkSoft,
@@ -367,14 +412,25 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
               Live preview
             </div>
             <h3
-              className="display"
-              style={{ fontSize: 28, margin: 0, lineHeight: 1.1, color: 'var(--ink, #18181B)' }}
+              style={{
+                fontFamily: headingStack,
+                fontSize: 28,
+                margin: 0,
+                lineHeight: 1.1,
+                color: 'var(--ink, #18181B)',
+                fontWeight: 500,
+              }}
             >
               {template.name}
             </h3>
             <div
-              className="display-italic"
-              style={{ fontStyle: 'italic', fontSize: 14, color: 'var(--ink-soft, #4A5642)', marginTop: 6 }}
+              style={{
+                fontFamily: headingStack,
+                fontStyle: 'italic',
+                fontSize: 14,
+                color: 'var(--ink-soft, #4A5642)',
+                marginTop: 6,
+              }}
             >
               {site?.tagline ?? template.description}
             </div>
@@ -384,7 +440,8 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
 
           <MetaRow label="Occasion" value={template.occasion.replace(/-/g, ' ')} />
           <MetaRow label="Layout" value={template.layout} />
-          <MetaRow label="Palette" value={template.palette.replace(/-/g, ' ')} />
+          <MetaRow label="Palette" value={design.tone ?? template.palette.replace(/-/g, ' ')} />
+          <MetaRow label="Typography" value={`${fontHeading} / ${fontBody}`} />
           <MetaRow label="Vibes" value={template.vibes.join(' · ')} />
 
           {/* Palette swatch */}

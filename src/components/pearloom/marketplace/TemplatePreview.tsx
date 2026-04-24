@@ -7,9 +7,13 @@
 
 import { Pear, Sparkle, Squiggle } from '../motifs';
 import type { Template, TemplateLayout, TemplatePalette } from './templates-data';
+import { resolveTemplateDesign } from './template-themes';
 
 type Tone = { deep: string; mid: string; soft: string; paper: string; ink: string; accent: string };
 
+// Legacy token fallback for any template that somehow has no
+// bespoke design spec. The curated per-template palettes live in
+// template-themes.ts and are what the tile actually renders with.
 const PALETTE_TONES: Record<TemplatePalette, Tone> = {
   'groovy-garden': { deep: '#3D4A1F', mid: '#8B9C5A', soft: '#CBD29E', paper: '#F3E9D4', ink: '#3D4A1F', accent: '#EAB286' },
   'dusk-meadow': { deep: '#6B5A8C', mid: '#B7A4D0', soft: '#D7CCE5', paper: '#F3E9D4', ink: '#4A3F6B', accent: '#CBD29E' },
@@ -21,10 +25,29 @@ const PALETTE_TONES: Record<TemplatePalette, Tone> = {
 };
 
 export function TemplatePreview({ template, small = false }: { template: Template; small?: boolean }) {
-  const t = PALETTE_TONES[template.palette];
+  // Resolve the bespoke design first — falls back to palette-token
+  // tones for any template without a curated entry.
+  const design = resolveTemplateDesign(template.id);
+  const tone = PALETTE_TONES[template.palette];
+  const t: Tone = design
+    ? {
+        deep: design.theme.foreground,
+        mid: design.theme.accent,
+        soft: design.theme.accentLight,
+        paper: design.theme.background,
+        ink: design.theme.foreground,
+        accent: design.theme.accent,
+      }
+    : tone;
   const name = template.heroWord ?? template.name;
   const sub = template.heroScript ?? 'a day worth keeping';
   const scale = small ? 0.78 : 1;
+  const fontHeading = design?.fonts?.heading ?? 'Fraunces';
+  // Tile uses the family name so tiles where the browser has the
+  // font cached render in-voice; otherwise falls through to serif
+  // (acceptable for a miniature). The modal preview loads fonts
+  // via <link> so the full-size preview always shows true type.
+  const headingStack = `"${fontHeading}", Georgia, serif`;
   return (
     <div
       style={{
@@ -64,7 +87,7 @@ export function TemplatePreview({ template, small = false }: { template: Templat
         </div>
 
         {/* Hero body */}
-        <LayoutBody layout={template.layout} tone={t} name={name} sub={sub} scale={scale} />
+        <LayoutBody layout={template.layout} tone={t} name={name} sub={sub} scale={scale} headingStack={headingStack} />
 
         {/* Footer strip */}
         <div
@@ -94,12 +117,14 @@ function LayoutBody({
   name,
   sub,
   scale,
+  headingStack,
 }: {
   layout: TemplateLayout;
   tone: Tone;
   name: string;
   sub: string;
   scale: number;
+  headingStack: string;
 }) {
   const nameFontSize = Math.round(32 * scale);
   const subFontSize = Math.round(16 * scale);
@@ -108,7 +133,7 @@ function LayoutBody({
     case 'timeline':
       return (
         <div style={{ flex: 1, position: 'relative', textAlign: 'center' }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: nameFontSize, color: t.ink, lineHeight: 1, fontWeight: 600 }}>
+          <div style={{ fontFamily: headingStack, fontSize: nameFontSize, color: t.ink, lineHeight: 1, fontWeight: 600 }}>
             {name.split(' ')[0]}
           </div>
           <div
@@ -151,7 +176,7 @@ function LayoutBody({
         <div style={{ flex: 1 }}>
           <div
             style={{
-              fontFamily: 'var(--font-display)',
+              fontFamily: headingStack,
               fontSize: nameFontSize - 2,
               color: t.ink,
               fontWeight: 600,
@@ -162,7 +187,7 @@ function LayoutBody({
           </div>
           <div
             style={{
-              fontFamily: 'var(--font-display)',
+              fontFamily: headingStack,
               fontStyle: 'italic',
               fontSize: Math.round(18 * scale),
               color: t.deep,
@@ -206,7 +231,7 @@ function LayoutBody({
     case 'bento':
       return (
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: Math.round(20 * scale), color: t.ink, marginBottom: 8, textAlign: 'center' }}>
+          <div style={{ fontFamily: headingStack, fontSize: Math.round(20 * scale), color: t.ink, marginBottom: 8, textAlign: 'center' }}>
             {name}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridAutoRows: Math.round(18 * scale), gap: 4 }}>
@@ -245,7 +270,7 @@ function LayoutBody({
               opacity: 0.35,
             }}
           />
-          <div style={{ marginTop: 28, fontFamily: 'var(--font-display)', fontSize: nameFontSize - 6, color: t.ink, position: 'relative', fontWeight: 600 }}>
+          <div style={{ marginTop: 28, fontFamily: headingStack, fontSize: nameFontSize - 6, color: t.ink, position: 'relative', fontWeight: 600 }}>
             {name.split(' ')[0]}
           </div>
           <div style={{ fontFamily: 'var(--font-script)', fontSize: subFontSize, color: t.ink, opacity: 0.7, position: 'relative' }}>
@@ -275,7 +300,7 @@ function LayoutBody({
           <Sparkle size={14} color={t.soft} style={{ position: 'absolute', bottom: 10, left: 10, opacity: 0.85 }} />
           <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', color: t.soft }}>
             <div>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: nameFontSize - 2, textAlign: 'center', lineHeight: 1 }}>
+              <div style={{ fontFamily: headingStack, fontSize: nameFontSize - 2, textAlign: 'center', lineHeight: 1 }}>
                 {name.split(' ')[0]}
               </div>
               <div style={{ fontFamily: 'var(--font-script)', fontSize: subFontSize, textAlign: 'center', opacity: 0.92, marginTop: 2 }}>
@@ -290,7 +315,7 @@ function LayoutBody({
         <div style={{ flex: 1 }}>
           <div
             style={{
-              fontFamily: 'var(--font-display)',
+              fontFamily: headingStack,
               fontSize: Math.round(18 * scale),
               color: t.ink,
               marginBottom: 8,

@@ -10,6 +10,7 @@
 
 import type { StoryManifest } from '@/types';
 import { SITE_TEMPLATES, type SiteTemplate } from './wedding-templates';
+import { resolveTemplateDesign, hasTemplateDesign } from '@/components/pearloom/marketplace/template-themes';
 
 // Marketplace tile ids → SITE_TEMPLATES ids. Marketplace tiles and
 // SITE_TEMPLATES grew as separate registries with different naming
@@ -39,41 +40,67 @@ export function applyTemplateToManifest(
   templateId: string | null | undefined,
 ): StoryManifest {
   if (!templateId) return manifest;
-  // Resolve marketplace tile id → rich SITE_TEMPLATE id when needed.
+
+  // ── Priority 1: full SITE_TEMPLATE match (rich motifs + poetry) ──
   const resolvedId = MARKETPLACE_ALIASES[templateId] ?? templateId;
   const tpl = SITE_TEMPLATES.find((t) => t.id === resolvedId);
-  if (!tpl) return manifest;
 
+  // ── Priority 2: bespoke marketplace design spec ──
+  // When the marketplace id has a curated palette + font pair in
+  // template-themes.ts but no SITE_TEMPLATE match, we still seed
+  // the theme so the editor renders in the same style the user
+  // saw in the preview modal.
+  const hasDesign = hasTemplateDesign(templateId);
+
+  if (!tpl && !hasDesign) return manifest;
+
+  if (tpl) {
+    return {
+      ...manifest,
+      templateId: tpl.id,
+      motifs: tpl.motifs,
+      blockOrder: tpl.blockOrder,
+      hiddenBlocks: tpl.hiddenBlocks,
+      vibeString: manifest.vibeString || tpl.vibeString,
+      theme: manifest.theme ?? {
+        name: tpl.id,
+        colors: {
+          background: tpl.theme.colors.background,
+          foreground: tpl.theme.colors.foreground,
+          accent: tpl.theme.colors.accent,
+          accentLight: tpl.theme.colors.accentLight,
+          muted: tpl.theme.colors.muted,
+          cardBg: tpl.theme.colors.cardBg,
+        },
+        fonts: { heading: tpl.theme.fonts.heading, body: tpl.theme.fonts.body },
+        borderRadius: '0.5rem',
+      },
+      poetry: manifest.poetry ?? {
+        heroTagline: tpl.poetry.heroTagline,
+        closingLine: tpl.poetry.closingLine,
+        rsvpIntro: tpl.poetry.rsvpIntro,
+        welcomeStatement: tpl.poetry.welcomeStatement,
+      },
+    };
+  }
+
+  // Fallback — marketplace-only template: seed just the theme.
+  const design = resolveTemplateDesign(templateId);
   return {
     ...manifest,
-    templateId: tpl.id,
-    motifs: tpl.motifs,
-    blockOrder: tpl.blockOrder,
-    hiddenBlocks: tpl.hiddenBlocks,
-    // Keep user-supplied vibeString, but fall back to the template's.
-    vibeString: manifest.vibeString || tpl.vibeString,
-    // Seed the palette if the manifest doesn't already have a theme.
+    templateId,
     theme: manifest.theme ?? {
-      name: tpl.id,
+      name: templateId,
       colors: {
-        background: tpl.theme.colors.background,
-        foreground: tpl.theme.colors.foreground,
-        accent: tpl.theme.colors.accent,
-        accentLight: tpl.theme.colors.accentLight,
-        muted: tpl.theme.colors.muted,
-        cardBg: tpl.theme.colors.cardBg,
+        background: design.theme.background,
+        foreground: design.theme.foreground,
+        accent: design.theme.accent,
+        accentLight: design.theme.accentLight,
+        muted: design.theme.muted,
+        cardBg: design.theme.cardBg ?? design.theme.background,
       },
-      fonts: { heading: tpl.theme.fonts.heading, body: tpl.theme.fonts.body },
-      borderRadius: '0.5rem',
-    },
-    // Seed poetry only when the manifest doesn't already have one —
-    // the AI pass writes better poetry from the user's content, so
-    // never overwrite what's there.
-    poetry: manifest.poetry ?? {
-      heroTagline: tpl.poetry.heroTagline,
-      closingLine: tpl.poetry.closingLine,
-      rsvpIntro: tpl.poetry.rsvpIntro,
-      welcomeStatement: tpl.poetry.welcomeStatement,
+      fonts: { heading: design.fonts.heading, body: design.fonts.body },
+      borderRadius: '0.75rem',
     },
   };
 }
