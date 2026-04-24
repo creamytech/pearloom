@@ -190,7 +190,9 @@ export function InviteReveal({
         }}
       />
 
-      {/* Envelope overlay — desktop + motion-ok only. Tap to open. */}
+      {/* ── Envelope overlay — desktop + motion-ok only.
+          Three-layer reveal: flap pivots open, card lifts out,
+          envelope back lowers behind. Tap anywhere to open. ── */}
       <AnimatePresence>
         {!revealed && !skipEnvelope && (
           <motion.button
@@ -199,7 +201,7 @@ export function InviteReveal({
             aria-label="Open invitation"
             onClick={() => setRevealed(true)}
             initial={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.55 } }}
+            exit={{ opacity: 0, transition: { duration: 0.65, delay: 0.15 } }}
             style={{
               position: 'fixed',
               inset: 0,
@@ -214,6 +216,7 @@ export function InviteReveal({
               cursor: 'pointer',
               padding: 0,
               fontFamily: FONT_BODY,
+              perspective: '1200px',
             }}
           >
             <motion.p
@@ -231,38 +234,83 @@ export function InviteReveal({
             >
               An invitation for {guestName && guestName !== 'Guest' ? guestName : 'you'}
             </motion.p>
-            <motion.svg
-              viewBox="0 0 220 140"
-              width={220}
-              height={140}
-              initial={{ y: 10, opacity: 0 }}
-              animate={{ y: [0, -4, 0] }}
+
+            {/* 3-layer envelope: back, card inside, flap. Flap is
+                overlaid last so its pivot sits on top during the
+                closed state; exit motion pivots it 180° open. */}
+            <motion.div
+              style={{
+                position: 'relative',
+                width: 260,
+                height: 170,
+                transformStyle: 'preserve-3d',
+              }}
+              initial={{ y: 8, opacity: 0 }}
+              animate={{ y: [0, -4, 0], opacity: 1 }}
               transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-              style={{ opacity: 1 }}
             >
-              <rect x="1" y="36" width="218" height="102" rx="2" fill="#FFFFFF" stroke={GOLD} strokeWidth="1" />
-              <motion.path
-                d="M 1 36 L 110 100 L 219 36"
-                fill="none"
-                stroke={GOLD}
-                strokeWidth="1"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.8, delay: 0.1 }}
-              />
-              <circle cx="110" cy="78" r="7" fill={CRIMSON} opacity="0.9" />
-              <text
-                x="110"
-                y="82"
-                textAnchor="middle"
-                fontSize="7"
-                fontFamily={FONT_DISPLAY}
-                fontStyle="italic"
-                fill={CREAM}
+              {/* Layer 1 — envelope back (stays, has seal) */}
+              <svg
+                viewBox="0 0 260 170"
+                width={260}
+                height={170}
+                style={{ position: 'absolute', inset: 0 }}
               >
-                {firstName && secondName ? `${firstName[0]}${secondName[0]}` : '✦'}
-              </text>
-            </motion.svg>
+                <rect x="2" y="40" width="256" height="128" rx="3" fill="#FFFFFF" stroke={GOLD} strokeWidth="1" />
+                <path d="M 2 40 L 130 120 L 258 40" fill="none" stroke={GOLD_RULE} strokeWidth="1" />
+                <circle cx="130" cy="94" r="9" fill={CRIMSON} opacity="0.92" />
+                <text
+                  x="130"
+                  y="98.5"
+                  textAnchor="middle"
+                  fontSize="8"
+                  fontFamily={FONT_DISPLAY}
+                  fontStyle="italic"
+                  fill={CREAM}
+                >
+                  {firstName && secondName ? `${firstName[0]}${secondName[0]}` : '✦'}
+                </text>
+              </svg>
+
+              {/* Layer 2 — card inside, static at closed state */}
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 20,
+                  right: 20,
+                  top: 54,
+                  bottom: 20,
+                  background: CREAM_DEEP,
+                  border: `1px solid ${GOLD_RULE}`,
+                  borderRadius: 2,
+                  boxShadow: '0 2px 6px rgba(24,24,27,0.06)',
+                }}
+              />
+
+              {/* Layer 3 — the flap, pivoting on top edge */}
+              <motion.svg
+                viewBox="0 0 260 90"
+                width={260}
+                height={90}
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  transformOrigin: '50% 100%',
+                }}
+                initial={{ rotateX: 0 }}
+                animate={{ rotateX: 0 }}
+                exit={{ rotateX: -180, transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1] } }}
+              >
+                <path
+                  d="M 2 90 L 130 2 L 258 90 Z"
+                  fill="#FFFFFF"
+                  stroke={GOLD}
+                  strokeWidth="1"
+                />
+              </motion.svg>
+            </motion.div>
+
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

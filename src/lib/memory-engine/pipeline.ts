@@ -17,6 +17,9 @@ import {
   useClaudeForStory,
 } from './claude-passes';
 import { getEventType } from '@/lib/event-os/event-types';
+import { pickFontPair } from './typography-picker';
+import { pickMotifs } from './motif-picker';
+import { tagPhotos, summarizeClusterTags, type PhotoTags } from './photo-vision';
 
 export async function generateStoryManifest(
   clusters: PhotoCluster[],
@@ -39,6 +42,35 @@ export async function generateStoryManifest(
 ): Promise<StoryManifest> {
   onProgress?.(0);
 
+  // ── Pass 0.5 — Per-photo vision tagging ─────────────────────────
+  // Tags every photo (not just the 1 representative per cluster that
+  // goes into Pass 1's multimodal prompt) with scene / mood /
+  // peopleCount / time-of-day. We fold the per-cluster summary into
+  // cluster.note so Pass 1 — and every downstream note-consuming
+  // pass — sees the vision context for free. Non-fatal: if the API
+  // is unreachable or rate-limits, we fall through with no tags.
+  const photoTagsById = new Map<string, PhotoTags>();
+  try {
+    const allPhotos = clusters.flatMap((c) => c.photos);
+    if (allPhotos.length > 0) {
+      const tagged = await tagPhotos(allPhotos, apiKey, googleAccessToken);
+      for (const t of tagged) {
+        if (t.photo?.id) photoTagsById.set(t.photo.id, t.tags);
+      }
+      clusters = clusters.map((c) => {
+        const clusterTags = c.photos
+          .map((p) => photoTagsById.get(p.id))
+          .filter((t): t is PhotoTags => Boolean(t));
+        const summary = summarizeClusterTags(clusterTags);
+        if (!summary) return c;
+        const nextNote = c.note ? `${c.note}\n(vision: ${summary})` : `(vision: ${summary})`;
+        return { ...c, note: nextNote };
+      });
+    }
+  } catch (err) {
+    logWarn('[Memory Engine] Photo vision tagging failed (non-fatal):', err);
+  }
+
   // Cap chapters to number of photos (one chapter per photo cluster)
   const photoCount = clusters.length;
   const prompt = buildPrompt(clusters, vibeString, coupleNames, occasion, eventDate, photoCount, layoutFormat);
@@ -46,10 +78,14 @@ export async function generateStoryManifest(
   // Build the multimodal parts array
   const parts: Record<string, unknown>[] = [{ text: prompt }];
 
-  // If we have an access token, fetch 1 representative image per cluster to show Gemini
-  if (googleAccessToken) {
+  // Fetch 1 representative image per cluster for Gemini vision.
+  // Works for both Google Photos URLs (needs token) and regular URLs
+  // (R2 / public images) — the fetcher auto-detects.
+  try {
     const imageParts = await fetchClusterImages(clusters, googleAccessToken);
-    parts.push(...imageParts);
+    if (imageParts.length > 0) parts.push(...imageParts);
+  } catch (err) {
+    log('[Memory Engine] Image fetching failed, falling back to text-only:', err);
   }
 
   // Pass 1 — core storytelling.
@@ -66,6 +102,7 @@ export async function generateStoryManifest(
         photoCount,
         layoutFormat,
         voice: getEventType(occasion)?.voice,
+        factSheet,
       });
       rawText = result.raw;
     } catch (err) {
@@ -429,7 +466,7 @@ export async function generateStoryManifest(
       inspirationUrls,
       coupleProfile,  // Couple DNA drives bespoke illustration generation
       preferredPalette,  // User-chosen hex colors — must appear in final palette
-    }, occasion);
+    }, occasion, getEventType(occasion)?.voice);
     manifest.vibeSkin = vibeSkin;
     log('[Memory Engine] Pass 2: VibeSkin generated',
       vibeSkin.chapterIcons?.length ? `with ${vibeSkin.chapterIcons.length} chapter icons` : '(no chapter icons)'
@@ -493,6 +530,37 @@ export async function generateStoryManifest(
         sectionDivider: pickDivider(),
       },
     };
+  }
+
+  // ── Typography pair (user-generated sites only) ────────────────────
+  // Templates ship their own font pairings; bare sites previously fell
+  // back to Playfair + Inter regardless of voice. Pick a pair keyed on
+  // the EventType voice + occasion so bachelor sites read loud and
+  // memorial sites read quiet.
+  if (!manifest.templateId) {
+    try {
+      const pair = pickFontPair(occasion ?? 'wedding', manifest.vibeString);
+      manifest.theme = {
+        ...manifest.theme,
+        fonts: { heading: pair.heading, body: pair.body },
+      };
+      log(`[Memory Engine] Typography: ${pair.heading} + ${pair.body} — ${pair.note}`);
+    } catch (err) {
+      logWarn('[Memory Engine] Font pair selection failed (non-fatal):', err);
+    }
+  }
+
+  // ── Motif intelligence (user-generated sites only) ─────────────────
+  // Templates bring their own motif pack. Bare sites get a voice-driven
+  // pack so the hero + decorations don't look empty next to templated
+  // sites. Safe to re-run: only applied when motifs are still absent.
+  if (!manifest.templateId && !manifest.motifs) {
+    try {
+      manifest.motifs = pickMotifs(occasion ?? 'wedding', manifest.vibeString);
+      log(`[Memory Engine] Motifs: blob=${manifest.motifs.blob} stamp="${manifest.motifs.stamp?.text}"`);
+    } catch (err) {
+      logWarn('[Memory Engine] Motif selection failed (non-fatal):', err);
+    }
   }
 
   // Emit snapshot AFTER reconcile so downstream consumers see the final

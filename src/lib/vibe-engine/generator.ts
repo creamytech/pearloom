@@ -163,7 +163,11 @@ export async function generateVibeSkin(
   apiKey?: string,
   coupleNames?: [string, string],
   context?: VibeSkinContext,
-  occasion?: string
+  occasion?: string,
+  /** EventType voice — shifts palette saturation + mood language
+   *  so memorial templates don't get confetti and bachelor parties
+   *  don't get candlelit muted tones. */
+  voice?: 'solemn' | 'intimate' | 'ceremonial' | 'playful' | 'celebratory',
 ): Promise<VibeSkin> {
   const preferredPaletteEarly = (context?.preferredPalette || [])
     .filter(c => typeof c === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(c.trim()))
@@ -242,6 +246,29 @@ export async function generateVibeSkin(
   };
 
   const visualGuidance = occasionVisualGuidance[occasion || 'wedding'] || occasionVisualGuidance.wedding;
+
+  // Voice-level hard constraints on palette + mood so solemn events
+  // never receive bright palettes and playful events aren't muted.
+  const voiceConstraints: Record<string, string> = {
+    solemn: `CRITICAL — SOLEMN VOICE:
+    Palette MUST stay muted, desaturated, low-contrast. Deep navy, charcoal, aged ivory, muted sage, dusty plum.
+    NO confetti, NO bright accents, NO party particles, NO rainbow tones.
+    Particles allowed: sakura, leaves, dust motes, soft light shafts. Nothing celebratory.
+    Tone: reverent, still, photographed like a cathedral on an overcast morning.`,
+    playful: `CRITICAL — PLAYFUL VOICE:
+    Palette MUST feel warm, vibrant, and high-energy. Peach, coral, gold, sunset orange, denim.
+    Particles allowed: confetti, sparks, balloons, ribbons. Encouraged.
+    Tone: loud and loving, like a polaroid at 2am.`,
+    intimate: `CRITICAL — INTIMATE VOICE:
+    Palette MUST feel like a lamplit living room. Cream, olive, warm gold, dusty rose, soft terracotta.
+    Tone: quiet, close-up, a handwritten letter.`,
+    ceremonial: `CRITICAL — CEREMONIAL VOICE:
+    Palette MUST feel considered and reverent. Deep jewel tones, burnished gold, rich cream.
+    Tone: traditional, slow, hymn-like. Nothing flippant.`,
+    celebratory: `VOICE: celebratory — joyful but not chaotic.
+    Palette can lean warm and saturated. Particles welcome in moderation.`,
+  };
+  const voiceLine = voice ? (voiceConstraints[voice] || voiceConstraints.celebratory) : '';
 
   const namesContext = coupleNames
     ? `The couple is ${coupleNames[0]} & ${coupleNames[1]}.`
@@ -325,6 +352,7 @@ The couple's vibe is: "${vibeString}"
 ## OCCASION VISUAL DIRECTION — READ BEFORE DESIGNING
 ${visualGuidance}
 
+${voiceLine ? `## VOICE CONSTRAINTS — OVERRIDES ANY OTHER STYLING GUIDANCE\n${voiceLine}\n` : ''}
 ${storyContext}
 ${coupleProfileContext}
 Your job: design a COMPLETELY UNIQUE visual identity for this specific couple. Every SVG illustration should reflect THEIR actual world — their pets, interests, places, and story. No two sites should ever look the same.
@@ -799,50 +827,46 @@ Composition: Wide and narrow (aspect ratio ~8:1) — decorative horizontal band
 Left and right edges must fade completely into ${bgHex}
 No text, no people, no faces, no logos`;
 
-  async function fetchImage(prompt: string, model: string): Promise<string | undefined> {
+  // Unified image generator — routes through OpenAI GPT Image 2
+  // (gpt-image-2, released 2026-04-21) when OPENAI_API_KEY is
+  // set. gpt-image-2 brings dense legible text, wider aspect
+  // range (up to 3840×3840, multiples of 16), and higher face
+  // fidelity than the previous gpt-image-1. Falls back to Gemini
+  // Nano Banana otherwise.
+  async function fetchImage(
+    prompt: string,
+    purpose: 'hero' | 'thumbnail',
+  ): Promise<string | undefined> {
     try {
-      // 25s hard timeout per image — if the model hangs, skip gracefully
-      const imgController = new AbortController();
-      const imgTimeout = setTimeout(() => imgController.abort(), 25_000);
-      let res: Response;
-      try {
-        res = await fetch(`${model}?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              responseModalities: ['image'],
-            },
-          }),
-          signal: imgController.signal,
-        });
-      } finally {
-        clearTimeout(imgTimeout);
-      }
-      if (!res.ok) {
-        logWarn(`[Site Art] Image generation returned ${res.status}`);
-        return undefined;
-      }
-      const data = await res.json();
-      const part = data.candidates?.[0]?.content?.parts?.find(
-        (p: Record<string, unknown>) => p.inlineData
-      );
-      if (!part?.inlineData?.data) return undefined;
-      return `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
+      const { generateImage } = await import('@/lib/memory-engine/image-router');
+      const result = await generateImage({
+        apiKey,
+        prompt,
+        purpose,
+        quality: purpose === 'hero' ? 'high' : 'medium',
+        // Hero is landscape, divider is square-ish; gpt-image-2 handles
+        // both sizes natively.
+        size: purpose === 'hero' ? '1536x1024' : '1024x1024',
+      });
+      if (!result?.base64) return undefined;
+      return `data:${result.mimeType || 'image/png'};base64,${result.base64}`;
     } catch (err) {
       logWarn('[Site Art] Image generation failed:', err);
       return undefined;
     }
   }
 
+  // Keep Nano Banana-direct handles for back-compat (unused now
+  // but referenced in log strings downstream).
+  void NANO_BANANA_PRO; void NANO_BANANA_2;
+
   // Generate all three art pieces in parallel:
-  // - Hero art: Nano Banana Pro (max quality — the showpiece)
-  // - Ambient + art strip: Nano Banana 2 (faster, good enough for subtle use)
+  // - Hero art: high quality (the showpiece)
+  // - Ambient + art strip: medium quality (subtle use, cheaper)
   const [heroArtDataUrl, ambientArtDataUrl, artStripDataUrl] = await Promise.all([
-    fetchImage(heroPrompt, NANO_BANANA_PRO),
-    fetchImage(ambientPrompt, NANO_BANANA_2),
-    fetchImage(artStripPrompt, NANO_BANANA_2),
+    fetchImage(heroPrompt, 'hero'),
+    fetchImage(ambientPrompt, 'thumbnail'),
+    fetchImage(artStripPrompt, 'thumbnail'),
   ]);
 
   log(

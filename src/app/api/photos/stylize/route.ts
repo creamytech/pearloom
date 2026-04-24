@@ -1,14 +1,17 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / api/photos/stylize/route.ts
 //
-// Photo-to-style transformation via Gemini 3.1 Flash-Image
-// ("Nano Banana"). Takes a couple's uploaded photo + a preset
-// style id (paper-craft, watercolor, embroidery, botanical) and
-// returns a new R2-hosted URL for the stylized image.
+// Photo-to-style transformation via OpenAI GPT Image 2 (primary,
+// released 2026-04-21) with Gemini Nano Banana as a graceful
+// fallback. Takes a couple's uploaded photo + a preset style id
+// (paper-craft, watercolor, embroidery, botanical) and returns
+// a new R2-hosted URL for the stylized image.
 //
 // Designed for the Save-the-Date "Photo" variant: one click
 // turns the hero into a shareable editorial artefact while
-// keeping the couple recognisable.
+// keeping the couple recognisable. gpt-image-2 preserves faces
+// more faithfully than Nano Banana on photo edits — that's why
+// we default to it now.
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -16,7 +19,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { uploadToR2 } from '@/lib/r2';
-import { geminiGenerateImage } from '@/lib/memory-engine/gemini-client';
+import { generateImage } from '@/lib/memory-engine/image-router';
 import { env } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
@@ -127,17 +130,23 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // ── Gemini call ────────────────────────────────────────────
+  // ── Image-gen call (gpt-image-2 preferred, Gemini fallback) ─
   const preset = STYLES[style];
   let result;
   try {
-    result = await geminiGenerateImage({
+    result = await generateImage({
       apiKey,
       prompt: preset.prompt,
       inputImage: { mimeType: sourceMime, base64: sourceBuf.toString('base64') },
+      purpose: 'stylize',
+      quality: 'high',
+      size: '1024x1024',
+      // `low` moderation keeps the edit flexible on wedding portraits
+      // (rehearsal-dinner dress, beach attire) where `auto` was over-eager.
+      moderation: 'low',
     });
   } catch (err) {
-    console.error('[stylize] Gemini call failed:', err);
+    console.error('[stylize] image-gen call failed:', err);
     return NextResponse.json(
       { error: 'Style renderer is busy. Try again in a moment.' },
       { status: 502 },

@@ -21,6 +21,7 @@ import { GuestSearchPanel } from './GuestSearchPanel';
 import { BulkInvitePanel } from './BulkInvitePanel';
 import { SaveTheDatePanel } from './SaveTheDatePanel';
 import { SeatingEditorPanel } from './SeatingEditorPanel';
+import { InviteDesignerPanel } from './InviteDesignerPanel';
 import type { StoryManifest } from '@/types';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
 import { panelText, panelTracking, panelWeight, panelLineHeight } from './panel';
@@ -143,10 +144,18 @@ export function GuestsLifecyclePanel({ manifest, subdomain }: Props) {
       <div>
         {stage === 'list' && <GuestSearchPanel siteId={subdomain} />}
         {stage === 'invite' && (
-          <BulkInvitePanel manifest={manifest} siteId={subdomain} subdomain={subdomain} />
+          <>
+            <InviteDesignerPanel manifest={manifest} subdomain={subdomain} />
+            <BulkInvitePanel manifest={manifest} siteId={subdomain} subdomain={subdomain} />
+          </>
         )}
         {stage === 'seat' && <SeatingEditorPanel siteId={subdomain} />}
-        {stage === 'std' && <SaveTheDatePanel manifest={manifest} subdomain={subdomain} />}
+        {stage === 'std' && (
+          <>
+            <InviteDesignerPanel manifest={manifest} subdomain={subdomain} />
+            <SaveTheDatePanel manifest={manifest} subdomain={subdomain} />
+          </>
+        )}
       </div>
     </div>
   );
