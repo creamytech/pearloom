@@ -2489,7 +2489,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                   <span style={{ fontSize: '0.72rem', color: 'var(--pl-ink-soft, #3D3530)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'var(--pl-muted, #7A756E)' }}>
                     Size
-                    <RangeSlider min={30} max={200} value={s.size} onChange={v => {
+                    <RangeSlider min={30} max={200} value={s.size ?? 80} onChange={v => {
                       const updated = [...manifest.stickers!];
                       updated[i] = { ...s, size: v };
                       onChange({ ...manifest, stickers: updated });
@@ -2497,7 +2497,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'var(--pl-chrome-text-muted)' }}>
                     Op.
-                    <RangeSlider min={10} max={100} value={Math.round(s.opacity * 100)} onChange={v => {
+                    <RangeSlider min={10} max={100} value={Math.round((s.opacity ?? 1) * 100)} onChange={v => {
                       const updated = [...manifest.stickers!];
                       updated[i] = { ...s, opacity: v / 100 };
                       onChange({ ...manifest, stickers: updated });

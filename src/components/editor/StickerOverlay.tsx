@@ -36,6 +36,7 @@ export function StickerOverlay({ stickers, onChange, containerRef }: StickerOver
       }}
     >
       {stickers.map(s => {
+        if (s.type === 'ai' || !s.type || !s.name) return null;
         const module = MODULES[s.type];
         const Comp = module?.[s.name] as React.ComponentType<{ size?: number; color?: string; width?: string | number; height?: number }> | undefined;
         if (!Comp) return null;

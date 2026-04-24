@@ -26,6 +26,11 @@ import { SortableChapters } from '../editor/canvas/SortableChapters';
 import { HoverToolbar } from '../editor/canvas/HoverToolbar';
 import { PhotoDropTarget } from '../editor/canvas/PhotoDropTarget';
 import { OccasionDecor } from './OccasionDecor';
+import { DecorDivider } from './DecorDivider';
+import { SectionStamp } from './SectionStamp';
+import { StickerLayer } from './StickerLayer';
+import { FooterBouquet } from './FooterBouquet';
+import { ConfettiBurst } from './ConfettiBurst';
 import { ActivityVoteBlock } from '@/components/site/ActivityVoteBlock';
 import { AdviceWallBlock } from '@/components/site/AdviceWallBlock';
 import { CostSplitterBlock } from '@/components/site/CostSplitterBlock';
@@ -630,7 +635,7 @@ function HeroSection({
 }
 
 /* ==================== TIMELINE ==================== */
-function TimelineSection({ chapters, onEditField }: { chapters: Chapter[]; onEditField?: FieldEditor }) {
+function TimelineSection({ chapters, onEditField, manifest }: { chapters: Chapter[]; onEditField?: FieldEditor; manifest?: StoryManifest }) {
   const edit = useIsEditMode();
   if (!chapters.length && !edit) return null;
   const addChapter = () => {
@@ -665,6 +670,7 @@ function TimelineSection({ chapters, onEditField }: { chapters: Chapter[]; onEdi
               gap: 6,
             }}
           >
+            <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.story} size={32} />
             <Icon name="leaf" size={13} /> Our story so far
           </div>
           <h2 className="display" style={{ fontSize: 'clamp(42px, 6vw, 72px)', margin: 0 }}>
@@ -1074,6 +1080,7 @@ function ScheduleSection({ manifest, names, onEditField }: { manifest: StoryMani
               gap: 6,
             }}
           >
+            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.schedule} size={32} />
             <Icon name="clock" size={13} /> How the day flows
           </div>
           <h2 className="display" style={{ fontSize: 'clamp(40px, 6vw, 64px)', margin: 0 }}>
@@ -1168,6 +1175,7 @@ function TravelSection({ manifest }: { manifest: StoryManifest }) {
                 gap: 6,
               }}
             >
+              <SectionStamp url={manifest.decorLibrary?.sectionStamps?.travel} size={32} />
               <Icon name="pin" size={13} /> The venue
             </div>
             <h3 className="display" style={{ fontSize: 'clamp(32px, 4.5vw, 44px)', margin: '0 0 16px' }}>
@@ -1359,6 +1367,7 @@ function RegistrySection({ manifest }: { manifest: StoryManifest }) {
               gap: 6,
             }}
           >
+            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.registry} size={32} />
             <Icon name="gift" size={13} /> If you&apos;re asking
           </div>
           <h2 className="display" style={{ fontSize: 'clamp(40px, 6vw, 64px)', margin: '0 0 12px' }}>
@@ -1414,7 +1423,7 @@ function RegistrySection({ manifest }: { manifest: StoryManifest }) {
 }
 
 /* ==================== GALLERY ==================== */
-function GallerySection({ chapters }: { chapters: Chapter[] }) {
+function GallerySection({ chapters, manifest }: { chapters: Chapter[]; manifest?: StoryManifest }) {
   const photos = chapters.flatMap((c) => (c.images ?? []).map((i) => i.url)).filter(Boolean).slice(0, 12);
   const tones: Tone[] = ['warm', 'field', 'dusk', 'lavender', 'peach', 'sage', 'cream', 'warm', 'dusk', 'lavender', 'field', 'peach'];
   const spans = [
@@ -1453,6 +1462,7 @@ function GallerySection({ chapters }: { chapters: Chapter[] }) {
                 gap: 6,
               }}
             >
+              <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.gallery} size={32} />
               <Icon name="gallery" size={13} /> Along the way
             </div>
             <h2 className="display" style={{ fontSize: 'clamp(40px, 6vw, 64px)', margin: 0 }}>
@@ -1532,6 +1542,7 @@ function FaqSection({ manifest, onEditField }: { manifest: StoryManifest; onEdit
               gap: 6,
             }}
           >
+            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.faq} size={32} />
             <Icon name="heart-icon" size={13} /> Good to know
           </div>
           <h2 className="display" style={{ fontSize: 'clamp(38px, 6vw, 60px)', margin: 0 }}>
@@ -1679,12 +1690,15 @@ function RSVPSection({
               gap: 6,
             }}
           >
+            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.rsvp} size={32} />
             <Icon name="mail" size={13} /> Kindly respond by {deadlineStr}
           </div>
           <h2 className="display" style={{ fontSize: 'clamp(44px, 7vw, 72px)', margin: 0 }}>
             Will you <span className="display-italic">be there?</span>
           </h2>
         </div>
+
+        <ConfettiBurst active={state === 'success' && going === 'yes'} url={manifest.decorLibrary?.confetti} />
 
         {state === 'success' ? (
           <div
@@ -2264,7 +2278,7 @@ export function SiteV8Renderer({
     if (hidden.has(key)) return null;
     switch (key) {
       case 'story':
-        return chapters.length > 0 ? <TimelineSection key="story" chapters={chapters} onEditField={onEditField} /> : null;
+        return chapters.length > 0 ? <TimelineSection key="story" chapters={chapters} onEditField={onEditField} manifest={manifest} /> : null;
       case 'details':
         return <DetailsStrip key="details" manifest={manifest} />;
       case 'schedule':
@@ -2274,7 +2288,7 @@ export function SiteV8Renderer({
       case 'registry':
         return <RegistrySection key="registry" manifest={manifest} />;
       case 'gallery':
-        return <GallerySection key="gallery" chapters={chapters} />;
+        return <GallerySection key="gallery" chapters={chapters} manifest={manifest} />;
       case 'faq':
         return <FaqSection key="faq" manifest={manifest} onEditField={onEditField} />;
       case 'rsvp':
@@ -2322,13 +2336,38 @@ export function SiteV8Renderer({
       })
     : { background: 'var(--paper)', minHeight: '100vh' };
 
+  const dividerUrl = manifest.decorLibrary?.divider;
+  const bouquetUrl = manifest.decorLibrary?.footerBouquet;
+
   return (
     <EditorCanvasProvider value={{ editMode }}>
       <div className="pl8-guest" style={themeStyle}>
         <EventNav names={names} hasRsvp={hasRsvp} />
-        <HeroSection names={names} manifest={manifest} onEditField={onEditField} onEditNames={onEditNames} />
-        {blockOrder.map(renderBlock)}
+        <StickerLayer
+          blockId="hero"
+          stickers={manifest.stickers}
+          onEditField={onEditField}
+        >
+          <HeroSection names={names} manifest={manifest} onEditField={onEditField} onEditNames={onEditNames} />
+        </StickerLayer>
+        {blockOrder.map((key, i) => {
+          const block = renderBlock(key);
+          if (!block) return null;
+          return (
+            <div key={key}>
+              <DecorDivider url={dividerUrl} index={i} />
+              <StickerLayer
+                blockId={key}
+                stickers={manifest.stickers}
+                onEditField={onEditField}
+              >
+                {block}
+              </StickerLayer>
+            </div>
+          );
+        })}
         <CustomBlocksRail manifest={manifest} siteSlug={siteSlug} />
+        <FooterBouquet url={bouquetUrl} />
         <SiteFooter names={names} prettyUrl={prettyUrl} />
       </div>
     </EditorCanvasProvider>

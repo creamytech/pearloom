@@ -3,6 +3,8 @@
 import type { StoryManifest } from '@/types';
 import { Field, PanelSection, SegmentedToggle, SelectInput, TextInput } from '../atoms';
 import { Blob, Pear, Sparkle, Squiggle } from '../../motifs';
+import { DecorLibraryPanel } from './DecorLibraryPanel';
+import { StickerTrayPanel } from './StickerTrayPanel';
 
 const PALETTES = [
   { id: 'groovy-garden', name: 'Groovy Garden', colors: ['#3D4A1F', '#8B9C5A', '#C4B5D9', '#F3E9D4', '#2A3512', '#D7CCE5'] },
@@ -202,6 +204,10 @@ export function ThemePanel({
       </PanelSection>
 
       <AiAccentSection manifest={manifest} onChange={onChange} />
+
+      <DecorLibraryPanel manifest={manifest} onChange={onChange} />
+
+      <StickerTrayPanel manifest={manifest} onChange={onChange} />
 
       <div
         style={{

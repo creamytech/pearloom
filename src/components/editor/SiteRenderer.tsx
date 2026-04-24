@@ -3383,6 +3383,10 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         {(manifest.stickers?.length ?? 0) > 0 && (
           <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 15, overflow: 'hidden' }}>
             {manifest.stickers!.map((s, i) => {
+              // AI stickers live in a different layer (StickerLayer per
+              // block); skip them here. Legacy SVG stickers require
+              // name + type.
+              if (s.type === 'ai' || !s.name || !s.type) return null;
               const module = s.type === 'illustrations'
                 ? require('@/components/asset-library/SvgIllustrations')
                 : s.type === 'accents'

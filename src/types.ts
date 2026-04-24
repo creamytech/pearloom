@@ -108,6 +108,30 @@ export interface StoryManifest {
    *  overlays this accent alongside the OccasionDecor set. Produced by
    *  /api/decor/ai-accent from venue + palette + occasion. */
   aiAccentUrl?: string;
+  /** Full AI decor library — generated once per site from the palette +
+   *  occasion + venue via /api/decor/library. Each slot caches a
+   *  permanent R2 URL that the renderer composites into the real site. */
+  decorLibrary?: {
+    /** Wide divider image used between every section — breaks the flat
+     *  hairline rule with hand-drawn editorial flourish. */
+    divider?: string;
+    /** Per-section stamp URLs (wax-seal feel) keyed by block type:
+     *  story, schedule, travel, registry, rsvp, faq, gallery. Rendered
+     *  inside each section's eyebrow. */
+    sectionStamps?: Partial<Record<string, string>>;
+    /** Confetti PNG that plays on RSVP 'yes' submission — a single
+     *  burst tile, animated client-side. */
+    confetti?: string;
+    /** Editorial closing flourish rendered above the site footer. */
+    footerBouquet?: string;
+    /** ISO timestamp of the last full-library regeneration. Used by
+     *  the editor to decide whether a re-prompt is cheap or costly. */
+    updatedAt?: string;
+  };
+  // (stickers array declared below — the existing StickerItem
+  // interface has been extended with optional url + blockId + scale
+  // so AI-generated stickers and library-based stickers share the
+  // same array shape.)
   // Ordered list of block types (matches PageBlock['type']) that the
   // renderer should follow when a template imposes a specific structure.
   blockOrder?: string[];
@@ -962,14 +986,24 @@ export interface PlaceResult {
 
 export interface StickerItem {
   id: string;
-  name: string;          // SVG component name e.g. 'RoseIllustration'
-  type: 'illustrations' | 'accents' | 'dividers';
+  /** SVG component name when `type !== 'ai'`. For AI stickers this
+   *  becomes a short label only (e.g. 'ai sticker'). */
+  name?: string;
+  type?: 'illustrations' | 'accents' | 'dividers' | 'ai';
   x: number;             // left % (0-100)
   y: number;             // top % (0-100)
-  size: number;          // px size
+  size?: number;         // px size (legacy SVG stickers)
   rotation: number;      // degrees
-  opacity: number;       // 0-1
+  opacity?: number;      // 0-1
   color?: string;
+  /** AI-generated sticker PNG URL (mutually exclusive with `name`). */
+  url?: string;
+  /** Anchor block id — 'hero', 'story', 'schedule', etc. When set,
+   *  the sticker renders inside that block's layer; otherwise it
+   *  floats at the page level (legacy behaviour). */
+  blockId?: string;
+  /** 0.3–2 — proportional multiplier used by AI stickers. */
+  scale?: number;
 }
 
 // ── Wedding Party ─────────────────────────────────────────────
