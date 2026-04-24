@@ -26,6 +26,7 @@ import {
   type TemplateVibe,
 } from './templates-data';
 import { TemplatePreview } from './TemplatePreview';
+import { TemplatePreviewModal } from './TemplatePreviewModal';
 
 const ALL_VIBES: TemplateVibe[] = [
   'Warm',
@@ -68,6 +69,7 @@ export function MarketplaceV8() {
   const [palette, setPalette] = useState<TemplatePalette | null>(null);
   const [q, setQ] = useState('');
   const [hovered, setHovered] = useState<string | null>(null);
+  const [previewing, setPreviewing] = useState<Template | null>(null);
 
   function toggleVibe(v: TemplateVibe) {
     setVibes((prev) => (prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]));
@@ -475,6 +477,7 @@ export function MarketplaceV8() {
                       size="lg"
                       hovered={hovered === t.id}
                       onHover={(on) => setHovered(on ? t.id : null)}
+                      onPreview={(tile) => setPreviewing(tile)}
                     />
                   </Reveal>
                 ))}
@@ -492,6 +495,7 @@ export function MarketplaceV8() {
                       size="md"
                       hovered={hovered === t.id}
                       onHover={(on) => setHovered(on ? t.id : null)}
+                      onPreview={(tile) => setPreviewing(tile)}
                     />
                   </Reveal>
                 ))}
@@ -584,6 +588,12 @@ export function MarketplaceV8() {
       </div>
 
       <Footbar />
+
+      <TemplatePreviewModal
+        open={previewing !== null}
+        template={previewing}
+        onClose={() => setPreviewing(null)}
+      />
     </div>
   );
 }
@@ -611,24 +621,30 @@ function TemplateTile({
   size,
   hovered,
   onHover,
+  onPreview,
 }: {
   t: Template;
   size: 'md' | 'lg';
   hovered: boolean;
   onHover: (on: boolean) => void;
+  onPreview: (tile: Template) => void;
 }) {
   const aspect = size === 'lg' ? '4/5' : '3/4';
   return (
-    <Link
-      href={`/wizard/new?template=${t.id}`}
+    <button
+      type="button"
+      onClick={() => onPreview(t)}
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
+      aria-label={`Preview ${t.name}`}
       style={{
-        textDecoration: 'none',
+        all: 'unset',
+        cursor: 'pointer',
         color: 'inherit',
         transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
         transition: 'transform .22s cubic-bezier(0.16, 1, 0.3, 1)',
         display: 'block',
+        width: '100%',
       }}
     >
       <div
@@ -660,7 +676,7 @@ function TemplateTile({
                 className="btn btn-primary btn-sm"
                 style={{ background: 'var(--cream)', color: 'var(--ink)', flex: 1, justifyContent: 'center' }}
               >
-                Use this template <Icon name="arrow-right" size={12} />
+                Preview <Icon name="arrow-right" size={12} />
               </span>
             </div>
           </div>
@@ -725,6 +741,6 @@ function TemplateTile({
           ))}
         </div>
       </div>
-    </Link>
+    </button>
   );
 }
