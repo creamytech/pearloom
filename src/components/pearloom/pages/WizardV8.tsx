@@ -16,7 +16,7 @@ import { TEMPLATES_BY_ID } from '../marketplace/templates-data';
 import { EVENT_TYPES, getEventType, type EventCategory } from '@/lib/event-os/event-types';
 import { nameModeFor, nameModeIsValid } from '@/lib/event-os/name-mode';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
-import { LocationAutocomplete } from '@/components/wizard/LocationAutocomplete';
+import { WizardLocationAutocomplete } from '../wizard/WizardLocationAutocomplete';
 import { WizardDatePicker } from '../wizard/WizardDatePicker';
 import { GeneratingScreen } from '../wizard/GeneratingScreen';
 
@@ -1172,7 +1172,7 @@ export function WizardV8() {
                     </div>
                     <div>
                       <label className="field-label">Location</label>
-                      <LocationAutocomplete
+                      <WizardLocationAutocomplete
                         value={st.location}
                         onChange={(v) => setSt((s) => ({ ...s, location: v }))}
                         onSelect={(place) =>
