@@ -107,9 +107,13 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
+        className="pl8"
         style={{
           width: 'min(1080px, 100%)',
-          maxHeight: 'calc(100vh - 48px)',
+          // Explicit height pins the grid rows. Without it the left column's
+          // ~1500px content pushes the grid row height past the card's
+          // overflow clip and the whole thing renders off-screen.
+          height: 'min(720px, calc(100vh - 48px))',
           background: 'var(--cream, #FDFAF0)',
           borderRadius: 24,
           boxShadow: '0 32px 80px rgba(14,13,11,0.35)',
@@ -123,7 +127,8 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
           style={{
             background: tones.paper,
             color: tones.ink,
-            maxHeight: 'calc(100vh - 48px)',
+            height: '100%',
+            minHeight: 0,
             overflowY: 'auto',
             padding: 0,
           }}
@@ -304,6 +309,9 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
             gap: 16,
             background: 'var(--cream, #FDFAF0)',
             borderLeft: '1px solid var(--line, rgba(61,74,31,0.14))',
+            height: '100%',
+            minHeight: 0,
+            overflowY: 'auto',
           }}
         >
           <button

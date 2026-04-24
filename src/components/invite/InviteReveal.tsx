@@ -22,15 +22,20 @@ interface InviteRevealProps {
   coupleNames: [string, string];
 }
 
-// ── Editorial palette (locked for guest page) ────────────────
-const CREAM = '#FAF7F2';
-const CREAM_DEEP = '#F0ECE3';
+// ── v8 palette (locked for guest page) ───────────────────────
+// Migrated from the editorial (Fraunces italic + gold hairlines)
+// voice to v8 (paper + sage hairlines + peach accent) so the
+// guest-facing invite sits in the same family as the rest of
+// the product. Keeps the warm personality; drops the letterpress
+// affect.
+const CREAM = '#FDFAF0';       // v8 paper
+const CREAM_DEEP = '#FBF7EE';  // v8 cream-2
 const INK = '#18181B';
-const INK_SOFT = '#3A332C';
+const INK_SOFT = '#4A5642';    // sage-deep-soft
 const MUTED = '#6F6557';
-const GOLD = '#B8935A';
-const GOLD_RULE = 'rgba(184,147,90,0.28)';
-const CRIMSON = '#8B2D2D';
+const GOLD = '#C19A4B';        // warmer peach-gold rather than cool editorial gold
+const GOLD_RULE = 'rgba(193,154,75,0.28)';
+const CRIMSON = '#C6563D';     // v8 peach-ink (replaces editorial crimson)
 
 const FONT_DISPLAY = 'var(--pl-font-heading, "Fraunces", Georgia, serif)';
 const FONT_BODY = 'var(--pl-font-body, system-ui, -apple-system, sans-serif)';

@@ -47,15 +47,17 @@ interface Props {
   onEditRsvp: () => void;
 }
 
-const CREAM = '#FAF7F2';
-const CREAM_DEEP = '#F0ECE3';
+// v8 palette (migrated from editorial). Variable names kept so
+// internal references still resolve; every value points at v8.
+const CREAM = '#FDFAF0';       // v8 paper
+const CREAM_DEEP = '#FBF7EE';  // v8 cream-2
 const INK = '#18181B';
-const INK_SOFT = '#3A332C';
+const INK_SOFT = '#4A5642';    // sage-deep-soft
 const MUTED = '#6F6557';
-const GOLD = '#B8935A';
-const GOLD_RULE = 'rgba(184,147,90,0.28)';
-const CRIMSON = '#8B2D2D';
-const OLIVE = '#5C6B3F';
+const GOLD = '#C19A4B';        // warmer peach-gold
+const GOLD_RULE = 'rgba(193,154,75,0.28)';
+const CRIMSON = '#C6563D';     // v8 peach-ink
+const OLIVE = '#5C6B3F';       // v8 sage-deep
 
 const FONT_DISPLAY = 'var(--pl-font-heading, "Fraunces", Georgia, serif)';
 const FONT_BODY = 'var(--pl-font-body, system-ui, -apple-system, sans-serif)';

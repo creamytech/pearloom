@@ -56,14 +56,15 @@ const ROLE_COPY: Record<
   },
 };
 
-const CREAM = '#FAF7F2';
+// v8 palette (migrated from editorial).
+const CREAM = '#FDFAF0';
 const INK = '#18181B';
-const INK_SOFT = '#3A332C';
+const INK_SOFT = '#4A5642';
 const MUTED = '#6F6557';
-const GOLD = '#B8935A';
-const GOLD_RULE = 'rgba(184,147,90,0.28)';
+const GOLD = '#C19A4B';
+const GOLD_RULE = 'rgba(193,154,75,0.28)';
 const OLIVE = '#5C6B3F';
-const CRIMSON = '#8B2D2D';
+const CRIMSON = '#C6563D';
 
 const FONT_DISPLAY = 'var(--pl-font-heading, "Fraunces", Georgia, serif)';
 const FONT_MONO = 'var(--pl-font-mono, ui-monospace, "Geist Mono", monospace)';
@@ -199,7 +200,7 @@ export function CoHostAccept({
             padding: '14px 18px',
             margin: '0 0 28px',
             borderLeft: `2px solid ${GOLD}`,
-            background: 'color-mix(in oklab, #B8935A 8%, transparent)',
+            background: 'color-mix(in oklab, #C19A4B 8%, transparent)',
             fontFamily: FONT_DISPLAY,
             fontStyle: 'italic',
             fontSize: '1rem',
