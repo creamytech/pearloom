@@ -260,13 +260,18 @@ function WizardPhotoUpload({
       const accepted = picked.slice(0, Math.max(0, remaining));
       if (accepted.length === 0) return;
 
-      // 1. Stage immediately with the Google CDN URL so the thumbnails
-      //    paint while the server mirrors in the background. The mirror
-      //    step replaces `url` with a permanent R2 URL once it lands.
+      // 1. Stage immediately so the thumbnails paint while the server
+      //    mirrors in the background. Picker baseUrls require OAuth —
+      //    the browser can't load them in <img> tags directly — so we
+      //    route the preview through our authenticated proxy. Once the
+      //    R2 mirror lands below, we swap the preview to the permanent
+      //    URL and the proxy request goes away.
+      const previewFor = (baseUrl: string) =>
+        `/api/photos/proxy?url=${encodeURIComponent(baseUrl)}&w=600&h=600`;
       const staged: WizardPhoto[] = accepted.map((g) => ({
         id: g.id,
         url: g.baseUrl,
-        previewUrl: g.baseUrl,
+        previewUrl: previewFor(g.baseUrl),
         name: g.filename,
         mimeType: g.mimeType,
         width: g.width,
