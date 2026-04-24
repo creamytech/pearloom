@@ -323,7 +323,7 @@ function HeroSection({
     (manifest as unknown as { poetry?: { heroTagline?: string } }).poetry?.heroTagline ??
     "We'd love you there. Come celebrate with us — the day will be better for it.";
   const coverPhoto = manifest.coverPhoto;
-  const photos = manifest.heroSlideshow ?? (manifest.chapters?.flatMap((c) => c.images.slice(0, 1).map((i) => i.url)) ?? []);
+  const photos = manifest.heroSlideshow ?? (manifest.chapters?.flatMap((c) => (c.images ?? []).slice(0, 1).map((i) => i.url)) ?? []);
 
   return (
     <section id="top" style={{ position: 'relative', padding: 'clamp(48px, 8vw, 80px) 32px clamp(48px, 8vw, 110px)', overflow: 'hidden' }}>
@@ -1044,7 +1044,7 @@ function RegistrySection({ manifest }: { manifest: StoryManifest }) {
 
 /* ==================== GALLERY ==================== */
 function GallerySection({ chapters }: { chapters: Chapter[] }) {
-  const photos = chapters.flatMap((c) => c.images.map((i) => i.url)).filter(Boolean).slice(0, 12);
+  const photos = chapters.flatMap((c) => (c.images ?? []).map((i) => i.url)).filter(Boolean).slice(0, 12);
   const tones: Tone[] = ['warm', 'field', 'dusk', 'lavender', 'peach', 'sage', 'cream', 'warm', 'dusk', 'lavender', 'field', 'peach'];
   const spans = [
     { cs: 'span 2', rs: 'span 2' },

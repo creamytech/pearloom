@@ -15,6 +15,7 @@ import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { TEMPLATES_BY_ID } from '../marketplace/templates-data';
 import { EVENT_TYPES, getEventType, type EventCategory } from '@/lib/event-os/event-types';
 import { nameModeFor, nameModeIsValid } from '@/lib/event-os/name-mode';
+import { questionsFor } from '@/lib/event-os/wizard-questions';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
 import { WizardLocationAutocomplete } from '../wizard/WizardLocationAutocomplete';
 import { WizardDatePicker } from '../wizard/WizardDatePicker';
@@ -730,6 +731,64 @@ export function WizardV8() {
   const [taglineState, setTaglineState] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
   const step = STEPS[stepIndex];
 
+  // Fetch AI palette suggestions. Factored out so we can fire it
+  // automatically on step enter AND from the "Re-read my event"
+  // button.
+  const fetchSmartPalettes = async () => {
+    setSt((s) => ({ ...s, smartPalettesLoading: true, smartPalettesError: undefined }));
+    try {
+      const res = await fetch('/api/wizard/smart-palette', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          occasion: st.occasion,
+          names: st.names,
+          venue: st.location,
+          city: st.location,
+          vibes: st.vibes,
+          howWeMet: st.howWeMet,
+          whyCelebrate: st.whyCelebrate,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? 'Palette advisor unavailable.');
+      setSt((s) => ({
+        ...s,
+        smartPalettes: (data.palettes ?? []) as SmartPalette[],
+        smartPalettesLoading: false,
+      }));
+    } catch (err) {
+      setSt((s) => ({
+        ...s,
+        smartPalettesLoading: false,
+        smartPalettesError: err instanceof Error ? err.message : 'Palette advisor failed.',
+      }));
+    }
+  };
+
+  // Auto-fire palette suggestions the FIRST time the user lands on
+  // the Palette step — no click required. Guards against re-firing
+  // on step-navigation back-and-forth by checking existing results.
+  useEffect(() => {
+    if (step !== 'Palette') return;
+    if (st.smartPalettesLoading) return;
+    if ((st.smartPalettes?.length ?? 0) > 0) return;
+    // Don't auto-fire if the user hasn't given us enough to work with.
+    if (!st.occasion) return;
+    void fetchSmartPalettes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
+  // Auto-advance to the next step after a single-choice selection.
+  // Small delay so the user sees the checkmark animation before the
+  // step transitions. Only fires on steps where a single pick
+  // completes the step (Occasion, Palette, Layout).
+  const autoAdvance = (ms = 380) => {
+    window.setTimeout(() => {
+      setStepIndex((i) => Math.min(i + 1, STEPS.length - 1));
+    }, ms);
+  };
+
   async function suggestTagline() {
     setTaglineState('running');
     try {
@@ -1018,6 +1077,71 @@ export function WizardV8() {
         }}
       >
         <div>
+          {/* Active-template banner — shown whenever a template is
+              selected, so the user always knows which design drives
+              their site and can swap it without digging through
+              the wizard back-buttons. */}
+          {st.templateId && TEMPLATES_BY_ID[st.templateId] && (
+            <div
+              style={{
+                marginBottom: 16,
+                padding: '10px 14px',
+                borderRadius: 'var(--r, 12px)',
+                background: 'var(--sage-tint, #EDEFE1)',
+                border: '1px solid var(--line-soft)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                fontSize: 13,
+              }}
+            >
+              <Sparkle size={12} color="var(--gold)" />
+              <span style={{ color: 'var(--ink-soft)' }}>
+                Using template
+              </span>
+              <span
+                style={{
+                  fontFamily: 'var(--font-display, Fraunces, serif)',
+                  fontStyle: 'italic',
+                  color: 'var(--ink)',
+                  fontSize: 16,
+                }}
+              >
+                {TEMPLATES_BY_ID[st.templateId].name}
+              </span>
+              <div style={{ flex: 1 }} />
+              <Link
+                href="/templates"
+                style={{
+                  fontSize: 12,
+                  color: 'var(--ink-soft)',
+                  textDecoration: 'underline',
+                  textUnderlineOffset: 3,
+                }}
+              >
+                Change template
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm('Start from scratch — this keeps everything you\'ve typed but drops the template’s palette + layout.')) {
+                    setSt((s) => ({ ...s, templateId: undefined }));
+                  }
+                }}
+                style={{
+                  fontSize: 12,
+                  color: 'var(--ink-muted)',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
+              >
+                Start blank
+              </button>
+            </div>
+          )}
+
           {stepIndex > 0 && (
             <div style={{ marginBottom: 16 }}>
               <ContextChips st={st} />
@@ -1062,7 +1186,10 @@ export function WizardV8() {
                               <button
                                 key={o.id}
                                 type="button"
-                                onClick={() => setSt((s) => ({ ...s, occasion: o.id }))}
+                                onClick={() => {
+                                  setSt((s) => ({ ...s, occasion: o.id }));
+                                  autoAdvance();
+                                }}
                                 style={{
                                   padding: 16,
                                   borderRadius: 14,
@@ -1225,6 +1352,10 @@ export function WizardV8() {
                 const isBachelor = preset === 'bachelor';
                 const isReunion = preset === 'reunion';
                 const isGrad = st.occasion === 'graduation';
+                // Per-occasion question copy — labels + placeholders
+                // tailored to the specific event (birthday no longer
+                // asks "how did you meet in 2018").
+                const q = questionsFor(st.occasion);
                 return (
                   <>
                     <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
@@ -1235,51 +1366,36 @@ export function WizardV8() {
                     </p>
 
                     <div style={{ display: 'grid', gap: 18 }}>
-                      {/* factSheet — always asked */}
                       <div>
-                        <label className="field-label">
-                          {isMemorial ? 'One thing about them' : isBachelor ? 'About the group' : 'How you got here'}
-                        </label>
+                        <label className="field-label">{q.q1Label}</label>
                         <textarea
                           className="input"
                           rows={3}
                           value={st.howWeMet ?? ''}
                           onChange={(ev) => setSt((s) => ({ ...s, howWeMet: ev.target.value }))}
-                          placeholder={
-                            isMemorial
-                              ? 'Their laugh, their coffee order, how they sang in the car…'
-                              : isBachelor
-                                ? 'You\'ve all been friends since college / work / the climbing gym…'
-                                : 'Alex and Jamie met at a rooftop party in 2018…'
-                          }
+                          placeholder={q.q1Placeholder}
                         />
                       </div>
 
                       <div>
-                        <label className="field-label">
-                          {isMemorial ? 'Why we\'re gathering' : 'Why this celebration'}
-                        </label>
+                        <label className="field-label">{q.q2Label}</label>
                         <textarea
                           className="input"
                           rows={3}
                           value={st.whyCelebrate ?? ''}
                           onChange={(ev) => setSt((s) => ({ ...s, whyCelebrate: ev.target.value }))}
-                          placeholder={
-                            isMemorial
-                              ? 'To remember them out loud, to hold each other, to share one more story…'
-                              : 'Because we want a long table, dancing until late, and everyone we love in one room.'
-                          }
+                          placeholder={q.q2Placeholder}
                         />
                       </div>
 
                       <div>
-                        <label className="field-label">A favourite memory (optional)</label>
+                        <label className="field-label">{q.q3Label}</label>
                         <textarea
                           className="input"
                           rows={3}
                           value={st.favoriteMemory ?? ''}
                           onChange={(ev) => setSt((s) => ({ ...s, favoriteMemory: ev.target.value }))}
-                          placeholder="One moment Pear can weave into the site."
+                          placeholder={q.q3Placeholder}
                         />
                       </div>
 
@@ -1420,7 +1536,7 @@ export function WizardV8() {
                     Choose a <span className="display-italic">palette.</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
-                    Let Pear read your venue + vibes, or pick a classic below.
+                    Pear read your venue and vibes and mixed three palettes just for you — or pick a classic below.
                   </p>
 
                   {/* ── Smart palettes header ──────────────────── */}
@@ -1450,37 +1566,7 @@ export function WizardV8() {
                     </div>
                     <button
                       type="button"
-                      onClick={async () => {
-                        setSt((s) => ({ ...s, smartPalettesLoading: true, smartPalettesError: undefined }));
-                        try {
-                          const res = await fetch('/api/wizard/smart-palette', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                              occasion: st.occasion,
-                              names: st.names,
-                              venue: st.location,
-                              city: st.location,
-                              vibes: st.vibes,
-                              howWeMet: st.howWeMet,
-                              whyCelebrate: st.whyCelebrate,
-                            }),
-                          });
-                          const data = await res.json();
-                          if (!res.ok) throw new Error(data?.error ?? 'Palette advisor unavailable.');
-                          setSt((s) => ({
-                            ...s,
-                            smartPalettes: (data.palettes ?? []) as SmartPalette[],
-                            smartPalettesLoading: false,
-                          }));
-                        } catch (err) {
-                          setSt((s) => ({
-                            ...s,
-                            smartPalettesLoading: false,
-                            smartPalettesError: err instanceof Error ? err.message : 'Palette advisor failed.',
-                          }));
-                        }
-                      }}
+                      onClick={() => void fetchSmartPalettes()}
                       className="btn btn-outline btn-sm"
                       disabled={!!st.smartPalettesLoading}
                       style={{ whiteSpace: 'nowrap' }}
@@ -1490,13 +1576,80 @@ export function WizardV8() {
                         ? 'Mixing palette…'
                         : (st.smartPalettes?.length ?? 0) > 0
                           ? 'Re-read my event'
-                          : 'Ask Pear'}
+                          : 'Ask Pear again'}
                     </button>
                   </div>
 
                   {st.smartPalettesError && (
                     <div style={{ fontSize: 12, color: 'var(--peach-ink)', marginBottom: 10 }}>
                       {st.smartPalettesError}
+                    </div>
+                  )}
+
+                  {/* Skeleton while Pear mixes the first set */}
+                  {st.smartPalettesLoading && (st.smartPalettes?.length ?? 0) === 0 && (
+                    <div
+                      className="pl8-palette-grid"
+                      style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}
+                    >
+                      {[0, 1, 2].map((i) => (
+                        <div
+                          key={i}
+                          style={{
+                            padding: 16,
+                            borderRadius: 16,
+                            background: 'var(--card, #fff)',
+                            border: '1.5px solid var(--line)',
+                            minHeight: 170,
+                            position: 'relative',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          <div style={{ display: 'flex', gap: 4 }}>
+                            {[0, 1, 2, 3].map((k) => (
+                              <div
+                                key={k}
+                                style={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: '50%',
+                                  background: 'var(--cream-2)',
+                                  opacity: 0.7 - k * 0.12,
+                                  animation: `wizard-skeleton-pulse 1.4s ease-in-out ${i * 0.15 + k * 0.08}s infinite`,
+                                }}
+                              />
+                            ))}
+                          </div>
+                          <div
+                            style={{
+                              width: '70%',
+                              height: 14,
+                              background: 'var(--cream-2)',
+                              borderRadius: 6,
+                              marginTop: 12,
+                              opacity: 0.6,
+                              animation: `wizard-skeleton-pulse 1.4s ease-in-out ${i * 0.15}s infinite`,
+                            }}
+                          />
+                          <div
+                            style={{
+                              width: '90%',
+                              height: 10,
+                              background: 'var(--cream-2)',
+                              borderRadius: 5,
+                              marginTop: 8,
+                              opacity: 0.5,
+                              animation: `wizard-skeleton-pulse 1.4s ease-in-out ${i * 0.2}s infinite`,
+                            }}
+                          />
+                          <style jsx>{`
+                            @keyframes wizard-skeleton-pulse {
+                              0%, 100% { opacity: 0.6; }
+                              50%      { opacity: 0.85; }
+                            }
+                          `}</style>
+                        </div>
+                      ))}
                     </div>
                   )}
 
@@ -1511,13 +1664,14 @@ export function WizardV8() {
                           <button
                             key={p.id}
                             type="button"
-                            onClick={() =>
+                            onClick={() => {
                               setSt((s) => ({
                                 ...s,
                                 palette: p.id,
                                 paletteColors: p.colors,
-                              }))
-                            }
+                              }));
+                              autoAdvance();
+                            }}
                             style={{
                               padding: 16,
                               borderRadius: 16,
@@ -1619,13 +1773,14 @@ export function WizardV8() {
                         <button
                           key={p.id}
                           type="button"
-                          onClick={() =>
+                          onClick={() => {
                             setSt((s) => ({
                               ...s,
                               palette: p.id,
                               paletteColors: p.colors,
-                            }))
-                          }
+                            }));
+                            autoAdvance();
+                          }}
                           style={{
                             padding: 14,
                             borderRadius: 14,
@@ -1693,7 +1848,10 @@ export function WizardV8() {
                         <button
                           key={l.id}
                           type="button"
-                          onClick={() => setSt((s) => ({ ...s, layout: l.id }))}
+                          onClick={() => {
+                            setSt((s) => ({ ...s, layout: l.id }));
+                            autoAdvance();
+                          }}
                           style={{
                             padding: 18,
                             borderRadius: 14,
