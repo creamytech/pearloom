@@ -722,7 +722,7 @@ const SectionOverlay = React.memo(function SectionOverlay({
                 Yes
               </button>
               <button onClick={(e) => { e.stopPropagation(); setConfirmDelete(false); }}
-                style={{ padding: '2px 9px', borderRadius: 'var(--pl-radius-full)', border: '1px solid rgba(250,247,242,0.3)', background: 'transparent', color: 'var(--pl-cream)', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 600 }}>
+                style={{ padding: '2px 9px', borderRadius: 'var(--pl-radius-full)', border: '1px solid rgba(250,247,242,0.3)', background: 'transparent', color: 'var(--cream)', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 600 }}>
                 No
               </button>
             </div>

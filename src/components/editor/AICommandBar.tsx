@@ -101,10 +101,10 @@ function getContextualActions(manifest: StoryManifest, activeSection: string | n
 // All colours sourced from design system tokens; OLIVE retained as alias
 // because lucide-react icon `color` prop accepts any CSS string.
 
-const OLIVE = 'var(--pl-olive)';
-const INK_SOFT = 'var(--pl-ink-soft)';
-const MUTED = 'var(--pl-muted)';
-const PLUM = 'var(--pl-plum)';
+const OLIVE = 'var(--sage-deep)';
+const INK_SOFT = 'var(--ink-soft)';
+const MUTED = 'var(--ink-muted)';
+const PLUM = '#7A2D2D';
 
 // ── Status type ───────────────────────────────────────────────
 
@@ -681,11 +681,11 @@ export function AICommandBar() {
               display: 'flex',
               flexDirection: 'column',
               borderRadius: '16px 0 0 16px',
-              background: 'color-mix(in oklab, var(--pl-cream-card) 96%, transparent)',
+              background: 'color-mix(in oklab, var(--card) 96%, transparent)',
               backdropFilter: 'saturate(160%) blur(24px)',
               WebkitBackdropFilter: 'saturate(160%) blur(24px)',
-              borderLeft: '1px solid var(--pl-divider)',
-              boxShadow: '-12px 0 36px color-mix(in oklab, var(--pl-ink) 10%, transparent)',
+              borderLeft: '1px solid var(--line)',
+              boxShadow: '-12px 0 36px color-mix(in oklab, var(--ink) 10%, transparent)',
               overflow: 'hidden',
             } as React.CSSProperties}
           >
@@ -695,8 +695,8 @@ export function AICommandBar() {
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '16px 18px 14px',
-              borderBottom: '1px solid var(--pl-divider)',
-              background: 'color-mix(in oklab, var(--pl-cream) 50%, transparent)',
+              borderBottom: '1px solid var(--line)',
+              background: 'color-mix(in oklab, var(--cream) 50%, transparent)',
               flexShrink: 0,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -705,13 +705,13 @@ export function AICommandBar() {
                     width: 32,
                     height: 32,
                     borderRadius: '50%',
-                    background: 'color-mix(in oklab, var(--pl-olive) 18%, transparent)',
+                    background: 'color-mix(in oklab, var(--sage-deep) 18%, transparent)',
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <PearIcon size={16} color="var(--pl-olive)" />
+                  <PearIcon size={16} color="var(--sage-deep)" />
                 </span>
                 <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.05 }}>
                   <span
@@ -721,7 +721,7 @@ export function AICommandBar() {
                       fontVariationSettings: '"opsz" 18, "WONK" 1',
                       fontSize: '1rem',
                       fontWeight: 500,
-                      color: 'var(--pl-ink)',
+                      color: 'var(--ink)',
                       letterSpacing: '-0.01em',
                     }}
                   >
@@ -733,7 +733,7 @@ export function AICommandBar() {
                       fontSize: '0.55rem',
                       letterSpacing: '0.18em',
                       textTransform: 'uppercase',
-                      color: 'var(--pl-muted)',
+                      color: 'var(--ink-muted)',
                       marginTop: 2,
                     }}
                   >
@@ -746,10 +746,10 @@ export function AICommandBar() {
                     fontWeight: 700,
                     letterSpacing: '0.08em',
                     textTransform: 'uppercase',
-                    color: pearRemaining <= 3 ? 'var(--pl-plum)' : 'var(--pl-muted)',
+                    color: pearRemaining <= 3 ? '#7A2D2D' : 'var(--ink-muted)',
                     background: pearRemaining <= 3
-                      ? 'color-mix(in oklab, var(--pl-plum) 12%, transparent)'
-                      : 'color-mix(in oklab, var(--pl-ink) 6%, transparent)',
+                      ? 'color-mix(in oklab, #7A2D2D 12%, transparent)'
+                      : 'color-mix(in oklab, var(--ink) 6%, transparent)',
                     padding: '3px 9px',
                     borderRadius: 'var(--pl-radius-full)',
                     fontFamily: 'var(--pl-font-mono)',
@@ -761,8 +761,8 @@ export function AICommandBar() {
                   <span style={{
                     fontSize: '0.65rem',
                     fontWeight: 700,
-                    color: 'var(--pl-olive)',
-                    background: 'color-mix(in oklab, var(--pl-olive) 14%, transparent)',
+                    color: 'var(--sage-deep)',
+                    background: 'color-mix(in oklab, var(--sage-deep) 14%, transparent)',
                     padding: '3px 10px',
                     borderRadius: 'var(--pl-radius-full)',
                     fontFamily: 'var(--pl-font-mono)',
@@ -775,14 +775,14 @@ export function AICommandBar() {
               <motion.button
                 onClick={close}
                 title="Close panel"
-                whileHover={{ backgroundColor: 'color-mix(in oklab, var(--pl-ink) 6%, transparent)' }}
+                whileHover={{ backgroundColor: 'color-mix(in oklab, var(--ink) 6%, transparent)' }}
                 whileTap={{ scale: 0.9 }}
                 style={{
                   width: 28, height: 28,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   borderRadius: 'var(--pl-radius-md)', border: 'none',
                   background: 'transparent',
-                  color: 'var(--pl-muted)',
+                  color: 'var(--ink-muted)',
                   cursor: 'pointer',
                   flexShrink: 0,
                 }}
@@ -811,11 +811,11 @@ export function AICommandBar() {
                     <div style={{
                       width: 26, height: 26,
                       borderRadius: '50%',
-                      background: 'color-mix(in oklab, var(--pl-olive) 16%, transparent)',
+                      background: 'color-mix(in oklab, var(--sage-deep) 16%, transparent)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       flexShrink: 0, marginTop: 2,
                     }}>
-                      <PearIcon size={13} color="var(--pl-olive)" />
+                      <PearIcon size={13} color="var(--sage-deep)" />
                     </div>
                   )}
                   <div style={{
@@ -826,23 +826,23 @@ export function AICommandBar() {
                     lineHeight: 1.55,
                     whiteSpace: 'pre-wrap',
                     background: msg.role === 'user'
-                      ? 'var(--pl-ink)'
-                      : 'color-mix(in oklab, var(--pl-cream-card) 80%, transparent)',
-                    color: msg.role === 'user' ? 'var(--pl-cream)' : 'var(--pl-ink-soft)',
-                    border: msg.role === 'pear' ? '1px solid var(--pl-divider)' : 'none',
+                      ? 'var(--ink)'
+                      : 'color-mix(in oklab, var(--card) 80%, transparent)',
+                    color: msg.role === 'user' ? 'var(--cream)' : 'var(--ink-soft)',
+                    border: msg.role === 'pear' ? '1px solid var(--line)' : 'none',
                   }}>
                     {msg.text}
                     {/* Visual change preview — theme colors */}
                     {msg.action === 'update_theme' && msg.data && typeof msg.data === 'object' && 'colors' in msg.data && (
                       <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
                         {Object.values((msg.data as { colors: Record<string, string> }).colors).slice(0, 6).map((c: string, ci: number) => (
-                          <div key={ci} style={{ width: 18, height: 18, borderRadius: '50%', background: c, border: '1px solid var(--pl-divider)' }} />
+                          <div key={ci} style={{ width: 18, height: 18, borderRadius: '50%', background: c, border: '1px solid var(--line)' }} />
                         ))}
                       </div>
                     )}
                     {/* Visual change preview — events */}
                     {msg.action === 'update_events' && msg.data && typeof msg.data === 'object' && 'events' in msg.data && (
-                      <div style={{ marginTop: 6, fontSize: '0.65rem', color: 'var(--pl-muted)' }}>
+                      <div style={{ marginTop: 6, fontSize: '0.65rem', color: 'var(--ink-muted)' }}>
                         {((msg.data as { events: Array<{ name: string }> }).events).map((e, ei) => (
                           <div key={ei}>• {e.name}</div>
                         ))}
@@ -853,10 +853,10 @@ export function AICommandBar() {
               ))}
               {status === 'loading' && (
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'color-mix(in oklab, var(--pl-olive) 16%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'color-mix(in oklab, var(--sage-deep) 16%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <PearIcon size={14} color={OLIVE} />
                   </div>
-                  <div style={{ padding: '8px 10px', borderRadius: 'var(--pl-radius-xl)', background: 'color-mix(in oklab, var(--pl-cream-card) 80%, transparent)', fontSize: '0.8rem', color: 'var(--pl-muted)' }}>
+                  <div style={{ padding: '8px 10px', borderRadius: 'var(--pl-radius-xl)', background: 'color-mix(in oklab, var(--card) 80%, transparent)', fontSize: '0.8rem', color: 'var(--ink-muted)' }}>
                     <span style={{ animation: 'pulse 1.5s infinite' }}>Pear is thinking...</span>
                   </div>
                 </div>
@@ -871,7 +871,7 @@ export function AICommandBar() {
                 flexWrap: 'wrap',
                 gap: 6,
                 padding: '10px 16px',
-                borderTop: '1px solid var(--pl-divider)',
+                borderTop: '1px solid var(--line)',
                 flexShrink: 0,
                 width: '100%',
                 boxSizing: 'border-box',
@@ -883,8 +883,8 @@ export function AICommandBar() {
                     style={{
                       padding: '5px 12px',
                       borderRadius: 'var(--pl-radius-full)',
-                      background: 'color-mix(in oklab, var(--pl-ink) 6%, transparent)',
-                      border: '1px solid var(--pl-divider)',
+                      background: 'color-mix(in oklab, var(--ink) 6%, transparent)',
+                      border: '1px solid var(--line)',
                       color: OLIVE,
                       fontSize: '0.65rem',
                       fontWeight: 600,
@@ -895,12 +895,12 @@ export function AICommandBar() {
                       transition: 'background 0.15s, border-color 0.15s',
                     }}
                     onMouseEnter={e => {
-                      (e.target as HTMLElement).style.background = 'color-mix(in oklab, var(--pl-olive) 16%, transparent)';
-                      (e.target as HTMLElement).style.borderColor = 'var(--pl-divider)';
+                      (e.target as HTMLElement).style.background = 'color-mix(in oklab, var(--sage-deep) 16%, transparent)';
+                      (e.target as HTMLElement).style.borderColor = 'var(--line)';
                     }}
                     onMouseLeave={e => {
-                      (e.target as HTMLElement).style.background = 'color-mix(in oklab, var(--pl-ink) 6%, transparent)';
-                      (e.target as HTMLElement).style.borderColor = 'var(--pl-divider)';
+                      (e.target as HTMLElement).style.background = 'color-mix(in oklab, var(--ink) 6%, transparent)';
+                      (e.target as HTMLElement).style.borderColor = 'var(--line)';
                     }}
                   >
                     {action.label}
@@ -914,9 +914,9 @@ export function AICommandBar() {
               <div style={{
                 padding: '6px 16px',
                 fontSize: '0.65rem',
-                color: 'var(--pl-gold)',
-                background: 'color-mix(in oklab, var(--pl-gold) 8%, transparent)',
-                borderTop: '1px solid color-mix(in oklab, var(--pl-gold) 16%, transparent)',
+                color: 'var(--gold)',
+                background: 'color-mix(in oklab, var(--gold) 8%, transparent)',
+                borderTop: '1px solid color-mix(in oklab, var(--gold) 16%, transparent)',
                 textAlign: 'center',
                 flexShrink: 0,
                 fontFamily: 'var(--pl-font-body)',
@@ -929,8 +929,8 @@ export function AICommandBar() {
             {limitReached ? (
               <div style={{
                 padding: '20px 16px',
-                borderTop: '1px solid var(--pl-divider)',
-                background: 'color-mix(in oklab, var(--pl-cream-card) 60%, transparent)',
+                borderTop: '1px solid var(--line)',
+                background: 'color-mix(in oklab, var(--card) 60%, transparent)',
                 flexShrink: 0,
                 display: 'flex',
                 flexDirection: 'column',
@@ -947,7 +947,7 @@ export function AICommandBar() {
                 }}>
                   <div style={{
                     width: 36, height: 36, borderRadius: '50%',
-                    background: 'color-mix(in oklab, var(--pl-olive) 16%, transparent)',
+                    background: 'color-mix(in oklab, var(--sage-deep) 16%, transparent)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     flexShrink: 0,
                   }}>
@@ -955,10 +955,10 @@ export function AICommandBar() {
                   </div>
                   <div style={{
                     padding: '8px 10px', borderRadius: 'var(--pl-radius-xl)',
-                    background: 'color-mix(in oklab, var(--pl-cream-card) 80%, transparent)',
-                    border: '1px solid var(--pl-divider)',
+                    background: 'color-mix(in oklab, var(--card) 80%, transparent)',
+                    border: '1px solid var(--line)',
                     fontSize: '0.8rem', lineHeight: 1.55,
-                    color: 'var(--pl-ink-soft)',
+                    color: 'var(--ink-soft)',
                     fontFamily: 'var(--pl-font-body)',
                     textAlign: 'left',
                   }}>
@@ -971,10 +971,10 @@ export function AICommandBar() {
                   width: '100%',
                   padding: '16px',
                   borderRadius: 'var(--pl-radius-xl)',
-                  background: 'var(--pl-cream-card)',
+                  background: 'var(--card)',
                   backdropFilter: 'blur(12px)',
                   WebkitBackdropFilter: 'blur(12px)',
-                  border: '1px solid var(--pl-divider)',
+                  border: '1px solid var(--line)',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -983,7 +983,7 @@ export function AICommandBar() {
                   <p style={{
                     fontSize: '0.8rem',
                     fontWeight: 600,
-                    color: 'var(--pl-ink)',
+                    color: 'var(--ink)',
                     fontFamily: 'inherit',
                     
                     margin: 0,
@@ -995,12 +995,12 @@ export function AICommandBar() {
                     style={{
                       display: 'flex', alignItems: 'center', gap: 6,
                       padding: '10px 24px', borderRadius: 'var(--pl-radius-full)',
-                      background: 'var(--pl-olive)', color: 'var(--pl-cream)',
+                      background: 'var(--sage-deep)', color: 'var(--cream)',
                       border: 'none', cursor: 'pointer',
                       fontSize: '0.8rem', fontWeight: 700,
                       fontFamily: 'var(--pl-font-body)',
                       letterSpacing: '0.02em',
-                      boxShadow: '0 4px 16px color-mix(in oklab, var(--pl-olive) 30%, transparent)',
+                      boxShadow: '0 4px 16px color-mix(in oklab, var(--sage-deep) 30%, transparent)',
                     }}
                   >
                     <Crown size={14} />
@@ -1011,10 +1011,10 @@ export function AICommandBar() {
                     style={{
                       background: 'none', border: 'none',
                       cursor: 'pointer', fontSize: '0.65rem',
-                      color: 'var(--pl-muted)',
+                      color: 'var(--ink-muted)',
                       fontFamily: 'var(--pl-font-body)',
                       textDecoration: 'underline',
-                      textDecorationColor: 'color-mix(in oklab, var(--pl-ink) 24%, transparent)',
+                      textDecorationColor: 'color-mix(in oklab, var(--ink) 24%, transparent)',
                       textUnderlineOffset: '2px',
                     }}
                   >
@@ -1029,8 +1029,8 @@ export function AICommandBar() {
               alignItems: 'center',
               gap: 10,
               padding: '12px 16px 14px',
-              borderTop: '1px solid var(--pl-divider)',
-              background: 'color-mix(in oklab, var(--pl-cream-card) 60%, transparent)',
+              borderTop: '1px solid var(--line)',
+              background: 'color-mix(in oklab, var(--card) 60%, transparent)',
               flexShrink: 0,
             }}>
               {/* Status icon */}
@@ -1090,8 +1090,8 @@ export function AICommandBar() {
                   color: status === 'success'
                     ? OLIVE
                     : status === 'error'
-                      ? 'var(--pl-plum)'
-                      : 'var(--pl-ink)',
+                      ? '#7A2D2D'
+                      : 'var(--ink)',
                   fontSize: '0.8rem',
                   fontFamily: 'var(--pl-font-body)',
                   fontWeight: status === 'success' ? 600 : 400,
@@ -1146,7 +1146,7 @@ export function AICommandBar() {
                     style={{
                       position: 'absolute',
                       inset: 0,
-                      background: 'linear-gradient(90deg, transparent 0%, color-mix(in oklab, var(--pl-olive) 12%, transparent) 50%, transparent 100%)',
+                      background: 'linear-gradient(90deg, transparent 0%, color-mix(in oklab, var(--sage-deep) 12%, transparent) 50%, transparent 100%)',
                     }}
                   />
                 </motion.div>
@@ -1190,16 +1190,16 @@ export function AICommandBar() {
                   gap: '8px',
                   padding: '10px 20px',
                   borderRadius: 'var(--pl-radius-md)',
-                  background: 'color-mix(in oklab, var(--pl-cream-card) 92%, transparent)',
+                  background: 'color-mix(in oklab, var(--card) 92%, transparent)',
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
-                  border: '1px solid var(--pl-divider)',
-                  boxShadow: '0 8px 32px color-mix(in oklab, var(--pl-ink) 10%, transparent)',
+                  border: '1px solid var(--line)',
+                  boxShadow: '0 8px 32px color-mix(in oklab, var(--ink) 10%, transparent)',
                   cursor: 'pointer',
                   fontFamily: 'var(--pl-font-body)',
                   fontSize: '0.8rem',
                   fontWeight: 500,
-                  color: 'var(--pl-ink-soft)',
+                  color: 'var(--ink-soft)',
                   whiteSpace: 'nowrap',
                   outline: 'none',
                 } as React.CSSProperties}
@@ -1217,9 +1217,9 @@ export function AICommandBar() {
                   padding: '2px 6px',
                   borderRadius: 'var(--pl-radius-xs)',
                   fontSize: '0.6rem',
-                  background: 'color-mix(in oklab, var(--pl-ink) 6%, transparent)',
-                  color: 'var(--pl-muted)',
-                  border: '1px solid var(--pl-divider)',
+                  background: 'color-mix(in oklab, var(--ink) 6%, transparent)',
+                  color: 'var(--ink-muted)',
+                  border: '1px solid var(--line)',
                   fontFamily: 'inherit',
                   marginLeft: '4px',
                 }}>/</kbd>
@@ -1236,11 +1236,11 @@ export function AICommandBar() {
                   pointerEvents: 'auto',
                   width: isMobile ? '100%' : '480px',
                   borderRadius: 'var(--pl-radius-2xl)',
-                  background: 'color-mix(in oklab, var(--pl-cream-card) 86%, transparent)',
+                  background: 'color-mix(in oklab, var(--card) 86%, transparent)',
                   backdropFilter: 'blur(24px)',
                   WebkitBackdropFilter: 'blur(24px)',
-                  border: '1px solid var(--pl-divider)',
-                  boxShadow: '0 8px 32px color-mix(in oklab, var(--pl-ink) 10%, transparent)',
+                  border: '1px solid var(--line)',
+                  boxShadow: '0 8px 32px color-mix(in oklab, var(--ink) 10%, transparent)',
                   overflow: 'hidden',
                   position: 'relative',
                 } as React.CSSProperties}
@@ -1267,7 +1267,7 @@ export function AICommandBar() {
                         style={{
                           position: 'absolute',
                           inset: 0,
-                          background: 'linear-gradient(90deg, transparent 0%, color-mix(in oklab, var(--pl-olive) 14%, transparent) 50%, transparent 100%)',
+                          background: 'linear-gradient(90deg, transparent 0%, color-mix(in oklab, var(--sage-deep) 14%, transparent) 50%, transparent 100%)',
                         }}
                       />
                     </motion.div>
@@ -1279,7 +1279,7 @@ export function AICommandBar() {
                   <div style={{
                     maxHeight: '280px', overflowY: 'auto', padding: '12px 16px 4px',
                     display: 'flex', flexDirection: 'column', gap: '8px',
-                    borderBottom: '1px solid var(--pl-divider)',
+                    borderBottom: '1px solid var(--line)',
                   }}>
                     {messages.map((msg, i) => (
                       <div key={i} style={{
@@ -1288,7 +1288,7 @@ export function AICommandBar() {
                         alignItems: 'flex-start',
                       }}>
                         {msg.role === 'pear' && (
-                          <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'color-mix(in oklab, var(--pl-olive) 16%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+                          <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'color-mix(in oklab, var(--sage-deep) 16%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
                             <PearIcon size={13} color={OLIVE} />
                           </div>
                         )}
@@ -1296,22 +1296,22 @@ export function AICommandBar() {
                           maxWidth: '80%', padding: '8px 12px', borderRadius: 'var(--pl-radius-md)',
                           fontSize: '0.8rem', lineHeight: 1.5, whiteSpace: 'pre-wrap',
                           background: msg.role === 'user'
-                            ? 'var(--pl-ink)'
-                            : 'color-mix(in oklab, var(--pl-cream-card) 80%, transparent)',
-                          color: msg.role === 'user' ? 'var(--pl-cream)' : 'var(--pl-ink-soft)',
-                          border: msg.role === 'pear' ? '1px solid var(--pl-divider)' : 'none',
+                            ? 'var(--ink)'
+                            : 'color-mix(in oklab, var(--card) 80%, transparent)',
+                          color: msg.role === 'user' ? 'var(--cream)' : 'var(--ink-soft)',
+                          border: msg.role === 'pear' ? '1px solid var(--line)' : 'none',
                         }}>
                           {msg.text}
                           {/* Visual change preview */}
                           {msg.action === 'update_theme' && msg.data && typeof msg.data === 'object' && 'colors' in msg.data && (
                             <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
                               {Object.values((msg.data as { colors: Record<string, string> }).colors).slice(0, 6).map((c: string, ci: number) => (
-                                <div key={ci} style={{ width: 18, height: 18, borderRadius: '50%', background: c, border: '1px solid var(--pl-divider)' }} />
+                                <div key={ci} style={{ width: 18, height: 18, borderRadius: '50%', background: c, border: '1px solid var(--line)' }} />
                               ))}
                             </div>
                           )}
                           {msg.action === 'update_events' && msg.data && typeof msg.data === 'object' && 'events' in msg.data && (
-                            <div style={{ marginTop: 6, fontSize: '0.65rem', color: 'var(--pl-muted)' }}>
+                            <div style={{ marginTop: 6, fontSize: '0.65rem', color: 'var(--ink-muted)' }}>
                               {((msg.data as { events: Array<{ name: string }> }).events).map((e, ei) => (
                                 <div key={ei}>• {e.name}</div>
                               ))}
@@ -1322,10 +1322,10 @@ export function AICommandBar() {
                     ))}
                     {status === 'loading' && (
                       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                        <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'color-mix(in oklab, var(--pl-olive) 16%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'color-mix(in oklab, var(--sage-deep) 16%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                           <PearIcon size={13} color={OLIVE} />
                         </div>
-                        <div style={{ padding: '8px 12px', borderRadius: 'var(--pl-radius-xl)', background: 'color-mix(in oklab, var(--pl-cream-card) 80%, transparent)', fontSize: '0.8rem', color: 'var(--pl-muted)' }}>
+                        <div style={{ padding: '8px 12px', borderRadius: 'var(--pl-radius-xl)', background: 'color-mix(in oklab, var(--card) 80%, transparent)', fontSize: '0.8rem', color: 'var(--ink-muted)' }}>
                           <span style={{ animation: 'pulse 1.5s infinite' }}>Pear is thinking...</span>
                         </div>
                       </div>
@@ -1400,8 +1400,8 @@ export function AICommandBar() {
                       color: status === 'success'
                         ? OLIVE
                         : status === 'error'
-                          ? 'var(--pl-plum)'
-                          : 'var(--pl-ink)',
+                          ? '#7A2D2D'
+                          : 'var(--ink)',
                       fontSize: '0.8rem',
                       fontFamily: 'var(--pl-font-body)',
                       fontWeight: status === 'success' ? 600 : 400,
@@ -1440,7 +1440,7 @@ export function AICommandBar() {
                         width: '28px',
                         height: '28px',
                         borderRadius: '50%',
-                        background: 'color-mix(in oklab, var(--pl-ink) 6%, transparent)',
+                        background: 'color-mix(in oklab, var(--ink) 6%, transparent)',
                         border: 'none',
                         display: 'flex',
                         alignItems: 'center',
@@ -1449,7 +1449,7 @@ export function AICommandBar() {
                         outline: 'none',
                       }}
                     >
-                      <X size={13} color="var(--pl-muted)" />
+                      <X size={13} color="var(--ink-muted)" />
                     </button>
                   </div>
                 </div>
@@ -1475,8 +1475,8 @@ export function AICommandBar() {
                         style={{
                           padding: '5px 12px',
                           borderRadius: 'var(--pl-radius-md)',
-                          background: 'color-mix(in oklab, var(--pl-ink) 6%, transparent)',
-                          border: '1px solid var(--pl-divider)',
+                          background: 'color-mix(in oklab, var(--ink) 6%, transparent)',
+                          border: '1px solid var(--line)',
                           color: OLIVE,
                           fontSize: '0.65rem',
                           fontWeight: 600,
@@ -1487,12 +1487,12 @@ export function AICommandBar() {
                           transition: 'background 0.15s, border-color 0.15s',
                         }}
                         onMouseEnter={e => {
-                          (e.target as HTMLElement).style.background = 'color-mix(in oklab, var(--pl-olive) 16%, transparent)';
-                          (e.target as HTMLElement).style.borderColor = 'var(--pl-divider)';
+                          (e.target as HTMLElement).style.background = 'color-mix(in oklab, var(--sage-deep) 16%, transparent)';
+                          (e.target as HTMLElement).style.borderColor = 'var(--line)';
                         }}
                         onMouseLeave={e => {
-                          (e.target as HTMLElement).style.background = 'color-mix(in oklab, var(--pl-ink) 6%, transparent)';
-                          (e.target as HTMLElement).style.borderColor = 'var(--pl-divider)';
+                          (e.target as HTMLElement).style.background = 'color-mix(in oklab, var(--ink) 6%, transparent)';
+                          (e.target as HTMLElement).style.borderColor = 'var(--line)';
                         }}
                       >
                         {action.label}

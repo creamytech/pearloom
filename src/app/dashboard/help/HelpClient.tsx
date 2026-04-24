@@ -17,7 +17,7 @@ import {
   MessageCircle,
   ChevronDown,
 } from 'lucide-react';
-import { DashboardShell } from '@/components/dashboard/DashboardShell';
+import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { BlurFade, CurvedText, GrooveBlob } from '@/components/brand/groove';
 
 interface FaqEntry {
@@ -106,7 +106,8 @@ export default function HelpClient() {
   const year = new Date().getFullYear();
 
   return (
-    <DashboardShell eyebrow="Help · Docs" contentMaxWidth={980}>
+    <DashLayout active="help" title="Help & docs" subtitle="Shortcuts, recipes, and answers — the way Pear explains them.">
+      <div style={{ padding: '0 32px 40px', maxWidth: 980, margin: '0 auto', position: 'relative' }}>
             <GrooveBlob
               palette="sunrise"
               size={460}
@@ -769,7 +770,8 @@ export default function HelpClient() {
                 </a>
               </div>
             </section>
-    </DashboardShell>
+      </div>
+    </DashLayout>
   );
 }
 

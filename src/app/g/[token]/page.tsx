@@ -23,6 +23,7 @@ import { getOrGeneratePersonalization } from '@/lib/event-os/personalize';
 import type { StoryManifest } from '@/types';
 import { PersonalGuestHero } from '@/components/guest-experience/PersonalGuestHero';
 import { VoiceToastRecorder } from '@/components/guest-experience/VoiceToastRecorder';
+import { PassportSections } from '@/components/pearloom/passport/PassportSections';
 
 export const metadata: Metadata = {
   title: "You're Invited | Pearloom",
@@ -197,8 +198,17 @@ export default async function PersonalGuestPage({
           accent={theme?.accent ?? '#5C6B3F'}
           headingFont={headingFont}
         />
+      </section>
 
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '2rem' }}>
+      <PassportSections
+        token={token}
+        accent={theme?.accent ?? '#5C6B3F'}
+        headingFont={headingFont}
+        occasion={(manifest as unknown as { occasion?: string }).occasion ?? null}
+      />
+
+      <section style={{ padding: '0 1.5rem 2rem', maxWidth: 720, margin: '0 auto' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
           <a
             href={`/rsvp?site=${site.subdomain}&g=${token}`}
             style={{

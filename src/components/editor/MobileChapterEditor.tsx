@@ -103,7 +103,7 @@ export function MobileChapterEditor({
         inset: 0,
         display: 'flex',
         flexDirection: 'column',
-        background: 'var(--pl-cream)',
+        background: 'var(--cream)',
         zIndex: 10,
         paddingBottom: keyboardPad,
       }}

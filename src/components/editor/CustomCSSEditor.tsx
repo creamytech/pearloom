@@ -94,7 +94,7 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
           minHeight: '120px',
           padding: '12px',
           borderRadius: 'var(--pl-radius-sm)',
-          border: error ? '1.5px solid var(--pl-warning)' : '1.5px solid rgba(255,255,255,0.25)',
+          border: error ? '1.5px solid var(--peach-ink)' : '1.5px solid rgba(255,255,255,0.25)',
           // Subtle zebra striping feels like a code surface without a dep.
           backgroundImage:
             'repeating-linear-gradient(to bottom, #FAFAFA 0px, #FAFAFA calc(1.6em * 2), #F4F4F2 calc(1.6em * 2), #F4F4F2 calc(1.6em * 4))',
@@ -135,7 +135,7 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
       {error && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: '6px',
-          marginTop: '6px', color: 'var(--pl-warning)',
+          marginTop: '6px', color: 'var(--peach-ink)',
           fontSize: '0.65rem', fontWeight: 600,
         }}>
           <AlertTriangle size={12} /> {error}

@@ -116,7 +116,7 @@ export function PropertiesPanel({ manifest, onChange, fallbackNames }: Propertie
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
               {manifest.privateGallery ? (
-                <Lock size={14} className="text-[var(--pl-warning)]" style={{ flexShrink: 0 }} />
+                <Lock size={14} className="text-[var(--peach-ink)]" style={{ flexShrink: 0 }} />
               ) : (
                 <Unlock size={14} style={{ color: 'var(--pl-chrome-text)', flexShrink: 0 }} />
               )}

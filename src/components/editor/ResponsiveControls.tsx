@@ -101,7 +101,7 @@ export function ResponsiveControls<T>({
         {label && (
           <span style={{
             fontSize: 'var(--pl-text-sm)', fontWeight: 700,
-            color: 'var(--pl-ink-soft)',
+            color: 'var(--ink-soft)',
             letterSpacing: '0.1em',
             textTransform: 'uppercase' as const,
             marginRight: 'auto',
@@ -116,8 +116,8 @@ export function ResponsiveControls<T>({
           display: 'flex', alignItems: 'center', gap: 1,
           padding: 2,
           borderRadius: 'var(--pl-radius-md)',
-          background: 'var(--pl-cream-card)',
-          border: '1px solid var(--pl-divider)',
+          background: 'var(--card)',
+          border: '1px solid var(--line)',
         } as React.CSSProperties}>
           {DEVICE_LIST.map(({ mode, Icon, label: deviceLabel }) => {
             const isActive = editingDevice === mode && !isLinked;
@@ -137,14 +137,14 @@ export function ResponsiveControls<T>({
                   width: 24, height: 24,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   borderRadius: 'var(--pl-radius-sm)', border: 'none',
-                  background: isActive ? 'var(--pl-ink)' : 'transparent',
+                  background: isActive ? 'var(--ink)' : 'transparent',
                   color: isActive
-                    ? 'var(--pl-cream)'
+                    ? 'var(--cream)'
                     : isLinked
-                      ? 'var(--pl-muted)'
+                      ? 'var(--ink-muted)'
                       : hasOverride
-                        ? 'var(--pl-olive)'
-                        : 'var(--pl-muted)',
+                        ? 'var(--sage-deep)'
+                        : 'var(--ink-muted)',
                   cursor: isLinked ? 'default' : 'pointer',
                   opacity: isLinked ? 0.5 : 1,
                   transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out), opacity var(--pl-dur-fast) var(--pl-ease-out)',
@@ -156,7 +156,7 @@ export function ResponsiveControls<T>({
                   <div style={{
                     position: 'absolute', bottom: 1, right: 1,
                     width: 4, height: 4, borderRadius: '50%',
-                    background: 'var(--pl-olive)',
+                    background: 'var(--sage-deep)',
                   }} />
                 )}
               </motion.button>
@@ -176,11 +176,11 @@ export function ResponsiveControls<T>({
             width: 26, height: 26,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             borderRadius: 'var(--pl-radius-sm)',
-            border: `1px solid ${isLinked ? 'var(--pl-divider)' : 'color-mix(in oklab, var(--pl-olive) 40%, transparent)'}`,
+            border: `1px solid ${isLinked ? 'var(--line)' : 'color-mix(in oklab, var(--sage-deep) 40%, transparent)'}`,
             background: isLinked
-              ? 'color-mix(in oklab, var(--pl-ink) 6%, transparent)'
-              : 'color-mix(in oklab, var(--pl-olive) 12%, transparent)',
-            color: isLinked ? 'var(--pl-ink-soft)' : 'var(--pl-olive)',
+              ? 'color-mix(in oklab, var(--ink) 6%, transparent)'
+              : 'color-mix(in oklab, var(--sage-deep) 12%, transparent)',
+            color: isLinked ? 'var(--ink-soft)' : 'var(--sage-deep)',
             cursor: 'pointer',
             transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
           } as React.CSSProperties}
@@ -214,14 +214,14 @@ export function ResponsiveControls<T>({
               display: 'inline-flex', alignItems: 'center', gap: 5,
               padding: '3px 10px',
               borderRadius: 'var(--pl-radius-full)',
-              background: 'color-mix(in oklab, var(--pl-olive) 12%, transparent)',
+              background: 'color-mix(in oklab, var(--sage-deep) 12%, transparent)',
               fontSize: 'var(--pl-text-2xs)',
               fontWeight: 700,
-              color: 'var(--pl-olive)',
+              color: 'var(--sage-deep)',
               letterSpacing: '0.12em',
               textTransform: 'uppercase' as const,
               fontFamily: 'var(--pl-font-mono)',
-              border: '1px solid color-mix(in oklab, var(--pl-olive) 24%, transparent)',
+              border: '1px solid color-mix(in oklab, var(--sage-deep) 24%, transparent)',
             }}>
               {DEVICE_LIST.find(d => d.mode === editingDevice)?.Icon &&
                 (() => {

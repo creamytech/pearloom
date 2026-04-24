@@ -290,7 +290,7 @@ export function ImageManager({
             Photos{images.length > 0 ? ` (${images.length})` : ''}
           </span>
           {isSinglePhotoLayout && images.length > 0 && (
-            <span style={{ fontSize: '0.58rem', color: 'var(--pl-olive)', fontWeight: 600, marginLeft: '6px' }}>
+            <span style={{ fontSize: '0.58rem', color: 'var(--sage-deep)', fontWeight: 600, marginLeft: '6px' }}>
               · 1 used by layout
             </span>
           )}

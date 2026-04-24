@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PARTNER_TIERS, generateEmbedCode, type Partner } from '@/lib/distribution/partners';
+import { PageShell } from '@/components/pearloom/PageShell';
 
 type ViewMode = 'landing' | 'register' | 'dashboard';
 
@@ -61,23 +62,15 @@ export default function PartnersPage() {
   // ── Landing View ──
   if (view === 'landing') {
     return (
-      <div className="min-h-dvh bg-[var(--pl-cream)]">
-        <header className="border-b border-[var(--pl-divider)] bg-white">
-          <div className="max-w-[1080px] mx-auto px-4 md:px-8 flex items-center justify-between h-16">
-            <Link href="/" className="font-heading italic text-lg text-[var(--pl-ink-soft)] no-underline">Pearloom</Link>
-            <span className="text-[0.82rem] text-[var(--pl-ink)]">Partner Program</span>
-            <Link href="/dashboard" className="text-[0.75rem] font-semibold text-[var(--pl-muted)] no-underline">Dashboard</Link>
-          </div>
-        </header>
-
-        <main className="max-w-[1080px] mx-auto px-4 md:px-8 py-16">
+      <PageShell>
+        <section className="max-w-[1080px] mx-auto px-4 md:px-8 py-16">
           {/* Hero */}
           <div className="text-center mb-16">
-            <p className="text-[0.65rem] font-bold tracking-[0.14em] uppercase text-[var(--pl-olive-deep)] mb-3">Partner Program</p>
-            <h1 className="font-heading italic text-[clamp(2rem,5vw,3.5rem)] text-[var(--pl-ink)] mb-4 leading-tight">
+            <p className="text-[0.65rem] font-bold tracking-[0.14em] uppercase text-[var(--sage-deep)] mb-3">Partner Program</p>
+            <h1 className="font-heading italic text-[clamp(2rem,5vw,3.5rem)] text-[var(--ink)] mb-4 leading-tight">
               Grow your business<br />with every celebration
             </h1>
-            <p className="text-[1rem] text-[var(--pl-muted)] max-w-[520px] mx-auto mb-8 leading-relaxed">
+            <p className="text-[1rem] text-[var(--ink-muted)] max-w-[520px] mx-auto mb-8 leading-relaxed">
               Earn commission on every client who creates a Pearloom site through your referral. Join photographers, planners, and venues already earning.
             </p>
             <div className="flex gap-3 justify-center">
@@ -97,17 +90,17 @@ export default function PartnersPage() {
               { value: '90s', label: 'Setup Time', sub: 'for your clients' },
               { value: '$0', label: 'To Join', sub: 'always free' },
             ].map((stat) => (
-              <div key={stat.label} className="text-center p-4 rounded-[var(--pl-radius-lg)] bg-white border border-[rgba(0,0,0,0.05)]">
-                <div className="text-[1.8rem] font-heading font-semibold text-[var(--pl-olive-deep)]">{stat.value}</div>
-                <div className="text-[0.75rem] font-semibold text-[var(--pl-ink)]">{stat.label}</div>
-                <div className="text-[0.62rem] text-[var(--pl-muted)]">{stat.sub}</div>
+              <div key={stat.label} className="text-center p-4 rounded-[20px] bg-white border border-[rgba(0,0,0,0.05)]">
+                <div className="text-[1.8rem] font-heading font-semibold text-[var(--sage-deep)]">{stat.value}</div>
+                <div className="text-[0.75rem] font-semibold text-[var(--ink)]">{stat.label}</div>
+                <div className="text-[0.62rem] text-[var(--ink-muted)]">{stat.sub}</div>
               </div>
             ))}
           </div>
 
           {/* Tiers */}
           <div id="tiers" className="mb-16">
-            <h2 className="font-heading italic text-2xl text-[var(--pl-ink)] text-center mb-8">Commission Tiers</h2>
+            <h2 className="font-heading italic text-2xl text-[var(--ink)] text-center mb-8">Commission Tiers</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {Object.entries(PARTNER_TIERS).map(([key, tier], i) => (
                 <motion.div
@@ -116,23 +109,23 @@ export default function PartnersPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
-                  className={`rounded-[20px] p-6 border ${key === 'pro' ? 'border-[var(--pl-olive)] bg-[rgba(163,177,138,0.04)]' : 'border-[rgba(0,0,0,0.06)] bg-white'}`}
+                  className={`rounded-[20px] p-6 border ${key === 'pro' ? 'border-[var(--sage-deep)] bg-[var(--sage-tint)]' : 'border-[rgba(0,0,0,0.06)] bg-white'}`}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    {key === 'elite' && <Shield size={16} className="text-[var(--pl-gold)]" />}
-                    {key === 'pro' && <Star size={16} className="text-[var(--pl-olive)]" />}
-                    <h3 className="text-[0.88rem] font-bold uppercase tracking-[0.06em] text-[var(--pl-ink)]">{tier.label}</h3>
+                    {key === 'elite' && <Shield size={16} className="text-[var(--gold)]" />}
+                    {key === 'pro' && <Star size={16} className="text-[var(--sage-deep)]" />}
+                    <h3 className="text-[0.88rem] font-bold uppercase tracking-[0.06em] text-[var(--ink)]">{tier.label}</h3>
                   </div>
-                  <div className="text-[2.5rem] font-heading font-semibold text-[var(--pl-olive-deep)] mb-1">
+                  <div className="text-[2.5rem] font-heading font-semibold text-[var(--sage-deep)] mb-1">
                     {tier.commissionRate}%
                   </div>
-                  <p className="text-[0.72rem] text-[var(--pl-muted)] mb-4">commission per referral</p>
-                  <p className="text-[0.75rem] text-[var(--pl-ink-soft)] mb-3 font-semibold">Requirements:</p>
-                  <p className="text-[0.75rem] text-[var(--pl-muted)] mb-4">{tier.requirements}</p>
+                  <p className="text-[0.72rem] text-[var(--ink-muted)] mb-4">commission per referral</p>
+                  <p className="text-[0.75rem] text-[var(--ink-soft)] mb-3 font-semibold">Requirements:</p>
+                  <p className="text-[0.75rem] text-[var(--ink-muted)] mb-4">{tier.requirements}</p>
                   <ul className="space-y-1.5">
                     {tier.benefits.map(b => (
-                      <li key={b} className="flex items-center gap-2 text-[0.75rem] text-[var(--pl-ink-soft)]">
-                        <Check size={12} className="text-[var(--pl-olive)] shrink-0" /> {b}
+                      <li key={b} className="flex items-center gap-2 text-[0.75rem] text-[var(--ink-soft)]">
+                        <Check size={12} className="text-[var(--sage-deep)] shrink-0" /> {b}
                       </li>
                     ))}
                   </ul>
@@ -142,53 +135,49 @@ export default function PartnersPage() {
           </div>
 
           {/* CTA */}
-          <div className="text-center py-12 bg-[var(--pl-cream-deep)] rounded-[24px] px-8">
-            <h2 className="font-heading italic text-2xl text-[var(--pl-ink)] mb-3">Ready to grow together?</h2>
-            <p className="text-[0.88rem] text-[var(--pl-muted)] mb-6 max-w-[400px] mx-auto">
+          <div className="text-center py-12 bg-[var(--cream-2)] rounded-[24px] px-8">
+            <h2 className="font-heading italic text-2xl text-[var(--ink)] mb-3">Ready to grow together?</h2>
+            <p className="text-[0.88rem] text-[var(--ink-muted)] mb-6 max-w-[400px] mx-auto">
               Join hundreds of wedding professionals already earning with Pearloom.
             </p>
             <Button variant="primary" size="lg" onClick={() => setView('register')} icon={<ArrowRight size={15} />}>
               Apply Now — It&rsquo;s Free
             </Button>
           </div>
-        </main>
-      </div>
+        </section>
+      </PageShell>
     );
   }
 
   // ── Registration View ──
   if (view === 'register') {
     return (
-      <div className="min-h-dvh bg-[var(--pl-cream)]">
-        <header className="border-b border-[var(--pl-divider)] bg-white">
-          <div className="max-w-[800px] mx-auto px-4 md:px-8 flex items-center justify-between h-16">
-            <button onClick={() => setView('landing')} className="flex items-center gap-2 bg-transparent border-none cursor-pointer text-[var(--pl-muted)]">
-              <ArrowLeft size={16} /> Back
-            </button>
-            <span className="font-heading italic text-[var(--pl-ink)]">Partner Application</span>
-            <div />
-          </div>
-        </header>
+      <PageShell>
+        <div className="max-w-[800px] mx-auto px-4 md:px-8 py-6">
+          <button onClick={() => setView('landing')} className="flex items-center gap-2 bg-transparent border-none cursor-pointer text-[var(--ink-soft)]">
+            <ArrowLeft size={16} /> Back
+          </button>
+        </div>
 
         <main className="max-w-[600px] mx-auto px-4 md:px-8 py-12">
           {submitted ? (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-16">
-              <div className="w-16 h-16 rounded-full bg-[var(--pl-olive-mist)] flex items-center justify-center mx-auto mb-4">
-                <Check size={28} className="text-[var(--pl-olive-deep)]" />
+              <div className="w-16 h-16 rounded-full bg-[var(--sage-tint)] flex items-center justify-center mx-auto mb-4">
+                <Check size={28} className="text-[var(--sage-deep)]" />
               </div>
-              <h2 className="font-heading italic text-2xl text-[var(--pl-ink)] mb-2">Application Received</h2>
-              <p className="text-[0.92rem] text-[var(--pl-muted)] mb-6">We&rsquo;ll review your application and get back to you within 48 hours.</p>
+              <h2 className="font-heading italic text-2xl text-[var(--ink)] mb-2">Application Received</h2>
+              <p className="text-[0.92rem] text-[var(--ink-muted)] mb-6">We&rsquo;ll review your application and get back to you within 48 hours.</p>
               <Button variant="primary" size="md" onClick={() => setView('dashboard')}>
                 View Your Dashboard
               </Button>
             </motion.div>
           ) : (
             <>
-              <h2 className="font-heading italic text-2xl text-[var(--pl-ink)] mb-6">Apply as a Partner</h2>
+              <h2 className="font-heading italic text-2xl text-[var(--ink)] mb-6">Apply as a Partner</h2>
 
               {/* Partner type */}
               <div className="mb-6">
-                <label className="block text-[0.65rem] font-bold uppercase tracking-[0.1em] text-[var(--pl-muted)] mb-3">
+                <label className="block text-[0.65rem] font-bold uppercase tracking-[0.1em] text-[var(--ink-muted)] mb-3">
                   I am a...
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -198,14 +187,14 @@ export default function PartnersPage() {
                       onClick={() => setSelectedType(pt.value)}
                       className={`flex flex-col items-center gap-2 p-3 rounded-[14px] border-[1.5px] cursor-pointer transition-all ${
                         selectedType === pt.value
-                          ? 'border-[var(--pl-olive)] bg-[rgba(163,177,138,0.08)]'
-                          : 'border-[var(--pl-divider)] bg-white hover:border-[var(--pl-olive-hover)]'
+                          ? 'border-[var(--sage-deep)] bg-[var(--sage-tint)]'
+                          : 'border-[var(--line)] bg-white hover:border-[var(--sage)]'
                       }`}
                     >
-                      <span className={selectedType === pt.value ? 'text-[var(--pl-olive-deep)]' : 'text-[var(--pl-muted)]'}>
+                      <span className={selectedType === pt.value ? 'text-[var(--sage-deep)]' : 'text-[var(--ink-muted)]'}>
                         {pt.icon}
                       </span>
-                      <span className="text-[0.68rem] font-semibold text-[var(--pl-ink)]">{pt.label}</span>
+                      <span className="text-[0.68rem] font-semibold text-[var(--ink)]">{pt.label}</span>
                     </button>
                   ))}
                 </div>
@@ -218,31 +207,31 @@ export default function PartnersPage() {
                 { key: 'email', label: 'Email', placeholder: 'you@business.com' },
               ].map(({ key, label, placeholder }) => (
                 <div key={key} className="mb-4">
-                  <label className="block text-[0.65rem] font-bold uppercase tracking-[0.1em] text-[var(--pl-muted)] mb-1.5">{label}</label>
+                  <label className="block text-[0.65rem] font-bold uppercase tracking-[0.1em] text-[var(--ink-muted)] mb-1.5">{label}</label>
                   <input
                     type={key === 'email' ? 'email' : 'text'}
                     value={(formData as Record<string, string>)[key] || ''}
                     onChange={(e) => setFormData(p => ({ ...p, [key]: e.target.value }))}
                     placeholder={placeholder}
-                    className="w-full px-4 py-3 rounded-[var(--pl-radius-sm)] border-[1.5px] border-[var(--pl-divider)] bg-white text-[0.92rem] text-[var(--pl-ink)] outline-none pl-focus-glow"
+                    className="w-full px-4 py-3 rounded-[var(--pl-radius-sm)] border-[1.5px] border-[var(--line)] bg-white text-[0.92rem] text-[var(--ink)] outline-none pl-focus-glow"
                   />
                 </div>
               ))}
 
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <div>
-                  <label className="block text-[0.65rem] font-bold uppercase tracking-[0.1em] text-[var(--pl-muted)] mb-1.5">City</label>
-                  <input value={formData.city} onChange={(e) => setFormData(p => ({ ...p, city: e.target.value }))} placeholder="City" className="w-full px-4 py-3 rounded-[var(--pl-radius-sm)] border-[1.5px] border-[var(--pl-divider)] bg-white text-[0.92rem] outline-none pl-focus-glow" />
+                  <label className="block text-[0.65rem] font-bold uppercase tracking-[0.1em] text-[var(--ink-muted)] mb-1.5">City</label>
+                  <input value={formData.city} onChange={(e) => setFormData(p => ({ ...p, city: e.target.value }))} placeholder="City" className="w-full px-4 py-3 rounded-[var(--pl-radius-sm)] border-[1.5px] border-[var(--line)] bg-white text-[0.92rem] outline-none pl-focus-glow" />
                 </div>
                 <div>
-                  <label className="block text-[0.65rem] font-bold uppercase tracking-[0.1em] text-[var(--pl-muted)] mb-1.5">State</label>
-                  <input value={formData.state} onChange={(e) => setFormData(p => ({ ...p, state: e.target.value }))} placeholder="CA" className="w-full px-4 py-3 rounded-[var(--pl-radius-sm)] border-[1.5px] border-[var(--pl-divider)] bg-white text-[0.92rem] outline-none pl-focus-glow" />
+                  <label className="block text-[0.65rem] font-bold uppercase tracking-[0.1em] text-[var(--ink-muted)] mb-1.5">State</label>
+                  <input value={formData.state} onChange={(e) => setFormData(p => ({ ...p, state: e.target.value }))} placeholder="CA" className="w-full px-4 py-3 rounded-[var(--pl-radius-sm)] border-[1.5px] border-[var(--line)] bg-white text-[0.92rem] outline-none pl-focus-glow" />
                 </div>
               </div>
 
               <div className="mb-6">
-                <label className="block text-[0.65rem] font-bold uppercase tracking-[0.1em] text-[var(--pl-muted)] mb-1.5">About Your Business</label>
-                <textarea value={formData.bio} onChange={(e) => setFormData(p => ({ ...p, bio: e.target.value }))} placeholder="Tell us about your work..." rows={3} className="w-full px-4 py-3 rounded-[var(--pl-radius-sm)] border-[1.5px] border-[var(--pl-divider)] bg-white text-[0.92rem] outline-none resize-vertical pl-focus-glow" />
+                <label className="block text-[0.65rem] font-bold uppercase tracking-[0.1em] text-[var(--ink-muted)] mb-1.5">About Your Business</label>
+                <textarea value={formData.bio} onChange={(e) => setFormData(p => ({ ...p, bio: e.target.value }))} placeholder="Tell us about your work..." rows={3} className="w-full px-4 py-3 rounded-[var(--pl-radius-sm)] border-[1.5px] border-[var(--line)] bg-white text-[0.92rem] outline-none resize-vertical pl-focus-glow" />
               </div>
 
               <Button variant="primary" size="lg" className="w-full" onClick={handleSubmit} icon={<ArrowRight size={14} />}>
@@ -251,21 +240,13 @@ export default function PartnersPage() {
             </>
           )}
         </main>
-      </div>
+      </PageShell>
     );
   }
 
   // ── Dashboard View ──
   return (
-    <div className="min-h-dvh bg-[var(--pl-cream)]">
-      <header className="border-b border-[var(--pl-divider)] bg-white">
-        <div className="max-w-[1080px] mx-auto px-4 md:px-8 flex items-center justify-between h-16">
-          <Link href="/" className="font-heading italic text-lg text-[var(--pl-ink-soft)] no-underline">Pearloom</Link>
-          <span className="text-[0.82rem] text-[var(--pl-ink)]">Partner Dashboard</span>
-          <Link href="/dashboard" className="text-[0.75rem] font-semibold text-[var(--pl-muted)] no-underline">Exit</Link>
-        </div>
-      </header>
-
+    <PageShell>
       <main className="max-w-[1080px] mx-auto px-4 md:px-8 py-8">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -275,19 +256,19 @@ export default function PartnersPage() {
             { icon: <BarChart2 size={18} />, value: '0', label: 'Clicks' },
             { icon: <Star size={18} />, value: '—', label: 'Rating' },
           ].map((stat) => (
-            <div key={stat.label} className="p-4 rounded-[var(--pl-radius-lg)] bg-white border border-[rgba(0,0,0,0.05)]">
-              <div className="text-[var(--pl-olive)] mb-2">{stat.icon}</div>
-              <div className="text-[1.5rem] font-heading font-semibold text-[var(--pl-ink)]">{stat.value}</div>
-              <div className="text-[0.68rem] font-bold uppercase tracking-[0.06em] text-[var(--pl-muted)]">{stat.label}</div>
+            <div key={stat.label} className="p-4 rounded-[20px] bg-white border border-[rgba(0,0,0,0.05)]">
+              <div className="text-[var(--sage-deep)] mb-2">{stat.icon}</div>
+              <div className="text-[1.5rem] font-heading font-semibold text-[var(--ink)]">{stat.value}</div>
+              <div className="text-[0.68rem] font-bold uppercase tracking-[0.06em] text-[var(--ink-muted)]">{stat.label}</div>
             </div>
           ))}
         </div>
 
         {/* Referral link */}
-        <div className="p-5 rounded-[var(--pl-radius-lg)] bg-white border border-[rgba(0,0,0,0.05)] mb-8">
-          <h3 className="text-[0.72rem] font-bold uppercase tracking-[0.1em] text-[var(--pl-muted)] mb-3">Your Referral Link</h3>
+        <div className="p-5 rounded-[20px] bg-white border border-[rgba(0,0,0,0.05)] mb-8">
+          <h3 className="text-[0.72rem] font-bold uppercase tracking-[0.1em] text-[var(--ink-muted)] mb-3">Your Referral Link</h3>
           <div className="flex items-center gap-2">
-            <div className="flex-1 px-4 py-2.5 rounded-lg bg-[var(--pl-cream)] border border-[var(--pl-divider)] text-[0.85rem] text-[var(--pl-ink)] font-mono truncate">
+            <div className="flex-1 px-4 py-2.5 rounded-lg bg-[var(--cream)] border border-[var(--line)] text-[0.85rem] text-[var(--ink)] font-mono truncate">
               https://pearloom.com?ref={mockPartner.referralCode}
             </div>
             <Button variant="primary" size="sm" icon={copiedEmbed === 'link' ? <Check size={12} /> : <Copy size={12} />}
@@ -299,21 +280,21 @@ export default function PartnersPage() {
 
         {/* Embed widgets */}
         <div className="mb-8">
-          <h3 className="font-heading italic text-xl text-[var(--pl-ink)] mb-4">Embed Widgets</h3>
-          <p className="text-[0.85rem] text-[var(--pl-muted)] mb-4">Add these to your website to start earning referral commissions.</p>
+          <h3 className="font-heading italic text-xl text-[var(--ink)] mb-4">Embed Widgets</h3>
+          <p className="text-[0.85rem] text-[var(--ink-muted)] mb-4">Add these to your website to start earning referral commissions.</p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {(['button', 'banner', 'card', 'floating'] as const).map((type) => (
-              <div key={type} className="p-4 rounded-[var(--pl-radius-lg)] bg-white border border-[rgba(0,0,0,0.05)]">
+              <div key={type} className="p-4 rounded-[20px] bg-white border border-[rgba(0,0,0,0.05)]">
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-[0.82rem] font-semibold text-[var(--pl-ink)] capitalize">{type} Widget</h4>
+                  <h4 className="text-[0.82rem] font-semibold text-[var(--ink)] capitalize">{type} Widget</h4>
                   <Button variant="secondary" size="xs" icon={copiedEmbed === type ? <Check size={10} /> : <Code size={10} />}
                     onClick={() => handleCopyEmbed(type)}>
                     {copiedEmbed === type ? 'Copied!' : 'Copy Code'}
                   </Button>
                 </div>
                 {/* Preview */}
-                <div className="p-3 rounded-lg bg-[var(--pl-cream)] border border-[var(--pl-divider)] min-h-[60px] flex items-center justify-center">
+                <div className="p-3 rounded-lg bg-[var(--cream)] border border-[var(--line)] min-h-[60px] flex items-center justify-center">
                   <div dangerouslySetInnerHTML={{ __html: generateEmbedCode(mockPartner, type) }} />
                 </div>
               </div>
@@ -322,17 +303,17 @@ export default function PartnersPage() {
         </div>
 
         {/* Tier info */}
-        <div className="p-5 rounded-[var(--pl-radius-lg)] bg-[var(--pl-cream-deep)] border border-[rgba(0,0,0,0.05)]">
+        <div className="p-5 rounded-[20px] bg-[var(--cream-2)] border border-[rgba(0,0,0,0.05)]">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-[0.72rem] font-bold uppercase tracking-[0.1em] text-[var(--pl-muted)]">Current Tier</h3>
-              <p className="text-[1.2rem] font-heading font-semibold text-[var(--pl-ink)]">Basic — {PARTNER_TIERS.basic.commissionRate}% Commission</p>
-              <p className="text-[0.78rem] text-[var(--pl-muted)]">Upgrade to Pro: get 10+ referrals and 4.0+ rating</p>
+              <h3 className="text-[0.72rem] font-bold uppercase tracking-[0.1em] text-[var(--ink-muted)]">Current Tier</h3>
+              <p className="text-[1.2rem] font-heading font-semibold text-[var(--ink)]">Basic — {PARTNER_TIERS.basic.commissionRate}% Commission</p>
+              <p className="text-[0.78rem] text-[var(--ink-muted)]">Upgrade to Pro: get 10+ referrals and 4.0+ rating</p>
             </div>
             <Button variant="accent" size="sm">Upgrade</Button>
           </div>
         </div>
       </main>
-    </div>
+    </PageShell>
   );
 }

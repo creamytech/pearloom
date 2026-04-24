@@ -102,14 +102,14 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: '24px', height: '24px', borderRadius: 'var(--pl-radius-sm)',
               border: copied === 'fail'
-                ? '1px solid color-mix(in oklab, var(--pl-plum) 50%, transparent)'
-                : '1px solid var(--pl-divider)',
+                ? '1px solid color-mix(in oklab, #7A2D2D 50%, transparent)'
+                : '1px solid var(--line)',
               background: copied === 'ok'
-                ? 'color-mix(in oklab, var(--pl-olive) 12%, transparent)'
+                ? 'color-mix(in oklab, var(--sage-deep) 12%, transparent)'
                 : copied === 'fail'
-                  ? 'color-mix(in oklab, var(--pl-plum) 10%, transparent)'
+                  ? 'color-mix(in oklab, #7A2D2D 10%, transparent)'
                   : 'transparent',
-              color: copied === 'fail' ? 'var(--pl-plum)' : 'var(--pl-ink-soft)',
+              color: copied === 'fail' ? '#7A2D2D' : 'var(--ink-soft)',
               cursor: 'pointer',
             }}
           >

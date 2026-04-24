@@ -146,9 +146,9 @@ export function DashConnections() {
           </Link>
         }
       >
-        Pearloom celebrations group sibling sites together — the couple&rsquo;s wedding, the MOH&rsquo;s
-        shower, the best man&rsquo;s bachelor weekend. Each still has its own host, its own guests,
-        its own voice, but they link into one story.
+        Pearloom celebrations group sibling sites together. A wedding weekend with a rehearsal dinner + brunch. A
+        memorial with a family directory. A reunion split across three days. Each site still has its own host, its
+        own guests, its own voice — but they link into one story.
       </Topbar>
 
       <main
@@ -708,7 +708,18 @@ function StandaloneList({
                   <input
                     value={newCelebName}
                     onChange={(e) => setNewCelebName(e.target.value)}
-                    placeholder="e.g. Santos–Kim weekend"
+                    placeholder={(() => {
+                      const [a, b] = s.names ?? [];
+                      const who = a && b ? `${a}–${b}` : a ?? 'Our';
+                      const o = s.occasion;
+                      if (o === 'memorial' || o === 'funeral') return `e.g. ${who || 'Smith family'} — in memoriam`;
+                      if (o === 'wedding' || o === 'engagement') return `e.g. ${who} wedding weekend`;
+                      if (o === 'reunion') return `e.g. ${who || 'Smith family'} reunion 2026`;
+                      if (o === 'baby-shower' || o === 'gender-reveal' || o === 'sip-and-see') return `e.g. Baby ${a ?? 'Jamie'}`;
+                      if (o === 'graduation') return `e.g. ${a ?? 'Jamie'} grad 2026`;
+                      if (o === 'retirement') return `e.g. ${a ?? 'Jamie'} retires`;
+                      return `e.g. ${who || 'Our'} weekend`;
+                    })()}
                     style={{
                       flex: 1,
                       padding: '8px 12px',

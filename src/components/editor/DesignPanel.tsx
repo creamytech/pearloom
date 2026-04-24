@@ -91,7 +91,7 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
   {
     id: 'minimal', label: 'Minimal', desc: 'Clean line, no background',
     preview: (
-      <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
+      <div style={{ height: '100%', background: 'var(--cream)', position: 'relative' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', borderBottom: '1px solid rgba(255,255,255,0.3)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
             <div style={{ width: '12px', height: '2px', background: 'var(--pl-chrome-text)', borderRadius: 'var(--pl-radius-xs)', opacity: 0.4 }} />
@@ -103,7 +103,7 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
   {
     id: 'solid', label: 'Solid', desc: 'Opaque bar with shadow',
     preview: (
-      <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
+      <div style={{ height: '100%', background: 'var(--cream)', position: 'relative' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
             <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--pl-chrome-text)' }} />
@@ -116,7 +116,7 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
   {
     id: 'editorial', label: 'Editorial', desc: 'Centered logo, wide spacing',
     preview: (
-      <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
+      <div style={{ height: '100%', background: 'var(--cream)', position: 'relative' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '14px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1px', paddingTop: '2px' }}>
           <div style={{ width: '16px', height: '2.5px', background: 'var(--pl-chrome-text)', borderRadius: 'var(--pl-radius-xs)', opacity: 0.5 }} />
           <div style={{ display: 'flex', gap: '4px' }}>
@@ -129,7 +129,7 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
   {
     id: 'floating', label: 'Floating', desc: 'Pill-shaped, detached from edge',
     preview: (
-      <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
+      <div style={{ height: '100%', background: 'var(--cream)', position: 'relative' }}>
         <div style={{ position: 'absolute', top: '3px', left: '15%', right: '15%', height: '8px', background: 'rgba(255,255,255,0.9)', borderRadius: 'var(--pl-radius-md)', border: '1px solid rgba(255,255,255,0.25)', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
             <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--pl-chrome-text)' }} />
@@ -155,19 +155,19 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
   {
     id: 'sidebar', label: 'Sidebar', desc: 'Vertical left sidebar navigation',
     preview: (
-      <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative', display: 'flex' }}>
+      <div style={{ height: '100%', background: 'var(--cream)', position: 'relative', display: 'flex' }}>
         <div style={{ width: '22%', height: '100%', background: '#fff', borderRight: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '4px', gap: '2px' }}>
           <div style={{ width: '10px', height: '2px', background: 'var(--pl-chrome-text)', borderRadius: 'var(--pl-radius-xs)', opacity: 0.6 }} />
           {[0, 1, 2].map(i => <div key={i} style={{ width: '8px', height: '1px', background: '#71717A', borderRadius: 'var(--pl-radius-xs)', opacity: 0.3 }} />)}
         </div>
-        <div style={{ flex: 1, background: 'var(--pl-cream)' }} />
+        <div style={{ flex: 1, background: 'var(--cream)' }} />
       </div>
     ),
   },
   {
     id: 'command', label: 'Command', desc: 'Hidden nav, ⌘K to open page menu',
     preview: (
-      <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
+      <div style={{ height: '100%', background: 'var(--cream)', position: 'relative' }}>
         <div style={{ position: 'absolute', bottom: '6px', right: '8px', padding: '2px 5px', borderRadius: 'var(--pl-radius-xs)', background: 'var(--pl-chrome-text)', display: 'flex', alignItems: 'center', gap: '2px' }}>
           <div style={{ width: '6px', height: '6px', borderRadius: 'var(--pl-radius-xs)', background: 'rgba(255,255,255,0.7)' }} />
           <div style={{ width: '4px', height: '1px', background: 'rgba(255,255,255,0.4)', borderRadius: 'var(--pl-radius-xs)' }} />

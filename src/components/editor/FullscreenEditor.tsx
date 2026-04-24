@@ -1043,7 +1043,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       style={{
         position: 'fixed', inset: 0, zIndex: 1000,
         display: 'flex', flexDirection: 'column',
-        background: 'var(--pl-cream)', fontFamily: 'var(--pl-font-body)',
+        background: 'var(--cream)', fontFamily: 'var(--pl-font-body)',
       }}>
       {/* Skip to canvas — visible only on keyboard focus. */}
       <a
@@ -1357,16 +1357,16 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
             style={{
               position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)',
               zIndex: 1500, pointerEvents: 'none',
-              background: 'color-mix(in oklab, var(--pl-cream-card) 95%, transparent)',
+              background: 'color-mix(in oklab, var(--card) 95%, transparent)',
               backdropFilter: 'saturate(140%) blur(14px)',
               WebkitBackdropFilter: 'saturate(140%) blur(14px)',
-              border: '1px solid var(--pl-divider)',
+              border: '1px solid var(--line)',
               borderRadius: 'var(--pl-radius-full)', padding: '8px 18px',
               display: 'flex', alignItems: 'center', gap: 8,
-              boxShadow: '0 8px 24px color-mix(in oklab, var(--pl-ink) 12%, transparent)',
+              boxShadow: '0 8px 24px color-mix(in oklab, var(--ink) 12%, transparent)',
             } as React.CSSProperties}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--pl-olive)' }}>↑</span>
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--pl-ink)', whiteSpace: 'nowrap' }}>Click any section in the preview to jump to it</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--sage-deep)' }}>↑</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--ink)', whiteSpace: 'nowrap' }}>Click any section in the preview to jump to it</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1376,16 +1376,16 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
             style={{
               position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)',
               zIndex: 1500, pointerEvents: 'none',
-              background: 'color-mix(in oklab, var(--pl-plum) 14%, var(--pl-cream-card))',
+              background: 'color-mix(in oklab, #7A2D2D 14%, var(--card))',
               backdropFilter: 'saturate(140%) blur(14px)',
               WebkitBackdropFilter: 'saturate(140%) blur(14px)',
-              border: '1px solid color-mix(in oklab, var(--pl-plum) 30%, transparent)',
+              border: '1px solid color-mix(in oklab, #7A2D2D 30%, transparent)',
               borderRadius: 'var(--pl-radius-full)', padding: '8px 18px',
               display: 'flex', alignItems: 'center', gap: 8,
-              boxShadow: '0 8px 24px color-mix(in oklab, var(--pl-plum) 18%, transparent)',
+              boxShadow: '0 8px 24px color-mix(in oklab, #7A2D2D 18%, transparent)',
             } as React.CSSProperties}>
-            <span style={{ fontSize: 14, color: 'var(--pl-plum)' }}>⚠</span>
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--pl-plum)', whiteSpace: 'nowrap' }}>{state.rewriteError}</span>
+            <span style={{ fontSize: 14, color: '#7A2D2D' }}>⚠</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#7A2D2D', whiteSpace: 'nowrap' }}>{state.rewriteError}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1400,13 +1400,13 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
             style={{
               position: 'fixed', bottom: 80, left: '50%',
               transform: 'translateX(-50%)', zIndex: 1500, pointerEvents: 'none',
-              background: 'color-mix(in oklab, var(--pl-ink) 90%, transparent)',
+              background: 'color-mix(in oklab, var(--ink) 90%, transparent)',
               backdropFilter: 'saturate(140%) blur(14px)',
               WebkitBackdropFilter: 'saturate(140%) blur(14px)',
-              border: '1px solid color-mix(in oklab, var(--pl-cream) 14%, transparent)',
+              border: '1px solid color-mix(in oklab, var(--cream) 14%, transparent)',
               borderRadius: 'var(--pl-radius-full)', padding: '8px 18px',
               display: 'flex', alignItems: 'center', gap: 8,
-              boxShadow: '0 8px 24px color-mix(in oklab, var(--pl-ink) 22%, transparent)',
+              boxShadow: '0 8px 24px color-mix(in oklab, var(--ink) 22%, transparent)',
             } as React.CSSProperties}
           >
             <span style={{
@@ -1414,7 +1414,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
               fontWeight: 700,
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              color: 'var(--pl-cream)',
+              color: 'var(--cream)',
               whiteSpace: 'nowrap',
             }}>
               {infoToast}
@@ -1432,11 +1432,11 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb {
-          background: color-mix(in oklab, var(--pl-ink) 8%, transparent);
+          background: color-mix(in oklab, var(--ink) 8%, transparent);
           border-radius: 100px;
         }
         ::-webkit-scrollbar-thumb:hover {
-          background: color-mix(in oklab, var(--pl-ink) 22%, transparent);
+          background: color-mix(in oklab, var(--ink) 22%, transparent);
         }
       `}</style>
 
@@ -1471,7 +1471,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
               position: 'fixed',
               inset: 0,
               zIndex: 2500,
-              background: 'color-mix(in oklab, var(--pl-ink) 55%, transparent)',
+              background: 'color-mix(in oklab, var(--ink) 55%, transparent)',
               backdropFilter: 'blur(14px)',
               WebkitBackdropFilter: 'blur(14px)',
               display: 'flex',
@@ -1491,8 +1491,8 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                 margin: '0 auto',
                 width: '100%',
                 maxWidth: 1280,
-                background: 'var(--pl-cream-card)',
-                border: '1px solid var(--pl-divider)',
+                background: 'var(--card)',
+                border: '1px solid var(--line)',
                 borderRadius: 'var(--pl-radius-xl)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1507,8 +1507,8 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                   alignItems: 'center',
                   gap: 12,
                   padding: '10px 16px',
-                  borderBottom: '1px solid var(--pl-divider)',
-                  background: 'var(--pl-cream-card)',
+                  borderBottom: '1px solid var(--line)',
+                  background: 'var(--card)',
                   flexShrink: 0,
                 }}
               >
@@ -1518,12 +1518,12 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                     fontSize: '0.6rem',
                     letterSpacing: '0.22em',
                     textTransform: 'uppercase',
-                    color: 'var(--pl-muted)',
+                    color: 'var(--ink-muted)',
                     fontWeight: 700,
                   }}
                 >
                   Preview ·{' '}
-                  <span style={{ color: 'var(--pl-gold)' }}>
+                  <span style={{ color: 'var(--gold)' }}>
                     {state.publishedUrl ? 'live sample' : 'draft'}
                   </span>
                 </span>
@@ -1539,9 +1539,9 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                         style={{
                           padding: '5px 12px',
                           borderRadius: 'var(--pl-radius-sm)',
-                          background: on ? 'var(--pl-ink)' : 'transparent',
-                          color: on ? 'var(--pl-cream)' : 'var(--pl-ink-soft)',
-                          border: `1px solid ${on ? 'var(--pl-ink)' : 'var(--pl-divider)'}`,
+                          background: on ? 'var(--ink)' : 'transparent',
+                          color: on ? 'var(--cream)' : 'var(--ink-soft)',
+                          border: `1px solid ${on ? 'var(--ink)' : 'var(--line)'}`,
                           fontFamily: 'var(--pl-font-mono)',
                           fontSize: '0.58rem',
                           letterSpacing: '0.2em',
@@ -1561,8 +1561,8 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                   style={{
                     padding: '6px 16px',
                     borderRadius: 'var(--pl-radius-sm)',
-                    background: 'var(--pl-ink)',
-                    color: 'var(--pl-cream)',
+                    background: 'var(--ink)',
+                    color: 'var(--cream)',
                     border: 'none',
                     fontFamily: 'var(--pl-font-mono)',
                     fontSize: '0.6rem',
@@ -1580,7 +1580,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
               <div
                 style={{
                   flex: 1,
-                  background: 'var(--pl-cream-deep)',
+                  background: 'var(--cream-2)',
                   overflow: 'auto',
                   display: 'flex',
                   alignItems: 'flex-start',
@@ -1600,9 +1600,9 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                           : '100%',
                     height: '100%',
                     minHeight: '100%',
-                    border: previewOverlayDevice === 'desktop' ? 'none' : '1px solid var(--pl-divider)',
+                    border: previewOverlayDevice === 'desktop' ? 'none' : '1px solid var(--line)',
                     borderRadius: previewOverlayDevice === 'desktop' ? 0 : 12,
-                    background: 'var(--pl-cream)',
+                    background: 'var(--cream)',
                     boxShadow:
                       previewOverlayDevice === 'desktop'
                         ? 'none'
@@ -1630,19 +1630,19 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         {state.canvasDragId && (
           <div style={{
             padding: '8px 14px',
-            background: 'var(--pl-ink)',
-            color: 'var(--pl-cream)',
+            background: 'var(--ink)',
+            color: 'var(--cream)',
             borderRadius: 'var(--pl-radius-full)',
             fontSize: '0.72rem',
             fontWeight: 700,
             letterSpacing: '0.06em',
-            boxShadow: '0 16px 40px color-mix(in oklab, var(--pl-ink) 30%, transparent)',
+            boxShadow: '0 16px 40px color-mix(in oklab, var(--ink) 30%, transparent)',
             display: 'flex', alignItems: 'center', gap: 8,
             pointerEvents: 'none',
-            border: '1px solid color-mix(in oklab, var(--pl-cream) 14%, transparent)',
+            border: '1px solid color-mix(in oklab, var(--cream) 14%, transparent)',
             whiteSpace: 'nowrap',
           }}>
-            <span style={{ fontSize: '1.05rem', color: 'var(--pl-olive-mist, var(--pl-olive))' }}>
+            <span style={{ fontSize: '1.05rem', color: 'var(--pl-olive-mist, var(--sage-deep))' }}>
               {state.canvasDragId.startsWith('chapter:') ? '⌖' : '✦'}
             </span>
             {state.canvasDragLabel}
@@ -1687,7 +1687,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
             padding: '4px 6px',
             borderRadius: 'var(--pl-radius-full)',
             background: 'color-mix(in oklab, var(--pl-cream-card, #FBF7EE) 92%, transparent)',
-            border: '1px solid var(--pl-divider)',
+            border: '1px solid var(--line)',
             boxShadow: '0 4px 12px rgba(40,28,12,0.08)',
             pointerEvents: 'auto',
           }}
@@ -1795,7 +1795,7 @@ function PublishModalInline() {
         transition={{ duration: 0.22 }}
         style={{
           position: 'fixed', inset: 0, zIndex: 2000,
-          background: 'color-mix(in oklab, var(--pl-ink) 50%, transparent)',
+          background: 'color-mix(in oklab, var(--ink) 50%, transparent)',
           backdropFilter: 'saturate(140%) blur(14px)',
           WebkitBackdropFilter: 'saturate(140%) blur(14px)',
           display: 'flex', alignItems: 'stretch', justifyContent: 'flex-end',
@@ -1808,11 +1808,11 @@ function PublishModalInline() {
           transition={{ type: 'spring', stiffness: 340, damping: 32 }}
           onClick={e => e.stopPropagation()}
           style={{
-            background: 'var(--pl-cream-card)',
-            borderLeft: '1px solid var(--pl-divider)',
+            background: 'var(--card)',
+            borderLeft: '1px solid var(--line)',
             padding: 'clamp(1.75rem, 3vw, 2.5rem)',
             width: 'min(520px, 100%)',
-            boxShadow: '-40px 0 100px color-mix(in oklab, var(--pl-ink) 30%, transparent)',
+            boxShadow: '-40px 0 100px color-mix(in oklab, var(--ink) 30%, transparent)',
             textAlign: 'center',
             position: 'relative',
             overflow: 'auto',
@@ -1823,8 +1823,8 @@ function PublishModalInline() {
             position: 'absolute', bottom: -60, left: '50%', transform: 'translateX(-50%)',
             width: 260, height: 260, borderRadius: '50%',
             background: publishedUrl
-              ? 'radial-gradient(circle, color-mix(in oklab, var(--pl-olive) 18%, transparent) 0%, transparent 65%)'
-              : 'radial-gradient(circle, color-mix(in oklab, var(--pl-olive) 8%, transparent) 0%, transparent 65%)',
+              ? 'radial-gradient(circle, color-mix(in oklab, var(--sage-deep) 18%, transparent) 0%, transparent 65%)'
+              : 'radial-gradient(circle, color-mix(in oklab, var(--sage-deep) 8%, transparent) 0%, transparent 65%)',
             pointerEvents: 'none', transition: 'background 0.6s',
           }} />
           <AnimatePresence mode="popLayout">
@@ -1835,39 +1835,39 @@ function PublishModalInline() {
                   transition={{ type: 'spring', stiffness: 360, damping: 22, delay: 0.05 }}
                   style={{
                     width: 64, height: 64, borderRadius: '50%',
-                    background: 'color-mix(in oklab, var(--pl-olive) 18%, transparent)',
-                    border: '1px solid color-mix(in oklab, var(--pl-olive) 32%, transparent)',
+                    background: 'color-mix(in oklab, var(--sage-deep) 18%, transparent)',
+                    border: '1px solid color-mix(in oklab, var(--sage-deep) 32%, transparent)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 8px 28px color-mix(in oklab, var(--pl-olive) 24%, transparent)',
+                    boxShadow: '0 8px 28px color-mix(in oklab, var(--sage-deep) 24%, transparent)',
                   }}>
-                  <Globe size={26} color="var(--pl-olive)" />
+                  <Globe size={26} color="var(--sage-deep)" />
                 </motion.div>
                 <motion.h2 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
                   style={{
                     fontFamily: 'var(--pl-font-display)',
                     fontSize: 'clamp(1.6rem, 2.6vw, 2.1rem)',
-                    color: 'var(--pl-ink)',
+                    color: 'var(--ink)',
                     margin: 0,
                     letterSpacing: '-0.02em',
                     fontWeight: 400,
                     fontVariationSettings: '"opsz" 32, "SOFT" 70, "WONK" 1',
                   }}>
-                  It&apos;s <em style={{ fontStyle: 'italic', color: 'var(--pl-olive)' }}>live</em>.
+                  It&apos;s <em style={{ fontStyle: 'italic', color: 'var(--sage-deep)' }}>live</em>.
                 </motion.h2>
                 <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-                  style={{ color: 'var(--pl-ink-soft)', margin: 0, fontSize: '0.9rem' }}>
+                  style={{ color: 'var(--ink-soft)', margin: 0, fontSize: '0.9rem' }}>
                   Your story is now live at:
                 </motion.p>
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
                   style={{ width: '100%', position: 'relative' }}>
                   <code style={{
                     display: 'block',
-                    background: 'color-mix(in oklab, var(--pl-ink) 5%, transparent)',
-                    border: '1px solid var(--pl-divider)',
+                    background: 'color-mix(in oklab, var(--ink) 5%, transparent)',
+                    border: '1px solid var(--line)',
                     padding: '0.7rem 2.8rem 0.7rem 1.2rem',
                     borderRadius: 'var(--pl-radius-lg)',
                     fontSize: '0.8rem',
-                    color: 'var(--pl-ink)',
+                    color: 'var(--ink)',
                     fontFamily: 'var(--pl-font-mono)',
                     wordBreak: 'break-all',
                     textAlign: 'left',
@@ -1879,7 +1879,7 @@ function PublishModalInline() {
                     style={{
                       position: 'absolute', right: '0.6rem', top: '50%',
                       transform: 'translateY(-50%)', background: 'none', border: 'none',
-                      cursor: 'pointer', color: 'var(--pl-muted)', padding: 4, display: 'flex',
+                      cursor: 'pointer', color: 'var(--ink-muted)', padding: 4, display: 'flex',
                     }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                   </motion.button>
@@ -1891,13 +1891,13 @@ function PublishModalInline() {
                     style={{
                       flex: 1, padding: '0.95rem',
                       borderRadius: 'var(--pl-radius-full)',
-                      background: 'var(--pl-ink)',
-                      color: 'var(--pl-cream)',
+                      background: 'var(--ink)',
+                      color: 'var(--cream)',
                       textDecoration: 'none',
                       fontWeight: 700, fontSize: '0.78rem',
                       letterSpacing: '0.1em', textTransform: 'uppercase',
                       textAlign: 'center', display: 'block',
-                      boxShadow: '0 4px 18px color-mix(in oklab, var(--pl-olive) 28%, transparent)',
+                      boxShadow: '0 4px 18px color-mix(in oklab, var(--sage-deep) 28%, transparent)',
                     }}>
                     Open site →
                   </motion.a>
@@ -1907,8 +1907,8 @@ function PublishModalInline() {
                       flex: 1, padding: '0.95rem',
                       borderRadius: 'var(--pl-radius-full)',
                       background: 'transparent',
-                      border: '1px solid var(--pl-divider)',
-                      color: 'var(--pl-ink)',
+                      border: '1px solid var(--line)',
+                      color: 'var(--ink)',
                       cursor: 'pointer',
                       fontWeight: 700, fontSize: '0.78rem',
                       letterSpacing: '0.1em', textTransform: 'uppercase',
@@ -1919,13 +1919,13 @@ function PublishModalInline() {
 
                 {/* ── Share with guests ── */}
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.34 }}
-                  style={{ width: '100%', borderTop: '1px solid var(--pl-divider)', paddingTop: '1.1rem', marginTop: '0.25rem' }}>
+                  style={{ width: '100%', borderTop: '1px solid var(--line)', paddingTop: '1.1rem', marginTop: '0.25rem' }}>
                   <div style={{
                     fontFamily: 'var(--pl-font-mono)',
                     fontSize: '0.6rem',
                     letterSpacing: '0.18em',
                     textTransform: 'uppercase',
-                    color: 'var(--pl-muted)',
+                    color: 'var(--ink-muted)',
                     marginBottom: '0.75rem',
                     textAlign: 'left',
                   }}>
@@ -1960,7 +1960,7 @@ function PublishModalInline() {
                       style={{
                         marginTop: '0.5rem',
                         fontSize: '0.72rem',
-                        color: 'var(--pl-plum)',
+                        color: '#7A2D2D',
                         fontFamily: 'var(--pl-font-mono)',
                         letterSpacing: '0.04em',
                       }}
@@ -1972,12 +1972,12 @@ function PublishModalInline() {
                     <div style={{
                       marginTop: '0.75rem',
                       fontSize: '0.65rem',
-                      color: 'var(--pl-muted)',
+                      color: 'var(--ink-muted)',
                       textAlign: 'left',
                       fontFamily: 'var(--pl-font-mono)',
                       letterSpacing: '0.04em',
                     }}>
-                      RSVP link: <span style={{ color: 'var(--pl-ink-soft)' }}>{rsvpUrl}</span>
+                      RSVP link: <span style={{ color: 'var(--ink-soft)' }}>{rsvpUrl}</span>
                     </div>
                   )}
                 </motion.div>
@@ -1992,8 +1992,8 @@ function PublishModalInline() {
                     gap: 8,
                     padding: '14px 16px',
                     marginBottom: 20,
-                    background: 'color-mix(in oklab, var(--pl-olive) 5%, transparent)',
-                    border: '1px solid color-mix(in oklab, var(--pl-olive) 18%, transparent)',
+                    background: 'color-mix(in oklab, var(--sage-deep) 5%, transparent)',
+                    border: '1px solid color-mix(in oklab, var(--sage-deep) 18%, transparent)',
                     borderRadius: 'var(--pl-radius-lg)',
                     textAlign: 'left',
                   }}
@@ -2011,7 +2011,7 @@ function PublishModalInline() {
                         fontSize: '0.58rem',
                         letterSpacing: '0.24em',
                         textTransform: 'uppercase',
-                        color: 'var(--pl-muted)',
+                        color: 'var(--ink-muted)',
                         fontWeight: 700,
                       }}
                     >
@@ -2022,7 +2022,7 @@ function PublishModalInline() {
                         fontFamily: 'var(--pl-font-mono)',
                         fontSize: '0.66rem',
                         letterSpacing: '0.14em',
-                        color: readyCount === totalCount ? 'var(--pl-olive)' : 'var(--pl-ink-soft)',
+                        color: readyCount === totalCount ? 'var(--sage-deep)' : 'var(--ink-soft)',
                         fontWeight: 700,
                       }}
                     >
@@ -2038,7 +2038,7 @@ function PublishModalInline() {
                           alignItems: 'center',
                           gap: 8,
                           fontSize: '0.78rem',
-                          color: r.done ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
+                          color: r.done ? 'var(--ink-soft)' : 'var(--ink-muted)',
                           lineHeight: 1.3,
                         }}
                       >
@@ -2052,9 +2052,9 @@ function PublishModalInline() {
                             alignItems: 'center',
                             justifyContent: 'center',
                             fontSize: 10,
-                            background: r.done ? 'var(--pl-olive)' : 'transparent',
-                            border: r.done ? '1px solid var(--pl-olive)' : '1px dashed var(--pl-divider)',
-                            color: r.done ? 'var(--pl-cream)' : 'var(--pl-muted)',
+                            background: r.done ? 'var(--sage-deep)' : 'transparent',
+                            border: r.done ? '1px solid var(--sage-deep)' : '1px dashed var(--line)',
+                            color: r.done ? 'var(--cream)' : 'var(--ink-muted)',
                             flexShrink: 0,
                           }}
                         >
@@ -2073,7 +2073,7 @@ function PublishModalInline() {
                             style={{
                               background: 'transparent',
                               border: 'none',
-                              color: 'var(--pl-gold)',
+                              color: 'var(--gold)',
                               fontFamily: 'var(--pl-font-mono)',
                               fontSize: '0.58rem',
                               letterSpacing: '0.16em',
@@ -2094,16 +2094,16 @@ function PublishModalInline() {
                 <h2 style={{
                   fontFamily: 'var(--pl-font-display)',
                   fontSize: 'clamp(1.5rem, 2.4vw, 1.9rem)',
-                  color: 'var(--pl-ink)',
+                  color: 'var(--ink)',
                   marginBottom: '0.5rem',
                   letterSpacing: '-0.02em',
                   fontWeight: 400,
                   fontVariationSettings: '"opsz" 28, "SOFT" 70',
                 }}>
-                  Choose your <em style={{ fontStyle: 'italic', color: 'var(--pl-olive)' }}>URL</em>.
+                  Choose your <em style={{ fontStyle: 'italic', color: 'var(--sage-deep)' }}>URL</em>.
                 </h2>
                 <p style={{
-                  color: 'var(--pl-ink-soft)',
+                  color: 'var(--ink-soft)',
                   marginBottom: '1.75rem',
                   fontSize: '0.85rem',
                   lineHeight: 1.5,
@@ -2114,9 +2114,9 @@ function PublishModalInline() {
                   <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
                     role="alert"
                     style={{
-                      background: 'color-mix(in oklab, var(--pl-plum) 12%, transparent)',
-                      border: '1px solid color-mix(in oklab, var(--pl-plum) 28%, transparent)',
-                      color: 'var(--pl-plum)',
+                      background: 'color-mix(in oklab, #7A2D2D 12%, transparent)',
+                      border: '1px solid color-mix(in oklab, #7A2D2D 28%, transparent)',
+                      color: '#7A2D2D',
                       borderRadius: 'var(--pl-radius-lg)',
                       padding: '0.75rem 1rem',
                       marginBottom: '1.25rem',
@@ -2136,9 +2136,9 @@ function PublishModalInline() {
                         flexShrink: 0,
                         padding: '3px 10px',
                         borderRadius: 'var(--pl-radius-full)',
-                        background: 'color-mix(in oklab, var(--pl-plum) 18%, transparent)',
-                        border: '1px solid color-mix(in oklab, var(--pl-plum) 40%, transparent)',
-                        color: 'var(--pl-plum)',
+                        background: 'color-mix(in oklab, #7A2D2D 18%, transparent)',
+                        border: '1px solid color-mix(in oklab, #7A2D2D 40%, transparent)',
+                        color: '#7A2D2D',
                         cursor: isPublishing ? 'not-allowed' : 'pointer',
                         fontSize: '0.65rem',
                         fontWeight: 700,
@@ -2152,15 +2152,15 @@ function PublishModalInline() {
                 )}
                 <div style={{
                   display: 'flex', alignItems: 'center',
-                  background: 'color-mix(in oklab, var(--pl-ink) 4%, transparent)',
+                  background: 'color-mix(in oklab, var(--ink) 4%, transparent)',
                   borderRadius: 'var(--pl-radius-lg)',
-                  border: '1px solid var(--pl-divider)',
+                  border: '1px solid var(--line)',
                   overflow: 'hidden',
                   marginBottom: '1.5rem',
                 }}>
                   <div style={{
                     padding: '0.95rem 0.25rem 0.95rem 1rem',
-                    color: 'var(--pl-muted)',
+                    color: 'var(--ink-muted)',
                     fontSize: '0.78rem',
                     whiteSpace: 'nowrap',
                     fontFamily: 'var(--pl-font-mono)',
@@ -2174,7 +2174,7 @@ function PublishModalInline() {
                       padding: '0.95rem 1rem 0.95rem 0',
                       background: 'transparent',
                       border: 'none', outline: 'none',
-                      color: 'var(--pl-ink)',
+                      color: 'var(--ink)',
                       fontSize: '0.92rem',
                       fontFamily: 'var(--pl-font-mono)',
                     }} />
@@ -2186,8 +2186,8 @@ function PublishModalInline() {
                       flex: 1, padding: '0.95rem',
                       borderRadius: 'var(--pl-radius-full)',
                       background: 'transparent',
-                      border: '1px solid var(--pl-divider)',
-                      color: 'var(--pl-ink-soft)',
+                      border: '1px solid var(--line)',
+                      color: 'var(--ink-soft)',
                       cursor: 'pointer',
                       fontWeight: 700, fontSize: '0.72rem',
                       letterSpacing: '0.1em', textTransform: 'uppercase',
@@ -2202,8 +2202,8 @@ function PublishModalInline() {
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                       padding: '0.95rem',
                       borderRadius: 'var(--pl-radius-full)',
-                      background: 'var(--pl-ink)',
-                      color: 'var(--pl-cream)',
+                      background: 'var(--ink)',
+                      color: 'var(--cream)',
                       border: 'none',
                       cursor: isPublishing || !subdomain ? 'not-allowed' : 'pointer',
                       fontWeight: 700, fontSize: '0.72rem',
@@ -2211,7 +2211,7 @@ function PublishModalInline() {
                       opacity: isPublishing || !subdomain ? 0.55 : 1,
                       boxShadow: !subdomain || isPublishing
                         ? 'none'
-                        : '0 4px 18px color-mix(in oklab, var(--pl-olive) 30%, transparent)',
+                        : '0 4px 18px color-mix(in oklab, var(--sage-deep) 30%, transparent)',
                     }}>
                     {isPublishing
                       ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Publishing…</>
@@ -2247,12 +2247,12 @@ function ShareChip({ onClick, Icon, label, active = false }: ShareChipProps) {
         padding: '8px 12px',
         borderRadius: 'var(--pl-radius-full)',
         background: active
-          ? 'color-mix(in oklab, var(--pl-olive) 16%, transparent)'
-          : 'var(--pl-cream-card)',
+          ? 'color-mix(in oklab, var(--sage-deep) 16%, transparent)'
+          : 'var(--card)',
         border: `1px solid ${active
-          ? 'color-mix(in oklab, var(--pl-olive) 40%, transparent)'
-          : 'var(--pl-divider)'}`,
-        color: active ? 'var(--pl-olive)' : 'var(--pl-ink-soft)',
+          ? 'color-mix(in oklab, var(--sage-deep) 40%, transparent)'
+          : 'var(--line)'}`,
+        color: active ? 'var(--sage-deep)' : 'var(--ink-soft)',
         cursor: 'pointer',
         fontSize: '0.72rem',
         fontWeight: 600,

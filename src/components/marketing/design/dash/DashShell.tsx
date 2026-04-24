@@ -65,22 +65,33 @@ interface DashShellProps {
   bare?: boolean;
 }
 
+// DashShell now delegates its chrome to the Pearloom v8 DashLayout so
+// every existing dashboard page automatically adopts the new warm
+// sidebar + topbar. The internal components (Panel, SectionTitle,
+// Topbar, etc.) below are preserved for compatibility — they render
+// inside the v8 main column.
+import { DashLayout as PearloomDashLayout } from '@/components/pearloom/dash/DashShell';
+import { usePathname as useDashPathname } from 'next/navigation';
+
 export function DashShell({ children }: DashShellProps) {
   const { status } = useSession();
+  const pathname = useDashPathname() ?? '';
 
+  // Auth redirect happens at the /dashboard/layout.tsx level now.
+  // Public dashboard surfaces (e.g. /marketplace) stay reachable.
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    if (pathname.startsWith('/dashboard') && status === 'unauthenticated') {
       void signIn();
     }
-  }, [status]);
+  }, [status, pathname]);
 
-  if (status === 'loading') {
+  if (status === 'loading' && pathname.startsWith('/dashboard')) {
     return (
       <div
         style={{
           minHeight: '100vh',
-          background: PD.paper,
-          color: PD.ink,
+          background: 'var(--cream)',
+          color: 'var(--ink)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -91,7 +102,7 @@ export function DashShell({ children }: DashShellProps) {
             display: 'flex',
             alignItems: 'center',
             gap: 14,
-            fontFamily: 'var(--pl-font-body)',
+            fontFamily: 'var(--font-ui)',
           }}
         >
           <Pear size={44} color={PD.pear} stem={PD.oliveDeep} leaf={PD.olive} animated />
@@ -111,22 +122,31 @@ export function DashShell({ children }: DashShellProps) {
     );
   }
 
+  // Map the current path to the v8 sidebar's active key.
+  let active: string | undefined = undefined;
+  if (pathname === '/dashboard') active = 'dashboard';
+  else if (pathname.startsWith('/dashboard/day-of')) active = 'timeline';
+  else if (pathname.startsWith('/dashboard/rsvp')) active = 'guests';
+  else if (pathname.startsWith('/dashboard/analytics')) active = 'analytics';
+  else if (pathname.startsWith('/dashboard/connections')) active = 'connections';
+  else if (pathname.startsWith('/dashboard/profile')) active = 'settings';
+  else if (pathname.startsWith('/dashboard/gallery') || pathname.startsWith('/dashboard/submissions') || pathname.startsWith('/dashboard/remember')) active = 'sites';
+  else if (pathname.startsWith('/dashboard/event')) active = 'sites';
+  else if (pathname.startsWith('/dashboard/director')) active = 'studio';
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        minHeight: '100vh',
-        background: PD.paper,
-        color: PD.ink,
-        fontFamily: 'var(--pl-font-body)',
-      }}
-    >
-      <Sidebar />
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-        <TopbarGlobal />
+    <PearloomDashLayout active={active} hideTopbar>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100%',
+          fontFamily: 'var(--font-ui)',
+        }}
+      >
         {children}
       </div>
-    </div>
+    </PearloomDashLayout>
   );
 }
 
@@ -707,6 +727,7 @@ interface TopbarProps {
 export function Topbar({ subtitle, title, actions, children }: TopbarProps) {
   return (
     <header
+      data-topbar
       style={{
         padding: '28px 40px 10px',
         display: 'flex',
@@ -714,24 +735,27 @@ export function Topbar({ subtitle, title, actions, children }: TopbarProps) {
         justifyContent: 'space-between',
         gap: 24,
         flexWrap: 'wrap',
+        fontFamily: 'var(--font-ui)',
       }}
     >
       <div>
         {subtitle && (
-          <div style={{ ...MONO_STYLE, fontSize: 10, opacity: 0.6, marginBottom: 8, color: PD.olive }}>
+          <div
+            className="eyebrow"
+            style={{ fontSize: 11, marginBottom: 8, color: 'var(--peach-ink)' }}
+          >
             {subtitle}
           </div>
         )}
         <h1
+          className="display"
           style={{
-            ...DISPLAY_STYLE,
             fontSize: 'clamp(32px, 3.4vw, 52px)',
             lineHeight: 1.08,
             margin: 0,
-            fontWeight: 400,
-            letterSpacing: '-0.025em',
+            fontWeight: 600,
+            letterSpacing: '-0.02em',
             maxWidth: 820,
-            textWrap: 'balance',
           }}
         >
           {title}
@@ -740,11 +764,11 @@ export function Topbar({ subtitle, title, actions, children }: TopbarProps) {
           <div
             style={{
               marginTop: 14,
-              color: PD.inkSoft,
+              color: 'var(--ink-soft)',
               fontSize: 15,
               lineHeight: 1.5,
               maxWidth: 620,
-              fontFamily: 'var(--pl-font-body)',
+              fontFamily: 'var(--font-ui)',
             }}
           >
             {children}
@@ -767,18 +791,21 @@ interface PanelProps {
 export function Panel({
   children,
   style,
-  bg = PD.paper3,
+  bg,
   padding = 28,
   border = true,
 }: PanelProps) {
   return (
     <div
       style={{
-        background: bg,
+        background: bg ?? 'var(--card)',
         borderRadius: 20,
-        border: border ? '1px solid rgba(31,36,24,0.12)' : 'none',
+        border: border ? '1px solid var(--card-ring)' : 'none',
+        boxShadow: 'var(--shadow-sm)',
         padding,
         position: 'relative',
+        fontFamily: 'var(--font-ui)',
+        color: 'var(--ink)',
         ...style,
       }}
     >
@@ -799,30 +826,26 @@ export function SectionTitle({
   eyebrow,
   title,
   italic,
-  accent = PD.olive,
+  accent,
   style,
 }: SectionTitleProps) {
+  const accentColor = accent ?? 'var(--peach-ink)';
   return (
-    <div style={{ marginBottom: 20, ...style }}>
+    <div style={{ marginBottom: 20, fontFamily: 'var(--font-ui)', ...style }}>
       {eyebrow && (
         <div
-          style={{
-            ...MONO_STYLE,
-            fontSize: 10,
-            opacity: 0.6,
-            marginBottom: 6,
-            color: accent,
-          }}
+          className="eyebrow"
+          style={{ fontSize: 11, marginBottom: 6, color: accentColor }}
         >
           {eyebrow}
         </div>
       )}
       <div
+        className="display"
         style={{
-          ...DISPLAY_STYLE,
           fontSize: 22,
           lineHeight: 1.1,
-          fontWeight: 400,
+          fontWeight: 600,
           letterSpacing: '-0.015em',
         }}
       >
@@ -831,8 +854,8 @@ export function SectionTitle({
           <span
             style={{
               fontStyle: 'italic',
-              color: accent,
-              fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+              fontWeight: 500,
+              color: accentColor,
             }}
           >
             {italic}
@@ -887,24 +910,24 @@ export function EmptyShell({ message }: { message: string }) {
 
 // ── Button styles ────────────────────────────────────────────
 export const btnInk: CSSProperties = {
-  background: PD.ink,
-  color: PD.paper,
+  background: 'var(--ink)',
+  color: 'var(--cream)',
   border: 'none',
   borderRadius: 999,
-  padding: '10px 16px',
+  padding: '10px 18px',
   fontSize: 13,
-  fontWeight: 500,
+  fontWeight: 600,
   cursor: 'pointer',
-  fontFamily: 'inherit',
+  fontFamily: 'var(--font-ui)',
 };
 export const btnGhost: CSSProperties = {
-  background: 'transparent',
-  color: PD.ink,
-  border: '1px solid rgba(31,36,24,0.2)',
+  background: 'var(--card)',
+  color: 'var(--ink)',
+  border: '1.5px solid var(--line)',
   borderRadius: 999,
-  padding: '10px 16px',
+  padding: '10px 18px',
   fontSize: 13,
-  fontWeight: 500,
+  fontWeight: 600,
   cursor: 'pointer',
   fontFamily: 'inherit',
 };
@@ -918,12 +941,12 @@ export const btnMini: CSSProperties = {
   fontFamily: 'inherit',
 };
 export const btnMiniGhost: CSSProperties = {
-  background: 'transparent',
-  color: PD.ink,
-  border: '1px solid rgba(31,36,24,0.18)',
+  background: 'var(--card)',
+  color: 'var(--ink)',
+  border: '1.5px solid var(--line)',
   borderRadius: 999,
   padding: '7px 12px',
   fontSize: 12,
   cursor: 'pointer',
-  fontFamily: 'inherit',
+  fontFamily: 'var(--font-ui)',
 };

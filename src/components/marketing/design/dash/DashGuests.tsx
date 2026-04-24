@@ -8,6 +8,81 @@ import { Bloom } from '@/components/brand/groove';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { DashShell, Topbar, Panel, SectionTitle, EmptyShell, btnInk, btnGhost } from './DashShell';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
+import { getEventType } from '@/lib/event-os/event-types';
+
+// Occasion-aware copy for the guests page. Falls back to wedding-y
+// defaults when an occasion isn't recognised.
+function guestCopy(occasion?: string | null) {
+  const e = getEventType(occasion as never) ?? null;
+  const preset = e?.rsvpPreset ?? 'wedding';
+  switch (preset) {
+    case 'memorial':
+      return {
+        topSubtitle: 'Every note of attendance, and memories shared.',
+        emptyHint: "Share the site link so family and friends can let you know they're coming.",
+        fifthColumn: 'Memory',
+        fifthKey: 'note' as const,
+        verbComing: 'attending',
+        verbQuiet: "haven't replied",
+      };
+    case 'bachelor':
+      return {
+        topSubtitle: 'Who’s in, which days, bed prefs, and cost acks.',
+        emptyHint: 'Drop the link in the group chat — Pear tracks who’s in.',
+        fifthColumn: 'Bed pref',
+        fifthKey: 'note' as const,
+        verbComing: 'in',
+        verbQuiet: 'haven’t replied',
+      };
+    case 'shower':
+      return {
+        topSubtitle: 'Who’s coming, who’s bringing what, and any advice shared.',
+        emptyHint: 'Share the link — guests can RSVP and leave a note for the guest of honor.',
+        fifthColumn: 'Gift',
+        fifthKey: 'note' as const,
+        verbComing: 'coming',
+        verbQuiet: 'still quiet',
+      };
+    case 'reunion':
+      return {
+        topSubtitle: 'Every RSVP, by day, with room and t-shirt prefs.',
+        emptyHint: 'Share the link with the group chat, and Pear will track replies.',
+        fifthColumn: 'T-shirt',
+        fifthKey: 'note' as const,
+        verbComing: 'in',
+        verbQuiet: 'still quiet',
+      };
+    case 'milestone':
+    case 'casual':
+      return {
+        topSubtitle: 'Every RSVP and note, in one list.',
+        emptyHint: 'Share your link, or add guests by hand.',
+        fifthColumn: 'Note',
+        fifthKey: 'note' as const,
+        verbComing: 'coming',
+        verbQuiet: 'still quiet',
+      };
+    case 'cultural':
+      return {
+        topSubtitle: 'Every RSVP, dietary note, and ceremony tradition tracked.',
+        emptyHint: 'Share the link — Pear tracks RSVPs and ceremony preferences.',
+        fifthColumn: 'Meal',
+        fifthKey: 'meal' as const,
+        verbComing: 'coming',
+        verbQuiet: 'still quiet',
+      };
+    case 'wedding':
+    default:
+      return {
+        topSubtitle: 'Every RSVP, meal note, and plus-one recorded.',
+        emptyHint: 'Share your invite link, or add guests by hand. Pear will track RSVPs, meals, and accessibility notes as they come in.',
+        fifthColumn: 'Meal',
+        fifthKey: 'meal' as const,
+        verbComing: 'coming',
+        verbQuiet: 'still quiet',
+      };
+  }
+}
 
 type RsvpKey = 'yes' | 'no' | 'maybe' | 'pending';
 
@@ -137,6 +212,7 @@ export function DashGuests() {
   const siteName = siteDisplayName(site);
   const capacity = Math.max(rows?.length ?? 0, counts.yes + counts.pending + counts.maybe, 1);
   const hasGuests = (rows?.length ?? 0) > 0;
+  const copy = guestCopy(site?.occasion);
 
   return (
     <DashShell>
@@ -148,7 +224,7 @@ export function DashGuests() {
               <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
                 {counts.yes}
               </i>{' '}
-              coming,{' '}
+              {copy.verbComing},{' '}
               <i style={{ color: PD.gold, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
                 {counts.maybe}
               </i>{' '}
@@ -156,7 +232,7 @@ export function DashGuests() {
               <i style={{ color: PD.plum, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
                 {counts.pending}
               </i>{' '}
-              still quiet.
+              {copy.verbQuiet}.
             </span>
           ) : (
             <span>
@@ -174,8 +250,11 @@ export function DashGuests() {
           </div>
         }
       >
-        Every RSVP, meal note, and plus-one recorded for {siteName}. Pear is following up on the
-        quiet ones once a week.
+        {copy.topSubtitle}
+        {siteName ? ` · ${siteName}.` : '.'}
+        {site?.occasion === 'memorial' || site?.occasion === 'funeral'
+          ? ' Pear checks in quietly — no follow-ups unless you ask.'
+          : ' Pear is following up on the quiet ones once a week.'}
       </Topbar>
 
       <main
@@ -341,8 +420,7 @@ export function DashGuests() {
                     fontFamily: 'var(--pl-font-body)',
                   }}
                 >
-                  Share your invite link, or add guests by hand. Pear will track RSVPs, meals, and
-                  accessibility notes as they come in.
+                  {copy.emptyHint}
                 </div>
               </div>
             ) : (
@@ -357,7 +435,7 @@ export function DashGuests() {
                     borderBottom: '1px solid rgba(31,36,24,0.08)',
                   }}
                 >
-                  {['Guest', 'Party', 'RSVP', 'Note', 'Meal'].map((h) => (
+                  {['Guest', 'Party', 'RSVP', 'Note', copy.fifthColumn].map((h) => (
                     <div key={h} style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55 }}>
                       {h.toUpperCase()}
                     </div>

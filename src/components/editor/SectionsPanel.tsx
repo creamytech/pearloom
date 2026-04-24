@@ -306,7 +306,7 @@ export function SectionsPanel({ manifest, onChange }: {
                       background: 'var(--pl-chrome-surface)',
                     }}
                   >
-                    <SuggestIcon size={14} style={{ color: 'var(--pl-gold)', flexShrink: 0 }} />
+                    <SuggestIcon size={14} style={{ color: 'var(--gold)', flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <span style={{
                         fontSize: panelText.body,

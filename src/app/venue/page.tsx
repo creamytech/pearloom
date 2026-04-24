@@ -69,15 +69,16 @@ export default function VenuePage() {
   if (status === 'loading' || isLoading) {
     return (
       <div
+        className="pl8"
         style={{
           minHeight: '100vh',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#FAF7F0',
+          background: 'var(--cream)',
         }}
       >
-        <Loader2 size={32} style={{ color: '#8B774B', animation: 'spin 1s linear infinite' }} />
+        <Loader2 size={32} style={{ color: 'var(--sage-deep)', animation: 'spin 1s linear infinite' }} />
         <style>{`@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }`}</style>
       </div>
     );
@@ -86,6 +87,7 @@ export default function VenuePage() {
   if (status === 'unauthenticated') {
     return (
       <div
+        className="pl8"
         style={{
           minHeight: '100vh',
           display: 'flex',
@@ -166,10 +168,11 @@ export default function VenuePage() {
 
   return (
     <div
+      className="pl8"
       style={{
         minHeight: '100vh',
-        background: '#FAF7F0',
-        fontFamily: "'Inter', system-ui, sans-serif",
+        background: 'var(--cream)',
+        fontFamily: 'var(--font-ui)',
       }}
     >
       {/* ── Page header ─────────────────────────────────── */}

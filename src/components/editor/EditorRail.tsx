@@ -176,11 +176,11 @@ function WorkspacePill({
         border: 'none',
         borderRadius: 'var(--pl-radius-lg)',
         background: isActive
-          ? 'var(--pl-olive-mist)'
+          ? 'var(--sage-tint)'
           : isOpen
-          ? 'color-mix(in oklab, var(--pl-olive) 6%, transparent)'
+          ? 'color-mix(in oklab, var(--sage-deep) 6%, transparent)'
           : 'transparent',
-        color: isActive || isOpen ? 'var(--pl-ink)' : 'var(--pl-ink-soft)',
+        color: isActive || isOpen ? 'var(--ink)' : 'var(--ink-soft)',
         cursor: 'pointer',
         transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
       }}
@@ -197,7 +197,7 @@ function WorkspacePill({
             width: 3,
             height: 22,
             borderRadius: 'var(--pl-radius-full)',
-            background: 'var(--pl-olive)',
+            background: 'var(--sage-deep)',
           }}
           transition={{ type: 'spring', stiffness: 380, damping: 32 }}
         />
@@ -245,8 +245,8 @@ function WorkspaceFlyout({
         left: 64,
         top: 0,
         width: 268,
-        background: 'var(--pl-cream-card)',
-        border: '1px solid var(--pl-divider)',
+        background: 'var(--card)',
+        border: '1px solid var(--line)',
         borderRadius: 'var(--pl-radius-xl)',
         padding: 8,
         boxShadow: 'var(--pl-shadow-xl)',
@@ -258,7 +258,7 @@ function WorkspaceFlyout({
       <div
         style={{
           padding: '10px 12px 12px',
-          borderBottom: '1px solid var(--pl-divider-soft)',
+          borderBottom: '1px solid var(--line-soft)',
           marginBottom: 6,
         }}
       >
@@ -268,7 +268,7 @@ function WorkspaceFlyout({
             fontSize: '0.62rem',
             letterSpacing: '0.18em',
             textTransform: 'uppercase',
-            color: 'var(--pl-muted)',
+            color: 'var(--ink-muted)',
             marginBottom: 4,
           }}
         >
@@ -278,7 +278,7 @@ function WorkspaceFlyout({
           style={{
             fontFamily: 'var(--pl-font-display)',
             fontSize: '1.1rem',
-            color: 'var(--pl-ink)',
+            color: 'var(--ink)',
             letterSpacing: '-0.014em',
             fontVariationSettings: '"opsz" 144, "SOFT" 50',
           }}
@@ -287,7 +287,7 @@ function WorkspaceFlyout({
         </div>
         <div
           style={{
-            color: 'var(--pl-muted)',
+            color: 'var(--ink-muted)',
             fontSize: '0.78rem',
             marginTop: 2,
           }}
@@ -314,7 +314,7 @@ function WorkspaceFlyout({
                   alignItems: 'center',
                   width: '100%',
                   padding: '10px 12px',
-                  background: isActive ? 'var(--pl-olive-mist)' : 'transparent',
+                  background: isActive ? 'var(--sage-tint)' : 'transparent',
                   border: 'none',
                   borderRadius: 'var(--pl-radius-md)',
                   textAlign: 'left',
@@ -324,20 +324,20 @@ function WorkspaceFlyout({
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive && !lock?.locked) {
-                    e.currentTarget.style.background = 'color-mix(in oklab, var(--pl-olive) 5%, transparent)';
+                    e.currentTarget.style.background = 'color-mix(in oklab, var(--sage-deep) 5%, transparent)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!isActive) e.currentTarget.style.background = 'transparent';
                 }}
               >
-                <Icon size={16} style={{ color: isActive ? 'var(--pl-olive)' : 'var(--pl-ink-soft)' }} />
+                <Icon size={16} style={{ color: isActive ? 'var(--sage-deep)' : 'var(--ink-soft)' }} />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
                   <span
                     style={{
                       fontSize: '0.86rem',
                       fontWeight: isActive ? 600 : 500,
-                      color: 'var(--pl-ink)',
+                      color: 'var(--ink)',
                     }}
                   >
                     {sub.label}
@@ -346,7 +346,7 @@ function WorkspaceFlyout({
                     <span
                       style={{
                         fontSize: '0.7rem',
-                        color: 'var(--pl-muted)',
+                        color: 'var(--ink-muted)',
                         lineHeight: 1.3,
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
@@ -363,7 +363,7 @@ function WorkspaceFlyout({
                       fontSize: '0.6rem',
                       letterSpacing: '0.14em',
                       textTransform: 'uppercase',
-                      color: 'var(--pl-gold)',
+                      color: 'var(--gold)',
                       fontWeight: 700,
                       fontFamily: 'var(--pl-font-mono)',
                     }}
@@ -376,10 +376,10 @@ function WorkspaceFlyout({
                       fontFamily: 'var(--pl-font-mono)',
                       fontSize: '0.62rem',
                       padding: '2px 6px',
-                      background: 'var(--pl-cream-deep)',
-                      border: '1px solid var(--pl-divider)',
+                      background: 'var(--cream-2)',
+                      border: '1px solid var(--line)',
                       borderRadius: 'var(--pl-radius-xs)',
-                      color: 'var(--pl-muted)',
+                      color: 'var(--ink-muted)',
                     }}
                   >
                     {sub.shortcut}
@@ -472,8 +472,8 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
         gap: 4,
         padding: 8,
         borderRadius: 'var(--pl-radius-xl)',
-        background: 'var(--pl-cream-card)',
-        border: '1px solid var(--pl-divider)',
+        background: 'var(--card)',
+        border: '1px solid var(--line)',
         boxShadow: 'var(--pl-shadow-md)',
       }}
     >
@@ -483,8 +483,8 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
           width: 28,
           height: 28,
           borderRadius: 'var(--pl-radius-md)',
-          background: 'var(--pl-ink)',
-          color: 'var(--pl-cream)',
+          background: 'var(--ink)',
+          color: 'var(--cream)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -514,7 +514,7 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
           border: 'none',
           borderRadius: 'var(--pl-radius-lg)',
           background: 'color-mix(in oklab, var(--pl-gold, #B8860B) 14%, transparent)',
-          color: 'var(--pl-ink)',
+          color: 'var(--ink)',
           cursor: 'pointer',
           marginBottom: 6,
           transition: 'background var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-out)',
@@ -549,7 +549,7 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
         style={{
           width: 24,
           height: 1,
-          background: 'var(--pl-divider)',
+          background: 'var(--line)',
           margin: '2px 0 8px',
         }}
       />

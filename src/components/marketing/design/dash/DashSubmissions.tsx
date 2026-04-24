@@ -8,6 +8,25 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { DashShell, Topbar, Panel, EmptyShell, btnInk, btnGhost, btnMini, btnMiniGhost } from './DashShell';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
+import { getEventType } from '@/lib/event-os/event-types';
+import { getSubmissionKinds } from '@/lib/event-os/dashboard-presets';
+
+function submissionsBodyFor(occasion?: string | null): string {
+  const preset = getEventType(occasion as never)?.rsvpPreset ?? 'wedding';
+  switch (preset) {
+    case 'memorial':
+      return 'Memories and tribute notes land here first. Approve what honors them, tuck anything else away — privately.';
+    case 'bachelor':
+      return 'Activity votes and toast slot claims come here. Lock the crew in; keep the quiet ones quiet.';
+    case 'shower':
+      return 'Advice the guests left for the guest of honor — review before it lands on the site.';
+    case 'reunion':
+      return 'Then-and-now photos, advice, toast signups — review what guests shared.';
+    case 'wedding':
+    default:
+      return 'Photos, toasts, and tribute notes come here first. Approve what fits, tuck away what doesn’t.';
+  }
+}
 
 type SubKind = 'photo' | 'note' | 'toast' | 'vote';
 type SubStatus = 'approved' | 'hidden' | 'flagged';
@@ -152,6 +171,14 @@ export function DashSubmissions() {
     });
   }, [subs, tab]);
 
+  const submissionsBody = submissionsBodyFor(site?.occasion);
+  const relevantKinds = useMemo(() => getSubmissionKinds(site?.occasion), [site?.occasion]);
+  const kindLabels = useMemo(() => {
+    const m: Partial<Record<string, string>> = {};
+    for (const k of relevantKinds) m[k.kind] = k.label;
+    return m;
+  }, [relevantKinds]);
+
   const moderate = async (id: string, nextState: SubStatus) => {
     if (!site?.domain) return;
     setPendingId(id);
@@ -220,7 +247,7 @@ export function DashSubmissions() {
           </div>
         }
       >
-        Photos, toasts, and tribute notes come here first. Approve what fits, tuck away what doesn&rsquo;t.
+        {submissionsBody}
       </Topbar>
 
       <main style={{ padding: '20px 40px 60px' }}>
@@ -279,8 +306,24 @@ export function DashSubmissions() {
               Nothing to review.
             </div>
             <div style={{ fontSize: 13.5, color: PD.inkSoft, maxWidth: 460, margin: '0 auto', lineHeight: 1.55 }}>
-              Add a tribute wall, photo wall, or toast-signup block to your site and guests can start
-              submitting from the published page.
+              {(() => {
+                const blocks = relevantKinds
+                  .map((k) => {
+                    if (k.kind === 'tribute') return 'a tribute wall';
+                    if (k.kind === 'advice') return 'an advice wall';
+                    if (k.kind === 'toast') return 'a toast-signup block';
+                    if (k.kind === 'vote') return 'an activity-vote block';
+                    return null;
+                  })
+                  .filter(Boolean) as string[];
+                const list =
+                  blocks.length === 1
+                    ? blocks[0]
+                    : blocks.length === 2
+                      ? `${blocks[0]} or ${blocks[1]}`
+                      : `${blocks.slice(0, -1).join(', ')}, or ${blocks[blocks.length - 1]}`;
+                return `Add ${list} to your site and guests can start submitting from the published page.`;
+              })()}
             </div>
           </Panel>
         ) : (

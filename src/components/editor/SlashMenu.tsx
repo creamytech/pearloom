@@ -261,7 +261,7 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
               fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
               fontSize: '1.05rem',
               lineHeight: 1.05,
-              color: 'var(--pl-ink)',
+              color: 'var(--ink)',
               fontWeight: 400,
             }}>
               Insert…
@@ -291,7 +291,7 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
             style={{
               padding: '22px 10px',
               fontSize: 12,
-              color: 'var(--pl-muted)',
+              color: 'var(--ink-muted)',
               textAlign: 'center',
               fontFamily: 'var(--pl-font-display)',
               fontStyle: 'italic',
@@ -337,7 +337,7 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
                   background: selected
                     ? 'rgba(184,147,90,0.12)'
                     : 'transparent',
-                  color: 'var(--pl-ink)',
+                  color: 'var(--ink)',
                   cursor: 'pointer',
                   textAlign: 'left',
                   fontFamily: 'inherit',
@@ -378,7 +378,7 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
                 >
                   <item.Icon
                     size={13}
-                    color={selected ? 'rgba(120,90,40,1)' : 'var(--pl-ink-soft)'}
+                    color={selected ? 'rgba(120,90,40,1)' : 'var(--ink-soft)'}
                   />
                 </div>
                 <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -388,7 +388,7 @@ export function SlashMenu({ manifest, coupleNames }: Props) {
                     fontSize: '0.88rem',
                     fontWeight: 400,
                     lineHeight: 1.15,
-                    color: 'var(--pl-ink)',
+                    color: 'var(--ink)',
                   }}>
                     {item.label}
                   </div>

@@ -20,6 +20,7 @@ import { LoomThreadIcon } from '@/components/icons/PearloomIcons';
 import Link from 'next/link';
 import { formatSiteDisplayUrl } from '@/lib/site-urls';
 import { BlurFade, GrooveBlob } from '@/components/brand/groove';
+import { DashLayout } from '@/components/pearloom/dash/DashShell';
 
 // Force dynamic since we pull live RSVP data
 export const dynamic = 'force-dynamic';
@@ -79,7 +80,7 @@ function StatCard({
             fontWeight: 600,
             letterSpacing: '0.06em',
             textTransform: 'uppercase',
-            color: 'var(--pl-muted)',
+            color: 'var(--ink-muted)',
             fontFamily: 'var(--pl-font-body)',
             marginBottom: '0.25rem',
           }}
@@ -238,7 +239,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
     fontWeight: 700,
     textTransform: 'uppercase',
     letterSpacing: '0.06em',
-    color: sortKey === key ? 'var(--pl-olive)' : 'var(--pl-muted)',
+    color: sortKey === key ? 'var(--sage-deep)' : 'var(--ink-muted)',
     cursor: 'pointer',
     userSelect: 'none',
     whiteSpace: 'nowrap',
@@ -256,7 +257,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
     fontWeight: 700,
     textTransform: 'uppercase',
     letterSpacing: '0.06em',
-    color: 'var(--pl-muted)',
+    color: 'var(--ink-muted)',
     fontFamily: 'var(--pl-font-body)',
   };
 
@@ -287,7 +288,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
               fontFamily: 'var(--pl-font-heading)',
               fontSize: '1.1rem',
               fontWeight: 600,
-              color: 'var(--pl-ink)',
+              color: 'var(--ink)',
             }}
           >
             Guest List
@@ -300,7 +301,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
               gap: '0.4rem',
               padding: '0.5rem 1rem',
               borderRadius: '0.5rem',
-              background: 'var(--pl-ink)',
+              background: 'var(--ink)',
               color: '#ffffff',
               fontSize: '0.8rem',
               fontWeight: 500,
@@ -369,7 +370,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                     cursor: 'pointer',
                     transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'color-mix(in oklab, var(--pl-olive) 4%, transparent)'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'color-mix(in oklab, var(--sage-deep) 4%, transparent)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = ''; }}
                 >
                   <td
@@ -377,7 +378,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                       padding: '0.9rem 1rem',
                       fontWeight: 600,
                       fontSize: '0.9rem',
-                      color: 'var(--pl-ink)',
+                      color: 'var(--ink)',
                       fontFamily: 'var(--pl-font-body)',
                     }}
                   >
@@ -387,7 +388,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                     style={{
                       padding: '0.9rem 1rem',
                       fontSize: '0.82rem',
-                      color: 'var(--pl-muted)',
+                      color: 'var(--ink-muted)',
                       fontFamily: 'var(--pl-font-body)',
                       maxWidth: '180px',
                       overflow: 'hidden',
@@ -404,12 +405,12 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                     style={{
                       padding: '0.9rem 1rem',
                       fontSize: '0.82rem',
-                      color: 'var(--pl-muted)',
+                      color: 'var(--ink-muted)',
                       fontFamily: 'var(--pl-font-body)',
                     }}
                   >
                     {g.plus_one ? (
-                      <span style={{ color: 'var(--pl-ink)', fontWeight: 500 }}>
+                      <span style={{ color: 'var(--ink)', fontWeight: 500 }}>
                         {g.plus_one_name ? g.plus_one_name : 'Yes'}
                       </span>
                     ) : (
@@ -420,7 +421,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                     style={{
                       padding: '0.9rem 1rem',
                       fontSize: '0.82rem',
-                      color: 'var(--pl-muted)',
+                      color: 'var(--ink-muted)',
                       fontFamily: 'var(--pl-font-body)',
                     }}
                   >
@@ -432,7 +433,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                     style={{
                       padding: '0.9rem 1rem',
                       fontSize: '0.82rem',
-                      color: 'var(--pl-muted)',
+                      color: 'var(--ink-muted)',
                       fontFamily: 'var(--pl-font-body)',
                       maxWidth: '160px',
                       overflow: 'hidden',
@@ -449,7 +450,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                     style={{
                       padding: '0.9rem 1rem',
                       fontSize: '0.78rem',
-                      color: 'var(--pl-muted)',
+                      color: 'var(--ink-muted)',
                       fontFamily: 'var(--pl-font-body)',
                       whiteSpace: 'nowrap',
                     }}
@@ -494,7 +495,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                   style={{
                     fontWeight: 600,
                     fontSize: '0.95rem',
-                    color: 'var(--pl-ink)',
+                    color: 'var(--ink)',
                     fontFamily: 'var(--pl-font-body)',
                   }}
                 >
@@ -506,7 +507,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                 <p
                   style={{
                     fontSize: '0.8rem',
-                    color: 'var(--pl-muted)',
+                    color: 'var(--ink-muted)',
                     fontFamily: 'var(--pl-font-body)',
                     marginBottom: '0.35rem',
                   }}
@@ -526,7 +527,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                   <span
                     style={{
                       fontSize: '0.72rem',
-                      color: 'var(--pl-muted)',
+                      color: 'var(--ink-muted)',
                       background: 'rgba(0,0,0,0.04)',
                       borderRadius: 'var(--pl-radius-full)',
                       padding: '0.15rem 0.6rem',
@@ -540,7 +541,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                   <span
                     style={{
                       fontSize: '0.72rem',
-                      color: 'var(--pl-muted)',
+                      color: 'var(--ink-muted)',
                       background: 'rgba(0,0,0,0.04)',
                       borderRadius: 'var(--pl-radius-full)',
                       padding: '0.15rem 0.6rem',
@@ -554,7 +555,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                   <span
                     style={{
                       fontSize: '0.72rem',
-                      color: 'var(--pl-muted)',
+                      color: 'var(--ink-muted)',
                       background: 'rgba(163,177,138,0.12)',
                       borderRadius: 'var(--pl-radius-full)',
                       padding: '0.15rem 0.6rem',
@@ -574,7 +575,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                 <p
                   style={{
                     fontSize: '0.72rem',
-                    color: 'var(--pl-muted)',
+                    color: 'var(--ink-muted)',
                     opacity: 0.6,
                     marginTop: '0.5rem',
                     fontFamily: 'var(--pl-font-body)',
@@ -683,8 +684,8 @@ function GuestDetailDrawer({
         style={{
           width: 'min(440px, 100%)',
           height: '100%',
-          background: 'var(--pl-cream)',
-          borderLeft: '1px solid var(--pl-divider)',
+          background: 'var(--cream)',
+          borderLeft: '1px solid var(--line)',
           overflowY: 'auto',
           padding: '32px 28px 48px',
           boxShadow: 'var(--pl-shadow-xl)',
@@ -701,9 +702,9 @@ function GuestDetailDrawer({
             width: 32,
             height: 32,
             borderRadius: 'var(--pl-radius-full)',
-            border: '1px solid var(--pl-divider)',
-            background: 'var(--pl-cream-card)',
-            color: 'var(--pl-ink)',
+            border: '1px solid var(--line)',
+            background: 'var(--card)',
+            color: 'var(--ink)',
             cursor: 'pointer',
             display: 'inline-flex',
             alignItems: 'center',
@@ -717,7 +718,7 @@ function GuestDetailDrawer({
         <div style={{ marginBottom: 24 }}>
           <div
             className="pl-overline"
-            style={{ color: 'var(--pl-olive)', marginBottom: 8 }}
+            style={{ color: 'var(--sage-deep)', marginBottom: 8 }}
           >
             Guest response
           </div>
@@ -727,7 +728,7 @@ function GuestDetailDrawer({
               margin: 0,
               fontStyle: 'italic',
               fontSize: 'clamp(1.6rem, 3vw, 2rem)',
-              color: 'var(--pl-ink)',
+              color: 'var(--ink)',
               lineHeight: 1.05,
             }}
           >
@@ -746,16 +747,16 @@ function GuestDetailDrawer({
               alignItems: 'center',
               gap: 10,
               padding: '10px 14px',
-              borderRadius: 'var(--pl-radius-sm)',
-              background: 'var(--pl-cream-card)',
-              border: '1px solid var(--pl-divider)',
+              borderRadius: '10px',
+              background: 'var(--card)',
+              border: '1px solid var(--line)',
               marginBottom: 12,
               fontSize: '0.88rem',
-              color: 'var(--pl-ink)',
+              color: 'var(--ink)',
               wordBreak: 'break-all',
             }}
           >
-            <Mail size={13} color="var(--pl-muted)" />
+            <Mail size={13} color="var(--ink-muted)" />
             <a
               href={`mailto:${guest.email}`}
               style={{ color: 'inherit', textDecoration: 'none' }}
@@ -772,19 +773,19 @@ function GuestDetailDrawer({
             alignItems: 'center',
             gap: 10,
             padding: '10px 14px',
-            borderRadius: 'var(--pl-radius-sm)',
-            background: 'var(--pl-cream-card)',
-            border: '1px solid var(--pl-divider)',
+            borderRadius: '10px',
+            background: 'var(--card)',
+            border: '1px solid var(--line)',
             marginBottom: 24,
             fontSize: '0.82rem',
-            color: 'var(--pl-muted)',
+            color: 'var(--ink-muted)',
           }}
         >
-          <Calendar size={13} color="var(--pl-muted)" />
+          <Calendar size={13} color="var(--ink-muted)" />
           {guest.responded_at ? (
             <>
               Replied{' '}
-              <span style={{ color: 'var(--pl-ink)', fontWeight: 500 }}>
+              <span style={{ color: 'var(--ink)', fontWeight: 500 }}>
                 {new Date(guest.responded_at).toLocaleString(undefined, {
                   month: 'short',
                   day: 'numeric',
@@ -797,7 +798,7 @@ function GuestDetailDrawer({
           ) : guest.created_at ? (
             <>
               Invited{' '}
-              <span style={{ color: 'var(--pl-ink)', fontWeight: 500 }}>
+              <span style={{ color: 'var(--ink)', fontWeight: 500 }}>
                 {new Date(guest.created_at).toLocaleDateString(undefined, {
                   month: 'short',
                   day: 'numeric',
@@ -820,7 +821,7 @@ function GuestDetailDrawer({
               fontWeight: 700,
               letterSpacing: '0.22em',
               textTransform: 'uppercase',
-              color: 'var(--pl-olive)',
+              color: 'var(--sage-deep)',
               marginBottom: 10,
             }}
           >
@@ -834,11 +835,11 @@ function GuestDetailDrawer({
             style={{
               padding: '32px 16px',
               textAlign: 'center',
-              color: 'var(--pl-muted)',
+              color: 'var(--ink-muted)',
               fontStyle: 'italic',
-              border: '1px dashed var(--pl-divider)',
-              borderRadius: 'var(--pl-radius-lg)',
-              background: 'var(--pl-cream-card)',
+              border: '1px dashed var(--line)',
+              borderRadius: '20px',
+              background: 'var(--card)',
             }}
           >
             Nothing beyond status recorded yet.
@@ -853,9 +854,9 @@ function GuestDetailDrawer({
                   flexDirection: 'column',
                   gap: 4,
                   padding: '12px 14px',
-                  borderRadius: 'var(--pl-radius-sm)',
-                  background: 'var(--pl-cream-card)',
-                  border: '1px solid var(--pl-divider)',
+                  borderRadius: '10px',
+                  background: 'var(--card)',
+                  border: '1px solid var(--line)',
                 }}
               >
                 <dt
@@ -865,7 +866,7 @@ function GuestDetailDrawer({
                     fontWeight: 700,
                     letterSpacing: '0.2em',
                     textTransform: 'uppercase',
-                    color: 'var(--pl-olive)',
+                    color: 'var(--sage-deep)',
                   }}
                 >
                   {row.label}
@@ -873,7 +874,7 @@ function GuestDetailDrawer({
                 <dd
                   style={{
                     margin: 0,
-                    color: 'var(--pl-ink)',
+                    color: 'var(--ink)',
                     fontSize: '0.95rem',
                     lineHeight: 1.5,
                     whiteSpace: 'pre-wrap',
@@ -944,9 +945,9 @@ function PresetAnswerChips({ guest }: { guest: Guest }) {
           title={`${PRESET_LABEL[kind] ?? kind}: ${value}`}
           style={{
             fontSize: '0.7rem',
-            color: 'var(--pl-ink-soft)',
-            background: 'color-mix(in oklab, var(--pl-olive) 10%, transparent)',
-            border: '1px solid color-mix(in oklab, var(--pl-olive) 22%, transparent)',
+            color: 'var(--ink-soft)',
+            background: 'color-mix(in oklab, var(--sage-deep) 10%, transparent)',
+            border: '1px solid color-mix(in oklab, var(--sage-deep) 22%, transparent)',
             borderRadius: 'var(--pl-radius-full)',
             padding: '0.1rem 0.55rem',
             fontFamily: 'var(--pl-font-body)',
@@ -962,7 +963,7 @@ function PresetAnswerChips({ guest }: { guest: Guest }) {
               fontWeight: 700,
               letterSpacing: '0.14em',
               textTransform: 'uppercase',
-              color: 'var(--pl-olive)',
+              color: 'var(--sage-deep)',
             }}
           >
             {PRESET_LABEL[kind] ?? kind}
@@ -1003,7 +1004,7 @@ function MealSummary({ guests }: { guests: Guest[] }) {
           fontWeight: 700,
           textTransform: 'uppercase',
           letterSpacing: '0.06em',
-          color: 'var(--pl-muted)',
+          color: 'var(--ink-muted)',
           fontFamily: 'var(--pl-font-body)',
           marginRight: '0.25rem',
           flexShrink: 0,
@@ -1016,14 +1017,14 @@ function MealSummary({ guests }: { guests: Guest[] }) {
           key={label}
           style={{
             fontSize: '0.85rem',
-            color: 'var(--pl-ink)',
+            color: 'var(--ink)',
             fontFamily: 'var(--pl-font-body)',
           }}
         >
           <strong style={{ fontWeight: 600 }}>{label}</strong>{' '}
-          <span style={{ color: 'var(--pl-muted)' }}>{count}</span>
+          <span style={{ color: 'var(--ink-muted)' }}>{count}</span>
           {i < entries.length - 1 && (
-            <span style={{ color: 'var(--pl-divider)', margin: '0 0.4rem' }}>·</span>
+            <span style={{ color: 'var(--line)', margin: '0 0.4rem' }}>·</span>
           )}
         </span>
       ))}
@@ -1057,13 +1058,13 @@ function SongPlaylist({ guests }: { guests: Guest[] }) {
           marginBottom: '1rem',
         }}
       >
-        <LoomThreadIcon size={20} color="var(--pl-olive)" />
+        <LoomThreadIcon size={20} color="var(--sage-deep)" />
         <h2
           style={{
             fontFamily: 'var(--pl-font-heading)',
             fontSize: '1.15rem',
             fontWeight: 600,
-            color: 'var(--pl-ink)',
+            color: 'var(--ink)',
           }}
         >
           Your Playlist
@@ -1071,7 +1072,7 @@ function SongPlaylist({ guests }: { guests: Guest[] }) {
         <span
           style={{
             fontSize: '0.72rem',
-            color: 'var(--pl-muted)',
+            color: 'var(--ink-muted)',
             background: 'rgba(0,0,0,0.04)',
             borderRadius: 'var(--pl-radius-full)',
             padding: '0.15rem 0.6rem',
@@ -1093,12 +1094,12 @@ function SongPlaylist({ guests }: { guests: Guest[] }) {
               borderRadius: 'var(--pl-radius-full)',
               background: 'rgba(163,177,138,0.12)',
               border: '1px solid rgba(163,177,138,0.25)',
-              color: 'var(--pl-ink)',
+              color: 'var(--ink)',
               fontSize: '0.82rem',
               fontFamily: 'var(--pl-font-body)',
             }}
           >
-            <Music size={12} color="var(--pl-olive)" />
+            <Music size={12} color="var(--sage-deep)" />
             {song}
           </span>
         ))}
@@ -1136,7 +1137,7 @@ function CopyLink({ url }: { url: string }) {
           background: 'rgba(0,0,0,0.05)',
           padding: '0.3rem 0.75rem',
           borderRadius: '0.5rem',
-          color: 'var(--pl-ink)',
+          color: 'var(--ink)',
           fontFamily: 'monospace',
         }}
       >
@@ -1147,7 +1148,7 @@ function CopyLink({ url }: { url: string }) {
         style={{
           padding: '0.3rem 0.75rem',
           borderRadius: '0.5rem',
-          background: copied ? 'var(--pl-olive)' : 'var(--pl-ink)',
+          background: copied ? 'var(--sage-deep)' : 'var(--ink)',
           color: '#ffffff',
           fontSize: '0.78rem',
           fontWeight: 500,
@@ -1244,7 +1245,7 @@ function RsvpPageContent({ domain }: { domain: string }) {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.4rem',
-            color: 'var(--pl-muted)',
+            color: 'var(--ink-muted)',
             fontSize: '0.88rem',
             fontFamily: 'var(--pl-font-body)',
             textDecoration: 'none',
@@ -1264,7 +1265,7 @@ function RsvpPageContent({ domain }: { domain: string }) {
             background: 'rgba(163,177,138,0.12)',
             border: '1px solid rgba(163,177,138,0.25)',
             fontSize: '0.78rem',
-            color: 'var(--pl-muted)',
+            color: 'var(--ink-muted)',
             fontFamily: 'var(--pl-font-body)',
             letterSpacing: '0.02em',
           }}
@@ -1280,7 +1281,7 @@ function RsvpPageContent({ domain }: { domain: string }) {
             gap: '0.4rem',
             padding: '0.5rem 1rem',
             borderRadius: '0.5rem',
-            background: 'var(--pl-ink)',
+            background: 'var(--ink)',
             color: '#ffffff',
             fontSize: '0.82rem',
             fontWeight: 500,
@@ -1324,8 +1325,8 @@ function RsvpPageContent({ domain }: { domain: string }) {
         <StatCard
           label="Total Invited"
           value={list.length}
-          icon={<Users size={28} color="var(--pl-muted)" />}
-          valueColor="var(--pl-ink)"
+          icon={<Users size={28} color="var(--ink-muted)" />}
+          valueColor="var(--ink)"
         />
         <StatCard
           label="Attending"
@@ -1379,7 +1380,7 @@ function RsvpPageContent({ domain }: { domain: string }) {
             textAlign: 'center',
             boxShadow: '0 2px 8px rgba(43,43,43,0.07)',
             marginBottom: '1.5rem',
-            color: 'var(--pl-muted)',
+            color: 'var(--ink-muted)',
             fontFamily: 'var(--pl-font-body)',
             fontSize: '0.9rem',
           }}
@@ -1399,12 +1400,12 @@ function RsvpPageContent({ domain }: { domain: string }) {
         >
           <Users
             size={48}
-            color="var(--pl-muted)"
+            color="var(--ink-muted)"
             style={{ margin: '0 auto 1rem', opacity: 0.3, display: 'block' }}
           />
           <p
             style={{
-              color: 'var(--pl-muted)',
+              color: 'var(--ink-muted)',
               fontFamily: 'var(--pl-font-body)',
               fontSize: '1rem',
               marginBottom: '0.25rem',
@@ -1438,42 +1439,36 @@ export default function RsvpManagementPage({
 
   if (!domain) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          background: '#F5F1E8',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <p
-          style={{ color: 'var(--pl-muted)', fontFamily: 'var(--pl-font-body)' }}
-        >
-          No domain provided. Go back to your dashboard to view RSVPs.
-        </p>
-      </div>
+      <DashLayout active="guests" hideTopbar>
+        <div style={{ padding: '80px 32px', textAlign: 'center', color: 'var(--ink-muted)', fontFamily: 'var(--font-ui)' }}>
+          <p>No domain provided. Go back to your dashboard to view RSVPs.</p>
+          <a href="/dashboard" className="btn btn-outline btn-sm" style={{ marginTop: 16 }}>
+            ← Back to dashboard
+          </a>
+        </div>
+      </DashLayout>
     );
   }
 
   return (
-    <ThemeProvider
-      theme={{
-        name: 'pearloom-ivory',
-        fonts: { heading: 'Playfair Display', body: 'Inter' },
-        colors: {
-          background: '#F5F1E8',
-          foreground: '#2B2B2B',
-          accent: '#5C6B3F',
-          accentLight: '#EEE8DC',
-          muted: '#9A9488',
-          cardBg: '#ffffff',
-        },
-        borderRadius: '1rem',
-      }}
-    >
-      <SiteNav names={['Pearloom', 'Dashboard']} pages={[]} />
-      <RsvpPageContent domain={domain} />
-    </ThemeProvider>
+    <DashLayout active="guests" hideTopbar>
+      <ThemeProvider
+        theme={{
+          name: 'pearloom-ivory',
+          fonts: { heading: 'Fraunces', body: 'Inter' },
+          colors: {
+            background: 'var(--cream)',
+            foreground: 'var(--ink)',
+            accent: 'var(--sage-deep)',
+            accentLight: 'var(--sage-tint)',
+            muted: 'var(--ink-muted)',
+            cardBg: 'var(--card)',
+          },
+          borderRadius: '1rem',
+        }}
+      >
+        <RsvpPageContent domain={domain} />
+      </ThemeProvider>
+    </DashLayout>
   );
 }

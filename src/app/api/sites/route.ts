@@ -77,6 +77,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing subdomain or manifest' }, { status: 400 });
     }
 
+    // If the manifest carries a templateId, layer the rich template
+    // (motifs, blockOrder, hiddenBlocks, theme fallback, poetry fallback)
+    // so quick-start wizards get the signature feel, not just a palette.
+    const templateId = typeof (manifest as { templateId?: unknown }).templateId === 'string'
+      ? (manifest as { templateId: string }).templateId
+      : null;
+    if (templateId) {
+      const { applyTemplateToManifest } = await import('@/lib/templates/apply-template');
+      Object.assign(manifest, applyTemplateToManifest(manifest, templateId));
+    }
+
     // Mirror every photo field (chapter images, coverPhoto,
     // heroSlideshow) to permanent storage so nothing in the saved
     // draft points at an expiring Google Picker baseUrl. Also

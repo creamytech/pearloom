@@ -195,7 +195,7 @@ export function ChapterPanel({
               fontFamily: 'var(--pl-font-mono)',
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              color: 'var(--pl-olive)',
+              color: 'var(--sage-deep)',
             }}
           >
             <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} />

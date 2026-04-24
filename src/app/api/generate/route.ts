@@ -287,6 +287,7 @@ export async function POST(req: NextRequest) {
       ringDetails,
       venueAesthetic,
       eventDetails,
+      templateId,
     }: {
       photos: GooglePhotoMetadata[];
       clusters?: PhotoCluster[];
@@ -334,6 +335,7 @@ export async function POST(req: NextRequest) {
         inMemoryOf?: string;
         school?: string;
       };
+      templateId?: string;
     } = body;
 
     if (!photos?.length) {
@@ -768,7 +770,42 @@ export async function POST(req: NextRequest) {
     if (qualityReport.issues.filter(i => i.severity === 'critical').length > 0) {
       console.warn('[Generate] Critical quality issues:', qualityReport.issues.filter(i => i.severity === 'critical').map(i => i.message));
     }
-    return NextResponse.json({ manifest });
+
+    // Pass 7 — auto-populate functional blocks (FAQ, Registry, Travel)
+    // so the published site doesn't ship with empty sections.
+    try {
+      const { runPass7Content } = await import('@/lib/memory-engine/pass-7-content');
+      const { getEventType } = await import('@/lib/event-os/event-types');
+      const voice = getEventType(occasion as never)?.voice ?? 'celebratory';
+      const baseUrl = (() => {
+        try {
+          return new URL(req.url).origin;
+        } catch {
+          return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+        }
+      })();
+      const result = await runPass7Content({
+        manifest,
+        occasion: occasion ?? 'wedding',
+        voice: voice as 'solemn' | 'intimate' | 'ceremonial' | 'playful' | 'celebratory',
+        names,
+        baseUrl,
+      });
+      if (result.faqs && result.faqs.length > 0) manifest.faqs = result.faqs;
+      if (result.registry) manifest.registry = result.registry;
+      if (result.travelInfo) manifest.travelInfo = result.travelInfo;
+    } catch (err) {
+      console.warn('[Pass 7] Non-fatal failure:', err);
+    }
+
+    // Apply the selected template's signature motifs, blockOrder,
+    // hiddenBlocks, and (if the manifest doesn't already have one)
+    // theme + poetry. The AI passes generate the heart of the manifest;
+    // the template layers its voice on top.
+    const { applyTemplateToManifest } = await import('@/lib/templates/apply-template');
+    const themed = applyTemplateToManifest(manifest, templateId ?? null);
+
+    return NextResponse.json({ manifest: themed });
   } catch (error) {
     console.error('Generation error:', error);
     return NextResponse.json(

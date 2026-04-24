@@ -176,6 +176,10 @@ export async function POST(req: NextRequest) {
     const message: string = body.message;
     const manifest: StoryManifest = body.manifest;
     const activeChapterId: string | null = body.activeChapterId ?? null;
+    const siteState: string | null = typeof body.siteState === 'string' ? body.siteState : null;
+    const analysis: { completeness?: number; flags?: Record<string, unknown> } | null =
+      body.analysis && typeof body.analysis === 'object' ? body.analysis : null;
+    const names: [string, string] | null = Array.isArray(body.names) ? body.names : null;
 
     if (!message?.trim()) {
       return Response.json({ error: 'message is required' }, { status: 400 });
@@ -257,6 +261,10 @@ REGISTRY: ${manifest?.registry?.entries?.length ?? 0} links, cash fund: ${manife
 TRAVEL: ${manifest?.travelInfo?.hotels?.length ?? 0} hotels, ${manifest?.travelInfo?.airports?.length ?? 0} airports
 
 ACTIVE CHAPTER: ${activeChapter ? `[${activeChapter.id}] "${activeChapter.title}" — "${activeChapter.description?.slice(0, 200)}"` : '(none selected)'}
+
+${siteState ? `\nPEAR'S READ OF THE SITE: ${siteState}` : ''}
+${analysis?.completeness !== undefined ? `COMPLETENESS: ${analysis.completeness}%` : ''}
+${names?.filter(Boolean).length ? `HOSTS: ${names.filter(Boolean).join(' & ')}` : ''}
 `.trim();
 
     const safeMessage = message.trim().replace(/["`]/g, "'");
@@ -324,10 +332,16 @@ ACTIVE CHAPTER: ${activeChapter ? `[${activeChapter.id}] "${activeChapter.title}
       parsed.data = d;
     }
 
+    // Also return a PearCopilot-friendly envelope so the new copilot
+    // UI can execute the action directly. Keeps the legacy shape for
+    // the old AICommandBar that consumes { action, data }.
+    const copilotAction = toCopilotAction(action, parsed.data);
+
     const responseBody = {
       action,
       data: parsed.data ?? null,
       reply: typeof parsed.reply === 'string' ? parsed.reply.slice(0, 1000) : 'Done!',
+      copilotAction,
       ...(gate!.isUnlimited
         ? { plan: gate!.plan }
         : { remaining: gate!.remaining, limit: PEAR_MONTHLY_LIMIT, plan: 'free' }),
@@ -341,4 +355,35 @@ ACTIVE CHAPTER: ${activeChapter ? `[${activeChapter.id}] "${activeChapter.title}
       { status: 500 },
     );
   }
+}
+
+// Translate the legacy { action, data } envelope into a shape
+// PearCopilot's dispatcher consumes directly. Only maps the subset
+// the dispatcher knows how to run; unknown actions come back null
+// so the copilot just shows the reply text.
+function toCopilotAction(
+  action: string,
+  data: unknown,
+): { kind: string; data?: Record<string, unknown>; label?: string } | null {
+  if (!data || typeof data !== 'object') return null;
+  const d = data as Record<string, unknown>;
+  if (action === 'update_manifest' && typeof d.path === 'string') {
+    return { kind: 'fill-field', data: { path: d.path, value: d.value }, label: `Set ${d.path}` };
+  }
+  if (action === 'update_blocks' && Array.isArray(d.add) && d.add.length > 0) {
+    const first = d.add[0] as { type?: string; config?: Record<string, unknown> };
+    if (typeof first?.type === 'string') {
+      return { kind: 'add-block', data: { blockType: first.type, config: first.config }, label: `Add ${first.type}` };
+    }
+  }
+  if (action === 'update_faqs' && Array.isArray(d.faqs)) {
+    return { kind: 'fill-field', data: { path: 'faqs', value: d.faqs }, label: 'Update FAQs' };
+  }
+  if (action === 'update_registry') {
+    return { kind: 'fill-field', data: { path: 'registry', value: d }, label: 'Update registry' };
+  }
+  if (action === 'update_theme' && d.colors) {
+    return { kind: 'fill-field', data: { path: 'theme.colors', value: d.colors }, label: 'Update palette' };
+  }
+  return null;
 }

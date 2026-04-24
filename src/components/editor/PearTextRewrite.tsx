@@ -690,7 +690,7 @@ export function PearTextRewrite({ onTextEdit, manifest }: PearTextRewriteProps) 
                     textAlign: 'left',
                     padding: '8px 10px',
                     borderRadius: 'var(--pl-radius-md)',
-                    border: selected ? '1.5px solid var(--pl-olive)' : '1px solid #E4E4E7',
+                    border: selected ? '1.5px solid var(--sage-deep)' : '1px solid #E4E4E7',
                     background: selected ? 'rgba(163,177,138,0.1)' : '#fff',
                     color: '#18181B',
                     fontFamily: 'inherit',
@@ -702,7 +702,7 @@ export function PearTextRewrite({ onTextEdit, manifest }: PearTextRewriteProps) 
                 >
                   <div style={{
                     fontSize: 9, fontWeight: 700, letterSpacing: '0.08em',
-                    textTransform: 'uppercase', color: 'var(--pl-olive)',
+                    textTransform: 'uppercase', color: 'var(--sage-deep)',
                     marginBottom: 4,
                   }}>
                     Variant {i + 1}{selected ? ' · ↵ to accept' : ''}

@@ -210,8 +210,8 @@ export function EditorWing({
             zIndex: 5,
             display: 'flex',
             flexDirection: 'column',
-            background: 'var(--pl-cream-card)',
-            borderLeft: '1px solid var(--pl-divider)',
+            background: 'var(--card)',
+            borderLeft: '1px solid var(--line)',
             overflow: 'hidden',
           } as React.CSSProperties}
         >
@@ -219,9 +219,9 @@ export function EditorWing({
           <div
             style={{
               padding: '14px 16px 12px',
-              borderBottom: '1px solid var(--pl-divider)',
+              borderBottom: '1px solid var(--line)',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              background: 'color-mix(in oklab, var(--pl-cream) 60%, transparent)',
+              background: 'color-mix(in oklab, var(--cream) 60%, transparent)',
               flexShrink: 0,
             }}>
             {/* Fixed min-height prevents layout jump during title swap */}
@@ -239,7 +239,7 @@ export function EditorWing({
                     fontSize: '1rem',
                     fontWeight: 500,
                     letterSpacing: '-0.01em',
-                    color: 'var(--pl-ink)',
+                    color: 'var(--ink)',
                     margin: 0,
                     lineHeight: 1.15,
                     fontVariationSettings: '"opsz" 18, "SOFT" 80',
@@ -252,7 +252,7 @@ export function EditorWing({
                       fontWeight: 600,
                       letterSpacing: '0.14em',
                       textTransform: 'uppercase',
-                      color: 'var(--pl-muted)',
+                      color: 'var(--ink-muted)',
                       display: 'block',
                       marginTop: 4,
                       fontFamily: 'var(--pl-font-mono)',
@@ -301,8 +301,8 @@ export function EditorWing({
                       display: 'inline-block',
                       width: 8, height: 8,
                       borderRadius: '50%',
-                      background: 'var(--pl-gold)',
-                      boxShadow: '0 0 0 0 color-mix(in oklab, var(--pl-gold) 60%, transparent)',
+                      background: 'var(--gold)',
+                      boxShadow: '0 0 0 0 color-mix(in oklab, var(--gold) 60%, transparent)',
                       animation: 'pl-wing-pulse 1.4s ease-out infinite',
                     }}
                   />
@@ -317,10 +317,10 @@ export function EditorWing({
                       display: 'flex', alignItems: 'center', gap: 4,
                       fontSize: '0.58rem', fontWeight: 700,
                       letterSpacing: '0.1em', textTransform: 'uppercase',
-                      color: 'var(--pl-olive)',
+                      color: 'var(--sage-deep)',
                       padding: '3px 8px',
                       borderRadius: 'var(--pl-radius-full)',
-                      background: 'color-mix(in oklab, var(--pl-olive) 14%, transparent)',
+                      background: 'color-mix(in oklab, var(--sage-deep) 14%, transparent)',
                     }}
                   >
                     <Check size={9} /> Saved
@@ -330,14 +330,14 @@ export function EditorWing({
               <RichTooltip label="Hide panel" shortcut="⌘\" side="bottom">
                 <motion.button
                   onClick={onToggle}
-                  whileHover={{ backgroundColor: 'color-mix(in oklab, var(--pl-ink) 6%, transparent)' }}
+                  whileHover={{ backgroundColor: 'color-mix(in oklab, var(--ink) 6%, transparent)' }}
                   whileTap={{ scale: 0.9 }}
                   style={{
                     width: 28, height: 28,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     borderRadius: 'var(--pl-radius-md)', border: 'none',
                     background: 'transparent',
-                    color: 'var(--pl-muted)',
+                    color: 'var(--ink-muted)',
                     cursor: 'pointer',
                     flexShrink: 0,
                   }}
@@ -381,7 +381,7 @@ export function EditorWing({
               style={{
                 width: '2px', height: '100%',
                 background: resizing
-                  ? 'color-mix(in oklab, var(--pl-olive) 50%, transparent)'
+                  ? 'color-mix(in oklab, var(--sage-deep) 50%, transparent)'
                   : 'transparent',
                 transition: 'background var(--pl-dur-instant)',
                 pointerEvents: 'none',
@@ -391,12 +391,12 @@ export function EditorWing({
 
           <style>{`
             @keyframes pl-wing-pulse {
-              0%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--pl-gold) 55%, transparent); }
-              70%  { box-shadow: 0 0 0 6px color-mix(in oklab, var(--pl-gold) 0%, transparent); }
-              100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--pl-gold) 0%, transparent); }
+              0%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--gold) 55%, transparent); }
+              70%  { box-shadow: 0 0 0 6px color-mix(in oklab, var(--gold) 0%, transparent); }
+              100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--gold) 0%, transparent); }
             }
             .pl-wing-resize[data-resizing="false"]:hover .pl-wing-resize-bar {
-              background: color-mix(in oklab, var(--pl-olive) 28%, transparent);
+              background: color-mix(in oklab, var(--sage-deep) 28%, transparent);
             }
           `}</style>
         </motion.aside>

@@ -113,10 +113,10 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 14px',
-          background: 'color-mix(in oklab, var(--pl-cream) 92%, transparent)',
+          background: 'color-mix(in oklab, var(--cream) 92%, transparent)',
           backdropFilter: 'saturate(140%) blur(14px)',
           WebkitBackdropFilter: 'saturate(140%) blur(14px)',
-          borderBottom: '1px solid var(--pl-divider)',
+          borderBottom: '1px solid var(--line)',
           zIndex: 10,
           position: 'relative',
         }}
@@ -139,7 +139,7 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
                 borderRadius: 'var(--pl-radius-md)',
                 border: 'none',
                 background: 'transparent',
-                color: 'var(--pl-muted)',
+                color: 'var(--ink-muted)',
                 cursor: 'pointer',
                 fontSize: '0.78rem',
                 fontWeight: 600,
@@ -155,7 +155,7 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
               fontSize: '0.92rem',
               fontWeight: 500,
               letterSpacing: '-0.01em',
-              color: 'var(--pl-ink)',
+              color: 'var(--ink)',
               fontVariationSettings: '"opsz" 14, "SOFT" 60',
             }}
           >
@@ -166,7 +166,7 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
             style={{
               width: 1,
               height: 16,
-              background: 'var(--pl-divider)',
+              background: 'var(--line)',
               margin: '0 4px',
             }}
           />
@@ -175,7 +175,7 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
             style={{
               fontSize: '0.78rem',
               fontWeight: 500,
-              color: 'var(--pl-ink-soft)',
+              color: 'var(--ink-soft)',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
@@ -266,12 +266,12 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
                     padding: '5px 12px',
                     borderRadius: 'var(--pl-radius-full)',
                     border: pearMode
-                      ? '1px solid color-mix(in oklab, var(--pl-olive) 50%, transparent)'
-                      : '1px solid var(--pl-divider)',
+                      ? '1px solid color-mix(in oklab, var(--sage-deep) 50%, transparent)'
+                      : '1px solid var(--line)',
                     background: pearMode
-                      ? 'color-mix(in oklab, var(--pl-olive) 14%, transparent)'
-                      : 'var(--pl-cream-card)',
-                    color: pearMode ? 'var(--pl-olive)' : 'var(--pl-ink-soft)',
+                      ? 'color-mix(in oklab, var(--sage-deep) 14%, transparent)'
+                      : 'var(--card)',
+                    color: pearMode ? 'var(--sage-deep)' : 'var(--ink-soft)',
                     fontFamily: 'var(--pl-font-mono)',
                     fontSize: '0.58rem',
                     letterSpacing: '0.22em',
@@ -331,11 +331,11 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
                   gap: 5,
                   padding: '6px 12px',
                   borderRadius: 'var(--pl-radius-full)',
-                  border: '1px solid var(--pl-divider)',
+                  border: '1px solid var(--line)',
                   background: shareCopied
-                    ? 'color-mix(in oklab, var(--pl-olive) 18%, transparent)'
-                    : 'var(--pl-cream-card)',
-                  color: shareCopied ? 'var(--pl-olive)' : 'var(--pl-ink-soft)',
+                    ? 'color-mix(in oklab, var(--sage-deep) 18%, transparent)'
+                    : 'var(--card)',
+                  color: shareCopied ? 'var(--sage-deep)' : 'var(--ink-soft)',
                   cursor: 'pointer',
                   fontSize: '0.66rem',
                   fontWeight: 600,
@@ -367,13 +367,13 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
                 letterSpacing: '0.12em',
                 textTransform: 'uppercase',
                 background: publishedUrl
-                  ? 'color-mix(in oklab, var(--pl-olive) 12%, transparent)'
-                  : 'color-mix(in oklab, var(--pl-gold) 14%, transparent)',
-                color: publishedUrl ? 'var(--pl-olive)' : 'var(--pl-gold)',
+                  ? 'color-mix(in oklab, var(--sage-deep) 12%, transparent)'
+                  : 'color-mix(in oklab, var(--gold) 14%, transparent)',
+                color: publishedUrl ? 'var(--sage-deep)' : 'var(--gold)',
                 border: `1px solid ${
                   publishedUrl
-                    ? 'color-mix(in oklab, var(--pl-olive) 28%, transparent)'
-                    : 'color-mix(in oklab, var(--pl-gold) 32%, transparent)'
+                    ? 'color-mix(in oklab, var(--sage-deep) 28%, transparent)'
+                    : 'color-mix(in oklab, var(--gold) 32%, transparent)'
                 }`,
                 cursor: 'default',
               }}
@@ -383,7 +383,7 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
                   width: 5,
                   height: 5,
                   borderRadius: '50%',
-                  background: publishedUrl ? 'var(--pl-olive)' : 'var(--pl-gold)',
+                  background: publishedUrl ? 'var(--sage-deep)' : 'var(--gold)',
                 }}
               />
               {publishedUrl ? 'Live' : 'Draft'}
@@ -405,9 +405,9 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
                   alignItems: 'center',
                   justifyContent: 'center',
                   borderRadius: '50%',
-                  border: '1px solid var(--pl-divider)',
-                  background: 'var(--pl-cream-card)',
-                  color: 'var(--pl-muted)',
+                  border: '1px solid var(--line)',
+                  background: 'var(--card)',
+                  color: 'var(--ink-muted)',
                   cursor: 'pointer',
                   fontSize: '0.7rem',
                   fontWeight: 700,
@@ -449,9 +449,9 @@ export function EditorToolbar({ onExit, pearMode, onTogglePearMode, canPublish =
                 borderRadius: 'var(--pl-groove-radius-pill)',
                 border: 'none',
                 background: blocked
-                  ? 'var(--pl-muted-soft, var(--pl-divider))'
+                  ? 'var(--pl-muted-soft, var(--line))'
                   : 'var(--pl-groove-blob-sunrise)',
-                color: blocked ? 'var(--pl-muted)' : '#fff',
+                color: blocked ? 'var(--ink-muted)' : '#fff',
                 cursor: blocked ? 'not-allowed' : 'pointer',
                 opacity: blocked ? 0.6 : 1,
                 fontSize: '0.88rem',
@@ -491,7 +491,7 @@ function SaveDot({ state, hideLabel }: { state: 'saved' | 'unsaved'; hideLabel?:
         fontWeight: 700,
         letterSpacing: '0.1em',
         textTransform: 'uppercase',
-        color: saved ? 'var(--pl-ink-soft)' : 'var(--pl-gold)',
+        color: saved ? 'var(--ink-soft)' : 'var(--gold)',
       }}
     >
       <span
@@ -499,7 +499,7 @@ function SaveDot({ state, hideLabel }: { state: 'saved' | 'unsaved'; hideLabel?:
           width: 5,
           height: 5,
           borderRadius: '50%',
-          background: saved ? 'var(--pl-olive)' : 'var(--pl-gold)',
+          background: saved ? 'var(--sage-deep)' : 'var(--gold)',
           animation: saved ? 'none' : 'pl-heartbeat 1.2s ease-in-out infinite',
         }}
       />
@@ -563,12 +563,12 @@ function ToolBtn({
         justifyContent: 'center',
         borderRadius: 'var(--pl-radius-md)',
         border: 'none',
-        background: active ? 'color-mix(in oklab, var(--pl-olive) 14%, transparent)' : 'transparent',
+        background: active ? 'color-mix(in oklab, var(--sage-deep) 14%, transparent)' : 'transparent',
         color: disabled
-          ? 'var(--pl-muted)'
+          ? 'var(--ink-muted)'
           : active
-            ? 'var(--pl-olive)'
-            : 'var(--pl-ink-soft)',
+            ? 'var(--sage-deep)'
+            : 'var(--ink-soft)',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.4 : 1,
         transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
@@ -586,7 +586,7 @@ function Divider() {
       style={{
         width: 1,
         height: 16,
-        background: 'var(--pl-divider)',
+        background: 'var(--line)',
         margin: '0 4px',
       }}
     />

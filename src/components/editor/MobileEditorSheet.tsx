@@ -513,7 +513,7 @@ export function MobileEditorSheet() {
                     minHeight: 92,
                     borderRadius: 'var(--pl-radius-sm)',
                     border: '1px solid var(--pl-black-4)',
-                    background: 'var(--pl-cream-card)',
+                    background: 'var(--card)',
                     cursor: 'pointer',
                     WebkitTapHighlightColor: 'transparent',
                   }}
@@ -567,7 +567,7 @@ export function MobileEditorSheet() {
                     minHeight: 72,
                     borderRadius: 'var(--pl-radius-sm)',
                     border: '1px solid var(--pl-black-4)',
-                    background: 'var(--pl-cream-card)',
+                    background: 'var(--card)',
                     cursor: 'pointer',
                     WebkitTapHighlightColor: 'transparent',
                   }}
@@ -654,7 +654,7 @@ export function MobileEditorSheet() {
           zIndex: 520,
           display: 'flex',
           flexDirection: 'column',
-          background: 'var(--pl-cream-card)',
+          background: 'var(--card)',
         }}
       >
         {/* Top bar */}
@@ -667,8 +667,8 @@ export function MobileEditorSheet() {
             minHeight: 52,
             padding: '6px 10px',
             paddingTop: 'calc(env(safe-area-inset-top, 0px) + 6px)',
-            borderBottom: '1px solid var(--pl-divider)',
-            background: 'var(--pl-cream)',
+            borderBottom: '1px solid var(--line)',
+            background: 'var(--cream)',
           }}
         >
           <button
@@ -683,7 +683,7 @@ export function MobileEditorSheet() {
               height: 44,
               border: 'none',
               background: 'transparent',
-              color: 'var(--pl-ink)',
+              color: 'var(--ink)',
               cursor: 'pointer',
               borderRadius: 'var(--pl-radius-md)',
             }}
@@ -704,7 +704,7 @@ export function MobileEditorSheet() {
                 fontSize: '0.52rem',
                 letterSpacing: '0.24em',
                 textTransform: 'uppercase',
-                color: 'var(--pl-muted)',
+                color: 'var(--ink-muted)',
                 fontWeight: 700,
               }}
             >
@@ -715,7 +715,7 @@ export function MobileEditorSheet() {
                 fontFamily: 'var(--pl-font-heading)',
                 fontStyle: 'italic',
                 fontSize: '1.04rem',
-                color: 'var(--pl-ink)',
+                color: 'var(--ink)',
                 lineHeight: 1.15,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
@@ -743,9 +743,9 @@ export function MobileEditorSheet() {
               alignItems: 'center',
               gap: 5,
               padding: '8px 12px',
-              background: 'color-mix(in oklab, var(--pl-olive) 14%, transparent)',
-              color: 'var(--pl-olive)',
-              border: '1px solid color-mix(in oklab, var(--pl-olive) 32%, transparent)',
+              background: 'color-mix(in oklab, var(--sage-deep) 14%, transparent)',
+              color: 'var(--sage-deep)',
+              border: '1px solid color-mix(in oklab, var(--sage-deep) 32%, transparent)',
               borderRadius: 'var(--pl-radius-full)',
               fontFamily: 'var(--pl-font-mono)',
               fontSize: '0.58rem',
@@ -763,8 +763,8 @@ export function MobileEditorSheet() {
             aria-label="Done"
             style={{
               padding: '8px 14px',
-              background: 'var(--pl-ink)',
-              color: 'var(--pl-cream)',
+              background: 'var(--ink)',
+              color: 'var(--cream)',
               border: 'none',
               borderRadius: 'var(--pl-radius-full)',
               fontFamily: 'var(--pl-font-mono)',
@@ -810,7 +810,7 @@ export function MobileEditorSheet() {
     <div className="pl-mobile-editor" style={{
       position: 'fixed', inset: 0, zIndex: 500,
       display: 'flex', flexDirection: 'column',
-      background: 'var(--pl-cream-deep)',
+      background: 'var(--cream-2)',
     }}>
       {/* ── Top Bar ── */}
       <div style={{
@@ -954,7 +954,7 @@ export function MobileEditorSheet() {
       <div ref={previewRef} onScroll={handlePreviewScroll} className="pl-mobile-editor-preview" style={{
         flex: 1, position: 'relative', minHeight: 0,
         overflow: 'auto', WebkitOverflowScrolling: 'touch',
-        background: 'var(--pl-cream)',
+        background: 'var(--cream)',
         // Isolate stacking context so SiteRenderer z-index values
         // (icon pickers, context menus) don't overlap the bottom sheet
         zIndex: 0, isolation: 'isolate',
@@ -1156,7 +1156,7 @@ function MobileReadinessChip({ onPublish }: { onPublish: () => void }) {
         alignItems: 'center',
         gap: 12,
         padding: '8px 12px',
-        background: 'var(--pl-cream-card)',
+        background: 'var(--card)',
         border: '1px solid color-mix(in oklab, var(--pl-gold, #B8935A) 32%, transparent)',
         borderRadius: 'var(--pl-radius-full)',
         boxShadow: '0 6px 20px rgba(40,28,12,0.08)',
@@ -1171,7 +1171,7 @@ function MobileReadinessChip({ onPublish }: { onPublish: () => void }) {
           letterSpacing: '0.22em',
           textTransform: 'uppercase',
           fontWeight: 700,
-          color: allReady ? 'var(--pl-olive)' : 'var(--pl-gold)',
+          color: allReady ? 'var(--sage-deep)' : 'var(--gold)',
         }}
       >
         {ready}/{total} ready
@@ -1189,7 +1189,7 @@ function MobileReadinessChip({ onPublish }: { onPublish: () => void }) {
           style={{
             width: `${pct}%`,
             height: '100%',
-            background: allReady ? 'var(--pl-olive)' : 'var(--pl-gold)',
+            background: allReady ? 'var(--sage-deep)' : 'var(--gold)',
             transition: 'width 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
           }}
         />
@@ -1200,7 +1200,7 @@ function MobileReadinessChip({ onPublish }: { onPublish: () => void }) {
           fontSize: '0.58rem',
           letterSpacing: '0.22em',
           textTransform: 'uppercase',
-          color: 'var(--pl-ink)',
+          color: 'var(--ink)',
           fontWeight: 700,
         }}
       >

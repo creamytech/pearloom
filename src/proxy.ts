@@ -20,7 +20,7 @@ const CSP_HEADER = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https: http:",
   "font-src 'self' https://fonts.gstatic.com",
-  "frame-src https://maps.google.com https://www.google.com https://open.spotify.com https://player.vimeo.com https://www.youtube.com https://js.stripe.com",
+  "frame-src 'self' https://maps.google.com https://www.google.com https://open.spotify.com https://player.vimeo.com https://www.youtube.com https://js.stripe.com",
   "connect-src 'self' https: wss:",
   "media-src 'self' https:",
   "object-src 'none'",
@@ -41,9 +41,11 @@ function applySecurityHeaders(response: NextResponse, pathname: string): void {
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   response.headers.set('X-DNS-Prefetch-Control', 'on');
 
-  // Skip X-Frame-Options for /preview routes — they render inside iframes
+  // Allow same-origin iframing for editor preview & builder. Published sites
+  // and dashboard pages use SAMEORIGIN so the v8 Builder iframe can load
+  // `/sites/{slug}` and `/dev/site` from inside `/editor/{slug}`.
   if (!pathname.startsWith('/preview')) {
-    response.headers.set('X-Frame-Options', 'DENY');
+    response.headers.set('X-Frame-Options', 'SAMEORIGIN');
   }
 
   if (isProduction) {

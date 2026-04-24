@@ -163,11 +163,11 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
         <div style={{
           padding: '14px',
           borderRadius: 'var(--pl-radius-lg)',
-          background: 'color-mix(in oklab, var(--pl-plum) 10%, transparent)',
-          border: '1px solid color-mix(in oklab, var(--pl-plum) 35%, transparent)',
+          background: 'color-mix(in oklab, #7A2D2D 10%, transparent)',
+          border: '1px solid color-mix(in oklab, #7A2D2D 35%, transparent)',
           fontSize: panelText.body,
           fontWeight: panelWeight.semibold,
-          color: 'var(--pl-plum)',
+          color: '#7A2D2D',
           fontFamily: 'inherit',
           lineHeight: panelLineHeight.snug,
         }}>
@@ -177,11 +177,11 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
         <div style={{
           padding: '14px',
           borderRadius: 'var(--pl-radius-lg)',
-          background: 'var(--pl-cream-deep)',
-          border: '1px solid var(--pl-divider)',
+          background: 'var(--cream-2)',
+          border: '1px solid var(--line)',
           fontSize: panelText.body,
           fontWeight: panelWeight.semibold,
-          color: 'var(--pl-ink-soft)',
+          color: 'var(--ink-soft)',
           fontFamily: 'inherit',
           lineHeight: panelLineHeight.snug,
         }}>

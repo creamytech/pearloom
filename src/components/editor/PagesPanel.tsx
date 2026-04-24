@@ -260,11 +260,11 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                     style={{
                       fontSize: '0.7rem',
                       lineHeight: 1.5,
-                      color: 'var(--pl-plum)',
+                      color: '#7A2D2D',
                       padding: '6px 8px',
                       borderRadius: 'var(--pl-radius-sm)',
-                      background: 'color-mix(in oklab, var(--pl-plum) 10%, transparent)',
-                      border: '1px solid color-mix(in oklab, var(--pl-plum) 30%, transparent)',
+                      background: 'color-mix(in oklab, #7A2D2D 10%, transparent)',
+                      border: '1px solid color-mix(in oklab, #7A2D2D 30%, transparent)',
                     }}
                   >
                     {addError}

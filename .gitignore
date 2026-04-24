@@ -44,3 +44,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .claude/worktrees/
+
+# claude-code per-machine settings
+.claude/settings.local.json
+
+# local-only audit + design-handoff artefacts (large binaries)
+.audit/
+.design-handoff/
+*-handoff.zip

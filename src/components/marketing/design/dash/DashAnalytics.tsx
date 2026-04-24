@@ -9,6 +9,7 @@ import { Swirl } from '@/components/brand/groove';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { DashShell, Topbar, Panel, SectionTitle, EmptyShell, btnInk, btnGhost } from './DashShell';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
+import { getAnalyticsCopy, getAnalyticsSectionsToWatch } from '@/lib/event-os/dashboard-presets';
 
 interface VisitStats {
   visits: number;
@@ -107,6 +108,8 @@ export function DashAnalytics() {
   }
 
   const siteName = siteDisplayName(site);
+  const copy = getAnalyticsCopy(site?.occasion);
+  const watchSections = getAnalyticsSectionsToWatch(site?.occasion);
 
   return (
     <DashShell>
@@ -114,15 +117,13 @@ export function DashAnalytics() {
         subtitle={`ANALYTICS · ${siteName.toUpperCase()}`}
         title={
           <span>
-            Quiet{' '}
             <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-              numbers
+              {copy.title}
             </i>
-            , warm{' '}
+            {' '}
             <i style={{ color: PD.gold, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-              readings
+              {copy.italic}
             </i>
-            .
           </span>
         }
         actions={
@@ -132,8 +133,7 @@ export function DashAnalytics() {
           </div>
         }
       >
-        Privacy-respecting signals — visits, devices, and the sections your guests dwell on. No
-        creepy trackers.
+        {copy.body}
       </Topbar>
 
       <main style={{ padding: '20px 40px 60px' }}>
@@ -298,6 +298,20 @@ export function DashAnalytics() {
               italic="by section."
               accent={PD.plum}
             />
+            {watchSections.length > 0 && (
+              <div
+                style={{
+                  ...MONO_STYLE,
+                  fontSize: 10,
+                  color: PD.inkSoft,
+                  marginTop: -10,
+                  marginBottom: 14,
+                  opacity: 0.75,
+                }}
+              >
+                KEEP AN EYE ON: {watchSections.map((s) => humanSectionId(s)).join(' · ')}
+              </div>
+            )}
             {depth.length === 0 ? (
               <div style={{ fontSize: 13.5, color: PD.inkSoft, lineHeight: 1.55, maxWidth: 520 }}>
                 No section views yet. Sections start showing up here once guests scroll past them on

@@ -1249,7 +1249,7 @@ export function EditorCanvas() {
         display: 'flex', flexDirection: 'column',
         overflow: 'hidden',
         position: 'relative',
-        background: 'var(--pl-cream-deep)',
+        background: 'var(--cream-2)',
       }}
     >
       {/* Palette-drag feedback — dashed frame + top banner so the user
@@ -1604,11 +1604,11 @@ export function EditorCanvas() {
             // Actionable toasts need pointer events so Undo is clickable.
             pointerEvents: undoToastAction ? 'auto' : 'none',
             padding: '6px 16px', borderRadius: 'var(--pl-radius-md)',
-            background: 'color-mix(in oklab, var(--pl-cream-card) 92%, transparent)',
+            background: 'color-mix(in oklab, var(--card) 92%, transparent)',
             backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-            border: '1px solid var(--pl-divider)',
-            boxShadow: '0 4px 16px color-mix(in oklab, var(--pl-ink) 10%, transparent)',
-            fontSize: '0.65rem', fontWeight: 600, color: 'var(--pl-ink)',
+            border: '1px solid var(--line)',
+            boxShadow: '0 4px 16px color-mix(in oklab, var(--ink) 10%, transparent)',
+            fontSize: '0.65rem', fontWeight: 600, color: 'var(--ink)',
             whiteSpace: 'nowrap',
             display: 'flex', alignItems: 'center', gap: '10px',
           } as React.CSSProperties}
@@ -1627,7 +1627,7 @@ export function EditorCanvas() {
                 border: 'none', background: 'transparent',
                 padding: '2px 8px', borderRadius: 'var(--pl-radius-sm)',
                 fontSize: '0.65rem', fontWeight: 700,
-                color: 'var(--pl-plum)', cursor: 'pointer',
+                color: '#7A2D2D', cursor: 'pointer',
                 textTransform: 'uppercase', letterSpacing: '0.04em',
               }}
             >
@@ -1642,7 +1642,7 @@ export function EditorCanvas() {
         <div style={{
           position: 'absolute', top: '56px', left: '50%', transform: 'translateX(-50%)',
           zIndex: 200, padding: '4px 12px', borderRadius: 'var(--pl-radius-md)',
-          background: 'var(--pl-ink)', color: 'var(--pl-cream)',
+          background: 'var(--ink)', color: 'var(--cream)',
           fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
         }}>
           Panning — release Space to stop

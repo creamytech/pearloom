@@ -97,7 +97,7 @@ export function ResponsivePreviewFrame({
             ? '0 12px 48px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.06)'
             : undefined,
           minHeight,
-          background: 'var(--pl-cream)',
+          background: 'var(--cream)',
           position: 'relative',
         }}
       >

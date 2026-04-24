@@ -1,18 +1,13 @@
 export const dynamic = 'force-dynamic';
 
 import type { Metadata } from 'next';
-import { DashShell } from '@/components/marketing/v2/DashShell';
-import { DashHome } from '@/components/marketing/v2/DashHome';
+import { DashHomeV8 } from '@/components/pearloom/pages/DashHomeV8';
 
 export const metadata: Metadata = {
-  title: 'Dashboard | Pearloom',
+  title: 'Dashboard · Pearloom',
   description: 'Manage your celebration sites, photos, and guest lists.',
 };
 
 export default function DashboardPage() {
-  return (
-    <DashShell>
-      <DashHome />
-    </DashShell>
-  );
+  return <DashHomeV8 />;
 }

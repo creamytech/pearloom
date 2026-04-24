@@ -211,6 +211,41 @@ export async function POST(req: NextRequest) {
     .filter((r): r is { ok: false; error: string; index: number } => !r.ok)
     .map((r) => ({ index: r.index, error: r.error }));
 
+  // Also persist every successful upload to the user's media library
+  // so it's available in the Gallery and the editor's photo picker
+  // without another explicit save step. Source flag tells us where
+  // the upload came from (wizard/editor/invite) — handy for filtering.
+  try {
+    const sourceTag: string = (() => {
+      const raw = (body as { source?: string }).source;
+      if (typeof raw === 'string' && ['upload', 'wizard', 'editor', 'invite'].includes(raw)) return raw;
+      return 'upload';
+    })();
+    const siteId = (body as { siteId?: string }).siteId ?? null;
+
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (url && key && successes.length > 0) {
+      const db = createClient(url, key);
+      await db.from('user_media').insert(
+        successes.map((s) => ({
+          owner_email: session.user!.email!,
+          url: s.photo.baseUrl,
+          width: s.photo.width || null,
+          height: s.photo.height || null,
+          mime_type: s.photo.mimeType,
+          filename: s.photo.filename,
+          taken_at: s.photo.creationTime || null,
+          source: sourceTag,
+          source_site_id: siteId,
+        })),
+      );
+    }
+  } catch (err) {
+    // Library persistence is non-fatal — the upload still succeeds.
+    console.warn('[upload] user_media persist failed (non-fatal):', err);
+  }
+
   return NextResponse.json({
     photos: successes.map((s) => s.photo),
     failures,

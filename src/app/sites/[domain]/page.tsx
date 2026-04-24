@@ -229,6 +229,21 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       />
     );
   }
+
+  // v8 Pearloom renderer — warm sage + cream Alex-&-Jamie layout.
+  // Opted into by `themeFamily: 'v8'` on the manifest (wizard sets this
+  // for new sites as of 2026-04).
+  if ((manifest as unknown as { themeFamily?: string }).themeFamily === 'v8') {
+    const { SiteV8Renderer } = await import('@/components/pearloom/site/SiteV8Renderer');
+    const { formatSiteDisplayUrl, normalizeOccasion } = await import('@/lib/site-urls');
+    const names = Array.isArray(siteConfig.names) && siteConfig.names.length >= 2
+      ? ([siteConfig.names[0], siteConfig.names[1]] as [string, string])
+      : (['Our', 'Story'] as [string, string]);
+    const prettyUrl = formatSiteDisplayUrl(domain, '', normalizeOccasion(manifest.occasion));
+    return (
+      <SiteV8Renderer manifest={manifest} names={names} siteSlug={domain} prettyUrl={prettyUrl} />
+    );
+  }
   
   // Format the name elegantly "Shauna & Ben"
   const safeNames: [string, string] = Array.isArray(siteConfig.names) && siteConfig.names.length >= 2

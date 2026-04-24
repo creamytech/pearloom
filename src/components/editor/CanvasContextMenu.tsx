@@ -445,7 +445,7 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
                   background: 'transparent',
                   cursor: entry.disabled ? 'not-allowed' : 'pointer',
                   color: entry.disabled
-                    ? 'color-mix(in oklab, var(--pl-ink) 30%, transparent)'
+                    ? 'color-mix(in oklab, var(--ink) 30%, transparent)'
                     : entry.danger
                       ? 'rgba(220,80,80,0.85)'
                       : '#3F3F46',

@@ -1,7 +1,7 @@
 'use client';
 
-import { LandingV2 } from '@/components/marketing/v2/LandingV2';
+import { HomeV8 } from '@/components/pearloom/pages/HomeV8';
 
 export default function LandingPageWrapper() {
-  return <LandingV2 />;
+  return <HomeV8 />;
 }

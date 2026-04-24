@@ -182,7 +182,7 @@ export function SectionCommentsPanel({
               fontSize: '0.56rem',
               letterSpacing: '0.22em',
               textTransform: 'uppercase',
-              color: 'var(--pl-muted)',
+              color: 'var(--ink-muted)',
               fontWeight: 700,
             }}
           >
@@ -193,7 +193,7 @@ export function SectionCommentsPanel({
               fontFamily: 'var(--pl-font-heading)',
               fontStyle: 'italic',
               fontSize: '0.98rem',
-              color: 'var(--pl-ink)',
+              color: 'var(--ink)',
               marginTop: 2,
             }}
           >
@@ -212,7 +212,7 @@ export function SectionCommentsPanel({
             height: 28,
             background: 'transparent',
             border: 'none',
-            color: 'var(--pl-ink-soft)',
+            color: 'var(--ink-soft)',
             cursor: 'pointer',
             borderRadius: 'var(--pl-radius-sm)',
           }}
@@ -235,7 +235,7 @@ export function SectionCommentsPanel({
         {loading ? (
           <p
             style={{
-              color: 'var(--pl-muted)',
+              color: 'var(--ink-muted)',
               fontSize: '0.85rem',
               textAlign: 'center',
               paddingTop: 40,
@@ -251,7 +251,7 @@ export function SectionCommentsPanel({
               alignItems: 'center',
               gap: 8,
               paddingTop: 40,
-              color: 'var(--pl-muted)',
+              color: 'var(--ink-muted)',
               fontSize: '0.9rem',
               textAlign: 'center',
             }}
@@ -312,7 +312,7 @@ export function SectionCommentsPanel({
                         style={{
                           fontSize: '0.8rem',
                           fontWeight: 600,
-                          color: 'var(--pl-ink)',
+                          color: 'var(--ink)',
                         }}
                       >
                         {c.author_name || c.author_email}
@@ -323,7 +323,7 @@ export function SectionCommentsPanel({
                           fontSize: '0.54rem',
                           letterSpacing: '0.16em',
                           textTransform: 'uppercase',
-                          color: 'var(--pl-muted)',
+                          color: 'var(--ink-muted)',
                         }}
                       >
                         {relativeTime(c.created_at)}
@@ -334,7 +334,7 @@ export function SectionCommentsPanel({
                         margin: 0,
                         fontSize: '0.9rem',
                         lineHeight: 1.5,
-                        color: 'var(--pl-ink-soft)',
+                        color: 'var(--ink-soft)',
                         whiteSpace: 'pre-wrap',
                         wordWrap: 'break-word',
                         textDecoration: c.resolved ? 'line-through' : 'none',
@@ -351,7 +351,7 @@ export function SectionCommentsPanel({
                         fontSize: '0.58rem',
                         letterSpacing: '0.18em',
                         textTransform: 'uppercase',
-                        color: 'var(--pl-muted)',
+                        color: 'var(--ink-muted)',
                       }}
                     >
                       <button
@@ -403,9 +403,9 @@ export function SectionCommentsPanel({
           style={{
             width: '100%',
             resize: 'none',
-            background: 'var(--pl-cream-card)',
-            color: 'var(--pl-ink)',
-            border: '1px solid var(--pl-divider)',
+            background: 'var(--card)',
+            color: 'var(--ink)',
+            border: '1px solid var(--line)',
             borderRadius: 'var(--pl-radius-xs)',
             padding: '8px 10px',
             fontFamily: 'inherit',
@@ -429,7 +429,7 @@ export function SectionCommentsPanel({
               fontSize: '0.54rem',
               letterSpacing: '0.22em',
               textTransform: 'uppercase',
-              color: 'var(--pl-muted)',
+              color: 'var(--ink-muted)',
             }}
           >
             ⌘ + Enter to send
@@ -443,8 +443,8 @@ export function SectionCommentsPanel({
               alignItems: 'center',
               gap: 6,
               padding: '6px 14px',
-              background: draft.trim() ? 'var(--pl-ink)' : 'var(--pl-divider)',
-              color: draft.trim() ? 'var(--pl-cream)' : 'var(--pl-muted)',
+              background: draft.trim() ? 'var(--ink)' : 'var(--line)',
+              color: draft.trim() ? 'var(--cream)' : 'var(--ink-muted)',
               border: 'none',
               borderRadius: 'var(--pl-radius-full)',
               fontFamily: 'var(--pl-font-mono)',
@@ -470,7 +470,7 @@ const inlineActionStyle: React.CSSProperties = {
   gap: 4,
   background: 'transparent',
   border: 'none',
-  color: 'var(--pl-muted)',
+  color: 'var(--ink-muted)',
   cursor: 'pointer',
   fontFamily: 'inherit',
   fontSize: 'inherit',

@@ -11,6 +11,7 @@ import { Bloom } from '@/components/brand/groove';
 import { Pear, PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { DashShell, Topbar, Panel, SectionTitle, EmptyShell, btnInk, btnGhost, btnMini, btnMiniGhost } from './DashShell';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
+import { getDirectorTimeline, type TimelineStage } from '@/lib/event-os/dashboard-presets';
 
 interface DirectorMsg {
   role: 'pear' | 'me';
@@ -65,21 +66,31 @@ function diffDays(iso: string): number {
 // Derive a set of T-minus milestones from targetDate + checklist.
 // If the user has no targetDate set we still show the timeline
 // labels but skip the dates.
+function accentColor(a: TimelineStage['accent']): string {
+  switch (a) {
+    case 'olive': return PD.olive;
+    case 'gold':  return PD.gold;
+    case 'terra': return PD.terra;
+    case 'plum':  return PD.plum;
+    case 'stone': return PD.stone;
+    case 'ink':
+    default:      return PD.ink;
+  }
+}
+
 function deriveTimeline(
   targetDate: string | null | undefined,
   checklist: ChecklistItem[],
+  occasion: string | null | undefined,
 ): Array<{ p: number; label: string; t: string; done: boolean; now: boolean; color: string; note: string }> {
-  const stops = [
-    { p: 4,  off: 180, label: 'Start here',       color: PD.olive },
-    { p: 22, off: 120, label: 'Save the dates',   color: PD.olive },
-    { p: 42, off: 90,  label: 'Invitations out',  color: PD.olive },
-    { p: 62, off: 45,  label: 'Menu + seating',   color: PD.terra },
-    { p: 82, off: 14,  label: 'Rehearsal week',   color: PD.stone },
-    { p: 96, off: 0,   label: 'The day',          color: PD.ink },
-  ];
-
+  const stops = getDirectorTimeline(occasion);
   const daysOut = targetDate ? Math.max(0, diffDays(targetDate)) : null;
   const now = daysOut ?? 0;
+
+  // Pick a "now" window proportional to the longest offset, so short
+  // timelines (memorials — ~10 days) don't collapse everything into "now".
+  const maxOff = stops.reduce((m, s) => Math.max(m, s.off), 0);
+  const nowWindow = Math.max(1, Math.round(maxOff * 0.06));
 
   return stops.map((s) => {
     const d = targetDate
@@ -88,9 +99,8 @@ function deriveTimeline(
           day: 'numeric',
         })
       : '—';
-    const isNow = daysOut !== null && Math.abs(now - s.off) < 7;
+    const isNow = daysOut !== null && Math.abs(now - s.off) < nowWindow;
     const done = daysOut !== null && s.off > daysOut;
-    // Find a checklist item that matches this stop (rough heuristic)
     const match = checklist.find((c) => c.label.toLowerCase().includes(s.label.toLowerCase().split(' ')[0]));
     return {
       p: s.p,
@@ -98,7 +108,7 @@ function deriveTimeline(
       t: `T−${s.off}d`,
       done,
       now: isNow,
-      color: s.color,
+      color: accentColor(s.accent),
       note: d,
     };
   });
@@ -212,7 +222,7 @@ export function DashDirector() {
   }
 
   const siteName = siteDisplayName(site);
-  const timeline = deriveTimeline(state?.targetDate, state?.checklist ?? []);
+  const timeline = deriveTimeline(state?.targetDate, state?.checklist ?? [], site?.occasion);
   const daysToGo = state?.targetDate ? Math.max(0, diffDays(state.targetDate)) : null;
   const thisWeek = useMemo(
     () =>

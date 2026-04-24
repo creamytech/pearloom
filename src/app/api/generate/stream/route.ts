@@ -355,6 +355,7 @@ export async function POST(req: Request) {
     storyLayout,
     songUrl,
     eventDetails,
+    templateId,
   } = body as {
     photos: GooglePhotoMetadata[];
     clusters?: PhotoCluster[];
@@ -424,6 +425,7 @@ export async function POST(req: Request) {
       inMemoryOf?: string;
       school?: string;
     };
+    templateId?: string;
   };
 
   // Derive defaults from category / occasion when the wizard didn't
@@ -862,7 +864,38 @@ export async function POST(req: Request) {
           ].sort((a, b) => a.order - b.order);
         }
 
-        send({ type: 'complete', manifest });
+        // ── Pass 7: auto-populate FAQ / Registry / Travel ──
+        try {
+          send({ type: 'progress', pass: 7, label: 'Filling the details…' });
+          const { runPass7Content } = await import('@/lib/memory-engine/pass-7-content');
+          const { getEventType } = await import('@/lib/event-os/event-types');
+          const voice = getEventType(occasion as never)?.voice ?? 'celebratory';
+          const baseUrl = (() => {
+            try {
+              return new URL(req.url).origin;
+            } catch {
+              return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+            }
+          })();
+          const result = await runPass7Content({
+            manifest,
+            occasion: occasion ?? 'wedding',
+            voice: voice as 'solemn' | 'intimate' | 'ceremonial' | 'playful' | 'celebratory',
+            names,
+            baseUrl,
+          });
+          if (result.faqs && result.faqs.length > 0) manifest.faqs = result.faqs;
+          if (result.registry) manifest.registry = result.registry;
+          if (result.travelInfo) manifest.travelInfo = result.travelInfo;
+        } catch (err) {
+          console.warn('[Pass 7] Non-fatal failure:', err);
+        }
+
+        // Layer the selected template's motifs, blockOrder, hiddenBlocks,
+        // and seeded theme/poetry on top of the AI-generated manifest.
+        const { applyTemplateToManifest } = await import('@/lib/templates/apply-template');
+        const themed = applyTemplateToManifest(manifest, templateId ?? null);
+        send({ type: 'complete', manifest: themed });
       } catch (err) {
         send({ type: 'error', message: err instanceof Error ? err.message : 'Generation failed' });
       } finally {
