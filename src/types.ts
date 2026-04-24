@@ -82,6 +82,26 @@ export interface StoryManifest {
   rendererVersion?: 'classic' | 'v2';
   // Free-canvas block order and visibility
   blocks?: PageBlock[];
+  // Template-applied identifier (optional). When set, references an id in
+  // SITE_TEMPLATES — used by the renderer to look up signature motifs.
+  templateId?: string;
+  // Template-applied signature ornaments: blob, stamp, squiggle, sparkle,
+  // heart, postIt, polaroid. Rendered on the hero and page decorations.
+  motifs?: {
+    blob?: 'sage' | 'peach' | 'lavender' | 'cream' | 'dusk' | 'warm' | 'none';
+    stamp?: { text: string; icon?: string; tone?: string; rotation?: number };
+    squiggle?: 1 | 2 | 3;
+    sparkle?: boolean;
+    heart?: boolean;
+    postIt?: { text: string; tone?: string; rotation?: number };
+    polaroid?: boolean;
+  };
+  // Ordered list of block types (matches PageBlock['type']) that the
+  // renderer should follow when a template imposes a specific structure.
+  blockOrder?: string[];
+  // Block types that the template explicitly hides (e.g. minimalist templates
+  // that omit registry/faq).
+  hiddenBlocks?: string[];
   // Custom SVG background pattern CSS (e.g. url("data:image/svg+xml,..."))
   backgroundPatternCss?: string;
   // User-created custom pages (photo gallery, our venue, etc.)

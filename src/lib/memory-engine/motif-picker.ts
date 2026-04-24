@@ -11,11 +11,21 @@
 // Deterministic — same occasion + vibeString → same motifs.
 // ─────────────────────────────────────────────────────────────
 
-import type { StoryManifest } from '@/types';
 import type { SiteOccasion } from '@/lib/site-urls';
 import { getEventType } from '@/lib/event-os/event-types';
 
-type Motifs = NonNullable<StoryManifest['motifs']>;
+// Inline motif shape. Matches the optional `StoryManifest.motifs`
+// field wherever it exists, but kept local here so the picker
+// compiles against any version of the manifest type.
+export interface Motifs {
+  blob?: 'sage' | 'peach' | 'lavender' | 'cream' | 'dusk' | 'warm' | 'none';
+  stamp?: { text: string; icon?: string; tone?: string; rotation?: number };
+  squiggle?: 1 | 2 | 3;
+  sparkle?: boolean;
+  heart?: boolean;
+  postIt?: { text: string; tone?: string; rotation?: number };
+  polaroid?: boolean;
+}
 
 interface MotifRecipe {
   blob: Motifs['blob'];
