@@ -15,22 +15,23 @@ export function buildPrompt(
 ): string {
   // Build richly detailed cluster summaries including per-photo metadata
   const clusterSummary = clusters.map((c, i) => {
-    const photoDetails = c.photos.map(p => ({
+    const clusterPhotos = Array.isArray(c.photos) ? c.photos : [];
+    const photoDetails = clusterPhotos.map(p => ({
       filename: p.filename,
       date: p.creationTime?.slice(0, 10),
     }));
 
     // Summarize the distinct dates in this cluster for the AI
-    const uniqueDates = [...new Set(c.photos.map(p => p.creationTime?.slice(0, 10)).filter(Boolean))].sort();
+    const uniqueDates = [...new Set(clusterPhotos.map(p => p.creationTime?.slice(0, 10)).filter(Boolean))].sort();
     const dateContext = uniqueDates.length === 1
       ? `Single day: ${uniqueDates[0]}`
       : `${uniqueDates.length} days: ${uniqueDates.join(', ')}`;
 
     return {
       clusterIndex: i,
-      dateRange: `${c.startDate.slice(0, 10)} to ${c.endDate.slice(0, 10)}`,
+      dateRange: `${(c.startDate ?? '').slice(0, 10)} to ${(c.endDate ?? '').slice(0, 10)}`,
       dateContext,
-      photoCount: c.photos.length,
+      photoCount: clusterPhotos.length,
       note: c.note || null,
       noteInstruction: c.note
         ? `⚠️ HIGHEST PRIORITY CONTEXT — written BY THE COUPLE about this exact moment: '${c.note}'. The chapter title, subtitle, and description MUST directly reflect this note's emotion, details, and voice. This note describes ONLY this cluster — do not apply it to other clusters.`

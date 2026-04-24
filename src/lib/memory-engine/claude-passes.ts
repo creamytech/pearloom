@@ -296,7 +296,7 @@ export async function poetryPassClaude(
     .replace(/^This is a (?:BIRTHDAY|WEDDING|ANNIVERSARY|ENGAGEMENT|CELEBRATION)[^\n]*\n?/gim, '')
     .trim();
 
-  const chapterContext = chapters
+  const chapterContext = (Array.isArray(chapters) ? chapters : [])
     .slice(0, 8)
     .map((c) => `"${c.title}": ${c.description?.slice(0, 200) || ''}`)
     .join('\n');
@@ -403,7 +403,7 @@ export async function extractCoupleProfileClaude(
   occasion?: string,
   clusterNotes?: Array<{ chapterIndex: number; note: string; location: string | null }>
 ): Promise<ClaudeCoupleProfile> {
-  const chapterCtx = chapters
+  const chapterCtx = (Array.isArray(chapters) ? chapters : [])
     .slice(0, 6)
     .map((c) => `"${c.title}" (${c.mood}): ${c.description?.slice(0, 160) || ''}`)
     .join('\n');

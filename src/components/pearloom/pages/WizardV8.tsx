@@ -1939,7 +1939,19 @@ export function WizardV8() {
                           .join(', ') || '—'
                       }
                     />
-                    <Row label="Palette" val={PALETTES.find((p) => p.id === st.palette)?.name ?? '—'} />
+                    <Row
+                      label="Palette"
+                      val={
+                        PALETTES.find((p) => p.id === st.palette)?.name ??
+                        st.smartPalettes?.find((p) => p.id === st.palette)?.name ??
+                        (st.paletteColors && st.paletteColors.length > 0 ? 'Pear-picked palette' : '—')
+                      }
+                      swatches={
+                        st.paletteColors && st.paletteColors.length > 0
+                          ? st.paletteColors
+                          : PALETTES.find((p) => p.id === st.palette)?.colors
+                      }
+                    />
                     <Row label="Layout" val={LAYOUTS.find((l) => l.id === st.layout)?.name ?? '—'} />
                     <Row
                       label="Site link"
@@ -2076,13 +2088,31 @@ export function WizardV8() {
   );
 }
 
-function Row({ label, val }: { label: string; val: string }) {
+function Row({ label, val, swatches }: { label: string; val: string; swatches?: string[] }) {
   return (
     <div style={{ background: 'var(--cream-2)', borderRadius: 12, padding: '10px 14px' }}>
       <div className="eyebrow" style={{ fontSize: 10, marginBottom: 4 }}>
         {label}
       </div>
-      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{val}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{val}</div>
+        {swatches && swatches.length > 0 && (
+          <div style={{ display: 'flex', gap: 4 }}>
+            {swatches.slice(0, 5).map((c, i) => (
+              <div
+                key={i}
+                style={{
+                  width: 16,
+                  height: 16,
+                  borderRadius: '50%',
+                  background: c,
+                  border: '1px solid rgba(0,0,0,0.08)',
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

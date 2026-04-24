@@ -500,7 +500,8 @@ export async function POST(req: Request) {
     enrichedClusters = enrichedClusters.map((cluster) => {
       const notesForCluster: string[] = [];
       let manualLocation: string | null = null;
-      for (const photo of cluster.photos) {
+      const clusterPhotos = Array.isArray(cluster.photos) ? cluster.photos : [];
+      for (const photo of clusterPhotos) {
         const entry = photoNotes[photo.id];
         if (!entry) continue;
         if (entry.note && entry.note.trim().length > 0) {
@@ -683,7 +684,11 @@ export async function POST(req: Request) {
           manifest.logistics = { ...(manifest.logistics ?? {}), notes: guestNotes };
         }
 
-        // Trim chapters to cluster count
+        // Trim chapters to cluster count. Defensive: the engine has
+        // returned an empty-chapters manifest on occasion when the
+        // model produced no valid chapter objects; treating that as
+        // fatal prevents post-processing from crashing further down.
+        if (!Array.isArray(manifest.chapters)) manifest.chapters = [];
         if (manifest.chapters.length > enrichedClusters.length) {
           manifest.chapters = manifest.chapters.slice(0, enrichedClusters.length);
         }
@@ -703,7 +708,7 @@ export async function POST(req: Request) {
         // Run chapter photo uploads, logo generation, and hero mirroring in parallel
         const [updatedChapters, logoResult, heroUrls] = await Promise.all([
           // 1. Upload chapter photos to R2 + resolve locations
-          Promise.all(manifest.chapters.map(async (chapter, i) => {
+          Promise.all((manifest.chapters ?? []).map(async (chapter, i) => {
             const cluster = enrichedClusters[i];
             if (cluster) {
               // Attach EVERY photo in the cluster, not just the first 3.
@@ -712,7 +717,7 @@ export async function POST(req: Request) {
               // BentoGrid caps at 5, KenBurns at 6). Keeping the full set
               // in the manifest means the dashboard gallery can show every
               // photo the user actually uploaded instead of losing the tail.
-              const photosToUpload = cluster.photos;
+              const photosToUpload = Array.isArray(cluster.photos) ? cluster.photos : [];
               const uploadedUrls = await Promise.all(
                 photosToUpload.map(p => uploadLimit(() => uploadPhotoUrl(p.baseUrl)))
               );

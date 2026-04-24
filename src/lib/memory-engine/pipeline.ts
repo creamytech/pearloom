@@ -455,8 +455,8 @@ export async function generateStoryManifest(
     }));
 
     // Pass first photo from each cluster as representative photo URLs (with size params)
-    const photoUrls = clusters.slice(0, 5)
-      .map(c => c.photos[0]?.baseUrl)
+    const photoUrls = (Array.isArray(clusters) ? clusters : []).slice(0, 5)
+      .map(c => (Array.isArray(c.photos) ? c.photos : [])[0]?.baseUrl)
       .filter(Boolean)
       .map(url => url.includes('googleusercontent.com') ? `${url}=w800-h800` : url) as string[];
 
@@ -628,7 +628,8 @@ function hydrateChapterImages(
     // BentoGrid caps at 5; KenBurns at 6). Keeping the full set in the
     // manifest lets the dashboard gallery show every photo the user
     // uploaded instead of losing the tail.
-    const images: import('@/types').ChapterImage[] = bestCluster.photos
+    const clusterPhotos = Array.isArray(bestCluster.photos) ? bestCluster.photos : [];
+    const images: import('@/types').ChapterImage[] = clusterPhotos
       .map((photo) => ({
         id: photo.id,
         // Google Photos: append size params. Local uploads: already a data URL
