@@ -107,9 +107,22 @@ function ChapterRewriteAI({ chapter, onResult }: { chapter: Chapter; onResult: (
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ chapter, tone: 'polish' }),
     });
-    if (!res.ok) throw new Error(`Pear couldn't rewrite (${res.status})`);
-    const data = (await res.json()) as { description?: string; chapter?: Chapter };
-    const text = (data.description ?? data.chapter?.description ?? '').trim();
+    if (!res.ok) {
+      const body = await res.json().catch(() => null) as { error?: string } | null;
+      throw new Error(body?.error ?? `Pear couldn't rewrite (${res.status})`);
+    }
+    // Tolerate either shape: { description } OR { chapter: { description } }
+    // Guard both so a shape change doesn't silently produce "no result".
+    const raw = (await res.json().catch(() => null)) as unknown;
+    let text = '';
+    if (raw && typeof raw === 'object') {
+      const obj = raw as Record<string, unknown>;
+      if (typeof obj.description === 'string') text = obj.description.trim();
+      else if (obj.chapter && typeof obj.chapter === 'object') {
+        const ch = obj.chapter as Record<string, unknown>;
+        if (typeof ch.description === 'string') text = ch.description.trim();
+      }
+    }
     if (!text) throw new Error('Empty rewrite');
     onResult(text);
     return text;

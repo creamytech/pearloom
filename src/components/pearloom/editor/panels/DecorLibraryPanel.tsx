@@ -71,11 +71,27 @@ export function DecorLibraryPanel({
           const body = await res.json().catch(() => ({}));
           throw new Error((body as { error?: string }).error ?? String(res.status));
         }
-        const data = (await res.json()) as {
-          library?: Partial<NonNullable<StoryManifest['decorLibrary']>>;
-          failures?: string[];
-        };
-        const lib = data.library ?? {};
+        const raw = (await res.json()) as unknown;
+        const dataObj = (raw && typeof raw === 'object') ? (raw as Record<string, unknown>) : {};
+        const libRaw = dataObj.library;
+        // Defensive validation — accept only URLs (strings) in the
+        // slots we know about; drop anything unexpected so a server
+        // shape change can't poison the manifest with garbage.
+        const lib: Partial<NonNullable<StoryManifest['decorLibrary']>> = {};
+        if (libRaw && typeof libRaw === 'object') {
+          const l = libRaw as Record<string, unknown>;
+          if (typeof l.divider === 'string') lib.divider = l.divider;
+          if (typeof l.confetti === 'string') lib.confetti = l.confetti;
+          if (typeof l.footerBouquet === 'string') lib.footerBouquet = l.footerBouquet;
+          if (l.sectionStamps && typeof l.sectionStamps === 'object') {
+            const stamps: Record<string, string> = {};
+            for (const [k, v] of Object.entries(l.sectionStamps as Record<string, unknown>)) {
+              if (typeof v === 'string') stamps[k] = v;
+            }
+            if (Object.keys(stamps).length) lib.sectionStamps = stamps;
+          }
+          if (typeof l.updatedAt === 'string') lib.updatedAt = l.updatedAt;
+        }
         onChange({
           ...manifest,
           decorLibrary: {
@@ -91,10 +107,11 @@ export function DecorLibraryPanel({
           }
           return next;
         });
-        if (data.failures?.length) {
+        const failures = Array.isArray(dataObj.failures) ? (dataObj.failures as string[]) : [];
+        if (failures.length) {
           setErrors((e) => {
             const next = { ...e };
-            for (const line of data.failures ?? []) {
+            for (const line of failures) {
               const slot = line.split(':')[0] as LibrarySlot;
               if (slot in next) next[slot] = line.slice(line.indexOf(':') + 1).trim();
             }

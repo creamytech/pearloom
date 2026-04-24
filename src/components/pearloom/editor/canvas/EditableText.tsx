@@ -94,18 +94,25 @@ export function EditableText({
   }, [value]);
 
   // When edit state flips to true, focus the element and select
-  // its text so the user types over the existing value.
+  // its text so the user types over the existing value. Every
+  // window/document call is guarded so we don't throw in iframes
+  // with restricted same-origin or older browsers that nulled
+  // getSelection() under certain conditions.
   useEffect(() => {
     if (!editing || !ref.current) return;
     const el = ref.current;
-    el.focus();
-    if (typeof window !== 'undefined' && window.getSelection) {
-      const sel = window.getSelection();
+    try {
+      el.focus();
+    } catch {}
+    try {
+      if (typeof window === 'undefined' || typeof document === 'undefined') return;
+      const sel = window.getSelection?.();
+      if (!sel) return;
       const range = document.createRange();
       range.selectNodeContents(el);
-      sel?.removeAllRanges();
-      sel?.addRange(range);
-    }
+      sel.removeAllRanges();
+      sel.addRange(range);
+    } catch {}
   }, [editing]);
 
   // ── Static mode (published site, read-only) ──────────────

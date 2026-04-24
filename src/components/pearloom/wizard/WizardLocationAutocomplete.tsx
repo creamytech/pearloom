@@ -50,8 +50,26 @@ export function WizardLocationAutocomplete({ value, onChange, onSelect, placehol
         setSuggestions([]);
         return;
       }
-      const data = await res.json();
-      setSuggestions(data.predictions || []);
+      const data = (await res.json()) as { predictions?: unknown };
+      // Validate the response shape so a breaking API change doesn't
+      // crash the wizard. Accept only entries with a displayName.
+      if (!Array.isArray(data.predictions)) {
+        setSuggestions([]);
+        return;
+      }
+      const valid: Prediction[] = (data.predictions as unknown[]).reduce<Prediction[]>((acc, raw) => {
+        if (!raw || typeof raw !== 'object') return acc;
+        const p = raw as Record<string, unknown>;
+        if (typeof p.displayName !== 'string') return acc;
+        acc.push({
+          id: typeof p.id === 'string' ? p.id : `pred-${acc.length}`,
+          displayName: p.displayName,
+          formattedAddress: typeof p.formattedAddress === 'string' ? p.formattedAddress : '',
+          types: Array.isArray(p.types) ? (p.types as string[]) : undefined,
+        } as Prediction);
+        return acc;
+      }, []);
+      setSuggestions(valid);
       setShowDropdown(true);
       setActiveIdx(-1);
     } catch {

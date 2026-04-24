@@ -159,6 +159,15 @@ const defaultState: WizardState = {
   photos: [],
 };
 
+// User-friendly upload failure messages keyed on HTTP status.
+function humanizeUploadStatus(status: number): string {
+  if (status === 401) return 'Please sign back in and try uploading again.';
+  if (status === 413) return 'Those files are too large. Try smaller photos (under 12MB each).';
+  if (status === 429) return "You've uploaded a lot recently — take a breath and try again in a minute.";
+  if (status >= 500) return "Pearloom's servers are hiccuping. Try again in a moment.";
+  return `Upload failed (${status}). Try again, or contact hello@pearloom.com.`;
+}
+
 // ── Photo upload (device + Google Photos) ────────────────────
 // Both sources produce the same WizardPhoto shape so downstream
 // code doesn't care where the photos came from.
@@ -223,15 +232,21 @@ function WizardPhotoUpload({
           })),
         }),
       });
-      if (!res.ok) throw new Error(`upload ${res.status}`);
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        const msg = (body as { error?: string }).error ?? humanizeUploadStatus(res.status);
+        throw new Error(msg);
+      }
       const data = await res.json() as { photos?: Array<{ id: string; baseUrl: string; width?: number; height?: number }> };
       const byId = new Map(data.photos?.map((p) => [p.id, p]) ?? []);
       onChange((await buildNext(staged, byId)));
-    } catch {
-      // Keep the previews but mark them as errored so the user can retry.
+    } catch (err) {
+      // Keep the previews but mark them as errored so the user can retry,
+      // with a friendly message they can actually act on.
+      const friendly = err instanceof Error ? err.message : 'Upload failed — try again';
       onChange(
-        photos.concat(
-          staged.map((s) => ({ ...s, uploading: false, error: 'Upload failed — retrying will help' })),
+        photosRef.current.concat(
+          staged.map((s) => ({ ...s, uploading: false, error: friendly })),
         ),
       );
     }

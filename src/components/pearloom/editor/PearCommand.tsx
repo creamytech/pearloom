@@ -29,6 +29,24 @@ type Command = {
   run: () => void | Promise<void>;
 };
 
+// Client-side rate limit for ⌘K AI commands. Server rate-limits by
+// IP/user too; this just prevents the user from accidentally holding
+// down Enter and spamming the panel. Sliding window.
+const AI_WINDOW_MS = 60_000;
+const AI_MAX_CALLS = 8;
+const aiCallTimes: number[] = [];
+
+function consumeAiBudget(): { allowed: boolean; retryInSeconds: number } {
+  const now = Date.now();
+  while (aiCallTimes.length && aiCallTimes[0] < now - AI_WINDOW_MS) aiCallTimes.shift();
+  if (aiCallTimes.length >= AI_MAX_CALLS) {
+    const oldest = aiCallTimes[0];
+    return { allowed: false, retryInSeconds: Math.max(1, Math.ceil((oldest + AI_WINDOW_MS - now) / 1000)) };
+  }
+  aiCallTimes.push(now);
+  return { allowed: true, retryInSeconds: 0 };
+}
+
 export function PearCommand({
   manifest,
   names,
@@ -76,8 +94,15 @@ export function PearCommand({
   const vibes = ((manifest as unknown as { vibes?: string[] }).vibes ?? []).join(', ');
 
   async function runChat(prompt: string, label: string) {
+    const limit = consumeAiBudget();
+    if (!limit.allowed) {
+      setChatOutput(`Pear is taking a breath — try again in ${limit.retryInSeconds}s.`);
+      return;
+    }
     setBusy(label);
     setChatOutput('');
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 45_000);
     try {
       const res = await fetch('/api/ai-chat', {
         method: 'POST',
@@ -94,18 +119,29 @@ export function PearCommand({
             },
           ],
         }),
+        signal: ctl.signal,
       });
       if (!res.ok) throw new Error(`${res.status}`);
       const data = (await res.json()) as { reply?: string; text?: string; message?: string };
       setChatOutput(data.reply ?? data.text ?? data.message ?? 'No response.');
     } catch (err) {
-      setChatOutput(`Pear couldn't answer that. (${err instanceof Error ? err.message : 'error'})`);
+      const msg =
+        (err as { name?: string }).name === 'AbortError'
+          ? 'Pear took too long to respond.'
+          : err instanceof Error ? err.message : 'error';
+      setChatOutput(`Pear couldn't answer that. (${msg})`);
     } finally {
+      clearTimeout(timer);
       setBusy(null);
     }
   }
 
   async function rewriteTagline(instruction: string, label: string) {
+    const limit = consumeAiBudget();
+    if (!limit.allowed) {
+      setChatOutput(`Pear is taking a breath — try again in ${limit.retryInSeconds}s.`);
+      return;
+    }
     setBusy(label);
     try {
       const res = await fetch('/api/rewrite-text', {

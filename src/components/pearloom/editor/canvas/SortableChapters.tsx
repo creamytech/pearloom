@@ -18,6 +18,7 @@ import type { Chapter } from '@/types';
 import {
   DndContext,
   PointerSensor,
+  TouchSensor,
   KeyboardSensor,
   closestCenter,
   useSensor,
@@ -43,7 +44,12 @@ export interface SortableChaptersProps {
 export function SortableChapters({ chapters, onReorder, children }: SortableChaptersProps) {
   const editMode = useIsEditMode();
   const sensors = useSensors(
+    // Mouse/trackpad: tiny distance before drag engages so clicks on
+    // inline-edit targets don't accidentally start a drag.
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    // Touch: require a press-and-hold (220ms @ 5px tolerance) so
+    // scrolling the page doesn't accidentally pick up a chapter.
+    useSensor(TouchSensor, { activationConstraint: { delay: 220, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 

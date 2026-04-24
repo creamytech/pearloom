@@ -106,9 +106,15 @@ export function EditorV8({
 }) {
   const router = useRouter();
   const [manifest, setManifest] = useState<StoryManifest>(() => {
-    // If v8 isn't flagged yet, opt in so the preview iframe renders v8.
+    // V8 is the only supported theme family right now. Anything else
+    // (legacy 'classic', unset, garbage value from a half-migrated
+    // draft) is coerced to 'v8' so the canvas + published renderer
+    // align. Log the override in dev so we know when this fires.
     const tf = (initialManifest as unknown as { themeFamily?: string }).themeFamily;
     if (tf === 'v8') return initialManifest;
+    if (tf && process.env.NODE_ENV !== 'production') {
+      console.warn(`[editor] Coerced themeFamily "${tf}" → "v8" on load.`);
+    }
     return { ...initialManifest, themeFamily: 'v8' } as unknown as StoryManifest;
   });
   const [names, setNames] = useState<[string, string]>(initialNames);

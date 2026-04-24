@@ -61,7 +61,13 @@ export function HeroPanel({
   onNamesChange: (n: [string, string]) => void;
   onChange: (m: StoryManifest) => void;
 }) {
-  const heroTagline = (manifest as unknown as { poetry?: { heroTagline?: string } }).poetry?.heroTagline ?? '';
+  // Read poetry.heroTagline safely — manifest.poetry may be missing,
+  // malformed (older drafts), or carry the wrong type if a partial
+  // save landed. Treat anything non-string as empty.
+  const rawPoetry = (manifest as unknown as { poetry?: unknown }).poetry;
+  const poetryObj: Record<string, unknown> =
+    rawPoetry && typeof rawPoetry === 'object' ? (rawPoetry as Record<string, unknown>) : {};
+  const heroTagline = typeof poetryObj.heroTagline === 'string' ? (poetryObj.heroTagline as string) : '';
   const slideshow = manifest.heroSlideshow ?? [];
 
   return (
@@ -93,7 +99,7 @@ export function HeroPanel({
             onChange={(e) =>
               onChange({
                 ...manifest,
-                poetry: { ...((manifest as unknown as { poetry?: Record<string, unknown> }).poetry ?? {}), heroTagline: e.target.value },
+                poetry: { ...poetryObj, heroTagline: e.target.value },
               } as unknown as StoryManifest)
             }
             placeholder="After seven summers, one big move, and a very patient golden retriever, we're finally doing the thing."
@@ -102,7 +108,7 @@ export function HeroPanel({
         </Field>
         <HeroTaglineAI manifest={manifest} names={names} onResult={(text) => onChange({
           ...manifest,
-          poetry: { ...((manifest as unknown as { poetry?: Record<string, unknown> }).poetry ?? {}), heroTagline: text },
+          poetry: { ...poetryObj, heroTagline: text },
         } as unknown as StoryManifest)} />
       </PanelSection>
 

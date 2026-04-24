@@ -2498,6 +2498,10 @@ export function SiteV8Renderer({
   const chapters = manifest.chapters ?? [];
   const hasRsvp = !!manifest.logistics?.date;
   const editMode = Boolean(onEditField);
+  // Memoize context value so every EditableText doesn't re-render on
+  // every unrelated manifest change. The context value shape is tiny
+  // (one boolean), so a stable reference is cheap and meaningful.
+  const canvasCtxValue = useMemo(() => ({ editMode }), [editMode]);
 
   const blockOrderRaw =
     (manifest as unknown as { blockOrder?: SiteBlockKey[] }).blockOrder ?? DEFAULT_ORDER;
@@ -2580,7 +2584,7 @@ export function SiteV8Renderer({
   const bouquetUrl = manifest.decorLibrary?.footerBouquet;
 
   return (
-    <EditorCanvasProvider value={{ editMode }}>
+    <EditorCanvasProvider value={canvasCtxValue}>
       <div className="pl8-guest" style={themeStyle}>
         <EventNav names={names} hasRsvp={hasRsvp} />
         <StickerLayer
