@@ -65,7 +65,7 @@ export function ConfettiBurst({ active, url, fallback = true }: Props) {
           }}
         />
       ) : (
-        <CssConfetti />
+        <CssConfetti reduced={reduced} />
       )}
       <style jsx>{`
         @keyframes pl8-confetti-burst {
@@ -79,10 +79,33 @@ export function ConfettiBurst({ active, url, fallback = true }: Props) {
   );
 }
 
-function CssConfetti() {
+function CssConfetti({ reduced }: { reduced?: boolean }) {
   // Cheap fallback: 28 coloured triangles tossed around with CSS
   // keyframes. Used when no AI confetti URL exists — still feels alive.
+  // When reduced-motion is on, fade a static halo in instead of animating.
   const pieces = Array.from({ length: 28 });
+  if (reduced) {
+    return (
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            'radial-gradient(circle, color-mix(in oklab, var(--peach-ink) 24%, transparent) 0%, transparent 65%)',
+          animation: 'pl8-confetti-static 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards',
+          opacity: 0,
+        }}
+      >
+        <style jsx>{`
+          @keyframes pl8-confetti-static {
+            0%   { opacity: 0; }
+            30%  { opacity: 1; }
+            100% { opacity: 0; }
+          }
+        `}</style>
+      </div>
+    );
+  }
   return (
     <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
       {pieces.map((_, i) => {

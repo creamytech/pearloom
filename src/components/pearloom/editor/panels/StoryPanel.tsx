@@ -9,9 +9,11 @@ import { Icon } from '../../motifs';
 
 function PhotoChaptersAI({
   manifest,
+  names,
   onResult,
 }: {
   manifest: StoryManifest;
+  names: [string, string];
   onResult: (chapters: Chapter[]) => void;
 }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -42,7 +44,7 @@ function PhotoChaptersAI({
       body: JSON.stringify({
         clusters,
         vibeString: vibes,
-        coupleNames: manifest.names ?? ['You', ''],
+        coupleNames: names,
         occasion,
       }),
     });
@@ -111,12 +113,20 @@ function ChapterRewriteAI({ chapter, onResult }: { chapter: Chapter; onResult: (
 
 export function StoryPanel({
   manifest,
+  names,
   onChange,
 }: {
   manifest: StoryManifest;
+  names?: [string, string];
   onChange: (m: StoryManifest) => void;
 }) {
   const chapters: Chapter[] = manifest.chapters ?? [];
+  // The editor keeps `names` in its own state separate from the
+  // manifest. Fall through: prop → manifest.names → default.
+  const effectiveNames: [string, string] =
+    (names && names[0]) ? names
+    : (manifest.names && manifest.names[0]) ? (manifest.names as [string, string])
+    : ['You', ''];
 
   function updateChapter(idx: number, patch: Partial<Chapter>) {
     const next = chapters.map((c, i) => (i === idx ? { ...c, ...patch } : c));
@@ -142,7 +152,7 @@ export function StoryPanel({
   return (
     <div>
       <PanelSection label="Photos → chapters" hint="Upload a batch and Pear drafts your story from them.">
-        <PhotoChaptersAI manifest={manifest} onResult={(next) => onChange({ ...manifest, chapters: [...chapters, ...next] })} />
+        <PhotoChaptersAI manifest={manifest} names={effectiveNames} onResult={(next) => onChange({ ...manifest, chapters: [...chapters, ...next] })} />
       </PanelSection>
 
       <PanelSection

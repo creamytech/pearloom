@@ -141,8 +141,10 @@ function LanguageSwitcher() {
       });
       setOriginal(snapshot);
       setCurrent(lang);
-    } catch {
-      // silent — leave original text alone
+    } catch (err) {
+      // Log so we can diagnose translate failures in production
+      // without silently stranding the guest on English.
+      console.warn('[translate] fell back to original:', err instanceof Error ? err.message : err);
     } finally {
       setWorking(false);
       setOpen(false);
@@ -1546,22 +1548,33 @@ function RegistrySection({ manifest }: { manifest: StoryManifest }) {
   // Legacy shape — registry sometimes lived as a flat array on the manifest.
   const legacyList = (manifest as unknown as { registry?: Array<{ label: string; url: string }> }).registry;
   const legacyEntries = Array.isArray(legacyList) ? legacyList : [];
-  const combined = [
-    ...entries.map((e, i) => ({
+  // Dedupe by URL — if the same registry appears in both the new
+  // nested shape AND the legacy flat array, we don't want to render
+  // it twice. The nested shape wins (has name + note).
+  const seenUrls = new Set<string>();
+  const combined: Array<{ name: string; d: string; url: string; icon: string; tone: 'peach' | 'sage' | 'lavender' }> = [];
+  entries.forEach((e, i) => {
+    if (!e.url || seenUrls.has(e.url)) return;
+    seenUrls.add(e.url);
+    combined.push({
       name: e.name ?? e.label ?? 'Registry',
-      d: e.note ?? (e.url ? e.url.replace(/^https?:\/\//, '').split('/')[0] : ''),
+      d: e.note ?? e.url.replace(/^https?:\/\//, '').split('/')[0],
       url: e.url,
       icon: ['gift', 'compass', 'image'][i % 3],
       tone: (['peach', 'sage', 'lavender'] as const)[i % 3],
-    })),
-    ...legacyEntries.map((r, i) => ({
+    });
+  });
+  legacyEntries.forEach((r, i) => {
+    if (!r.url || seenUrls.has(r.url)) return;
+    seenUrls.add(r.url);
+    combined.push({
       name: r.label,
       d: r.url.replace(/^https?:\/\//, '').split('/')[0],
       url: r.url,
       icon: ['gift', 'compass', 'image'][i % 3],
       tone: (['peach', 'sage', 'lavender'] as const)[i % 3],
-    })),
-  ];
+    });
+  });
   if (hasCashFund && reg?.cashFundUrl) {
     combined.unshift({
       name: 'Cash fund',

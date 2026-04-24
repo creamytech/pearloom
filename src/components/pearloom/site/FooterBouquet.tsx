@@ -24,10 +24,13 @@ export function FooterBouquet({ url }: Props) {
       <img
         src={url}
         alt=""
+        loading="lazy"
+        decoding="async"
         style={{
-          width: 'min(320px, 50vw)',
+          width: 'clamp(180px, 42vw, 320px)',
           height: 'auto',
-          maxHeight: 280,
+          maxHeight: 'min(280px, 40vh)',
+          aspectRatio: '2 / 3',
           objectFit: 'contain',
           mixBlendMode: 'multiply',
           opacity: 0.92,

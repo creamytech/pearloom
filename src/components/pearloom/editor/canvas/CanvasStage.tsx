@@ -38,8 +38,8 @@ import { EditorCanvasProvider } from './EditorCanvasContext';
 export type DeviceKey = 'desktop' | 'tablet' | 'phone';
 
 const DEVICE_WIDTH: Record<DeviceKey, number> = {
-  desktop: 1200,
-  tablet: 900,
+  desktop: 1280,
+  tablet: 820,
   phone: 390,
 };
 

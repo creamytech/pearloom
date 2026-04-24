@@ -8,7 +8,7 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Heart, Icon, Pear, PearloomLogo, PhotoPlaceholder, Sparkle, Squiggle, Blob } from '../motifs';
 import { Reveal } from '../motion';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
@@ -173,6 +173,10 @@ function WizardPhotoUpload({
 }) {
   const inputId = 'pl8-wizard-photo-input';
   const picker = useGooglePhotosPicker();
+  // Latest photos ref — patched into async mirror callbacks so they
+  // don't clobber intermediate edits (deletes, reorders, captions).
+  const photosRef = useRef(photos);
+  useEffect(() => { photosRef.current = photos; }, [photos]);
 
   async function handleFiles(files: FileList | null) {
     if (!files) return;
@@ -306,35 +310,33 @@ function WizardPhotoUpload({
           photos?: Array<{ id: string; baseUrl: string; width?: number; height?: number }>;
         };
         const byId = new Map(data.photos?.map((p) => [p.id, p]) ?? []);
-        // Patch staged photos with the mirrored R2 URL. Use the freshest
-        // photos array from state to avoid racing with other edits.
-        onChange([
-          ...photos,
-          ...staged.map((s) => {
-            const hit = byId.get(s.id);
-            if (!hit?.baseUrl) {
-              // Mirror failed but we still have the Google CDN URL;
-              // keep it so the user sees their photo. The manifest
-              // pipeline also runs `mirrorManifestPhotos` at publish,
-              // so this becomes a secondary safety net.
-              return { ...s, uploading: false };
-            }
-            return {
-              ...s,
-              uploading: false,
-              url: hit.baseUrl,
-              previewUrl: hit.baseUrl,
-              width: hit.width ?? s.width,
-              height: hit.height ?? s.height,
-            };
-          }),
-        ]);
+        // Use the freshest photos array from state to avoid racing
+        // with other edits. We match staged entries by id so if the
+        // user deleted or reordered photos while the mirror was in
+        // flight, we only touch the ones that still exist.
+        // Patch by id against whatever state is current — respects
+        // any deletes/reorders the user made during the round trip.
+        const patched = photosRef.current.map((p) => {
+          const hit = byId.get(p.id);
+          if (!hit?.baseUrl) {
+            if (p.source === 'google' && p.uploading) return { ...p, uploading: false };
+            return p;
+          }
+          return {
+            ...p,
+            uploading: false,
+            url: hit.baseUrl,
+            previewUrl: hit.baseUrl,
+            width: hit.width ?? p.width,
+            height: hit.height ?? p.height,
+          };
+        });
+        onChange(patched);
       } catch (err) {
         console.warn('[wizard] Google mirror failed:', err);
-        onChange([
-          ...photos,
-          ...staged.map((s) => ({ ...s, uploading: false })),
-        ]);
+        // Keep the previews but flip off uploading state, using the
+        // latest photos array so concurrent edits aren't clobbered.
+        onChange(photosRef.current.map((p) => (p.uploading ? { ...p, uploading: false } : p)));
       }
     });
   }
@@ -782,7 +784,22 @@ export function WizardV8() {
   const searchParams = useSearchParams();
   const templateId = searchParams.get('template');
   const [stepIndex, setStepIndex] = useState(0);
+  // Persist wizard state across refreshes so users don't lose their
+  // work if they accidentally reload mid-flow. Photos stay out of
+  // storage (too big); they'd need to be re-picked.
+  const STORAGE_KEY = 'pl-wizard-state-v1';
   const [st, setSt] = useState<WizardState>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw) as Partial<WizardState>;
+          if (parsed && typeof parsed === 'object') {
+            return { ...defaultState, ...parsed, photos: [] } as WizardState;
+          }
+        }
+      } catch {}
+    }
     if (!templateId) return defaultState;
     const tpl = TEMPLATES_BY_ID[templateId];
     if (!tpl) return defaultState;
@@ -795,6 +812,21 @@ export function WizardV8() {
       templateId,
     } as WizardState;
   });
+
+  // Debounced persistence — runs on every state change, but throttled
+  // to one write per 400ms so we don't thrash localStorage on each
+  // keystroke.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const t = setTimeout(() => {
+      try {
+        const { photos: _photos, ...persisted } = st;
+        void _photos;
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
+      } catch {}
+    }, 400);
+    return () => clearTimeout(t);
+  }, [st]);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [genStep, setGenStep] = useState<string>('');
@@ -1122,6 +1154,12 @@ export function WizardV8() {
         const { invalidateSitesCache } = await import('@/components/marketing/design/dash/hooks');
         invalidateSitesCache();
       } catch {}
+      // Clear persisted wizard state — user has their site, no reason
+      // to keep the draft. Prevents the wizard from showing yesterday's
+      // answers if the user starts a second site later.
+      if (typeof window !== 'undefined') {
+        try { window.localStorage.removeItem(STORAGE_KEY); } catch {}
+      }
       router.push(`/editor/${derivedSubdomain}`);
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Something went wrong');

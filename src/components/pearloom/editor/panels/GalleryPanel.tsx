@@ -1,9 +1,23 @@
 'use client';
 
-import { useRef, type ChangeEvent } from 'react';
+import { useRef, useState, type ChangeEvent } from 'react';
 import type { StoryManifest, Chapter } from '@/types';
 import { EmptyBlockState, PanelSection } from '../atoms';
 import { Icon } from '../../motifs';
+
+/** Reads natural width/height of a data-URL image so we persist
+ *  real dimensions on manifest.chapter.images[] instead of the
+ *  1600×1600 placeholder (which broke every non-square photo's
+ *  aspect ratio in the gallery layout). */
+function readImageDims(dataUrl: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined') return resolve({ width: 1600, height: 1600 });
+    const img = new Image();
+    img.onload = () => resolve({ width: img.naturalWidth || 1600, height: img.naturalHeight || 1600 });
+    img.onerror = () => resolve({ width: 1600, height: 1600 });
+    img.src = dataUrl;
+  });
+}
 
 export function GalleryPanel({
   manifest,
@@ -29,12 +43,42 @@ export function GalleryPanel({
     onChange({ ...manifest, chapters: next });
   }
 
-  function addToFirstChapter(urls: string[]) {
-    if (urls.length === 0) return;
+  async function addToFirstChapter(files: File[], dataUrls: string[]) {
+    if (dataUrls.length === 0) return;
+    // 1) Mirror to R2 so the final manifest carries permanent URLs
+    //    instead of megabytes of base64 that clobber the save payload.
+    //    Falls back to data URLs if the upload endpoint fails so the
+    //    user still sees their photos in the editor.
+    let uploadedUrls: string[] = [];
+    try {
+      const res = await fetch('/api/photos/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          photos: dataUrls.map((b, i) => ({
+            id: `gal-${Date.now()}-${i}`,
+            filename: files[i]?.name ?? `gallery-${i}.jpg`,
+            mimeType: files[i]?.type ?? 'image/jpeg',
+            base64: b,
+            capturedAt: files[i]?.lastModified
+              ? new Date(files[i].lastModified).toISOString()
+              : new Date().toISOString(),
+          })),
+        }),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { photos?: Array<{ baseUrl?: string }> };
+        uploadedUrls = (data.photos ?? []).map((p) => p.baseUrl ?? '');
+      }
+    } catch {}
+    const finalUrls = dataUrls.map((d, i) => uploadedUrls[i] || d);
+    const dims = await Promise.all(dataUrls.map((d) => readImageDims(d)));
+    const ts = Date.now().toString(36);
+
     let target = chapters[0];
     if (!target) {
       target = {
-        id: `ch-gallery-${Date.now().toString(36)}`,
+        id: `ch-gallery-${ts}`,
         date: new Date().toISOString().slice(0, 10),
         title: 'Along the way',
         subtitle: '',
@@ -44,25 +88,24 @@ export function GalleryPanel({
         mood: 'warm',
         order: 0,
       };
-      const nextChapters = [target];
-      const nextImages = urls.map((u, i) => ({
-        id: `img-${Date.now().toString(36)}-${i}`,
+      const nextImages = finalUrls.map((u, i) => ({
+        id: `img-${ts}-${i}`,
         url: u,
         alt: '',
-        width: 1600,
-        height: 1600,
+        width: dims[i].width,
+        height: dims[i].height,
       }));
       onChange({ ...manifest, chapters: [{ ...target, images: nextImages }] });
       return;
     }
     const nextImages = [
       ...(target.images ?? []),
-      ...urls.map((u, i) => ({
-        id: `img-${Date.now().toString(36)}-${i}`,
+      ...finalUrls.map((u, i) => ({
+        id: `img-${ts}-${i}`,
         url: u,
         alt: '',
-        width: 1600,
-        height: 1600,
+        width: dims[i].width,
+        height: dims[i].height,
       })),
     ];
     updateChapter(0, { images: nextImages });
@@ -78,19 +121,27 @@ export function GalleryPanel({
   async function onFiles(e: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
-    const urls = await Promise.all(
-      files.map(
-        (f) =>
-          new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
-            reader.readAsDataURL(f);
-          })
-      )
-    );
-    addToFirstChapter(urls.filter(Boolean));
-    if (inputRef.current) inputRef.current.value = '';
+    setUploading(true);
+    try {
+      const urls = await Promise.all(
+        files.map(
+          (f) =>
+            new Promise<string>((resolve) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
+              reader.readAsDataURL(f);
+            })
+        )
+      );
+      await addToFirstChapter(files, urls.filter(Boolean));
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = '';
+    }
   }
+
+  const [uploading, setUploading] = useState(false);
+  void uploading;
 
   return (
     <div>

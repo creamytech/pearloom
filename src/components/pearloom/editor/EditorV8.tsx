@@ -85,7 +85,12 @@ const BLOCKS_BY_KEY: Record<BlockKey, BlockDef> = BLOCKS.reduce((acc, b) => ({ .
 
 const REORDERABLE_KEYS: BlockKey[] = BLOCKS.filter((b) => b.reorderable).map((b) => b.key);
 
-const DEVICE_WIDTH: Record<DeviceKey, number> = { desktop: 1200, tablet: 900, phone: 390 };
+// Device preview widths — each pick is a real popular breakpoint.
+//   desktop → 1280 (std laptop)
+//   tablet  → 820  (iPad portrait)
+//   phone   → 390  (iPhone 14)
+// Users can drag the canvas edge to fine-tune past these presets.
+const DEVICE_WIDTH: Record<DeviceKey, number> = { desktop: 1280, tablet: 820, phone: 390 };
 
 export function EditorV8({
   manifest: initialManifest,
@@ -110,6 +115,7 @@ export function EditorV8({
   const [block, setBlock] = useState<BlockKey>('hero');
   const [device, setDevice] = useState<DeviceKey>('desktop');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [publishError, setPublishError] = useState<string | null>(null);
   const [advisorOpen, setAdvisorOpen] = useState(false);
   // Mobile-first fallback. <960px collapses the 3-pane layout into
   // a single canvas with drawers for Outline + Inspector (P0 fix,
@@ -131,6 +137,7 @@ export function EditorV8({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [block]);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveInFlight = useRef(false);
   // Ref to the canvas stage container — used for scroll-to-block
   // and click-to-select behaviour since the canvas now lives in
   // the same document as the editor chrome (no more iframe).
@@ -152,6 +159,15 @@ export function EditorV8({
       setSaveStatus('saving');
       if (saveTimer.current) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(async () => {
+        // If a previous autosave is in flight, skip this tick — the
+        // next keystroke will schedule another timer and we'll pick
+        // up the latest state. Prevents out-of-order writes clobbering
+        // the server's record when the user types quickly.
+        if (saveInFlight.current) {
+          saveTimer.current = setTimeout(() => queueSave(nextManifest, nextNames), 300);
+          return;
+        }
+        saveInFlight.current = true;
         try {
           const saveable = stripArtForStorage(nextManifest);
           const res = await fetch('/api/sites', {
@@ -164,9 +180,12 @@ export function EditorV8({
           setTimeout(() => setSaveStatus('idle'), 1400);
         } catch {
           setSaveStatus('error');
+        } finally {
+          saveInFlight.current = false;
         }
       }, 900);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [siteSlug]
   );
 
@@ -206,6 +225,7 @@ export function EditorV8({
     // published site row. The autosave endpoint only saves the draft.
     const saveable = stripArtForStorage(manifest);
     setSaveStatus('saving');
+    setPublishError(null);
     try {
       const res = await fetch('/api/sites/publish', {
         method: 'POST',
@@ -214,14 +234,24 @@ export function EditorV8({
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error((body as { error?: string }).error || String(res.status));
+        throw new Error((body as { error?: string }).error || `Publish failed (${res.status})`);
       }
       const next = { ...manifest, published: true } as StoryManifest;
       setManifest(next);
+      // Record the published state in history so undo doesn't nuke the publish.
+      history.record(next, names);
+      // Invalidate the dashboard sites cache so the dashboard sees
+      // the newly-published state (badge turns green, URL resolves).
+      try {
+        const { invalidateSitesCache } = await import('@/components/marketing/design/dash/hooks');
+        invalidateSitesCache();
+      } catch {}
       setSaveStatus('saved');
       window.open(prettyPath, '_blank');
       setTimeout(() => setSaveStatus('idle'), 1500);
-    } catch {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Publish failed';
+      setPublishError(msg);
       setSaveStatus('error');
     }
   }
@@ -234,13 +264,16 @@ export function EditorV8({
     const target = BLOCKS_BY_KEY[block];
     const scope = canvasRef.current;
     if (!target || !scope) return;
-    // Clear previous highlights
-    scope.querySelectorAll<HTMLElement>('[data-pl8-active="1"]').forEach((el) => {
-      el.removeAttribute('data-pl8-active');
-      el.style.outline = '';
-      el.style.outlineOffset = '';
-      el.style.transition = '';
-    });
+    // Clear previous highlights. Wrapped in try so a borked selector
+    // doesn't crash the editor shell.
+    try {
+      scope.querySelectorAll<HTMLElement>('[data-pl8-active="1"]').forEach((el) => {
+        el.removeAttribute('data-pl8-active');
+        el.style.outline = '';
+        el.style.outlineOffset = '';
+        el.style.transition = '';
+      });
+    } catch {}
 
     const anchor = target.anchor;
     if (anchor === 'top') {
@@ -248,8 +281,15 @@ export function EditorV8({
       return;
     }
     // Anchors are known kebab-case identifiers (top, our-story,
-    // schedule, rsvp, etc.) — safe to interpolate directly.
-    const el = scope.querySelector<HTMLElement>(`#${anchor}`);
+    // schedule, rsvp, etc.) — but still defensively validate to avoid
+    // a CSS selector-injection from an unexpected block registration.
+    if (!/^[a-z][a-z0-9-]*$/i.test(anchor)) return;
+    let el: HTMLElement | null = null;
+    try {
+      el = scope.querySelector<HTMLElement>(`#${anchor}`);
+    } catch {
+      el = null;
+    }
     if (!el) return;
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     el.setAttribute('data-pl8-active', '1');
@@ -331,6 +371,41 @@ export function EditorV8({
 
   return (
     <div className="pl8 pl8-editor-v8" style={{ minHeight: '100vh', background: 'var(--cream)', display: 'flex', flexDirection: 'column' }}>
+      {publishError && (
+        <div
+          role="alert"
+          style={{
+            position: 'fixed',
+            top: 16,
+            right: 16,
+            maxWidth: 380,
+            padding: '12px 16px',
+            background: 'var(--card)',
+            border: '1px solid #7A2D2D',
+            borderRadius: 12,
+            boxShadow: '0 8px 20px rgba(14,13,11,0.22)',
+            zIndex: 9999,
+            display: 'flex',
+            gap: 12,
+            alignItems: 'flex-start',
+          }}
+        >
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#7A2D2D', marginBottom: 4 }}>Publish failed</div>
+            <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.4, wordBreak: 'break-word' }}>
+              {publishError}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setPublishError(null)}
+            style={{ background: 'transparent', border: 'none', color: 'var(--ink-soft)', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}
+            aria-label="Dismiss"
+          >
+            ×
+          </button>
+        </div>
+      )}
       <EditorTopbar
         displayNames={displayNames}
         prettyUrl={prettyUrl}
@@ -1015,7 +1090,7 @@ function PanelSwitch({
     case 'hero':
       return <HeroPanel manifest={manifest} names={names} onNamesChange={onNamesChange} onChange={onChange} />;
     case 'story':
-      return <StoryPanel manifest={manifest} onChange={onChange} />;
+      return <StoryPanel manifest={manifest} names={names} onChange={onChange} />;
     case 'details':
       return <DetailsPanel manifest={manifest} onChange={onChange} />;
     case 'schedule':

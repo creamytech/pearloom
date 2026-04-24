@@ -21,8 +21,9 @@ interface Snapshot {
   at: number;
 }
 
-const MAX_SNAPSHOTS = 50;
+const MAX_SNAPSHOTS = 80;
 const COALESCE_MS = 650;
+let historyCapWarned = false;
 
 export interface EditorHistoryApi {
   canUndo: boolean;
@@ -65,7 +66,16 @@ export function useEditorHistory(
         // to the committed snapshot; drop the redo queue since
         // we've branched the history.
         pastRef.current.push(cur);
-        if (pastRef.current.length > MAX_SNAPSHOTS) pastRef.current.shift();
+        if (pastRef.current.length > MAX_SNAPSHOTS) {
+          pastRef.current.shift();
+          // One-time warn so we know when users are hitting the cap
+          // (dev tool; not user-visible). If this shows up in the
+          // wild, we should bump the cap or persist to IndexedDB.
+          if (!historyCapWarned) {
+            historyCapWarned = true;
+            console.warn(`[editor] Undo history capped at ${MAX_SNAPSHOTS} entries; oldest dropping off.`);
+          }
+        }
         currentRef.current = { manifest, names, at: now };
         futureRef.current = [];
         bump();

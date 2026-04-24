@@ -59,15 +59,63 @@ export function SchedulePanel({
 
   function preset() {
     const d = manifest.logistics?.date ?? '';
-    set([
-      { id: 'evt-arrive', name: 'Arrive & settle', type: 'welcome-party', date: d, time: '3:30', venue: '', address: '', description: 'Grab a drink, grab a seat.', order: 0 } as WeddingEvent,
-      { id: 'evt-ceremony', name: 'Ceremony', type: 'ceremony', date: d, time: '4:00', venue: '', address: '', description: 'Forty minutes, give or take a few happy tears.', order: 1 } as WeddingEvent,
-      { id: 'evt-cocktail', name: 'Cocktail hour', type: 'reception', date: d, time: '4:45', venue: '', address: '', description: 'Signature drinks. Lawn games for the brave.', order: 2 } as WeddingEvent,
-      { id: 'evt-dinner', name: 'Dinner', type: 'reception', date: d, time: '6:00', venue: '', address: '', description: 'Family-style, local. Toasts from family.', order: 3 } as WeddingEvent,
-      { id: 'evt-dance', name: 'First dance + open floor', type: 'reception', date: d, time: '8:30', venue: '', address: '', description: 'The slow one, then the loud one.', order: 4 } as WeddingEvent,
-      { id: 'evt-pie', name: 'Late-night bites', type: 'reception', date: d, time: '10:30', venue: '', address: '', description: "You'll be hungry again, promise.", order: 5 } as WeddingEvent,
-      { id: 'evt-sendoff', name: 'Send-off', type: 'other', date: d, time: '11:30', venue: '', address: '', description: 'Safe travels.', order: 6 } as WeddingEvent,
-    ]);
+    const occ = (manifest as unknown as { occasion?: string }).occasion ?? 'wedding';
+    const make = (id: string, name: string, type: WeddingEvent['type'], time: string, description: string): WeddingEvent => ({
+      id, name, type, date: d, time, venue: '', address: '', description, order: 0,
+    } as WeddingEvent);
+    // Presets tuned to occasion. Single-person events use shorter
+    // sequences; memorials are reverent; birthdays are punchy.
+    let next: WeddingEvent[] = [];
+    if (occ === 'memorial' || occ === 'funeral' || occ === 'celebration-life') {
+      next = [
+        make('evt-gather', 'Gathering', 'welcome-party', '10:30', 'Coffee, quiet, presence.'),
+        make('evt-service', 'Service', 'ceremony', '11:00', 'Readings, music, a few words from family.'),
+        make('evt-reception', 'Reception', 'reception', '12:30', 'Lunch in the hall. Stay as long as you like.'),
+      ];
+    } else if (occ === 'birthday' || occ === 'milestone-birthday' || occ === 'sweet-sixteen') {
+      next = [
+        make('evt-arrive', 'Doors open', 'welcome-party', '7:00', 'Drinks + first hellos.'),
+        make('evt-dinner', 'Dinner', 'reception', '7:45', 'Family-style, long tables.'),
+        make('evt-toast', 'Toasts', 'reception', '9:00', 'A few words from the people who know you best.'),
+        make('evt-dance', 'Dance floor', 'reception', '9:30', 'Stay late.'),
+      ];
+    } else if (occ === 'baby-shower' || occ === 'bridal-shower') {
+      next = [
+        make('evt-brunch', 'Brunch', 'brunch', '11:00', 'Quiches, fruit, coffee.'),
+        make('evt-games', 'Shower moments', 'reception', '12:15', 'Games, wishes, small rituals.'),
+        make('evt-gifts', 'Gifts', 'reception', '1:00', 'Opening together. No rush.'),
+      ];
+    } else if (occ === 'retirement') {
+      next = [
+        make('evt-cocktails', 'Cocktails', 'welcome-party', '6:00', 'Arrive and say hello.'),
+        make('evt-dinner', 'Dinner', 'reception', '7:00', 'Plated, stories between courses.'),
+        make('evt-toasts', 'Toasts', 'reception', '8:30', "The good ones from people who've been there the longest."),
+      ];
+    } else if (occ === 'graduation') {
+      next = [
+        make('evt-ceremony', 'Ceremony', 'ceremony', '10:00', 'Walk across the stage. Brief, proud, loud.'),
+        make('evt-lunch', 'Family lunch', 'reception', '12:30', 'Local spot, long table.'),
+        make('evt-party', 'Open house', 'reception', '2:00', 'Drop by until 7. Food, cake, friends.'),
+      ];
+    } else if (occ === 'reunion') {
+      next = [
+        make('evt-meet', 'Friday mixer', 'welcome-party', '7:00', 'Name tags, drinks, a slideshow on loop.'),
+        make('evt-dinner', 'Saturday dinner', 'reception', '6:30', 'Plated, reunion-committee speeches.'),
+        make('evt-farewell', 'Sunday farewell brunch', 'brunch', '10:00', 'Coffee + last goodbyes.'),
+      ];
+    } else {
+      // Default wedding-arc preset.
+      next = [
+        make('evt-arrive', 'Arrive & settle', 'welcome-party', '3:30', 'Grab a drink, grab a seat.'),
+        make('evt-ceremony', 'Ceremony', 'ceremony', '4:00', 'Forty minutes, give or take a few happy tears.'),
+        make('evt-cocktail', 'Cocktail hour', 'reception', '4:45', 'Signature drinks. Lawn games for the brave.'),
+        make('evt-dinner', 'Dinner', 'reception', '6:00', 'Family-style, local. Toasts from family.'),
+        make('evt-dance', 'First dance + open floor', 'reception', '8:30', 'The slow one, then the loud one.'),
+        make('evt-pie', 'Late-night bites', 'reception', '10:30', "You'll be hungry again, promise."),
+        make('evt-sendoff', 'Send-off', 'other', '11:30', 'Safe travels.'),
+      ];
+    }
+    set(next);
   }
 
   return (

@@ -95,39 +95,53 @@ export function RsvpPanel({
             }
           />
         </Field>
-        <Toggle
-          label="Allow plus-ones"
-          help="Guests can note a plus-one name on the RSVP form."
-          on={(manifest as unknown as { rsvpConfig?: { plusOnes?: boolean } }).rsvpConfig?.plusOnes ?? true}
-          onChange={(v) =>
-            onChange({
-              ...manifest,
-              rsvpConfig: {
-                ...((manifest as unknown as { rsvpConfig?: Record<string, unknown> }).rsvpConfig ?? {}),
-                plusOnes: v,
-              },
-            } as unknown as StoryManifest)
-          }
-        />
-        <Toggle
-          label="Collect song requests"
-          on={(manifest as unknown as { rsvpConfig?: { songRequests?: boolean } }).rsvpConfig?.songRequests ?? true}
-          onChange={(v) =>
-            onChange({
-              ...manifest,
-              rsvpConfig: {
-                ...((manifest as unknown as { rsvpConfig?: Record<string, unknown> }).rsvpConfig ?? {}),
-                songRequests: v,
-              },
-            } as unknown as StoryManifest)
-          }
-        />
-        <Toggle
-          label="Guestbook on published site"
-          help="Shows a live guest wall on the Day-of page + published site."
-          on={features.guestbook ?? false}
-          onChange={(v) => onChange({ ...manifest, features: { ...features, guestbook: v } })}
-        />
+        <fieldset
+          style={{
+            border: 'none',
+            padding: 0,
+            margin: '6px 0 0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6,
+          }}
+        >
+          <legend style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-muted)', letterSpacing: '0.14em', textTransform: 'uppercase', padding: 0, marginBottom: 4 }}>
+            What to collect
+          </legend>
+          <Toggle
+            label="Allow plus-ones"
+            help="Guests can note a plus-one name on the RSVP form."
+            on={(manifest as unknown as { rsvpConfig?: { plusOnes?: boolean } }).rsvpConfig?.plusOnes ?? true}
+            onChange={(v) =>
+              onChange({
+                ...manifest,
+                rsvpConfig: {
+                  ...((manifest as unknown as { rsvpConfig?: Record<string, unknown> }).rsvpConfig ?? {}),
+                  plusOnes: v,
+                },
+              } as unknown as StoryManifest)
+            }
+          />
+          <Toggle
+            label="Collect song requests"
+            on={(manifest as unknown as { rsvpConfig?: { songRequests?: boolean } }).rsvpConfig?.songRequests ?? true}
+            onChange={(v) =>
+              onChange({
+                ...manifest,
+                rsvpConfig: {
+                  ...((manifest as unknown as { rsvpConfig?: Record<string, unknown> }).rsvpConfig ?? {}),
+                  songRequests: v,
+                },
+              } as unknown as StoryManifest)
+            }
+          />
+          <Toggle
+            label="Guestbook on published site"
+            help="Shows a live guest wall on the Day-of page + published site."
+            on={features.guestbook ?? false}
+            onChange={(v) => onChange({ ...manifest, features: { ...features, guestbook: v } })}
+          />
+        </fieldset>
       </PanelSection>
 
       <PanelSection

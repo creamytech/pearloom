@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Field, PanelSection, SegmentedToggle, SelectInput, TextInput } from '../atoms';
 import { Blob, Pear, Sparkle, Squiggle } from '../../motifs';
@@ -286,6 +287,8 @@ function AiAccentSection({
   manifest: StoryManifest;
   onChange: (m: StoryManifest) => void;
 }) {
+  const [running, setRunning] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const existing = (manifest as unknown as { aiAccentUrl?: string }).aiAccentUrl;
   const occasion = (manifest as unknown as { occasion?: string }).occasion ?? 'wedding';
   const venue = manifest.logistics?.venue ?? '';
@@ -296,11 +299,8 @@ function AiAccentSection({
   const siteId = (manifest as unknown as { subdomain?: string }).subdomain ?? 'preview';
 
   async function generate() {
-    const btn = document.getElementById('pl-ai-accent-btn') as HTMLButtonElement | null;
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = 'Drafting…';
-    }
+    setRunning(true);
+    setError(null);
     try {
       const res = await fetch('/api/decor/ai-accent', {
         method: 'POST',
@@ -315,20 +315,15 @@ function AiAccentSection({
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error((body as { error?: string }).error ?? String(res.status));
+        throw new Error((body as { error?: string }).error ?? `Accent failed (${res.status})`);
       }
       const data = (await res.json()) as { url?: string };
-      if (data.url) {
-        onChange({ ...manifest, aiAccentUrl: data.url } as unknown as StoryManifest);
-      }
+      if (!data.url) throw new Error('No accent URL returned');
+      onChange({ ...manifest, aiAccentUrl: data.url } as unknown as StoryManifest);
     } catch (err) {
-      console.error('[ai-accent]', err);
-      if (btn) btn.textContent = 'Try again';
+      setError(err instanceof Error ? err.message : 'Accent generation failed');
     } finally {
-      if (btn) {
-        btn.disabled = false;
-        if (btn.textContent !== 'Try again') btn.textContent = existing ? 'Draft a new one' : 'Draft an accent';
-      }
+      setRunning(false);
     }
   }
 
@@ -361,16 +356,22 @@ function AiAccentSection({
           id="pl-ai-accent-btn"
           type="button"
           onClick={generate}
+          disabled={running}
           className="btn btn-outline btn-sm"
         >
-          {existing ? 'Draft a new one' : 'Draft an accent'}
+          {running ? 'Drafting…' : existing ? 'Draft a new one' : 'Draft an accent'}
         </button>
         {existing && (
-          <button type="button" onClick={clear} className="btn btn-ghost btn-sm">
+          <button type="button" onClick={clear} className="btn btn-ghost btn-sm" disabled={running}>
             Remove
           </button>
         )}
       </div>
+      {error && (
+        <div role="alert" style={{ marginTop: 10, fontSize: 12, color: '#7A2D2D', lineHeight: 1.45 }}>
+          {error}
+        </div>
+      )}
     </PanelSection>
   );
 }

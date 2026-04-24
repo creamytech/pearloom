@@ -98,7 +98,9 @@ export function HoverToolbar({ value, onResult, actions, children, context }: Ho
     position: 'absolute',
     top: -14,
     right: 8,
-    zIndex: 10,
+    // Above canvas content but below editor modals + toasts
+    // (design-advisor = 1200, publish banner = 9999).
+    zIndex: 50,
     display: 'flex',
     gap: 6,
     padding: '6px 8px',
