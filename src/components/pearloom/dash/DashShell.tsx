@@ -32,6 +32,7 @@ const DASH_NAV: DashNavItem[] = [
   { id: 'memory-book', label: 'Memory book', icon: 'grid', href: '/dashboard/memory-book' },
   { id: 'templates', label: 'Templates', icon: 'grid', href: '/templates' },
   { id: 'connections', label: 'Guest Manager', icon: 'user-plus', href: '/dashboard/connections' },
+  { id: 'submissions', label: 'Submissions', icon: 'mail', href: '/dashboard/submissions' },
   { id: 'analytics', label: 'Analytics', icon: 'sparkles', href: '/dashboard/analytics' },
   { id: 'settings', label: 'Settings', icon: 'settings', href: '/dashboard/profile' },
 ];

@@ -22,6 +22,8 @@ import {
   Camera,
   Edit3,
   Mic,
+  Download,
+  FileText,
 } from 'lucide-react';
 import { StatTile, Button } from '@/components/shell';
 import { formatSiteDisplayUrl } from '@/lib/site-urls';
@@ -168,7 +170,29 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
               </span>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              leftIcon={<Download size={15} />}
+              onClick={() => {
+                // JSON site export — opens in a new tab so the
+                // browser triggers the native save dialog.
+                if (site.id) window.open(`/api/export/site?siteId=${encodeURIComponent(site.id)}`, '_blank');
+              }}
+            >
+              Export
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              leftIcon={<FileText size={15} />}
+              onClick={() => {
+                if (site.id) window.open(`/api/export-pdf?siteId=${encodeURIComponent(site.id)}`, '_blank');
+              }}
+            >
+              Printable book
+            </Button>
             {onShare && (
               <Button variant="outline" size="sm" onClick={onShare} leftIcon={<ArrowUpRight size={16} />}>
                 Share site

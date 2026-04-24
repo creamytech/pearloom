@@ -632,12 +632,9 @@ button.pl8-mobile-only { display: none !important; }
   .pl8-editor-inspector { width: 320px !important; }
 }
 @media (max-width: 900px) {
-  .pl8-builder-main,
-  .pl8-editor-main { flex-direction: column !important; overflow-y: auto; }
+  .pl8-builder-main { flex-direction: column !important; overflow-y: auto; }
   .pl8-builder-outline,
-  .pl8-builder-style,
-  .pl8-editor-outline,
-  .pl8-editor-inspector {
+  .pl8-builder-style {
     width: 100% !important;
     max-height: 60vh;
     border: 0 !important;
@@ -647,6 +644,17 @@ button.pl8-mobile-only { display: none !important; }
   .pl8-editor-canvas { padding: 16px !important; }
   .pl8-builder-preview iframe,
   .pl8-editor-canvas iframe { height: 600px !important; }
+}
+
+/* Editor v8 mobile — the full-height drawers slide up over the canvas. */
+@keyframes pl8-drawer-up {
+  from { transform: translateY(100%); opacity: 0.6; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@media (max-width: 959px) {
+  .pl8-editor-drawer { width: 100% !important; }
+  /* The mobile drawer supersedes the inline outline/inspector panels,
+     which are hidden by the component tree at <960px anyway. */
 }
 
 /* Marketplace grid + sidebar responsive behavior */

@@ -111,6 +111,25 @@ export function EditorV8({
   const [device, setDevice] = useState<DeviceKey>('desktop');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [advisorOpen, setAdvisorOpen] = useState(false);
+  // Mobile-first fallback. <960px collapses the 3-pane layout into
+  // a single canvas with drawers for Outline + Inspector (P0 fix,
+  // replaces the "editor requires a laptop" failure mode).
+  const [isNarrow, setIsNarrow] = useState(false);
+  const [mobileDrawer, setMobileDrawer] = useState<'outline' | 'inspector' | null>(null);
+  useEffect(() => {
+    function update() {
+      setIsNarrow(window.innerWidth < 960);
+    }
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+  // Auto-close the drawer whenever the user jumps to a new block
+  // on mobile — feels like "you tapped a block, now edit it."
+  useEffect(() => {
+    if (isNarrow && mobileDrawer === 'outline') setMobileDrawer('inspector');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [block]);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Ref to the canvas stage container — used for scroll-to-block
   // and click-to-select behaviour since the canvas now lives in
@@ -319,33 +338,69 @@ export function EditorV8({
         onUndo={history.undo}
         onRedo={history.redo}
       />
-      <div className="pl8-editor-main" style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-        <Outline
-          block={block}
-          setBlock={setBlock}
-          blockOrder={blockOrder}
-          hiddenBlocks={hiddenBlocks}
-          onReorder={reorderBlocks}
-          onToggleHidden={toggleBlockHidden}
-        />
+      <div className="pl8-editor-main" style={{ display: 'flex', flex: 1, minHeight: 0, position: 'relative' }}>
+        {!isNarrow && (
+          <Outline
+            block={block}
+            setBlock={setBlock}
+            blockOrder={blockOrder}
+            hiddenBlocks={hiddenBlocks}
+            onReorder={reorderBlocks}
+            onToggleHidden={toggleBlockHidden}
+          />
+        )}
         <CanvasStage
           ref={canvasRef}
           manifest={manifest}
           names={names}
           siteSlug={siteSlug}
           prettyUrl={prettyUrl}
-          device={device}
+          device={isNarrow ? 'phone' : device}
           onManifestChange={onManifestChange}
           onNamesChange={onNamesChange}
         />
-        <Inspector
-          block={block}
-          manifest={manifest}
-          names={names}
-          onChange={onManifestChange}
-          onNamesChange={onNamesChange}
-        />
+        {!isNarrow && (
+          <Inspector
+            block={block}
+            manifest={manifest}
+            names={names}
+            onChange={onManifestChange}
+            onNamesChange={onNamesChange}
+          />
+        )}
+        {isNarrow && mobileDrawer && (
+          <MobileDrawer onClose={() => setMobileDrawer(null)}>
+            {mobileDrawer === 'outline' ? (
+              <Outline
+                block={block}
+                setBlock={(k) => {
+                  setBlock(k);
+                  setMobileDrawer('inspector');
+                }}
+                blockOrder={blockOrder}
+                hiddenBlocks={hiddenBlocks}
+                onReorder={reorderBlocks}
+                onToggleHidden={toggleBlockHidden}
+              />
+            ) : (
+              <Inspector
+                block={block}
+                manifest={manifest}
+                names={names}
+                onChange={onManifestChange}
+                onNamesChange={onNamesChange}
+              />
+            )}
+          </MobileDrawer>
+        )}
       </div>
+      {isNarrow && (
+        <MobileTabbar
+          mobileDrawer={mobileDrawer}
+          setMobileDrawer={setMobileDrawer}
+          blockLabel={BLOCKS_BY_KEY[block]?.label ?? 'Edit'}
+        />
+      )}
       <PearCommand
         manifest={manifest}
         names={names}
@@ -975,4 +1030,115 @@ function PanelSwitch({
     default:
       return null;
   }
+}
+
+/* ---------- Mobile drawer + tabbar ---------- */
+function MobileDrawer({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  return (
+    <>
+      <div
+        onClick={onClose}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'rgba(18, 15, 12, 0.38)',
+          backdropFilter: 'blur(2px)',
+          zIndex: 40,
+        }}
+      />
+      <div
+        className="pl8-editor-drawer"
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 56,
+          top: 'auto',
+          maxHeight: 'calc(100vh - 180px)',
+          background: 'var(--cream)',
+          borderTop: '1px solid var(--line-soft)',
+          borderRadius: '20px 20px 0 0',
+          zIndex: 41,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          boxShadow: '0 -12px 32px rgba(18, 15, 12, 0.16)',
+          animation: 'pl8-drawer-up 220ms cubic-bezier(0.16, 1, 0.3, 1)',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 4px' }}>
+          <div style={{ width: 38, height: 4, borderRadius: 2, background: 'var(--line-soft)' }} />
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          {children}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function MobileTabbar({
+  mobileDrawer,
+  setMobileDrawer,
+  blockLabel,
+}: {
+  mobileDrawer: 'outline' | 'inspector' | null;
+  setMobileDrawer: (d: 'outline' | 'inspector' | null) => void;
+  blockLabel: string;
+}) {
+  const btn = (active: boolean): React.CSSProperties => ({
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    padding: '8px 4px',
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    color: active ? 'var(--ink)' : 'var(--ink-soft)',
+    fontSize: 11,
+    fontWeight: 600,
+  });
+  return (
+    <div
+      style={{
+        position: 'sticky',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 56,
+        background: 'var(--cream)',
+        borderTop: '1px solid var(--line-soft)',
+        display: 'flex',
+        zIndex: 50,
+      }}
+    >
+      <button
+        type="button"
+        style={btn(mobileDrawer === 'outline')}
+        onClick={() => setMobileDrawer(mobileDrawer === 'outline' ? null : 'outline')}
+      >
+        <Icon name="section" size={18} />
+        <span>Blocks</span>
+      </button>
+      <button
+        type="button"
+        style={btn(mobileDrawer === null)}
+        onClick={() => setMobileDrawer(null)}
+      >
+        <Icon name="image" size={18} />
+        <span>Preview</span>
+      </button>
+      <button
+        type="button"
+        style={btn(mobileDrawer === 'inspector')}
+        onClick={() => setMobileDrawer(mobileDrawer === 'inspector' ? null : 'inspector')}
+      >
+        <Icon name="brush" size={18} />
+        <span>{blockLabel.length > 8 ? 'Edit' : blockLabel}</span>
+      </button>
+    </div>
+  );
 }

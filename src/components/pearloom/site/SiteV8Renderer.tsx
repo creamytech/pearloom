@@ -6,7 +6,7 @@
    "Alex & Jamie" layout from the handoff mockup.
    ======================================================================== */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import type { StoryManifest, Chapter } from '@/types';
 import {
   Blob,
@@ -24,6 +24,17 @@ import { EditorCanvasProvider, useIsEditMode } from '../editor/canvas/EditorCanv
 import { EditableText } from '../editor/canvas/EditableText';
 import { SortableChapters } from '../editor/canvas/SortableChapters';
 import { HoverToolbar } from '../editor/canvas/HoverToolbar';
+import { ActivityVoteBlock } from '@/components/site/ActivityVoteBlock';
+import { AdviceWallBlock } from '@/components/site/AdviceWallBlock';
+import { CostSplitterBlock } from '@/components/site/CostSplitterBlock';
+import { ItineraryBlock } from '@/components/site/ItineraryBlock';
+import { LivestreamBlock } from '@/components/site/LivestreamBlock';
+import { ObituaryBlock } from '@/components/site/ObituaryBlock';
+import { PackingListBlock } from '@/components/site/PackingListBlock';
+import { PrivacyGateBlock } from '@/components/site/PrivacyGateBlock';
+import { ProgramBlock } from '@/components/site/ProgramBlock';
+import { ToastSignupBlock } from '@/components/site/ToastSignupBlock';
+import type { PageBlock } from '@/types';
 
 // Callback passed down for inline edits. Parent (CanvasStage)
 // owns the manifest and wires each field edit back.
@@ -550,7 +561,23 @@ function HeroSection({
 
 /* ==================== TIMELINE ==================== */
 function TimelineSection({ chapters, onEditField }: { chapters: Chapter[]; onEditField?: FieldEditor }) {
-  if (!chapters.length) return null;
+  const edit = useIsEditMode();
+  if (!chapters.length && !edit) return null;
+  const addChapter = () => {
+    onEditField?.((m) => {
+      const arr = [...(m.chapters ?? [])];
+      const year = new Date().getFullYear();
+      arr.push({
+        id: `ch-${Date.now()}`,
+        title: 'New chapter',
+        subtitle: '',
+        description: 'Tell the story of this moment.',
+        date: `${year}-01-01`,
+        images: [],
+      } as unknown as Chapter);
+      return { ...m, chapters: arr };
+    });
+  };
   return (
     <section id="our-story" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
       <div style={{ maxWidth: 1160, margin: '0 auto' }}>
@@ -660,6 +687,27 @@ function TimelineSection({ chapters, onEditField }: { chapters: Chapter[]; onEdi
               );
             }}
           </SortableChapters>
+          {edit && (
+            <div style={{ textAlign: 'center', marginTop: 32 }}>
+              <button
+                type="button"
+                onClick={addChapter}
+                className="pl8-canvas-add"
+                style={{
+                  padding: '12px 22px',
+                  background: 'var(--card)',
+                  border: '1px dashed var(--sage-deep)',
+                  borderRadius: 999,
+                  color: 'var(--sage-deep)',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                + Add a chapter
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </section>
@@ -870,11 +918,27 @@ function DetailsStrip({ manifest }: { manifest: StoryManifest }) {
 }
 
 /* ==================== SCHEDULE ==================== */
-function ScheduleSection({ manifest, names }: { manifest: StoryManifest; names: [string, string] }) {
+function ScheduleSection({ manifest, names, onEditField }: { manifest: StoryManifest; names: [string, string]; onEditField?: FieldEditor }) {
+  const edit = useIsEditMode();
   const dateInfo = fmtEventDate(manifest.logistics?.date);
   const events = manifest.events ?? [];
   // Hide the whole section rather than ship a demo schedule.
-  if (events.length === 0) return null;
+  if (events.length === 0 && !edit) return null;
+  const addEvent = () => {
+    onEditField?.((m) => {
+      const arr = [...((m.events ?? []))];
+      arr.push({
+        id: `evt-${Date.now()}`,
+        name: 'New event',
+        type: 'other',
+        time: '18:00',
+        description: '',
+        order: arr.length,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+      return { ...m, events: arr };
+    });
+  };
 
   const tagFromType: Record<string, string> = {
     ceremony: 'Ceremony',
@@ -965,6 +1029,27 @@ function ScheduleSection({ manifest, names }: { manifest: StoryManifest; names: 
               </div>
             </div>
           ))}
+          {edit && (
+            <button
+              type="button"
+              onClick={addEvent}
+              className="pl8-canvas-add"
+              style={{
+                width: '100%',
+                padding: '18px 26px',
+                background: 'transparent',
+                border: 'none',
+                borderTop: rows.length ? '1px dashed var(--line-soft)' : 'none',
+                color: 'var(--sage-deep)',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+                textAlign: 'center',
+              }}
+            >
+              + Add an event
+            </button>
+          )}
         </div>
       </div>
     </section>
@@ -973,8 +1058,14 @@ function ScheduleSection({ manifest, names }: { manifest: StoryManifest; names: 
 
 /* ==================== TRAVEL ==================== */
 function TravelSection({ manifest }: { manifest: StoryManifest }) {
+  const edit = useIsEditMode();
   const venue = manifest.logistics?.venue ?? 'Our venue';
   const address = manifest.logistics?.venueAddress ?? '';
+  const hotels = manifest.travelInfo?.hotels ?? [];
+  const hotelTones: Tone[] = ['peach', 'lavender', 'sage'];
+  // Real sites only — no placeholder hotel cards. If nothing is set
+  // and we're not in edit mode, just show venue + map.
+  const showPlacesToStay = hotels.length > 0 || edit;
   return (
     <section id="travel" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', background: 'var(--cream-2)' }}>
       <div style={{ maxWidth: 1160, margin: '0 auto' }}>
@@ -1043,54 +1134,76 @@ function TravelSection({ manifest }: { manifest: StoryManifest }) {
             </div>
           </div>
 
-          <div>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: '0.12em',
-                color: 'var(--peach-ink)',
-                textTransform: 'uppercase',
-                marginBottom: 14,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              <Icon name="moon" size={13} /> Places to stay
-            </div>
-            <h3 className="display" style={{ fontSize: 'clamp(32px, 4.5vw, 44px)', margin: '0 0 16px' }}>
-              Sleep <span className="display-italic">somewhere lovely</span>
-            </h3>
-            <p style={{ fontSize: 15, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 20 }}>
-              Add hotel blocks and guest accommodations from the editor.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {['peach', 'lavender', 'sage'].map((tone, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '80px 1fr',
-                    gap: 14,
-                    padding: 16,
-                    borderRadius: 16,
-                    background: 'var(--card)',
-                    border: '1px solid var(--card-ring)',
-                    alignItems: 'center',
-                  }}
-                >
-                  <PhotoPlaceholder tone={tone as Tone} aspect="1/1" style={{ borderRadius: 12 }} />
-                  <div>
-                    <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Hotel option {i + 1}</div>
-                    <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.4 }}>
-                      Edit in your dashboard to add real options.
-                    </div>
-                  </div>
+          {showPlacesToStay && (
+            <div>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  letterSpacing: '0.12em',
+                  color: 'var(--peach-ink)',
+                  textTransform: 'uppercase',
+                  marginBottom: 14,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                <Icon name="moon" size={13} /> Places to stay
+              </div>
+              <h3 className="display" style={{ fontSize: 'clamp(32px, 4.5vw, 44px)', margin: '0 0 16px' }}>
+                Sleep <span className="display-italic">somewhere lovely</span>
+              </h3>
+              {hotels.length === 0 && edit && (
+                <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 12, fontStyle: 'italic' }}>
+                  Nothing yet. Add hotel blocks from the Travel panel.
+                </p>
+              )}
+              {hotels.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {hotels.slice(0, 4).map((h, i) => {
+                    const card = (
+                      <div
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: '80px 1fr',
+                          gap: 14,
+                          padding: 16,
+                          borderRadius: 16,
+                          background: 'var(--card)',
+                          border: '1px solid var(--card-ring)',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <PhotoPlaceholder tone={hotelTones[i % hotelTones.length]} aspect="1/1" style={{ borderRadius: 12 }} />
+                        <div>
+                          <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>{h.name}</div>
+                          <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.4 }}>
+                            {h.address}
+                            {h.groupRate ? ` · ${h.groupRate}` : ''}
+                            {h.notes ? ` · ${h.notes}` : ''}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                    return h.bookingUrl ? (
+                      <a
+                        key={i}
+                        href={h.bookingUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ textDecoration: 'none', color: 'inherit' }}
+                      >
+                        {card}
+                      </a>
+                    ) : (
+                      <div key={i}>{card}</div>
+                    );
+                  })}
                 </div>
-              ))}
+              )}
             </div>
-          </div>
+          )}
         </div>
       </div>
     </section>
@@ -1299,14 +1412,22 @@ function GallerySection({ chapters }: { chapters: Chapter[] }) {
 /* ==================== FAQ ==================== */
 function FaqSection({ manifest, onEditField }: { manifest: StoryManifest; onEditField?: FieldEditor }) {
   type FaqItem = { id?: string; question: string; answer: string };
+  const edit = useIsEditMode();
   const faq = ((manifest as unknown as { faq?: FaqItem[] }).faq ?? []);
-  if (!faq.length) return null;
+  if (!faq.length && !edit) return null;
   const patchFaq = (index: number, field: 'question' | 'answer') => (next: string) => {
     onEditField?.((m) => {
       const arr = [...(((m as unknown as { faq?: FaqItem[] }).faq ?? []))];
       const item = arr[index];
       if (!item) return m;
       arr[index] = { ...item, [field]: next };
+      return { ...(m as unknown as Record<string, unknown>), faq: arr } as unknown as StoryManifest;
+    });
+  };
+  const addFaq = () => {
+    onEditField?.((m) => {
+      const arr = [...(((m as unknown as { faq?: FaqItem[] }).faq ?? []))];
+      arr.push({ id: `faq-${Date.now()}`, question: 'New question', answer: 'Answer' });
       return { ...(m as unknown as Record<string, unknown>), faq: arr } as unknown as StoryManifest;
     });
   };
@@ -1371,6 +1492,27 @@ function FaqSection({ manifest, onEditField }: { manifest: StoryManifest; onEdit
               />
             </div>
           ))}
+          {edit && (
+            <button
+              type="button"
+              onClick={addFaq}
+              className="pl8-canvas-add"
+              style={{
+                width: '100%',
+                padding: '18px 26px',
+                background: 'transparent',
+                border: 'none',
+                borderTop: faq.length ? '1px dashed var(--line-soft)' : 'none',
+                color: 'var(--sage-deep)',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+                textAlign: 'center',
+              }}
+            >
+              + Add a question
+            </button>
+          )}
         </div>
       </div>
     </section>
@@ -1799,6 +1941,197 @@ function SiteFooter({
 type SiteBlockKey = 'story' | 'details' | 'schedule' | 'travel' | 'registry' | 'gallery' | 'faq' | 'rsvp';
 const DEFAULT_ORDER: SiteBlockKey[] = ['story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'faq', 'rsvp'];
 
+// Event-OS block types that live on manifest.blocks[]. These
+// weren't rendered before — hosts could add them in the editor
+// but guests never saw them. Now they ship.
+const CUSTOM_BLOCK_TYPES = new Set([
+  'itinerary',
+  'costSplitter',
+  'activityVote',
+  'toastSignup',
+  'adviceWall',
+  'tributeWall',
+  'obituary',
+  'livestream',
+  'privacyGate',
+  'packingList',
+  'program',
+]);
+
+function CustomBlocksRail({ manifest, siteSlug }: { manifest: StoryManifest; siteSlug: string }) {
+  const edit = useIsEditMode();
+  const blocks = (manifest.blocks ?? []).filter(
+    (b): b is PageBlock => Boolean(b) && b.visible !== false && CUSTOM_BLOCK_TYPES.has(b.type)
+  );
+  if (blocks.length === 0) return null;
+  const ordered = [...blocks].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  return (
+    <div className="pl8-custom-blocks">
+      {ordered.map((block) => (
+        <CustomBlockCase key={block.id} block={block} siteSlug={siteSlug} editMode={edit} />
+      ))}
+    </div>
+  );
+}
+
+function CustomBlockCase({ block, siteSlug, editMode }: { block: PageBlock; siteSlug: string; editMode: boolean }) {
+  const cfg = (block.config ?? {}) as Record<string, unknown>;
+  const str = (k: string) => (typeof cfg[k] === 'string' ? (cfg[k] as string) : undefined);
+  const arr = <T,>(k: string): T[] => (Array.isArray(cfg[k]) ? (cfg[k] as T[]) : []);
+  const bg = 'var(--cream-2)';
+  const wrap = (node: ReactNode) => (
+    <section style={{ background: bg }} data-pl-block={block.type} data-pl-block-id={block.id}>
+      {node}
+    </section>
+  );
+
+  switch (block.type) {
+    case 'itinerary': {
+      const days = arr<{ label: string; date?: string; slots: { time?: string; title: string; detail?: string; location?: string }[] }>('days');
+      if (days.length === 0 && !editMode) return null;
+      return wrap(
+        <ItineraryBlock
+          title={str('title')}
+          subtitle={str('subtitle')}
+          days={days.length ? days : [{ label: 'Day 1', slots: [] }]}
+          accent="var(--sage-deep)"
+        />
+      );
+    }
+    case 'costSplitter': {
+      const lineItems = arr<{ label: string; amount: number; note?: string }>('lineItems');
+      if (lineItems.length === 0 && !editMode) return null;
+      return wrap(
+        <CostSplitterBlock
+          title={str('title')}
+          subtitle={str('subtitle')}
+          currency={str('currency') ?? 'USD'}
+          headcount={typeof cfg.headcount === 'number' ? cfg.headcount : undefined}
+          lineItems={lineItems}
+          payoutHandle={str('payoutHandle')}
+          accent="var(--sage-deep)"
+        />
+      );
+    }
+    case 'activityVote': {
+      const options = arr<{ id: string; label: string; detail?: string }>('options');
+      if (options.length === 0 && !editMode) return null;
+      return wrap(
+        <ActivityVoteBlock
+          title={str('title')}
+          subtitle={str('subtitle')}
+          question={str('question')}
+          storageKey={siteSlug}
+          options={options}
+          showResults
+          siteId={siteSlug}
+          blockId={block.id}
+          accent="var(--sage-deep)"
+        />
+      );
+    }
+    case 'toastSignup': {
+      const slots = arr<{ id: string; label: string; detail?: string }>('slots');
+      if (slots.length === 0 && !editMode) return null;
+      return wrap(
+        <ToastSignupBlock
+          title={str('title')}
+          subtitle={str('subtitle')}
+          slots={slots}
+          storageKey={siteSlug}
+          siteId={siteSlug}
+          blockId={block.id}
+          accent="var(--sage-deep)"
+        />
+      );
+    }
+    case 'adviceWall':
+    case 'tributeWall': {
+      const rawSeeds = arr<{ id?: string; from?: string; name?: string; body: string; at?: string }>('seeds');
+      const seeds = rawSeeds.map((s) => ({ from: s.from ?? s.name ?? 'Anonymous', body: s.body, at: s.at }));
+      return wrap(
+        <AdviceWallBlock
+          title={str('title') ?? (block.type === 'tributeWall' ? 'A tribute wall' : 'Advice for the road ahead')}
+          subtitle={str('subtitle')}
+          prompt={str('prompt')}
+          seeds={seeds}
+          storageKey={siteSlug}
+          siteId={siteSlug}
+          blockId={block.id}
+          accent="var(--sage-deep)"
+        />
+      );
+    }
+    case 'obituary': {
+      const body = str('body');
+      if (!body && !editMode) return null;
+      return wrap(
+        <ObituaryBlock
+          name={str('name') ?? ''}
+          dates={str('dates')}
+          photoUrl={str('photoUrl')}
+          body={body ?? ''}
+          inMemoryOf={str('inMemoryOf')}
+          accent="var(--peach-ink)"
+        />
+      );
+    }
+    case 'livestream': {
+      const url = str('url');
+      if (!url && !editMode) return null;
+      return wrap(
+        <LivestreamBlock
+          title={str('title')}
+          subtitle={str('subtitle')}
+          startsAt={str('startsAt')}
+          url={url ?? ''}
+          buttonLabel={str('buttonLabel')}
+          accent="var(--sage-deep)"
+        />
+      );
+    }
+    case 'privacyGate': {
+      return wrap(
+        <PrivacyGateBlock
+          title={str('title')}
+          subtitle={str('subtitle')}
+          body={str('body')}
+          rules={arr<string>('rules')}
+          contact={str('contact')}
+          accent="var(--sage-deep)"
+        />
+      );
+    }
+    case 'packingList': {
+      const items = arr<{ id: string; label: string; category?: string }>('items');
+      if (items.length === 0 && !editMode) return null;
+      return wrap(
+        <PackingListBlock
+          title={str('title')}
+          subtitle={str('subtitle')}
+          items={items}
+          storageKey={siteSlug}
+          accent="var(--sage-deep)"
+        />
+      );
+    }
+    case 'program': {
+      const items = arr<{ id: string; time?: string; title: string; detail?: string }>('items');
+      if (items.length === 0 && !editMode) return null;
+      return wrap(
+        <ProgramBlock
+          title={str('title')}
+          subtitle={str('subtitle')}
+          items={items}
+          accent="var(--sage-deep)"
+        />
+      );
+    }
+    default:
+      return null;
+  }
+}
+
 export function SiteV8Renderer({
   manifest,
   names,
@@ -1846,7 +2179,7 @@ export function SiteV8Renderer({
       case 'details':
         return <DetailsStrip key="details" manifest={manifest} />;
       case 'schedule':
-        return <ScheduleSection key="schedule" manifest={manifest} names={names} />;
+        return <ScheduleSection key="schedule" manifest={manifest} names={names} onEditField={onEditField} />;
       case 'travel':
         return <TravelSection key="travel" manifest={manifest} />;
       case 'registry':
@@ -1868,6 +2201,7 @@ export function SiteV8Renderer({
         <EventNav names={names} hasRsvp={hasRsvp} />
         <HeroSection names={names} manifest={manifest} onEditField={onEditField} onEditNames={onEditNames} />
         {blockOrder.map(renderBlock)}
+        <CustomBlocksRail manifest={manifest} siteSlug={siteSlug} />
         <SiteFooter names={names} prettyUrl={prettyUrl} />
       </div>
     </EditorCanvasProvider>
