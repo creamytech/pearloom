@@ -1147,3 +1147,15 @@ html { scroll-behavior: smooth; }
     transition: none !important;
   }
 }
+
+/* ============================================================
+   Editor — lock to viewport so panels stay in view on scroll.
+   Uses 100dvh on supporting browsers so the mobile address bar
+   doesn't push the layout taller than the visible area.
+   ============================================================ */
+@supports (height: 100dvh) {
+  .pl8-editor-v8 {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+  }
+}

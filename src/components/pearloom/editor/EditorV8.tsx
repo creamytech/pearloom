@@ -376,7 +376,20 @@ export function EditorV8({
   }, [block, blockOrder]);
 
   return (
-    <div className="pl8 pl8-editor-v8" style={{ minHeight: '100vh', background: 'var(--cream)', display: 'flex', flexDirection: 'column' }}>
+    <div
+      className="pl8 pl8-editor-v8"
+      style={{
+        // Lock to the viewport so the Inspector + Outline panels
+        // scroll internally instead of moving with page scroll.
+        // Mobile address-bar safety handled in pearloom.css via dvh.
+        height: '100vh',
+        maxHeight: '100vh',
+        background: 'var(--cream)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
       {publishError && (
         <div
           role="alert"
