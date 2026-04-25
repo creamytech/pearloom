@@ -753,29 +753,11 @@ function HeroSection({
           <span aria-hidden style={{ width: 48, height: 1, background: 'currentColor', opacity: 0.45 }} />
         </div>
 
-        {manifest.motifs?.stamp?.text && (
-          <div style={{ textAlign: 'center', marginBottom: 18 }}>
-            <span
-              className="pl8-motif-stamp"
-              style={{
-                display: 'inline-block',
-                padding: '10px 20px',
-                border: '2px solid var(--peach-ink)',
-                color: 'var(--peach-ink)',
-                fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
-                fontSize: 12,
-                fontWeight: 800,
-                letterSpacing: '0.28em',
-                textTransform: 'uppercase',
-                borderRadius: 4,
-                transform: `rotate(${manifest.motifs.stamp.rotation ?? -3}deg)`,
-                background: 'transparent',
-              }}
-            >
-              {manifest.motifs.stamp.text}
-            </span>
-          </div>
-        )}
+        {/* Motif stamps (rectangular peach-bordered text boxes) and
+            the round wax-seal/passport SAVE THE DATE stamp have been
+            removed from the hero entirely — the user finds them
+            tacky and template-store-ish. The chapter-mark kicker
+            above + the names + the date line carry the hero. */}
 
         <div style={{ textAlign: 'center', position: 'relative' }}>
           <h1
@@ -815,19 +797,9 @@ function HeroSection({
               </>
             ) : null}
           </h1>
-          {dateInfo && (
-            <div
-              className="pl8-hide-mobile"
-              style={{ position: 'absolute', top: -8, right: 24, transform: 'rotate(8deg)' }}
-            >
-              <PassportStamp dateLabel={dateInfo.pretty.toUpperCase()} />
-            </div>
-          )}
-          {manifest.motifs?.heart !== false && (
-            <div className="pl8-hide-mobile" style={{ position: 'absolute', bottom: 10, left: 40, transform: 'rotate(-6deg)' }}>
-              <Heart size={32} color="var(--peach-2)" />
-            </div>
-          )}
+          {/* Removed: PassportStamp (SAVE THE DATE rectangle) and
+              the floating heart. Both read as wedding-template
+              cliché. The names + the date line below carry it. */}
         </div>
 
         <div

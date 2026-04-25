@@ -62,7 +62,7 @@ const PALETTE_LABELS: Record<TemplatePalette, string> = {
   'peach-cream': 'Peach Cream',
 };
 
-export function MarketplaceV8() {
+export function MarketplaceV8({ embedded = false }: { embedded?: boolean } = {}) {
   const [group, setGroup] = useState<string>('all');
   const [occasion, setOccasion] = useState<string | null>(null);
   const [vibes, setVibes] = useState<TemplateVibe[]>([]);
@@ -111,9 +111,17 @@ export function MarketplaceV8() {
   const activeOccasionCount = filtered.length;
   const totalTemplates = TEMPLATES.length;
 
+  // Embedded mode (inside DashLayout) drops the marketing TopNav,
+  // Footbar, and outer .pl8 wrapper so the marketplace fits inside
+  // the dashboard shell with its persistent sidebar.
+  const Wrapper = embedded ? 'div' : 'div';
+  const wrapperProps = embedded
+    ? { style: { background: 'transparent' } }
+    : { className: 'pl8', style: { minHeight: '100vh', background: 'var(--paper)' } };
+
   return (
-    <div className="pl8" style={{ minHeight: '100vh', background: 'var(--paper)' }}>
-      <TopNav active="Templates" />
+    <Wrapper {...wrapperProps}>
+      {!embedded && <TopNav active="Templates" />}
 
       {/* ── Hero ─────────────────────────────────────── */}
       <section style={{ position: 'relative', padding: '72px 32px 32px', overflow: 'hidden' }}>
@@ -617,14 +625,14 @@ export function MarketplaceV8() {
         </main>
       </div>
 
-      <Footbar />
+      {!embedded && <Footbar />}
 
       <TemplatePreviewModal
         open={previewing !== null}
         template={previewing}
         onClose={() => setPreviewing(null)}
       />
-    </div>
+    </Wrapper>
   );
 }
 
