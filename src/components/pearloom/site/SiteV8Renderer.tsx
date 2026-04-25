@@ -28,6 +28,15 @@ import { PhotoDropTarget } from '../editor/canvas/PhotoDropTarget';
 import { OccasionDecor } from './OccasionDecor';
 import { BroadcastBar } from './BroadcastBar';
 import { DecorDivider } from './DecorDivider';
+import {
+  CalendarAddButton,
+  SaveContactButton,
+  FloatingCountdown,
+  StickyMobileCta,
+  OpenInMapsButton,
+  PersonalGuestGreeting,
+  AskPearFloater,
+} from './GuestKit';
 import { SectionStamp } from './SectionStamp';
 import { StickerLayer } from './StickerLayer';
 import { FooterBouquet } from './FooterBouquet';
@@ -339,11 +348,13 @@ function CountdownPill({ eventDate }: { eventDate?: string | null }) {
 function HeroSection({
   names,
   manifest,
+  siteSlug,
   onEditField,
   onEditNames,
 }: {
   names: [string, string];
   manifest: StoryManifest;
+  siteSlug?: string;
   onEditField?: FieldEditor;
   onEditNames?: (next: [string, string]) => void;
 }) {
@@ -589,6 +600,10 @@ function HeroSection({
           <a href="#our-story" className="btn btn-outline">
             Read our story
           </a>
+          {/* Add-to-calendar dropdown — Apple / Google / Outlook / .ics */}
+          <CalendarAddButton domain={siteSlug ?? ''} manifest={manifest} />
+          {/* vCard for the couple — saves to phone contacts */}
+          <SaveContactButton domain={siteSlug ?? ''} manifest={manifest} names={[n1 ?? '', n2 ?? '']} />
           <CountdownPill eventDate={manifest.logistics?.date} />
         </div>
 
@@ -1542,18 +1557,11 @@ function TravelSection({ manifest, onEditField }: { manifest: StoryManifest; onE
               <p style={{ fontSize: 15, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 20 }}>{address}</p>
             )}
             <VenueHero venue={venue} address={address} manifest={manifest} onEditField={onEditField} />
-            <div style={{ display: 'flex', gap: 10 }}>
-              {address && (
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn btn-outline btn-sm"
-                >
-                  <Icon name="compass" size={13} /> Directions
-                </a>
-              )}
-            </div>
+            {address && (
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <OpenInMapsButton address={address} label="Directions" />
+              </div>
+            )}
           </div>
 
           {showPlacesToStay && (
@@ -1605,6 +1613,11 @@ function TravelSection({ manifest, onEditField }: { manifest: StoryManifest; onE
                             {h.groupRate ? ` · ${h.groupRate}` : ''}
                             {h.notes ? ` · ${h.notes}` : ''}
                           </div>
+                          {h.address && (
+                            <div style={{ marginTop: 8 }}>
+                              <OpenInMapsButton address={h.address} label="Directions" />
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
@@ -2703,13 +2716,14 @@ export function SiteV8Renderer({
     <EditorCanvasProvider value={canvasCtxValue}>
       <div className="pl8-guest" style={themeStyle}>
         {!editMode && <BroadcastBar subdomain={siteSlug} />}
+        {!editMode && <PersonalGuestGreeting domain={siteSlug} />}
         <EventNav names={names} hasRsvp={hasRsvp} />
         <StickerLayer
           blockId="hero"
           stickers={manifest.stickers}
           onEditField={onEditField}
         >
-          <HeroSection names={names} manifest={manifest} onEditField={onEditField} onEditNames={onEditNames} />
+          <HeroSection names={names} manifest={manifest} siteSlug={siteSlug} onEditField={onEditField} onEditNames={onEditNames} />
         </StickerLayer>
         {blockOrder.map((key, i) => {
           const block = renderBlock(key);
@@ -2730,6 +2744,21 @@ export function SiteV8Renderer({
         <CustomBlocksRail manifest={manifest} siteSlug={siteSlug} />
         <FooterBouquet url={bouquetUrl} />
         <SiteFooter names={names} prettyUrl={prettyUrl} />
+        {/* Guest-side helpers — only on the published site, never in the editor.
+            Each is independently dismissable / mobile-aware. */}
+        {!editMode && (
+          <>
+            <FloatingCountdown manifest={manifest} />
+            <StickyMobileCta
+              deadline={
+                manifest.logistics?.rsvpDeadline
+                  ? new Date(manifest.logistics.rsvpDeadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                  : null
+              }
+            />
+            <AskPearFloater domain={siteSlug} manifest={manifest} names={names} />
+          </>
+        )}
       </div>
     </EditorCanvasProvider>
   );
