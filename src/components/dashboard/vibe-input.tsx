@@ -9,7 +9,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ArrowLeft, Palette, Globe, Info, ChevronDown, Sparkles, Check, X as XIcon, Church, Wine, MapPin as MapPinIcon, Cake, Diamond, Smile, Heart, Zap, EyeOff, PartyPopper, AlertTriangle } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Palette, Globe, Info, ChevronDown, Sparkles, Check, X as XIcon, Church, Wine, MapPin as MapPinIcon, Cake, Diamond, Smile, Feather, Zap, EyeOff, PartyPopper, AlertTriangle } from 'lucide-react';
 import {
   ElegantHeartIcon, MountainIcon, StarburstIcon, CoffeeCupIcon,
   SuitcaseIcon, PawIcon, MusicNoteIcon, LoomThreadIcon,
@@ -2522,12 +2522,12 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
               {(isBirthday
                 ? [
                     { label: 'Funny', icon: Smile, text: `${name1.trim() || 'They'} always makes everyone laugh — ` },
-                    { label: 'Emotional', icon: Heart, text: `Where do I even begin with ${name1.trim() || 'them'}... ` },
+                    { label: 'Emotional', icon: Feather, text: `Where do I even begin with ${name1.trim() || 'them'}... ` },
                     { label: 'Short & sweet', icon: Zap, text: `${name1.trim() || 'They'} — simply the best. ` },
                   ]
                 : [
                     { label: 'Funny', icon: Smile, text: 'It started with a terrible joke — ' },
-                    { label: 'Emotional', icon: Heart, text: 'The moment I saw them, something just clicked — ' },
+                    { label: 'Emotional', icon: Feather, text: 'The moment I saw them, something just clicked — ' },
                     { label: 'Short & sweet', icon: Zap, text: 'We met. We clicked. The rest is history. ' },
                   ]
               ).map(chip => (

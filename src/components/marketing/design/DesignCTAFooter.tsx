@@ -8,7 +8,7 @@
 //   3. Dark footer with 5-column nav + massive pearloom
 //      wordmark at the bottom
 
-import { Heart } from 'lucide-react';
+import { Sprout } from 'lucide-react';
 import { Bloom, Swirl, ThreadStrand } from '@/components/brand/groove';
 import { HeroPear, Pear, Pearl, Pill, PLButton, PD, DISPLAY_STYLE, MONO_STYLE } from './DesignAtoms';
 import { Fragment } from 'react';
@@ -42,7 +42,7 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
         >
           <div>
             <Pill style={{ marginBottom: 16 }}>
-              <Heart size={11} fill={PD.terra} color={PD.terra} strokeWidth={0} /> PEAR&rsquo;S PROMISE
+              <Sprout size={11} stroke={PD.terra} strokeWidth={1.6} /> PEAR&rsquo;S PROMISE
             </Pill>
             <h3
               style={{
@@ -98,7 +98,7 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
                   justifyContent: 'center',
                 }}
               >
-                <Heart size={64} fill={PD.plum} color={PD.plum} strokeWidth={0} />
+                <Sprout size={64} stroke={PD.plum} strokeWidth={1.6} />
               </div>
             </div>
           </div>

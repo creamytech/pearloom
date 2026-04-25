@@ -8,7 +8,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, MapPin, Clock, Users, Music, Utensils, Heart } from 'lucide-react';
+import { Calendar, MapPin, Clock, Users, Music, Utensils, Leaf } from 'lucide-react';
 import { parseLocalDate } from '@/lib/date';
 
 interface GuestDashboardProps {
@@ -154,7 +154,7 @@ export function GuestDashboard({
         <div style={cardStyle} className="pl-scroll-fade-up">
           <div style={cardHeaderBar} />
           <div style={{ padding: '3rem 2rem' }}>
-            <Heart
+            <Leaf
               size={32}
               style={{ color: 'var(--pl-olive)', margin: '0 auto 1.25rem' }}
             />
@@ -358,7 +358,7 @@ export function GuestDashboard({
                 marginBottom: '1.5rem',
               }}
             >
-              <Heart size={16} style={{ color: 'var(--pl-olive)' }} />
+              <Leaf size={16} style={{ color: 'var(--pl-olive)' }} />
               <span style={sectionLabel}>Your RSVP</span>
             </div>
 

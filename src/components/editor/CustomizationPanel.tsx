@@ -7,7 +7,7 @@
 // shared editor/panel primitives for consistent chrome.
 // ─────────────────────────────────────────────────────────────
 
-import { Check, Palette, Image as ImageIcon, Waves, Timer, Sparkles, Layers, Heart, Music } from 'lucide-react';
+import { Check, Palette, Image as ImageIcon, Waves, Timer, Sparkles, Layers, Music, Feather } from 'lucide-react';
 import {
   CARD_BORDERS, SECTION_BACKGROUNDS, PHOTO_FRAMES,
   MONOGRAM_STYLES, SECTION_TRANSITIONS, COUNTDOWN_STYLES,
@@ -144,7 +144,7 @@ export function CustomizationPanel({ customization, onChange, names, accentColor
         />
       </PanelSection>
 
-      <PanelSection title="Monogram" icon={Heart} defaultOpen={false}>
+      <PanelSection title="Monogram" icon={Feather} defaultOpen={false}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px' }}>
           {MONOGRAM_STYLES.map((style) => {
             const active = customization.monogram?.style === style.id;

@@ -13,7 +13,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Calendar, MapPin, Clock, Link2, Users, Shirt, CalendarClock,
-  Heart, Minus, Sparkles, Hash, Type,
+  Leaf, Minus, Sparkles, Hash, Type,
 } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 
@@ -501,8 +501,12 @@ function buildItems(m: StoryManifest, coupleNames?: [string, string]): SlashItem
     Icon: Hash, value: '•', keywords: ['bullet', 'list', 'dot'],
   });
   items.push({
-    id: 'heart', label: 'Heart', hint: '❤',
-    Icon: Heart, value: '❤', keywords: ['heart', 'love', 'emoji'],
+    id: 'fleuron', label: 'Fleuron', hint: '❦',
+    Icon: Leaf, value: '❦', keywords: ['fleuron', 'ornament', 'flourish'],
+  });
+  items.push({
+    id: 'asterism', label: 'Asterism', hint: '⁂',
+    Icon: Sparkles, value: '⁂', keywords: ['asterism', 'ornament', 'break'],
   });
   items.push({
     id: 'sparkle', label: 'Sparkle', hint: '✦',

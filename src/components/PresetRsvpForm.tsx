@@ -19,7 +19,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Loader2, HeartCrack } from 'lucide-react';
+import { Check, Loader2, CloudOff } from 'lucide-react';
 import {
   getRsvpFields,
   type RsvpFieldDef,
@@ -138,7 +138,7 @@ export function PresetRsvpForm({
           {attending === 'attending' ? (
             <Check size={18} color="var(--pl-olive)" />
           ) : (
-            <HeartCrack size={18} color="var(--pl-muted)" />
+            <CloudOff size={18} color="var(--pl-muted)" />
           )}
           <span style={{ fontFamily: 'var(--pl-font-display)', fontStyle: 'italic', fontSize: '1.2rem', color: 'var(--pl-ink)' }}>
             {attending === 'attending' ? 'You\u2019re on the list.' : 'Thanks for letting us know.'}

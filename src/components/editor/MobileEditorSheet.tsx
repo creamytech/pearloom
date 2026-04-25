@@ -13,7 +13,7 @@ import {
   Pencil, Layers, MoreHorizontal, ArrowLeft,
   Undo2, Redo2, ExternalLink, MoreVertical,
   Users, Send, Mail, Mic, LayoutGrid, Globe, Gift,
-  Music, ShoppingBag, Heart, BarChart2, Sparkles,
+  Music, ShoppingBag, Feather, BarChart2, Sparkles,
   Palette, Image as ImageIcon,
 } from 'lucide-react';
 import { useEditor } from '@/lib/editor-state';
@@ -73,7 +73,7 @@ const ADVANCED_TOOLS: MoreTool[] = [
   { id: 'translate',   icon: Globe,       label: 'Translate'     },
   { id: 'savethedate', icon: Gift,        label: 'Save the Date' },
   { id: 'vendors',     icon: ShoppingBag, label: 'Vendors'       },
-  { id: 'thankyou',    icon: Heart,       label: 'Thank You Notes' },
+  { id: 'thankyou',    icon: Feather,     label: 'Thank You Notes' },
   { id: 'spotify',     icon: Music,       label: 'Spotify'       },
 ];
 

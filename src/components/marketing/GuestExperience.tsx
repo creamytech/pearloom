@@ -6,7 +6,7 @@ import {
   Wand2,
   Users,
   MessageCircle,
-  Heart,
+  Leaf,
   Layers,
   GripVertical,
   Globe,
@@ -69,7 +69,7 @@ const FEATURE_GROUPS: FeatureGroup[] = [
     ],
   },
   {
-    groupIcon: Heart,
+    groupIcon: Leaf,
     title: 'After the Day',
     accent: C.plum,
     items: [

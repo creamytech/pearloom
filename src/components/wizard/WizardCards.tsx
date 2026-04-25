@@ -8,7 +8,7 @@
 
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Cake, Sparkles, Diamond, BookOpen, Users, Mountain, Crown, Globe2 } from 'lucide-react';
+import { Leaf, Cake, Sparkles, Diamond, BookOpen, Users, Mountain, Crown, Globe2 } from 'lucide-react';
 
 // ── Shared tokens ─────────────────────
 
@@ -43,7 +43,7 @@ const fadeIn = {
 const OCCASION_META: Record<string, { icon: React.ReactNode; description: string }> = {
   // Categories (first wizard step)
   'wedding-arc': {
-    icon: <Heart size={22} strokeWidth={1.8} />,
+    icon: <Leaf size={22} strokeWidth={1.8} />,
     description: 'Weddings, showers, bachelor weekends',
   },
   family: {
@@ -64,7 +64,7 @@ const OCCASION_META: Record<string, { icon: React.ReactNode; description: string
   },
   // Occasions (second wizard step — individual events)
   wedding: {
-    icon: <Heart size={22} strokeWidth={1.8} />,
+    icon: <Leaf size={22} strokeWidth={1.8} />,
     description: 'Ceremony, reception, everything after',
   },
   birthday: {

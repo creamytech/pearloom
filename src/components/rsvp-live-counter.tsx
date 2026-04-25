@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Heart, HelpCircle } from 'lucide-react';
+import { Users, Leaf, HelpCircle } from 'lucide-react';
 
 interface RsvpLiveCounterProps {
   siteId: string;
@@ -82,7 +82,7 @@ export function RsvpLiveCounter({ siteId, coupleNames }: RsvpLiveCounterProps) {
                 margin: '0 auto 1rem',
               }}
             >
-              <Heart size={20} color="#5C6B3F" />
+              <Leaf size={20} color="#5C6B3F" />
             </motion.div>
             <p style={{
               fontFamily: 'var(--pl-font-heading)', fontSize: '1.1rem',
@@ -117,7 +117,7 @@ export function RsvpLiveCounter({ siteId, coupleNames }: RsvpLiveCounterProps) {
                   boxShadow: '0 4px 12px rgba(34,197,94,0.15)',
                 }}
               >
-                <Heart size={18} color="#10b981" strokeWidth={2} fill="rgba(16,185,129,0.2)" />
+                <Leaf size={18} color="#10b981" strokeWidth={2} fill="rgba(16,185,129,0.2)" />
               </motion.div>
               <div>
                 <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--pl-ink)', lineHeight: 1.4 }}>

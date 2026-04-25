@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Plus, X, Copy, Check, Download, Loader } from 'lucide-react';
+import { Feather, Plus, X, Copy, Check, Download, Loader } from 'lucide-react';
 import {
   PanelRoot,
   PanelSection,
@@ -290,7 +290,7 @@ export function ThankYouPanel() {
         textTransform: 'uppercase',
         color: '#71717A',
       }}>
-        <Heart size={11} /> Thank-You Notes
+        <Feather size={11} /> Thank-You Notes
       </div>
 
       {/* Instruction */}
@@ -305,7 +305,7 @@ export function ThankYouPanel() {
       </p>
 
       {/* ── Guest list section ── */}
-      <PanelSection title="Guest List" icon={Heart} defaultOpen>
+      <PanelSection title="Guest List" icon={Feather} defaultOpen>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {entries.map((entry) => (
             <div
@@ -425,7 +425,7 @@ export function ThankYouPanel() {
             </>
           ) : (
             <>
-              <Heart size={13} />
+              <Feather size={13} />
               {`✦ Generate notes for all ${validEntries.length} guest${validEntries.length !== 1 ? 's' : ''}`}
             </>
           )}

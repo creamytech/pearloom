@@ -1,9 +1,21 @@
 'use client';
 
 /* ========================================================================
-   PEARLOOM MOTIFS — shared visual language (TSX port)
-   Pear, stamps, blobs, squiggles, sparkles, hearts, post-its, polaroids
-   Based on handoff motifs.jsx.
+   PEARLOOM MOTIFS — shared visual language (v9, editorial pass)
+
+   2026-04-24 — refactored to remove the clip-art-y squiggles, generic
+   blobs, and the heart that used to land everywhere. The legacy
+   exports (Heart / Squiggle / Blob) are preserved as named functions
+   so existing callsites keep compiling, but their internals are
+   replaced with editorial primitives:
+
+       Heart      → Sprig (olive sprig, hairline + small leaves)
+       Squiggle   → Filigree (bezier book-ornament flourish)
+       Blob       → Wash (paper-grain radial wash)
+       Stamp icon="heart"  → renders the new Sprig glyph
+
+   New exports (use these in new code):
+       Sprig, Filigree, Asterism, Fleuron, HairlineRule, Wash, Bookmark
    ======================================================================== */
 
 import React, { useId, type CSSProperties, type ReactNode } from 'react';
@@ -194,14 +206,9 @@ export function Stamp({
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}>
         {icon === 'pear' && <Pear size={size * 0.32} tone="ink" shadow={false} />}
-        {icon === 'heart' && (
-          <svg viewBox="0 0 24 24" width={size * 0.3} height={size * 0.3}>
-            <path
-              d="M12 21s-7-4.5-9.5-9C.5 8 3 4 7 4c2 0 3.5 1 5 3 1.5-2 3-3 5-3 4 0 6.5 4 4.5 8-2.5 4.5-9.5 9-9.5 9z"
-              fill="#3D4A1F"
-            />
-          </svg>
-        )}
+        {/* Legacy 'heart' icon now renders the Sprig glyph — every
+            prior Stamp icon="heart" call automatically swaps. */}
+        {icon === 'heart' && <Sprig size={size * 0.36} color="#3D4A1F" />}
         {icon === 'sparkle' && (
           <svg viewBox="0 0 24 24" width={size * 0.32} height={size * 0.32}>
             <path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="#3D4A1F" />
@@ -212,9 +219,15 @@ export function Stamp({
   );
 }
 
-type BlobTone = 'lavender' | 'lavender-deep' | 'peach' | 'peach-deep' | 'sage' | 'sage-deep' | 'cream';
+type WashTone = 'lavender' | 'lavender-deep' | 'peach' | 'peach-deep' | 'sage' | 'sage-deep' | 'cream';
 
-export function Blob({
+/* ────────────────────────────────────────────────────────────────────
+   Wash — replaces the hard-edged Blob with a soft radial paper wash.
+   Renders as a circle filled by a centered radial gradient that
+   fades to fully transparent. Reads as light bouncing through linen
+   instead of a coloured shape pasted onto the page.
+   ──────────────────────────────────────────────────────────────────── */
+export function Wash({
   tone = 'lavender',
   seed = 0,
   size = 400,
@@ -222,30 +235,33 @@ export function Blob({
   className = '',
   style,
 }: {
-  tone?: BlobTone;
+  tone?: WashTone;
   seed?: number;
   size?: number;
   opacity?: number;
   className?: string;
   style?: CSSProperties;
 }) {
-  const palette: Record<BlobTone, string> = {
-    lavender: '#D7CCE5',
-    'lavender-deep': '#C4B5D9',
-    peach: '#F7DDC2',
-    'peach-deep': '#F0C9A8',
-    sage: '#CBD29E',
-    'sage-deep': '#8B9C5A',
-    cream: '#F3E9D4',
+  const palette: Record<WashTone, string> = {
+    lavender: '#C4B5D9',
+    'lavender-deep': '#A88BC8',
+    peach: '#EAB286',
+    'peach-deep': '#C6703D',
+    sage: '#A8BA72',
+    'sage-deep': '#5C6B3F',
+    cream: '#E0D3B3',
   };
   const fill = palette[tone] ?? palette.lavender;
-  const paths = [
-    'M 200 40 C 320 40, 380 140, 360 240 C 340 340, 240 380, 140 340 C 40 300, 20 180, 80 100 C 130 40, 200 40, 200 40 Z',
-    'M 180 30 C 300 20, 380 100, 380 200 C 380 320, 260 380, 160 360 C 40 340, 20 220, 40 140 C 60 60, 120 40, 180 30 Z',
-    'M 220 20 C 340 60, 400 160, 360 280 C 320 380, 200 400, 100 340 C 20 280, 20 160, 80 80 C 130 20, 220 20, 220 20 Z',
-    'M 160 60 C 280 40, 380 120, 380 220 C 380 320, 300 380, 200 380 C 80 380, 20 300, 40 180 C 60 100, 120 80, 160 60 Z',
+  const id = useId();
+  // Subtle aspect variance per seed so multiple Washes don't render
+  // as identical circles.
+  const stretches: Array<[number, number]> = [
+    [1, 1],
+    [1.18, 0.9],
+    [0.92, 1.12],
+    [1.06, 1.02],
   ];
-  const d = paths[seed % paths.length];
+  const [sx, sy] = stretches[seed % stretches.length] ?? [1, 1];
   return (
     <svg
       viewBox="0 0 400 400"
@@ -255,16 +271,111 @@ export function Blob({
       style={{ opacity, ...style }}
       aria-hidden
     >
-      <path d={d} fill={fill} />
+      <defs>
+        <radialGradient id={id} cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor={fill} stopOpacity="0.78" />
+          <stop offset="55%" stopColor={fill} stopOpacity="0.32" />
+          <stop offset="100%" stopColor={fill} stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <ellipse cx="200" cy="200" rx={180 * sx} ry={180 * sy} fill={`url(#${id})`} />
     </svg>
   );
 }
 
+/** Legacy alias — every prior `<Blob>` callsite now renders a Wash. */
+export const Blob = Wash;
+export type BlobTone = WashTone;
+
+/* ────────────────────────────────────────────────────────────────────
+   Filigree — replaces Squiggle with a hairline book-ornament
+   flourish. No zigzag clipart. Five variants share the same DNA:
+   single-stroke bezier curls drawn at hairline weight, ~half opacity
+   so they read as a quiet trace rather than decoration.
+   Default stroke is the brand gold; the line caps are round so the
+   path feels handmade, not mechanical.
+   ──────────────────────────────────────────────────────────────────── */
+export function Filigree({
+  width = 220,
+  height = 80,
+  variant = 0,
+  stroke = 'var(--gold-line, #D4A95D)',
+  strokeWidth = 1.2,
+  className = '',
+  style,
+}: {
+  width?: number;
+  height?: number;
+  variant?: number;
+  stroke?: string;
+  strokeWidth?: number;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  const id = useId();
+  // Each variant is a clean editorial flourish — gentle bezier sweep
+  // (variant 0), classical S-curve (1), bracket with terminal dots
+  // (2), arc with center fleuron (3), trailing tendril (4). All sit
+  // inside the same 220×80 viewBox so they swap visually 1:1 with
+  // the legacy Squiggle calls.
+  const variants: Array<{ d: string; dots?: Array<[number, number]>; fleur?: [number, number] }> = [
+    { d: 'M 6 40 C 50 16, 100 64, 150 40 C 180 26, 200 36, 214 40' },
+    { d: 'M 8 50 C 30 24, 70 24, 110 40 S 200 56, 212 30' },
+    { d: 'M 8 40 C 60 8, 110 72, 162 40', dots: [[8, 40], [212, 40]] },
+    { d: 'M 14 44 C 60 14, 160 14, 206 44', fleur: [110, 32] },
+    { d: 'M 8 56 C 40 16, 90 76, 130 40 C 158 14, 196 56, 212 28' },
+  ];
+  const v = variants[Math.abs(variant) % variants.length] ?? variants[0]!;
+  return (
+    <svg
+      viewBox="0 0 220 80"
+      width={width}
+      height={height}
+      className={className}
+      style={style}
+      aria-hidden
+    >
+      <defs>
+        <linearGradient id={id} x1="0%" x2="100%" y1="50%" y2="50%">
+          <stop offset="0%" stopColor={stroke} stopOpacity="0" />
+          <stop offset="20%" stopColor={stroke} stopOpacity="0.9" />
+          <stop offset="80%" stopColor={stroke} stopOpacity="0.9" />
+          <stop offset="100%" stopColor={stroke} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path
+        d={v.d}
+        stroke={`url(#${id})`}
+        strokeWidth={strokeWidth}
+        fill="none"
+        strokeLinecap="round"
+      />
+      {v.dots?.map((pt, i) => (
+        <circle key={i} cx={pt[0]} cy={pt[1]} r={1.6} fill={stroke} />
+      ))}
+      {v.fleur && (
+        <g transform={`translate(${v.fleur[0]} ${v.fleur[1]})`}>
+          <circle cx="0" cy="0" r="2" fill={stroke} />
+          <path
+            d="M -10 0 C -7 -4, -3 -4, 0 0 C 3 -4, 7 -4, 10 0"
+            stroke={stroke}
+            strokeWidth={strokeWidth}
+            fill="none"
+            strokeLinecap="round"
+          />
+        </g>
+      )}
+    </svg>
+  );
+}
+
+/** Legacy alias — every prior `<Squiggle>` now renders a Filigree.
+ *  Maps `stroke` directly so existing color overrides keep working. */
 export function Squiggle({
   width = 200,
   height = 80,
   variant = 0,
-  stroke = '#D4A95D',
+  stroke = 'var(--gold-line, #D4A95D)',
   className = '',
   style,
 }: {
@@ -275,18 +386,63 @@ export function Squiggle({
   className?: string;
   style?: CSSProperties;
 }) {
-  const paths = [
-    'M 10 40 Q 40 10, 70 40 T 130 40 T 190 40',
-    'M 10 40 C 30 10, 50 70, 70 40 C 90 10, 110 70, 130 40 C 150 10, 170 70, 190 40',
-    'M 10 40 Q 30 10, 50 30 Q 70 50, 90 30 Q 110 10, 130 40 Q 150 70, 170 50 Q 190 30, 210 50',
-    'M 10 60 Q 20 20, 50 30 Q 80 40, 70 60 Q 60 80, 40 70 M 90 50 Q 110 10, 140 30 Q 170 50, 150 70',
-    'M 10 40 Q 20 20, 30 40 Q 40 60, 50 40 Q 60 20, 70 40 Q 80 60, 90 40 Q 100 20, 110 40 Q 120 60, 130 40',
-  ];
-  const d = paths[variant % paths.length];
   return (
-    <svg viewBox="0 0 200 80" width={width} height={height} className={className} style={style} aria-hidden>
-      <path d={d} stroke={stroke} strokeWidth="2" fill="none" strokeLinecap="round" />
-    </svg>
+    <Filigree
+      width={width}
+      height={height}
+      variant={variant}
+      stroke={stroke}
+      className={className}
+      style={style}
+    />
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────
+   HairlineRule — a thin double-line section divider with an optional
+   centred glyph (asterism / fleuron / dot). Designed to replace the
+   Squiggle when used as a *divider* between sections — a place where
+   the wavy line never read as editorial.
+   ──────────────────────────────────────────────────────────────────── */
+export function HairlineRule({
+  width = 240,
+  glyph = 'asterism',
+  color = 'var(--ink-muted, #8a8671)',
+  className = '',
+  style,
+}: {
+  width?: number | string;
+  glyph?: 'asterism' | 'fleuron' | 'dot' | 'none';
+  color?: string;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  return (
+    <div
+      className={className}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 14,
+        color,
+        width,
+        ...style,
+      }}
+    >
+      <div style={{ flex: 1, height: 1, background: 'currentColor', opacity: 0.45 }} />
+      {glyph !== 'none' && (
+        <span aria-hidden style={{ display: 'inline-flex', opacity: 0.85 }}>
+          {glyph === 'asterism' && <Asterism size={18} color="currentColor" />}
+          {glyph === 'fleuron' && <Fleuron size={20} color="currentColor" />}
+          {glyph === 'dot' && (
+            <svg viewBox="0 0 8 8" width={8} height={8} aria-hidden>
+              <circle cx="4" cy="4" r="2" fill="currentColor" />
+            </svg>
+          )}
+        </span>
+      )}
+      <div style={{ flex: 1, height: 1, background: 'currentColor', opacity: 0.45 }} />
+    </div>
   );
 }
 
@@ -308,9 +464,84 @@ export function Sparkle({
   );
 }
 
+/* ────────────────────────────────────────────────────────────────────
+   Sprig — single olive sprig. A curved stem with five small leaves.
+   Replaces the Heart everywhere it lived. Far more editorial, on-brand
+   for Pearloom (olive is the brand colour), and reads at any size.
+   The hairline stem + filled leaves give it weight without shouting.
+   ──────────────────────────────────────────────────────────────────── */
+export function Sprig({
+  size = 16,
+  color = 'var(--sage-deep, #5C6B3F)',
+  accent,
+  className = '',
+  style,
+}: {
+  size?: number;
+  color?: string;
+  /** Optional secondary colour for the stem. Defaults to `color`. */
+  accent?: string;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  const stem = accent ?? color;
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      className={className}
+      style={style}
+      aria-hidden
+    >
+      {/* Curved stem — single bezier from bottom-left to top-right. */}
+      <path
+        d="M 4 21 C 8 17, 11 13, 19 4"
+        stroke={stem}
+        strokeWidth="1.1"
+        fill="none"
+        strokeLinecap="round"
+      />
+      {/* Five small leaves alternating on either side of the stem,
+          drawn as filled ellipses rotated to lie tangent to the curve. */}
+      <ellipse cx="6.5" cy="18" rx="2.2" ry="1.05" fill={color} transform="rotate(-32 6.5 18)" />
+      <ellipse cx="9" cy="15" rx="2.2" ry="1.05" fill={color} transform="rotate(-38 9 15)" />
+      <ellipse cx="12" cy="11.8" rx="2.2" ry="1" fill={color} transform="rotate(-44 12 11.8)" />
+      <ellipse cx="14.6" cy="9" rx="2.0" ry="0.95" fill={color} transform="rotate(-50 14.6 9)" />
+      <ellipse cx="17" cy="6" rx="1.7" ry="0.85" fill={color} transform="rotate(-58 17 6)" />
+    </svg>
+  );
+}
+
+/** Legacy alias — every prior `<Heart>` now renders a Sprig.
+ *  The orange peach default colour maps to the sage deep so the new
+ *  glyph reads correctly on cream surfaces without further changes. */
 export function Heart({
   size = 16,
-  color = '#E8A07A',
+  color,
+  className = '',
+  style,
+}: {
+  size?: number;
+  color?: string;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  // The legacy default was a peach colour for hearts. Treat any
+  // explicit color as the user's intention; fall back to sage when
+  // the caller didn't pass one.
+  const resolved = color && color !== '#E8A07A' ? color : 'var(--sage-deep, #5C6B3F)';
+  return <Sprig size={size} color={resolved} className={className} style={style} />;
+}
+
+/* ────────────────────────────────────────────────────────────────────
+   Asterism — three diamonds in a typographic flourish (⁂). Classical
+   book ornament, perfect for section labels where the legacy Heart
+   used to sit. Renders as currentColor so it inherits text colour.
+   ──────────────────────────────────────────────────────────────────── */
+export function Asterism({
+  size = 18,
+  color = 'currentColor',
   className = '',
   style,
 }: {
@@ -320,10 +551,91 @@ export function Heart({
   style?: CSSProperties;
 }) {
   return (
-    <svg viewBox="0 0 24 24" width={size} height={size} className={className} style={style} aria-hidden>
+    <svg
+      viewBox="0 0 28 12"
+      width={size * (28 / 12)}
+      height={size}
+      className={className}
+      style={style}
+      aria-hidden
+    >
+      <path d="M6 6 L8.4 3.6 L10.8 6 L8.4 8.4 Z" fill={color} />
+      <path d="M16 2.4 L18.4 0 L20.8 2.4 L18.4 4.8 Z" fill={color} />
+      <path d="M16 9.6 L18.4 7.2 L20.8 9.6 L18.4 12 Z" fill={color} />
+    </svg>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────
+   Fleuron — a refined wing-and-dot ornament. Reads as a typographic
+   ornament (think a Penguin Classics chapter break) without referencing
+   a heart shape. Two opposing curls flanking a centred dot.
+   ──────────────────────────────────────────────────────────────────── */
+export function Fleuron({
+  size = 22,
+  color = 'currentColor',
+  className = '',
+  style,
+}: {
+  size?: number;
+  color?: string;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  return (
+    <svg
+      viewBox="0 0 32 18"
+      width={size * (32 / 18)}
+      height={size}
+      className={className}
+      style={style}
+      aria-hidden
+    >
       <path
-        d="M12 21s-7-4.5-9.5-9C.5 8 3 4 7 4c2 0 3.5 1 5 3 1.5-2 3-3 5-3 4 0 6.5 4 4.5 8-2.5 4.5-9.5 9-9.5 9z"
+        d="M 2 12 C 4 4, 12 4, 14 9 C 12 11, 6 12, 2 12 Z"
         fill={color}
+        opacity="0.92"
+      />
+      <path
+        d="M 30 12 C 28 4, 20 4, 18 9 C 20 11, 26 12, 30 12 Z"
+        fill={color}
+        opacity="0.92"
+      />
+      <circle cx="16" cy="10" r="1.5" fill={color} />
+    </svg>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────
+   Bookmark — simple ribbon glyph for "tip" / "saved" badges. Replaces
+   the Heart that used to live in those badge slots.
+   ──────────────────────────────────────────────────────────────────── */
+export function Bookmark({
+  size = 18,
+  color = 'currentColor',
+  className = '',
+  style,
+}: {
+  size?: number;
+  color?: string;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size * (24 / 24)}
+      className={className}
+      style={style}
+      aria-hidden
+    >
+      <path
+        d="M6 3h12v18l-6-4-6 4z"
+        fill="none"
+        stroke={color}
+        strokeWidth="1.4"
+        strokeLinejoin="round"
       />
     </svg>
   );
@@ -514,7 +826,13 @@ export function PhotoPlaceholder({
   );
 }
 
-/* Atmosphere — composed background blobs+squiggles */
+/* ────────────────────────────────────────────────────────────────────
+   Atmosphere — composed background paper-washes + hairline filigree.
+   v9: same prop API as before, so every existing call site is
+   unchanged, but the items render as Wash + Filigree instead of
+   Blob + Squiggle. Opacities pulled down ~30% so the new washes
+   read as quiet light through paper, not shapes pasted on top.
+   ──────────────────────────────────────────────────────────────────── */
 export function Atmosphere({
   preset = 'warm',
   className = '',
@@ -526,37 +844,37 @@ export function Atmosphere({
 }) {
   const presets = {
     warm: [
-      { el: 'blob' as const, tone: 'lavender' as BlobTone, size: 480, opacity: 0.7, style: { top: -80, left: -100, transform: 'rotate(20deg)' } },
-      { el: 'blob' as const, tone: 'peach' as BlobTone, size: 420, opacity: 0.6, style: { top: 40, right: -120, transform: 'rotate(-30deg)' } },
-      { el: 'blob' as const, tone: 'sage' as BlobTone, size: 360, opacity: 0.5, style: { bottom: -100, left: 40, transform: 'rotate(-15deg)' } },
-      { el: 'squig' as const, variant: 1, width: 260, style: { top: 120, right: 200, transform: 'rotate(-20deg)' } },
-      { el: 'squig' as const, variant: 2, width: 180, style: { bottom: 120, left: 180, transform: 'rotate(30deg)' } },
+      { el: 'wash' as const, tone: 'lavender' as WashTone, size: 540, opacity: 0.55, style: { top: -120, left: -160 } },
+      { el: 'wash' as const, tone: 'peach' as WashTone, size: 460, opacity: 0.42, style: { top: 0, right: -160 } },
+      { el: 'wash' as const, tone: 'sage' as WashTone, size: 400, opacity: 0.35, style: { bottom: -140, left: 0 } },
+      { el: 'filigree' as const, variant: 0, width: 280, style: { top: 140, right: 220, transform: 'rotate(-10deg)' } },
+      { el: 'filigree' as const, variant: 3, width: 200, style: { bottom: 140, left: 180, transform: 'rotate(8deg)' } },
     ],
     hero: [
-      { el: 'blob' as const, tone: 'lavender' as BlobTone, size: 520, opacity: 0.55, style: { top: -120, left: -100 } },
-      { el: 'blob' as const, tone: 'peach' as BlobTone, size: 440, opacity: 0.5, style: { top: 60, right: -120 } },
-      { el: 'blob' as const, tone: 'sage' as BlobTone, size: 380, opacity: 0.35, style: { bottom: -140, right: 100 } },
-      { el: 'squig' as const, variant: 1, width: 240, style: { top: 80, right: 300, transform: 'rotate(12deg)' } },
-      { el: 'squig' as const, variant: 3, width: 180, style: { top: 260, left: 40, transform: 'rotate(-15deg)' } },
+      { el: 'wash' as const, tone: 'lavender' as WashTone, size: 580, opacity: 0.45, style: { top: -160, left: -140 } },
+      { el: 'wash' as const, tone: 'peach' as WashTone, size: 480, opacity: 0.36, style: { top: 60, right: -160 } },
+      { el: 'wash' as const, tone: 'sage' as WashTone, size: 420, opacity: 0.26, style: { bottom: -180, right: 80 } },
+      { el: 'filigree' as const, variant: 1, width: 260, style: { top: 80, right: 320, transform: 'rotate(6deg)' } },
+      { el: 'filigree' as const, variant: 3, width: 200, style: { top: 260, left: 60, transform: 'rotate(-8deg)' } },
     ],
     sparse: [
-      { el: 'blob' as const, tone: 'lavender' as BlobTone, size: 300, opacity: 0.4, style: { top: 40, left: -60 } },
-      { el: 'blob' as const, tone: 'peach' as BlobTone, size: 240, opacity: 0.3, style: { bottom: -40, right: 40 } },
-      { el: 'squig' as const, variant: 0, width: 200, style: { top: 100, right: 80, transform: 'rotate(8deg)' } },
+      { el: 'wash' as const, tone: 'lavender' as WashTone, size: 320, opacity: 0.30, style: { top: 60, left: -80 } },
+      { el: 'wash' as const, tone: 'peach' as WashTone, size: 260, opacity: 0.22, style: { bottom: -60, right: 40 } },
+      { el: 'filigree' as const, variant: 0, width: 220, style: { top: 100, right: 80, transform: 'rotate(4deg)' } },
     ],
   };
   const items = presets[preset] ?? presets.warm;
   return (
     <div className={`atmosphere ${className}`} style={style}>
       {items.map((it, i) =>
-        it.el === 'blob' ? (
-          <Blob key={i} tone={it.tone} size={it.size} opacity={it.opacity} seed={i} style={it.style as CSSProperties} />
+        it.el === 'wash' ? (
+          <Wash key={i} tone={it.tone} size={it.size} opacity={it.opacity} seed={i} style={it.style as CSSProperties} />
         ) : (
-          <Squiggle
+          <Filigree
             key={i}
             variant={it.variant}
             width={it.width}
-            height={it.width * 0.4}
+            height={it.width * 0.36}
             style={it.style as CSSProperties}
           />
         )
@@ -654,7 +972,13 @@ export function Icon({
     case 'mail':          return <svg {...common}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>;
     case 'send':          return <svg {...common}><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>;
     case 'bell':          return <svg {...common}><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 004 0"/></svg>;
-    case 'heart-icon':    return <svg {...common}><path d="M12 21s-7-4.5-9.5-9C.5 8 3 4 7 4c2 0 3.5 1 5 3 1.5-2 3-3 5-3 4 0 6.5 4 4.5 8-2.5 4.5-9.5 9-9.5 9z"/></svg>;
+    /* heart-icon used to render a heart silhouette; v9 swaps in the
+       Sprig glyph so existing "Made with care"-style labels read as
+       an olive sprig instead of a heart. */
+    case 'heart-icon':
+    case 'sprig':         return <svg {...common}><path d="M 4 21 C 8 17, 11 13, 19 4" strokeWidth={1.4}/><ellipse cx="6.5" cy="18" rx="2.2" ry="1.05" fill={color} stroke="none" transform="rotate(-32 6.5 18)"/><ellipse cx="9" cy="15" rx="2.2" ry="1.05" fill={color} stroke="none" transform="rotate(-38 9 15)"/><ellipse cx="12" cy="11.8" rx="2.2" ry="1" fill={color} stroke="none" transform="rotate(-44 12 11.8)"/><ellipse cx="14.6" cy="9" rx="2.0" ry="0.95" fill={color} stroke="none" transform="rotate(-50 14.6 9)"/><ellipse cx="17" cy="6" rx="1.7" ry="0.85" fill={color} stroke="none" transform="rotate(-58 17 6)"/></svg>;
+    case 'asterism':      return <svg {...common}><path d="M6 12 L9 9 L12 12 L9 15 Z" fill={color} stroke="none"/><path d="M14 8 L17 5 L20 8 L17 11 Z" fill={color} stroke="none"/><path d="M14 16 L17 13 L20 16 L17 19 Z" fill={color} stroke="none"/></svg>;
+    case 'fleuron':       return <svg {...common}><path d="M 3 14 C 5 6, 13 6, 15 11 C 13 13, 7 14, 3 14 Z" fill={color} stroke="none" opacity="0.92"/><path d="M 21 14 C 19 6, 13 6, 11 11 C 13 13, 17 14, 21 14 Z" fill={color} stroke="none" opacity="0.92"/><circle cx="12" cy="12" r="1.5" fill={color} stroke="none"/></svg>;
     case 'file':          return <svg {...common}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6"/></svg>;
     case 'folder':        return <svg {...common}><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>;
     case 'download':      return <svg {...common}><path d="M12 3v14M5 12l7 7 7-7M3 21h18"/></svg>;

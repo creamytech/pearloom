@@ -506,11 +506,12 @@ function HeroSection({
     <section id="top" style={{ position: 'relative', padding: 'clamp(48px, 8vw, 80px) 32px clamp(48px, 8vw, 110px)', overflow: 'hidden' }}>
       {decorMode === 'classic' && (
         <>
-          <Blob tone="lavender" size={520} opacity={0.55} style={{ position: 'absolute', top: -100, left: -120 }} />
-          <Blob tone="peach" size={440} opacity={0.5} style={{ position: 'absolute', top: 80, right: -140 }} />
-          <Blob tone="sage" size={380} opacity={0.4} style={{ position: 'absolute', bottom: -120, left: '30%' }} />
-          <Squiggle variant={1} width={260} style={{ position: 'absolute', top: 140, right: 200, transform: 'rotate(-14deg)', opacity: 0.8 }} />
-          <Squiggle variant={3} width={180} style={{ position: 'absolute', bottom: 140, left: 120, transform: 'rotate(24deg)', opacity: 0.8 }} />
+          {/* Two paper washes + a single filigree — restrained
+              editorial atmosphere instead of the prior 5-element
+              clip-art-y composition. */}
+          <Blob tone="lavender" size={560} opacity={0.42} style={{ position: 'absolute', top: -160, left: -160 }} />
+          <Blob tone="peach" size={460} opacity={0.32} style={{ position: 'absolute', bottom: -160, right: -160 }} />
+          <Squiggle variant={0} width={260} style={{ position: 'absolute', top: 100, right: 180, transform: 'rotate(-6deg)', opacity: 0.55 }} />
         </>
       )}
       {decorMode === 'occasion' && <OccasionDecor occasion={occasionRaw} variant="hero" />}

@@ -16,7 +16,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useMemo } from 'react';
-import { Users, Mail, LayoutGrid, Heart } from 'lucide-react';
+import { Users, Mail, LayoutGrid, Leaf } from 'lucide-react';
 import { GuestSearchPanel } from './GuestSearchPanel';
 import { BulkInvitePanel } from './BulkInvitePanel';
 import { SaveTheDatePanel } from './SaveTheDatePanel';
@@ -53,7 +53,7 @@ const STAGES: Stage[] = [
   { id: 'list',   label: 'Guest list',    eyebrow: 'Stage 1', Icon: Users },
   { id: 'invite', label: 'Send invites',  eyebrow: 'Stage 2', Icon: Mail },
   { id: 'seat',   label: 'Seating',       eyebrow: 'Stage 3', Icon: LayoutGrid },
-  { id: 'std',    label: 'Save the date', eyebrow: 'Bonus',   Icon: Heart },
+  { id: 'std',    label: 'Save the date', eyebrow: 'Bonus',   Icon: Leaf },
 ];
 
 interface Props {

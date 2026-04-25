@@ -7,7 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import React from 'react';
-import { Heart, Sparkles, UtensilsCrossed, Coffee, Wine, Calendar } from 'lucide-react';
+import { Leaf, Sparkles, UtensilsCrossed, Coffee, Wine, Calendar } from 'lucide-react';
 import type { WeddingEvent } from '@/types';
 import { parseLocalDate } from '@/lib/date';
 
@@ -15,7 +15,7 @@ function getEventIcon(type: WeddingEvent['type'], size = 16) {
   const style = { width: size, height: size };
   switch (type) {
     case 'ceremony':
-      return <Heart style={style} />;
+      return <Leaf style={style} />;
     case 'reception':
       return <Sparkles style={style} />;
     case 'rehearsal':

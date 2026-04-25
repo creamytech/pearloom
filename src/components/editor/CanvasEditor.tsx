@@ -22,7 +22,7 @@ import {
   ChevronDown, ChevronRight, X,
   Sparkles, LayoutTemplate,
   Music, Hash, ImageIcon, PartyPopper,
-  Heart, MessageSquareQuote, Users2, Footprints,
+  Leaf, MessageSquareQuote, Users2, Footprints,
 } from 'lucide-react';
 import {
   BlockHeroIcon, BlockStoryIcon, BlockEventIcon, BlockCountdownIcon,
@@ -69,7 +69,7 @@ const BLOCK_CATALOGUE: BlockDef[] = [
   { type: 'video',     label: 'Video',             icon: BlockVideoIcon,     description: 'YouTube or Vimeo embed',                      color: '#4a4a8b', occasions: ALL_OCCASIONS },
   { type: 'divider',   label: 'Divider',           icon: BlockDividerIcon,   description: 'Visual section separator',                    color: '#8b8b4a', occasions: ALL_OCCASIONS },
   { type: 'vibeQuote', label: 'Vibe Quote',        icon: MessageSquareQuote, description: 'Atmospheric quote with decorative symbol',    color: '#9b6a8b', occasions: ALL_OCCASIONS },
-  { type: 'welcome',   label: 'Welcome',           icon: Heart,              description: 'Personal welcome statement from the couple',  color: '#c47a7a', occasions: ALL_OCCASIONS },
+  { type: 'welcome',   label: 'Welcome',           icon: Leaf,               description: 'Personal welcome statement from the couple',  color: '#c47a7a', occasions: ALL_OCCASIONS },
   { type: 'spotify',   label: 'Spotify Playlist',  icon: Music,              description: 'Embedded Spotify playlist for your guests',   color: '#1DB954', occasions: ALL_OCCASIONS },
   { type: 'hashtag',   label: 'Hashtag',           icon: Hash,               description: 'Social media hashtag for your event',         color: '#4a7a9b', occasions: ['wedding', 'engagement', 'birthday'] },
   { type: 'photoWall', label: 'Guest Photo Wall',  icon: ImageIcon,          description: 'Live wall where guests upload photos',         color: '#7a6a4a', occasions: ALL_OCCASIONS },

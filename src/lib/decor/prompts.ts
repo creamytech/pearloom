@@ -16,13 +16,28 @@ export interface DecorContext {
 }
 
 // Style rails — used at the top of every prompt so the library reads cohesive.
+// Updated 2026-04-24: tightened against the busy / chaotic / out-of-palette
+// drift seen in production. Single-motif rule + explicit negative prompts.
 const STYLE_RAILS = [
-  'Flat ink + gouache illustration. Editorial, hand-drawn, no photorealism.',
-  'No gradients, no 3D rendering, no generic stock-illustration look, no AI-glossy finish.',
-  'No typography, no text, no logos, no watermarks.',
-  'Visible paper grain background in the palette\'s warmest cream tone.',
-  'Composition breathes — negative space is respected.',
+  'Editorial book-ornament illustration in the style of a Penguin Classics chapter break.',
+  'Hand-drawn with a single fine-point pen line — no fills except for solid leaf or petal shapes.',
+  'ONE motif only. No multi-subject compositions. Most of the canvas is calm cream paper.',
+  'No gradients, no 3D, no glossy AI finish, no generic stock-illustration look, no modern flat-design icons.',
+  'No typography, no text, no logos, no watermarks, no decorative borders around the image edge.',
+  'Negative space is the subject. The motif sits in the centre with at least 40% of the frame empty.',
 ];
+
+const NEGATIVE_PROMPT =
+  'Avoid: rainbow colours, multiple competing subjects, busy compositions, overlapping elements, cute cartoon style, glossy AI finish, photo-realistic textures, oversaturated colours, modern flat-design icons, generic clipart, vector-perfect symmetry.';
+
+/** Pick ONE motif at random from a vocabulary list — gpt-image-1
+ *  composes far more cleanly when given a single subject than when
+ *  given a buffet of options. */
+function pickOne(vocab: string): string {
+  const items = vocab.split(/[,;]+/).map((s) => s.trim()).filter(Boolean);
+  if (items.length === 0) return vocab;
+  return items[Math.floor(Math.random() * items.length)] ?? items[0]!;
+}
 
 function paletteLine(paletteHex: string[]): string {
   if (!paletteHex?.length) return 'Palette: warm cream + soft sage + muted gold. Editorial, never saturated.';
@@ -51,7 +66,7 @@ function motifVocabulary(occasion: string): string {
     case 'welcome-party':
     case 'brunch':
     case 'bridal-luncheon':
-      return 'Motif vocabulary: olive branches, rings, ribbons, wild herbs, a sprig of rosemary, a single small dove, trailing ivy, pressed wildflowers.';
+      return 'Motif vocabulary: an olive sprig, a sprig of rosemary, a single trailing ivy vine, a pressed wildflower, a single laurel branch, a fern frond, a single field daisy stem.';
     case 'bachelor-party':
     case 'bachelorette-party':
     case 'bridal-shower':
@@ -96,14 +111,16 @@ function motifVocabulary(occasion: string): string {
 
 /** Hero accent — big flourish behind names. 1536x1024. */
 export function heroAccentPrompt(ctx: DecorContext): string {
+  const motif = pickOne(motifVocabulary(ctx.occasion).replace(/^Motif vocabulary:\s*/i, ''));
   return [
     `Editorial hero-accent illustration for a ${ctx.occasion.replace(/-/g, ' ')} site.`,
     ...STYLE_RAILS,
-    motifVocabulary(ctx.occasion),
+    `DRAW EXACTLY ONE motif: ${motif}. Nothing else. No additional decorative elements.`,
     'Compose around the edges so the centre stays clear — decoration, NOT a focal image.',
     paletteLine(ctx.paletteHex),
     venueLine(ctx.venue),
     vibeLine(ctx.vibe),
+    NEGATIVE_PROMPT,
   ]
     .filter(Boolean)
     .join('\n');
@@ -111,16 +128,17 @@ export function heroAccentPrompt(ctx: DecorContext): string {
 
 /** Divider between every section — wide, short, repeatable feel. */
 export function dividerPrompt(ctx: DecorContext): string {
+  const motif = pickOne(motifVocabulary(ctx.occasion).replace(/^Motif vocabulary:\s*/i, ''));
   return [
     `A long horizontal editorial divider ornament for a ${ctx.occasion.replace(/-/g, ' ')} website.`,
     ...STYLE_RAILS,
-    motifVocabulary(ctx.occasion),
+    `DRAW EXACTLY ONE motif stretched horizontally: ${motif}. No additional motifs or decorative elements.`,
     'Compose as a single continuous band — a hand-drawn ornament that reads left-to-right.',
-    'Examples of the shape we want: a sprig of olive stretched out, a garland of bunting, a line of three small candles with flourishes between them, a chain of connected stars, a trailing vine.',
     'Centre vertically; leave ~15% empty margin above and below the ornament so it composites cleanly over paper.',
     paletteLine(ctx.paletteHex),
     vibeLine(ctx.vibe),
     'The ornament should feel like something an editorial book designer would draw between chapters.',
+    NEGATIVE_PROMPT,
   ]
     .filter(Boolean)
     .join('\n');
@@ -132,17 +150,17 @@ export function sectionStampsPrompt(ctx: DecorContext): string {
   return [
     `A 3-column 2-row grid of six small circular stamps for a ${ctx.occasion.replace(/-/g, ' ')} site. The stamps are for the sections: story, schedule, travel, registry, gallery, rsvp.`,
     ...STYLE_RAILS,
-    motifVocabulary(ctx.occasion),
-    'Each stamp is a small icon inside a single thin hairline circle ~260px wide, evenly spaced on a cream paper background.',
-    '- Stamp 1 (story): a quill or open book corner.',
-    '- Stamp 2 (schedule): a clock face or sun-over-horizon.',
-    '- Stamp 3 (travel): a small compass or map pin.',
-    '- Stamp 4 (registry): a small gift or envelope.',
-    '- Stamp 5 (gallery): a vintage camera silhouette.',
-    '- Stamp 6 (rsvp): a sealed envelope with a ribbon.',
+    'Each stamp is a single small editorial icon centred inside a thin hairline circle, evenly spaced on cream paper. ONE motif per stamp — never compound subjects.',
+    '- Stamp 1 (story): a single quill OR a single open book corner.',
+    '- Stamp 2 (schedule): a single clock face OR a single sun-over-horizon.',
+    '- Stamp 3 (travel): a single compass OR a single map pin.',
+    '- Stamp 4 (registry): a single small gift OR a single envelope.',
+    '- Stamp 5 (gallery): a single vintage camera silhouette.',
+    '- Stamp 6 (rsvp): a single sealed envelope with a ribbon.',
     'Each stamp uses ONE ink colour from the palette accent. All six share the same paper background.',
     paletteLine(ctx.paletteHex),
     'Arrange as a clean 3-columns × 2-rows grid with visible gaps. Leave plenty of breathing room between stamps. This sheet will be sliced into six images.',
+    NEGATIVE_PROMPT,
   ]
     .filter(Boolean)
     .join('\n');
@@ -151,13 +169,13 @@ export function sectionStampsPrompt(ctx: DecorContext): string {
 /** RSVP confetti — single burst, transparent-ish paper.*/
 export function confettiPrompt(ctx: DecorContext): string {
   return [
-    `Hand-drawn confetti burst for a ${ctx.occasion.replace(/-/g, ' ')} RSVP success moment.`,
+    `Hand-drawn confetti scatter for a ${ctx.occasion.replace(/-/g, ' ')} RSVP success moment.`,
     ...STYLE_RAILS,
-    motifVocabulary(ctx.occasion),
-    'Compose as a single radial burst outward from the centre — triangles, small circles, hearts, stars, streamers. About 40-60 loose pieces scattered.',
-    'Centre should be empty so the RSVP card shows through. Everything radiates outward.',
+    'Six to ten torn-paper pieces scattered loosely around an empty centre — small triangles, single petals, single seeds, soft semi-circles. NO 40-piece chaos. NO hearts. NO stars overlapping each other.',
+    'Centre should be visibly empty so the RSVP card shows through. Pieces feel quiet, like a single handful of paper tossed at slow shutter.',
     paletteLine(ctx.paletteHex),
     'Pieces should feel like torn paper, not vector shapes.',
+    NEGATIVE_PROMPT,
   ]
     .filter(Boolean)
     .join('\n');
@@ -165,15 +183,16 @@ export function confettiPrompt(ctx: DecorContext): string {
 
 /** Footer bouquet — editorial closer above the site footer. */
 export function footerBouquetPrompt(ctx: DecorContext): string {
+  const motif = pickOne(motifVocabulary(ctx.occasion).replace(/^Motif vocabulary:\s*/i, ''));
   return [
-    `Hand-drawn closing flourish / bouquet for the footer of a ${ctx.occasion.replace(/-/g, ' ')} site.`,
+    `Hand-drawn closing flourish for the footer of a ${ctx.occasion.replace(/-/g, ' ')} site.`,
     ...STYLE_RAILS,
-    motifVocabulary(ctx.occasion),
-    'Compose as a small-to-medium centred ornament that would sit above a "made on Pearloom" footer line.',
-    'Examples: a gathered sprig of wildflowers tied with a ribbon, a trio of candles with a ribbon, a laurel wreath with crossed stems, a pair of trailing olive branches.',
+    `DRAW EXACTLY ONE motif: ${motif}. Vertical composition, taller than wide. No additional ornament.`,
+    'Sits above a "made on Pearloom" footer line — keep the ornament humble and centred.',
     paletteLine(ctx.paletteHex),
     vibeLine(ctx.vibe),
-    'Vertical composition — taller than wide. Leaves ~20% margin on sides.',
+    'Leaves ~20% margin on sides.',
+    NEGATIVE_PROMPT,
   ]
     .filter(Boolean)
     .join('\n');
@@ -181,15 +200,16 @@ export function footerBouquetPrompt(ctx: DecorContext): string {
 
 /** User-requested sticker — takes an optional free-text hint from the user. */
 export function stickerPrompt(ctx: DecorContext & { hint?: string }): string {
+  const motif = pickOne(motifVocabulary(ctx.occasion).replace(/^Motif vocabulary:\s*/i, ''));
   return [
     `A single small hand-drawn sticker for a ${ctx.occasion.replace(/-/g, ' ')} site.`,
     ...STYLE_RAILS,
-    motifVocabulary(ctx.occasion),
-    ctx.hint ? `User request: "${ctx.hint}"` : 'Pick one iconic motif from the vocabulary above and render it as a single sticker.',
+    ctx.hint ? `User request: "${ctx.hint}". Render ONLY this — one shape, no embellishments.` : `DRAW EXACTLY ONE motif: ${motif}. Render as a single sticker shape — no scene, no background detail.`,
     'The sticker should be a single compact shape centred on the canvas with a soft drop-shadow hinting at a peel-back corner.',
     'Transparent paper-grain background around the sticker so it composites cleanly onto any block.',
     paletteLine(ctx.paletteHex),
     'Square format. The sticker occupies about 70% of the frame with empty margin around it.',
+    NEGATIVE_PROMPT,
   ]
     .filter(Boolean)
     .join('\n');

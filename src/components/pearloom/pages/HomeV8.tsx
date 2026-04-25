@@ -50,11 +50,12 @@ function Eyebrow({ children, color = 'var(--peach-ink)' }: { children: ReactNode
 function Hero() {
   return (
     <section style={{ position: 'relative', padding: '48px 0 140px', overflow: 'hidden' }}>
-      <Blob tone="lavender" size={380} opacity={0.55} seed={0} style={{ position: 'absolute', top: 120, left: -120, zIndex: 0 }} />
-      <Blob tone="peach" size={220} opacity={0.35} seed={1} style={{ position: 'absolute', top: 40, right: 260, zIndex: 0 }} />
-      <Blob tone="sage-deep" size={440} opacity={0.35} seed={2} style={{ position: 'absolute', bottom: -60, right: -140, zIndex: 0 }} />
-      <Squiggle width={260} variant={1} stroke="#D4A95D" style={{ position: 'absolute', top: 30, left: 60, opacity: 0.5, zIndex: 0 }} />
-      <Squiggle width={200} variant={3} stroke="#D4A95D" style={{ position: 'absolute', bottom: 60, left: 80, opacity: 0.45, zIndex: 0 }} />
+      {/* Two restrained paper washes + a single hairline filigree —
+          a calmer hero atmosphere than the original three blobs +
+          two squiggles. */}
+      <Blob tone="lavender" size={520} opacity={0.42} seed={0} style={{ position: 'absolute', top: -120, left: -160, zIndex: 0 }} />
+      <Blob tone="peach" size={420} opacity={0.32} seed={2} style={{ position: 'absolute', bottom: -120, right: -120, zIndex: 0 }} />
+      <Squiggle width={240} variant={3} style={{ position: 'absolute', top: 40, right: 120, opacity: 0.45, zIndex: 0 }} />
 
       <div
         className="container pl8-hero-grid"

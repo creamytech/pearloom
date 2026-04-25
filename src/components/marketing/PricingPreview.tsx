@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { ArrowRight, Check, Sprout, Heart, Leaf } from 'lucide-react';
+import { ArrowRight, Check, Sprout, Feather, Leaf } from 'lucide-react';
 import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 
@@ -66,7 +66,7 @@ const TIERS: Tier[] = [
     accent: C.plum,
     highlighted: true,
     badge: 'Most Popular',
-    Icon: Heart,
+    Icon: Feather,
   },
   {
     name: 'Legacy',

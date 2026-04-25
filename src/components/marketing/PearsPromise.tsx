@@ -10,7 +10,7 @@
 // promise without being saccharine.
 // ─────────────────────────────────────────────────────────────
 
-import { Heart } from 'lucide-react';
+import { Sprout } from 'lucide-react';
 import { BlurFade, Swirl, CurvedText } from '@/components/brand/groove';
 
 export function PearsPromise() {
@@ -124,7 +124,7 @@ export function PearsPromise() {
                   justifyContent: 'center',
                 }}
               >
-                <Heart size={72} fill="var(--pl-groove-plum)" stroke="var(--pl-groove-plum)" strokeWidth={0} />
+                <Sprout size={72} stroke="var(--pl-groove-plum)" strokeWidth={1.6} />
               </div>
             </div>
           </div>

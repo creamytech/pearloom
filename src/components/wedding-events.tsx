@@ -7,7 +7,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { ExternalLink, Heart, Sparkles, UtensilsCrossed, Wine, Coffee, Calendar } from 'lucide-react';
+import { ExternalLink, Leaf, Sparkles, UtensilsCrossed, Wine, Coffee, Calendar } from 'lucide-react';
 import { AddToCalendar } from '@/components/add-to-calendar';
 import {
   CalendarHeartIcon,
@@ -23,7 +23,7 @@ function getEventIcon(type: WeddingEvent['type'], accentColor = 'var(--pl-olive)
   const style = { color: accentColor, width: size, height: size };
   switch (type) {
     case 'ceremony':
-      return <Heart style={style} />;
+      return <Leaf style={style} />;
     case 'reception':
       return <Sparkles style={style} />;
     case 'rehearsal':

@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Loader2, PartyPopper, HeartCrack, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Check, Loader2, PartyPopper, CloudOff, ChevronRight, ChevronLeft } from 'lucide-react';
 import { LoomThreadIcon } from '@/components/icons/PearloomIcons';
 import type { RsvpStatus, WeddingEvent } from '@/types';
 
@@ -263,7 +263,7 @@ export function RsvpForm({ events, siteId, mealOptions }: RsvpFormProps) {
             {status === 'attending' ? (
               <PartyPopper size={28} color="#059669" />
             ) : (
-              <HeartCrack size={28} color="#dc2626" />
+              <CloudOff size={28} color="#dc2626" />
             )}
           </div>
           <h3

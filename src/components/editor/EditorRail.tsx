@@ -16,7 +16,7 @@ import {
   BookOpen, Palette, ClipboardList, Users, Music, BarChart2,
   CalendarDays, FileText, LayoutGrid, Sparkles, Mic,
   Type as TypeIcon, Brush,
-  Mail, MessageSquare, Heart,
+  Mail, MessageSquare, Feather,
   Globe, History,
   Plus, Image as ImageIcon,
 } from 'lucide-react';
@@ -96,7 +96,7 @@ const WORKSPACES: Workspace[] = [
     tabs: [
       { id: 'guests',      tab: 'guests',      Icon: Users,        label: 'Guest list',    description: 'Names, emails, RSVPs' },
       { id: 'invite',      tab: 'invite',      Icon: Mail,         label: 'Send invites',  description: 'Email your full guest list' },
-      { id: 'savethedate', tab: 'savethedate', Icon: Heart,        label: 'Save the date', description: 'Design and send STDs' },
+      { id: 'savethedate', tab: 'savethedate', Icon: Feather,      label: 'Save the date', description: 'Design and send STDs' },
       { id: 'seating',     tab: 'seating',     Icon: LayoutGrid,   label: 'Seating',       description: 'Tables & assignments' },
       { id: 'messaging',   tab: 'messaging',   Icon: MessageSquare,label: 'Messages',      description: 'One-off emails to guests' },
     ],

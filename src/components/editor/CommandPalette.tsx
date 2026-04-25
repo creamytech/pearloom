@@ -9,7 +9,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlignLeft, Calendar, Palette, Settings, Globe, Sparkles,
-  MessageCircleHeart, Monitor, Tablet, Smartphone, Plus,
+  Mic, Monitor, Tablet, Smartphone, Plus,
   Eye, RotateCcw, RotateCw, LayoutTemplate, Search, ArrowRight,
   Hash, Clock,
 } from 'lucide-react';
@@ -67,7 +67,7 @@ const TAB_COMMANDS: Command[] = [
   { id: 'tab-details', label: 'Details',  description: 'Names, date & location',        icon: Settings,           iconColor: '#6b7280', group: 'Switch Tab', action: { type: 'tab', tab: 'details' } },
   { id: 'tab-pages',   label: 'Pages',    description: 'Manage site pages',             icon: Globe,              iconColor: '#18181B', group: 'Switch Tab', action: { type: 'tab', tab: 'pages'  } },
   { id: 'tab-blocks',  label: 'AI',       description: 'AI-generated content blocks',   icon: Sparkles,           iconColor: '#18181B', group: 'Switch Tab', action: { type: 'tab', tab: 'blocks' } },
-  { id: 'tab-voice',   label: 'Voice',    description: 'AI voice & TTS training',       icon: MessageCircleHeart, iconColor: '#f43f5e', group: 'Switch Tab', action: { type: 'tab', tab: 'voice'  } },
+  { id: 'tab-voice',   label: 'Voice',    description: 'AI voice & TTS training',       icon: Mic, iconColor: '#f43f5e', group: 'Switch Tab', action: { type: 'tab', tab: 'voice'  } },
 ];
 
 const DEVICE_COMMANDS: Command[] = [
