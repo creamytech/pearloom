@@ -7,6 +7,9 @@ import { Blob, Pear, Sparkle, Squiggle, Icon } from '../../motifs';
 import { DecorLibraryPanel } from './DecorLibraryPanel';
 import { StickerTrayPanel } from './StickerTrayPanel';
 import { AtmospherePanel } from './AtmospherePanel';
+import { FontPicker } from './FontPicker';
+import { ColorTokenInspector } from './ColorTokenInspector';
+import { SpacingPanel } from './SpacingPanel';
 
 interface ThemePreset {
   id: string;
@@ -280,25 +283,11 @@ export function ThemePanel({
         </div>
       </PanelSection>
 
-      <PanelSection label="Section spacing" hint="How much air between each section.">
-        <SegmentedToggle<string>
-          value={spacing}
-          onChange={(v) => update({ spacing: v })}
-          options={SPACING.map((s) => ({ value: s, label: s }))}
-        />
-      </PanelSection>
+      <FontPicker manifest={manifest} onChange={onChange} />
 
-      <PanelSection label="Typography" hint="Headlines, body, and handwriting touch.">
-        <Field label="Headings">
-          <SelectInput value={headingFont} onChange={(v) => applyFont('heading', v)} options={HEADING_FONTS} />
-        </Field>
-        <Field label="Body">
-          <SelectInput value={bodyFont} onChange={(v) => applyFont('body', v)} options={BODY_FONTS} />
-        </Field>
-        <Field label="Script">
-          <SelectInput value={scriptFont} onChange={(v) => update({ scriptFont: v })} options={SCRIPT_FONTS} />
-        </Field>
-      </PanelSection>
+      <ColorTokenInspector manifest={manifest} onChange={onChange} />
+
+      <SpacingPanel manifest={manifest} onChange={onChange} />
 
       <PanelSection
         label="Hero decoration"

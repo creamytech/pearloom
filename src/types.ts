@@ -311,6 +311,22 @@ export interface StoryManifest {
     rationale?: string;
     createdAt?: string;
   }>;
+  /** Manifest schema version — bumped when we add migration-required
+   *  fields. Editor reads this and runs migrations on open if older. */
+  schemaVersion?: number;
+  /** Last 10 manifest snapshots taken at every save. Lets the host
+   *  scrub backwards through time inside the editor without leaving
+   *  the page. Persisted with the manifest so it survives reloads. */
+  snapshots?: Array<{
+    id: string;
+    createdAt: string;
+    /** Plain-English label — auto-derived from what changed. */
+    label: string;
+    /** Compact diff: a short hash of the manifest at this point so we
+     *  can tell snapshots apart visually. The full payload lives at
+     *  the top-level manifest itself when the snapshot is restored. */
+    payload: Record<string, unknown>;
+  }>;
   // Per-field inline text formatting overrides keyed by manifest path (e.g. "poetry.heroTagline")
   textFormats?: Record<string, {
     italic?: boolean;

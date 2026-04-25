@@ -32,6 +32,7 @@ import type { StoryManifest } from '@/types';
 import { SiteV8Renderer } from '../../site/SiteV8Renderer';
 import { ThemeQuickBar } from './ThemeQuickBar';
 import { EditorCanvasProvider } from './EditorCanvasContext';
+import { FloatingFormatToolbar } from './FloatingFormatToolbar';
 
 // Match EditorV8's device contract exactly so ref + prop pass
 // through without type friction.
@@ -117,6 +118,26 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
             }
           />
         </EditorCanvasProvider>
+        {/* Floating format toolbar — surfaces over any text
+            selection inside an [data-pl-editable] node. Lets the
+            host bold / italic / link / clear / ask-Pear-to-rewrite
+            without leaving the canvas. */}
+        <FloatingFormatToolbar
+          onAiRewrite={async (text) => {
+            try {
+              const res = await fetch('/api/inline-rewrite', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text, context: 'inline-format' }),
+              });
+              if (!res.ok) return null;
+              const data = (await res.json()) as { rewritten?: string };
+              return data.rewritten ?? null;
+            } catch {
+              return null;
+            }
+          }}
+        />
       </div>
     );
   },
