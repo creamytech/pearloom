@@ -646,7 +646,104 @@ export const TEMPLATES: Template[] = [
   },
 ];
 
-export const TEMPLATES_BY_ID: Record<string, Template> = TEMPLATES.reduce(
+/* ────────────────────────────────────────────────────────────────────
+   The /templates page surfaces TWO registries combined:
+     • the curated TEMPLATES list above (handcrafted marketplace cards)
+     • the full SITE_TEMPLATES library in src/lib/templates/wedding-
+       templates.ts (74 ready-to-apply templates)
+   These had drifted out of sync — sites in SITE_TEMPLATES never
+   showed up on /templates. The adapter below projects each
+   SITE_TEMPLATE into the lightweight Template shape the marketplace
+   tile expects.
+   ──────────────────────────────────────────────────────────────────── */
+
+import { SITE_TEMPLATES, type SiteTemplate } from '@/lib/templates/wedding-templates';
+
+/** Lightweight palette pick for the marketplace tile. The full
+ *  custom palette ships when the template is applied — this is just
+ *  an approximation for the tile colour swatches. */
+function nearestNamedPalette(t: SiteTemplate): TemplatePalette {
+  const tags = (t.tags ?? []).join(' ').toLowerCase();
+  const vibe = (t.vibeString ?? '').toLowerCase();
+  const all = `${tags} ${vibe}`;
+  if (/lavender|purple|dusk|amethyst|plum/.test(all)) return 'lavender-ink';
+  if (/dusk|meadow/.test(all)) return 'dusk-meadow';
+  if (/peach|terracotta|warm|orange|coral|amber/.test(all)) return 'peach-cream';
+  if (/linen|cream|bone|paper|chalk/.test(all)) return 'warm-linen';
+  if (/olive|gold|brass|chianti|loire|tuscan/.test(all)) return 'olive-gold';
+  if (/sage|forest|cedar|moss|pacific|garden|botanical/.test(all)) return 'cream-sage';
+  return 'groovy-garden';
+}
+
+function nearestLayout(t: SiteTemplate): TemplateLayout {
+  const lf = (t.layoutFormat ?? '').toLowerCase();
+  if (lf === 'magazine') return 'magazine';
+  if (lf === 'filmstrip') return 'filmstrip';
+  if (lf === 'cascade') return 'timeline';
+  if (lf === 'chapters') return 'parallax';
+  if (lf === 'scrapbook') return 'kenburns';
+  if (lf === 'starmap') return 'mosaic';
+  return 'timeline';
+}
+
+const VIBE_CANDIDATES: TemplateVibe[] = [
+  'Warm', 'Editorial', 'Playful', 'Quiet', 'Groovy',
+  'Black tie', 'Outdoorsy', 'Intimate', 'Romantic', 'Modern', 'Handwritten',
+];
+
+function deriveVibes(t: SiteTemplate): TemplateVibe[] {
+  const text = `${t.tags?.join(' ') ?? ''} ${t.vibeString ?? ''} ${t.tagline ?? ''}`.toLowerCase();
+  const hits: TemplateVibe[] = [];
+  // Heuristic vibe detection — picks 2-3 best matches.
+  const map: Array<[TemplateVibe, RegExp]> = [
+    ['Warm',        /warm|terracotta|peach|gold|amber|cream/],
+    ['Editorial',   /editorial|magazine|slim-aarons|hudson|brooklyn|loft/],
+    ['Playful',     /playful|y2k|fun|colour|circus|disco|maximalist/],
+    ['Quiet',       /quiet|wabi-sabi|minimal|calm|kyoto|cedar/],
+    ['Groovy',      /groovy|70s|retro|disco|y2k/],
+    ['Black tie',   /black-tie|formal|chateau|loire|hotel|gala|costes|midnight/],
+    ['Outdoorsy',   /outdoor|garden|forest|desert|coast|alpine|barn|mountain|cliff|joshua/],
+    ['Intimate',    /intimate|small|elopement|tea-ceremony|private/],
+    ['Romantic',    /romantic|tuscan|provence|chianti|love|chateau/],
+    ['Modern',      /modern|brooklyn|tokyo|industrial|loft|minimal|edition/],
+    ['Handwritten', /handwritten|script|signature|cursive/],
+  ];
+  for (const [v, re] of map) if (re.test(text) && hits.length < 3) hits.push(v);
+  if (hits.length === 0) hits.push('Romantic');
+  return hits;
+}
+
+/** Project a full SiteTemplate into the marketplace tile shape. */
+function siteTemplateToMarketplace(t: SiteTemplate): Template {
+  const occasion = (Array.isArray(t.occasions) && t.occasions[0]
+    ? t.occasions[0]
+    : 'wedding') as SiteOccasion;
+  return {
+    id: t.id,
+    name: t.name,
+    occasion,
+    description: t.description ?? t.tagline ?? '',
+    vibes: deriveVibes(t),
+    palette: nearestNamedPalette(t),
+    layout: nearestLayout(t),
+    heroScript: t.poetry?.heroTagline,
+    featured: t.featured,
+    tagline: t.tagline,
+  };
+}
+
+/** Curated marketplace TEMPLATES (above) come first — they're the
+ *  hand-tuned cards. The 74 SITE_TEMPLATES follow, deduplicated by
+ *  id so we don't ship duplicates if a curated card has the same
+ *  id as a SITE_TEMPLATE. */
+const CURATED_IDS = new Set(TEMPLATES.map((t) => t.id));
+const PROJECTED_FROM_SITE: Template[] = SITE_TEMPLATES
+  .filter((t) => !CURATED_IDS.has(t.id))
+  .map(siteTemplateToMarketplace);
+
+export const ALL_TEMPLATES: Template[] = [...TEMPLATES, ...PROJECTED_FROM_SITE];
+
+export const TEMPLATES_BY_ID: Record<string, Template> = ALL_TEMPLATES.reduce(
   (acc, t) => ({ ...acc, [t.id]: t }),
   {} as Record<string, Template>,
 );

@@ -19,7 +19,7 @@ import {
   OCCASION_GROUPS,
   OCCASION_LABELS,
   PALETTE_SWATCHES,
-  TEMPLATES,
+  ALL_TEMPLATES as TEMPLATES,
   type OccasionGroup,
   type Template,
   type TemplatePalette,

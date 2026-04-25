@@ -11,7 +11,6 @@ const DEFAULT_LINKS: NavLink[] = [
   { label: 'Product', href: '/#product' },
   { label: 'Event Types', href: '/#event-types' },
   { label: 'Features', href: '/#features' },
-  { label: 'Templates', href: '/templates' },
   { label: 'Pricing', href: '/#pricing' },
 ];
 

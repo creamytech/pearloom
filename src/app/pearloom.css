@@ -1159,3 +1159,53 @@ html { scroll-behavior: smooth; }
     max-height: 100dvh !important;
   }
 }
+
+/* ============================================================
+   Dashboard navigation — eliminate the white flash between tabs.
+   Each /dashboard page mounts its own DashShell, so navigation
+   used to unmount + remount the whole tree. Opt into the CSS
+   View Transitions API so the browser crossfades for us.
+
+   Browsers without support (still many) gracefully fall back to
+   instant navigation — no flash, just no animation.
+   ============================================================ */
+
+/* Tell the browser to auto-animate same-document navigations.
+   The dashboard is fully client-routed, so this engages on tab
+   switches inside /dashboard/*. */
+@view-transition {
+  navigation: auto;
+}
+
+/* Stable name for the persistent shell so the sidebar + topbar
+   don't crossfade — only the main content area animates. */
+.pl8-dash-sidebar { view-transition-name: pl8-dash-sidebar; }
+.pl8-dashshell main { view-transition-name: pl8-dash-main; }
+
+/* Crossfade duration — fast and tight. */
+::view-transition-group(pl8-dash-main),
+::view-transition-old(pl8-dash-main),
+::view-transition-new(pl8-dash-main) {
+  animation-duration: 220ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+::view-transition-group(pl8-dash-sidebar),
+::view-transition-old(pl8-dash-sidebar),
+::view-transition-new(pl8-dash-sidebar) {
+  /* Sidebar should NOT animate at all — it's persistent chrome. */
+  animation-duration: 0ms;
+}
+
+/* Belt-and-braces fallback: even when view transitions aren't
+   supported, ensure the cream background paints the moment the
+   new page mounts so we don't flash white. */
+.pl8-dashshell {
+  background: var(--cream, #F8F1E4);
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(pl8-dash-main),
+  ::view-transition-old(pl8-dash-main),
+  ::view-transition-new(pl8-dash-main) {
+    animation: none !important;
+  }
+}
