@@ -12,6 +12,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
+import { migrateManifest } from '@/lib/manifest-migrations';
+import { captureSnapshot } from '@/lib/snapshots';
 import { Icon, Pear, PearloomLogo } from '../motifs';
 import { buildSitePath, formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { stripArtForStorage } from '@/lib/editor-state';
@@ -40,6 +42,8 @@ import { StoryPanel } from './panels/StoryPanel';
 import { DetailsPanel } from './panels/DetailsPanel';
 import { SchedulePanel } from './panels/SchedulePanel';
 import { TravelPanel } from './panels/TravelPanel';
+import { BlockStylePanel } from './panels/BlockStylePanel';
+import { BlockMiniature } from './BlockMiniature';
 import { RegistryPanel } from './panels/RegistryPanel';
 import { GalleryPanel } from './panels/GalleryPanel';
 import { RsvpPanel } from './panels/RsvpPanel';
@@ -106,16 +110,20 @@ export function EditorV8({
 }) {
   const router = useRouter();
   const [manifest, setManifest] = useState<StoryManifest>(() => {
+    // Run any pending schema migrations BEFORE coercing themeFamily
+    // so future migrations can reshape fields safely without the
+    // editor going through a partial state.
+    const migrated = migrateManifest(initialManifest) as StoryManifest;
     // V8 is the only supported theme family right now. Anything else
     // (legacy 'classic', unset, garbage value from a half-migrated
     // draft) is coerced to 'v8' so the canvas + published renderer
     // align. Log the override in dev so we know when this fires.
-    const tf = (initialManifest as unknown as { themeFamily?: string }).themeFamily;
-    if (tf === 'v8') return initialManifest;
+    const tf = (migrated as unknown as { themeFamily?: string }).themeFamily;
+    if (tf === 'v8') return migrated;
     if (tf && process.env.NODE_ENV !== 'production') {
       console.warn(`[editor] Coerced themeFamily "${tf}" → "v8" on load.`);
     }
-    return { ...initialManifest, themeFamily: 'v8' } as unknown as StoryManifest;
+    return { ...migrated, themeFamily: 'v8' } as unknown as StoryManifest;
   });
   const [names, setNames] = useState<[string, string]>(initialNames);
   const [block, setBlock] = useState<BlockKey>('hero');
@@ -242,10 +250,15 @@ export function EditorV8({
         const body = await res.json().catch(() => ({}));
         throw new Error((body as { error?: string }).error || `Publish failed (${res.status})`);
       }
-      const next = { ...manifest, published: true } as StoryManifest;
-      setManifest(next);
+      // Capture a snapshot at publish time — this is the "version
+      // your guests saw" record so the host can always rewind here.
+      const snapped = captureSnapshot(
+        { ...manifest, published: true } as StoryManifest,
+        `Published ${new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`
+      );
+      setManifest(snapped);
       // Record the published state in history so undo doesn't nuke the publish.
-      history.record(next, names);
+      history.record(snapped, names);
       // Invalidate the dashboard sites cache so the dashboard sees
       // the newly-published state (badge turns green, URL resolves).
       try {
@@ -770,7 +783,7 @@ function Outline({
     <aside
       className="pl8-editor-outline"
       style={{
-        width: 280,
+        width: 308,
         flexShrink: 0,
         borderRight: '1px solid var(--line-soft)',
         background: 'var(--cream)',
@@ -876,14 +889,39 @@ function SortableBlockRow({
   onSelect: () => void;
   onToggleHidden: () => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: def.key });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } = useSortable({ id: def.key });
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.4 : 1,
+    position: 'relative',
+    boxShadow: isDragging ? '0 12px 28px rgba(14,13,11,0.18)' : 'none',
+    borderRadius: 10,
+    background: isDragging ? 'var(--card)' : 'transparent',
   };
   return (
     <div ref={setNodeRef} style={style}>
+      {/* Drop indicator — peach hairline above the row when another
+          row is being dragged over it. dnd-kit reports isOver only
+          on the SortableContext target, so this lights up on the
+          row that the dragged item would slot into. */}
+      {isOver && (
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute',
+            top: -3,
+            left: 6,
+            right: 6,
+            height: 2,
+            background: 'var(--peach-ink, #C6703D)',
+            borderRadius: 2,
+            boxShadow: '0 0 6px rgba(198,112,61,0.45)',
+            zIndex: 2,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
       <BlockRow
         def={def}
         active={active}
@@ -920,8 +958,8 @@ function BlockRow({
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: `${dragHandleProps ? '18px ' : ''}28px 1fr ${onToggleHidden ? '28px' : ''}`.trim(),
-        gap: 8,
+        gridTemplateColumns: `${dragHandleProps ? '18px ' : ''}56px 1fr ${onToggleHidden ? '28px' : ''}`.trim(),
+        gap: 10,
         padding: '8px 10px',
         borderRadius: 10,
         background: active ? 'var(--ink)' : hidden ? 'transparent' : 'transparent',
@@ -943,7 +981,7 @@ function BlockRow({
           onClick={(e) => e.stopPropagation()}
           style={{
             width: 18,
-            height: 28,
+            height: 34,
             display: 'grid',
             placeItems: 'center',
             background: 'transparent',
@@ -957,19 +995,18 @@ function BlockRow({
           <Icon name="drag" size={14} />
         </button>
       )}
+      {/* Mini section preview — replaces the small icon with an
+          illustrative SVG diagram of what the section looks like. */}
       <span
         style={{
-          width: 28,
-          height: 28,
-          borderRadius: 8,
-          background: active ? 'rgba(255,255,255,0.14)' : 'var(--cream-2)',
-          display: 'grid',
-          placeItems: 'center',
+          width: 56,
+          height: 34,
           flexShrink: 0,
           opacity: hidden ? 0.45 : 1,
+          display: 'block',
         }}
       >
-        <Icon name={def.icon} size={14} />
+        <BlockMiniature block={def.key} active={active} />
       </span>
       <div style={{ minWidth: 0, opacity: hidden ? 0.55 : 1 }}>
         <div style={{ fontSize: 13.5, fontWeight: 600 }}>{def.label}</div>
@@ -1087,9 +1124,31 @@ function Inspector({
           onChange={onChange}
           onNamesChange={onNamesChange}
         />
+        {/* Per-section style overrides — appears below every section
+            panel except the global Theme panel (which already has all
+            global controls). Lets the host tweak this one section in
+            isolation. Uses the same blockId the published renderer
+            does so changes are immediately visible. */}
+        {block !== 'theme' && block !== 'toasts' && (
+          <BlockStylePanel
+            manifest={manifest}
+            blockId={blockToSectionId(block)}
+            label={`${meta.label} — section style`}
+            onChange={onChange}
+          />
+        )}
       </div>
     </aside>
   );
+}
+
+/** Map editor block keys to the section IDs the renderer uses, so
+ *  BlockStylePanel writes to the same key SiteV8Renderer reads. */
+function blockToSectionId(block: BlockKey): string {
+  if (block === 'hero') return 'top';
+  if (block === 'story') return 'our-story';
+  if (block === 'details') return 'details';
+  return block;
 }
 
 function PanelSwitch({

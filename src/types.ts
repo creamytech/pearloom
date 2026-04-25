@@ -6,6 +6,32 @@ import type { VibeSkin } from '@/lib/vibe-engine';
 import type { SiteOccasion } from '@/lib/site-urls';
 
 /**
+ * Per-block style overrides.
+ * Each section can override these without touching the global theme.
+ * All fields optional — undefined means inherit from globals.
+ */
+export interface BlockStyleOverride {
+  /** Vertical breathing room override: 'cozy' | 'comfortable' | 'spacious' | 'lush' */
+  spacing?: string;
+  /** Card corner radius override: 'sharp' | 'soft' | 'rounded' | 'pillow' */
+  cardRadius?: string;
+  /** Horizontal alignment of section copy. */
+  textAlign?: 'left' | 'center' | 'right';
+  /** Override container max-width (px). Useful for narrowing prose-heavy
+   *  sections so reading lines stay tight. */
+  maxWidth?: number;
+  /** Pad the inside of the section by extra px. */
+  paddingY?: number;
+  /** Override text colour for this section. CSS color string. */
+  textColor?: string;
+  /** Override background. CSS color string, or 'paper' / 'wash' / 'mesh'
+   *  (which delegate to SectionBackground). */
+  background?: string;
+  /** Hide the entire section without removing it from the manifest. */
+  hidden?: boolean;
+}
+
+/**
  * Story Manifest
  * The structured output returned by the Gemini "Memory Engine."
  * Each Google Photos session is distilled into a Chapter.
@@ -327,6 +353,12 @@ export interface StoryManifest {
      *  the top-level manifest itself when the snapshot is restored. */
     payload: Record<string, unknown>;
   }>;
+  /** Per-block style overrides. Lets the host tweak any one section's
+   *  spacing, alignment, padding, or text colour without touching the
+   *  global theme. Sections fall back to global defaults when not set.
+   *  Section keys: 'top' | 'our-story' | 'schedule' | 'travel'
+   *  | 'registry' | 'gallery' | 'rsvp' | 'faq'. */
+  blockStyles?: Record<string, BlockStyleOverride>;
   // Per-field inline text formatting overrides keyed by manifest path (e.g. "poetry.heroTagline")
   textFormats?: Record<string, {
     italic?: boolean;

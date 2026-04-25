@@ -10,6 +10,7 @@ import { AtmospherePanel } from './AtmospherePanel';
 import { FontPicker } from './FontPicker';
 import { ColorTokenInspector } from './ColorTokenInspector';
 import { SpacingPanel } from './SpacingPanel';
+import { SnapshotsPanel } from './SnapshotsPanel';
 
 interface ThemePreset {
   id: string;
@@ -288,6 +289,8 @@ export function ThemePanel({
       <ColorTokenInspector manifest={manifest} onChange={onChange} />
 
       <SpacingPanel manifest={manifest} onChange={onChange} />
+
+      <SnapshotsPanel manifest={manifest} onChange={onChange} />
 
       <PanelSection
         label="Hero decoration"

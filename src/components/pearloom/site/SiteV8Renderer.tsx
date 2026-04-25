@@ -33,6 +33,7 @@ import { AmbientAudio } from './AmbientAudio';
 import { useHeroParallax } from './useHeroParallax';
 import { SectionBackground } from './SectionBackground';
 import { ScrollReveal } from './ScrollReveal';
+import { isBlockHidden } from './BlockStyleWrapper';
 import {
   CalendarAddButton,
   SaveContactButton,
@@ -3117,6 +3118,11 @@ export function SiteV8Renderer({
           <HeroSection names={names} manifest={manifest} siteSlug={siteSlug} onEditField={onEditField} onEditNames={onEditNames} />
         </StickerLayer>
         {blockOrder.map((key, i) => {
+          // Honour per-block hidden flag from manifest.blockStyles.
+          // Map editor block keys to the section IDs the override
+          // panel writes to ('story' → 'our-story').
+          const sectionId = key === 'story' ? 'our-story' : key;
+          if (isBlockHidden(manifest, sectionId)) return null;
           const block = renderBlock(key);
           if (!block) return null;
           // Per-divider visibility: host can hide the divider above
