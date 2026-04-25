@@ -1467,24 +1467,18 @@ function VenueHero({ venue, address, manifest, onEditField }: { venue: string; a
     if (!photoSrc || stylizing) return;
     setStylizing(true);
     try {
-      // Fetch the current photo bytes (follows our proxy if external)
-      // and send base64 to /api/photos/stylize.
-      const res = await fetch(photoSrc);
-      if (!res.ok) throw new Error('Could not read venue photo');
-      const blob = await res.blob();
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = () => resolve(String(r.result ?? ''));
-        r.onerror = () => reject(r.error);
-        r.readAsDataURL(blob);
-      });
+      // The server route fetches the source photo itself, so we just
+      // hand it the absolute URL. (photoSrc may be relative — e.g.
+      // `/api/venue/photo?q=…` — so resolve against the page origin.)
+      const photoUrl = photoSrc.startsWith('http')
+        ? photoSrc
+        : `${window.location.origin}${photoSrc.startsWith('/') ? '' : '/'}${photoSrc}`;
       const stylRes = await fetch('/api/photos/stylize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          imageBase64: base64,
+          photoUrl,
           style: 'watercolor',
-          prompt: `Editorial watercolor rendering of ${venue}. Warm cream + sage palette. Hand-drawn feel, no typography.`,
         }),
       });
       if (!stylRes.ok) {
