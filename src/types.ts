@@ -171,8 +171,27 @@ export interface StoryManifest {
   // Anniversary mode — transforms site after wedding date passes
   anniversaryMode?: boolean;
   anniversaryPhotos?: ChapterImage[];
-  // Multi-language: translated content keyed by locale
-  translations?: Record<string, { chapters?: Array<{ title: string; subtitle: string; description: string }> }>;
+  // Multi-language: translated content keyed by locale (e.g. 'es',
+  // 'fr', 'ja'). Replaces the runtime DOM-walk translate hack with a
+  // proper persisted shape — published sites read from
+  // translations[locale] when ?lang=xx is set or browser language matches.
+  translations?: Record<string, {
+    /** Per-chapter translated copy. Keyed by chapter id when
+     *  available, falls back to index. */
+    chapters?: Array<{ id?: string; title?: string; subtitle?: string; description?: string }>;
+    /** Translated poetry: heroTagline, closingLine, rsvpIntro,
+     *  welcomeStatement. Each optional. */
+    poetry?: { heroTagline?: string; closingLine?: string; rsvpIntro?: string; welcomeStatement?: string };
+    /** Translated FAQ array (same shape as faq[]). */
+    faq?: Array<{ id?: string; question?: string; answer?: string }>;
+    /** Translated event names + descriptions. */
+    events?: Array<{ id?: string; name?: string; description?: string }>;
+    /** Free-form key→string for everything else (block titles,
+     *  subtitles, custom labels). */
+    strings?: Record<string, string>;
+    /** When this locale was last regenerated. */
+    updatedAt?: string;
+  }>;
   activeLocale?: string;
   // Real-time collab: current editor session info
   collaborators?: Array<{ userId: string; name: string; color: string; cursor?: string }>;
