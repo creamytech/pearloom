@@ -28,20 +28,34 @@ const PALETTE_TONES: Record<TemplatePalette, Tone> = {
 };
 
 export function TemplatePreview({ template, small = false }: { template: Template; small?: boolean }) {
-  // Resolve the bespoke design first — falls back to palette-token
-  // tones for any template without a curated entry.
+  // Match the modal's source priority: SITE_TEMPLATE first (the real
+  // theme the editor will render — Provence's lavender + olive +
+  // ink, Kyoto's stone + tea-bowl etc), then the legacy DESIGNS map,
+  // then the palette-token fallback. Without this, Provence's tile
+  // pulled the gold "classic" fallback and didn't match its own
+  // modal preview.
+  const site = findMatchingSiteTemplate(template);
   const design = resolveTemplateDesign(template.id);
   const tone = PALETTE_TONES[template.palette];
-  const t: Tone = design
+  const t: Tone = site
     ? {
-        deep: design.theme.foreground,
-        mid: design.theme.accent,
-        soft: design.theme.accentLight,
-        paper: design.theme.background,
-        ink: design.theme.foreground,
-        accent: design.theme.accent,
+        deep: site.theme.colors.foreground,
+        mid: site.theme.colors.accent,
+        soft: site.theme.colors.accentLight,
+        paper: site.theme.colors.background,
+        ink: site.theme.colors.foreground,
+        accent: site.theme.colors.accent,
       }
-    : tone;
+    : design
+      ? {
+          deep: design.theme.foreground,
+          mid: design.theme.accent,
+          soft: design.theme.accentLight,
+          paper: design.theme.background,
+          ink: design.theme.foreground,
+          accent: design.theme.accent,
+        }
+      : tone;
   // Tile + modal must show the same names / tagline / stamp so users
   // see consistent identity across the marketplace flow. Pull from the
   // same seed the modal uses (per-occasion sample names + matched
@@ -59,14 +73,15 @@ export function TemplatePreview({ template, small = false }: { template: Templat
     ?? template.heroScript
     ?? 'a day worth keeping';
   const scale = small ? 0.78 : 1;
-  const fontHeading = design?.fonts?.heading ?? 'Fraunces';
+  // Heading font — same priority as the modal: SITE_TEMPLATE first,
+  // then the DESIGNS map fallback.
+  const fontHeading = site?.theme.fonts.heading ?? design?.fonts?.heading ?? 'Fraunces';
   // Tile uses the family name so tiles where the browser has the
   // font cached render in-voice; otherwise falls through to serif
   // (acceptable for a miniature). The modal preview loads fonts
   // via <link> so the full-size preview always shows true type.
   const headingStack = `"${fontHeading}", Georgia, serif`;
   // Pull the template's signature stamp motif for the tile hero.
-  const site = findMatchingSiteTemplate(template);
   const stampText = site?.motifs?.stamp?.text ?? template.name.toUpperCase();
   // Per-template signature illustration (citrus for Lake Como, monolith
   // for Marfa, brushstroke for Tokyo, etc). Rendered as a corner motif
