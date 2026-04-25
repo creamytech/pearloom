@@ -227,19 +227,37 @@
 }
 .pl8 .atmosphere > * { position: absolute; }
 
-/* Top nav */
+/* Top nav — sticky, scroll-aware, with sliding underline indicator. */
 .pl8 .topnav {
   position: sticky; top: 0; z-index: 40;
-  background: rgba(248, 241, 228, 0.88);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--line-soft);
+  background: rgba(248, 241, 228, 0.78);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border-bottom: 1px solid transparent;
+  transition:
+    padding 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    background 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    backdrop-filter 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 380ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pl8 .topnav.topnav-scrolled {
+  background: rgba(248, 241, 228, 0.94);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border-bottom-color: var(--line-soft);
+  box-shadow: 0 8px 24px -16px rgba(14, 13, 11, 0.18);
 }
 .pl8 .topnav-inner {
   max-width: var(--maxw); margin: 0 auto;
   padding: 18px 32px;
   display: flex; align-items: center; justify-content: space-between;
   gap: 24px;
+  transition: padding 380ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pl8 .topnav.topnav-scrolled .topnav-inner {
+  padding-top: 11px;
+  padding-bottom: 11px;
 }
 .pl8 .logo {
   display: inline-flex; align-items: center; gap: 8px;
@@ -247,14 +265,78 @@
   font-size: 24px; color: var(--ink);
 }
 .pl8 .logo-glyph { width: 34px; height: 34px; flex: 0 0 34px; }
-.pl8 .nav-links { display: flex; align-items: center; gap: 4px; }
+
+.pl8-topnav-logo {
+  transition: transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+.pl8-topnav-logo:hover { transform: rotate(-2deg) translateY(-1px); }
+.pl8-topnav-logo:active { transform: scale(0.97); transition-duration: 120ms; }
+
+.pl8 .nav-links {
+  display: flex; align-items: center; gap: 4px;
+  position: relative;
+}
 .pl8 .nav-links a {
   padding: 10px 14px; border-radius: 999px;
   font-size: 14px; font-weight: 500;
-  color: var(--ink); opacity: .8;
+  color: var(--ink); opacity: .72;
   display: inline-flex; align-items: center; gap: 4px;
+  position: relative; z-index: 1;
+  transition: opacity 220ms cubic-bezier(0.22, 1, 0.36, 1), color 220ms ease;
 }
-.pl8 .nav-links a:hover { opacity: 1; background: var(--cream-2); }
+.pl8 .nav-links a:hover,
+.pl8 .nav-links a:focus-visible { opacity: 1; outline: none; }
+.pl8 .nav-links a.active { opacity: 1; }
+
+/* Sliding underline that follows hover/active across nav links. */
+.pl8 .pl8-nav-underline {
+  height: 2px;
+  background: linear-gradient(90deg, var(--peach-ink, #C6703D) 0%, var(--gold, #D4A95D) 100%);
+  border-radius: 2px;
+  transform-origin: center;
+  transition:
+    left 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 220ms ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Burger button micro-bounce */
+.pl8-burger { transition: transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1), background 200ms ease; }
+.pl8-burger:hover { transform: scale(1.05); background: var(--cream-2); }
+.pl8-burger:active { transform: scale(0.94); transition-duration: 120ms; }
+
+/* ── Scroll progress bar pinned to the bottom edge of the topnav. ── */
+.pl8-scroll-progress {
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 2px;
+  pointer-events: none;
+  background: transparent;
+}
+.pl8-scroll-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg,
+    var(--peach-ink, #C6703D) 0%,
+    var(--gold, #D4A95D) 55%,
+    var(--peach-ink, #C6703D) 100%);
+  background-size: 200% 100%;
+  border-top-right-radius: 2px;
+  border-bottom-right-radius: 2px;
+  box-shadow: 0 0 8px rgba(198, 112, 61, 0.45);
+  animation: pl8-progress-shimmer 2.6s linear infinite;
+  transition: width 140ms linear;
+}
+@keyframes pl8-progress-shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-scroll-progress-bar { animation: none; }
+}
 
 /* Footer bar */
 .pl8 .footbar {
@@ -345,13 +427,18 @@
 
 .pl8 .lift {
   transition:
-    transform 360ms cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 360ms cubic-bezier(0.16, 1, 0.3, 1);
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 240ms ease;
   will-change: transform;
 }
 .pl8 .lift:hover {
-  transform: translate3d(0, -3px, 0);
-  box-shadow: var(--shadow-md);
+  transform: translate3d(0, -5px, 0);
+  box-shadow: 0 24px 50px -28px rgba(14, 13, 11, 0.32), var(--shadow-md);
+  border-color: var(--peach-2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8 .lift:hover { transform: none; box-shadow: var(--shadow-sm); }
 }
 
 .pl8 ::selection { background: var(--peach); color: var(--ink); }
@@ -804,19 +891,205 @@ button.pl8-mobile-only { display: none !important; }
 
 /* ── Scroll-spy active state — paints the matching nav link
    when its section is in view (set by GuestKit2 ScrollSpy). ── */
-.pl8-site-nav-links a[data-pl-scroll-active="1"] {
-  color: var(--ink) !important;
-  font-weight: 600;
+.pl8-site-nav-links a {
   position: relative;
 }
-.pl8-site-nav-links a[data-pl-scroll-active="1"]::after {
+.pl8-site-nav-links a::after {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -6px;
+  bottom: -2px;
   height: 2px;
-  background: var(--peach-ink, #C6703D);
-  border-radius: 1px;
+  background: linear-gradient(90deg, var(--peach-ink, #C6703D) 0%, var(--gold, #D4A95D) 100%);
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 240ms ease;
+}
+.pl8-site-nav-links a:hover {
+  color: var(--ink) !important;
+}
+.pl8-site-nav-links a:hover::after {
+  transform: scaleX(1);
+  opacity: 0.6;
+}
+.pl8-site-nav-links a[data-pl-scroll-active="1"] {
+  color: var(--ink) !important;
+  font-weight: 600;
+}
+.pl8-site-nav-links a[data-pl-scroll-active="1"]::after {
+  transform: scaleX(1);
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-site-nav-links a::after { transition: none; }
 }
 
+
+/* ============================================================
+   pl8 — Smoothness pass (2026-04-24)
+   - Sheen sweep on primary CTAs
+   - Mobile drawer enters with spring + staggered links
+   - Page-enter fade-rise wrapper
+   - Card-lift micro-interaction
+   - Smooth in-page anchor scroll
+   ============================================================ */
+
+/* Smooth scroll for in-page anchor links (#hero, #pricing, etc.) */
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* ── Button sheen — diagonal highlight that sweeps across the
+       button on hover. Subtle, premium. Applied via .pl8-btn-sheen
+       to keep it opt-in (we don't want it on every button). ── */
+.pl8 .pl8-btn-sheen,
+.pl8-guest .pl8-btn-sheen {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.pl8 .pl8-btn-sheen::after,
+.pl8-guest .pl8-btn-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.42) 48%,
+    rgba(255, 255, 255, 0.42) 52%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+  transition: transform 720ms cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 0;
+}
+.pl8 .pl8-btn-sheen:hover::after,
+.pl8 .pl8-btn-sheen:focus-visible::after,
+.pl8-guest .pl8-btn-sheen:hover::after,
+.pl8-guest .pl8-btn-sheen:focus-visible::after {
+  transform: translateX(120%);
+}
+.pl8 .pl8-btn-sheen > *,
+.pl8-guest .pl8-btn-sheen > * {
+  position: relative;
+  z-index: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8 .pl8-btn-sheen::after,
+  .pl8-guest .pl8-btn-sheen::after { display: none; }
+}
+
+/* Ramp button hover lift slightly stronger + add a soft shadow. */
+.pl8 .btn-primary:hover {
+  box-shadow: 0 10px 24px -10px rgba(14, 13, 11, 0.45);
+}
+.pl8 .btn-outline:hover,
+.pl8 .btn-cream:hover {
+  box-shadow: 0 6px 18px -10px rgba(14, 13, 11, 0.25);
+}
+
+/* ── Mobile drawer — backdrop fade + panel spring-slide ── */
+.pl8-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(61, 74, 31, 0.42);
+  z-index: 999;
+  display: flex;
+  justify-content: flex-end;
+  animation: pl8-drawer-fade 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.pl8-drawer-panel {
+  width: min(320px, 88vw);
+  height: 100%;
+  background: var(--cream);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: -24px 0 60px rgba(0, 0, 0, 0.18);
+  animation: pl8-drawer-in 420ms cubic-bezier(0.34, 1.32, 0.55, 1);
+  will-change: transform;
+}
+@keyframes pl8-drawer-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes pl8-drawer-in {
+  from { transform: translateX(110%); }
+  to   { transform: translateX(0); }
+}
+.pl8-drawer-link {
+  padding: 14px 12px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  background: transparent;
+  text-decoration: none;
+  position: relative;
+  opacity: 0;
+  transform: translateX(18px);
+  animation: pl8-drawer-link-in 420ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transition: background 200ms ease, transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pl8-drawer-link:hover {
+  background: var(--cream-2);
+  transform: translateX(2px);
+}
+@keyframes pl8-drawer-link-in {
+  to { opacity: 1; transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-drawer-backdrop,
+  .pl8-drawer-panel { animation: none; }
+  .pl8-drawer-link {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}
+
+/* ── Page-enter wrapper — fade-rise applied to the marketing
+       PearloomPage scaffold so route transitions feel intentional. ── */
+.pl8-page-enter {
+  animation: pl8-page-fade-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pl8-page-fade-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-page-enter { animation: none; }
+}
+
+/* ── Card lift utility — drop on any card-shaped element to get
+       a refined lift on hover. Use sparingly so it stays meaningful. ── */
+.pl8-card-lift {
+  transition:
+    transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 240ms ease;
+  will-change: transform;
+}
+.pl8-card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 22px 50px -28px rgba(14, 13, 11, 0.32);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-card-lift:hover { transform: none; }
+}
+
+/* ── Make existing v8 nav-links match the new look on hover (no
+       heavy pill background, since the underline does the work). ── */
+.pl8 .nav-links a:hover {
+  background: transparent;
+  opacity: 1;
+}

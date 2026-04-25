@@ -101,7 +101,7 @@ function Hero() {
 
             <Reveal delay={520}>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 28, flexWrap: 'wrap' }}>
-                <Link className="btn btn-primary btn-lg" href="/wizard/new">
+                <Link className="btn btn-primary btn-lg pl8-btn-sheen" href="/wizard/new">
                   Start your event <Pear size={14} tone="cream" shadow={false} />
                 </Link>
                 <button type="button" className="btn btn-outline btn-lg">

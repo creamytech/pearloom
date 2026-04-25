@@ -247,29 +247,55 @@ function LanguageSwitcher() {
 function EventNav({ names, hasRsvp }: { names: [string, string]; hasRsvp: boolean }) {
   const links = ['Our Story', 'Details', 'Schedule', 'Travel', 'Registry', 'Gallery'];
   const coupleLabel = names.filter(Boolean).join(' & ') || 'Our celebration';
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 32);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
     <header
+      className={`pl8-site-nav${scrolled ? ' pl8-site-nav-scrolled' : ''}`}
       style={{
         position: 'sticky',
         top: 0,
         zIndex: 40,
-        background: 'rgba(247, 242, 228, 0.85)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(61,74,31,0.08)',
+        background: scrolled ? 'rgba(247, 242, 228, 0.96)' : 'rgba(247, 242, 228, 0.78)',
+        backdropFilter: scrolled ? 'blur(18px) saturate(160%)' : 'blur(12px) saturate(140%)',
+        WebkitBackdropFilter: scrolled ? 'blur(18px) saturate(160%)' : 'blur(12px) saturate(140%)',
+        borderBottom: scrolled ? '1px solid rgba(61,74,31,0.10)' : '1px solid transparent',
+        boxShadow: scrolled ? '0 8px 24px -16px rgba(14,13,11,0.18)' : 'none',
+        transition:
+          'background 380ms cubic-bezier(0.22, 1, 0.36, 1), backdrop-filter 380ms cubic-bezier(0.22, 1, 0.36, 1), border-color 380ms ease, box-shadow 380ms ease',
       }}
     >
       <div
         style={{
           maxWidth: 1240,
           margin: '0 auto',
-          padding: '14px 32px',
+          padding: scrolled ? '10px 32px' : '14px 32px',
           display: 'flex',
           alignItems: 'center',
           gap: 28,
+          transition: 'padding 380ms cubic-bezier(0.22, 1, 0.36, 1)',
         }}
       >
-        <a href="#top" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+        <a
+          href="#top"
+          className="pl8-site-nav-brand"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            textDecoration: 'none',
+            transition: 'transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'rotate(-2deg) translateY(-1px)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = ''; }}
+        >
           <Pear size={28} tone="sage" shadow={false} />
           <span className="display-italic" style={{ fontSize: 22, color: 'var(--ink)' }}>
             {coupleLabel}
@@ -280,7 +306,15 @@ function EventNav({ names, hasRsvp }: { names: [string, string]; hasRsvp: boolea
             <a
               key={l}
               href={`#${l.toLowerCase().replace(' ', '-')}`}
-              style={{ fontSize: 13.5, color: 'var(--ink-soft)', fontWeight: 500, textDecoration: 'none' }}
+              style={{
+                fontSize: 13.5,
+                color: 'var(--ink-soft)',
+                fontWeight: 500,
+                textDecoration: 'none',
+                position: 'relative',
+                paddingBottom: 4,
+                transition: 'color 220ms ease',
+              }}
             >
               {l}
             </a>
@@ -288,7 +322,7 @@ function EventNav({ names, hasRsvp }: { names: [string, string]; hasRsvp: boolea
         </nav>
         <LanguageSwitcher />
         {hasRsvp && (
-          <a href="#rsvp" className="btn btn-primary btn-sm">
+          <a href="#rsvp" className="btn btn-primary btn-sm pl8-btn-sheen">
             RSVP <Icon name="arrow-right" size={12} />
           </a>
         )}

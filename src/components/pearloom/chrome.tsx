@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Icon, Pear, PearloomLogo, Stamp } from './motifs';
 
 export type NavLink = { label: string; href: string; hasMenu?: boolean };
@@ -30,6 +30,48 @@ export function TopNav({
   const loggedIn = status === 'authenticated' && !!session;
   const nav = links ?? DEFAULT_LINKS;
   const [drawer, setDrawer] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Sliding underline indicator follows hover, falls back to active
+  // when no hover. Measured in <Link> ref refs.
+  const navRef = useRef<HTMLElement | null>(null);
+  const linkRefs = useRef<Map<string, HTMLAnchorElement>>(new Map());
+  const [underline, setUnderline] = useState<{ left: number; width: number; visible: boolean }>({
+    left: 0,
+    width: 0,
+    visible: false,
+  });
+  const [hoveredLabel, setHoveredLabel] = useState<string | null>(null);
+
+  // Measure the active or hovered link to position the underline.
+  useLayoutEffect(() => {
+    if (!navRef.current) return;
+    const target = hoveredLabel ?? active;
+    if (!target) {
+      setUnderline((u) => ({ ...u, visible: false }));
+      return;
+    }
+    const el = linkRefs.current.get(target);
+    if (!el) {
+      setUnderline((u) => ({ ...u, visible: false }));
+      return;
+    }
+    const navRect = navRef.current.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    setUnderline({
+      left: elRect.left - navRect.left + 14, // strip the link's left padding
+      width: elRect.width - 28,               // and right padding
+      visible: true,
+    });
+  }, [hoveredLabel, active, nav]);
+
+  // Scroll-aware: shrink + tighten glass past 32px.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 32);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   // Close drawer on route hash change + esc
   useEffect(() => {
@@ -46,16 +88,48 @@ export function TopNav({
     };
   }, [drawer]);
 
+  const captureLink = (label: string) => (el: HTMLAnchorElement | null) => {
+    if (el) linkRefs.current.set(label, el);
+    else linkRefs.current.delete(label);
+  };
+
   return (
     <>
-      <div className="topnav">
+      <div className={`topnav${scrolled ? ' topnav-scrolled' : ''}`}>
         <div className="topnav-inner">
-          <Link href="/" aria-label="Pearloom home">
+          <Link
+            href="/"
+            aria-label="Pearloom home"
+            className="pl8-topnav-logo"
+            style={{ display: 'inline-flex' }}
+          >
             <PearloomLogo />
           </Link>
-          <nav className="nav-links">
+          <nav className="nav-links" ref={navRef}>
+            {/* Sliding underline that follows hover/active */}
+            <span
+              aria-hidden="true"
+              className="pl8-nav-underline"
+              style={{
+                position: 'absolute',
+                bottom: 6,
+                left: underline.left,
+                width: underline.width,
+                opacity: underline.visible ? 1 : 0,
+                transform: underline.visible ? 'scaleX(1)' : 'scaleX(0.6)',
+              }}
+            />
             {nav.map((l) => (
-              <Link key={l.label} href={l.href} className={active === l.label ? 'active' : ''}>
+              <Link
+                key={l.label}
+                ref={captureLink(l.label)}
+                href={l.href}
+                className={active === l.label ? 'active' : ''}
+                onMouseEnter={() => setHoveredLabel(l.label)}
+                onMouseLeave={() => setHoveredLabel(null)}
+                onFocus={() => setHoveredLabel(l.label)}
+                onBlur={() => setHoveredLabel(null)}
+              >
                 {l.label}
                 {l.hasMenu && (
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ opacity: 0.5 }}>
@@ -84,7 +158,7 @@ export function TopNav({
                 <Link className="btn btn-ghost btn-sm pl8-desktop-only" href="/login">
                   Log in
                 </Link>
-                <Link className="btn btn-primary btn-sm" href={ctaHref}>
+                <Link className="btn btn-primary btn-sm pl8-btn-sheen" href={ctaHref}>
                   <span className="pl8-desktop-only">{ctaText}</span>
                   <span className="pl8-mobile-only">Start</span>
                   <Pear size={14} tone="cream" shadow={false} />
@@ -95,7 +169,7 @@ export function TopNav({
               type="button"
               onClick={() => setDrawer(true)}
               aria-label="Open menu"
-              className="pl8-mobile-only"
+              className="pl8-mobile-only pl8-burger"
               style={{
                 background: 'transparent',
                 border: '1.5px solid var(--line)',
@@ -110,6 +184,7 @@ export function TopNav({
             </button>
           </div>
         </div>
+        <ScrollProgress />
       </div>
 
       {/* Mobile drawer */}
@@ -117,29 +192,13 @@ export function TopNav({
         <div
           role="presentation"
           onClick={() => setDrawer(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(61,74,31,0.42)',
-            zIndex: 999,
-            display: 'flex',
-            justifyContent: 'flex-end',
-          }}
+          className="pl8-drawer-backdrop"
         >
           <div
             role="dialog"
             aria-label="Navigation"
             onClick={(e) => e.stopPropagation()}
-            style={{
-              width: 'min(320px, 88vw)',
-              height: '100%',
-              background: 'var(--cream)',
-              padding: 24,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-              boxShadow: '-24px 0 60px rgba(0,0,0,0.15)',
-            }}
+            className="pl8-drawer-panel"
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <PearloomLogo />
@@ -159,19 +218,13 @@ export function TopNav({
               </button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 8 }}>
-              {nav.map((l) => (
+              {nav.map((l, i) => (
                 <Link
                   key={l.label}
                   href={l.href}
                   onClick={() => setDrawer(false)}
-                  style={{
-                    padding: '14px 12px',
-                    borderRadius: 12,
-                    fontSize: 16,
-                    fontWeight: 600,
-                    color: 'var(--ink)',
-                    background: 'transparent',
-                  }}
+                  className="pl8-drawer-link"
+                  style={{ animationDelay: `${i * 40}ms` }}
                 >
                   {l.label}
                 </Link>
@@ -183,7 +236,7 @@ export function TopNav({
                   Log in
                 </Link>
               )}
-              <Link href={ctaHref} className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={() => setDrawer(false)}>
+              <Link href={ctaHref} className="btn btn-primary pl8-btn-sheen" style={{ justifyContent: 'center' }} onClick={() => setDrawer(false)}>
                 {ctaText} <Pear size={14} tone="cream" shadow={false} />
               </Link>
             </div>
@@ -191,6 +244,35 @@ export function TopNav({
         </div>
       )}
     </>
+  );
+}
+
+/* ------------------------------------------------------------------
+   ScrollProgress — slim 2px bar pinned to the bottom of the topnav,
+   filling left→right as the page scrolls. Uses scrollHeight so the
+   bar reaches 100% exactly when the user hits the page end.
+   ------------------------------------------------------------------ */
+function ScrollProgress() {
+  const [pct, setPct] = useState(0);
+  useEffect(() => {
+    function tick() {
+      const h = document.documentElement;
+      const scrolled = h.scrollTop || document.body.scrollTop;
+      const max = (h.scrollHeight || document.body.scrollHeight) - h.clientHeight;
+      setPct(max <= 0 ? 0 : Math.min(100, Math.max(0, (scrolled / max) * 100)));
+    }
+    tick();
+    window.addEventListener('scroll', tick, { passive: true });
+    window.addEventListener('resize', tick, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', tick);
+      window.removeEventListener('resize', tick);
+    };
+  }, []);
+  return (
+    <div className="pl8-scroll-progress" aria-hidden="true">
+      <div className="pl8-scroll-progress-bar" style={{ width: `${pct}%` }} />
+    </div>
   );
 }
 
@@ -264,7 +346,7 @@ export function Footbar({
         {ctaText && (
           <Link
             href={ctaHref}
-            className="btn"
+            className="btn pl8-btn-sheen"
             style={{ background: 'var(--cream)', color: 'var(--ink)' }}
           >
             {ctaText}
@@ -292,7 +374,7 @@ export function Footbar({
 /** Simple subheader / page scaffold */
 export function PearloomPage({ children, style }: { children: ReactNode; style?: CSSProperties }) {
   return (
-    <div className="pl8" style={style}>
+    <div className="pl8 pl8-page-enter" style={style}>
       {children}
     </div>
   );
