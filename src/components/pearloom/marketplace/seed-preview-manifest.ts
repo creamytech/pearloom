@@ -330,6 +330,12 @@ export function seedPreviewManifest(template: Template): PreviewManifestBuild {
     hiddenBlocks: site?.hiddenBlocks,
     blocks: site?.blocks,
     occasion,
+    // Carry the SITE_TEMPLATE's signature illustration + story layout so
+    // the preview renders the actual identity of each template (citrus
+    // for Lake Como, monolith for Marfa, brushstroke for Tokyo, etc.)
+    // instead of the timeline + classic palette default.
+    signatureDecor: site?.signatureDecor,
+    layoutFormat: site?.layoutFormat,
   } as unknown as StoryManifest;
 
   return {

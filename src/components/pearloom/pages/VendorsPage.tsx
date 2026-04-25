@@ -24,7 +24,7 @@ interface Vendor {
 
 const CATEGORIES = ['photographer', 'florist', 'caterer', 'dj', 'planner', 'venue', 'baker', 'rentals'];
 
-export function VendorsPage() {
+export function VendorsPage({ embedded = false }: { embedded?: boolean } = {}) {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<{ category?: string; q?: string }>({});
@@ -50,15 +50,25 @@ export function VendorsPage() {
     return map;
   }, [vendors]);
 
+  // When embedded inside the dashboard shell, drop the standalone
+  // marketing-style header chrome. The shell already has the
+  // sidebar + topbar.
+  const Outer = embedded ? 'div' : 'div';
+  const outerProps = embedded
+    ? { style: { background: 'transparent' } }
+    : { className: 'pl8', style: { minHeight: '100vh', background: 'var(--paper, #F5EFE2)' } };
+
   return (
-    <div className="pl8" style={{ minHeight: '100vh', background: 'var(--paper, #F5EFE2)' }}>
-      <header style={{ padding: 'clamp(40px, 7vw, 80px) clamp(20px, 5vw, 56px) 28px', maxWidth: 1240, margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-          <Link href="/" style={{ fontFamily: 'var(--pl-font-display, Georgia, serif)', fontSize: 22, fontWeight: 600, textDecoration: 'none', color: 'var(--ink)' }}>
-            <Pear size={22} tone="sage" /> Pearloom
-          </Link>
-          <Link href="/dashboard" style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Dashboard →</Link>
-        </div>
+    <Outer {...outerProps}>
+      <header style={{ padding: embedded ? '0 clamp(20px, 5vw, 56px) 28px' : 'clamp(40px, 7vw, 80px) clamp(20px, 5vw, 56px) 28px', maxWidth: 1240, margin: '0 auto' }}>
+        {!embedded && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+            <Link href="/" style={{ fontFamily: 'var(--pl-font-display, Georgia, serif)', fontSize: 22, fontWeight: 600, textDecoration: 'none', color: 'var(--ink)' }}>
+              <Pear size={22} tone="sage" /> Pearloom
+            </Link>
+            <Link href="/dashboard" style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Dashboard →</Link>
+          </div>
+        )}
         <div
           style={{
             fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
@@ -156,7 +166,7 @@ export function VendorsPage() {
           </div>
         )}
       </main>
-    </div>
+    </Outer>
   );
 }
 

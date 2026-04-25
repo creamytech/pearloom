@@ -10,6 +10,7 @@ import type { Template, TemplateLayout, TemplatePalette } from './templates-data
 import { resolveTemplateDesign } from './template-themes';
 import { findMatchingSiteTemplate } from './template-matcher';
 import { seedPreviewManifest } from './seed-preview-manifest';
+import { TemplateSignatureDecor, type SignatureDecorKind } from '../site/TemplateSignatureDecor';
 
 type Tone = { deep: string; mid: string; soft: string; paper: string; ink: string; accent: string };
 
@@ -67,6 +68,17 @@ export function TemplatePreview({ template, small = false }: { template: Templat
   // Pull the template's signature stamp motif for the tile hero.
   const site = findMatchingSiteTemplate(template);
   const stampText = site?.motifs?.stamp?.text ?? template.name.toUpperCase();
+  // Per-template signature illustration (citrus for Lake Como, monolith
+  // for Marfa, brushstroke for Tokyo, etc). Rendered as a corner motif
+  // in the tile so the marketplace card carries the same identity as
+  // the editor preview — not the generic rectangular stamp.
+  const signatureKind = (site?.signatureDecor ?? 'none') as SignatureDecorKind;
+  const hasSignature = signatureKind && signatureKind !== 'none';
+  // Effective layout — `template.layout` is already the projected
+  // value from siteTemplateToMarketplace's nearestLayout mapper, so
+  // bento/kenburns/parallax/etc all carry through to the LayoutHint
+  // correctly. No need to re-cast site?.layoutFormat here.
+  const effectiveLayout = template.layout;
   return (
     <div
       style={{
@@ -79,6 +91,34 @@ export function TemplatePreview({ template, small = false }: { template: Templat
     >
       <div style={{ position: 'absolute', top: -40, left: -40, width: 180, height: 180, borderRadius: '50%', background: t.soft, opacity: 0.8 }} />
       <div style={{ position: 'absolute', bottom: -40, right: -30, width: 160, height: 160, borderRadius: '50%', background: t.mid, opacity: 0.35 }} />
+
+      {/* Signature illustration in the corner — citrus, monolith,
+          tea-bowl, brushstroke, etc. Matches the editor hero's
+          TemplateSignatureDecor so the tile carries the same
+          identity. Only renders when the matched SITE_TEMPLATE
+          declares a signatureDecor (13 templates so far). */}
+      {hasSignature && (
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            width: small ? 72 : 90,
+            height: small ? 72 : 90,
+            opacity: 0.92,
+            pointerEvents: 'none',
+            color: t.ink,
+            zIndex: 1,
+          }}
+        >
+          <TemplateSignatureDecor
+            kind={signatureKind}
+            position="top-right"
+            size={small ? 72 : 90}
+          />
+        </div>
+      )}
 
       <div style={{ position: 'relative', padding: small ? 14 : 18, height: '100%', display: 'flex', flexDirection: 'column' }}>
         {/* Mini nav */}
@@ -116,7 +156,8 @@ export function TemplatePreview({ template, small = false }: { template: Templat
           scale={scale}
           headingStack={headingStack}
           stampText={stampText}
-          layout={template.layout}
+          layout={effectiveLayout}
+          showStamp={!hasSignature}
         />
 
         {/* Footer strip */}
@@ -149,6 +190,7 @@ function V8HeroBody({
   headingStack,
   stampText,
   layout,
+  showStamp = true,
 }: {
   tone: Tone;
   name: string;
@@ -157,6 +199,7 @@ function V8HeroBody({
   headingStack: string;
   stampText: string;
   layout: TemplateLayout;
+  showStamp?: boolean;
 }) {
   // Split an "A & B" or "A and B" name into two parts so the tile
   // can mimic the real hero's "<A> and <B>" italic middle word.
@@ -168,27 +211,31 @@ function V8HeroBody({
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 6 }}>
-      {/* Stamp motif — matches SiteV8Renderer hero stamp */}
-      <div
-        style={{
-          fontFamily: 'var(--font-mono, ui-monospace, monospace)',
-          fontSize: Math.round(8 * scale),
-          fontWeight: 800,
-          letterSpacing: '0.22em',
-          color: t.accent,
-          border: `1.4px solid ${t.accent}`,
-          padding: '3px 8px',
-          borderRadius: 3,
-          textTransform: 'uppercase',
-          transform: 'rotate(-3deg)',
-          maxWidth: '90%',
-          overflow: 'hidden',
-          whiteSpace: 'nowrap',
-          textOverflow: 'ellipsis',
-        }}
-      >
-        {stampText.slice(0, 20)}
-      </div>
+      {/* Stamp motif — matches SiteV8Renderer hero stamp. Hidden when
+          a signature illustration is showing in the tile corner so we
+          don't double up on the template's identity marker. */}
+      {showStamp && (
+        <div
+          style={{
+            fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+            fontSize: Math.round(8 * scale),
+            fontWeight: 800,
+            letterSpacing: '0.22em',
+            color: t.accent,
+            border: `1.4px solid ${t.accent}`,
+            padding: '3px 8px',
+            borderRadius: 3,
+            textTransform: 'uppercase',
+            transform: 'rotate(-3deg)',
+            maxWidth: '90%',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {stampText.slice(0, 20)}
+        </div>
+      )}
 
       {/* Names — big serif + italic "and" mirror */}
       <div style={{ fontFamily: headingStack, color: t.ink, lineHeight: 0.95, fontWeight: 600, fontSize: nameFontSize }}>

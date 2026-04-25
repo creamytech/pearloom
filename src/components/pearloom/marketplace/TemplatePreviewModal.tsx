@@ -40,13 +40,49 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
     setPortalTarget(typeof document !== 'undefined' ? document.body : null);
   }, []);
 
+  const site = useMemo(() => (template ? findMatchingSiteTemplate(template) : null), [template]);
+  const seed = useMemo(() => (template ? seedPreviewManifest(template) : null), [template]);
+  const design = useMemo(() => (template ? resolveTemplateDesign(template.id) : null), [template]);
+
+  // Prefer the matched SITE_TEMPLATE's actual theme — wedding-templates.ts
+  // has the bespoke palette + font pair the editor will actually render
+  // with (Lake Como uses Cormorant Garamond + Manrope, Kyoto uses Tenor
+  // Sans + Inter, etc). Fall back to the legacy marketplace DESIGNS map
+  // for templates without a SITE_TEMPLATE entry.
+  const fontHeading = site?.theme.fonts.heading ?? design?.fonts.heading ?? 'Fraunces';
+  const fontBody = site?.theme.fonts.body ?? design?.fonts.body ?? 'Inter';
+  const themeColors = site
+    ? {
+        background: site.theme.colors.background,
+        foreground: site.theme.colors.foreground,
+        accent: site.theme.colors.accent,
+        accentLight: site.theme.colors.accentLight,
+      }
+    : design
+      ? {
+          background: design.theme.background,
+          foreground: design.theme.foreground,
+          accent: design.theme.accent,
+          accentLight: design.theme.accentLight,
+        }
+      : null;
+  // Tone label for the "Palette" row. SITE_TEMPLATE.vibeString is a few
+  // adjective words ("italianate lakeside linen citrus terracotta...");
+  // first two words read as a tone label. Fall back to design.tone or
+  // the marketplace palette token.
+  const toneLabel = (() => {
+    if (site?.vibeString) {
+      return site.vibeString.split(/\s+/).slice(0, 2).join(' ');
+    }
+    return design?.tone ?? template?.palette.replace(/-/g, ' ') ?? '';
+  })();
+
   // Inject Google Fonts for the template's font pair so the
   // seeded manifest's --font-display / --font-sans CSS vars
   // resolve to real glyphs inside the preview.
   useEffect(() => {
     if (!open || !template) return;
-    const design = resolveTemplateDesign(template.id);
-    const families = [design.fonts.heading, design.fonts.body]
+    const families = [fontHeading, fontBody]
       .filter((f, i, arr) => f && arr.indexOf(f) === i)
       .map((f) => `family=${encodeURIComponent(f)}:wght@400;500;600;700`)
       .join('&');
@@ -62,11 +98,7 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
       // Leave the link in place — other modals may use the same
       // families and re-fetching is wasteful. Browser caches anyway.
     };
-  }, [open, template]);
-
-  const site = useMemo(() => (template ? findMatchingSiteTemplate(template) : null), [template]);
-  const seed = useMemo(() => (template ? seedPreviewManifest(template) : null), [template]);
-  const design = useMemo(() => (template ? resolveTemplateDesign(template.id) : null), [template]);
+  }, [open, template, fontHeading, fontBody]);
 
   const handleKey = useCallback(
     (e: KeyboardEvent) => {
@@ -85,16 +117,14 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
     };
   }, [open, handleKey]);
 
-  if (!open || !template || !portalTarget || !seed || !design) return null;
+  if (!open || !template || !portalTarget || !seed || !themeColors) return null;
 
-  const fontHeading = design.fonts.heading;
-  const fontBody = design.fonts.body;
   const headingStack = `"${fontHeading}", Georgia, serif`;
   const swatches = [
-    design.theme.background,
-    design.theme.accentLight,
-    design.theme.accent,
-    design.theme.foreground,
+    themeColors.background,
+    themeColors.accentLight,
+    themeColors.accent,
+    themeColors.foreground,
   ];
 
   return createPortal(
@@ -193,7 +223,7 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
                 fontSize: 11,
                 letterSpacing: '0.2em',
                 textTransform: 'uppercase',
-                color: design.theme.accent,
+                color: themeColors.accent,
                 marginBottom: 6,
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -230,8 +260,8 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
           <div style={{ height: 1, background: 'var(--line, rgba(61,74,31,0.14))' }} />
 
           <MetaRow label="Occasion" value={template.occasion.replace(/-/g, ' ')} />
-          <MetaRow label="Layout" value={template.layout} />
-          <MetaRow label="Palette" value={design.tone ?? template.palette.replace(/-/g, ' ')} />
+          <MetaRow label="Layout" value={site?.layoutFormat ?? template.layout} />
+          <MetaRow label="Palette" value={toneLabel} />
           <MetaRow label="Typography" value={`${fontHeading} / ${fontBody}`} />
           <MetaRow label="Vibes" value={template.vibes.join(' · ')} />
 

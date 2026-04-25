@@ -35,6 +35,7 @@ import { SectionBackground } from './SectionBackground';
 import { ScrollReveal } from './ScrollReveal';
 import { isBlockHidden } from './BlockStyleWrapper';
 import { TemplateSignatureDecor, type SignatureDecorKind } from './TemplateSignatureDecor';
+import { resolveStoryLayout } from '@/components/blocks/StoryLayouts';
 import {
   CalendarAddButton,
   SaveContactButton,
@@ -646,9 +647,14 @@ function HeroSection({
   // 'classic' (the original v8 blobs + squiggles, for templates
   // that ship that look), or 'off' (clean hero).
   const occasionRaw = (manifest as unknown as { occasion?: string }).occasion;
+  const signatureDecorKind = (manifest as unknown as { signatureDecor?: string }).signatureDecor;
+  // When a SITE_TEMPLATE ships a per-template signatureDecor (citrus
+  // for Lake Como, monolith for Marfa, brushstroke for Tokyo, etc.),
+  // suppress the generic OccasionDecor rings — the bespoke illustration
+  // is the template's identity, the rings would just clutter it.
   const decorMode =
     ((manifest as unknown as { decorStyle?: 'classic' | 'occasion' | 'off' }).decorStyle) ??
-    'occasion';
+    (signatureDecorKind && signatureDecorKind !== 'none' ? 'off' : 'occasion');
 
   // Living atmosphere — animated background layer. Reads
   // manifest.atmosphere if set, otherwise picks a sensible default
@@ -3196,12 +3202,19 @@ export function SiteV8Renderer({
         // Honour the template's declared layoutFormat so each template
         // ships with its own story treatment (filmstrip, magazine,
         // bento, kenburns, parallax) instead of every site looking
-        // the same as the timeline default.
-        const layout =
-          (manifest.storyLayout as string | undefined) ??
-          (manifest.layoutFormat as string | undefined) ??
-          'timeline';
-        if (layout === 'timeline' || !layout) {
+        // the same as the timeline default. Legacy layoutFormat values
+        // (cascade, scrapbook, chapters, starmap) get mapped to their
+        // canonical StoryLayoutType via resolveStoryLayout — so e.g.
+        // Provence's 'scrapbook' renders as bento and Tokyo's
+        // 'chapters' renders as the timeline vine.
+        const rawStory = manifest.storyLayout as string | undefined;
+        const rawFormat = (manifest as unknown as { layoutFormat?: string }).layoutFormat;
+        // If neither is set, keep the v8 default (timeline).
+        if (!rawStory && !rawFormat) {
+          return <TimelineSection key="story" chapters={chapters} onEditField={onEditField} manifest={manifest} />;
+        }
+        const layout = resolveStoryLayout(rawStory, rawFormat);
+        if (layout === 'timeline') {
           return <TimelineSection key="story" chapters={chapters} onEditField={onEditField} manifest={manifest} />;
         }
         return <StoryVariantSection key="story" chapters={chapters} layout={layout} manifest={manifest} />;

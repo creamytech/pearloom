@@ -11,6 +11,7 @@ import { signOut, useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Blob, Heart, Icon, Pear, PearloomLogo, Squiggle } from '../motifs';
+import { useIsInsideShell } from './ShellPersistentLayout';
 
 interface DashNavItem {
   id: string;
@@ -624,6 +625,23 @@ export function DashLayout({
   children?: ReactNode;
   hideTopbar?: boolean;
 }) {
+  // When this DashLayout is rendered INSIDE the (shell) route
+  // group's persistent layout, skip the outer wrapper + sidebar
+  // entirely so we don't double-mount them. This is what makes
+  // navigation between dashboard tabs flash-free: only the inner
+  // content + topbar re-render.
+  const insideShell = useIsInsideShell();
+  void active; // sidebar reads pathname directly when persistent
+
+  if (insideShell) {
+    return (
+      <>
+        {!hideTopbar && <DashTopbar title={title} subtitle={subtitle} ctaText={ctaText} ctaHref={ctaHref} />}
+        {children}
+      </>
+    );
+  }
+
   return (
     <div className="pl8 pl8-dashshell">
       <DashSidebar active={active} />

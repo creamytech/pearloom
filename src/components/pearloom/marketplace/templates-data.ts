@@ -677,12 +677,20 @@ function nearestNamedPalette(t: SiteTemplate): TemplatePalette {
 
 function nearestLayout(t: SiteTemplate): TemplateLayout {
   const lf = (t.layoutFormat ?? '').toLowerCase();
+  // Direct matches first — these are the canonical TemplateLayout
+  // values; nothing to translate.
   if (lf === 'magazine') return 'magazine';
   if (lf === 'filmstrip') return 'filmstrip';
-  if (lf === 'cascade') return 'timeline';
-  if (lf === 'chapters') return 'parallax';
-  if (lf === 'scrapbook') return 'kenburns';
-  if (lf === 'starmap') return 'mosaic';
+  if (lf === 'bento') return 'bento';
+  if (lf === 'kenburns') return 'kenburns';
+  if (lf === 'parallax') return 'parallax';
+  if (lf === 'mosaic') return 'mosaic';
+  if (lf === 'timeline') return 'timeline';
+  // Legacy story-format aliases.
+  if (lf === 'cascade') return 'parallax';
+  if (lf === 'chapters') return 'timeline';
+  if (lf === 'scrapbook') return 'bento';
+  if (lf === 'starmap') return 'kenburns';
   return 'timeline';
 }
 
