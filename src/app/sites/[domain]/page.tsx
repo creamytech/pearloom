@@ -153,6 +153,9 @@ export async function generateMetadata(
     alternates: {
       canonical: siteUrl,
     },
+    // Per-site PWA manifest — installs to home screen as the couple's
+    // site, not Pearloom. The route is at /sites/<domain>/manifest.webmanifest.
+    manifest: `/sites/${domain}/manifest.webmanifest`,
     icons: {
       icon: '/favicon.ico',
     },
