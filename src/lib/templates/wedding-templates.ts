@@ -114,15 +114,18 @@ function makeBlock(type: string, order: number, config?: Record<string, unknown>
 
 export const SITE_TEMPLATES: SiteTemplate[] = [
 
-  // ── 1. Ethereal Garden ──────────────────────────────────────
+  // ── 1. Lake Como ──────────────────────────────────────────
+  // Inspired by Italian-Riviera weddings — Lake Como, Capri, Cinque
+  // Terre. Linen, citrus, terracotta tile, sun-bleached olive.
+  // Long-lunch energy, no Pinterest-template cliché.
   {
-    id: 'ethereal-garden',
-    name: 'Ethereal Garden',
-    tagline: 'Botanical romance with soft light',
+    id: 'lake-como',
+    name: 'Villa del Lago',
+    tagline: 'Long lunches and citrus light',
     price: 0,
     featured: true,
-    description: 'Lush greenery, soft sage accents, and warm natural light. Perfect for garden ceremonies and outdoor celebrations.',
-    previewGradient: 'linear-gradient(135deg, #E8F0E0 0%, #D4DFC8 50%, #5C6B3F 100%)',
+    description: 'A Lake Como kind of wedding. Linen tablecloths under olive trees, lemon trees in terracotta, dinner that goes until midnight. Sun-bleached olive, soft terracotta, deep plum ink, cream paper.',
+    previewGradient: 'linear-gradient(135deg, #F4EDDA 0%, #DCDFC8 50%, #4D5A3F 100%)',
     occasions: ['wedding', 'engagement'],
     tags: ['garden', 'botanical', 'outdoor', 'romantic', 'sage', 'green'],
     popularity: 95,
@@ -143,28 +146,31 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('footer', 13, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     theme: {
-      colors: { background: '#F4F7F1', foreground: '#1E2A1A', accent: '#6A8F5A', accentLight: '#DDEBD4', muted: '#7A8C72', cardBg: '#FFFFFF' },
-      fonts: { heading: 'Cormorant Garamond', body: 'Inter' },
+      colors: { background: '#F4EDDA', foreground: '#2A1F2E', accent: '#4D5A3F', accentLight: '#DCDFC8', muted: '#807368', cardBg: '#FBF6E8' },
+      fonts: { heading: 'Cormorant Garamond', body: 'Manrope' },
     },
-    vibeString: 'botanical organic garden romantic soft green sage',
+    vibeString: 'italianate lakeside linen citrus terracotta olive sun-bleached long-lunch',
     layoutFormat: 'cascade',
     poetry: {
-      heroTagline: 'Where every petal tells our story',
-      closingLine: 'Thank you for being part of our garden. With love always.',
-      rsvpIntro: 'We would be honored to have you celebrate with us among the flowers.',
-      welcomeStatement: 'Welcome to our corner of the garden. What started as a chance encounter has grown into the most beautiful love story we could have imagined. We can\'t wait to share this next chapter with you.',
+      heroTagline: 'to the long lunch.',
+      closingLine: 'Saluti — and see you on the water.',
+      rsvpIntro: 'Tell us if you can come, and stay through dessert.',
+      welcomeStatement: 'We are getting married on a lake at the end of summer. Linen, citrus, long lunches, candles when it gets dark. Bring your appetite.',
     },
-    motifs: { blob: 'sage', stamp: { text: 'IN · BLOOM', icon: 'leaf', tone: 'sage', rotation: 4 }, squiggle: 1, heart: true },
+    motifs: { stamp: { text: 'VILLA · DEL · LAGO', icon: 'none', tone: 'sage', rotation: -3 } },
   },
 
-  // ── 2. Midnight Luxe ────────────────────────────────────────
+  // ── 2. Hotel Costes ─────────────────────────────────────────
+  // Inspired by the Hotel Costes, Paris — late-dinner cinema, low
+  // light, brass fittings, ink black, dusky red. The wedding for
+  // couples who got engaged in a hotel bar.
   {
-    id: 'midnight-luxe',
-    name: 'Midnight Luxe',
-    tagline: 'Dark elegance with gold accents',
+    id: 'hotel-costes',
+    name: 'After Hours',
+    tagline: 'A late dinner, never explained',
     price: 0,
-    description: 'Sophisticated dark palette with antique gold details. Ideal for evening galas, ballroom receptions, and glamorous celebrations.',
-    previewGradient: 'linear-gradient(135deg, #1A1510 0%, #2D2618 50%, #C4A96A 100%)',
+    description: 'A Hotel-Costes wedding. Black ink, bone paper, brass fittings, one dusky-red rose. For the after-dinner crowd who don\'t need string lights. Cinematic and quiet.',
+    previewGradient: 'linear-gradient(135deg, #0E0D0B 0%, #2A2520 50%, #B89244 100%)',
     occasions: ['wedding', 'anniversary', 'engagement'],
     tags: ['dark', 'gold', 'luxe', 'glamorous', 'evening', 'elegant', 'moody'],
     popularity: 88,
@@ -183,28 +189,31 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('footer', 11, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     theme: {
-      colors: { background: '#0F0E0D', foreground: '#F5F0EA', accent: '#C4A96A', accentLight: '#2A2015', muted: '#7A7068', cardBg: '#1A1815' },
-      fonts: { heading: 'Playfair Display', body: 'Inter' },
+      colors: { background: '#0E0D0B', foreground: '#F1ECE0', accent: '#B89244', accentLight: '#1F1B14', muted: '#7C7468', cardBg: '#15130E' },
+      fonts: { heading: 'Cormorant Garamond', body: 'Manrope' },
     },
-    vibeString: 'luxurious dark gold dramatic evening elegant moody',
+    vibeString: 'parisian black bone brass cinematic noir hotel-bar after-hours',
     layoutFormat: 'filmstrip',
     poetry: {
-      heroTagline: 'An evening of starlight and promises',
-      closingLine: 'Until we meet again under the stars.',
-      rsvpIntro: 'Your presence would make our evening complete.',
-      welcomeStatement: 'Welcome to our celebration. What began as a spark has become a flame that lights up our entire world. Tonight, we celebrate that light with all of you.',
+      heroTagline: 'everything is ours after midnight.',
+      closingLine: 'See you in the bar.',
+      rsvpIntro: 'Black tie, late dinner, no rush.',
+      welcomeStatement: 'A late wedding in a low-lit room. Dinner at nine, dancing at eleven. Wear something you can sit down in.',
     },
-    motifs: { stamp: { text: 'AFTER · HOURS', icon: 'sparkles', tone: 'gold', rotation: -3 }, sparkle: true, squiggle: 2 },
+    motifs: { stamp: { text: 'AFTER · HOURS', icon: 'none', tone: 'gold', rotation: -2 } },
   },
 
-  // ── 3. Coastal Breeze ───────────────────────────────────────
+  // ── 3. Big Sur ──────────────────────────────────────────────
+  // Pacific Coast Highway wedding. Fog white, redwood ink, sea-glass
+  // green. NOT generic "beach blue" — this is the cliffs at Esalen,
+  // not Cabo. For couples who chose a coast that has weather.
   {
-    id: 'coastal-breeze',
-    name: 'Coastal Breeze',
-    tagline: 'Seaside serenity with ocean blues',
+    id: 'big-sur',
+    name: 'Pacific Cliffs',
+    tagline: 'Where the Pacific meets the cliffs',
     price: 0,
-    description: 'Fresh ocean blues, driftwood textures, and salt-kissed air. Perfect for beach ceremonies and waterfront venues.',
-    previewGradient: 'linear-gradient(135deg, #F0F5FA 0%, #7BA7BC 50%, #3D6E80 100%)',
+    description: 'A Big-Sur kind of wedding. Fog, redwood, sea-glass green, an inn at the edge of a cliff. NOT beachy. NOT tropical. Quiet, weather-aware, romantic in a Pacific Northwest way.',
+    previewGradient: 'linear-gradient(135deg, #ECEAE2 0%, #7B8F73 50%, #5D3A26 100%)',
     occasions: ['wedding', 'engagement', 'anniversary'],
     tags: ['beach', 'coastal', 'blue', 'ocean', 'nautical', 'breezy', 'fresh'],
     popularity: 82,
@@ -224,28 +233,31 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('footer', 12, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     theme: {
-      colors: { background: '#F0F5FA', foreground: '#0C1F2E', accent: '#3A7CA8', accentLight: '#CCE3F5', muted: '#6A8FA8', cardBg: '#FFFFFF' },
-      fonts: { heading: 'Libre Baskerville', body: 'Source Sans 3' },
+      colors: { background: '#ECEAE2', foreground: '#18171A', accent: '#5D3A26', accentLight: '#D7D6CC', muted: '#7B8F73', cardBg: '#F5F2E8' },
+      fonts: { heading: 'Lora', body: 'IBM Plex Sans' },
     },
-    vibeString: 'coastal breezy fresh ocean nautical relaxed blue',
+    vibeString: 'pacific fog redwood cliff sea-glass coastal-mist nature wild big-sur',
     layoutFormat: 'cascade',
     poetry: {
-      heroTagline: 'Where the ocean meets forever',
-      closingLine: 'Riding the waves of love, together always.',
-      rsvpIntro: 'Join us by the water for a celebration of love.',
-      welcomeStatement: 'Welcome, friends and family. Our love story started by the coast, and we\'re so excited to share this beautiful day with you where it all began.',
+      heroTagline: 'the cliffs were always going to win.',
+      closingLine: 'See you on the coast.',
+      rsvpIntro: 'Bring a layer. Bring boots. The fog is part of the day.',
+      welcomeStatement: 'A coastal wedding on the Pacific cliffs. Fog burns off by noon, the sun makes one slow exit, and the sea writes the ending.',
     },
-    motifs: { blob: 'dusk', polaroid: true, stamp: { text: 'SALT · AIR · LOVE', icon: 'sparkles', tone: 'lavender', rotation: -3 }, squiggle: 2, heart: true },
+    motifs: { stamp: { text: 'PACIFIC · COAST', icon: 'none', tone: 'sage', rotation: -3 } },
   },
 
-  // ── 4. Rustic Romance ───────────────────────────────────────
+  // ── 4. Hudson Valley ────────────────────────────────────────
+  // Slim Aarons farm-editorial. NOT "rustic charm" Pinterest. This
+  // is the upstate-NY dinner-party wedding — brass, plum, deep olive,
+  // soft cream linen, photographed for a magazine.
   {
-    id: 'rustic-romance',
-    name: 'Rustic Romance',
-    tagline: 'Barn wood and wildflowers',
+    id: 'hudson-valley',
+    name: 'Hudson Editorial',
+    tagline: 'An autumn farm in the country',
     price: 0,
-    description: 'Warm earth tones, hand-lettered charm, and rustic textures. Ideal for barn weddings, farm celebrations, and countryside charm.',
-    previewGradient: 'linear-gradient(135deg, #FDF8F0 0%, #8B7355 50%, #4A3828 100%)',
+    description: 'A Hudson-Valley editorial wedding. Slim Aarons palette: deep olive, plum, soft brass, paper cream. Big stone barn, long candlelit table, dinner-party energy. Refined, not "rustic".',
+    previewGradient: 'linear-gradient(135deg, #F4EFE2 0%, #B89244 50%, #5C3F3F 100%)',
     occasions: ['wedding', 'engagement'],
     tags: ['rustic', 'barn', 'country', 'earth', 'warm', 'handcrafted', 'wildflower'],
     popularity: 85,
@@ -265,29 +277,32 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('footer', 12, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     theme: {
-      colors: { background: '#FDF8F0', foreground: '#2C1A0A', accent: '#C97C30', accentLight: '#FAEBD7', muted: '#9A7A55', cardBg: '#FFFAF4' },
-      fonts: { heading: 'Josefin Sans', body: 'Lato' },
+      colors: { background: '#F4EFE2', foreground: '#2A1F22', accent: '#5C3F3F', accentLight: '#E8DDC8', muted: '#7C6A5E', cardBg: '#FBF6E8' },
+      fonts: { heading: 'Lora', body: 'IBM Plex Sans' },
     },
-    vibeString: 'rustic earthy warm handcrafted barn country wildflower',
-    layoutFormat: 'scrapbook',
+    vibeString: 'hudson-valley autumn farm editorial slim-aarons brass plum dinner-party',
+    layoutFormat: 'magazine',
     poetry: {
-      heroTagline: 'Love grows in the simplest places',
-      closingLine: 'Here\'s to love, laughter, and happily ever after.',
-      rsvpIntro: 'Pull up a chair and join us for the celebration of a lifetime.',
-      welcomeStatement: 'Welcome to our little corner of the world. We\'ve been dreaming about this day for a long time, and there\'s no one we\'d rather share it with than you.',
+      heroTagline: 'an october farm wedding.',
+      closingLine: 'See you at the table.',
+      rsvpIntro: 'Long table dinner. Candles. We hope you can stay through dessert.',
+      welcomeStatement: 'A weekend in the country, photographed slowly. Stone barn, brass candlesticks, plum and olive on the table. Bring an appetite.',
     },
-    motifs: { blob: 'warm', polaroid: true, postIt: { text: 'String lights at dusk.', tone: 'cream', rotation: -5 }, stamp: { text: 'COUNTRY · HEART', icon: 'heart', tone: 'peach', rotation: 4 }, squiggle: 1, heart: true },
+    motifs: { stamp: { text: 'EDITION · 01', icon: 'none', tone: 'gold', rotation: -2 } },
   },
 
-  // ── 5. Blush & Bloom ────────────────────────────────────────
+  // ── 5. Provence ─────────────────────────────────────────────
+  // South-of-France country wedding. Lavender chalk + olive +
+  // terracotta + ink. NOT "blush pink florals" wedding cliché —
+  // this is a long table under olive trees, bread that's still warm.
   {
-    id: 'blush-bloom',
-    name: 'Blush & Bloom',
-    tagline: 'Soft pinks and delicate florals',
+    id: 'provence',
+    name: 'Tables in Provence',
+    tagline: 'Lavender fields and bread that\'s still warm',
     price: 0,
     featured: true,
-    description: 'Romantic blush palette with champagne accents and soft petal textures. Perfect for spring and summer celebrations.',
-    previewGradient: 'linear-gradient(135deg, #FDF8F5 0%, #E8B4C0 50%, #C080A0 100%)',
+    description: 'A south-of-France wedding. Lavender chalk, olive ink, terracotta tile, fresh bread. Long communal table under the trees. For couples who want a wedding that smells like rosemary and warm stone.',
+    previewGradient: 'linear-gradient(135deg, #F0EAD8 0%, #C5BED9 50%, #5C6B3F 100%)',
     occasions: ['wedding', 'engagement', 'birthday'],
     tags: ['blush', 'pink', 'romantic', 'floral', 'feminine', 'spring', 'champagne'],
     popularity: 90,
@@ -307,28 +322,31 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('footer', 12, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     theme: {
-      colors: { background: '#FDF8F5', foreground: '#2A1A18', accent: '#D4829A', accentLight: '#FCE8EF', muted: '#B0889A', cardBg: '#FFF9F7' },
-      fonts: { heading: 'Playfair Display', body: 'Poppins' },
+      colors: { background: '#F0EAD8', foreground: '#2A1F22', accent: '#5C6B3F', accentLight: '#D8D2E8', muted: '#807068', cardBg: '#FBF6E8' },
+      fonts: { heading: 'Cormorant Garamond', body: 'Crimson Pro' },
     },
-    vibeString: 'romantic blush pink floral soft feminine champagne',
-    layoutFormat: 'cascade',
+    vibeString: 'provence lavender olive terracotta long-table french countryside warm-stone',
+    layoutFormat: 'magazine',
     poetry: {
-      heroTagline: 'Every love story is beautiful, but ours is our favorite',
-      closingLine: 'With all our love and a thousand thank yous.',
-      rsvpIntro: 'We would love nothing more than to celebrate this day with you.',
-      welcomeStatement: 'Dear friends and family, from the moment we met, we knew something special was beginning. Today, we invite you to be part of the next chapter of our love story.',
+      heroTagline: 'tables under the olive tree.',
+      closingLine: 'À bientôt — see you in the lavender.',
+      rsvpIntro: 'Long-table dinner. Bread, wine, hours.',
+      welcomeStatement: 'A wedding in the south of France. Long table under olive trees, lavender on the path to the chapel, dinner that lasts. Wear linen, bring an appetite.',
     },
-    motifs: { blob: 'peach', stamp: { text: 'BLUSH · BLOOM', icon: 'heart', tone: 'peach', rotation: -4 }, squiggle: 1, heart: true },
+    motifs: { stamp: { text: 'PROVENCE · 26', icon: 'none', tone: 'sage', rotation: -3 } },
   },
 
-  // ── 6. Minimalist White ─────────────────────────────────────
+  // ── 6. Tokyo Modern ─────────────────────────────────────────
+  // Japandi + wabi-sabi. NOT generic "minimalist white" — this is
+  // a Tokyo loft wedding. Washi paper white, ink black, a single
+  // brushstroke of vermillion. Lots of negative space. One decision.
   {
-    id: 'minimalist-white',
-    name: 'Minimalist White',
-    tagline: 'Clean lines, pure simplicity',
+    id: 'tokyo-modern',
+    name: 'Tokyo Modern',
+    tagline: 'One perfect line, then nothing',
     price: 0,
-    description: 'Ultra-clean white space with sharp typography and no distractions. For couples who believe less is more.',
-    previewGradient: 'linear-gradient(135deg, #FFFFFF 0%, #F5F5F5 50%, #111111 100%)',
+    description: 'A Tokyo wedding. Washi paper background, ink black, one brushstroke of vermillion. Wabi-sabi philosophy: imperfection respected, negative space honoured. For couples whose aesthetic is "less, but right".',
+    previewGradient: 'linear-gradient(135deg, #FAFAF7 0%, #EFEFE9 50%, #C53A2B 100%)',
     occasions: ['wedding', 'engagement', 'anniversary'],
     tags: ['minimal', 'clean', 'white', 'modern', 'editorial', 'simple', 'typography'],
     popularity: 78,
@@ -340,29 +358,32 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('footer', 4, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     theme: {
-      colors: { background: '#FFFFFF', foreground: '#111111', accent: '#111111', accentLight: '#F5F5F5', muted: '#888888', cardBg: '#F8F8F8' },
-      fonts: { heading: 'DM Serif Display', body: 'DM Sans' },
+      colors: { background: '#FAFAF7', foreground: '#18181B', accent: '#C53A2B', accentLight: '#EFEFE9', muted: '#7A7570', cardBg: '#F4F2EC' },
+      fonts: { heading: 'Noto Serif', body: 'Inter' },
     },
-    vibeString: 'minimal clean modern editorial simple',
+    vibeString: 'tokyo japandi wabi-sabi minimal ink single-stroke negative-space',
     layoutFormat: 'chapters',
     poetry: {
-      heroTagline: 'Together',
-      closingLine: 'With love.',
-      rsvpIntro: 'Please let us know if you can make it.',
-      welcomeStatement: 'We\'re getting married and we\'d love for you to be there.',
+      heroTagline: 'we kept it short.',
+      closingLine: 'Thank you for coming.',
+      rsvpIntro: 'A short wedding. Quiet, then loud.',
+      welcomeStatement: 'A small wedding in a quiet room. One ceremony, one toast, one long dinner. Less, but right.',
     },
-    motifs: { blob: 'none', squiggle: 3, stamp: { text: 'M & M', icon: 'none', tone: 'lavender', rotation: 0 } },
+    motifs: { stamp: { text: 'KYOTO · MODERN', icon: 'none', tone: 'cream', rotation: 0 } },
   },
 
-  // ── 7. Golden Hour ──────────────────────────────────────────
+  // ── 7. Marfa ────────────────────────────────────────────────
+  // Texas desert wedding. NOT generic "golden hour film grain" —
+  // this is Marfa: bone, dusty rose, cactus green, caramel leather.
+  // Mezcal, sky-art, Donald Judd, a horizon that won't end.
   {
-    id: 'golden-hour',
-    name: 'Golden Hour',
-    tagline: 'Warm light and analog nostalgia',
+    id: 'marfa',
+    name: 'Marfa Dusk',
+    tagline: 'Sky-art, mezcal, and a long horizon',
     price: 0,
     featured: true,
-    description: 'Sun-drenched warmth with film grain textures and golden tones. Captures the magic of that perfect sunset moment.',
-    previewGradient: 'linear-gradient(135deg, #FAF9F6 0%, #D4A574 50%, #8B5E3C 100%)',
+    description: 'A West-Texas desert wedding. Bone paper, dusty rose, cactus green, caramel leather. Donald-Judd architecture, horizon-art, mezcal at sundown. For couples who love space — physical and conceptual.',
+    previewGradient: 'linear-gradient(135deg, #F8F1E4 0%, #DBA89A 50%, #B5824D 100%)',
     occasions: ['wedding', 'engagement', 'anniversary'],
     tags: ['golden', 'warm', 'sunset', 'analog', 'film', 'nostalgic', 'vintage'],
     popularity: 92,
@@ -383,28 +404,31 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('footer', 13, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     theme: {
-      colors: { background: '#FAF9F6', foreground: '#1A1A1A', accent: '#C9A87C', accentLight: '#F5EAD6', muted: '#9A9488', cardBg: '#FFFFFF' },
-      fonts: { heading: 'Playfair Display', body: 'Inter' },
+      colors: { background: '#F8F1E4', foreground: '#2A1F1A', accent: '#B5824D', accentLight: '#F0E0D8', muted: '#807068', cardBg: '#FBF6E8' },
+      fonts: { heading: 'Bricolage Grotesque', body: 'Inter' },
     },
-    vibeString: 'warm golden analog nostalgic film grain sunset',
+    vibeString: 'marfa texas desert sky-art mezcal sunset bone caramel cactus',
     layoutFormat: 'filmstrip',
     poetry: {
-      heroTagline: 'Chasing golden moments together',
-      closingLine: 'Here\'s to a lifetime of golden hours.',
-      rsvpIntro: 'Join us as we celebrate love in the golden light.',
-      welcomeStatement: 'Welcome to our love story. It\'s been a beautiful journey of shared sunsets, quiet mornings, and a million little moments that brought us here. We\'re so grateful you\'re part of our story.',
+      heroTagline: 'a desert dusk wedding.',
+      closingLine: 'See you at the bar at the end of the road.',
+      rsvpIntro: 'Wear something you can sit in the dirt in.',
+      welcomeStatement: 'A wedding in the West-Texas desert. Sky-art at sunset, mezcal under the stars, dancing on packed earth. The horizon is the dress code.',
     },
-    motifs: { blob: 'warm', sparkle: true, stamp: { text: 'GOLDEN · HOUR', icon: 'sparkles', tone: 'peach', rotation: -6 }, squiggle: 1, heart: true },
+    motifs: { stamp: { text: 'MARFA · TX · 26', icon: 'none', tone: 'gold', rotation: -3 } },
   },
 
-  // ── 8. Lavender Dreams ──────────────────────────────────────
+  // ── 8. Kyoto Wabi-sabi ──────────────────────────────────────
+  // Japanese tea-ceremony aesthetic. Washi white, ink black, pale
+  // jade, single brushstroke red. Ceremonial not cute. Quiet, slow,
+  // pressed-paper precision. For a small intentional wedding.
   {
-    id: 'lavender-dreams',
-    name: 'Lavender Dreams',
-    tagline: 'Ethereal purple haze',
+    id: 'kyoto-wabisabi',
+    name: 'Kyoto Tea Ceremony',
+    tagline: 'Wabi-sabi, paper, ink',
     price: 0,
-    description: 'Dreamy lavender palette with celestial accents. Ethereal and otherworldly, perfect for evening ceremonies under the stars.',
-    previewGradient: 'linear-gradient(135deg, #F0EEFF 0%, #9B7FD9 50%, #4A3060 100%)',
+    description: 'A Kyoto-tea-ceremony wedding. Washi paper white, ink black, pale jade, one brushstroke of red. Ceremonial, slow, intentional. For a quiet wedding where every choice means something.',
+    previewGradient: 'linear-gradient(135deg, #F2EDE0 0%, #C5D2BD 50%, #BC4338 100%)',
     occasions: ['wedding', 'engagement', 'anniversary'],
     tags: ['lavender', 'purple', 'dreamy', 'celestial', 'ethereal', 'evening', 'stars'],
     popularity: 75,
@@ -422,18 +446,18 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('footer', 10, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     theme: {
-      colors: { background: '#0D0B14', foreground: '#F0EEFF', accent: '#9B7FD9', accentLight: '#1E1A30', muted: '#7A6EA0', cardBg: '#131020' },
-      fonts: { heading: 'Cormorant Garamond', body: 'Inter' },
+      colors: { background: '#F2EDE0', foreground: '#18171A', accent: '#BC4338', accentLight: '#C5D2BD', muted: '#7C7A75', cardBg: '#FAF6E8' },
+      fonts: { heading: 'Noto Serif', body: 'Inter' },
     },
-    vibeString: 'dreamy ethereal lavender celestial purple stars',
+    vibeString: 'kyoto wabi-sabi paper ink japonisme zen calligraphy single-stroke ceremonial',
     layoutFormat: 'chapters',
     poetry: {
-      heroTagline: 'Written in the stars',
-      closingLine: 'To the moon, the stars, and back — always.',
-      rsvpIntro: 'Come celebrate our love under the evening sky.',
-      welcomeStatement: 'Welcome to our world. Some things are written in the stars, and we believe our love story is one of them. Thank you for being the constellations in our sky.',
+      heroTagline: 'less, but right.',
+      closingLine: 'Thank you for being part of our quiet day.',
+      rsvpIntro: 'A small ceremony. A quiet dinner.',
+      welcomeStatement: 'A Kyoto-style wedding. Paper, ink, tea, a single brushstroke. Ceremonial and slow. We are honoured if you can be there.',
     },
-    motifs: { blob: 'lavender', sparkle: true, stamp: { text: 'LAVENDER · DREAMS', icon: 'sparkles', tone: 'lavender', rotation: 4 }, squiggle: 3, heart: true },
+    motifs: { stamp: { text: '京都 · KYOTO', icon: 'none', tone: 'cream', rotation: 0 } },
   },
 
   // ── 9. Y2K Reloaded (Birthday) ─────────────────────────────
