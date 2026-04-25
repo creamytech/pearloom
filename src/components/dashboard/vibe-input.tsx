@@ -10,6 +10,7 @@ import { CustomSelect } from '@/components/ui/custom-select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ArrowLeft, Palette, Globe, Info, ChevronDown, Sparkles, Check, X as XIcon, Church, Wine, MapPin as MapPinIcon, Cake, Diamond, Smile, Feather, Zap, EyeOff, PartyPopper, AlertTriangle } from 'lucide-react';
+import { NumberInput } from '@/components/pearloom/editor/v8-forms';
 import {
   ElegantHeartIcon, MountainIcon, StarburstIcon, CoffeeCupIcon,
   SuitcaseIcon, PawIcon, MusicNoteIcon, LoomThreadIcon,
@@ -1057,16 +1058,14 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>How many years together? <Tooltip text="Helps us set the right tone for your milestone" /></label>
-                    <input
-                      type="number"
+                    <NumberInput
+                      value={Number(detailsData.anniversaryYears) || 1}
+                      onChange={(n) => setDetail('anniversaryYears', String(n))}
                       min={1}
                       max={100}
-                      placeholder="e.g. 10"
-                      value={detailsData.anniversaryYears ?? ''}
-                      onChange={e => setDetail('anniversaryYears', e.target.value)}
-                      style={detailInputStyle}
-                      onFocus={e => { e.target.style.borderColor = 'var(--pl-olive)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                      width={140}
+                      unit="years"
+                      ariaLabel="Years together"
                     />
                     {detailsData.anniversaryYears && [5, 10, 15, 20, 25, 30, 40, 50].includes(Number(detailsData.anniversaryYears)) && (
                       <p style={{ fontSize: '0.82rem', color: 'var(--pl-olive)', marginTop: '0.4rem', fontWeight: 600 }}>
@@ -1168,16 +1167,13 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>How old are they turning? <Tooltip text="Age shapes the tone and narrative of the whole site" /></label>
-                    <input
-                      type="number"
+                    <NumberInput
+                      value={Number(detailsData.birthdayAge) || 30}
+                      onChange={(n) => setDetail('birthdayAge', String(n))}
                       min={1}
                       max={120}
-                      placeholder="e.g. 30"
-                      value={detailsData.birthdayAge ?? ''}
-                      onChange={e => setDetail('birthdayAge', e.target.value)}
-                      style={detailInputStyle}
-                      onFocus={e => { e.target.style.borderColor = 'var(--pl-olive)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                      width={140}
+                      ariaLabel="Birthday age"
                     />
                     {detailsData.birthdayAge && isMilestoneBirthday(detailsData.birthdayAge) && (
                       <p style={{ fontSize: '0.82rem', color: 'var(--pl-olive)', marginTop: '0.4rem', fontWeight: 600 }}>
@@ -1331,20 +1327,18 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>Wedding timeline <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
-                    <select
+                    <CustomSelect
                       value={detailsData.weddingTimeline ?? ''}
-                      onChange={e => setDetail('weddingTimeline', e.target.value)}
-                      style={{ ...detailInputStyle, appearance: 'auto' }}
-                      onFocus={e => { e.target.style.borderColor = 'var(--pl-olive)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                    >
-                      <option value="">Not decided yet</option>
-                      <option value="3months">Within 3 months</option>
-                      <option value="6months">3–6 months away</option>
-                      <option value="1year">About a year away</option>
-                      <option value="2years">1–2 years away</option>
-                      <option value="longengagement">Long engagement</option>
-                    </select>
+                      onChange={(v) => setDetail('weddingTimeline', v)}
+                      options={[
+                        { value: '',              label: 'Not decided yet' },
+                        { value: '3months',       label: 'Within 3 months' },
+                        { value: '6months',       label: '3–6 months away' },
+                        { value: '1year',         label: 'About a year away' },
+                        { value: '2years',        label: '1–2 years away' },
+                        { value: 'longengagement',label: 'Long engagement' },
+                      ]}
+                    />
                   </div>
                   <div>
                     <label style={fieldLabel}>Celebration venue <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>

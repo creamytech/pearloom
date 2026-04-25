@@ -8,6 +8,7 @@ import { PD, DISPLAY_STYLE, MONO_STYLE } from '../../marketing/design/DesignAtom
 import { Scene, SceneDeco, StepHead, StepNav } from './WizardShell';
 import { EVENTS } from './wizardSpec';
 import type { StepProps } from './wizardAnswers';
+import { NumberInput, DatePicker } from '@/components/pearloom/editor/v8-forms';
 
 // ── Step 4: DATE with dateMode picker ─────────────────────────
 export function StepDate({ answers, set, next, back, skip, dark }: StepProps) {
@@ -88,22 +89,11 @@ export function StepDate({ answers, set, next, back, skip, dark }: StepProps) {
               <div style={{ ...MONO_STYLE, fontSize: 10, opacity: 0.55, marginBottom: 10 }}>
                 THE DAY
               </div>
-              <input
-                type="date"
+              <DatePicker
                 value={answers.date ?? ''}
-                onChange={(e) => set({ date: e.target.value })}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  borderBottom: '2px solid rgba(31,36,24,0.25)',
-                  outline: 'none',
-                  padding: '8px 2px',
-                  fontFamily: '"Fraunces", Georgia, serif',
-                  fontSize: 28,
-                  fontStyle: 'italic',
-                  color: dark ? PD.paper : PD.ink,
-                  colorScheme: dark ? 'dark' : 'light',
-                }}
+                onChange={(v) => set({ date: v })}
+                placeholder="Pick the day"
+                ariaLabel="Event date"
               />
             </div>
           )}
@@ -151,28 +141,13 @@ export function StepDate({ answers, set, next, back, skip, dark }: StepProps) {
               <div style={{ ...MONO_STYLE, fontSize: 10, opacity: 0.55, marginBottom: 10 }}>
                 THE YEAR
               </div>
-              <input
-                autoFocus
-                type="number"
+              <NumberInput
+                value={answers.dateYear ?? new Date().getFullYear() + 1}
+                onChange={(n) => set({ dateYear: n })}
                 min={new Date().getFullYear()}
                 max={new Date().getFullYear() + 5}
-                value={answers.dateYear ?? ''}
-                onChange={(e) =>
-                  set({ dateYear: e.target.value ? Number(e.target.value) : undefined })
-                }
-                placeholder={`${new Date().getFullYear() + 1}`}
-                style={{
-                  width: 200,
-                  background: 'transparent',
-                  border: 'none',
-                  borderBottom: '2px solid rgba(31,36,24,0.25)',
-                  outline: 'none',
-                  padding: '8px 2px',
-                  fontFamily: '"Fraunces", Georgia, serif',
-                  fontSize: 28,
-                  fontStyle: 'italic',
-                  color: dark ? PD.paper : PD.ink,
-                }}
+                width={140}
+                ariaLabel="Event year"
               />
             </div>
           )}
@@ -306,27 +281,14 @@ export function StepVenue({ answers, set, next, back, skip, dark }: StepProps) {
             >
               OR
             </span>
-            <input
-              type="number"
-              min={1}
-              value={typeof answers.guestCount === 'number' ? answers.guestCount : ''}
-              onChange={(e) =>
-                set({
-                  guestCount: e.target.value ? Number(e.target.value) : undefined,
-                })
-              }
-              placeholder="exact"
-              style={{
-                width: 110,
-                padding: '10px 14px',
-                background: 'transparent',
-                border: '1px solid rgba(31,36,24,0.18)',
-                borderRadius: 999,
-                outline: 'none',
-                fontFamily: 'inherit',
-                fontSize: 13,
-                color: dark ? PD.paper : PD.ink,
-              }}
+            <NumberInput
+              value={typeof answers.guestCount === 'number' ? answers.guestCount : 0}
+              onChange={(n) => set({ guestCount: n || undefined })}
+              min={0}
+              max={2000}
+              width={120}
+              unit="guests"
+              ariaLabel="Exact guest count"
             />
           </div>
           {answers.guestCount !== undefined && (
@@ -395,21 +357,14 @@ export function StepDetails({ answers, set, next, back, skip, dark }: StepProps)
       >
         {days && (
           <Field label="HOW MANY DAYS" dark={dark}>
-            <input
-              type="number"
+            <NumberInput
+              value={d.days ?? 3}
+              onChange={(n) => set({ eventDetails: { ...d, days: n } })}
               min={1}
               max={10}
-              value={d.days ?? ''}
-              onChange={(e) =>
-                set({
-                  eventDetails: {
-                    ...d,
-                    days: e.target.value ? Number(e.target.value) : undefined,
-                  },
-                })
-              }
-              placeholder="3"
-              style={fieldInput(dark)}
+              width={140}
+              unit="days"
+              ariaLabel="Trip duration in days"
             />
           </Field>
         )}
