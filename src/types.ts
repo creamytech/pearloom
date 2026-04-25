@@ -297,6 +297,20 @@ export interface StoryManifest {
    *  decor element. dx/dy are pixel offsets from the slot's natural
    *  position; scale is a 0.5–2 multiplier on the rendered size. */
   decorPlacements?: Record<string, { dx?: number; dy?: number; scale?: number }>;
+  /** Custom palettes saved by the host — surfaced in the Theme panel
+   *  alongside the curated library. Each carries the same shape as a
+   *  curated preset so the picker treats them identically. */
+  customPalettes?: Array<{
+    id: string;
+    name: string;
+    /** [accent, secondary, tertiary, paper, deep, soft] for the swatch row. */
+    colors: string[];
+    theme: { background: string; foreground: string; accent: string; accentLight: string; muted: string; cardBg: string };
+    /** Marks AI-generated entries so the UI can label them. */
+    source?: 'ai' | 'custom';
+    rationale?: string;
+    createdAt?: string;
+  }>;
   // Per-field inline text formatting overrides keyed by manifest path (e.g. "poetry.heroTagline")
   textFormats?: Record<string, {
     italic?: boolean;
