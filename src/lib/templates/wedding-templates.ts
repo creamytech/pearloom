@@ -518,7 +518,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       fonts: { heading: 'Rubik', body: 'Space Grotesk' },
     },
     vibeString: 'y2k retro playful pink blue nostalgic fun bubbly',
-    layoutFormat: 'cascade',
+    layoutFormat: 'scrapbook',
     poetry: {
       heroTagline: 'the party starts now',
       closingLine: 'Here\'s to the next chapter — louder, bolder, more you.',
@@ -642,7 +642,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       fonts: { heading: 'Playfair Display', body: 'DM Sans' },
     },
     vibeString: 'cocktail chic gold elegant sophisticated party martini',
-    layoutFormat: 'cascade',
+    layoutFormat: 'filmstrip',
     poetry: {
       heroTagline: 'shaken, not stirred',
       closingLine: 'A drop older, a lot more fun.',
@@ -856,7 +856,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     blockOrder: ['hero', 'vibeQuote', 'divider', 'welcome', 'story', 'countdown', 'event', 'rsvp', 'registry', 'travel', 'photos', 'faq', 'guestbook', 'footer'],
     theme: { colors: { background: '#F2EFE6', foreground: '#1F2A1C', accent: '#4A5A40', accentLight: '#D7DCC4', muted: '#7C8074', cardBg: '#FBF8EE' }, fonts: { heading: 'Lora', body: 'IBM Plex Sans' } },
-    vibeString: 'pacific-northwest cedar moss olympic-peninsula damp-woods slate-sky beeswax quiet wild', layoutFormat: 'cascade',
+    vibeString: 'pacific-northwest cedar moss olympic-peninsula damp-woods slate-sky beeswax quiet wild', layoutFormat: 'filmstrip',
     poetry: { heroTagline: 'a wedding the trees remember.', closingLine: 'See you in the woods.', rsvpIntro: 'Bring boots. Bring layers. The forest sets the dress code.', welcomeStatement: 'A small wedding under cedars on the Olympic Peninsula. Moss for the aisle, beeswax candles, dinner under a tarp if it rains. The woods are not the backdrop — they\'re the venue.' },
     signatureDecor: 'cedar-cone',
   },
@@ -944,7 +944,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('footer', 13, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     theme: { colors: { background: '#FAF5EE', foreground: '#3D2E22', accent: '#C48B8B', accentLight: '#F5E0E0', muted: '#9A8478', cardBg: '#FFF9F7' }, fonts: { heading: 'Crimson Text', body: 'Lato' } },
-    vibeString: 'vintage romantic classic antique dusty rose ivory elegant timeless', layoutFormat: 'cascade',
+    vibeString: 'vintage romantic classic antique dusty rose ivory elegant timeless', layoutFormat: 'magazine',
     poetry: { heroTagline: 'a timeless love, beautifully told', closingLine: 'Some stories are worth telling forever — ours is one.', rsvpIntro: 'We would be delighted to have you join our celebration.', welcomeStatement: 'Welcome to our love story, told in the language of another era. With the grace of vintage elegance, we invite you to celebrate this timeless moment.' },
     motifs: { blob: 'peach', stamp: { text: 'WITH · LOVE', icon: 'heart', tone: 'peach', rotation: 4 }, postIt: { text: 'Save the date, with love.', tone: 'cream', rotation: -3 }, heart: true, squiggle: 1 },
     signatureDecor: 'rose-bloom',
@@ -1001,7 +1001,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('footer', 13, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     theme: { colors: { background: '#F0F4F8', foreground: '#1C2938', accent: '#6BA3BE', accentLight: '#D8EAF0', muted: '#7A8A98', cardBg: '#FFFFFF' }, fonts: { heading: 'Cormorant Garamond', body: 'Raleway' } },
-    vibeString: 'winter snow ice blue silver elegant crystalline cold dreamy', layoutFormat: 'cascade',
+    vibeString: 'winter snow ice blue silver elegant crystalline cold dreamy', layoutFormat: 'kenburns',
     poetry: { heroTagline: 'a love as pure as fresh snowfall', closingLine: 'May our love keep us warm through every winter ahead.', rsvpIntro: 'Bundle up and join us for a magical winter celebration.', welcomeStatement: 'Welcome to our winter wonderland. In the hush of falling snow and the sparkle of ice crystals, we celebrate a love that warms even the coldest day.' },
     motifs: { blob: 'lavender', sparkle: true, squiggle: 3, stamp: { text: 'FIRST · SNOW', icon: 'sparkles', tone: 'lavender', rotation: -4 } },
     signatureDecor: 'snowflake',
@@ -1058,7 +1058,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('footer', 13, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     theme: { colors: { background: '#FFF8F0', foreground: '#2C1810', accent: '#E8A87C', accentLight: '#FFE8D0', muted: '#9A8070', cardBg: '#FFFCF8' }, fonts: { heading: 'Libre Baskerville', body: 'Lora' } },
-    vibeString: 'southern charm magnolia peach cream elegant warm hospitality garden', layoutFormat: 'cascade',
+    vibeString: 'southern charm magnolia peach cream elegant warm hospitality garden', layoutFormat: 'scrapbook',
     poetry: { heroTagline: 'a love as sweet as Southern sun', closingLine: 'Y\'all are the reason this day is so special.', rsvpIntro: 'We\'d be tickled pink if you could join us.', welcomeStatement: 'Welcome, y\'all. With Southern grace and heartfelt warmth, we invite you to celebrate the sweetest day of our lives.' },
     motifs: { blob: 'peach', postIt: { text: 'Glad you’re here, sugar.', tone: 'cream', rotation: -4 }, stamp: { text: 'MAGNOLIA · DAYS', icon: 'leaf', tone: 'peach', rotation: 5 }, heart: true, squiggle: 1 },
     signatureDecor: 'magnolia',
@@ -1148,7 +1148,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('footer', 13, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     theme: { colors: { background: '#F8F6F2', foreground: '#1A2010', accent: '#4A6A38', accentLight: '#E0ECD4', muted: '#7A8A6A', cardBg: '#FFFFFF' }, fonts: { heading: 'Libre Baskerville', body: 'Lato' } },
-    vibeString: 'classic traditional elegant timeless formal refined green white', layoutFormat: 'cascade',
+    vibeString: 'classic traditional elegant timeless formal refined green white', layoutFormat: 'magazine',
     poetry: { heroTagline: 'timeless love, perfectly refined', closingLine: 'Some things never go out of style — our love is one of them.', rsvpIntro: 'We would be honored by your presence.', welcomeStatement: 'Welcome to our celebration. In the tradition of those who came before us, we mark this moment with grace, gratitude, and enduring love.' },
     motifs: { blob: 'sage', stamp: { text: 'EST.', icon: 'ring', tone: 'sage', rotation: 0 }, squiggle: 3 },
     signatureDecor: 'laurel-wreath',
@@ -1263,7 +1263,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('footer', 13, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     theme: { colors: { background: '#FAF6F0', foreground: '#1A1810', accent: '#9A7A40', accentLight: '#F0E4D0', muted: '#8A8070', cardBg: '#FFFCF5' }, fonts: { heading: 'Cormorant Garamond', body: 'Lora' } },
-    vibeString: 'regency bridgerton period grand regal pastel gold elegant ballroom', layoutFormat: 'cascade',
+    vibeString: 'regency bridgerton period grand regal pastel gold elegant ballroom', layoutFormat: 'magazine',
     poetry: { heroTagline: 'a love story for the ages', closingLine: 'Dearest reader, this is only the beginning.', rsvpIntro: 'You are most cordially invited to the event of the season.', welcomeStatement: 'Dear esteemed guest, we request the pleasure of your company as we celebrate a love story worthy of the finest novels.' },
     motifs: { blob: 'peach', stamp: { text: 'WITH · COMPLIMENTS', icon: 'heart', tone: 'peach', rotation: -3 }, sparkle: true, squiggle: 3 },
     signatureDecor: 'art-deco-fan',
@@ -1383,7 +1383,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('footer', 13, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     theme: { colors: { background: '#F5F7FA', foreground: '#0C1F2E', accent: '#2A4A6A', accentLight: '#D0E0F0', muted: '#6A7A8A', cardBg: '#FFFFFF' }, fonts: { heading: 'DM Serif Display', body: 'DM Sans' } },
-    vibeString: 'nautical preppy navy coastal maritime yacht club classic blue white', layoutFormat: 'cascade',
+    vibeString: 'nautical preppy navy coastal maritime yacht club classic blue white', layoutFormat: 'kenburns',
     poetry: { heroTagline: 'love is our true north', closingLine: 'Smooth sailing from here on out.', rsvpIntro: 'All aboard — will you join our crew?', welcomeStatement: 'Welcome aboard. With salt in the air and love in our sails, we celebrate the voyage of a lifetime.' },
     motifs: { blob: 'cream', stamp: { text: 'BON · VOYAGE', icon: 'none', tone: 'lavender', rotation: -3 }, squiggle: 2 },
     signatureDecor: 'anchor-rope',
@@ -1411,7 +1411,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('footer', 13, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     theme: { colors: { background: '#F2F0EA', foreground: '#1A2418', accent: '#4A6A38', accentLight: '#D8E4D0', muted: '#7A8A70', cardBg: '#FAFAF5' }, fonts: { heading: 'Libre Baskerville', body: 'Lato' } },
-    vibeString: 'mountain alpine lodge rustic nature adventure pine forest stone', layoutFormat: 'cascade',
+    vibeString: 'mountain alpine lodge rustic nature adventure pine forest stone', layoutFormat: 'filmstrip',
     poetry: { heroTagline: 'love at the highest peak', closingLine: 'From this summit, the view of forever is breathtaking.', rsvpIntro: 'Lace up your boots — we\'re heading to the top.', welcomeStatement: 'Welcome to our mountain retreat. With peaks as our backdrop and pines as our witnesses, we celebrate a love that reaches the highest heights.' },
     motifs: { blob: 'sage', stamp: { text: 'BASE · CAMP', icon: 'leaf', tone: 'sage', rotation: 4 }, squiggle: 1 },
     signatureDecor: 'pine-bough',
@@ -1466,7 +1466,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('footer', 13, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     theme: { colors: { background: '#FAF5F0', foreground: '#2A1410', accent: '#8B2020', accentLight: '#F0D0C0', muted: '#8A7068', cardBg: '#FFFAF5' }, fonts: { heading: 'Playfair Display', body: 'Lora' } },
-    vibeString: 'victorian ornate formal period classic regal garden grand jewel', layoutFormat: 'cascade',
+    vibeString: 'victorian ornate formal period classic regal garden grand jewel', layoutFormat: 'magazine',
     poetry: { heroTagline: 'a love of extraordinary grandeur', closingLine: 'In the tradition of the finest eras, our love story begins.', rsvpIntro: 'You are most graciously invited to attend.', welcomeStatement: 'Dear honored guest, we request the distinguished pleasure of your company at our celebration — a tribute to love, beauty, and the finer things.' },
     motifs: { blob: 'peach', stamp: { text: 'GRAND · AFFAIR', icon: 'heart', tone: 'peach', rotation: -4 }, heart: true, squiggle: 3 },
     signatureDecor: 'cameo-oval',
@@ -1494,7 +1494,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('footer', 13, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     theme: { colors: { background: '#FAF5EE', foreground: '#2A1A0A', accent: '#B85C30', accentLight: '#F0D8C0', muted: '#8A7058', cardBg: '#FFFAF5' }, fonts: { heading: 'EB Garamond', body: 'Lato' } },
-    vibeString: 'fall autumn harvest jewel tones warm burgundy amber rustic vineyard', layoutFormat: 'cascade',
+    vibeString: 'fall autumn harvest jewel tones warm burgundy amber rustic vineyard', layoutFormat: 'filmstrip',
     poetry: { heroTagline: 'falling for you, every season', closingLine: 'The most beautiful season is the one we share.', rsvpIntro: 'Gather with us as the leaves turn golden.', welcomeStatement: 'Welcome to our autumn celebration. Among the warm hues and harvest light, we celebrate a love that deepens with every season.' },
     motifs: { blob: 'warm', stamp: { text: 'HARVEST · TABLE', icon: 'leaf', tone: 'peach', rotation: 5 }, squiggle: 1, heart: true },
     signatureDecor: 'wheat-stalk',
@@ -1523,7 +1523,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     blockOrder: ['hero', 'vibeQuote', 'divider', 'welcome', 'story', 'countdown', 'event', 'rsvp', 'registry', 'travel', 'photos', 'faq', 'guestbook', 'footer'],
     theme: { colors: { background: '#1A1410', foreground: '#E8DDD0', accent: '#8A6030', accentLight: '#2A2018', muted: '#8A7A60', cardBg: '#1E1814' }, fonts: { heading: 'Crimson Text', body: 'Source Sans 3' } },
-    vibeString: 'dark academia scholarly library vintage moody intellectual leather mahogany', layoutFormat: 'cascade',
+    vibeString: 'dark academia scholarly library vintage moody intellectual leather mahogany', layoutFormat: 'magazine',
     poetry: { heroTagline: 'a love story worth studying', closingLine: 'Every great library has a love story — this one is ours.', rsvpIntro: 'Consider this your formal invitation to our most important chapter.', welcomeStatement: 'Welcome, fellow romantics. In the quiet of leather-bound volumes and candlelit halls, we celebrate a love that reads like the finest prose.' },
     motifs: { stamp: { text: 'EX · LIBRIS', icon: 'none', tone: 'gold', rotation: -2 }, squiggle: 3, sparkle: true },
     signatureDecor: 'quill-ink',
@@ -1550,7 +1550,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     hiddenBlocks: ['registry', 'faq'],
     theme: { colors: { background: '#F5F2EE', foreground: '#1A2030', accent: '#2A4A6A', accentLight: '#D0D8E4', muted: '#7A8090', cardBg: '#FAFAF8' }, fonts: { heading: 'Cormorant Garamond', body: 'Raleway' } },
-    vibeString: 'old money quiet luxury refined navy cream understated elegant private', layoutFormat: 'cascade',
+    vibeString: 'old money quiet luxury refined navy cream understated elegant private', layoutFormat: 'magazine',
     poetry: { heroTagline: 'understated, unforgettable', closingLine: 'The finest things are never announced — they\'re simply known.', rsvpIntro: 'Your attendance is expected.', welcomeStatement: 'Welcome. We don\'t believe in spectacle — we believe in substance. This evening is for the people who matter most.' },
     motifs: { blob: 'cream', squiggle: 3, stamp: { text: 'BY · INVITATION', icon: 'none', tone: 'lavender', rotation: 0 } },
     signatureDecor: 'laurel-wreath',
@@ -1668,7 +1668,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('footer', 13, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     theme: { colors: { background: '#FFF5F5', foreground: '#2A1A1A', accent: '#D48A8A', accentLight: '#FCE4E8', muted: '#A08888', cardBg: '#FFFAFA' }, fonts: { heading: 'Playfair Display', body: 'Inter' } },
-    vibeString: 'romantic blush pink soft elegant floral candles champagne gentle', layoutFormat: 'cascade',
+    vibeString: 'romantic blush pink soft elegant floral candles champagne gentle', layoutFormat: 'scrapbook',
     poetry: { heroTagline: 'love, softly spoken', closingLine: 'May every sunset remind you of this day.', rsvpIntro: 'Will you share this tender moment with us?', welcomeStatement: 'Welcome to our love story. In the softest light, surrounded by the people who matter most, we speak the words we\'ve felt forever.' },
     motifs: { blob: 'peach', heart: true, stamp: { text: 'SOFT · LOVE', icon: 'heart', tone: 'peach', rotation: 3 }, squiggle: 1 },
     signatureDecor: 'peony-bloom',
@@ -1831,13 +1831,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       fonts: { heading: 'Fraunces', body: 'Geist' },
     },
     vibeString: 'bachelor bachelorette weekend trip itinerary private group dark warm masculine sophisticated',
-    layoutFormat: 'cascade',
+    layoutFormat: 'filmstrip',
     poetry: {
       heroTagline: 'last weekend in',
       closingLine: 'What happens this weekend — goes in the group chat forever.',
       rsvpIntro: 'Drop in if you\u2019re in. Flag anything we should know — allergies, timing, budget.',
       welcomeStatement: 'The who, the when, the where. Everything the trip needs in one place — private, shared only with the people going.',
     },
+    signatureDecor: 'suitcase',
   },
 
   // ── 62. Gentle Gathering — bridal shower (Phase B.2) ──
@@ -1883,13 +1884,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       fonts: { heading: 'Fraunces', body: 'Geist' },
     },
     vibeString: 'bridal shower blush sage intimate editorial feminine soft elegant afternoon gentle',
-    layoutFormat: 'cascade',
+    layoutFormat: 'scrapbook',
     poetry: {
       heroTagline: 'a gentle gathering',
       closingLine: 'A soft afternoon, the one before the day.',
       rsvpIntro: 'We\u2019d love your yes. Let us know any allergies so the menu\u2019s right.',
       welcomeStatement: 'An afternoon of gifts, stories, and well-wishes before the big day. Small, unhurried, and entirely hers.',
     },
+    signatureDecor: 'champagne-tower',
   },
 
   // ── 63. The Night Before — rehearsal dinner (Phase B.2) ──
@@ -1935,13 +1937,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       fonts: { heading: 'Fraunces', body: 'Geist' },
     },
     vibeString: 'rehearsal dinner intimate evening dark gold editorial warm candlelit',
-    layoutFormat: 'cascade',
+    layoutFormat: 'magazine',
     poetry: {
       heroTagline: 'the night before',
       closingLine: 'The room that made the couple who they are.',
       rsvpIntro: 'A small room, a big moment. Let us know if you can make it — and any dietary notes.',
       welcomeStatement: 'A private dinner the night before the wedding. Candlelight, a few toasts, the people who know the couple best.',
     },
+    signatureDecor: 'place-setting',
   },
 
   // ── 64. Warm Threshold — welcome party (Phase B.4) ──
@@ -1977,13 +1980,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#F5E6D0', foreground: '#2A1F10', accent: '#8B6F4F', accentLight: '#ECD9B8', muted: '#8C7A58', cardBg: '#FFFDF5' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'welcome destination evening warm arrival editorial',
-    layoutFormat: 'cascade',
+    layoutFormat: 'chapters',
     poetry: {
       heroTagline: 'welcome to the weekend',
       closingLine: 'Rest up. Tomorrow is a lot.',
-      rsvpIntro: 'Let us know when you\u2019re landing so the welcome desk can pace itself.',
+      rsvpIntro: 'Let us know when you’re landing so the welcome desk can pace itself.',
       welcomeStatement: 'The opening night of a wedding weekend. Everything you need to land softly — and know where you\u2019re headed next.',
     },
+    signatureDecor: 'suitcase',
   },
 
   // ── 65. One More Round — morning-after brunch (Phase B.4) ──
@@ -2007,13 +2011,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#FAF3EE', foreground: '#3D2E24', accent: '#A67C52', accentLight: '#E5D3B3', muted: '#8C7A6A', cardBg: '#FFFFFF' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'brunch morning casual warm intimate farewell',
-    layoutFormat: 'cascade',
+    layoutFormat: 'chapters',
     poetry: {
       heroTagline: 'one more round',
       closingLine: 'One for the road.',
       rsvpIntro: 'Nothing fancy. Just tell us if you\u2019re coming so we pace the eggs right.',
       welcomeStatement: '',
     },
+    signatureDecor: 'champagne-tower',
   },
 
   // ── 66. Saying It Again — vow renewal (Phase B.4) ──
@@ -2041,13 +2046,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#FAF0E8', foreground: '#2A1F1A', accent: '#8B5F4A', accentLight: '#E8CFC0', muted: '#8C7668', cardBg: '#FFFFFF' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'vow renewal anniversary intimate warm editorial tender',
-    layoutFormat: 'cascade',
+    layoutFormat: 'magazine',
     poetry: {
       heroTagline: 'saying it again',
       closingLine: 'The second time is the one that meant it.',
       rsvpIntro: 'A small gathering. Come if you can — no gifts, just you.',
       welcomeStatement: 'The vows, said again — older, quieter, more sure. A small celebration of the years that made us.',
     },
+    signatureDecor: 'time-capsule',
   },
 
   // ── 67. Soft Landing — baby shower (Phase C) ──
@@ -2093,13 +2099,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#FDF6F0', foreground: '#3A2E38', accent: '#9AA583', accentLight: '#E8EBDA', muted: '#8C7A78', cardBg: '#FFFFFF' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'baby shower soft gentle sage blush warm editorial tender advice',
-    layoutFormat: 'cascade',
+    layoutFormat: 'scrapbook',
     poetry: {
       heroTagline: 'a soft landing',
       closingLine: 'Welcome, little one. The room has been waiting.',
       rsvpIntro: 'We\u2019d love your yes. Flag any allergies so the table\u2019s right.',
       welcomeStatement: 'An afternoon of gifts, advice, and well-wishes for the two of them — and the one on the way.',
     },
+    signatureDecor: 'baby-bottle',
   },
 
   // ── 68. The People You Keep — reunion (Phase C) ──
@@ -2157,13 +2164,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#F0EDE4', foreground: '#1F2418', accent: '#4A6A3A', accentLight: '#D8E0C8', muted: '#7A8A6A', cardBg: '#FFFFFF' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'reunion multi-day warm group rustic outdoor family class friends',
-    layoutFormat: 'cascade',
+    layoutFormat: 'magazine',
     poetry: {
       heroTagline: 'the people you keep',
       closingLine: 'Same group, one more round.',
       rsvpIntro: 'Tell us which days you\u2019re in, your T-shirt size, and any allergies for the table.',
       welcomeStatement: 'A weekend with the people you keep. Itinerary, rooms, the group photo, and plenty of time for the stories that never change.',
     },
+    signatureDecor: 'pampas-grass',
   },
 
   // ── 69. Years Worth Marking — milestone birthday (Phase C) ──
@@ -2206,13 +2214,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#FAF3E8', foreground: '#2A1F14', accent: '#C4A96A', accentLight: '#ECDFBB', muted: '#8C7A58', cardBg: '#FFFFFF' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'milestone birthday editorial warm gold tribute toast story',
-    layoutFormat: 'cascade',
+    layoutFormat: 'magazine',
     poetry: {
       heroTagline: 'a year worth marking',
       closingLine: 'Here\u2019s to the ones who showed up, again.',
       rsvpIntro: 'Come celebrate. Flag any allergies, and tell us if you\u2019d like a toast slot.',
       welcomeStatement: 'A decade turned — and the people who made it worth marking, gathered in one room.',
     },
+    signatureDecor: 'birthday-candle',
   },
 
   // ── 70. One Year In — first birthday (Phase C) ──
@@ -2243,13 +2252,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#FFF6EA', foreground: '#2E2414', accent: '#D6893F', accentLight: '#F9D9B1', muted: '#8C7658', cardBg: '#FFFFFF' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'first birthday family warm soft honey playful',
-    layoutFormat: 'cascade',
+    layoutFormat: 'scrapbook',
     poetry: {
       heroTagline: 'one year in',
       closingLine: 'The start of the story.',
       rsvpIntro: 'Come if you can — bring your best baby photo of them to pin up.',
       welcomeStatement: 'A small afternoon for the smallest one. Cake, photos, and a wall of notes for their future self.',
     },
+    signatureDecor: 'baby-rattle',
   },
 
   // ── 71. Spotlight Sixteen — sweet 16 (Phase C) ──
@@ -2287,13 +2297,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#0E0818', foreground: '#F6E8FA', accent: '#E27DB8', accentLight: '#2A1030', muted: '#A878C0', cardBg: '#1A1128' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'sweet sixteen playful loud bold y2k neon dance',
-    layoutFormat: 'cascade',
+    layoutFormat: 'chapters',
     poetry: {
       heroTagline: 'spotlight sixteen',
       closingLine: 'Loud, bright, and entirely hers.',
       rsvpIntro: 'Pull up. Tell us your pick for the playlist on the way in.',
       welcomeStatement: 'A loud night, the one where everything changes. Dress code\u2019s on the site. DJ\u2019s already picking.',
     },
+    signatureDecor: 'tiara',
   },
 
   // ── 72. Career Remembered — retirement (Phase C) ──
@@ -2334,13 +2345,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#F2EBDF', foreground: '#1F1810', accent: '#8B6A42', accentLight: '#E6D8BB', muted: '#8C7A5A', cardBg: '#FFFFFF' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'retirement career tribute warm quiet editorial',
-    layoutFormat: 'cascade',
+    layoutFormat: 'magazine',
     poetry: {
       heroTagline: 'a career, remembered',
       closingLine: 'The career worth having is the one other people mark for you.',
       rsvpIntro: 'Come raise a glass. Flag any allergies for the table.',
       welcomeStatement: 'A quiet evening for a loud career. The people you\u2019ve worked with, the ones you\u2019ve mentored, and the family that heard every story.',
     },
+    signatureDecor: 'retirement-clock',
   },
 
   // ── 73. From One Chapter — graduation (Phase C) ──
@@ -2370,13 +2382,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#F0EADC', foreground: '#1A2238', accent: '#3C4D7A', accentLight: '#D3D8E5', muted: '#6A7089', cardBg: '#FFFFFF' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'graduation editorial navy cream story open-house milestone',
-    layoutFormat: 'cascade',
+    layoutFormat: 'kenburns',
     poetry: {
       heroTagline: 'from one chapter to the next',
       closingLine: 'The next room is big. Push the door.',
       rsvpIntro: 'Come through anytime during the open house. Flag any allergies for the snacks.',
       welcomeStatement: 'A small party between school and whatever\u2019s next. Come through, bring a story, stay as long as you like.',
     },
+    signatureDecor: 'mortarboard',
   },
 
   // ── 74. A Gathering to Remember — memorial (Phase D) ──
@@ -2428,13 +2441,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#F5F0E8', foreground: '#2A241E', accent: '#6A5E50', accentLight: '#D8D0C4', muted: '#7A7268', cardBg: '#FFFFFF' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'memorial celebration of life quiet warm editorial tribute',
-    layoutFormat: 'cascade',
+    layoutFormat: 'filmstrip',
     poetry: {
       heroTagline: 'a gathering to remember',
       closingLine: 'We carry them forward together.',
       rsvpIntro: 'If you can, let us know you\u2019ll be there. Not required — everyone is welcome.',
       welcomeStatement: '',
     },
+    signatureDecor: 'candle-vigil',
   },
 
   // ── 75. Gathering Briefly — funeral (Phase D) ──
@@ -2476,13 +2490,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#EFEBE4', foreground: '#1A1410', accent: '#5A5248', accentLight: '#CAC4B8', muted: '#7A7268', cardBg: '#FFFFFF' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'funeral quiet short-notice simple',
-    layoutFormat: 'cascade',
+    layoutFormat: 'filmstrip',
     poetry: {
       heroTagline: 'we gather briefly',
       closingLine: 'Thank you for being here.',
       rsvpIntro: '',
       welcomeStatement: '',
     },
+    signatureDecor: 'candle-vigil',
   },
 
   // ── 76. Sons of the Commandment — bar mitzvah (Phase E) ──
@@ -2524,13 +2539,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#FAF3E8', foreground: '#1A2A3A', accent: '#3E6785', accentLight: '#C9DBE8', muted: '#7A88A0', cardBg: '#FFFFFF' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'bar mitzvah ceremony jewish cultural navy cream classic',
-    layoutFormat: 'cascade',
+    layoutFormat: 'chapters',
     poetry: {
       heroTagline: 'today, a son of the commandment',
       closingLine: 'Mazel tov.',
       rsvpIntro: 'Come celebrate. Flag any dietary needs and we\u2019ll set the table right.',
       welcomeStatement: 'A day of reading, blessings, and the people who raised him. Ceremony in the morning, celebration through the evening.',
     },
+    signatureDecor: 'torah-scroll',
   },
 
   // ── 77. Daughters of the Commandment — bat mitzvah (Phase E) ──
@@ -2572,13 +2588,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#FDF6F0', foreground: '#3A2E38', accent: '#C98A86', accentLight: '#F2D4CC', muted: '#8C7A78', cardBg: '#FFFFFF' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'bat mitzvah ceremony jewish cultural blush rose classic',
-    layoutFormat: 'cascade',
+    layoutFormat: 'chapters',
     poetry: {
       heroTagline: 'today, a daughter of the commandment',
       closingLine: 'Mazel tov.',
       rsvpIntro: 'Come celebrate. Flag any dietary needs and we\u2019ll set the table right.',
       welcomeStatement: 'A day of reading, blessings, and the people who raised her.',
     },
+    signatureDecor: 'torah-scroll',
   },
 
   // ── 78. Fifteen And — quinceañera (Phase E) ──
@@ -2616,13 +2633,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#FDF2E8', foreground: '#3A1F2E', accent: '#A8546A', accentLight: '#F2D4E0', muted: '#8C6874', cardBg: '#FFFFFF' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'quinceañera fifteen ceremony cultural rose blush regal warm',
-    layoutFormat: 'cascade',
+    layoutFormat: 'scrapbook',
     poetry: {
       heroTagline: 'fifteen and',
       closingLine: 'The night a girl becomes a woman — surrounded.',
       rsvpIntro: 'Come celebrate with us. Dress code and directions on the site.',
       welcomeStatement: 'A day of tradition, family, and a very long playlist. Everyone dressed, everyone dancing, everyone there.',
     },
+    signatureDecor: 'tiara',
   },
 
   // ── 79. Small Soul, Shared Promise — baptism (Phase E) ──
@@ -2659,13 +2677,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#FAF7F2', foreground: '#1A2A3A', accent: '#4A6A8B', accentLight: '#D0DBEA', muted: '#7A889A', cardBg: '#FFFFFF' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'baptism christening ceremony quiet reverent soft',
-    layoutFormat: 'cascade',
+    layoutFormat: 'chapters',
     poetry: {
       heroTagline: 'a small soul, a shared promise',
       closingLine: 'Welcome. We\u2019ve been waiting.',
       rsvpIntro: 'A short ceremony, a reception after. Let us know if you can make it.',
       welcomeStatement: 'A ceremony for the smallest one. Brief, reverent, and entirely about family.',
     },
+    signatureDecor: 'baptism-shell',
   },
 
   // ── 80. First Communion (Phase E) ──
@@ -2701,13 +2720,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#FDF9F3', foreground: '#2A2014', accent: '#8B7A4A', accentLight: '#E8DDBE', muted: '#8C7E5A', cardBg: '#FFFFFF' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'first communion ceremony cultural cream warm quiet',
-    layoutFormat: 'cascade',
+    layoutFormat: 'chapters',
     poetry: {
       heroTagline: 'first taste',
       closingLine: 'A small step, a long road.',
       rsvpIntro: 'A short ceremony, a small reception. Tell us if you can make it.',
       welcomeStatement: 'A day of tradition for the one just starting. Family, dress code, a simple meal.',
     },
+    signatureDecor: 'baptism-shell',
   },
 
   // ── 81. Confirmation (Phase E) ──
@@ -2743,13 +2763,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#F8F3E8', foreground: '#2A2014', accent: '#A89062', accentLight: '#E8DDBE', muted: '#8C7E5A', cardBg: '#FFFFFF' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'confirmation ceremony cultural warm gold quiet',
-    layoutFormat: 'cascade',
+    layoutFormat: 'chapters',
     poetry: {
       heroTagline: 'choosing the faith',
       closingLine: 'The faith they pick is the one that stays.',
       rsvpIntro: 'A short ceremony, a small reception. Let us know if you can make it.',
       welcomeStatement: 'Confirmation — the one they chose on their own. Ceremony in the morning, a warm meal after.',
     },
+    signatureDecor: 'baptism-shell',
   },
 
   // ── 82. A Quiet Table — bridal luncheon (Phase B.5) ──
@@ -2773,13 +2794,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#FAF3EE', foreground: '#2A1F14', accent: '#8A7250', accentLight: '#E5D3B3', muted: '#8C7E6A', cardBg: '#FFFFFF' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'bridal luncheon intimate small warm editorial afternoon',
-    layoutFormat: 'cascade',
+    layoutFormat: 'bento',
     poetry: {
       heroTagline: 'a quiet table',
       closingLine: 'A small circle, a long friendship.',
       rsvpIntro: 'A small table — please come. Flag any allergies for the menu.',
       welcomeStatement: '',
     },
+    signatureDecor: 'house-key-ring',
   },
 
   // ── 83. Come See The Place — housewarming (Phase C) ──
@@ -2805,13 +2827,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#F2EBE0', foreground: '#2A1F14', accent: '#9A6F38', accentLight: '#E8D5B0', muted: '#8C7658', cardBg: '#FFFFFF' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'housewarming home warm casual friends',
-    layoutFormat: 'cascade',
+    layoutFormat: 'bento',
     poetry: {
       heroTagline: 'come see the place',
       closingLine: 'Thanks for helping us make it home.',
       rsvpIntro: 'Come by — kids welcome, parking in the back.',
       welcomeStatement: 'We finally unpacked. Come see the place, have a drink, stay as long as you want.',
     },
+    signatureDecor: 'house-key-ring',
   },
 
   // ── 84. Blue, Pink, or Surprise — gender reveal (Phase C) ──
@@ -2844,13 +2867,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#FDF0F5', foreground: '#2A1F30', accent: '#C88AA8', accentLight: '#F2D4E0', muted: '#8C7884', cardBg: '#FFFFFF' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'gender reveal playful soft family blue pink',
-    layoutFormat: 'cascade',
+    layoutFormat: 'scrapbook',
     poetry: {
       heroTagline: 'blue, pink, or surprise',
       closingLine: 'Welcome, whoever you are.',
       rsvpIntro: 'Come guess with us. Bring your vote in.',
       welcomeStatement: '',
     },
+    signatureDecor: 'balloon-cluster',
   },
 
   // ── 85. Come Meet The Baby — sip and see (Phase C) ──
@@ -2875,13 +2899,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     theme: { colors: { background: '#FDF9F2', foreground: '#2A1F14', accent: '#9A7C5A', accentLight: '#EFE0C8', muted: '#8C7E6A', cardBg: '#FFFFFF' }, fonts: { heading: 'Fraunces', body: 'Geist' } },
     vibeString: 'sip and see soft new baby family warm',
-    layoutFormat: 'cascade',
+    layoutFormat: 'scrapbook',
     poetry: {
       heroTagline: 'come meet the baby',
       closingLine: 'Thanks for coming to say hello.',
       rsvpIntro: 'Come say hi — we\u2019ll have coffee on. Don\u2019t come if you\u2019re sick, please.',
       welcomeStatement: 'A short afternoon for the newest one. Come over, say hi, stay for as long as the nap lasts.',
     },
+    signatureDecor: 'baby-rattle',
   },
 ];
 
