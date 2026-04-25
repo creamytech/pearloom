@@ -79,7 +79,9 @@ export const BLOCK_CATALOGUE: BlockDef[] = [
   { type: 'privacyGate',  label: 'Privacy gate',     description: 'Invite-only callout + access rules',            color: '#2A241E', category: 'structure', occasions: ['wedding', 'engagement'] },
 
   // gifts
-  { type: 'registry',  label: 'Registry',          description: 'Registry links & honeymoon fund',             color: '#c4774a', category: 'gifts',     occasions: ['wedding', 'engagement', 'birthday'] },
+  { type: 'registry',      label: 'Registry links',  description: 'Link out to Zola, Amazon, Crate & Barrel',     color: '#c4774a', category: 'gifts', occasions: ['wedding', 'engagement', 'birthday'] },
+  { type: 'registryItems', label: 'Registry items',  description: 'Native items guests claim and pay through Pearloom', color: '#B8935A', category: 'gifts', occasions: ['wedding', 'engagement', 'birthday', 'anniversary'] },
+  { type: 'cashGift',      label: 'Cash gift',       description: 'Honey fund / cash gift via Stripe',           color: '#5C6B3F', category: 'gifts', occasions: ['wedding', 'engagement', 'birthday', 'anniversary'] },
 
   // guests
   { type: 'guestbook', label: 'Guestbook',         description: 'Public guest wishes & AI highlights',         color: '#7a4a8b', category: 'guests',    occasions: ALL_OCCASIONS },

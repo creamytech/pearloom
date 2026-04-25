@@ -69,6 +69,8 @@ import { PackingListBlock } from '@/components/site/PackingListBlock';
 import { PrivacyGateBlock } from '@/components/site/PrivacyGateBlock';
 import { ProgramBlock } from '@/components/site/ProgramBlock';
 import { ToastSignupBlock } from '@/components/site/ToastSignupBlock';
+import { RegistryItemsBlock } from '@/components/site/RegistryItemsBlock';
+import { CashGiftBlock } from '@/components/site/CashGiftBlock';
 import type { PageBlock } from '@/types';
 
 // Callback passed down for inline edits. Parent (CanvasStage)
@@ -2934,6 +2936,9 @@ const CUSTOM_BLOCK_TYPES = new Set([
   'program',
   'guestPhotoUpload',
   'voiceToast',
+  // v8 Tier S
+  'registryItems',
+  'cashGift',
 ]);
 
 function CustomBlocksRail({ manifest, siteSlug }: { manifest: StoryManifest; siteSlug: string }) {
@@ -3144,6 +3149,27 @@ function CustomBlockCase({ block, siteSlug, editMode }: { block: PageBlock; site
             />
           </div>
         </div>
+      );
+    }
+    case 'registryItems': {
+      return wrap(
+        <RegistryItemsBlock
+          siteId={siteSlug}
+          title={str('title')}
+          subtitle={str('subtitle')}
+        />
+      );
+    }
+    case 'cashGift': {
+      const presetAmounts = arr<number>('presetAmounts').filter((n) => Number.isFinite(n) && n > 0);
+      return wrap(
+        <CashGiftBlock
+          siteId={siteSlug}
+          title={str('title')}
+          subtitle={str('subtitle')}
+          label={str('label')}
+          presetAmounts={presetAmounts.length ? presetAmounts : undefined}
+        />
       );
     }
     default:

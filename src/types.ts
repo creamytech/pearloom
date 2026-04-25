@@ -808,7 +808,10 @@ export type BlockType =
   | 'groupChat'       // Threaded chat pinned to the site
   | 'privacyGate'     // Password / invite-list gate
   | 'guestPhotoUpload' // Mobile-first guest photo wall uploader
-  | 'voiceToast';     // In-browser voice-toast recorder
+  | 'voiceToast'      // In-browser voice-toast recorder
+  // ── v8 Tier S: native registry + payments ──
+  | 'registryItems'   // Native registry — items couples list, guests pay through Pearloom
+  | 'cashGift';       // Cash gift / honey fund via Stripe Checkout
 
 export interface PageBlock {
   id: string;

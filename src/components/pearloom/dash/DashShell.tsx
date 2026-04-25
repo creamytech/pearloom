@@ -46,6 +46,8 @@ const DASH_NAV_GROUPS: DashNavGroup[] = [
       { id: 'seating', label: 'Seating', icon: 'grid', href: '/dashboard/seating' },
       { id: 'submissions', label: 'Submissions', icon: 'mail', href: '/dashboard/submissions' },
       { id: 'connections', label: 'Guest Manager', icon: 'user-plus', href: '/dashboard/connections' },
+      { id: 'registry', label: 'Registry', icon: 'gift', href: '/dashboard/registry' },
+      { id: 'payments', label: 'Gifts & payments', icon: 'sparkles', href: '/dashboard/payments' },
     ],
   },
   {

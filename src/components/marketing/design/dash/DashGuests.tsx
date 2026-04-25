@@ -9,6 +9,7 @@ import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { DashShell, Topbar, Panel, SectionTitle, EmptyShell, btnInk, btnGhost } from './DashShell';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getEventType } from '@/lib/event-os/event-types';
+import { GuestImportDialog } from '@/components/dashboard/GuestImportDialog';
 
 // Occasion-aware copy for the guests page. Falls back to wedding-y
 // defaults when an occasion isn't recognised.
@@ -151,6 +152,8 @@ export function DashGuests() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<RsvpKey | 'all'>('all');
   const [q, setQ] = useState('');
+  const [importOpen, setImportOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     if (!site?.id) {
@@ -175,7 +178,7 @@ export function DashGuests() {
     return () => {
       cancelled = true;
     };
-  }, [site?.id]);
+  }, [site?.id, refreshKey]);
 
   const counts = useMemo(() => {
     const base = { all: 0, yes: 0, no: 0, maybe: 0, pending: 0 };
@@ -245,7 +248,7 @@ export function DashGuests() {
         }
         actions={
           <div style={{ display: 'flex', gap: 10 }}>
-            <button style={btnGhost}>Import CSV</button>
+            <button style={btnGhost} onClick={() => setImportOpen(true)}>Import CSV</button>
             <button style={btnInk}>✦ Add a guest</button>
           </div>
         }
@@ -640,6 +643,14 @@ export function DashGuests() {
           }
         }
       `}</style>
+
+      {/* CSV import — opens modal, refreshes guest list on close. */}
+      <GuestImportDialog
+        siteId={site.id}
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImported={() => setRefreshKey((k) => k + 1)}
+      />
     </DashShell>
   );
 }
