@@ -260,6 +260,35 @@ export interface StoryManifest {
   privateGallery?: boolean;
   // Typography pair preset for the site
   typographyPair?: 'serif-sans' | 'mono-serif' | 'display-body' | 'editorial';
+  /**
+   * Living atmosphere — animated background layer that gives the
+   * published site movement. Eight named kinds, three intensity
+   * levels, a host-controlled list of which sections receive it.
+   * Honours prefers-reduced-motion and pauses in background tabs.
+   * See src/components/pearloom/site/LivingAtmosphere.tsx.
+   */
+  atmosphere?: {
+    /** 'motes' | 'threads' | 'petals' | 'confetti' | 'candlelight'
+     *   | 'stars' | 'sunshimmer' | 'none' */
+    kind?: string;
+    /** 'subtle' | 'standard' | 'lush' */
+    intensity?: string;
+    /** Which sections render the atmosphere. Empty = hero only. */
+    sections?: string[];
+    /** Optional accent color override; falls back to theme accent. */
+    accent?: string;
+    /** Audio opt-in: if set, plays an ambient loop at -22dB after first
+     *  user interaction. URL points to a 30-60s seamless loop. */
+    audio?: { url?: string; label?: string; enabled?: boolean };
+  };
+  /** Per-section background overrides — 'paper' | 'wash' | 'mesh'
+   *  | 'atmosphere' | 'none'. Sections fall back to default when
+   *  not set. Section keys: 'top' | 'our-story' | 'schedule'
+   *  | 'travel' | 'registry' | 'gallery' | 'rsvp' | 'faq'. */
+  sectionBackgrounds?: Record<string, string>;
+  /** Show / hide individual decor primitives the editor renders.
+   *  Keys are the decor element ids; values are visibility flags. */
+  decorVisibility?: Record<string, boolean>;
   // Per-field inline text formatting overrides keyed by manifest path (e.g. "poetry.heroTagline")
   textFormats?: Record<string, {
     italic?: boolean;

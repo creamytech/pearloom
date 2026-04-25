@@ -1093,3 +1093,57 @@ html { scroll-behavior: smooth; }
   background: transparent;
   opacity: 1;
 }
+
+/* ============================================================
+   pl8 — Living surfaces (2026-04-24)
+   - Sections fade-rise as they enter the viewport
+   - Filigree dividers draw on with stroke-dashoffset
+   - Gallery photos drift slightly slower than scroll
+   ============================================================ */
+
+/* On-view fade-rise for major sections. Activated by JS adding
+   data-pl-revealed when the section enters the viewport. */
+.pl8-guest section {
+  opacity: 1;
+  transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+              transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pl8-guest section[data-pl-reveal="pending"] {
+  opacity: 0;
+  transform: translateY(18px);
+}
+.pl8-guest section[data-pl-reveal="shown"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-guest section[data-pl-reveal="pending"] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Gallery photo slight parallax — pulls each tile up 20px slower
+   than scroll. The transform value is set per tile by JS. */
+.pl8-gallery-grid > * {
+  transition: transform 80ms linear;
+  will-change: transform;
+}
+
+/* Section-decor draw-on: applies a stroke-dashoffset animation to
+   any inline <path> inside [data-pl-stroke-draw]. Triggers when the
+   element scrolls into view (data-pl-revealed). */
+[data-pl-stroke-draw] path {
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  transition: stroke-dashoffset 1400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-pl-stroke-draw][data-pl-reveal="shown"] path {
+  stroke-dashoffset: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-pl-stroke-draw] path {
+    stroke-dashoffset: 0 !important;
+    transition: none !important;
+  }
+}

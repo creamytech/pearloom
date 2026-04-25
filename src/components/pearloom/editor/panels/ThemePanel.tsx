@@ -6,6 +6,7 @@ import { Field, PanelSection, SegmentedToggle, SelectInput, TextInput } from '..
 import { Blob, Pear, Sparkle, Squiggle } from '../../motifs';
 import { DecorLibraryPanel } from './DecorLibraryPanel';
 import { StickerTrayPanel } from './StickerTrayPanel';
+import { AtmospherePanel } from './AtmospherePanel';
 
 interface ThemePreset {
   id: string;
@@ -266,6 +267,8 @@ export function ThemePanel({
       </PanelSection>
 
       <AiAccentSection manifest={manifest} onChange={onChange} />
+
+      <AtmospherePanel manifest={manifest} onChange={onChange} />
 
       <DecorLibraryPanel manifest={manifest} onChange={onChange} />
 

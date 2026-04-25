@@ -28,6 +28,11 @@ import { PhotoDropTarget } from '../editor/canvas/PhotoDropTarget';
 import { OccasionDecor } from './OccasionDecor';
 import { BroadcastBar } from './BroadcastBar';
 import { DecorDivider } from './DecorDivider';
+import { LivingAtmosphere, defaultAtmosphereForOccasion, type AtmosphereKind, type AtmosphereIntensity } from './LivingAtmosphere';
+import { AmbientAudio } from './AmbientAudio';
+import { useHeroParallax } from './useHeroParallax';
+import { SectionBackground } from './SectionBackground';
+import { ScrollReveal } from './ScrollReveal';
 import {
   CalendarAddButton,
   SaveContactButton,
@@ -502,8 +507,38 @@ function HeroSection({
   const decorMode =
     ((manifest as unknown as { decorStyle?: 'classic' | 'occasion' | 'off' }).decorStyle) ??
     'occasion';
+
+  // Living atmosphere — animated background layer. Reads
+  // manifest.atmosphere if set, otherwise picks a sensible default
+  // for the occasion. Host can override or disable in the editor.
+  const atmosphereCfg = (manifest as unknown as {
+    atmosphere?: { kind?: string; intensity?: string; sections?: string[]; accent?: string }
+  }).atmosphere;
+  const atmosphereKind = (atmosphereCfg?.kind as AtmosphereKind | undefined)
+    ?? defaultAtmosphereForOccasion(occasionRaw);
+  const atmosphereIntensity = (atmosphereCfg?.intensity as AtmosphereIntensity | undefined) ?? 'standard';
+  const atmosphereAccent = atmosphereCfg?.accent
+    ?? (manifest as unknown as { theme?: { colors?: { accent?: string } } }).theme?.colors?.accent;
+
+  // Cursor parallax — subtle drift on the atmosphere layer.
+  const parallax = useHeroParallax(8);
+
   return (
-    <section id="top" style={{ position: 'relative', padding: 'clamp(48px, 8vw, 80px) 32px clamp(48px, 8vw, 110px)', overflow: 'hidden' }}>
+    <section
+      ref={parallax.ref as React.RefObject<HTMLElement>}
+      id="top"
+      style={{ position: 'relative', padding: 'clamp(48px, 8vw, 80px) 32px clamp(48px, 8vw, 110px)', overflow: 'hidden' }}
+    >
+      {/* Animated atmosphere — sits beneath the static decor so it
+          reads as light moving through the paper, not on top of it.
+          Cursor parallax drifts the whole layer ~8px. */}
+      <div style={{ position: 'absolute', inset: 0, ...parallax.style, zIndex: 0 }} aria-hidden>
+        <LivingAtmosphere
+          kind={atmosphereKind}
+          intensity={atmosphereIntensity}
+          accent={atmosphereAccent}
+        />
+      </div>
       {decorMode === 'classic' && (
         <>
           {/* Two paper washes + a single filigree — restrained
@@ -858,7 +893,8 @@ function StoryVariantSection({
   }
 
   return (
-    <section id="our-story" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', background: 'var(--cream-2)' }}>
+    <section id="our-story" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
+      <SectionBackground manifest={manifest} sectionId="our-story" />
       <div style={{ maxWidth: 1160, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 60 }}>
           <div
@@ -927,6 +963,7 @@ function TimelineSection({ chapters, onEditField, manifest }: { chapters: Chapte
   };
   return (
     <section id="our-story" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
+      <SectionBackground manifest={manifest} sectionId="our-story" />
       <div style={{ maxWidth: 1160, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 60 }}>
           <div
@@ -1354,7 +1391,8 @@ function ScheduleSection({ manifest, names, onEditField }: { manifest: StoryMani
   void names;
 
   return (
-    <section id="schedule" style={{ padding: 'clamp(48px, 8vw, 100px) 32px' }}>
+    <section id="schedule" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', position: 'relative' }}>
+      <SectionBackground manifest={manifest} sectionId="schedule" />
       <div style={{ maxWidth: 920, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <div
@@ -1676,7 +1714,8 @@ function TravelSection({ manifest, onEditField }: { manifest: StoryManifest; onE
   // and we're not in edit mode, just show venue + map.
   const showPlacesToStay = hotels.length > 0 || edit;
   return (
-    <section id="travel" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', background: 'var(--cream-2)' }}>
+    <section id="travel" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
+      <SectionBackground manifest={manifest} sectionId="travel" />
       <div style={{ maxWidth: 1160, margin: '0 auto' }}>
         <div className="pl8-cols-2" style={{ gap: 40 }}>
           <div>
@@ -1851,7 +1890,8 @@ function RegistrySection({ manifest }: { manifest: StoryManifest }) {
   if (gifts.length === 0) return null;
 
   return (
-    <section id="registry" style={{ padding: 'clamp(48px, 8vw, 100px) 32px' }}>
+    <section id="registry" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', position: 'relative' }}>
+      <SectionBackground manifest={manifest} sectionId="registry" />
       <div style={{ maxWidth: 1040, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <div
@@ -1947,7 +1987,8 @@ function GallerySection({ chapters, manifest }: { chapters: Chapter[]; manifest?
   const { index, open, close, next, prev } = usePhotoLightbox(lightboxImages);
 
   return (
-    <section id="gallery" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', background: 'var(--cream-2)' }}>
+    <section id="gallery" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
+      <SectionBackground manifest={manifest} sectionId="gallery" />
       <div style={{ maxWidth: 1240, margin: '0 auto' }}>
         <div
           className="pl8-gallery-header"
@@ -2040,7 +2081,8 @@ function FaqSection({ manifest, onEditField }: { manifest: StoryManifest; onEdit
     });
   };
   return (
-    <section id="faq" style={{ padding: 'clamp(48px, 8vw, 100px) 32px' }}>
+    <section id="faq" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', position: 'relative' }}>
+      <SectionBackground manifest={manifest} sectionId="faq" />
       <div style={{ maxWidth: 760, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <div
@@ -2231,6 +2273,7 @@ function RSVPSection({
 
   return (
     <section id="rsvp" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', position: 'relative', overflow: 'hidden' }}>
+      <SectionBackground manifest={manifest} sectionId="rsvp" />
       <Blob tone="peach" size={460} opacity={0.5} style={{ position: 'absolute', top: -120, left: -140 }} />
       <Blob tone="lavender" size={400} opacity={0.45} style={{ position: 'absolute', bottom: -140, right: -120 }} />
 
@@ -3076,9 +3119,18 @@ export function SiteV8Renderer({
         {blockOrder.map((key, i) => {
           const block = renderBlock(key);
           if (!block) return null;
+          // Per-divider visibility: host can hide the divider above
+          // any specific section via manifest.decorVisibility.
+          const decorVis = (manifest as unknown as { decorVisibility?: Record<string, boolean> }).decorVisibility;
+          const dividerHidden = decorVis?.[`divider-${key}`] === false;
           return (
             <div key={key}>
-              <DecorDivider url={dividerUrl} index={i} strength={dividerStrength} />
+              <DecorDivider
+                url={dividerUrl}
+                index={i}
+                strength={dividerStrength}
+                hidden={dividerHidden}
+              />
               <StickerLayer
                 blockId={key}
                 stickers={manifest.stickers}
@@ -3096,6 +3148,7 @@ export function SiteV8Renderer({
             Each is independently dismissable / mobile-aware. */}
         {!editMode && (
           <>
+            <ScrollReveal />
             <ScrollSpy sections={['top', 'our-story', 'schedule', 'travel', 'registry', 'gallery', 'faq', 'rsvp']} />
             <FloatingCountdown manifest={manifest} />
             <StickyMobileCta
@@ -3107,6 +3160,14 @@ export function SiteV8Renderer({
             />
             <AskPearFloater domain={siteSlug} manifest={manifest} names={names} />
             <LiveWallDiscover subdomain={siteSlug} />
+            {/* Optional ambient audio — opt-in only, off by default.
+                Host enables it in the editor and the loop URL must
+                be set on manifest.atmosphere.audio. */}
+            {(() => {
+              const a = (manifest as unknown as { atmosphere?: { audio?: { url?: string; label?: string; enabled?: boolean } } }).atmosphere?.audio;
+              if (!a?.enabled || !a.url) return null;
+              return <AmbientAudio url={a.url} label={a.label} storageKey={`pearloom-ambient:${siteSlug}`} />;
+            })()}
           </>
         )}
       </div>
