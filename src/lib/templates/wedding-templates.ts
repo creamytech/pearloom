@@ -735,10 +735,13 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     motifs: { stamp: { text: 'THE ROARING AFFAIR', icon: 'sparkles', tone: 'gold', rotation: -4 }, squiggle: 2, sparkle: true, blob: 'none' },
   },
   {
-    id: 'tuscan-villa', name: 'Tuscan Villa', tagline: 'Italian countryside warmth and terracotta charm',
-    description: 'Sun-drenched Tuscany with warm terracotta, olive green, and golden stone. Ideal for vineyard weddings and Mediterranean celebrations.',
-    previewGradient: 'linear-gradient(135deg, #F5EDE0 0%, #D4A87A 50%, #8B6B3D 100%)',
-    occasions: ['wedding', 'anniversary', 'engagement'], tags: ['tuscan', 'italian', 'vineyard', 'mediterranean', 'terracotta', 'warm'],
+    // Tuscan vineyard wedding — DISTINCT from Lake Como (which is
+    // lakeside). This is the inland chianti aesthetic: vineyard
+    // rows, terracotta tile, golden stone farmhouse, oak barrels.
+    id: 'tuscan-villa', name: 'Chianti Vineyard', tagline: 'Vineyard rows and a long candle-lit table',
+    description: 'A Chianti vineyard wedding. Long table down the vine row, terracotta tile, golden stone farmhouse at dusk. Big copper pots, oak barrels, dinner that doesn\'t end. NOT generic "Tuscany" — this is the inland farm, not the resort.',
+    previewGradient: 'linear-gradient(135deg, #F5EDE0 0%, #B8693D 50%, #5C4030 100%)',
+    occasions: ['wedding', 'anniversary', 'engagement'], tags: ['tuscan', 'italian', 'vineyard', 'chianti', 'terracotta', 'farmhouse', 'long-table'],
     popularity: 86, price: 499,
     blocks: [
       makeBlock('hero', 0, { subtitle: '{{ poetry.heroTagline }}', layout: 'editorial' }),
@@ -756,16 +759,19 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('guestbook', 12, { title: 'Il Libro degli Ospiti', prompt: 'Leave a blessing for the couple…' }),
       makeBlock('footer', 13, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
-    theme: { colors: { background: '#F5EDE0', foreground: '#2A1F14', accent: '#B8693D', accentLight: '#F0DCC8', muted: '#8A7060', cardBg: '#FFFAF5' }, fonts: { heading: 'Cormorant Garamond', body: 'Lora' } },
-    vibeString: 'tuscan italian vineyard mediterranean terracotta warm olive romantic', layoutFormat: 'cascade',
-    poetry: { heroTagline: 'under the Tuscan sun, forever', closingLine: 'Alla nostra storia d\'amore — to our love story.', rsvpIntro: 'Join us for an evening of Italian warmth and celebration.', welcomeStatement: 'Welcome to our Tuscan dream. Among the rolling hills and golden light, we celebrate a love as warm and enduring as the Italian sun.' },
-    motifs: { blob: 'peach', stamp: { text: 'LA DOLCE VITA', icon: 'leaf', tone: 'peach', rotation: 6 }, squiggle: 1, heart: true },
+    theme: { colors: { background: '#F5EDE0', foreground: '#2A1F14', accent: '#5C4030', accentLight: '#E8DCC4', muted: '#8A7060', cardBg: '#FBF6E8' }, fonts: { heading: 'Cormorant Garamond', body: 'Lora' } },
+    vibeString: 'tuscan chianti italian vineyard farmhouse terracotta oak-barrel long-table inland', layoutFormat: 'magazine',
+    poetry: { heroTagline: 'a long table down the vine row.', closingLine: 'A presto — see you between the vines.', rsvpIntro: 'Long-table dinner among the vines. Bread, wine, hours.', welcomeStatement: 'A wedding at a Chianti vineyard. The table runs the length of the vine row. Wine from the barrel, bread still warm, candlelight when the sun gives up. Wear something you can sit in until midnight.' },
+    motifs: { stamp: { text: 'CHIANTI · 26', icon: 'none', tone: 'gold', rotation: -2 } },
   },
   {
-    id: 'french-chateau', name: 'French Chateau', tagline: 'Parisian elegance with dusty blue and cream',
-    description: 'Refined French romanticism with dusty blue, soft cream, and gold details. Perfect for château weddings and elegant indoor celebrations.',
-    previewGradient: 'linear-gradient(135deg, #F8F4EE 0%, #B8C8D8 50%, #6B8CAE 100%)',
-    occasions: ['wedding', 'engagement'], tags: ['french', 'chateau', 'parisian', 'elegant', 'blue', 'classic'],
+    // Real French chateau — Loire Valley. NOT "Parisian elegance"
+    // (that's already Hotel Costes). This is the country chateau:
+    // limestone walls, dusty rose damask, gold leaf, formal garden.
+    id: 'french-chateau', name: 'Château de Loire', tagline: 'Limestone walls and a formal garden',
+    description: 'A Loire Valley chateau wedding. Limestone walls, dusty rose damask, gold leaf, formal garden with topiary. Black tie under chandeliers, long candlelit dinner in the orangery. Old-world specific, not generic French.',
+    previewGradient: 'linear-gradient(135deg, #F4EDD8 0%, #C9A4A6 50%, #5C3F3F 100%)',
+    occasions: ['wedding', 'engagement'], tags: ['french', 'chateau', 'loire-valley', 'limestone', 'damask', 'formal-garden', 'old-world'],
     popularity: 84, price: 499,
     blocks: [
       makeBlock('hero', 0, { subtitle: '{{ poetry.heroTagline }}', layout: 'editorial' }),
@@ -783,16 +789,19 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('guestbook', 12, { title: 'Livre d\'Or', prompt: 'A note for the couple…' }),
       makeBlock('footer', 13, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
-    theme: { colors: { background: '#F8F4EE', foreground: '#1A2744', accent: '#6B8CAE', accentLight: '#D8E4F0', muted: '#7A8898', cardBg: '#FFFFFF' }, fonts: { heading: 'Libre Baskerville', body: 'Source Sans 3' } },
-    vibeString: 'french parisian chateau elegant dusty blue cream refined classic', layoutFormat: 'cascade',
-    poetry: { heroTagline: 'a love letter written in Paris', closingLine: 'Avec tout notre amour — with all our love.', rsvpIntro: 'We would be honored by your presence at our celebration.', welcomeStatement: 'Welcome to our French romance. With the elegance of a Parisian evening and the warmth of lifelong love, we invite you to share in our joy.' },
-    motifs: { blob: 'lavender', stamp: { text: 'PARIS · FOREVER', icon: 'heart', tone: 'lavender', rotation: -3 }, squiggle: 3 },
+    theme: { colors: { background: '#F4EDD8', foreground: '#2A1F22', accent: '#5C3F3F', accentLight: '#EBD8D2', muted: '#807068', cardBg: '#FBF6E8' }, fonts: { heading: 'Cormorant Garamond', body: 'Crimson Pro' } },
+    vibeString: 'french chateau loire-valley limestone damask orangery formal-garden chandelier old-world', layoutFormat: 'chapters',
+    poetry: { heroTagline: 'le grand dîner.', closingLine: 'À très bientôt, dans la salle de bal.', rsvpIntro: 'Black tie. Long dinner. Dancing in the orangery.', welcomeStatement: 'A wedding at a Loire Valley chateau. Limestone walls, candles in silver, dinner in the orangery, dancing under chandeliers. Black tie, please.' },
+    motifs: { stamp: { text: 'LOIRE · 26', icon: 'none', tone: 'gold', rotation: -2 } },
   },
   {
-    id: 'enchanted-forest', name: 'Enchanted Forest', tagline: 'Deep woods, emerald glow, and golden fireflies',
-    description: 'Mystical woodland magic with deep emerald, moss, and amber. Ideal for forest clearings, garden venues, and evening celebrations.',
-    previewGradient: 'linear-gradient(135deg, #0C1A0F 0%, #1A3A20 50%, #2E7D52 100%)',
-    occasions: ['wedding', 'engagement'], tags: ['forest', 'enchanted', 'woodland', 'emerald', 'nature', 'mystical', 'dark'],
+    // Pacific Northwest forest wedding. NOT "fairy enchanted" — this
+    // is Olympic Peninsula real woods: damp moss, cedar, slate sky,
+    // a single antler and a single candle. Quiet not whimsical.
+    id: 'enchanted-forest', name: 'Cedar & Moss', tagline: 'A wedding the trees remember',
+    description: 'A Pacific Northwest forest wedding. Damp moss, cedar planks, slate sky, a single beeswax candle on each table. NOT "enchanted fairy" — this is real woods, real weather, deep quiet.',
+    previewGradient: 'linear-gradient(135deg, #1F2A1C 0%, #4A5A40 50%, #C8B888 100%)',
+    occasions: ['wedding', 'engagement'], tags: ['pacific-northwest', 'forest', 'cedar', 'moss', 'olympic-peninsula', 'quiet', 'wild'],
     popularity: 82, price: 399,
     blocks: [
       makeBlock('hero', 0, { subtitle: '{{ poetry.heroTagline }}', layout: 'cinematic' }),
@@ -811,16 +820,19 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('footer', 13, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     blockOrder: ['hero', 'vibeQuote', 'divider', 'welcome', 'story', 'countdown', 'event', 'rsvp', 'registry', 'travel', 'photos', 'faq', 'guestbook', 'footer'],
-    theme: { colors: { background: '#0C1A0F', foreground: '#D4E8D0', accent: '#2E7D52', accentLight: '#1A3A20', muted: '#6A8A70', cardBg: '#121E14' }, fonts: { heading: 'EB Garamond', body: 'Nunito' } },
-    vibeString: 'enchanted forest woodland mystical emerald moss dark nature evening', layoutFormat: 'cascade',
-    poetry: { heroTagline: 'where the forest meets forever', closingLine: 'May our roots grow deep and our branches reach the stars.', rsvpIntro: 'You are invited to step into our enchanted world.', welcomeStatement: 'Welcome to our woodland sanctuary. Among ancient trees and firefly light, we celebrate a love that grows wild and free.' },
-    motifs: { blob: 'sage', sparkle: true, squiggle: 1, stamp: { text: 'INTO · THE · GLADE', icon: 'leaf', tone: 'sage', rotation: 8 } },
+    theme: { colors: { background: '#F2EFE6', foreground: '#1F2A1C', accent: '#4A5A40', accentLight: '#D7DCC4', muted: '#7C8074', cardBg: '#FBF8EE' }, fonts: { heading: 'Lora', body: 'IBM Plex Sans' } },
+    vibeString: 'pacific-northwest cedar moss olympic-peninsula damp-woods slate-sky beeswax quiet wild', layoutFormat: 'chapters',
+    poetry: { heroTagline: 'a wedding the trees remember.', closingLine: 'See you in the woods.', rsvpIntro: 'Bring boots. Bring layers. The forest sets the dress code.', welcomeStatement: 'A small wedding under cedars on the Olympic Peninsula. Moss for the aisle, beeswax candles, dinner under a tarp if it rains. The woods are not the backdrop — they\'re the venue.' },
+    motifs: { stamp: { text: 'CEDAR · MOSS', icon: 'none', tone: 'sage', rotation: -2 } },
   },
   {
-    id: 'desert-boho', name: 'Desert Boho', tagline: 'Southwest terracotta and free-spirited warmth',
-    description: 'Free-spirited desert romance with terracotta, sand, and burnt orange. Perfect for ranch weddings, desert venues, and bohemian celebrations.',
-    previewGradient: 'linear-gradient(135deg, #F5E6D3 0%, #D4956A 50%, #C4622D 100%)',
-    occasions: ['wedding', 'engagement'], tags: ['desert', 'boho', 'bohemian', 'southwest', 'terracotta', 'rustic', 'outdoor'],
+    // High-desert Joshua Tree wedding — DISTINCT from Marfa (which
+    // is bone + caramel + cactus on a flat horizon). This is the
+    // boulder field at sunset: rust + sand + saguaro silhouette.
+    id: 'desert-boho', name: 'Joshua Tree', tagline: 'Boulders at golden hour',
+    description: 'A high-desert wedding among the Joshua trees. Rust, sand, saguaro silhouettes against a sky on fire. Boulder fields, mezcal at sunset, dancing on dry earth. Wear dust on purpose.',
+    previewGradient: 'linear-gradient(135deg, #F5E6D3 0%, #6F8762 50%, #B25F3B 100%)',
+    occasions: ['wedding', 'engagement'], tags: ['joshua-tree', 'high-desert', 'boulders', 'saguaro', 'rust', 'sunset', 'dry-earth'],
     popularity: 80, price: 399,
     blocks: [
       makeBlock('hero', 0, { subtitle: '{{ poetry.heroTagline }}', layout: 'scrapbook' }),
@@ -839,16 +851,19 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('footer', 13, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
     blockOrder: ['hero', 'vibeQuote', 'photos', 'welcome', 'story', 'divider', 'countdown', 'event', 'rsvp', 'registry', 'travel', 'faq', 'guestbook', 'footer'],
-    theme: { colors: { background: '#F5E6D3', foreground: '#2D1E0E', accent: '#C4622D', accentLight: '#F0D0B0', muted: '#9A7A58', cardBg: '#FFF8F0' }, fonts: { heading: 'Josefin Sans', body: 'Quicksand' } },
-    vibeString: 'desert boho bohemian southwest terracotta sand free-spirited warm', layoutFormat: 'scrapbook',
-    poetry: { heroTagline: 'wild hearts under open skies', closingLine: 'Here\'s to love as vast as the desert sky.', rsvpIntro: 'Come as you are — boots, sandals, and open hearts welcome.', welcomeStatement: 'Welcome to our desert love story. Under an endless sky and surrounded by the raw beauty of the southwest, we celebrate a love that runs free.' },
-    motifs: { blob: 'peach', polaroid: true, stamp: { text: 'WILD · HEARTS', icon: 'heart', tone: 'peach', rotation: -8 }, squiggle: 2, heart: true },
+    theme: { colors: { background: '#F5E6D3', foreground: '#2D1E0E', accent: '#B25F3B', accentLight: '#E8D5C0', muted: '#9A7A58', cardBg: '#FBF0E0' }, fonts: { heading: 'Bricolage Grotesque', body: 'Inter' } },
+    vibeString: 'joshua-tree high-desert boulders saguaro rust sunset mezcal dry-earth', layoutFormat: 'filmstrip',
+    poetry: { heroTagline: 'boulders at golden hour.', closingLine: 'See you at the boulder.', rsvpIntro: 'Pack a sweater for after dark. The desert flips fast.', welcomeStatement: 'A high-desert wedding among the Joshua trees. Rust, sand, saguaro silhouettes. Mezcal at sunset, fire and stars after. Wear dust on purpose.' },
+    motifs: { stamp: { text: 'JOSHUA · TREE', icon: 'none', tone: 'gold', rotation: -3 } },
   },
   {
-    id: 'modern-glam', name: 'Modern Glam', tagline: 'Contemporary luxury with bold pink accents',
-    description: 'High-fashion contemporary with stark black, white, and a bold pink accent. Ideal for gallery weddings, rooftop events, and modern venues.',
-    previewGradient: 'linear-gradient(135deg, #FAFAFA 0%, #E0E0E0 50%, #E84393 100%)',
-    occasions: ['wedding', 'engagement', 'birthday'], tags: ['modern', 'glam', 'contemporary', 'pink', 'black', 'white', 'fashion'],
+    // Brooklyn industrial loft wedding. Concrete grey + brass + ink
+    // + a single rust accent. Wythe Hotel / Marlow & Sons energy —
+    // not "modern glam pink". A real urban venue with old bones.
+    id: 'modern-glam', name: 'Brooklyn Loft', tagline: 'Concrete bones, candlelight, brass',
+    description: 'A Brooklyn industrial-loft wedding. Exposed brick, concrete floor, brass pipe fittings, edison bulbs, dinner on saw-horse tables. Wythe Hotel / Marlow & Sons energy. Photographs like editorial.',
+    previewGradient: 'linear-gradient(135deg, #F1ECE0 0%, #5C5042 50%, #B89244 100%)',
+    occasions: ['wedding', 'engagement', 'anniversary'], tags: ['brooklyn', 'industrial', 'loft', 'urban', 'concrete', 'brass', 'edison'],
     popularity: 85, price: 499, featured: true,
     blocks: [
       makeBlock('hero', 0, { subtitle: '{{ poetry.heroTagline }}', layout: 'magazine' }),
@@ -866,10 +881,10 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       makeBlock('guestbook', 12, { title: 'Leave Your Mark', prompt: 'One-line endorsement…' }),
       makeBlock('footer', 13, { text: '{{ poetry.closingLine }}', subtitle: 'Made with Pearloom' }),
     ],
-    theme: { colors: { background: '#FAFAFA', foreground: '#111111', accent: '#E84393', accentLight: '#FCE4F0', muted: '#888888', cardBg: '#FFFFFF' }, fonts: { heading: 'Outfit', body: 'Inter' } },
-    vibeString: 'modern contemporary glam fashion bold pink black white clean', layoutFormat: 'magazine',
-    poetry: { heroTagline: 'bold love, zero apologies', closingLine: 'This is just the beginning of our most glamorous chapter.', rsvpIntro: 'Mark your calendar. This is the one you don\'t want to miss.', welcomeStatement: 'Welcome to our celebration. No traditions we didn\'t choose, no rules we didn\'t rewrite. Just us, our people, and an unforgettable night.' },
-    motifs: { stamp: { text: 'ISSUE · 01', icon: 'none', tone: 'peach', rotation: -2 }, squiggle: 3, blob: 'none' },
+    theme: { colors: { background: '#F1ECE0', foreground: '#1A1815', accent: '#5C5042', accentLight: '#E0DACE', muted: '#7C7468', cardBg: '#FBF6E8' }, fonts: { heading: 'Bricolage Grotesque', body: 'IBM Plex Sans' } },
+    vibeString: 'brooklyn industrial loft urban concrete brass edison wythe-hotel saw-horse', layoutFormat: 'magazine',
+    poetry: { heroTagline: 'concrete bones, candlelight, brass.', closingLine: 'See you on the rooftop.', rsvpIntro: 'Industrial loft. Brass. Edison bulbs. Cab home.', welcomeStatement: 'A Brooklyn loft wedding. Exposed brick, concrete, brass and edison bulbs. Saw-horse tables down the centre, candles every six inches. Cocktails on the roof if it doesn\'t rain.' },
+    motifs: { stamp: { text: 'BK · 26', icon: 'none', tone: 'gold', rotation: -2 } },
   },
   {
     id: 'vintage-romance', name: 'Vintage Romance', tagline: 'Old-world charm with dusty rose and ivory',
