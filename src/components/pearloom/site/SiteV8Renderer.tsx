@@ -419,7 +419,147 @@ function MealBadges({
   );
 }
 
-/* ==================== COUNTDOWN PILL ==================== */
+/* ==================== PASSPORT STAMP ====================
+   Replaces the round curved-text wax-seal "SAVE THE DATE" stamp,
+   which is the most overplayed wedding-template trope of the last
+   decade. This version is a passport / visa stamp: thin double-line
+   rectangle, ink mono caps, vertical hairlines between segments,
+   slight rotation, no peach-coloured fill. Reads as archive, not
+   craft-store kitsch. */
+function PassportStamp({ dateLabel }: { dateLabel: string }) {
+  return (
+    <div
+      style={{
+        position: 'relative',
+        display: 'inline-flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 4,
+        padding: '10px 16px 8px',
+        border: '1.5px solid var(--ink, #18181B)',
+        borderRadius: 2,
+        color: 'var(--ink)',
+        background: 'transparent',
+        fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+        boxShadow: 'inset 0 0 0 4px transparent, inset 0 0 0 5px var(--ink)',
+        // Inset second border line — the classic passport double-rule.
+      }}
+    >
+      <div
+        style={{
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: '0.3em',
+          textTransform: 'uppercase',
+          opacity: 0.85,
+        }}
+      >
+        Save the date
+      </div>
+      <div
+        aria-hidden
+        style={{ width: 56, height: 1, background: 'currentColor', opacity: 0.45 }}
+      />
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: '0.18em',
+          fontVariantNumeric: 'tabular-nums',
+        }}
+      >
+        {dateLabel}
+      </div>
+    </div>
+  );
+}
+
+/* ==================== COUNTDOWN DISPLAY ====================
+   Editorial display version — three Fraunces serif numbers
+   separated by hairline rules, with a small italic kicker
+   beneath. Reads as type, never as a button. */
+function CountdownDisplay({ eventDate }: { eventDate?: string | null }) {
+  const c = useCountdown(eventDate);
+  if (!c) return null;
+  const items: Array<{ n: number; label: string }> = [
+    { n: c.days, label: 'days' },
+    { n: c.hrs,  label: 'hours' },
+    { n: c.min,  label: 'minutes' },
+  ];
+  return (
+    <div
+      style={{
+        marginTop: 36,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 10,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 28 }}>
+        {items.map((it, i) => (
+          <div
+            key={it.label}
+            style={{ display: 'flex', alignItems: 'flex-end', gap: 28 }}
+          >
+            <div style={{ textAlign: 'center' }}>
+              <div
+                style={{
+                  fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+                  fontSize: 48,
+                  lineHeight: 1,
+                  fontWeight: 500,
+                  letterSpacing: '-0.02em',
+                  color: 'var(--ink)',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {String(it.n).padStart(2, '0')}
+              </div>
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color: 'var(--ink-muted)',
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {it.label}
+              </div>
+            </div>
+            {i < items.length - 1 && (
+              <span
+                aria-hidden
+                style={{
+                  display: 'inline-block',
+                  width: 1,
+                  height: 38,
+                  background: 'rgba(61,74,31,0.22)',
+                  alignSelf: 'flex-start',
+                  marginTop: 6,
+                }}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+      <div
+        style={{
+          fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+          fontStyle: 'italic',
+          fontSize: 14,
+          color: 'var(--ink-soft)',
+        }}
+      >
+        until our day
+      </div>
+    </div>
+  );
+}
+
+/* ==================== COUNTDOWN PILL (legacy) ==================== */
 function CountdownPill({ eventDate }: { eventDate?: string | null }) {
   const c = useCountdown(eventDate);
   if (!c) return null;
@@ -569,41 +709,48 @@ function HeroSection({
       )}
 
       <div style={{ maxWidth: 1160, margin: '0 auto', position: 'relative' }}>
-        <div style={{ textAlign: 'center', marginBottom: 22 }}>
-          <span
+        {/* Chapter-mark kicker — replaces the previous `+ TOGETHER,
+            MONDAY` chip. Two hairline rules flank a short italic
+            Fraunces phrase, like a book editor's chapter break.
+            Far calmer, no clip-art `+`, no rounded pill. */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 16,
+            marginBottom: 22,
+            color: 'var(--ink-soft)',
+          }}
+        >
+          <span aria-hidden style={{ width: 48, height: 1, background: 'currentColor', opacity: 0.45 }} />
+          <EditableText
+            as="span"
+            value={
+              (manifest as unknown as { heroKicker?: string }).heroKicker ??
+              (dateInfo ? `together, ${dateInfo.weekday.toLowerCase()}` : 'save the date')
+            }
+            onSave={(next) =>
+              onEditField?.((m) => ({
+                ...(m as unknown as Record<string, unknown>),
+                heroKicker: next,
+              }) as unknown as StoryManifest)
+            }
+            placeholder="save the date"
+            ariaLabel="Hero kicker"
+            maxLength={60}
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '6px 16px',
-              borderRadius: 999,
-              background: 'rgba(255,255,255,0.68)',
-              border: '1px solid rgba(61,74,31,0.1)',
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              color: 'var(--ink-soft)',
+              fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+              fontStyle: 'italic',
+              fontSize: 18,
+              fontWeight: 400,
+              letterSpacing: '0.01em',
+              color: 'var(--ink)',
+              lineHeight: 1.1,
+              textAlign: 'center',
             }}
-          >
-            <Sparkle size={12} />{' '}
-            <EditableText
-              as="span"
-              value={
-                (manifest as unknown as { heroKicker?: string }).heroKicker ??
-                (dateInfo ? `Together, ${dateInfo.weekday}` : 'Save the date')
-              }
-              onSave={(next) =>
-                onEditField?.((m) => ({
-                  ...(m as unknown as Record<string, unknown>),
-                  heroKicker: next,
-                }) as unknown as StoryManifest)
-              }
-              placeholder="Save the date"
-              ariaLabel="Hero kicker"
-              maxLength={60}
-            />
-          </span>
+          />
+          <span aria-hidden style={{ width: 48, height: 1, background: 'currentColor', opacity: 0.45 }} />
         </div>
 
         {manifest.motifs?.stamp?.text && (
@@ -669,14 +816,11 @@ function HeroSection({
             ) : null}
           </h1>
           {dateInfo && (
-            <div className="pl8-hide-mobile" style={{ position: 'absolute', top: -20, right: 60, transform: 'rotate(10deg)' }}>
-              <Stamp
-                size={108}
-                tone="peach"
-                text={`SAVE THE DATE · ${dateInfo.pretty.toUpperCase()}`}
-                icon="heart"
-                rotation={0}
-              />
+            <div
+              className="pl8-hide-mobile"
+              style={{ position: 'absolute', top: -8, right: 24, transform: 'rotate(8deg)' }}
+            >
+              <PassportStamp dateLabel={dateInfo.pretty.toUpperCase()} />
             </div>
           )}
           {manifest.motifs?.heart !== false && (
@@ -755,20 +899,59 @@ function HeroSection({
           </HoverToolbar>
         </div>
 
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <a href="#rsvp" className="btn btn-primary">
+        {/* TIER 1 — single primary CTA. The only "real" button in the
+            hero. Everything else is supporting. */}
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <a
+            href="#rsvp"
+            className="btn btn-primary pl8-btn-sheen"
+            style={{ padding: '14px 28px', fontSize: 15 }}
+          >
             {deadlineStr ? `RSVP by ${deadlineStr}` : 'RSVP'}
             <Icon name="arrow-right" size={14} />
           </a>
-          <a href="#our-story" className="btn btn-outline">
+        </div>
+
+        {/* TIER 2 — secondary actions as a quiet text-link tray with
+            middot separators. No more "five pills competing for the
+            same attention." */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: 10,
+            marginTop: 18,
+            fontSize: 13,
+            color: 'var(--ink-soft)',
+          }}
+        >
+          <a
+            href="#our-story"
+            style={{
+              color: 'var(--ink)',
+              textDecoration: 'none',
+              borderBottom: '1px solid rgba(61,74,31,0.25)',
+              paddingBottom: 1,
+              transition: 'border-color 200ms ease',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderBottomColor = 'var(--peach-ink, #C6703D)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderBottomColor = 'rgba(61,74,31,0.25)'; }}
+          >
             Read our story
           </a>
-          {/* Add-to-calendar dropdown — Apple / Google / Outlook / .ics */}
-          <CalendarAddButton domain={siteSlug ?? ''} manifest={manifest} />
-          {/* vCard for the couple — saves to phone contacts */}
-          <SaveContactButton domain={siteSlug ?? ''} manifest={manifest} names={[n1 ?? '', n2 ?? '']} />
-          <CountdownPill eventDate={manifest.logistics?.date} />
+          <span aria-hidden style={{ color: 'var(--ink-muted)', opacity: 0.6 }}>·</span>
+          <CalendarAddButton domain={siteSlug ?? ''} manifest={manifest} variant="link" />
+          <span aria-hidden style={{ color: 'var(--ink-muted)', opacity: 0.6 }}>·</span>
+          <SaveContactButton domain={siteSlug ?? ''} manifest={manifest} names={[n1 ?? '', n2 ?? '']} variant="link" />
         </div>
+
+        {/* TIER 3 — countdown becomes its own editorial display, not a
+            button. Three Fraunces serif numbers separated by hairline
+            rules, with a small italic kicker. Reads as type, never as
+            a clickable control. */}
+        <CountdownDisplay eventDate={manifest.logistics?.date} />
         <div style={{ textAlign: 'center', marginTop: 14 }}>
           <TimeZoneCountdown
             iso={manifest.logistics?.date}
@@ -3069,8 +3252,33 @@ export function SiteV8Renderer({
     theme?: { colors?: { background?: string; foreground?: string; accent?: string; accentLight?: string; muted?: string; cardBg?: string } };
   }).theme?.colors;
   const themeFonts = (manifest as unknown as {
-    theme?: { fonts?: { heading?: string; body?: string } };
+    theme?: { fonts?: { heading?: string; body?: string; script?: string } };
   }).theme?.fonts;
+  // Bug fix 2026-04-25: ensure the published site loads any Google
+  // Fonts the host picked in the editor. Previously only the editor's
+  // FontPicker injected these <link> tags on demand — so picking
+  // "Allura" or "Cormorant Garamond" looked right in the canvas but
+  // fell back to default Fraunces on /sites/[domain] because the
+  // typeface was never loaded. Now we inject them in both contexts.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const fonts = [themeFonts?.heading, themeFonts?.body, themeFonts?.script].filter(
+      (f): f is string => Boolean(f),
+    );
+    for (const font of fonts) {
+      // Skip already-loaded fonts (FontPicker dedups via [data-pl-font]
+      // and pearloom.css globally imports Fraunces/Caveat/Inter).
+      if (font === 'Fraunces' || font === 'Caveat' || font === 'Inter') continue;
+      if (document.querySelector(`link[data-pl-font="${font}"]`)) continue;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      // Use the same Google Fonts URL builder logic as the editor.
+      const family = font.replace(/\s+/g, '+');
+      link.href = `https://fonts.googleapis.com/css2?family=${family}:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap`;
+      link.dataset.plFont = font;
+      document.head.appendChild(link);
+    }
+  }, [themeFonts?.heading, themeFonts?.body, themeFonts?.script]);
   const themeStyle: React.CSSProperties = themeColors
     ? ({
         background: 'var(--paper)',

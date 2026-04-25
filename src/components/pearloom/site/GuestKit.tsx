@@ -25,7 +25,7 @@ interface BaseProps {
 // ─────────────────────────────────────────────────────────────
 // Calendar add
 // ─────────────────────────────────────────────────────────────
-export function CalendarAddButton({ domain, manifest }: { domain: string; manifest: StoryManifest }) {
+export function CalendarAddButton({ domain, manifest, variant = 'pill' }: { domain: string; manifest: StoryManifest; variant?: 'pill' | 'link' }) {
   const [open, setOpen] = useState(false);
   const date = manifest.logistics?.date;
   if (!date) return null;
@@ -54,20 +54,44 @@ export function CalendarAddButton({ domain, manifest }: { domain: string; manife
   outlook.searchParams.set('enddt', date);
   outlook.searchParams.set('allday', 'true');
 
+  const linkStyle: CSSProperties = {
+    color: 'var(--ink)',
+    textDecoration: 'none',
+    borderBottom: '1px solid rgba(61,74,31,0.25)',
+    paddingBottom: 1,
+    fontSize: 13,
+    background: 'transparent',
+    border: 'none',
+    borderRadius: 0,
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+  };
   return (
     <span style={{ position: 'relative', display: 'inline-block' }}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="btn btn-outline btn-sm pl8-cal-trigger"
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+        className={variant === 'link' ? 'pl8-cal-trigger' : 'btn btn-outline btn-sm pl8-cal-trigger'}
+        style={
+          variant === 'link'
+            ? linkStyle
+            : { display: 'inline-flex', alignItems: 'center', gap: 6 }
+        }
+        onMouseEnter={(e) => {
+          if (variant === 'link') e.currentTarget.style.borderBottomColor = 'var(--peach-ink, #C6703D)';
+        }}
+        onMouseLeave={(e) => {
+          if (variant === 'link') e.currentTarget.style.borderBottomColor = 'rgba(61,74,31,0.25)';
+        }}
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="3" y="5" width="18" height="16" rx="2" />
-          <path d="M16 3v4M8 3v4M3 11h18" />
-        </svg>
+        {variant !== 'link' && (
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="5" width="18" height="16" rx="2" />
+            <path d="M16 3v4M8 3v4M3 11h18" />
+          </svg>
+        )}
         Add to calendar
       </button>
       {open && (
@@ -124,7 +148,7 @@ const menuItem: CSSProperties = {
 // ─────────────────────────────────────────────────────────────
 // Save contact (vCard)
 // ─────────────────────────────────────────────────────────────
-export function SaveContactButton({ names, domain, manifest }: BaseProps) {
+export function SaveContactButton({ names, domain, manifest, variant = 'pill' }: BaseProps & { variant?: 'pill' | 'link' }) {
   const [name1, name2] = names;
   const venue = manifest.logistics?.venue ?? '';
   const note = (manifest as unknown as { poetry?: { heroTagline?: string } }).poetry?.heroTagline ?? '';
@@ -153,6 +177,31 @@ export function SaveContactButton({ names, domain, manifest }: BaseProps) {
     setTimeout(() => URL.revokeObjectURL(a.href), 800);
   }
 
+  if (variant === 'link') {
+    return (
+      <button
+        type="button"
+        onClick={download}
+        style={{
+          color: 'var(--ink)',
+          textDecoration: 'none',
+          borderBottom: '1px solid rgba(61,74,31,0.25)',
+          paddingBottom: 1,
+          fontSize: 13,
+          background: 'transparent',
+          border: 'none',
+          borderRadius: 0,
+          cursor: 'pointer',
+          fontFamily: 'inherit',
+          transition: 'border-color 200ms ease',
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderBottomColor = 'var(--peach-ink, #C6703D)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderBottomColor = 'rgba(61,74,31,0.25)'; }}
+      >
+        Save contact
+      </button>
+    );
+  }
   return (
     <button
       type="button"
