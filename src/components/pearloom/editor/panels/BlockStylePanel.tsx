@@ -11,6 +11,7 @@
 import type { StoryManifest, BlockStyleOverride } from '@/types';
 import { Field, PanelSection } from '../atoms';
 import { Icon } from '../../motifs';
+import { Switch, V8Slider } from '../v8-forms';
 
 interface Props {
   manifest: StoryManifest;
@@ -106,32 +107,29 @@ export function BlockStylePanel({ manifest, blockId, label = 'Section style', on
     >
       {/* Hide toggle */}
       <Field label="Visibility">
-        <label
+        <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 8,
-            padding: '6px 10px',
+            gap: 10,
+            padding: '8px 12px',
             background: 'var(--card)',
             border: '1px solid var(--line)',
-            borderRadius: 8,
-            cursor: 'pointer',
-            fontSize: 12.5,
-            color: 'var(--ink)',
+            borderRadius: 10,
           }}
         >
-          <input
-            type="checkbox"
+          <Switch
             checked={!current.hidden}
-            onChange={(e) => set({ hidden: !e.target.checked || undefined })}
+            onChange={(v) => set({ hidden: !v || undefined })}
+            ariaLabel="Toggle section visibility"
           />
-          <span style={{ flex: 1 }}>Show this section</span>
+          <span style={{ flex: 1, fontSize: 13, color: 'var(--ink)' }}>Show this section</span>
           {current.hidden && (
             <span style={{ fontSize: 10, color: 'var(--peach-ink)', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
               Hidden
             </span>
           )}
-        </label>
+        </div>
       </Field>
 
       {/* Spacing */}
@@ -197,14 +195,14 @@ export function BlockStylePanel({ manifest, blockId, label = 'Section style', on
 
       {/* Padding Y */}
       <Field label={`Extra padding (${current.paddingY ?? 0}px)`}>
-        <input
-          type="range"
+        <V8Slider
+          value={current.paddingY ?? 0}
+          onChange={(n) => set({ paddingY: n || undefined })}
           min={-40}
           max={120}
           step={4}
-          value={current.paddingY ?? 0}
-          onChange={(e) => set({ paddingY: Number(e.target.value) || undefined })}
-          style={{ width: '100%' }}
+          unit="px"
+          ariaLabel="Extra section padding"
         />
       </Field>
 

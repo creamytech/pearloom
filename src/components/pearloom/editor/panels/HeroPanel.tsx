@@ -3,6 +3,7 @@
 import type { StoryManifest } from '@/types';
 import { AddRowButton, Field, ListRow, PanelSection, PhotoSlot, TextArea, TextInput } from '../atoms';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
+import { TimePicker, DatePicker } from '../v8-forms';
 
 function HeroTaglineAI({
   manifest,
@@ -127,16 +128,15 @@ export function HeroPanel({
           />
         </Field>
         <Field label="Start time" htmlFor="pl8-hero-time">
-          <TextInput
-            id="pl8-hero-time"
-            type="time"
+          <TimePicker
             value={manifest.logistics?.time ?? ''}
-            onChange={(e) =>
+            onChange={(v) =>
               onChange({
                 ...manifest,
-                logistics: { ...(manifest.logistics ?? {}), time: e.target.value || undefined },
+                logistics: { ...(manifest.logistics ?? {}), time: v || undefined },
               })
             }
+            ariaLabel="Event start time"
           />
         </Field>
         <Field label="Venue name" htmlFor="pl8-hero-venue">

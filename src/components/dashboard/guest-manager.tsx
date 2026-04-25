@@ -237,28 +237,17 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
         </div>
 
         {/* Status filter */}
-        <div style={{ position: 'relative' }}>
-          <select
+        <div style={{ minWidth: 160 }}>
+          <CustomSelect
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as typeof filterStatus)}
-            style={{
-              padding: '0.7rem 2.5rem 0.7rem 1rem',
-              borderRadius: 'var(--pl-radius-lg)',
-              border: '1px solid rgba(255,255,255,0.4)',
-              background: 'rgba(255,255,255,0.35)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              fontSize: 'max(16px, 0.85rem)',
-              fontWeight: 600, appearance: 'none', cursor: 'pointer',
-              fontFamily: 'var(--pl-font-body)', color: 'var(--pl-ink)',
-            } as React.CSSProperties}
-          >
-            <option value="all">All Guests</option>
-            <option value="attending">Attending</option>
-            <option value="declined">Declined</option>
-            <option value="pending">Pending</option>
-          </select>
-          <ChevronDown size={14} style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--pl-muted)' }} />
+            onChange={(v) => setFilterStatus(v as typeof filterStatus)}
+            options={[
+              { value: 'all',       label: 'All guests' },
+              { value: 'attending', label: 'Attending' },
+              { value: 'declined',  label: 'Declined' },
+              { value: 'pending',   label: 'Pending' },
+            ]}
+          />
         </div>
 
         <button

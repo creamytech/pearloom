@@ -9,6 +9,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useState } from 'react';
+import { CustomSelect } from '@/components/pearloom/editor/v8-forms';
 
 interface Announcement {
   id: string;
@@ -158,20 +159,22 @@ export function AnnouncementsPanel({ siteId }: { siteId: string }) {
         }}>
           <label style={labelStyle}>
             <span style={labelText}>Kind</span>
-            <select value={kind} onChange={(e) => setKind(e.target.value)} style={selectStyle}>
-              {KINDS.map((k) => (
-                <option key={k.value} value={k.value}>{k.label}</option>
-              ))}
-            </select>
+            <CustomSelect
+              value={kind}
+              onChange={(v) => setKind(v)}
+              options={KINDS}
+              ariaLabel="Announcement kind"
+            />
           </label>
 
           <label style={labelStyle}>
             <span style={labelText}>Audience</span>
-            <select value={audience} onChange={(e) => setAudience(e.target.value)} style={selectStyle}>
-              {AUDIENCES.map((a) => (
-                <option key={a.value} value={a.value}>{a.label}</option>
-              ))}
-            </select>
+            <CustomSelect
+              value={audience}
+              onChange={(v) => setAudience(v)}
+              options={AUDIENCES}
+              ariaLabel="Announcement audience"
+            />
           </label>
 
           <label style={labelStyle}>

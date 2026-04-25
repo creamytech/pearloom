@@ -20,6 +20,7 @@ import {
   defaultAtmosphereForOccasion,
 } from '../../site/LivingAtmosphere';
 import { AMBIENT_PRESETS, type AmbientPresetId } from '../../site/AmbientAudio';
+import { CustomSelect, Switch } from '../v8-forms';
 
 const KINDS: Array<{ id: AtmosphereKind; label: string; hint: string }> = [
   { id: 'motes',       label: 'Motes',         hint: 'Slow gold particles drifting up.' },
@@ -251,16 +252,13 @@ export function AtmospherePanel({
         label="Ambient audio"
         hint="Optional looping sound that plays after a guest interacts. Off by default; guests always see a mute control."
       >
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-          <input
-            type="checkbox"
-            id="atmos-audio-on"
+        <div style={{ marginBottom: 10 }}>
+          <Switch
             checked={!!audio.enabled}
-            onChange={(e) => setAtmosphere({ audio: { ...audio, enabled: e.target.checked } })}
+            onChange={(v) => setAtmosphere({ audio: { ...audio, enabled: v } })}
+            label="Play ambient sound"
+            ariaLabel="Toggle ambient audio"
           />
-          <label htmlFor="atmos-audio-on" style={{ fontSize: 13, color: 'var(--ink)' }}>
-            Play ambient sound
-          </label>
         </div>
         {audio.enabled && (
           <>
@@ -361,49 +359,29 @@ export function AtmospherePanel({
                       alignItems: 'center',
                     }}
                   >
-                    <span style={{ fontSize: 10.5, color: 'var(--ink-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: 10.5, color: 'var(--ink-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', flexShrink: 0 }}>
                       override
                     </span>
-                    <select
-                      value={sectAtmos?.kind ?? ''}
-                      onChange={(e) =>
-                        setSectionAtmos(s.id, { kind: e.target.value || undefined })
-                      }
-                      style={{
-                        padding: '3px 6px',
-                        fontSize: 11,
-                        borderRadius: 6,
-                        border: '1px solid var(--line)',
-                        background: 'var(--card)',
-                        color: 'var(--ink)',
-                        fontFamily: 'inherit',
-                      }}
-                    >
-                      <option value="">Inherit hero</option>
-                      {KINDS.map((k) => (
-                        <option key={k.id} value={k.id}>{k.label}</option>
-                      ))}
-                    </select>
-                    <select
-                      value={sectAtmos?.intensity ?? ''}
-                      onChange={(e) =>
-                        setSectionAtmos(s.id, { intensity: e.target.value || undefined })
-                      }
-                      style={{
-                        padding: '3px 6px',
-                        fontSize: 11,
-                        borderRadius: 6,
-                        border: '1px solid var(--line)',
-                        background: 'var(--card)',
-                        color: 'var(--ink)',
-                        fontFamily: 'inherit',
-                      }}
-                    >
-                      <option value="">Inherit</option>
-                      {INTENSITIES.map((i) => (
-                        <option key={i.id} value={i.id}>{i.label}</option>
-                      ))}
-                    </select>
+                    <div style={{ flex: 1, minWidth: 110 }}>
+                      <CustomSelect
+                        value={sectAtmos?.kind ?? ''}
+                        onChange={(v) => setSectionAtmos(s.id, { kind: v || undefined })}
+                        options={[
+                          { value: '', label: 'Inherit hero' },
+                          ...KINDS.map((k) => ({ value: k.id as string, label: k.label })),
+                        ]}
+                      />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 100 }}>
+                      <CustomSelect
+                        value={sectAtmos?.intensity ?? ''}
+                        onChange={(v) => setSectionAtmos(s.id, { intensity: v || undefined })}
+                        options={[
+                          { value: '', label: 'Inherit' },
+                          ...INTENSITIES.map((i) => ({ value: i.id as string, label: i.label })),
+                        ]}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -417,29 +395,17 @@ export function AtmospherePanel({
         label="Decor visibility"
         hint="Hide individual decor elements without touching their styling. Toggle off anything that doesn't fit your event."
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {DECOR_TOGGLES.map((d) => {
             const visible = decorVisibility[d.id] !== false;
             return (
-              <label
+              <Switch
                 key={d.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  padding: '6px 0',
-                  fontSize: 12.5,
-                  color: 'var(--ink)',
-                  cursor: 'pointer',
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={visible}
-                  onChange={(e) => setDecorVisible(d.id, e.target.checked)}
-                />
-                {d.label}
-              </label>
+                checked={visible}
+                onChange={(v) => setDecorVisible(d.id, v)}
+                label={d.label}
+                size="sm"
+              />
             );
           })}
         </div>

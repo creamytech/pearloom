@@ -314,18 +314,20 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                       </span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)' }}>Layout</label>
-                        <select
-                          value={chapter.layout || 'editorial'}
-                          onChange={(e) => updateChapter(chapter.id, { layout: e.target.value as Chapter['layout'] })}
-                          style={{ padding: '0.4rem 0.75rem', borderRadius: '0.4rem', border: '1.5px solid rgba(255,255,255,0.4)', background: 'transparent', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
-                        >
-                          <option value="editorial">Editorial</option>
-                          <option value="fullbleed">Fullbleed</option>
-                          <option value="split">Split Card</option>
-                          <option value="cinematic">Cinematic</option>
-                          <option value="gallery">Gallery Grid</option>
-                          <option value="mosaic">Mosaic Polaroids</option>
-                        </select>
+                        <div style={{ minWidth: 150 }}>
+                          <CustomSelect
+                            value={chapter.layout || 'editorial'}
+                            onChange={(v) => updateChapter(chapter.id, { layout: v as Chapter['layout'] })}
+                            options={[
+                              { value: 'editorial', label: 'Editorial' },
+                              { value: 'fullbleed', label: 'Fullbleed' },
+                              { value: 'split',     label: 'Split Card' },
+                              { value: 'cinematic', label: 'Cinematic' },
+                              { value: 'gallery',   label: 'Gallery Grid' },
+                              { value: 'mosaic',    label: 'Mosaic Polaroids' },
+                            ]}
+                          />
+                        </div>
                       </div>
                     </div>
 

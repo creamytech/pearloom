@@ -1,7 +1,8 @@
 'use client';
 
 import type { StoryManifest } from '@/types';
-import { Field, PanelSection, SelectInput, TextArea, TextInput } from '../atoms';
+import { Field, PanelSection, SelectInput, TextArea } from '../atoms';
+import { TimePicker } from '../v8-forms';
 
 const DRESS_CODES = [
   { value: '', label: 'Not specified' },
@@ -28,12 +29,12 @@ export function DetailsPanel({
     <div>
       <PanelSection label="The ceremony" hint="Guests see these three cards in the Details strip.">
         <Field label="Ceremony start" help="Displays as the first card. Pulls from the hero time by default.">
-          <TextInput
-            type="time"
+          <TimePicker
             value={logistics.time ?? ''}
-            onChange={(e) =>
-              onChange({ ...manifest, logistics: { ...logistics, time: e.target.value || undefined } })
+            onChange={(v) =>
+              onChange({ ...manifest, logistics: { ...logistics, time: v || undefined } })
             }
+            ariaLabel="Ceremony start time"
           />
         </Field>
 

@@ -10,6 +10,7 @@
 
 import { useEffect, useState } from 'react';
 import { Icon } from '../motifs';
+import { CustomSelect } from '../editor/v8-forms';
 
 type Role = 'editor' | 'guest-manager' | 'viewer';
 
@@ -123,22 +124,14 @@ export function CoHostsPanel({ siteId, siteDomain }: { siteId: string; siteDomai
             fontFamily: 'inherit',
           }}
         />
-        <select
-          value={role}
-          onChange={(e) => setRole(e.target.value as Role)}
-          style={{
-            padding: '10px 12px',
-            borderRadius: 10,
-            border: '1px solid var(--line)',
-            background: 'var(--cream-2)',
-            fontSize: 14,
-            color: 'var(--ink)',
-          }}
-        >
-          {ROLE_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
+        <div style={{ minWidth: 160 }}>
+          <CustomSelect<Role>
+            value={role}
+            onChange={(v) => setRole(v)}
+            options={ROLE_OPTIONS as { value: Role; label: string }[]}
+            ariaLabel="Co-host role"
+          />
+        </div>
         <button type="button" className="btn btn-primary btn-sm" onClick={invite} disabled={busy || !email.trim()}>
           {busy ? 'Sending…' : 'Invite'}
         </button>

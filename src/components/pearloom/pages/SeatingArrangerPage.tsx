@@ -10,6 +10,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { DashLayout } from '../dash/DashShell';
 import { Icon, Pear } from '../motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
+import { NumberInput } from '../editor/v8-forms';
 
 interface Guest {
   id: string;
@@ -271,16 +272,17 @@ export function SeatingArrangerPage() {
                       ×
                     </button>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, fontSize: 11, color: 'var(--ink-muted)' }}>
-                    <span>{seated.length} / </span>
-                    <input
-                      type="number"
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, fontSize: 11, color: 'var(--ink-muted)' }}>
+                    <span>{seated.length} of</span>
+                    <NumberInput
+                      value={t.capacity}
+                      onChange={(n) => resizeTable(t.id, n)}
                       min={1}
                       max={20}
-                      value={t.capacity}
-                      onChange={(e) => resizeTable(t.id, Number(e.target.value))}
-                      style={{ width: 40, fontSize: 11, padding: '1px 4px', border: '1px solid var(--line)', borderRadius: 4, background: 'var(--card)' }}
+                      width={84}
+                      ariaLabel={`Capacity for ${t.name ?? 'table'}`}
                     />
+                    <span>seats</span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {seated.map((g) => (

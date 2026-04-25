@@ -16,6 +16,7 @@ import { TEMPLATES_BY_ID } from '../marketplace/templates-data';
 import { EVENT_TYPES, getEventType, type EventCategory } from '@/lib/event-os/event-types';
 import { nameModeFor, nameModeIsValid } from '@/lib/event-os/name-mode';
 import { questionsFor } from '@/lib/event-os/wizard-questions';
+import { NumberInput } from '../editor/v8-forms';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
 import { WizardLocationAutocomplete } from '../wizard/WizardLocationAutocomplete';
 import { WizardDatePicker } from '../wizard/WizardDatePicker';
@@ -1559,14 +1560,14 @@ export function WizardV8() {
                       {isBachelor && (
                         <div>
                           <label className="field-label">How many days is this trip?</label>
-                          <input
-                            className="input"
-                            type="number"
+                          <NumberInput
+                            value={st.detailDays ?? 3}
+                            onChange={(n) => setSt((s) => ({ ...s, detailDays: n }))}
                             min={1}
                             max={14}
-                            value={st.detailDays ?? ''}
-                            onChange={(ev) => setSt((s) => ({ ...s, detailDays: Number(ev.target.value) || undefined }))}
-                            placeholder="3"
+                            unit="days"
+                            width={140}
+                            ariaLabel="Trip duration in days"
                           />
                         </div>
                       )}

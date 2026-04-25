@@ -23,6 +23,7 @@ import {
   type Column,
 } from '@/components/shell';
 import { DashboardShell } from './DashboardShell';
+import { CustomSelect } from '@/components/pearloom/editor/v8-forms';
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -631,6 +632,19 @@ export function RsvpDashboard({
           </div>
 
           {events.length > 1 && (
+            <div style={{ minWidth: 180 }}>
+              <CustomSelect
+                value={eventFilter}
+                onChange={(v) => setEventFilter(v)}
+                options={[
+                  { value: 'all', label: 'All events' },
+                  ...events.map((ev) => ({ value: ev.id, label: ev.name })),
+                ]}
+                ariaLabel="Filter by event"
+              />
+            </div>
+          )}
+          {false && (
             <select
               value={eventFilter}
               onChange={(e) => setEventFilter(e.target.value)}

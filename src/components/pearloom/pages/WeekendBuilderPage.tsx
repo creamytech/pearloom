@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { DashLayout } from '../dash/DashShell';
 import { Icon, Pear, Sparkle } from '../motifs';
+import { DatePicker } from '../editor/v8-forms';
 
 type EventKind =
   | 'engagement-party'
@@ -173,7 +174,7 @@ export function WeekendBuilderPage() {
                   <input value={name2} onChange={(e) => setName2(e.target.value)} placeholder="Jamie" style={inputStyle} />
                 </Field>
                 <Field label="Wedding date">
-                  <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle} />
+                  <DatePicker value={date} onChange={(v) => setDate(v)} placeholder="Pick the wedding date" />
                 </Field>
                 <Field label="Base slug">
                   <input
