@@ -34,6 +34,7 @@ import { useHeroParallax } from './useHeroParallax';
 import { SectionBackground } from './SectionBackground';
 import { ScrollReveal } from './ScrollReveal';
 import { isBlockHidden } from './BlockStyleWrapper';
+import { TemplateSignatureDecor, type SignatureDecorKind } from './TemplateSignatureDecor';
 import {
   CalendarAddButton,
   SaveContactButton,
@@ -753,11 +754,19 @@ function HeroSection({
           <span aria-hidden style={{ width: 48, height: 1, background: 'currentColor', opacity: 0.45 }} />
         </div>
 
-        {/* Motif stamps (rectangular peach-bordered text boxes) and
-            the round wax-seal/passport SAVE THE DATE stamp have been
-            removed from the hero entirely — the user finds them
-            tacky and template-store-ish. The chapter-mark kicker
-            above + the names + the date line carry the hero. */}
+        {/* Per-template signature decor — the real illustrated SVG
+            that gives each template a visual identity (citrus on
+            Lake Como, monolith on Marfa, brushstroke on Tokyo, etc).
+            Reads manifest.signatureDecor. */}
+        {(manifest as unknown as { signatureDecor?: string }).signatureDecor && (
+          <div className="pl8-hide-mobile" style={{ position: 'absolute', top: 0, right: 0, width: 240, height: 240, pointerEvents: 'none', zIndex: 1 }}>
+            <TemplateSignatureDecor
+              kind={(manifest as unknown as { signatureDecor?: string }).signatureDecor as SignatureDecorKind}
+              position="top-right"
+              size={220}
+            />
+          </div>
+        )}
 
         <div style={{ textAlign: 'center', position: 'relative' }}>
           <h1

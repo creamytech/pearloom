@@ -359,6 +359,11 @@ export interface StoryManifest {
    *  Section keys: 'top' | 'our-story' | 'schedule' | 'travel'
    *  | 'registry' | 'gallery' | 'rsvp' | 'faq'. */
   blockStyles?: Record<string, BlockStyleOverride>;
+  /** Per-template signature illustrated decor key (e.g. 'monolith',
+   *  'citrus', 'brushstroke'). Rendered in the hero by
+   *  TemplateSignatureDecor; gives each template a distinct visual
+   *  identity beyond palette/typography. */
+  signatureDecor?: string;
   // Per-field inline text formatting overrides keyed by manifest path (e.g. "poetry.heroTagline")
   textFormats?: Record<string, {
     italic?: boolean;

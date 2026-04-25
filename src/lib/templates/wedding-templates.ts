@@ -96,6 +96,26 @@ export interface SiteTemplate {
   };
   /** Signature hand-placed ornaments that ship with the template. */
   motifs?: TemplateMotifs;
+  /** Per-template SIGNATURE illustrated decor (replaces the abandoned
+   *  motif.stamp). Pulls from TemplateSignatureDecor — values like
+   *  'monolith' (Marfa), 'citrus' (Lake Como), 'brushstroke' (Tokyo).
+   *  The renderer floats this in the hero corner; gives each template
+   *  a real visual identity, not just a typography difference. */
+  signatureDecor?:
+    | 'monolith'
+    | 'citrus'
+    | 'champagne-coupe'
+    | 'cliff-fog'
+    | 'candlestick'
+    | 'lavender-bundle'
+    | 'brushstroke'
+    | 'tea-bowl'
+    | 'cedar-cone'
+    | 'chianti-bottle'
+    | 'loire-key'
+    | 'saguaro'
+    | 'edison'
+    | 'none';
 }
 
 // ── Template Factory ─────────────────────────────────────────
@@ -150,14 +170,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       fonts: { heading: 'Cormorant Garamond', body: 'Manrope' },
     },
     vibeString: 'italianate lakeside linen citrus terracotta olive sun-bleached long-lunch',
-    layoutFormat: 'cascade',
+    layoutFormat: 'magazine',
     poetry: {
       heroTagline: 'to the long lunch.',
       closingLine: 'Saluti — and see you on the water.',
       rsvpIntro: 'Tell us if you can come, and stay through dessert.',
       welcomeStatement: 'We are getting married on a lake at the end of summer. Linen, citrus, long lunches, candles when it gets dark. Bring your appetite.',
     },
-    motifs: { stamp: { text: 'VILLA · DEL · LAGO', icon: 'none', tone: 'sage', rotation: -3 } },
+    signatureDecor: 'citrus',
   },
 
   // ── 2. Hotel Costes ─────────────────────────────────────────
@@ -200,7 +220,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       rsvpIntro: 'Black tie, late dinner, no rush.',
       welcomeStatement: 'A late wedding in a low-lit room. Dinner at nine, dancing at eleven. Wear something you can sit down in.',
     },
-    motifs: { stamp: { text: 'AFTER · HOURS', icon: 'none', tone: 'gold', rotation: -2 } },
+    signatureDecor: 'champagne-coupe',
   },
 
   // ── 3. Big Sur ──────────────────────────────────────────────
@@ -237,14 +257,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       fonts: { heading: 'Lora', body: 'IBM Plex Sans' },
     },
     vibeString: 'pacific fog redwood cliff sea-glass coastal-mist nature wild big-sur',
-    layoutFormat: 'cascade',
+    layoutFormat: 'kenburns',
     poetry: {
       heroTagline: 'the cliffs were always going to win.',
       closingLine: 'See you on the coast.',
       rsvpIntro: 'Bring a layer. Bring boots. The fog is part of the day.',
       welcomeStatement: 'A coastal wedding on the Pacific cliffs. Fog burns off by noon, the sun makes one slow exit, and the sea writes the ending.',
     },
-    motifs: { stamp: { text: 'PACIFIC · COAST', icon: 'none', tone: 'sage', rotation: -3 } },
+    signatureDecor: 'cliff-fog',
   },
 
   // ── 4. Hudson Valley ────────────────────────────────────────
@@ -288,7 +308,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       rsvpIntro: 'Long table dinner. Candles. We hope you can stay through dessert.',
       welcomeStatement: 'A weekend in the country, photographed slowly. Stone barn, brass candlesticks, plum and olive on the table. Bring an appetite.',
     },
-    motifs: { stamp: { text: 'EDITION · 01', icon: 'none', tone: 'gold', rotation: -2 } },
+    signatureDecor: 'candlestick',
   },
 
   // ── 5. Provence ─────────────────────────────────────────────
@@ -326,14 +346,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       fonts: { heading: 'Cormorant Garamond', body: 'Crimson Pro' },
     },
     vibeString: 'provence lavender olive terracotta long-table french countryside warm-stone',
-    layoutFormat: 'magazine',
+    layoutFormat: 'scrapbook',
     poetry: {
       heroTagline: 'tables under the olive tree.',
       closingLine: 'À bientôt — see you in the lavender.',
       rsvpIntro: 'Long-table dinner. Bread, wine, hours.',
       welcomeStatement: 'A wedding in the south of France. Long table under olive trees, lavender on the path to the chapel, dinner that lasts. Wear linen, bring an appetite.',
     },
-    motifs: { stamp: { text: 'PROVENCE · 26', icon: 'none', tone: 'sage', rotation: -3 } },
+    signatureDecor: 'lavender-bundle',
   },
 
   // ── 6. Tokyo Modern ─────────────────────────────────────────
@@ -369,7 +389,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       rsvpIntro: 'A short wedding. Quiet, then loud.',
       welcomeStatement: 'A small wedding in a quiet room. One ceremony, one toast, one long dinner. Less, but right.',
     },
-    motifs: { stamp: { text: 'KYOTO · MODERN', icon: 'none', tone: 'cream', rotation: 0 } },
+    signatureDecor: 'brushstroke',
   },
 
   // ── 7. Marfa ────────────────────────────────────────────────
@@ -415,7 +435,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       rsvpIntro: 'Wear something you can sit in the dirt in.',
       welcomeStatement: 'A wedding in the West-Texas desert. Sky-art at sunset, mezcal under the stars, dancing on packed earth. The horizon is the dress code.',
     },
-    motifs: { stamp: { text: 'MARFA · TX · 26', icon: 'none', tone: 'gold', rotation: -3 } },
+    signatureDecor: 'monolith',
   },
 
   // ── 8. Kyoto Wabi-sabi ──────────────────────────────────────
@@ -450,14 +470,14 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       fonts: { heading: 'Noto Serif', body: 'Inter' },
     },
     vibeString: 'kyoto wabi-sabi paper ink japonisme zen calligraphy single-stroke ceremonial',
-    layoutFormat: 'chapters',
+    layoutFormat: 'bento',
     poetry: {
       heroTagline: 'less, but right.',
       closingLine: 'Thank you for being part of our quiet day.',
       rsvpIntro: 'A small ceremony. A quiet dinner.',
       welcomeStatement: 'A Kyoto-style wedding. Paper, ink, tea, a single brushstroke. Ceremonial and slow. We are honoured if you can be there.',
     },
-    motifs: { stamp: { text: '京都 · KYOTO', icon: 'none', tone: 'cream', rotation: 0 } },
+    signatureDecor: 'tea-bowl',
   },
 
   // ── 9. Y2K Reloaded (Birthday) ─────────────────────────────
@@ -762,7 +782,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     theme: { colors: { background: '#F5EDE0', foreground: '#2A1F14', accent: '#5C4030', accentLight: '#E8DCC4', muted: '#8A7060', cardBg: '#FBF6E8' }, fonts: { heading: 'Cormorant Garamond', body: 'Lora' } },
     vibeString: 'tuscan chianti italian vineyard farmhouse terracotta oak-barrel long-table inland', layoutFormat: 'magazine',
     poetry: { heroTagline: 'a long table down the vine row.', closingLine: 'A presto — see you between the vines.', rsvpIntro: 'Long-table dinner among the vines. Bread, wine, hours.', welcomeStatement: 'A wedding at a Chianti vineyard. The table runs the length of the vine row. Wine from the barrel, bread still warm, candlelight when the sun gives up. Wear something you can sit in until midnight.' },
-    motifs: { stamp: { text: 'CHIANTI · 26', icon: 'none', tone: 'gold', rotation: -2 } },
+    signatureDecor: 'chianti-bottle',
   },
   {
     // Real French chateau — Loire Valley. NOT "Parisian elegance"
@@ -792,7 +812,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     theme: { colors: { background: '#F4EDD8', foreground: '#2A1F22', accent: '#5C3F3F', accentLight: '#EBD8D2', muted: '#807068', cardBg: '#FBF6E8' }, fonts: { heading: 'Cormorant Garamond', body: 'Crimson Pro' } },
     vibeString: 'french chateau loire-valley limestone damask orangery formal-garden chandelier old-world', layoutFormat: 'chapters',
     poetry: { heroTagline: 'le grand dîner.', closingLine: 'À très bientôt, dans la salle de bal.', rsvpIntro: 'Black tie. Long dinner. Dancing in the orangery.', welcomeStatement: 'A wedding at a Loire Valley chateau. Limestone walls, candles in silver, dinner in the orangery, dancing under chandeliers. Black tie, please.' },
-    motifs: { stamp: { text: 'LOIRE · 26', icon: 'none', tone: 'gold', rotation: -2 } },
+    signatureDecor: 'loire-key',
   },
   {
     // Pacific Northwest forest wedding. NOT "fairy enchanted" — this
@@ -821,9 +841,9 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     ],
     blockOrder: ['hero', 'vibeQuote', 'divider', 'welcome', 'story', 'countdown', 'event', 'rsvp', 'registry', 'travel', 'photos', 'faq', 'guestbook', 'footer'],
     theme: { colors: { background: '#F2EFE6', foreground: '#1F2A1C', accent: '#4A5A40', accentLight: '#D7DCC4', muted: '#7C8074', cardBg: '#FBF8EE' }, fonts: { heading: 'Lora', body: 'IBM Plex Sans' } },
-    vibeString: 'pacific-northwest cedar moss olympic-peninsula damp-woods slate-sky beeswax quiet wild', layoutFormat: 'chapters',
+    vibeString: 'pacific-northwest cedar moss olympic-peninsula damp-woods slate-sky beeswax quiet wild', layoutFormat: 'cascade',
     poetry: { heroTagline: 'a wedding the trees remember.', closingLine: 'See you in the woods.', rsvpIntro: 'Bring boots. Bring layers. The forest sets the dress code.', welcomeStatement: 'A small wedding under cedars on the Olympic Peninsula. Moss for the aisle, beeswax candles, dinner under a tarp if it rains. The woods are not the backdrop — they\'re the venue.' },
-    motifs: { stamp: { text: 'CEDAR · MOSS', icon: 'none', tone: 'sage', rotation: -2 } },
+    signatureDecor: 'cedar-cone',
   },
   {
     // High-desert Joshua Tree wedding — DISTINCT from Marfa (which
@@ -854,7 +874,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     theme: { colors: { background: '#F5E6D3', foreground: '#2D1E0E', accent: '#B25F3B', accentLight: '#E8D5C0', muted: '#9A7A58', cardBg: '#FBF0E0' }, fonts: { heading: 'Bricolage Grotesque', body: 'Inter' } },
     vibeString: 'joshua-tree high-desert boulders saguaro rust sunset mezcal dry-earth', layoutFormat: 'filmstrip',
     poetry: { heroTagline: 'boulders at golden hour.', closingLine: 'See you at the boulder.', rsvpIntro: 'Pack a sweater for after dark. The desert flips fast.', welcomeStatement: 'A high-desert wedding among the Joshua trees. Rust, sand, saguaro silhouettes. Mezcal at sunset, fire and stars after. Wear dust on purpose.' },
-    motifs: { stamp: { text: 'JOSHUA · TREE', icon: 'none', tone: 'gold', rotation: -3 } },
+    signatureDecor: 'saguaro',
   },
   {
     // Brooklyn industrial loft wedding. Concrete grey + brass + ink
@@ -884,7 +904,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     theme: { colors: { background: '#F1ECE0', foreground: '#1A1815', accent: '#5C5042', accentLight: '#E0DACE', muted: '#7C7468', cardBg: '#FBF6E8' }, fonts: { heading: 'Bricolage Grotesque', body: 'IBM Plex Sans' } },
     vibeString: 'brooklyn industrial loft urban concrete brass edison wythe-hotel saw-horse', layoutFormat: 'magazine',
     poetry: { heroTagline: 'concrete bones, candlelight, brass.', closingLine: 'See you on the rooftop.', rsvpIntro: 'Industrial loft. Brass. Edison bulbs. Cab home.', welcomeStatement: 'A Brooklyn loft wedding. Exposed brick, concrete, brass and edison bulbs. Saw-horse tables down the centre, candles every six inches. Cocktails on the roof if it doesn\'t rain.' },
-    motifs: { stamp: { text: 'BK · 26', icon: 'none', tone: 'gold', rotation: -2 } },
+    signatureDecor: 'edison',
   },
   {
     id: 'vintage-romance', name: 'Vintage Romance', tagline: 'Old-world charm with dusty rose and ivory',

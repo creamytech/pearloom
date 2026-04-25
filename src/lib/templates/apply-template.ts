@@ -66,6 +66,8 @@ export function applyTemplateToManifest(
       ...manifest,
       templateId: tpl.id,
       motifs: tpl.motifs,
+      // Per-template signature decor (illustrated SVG in the hero).
+      signatureDecor: tpl.signatureDecor,
       blockOrder: tpl.blockOrder,
       hiddenBlocks: tpl.hiddenBlocks,
       vibeString: manifest.vibeString || tpl.vibeString,
