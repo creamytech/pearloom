@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { Icon, Pear, PhotoPlaceholder, Squiggle } from '../motifs';
 import { DashLayout } from '../dash/DashShell';
+import { BroadcastComposer } from '../dash/BroadcastComposer';
 import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
 import { useDashStats } from '@/components/marketing/v2/useDashStats';
 
@@ -876,6 +877,7 @@ export function DayOfV8() {
 
         <div className="pl8-dayof-main" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 22 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+            {site?.domain && <BroadcastComposer subdomain={site.domain} />}
             <MomentTimeline items={events} siteDomain={site?.domain} occasion={occasion} />
             <LiveReel siteDomain={site?.domain} siteId={site?.id} occasion={occasion} />
           </div>

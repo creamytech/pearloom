@@ -41,6 +41,7 @@ const DASH_NAV_GROUPS: DashNavGroup[] = [
     items: [
       { id: 'timeline', label: 'Timeline', icon: 'clock', href: '/dashboard/day-of' },
       { id: 'guests', label: 'Guests', icon: 'users', href: '/dashboard/rsvp' },
+      { id: 'seating', label: 'Seating', icon: 'grid', href: '/dashboard/seating' },
       { id: 'submissions', label: 'Submissions', icon: 'mail', href: '/dashboard/submissions' },
       { id: 'connections', label: 'Guest Manager', icon: 'user-plus', href: '/dashboard/connections' },
     ],
@@ -51,6 +52,7 @@ const DASH_NAV_GROUPS: DashNavGroup[] = [
     items: [
       { id: 'library', label: 'Photo library', icon: 'image', href: '/dashboard/library' },
       { id: 'invite', label: 'Invite designer', icon: 'mail', href: '/dashboard/invite' },
+      { id: 'speech', label: 'Speech composer', icon: 'mic', href: '/dashboard/speech' },
       { id: 'passport-cards', label: 'Passport cards', icon: 'user-plus', href: '/dashboard/passport-cards' },
       { id: 'templates', label: 'Templates', icon: 'grid', href: '/templates' },
     ],

@@ -26,6 +26,7 @@ import { SortableChapters } from '../editor/canvas/SortableChapters';
 import { HoverToolbar } from '../editor/canvas/HoverToolbar';
 import { PhotoDropTarget } from '../editor/canvas/PhotoDropTarget';
 import { OccasionDecor } from './OccasionDecor';
+import { BroadcastBar } from './BroadcastBar';
 import { DecorDivider } from './DecorDivider';
 import { SectionStamp } from './SectionStamp';
 import { StickerLayer } from './StickerLayer';
@@ -2701,6 +2702,7 @@ export function SiteV8Renderer({
   return (
     <EditorCanvasProvider value={canvasCtxValue}>
       <div className="pl8-guest" style={themeStyle}>
+        {!editMode && <BroadcastBar subdomain={siteSlug} />}
         <EventNav names={names} hasRsvp={hasRsvp} />
         <StickerLayer
           blockId="hero"
