@@ -102,19 +102,27 @@ export interface SiteTemplate {
    *  The renderer floats this in the hero corner; gives each template
    *  a real visual identity, not just a typography difference. */
   signatureDecor?:
-    | 'monolith'
-    | 'citrus'
-    | 'champagne-coupe'
-    | 'cliff-fog'
-    | 'candlestick'
-    | 'lavender-bundle'
-    | 'brushstroke'
-    | 'tea-bowl'
-    | 'cedar-cone'
-    | 'chianti-bottle'
-    | 'loire-key'
-    | 'saguaro'
-    | 'edison'
+    // Original 13 (place-specific aesthetics)
+    | 'monolith' | 'citrus' | 'champagne-coupe' | 'cliff-fog' | 'candlestick'
+    | 'lavender-bundle' | 'brushstroke' | 'tea-bowl' | 'cedar-cone'
+    | 'chianti-bottle' | 'loire-key' | 'saguaro' | 'edison'
+    // Birthday / party
+    | 'disco-ball' | 'wine-coupe' | 'circuit-trace' | 'martini-olive'
+    | 'venetian-mask' | 'confetti-burst' | 'art-deco-fan' | 'birthday-candle'
+    // Florals & nature
+    | 'rose-bloom' | 'peony-bloom' | 'magnolia' | 'pampas-grass'
+    | 'wildflower-cluster' | 'pressed-daisy' | 'wheat-stalk' | 'pine-bough'
+    | 'palm-frond' | 'snowflake' | 'constellation' | 'mushroom-pair'
+    | 'cactus-bloom'
+    // Architecture & objects
+    | 'copper-pipe' | 'marble-column' | 'stained-glass' | 'anchor-rope'
+    | 'bamboo-stem' | 'cameo-oval' | 'quill-ink' | 'laurel-wreath'
+    | 'castle-turret'
+    // Event-OS specific
+    | 'suitcase' | 'champagne-tower' | 'place-setting' | 'time-capsule'
+    | 'baby-rattle' | 'baby-bottle' | 'mortarboard' | 'retirement-clock'
+    | 'candle-vigil' | 'torah-scroll' | 'baptism-shell' | 'tiara'
+    | 'house-key-ring' | 'balloon-cluster'
     | 'none';
 }
 
@@ -518,6 +526,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       welcomeStatement: 'Welcome to a celebration of another year of being iconic. We\'re turning up, looking back, and partying like it\'s 2003. Get ready.',
     },
     motifs: { blob: 'lavender', polaroid: true, stamp: { text: 'Y2K · FOREVER', icon: 'sparkles', tone: 'lavender', rotation: -8 }, squiggle: 2, sparkle: true, heart: true },
+    signatureDecor: 'disco-ball',
   },
 
   // ── 10. Aged to Perfection (Birthday) ──────────────────────
@@ -559,6 +568,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       welcomeStatement: 'Welcome to a celebration of the finer things. Another year, another reason to gather the people who matter most and raise a glass to the good life.',
     },
     motifs: { blob: 'warm', stamp: { text: 'AGED · TO · PERFECTION', icon: 'sparkles', tone: 'gold', rotation: -3 }, squiggle: 1 },
+    signatureDecor: 'wine-coupe',
   },
 
   // ── 11. Future Noir (Birthday) ─────────────────────────────
@@ -599,6 +609,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       welcomeStatement: 'Welcome to the mainframe. Tonight we celebrate. Another cycle complete, another level unlocked. Jack in and join us.',
     },
     motifs: { stamp: { text: 'LEVEL · UNLOCKED', icon: 'sparkles', tone: 'lavender', rotation: -2 }, squiggle: 3, sparkle: true },
+    signatureDecor: 'circuit-trace',
   },
 
   // ── 12. Martini Hour (Birthday) ────────────────────────────
@@ -639,6 +650,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       welcomeStatement: 'Welcome to the most elegant party of the year. We\'re mixing up something special, and the only missing ingredient is you.',
     },
     motifs: { blob: 'none', stamp: { text: 'LAST · CALL', icon: 'sparkles', tone: 'gold', rotation: -4 }, sparkle: true, squiggle: 3 },
+    signatureDecor: 'martini-olive',
   },
 
   // ── 13. Gothic Masquerade (Birthday) ───────────────────────
@@ -679,6 +691,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       welcomeStatement: 'Welcome, darling. Tonight we dance in shadows. Another year older, another year more enigmatic. Put on your mask and join the celebration.',
     },
     motifs: { stamp: { text: 'UNMASKED · AT · MIDNIGHT', icon: 'sparkles', tone: 'lavender', rotation: -6 }, squiggle: 3, sparkle: true },
+    signatureDecor: 'venetian-mask',
   },
 
   // ── 14. Maximalist Fun House (Birthday) ────────────────────
@@ -719,6 +732,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
       welcomeStatement: 'Welcome to the most spectacular birthday on record. No half measures, no quiet corners — just pure, unapologetic celebration. The show is about to begin.',
     },
     motifs: { blob: 'peach', polaroid: true, stamp: { text: 'THE · SPECTACULAR', icon: 'sparkles', tone: 'peach', rotation: -8 }, squiggle: 2, sparkle: true, heart: true },
+    signatureDecor: 'confetti-burst',
   },
 
   // ══════════════════════════════════════════════════════════════
@@ -753,6 +767,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'art deco gatsby geometric gold black glamorous evening luxurious', layoutFormat: 'filmstrip',
     poetry: { heroTagline: 'an evening of gold and grandeur', closingLine: 'Here\'s to the roaring start of forever.', rsvpIntro: 'You are cordially invited to the affair of the season.', welcomeStatement: 'Welcome to our golden evening. In the spirit of the great gatsby era, we invite you to celebrate with us in style, splendor, and unforgettable elegance.' },
     motifs: { stamp: { text: 'THE ROARING AFFAIR', icon: 'sparkles', tone: 'gold', rotation: -4 }, squiggle: 2, sparkle: true, blob: 'none' },
+    signatureDecor: 'art-deco-fan',
   },
   {
     // Tuscan vineyard wedding — DISTINCT from Lake Como (which is
@@ -932,6 +947,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'vintage romantic classic antique dusty rose ivory elegant timeless', layoutFormat: 'cascade',
     poetry: { heroTagline: 'a timeless love, beautifully told', closingLine: 'Some stories are worth telling forever — ours is one.', rsvpIntro: 'We would be delighted to have you join our celebration.', welcomeStatement: 'Welcome to our love story, told in the language of another era. With the grace of vintage elegance, we invite you to celebrate this timeless moment.' },
     motifs: { blob: 'peach', stamp: { text: 'WITH · LOVE', icon: 'heart', tone: 'peach', rotation: 4 }, postIt: { text: 'Save the date, with love.', tone: 'cream', rotation: -3 }, heart: true, squiggle: 1 },
+    signatureDecor: 'rose-bloom',
   },
   {
     id: 'tropical-paradise', name: 'Tropical Paradise', tagline: 'Lush coral and teal island vibes',
@@ -960,6 +976,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'tropical beach island coral teal destination summer vibrant warm', layoutFormat: 'filmstrip',
     poetry: { heroTagline: 'where the ocean meets forever', closingLine: 'Love as deep as the ocean, as warm as the island sun.', rsvpIntro: 'Pack your bags and join us in paradise.', welcomeStatement: 'Welcome to our island celebration. With sand between our toes and the ocean as our witness, we celebrate a love as warm and boundless as the tropics.' },
     motifs: { blob: 'warm', polaroid: true, stamp: { text: 'PASSPORT · STAMP', icon: 'sparkles', tone: 'peach', rotation: -7 }, squiggle: 2 },
+    signatureDecor: 'palm-frond',
   },
   {
     id: 'winter-wonderland', name: 'Winter Wonderland', tagline: 'Snowy elegance with ice blue and silver',
@@ -987,6 +1004,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'winter snow ice blue silver elegant crystalline cold dreamy', layoutFormat: 'cascade',
     poetry: { heroTagline: 'a love as pure as fresh snowfall', closingLine: 'May our love keep us warm through every winter ahead.', rsvpIntro: 'Bundle up and join us for a magical winter celebration.', welcomeStatement: 'Welcome to our winter wonderland. In the hush of falling snow and the sparkle of ice crystals, we celebrate a love that warms even the coldest day.' },
     motifs: { blob: 'lavender', sparkle: true, squiggle: 3, stamp: { text: 'FIRST · SNOW', icon: 'sparkles', tone: 'lavender', rotation: -4 } },
+    signatureDecor: 'snowflake',
   },
   {
     id: 'celestial-night', name: 'Celestial Night', tagline: 'Starry cosmos with navy, gold, and deep purple',
@@ -1015,6 +1033,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'celestial cosmic night stars navy gold purple mystical evening', layoutFormat: 'filmstrip',
     poetry: { heroTagline: 'written in the stars, sealed in love', closingLine: 'Two stars that found each other across the infinite sky.', rsvpIntro: 'The stars have aligned — will you be there?', welcomeStatement: 'Welcome to our celestial celebration. Under a canopy of stars, we celebrate a love that transcends time and space.' },
     motifs: { sparkle: true, stamp: { text: 'WRITTEN · IN · STARS', icon: 'sparkles', tone: 'gold', rotation: -5 }, squiggle: 2 },
+    signatureDecor: 'constellation',
   },
   {
     id: 'southern-charm', name: 'Southern Charm', tagline: 'Magnolia peach and warm cream elegance',
@@ -1042,6 +1061,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'southern charm magnolia peach cream elegant warm hospitality garden', layoutFormat: 'cascade',
     poetry: { heroTagline: 'a love as sweet as Southern sun', closingLine: 'Y\'all are the reason this day is so special.', rsvpIntro: 'We\'d be tickled pink if you could join us.', welcomeStatement: 'Welcome, y\'all. With Southern grace and heartfelt warmth, we invite you to celebrate the sweetest day of our lives.' },
     motifs: { blob: 'peach', postIt: { text: 'Glad you’re here, sugar.', tone: 'cream', rotation: -4 }, stamp: { text: 'MAGNOLIA · DAYS', icon: 'leaf', tone: 'peach', rotation: 5 }, heart: true, squiggle: 1 },
+    signatureDecor: 'magnolia',
   },
   {
     id: 'industrial-chic', name: 'Industrial Chic', tagline: 'Raw concrete, copper, and urban edge',
@@ -1069,6 +1089,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'industrial urban warehouse loft copper concrete modern raw clean', layoutFormat: 'magazine',
     poetry: { heroTagline: 'raw love, refined celebration', closingLine: 'We built this love from the ground up — and it\'s solid.', rsvpIntro: 'Hard hats optional. Your presence is required.', welcomeStatement: 'Welcome to our urban celebration. In a space that blends raw beauty with refined design, we celebrate a love built to last.' },
     motifs: { blob: 'none', stamp: { text: 'SITE · 001', icon: 'none', tone: 'peach', rotation: 0 }, squiggle: 3 },
+    signatureDecor: 'copper-pipe',
   },
 
   // ══════════════════════════════════════════════════════════════
@@ -1102,6 +1123,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'boho bohemian wildflower pampas desert earthy free-spirited warm', layoutFormat: 'scrapbook',
     poetry: { heroTagline: 'wild hearts under open skies', closingLine: 'Love grows wild when you let it.', rsvpIntro: 'Come barefoot, come as you are.', welcomeStatement: 'Welcome to our wild love story. No rules, no script — just two hearts celebrating in the way that feels most true.' },
     motifs: { blob: 'peach', polaroid: true, stamp: { text: 'GROWN · WILD', icon: 'leaf', tone: 'peach', rotation: -6 }, squiggle: 2, heart: true, postIt: { text: 'Pampas grass on the tables, please.', tone: 'cream', rotation: 3 } },
+    signatureDecor: 'pampas-grass',
   },
   {
     id: 'classic-elegance', name: 'Classic Elegance', tagline: 'Timeless refinement with green, white, and gold',
@@ -1129,6 +1151,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'classic traditional elegant timeless formal refined green white', layoutFormat: 'cascade',
     poetry: { heroTagline: 'timeless love, perfectly refined', closingLine: 'Some things never go out of style — our love is one of them.', rsvpIntro: 'We would be honored by your presence.', welcomeStatement: 'Welcome to our celebration. In the tradition of those who came before us, we mark this moment with grace, gratitude, and enduring love.' },
     motifs: { blob: 'sage', stamp: { text: 'EST.', icon: 'ring', tone: 'sage', rotation: 0 }, squiggle: 3 },
+    signatureDecor: 'laurel-wreath',
   },
   {
     id: 'fairytale-castle', name: 'Fairytale Castle', tagline: 'Enchanted storybook magic in pink, purple, and gold',
@@ -1157,6 +1180,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'fairytale castle enchanted magical princess purple gold storybook', layoutFormat: 'filmstrip',
     poetry: { heroTagline: 'once upon a time, forever after', closingLine: 'And they lived happily — not because it was easy, but because it was worth it.', rsvpIntro: 'Your presence would make our fairytale complete.', welcomeStatement: 'Welcome to our storybook ending — and our real-life beginning. Every fairy tale needs witnesses, and we chose you.' },
     motifs: { blob: 'lavender', sparkle: true, heart: true, stamp: { text: 'ONCE · UPON', icon: 'sparkles', tone: 'lavender', rotation: -5 }, squiggle: 3 },
+    signatureDecor: 'castle-turret',
   },
   {
     id: 'dark-romance', name: 'Dark Romance', tagline: 'Moody burgundy, emerald, and candlelight drama',
@@ -1185,6 +1209,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'dark moody romantic dramatic burgundy emerald candlelight evening gothic', layoutFormat: 'filmstrip',
     poetry: { heroTagline: 'where shadows dance with light', closingLine: 'In the dark, we found the brightest love.', rsvpIntro: 'The night awaits your presence.', welcomeStatement: 'Welcome to our dark romance. In a world of velvet and candlelight, we celebrate a love that thrives in mystery and depth.' },
     motifs: { stamp: { text: 'BY · CANDLELIGHT', icon: 'none', tone: 'lavender', rotation: -4 }, squiggle: 2, blob: 'none' },
+    signatureDecor: 'rose-bloom',
   },
   {
     id: 'cottagecore', name: 'Cottagecore', tagline: 'Pastoral charm, wildflowers, and handmade warmth',
@@ -1213,6 +1238,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'cottagecore pastoral countryside handmade warm wildflower vintage cozy', layoutFormat: 'scrapbook',
     poetry: { heroTagline: 'love, homemade and heartfelt', closingLine: 'The sweetest things are grown, not bought.', rsvpIntro: 'Pull up a chair and stay a while.', welcomeStatement: 'Welcome to our little corner of the countryside. No fuss, no formality — just love, laughter, and the smell of fresh flowers.' },
     motifs: { blob: 'peach', polaroid: true, postIt: { text: 'Pie at 3, dancing at 5.', tone: 'cream', rotation: -5 }, squiggle: 1, heart: true, stamp: { text: 'HANDMADE · WITH · LOVE', icon: 'leaf', tone: 'sage', rotation: 4 } },
+    signatureDecor: 'pressed-daisy',
   },
   {
     id: 'regency-romance', name: 'Regency Romance', tagline: 'Bridgerton-inspired grandeur in pastel and gold',
@@ -1240,6 +1266,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'regency bridgerton period grand regal pastel gold elegant ballroom', layoutFormat: 'cascade',
     poetry: { heroTagline: 'a love story for the ages', closingLine: 'Dearest reader, this is only the beginning.', rsvpIntro: 'You are most cordially invited to the event of the season.', welcomeStatement: 'Dear esteemed guest, we request the pleasure of your company as we celebrate a love story worthy of the finest novels.' },
     motifs: { blob: 'peach', stamp: { text: 'WITH · COMPLIMENTS', icon: 'heart', tone: 'peach', rotation: -3 }, sparkle: true, squiggle: 3 },
+    signatureDecor: 'art-deco-fan',
   },
   {
     id: 'retro-disco', name: 'Retro Disco', tagline: 'Groovy 70s vibes with velvet, sequins, and disco balls',
@@ -1268,6 +1295,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'retro disco 70s groovy funky dance party velvet sequin warm', layoutFormat: 'filmstrip',
     poetry: { heroTagline: 'get down with forever', closingLine: 'Love never goes out of style — especially on the dance floor.', rsvpIntro: 'Dust off your platforms and let us know you\'re coming.', welcomeStatement: 'Welcome to the grooviest celebration of the year. The dance floor is ready, the disco ball is spinning, and all that\'s missing is you.' },
     motifs: { blob: 'peach', polaroid: true, stamp: { text: 'FAR · OUT', icon: 'sparkles', tone: 'peach', rotation: -10 }, squiggle: 2, heart: true },
+    signatureDecor: 'disco-ball',
   },
   {
     id: 'black-and-white', name: 'Black & White', tagline: 'High-contrast monochrome sophistication',
@@ -1296,6 +1324,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'black white monochrome modern graphic bold chic minimal clean', layoutFormat: 'magazine',
     poetry: { heroTagline: 'love in its purest contrast', closingLine: 'No gray areas — just absolute, unfiltered love.', rsvpIntro: 'Make it official. Black or white — are you in?', welcomeStatement: 'Welcome. No embellishment needed. Just the two of us, the people we love, and a celebration stripped down to what matters.' },
     motifs: { blob: 'none', squiggle: 3, stamp: { text: 'ISSUE · ONE', icon: 'none', tone: 'lavender', rotation: 0 } },
+    signatureDecor: 'marble-column',
   },
 
   // ══════════════════════════════════════════════════════════════
@@ -1329,6 +1358,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'gothic cathedral dark medieval stone candles dramatic crimson evening', layoutFormat: 'filmstrip',
     poetry: { heroTagline: 'vows carved in ancient stone', closingLine: 'Through shadow and light, this love stands eternal.', rsvpIntro: 'You are summoned to witness our sacred union.', welcomeStatement: 'Welcome to our cathedral. Between ancient walls and flickering flames, we speak the words that bind us forever.' },
     motifs: { stamp: { text: 'SANCTUARY', icon: 'none', tone: 'lavender', rotation: 0 }, squiggle: 3 },
+    signatureDecor: 'stained-glass',
   },
   {
     id: 'nautical-prep', name: 'Nautical Prep', tagline: 'Crisp navy, white, and coastal sophistication',
@@ -1356,6 +1386,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'nautical preppy navy coastal maritime yacht club classic blue white', layoutFormat: 'cascade',
     poetry: { heroTagline: 'love is our true north', closingLine: 'Smooth sailing from here on out.', rsvpIntro: 'All aboard — will you join our crew?', welcomeStatement: 'Welcome aboard. With salt in the air and love in our sails, we celebrate the voyage of a lifetime.' },
     motifs: { blob: 'cream', stamp: { text: 'BON · VOYAGE', icon: 'none', tone: 'lavender', rotation: -3 }, squiggle: 2 },
+    signatureDecor: 'anchor-rope',
   },
   {
     id: 'mountain-lodge', name: 'Mountain Lodge', tagline: 'Alpine grandeur with pine, stone, and firelight',
@@ -1383,6 +1414,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'mountain alpine lodge rustic nature adventure pine forest stone', layoutFormat: 'cascade',
     poetry: { heroTagline: 'love at the highest peak', closingLine: 'From this summit, the view of forever is breathtaking.', rsvpIntro: 'Lace up your boots — we\'re heading to the top.', welcomeStatement: 'Welcome to our mountain retreat. With peaks as our backdrop and pines as our witnesses, we celebrate a love that reaches the highest heights.' },
     motifs: { blob: 'sage', stamp: { text: 'BASE · CAMP', icon: 'leaf', tone: 'sage', rotation: 4 }, squiggle: 1 },
+    signatureDecor: 'pine-bough',
   },
   {
     id: 'japandi-zen', name: 'Japandi Zen', tagline: 'Japanese-Scandinavian minimalism in warm neutrals',
@@ -1409,6 +1441,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'japandi zen minimal japanese scandinavian organic calm intentional warm', layoutFormat: 'magazine',
     poetry: { heroTagline: 'simplicity is the ultimate sophistication', closingLine: 'Less noise. More love. Always.', rsvpIntro: 'Your presence is all we ask.', welcomeStatement: 'Welcome. We\'ve stripped away everything that doesn\'t matter to make room for everything that does — you, us, and this moment.' },
     motifs: { blob: 'cream', squiggle: 1, stamp: { text: 'QUIETLY', icon: 'none', tone: 'sage', rotation: 0 } },
+    signatureDecor: 'bamboo-stem',
   },
   {
     id: 'victorian-garden', name: 'Victorian Garden', tagline: 'Ornate period elegance with rich jewel tones',
@@ -1436,6 +1469,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'victorian ornate formal period classic regal garden grand jewel', layoutFormat: 'cascade',
     poetry: { heroTagline: 'a love of extraordinary grandeur', closingLine: 'In the tradition of the finest eras, our love story begins.', rsvpIntro: 'You are most graciously invited to attend.', welcomeStatement: 'Dear honored guest, we request the distinguished pleasure of your company at our celebration — a tribute to love, beauty, and the finer things.' },
     motifs: { blob: 'peach', stamp: { text: 'GRAND · AFFAIR', icon: 'heart', tone: 'peach', rotation: -4 }, heart: true, squiggle: 3 },
+    signatureDecor: 'cameo-oval',
   },
   {
     id: 'fall-harvest', name: 'Fall Harvest', tagline: 'Warm jewel tones and autumn splendor',
@@ -1463,6 +1497,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'fall autumn harvest jewel tones warm burgundy amber rustic vineyard', layoutFormat: 'cascade',
     poetry: { heroTagline: 'falling for you, every season', closingLine: 'The most beautiful season is the one we share.', rsvpIntro: 'Gather with us as the leaves turn golden.', welcomeStatement: 'Welcome to our autumn celebration. Among the warm hues and harvest light, we celebrate a love that deepens with every season.' },
     motifs: { blob: 'warm', stamp: { text: 'HARVEST · TABLE', icon: 'leaf', tone: 'peach', rotation: 5 }, squiggle: 1, heart: true },
+    signatureDecor: 'wheat-stalk',
   },
   {
     id: 'dark-academia', name: 'Dark Academia', tagline: 'Scholarly elegance in mahogany, maroon, and gold',
@@ -1491,6 +1526,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'dark academia scholarly library vintage moody intellectual leather mahogany', layoutFormat: 'cascade',
     poetry: { heroTagline: 'a love story worth studying', closingLine: 'Every great library has a love story — this one is ours.', rsvpIntro: 'Consider this your formal invitation to our most important chapter.', welcomeStatement: 'Welcome, fellow romantics. In the quiet of leather-bound volumes and candlelit halls, we celebrate a love that reads like the finest prose.' },
     motifs: { stamp: { text: 'EX · LIBRIS', icon: 'none', tone: 'gold', rotation: -2 }, squiggle: 3, sparkle: true },
+    signatureDecor: 'quill-ink',
   },
   {
     id: 'old-money', name: 'Old Money', tagline: 'Quiet luxury in navy, cream, and understated refinement',
@@ -1517,6 +1553,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'old money quiet luxury refined navy cream understated elegant private', layoutFormat: 'cascade',
     poetry: { heroTagline: 'understated, unforgettable', closingLine: 'The finest things are never announced — they\'re simply known.', rsvpIntro: 'Your attendance is expected.', welcomeStatement: 'Welcome. We don\'t believe in spectacle — we believe in substance. This evening is for the people who matter most.' },
     motifs: { blob: 'cream', squiggle: 3, stamp: { text: 'BY · INVITATION', icon: 'none', tone: 'lavender', rotation: 0 } },
+    signatureDecor: 'laurel-wreath',
   },
 
   // ══════════════════════════════════════════════════════════════
@@ -1550,6 +1587,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'maximalist bold colorful vibrant jewel eclectic fun rainbow', layoutFormat: 'scrapbook',
     poetry: { heroTagline: 'too much is never enough', closingLine: 'Life is too short for neutrals.', rsvpIntro: 'Dress bold, arrive loud, dance harder.', welcomeStatement: 'Welcome to the most colorful celebration you\'ve ever attended. We didn\'t hold back — and neither should you.' },
     motifs: { blob: 'peach', polaroid: true, stamp: { text: 'COLOUR · CARNIVAL', icon: 'sparkles', tone: 'peach', rotation: -8 }, squiggle: 2, sparkle: true, heart: true },
+    signatureDecor: 'confetti-burst',
   },
   {
     id: 'country-barn', name: 'Country Barn', tagline: 'Down-home charm with hay bales and string lights',
@@ -1577,6 +1615,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'country barn farm rustic casual southern down-home string lights', layoutFormat: 'scrapbook',
     poetry: { heroTagline: 'love blooms where roots run deep', closingLine: 'Home is wherever we\'re together.', rsvpIntro: 'Y\'all come now, ya hear?', welcomeStatement: 'Welcome to our little slice of country. Boots welcome, ties optional, love required. Come hungry, stay late.' },
     motifs: { blob: 'peach', polaroid: true, postIt: { text: 'String lights go up Friday.', tone: 'cream', rotation: -4 }, stamp: { text: 'BARN · DOOR · OPEN', icon: 'leaf', tone: 'sage', rotation: 3 }, squiggle: 1, heart: true },
+    signatureDecor: 'wheat-stalk',
   },
   {
     id: 'western-ranch', name: 'Western Ranch', tagline: 'Cowboy romance with leather, denim, and desert sky',
@@ -1604,6 +1643,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'western ranch cowboy desert frontier leather denim rodeo', layoutFormat: 'filmstrip',
     poetry: { heroTagline: 'partners for the long ride', closingLine: 'Happy trails, from here to forever.', rsvpIntro: 'Saddle up and ride on over.', welcomeStatement: 'Welcome to the ranch, partner. No fancy airs — just good people, great food, and a love story for the ages.' },
     motifs: { blob: 'warm', stamp: { text: 'HAPPY · TRAILS', icon: 'heart', tone: 'peach', rotation: -5 }, squiggle: 2, heart: true },
+    signatureDecor: 'cactus-bloom',
   },
   {
     id: 'romantic-blush', name: 'Romantic Blush', tagline: 'Soft pink clouds, candlelight, and tender vows',
@@ -1631,6 +1671,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'romantic blush pink soft elegant floral candles champagne gentle', layoutFormat: 'cascade',
     poetry: { heroTagline: 'love, softly spoken', closingLine: 'May every sunset remind you of this day.', rsvpIntro: 'Will you share this tender moment with us?', welcomeStatement: 'Welcome to our love story. In the softest light, surrounded by the people who matter most, we speak the words we\'ve felt forever.' },
     motifs: { blob: 'peach', heart: true, stamp: { text: 'SOFT · LOVE', icon: 'heart', tone: 'peach', rotation: 3 }, squiggle: 1 },
+    signatureDecor: 'peony-bloom',
   },
   {
     id: 'wildflower-meadow', name: 'Wildflower Meadow', tagline: 'Bright, organic, and bursting with natural color',
@@ -1659,6 +1700,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'wildflower meadow colorful organic bright spring outdoor fresh natural', layoutFormat: 'scrapbook',
     poetry: { heroTagline: 'love grows where wildflowers bloom', closingLine: 'The most beautiful things grow unplanned.', rsvpIntro: 'Join us in the meadow — no formality required.', welcomeStatement: 'Welcome to our wildflower celebration. Nothing matched, nothing perfect — just beautifully, wonderfully real.' },
     motifs: { blob: 'sage', polaroid: true, stamp: { text: 'PICKED · TODAY', icon: 'leaf', tone: 'sage', rotation: 6 }, squiggle: 2, heart: true },
+    signatureDecor: 'wildflower-cluster',
   },
   {
     id: 'whimsical-garden', name: 'Whimsical Garden', tagline: 'Playful pastels and Alice-in-Wonderland charm',
@@ -1687,6 +1729,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'whimsical playful garden colorful fantasy fun alice wonderland pastel', layoutFormat: 'scrapbook',
     poetry: { heroTagline: 'curiouser and curiouser', closingLine: 'The best adventures are the ones shared with the right person.', rsvpIntro: 'Follow the rabbit — you\'re invited to the party.', welcomeStatement: 'Welcome to our wonderland. Nothing is quite as it seems, and that\'s exactly how we like it. Expect the unexpected.' },
     motifs: { blob: 'lavender', polaroid: true, heart: true, stamp: { text: 'DRINK · ME', icon: 'sparkles', tone: 'lavender', rotation: -6 }, squiggle: 3, sparkle: true },
+    signatureDecor: 'mushroom-pair',
   },
   {
     id: 'nature-organic', name: 'Nature Organic', tagline: 'Sustainable beauty in raw greens and earth tones',
@@ -1714,6 +1757,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     vibeString: 'nature organic sustainable earth green eco raw grounded peaceful', layoutFormat: 'cascade',
     poetry: { heroTagline: 'rooted in love, growing wild', closingLine: 'Plant love. Water it daily. Watch it grow.', rsvpIntro: 'Come celebrate with us — under the open sky.', welcomeStatement: 'Welcome to our celebration of love and nature. No waste, no excess — just the beauty of the earth and the warmth of community.' },
     motifs: { blob: 'sage', stamp: { text: 'TAKEN · FROM · EARTH', icon: 'leaf', tone: 'sage', rotation: 0 }, squiggle: 1, heart: true },
+    signatureDecor: 'wildflower-cluster',
   },
 
   // ── 61. Last Weekend In — bachelor / bachelorette party (Phase B.1) ──
