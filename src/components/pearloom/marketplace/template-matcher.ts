@@ -21,21 +21,36 @@ import type { Template } from './templates-data';
 
 // Hand-curated aliases so the most popular marketplace tiles always
 // resolve to a rich SITE_TEMPLATE. Extend this list as tiles are added.
+// Aliases map marketplace tile ids → SITE_TEMPLATE ids. Critically,
+// every occasion-specific tile needs to land on a SITE_TEMPLATE that
+// declares the right occasion-specific blocks (itinerary for bachelor
+// party, advice wall for bridal shower, etc) — otherwise the modal
+// preview renders generic wedding blocks and lies about what the user
+// will get.
 const ALIASES: Record<string, string> = {
+  // Wedding tiles → wedding SITE_TEMPLATEs
   'wildflower-barn': 'ethereal-garden',
   'pearl-district': 'midnight-luxe',
   'cannon-beach': 'coastal-breeze',
   'olive-gold-wedding': 'tuscan-villa',
   'finnish-cottage': 'enchanted-forest',
+  // Engagement tiles
   'the-yes': 'blush-bloom',
-  'night-before': 'midnight-luxe',
-  'welcome-weekend': 'coastal-breeze',
-  'morning-after': 'golden-hour',
-  'still-us': 'rustic-romance',
-  'big-sur-bach': 'desert-boho',
-  'ceremony-70s': 'y2k-reloaded',
   'springtime-engagement': 'blush-bloom',
-  'the-rehearsal': 'minimalist-white',
+  // Rehearsal-dinner
+  'the-rehearsal': 'the-night-before',
+  'night-before': 'the-night-before',
+  // Welcome / brunch / vow-renewal
+  'welcome-weekend': 'warm-threshold',
+  'morning-after': 'one-more-round',
+  'still-us': 'saying-it-again',
+  // Bachelor / bachelorette → carry itinerary/costSplitter/privacyGate
+  'big-sur-bach': 'last-weekend-in',
+  'nashville-bach': 'last-weekend-in',
+  // Bridal shower → carries advice wall
+  'garden-shower': 'gentle-gathering',
+  // Misc
+  'ceremony-70s': 'y2k-reloaded',
 };
 
 function tokenize(s: string): Set<string> {

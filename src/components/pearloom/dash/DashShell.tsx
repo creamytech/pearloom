@@ -549,8 +549,11 @@ export function DashTopbar({
         display: 'flex',
         alignItems: 'flex-start',
         justifyContent: 'space-between',
-        padding: '24px 32px 8px',
+        padding: '24px clamp(20px, 4vw, 56px) 8px',
         gap: 24,
+        maxWidth: 1480,
+        margin: '0 auto',
+        width: '100%',
         animation: 'pl8-topbar-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both',
       }}
     >

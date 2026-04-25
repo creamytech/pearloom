@@ -9,6 +9,7 @@ import { Pear, Sparkle, Squiggle } from '../motifs';
 import type { Template, TemplateLayout, TemplatePalette } from './templates-data';
 import { resolveTemplateDesign } from './template-themes';
 import { findMatchingSiteTemplate } from './template-matcher';
+import { seedPreviewManifest } from './seed-preview-manifest';
 
 type Tone = { deep: string; mid: string; soft: string; paper: string; ink: string; accent: string };
 
@@ -40,8 +41,22 @@ export function TemplatePreview({ template, small = false }: { template: Templat
         accent: design.theme.accent,
       }
     : tone;
-  const name = template.heroWord ?? template.name;
-  const sub = template.heroScript ?? 'a day worth keeping';
+  // Tile + modal must show the same names / tagline / stamp so users
+  // see consistent identity across the marketplace flow. Pull from the
+  // same seed the modal uses (per-occasion sample names + matched
+  // SITE_TEMPLATE poetry/motifs) instead of template.heroWord which
+  // diverges from the modal.
+  const seed = seedPreviewManifest(template);
+  const seedNames = (seed.manifest.names as [string, string]) ?? ['', ''];
+  const compositeName =
+    seedNames[1]
+      ? `${seedNames[0]} & ${seedNames[1]}`
+      : seedNames[0] || template.heroWord || template.name;
+  const name = compositeName;
+  const sub =
+    (seed.manifest as unknown as { poetry?: { heroTagline?: string } }).poetry?.heroTagline
+    ?? template.heroScript
+    ?? 'a day worth keeping';
   const scale = small ? 0.78 : 1;
   const fontHeading = design?.fonts?.heading ?? 'Fraunces';
   // Tile uses the family name so tiles where the browser has the

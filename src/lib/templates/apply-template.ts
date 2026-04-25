@@ -18,6 +18,11 @@ import { resolveTemplateDesign, hasTemplateDesign } from '@/components/pearloom/
 // and actually receive that template's motifs/poetry/theme at
 // generation time. Keep in sync with
 // src/components/pearloom/marketplace/template-matcher.ts.
+// Marketplace tile id → SITE_TEMPLATE id. Keep in sync with
+// src/components/pearloom/marketplace/template-matcher.ts. Every
+// occasion-specific tile must point to the SITE_TEMPLATE that ships
+// with the right blocks (itinerary, advice wall, etc) so the
+// generated site reflects the actual template promise.
 const MARKETPLACE_ALIASES: Record<string, string> = {
   'wildflower-barn': 'ethereal-garden',
   'pearl-district': 'midnight-luxe',
@@ -25,14 +30,16 @@ const MARKETPLACE_ALIASES: Record<string, string> = {
   'olive-gold-wedding': 'tuscan-villa',
   'finnish-cottage': 'enchanted-forest',
   'the-yes': 'blush-bloom',
-  'night-before': 'midnight-luxe',
-  'welcome-weekend': 'coastal-breeze',
-  'morning-after': 'golden-hour',
-  'still-us': 'rustic-romance',
-  'big-sur-bach': 'desert-boho',
-  'ceremony-70s': 'y2k-reloaded',
   'springtime-engagement': 'blush-bloom',
-  'the-rehearsal': 'minimalist-white',
+  'the-rehearsal': 'the-night-before',
+  'night-before': 'the-night-before',
+  'welcome-weekend': 'warm-threshold',
+  'morning-after': 'one-more-round',
+  'still-us': 'saying-it-again',
+  'big-sur-bach': 'last-weekend-in',
+  'nashville-bach': 'last-weekend-in',
+  'garden-shower': 'gentle-gathering',
+  'ceremony-70s': 'y2k-reloaded',
 };
 
 export function applyTemplateToManifest(

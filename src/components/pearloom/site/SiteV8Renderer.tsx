@@ -6,7 +6,7 @@
    "Alex & Jamie" layout from the handoff mockup.
    ======================================================================== */
 
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { StoryManifest, Chapter } from '@/types';
 import {
   Blob,
@@ -655,6 +655,108 @@ function HeroSection({
 }
 
 /* ==================== TIMELINE ==================== */
+/**
+ * Renders the story section using one of the non-timeline layouts
+ * (filmstrip, magazine, bento, kenburns, parallax) so each template
+ * keeps its declared format. We re-use the heavy StoryLayout
+ * dispatcher from src/components/blocks/StoryLayouts.tsx — the
+ * components there have all the per-layout polish (parallax photos,
+ * magazine spreads, bento tiles, ken-burns crops).
+ */
+function StoryVariantSection({
+  chapters,
+  layout,
+  manifest,
+}: {
+  chapters: Chapter[];
+  layout: string;
+  manifest?: StoryManifest;
+}) {
+  // Lazy-load to keep StoryLayouts.tsx out of the initial bundle.
+  // It's 76kB and only executes on sites that opt out of timeline.
+  const [Comp, setComp] = useState<null | React.ComponentType<{
+    type: 'parallax' | 'filmstrip' | 'magazine' | 'timeline' | 'kenburns' | 'bento';
+    photos: Array<{ url: string; alt?: string; caption?: string }>;
+    title: string;
+    subtitle?: string;
+    body?: string;
+    date?: string;
+    location?: string | null;
+    index?: number;
+    themeFonts?: { heading?: string; body?: string };
+  }>>(null);
+  useEffect(() => {
+    let cancelled = false;
+    import('@/components/blocks/StoryLayouts').then((mod) => {
+      if (!cancelled) setComp(() => mod.StoryLayout);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+  // Allowed types — fall back to parallax if the manifest carries
+  // something the dispatcher doesn't know.
+  const validTypes = ['parallax', 'filmstrip', 'magazine', 'timeline', 'kenburns', 'bento'] as const;
+  type ValidType = typeof validTypes[number];
+  const safeLayout: ValidType = (validTypes as readonly string[]).includes(layout)
+    ? (layout as ValidType)
+    : 'parallax';
+  const themeFonts = manifest?.theme?.fonts;
+
+  if (!Comp) {
+    // Fall back to the timeline render while the chunk loads. Avoids
+    // an empty section flash on first navigation.
+    return <TimelineSection chapters={chapters} manifest={manifest} />;
+  }
+
+  return (
+    <section id="our-story" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', background: 'var(--cream-2)' }}>
+      <div style={{ maxWidth: 1160, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 60 }}>
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: '0.12em',
+              color: 'var(--peach-ink)',
+              textTransform: 'uppercase',
+              marginBottom: 14,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.story} size={32} />
+            <Icon name="leaf" size={13} /> Our story so far
+          </div>
+          <h2 className="display" style={{ fontSize: 'clamp(42px, 6vw, 72px)', margin: 0 }}>
+            How we got <span className="display-italic">here</span>
+          </h2>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 64 }}>
+          {chapters.map((c, i) => {
+            const photos = (c.images ?? [])
+              .filter((img) => img && img.url)
+              .map((img) => ({ url: img.url, alt: img.alt, caption: img.caption }));
+            return (
+              <Comp
+                key={c.id ?? i}
+                type={safeLayout}
+                title={c.title}
+                subtitle={c.subtitle ?? c.location?.label ?? ''}
+                body={c.description}
+                date={c.date}
+                location={c.location?.label ?? null}
+                index={i}
+                photos={photos}
+                themeFonts={themeFonts}
+              />
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function TimelineSection({ chapters, onEditField, manifest }: { chapters: Chapter[]; onEditField?: FieldEditor; manifest?: StoryManifest }) {
   const edit = useIsEditMode();
   if (!chapters.length && !edit) return null;
@@ -2519,8 +2621,21 @@ export function SiteV8Renderer({
   const renderBlock = (key: SiteBlockKey) => {
     if (hidden.has(key)) return null;
     switch (key) {
-      case 'story':
-        return chapters.length > 0 ? <TimelineSection key="story" chapters={chapters} onEditField={onEditField} manifest={manifest} /> : null;
+      case 'story': {
+        if (chapters.length === 0 && !editMode) return null;
+        // Honour the template's declared layoutFormat so each template
+        // ships with its own story treatment (filmstrip, magazine,
+        // bento, kenburns, parallax) instead of every site looking
+        // the same as the timeline default.
+        const layout =
+          (manifest.storyLayout as string | undefined) ??
+          (manifest.layoutFormat as string | undefined) ??
+          'timeline';
+        if (layout === 'timeline' || !layout) {
+          return <TimelineSection key="story" chapters={chapters} onEditField={onEditField} manifest={manifest} />;
+        }
+        return <StoryVariantSection key="story" chapters={chapters} layout={layout} manifest={manifest} />;
+      }
       case 'details':
         return <DetailsStrip key="details" manifest={manifest} />;
       case 'schedule':
