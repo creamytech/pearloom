@@ -32,10 +32,16 @@ export async function GET() {
       return NextResponse.json({ sites: [] }, { status: 200 });
     }
 
+    // Use the JSON path operator (->>) instead of .contains() so the
+    // match is case-insensitive via ilike. .contains() does an exact
+    // JSONB containment check, which silently drops rows whose
+    // creator_email casing differs from the current session — a real
+    // problem when a user signs in once with "Foo@bar.com" and later
+    // with "foo@bar.com". This is more forgiving and still indexable.
     const { data, error } = await supabase
       .from('sites')
       .select('id, subdomain, ai_manifest, site_config, created_at, updated_at, published')
-      .contains('site_config', { creator_email: session.user.email })
+      .filter('site_config->>creator_email', 'ilike', session.user.email)
       .order('updated_at', { ascending: false, nullsFirst: false });
 
     if (error) {

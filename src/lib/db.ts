@@ -106,6 +106,10 @@ export async function saveSiteDraft(
   names: [string, string] = ['', '']
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = getSupabase();
+  // Normalize the user id so future case-mismatches don't cause the
+  // dashboard to lose track of the site (the listing query is now
+  // case-insensitive too — belt and braces).
+  const normalizedUserId = userId.toLowerCase().trim();
   try {
     const { data: existing } = await supabase
       .from('sites')
@@ -114,8 +118,8 @@ export async function saveSiteDraft(
       .maybeSingle();
 
     if (existing) {
-      const ownerEmail = (existing.site_config as Record<string, unknown>)?.creator_email;
-      if (ownerEmail && ownerEmail !== userId) {
+      const ownerEmail = String((existing.site_config as Record<string, unknown>)?.creator_email ?? '').toLowerCase();
+      if (ownerEmail && ownerEmail !== normalizedUserId) {
         return { success: false, error: 'Subdomain is already taken by another user.' };
       }
       const { error } = await supabase
@@ -125,7 +129,7 @@ export async function saveSiteDraft(
           site_config: {
             ...((existing.site_config as Record<string, unknown>) || {}),
             slug: subdomain,
-            creator_email: userId,
+            creator_email: normalizedUserId,
             names,
           },
         })
@@ -141,7 +145,7 @@ export async function saveSiteDraft(
         ai_manifest: { ...(manifest as Record<string, unknown>), comingSoon: { enabled: true } },
         site_config: {
           slug: subdomain,
-          creator_email: userId,
+          creator_email: normalizedUserId,
           names,
           createdAt: new Date().toISOString(),
         },
@@ -154,12 +158,15 @@ export async function saveSiteDraft(
 }
 
 export async function publishSite(
-  userId: string, 
-  subdomain: string, 
+  userId: string,
+  subdomain: string,
   manifest: unknown,
   names: [string, string] = ['', '']
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = getSupabase();
+  // Match saveSiteDraft — normalize on write so the dashboard's
+  // case-insensitive listing always finds this row later.
+  const normalizedUserId = userId.toLowerCase().trim();
   try {
     // Check if this subdomain is owned by someone else
     const { data: existing } = await supabase
@@ -169,8 +176,8 @@ export async function publishSite(
       .maybeSingle();
 
     if (existing) {
-      const ownerEmail = (existing.site_config as Record<string, unknown>)?.creator_email;
-      if (ownerEmail && ownerEmail !== userId) {
+      const ownerEmail = String((existing.site_config as Record<string, unknown>)?.creator_email ?? '').toLowerCase();
+      if (ownerEmail && ownerEmail !== normalizedUserId) {
         return { success: false, error: 'Subdomain is already taken by another user.' };
       }
 
@@ -182,7 +189,7 @@ export async function publishSite(
           site_config: {
             ...((existing.site_config as Record<string, unknown>) || {}),
             slug: subdomain,
-            creator_email: userId,
+            creator_email: normalizedUserId,
             names,
             createdAt: new Date().toISOString()
           }
@@ -204,7 +211,7 @@ export async function publishSite(
         ai_manifest: manifest,
         site_config: {
           slug: subdomain,
-          creator_email: userId,
+          creator_email: normalizedUserId,
           names,
           createdAt: new Date().toISOString()
         }
