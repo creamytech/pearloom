@@ -56,6 +56,7 @@ const DASH_NAV_GROUPS: DashNavGroup[] = [
       { id: 'speech', label: 'Speech composer', icon: 'mic', href: '/dashboard/speech' },
       { id: 'vendors', label: 'Vendors', icon: 'layers', href: '/vendors' },
       { id: 'passport-cards', label: 'Passport cards', icon: 'user-plus', href: '/dashboard/passport-cards' },
+      { id: 'qr-poster', label: 'QR poster', icon: 'sparkles', href: '/dashboard/qr-poster' },
       { id: 'templates', label: 'Templates', icon: 'grid', href: '/templates' },
     ],
   },

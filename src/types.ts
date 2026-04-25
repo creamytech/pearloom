@@ -1051,6 +1051,11 @@ export interface MealOption {
   name: string; // "Herb-Crusted Chicken", "Pan-Seared Salmon", "Garden Risotto"
   description?: string;
   dietaryTags: Array<'vegetarian' | 'vegan' | 'gluten-free' | 'dairy-free' | 'nut-free' | 'halal' | 'kosher'>;
+  /** Allergens this dish CONTAINS — surfaced as warning badges so
+   *  guests with severe allergies don't have to ask. Distinct from
+   *  dietaryTags which are positive labels (vegetarian, gluten-free).
+   *  These are negative warnings (contains nuts, contains shellfish). */
+  allergens?: Array<'nuts' | 'tree-nuts' | 'peanuts' | 'shellfish' | 'fish' | 'eggs' | 'dairy' | 'soy' | 'gluten' | 'sesame'>;
   /** Which event this meal belongs to (ceremony, reception, brunch) */
   eventId?: string;
 }

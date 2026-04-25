@@ -297,6 +297,88 @@ function EventNav({ names, hasRsvp }: { names: [string, string]; hasRsvp: boolea
   );
 }
 
+/* ==================== MEAL BADGES ==================== */
+const ALLERGEN_LABEL: Record<string, string> = {
+  'nuts': 'nuts',
+  'tree-nuts': 'tree nuts',
+  'peanuts': 'peanuts',
+  'shellfish': 'shellfish',
+  'fish': 'fish',
+  'eggs': 'eggs',
+  'dairy': 'dairy',
+  'soy': 'soy',
+  'gluten': 'gluten',
+  'sesame': 'sesame',
+};
+const DIETARY_LABEL: Record<string, string> = {
+  'vegetarian': 'veg',
+  'vegan': 'vegan',
+  'gluten-free': 'GF',
+  'dairy-free': 'DF',
+  'nut-free': 'NF',
+  'halal': 'halal',
+  'kosher': 'kosher',
+};
+
+function MealBadges({
+  dietaryTags,
+  allergens,
+  inverted,
+}: {
+  dietaryTags?: string[];
+  allergens?: string[];
+  inverted?: boolean;
+}) {
+  if (!dietaryTags?.length && !allergens?.length) return null;
+  const dietBg = inverted ? 'rgba(243,233,212,0.16)' : 'var(--sage-tint, #E8EDD8)';
+  const dietColor = inverted ? 'var(--cream)' : 'var(--sage-deep, #5C6B3F)';
+  const warnBg = inverted ? 'rgba(220,140,80,0.28)' : 'rgba(198,112,61,0.14)';
+  const warnColor = inverted ? '#FAD6BC' : 'var(--peach-ink, #C6703D)';
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+      {(dietaryTags ?? []).map((tag) => (
+        <span
+          key={`d-${tag}`}
+          style={{
+            fontSize: 9.5,
+            fontWeight: 700,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            padding: '2px 7px',
+            borderRadius: 999,
+            background: dietBg,
+            color: dietColor,
+          }}
+        >
+          {DIETARY_LABEL[tag] ?? tag}
+        </span>
+      ))}
+      {(allergens ?? []).map((a) => (
+        <span
+          key={`a-${a}`}
+          aria-label={`Contains ${ALLERGEN_LABEL[a] ?? a}`}
+          title={`Contains ${ALLERGEN_LABEL[a] ?? a}`}
+          style={{
+            fontSize: 9.5,
+            fontWeight: 700,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            padding: '2px 7px',
+            borderRadius: 999,
+            background: warnBg,
+            color: warnColor,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 3,
+          }}
+        >
+          ⚠ {ALLERGEN_LABEL[a] ?? a}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 /* ==================== COUNTDOWN PILL ==================== */
 function CountdownPill({ eventDate }: { eventDate?: string | null }) {
   const c = useCountdown(eventDate);
@@ -2033,8 +2115,13 @@ function RSVPSection({
   const [note, setNote] = useState('');
   const [state, setState] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [errMsg, setErrMsg] = useState<string | null>(null);
+  const [plusOneName, setPlusOneName] = useState('');
+  const [plusOneUrl, setPlusOneUrl] = useState<string | null>(null);
+  const [plusOneBusy, setPlusOneBusy] = useState(false);
+  const [plusOneCopied, setPlusOneCopied] = useState(false);
 
-  const mealOptions = (manifest.mealOptions ?? []).map((m) => m.name);
+  const mealOptionsRich = (manifest.mealOptions ?? []);
+  const mealOptions = mealOptionsRich.map((m) => m.name);
   const meals = mealOptions.length ? mealOptions : ['Short rib', 'Halibut', 'Garden plate'];
   const deadline = manifest.logistics?.rsvpDeadline;
   const deadlineStr = deadline
@@ -2071,6 +2158,46 @@ function RSVPSection({
       setState('error');
       setErrMsg(err instanceof Error ? err.message : 'Something went wrong');
     }
+  }
+
+  async function mintPlusOne() {
+    const name = plusOneName.trim();
+    if (!name) return;
+    setPlusOneBusy(true);
+    try {
+      const res = await fetch('/api/rsvp/plus-one', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteSlug,
+          hostGuestName: guestName,
+          plusOneName: name,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { url?: string };
+      if (data.url) setPlusOneUrl(data.url);
+    } catch {} finally {
+      setPlusOneBusy(false);
+    }
+  }
+
+  async function sharePlusOne() {
+    if (!plusOneUrl) return;
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: `You're invited — ${names.filter(Boolean).join(' & ')}`,
+          text: plusOneName ? `Hey ${plusOneName}, you're my +1 — full details inside.` : undefined,
+          url: plusOneUrl,
+        });
+        return;
+      } catch {}
+    }
+    try {
+      await navigator.clipboard.writeText(plusOneUrl);
+      setPlusOneCopied(true);
+      setTimeout(() => setPlusOneCopied(false), 1800);
+    } catch {}
   }
 
   return (
@@ -2121,6 +2248,91 @@ function RSVPSection({
             <p style={{ fontSize: 15, color: 'var(--ink-soft)', lineHeight: 1.6, margin: 0 }}>
               We&apos;ve logged your RSVP. {going === 'yes' ? "We can't wait to see you." : 'Send our love — we wish you could be there.'}
             </p>
+            {going === 'yes' && (
+              <div
+                style={{
+                  marginTop: 26,
+                  paddingTop: 22,
+                  borderTop: '1px dashed rgba(61,74,31,0.25)',
+                  textAlign: 'left',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: '0.18em',
+                    textTransform: 'uppercase',
+                    color: 'var(--peach-ink)',
+                    marginBottom: 8,
+                  }}
+                >
+                  Bringing someone?
+                </div>
+                <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.55, marginBottom: 12 }}>
+                  Send your +1 their own personal invite — opens the site greeted by name with all the details.
+                </div>
+                {!plusOneUrl ? (
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input
+                      type="text"
+                      value={plusOneName}
+                      onChange={(e) => setPlusOneName(e.target.value)}
+                      placeholder="Their name"
+                      style={{
+                        flex: 1,
+                        padding: '10px 14px',
+                        borderRadius: 10,
+                        border: '1.5px solid var(--line)',
+                        background: 'var(--cream-2)',
+                        fontSize: 14,
+                        fontFamily: 'inherit',
+                        color: 'var(--ink)',
+                        boxSizing: 'border-box',
+                        outline: 'none',
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={mintPlusOne}
+                      disabled={plusOneBusy || !plusOneName.trim()}
+                      className="btn btn-primary btn-sm"
+                    >
+                      {plusOneBusy ? 'Working…' : 'Get their link'}
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: 10,
+                        background: 'var(--cream-2)',
+                        border: '1px solid var(--line)',
+                        fontSize: 12.5,
+                        fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                        color: 'var(--ink-soft)',
+                        wordBreak: 'break-all',
+                      }}
+                    >
+                      {plusOneUrl}
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button type="button" onClick={sharePlusOne} className="btn btn-primary btn-sm" style={{ flex: 1, justifyContent: 'center' }}>
+                        {plusOneCopied ? 'Link copied' : (typeof navigator !== 'undefined' && 'share' in navigator) ? `Send to ${plusOneName}` : 'Copy link'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setPlusOneUrl(null); setPlusOneName(''); }}
+                        className="btn btn-outline btn-sm"
+                      >
+                        Another
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <form
@@ -2242,27 +2454,42 @@ function RSVPSection({
                   Dinner choice
                 </label>
                 <div className="pl8-cols-3" style={{ gap: 8 }}>
-                  {meals.map((d) => (
-                    <button
-                      key={d}
-                      type="button"
-                      onClick={() => setMeal(d)}
-                      aria-pressed={meal === d}
-                      style={{
-                        padding: '12px 8px',
-                        borderRadius: 12,
-                        background: meal === d ? 'var(--ink)' : 'var(--cream-2)',
-                        color: meal === d ? 'var(--cream)' : 'var(--ink)',
-                        fontSize: 13,
-                        fontWeight: 600,
-                        border: meal === d ? 'none' : '1.5px solid var(--line)',
-                        cursor: 'pointer',
-                        fontFamily: 'inherit',
-                      }}
-                    >
-                      {d}
-                    </button>
-                  ))}
+                  {meals.map((d) => {
+                    const opt = mealOptionsRich.find((m) => m.name === d);
+                    const selected = meal === d;
+                    return (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => setMeal(d)}
+                        aria-pressed={selected}
+                        style={{
+                          padding: '12px 10px',
+                          borderRadius: 12,
+                          background: selected ? 'var(--ink)' : 'var(--cream-2)',
+                          color: selected ? 'var(--cream)' : 'var(--ink)',
+                          fontSize: 13,
+                          fontWeight: 600,
+                          border: selected ? 'none' : '1.5px solid var(--line)',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                          textAlign: 'left',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 6,
+                        }}
+                      >
+                        <span>{d}</span>
+                        {opt && (
+                          <MealBadges
+                            dietaryTags={opt.dietaryTags}
+                            allergens={opt.allergens}
+                            inverted={selected}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
