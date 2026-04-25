@@ -37,6 +37,16 @@ import {
   PersonalGuestGreeting,
   AskPearFloater,
 } from './GuestKit';
+import {
+  PhotoLightbox,
+  usePhotoLightbox,
+  TimeZoneCountdown,
+  ScrollSpy,
+  LiveWallDiscover,
+  WeatherWidget,
+  GuestPhotoUploader,
+  VoiceToastRecorder,
+} from './GuestKit2';
 import { SectionStamp } from './SectionStamp';
 import { StickerLayer } from './StickerLayer';
 import { FooterBouquet } from './FooterBouquet';
@@ -606,6 +616,13 @@ function HeroSection({
           <SaveContactButton domain={siteSlug ?? ''} manifest={manifest} names={[n1 ?? '', n2 ?? '']} />
           <CountdownPill eventDate={manifest.logistics?.date} />
         </div>
+        <div style={{ textAlign: 'center', marginTop: 14 }}>
+          <TimeZoneCountdown
+            iso={manifest.logistics?.date}
+            time={manifest.logistics?.time}
+            venueTimeZone={(manifest.logistics as unknown as { venueTimeZone?: string } | undefined)?.venueTimeZone}
+          />
+        </div>
 
         {/* Photo strip */}
         <div
@@ -1084,6 +1101,19 @@ function DetailsStrip({ manifest }: { manifest: StoryManifest }) {
   if (items.length === 0) return null;
   void dateInfo;
 
+  // Derive a city for the weather lookup. Take the chunk before the
+  // first comma in the venue address — most "Address, City, State"
+  // formats land on the right token; fall back to venue name.
+  const weatherCity = (() => {
+    const addr = (l as unknown as { venueAddress?: string }).venueAddress;
+    if (addr) {
+      const parts = addr.split(',').map((s) => s.trim()).filter(Boolean);
+      // index 1 is usually city; fall back to 0 then venue.
+      return parts[1] ?? parts[0] ?? l.venue;
+    }
+    return l.venue;
+  })();
+
   return (
     <section
       id="details"
@@ -1140,6 +1170,11 @@ function DetailsStrip({ manifest }: { manifest: StoryManifest }) {
             </div>
           ))}
         </div>
+        {weatherCity && l.date && (
+          <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center' }}>
+            <WeatherWidget city={weatherCity} eventDate={l.date} />
+          </div>
+        )}
       </div>
     </section>
   );
@@ -1795,6 +1830,11 @@ function GallerySection({ chapters, manifest }: { chapters: Chapter[]; manifest?
     {},
   ];
 
+  // Build lightbox image set from real photos only — placeholder
+  // tiles aren't openable.
+  const lightboxImages = photos.map((url) => ({ url }));
+  const { index, open, close, next, prev } = usePhotoLightbox(lightboxImages);
+
   return (
     <section id="gallery" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', background: 'var(--cream-2)' }}>
       <div style={{ maxWidth: 1240, margin: '0 auto' }}>
@@ -1836,23 +1876,32 @@ function GallerySection({ chapters, manifest }: { chapters: Chapter[]; manifest?
         >
           {tones.map((t, i) => {
             const s = spans[i] ?? {};
+            const url = photos[i];
+            const photoIndex = url ? lightboxImages.findIndex((img) => img.url === url) : -1;
+            const clickable = photoIndex >= 0;
             return (
               <div
                 key={i}
+                onClick={clickable ? () => open(photoIndex) : undefined}
                 style={{
                   gridColumn: s.cs,
                   gridRow: s.rs,
                   borderRadius: 14,
                   overflow: 'hidden',
                   boxShadow: '0 8px 20px rgba(61,74,31,0.1)',
+                  cursor: clickable ? 'zoom-in' : 'default',
+                  transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
                 }}
+                onMouseEnter={clickable ? (e) => { e.currentTarget.style.transform = 'scale(1.015)'; } : undefined}
+                onMouseLeave={clickable ? (e) => { e.currentTarget.style.transform = 'scale(1)'; } : undefined}
               >
-                <PhotoPlaceholder tone={t} aspect="auto" src={photos[i]} style={{ height: '100%' }} />
+                <PhotoPlaceholder tone={t} aspect="auto" src={url} style={{ height: '100%' }} />
               </div>
             );
           })}
         </div>
       </div>
+      <PhotoLightbox images={lightboxImages} index={index} onClose={close} onNext={next} onPrev={prev} />
     </section>
   );
 }
@@ -2413,6 +2462,8 @@ const CUSTOM_BLOCK_TYPES = new Set([
   'privacyGate',
   'packingList',
   'program',
+  'guestPhotoUpload',
+  'voiceToast',
 ]);
 
 function CustomBlocksRail({ manifest, siteSlug }: { manifest: StoryManifest; siteSlug: string }) {
@@ -2584,6 +2635,47 @@ function CustomBlockCase({ block, siteSlug, editMode }: { block: PageBlock; site
         />
       );
     }
+    case 'guestPhotoUpload': {
+      return wrap(
+        <div style={{ padding: 'clamp(40px, 6vw, 72px) 24px' }}>
+          <div style={{ maxWidth: 560, margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', marginBottom: 18 }}>
+              <h2 className="display" style={{ fontSize: 'clamp(28px, 4vw, 40px)', margin: '0 0 8px' }}>
+                {str('title') ?? 'Share your photos'}
+              </h2>
+              {(str('subtitle') ?? '') && (
+                <p style={{ color: 'var(--ink-soft)', fontSize: 14.5, lineHeight: 1.6, margin: 0 }}>
+                  {str('subtitle')}
+                </p>
+              )}
+            </div>
+            <GuestPhotoUploader siteSlug={siteSlug} />
+          </div>
+        </div>
+      );
+    }
+    case 'voiceToast': {
+      return wrap(
+        <div style={{ padding: 'clamp(40px, 6vw, 72px) 24px' }}>
+          <div style={{ maxWidth: 560, margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', marginBottom: 18 }}>
+              <h2 className="display" style={{ fontSize: 'clamp(28px, 4vw, 40px)', margin: '0 0 8px' }}>
+                {str('title') ?? 'Send a voice toast'}
+              </h2>
+              {(str('subtitle') ?? '') && (
+                <p style={{ color: 'var(--ink-soft)', fontSize: 14.5, lineHeight: 1.6, margin: 0 }}>
+                  {str('subtitle')}
+                </p>
+              )}
+            </div>
+            <VoiceToastRecorder
+              siteSlug={siteSlug}
+              maxSeconds={typeof cfg.maxSeconds === 'number' ? (cfg.maxSeconds as number) : 30}
+            />
+          </div>
+        </div>
+      );
+    }
     default:
       return null;
   }
@@ -2748,6 +2840,7 @@ export function SiteV8Renderer({
             Each is independently dismissable / mobile-aware. */}
         {!editMode && (
           <>
+            <ScrollSpy sections={['top', 'our-story', 'schedule', 'travel', 'registry', 'gallery', 'faq', 'rsvp']} />
             <FloatingCountdown manifest={manifest} />
             <StickyMobileCta
               deadline={
@@ -2757,6 +2850,7 @@ export function SiteV8Renderer({
               }
             />
             <AskPearFloater domain={siteSlug} manifest={manifest} names={names} />
+            <LiveWallDiscover subdomain={siteSlug} />
           </>
         )}
       </div>

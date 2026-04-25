@@ -702,7 +702,9 @@ export type BlockType =
   | 'thenAndNow'      // Before/after photo pairs (reunions, milestone)
   | 'whosWho'         // Face cards with roles (reunion, wedding party)
   | 'groupChat'       // Threaded chat pinned to the site
-  | 'privacyGate';    // Password / invite-list gate
+  | 'privacyGate'     // Password / invite-list gate
+  | 'guestPhotoUpload' // Mobile-first guest photo wall uploader
+  | 'voiceToast';     // In-browser voice-toast recorder
 
 export interface PageBlock {
   id: string;

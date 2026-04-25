@@ -801,3 +801,22 @@ button.pl8-mobile-only { display: none !important; }
   .pl8-dashshell main { padding: 0 !important; }
   @page { margin: 12mm; size: A4; }
 }
+
+/* ── Scroll-spy active state — paints the matching nav link
+   when its section is in view (set by GuestKit2 ScrollSpy). ── */
+.pl8-site-nav-links a[data-pl-scroll-active="1"] {
+  color: var(--ink) !important;
+  font-weight: 600;
+  position: relative;
+}
+.pl8-site-nav-links a[data-pl-scroll-active="1"]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 2px;
+  background: var(--peach-ink, #C6703D);
+  border-radius: 1px;
+}
+
