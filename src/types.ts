@@ -286,9 +286,17 @@ export interface StoryManifest {
    *  not set. Section keys: 'top' | 'our-story' | 'schedule'
    *  | 'travel' | 'registry' | 'gallery' | 'rsvp' | 'faq'. */
   sectionBackgrounds?: Record<string, string>;
+  /** Per-section atmosphere overrides. When the section background
+   *  is 'atmosphere', these let the host swap kind/intensity for
+   *  just that section without changing the global hero atmosphere. */
+  sectionAtmosphere?: Record<string, { kind?: string; intensity?: string }>;
   /** Show / hide individual decor primitives the editor renders.
    *  Keys are the decor element ids; values are visibility flags. */
   decorVisibility?: Record<string, boolean>;
+  /** Per-decor placement overrides — host can drag and resize any
+   *  decor element. dx/dy are pixel offsets from the slot's natural
+   *  position; scale is a 0.5–2 multiplier on the rendered size. */
+  decorPlacements?: Record<string, { dx?: number; dy?: number; scale?: number }>;
   // Per-field inline text formatting overrides keyed by manifest path (e.g. "poetry.heroTagline")
   textFormats?: Record<string, {
     italic?: boolean;

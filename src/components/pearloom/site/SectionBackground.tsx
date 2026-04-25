@@ -72,12 +72,19 @@ export function SectionBackground({ manifest, sectionId, defaultKind = 'paper' }
   }
 
   if (kindRaw === 'atmosphere') {
-    const a = (manifest as unknown as { atmosphere?: { kind?: string; intensity?: string; accent?: string } }).atmosphere;
+    const globalA = (manifest as unknown as { atmosphere?: { kind?: string; intensity?: string; accent?: string } }).atmosphere;
+    // Per-section override beats the global atmosphere — this lets
+    // (e.g.) the schedule section play "stars" while the hero plays
+    // "motes" without changing the global setting.
+    const sectionA = (manifest as unknown as { sectionAtmosphere?: Record<string, { kind?: string; intensity?: string }> })
+      .sectionAtmosphere?.[sectionId];
+    const k = (sectionA?.kind ?? globalA?.kind) as AtmosphereKind | undefined;
+    const i = (sectionA?.intensity ?? globalA?.intensity) as AtmosphereIntensity | undefined;
     return (
       <LivingAtmosphere
-        kind={(a?.kind as AtmosphereKind | undefined) ?? 'motes'}
-        intensity={(a?.intensity as AtmosphereIntensity | undefined) ?? 'subtle'}
-        accent={a?.accent ?? accent}
+        kind={k ?? 'motes'}
+        intensity={i ?? 'subtle'}
+        accent={globalA?.accent ?? accent}
         style={{ pointerEvents: 'none', zIndex: 0 }}
       />
     );

@@ -14,11 +14,12 @@
 import type { StoryManifest } from '@/types';
 import { PanelSection } from '../atoms';
 import {
+  LivingAtmosphere,
   type AtmosphereKind,
   type AtmosphereIntensity,
   defaultAtmosphereForOccasion,
 } from '../../site/LivingAtmosphere';
-import { AMBIENT_PRESETS } from '../../site/AmbientAudio';
+import { AMBIENT_PRESETS, type AmbientPresetId } from '../../site/AmbientAudio';
 
 const KINDS: Array<{ id: AtmosphereKind; label: string; hint: string }> = [
   { id: 'motes',       label: 'Motes',         hint: 'Slow gold particles drifting up.' },
@@ -78,13 +79,14 @@ export function AtmospherePanel({
 }) {
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
   const atmosphere = (manifest as unknown as {
-    atmosphere?: { kind?: string; intensity?: string; sections?: string[]; accent?: string; audio?: { url?: string; label?: string; enabled?: boolean } }
+    atmosphere?: { kind?: string; intensity?: string; sections?: string[]; accent?: string; audio?: { url?: string; label?: string; enabled?: boolean; preset?: string } }
   }).atmosphere ?? {};
   const kind = (atmosphere.kind as AtmosphereKind | undefined) ?? defaultAtmosphereForOccasion(occasion);
   const intensity = (atmosphere.intensity as AtmosphereIntensity | undefined) ?? 'standard';
   const audio = atmosphere.audio ?? {};
 
   const sectionBackgrounds = (manifest as unknown as { sectionBackgrounds?: Record<string, string> }).sectionBackgrounds ?? {};
+  const sectionAtmosphere = (manifest as unknown as { sectionAtmosphere?: Record<string, { kind?: string; intensity?: string }> }).sectionAtmosphere ?? {};
   const decorVisibility = (manifest as unknown as { decorVisibility?: Record<string, boolean> }).decorVisibility ?? {};
 
   function setAtmosphere(patch: Partial<typeof atmosphere>) {
@@ -108,6 +110,14 @@ export function AtmospherePanel({
     } as StoryManifest);
   }
 
+  function setSectionAtmos(sectionId: string, patch: { kind?: string; intensity?: string }) {
+    const existing = sectionAtmosphere[sectionId] ?? {};
+    onChange({
+      ...manifest,
+      sectionAtmosphere: { ...sectionAtmosphere, [sectionId]: { ...existing, ...patch } },
+    } as StoryManifest);
+  }
+
   return (
     <>
       {/* ── Atmosphere kind ─────────────────────────────────────── */}
@@ -124,7 +134,7 @@ export function AtmospherePanel({
                 type="button"
                 onClick={() => setAtmosphere({ kind: k.id })}
                 style={{
-                  padding: '10px 12px',
+                  padding: 0,
                   borderRadius: 10,
                   background: active ? 'var(--peach-bg, #FCEAD6)' : 'var(--card)',
                   border: `1.5px solid ${active ? 'var(--peach-ink)' : 'var(--line)'}`,
@@ -132,10 +142,38 @@ export function AtmospherePanel({
                   textAlign: 'left',
                   color: 'var(--ink)',
                   fontFamily: 'inherit',
+                  overflow: 'hidden',
                 }}
               >
-                <div style={{ fontSize: 13, fontWeight: 600 }}>{k.label}</div>
-                <div style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.35 }}>{k.hint}</div>
+                {/* Live preview thumbnail — actually renders the
+                    atmosphere kind so the host sees what they pick. */}
+                <div
+                  style={{
+                    position: 'relative',
+                    height: 56,
+                    background: 'var(--cream-2, #F3E9D4)',
+                    overflow: 'hidden',
+                    borderBottom: `1px solid ${active ? 'var(--peach-ink)' : 'var(--line-soft)'}`,
+                  }}
+                >
+                  {k.id !== 'none' && (
+                    <LivingAtmosphere
+                      kind={k.id}
+                      intensity="standard"
+                      accent={atmosphere.accent}
+                      scale={0.4}
+                    />
+                  )}
+                  {k.id === 'none' && (
+                    <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', color: 'var(--ink-muted)', fontSize: 11, letterSpacing: '0.18em' }}>
+                      —
+                    </div>
+                  )}
+                </div>
+                <div style={{ padding: '8px 10px' }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 600 }}>{k.label}</div>
+                  <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', lineHeight: 1.35, marginTop: 2 }}>{k.hint}</div>
+                </div>
               </button>
             );
           })}
@@ -226,15 +264,19 @@ export function AtmospherePanel({
         </div>
         {audio.enabled && (
           <>
-            <div style={LABEL}>Preset</div>
+            <div style={LABEL}>Preset (synthesized in-browser, no download)</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-              {Object.entries(AMBIENT_PRESETS).map(([id, preset]) => {
-                const active = audio.label === preset.label;
+              {(Object.entries(AMBIENT_PRESETS) as Array<[AmbientPresetId, { label: string }]>).map(([id, preset]) => {
+                const active = audio.preset === id;
                 return (
                   <button
                     key={id}
                     type="button"
-                    onClick={() => setAtmosphere({ audio: { ...audio, label: preset.label, url: preset.url } })}
+                    onClick={() =>
+                      setAtmosphere({
+                        audio: { ...audio, preset: id, label: preset.label, url: undefined },
+                      })
+                    }
                     style={{
                       padding: '6px 10px',
                       borderRadius: 999,
@@ -250,19 +292,18 @@ export function AtmospherePanel({
                 );
               })}
             </div>
-            <div style={LABEL}>Or paste a custom looping clip URL</div>
+            <div style={LABEL}>Or paste a custom looping clip URL (overrides preset)</div>
             <input
               type="url"
               placeholder="https://…/loop.mp3"
               value={audio.url ?? ''}
-              onChange={(e) => setAtmosphere({ audio: { ...audio, url: e.target.value } })}
+              onChange={(e) => setAtmosphere({ audio: { ...audio, url: e.target.value || undefined } })}
               style={INPUT}
             />
-            {(!audio.url) && (
-              <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 6 }}>
-                Presets are placeholders today — paste a URL to a 30–60s seamless loop to enable.
-              </div>
-            )}
+            <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 6 }}>
+              Synth presets work without any audio file — they're built live with the Web Audio API.
+              Paste a URL only if you have your own seamless loop you'd rather use.
+            </div>
           </>
         )}
       </PanelSection>
@@ -275,35 +316,96 @@ export function AtmospherePanel({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {SECTIONS.map((s) => {
             const value = sectionBackgrounds[s.id] ?? 'paper';
+            const sectAtmos = sectionAtmosphere[s.id];
+            const showOverride = value === 'atmosphere';
             return (
-              <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 90, fontSize: 12.5, color: 'var(--ink-soft)' }}>{s.label}</div>
-                <div style={{ flex: 1, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                  {SECTION_BG_OPTIONS.map((o) => {
-                    const active = o.id === value;
-                    return (
-                      <button
-                        key={o.id}
-                        type="button"
-                        onClick={() => setSectionBg(s.id, o.id)}
-                        title={o.hint}
-                        style={{
-                          padding: '4px 8px',
-                          fontSize: 11,
-                          borderRadius: 6,
-                          background: active ? 'var(--ink)' : 'var(--card)',
-                          color: active ? 'var(--cream)' : 'var(--ink-soft)',
-                          border: `1px solid ${active ? 'var(--ink)' : 'var(--line)'}`,
-                          fontWeight: active ? 600 : 500,
-                          cursor: 'pointer',
-                          fontFamily: 'inherit',
-                        }}
-                      >
-                        {o.label}
-                      </button>
-                    );
-                  })}
+              <div key={s.id} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 90, fontSize: 12.5, color: 'var(--ink-soft)' }}>{s.label}</div>
+                  <div style={{ flex: 1, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                    {SECTION_BG_OPTIONS.map((o) => {
+                      const active = o.id === value;
+                      return (
+                        <button
+                          key={o.id}
+                          type="button"
+                          onClick={() => setSectionBg(s.id, o.id)}
+                          title={o.hint}
+                          style={{
+                            padding: '4px 8px',
+                            fontSize: 11,
+                            borderRadius: 6,
+                            background: active ? 'var(--ink)' : 'var(--card)',
+                            color: active ? 'var(--cream)' : 'var(--ink-soft)',
+                            border: `1px solid ${active ? 'var(--ink)' : 'var(--line)'}`,
+                            fontWeight: active ? 600 : 500,
+                            cursor: 'pointer',
+                            fontFamily: 'inherit',
+                          }}
+                        >
+                          {o.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
+                {showOverride && (
+                  <div
+                    style={{
+                      marginLeft: 98,
+                      paddingLeft: 10,
+                      borderLeft: '2px solid var(--peach-bg)',
+                      display: 'flex',
+                      gap: 6,
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <span style={{ fontSize: 10.5, color: 'var(--ink-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                      override
+                    </span>
+                    <select
+                      value={sectAtmos?.kind ?? ''}
+                      onChange={(e) =>
+                        setSectionAtmos(s.id, { kind: e.target.value || undefined })
+                      }
+                      style={{
+                        padding: '3px 6px',
+                        fontSize: 11,
+                        borderRadius: 6,
+                        border: '1px solid var(--line)',
+                        background: 'var(--card)',
+                        color: 'var(--ink)',
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      <option value="">Inherit hero</option>
+                      {KINDS.map((k) => (
+                        <option key={k.id} value={k.id}>{k.label}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={sectAtmos?.intensity ?? ''}
+                      onChange={(e) =>
+                        setSectionAtmos(s.id, { intensity: e.target.value || undefined })
+                      }
+                      style={{
+                        padding: '3px 6px',
+                        fontSize: 11,
+                        borderRadius: 6,
+                        border: '1px solid var(--line)',
+                        background: 'var(--card)',
+                        color: 'var(--ink)',
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      <option value="">Inherit</option>
+                      {INTENSITIES.map((i) => (
+                        <option key={i.id} value={i.id}>{i.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
             );
           })}

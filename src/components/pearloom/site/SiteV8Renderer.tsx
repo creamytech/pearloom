@@ -3164,9 +3164,21 @@ export function SiteV8Renderer({
                 Host enables it in the editor and the loop URL must
                 be set on manifest.atmosphere.audio. */}
             {(() => {
-              const a = (manifest as unknown as { atmosphere?: { audio?: { url?: string; label?: string; enabled?: boolean } } }).atmosphere?.audio;
-              if (!a?.enabled || !a.url) return null;
-              return <AmbientAudio url={a.url} label={a.label} storageKey={`pearloom-ambient:${siteSlug}`} />;
+              const a = (manifest as unknown as {
+                atmosphere?: {
+                  audio?: { url?: string; label?: string; enabled?: boolean; preset?: string }
+                }
+              }).atmosphere?.audio;
+              if (!a?.enabled) return null;
+              if (!a.url && !a.preset) return null;
+              return (
+                <AmbientAudio
+                  preset={a.preset as 'cafe' | 'fireplace' | 'brook' | 'chapel' | 'ocean' | undefined}
+                  url={a.url}
+                  label={a.label}
+                  storageKey={`pearloom-ambient:${siteSlug}`}
+                />
+              );
             })()}
           </>
         )}

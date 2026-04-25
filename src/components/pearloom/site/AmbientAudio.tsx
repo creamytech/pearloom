@@ -3,17 +3,31 @@
 /* ========================================================================
    AmbientAudio — opt-in ambient loop for published sites.
 
-   Off by default. The host enables it in the editor and picks a sound
-   (cafe, fireplace, brook, chapel) or uploads a custom looping clip.
-   Plays at -22dB (gain 0.18) AFTER first user interaction so we don't
-   trip autoplay policies or surprise anyone. Always renders a visible
-   mute button in the bottom-right that persists state in localStorage.
+   Two source modes:
+     1. URL  → plays an HTMLAudioElement loop (host-supplied).
+     2. Synth → builds the ambience in real time with the Web Audio API.
+        No CDN dependency, no licensing risk, infinite seamless loops.
+
+   Five synth presets:
+     • cafe       — pink noise + slow LFO chatter (cafe murmur).
+     • fireplace  — low-pass brown noise + occasional spike (crackle).
+     • brook      — band-pass white noise modulated by triangle LFO.
+     • chapel     — low gain, narrow band-pass + long delay reverb tail.
+     • ocean      — slow LFO sweeping a low-pass over brown noise (waves).
+
+   Off by default. Plays at gain 0.18 (~ -22dB) AFTER the first user
+   interaction so we never trip autoplay policies. Always renders a
+   visible mute button bottom-right that persists state in localStorage.
    ======================================================================== */
 
 import { useEffect, useRef, useState } from 'react';
 
+export type AmbientPresetId = 'cafe' | 'fireplace' | 'brook' | 'chapel' | 'ocean';
+
 interface Props {
-  /** URL of a seamless 30-60s loop. Must be CORS-friendly. */
+  /** Preset id (selects a synth recipe) — wins when both are set. */
+  preset?: AmbientPresetId;
+  /** URL of a 30-60s seamless loop. Falls back path when no preset. */
   url?: string;
   /** Display label shown next to the mute button. */
   label?: string;
@@ -21,33 +35,27 @@ interface Props {
   storageKey?: string;
 }
 
-export function AmbientAudio({ url, label = 'Ambient sound', storageKey = 'pearloom-ambient' }: Props) {
-  const ref = useRef<HTMLAudioElement | null>(null);
+export function AmbientAudio({ preset, url, label = 'Ambient sound', storageKey = 'pearloom-ambient' }: Props) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const synthRef = useRef<{ ctx: AudioContext; stop: () => void } | null>(null);
   const [muted, setMuted] = useState<boolean>(true);
   const [primed, setPrimed] = useState<boolean>(false);
 
-  // Read persisted preference. Default: muted (we never autoplay sound
-  // without explicit consent in this session).
+  const usingSynth = !!preset && !url;
+
   useEffect(() => {
     try {
       const v = window.localStorage.getItem(storageKey);
-      // 'on' = user previously chose unmuted. We still wait for an
-      // interaction before unmuting to satisfy autoplay policies.
       if (v === 'on') setMuted(false);
     } catch {}
   }, [storageKey]);
 
-  // Prime audio on first user interaction so a future toggle works
-  // without an empty-promise rejection from the autoplay policy.
+  // Prime audio on first user interaction.
   useEffect(() => {
     if (primed) return;
     const onAny = () => {
       setPrimed(true);
-      const el = ref.current;
-      if (el && !muted) {
-        el.volume = 0.18;
-        void el.play().catch(() => {});
-      }
+      if (!muted) startPlayback();
     };
     window.addEventListener('pointerdown', onAny, { once: true });
     window.addEventListener('keydown', onAny, { once: true });
@@ -55,28 +63,51 @@ export function AmbientAudio({ url, label = 'Ambient sound', storageKey = 'pearl
       window.removeEventListener('pointerdown', onAny);
       window.removeEventListener('keydown', onAny);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [primed, muted]);
 
-  // Apply mute changes to the audio element + persist preference.
+  // Apply mute changes.
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    el.volume = 0.18;
-    if (muted) {
-      el.pause();
-    } else if (primed) {
-      void el.play().catch(() => {});
-    }
+    if (muted) stopPlayback();
+    else if (primed) startPlayback();
     try {
       window.localStorage.setItem(storageKey, muted ? 'off' : 'on');
     } catch {}
-  }, [muted, primed, storageKey]);
+    return () => {};
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [muted, primed, preset, url]);
 
-  if (!url) return null;
+  // Cleanup on unmount.
+  useEffect(() => {
+    return () => stopPlayback();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function startPlayback() {
+    if (usingSynth && preset) {
+      stopPlayback();
+      synthRef.current = startSynth(preset);
+      return;
+    }
+    if (url) {
+      const el = audioRef.current;
+      if (!el) return;
+      el.volume = 0.18;
+      void el.play().catch(() => {});
+    }
+  }
+
+  function stopPlayback() {
+    synthRef.current?.stop();
+    synthRef.current = null;
+    audioRef.current?.pause();
+  }
+
+  if (!preset && !url) return null;
 
   return (
     <>
-      <audio ref={ref} src={url} loop preload="auto" />
+      {url && !preset && <audio ref={audioRef} src={url} loop preload="auto" />}
       <button
         type="button"
         onClick={() => setMuted((m) => !m)}
@@ -122,14 +153,203 @@ export function AmbientAudio({ url, label = 'Ambient sound', storageKey = 'pearl
 }
 
 /* ───────────────────────────────────────────────────────────────────────
-   Curated ambient presets — host picks a name, we resolve to a URL.
-   Hosting these clips on a CDN is a follow-up — for now we ship empty
-   strings as placeholders so the audio element silently no-ops.
+   Synth recipes — return an active AudioContext + stop() to tear down.
    ─────────────────────────────────────────────────────────────────────── */
-export const AMBIENT_PRESETS: Record<string, { label: string; url: string; suitFor: string[] }> = {
-  cafe:      { label: 'Cafe murmur',  url: '', suitFor: ['brunch', 'welcome-party', 'birthday'] },
-  fireplace: { label: 'Fireplace',    url: '', suitFor: ['memorial', 'funeral', 'milestone-birthday', 'retirement'] },
-  brook:     { label: 'Forest brook', url: '', suitFor: ['wedding', 'engagement', 'anniversary', 'vow-renewal'] },
-  chapel:    { label: 'Chapel choir', url: '', suitFor: ['baptism', 'confirmation', 'first-communion', 'bar-mitzvah', 'bat-mitzvah'] },
-  ocean:     { label: 'Ocean waves',  url: '', suitFor: ['housewarming', 'graduation', 'reunion'] },
+
+function startSynth(preset: AmbientPresetId): { ctx: AudioContext; stop: () => void } | null {
+  if (typeof window === 'undefined') return null;
+  const Ctor = (window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext);
+  if (!Ctor) return null;
+  const ctx = new Ctor();
+  const master = ctx.createGain();
+  master.gain.value = 0.18;
+  master.connect(ctx.destination);
+
+  const cleanup: Array<() => void> = [];
+
+  // Shared: a noise buffer source (8s of pink noise, looped).
+  function makeNoise(type: 'white' | 'pink' | 'brown'): AudioBufferSourceNode {
+    const length = ctx.sampleRate * 8;
+    const buf = ctx.createBuffer(1, length, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    if (type === 'white') {
+      for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1;
+    } else if (type === 'pink') {
+      // Voss-McCartney approximation
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      for (let i = 0; i < length; i++) {
+        const w = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + w * 0.0555179;
+        b1 = 0.99332 * b1 + w * 0.0750759;
+        b2 = 0.96900 * b2 + w * 0.1538520;
+        b3 = 0.86650 * b3 + w * 0.3104856;
+        b4 = 0.55000 * b4 + w * 0.5329522;
+        b5 = -0.7616 * b5 - w * 0.0168980;
+        data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362) * 0.11;
+        b6 = w * 0.115926;
+      }
+    } else {
+      // brown
+      let last = 0;
+      for (let i = 0; i < length; i++) {
+        const w = Math.random() * 2 - 1;
+        last = (last + 0.02 * w) / 1.02;
+        data[i] = last * 3.5;
+      }
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    src.start();
+    return src;
+  }
+
+  // Each preset wires its own filter graph onto master.
+  switch (preset) {
+    case 'cafe': {
+      const src = makeNoise('pink');
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 1400;
+      lp.Q.value = 0.5;
+      const gain = ctx.createGain();
+      gain.gain.value = 0.7;
+      // Slow LFO panning the chatter
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.value = 0.25;
+      const lfo = ctx.createOscillator();
+      lfo.frequency.value = 0.18;
+      lfo.connect(lfoGain.gain);
+      lfo.start();
+      src.connect(lp).connect(gain).connect(lfoGain).connect(master);
+      cleanup.push(() => { try { src.stop(); lfo.stop(); } catch {} });
+      break;
+    }
+    case 'fireplace': {
+      const src = makeNoise('brown');
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 600;
+      lp.Q.value = 0.7;
+      const gain = ctx.createGain();
+      gain.gain.value = 0.95;
+      src.connect(lp).connect(gain).connect(master);
+      // Random pop schedule for crackles.
+      let cancelled = false;
+      const popLoop = () => {
+        if (cancelled) return;
+        const pop = ctx.createOscillator();
+        pop.frequency.value = 600 + Math.random() * 1200;
+        const popGain = ctx.createGain();
+        popGain.gain.value = 0;
+        pop.connect(popGain).connect(master);
+        const t = ctx.currentTime;
+        popGain.gain.linearRampToValueAtTime(0.18 + Math.random() * 0.2, t + 0.01);
+        popGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+        pop.start(t);
+        pop.stop(t + 0.08);
+        setTimeout(popLoop, 700 + Math.random() * 2400);
+      };
+      popLoop();
+      cleanup.push(() => { cancelled = true; try { src.stop(); } catch {} });
+      break;
+    }
+    case 'brook': {
+      const src = makeNoise('white');
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 2200;
+      bp.Q.value = 0.7;
+      const gain = ctx.createGain();
+      gain.gain.value = 0.55;
+      src.connect(bp).connect(gain).connect(master);
+      // Triangle LFO on bandpass freq for water motion.
+      const lfo = ctx.createOscillator();
+      lfo.type = 'triangle';
+      lfo.frequency.value = 0.4;
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.value = 800;
+      lfo.connect(lfoGain).connect(bp.frequency);
+      lfo.start();
+      cleanup.push(() => { try { src.stop(); lfo.stop(); } catch {} });
+      break;
+    }
+    case 'chapel': {
+      const src = makeNoise('pink');
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 350;
+      bp.Q.value = 1.4;
+      const gain = ctx.createGain();
+      gain.gain.value = 0.65;
+      const delay = ctx.createDelay();
+      delay.delayTime.value = 0.45;
+      const fbk = ctx.createGain();
+      fbk.gain.value = 0.55;
+      // Reverb tail: mix dry + delayed feedback.
+      src.connect(bp).connect(gain);
+      gain.connect(master);
+      gain.connect(delay);
+      delay.connect(fbk).connect(delay);
+      delay.connect(master);
+      cleanup.push(() => { try { src.stop(); } catch {} });
+      break;
+    }
+    case 'ocean': {
+      const src = makeNoise('brown');
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 800;
+      lp.Q.value = 0.6;
+      const gain = ctx.createGain();
+      gain.gain.value = 1.1;
+      // Slow sine LFO sweeping the LP cutoff = waves arriving.
+      const lfo = ctx.createOscillator();
+      lfo.type = 'sine';
+      lfo.frequency.value = 0.08;
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.value = 480;
+      lfo.connect(lfoGain).connect(lp.frequency);
+      lfo.start();
+      src.connect(lp).connect(gain).connect(master);
+      cleanup.push(() => { try { src.stop(); lfo.stop(); } catch {} });
+      break;
+    }
+    default:
+      break;
+  }
+
+  // Soft fade-in on the master so we never hard-clip start.
+  master.gain.value = 0;
+  master.gain.linearRampToValueAtTime(0.18, ctx.currentTime + 0.8);
+
+  return {
+    ctx,
+    stop: () => {
+      try {
+        master.gain.cancelScheduledValues(ctx.currentTime);
+        master.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
+      } catch {}
+      // Tear down sources after the fade.
+      setTimeout(() => {
+        for (const fn of cleanup) fn();
+        try {
+          void ctx.close();
+        } catch {}
+      }, 500);
+    },
+  };
+}
+
+/* ───────────────────────────────────────────────────────────────────────
+   Curated ambient presets — host picks a name, we resolve to a synth
+   recipe (no CDN URL needed). The renderer can also fall back to a
+   custom URL the host pastes if they prefer real recordings.
+   ─────────────────────────────────────────────────────────────────────── */
+export const AMBIENT_PRESETS: Record<AmbientPresetId, { label: string; suitFor: string[] }> = {
+  cafe:      { label: 'Cafe murmur',  suitFor: ['brunch', 'welcome-party', 'birthday'] },
+  fireplace: { label: 'Fireplace',    suitFor: ['memorial', 'funeral', 'milestone-birthday', 'retirement'] },
+  brook:     { label: 'Forest brook', suitFor: ['wedding', 'engagement', 'anniversary', 'vow-renewal'] },
+  chapel:    { label: 'Chapel choir', suitFor: ['baptism', 'confirmation', 'first-communion', 'bar-mitzvah', 'bat-mitzvah'] },
+  ocean:     { label: 'Ocean waves',  suitFor: ['housewarming', 'graduation', 'reunion'] },
 };
