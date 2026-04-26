@@ -394,10 +394,21 @@ export function EditorV8({
     onManifestChange({ ...manifest, hiddenBlocks: next } as unknown as StoryManifest);
   }
 
-  // Keyboard shortcuts: ⌘/Ctrl+↓ / ↑ jump blocks; ⌘/Ctrl+Shift+P publishes.
+  // Keyboard shortcuts:
+  //   ⌘/Ctrl+↓ / ↑       — jump between sections in outline order
+  //   ⌘/Ctrl+Shift+P     — publish
+  //   ⌘/Ctrl+1 / 2 / 3   — switch inspector tab (Section / Theme / Pear)
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (!(e.metaKey || e.ctrlKey)) return;
+      // Don't capture when the user is typing in a field — the
+      // inspector tabs are a low-priority shortcut and should never
+      // win against text input.
+      const target = e.target as HTMLElement | null;
+      const isTyping = target && (
+        target.isContentEditable ||
+        ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
+      );
       const all: BlockKey[] = ['hero', ...blockOrder, 'theme'];
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -410,6 +421,10 @@ export function EditorV8({
       } else if (e.shiftKey && (e.key === 'P' || e.key === 'p')) {
         e.preventDefault();
         void handlePublish();
+      } else if (!isTyping && !e.shiftKey && !e.altKey && (e.key === '1' || e.key === '2' || e.key === '3')) {
+        e.preventDefault();
+        const map: Record<string, InspectorTab> = { '1': 'section', '2': 'theme', '3': 'pear' };
+        setInspectorTab(map[e.key]);
       }
     }
     window.addEventListener('keydown', onKey);
@@ -804,20 +819,22 @@ function KbdHint() {
       <button
         type="button"
         aria-label="Keyboard shortcuts"
+        title="Keyboard shortcuts"
         onClick={() => setOpen((v) => !v)}
         style={{
-          width: 32,
-          height: 32,
-          borderRadius: 8,
+          width: 30,
+          height: 30,
+          borderRadius: 999,
           background: 'transparent',
-          border: '1.5px solid var(--line)',
-          color: 'var(--ink-muted)',
+          border: '1px solid var(--line-soft)',
+          color: 'var(--ink-soft)',
           cursor: 'pointer',
           display: 'grid',
           placeItems: 'center',
-          fontSize: 12,
+          fontSize: 11,
           fontWeight: 700,
           fontFamily: 'var(--font-ui)',
+          transition: 'background 160ms ease, color 160ms ease, border-color 160ms ease',
         }}
       >
         ⌘
@@ -844,6 +861,9 @@ function KbdHint() {
             ['Command palette', '⌘K / Ctrl K'],
             ['Next block', '⌘↓ / Ctrl↓'],
             ['Previous block', '⌘↑ / Ctrl↑'],
+            ['Section tab', '⌘1 / Ctrl 1'],
+            ['Theme tab', '⌘2 / Ctrl 2'],
+            ['Pear tab', '⌘3 / Ctrl 3'],
             ['Save & publish', '⌘⇧P / Ctrl⇧P'],
           ].map(([label, keys]) => (
             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginBottom: 4 }}>
