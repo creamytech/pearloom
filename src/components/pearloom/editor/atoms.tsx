@@ -8,8 +8,11 @@
    ======================================================================== */
 
 import {
+  createContext,
   forwardRef,
+  useContext,
   useId,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -20,6 +23,31 @@ import {
 } from 'react';
 import dynamic from 'next/dynamic';
 import { Icon } from '../motifs';
+
+/* ---------- PanelGroup ----------
+ *  Opt-in wrapper that gives nested PanelSections positional
+ *  awareness. Inside a PanelGroup, the FIRST PanelSection defaults
+ *  to open and the rest default to closed — collapsed-by-default
+ *  reduces the "wall of fields" overwhelm without forcing every
+ *  panel author to mark sections individually.
+ *
+ *  Outside a PanelGroup, PanelSection keeps its legacy
+ *  default-everything-open behaviour for backwards compatibility.
+ */
+interface PanelGroupContextValue {
+  /** Registers a section and returns its 1-indexed position. */
+  register: () => number;
+}
+const PanelGroupContext = createContext<PanelGroupContextValue | null>(null);
+
+export function PanelGroup({ children }: { children: ReactNode }) {
+  const counter = useRef(0);
+  const value = useMemo<PanelGroupContextValue>(
+    () => ({ register: () => (counter.current += 1) }),
+    [],
+  );
+  return <PanelGroupContext.Provider value={value}>{children}</PanelGroupContext.Provider>;
+}
 
 /* ---------- Section heading inside a panel ----------
  *  Collapsible so users can scan the Inspector by section headers
@@ -37,7 +65,7 @@ export function PanelSection({
   children,
   style,
   collapsible = true,
-  defaultOpen = true,
+  defaultOpen,
 }: {
   label?: string;
   hint?: string;
@@ -45,9 +73,23 @@ export function PanelSection({
   children: ReactNode;
   style?: CSSProperties;
   collapsible?: boolean;
+  /** When omitted, uses PanelGroup context (1st section open) if
+   *  available; otherwise defaults to open. Pass `true` / `false`
+   *  to override the smart default. */
   defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const groupCtx = useContext(PanelGroupContext);
+  const positionRef = useRef<number | null>(null);
+  if (positionRef.current === null) {
+    positionRef.current = groupCtx ? groupCtx.register() : 0;
+  }
+  const initialOpen =
+    defaultOpen !== undefined
+      ? defaultOpen
+      : groupCtx
+        ? positionRef.current === 1
+        : true;
+  const [open, setOpen] = useState(initialOpen);
   const expanded = !collapsible || open;
 
   // Header is a button when collapsible so keyboard + screen-reader

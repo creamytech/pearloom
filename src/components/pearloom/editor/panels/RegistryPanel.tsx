@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { StoryManifest } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelSection, SelectInput, TextArea, TextInput } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, SelectInput, TextArea, TextInput } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 
@@ -94,7 +94,7 @@ export function RegistryPanel({
   }
 
   return (
-    <div>
+    <PanelGroup>
       <PanelSection label="Import from a URL" hint="Paste a Zola, Amazon, or Target registry link — Pear reads it and imports.">
         <RegistryImportAI onResult={(items2) => set([...items, ...items2])} />
       </PanelSection>
@@ -164,6 +164,6 @@ export function RegistryPanel({
           }}
         />
       </PanelSection>
-    </div>
+    </PanelGroup>
   );
 }

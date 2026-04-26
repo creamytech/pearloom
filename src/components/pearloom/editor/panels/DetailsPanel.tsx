@@ -1,7 +1,7 @@
 'use client';
 
 import type { StoryManifest } from '@/types';
-import { Field, PanelSection, PanelSmartActions, SelectInput, TextArea, type PanelSmartAction } from '../atoms';
+import { Field, PanelGroup, PanelSection, PanelSmartActions, SelectInput, TextArea, type PanelSmartAction } from '../atoms';
 import { TimePicker } from '../v8-forms';
 
 const DRESS_CODES = [
@@ -49,7 +49,7 @@ export function DetailsPanel({
   ];
 
   return (
-    <div>
+    <PanelGroup>
       <PanelSmartActions actions={smartActions} />
       <PanelSection label="The ceremony" hint="Guests see these three cards in the Details strip.">
         <Field label="Ceremony start" help="Displays as the first card. Pulls from the hero time by default.">
@@ -124,6 +124,6 @@ export function DetailsPanel({
           />
         </Field>
       </PanelSection>
-    </div>
+    </PanelGroup>
   );
 }

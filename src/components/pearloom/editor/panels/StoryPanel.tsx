@@ -2,7 +2,7 @@
 
 import { useRef, type ChangeEvent } from 'react';
 import type { StoryManifest, Chapter } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelSection, PanelSmartActions, PhotoSlot, TextArea, TextInput, type PanelSmartAction } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PanelSmartActions, PhotoSlot, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { Icon } from '../../motifs';
@@ -210,7 +210,7 @@ export function StoryPanel({
   ];
 
   return (
-    <div>
+    <PanelGroup>
       <PanelSmartActions actions={smartActions} />
       <BlockStylePicker
         blockType="story"
@@ -312,6 +312,6 @@ export function StoryPanel({
           }}
         />
       </PanelSection>
-    </div>
+    </PanelGroup>
   );
 }

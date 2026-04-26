@@ -2,7 +2,7 @@
 
 import { useRef, useState, type ChangeEvent } from 'react';
 import type { StoryManifest, Chapter } from '@/types';
-import { EmptyBlockState, PanelSection } from '../atoms';
+import { EmptyBlockState, PanelGroup, PanelSection } from '../atoms';
 import { Icon } from '../../motifs';
 
 /** Reads natural width/height of a data-URL image so we persist
@@ -144,7 +144,7 @@ export function GalleryPanel({
   void uploading;
 
   return (
-    <div>
+    <PanelGroup>
       <input ref={inputRef} type="file" accept="image/*" multiple onChange={onFiles} style={{ display: 'none' }} />
 
       <PanelSection
@@ -220,6 +220,6 @@ export function GalleryPanel({
           {chapters.length === 1 ? 'chapter' : 'chapters'}.
         </div>
       </PanelSection>
-    </div>
+    </PanelGroup>
   );
 }

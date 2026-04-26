@@ -1,7 +1,7 @@
 'use client';
 
 import type { StoryManifest, MealOption } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelSection, PanelSmartActions, TextArea, TextInput, Toggle, type PanelSmartAction } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PanelSmartActions, TextArea, TextInput, Toggle, type PanelSmartAction } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 
@@ -110,7 +110,7 @@ export function RsvpPanel({
   ];
 
   return (
-    <div>
+    <PanelGroup>
       <PanelSmartActions actions={smartActions} />
       <PanelSection label="Deadline + gating" hint="Controls the RSVP CTA on your site.">
         <Field label="RSVP deadline" help="Shown as 'Kindly respond by …' above the form.">
@@ -244,6 +244,6 @@ export function RsvpPanel({
           }}
         />
       </PanelSection>
-    </div>
+    </PanelGroup>
   );
 }

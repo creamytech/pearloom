@@ -1,7 +1,7 @@
 'use client';
 
 import type { StoryManifest } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelSection, TextArea, TextInput } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, TextArea, TextInput } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 
@@ -63,7 +63,7 @@ export function FaqPanel({
   });
 
   return (
-    <div>
+    <PanelGroup>
       <PanelSection label="Frequently asked" hint="Drag to reorder. Guests see these below the schedule.">
         <AIHint>
           Pear drafts an 8–10 question FAQ from your occasion, venue, date, and vibes. Everything is editable.
@@ -118,6 +118,6 @@ export function FaqPanel({
           />
         )}
       </PanelSection>
-    </div>
+    </PanelGroup>
   );
 }

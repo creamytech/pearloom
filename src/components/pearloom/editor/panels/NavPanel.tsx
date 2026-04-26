@@ -12,7 +12,7 @@
 
 import { useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
-import { PanelSection } from '../atoms';
+import { PanelGroup, PanelSection } from '../atoms';
 import { NAV_ICON_LIBRARY } from '@/components/pearloom/assets/nav-icons';
 
 interface Props {
@@ -162,7 +162,7 @@ export function NavPanel({ manifest, onChange }: Props) {
   }
 
   return (
-    <div>
+    <PanelGroup>
       <PanelSection label="Nav layout" hint="How the top nav composes its brand + links.">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
           {NAV_STYLES.map((s) => {
@@ -299,6 +299,6 @@ export function NavPanel({ manifest, onChange }: Props) {
           <div role="alert" style={{ marginTop: 8, fontSize: 12, color: '#7A2D2D' }}>{aiError}</div>
         )}
       </PanelSection>
-    </div>
+    </PanelGroup>
   );
 }

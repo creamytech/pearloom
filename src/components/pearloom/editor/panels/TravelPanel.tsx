@@ -1,7 +1,7 @@
 'use client';
 
 import type { StoryManifest } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelSection, TextArea, TextInput } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, TextArea, TextInput } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 
@@ -130,7 +130,7 @@ export function TravelPanel({
   }
 
   return (
-    <div>
+    <PanelGroup>
       <PanelSection label="The venue" hint="Pulls from the hero section.">
         <Field label="Venue name">
           <TextInput
@@ -226,6 +226,6 @@ export function TravelPanel({
           }}
         />
       </PanelSection>
-    </div>
+    </PanelGroup>
   );
 }

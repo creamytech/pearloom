@@ -1,7 +1,7 @@
 'use client';
 
 import type { StoryManifest, WeddingEvent } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelSection, PanelSmartActions, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PanelSmartActions, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 
 // The canvas renderer reads `manifest.events` — keep this panel on
@@ -134,7 +134,7 @@ export function SchedulePanel({
   ];
 
   return (
-    <div>
+    <PanelGroup>
       <PanelSmartActions actions={smartActions} />
       <PanelSection
         label="Today's rundown"
@@ -194,6 +194,6 @@ export function SchedulePanel({
           }}
         />
       </PanelSection>
-    </div>
+    </PanelGroup>
   );
 }

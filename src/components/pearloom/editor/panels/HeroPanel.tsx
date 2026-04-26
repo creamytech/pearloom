@@ -1,7 +1,7 @@
 'use client';
 
 import type { StoryManifest } from '@/types';
-import { AddRowButton, Field, ListRow, PanelSection, PanelSmartActions, PhotoSlot, TextArea, TextInput, type PanelSmartAction } from '../atoms';
+import { AddRowButton, Field, ListRow, PanelGroup, PanelSection, PanelSmartActions, PhotoSlot, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { TimePicker, DatePicker } from '../v8-forms';
 import { BlockStylePicker } from './BlockStylePicker';
@@ -114,7 +114,7 @@ export function HeroPanel({
   ];
 
   return (
-    <div>
+    <PanelGroup>
       <PanelSmartActions actions={smartActions} />
       <BlockStylePicker
         blockType="hero"
@@ -292,6 +292,6 @@ export function HeroPanel({
           />
         )}
       </PanelSection>
-    </div>
+    </PanelGroup>
   );
 }
