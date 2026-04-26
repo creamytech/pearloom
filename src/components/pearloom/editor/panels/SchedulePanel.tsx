@@ -1,7 +1,7 @@
 'use client';
 
 import type { StoryManifest, WeddingEvent } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelSection, SelectInput, TextArea, TextInput } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelSection, PanelSmartActions, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 
 // The canvas renderer reads `manifest.events` — keep this panel on
@@ -118,8 +118,24 @@ export function SchedulePanel({
     set(next);
   }
 
+  const smartActions: PanelSmartAction[] = [
+    {
+      label: 'Add a moment',
+      icon: 'plus',
+      onClick: add,
+      primary: true,
+    },
+    {
+      label: 'Use a preset',
+      icon: 'sparkles',
+      onClick: preset,
+      disabled: items.length > 0,
+    },
+  ];
+
   return (
     <div>
+      <PanelSmartActions actions={smartActions} />
       <PanelSection
         label="Today's rundown"
         hint="Drag to reorder. Times are free-form — '4:00', '4 PM', 'Sunset'."

@@ -1,7 +1,7 @@
 'use client';
 
 import type { StoryManifest, MealOption } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelSection, TextArea, TextInput, Toggle } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelSection, PanelSmartActions, TextArea, TextInput, Toggle, type PanelSmartAction } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 
@@ -80,20 +80,52 @@ export function RsvpPanel({
     ]);
   }
 
+  const smartActions: PanelSmartAction[] = [
+    {
+      label: 'Set the deadline',
+      icon: 'calendar-check',
+      onClick: () => {
+        const el = document.querySelector('[data-pl-rsvp-deadline] input') as HTMLInputElement | null;
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => el.focus(), 240);
+        }
+      },
+      primary: true,
+    },
+    {
+      label: 'Add a meal',
+      icon: 'plus',
+      onClick: addMeal,
+    },
+    {
+      label: 'See responses',
+      icon: 'inbox',
+      onClick: () => {
+        if (typeof window !== 'undefined') {
+          window.open('/rsvps', '_blank');
+        }
+      },
+    },
+  ];
+
   return (
     <div>
+      <PanelSmartActions actions={smartActions} />
       <PanelSection label="Deadline + gating" hint="Controls the RSVP CTA on your site.">
         <Field label="RSVP deadline" help="Shown as 'Kindly respond by …' above the form.">
-          <TextInput
-            type="date"
-            value={(logistics.rsvpDeadline ?? '').slice(0, 10)}
-            onChange={(e) =>
-              onChange({
-                ...manifest,
-                logistics: { ...logistics, rsvpDeadline: e.target.value || undefined },
-              })
-            }
-          />
+          <div data-pl-rsvp-deadline>
+            <TextInput
+              type="date"
+              value={(logistics.rsvpDeadline ?? '').slice(0, 10)}
+              onChange={(e) =>
+                onChange({
+                  ...manifest,
+                  logistics: { ...logistics, rsvpDeadline: e.target.value || undefined },
+                })
+              }
+            />
+          </div>
         </Field>
         <fieldset
           style={{

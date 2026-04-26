@@ -2,7 +2,7 @@
 
 import { useRef, type ChangeEvent } from 'react';
 import type { StoryManifest, Chapter } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelSection, PhotoSlot, TextArea, TextInput } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelSection, PanelSmartActions, PhotoSlot, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { Icon } from '../../motifs';
@@ -181,8 +181,37 @@ export function StoryPanel({
     onChange({ ...manifest, chapters: [...chapters, next] });
   }
 
+  const smartActions: PanelSmartAction[] = [
+    {
+      label: 'Add a chapter',
+      icon: 'plus',
+      onClick: addChapter,
+      primary: true,
+    },
+    {
+      label: 'Pick a layout',
+      icon: 'layout',
+      onClick: () => {
+        document
+          .querySelector('[data-pl-block-style-picker="story"]')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      },
+    },
+    {
+      label: 'Draft from photos',
+      icon: 'sparkles',
+      onClick: () => {
+        // PhotoChaptersAI lives in the first PanelSection — scroll
+        // to the panel area where the AI button sits.
+        const section = document.querySelector('[data-pl-photo-chapters-ai]');
+        section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      },
+    },
+  ];
+
   return (
     <div>
+      <PanelSmartActions actions={smartActions} />
       <BlockStylePicker
         blockType="story"
         manifest={manifest}
@@ -192,7 +221,9 @@ export function StoryPanel({
         hint="How chapters render — parallax photos, magazine spreads, bento mosaic, or the classic timeline vine."
       />
       <PanelSection label="Photos → chapters" hint="Upload a batch and Pear drafts your story from them.">
-        <PhotoChaptersAI manifest={manifest} names={effectiveNames} onResult={(next) => onChange({ ...manifest, chapters: [...chapters, ...next] })} />
+        <div data-pl-photo-chapters-ai>
+          <PhotoChaptersAI manifest={manifest} names={effectiveNames} onResult={(next) => onChange({ ...manifest, chapters: [...chapters, ...next] })} />
+        </div>
       </PanelSection>
 
       <PanelSection
