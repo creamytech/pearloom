@@ -581,58 +581,67 @@ export function DashTopbar({
       data-topbar
       className="pl8-dash-topbar"
       style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'space-between',
-        padding: '24px clamp(20px, 4vw, 56px) 8px',
-        gap: 24,
+        position: 'relative',
+        padding: 'clamp(28px, 5vw, 48px) clamp(20px, 4vw, 56px) clamp(12px, 2vw, 20px)',
         maxWidth: 1480,
         margin: '0 auto',
         width: '100%',
-        animation: 'pl8-topbar-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both',
+        textAlign: 'center',
+        // Centered headline, CTA pinned to the top-right so the
+        // title reads cleanly as the page identity. Topbar no
+        // longer fades in on tab switch — sidebar was always
+        // persistent, the topbar opacity-fade was the visible
+        // 'page fades in' perception.
       }}
     >
-      <div>
-        <h1 className="display" style={{ fontSize: 40, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
-          {title}
-          <span
-            style={{
-              display: 'inline-flex',
-              animation: 'pl8-topbar-heart 3.2s ease-in-out infinite',
-              transformOrigin: 'center',
-            }}
-          >
-            <Heart size={22} />
-          </span>
-        </h1>
-        {subtitle && <div style={{ marginTop: 6, fontSize: 14, color: 'var(--ink-soft)' }}>{subtitle}</div>}
-      </div>
+      <h1
+        className="display"
+        style={{
+          fontSize: 'clamp(32px, 4.4vw, 44px)',
+          margin: 0,
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 12,
+          lineHeight: 1.05,
+        }}
+      >
+        {title}
+        <span style={{ display: 'inline-flex', color: 'var(--peach-ink, #C6703D)' }}>
+          <Heart size={20} />
+        </span>
+      </h1>
+      {subtitle && (
+        <div
+          style={{
+            marginTop: 8,
+            fontSize: 14.5,
+            color: 'var(--ink-soft)',
+            maxWidth: 640,
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            lineHeight: 1.5,
+          }}
+        >
+          {subtitle}
+        </div>
+      )}
       {ctaText && ctaHref && (
-        <Link href={ctaHref} className="btn btn-primary" style={{ transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)' }}
+        <Link
+          href={ctaHref}
+          className="btn btn-primary"
+          style={{
+            position: 'absolute',
+            top: 'clamp(28px, 5vw, 48px)',
+            right: 'clamp(20px, 4vw, 56px)',
+            transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
           onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
           onMouseLeave={(e) => (e.currentTarget.style.transform = '')}
         >
           {ctaText} <Pear size={14} tone="cream" shadow={false} />
         </Link>
       )}
-      <style jsx>{`
-        @keyframes pl8-topbar-in {
-          from { opacity: 0; transform: translateY(-6px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes pl8-topbar-heart {
-          0%, 20%, 100% { transform: scale(1); }
-          10%           { transform: scale(1.14); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          @keyframes pl8-topbar-in {
-            from { opacity: 0; } to { opacity: 1; }
-          }
-          @keyframes pl8-topbar-heart {
-            0%, 100% { transform: none; }
-          }
-        }
-      `}</style>
     </div>
   );
 }

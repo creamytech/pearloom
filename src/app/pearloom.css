@@ -1310,15 +1310,14 @@ html { scroll-behavior: smooth; }
    Just a soft 12px → 0 nudge so the swap reads as motion, not
    a blink. */
 .pl8-tab-swipe {
-  /* Tighter snap. 220ms → 140ms with a sharper curve so tab clicks
-     register as 'instant + content snaps into place', not 'page
-     slides over'. The opacity 0.92 → 1 layered on top reads as
-     'just arrived' without the dim that felt like a fade. */
-  animation: pl8-tab-swipe-in 140ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* Pure micro-translate, NO opacity. Any opacity here reads as
+     'the page is fading in' — the user hates that. 120ms hard
+     snap with no fade component. */
+  animation: pl8-tab-swipe-in 120ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 @keyframes pl8-tab-swipe-in {
-  from { transform: translate3d(6px, 0, 0); opacity: 0.92; }
-  to   { transform: translate3d(0, 0, 0); opacity: 1; }
+  from { transform: translate3d(4px, 0, 0); }
+  to   { transform: translate3d(0, 0, 0); }
 }
 @media (prefers-reduced-motion: reduce) {
   .pl8-tab-swipe { animation: none; }
