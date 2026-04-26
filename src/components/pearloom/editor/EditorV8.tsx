@@ -36,6 +36,8 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 import { CanvasStage } from './canvas/CanvasStage';
+import { ThemeQuickBar } from './canvas/ThemeQuickBar';
+import { EditorCanvasProvider } from './canvas/EditorCanvasContext';
 import { useEditorHistory } from './canvas/useEditorHistory';
 import { HeroPanel } from './panels/HeroPanel';
 import { NavPanel } from './panels/NavPanel';
@@ -130,6 +132,13 @@ export function EditorV8({
   });
   const [names, setNames] = useState<[string, string]>(initialNames);
   const [block, setBlock] = useState<BlockKey>('hero');
+  const [inspectorTab, setInspectorTab] = useState<InspectorTab>('section');
+  // Snap to Section whenever the active block changes — clicking a
+  // section in the canvas should land the user on what they clicked,
+  // not on whatever tab was last open.
+  useEffect(() => {
+    setInspectorTab('section');
+  }, [block]);
   const [device, setDevice] = useState<DeviceKey>('desktop');
 
   // Listen for canvas → inspector focus events so the floating
@@ -500,6 +509,12 @@ export function EditorV8({
             names={names}
             onChange={onManifestChange}
             onNamesChange={onNamesChange}
+            siteSlug={siteSlug}
+            tab={inspectorTab}
+            setTab={setInspectorTab}
+            onJumpBlock={(b) => setBlock(b)}
+            onOpenPreview={() => window.open(prettyPath, '_blank')}
+            onPublish={() => void handlePublish()}
           />
         )}
         {isNarrow && mobileDrawer && (
@@ -523,6 +538,12 @@ export function EditorV8({
                 names={names}
                 onChange={onManifestChange}
                 onNamesChange={onNamesChange}
+                siteSlug={siteSlug}
+                tab={inspectorTab}
+                setTab={setInspectorTab}
+                onJumpBlock={(b) => setBlock(b)}
+                onOpenPreview={() => window.open(prettyPath, '_blank')}
+                onPublish={() => void handlePublish()}
               />
             )}
           </MobileDrawer>
@@ -544,18 +565,10 @@ export function EditorV8({
         onOpenPreview={() => window.open(prettyPath, '_blank')}
         onPublish={() => void handlePublish()}
       />
-      <PearCopilot
-        manifest={manifest}
-        names={names}
-        siteSlug={siteSlug}
-        onPatchManifest={onManifestChange}
-        onJumpBlock={(b) => setBlock(b as BlockKey)}
-        onOpenPanel={(panel) => {
-          if (panel === 'design-advisor') setAdvisorOpen(true);
-        }}
-        onOpenPreview={() => window.open(prettyPath, '_blank')}
-        onPublish={() => void handlePublish()}
-      />
+      {/* PearCopilot + ThemeQuickBar are docked into the inspector
+          rail's tabs now, so no floating instances live here. The
+          legacy floating versions still exist as a fallback (other
+          surfaces can mount them with `docked={false}`). */}
       <DesignAdvisor manifest={manifest} names={names} open={advisorOpen} onClose={() => setAdvisorOpen(false)} />
     </div>
   );
@@ -1088,88 +1101,181 @@ function BlockRow({
 //  CanvasStage which renders SiteV8Renderer in-DOM.)
 
 /* ---------- Right inspector ---------- */
+type InspectorTab = 'section' | 'theme' | 'pear';
+
 function Inspector({
   block,
   manifest,
   names,
   onChange,
   onNamesChange,
+  siteSlug,
+  tab,
+  setTab,
+  onJumpBlock,
+  onOpenPreview,
+  onPublish,
 }: {
   block: BlockKey;
   manifest: StoryManifest;
   names: [string, string];
   onChange: (m: StoryManifest) => void;
   onNamesChange: (n: [string, string]) => void;
+  siteSlug: string;
+  tab: InspectorTab;
+  setTab: (t: InspectorTab) => void;
+  onJumpBlock: (k: BlockKey) => void;
+  onOpenPreview: () => void;
+  onPublish: () => void;
 }) {
   const meta = BLOCKS.find((b) => b.key === block)!;
   return (
     <aside
       className="pl8-editor-inspector"
       style={{
-        width: 360,
+        width: 380,
         flexShrink: 0,
         borderLeft: '1px solid var(--line-soft)',
         background: 'var(--cream)',
-        overflowY: 'auto',
         display: 'flex',
         flexDirection: 'column',
+        minHeight: 0,
       }}
     >
-      <header
+      {/* Rail tabs — Section / Theme / Pear. Only one body shows at
+          a time, so floaters never overlap the canvas. */}
+      <div
+        role="tablist"
+        aria-label="Inspector tabs"
         style={{
-          padding: '18px 20px 14px',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr',
           borderBottom: '1px solid var(--line-soft)',
-          position: 'sticky',
-          top: 0,
           background: 'var(--cream)',
-          zIndex: 2,
         }}
       >
-        <div className="eyebrow" style={{ color: 'var(--peach-ink)', fontSize: 10.5, marginBottom: 6 }}>
-          Editing
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div
+        {(
+          [
+            { key: 'section', label: 'Section', icon: meta.icon },
+            { key: 'theme', label: 'Theme', icon: 'palette' },
+            { key: 'pear', label: 'Pear', icon: 'sparkle' },
+          ] as Array<{ key: InspectorTab; label: string; icon: string }>
+        ).map((t) => {
+          const active = tab === t.key;
+          return (
+            <button
+              key={t.key}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => setTab(t.key)}
+              style={{
+                padding: '12px 8px 10px',
+                fontFamily: 'var(--font-ui)',
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                color: active ? 'var(--ink)' : 'var(--ink-muted)',
+                background: 'transparent',
+                border: 'none',
+                borderBottom: active ? '2px solid var(--peach-ink, #C6703D)' : '2px solid transparent',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                transition: 'color 180ms ease, border-color 180ms ease',
+              }}
+            >
+              <Icon name={t.icon} size={12} />
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {tab === 'section' && (
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflowY: 'auto' }}>
+          <header
             style={{
-              width: 30,
-              height: 30,
-              borderRadius: 8,
-              background: 'var(--cream-2)',
-              display: 'grid',
-              placeItems: 'center',
+              padding: '18px 20px 14px',
+              borderBottom: '1px solid var(--line-soft)',
+              position: 'sticky',
+              top: 0,
+              background: 'var(--cream)',
+              zIndex: 2,
             }}
           >
-            <Icon name={meta.icon} size={14} />
-          </div>
-          <h2 className="display" style={{ fontSize: 22, margin: 0 }}>
-            {meta.label}
-          </h2>
-        </div>
-        <p style={{ margin: '8px 0 0', fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>{meta.description}</p>
-      </header>
+            <div className="eyebrow" style={{ color: 'var(--peach-ink)', fontSize: 10.5, marginBottom: 6 }}>
+              Editing
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 8,
+                  background: 'var(--cream-2)',
+                  display: 'grid',
+                  placeItems: 'center',
+                }}
+              >
+                <Icon name={meta.icon} size={14} />
+              </div>
+              <h2 className="display" style={{ fontSize: 22, margin: 0 }}>
+                {meta.label}
+              </h2>
+            </div>
+            <p style={{ margin: '8px 0 0', fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>{meta.description}</p>
+          </header>
 
-      <div style={{ padding: '18px 20px 40px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <PanelSwitch
-          block={block}
-          manifest={manifest}
-          names={names}
-          onChange={onChange}
-          onNamesChange={onNamesChange}
-        />
-        {/* Per-section style overrides — appears below every section
-            panel except the global Theme panel (which already has all
-            global controls). Lets the host tweak this one section in
-            isolation. Uses the same blockId the published renderer
-            does so changes are immediately visible. */}
-        {block !== 'theme' && block !== 'toasts' && (
-          <BlockStylePanel
+          <div style={{ padding: '18px 20px 40px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <PanelSwitch
+              block={block}
+              manifest={manifest}
+              names={names}
+              onChange={onChange}
+              onNamesChange={onNamesChange}
+            />
+            {block !== 'theme' && block !== 'toasts' && (
+              <BlockStylePanel
+                manifest={manifest}
+                blockId={blockToSectionId(block)}
+                label={`${meta.label} — section style`}
+                onChange={onChange}
+              />
+            )}
+          </div>
+        </div>
+      )}
+
+      {tab === 'theme' && (
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+          <EditorCanvasProvider value={{ editMode: true }}>
+            <ThemeQuickBar
+              manifest={manifest}
+              names={names}
+              onApply={(nextTheme) => onChange({ ...manifest, theme: nextTheme ?? manifest.theme })}
+              docked
+            />
+          </EditorCanvasProvider>
+        </div>
+      )}
+
+      {tab === 'pear' && (
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+          <PearCopilot
             manifest={manifest}
-            blockId={blockToSectionId(block)}
-            label={`${meta.label} — section style`}
-            onChange={onChange}
+            names={names}
+            siteSlug={siteSlug}
+            onPatchManifest={onChange}
+            onJumpBlock={(b) => onJumpBlock(b as BlockKey)}
+            onOpenPreview={onOpenPreview}
+            onPublish={onPublish}
+            docked
           />
-        )}
-      </div>
+        </div>
+      )}
     </aside>
   );
 }

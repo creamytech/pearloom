@@ -52,15 +52,19 @@ export interface ThemeQuickBarProps {
   manifest: StoryManifest;
   names: [string, string];
   onApply: (nextTheme: StoryManifest['theme']) => void;
+  /** When true, render the picker body inline (no trigger pill,
+   *  no fixed positioning). Lets a rail tab host it without the
+   *  legacy floating bottom-right card. */
+  docked?: boolean;
 }
 
-export function ThemeQuickBar({ manifest, names, onApply }: ThemeQuickBarProps) {
+export function ThemeQuickBar({ manifest, names, onApply, docked = false }: ThemeQuickBarProps) {
   const editMode = useIsEditMode();
   const [open, setOpen] = useState(false);
   const [smartPalettes, setSmartPalettes] = useState<SmartPalette[] | null>(null);
   const [smartLoading, setSmartLoading] = useState(false);
 
-  if (!editMode) return null;
+  if (!editMode && !docked) return null;
 
   const applyPreset = (p: (typeof CLASSIC_PALETTES)[number]) => {
     onApply({
@@ -138,28 +142,17 @@ export function ThemeQuickBar({ manifest, names, onApply }: ThemeQuickBarProps) 
     gap: 8,
   };
 
-  return (
-    <>
-      <button type="button" onClick={() => setOpen((o) => !o)} style={triggerStyle} aria-label="Quick theme change">
-        🎨 Theme
-      </button>
-      {open && (
-        <div
-          style={{
-            position: 'fixed',
-            right: 332,
-            bottom: 84,
-            zIndex: 41,
-            width: 320,
-            background: 'var(--cream, #FDFAF0)',
-            border: '1px solid var(--line, #E2D9C3)',
-            borderRadius: 16,
-            boxShadow: '0 20px 50px rgba(14,13,11,0.25)',
-            padding: 16,
-            maxHeight: '70vh',
-            overflowY: 'auto',
-          }}
-        >
+  // Docked: render just the body inside its parent.
+  if (docked) {
+    return (
+      <div
+        style={{
+          background: 'transparent',
+          padding: '14px 16px 28px',
+          overflowY: 'auto',
+          flex: 1,
+        }}
+      >
           <div
             style={{
               display: 'flex',
@@ -257,6 +250,63 @@ export function ThemeQuickBar({ manifest, names, onApply }: ThemeQuickBarProps) 
             }}
           >
             Classic palettes
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+            {CLASSIC_PALETTES.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => applyPreset(p)}
+                style={{
+                  padding: 10,
+                  borderRadius: 12,
+                  background: 'var(--cream-2, #F7F0E0)',
+                  border: '1px solid var(--line-soft)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  fontFamily: 'inherit',
+                }}
+              >
+                <div style={{ display: 'flex', gap: 2, marginBottom: 6 }}>
+                  {[p.background, p.accent, p.foreground, p.accentLight].map((c, i) => (
+                    <div key={i} style={{ width: 14, height: 18, background: c, borderRadius: 2 }} />
+                  ))}
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{p.name}</div>
+              </button>
+            ))}
+          </div>
+      </div>
+    );
+  }
+
+  // Floating (legacy) — trigger pill that pops the picker up from
+  // the bottom-right corner. Kept as a fallback entry point; the
+  // primary surface now lives in the inspector rail's Theme tab.
+  return (
+    <>
+      <button type="button" onClick={() => setOpen((o) => !o)} style={triggerStyle} aria-label="Quick theme change">
+        🎨 Theme
+      </button>
+      {open && (
+        <div
+          style={{
+            position: 'fixed',
+            right: 332,
+            bottom: 84,
+            zIndex: 41,
+            width: 320,
+            background: 'var(--cream, #FDFAF0)',
+            border: '1px solid var(--line, #E2D9C3)',
+            borderRadius: 16,
+            boxShadow: '0 20px 50px rgba(14,13,11,0.25)',
+            padding: 16,
+            maxHeight: '70vh',
+            overflowY: 'auto',
+          }}
+        >
+          <div style={{ fontFamily: 'var(--font-display, Fraunces, serif)', fontStyle: 'italic', fontSize: 18, marginBottom: 12 }}>
+            Theme
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
             {CLASSIC_PALETTES.map((p) => (

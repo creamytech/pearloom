@@ -34,6 +34,7 @@ export function PearCopilot({
   onOpenPanel,
   onOpenPreview,
   onPublish,
+  docked = false,
 }: {
   manifest: StoryManifest;
   names?: [string, string];
@@ -43,8 +44,12 @@ export function PearCopilot({
   onOpenPanel?: (panel: string) => void;
   onOpenPreview?: () => void;
   onPublish?: () => void;
+  /** When true, render the expanded body inline (no fixed
+   *  positioning, no close button) so it can live inside a rail
+   *  tab. Default false renders the legacy floating pill. */
+  docked?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(docked);
   const [working, setWorking] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [chat, setChat] = useState<ChatMessage[]>([]);
@@ -130,8 +135,9 @@ export function PearCopilot({
     }
   }, [input, manifest, names, analysis, ctx]);
 
-  // Collapsed pill
-  if (!open) {
+  // Collapsed pill — only when un-docked AND closed. When docked,
+  // we always render the expanded body so the rail tab can host it.
+  if (!docked && !open) {
     const critical = analysis.suggestions.filter((s) => s.severity === 'critical').length;
     return (
       <button
@@ -178,24 +184,35 @@ export function PearCopilot({
     );
   }
 
-  // Expanded panel
+  // Expanded panel — floating in legacy mode, flush in docked.
   return (
     <aside
-      style={{
-        position: 'fixed',
-        bottom: 22,
-        right: 22,
-        width: 'min(400px, 92vw)',
-        height: 'min(640px, 86vh)',
-        background: 'var(--cream)',
-        borderRadius: 20,
-        boxShadow: '0 30px 80px rgba(14,13,11,0.28)',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        zIndex: 999,
-        border: '1px solid var(--line-soft)',
-      }}
+      style={
+        docked
+          ? {
+              width: '100%',
+              height: '100%',
+              background: 'var(--cream)',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }
+          : {
+              position: 'fixed',
+              bottom: 22,
+              right: 22,
+              width: 'min(400px, 92vw)',
+              height: 'min(640px, 86vh)',
+              background: 'var(--cream)',
+              borderRadius: 20,
+              boxShadow: '0 30px 80px rgba(14,13,11,0.28)',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+              zIndex: 999,
+              border: '1px solid var(--line-soft)',
+            }
+      }
     >
       <header
         style={{
@@ -214,24 +231,26 @@ export function PearCopilot({
             {analysis.completeness}% complete · {analysis.suggestions.length} suggestion{analysis.suggestions.length === 1 ? '' : 's'}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => setOpen(false)}
-          aria-label="Close"
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: 8,
-            background: 'transparent',
-            border: '1px solid var(--line)',
-            display: 'grid',
-            placeItems: 'center',
-            cursor: 'pointer',
-            color: 'var(--ink)',
-          }}
-        >
-          <Icon name="close" size={12} />
-        </button>
+        {!docked && (
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            aria-label="Close"
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 8,
+              background: 'transparent',
+              border: '1px solid var(--line)',
+              display: 'grid',
+              placeItems: 'center',
+              cursor: 'pointer',
+              color: 'var(--ink)',
+            }}
+          >
+            <Icon name="close" size={12} />
+          </button>
+        )}
       </header>
 
       <div
