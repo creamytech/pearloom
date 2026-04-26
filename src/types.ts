@@ -1192,9 +1192,15 @@ export interface PlaceResult {
 export interface StickerItem {
   id: string;
   /** SVG component name when `type !== 'ai'`. For AI stickers this
-   *  becomes a short label only (e.g. 'ai sticker'). */
+   *  becomes a short label only (e.g. 'ai sticker'). For text
+   *  stickers this is the rendered string itself (legacy alias —
+   *  prefer `text` for new stickers). */
   name?: string;
-  type?: 'illustrations' | 'accents' | 'dividers' | 'ai';
+  /** 'text' adds a free-form positionable text overlay on top of
+   *  the editorial flow — Pearloom's contained answer to free-form
+   *  positioning. The strict block flow stays intact; text stickers
+   *  are the layer above. */
+  type?: 'illustrations' | 'accents' | 'dividers' | 'ai' | 'text';
   x: number;             // left % (0-100)
   y: number;             // top % (0-100)
   size?: number;         // px size (legacy SVG stickers)
@@ -1209,6 +1215,16 @@ export interface StickerItem {
   blockId?: string;
   /** 0.3–2 — proportional multiplier used by AI stickers. */
   scale?: number;
+  /** Text content for text stickers. */
+  text?: string;
+  /** Font family for text stickers. Defaults to display Fraunces. */
+  fontFamily?: 'display' | 'body' | 'mono';
+  /** Font size in px (pre-scale). Default 32. */
+  fontSize?: number;
+  /** Font weight 100-900. Default 600. */
+  fontWeight?: number;
+  /** Italic toggle for text stickers. */
+  italic?: boolean;
 }
 
 // ── Wedding Party ─────────────────────────────────────────────

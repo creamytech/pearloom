@@ -33,10 +33,12 @@ export function StickerLayer({ blockId, stickers, onEditField, children, style }
   const edit = useIsEditMode();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  // Only render stickers that are AI-generated (url set) AND anchored
-  // to this block. Legacy SVG stickers without a blockId render
-  // elsewhere in the tree.
-  const mine = (stickers ?? []).filter((s) => s.blockId === blockId && s.url);
+  // Render anchored stickers — either image-based (url set) or
+  // text-based (type === 'text', text set). Legacy SVG stickers
+  // without a blockId render elsewhere in the tree.
+  const mine = (stickers ?? []).filter(
+    (s) => s.blockId === blockId && (s.url || (s.type === 'text' && s.text)),
+  );
 
   // Delete the selected sticker on Backspace/Delete.
   useEffect(() => {
@@ -152,6 +154,17 @@ function StickerPiece({
 
   const onDoubleClick = () => {
     if (!isEditing) return;
+    if (sticker.type === 'text') {
+      // For text stickers, double-click opens an inline prompt to
+      // change the text instead of deleting (use × on chip or
+      // Backspace key to delete).
+      // eslint-disable-next-line no-alert
+      const next = window.prompt('Sticker text', sticker.text ?? '');
+      if (next !== null && next !== sticker.text) {
+        patchSticker({ text: next });
+      }
+      return;
+    }
     onEditField?.((m) => ({
       ...m,
       stickers: (m.stickers ?? []).filter((s) => s.id !== sticker.id),
@@ -176,7 +189,14 @@ function StickerPiece({
     patchSticker({ scale: next });
   };
 
+  const isText = sticker.type === 'text';
+  const fontFam =
+    sticker.fontFamily === 'mono' ? 'var(--font-mono)' :
+    sticker.fontFamily === 'body' ? 'var(--font-ui)' :
+    'var(--font-display, "Fraunces", serif)';
+  const fontSize = (sticker.fontSize ?? 32) * (sticker.scale ?? 1);
   const size = baseSize * (sticker.scale ?? 1);
+
   return (
     <div
       style={{
@@ -187,8 +207,8 @@ function StickerPiece({
         zIndex: isSelected ? 12 : 10,
         // Container takes the bounding box, the sticker rotates inside it
         // so the action chip stays upright above the sticker.
-        width: size,
-        height: size,
+        width: isText ? 'auto' : size,
+        height: isText ? 'auto' : size,
       }}
     >
       <div
@@ -196,22 +216,47 @@ function StickerPiece({
         onPointerDown={onPointerDown}
         onDoubleClick={onDoubleClick}
         title={isEditing ? 'Drag to move · Shift-drag to scale · Alt-drag to rotate' : undefined}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          transform: `rotate(${sticker.rotation}deg)`,
-          backgroundImage: `url(${sticker.url})`,
-          backgroundSize: 'contain',
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center',
-          filter: 'drop-shadow(0 6px 10px rgba(61,74,31,0.22))',
-          cursor: isEditing ? 'grab' : 'default',
-          outline: isEditing && isSelected ? '2px dashed var(--sage-deep, #5C6B3F)' : 'none',
-          outlineOffset: 4,
-          transition: isSelected ? 'none' : 'outline 140ms',
-          touchAction: 'none',
-        }}
-      />
+        style={
+          isText
+            ? {
+                position: 'relative',
+                transform: `rotate(${sticker.rotation}deg)`,
+                fontFamily: fontFam,
+                fontSize,
+                fontWeight: sticker.fontWeight ?? 600,
+                fontStyle: sticker.italic ? 'italic' : 'normal',
+                lineHeight: 1.05,
+                color: sticker.color ?? 'var(--ink, #0E0D0B)',
+                opacity: sticker.opacity ?? 1,
+                whiteSpace: 'pre',
+                userSelect: isEditing && isSelected ? 'text' : 'none',
+                cursor: isEditing ? 'grab' : 'default',
+                padding: '4px 8px',
+                outline: isEditing && isSelected ? '2px dashed var(--sage-deep, #5C6B3F)' : 'none',
+                outlineOffset: 4,
+                transition: isSelected ? 'none' : 'outline 140ms',
+                touchAction: 'none',
+                textShadow: '0 1px 0 rgba(255,255,255,0.4)',
+              }
+            : {
+                position: 'absolute',
+                inset: 0,
+                transform: `rotate(${sticker.rotation}deg)`,
+                backgroundImage: `url(${sticker.url})`,
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                filter: 'drop-shadow(0 6px 10px rgba(61,74,31,0.22))',
+                cursor: isEditing ? 'grab' : 'default',
+                outline: isEditing && isSelected ? '2px dashed var(--sage-deep, #5C6B3F)' : 'none',
+                outlineOffset: 4,
+                transition: isSelected ? 'none' : 'outline 140ms',
+                touchAction: 'none',
+              }
+        }
+      >
+        {isText ? (sticker.text ?? '') : null}
+      </div>
       {/* Action chip — appears above the sticker when selected. Sits
           OUTSIDE the rotated layer so it's always upright + readable. */}
       {isEditing && isSelected && (

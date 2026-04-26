@@ -206,6 +206,80 @@ export function BlockStylePanel({ manifest, blockId, label = 'Section style', on
         />
       </Field>
 
+      {/* Background */}
+      <Field
+        label="Background"
+        help="Tap a swatch for a quick wash, or pick a custom colour. Pear flips text contrast automatically."
+      >
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+          {[
+            { id: '', label: 'Inherit', sw: 'transparent', border: '1px dashed var(--line)' },
+            { id: 'paper', label: 'Paper', sw: 'var(--cream)' },
+            { id: 'wash', label: 'Wash', sw: 'radial-gradient(circle at 50% 30%, rgba(198,112,61,0.18), transparent 70%)' },
+            { id: 'mesh', label: 'Mesh', sw: 'radial-gradient(circle at 20% 30%, #F4C7A4 0%, transparent 60%), radial-gradient(circle at 80% 70%, #C9D6B5 0%, transparent 60%)' },
+          ].map((p) => {
+            const on = (current.background ?? '') === p.id;
+            return (
+              <button
+                key={p.id || 'inherit'}
+                type="button"
+                onClick={() => set({ background: (p.id || undefined) as BlockStyleOverride['background'] })}
+                title={p.label}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '4px 8px 4px 4px',
+                  borderRadius: 999,
+                  background: 'var(--card)',
+                  border: on ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid var(--line)',
+                  cursor: 'pointer',
+                  fontSize: 11,
+                  fontWeight: on ? 700 : 500,
+                  color: 'var(--ink)',
+                  fontFamily: 'inherit',
+                }}
+              >
+                <span
+                  aria-hidden
+                  style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: 999,
+                    background: p.sw,
+                    border: p.border ?? '1px solid var(--line-soft)',
+                  }}
+                />
+                {p.label}
+              </button>
+            );
+          })}
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input
+            type="color"
+            value={
+              current.background && current.background.startsWith('#')
+                ? current.background
+                : '#FBF7EE'
+            }
+            onChange={(e) => set({ background: e.target.value })}
+            style={{
+              width: 38,
+              height: 32,
+              padding: 2,
+              border: '1px solid var(--line)',
+              borderRadius: 6,
+              background: 'var(--card)',
+              cursor: 'pointer',
+            }}
+          />
+          <span style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>
+            Custom colour — text contrast auto-adjusts.
+          </span>
+        </div>
+      </Field>
+
       {/* Text colour */}
       <Field label="Text colour">
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>

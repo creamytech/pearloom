@@ -111,11 +111,67 @@ export function StickerTrayPanel({
     } as StoryManifest);
   }
 
+  function addTextSticker() {
+    const id = `text-${Date.now().toString(36)}`;
+    onChange({
+      ...manifest,
+      stickers: [
+        ...(manifest.stickers ?? []),
+        {
+          id,
+          type: 'text',
+          text: 'Save the date',
+          fontFamily: 'display',
+          fontSize: 36,
+          fontWeight: 600,
+          italic: true,
+          x: 50,
+          y: 30,
+          rotation: -4,
+          scale: 1,
+          opacity: 1,
+          blockId: 'hero',
+        },
+      ],
+    } as StoryManifest);
+  }
+
   return (
     <PanelSection
       label="Stickers"
       hint="Ask Pear to draw a custom sticker. It'll drop onto the hero — drag it anywhere, Shift-drag to scale, Alt-drag to rotate."
     >
+      {/* Free-form text sticker — Pearloom's contained answer to
+          Wix-style free positioning. Drops a draggable text overlay
+          onto the hero that the user can move, rotate, scale, edit. */}
+      <button
+        type="button"
+        onClick={addTextSticker}
+        style={{
+          width: '100%',
+          padding: '10px 14px',
+          marginBottom: 14,
+          borderRadius: 10,
+          border: '1px dashed var(--peach-ink, #C6703D)',
+          background: 'var(--peach-bg, #FCE6D7)',
+          color: 'var(--peach-ink, #C6703D)',
+          fontSize: 12.5,
+          fontWeight: 700,
+          fontFamily: 'var(--font-ui)',
+          cursor: 'pointer',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          letterSpacing: '0.04em',
+        }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 7V4h16v3M9 20h6M12 5v15" />
+        </svg>
+        Add a text overlay
+      </button>
+
       <Field label="Describe your sticker (optional)">
         <TextInput
           value={hint}
