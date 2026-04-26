@@ -7,7 +7,8 @@
 
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
-import { DashShell, Topbar, Panel, SectionTitle, EmptyShell, btnInk, btnGhost } from './DashShell';
+import { Panel, SectionTitle, EmptyShell, btnInk, btnGhost } from './DashShell';
+import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 
 interface Announcement {
@@ -153,16 +154,16 @@ export function DashDayOf() {
 
   if (!siteLoading && (!sites || sites.length === 0)) {
     return (
-      <DashShell>
+      <DashLayout active="timeline" title="Day-of room" subtitle="Create a site first — the day-of room shows up once an event is on the calendar.">
         <EmptyShell message="Create a site first — the day-of room shows up once an event is on the calendar." />
-      </DashShell>
+      </DashLayout>
     );
   }
   if (!site) {
     return (
-      <DashShell>
+      <DashLayout active="timeline" title="Day-of room" subtitle="Pick a site from the top-right menu to open its day-of room.">
         <EmptyShell message="Pick a site from the top-right menu to open its day-of room." />
-      </DashShell>
+      </DashLayout>
     );
   }
 
@@ -197,43 +198,40 @@ export function DashDayOf() {
   }, [schedule, now, isDayOf]);
 
   return (
-    <DashShell>
-      <Topbar
-        subtitle={`DAY-OF ROOM · ${siteName.toUpperCase()}`}
-        title={
-          targetDate ? (
-            <span>
-              {targetDate.toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'short',
-                day: 'numeric',
-              })}
-              ,{' '}
-              <i style={{ color: PD.terra, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-                {targetDate.getFullYear()}
-              </i>
-            </span>
-          ) : (
-            <span>
-              Set a date to light up the{' '}
-              <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-                day-of room.
-              </i>
-            </span>
-          )
-        }
-        actions={
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            {isDayOf && <LiveDot />}
-            <button style={btnGhost} onClick={() => void loadAll()}>
-              ↻ Refresh
-            </button>
-          </div>
-        }
-      >
-        One source of truth for everyone running today. Announcements push live to guests, vendors
-        stay visible, the schedule updates as the day unfolds.
-      </Topbar>
+    <DashLayout
+      active="timeline"
+      title={
+        targetDate ? (
+          <span>
+            {targetDate.toLocaleDateString('en-US', {
+              weekday: 'long',
+              month: 'short',
+              day: 'numeric',
+            })}
+            ,{' '}
+            <i style={{ color: PD.terra, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+              {targetDate.getFullYear()}
+            </i>
+          </span>
+        ) : (
+          <span>
+            Set a date to light up the{' '}
+            <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+              day-of room.
+            </i>
+          </span>
+        )
+      }
+      subtitle="One source of truth for everyone running today. Announcements push live to guests, vendors stay visible, the schedule updates as the day unfolds."
+      actions={
+        <>
+          {isDayOf && <LiveDot />}
+          <button style={btnGhost} onClick={() => void loadAll()}>
+            ↻ Refresh
+          </button>
+        </>
+      }
+    >
 
       <main
         className="pd-dayof-main"
@@ -608,7 +606,7 @@ export function DashDayOf() {
           }
         }
       `}</style>
-    </DashShell>
+    </DashLayout>
   );
 }
 

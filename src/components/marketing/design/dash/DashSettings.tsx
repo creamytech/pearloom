@@ -9,7 +9,8 @@ import { useState, type CSSProperties } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { Bloom } from '@/components/brand/groove';
 import { Pear, PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
-import { DashShell, Topbar, Panel, SectionTitle, btnInk, btnGhost, btnMini } from './DashShell';
+import { Panel, SectionTitle, btnInk, btnGhost, btnMini } from './DashShell';
+import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { useUserPrefs, useUserSites, type AutonomyKey, type PearVoice } from './hooks';
 
 type Section = 'profile' | 'pear' | 'domain' | 'privacy' | 'billing' | 'export' | 'danger';
@@ -43,34 +44,32 @@ export function DashSettings() {
   };
 
   return (
-    <DashShell>
-      <Topbar
-        subtitle="SETTINGS"
-        title={
-          <span>
-            Your{' '}
-            <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-              preferences
-            </i>
-            , woven in.
-          </span>
-        }
-        actions={
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            {saveState === 'saving' && (
-              <span style={{ ...MONO_STYLE, fontSize: 10, color: PD.olive }}>SAVING…</span>
-            )}
-            {saveState === 'saved' && (
-              <span style={{ ...MONO_STYLE, fontSize: 10, color: PD.olive }}>SAVED ✓</span>
-            )}
-            <button style={btnGhost} onClick={() => void signOut({ callbackUrl: '/' })}>
-              Sign out
-            </button>
-          </div>
-        }
-      >
-        Pear learns from every tweak. The more you adjust, the more she matches your voice.
-      </Topbar>
+    <DashLayout
+      active="settings"
+      title={
+        <span>
+          Your{' '}
+          <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+            preferences
+          </i>
+          , woven in.
+        </span>
+      }
+      subtitle="Pear learns from every tweak. The more you adjust, the more she matches your voice."
+      actions={
+        <>
+          {saveState === 'saving' && (
+            <span style={{ ...MONO_STYLE, fontSize: 10, color: PD.olive }}>SAVING…</span>
+          )}
+          {saveState === 'saved' && (
+            <span style={{ ...MONO_STYLE, fontSize: 10, color: PD.olive }}>SAVED ✓</span>
+          )}
+          <button style={btnGhost} onClick={() => void signOut({ callbackUrl: '/' })}>
+            Sign out
+          </button>
+        </>
+      }
+    >
 
       <main
         className="pd-settings-main"
@@ -659,7 +658,7 @@ export function DashSettings() {
         <span style={btnMini}>x</span>
         <Pear size={10} />
       </div>
-    </DashShell>
+    </DashLayout>
   );
 }
 

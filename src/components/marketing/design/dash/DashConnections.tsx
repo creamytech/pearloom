@@ -12,7 +12,8 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { Bloom, Sparkle } from '@/components/brand/groove';
 import { Pear, PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
-import { DashShell, Topbar, Panel, SectionTitle, EmptyShell, btnInk, btnGhost, btnMini, btnMiniGhost } from './DashShell';
+import { Panel, SectionTitle, EmptyShell, btnInk, btnGhost, btnMini, btnMiniGhost } from './DashShell';
+import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { siteDisplayName, useUserSites, type SiteSummary } from './hooks';
 
 interface CelebrationRef {
@@ -122,34 +123,30 @@ export function DashConnections() {
 
   if (!loading && (!sites || sites.length === 0)) {
     return (
-      <DashShell>
+      <DashLayout active="connections" title="Connections" subtitle="Create two sites first and you can weave them together here.">
         <EmptyShell message="Create two sites first and you can weave them together here." />
-      </DashShell>
+      </DashLayout>
     );
   }
 
   return (
-    <DashShell>
-      <Topbar
-        subtitle={`CONNECTIONS · ${celebrations.length} ${celebrations.length === 1 ? 'CELEBRATION' : 'CELEBRATIONS'}`}
-        title={
-          <span>
-            One weekend,{' '}
-            <i style={{ color: PD.plum, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-              many threads.
-            </i>
-          </span>
-        }
-        actions={
-          <Link href="/wizard/new" style={{ ...btnInk, textDecoration: 'none' }}>
-            ✦ New site
-          </Link>
-        }
-      >
-        Pearloom celebrations group sibling sites together. A wedding weekend with a rehearsal dinner + brunch. A
-        memorial with a family directory. A reunion split across three days. Each site still has its own host, its
-        own guests, its own voice — but they link into one story.
-      </Topbar>
+    <DashLayout
+      active="connections"
+      title={
+        <span>
+          One weekend,{' '}
+          <i style={{ color: PD.plum, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+            many threads.
+          </i>
+        </span>
+      }
+      subtitle="Pearloom celebrations group sibling sites together. A wedding weekend with a rehearsal dinner + brunch. A memorial with a family directory. A reunion split across three days. Each site still has its own host, its own guests, its own voice — but they link into one story."
+      actions={
+        <Link href="/wizard/new" style={{ ...btnInk, textDecoration: 'none' }}>
+          ✦ New site
+        </Link>
+      }
+    >
 
       <main
         className="pd-connections-main"
@@ -385,7 +382,7 @@ export function DashConnections() {
         <button style={btnMini}>x</button>
         <button style={btnGhost}>x</button>
       </div>
-    </DashShell>
+    </DashLayout>
   );
 }
 

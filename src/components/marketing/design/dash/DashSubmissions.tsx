@@ -6,7 +6,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
-import { DashShell, Topbar, Panel, EmptyShell, btnInk, btnGhost, btnMini, btnMiniGhost } from './DashShell';
+import { Panel, EmptyShell, btnInk, btnGhost, btnMini, btnMiniGhost } from './DashShell';
+import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getEventType } from '@/lib/event-os/event-types';
 import { getSubmissionKinds } from '@/lib/event-os/dashboard-presets';
@@ -201,54 +202,52 @@ export function DashSubmissions() {
 
   if (!siteLoading && (!sites || sites.length === 0)) {
     return (
-      <DashShell>
+      <DashLayout active="submissions" title="Submissions" subtitle="Create a site first — Pear needs somewhere for submissions to land.">
         <EmptyShell message="Create a site first — Pear needs somewhere for submissions to land." />
-      </DashShell>
+      </DashLayout>
     );
   }
   if (!site) {
     return (
-      <DashShell>
+      <DashLayout active="submissions" title="Submissions" subtitle="Pick a site from the top-right menu to see its submissions.">
         <EmptyShell message="Pick a site from the top-right menu to see its submissions." />
-      </DashShell>
+      </DashLayout>
     );
   }
 
   const siteName = siteDisplayName(site);
 
   return (
-    <DashShell>
-      <Topbar
-        subtitle={`SUBMISSIONS · ${siteName.toUpperCase()}`}
-        title={
-          subs.length > 0 ? (
-            <span>
-              Friends are{' '}
-              <i style={{ color: PD.terra, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-                weaving
-              </i>{' '}
-              the reel.
-            </span>
-          ) : (
-            <span>
-              <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-                Nothing yet.
-              </i>{' '}
-              Share the submission link.
-            </span>
-          )
-        }
-        actions={
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button style={btnGhost}>Submission link</button>
-            <button style={btnInk} onClick={() => void loadAll(site.domain)}>
-              ↻ Refresh
-            </button>
-          </div>
-        }
-      >
-        {submissionsBody}
-      </Topbar>
+    <DashLayout
+      active="submissions"
+      title={
+        subs.length > 0 ? (
+          <span>
+            Friends are{' '}
+            <i style={{ color: PD.terra, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+              weaving
+            </i>{' '}
+            the reel.
+          </span>
+        ) : (
+          <span>
+            <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+              Nothing yet.
+            </i>{' '}
+            Share the submission link.
+          </span>
+        )
+      }
+      subtitle={submissionsBody}
+      actions={
+        <>
+          <button style={btnGhost}>Submission link</button>
+          <button style={btnInk} onClick={() => void loadAll(site.domain)}>
+            ↻ Refresh
+          </button>
+        </>
+      }
+    >
 
       <main style={{ padding: '20px 40px 60px' }}>
         {error && (
@@ -439,6 +438,6 @@ export function DashSubmissions() {
           </div>
         )}
       </main>
-    </DashShell>
+    </DashLayout>
   );
 }

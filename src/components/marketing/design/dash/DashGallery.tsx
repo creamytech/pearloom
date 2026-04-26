@@ -6,7 +6,8 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
-import { DashShell, Topbar, Panel, EmptyShell, btnInk } from './DashShell';
+import { Panel, EmptyShell, btnInk } from './DashShell';
+import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { useUserSites } from './hooks';
 
 interface ReelPhoto {
@@ -67,9 +68,9 @@ export function DashGallery() {
 
   if (!sitesLoading && (!sites || sites.length === 0)) {
     return (
-      <DashShell>
+      <DashLayout active="gallery" title="The Reel" subtitle="Create a site and upload a photo — your Reel fills up as you go.">
         <EmptyShell message="Create a site and upload a photo — your Reel fills up as you go." />
-      </DashShell>
+      </DashLayout>
     );
   }
 
@@ -82,64 +83,59 @@ export function DashGallery() {
   }, [photos]);
 
   return (
-    <DashShell>
-      <Topbar
-        subtitle={`THE REEL · ${counts.all} PIECE${counts.all === 1 ? '' : 'S'}`}
-        title={
-          counts.all > 0 ? (
-            <span>
-              Every frame,{' '}
-              <i style={{ color: PD.plum, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-                in one place.
-              </i>
-            </span>
-          ) : (
-            <span>
-              Your Reel is{' '}
-              <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-                empty.
-              </i>
-            </span>
-          )
-        }
-        actions={
-          <div style={{ display: 'flex', gap: 10 }}>
-            <div
+    <DashLayout
+      active="gallery"
+      title={
+        counts.all > 0 ? (
+          <span>
+            Every frame,{' '}
+            <i style={{ color: PD.plum, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+              in one place.
+            </i>
+          </span>
+        ) : (
+          <span>
+            Your Reel is{' '}
+            <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+              empty.
+            </i>
+          </span>
+        )
+      }
+      subtitle="Every photograph across every site you've made — covers, heroes, chapters, guest submissions. Tap any to open full-size."
+      actions={
+        <div
+          style={{
+            display: 'flex',
+            background: PD.paper3,
+            borderRadius: 999,
+            padding: 3,
+            border: '1px solid rgba(31,36,24,0.1)',
+          }}
+        >
+          {(['masonry', 'strip', 'slideshow'] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
               style={{
-                display: 'flex',
-                background: PD.paper3,
+                padding: '6px 14px',
+                fontSize: 12,
                 borderRadius: 999,
-                padding: 3,
-                border: '1px solid rgba(31,36,24,0.1)',
+                background: view === v ? PD.ink : 'transparent',
+                color: view === v ? PD.paper : PD.ink,
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                textTransform: 'capitalize',
+                fontWeight: 500,
               }}
             >
-              {(['masonry', 'strip', 'slideshow'] as const).map((v) => (
-                <button
-                  key={v}
-                  onClick={() => setView(v)}
-                  style={{
-                    padding: '6px 14px',
-                    fontSize: 12,
-                    borderRadius: 999,
-                    background: view === v ? PD.ink : 'transparent',
-                    color: view === v ? PD.paper : PD.ink,
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                    textTransform: 'capitalize',
-                    fontWeight: 500,
-                  }}
-                >
-                  {v}
-                </button>
-              ))}
-            </div>
-          </div>
-        }
-      >
-        Every photograph across every site you&rsquo;ve made — covers, heroes, chapters, guest
-        submissions. Tap any to open full-size.
-      </Topbar>
+              {v}
+            </button>
+          ))}
+        </div>
+      }
+    >
 
       <main style={{ padding: '10px 40px 60px' }}>
         {error && (
@@ -191,7 +187,7 @@ export function DashGallery() {
       </main>
 
       {active && <Lightbox photo={active} onClose={() => setActive(null)} />}
-    </DashShell>
+    </DashLayout>
   );
 }
 

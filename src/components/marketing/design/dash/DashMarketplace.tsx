@@ -10,7 +10,8 @@ import { COLOR_THEMES } from '@/lib/templates/color-themes';
 import { BLOCK_TEMPLATES } from '@/lib/block-engine/templates';
 import { Bloom } from '@/components/brand/groove';
 import { Pear, PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
-import { DashShell, Topbar, Panel, btnInk, btnGhost, btnMini, btnMiniGhost } from './DashShell';
+import { Panel, btnInk, btnGhost, btnMini, btnMiniGhost } from './DashShell';
+import { DashLayout } from '@/components/pearloom/dash/DashShell';
 
 type TabId = 'templates' | 'themes' | 'blocks';
 
@@ -76,61 +77,56 @@ export function DashMarketplace() {
   }, [search]);
 
   return (
-    <DashShell>
-      <Topbar
-        subtitle="MARKETPLACE"
-        title={
-          <span>
-            The{' '}
-            <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-              starting points
-            </i>
-            .
+    <DashLayout
+      active="marketplace"
+      title={
+        <span>
+          The{' '}
+          <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+            starting points
+          </i>
+          .
+        </span>
+      }
+      subtitle="Hand-crafted templates, color palettes, and block presets. Every one of them is included on every plan — browse and apply to any of your sites."
+      actions={
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            background: PD.paper3,
+            borderRadius: 999,
+            padding: '8px 14px',
+            border: '1px solid rgba(31,36,24,0.1)',
+          }}
+        >
+          <span
+            style={{
+              fontSize: 13,
+              opacity: 0.5,
+              fontFamily: '"Fraunces", Georgia, serif',
+            }}
+          >
+            ✦
           </span>
-        }
-        actions={
-          <div style={{ display: 'flex', gap: 10 }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                background: PD.paper3,
-                borderRadius: 999,
-                padding: '8px 14px',
-                border: '1px solid rgba(31,36,24,0.1)',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 13,
-                  opacity: 0.5,
-                  fontFamily: '"Fraunces", Georgia, serif',
-                }}
-              >
-                ✦
-              </span>
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search templates, themes…"
-                style={{
-                  border: 'none',
-                  background: 'transparent',
-                  outline: 'none',
-                  fontFamily: 'inherit',
-                  fontSize: 13,
-                  color: PD.ink,
-                  width: 220,
-                }}
-              />
-            </div>
-          </div>
-        }
-      >
-        Hand-crafted templates, color palettes, and block presets. Every one of them is included
-        on every plan — browse and apply to any of your sites.
-      </Topbar>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search templates, themes…"
+            style={{
+              border: 'none',
+              background: 'transparent',
+              outline: 'none',
+              fontFamily: 'inherit',
+              fontSize: 13,
+              color: PD.ink,
+              width: 220,
+            }}
+          />
+        </div>
+      }
+    >
 
       <main style={{ padding: '20px 40px 60px' }}>
         {/* Tabs */}
@@ -497,6 +493,6 @@ export function DashMarketplace() {
       <div aria-hidden style={{ display: 'none' }}>
         <button style={btnGhost}>x</button>
       </div>
-    </DashShell>
+    </DashLayout>
   );
 }

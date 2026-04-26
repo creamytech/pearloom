@@ -7,7 +7,8 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { Bloom, Swirl } from '@/components/brand/groove';
 import { Pear, Pearl, Pill, Squiggle, PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
-import { DashShell, Topbar, Panel, SectionTitle, btnInk, btnGhost } from './DashShell';
+import { Panel, SectionTitle, btnInk, btnGhost } from './DashShell';
+import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { siteDisplayName, useUserSites, type SiteSummary } from './hooks';
 
 const PATHS = [
@@ -67,86 +68,86 @@ export function DashSites() {
   const hasSites = (sites?.length ?? 0) > 0;
 
   return (
-    <DashShell>
-      <Topbar
-        subtitle={greeting}
-        title={
-          hasSites ? (
-            <span>
-              Your{' '}
-              <span
-                style={{
-                  fontStyle: 'italic',
-                  color: PD.olive,
-                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                }}
-              >
-                loom
-              </span>
-              , woven.
-            </span>
-          ) : (
-            <span>
-              Your{' '}
-              <span
-                style={{
-                  fontStyle: 'italic',
-                  color: PD.olive,
-                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                }}
-              >
-                loom
-              </span>{' '}
-              is empty.
-            </span>
-          )
-        }
-        actions={
-          <>
-            <div
+    <DashLayout
+      active="sites"
+      title={
+        hasSites ? (
+          <span>
+            Your{' '}
+            <span
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '6px 14px',
-                background: PD.paper3,
-                border: '1px solid rgba(31,36,24,0.1)',
-                borderRadius: 999,
+                fontStyle: 'italic',
+                color: PD.olive,
+                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
               }}
             >
-              <Pearl size={8} />
-              <div>
-                <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.6 }}>SITES</div>
-                <div style={{ fontSize: 12, fontWeight: 600 }}>{sites?.length ?? 0} hosted</div>
-              </div>
-            </div>
-            <Link
-              href="/wizard/new"
+              loom
+            </span>
+            , woven.
+          </span>
+        ) : (
+          <span>
+            Your{' '}
+            <span
               style={{
-                background: PD.ink,
-                color: PD.paper,
-                border: 'none',
-                borderRadius: 999,
-                padding: '12px 20px',
-                fontSize: 14,
-                fontWeight: 500,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                fontFamily: 'inherit',
-                textDecoration: 'none',
+                fontStyle: 'italic',
+                color: PD.olive,
+                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
               }}
             >
-              ✦ Begin a new site
-            </Link>
-          </>
-        }
-      >
-        {hasSites
+              loom
+            </span>{' '}
+            is empty.
+          </span>
+        )
+      }
+      subtitle={
+        hasSites
           ? 'Pick up where you left off, or weave something new.'
-          : 'One thread is enough to start. The first site is yours to keep, free, forever.'}
-      </Topbar>
+          : 'One thread is enough to start. The first site is yours to keep, free, forever.'
+      }
+      actions={
+        <>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '6px 14px',
+              background: PD.paper3,
+              border: '1px solid rgba(31,36,24,0.1)',
+              borderRadius: 999,
+            }}
+          >
+            <Pearl size={8} />
+            <div>
+              <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.6 }}>SITES</div>
+              <div style={{ fontSize: 12, fontWeight: 600 }}>{sites?.length ?? 0} hosted</div>
+            </div>
+          </div>
+          <Link
+            href="/wizard/new"
+            style={{
+              background: PD.ink,
+              color: PD.paper,
+              border: 'none',
+              borderRadius: 999,
+              padding: '12px 20px',
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              fontFamily: 'inherit',
+              textDecoration: 'none',
+            }}
+          >
+            ✦ Begin a new site
+          </Link>
+        </>
+      }
+    >
 
       <main style={{ padding: '24px 40px 80px' }}>
         {error && (
@@ -193,7 +194,7 @@ export function DashSites() {
           }
         }
       `}</style>
-    </DashShell>
+    </DashLayout>
   );
 }
 

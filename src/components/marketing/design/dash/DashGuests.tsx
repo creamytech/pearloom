@@ -6,7 +6,8 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Bloom } from '@/components/brand/groove';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
-import { DashShell, Topbar, Panel, SectionTitle, EmptyShell, btnInk, btnGhost } from './DashShell';
+import { Panel, SectionTitle, EmptyShell, btnInk, btnGhost } from './DashShell';
+import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getEventType } from '@/lib/event-os/event-types';
 import { GuestImportDialog } from '@/components/dashboard/GuestImportDialog';
@@ -199,16 +200,16 @@ export function DashGuests() {
 
   if (!siteLoading && (!sites || sites.length === 0)) {
     return (
-      <DashShell>
+      <DashLayout active="guests" title="Guests" subtitle="Create a site first, then invite guests.">
         <EmptyShell message="Create a site first, then invite guests." />
-      </DashShell>
+      </DashLayout>
     );
   }
   if (!site) {
     return (
-      <DashShell>
+      <DashLayout active="guests" title="Guests" subtitle="Pick a site from the top-right menu to see its guests.">
         <EmptyShell message="Pick a site from the top-right menu to see its guests." />
-      </DashShell>
+      </DashLayout>
     );
   }
 
@@ -218,47 +219,49 @@ export function DashGuests() {
   const copy = guestCopy(site?.occasion);
 
   return (
-    <DashShell>
-      <Topbar
-        subtitle={`GUESTS · ${siteName.toUpperCase()}`}
-        title={
-          hasGuests ? (
-            <span>
-              <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-                {counts.yes}
-              </i>{' '}
-              {copy.verbComing},{' '}
-              <i style={{ color: PD.gold, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-                {counts.maybe}
-              </i>{' '}
-              maybe,{' '}
-              <i style={{ color: PD.plum, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-                {counts.pending}
-              </i>{' '}
-              {copy.verbQuiet}.
-            </span>
-          ) : (
-            <span>
-              No guests{' '}
-              <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-                yet.
-              </i>
-            </span>
-          )
-        }
-        actions={
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button style={btnGhost} onClick={() => setImportOpen(true)}>Import CSV</button>
-            <button style={btnInk}>✦ Add a guest</button>
-          </div>
-        }
-      >
-        {copy.topSubtitle}
-        {siteName ? ` · ${siteName}.` : '.'}
-        {site?.occasion === 'memorial' || site?.occasion === 'funeral'
-          ? ' Pear checks in quietly — no follow-ups unless you ask.'
-          : ' Pear is following up on the quiet ones once a week.'}
-      </Topbar>
+    <DashLayout
+      active="guests"
+      title={
+        hasGuests ? (
+          <span>
+            <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+              {counts.yes}
+            </i>{' '}
+            {copy.verbComing},{' '}
+            <i style={{ color: PD.gold, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+              {counts.maybe}
+            </i>{' '}
+            maybe,{' '}
+            <i style={{ color: PD.plum, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+              {counts.pending}
+            </i>{' '}
+            {copy.verbQuiet}.
+          </span>
+        ) : (
+          <span>
+            No guests{' '}
+            <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+              yet.
+            </i>
+          </span>
+        )
+      }
+      subtitle={
+        <>
+          {copy.topSubtitle}
+          {siteName ? ` · ${siteName}.` : '.'}
+          {site?.occasion === 'memorial' || site?.occasion === 'funeral'
+            ? ' Pear checks in quietly — no follow-ups unless you ask.'
+            : ' Pear is following up on the quiet ones once a week.'}
+        </>
+      }
+      actions={
+        <>
+          <button style={btnGhost} onClick={() => setImportOpen(true)}>Import CSV</button>
+          <button style={btnInk}>✦ Add a guest</button>
+        </>
+      }
+    >
 
       <main
         className="pd-guests-main"
@@ -651,7 +654,7 @@ export function DashGuests() {
         onClose={() => setImportOpen(false)}
         onImported={() => setRefreshKey((k) => k + 1)}
       />
-    </DashShell>
+    </DashLayout>
   );
 }
 

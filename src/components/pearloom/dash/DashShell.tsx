@@ -570,11 +570,20 @@ export function DashTopbar({
   subtitle,
   ctaText,
   ctaHref,
+  actions,
+  showHeart = true,
 }: {
   title?: ReactNode;
   subtitle?: ReactNode;
   ctaText?: string;
   ctaHref?: string;
+  /** Free-form actions area absolutely positioned to top-right.
+   *  Use this when ctaText/ctaHref isn't enough (multiple buttons,
+   *  status text + buttons, custom controls). */
+  actions?: ReactNode;
+  /** Hide the peach heart accent — for pages where it doesn't fit
+   *  the tone (e.g. memorial / funeral dashboards). */
+  showHeart?: boolean;
 }) {
   return (
     <div
@@ -607,9 +616,11 @@ export function DashTopbar({
         }}
       >
         {title}
-        <span style={{ display: 'inline-flex', color: 'var(--peach-ink, #C6703D)' }}>
-          <Heart size={20} />
-        </span>
+        {showHeart && (
+          <span style={{ display: 'inline-flex', color: 'var(--peach-ink, #C6703D)' }}>
+            <Heart size={20} />
+          </span>
+        )}
       </h1>
       {subtitle && (
         <div
@@ -626,21 +637,33 @@ export function DashTopbar({
           {subtitle}
         </div>
       )}
-      {ctaText && ctaHref && (
-        <Link
-          href={ctaHref}
-          className="btn btn-primary"
+      {(actions || (ctaText && ctaHref)) && (
+        <div
           style={{
             position: 'absolute',
             top: 'clamp(28px, 5vw, 48px)',
             right: 'clamp(20px, 4vw, 56px)',
-            transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+            display: 'flex',
+            gap: 10,
+            alignItems: 'center',
+            flexWrap: 'wrap',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
-          onMouseLeave={(e) => (e.currentTarget.style.transform = '')}
         >
-          {ctaText} <Pear size={14} tone="cream" shadow={false} />
-        </Link>
+          {actions}
+          {ctaText && ctaHref && (
+            <Link
+              href={ctaHref}
+              className="btn btn-primary"
+              style={{
+                transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = '')}
+            >
+              {ctaText} <Pear size={14} tone="cream" shadow={false} />
+            </Link>
+          )}
+        </div>
       )}
     </div>
   );
@@ -652,6 +675,8 @@ export function DashLayout({
   subtitle,
   ctaText,
   ctaHref,
+  actions,
+  showHeart,
   children,
   hideTopbar = false,
 }: {
@@ -660,6 +685,8 @@ export function DashLayout({
   subtitle?: ReactNode;
   ctaText?: string;
   ctaHref?: string;
+  actions?: ReactNode;
+  showHeart?: boolean;
   children?: ReactNode;
   hideTopbar?: boolean;
 }) {
@@ -674,7 +701,16 @@ export function DashLayout({
   if (insideShell) {
     return (
       <>
-        {!hideTopbar && <DashTopbar title={title} subtitle={subtitle} ctaText={ctaText} ctaHref={ctaHref} />}
+        {!hideTopbar && (
+          <DashTopbar
+            title={title}
+            subtitle={subtitle}
+            ctaText={ctaText}
+            ctaHref={ctaHref}
+            actions={actions}
+            showHeart={showHeart}
+          />
+        )}
         {children}
       </>
     );
@@ -689,7 +725,16 @@ export function DashLayout({
           <Squiggle variant={1} width={180} style={{ position: 'absolute', top: 40, right: 200, transform: 'rotate(-15deg)', opacity: 0.6 }} />
         </div>
         <div style={{ position: 'relative', zIndex: 1 }}>
-          {!hideTopbar && <DashTopbar title={title} subtitle={subtitle} ctaText={ctaText} ctaHref={ctaHref} />}
+          {!hideTopbar && (
+            <DashTopbar
+              title={title}
+              subtitle={subtitle}
+              ctaText={ctaText}
+              ctaHref={ctaHref}
+              actions={actions}
+              showHeart={showHeart}
+            />
+          )}
           {children}
         </div>
       </main>

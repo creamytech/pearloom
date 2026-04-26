@@ -9,7 +9,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import Link from 'next/link';
 import { Bloom } from '@/components/brand/groove';
 import { Pear, PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
-import { DashShell, Topbar, Panel, SectionTitle, EmptyShell, btnInk, btnGhost, btnMini, btnMiniGhost } from './DashShell';
+import { Panel, SectionTitle, EmptyShell, btnInk, btnGhost, btnMini, btnMiniGhost } from './DashShell';
+import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getDirectorTimeline, type TimelineStage } from '@/lib/event-os/dashboard-presets';
 
@@ -208,16 +209,16 @@ export function DashDirector() {
 
   if (!sitesLoading && (!sites || sites.length === 0)) {
     return (
-      <DashShell>
+      <DashLayout active="studio" title="The Director" subtitle="Create a site first — Pear needs something to plan.">
         <EmptyShell message="Create a site first — Pear needs something to plan." />
-      </DashShell>
+      </DashLayout>
     );
   }
   if (!site) {
     return (
-      <DashShell>
+      <DashLayout active="studio" title="The Director" subtitle="Pick a site from the top-right menu to start planning.">
         <EmptyShell message="Pick a site from the top-right menu to start planning." />
-      </DashShell>
+      </DashLayout>
     );
   }
 
@@ -252,55 +253,52 @@ export function DashDirector() {
   }));
 
   return (
-    <DashShell>
-      <Topbar
-        subtitle={`THE DIRECTOR · ${siteName.toUpperCase()}`}
-        title={
-          <span>
-            {daysToGo !== null ? (
-              <>
-                <span
-                  style={{
-                    fontStyle: 'italic',
-                    color: PD.olive,
-                    fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                  }}
-                >
-                  {daysToGo}
-                </span>{' '}
-                days to the day.
-              </>
-            ) : (
-              <>
-                Tell Pear what you&rsquo;re{' '}
-                <span
-                  style={{
-                    fontStyle: 'italic',
-                    color: PD.olive,
-                    fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                  }}
-                >
-                  planning
-                </span>
-                .
-              </>
-            )}
-          </span>
-        }
-        actions={
-          <div style={{ display: 'flex', gap: 10 }}>
-            <Link href={`/editor/${site.domain}`} style={{ ...btnGhost, textDecoration: 'none' }}>
-              Open site →
-            </Link>
-            <button style={btnInk} onClick={() => send('Give me this week at a glance.')}>
-              ✦ Ask Pear
-            </button>
-          </div>
-        }
-      >
-        Pear holds your budget, city, guest count, timeline, and every conversation so far. Ask,
-        plan, or just think out loud.
-      </Topbar>
+    <DashLayout
+      active="studio"
+      title={
+        <span>
+          {daysToGo !== null ? (
+            <>
+              <span
+                style={{
+                  fontStyle: 'italic',
+                  color: PD.olive,
+                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                }}
+              >
+                {daysToGo}
+              </span>{' '}
+              days to the day.
+            </>
+          ) : (
+            <>
+              Tell Pear what you&rsquo;re{' '}
+              <span
+                style={{
+                  fontStyle: 'italic',
+                  color: PD.olive,
+                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                }}
+              >
+                planning
+              </span>
+              .
+            </>
+          )}
+        </span>
+      }
+      subtitle="Pear holds your budget, city, guest count, timeline, and every conversation so far. Ask, plan, or just think out loud."
+      actions={
+        <>
+          <Link href={`/editor/${site.domain}`} style={{ ...btnGhost, textDecoration: 'none' }}>
+            Open site →
+          </Link>
+          <button style={btnInk} onClick={() => send('Give me this week at a glance.')}>
+            ✦ Ask Pear
+          </button>
+        </>
+      }
+    >
 
       <main
         className="pd-director-main"
@@ -856,7 +854,7 @@ export function DashDirector() {
           }
         }
       `}</style>
-    </DashShell>
+    </DashLayout>
   );
 }
 

@@ -7,7 +7,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Swirl } from '@/components/brand/groove';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
-import { DashShell, Topbar, Panel, SectionTitle, EmptyShell, btnInk, btnGhost } from './DashShell';
+import { Panel, SectionTitle, EmptyShell, btnInk, btnGhost } from './DashShell';
+import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getAnalyticsCopy, getAnalyticsSectionsToWatch } from '@/lib/event-os/dashboard-presets';
 
@@ -94,16 +95,16 @@ export function DashAnalytics() {
 
   if (!sitesLoading && (!sites || sites.length === 0)) {
     return (
-      <DashShell>
+      <DashLayout active="analytics" title="Analytics" subtitle="Publish a site first — analytics light up once guests visit.">
         <EmptyShell message="Publish a site first — analytics light up once guests visit." />
-      </DashShell>
+      </DashLayout>
     );
   }
   if (!site) {
     return (
-      <DashShell>
+      <DashLayout active="analytics" title="Analytics" subtitle="Pick a site to see its analytics.">
         <EmptyShell message="Pick a site from the top-right menu to see its analytics." />
-      </DashShell>
+      </DashLayout>
     );
   }
 
@@ -112,29 +113,27 @@ export function DashAnalytics() {
   const watchSections = getAnalyticsSectionsToWatch(site?.occasion);
 
   return (
-    <DashShell>
-      <Topbar
-        subtitle={`ANALYTICS · ${siteName.toUpperCase()}`}
-        title={
-          <span>
-            <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-              {copy.title}
-            </i>
-            {' '}
-            <i style={{ color: PD.gold, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-              {copy.italic}
-            </i>
-          </span>
-        }
-        actions={
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button style={btnGhost}>Export CSV</button>
-            <button style={btnInk}>✦ Ask Pear to summarize</button>
-          </div>
-        }
-      >
-        {copy.body}
-      </Topbar>
+    <DashLayout
+      active="analytics"
+      title={
+        <span>
+          <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+            {copy.title}
+          </i>
+          {' '}
+          <i style={{ color: PD.gold, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+            {copy.italic}
+          </i>
+        </span>
+      }
+      subtitle={copy.body}
+      actions={
+        <>
+          <button style={btnGhost}>Export CSV</button>
+          <button style={btnInk}>✦ Ask Pear to summarize</button>
+        </>
+      }
+    >
 
       <main style={{ padding: '20px 40px 60px' }}>
         {error && (
@@ -422,7 +421,7 @@ export function DashAnalytics() {
           }
         }
       `}</style>
-    </DashShell>
+    </DashLayout>
   );
 }
 
