@@ -244,8 +244,36 @@ export function DecorLibraryPanel({
   // known archetype (desert, vineyard, beach, mountain, ...), Pear
   // surfaces 3-5 motif chips. Click a chip to drop its prompt into
   // ALL slot prompts at once — clicking again clears it.
-  const venueMotifs = getVenueMotifs(ctx.venue);
+  const heuristicMotifs = getVenueMotifs(ctx.venue);
   const venueMatchLabel = describeVenueMatch(ctx.venue);
+
+  // AI fallback — when the heuristic doesn't match, the user can
+  // ask Pear directly. Loaded on demand, cached in component state.
+  const [aiMotifs, setAiMotifs] = useState<VenueMotif[] | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  const venueMotifs = heuristicMotifs ?? aiMotifs;
+
+  async function askPearForMotifs() {
+    if (!ctx.venue || aiLoading) return;
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      const res = await fetch('/api/decor/venue-motifs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ venue: ctx.venue, occasion: ctx.occasion, vibe: ctx.vibe }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error((data && data.error) || 'Pear couldn\'t pull motifs.');
+      setAiMotifs(data.motifs as VenueMotif[]);
+    } catch (err) {
+      setAiError(err instanceof Error ? err.message : 'Pear is unreachable.');
+    } finally {
+      setAiLoading(false);
+    }
+  }
 
   function applyMotifToAllSlots(motif: VenueMotif) {
     setCustomPrompts((p) => {
@@ -291,13 +319,39 @@ export function DecorLibraryPanel({
             borderRadius: 12,
             background: 'var(--cream-2)',
             border: '1px solid var(--line-soft)',
-            fontSize: 11.5,
-            color: 'var(--ink-soft)',
-            lineHeight: 1.45,
           }}
         >
-          <span style={{ fontWeight: 600, color: 'var(--ink)' }}>"{ctx.venue}"</span> didn't match a known
-          archetype. Pear will still use it as context, or write a custom prompt below for any slot.
+          <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.45, marginBottom: 8 }}>
+            <span style={{ fontWeight: 600, color: 'var(--ink)' }}>"{ctx.venue}"</span> didn't match a known
+            archetype. Ask Pear to read your venue and propose motifs, or write a custom prompt below.
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => void askPearForMotifs()}
+              disabled={aiLoading}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 12px',
+                borderRadius: 999,
+                background: 'var(--ink)',
+                color: 'var(--cream)',
+                border: 'none',
+                fontSize: 11.5,
+                fontWeight: 700,
+                fontFamily: 'var(--font-ui)',
+                cursor: aiLoading ? 'wait' : 'pointer',
+              }}
+            >
+              <Icon name="sparkles" size={11} />
+              {aiLoading ? 'Pear is thinking…' : 'Ask Pear for ideas'}
+            </button>
+            {aiError && (
+              <span style={{ fontSize: 11, color: '#7A2D2D' }}>{aiError}</span>
+            )}
+          </div>
         </div>
       )}
       {venueMotifs && (
@@ -324,7 +378,9 @@ export function DecorLibraryPanel({
             }}
           >
             <Icon name="sparkles" size={11} />
-            Pear sees: {venueMatchLabel ?? 'a venue with character'}
+            {heuristicMotifs
+              ? `Pear sees: ${venueMatchLabel ?? 'a venue with character'}`
+              : `Pear's picks for ${ctx.venue}`}
           </div>
           <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.45, marginBottom: 8 }}>
             Click a motif and Pear will fold it into every piece in the next draft.
