@@ -37,6 +37,7 @@ import { SectionBackground } from './SectionBackground';
 import { ScrollReveal } from './ScrollReveal';
 import { isBlockHidden } from './BlockStyleWrapper';
 import { TemplateSignatureDecor, type SignatureDecorKind } from './TemplateSignatureDecor';
+import { NavBrandIcon } from './NavBrandIcon';
 import { resolveStoryLayout } from '@/components/blocks/StoryLayouts';
 // Side-effect imports — register all variant types with the
 // block-style registry before any dispatcher reads from it.
@@ -263,10 +264,149 @@ function LanguageSwitcher() {
 }
 
 /* ==================== NAV ==================== */
-function EventNav({ names, hasRsvp }: { names: [string, string]; hasRsvp: boolean }) {
+
+interface NavBodyProps {
+  navStyle: string;
+  scrolled: boolean;
+  coupleLabel: string;
+  links: string[];
+  hasRsvp: boolean;
+  manifest: StoryManifest;
+}
+
+const NAV_LINK_STYLE: React.CSSProperties = {
+  fontSize: 13.5,
+  color: 'var(--ink-soft)',
+  fontWeight: 500,
+  textDecoration: 'none',
+  position: 'relative',
+  paddingBottom: 4,
+  transition: 'color 220ms ease',
+};
+
+function NavLinks({ links, gap = 22 }: { links: string[]; gap?: number }) {
+  return (
+    <nav style={{ display: 'flex', gap, alignItems: 'center' }} className="pl8-site-nav-links">
+      {links.map((l) => (
+        <a key={l} href={`#${l.toLowerCase().replace(' ', '-')}`} style={NAV_LINK_STYLE}>
+          {l}
+        </a>
+      ))}
+    </nav>
+  );
+}
+
+function NavBrand({ manifest, label, size }: { manifest: StoryManifest; label: string; size: number }) {
+  return (
+    <a
+      href="#top"
+      className="pl8-site-nav-brand"
+      style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        textDecoration: 'none',
+        transition: 'transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.transform = 'rotate(-2deg) translateY(-1px)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = ''; }}
+    >
+      <NavBrandIcon manifest={manifest} size={size} />
+      <span className="display-italic" style={{ fontSize: 22, color: 'var(--ink)' }}>
+        {label}
+      </span>
+    </a>
+  );
+}
+
+function NavBody({ navStyle, scrolled, coupleLabel, links, hasRsvp, manifest }: NavBodyProps) {
+  const innerPadding = scrolled ? '10px 32px' : '14px 32px';
+
+  // ── Centered: brand centered, links split left/right around it. ──
+  if (navStyle === 'centered') {
+    const half = Math.ceil(links.length / 2);
+    const left = links.slice(0, half);
+    const right = links.slice(half);
+    return (
+      <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 28, transition: 'padding 380ms cubic-bezier(0.22, 1, 0.36, 1)' }}>
+        <NavLinks links={left} gap={22} />
+        <NavBrand manifest={manifest} label={coupleLabel} size={28} />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 18 }}>
+          <NavLinks links={right} gap={22} />
+          <LanguageSwitcher />
+          {hasRsvp && (
+            <a href="#rsvp" className="btn btn-primary btn-sm pl8-btn-sheen">
+              RSVP <Icon name="arrow-right" size={12} />
+            </a>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Minimal: brand only, no inline links. Tight, magazine-cover. ──
+  if (navStyle === 'minimal') {
+    return (
+      <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 28, transition: 'padding 380ms cubic-bezier(0.22, 1, 0.36, 1)' }}>
+        <NavBrand manifest={manifest} label={coupleLabel} size={26} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <LanguageSwitcher />
+          {hasRsvp && (
+            <a href="#rsvp" className="btn btn-primary btn-sm pl8-btn-sheen">
+              RSVP <Icon name="arrow-right" size={12} />
+            </a>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Stacked: brand on its own row, links underneath. Editorial. ──
+  if (navStyle === 'stacked') {
+    return (
+      <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'flex', flexDirection: 'column', gap: 8, transition: 'padding 380ms cubic-bezier(0.22, 1, 0.36, 1)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <NavBrand manifest={manifest} label={coupleLabel} size={32} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <LanguageSwitcher />
+            {hasRsvp && (
+              <a href="#rsvp" className="btn btn-primary btn-sm pl8-btn-sheen">
+                RSVP <Icon name="arrow-right" size={12} />
+              </a>
+            )}
+          </div>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center', borderTop: '1px solid rgba(61,74,31,0.08)', paddingTop: 8 }}>
+          <NavLinks links={links} gap={26} />
+        </div>
+      </div>
+    );
+  }
+
+  // ── Classic (default): brand left, links right, RSVP at end. ──
+  return (
+    <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'flex', alignItems: 'center', gap: 28, transition: 'padding 380ms cubic-bezier(0.22, 1, 0.36, 1)' }}>
+      <NavBrand manifest={manifest} label={coupleLabel} size={28} />
+      <div style={{ marginLeft: 'auto' }}>
+        <NavLinks links={links} gap={22} />
+      </div>
+      <LanguageSwitcher />
+      {hasRsvp && (
+        <a href="#rsvp" className="btn btn-primary btn-sm pl8-btn-sheen">
+          RSVP <Icon name="arrow-right" size={12} />
+        </a>
+      )}
+    </div>
+  );
+}
+
+function EventNav({ names, hasRsvp, manifest }: {
+  names: [string, string];
+  hasRsvp: boolean;
+  manifest: StoryManifest;
+}) {
   const links = ['Our Story', 'Details', 'Schedule', 'Travel', 'Registry', 'Gallery'];
   const coupleLabel = names.filter(Boolean).join(' & ') || 'Our celebration';
   const [scrolled, setScrolled] = useState(false);
+  const navStyle = manifest.nav?.style ?? 'classic';
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 32);
@@ -291,61 +431,14 @@ function EventNav({ names, hasRsvp }: { names: [string, string]; hasRsvp: boolea
           'background 380ms cubic-bezier(0.22, 1, 0.36, 1), backdrop-filter 380ms cubic-bezier(0.22, 1, 0.36, 1), border-color 380ms ease, box-shadow 380ms ease',
       }}
     >
-      <div
-        style={{
-          maxWidth: 1240,
-          margin: '0 auto',
-          padding: scrolled ? '10px 32px' : '14px 32px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 28,
-          transition: 'padding 380ms cubic-bezier(0.22, 1, 0.36, 1)',
-        }}
-      >
-        <a
-          href="#top"
-          className="pl8-site-nav-brand"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            textDecoration: 'none',
-            transition: 'transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.transform = 'rotate(-2deg) translateY(-1px)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.transform = ''; }}
-        >
-          <Pear size={28} tone="sage" shadow={false} />
-          <span className="display-italic" style={{ fontSize: 22, color: 'var(--ink)' }}>
-            {coupleLabel}
-          </span>
-        </a>
-        <nav style={{ display: 'flex', gap: 22, marginLeft: 'auto' }} className="pl8-site-nav-links">
-          {links.map((l) => (
-            <a
-              key={l}
-              href={`#${l.toLowerCase().replace(' ', '-')}`}
-              style={{
-                fontSize: 13.5,
-                color: 'var(--ink-soft)',
-                fontWeight: 500,
-                textDecoration: 'none',
-                position: 'relative',
-                paddingBottom: 4,
-                transition: 'color 220ms ease',
-              }}
-            >
-              {l}
-            </a>
-          ))}
-        </nav>
-        <LanguageSwitcher />
-        {hasRsvp && (
-          <a href="#rsvp" className="btn btn-primary btn-sm pl8-btn-sheen">
-            RSVP <Icon name="arrow-right" size={12} />
-          </a>
-        )}
-      </div>
+      <NavBody
+        navStyle={navStyle}
+        scrolled={scrolled}
+        coupleLabel={coupleLabel}
+        links={links}
+        hasRsvp={hasRsvp}
+        manifest={manifest}
+      />
     </header>
   );
 }
@@ -1259,19 +1352,21 @@ function DetailsStrip({ manifest }: { manifest: StoryManifest }) {
   return (
     <section
       id="details"
-      style={{ padding: 'clamp(48px, 7vw, 80px) 32px', background: 'var(--ink)', color: 'var(--cream)' }}
+      style={{ padding: 'clamp(48px, 7vw, 80px) 32px', position: 'relative' }}
     >
-      <div style={{ maxWidth: 1160, margin: '0 auto' }}>
+      <SectionBackground manifest={manifest} sectionId="details" />
+      <div style={{ maxWidth: 1160, margin: '0 auto', position: 'relative' }}>
         <div className="pl8-cols-3" style={{ gap: 28 }}>
           {items.map((it, i) => (
             <div
               key={i}
               style={{
-                background: 'rgba(243,233,212,0.08)',
-                border: '1px solid rgba(243,233,212,0.18)',
+                background: 'var(--card)',
+                border: '1px solid var(--card-ring)',
                 borderRadius: 20,
                 padding: 28,
                 position: 'relative',
+                color: 'var(--ink)',
               }}
             >
               <div
@@ -1299,16 +1394,16 @@ function DetailsStrip({ manifest }: { manifest: StoryManifest }) {
                   fontWeight: 700,
                   letterSpacing: '0.12em',
                   textTransform: 'uppercase',
-                  opacity: 0.7,
+                  color: 'var(--ink-muted)',
                   marginBottom: 6,
                 }}
               >
                 {it.t}
               </div>
-              <div className="display" style={{ fontSize: 34, color: 'var(--cream)', marginBottom: 6 }}>
+              <div className="display" style={{ fontSize: 34, color: 'var(--ink)', marginBottom: 6 }}>
                 {it.v}
               </div>
-              <div style={{ fontSize: 14, opacity: 0.82, lineHeight: 1.5 }}>{it.s}</div>
+              <div style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.5 }}>{it.s}</div>
             </div>
           ))}
         </div>
@@ -1796,6 +1891,15 @@ function TravelSection({ manifest, onEditField }: { manifest: StoryManifest; onE
               {hotels.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {hotels.slice(0, 4).map((h, i) => {
+                    // Render the actual hotel photo if the host uploaded one;
+                    // otherwise show a hotel icon in a tinted square — no
+                    // more empty colored placeholder.
+                    const hotelPhoto = (h as { photoUrl?: string; image?: string }).photoUrl
+                      ?? (h as { image?: string }).image;
+                    const tintBg =
+                      hotelTones[i % hotelTones.length] === 'peach' ? 'var(--peach-bg)' :
+                      hotelTones[i % hotelTones.length] === 'lavender' ? 'var(--lavender-bg)' :
+                      'var(--sage-tint)';
                     const card = (
                       <div
                         style={{
@@ -1809,7 +1913,28 @@ function TravelSection({ manifest, onEditField }: { manifest: StoryManifest; onE
                           alignItems: 'center',
                         }}
                       >
-                        <PhotoPlaceholder tone={hotelTones[i % hotelTones.length]} aspect="1/1" style={{ borderRadius: 12 }} />
+                        {hotelPhoto ? (
+                          <div
+                            style={{
+                              width: 80, height: 80,
+                              borderRadius: 12,
+                              background: `url(${hotelPhoto}) center/cover no-repeat`,
+                            }}
+                          />
+                        ) : (
+                          <div
+                            aria-hidden
+                            style={{
+                              width: 80, height: 80,
+                              borderRadius: 12,
+                              background: tintBg,
+                              display: 'grid', placeItems: 'center',
+                              color: 'var(--ink-soft)',
+                            }}
+                          >
+                            <Icon name="moon" size={28} />
+                          </div>
+                        )}
                         <div>
                           <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>{h.name}</div>
                           <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.4 }}>
@@ -1983,6 +2108,7 @@ function RegistrySection({ manifest }: { manifest: StoryManifest }) {
 
 /* ==================== GALLERY ==================== */
 function GallerySection({ chapters, manifest }: { chapters: Chapter[]; manifest?: StoryManifest }) {
+  const edit = useIsEditMode();
   const photos = chapters.flatMap((c) => (c.images ?? []).map((i) => i.url)).filter(Boolean).slice(0, 12);
   const tones: Tone[] = ['warm', 'field', 'dusk', 'lavender', 'peach', 'sage', 'cream', 'warm', 'dusk', 'lavender', 'field', 'peach'];
   const spans = [
@@ -1999,6 +2125,12 @@ function GallerySection({ chapters, manifest }: { chapters: Chapter[]; manifest?
     {},
     {},
   ];
+
+  // Only render tiles for actual photos in published view. In editor
+  // mode show 4 placeholder cells so the user has dropzones — but
+  // never render the empty gradient grid on the published site.
+  const renderCount = edit && photos.length === 0 ? 4 : photos.length;
+  if (renderCount === 0) return null;
 
   // Build lightbox image set from real photos only — placeholder
   // tiles aren't openable.
@@ -2045,7 +2177,7 @@ function GallerySection({ chapters, manifest }: { chapters: Chapter[]; manifest?
             gap: 14,
           }}
         >
-          {tones.map((t, i) => {
+          {tones.slice(0, renderCount).map((t, i) => {
             const s = spans[i] ?? {};
             const url = photos[i];
             const photoIndex = url ? lightboxImages.findIndex((img) => img.url === url) : -1;
@@ -3242,7 +3374,7 @@ export function SiteV8Renderer({
       <div className="pl8-guest" style={themeStyle}>
         {!editMode && <BroadcastBar subdomain={siteSlug} />}
         {!editMode && <PersonalGuestGreeting domain={siteSlug} />}
-        <EventNav names={names} hasRsvp={hasRsvp} />
+        <EventNav names={names} hasRsvp={hasRsvp} manifest={manifest} />
         <StickerLayer
           blockId="hero"
           stickers={manifest.stickers}

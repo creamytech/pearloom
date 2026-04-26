@@ -38,6 +38,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { CanvasStage } from './canvas/CanvasStage';
 import { useEditorHistory } from './canvas/useEditorHistory';
 import { HeroPanel } from './panels/HeroPanel';
+import { NavPanel } from './panels/NavPanel';
 import { StoryPanel } from './panels/StoryPanel';
 import { DetailsPanel } from './panels/DetailsPanel';
 import { SchedulePanel } from './panels/SchedulePanel';
@@ -55,6 +56,7 @@ import { DesignAdvisor } from './DesignAdvisor';
 import { PearCopilot } from './pear/PearCopilot';
 
 type BlockKey =
+  | 'nav'
   | 'hero'
   | 'story'
   | 'details'
@@ -72,6 +74,7 @@ type DeviceKey = 'desktop' | 'tablet' | 'phone';
 type BlockDef = { key: BlockKey; label: string; icon: string; anchor: string; description: string; reorderable: boolean; togglable: boolean };
 
 const BLOCKS: BlockDef[] = [
+  { key: 'nav', label: 'Nav', icon: 'menu', anchor: 'top', description: 'Top navigation: brand icon, layout style, links.', reorderable: false, togglable: false },
   { key: 'hero', label: 'Hero', icon: 'image', anchor: 'top', description: 'Names, date, venue, tagline, cover photo.', reorderable: false, togglable: false },
   { key: 'story', label: 'Story', icon: 'text', anchor: 'our-story', description: 'How you got here — chapter by chapter.', reorderable: true, togglable: true },
   { key: 'details', label: 'Details', icon: 'section', anchor: 'details', description: 'Ceremony time, dress code, arrival notes.', reorderable: true, togglable: true },
@@ -1165,6 +1168,8 @@ function PanelSwitch({
   onNamesChange: (n: [string, string]) => void;
 }) {
   switch (block) {
+    case 'nav':
+      return <NavPanel manifest={manifest} onChange={onChange} />;
     case 'hero':
       return <HeroPanel manifest={manifest} names={names} onNamesChange={onNamesChange} onChange={onChange} />;
     case 'story':

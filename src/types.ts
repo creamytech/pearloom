@@ -199,6 +199,23 @@ export interface StoryManifest {
    *  visual overrides (padding, divider, etc.) — `blockVariants`
    *  picks WHICH layout shape a block renders with. */
   blockVariants?: Partial<Record<string, BlockStyleSelection>>;
+  /** Top-of-page nav customization. Shape:
+   *    - style: registered nav variant id ('classic' default)
+   *    - icon: brand glyph customization
+   *        - kind: 'pear' (default), 'asset' (preset library),
+   *          'image' (uploaded URL), 'ai' (gpt-image-2 generated)
+   *        - assetId: when kind='asset', the entry id from
+   *          src/components/pearloom/assets/nav-icons
+   *        - imageUrl: when kind='image' or 'ai', the R2 URL
+   *  All fields optional — unset = current Pear default. */
+  nav?: {
+    style?: string;
+    icon?: {
+      kind?: 'pear' | 'asset' | 'image' | 'ai';
+      assetId?: string;
+      imageUrl?: string;
+    };
+  };
   /** Per-slot draft history. Every successful decor generation gets
    *  appended (most-recent-first), capped at 5 entries per slot. The
    *  ACTIVE asset is whatever lives in `aiAccentUrl` /
