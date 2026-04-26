@@ -4,6 +4,10 @@ import type { StoryManifest } from '@/types';
 import { AddRowButton, Field, ListRow, PanelSection, PhotoSlot, TextArea, TextInput } from '../atoms';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { TimePicker, DatePicker } from '../v8-forms';
+import { BlockStylePicker } from './BlockStylePicker';
+// Side-effect import — registers all hero variants with the registry
+// before BlockStylePicker reads them.
+import '@/components/pearloom/site/hero-variants';
 
 function HeroTaglineAI({
   manifest,
@@ -73,6 +77,14 @@ export function HeroPanel({
 
   return (
     <div>
+      <BlockStylePicker
+        blockType="hero"
+        manifest={manifest}
+        onChange={onChange}
+        defaultStyleId="postcard"
+        label="Hero layout"
+        hint="Pick how the hero composes your names + cover photo."
+      />
       <PanelSection label="The lockup" hint="The big names that anchor your hero.">
         <Field label="Name 1" htmlFor="pl8-hero-n1">
           <TextInput

@@ -10,6 +10,15 @@ import type { SiteOccasion } from '@/lib/site-urls';
  * Each section can override these without touching the global theme.
  * All fields optional — undefined means inherit from globals.
  */
+/** Per-block-type style choice. Stored in `manifest.blockStyles[blockType]`.
+ *  The variant id is registered via registerBlockStyle() in
+ *  src/lib/block-engine/block-styles.ts; options is opaque to the
+ *  engine and validated by the variant itself. */
+export interface BlockStyleSelection {
+  style: string;
+  options?: Record<string, unknown>;
+}
+
 /** One historical AI decor draft. Lives in `manifest.decorDrafts.<slot>[]`,
  *  most recent first, capped at 5 entries per slot. */
 export interface DecorDraft {
@@ -184,6 +193,12 @@ export interface StoryManifest {
      *  subtle ≈ 44px, standard (default) ≈ 84px, tall ≈ 120px. */
     dividerStrength?: 'subtle' | 'standard' | 'tall';
   };
+  /** Block-type → variant choice map (registered via
+   *  registerBlockStyle in src/lib/block-engine/block-styles.ts).
+   *  Distinct from `blockStyles` above, which holds per-section
+   *  visual overrides (padding, divider, etc.) — `blockVariants`
+   *  picks WHICH layout shape a block renders with. */
+  blockVariants?: Partial<Record<string, BlockStyleSelection>>;
   /** Per-slot draft history. Every successful decor generation gets
    *  appended (most-recent-first), capped at 5 entries per slot. The
    *  ACTIVE asset is whatever lives in `aiAccentUrl` /

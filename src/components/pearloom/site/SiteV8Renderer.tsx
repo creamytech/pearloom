@@ -36,6 +36,12 @@ import { ScrollReveal } from './ScrollReveal';
 import { isBlockHidden } from './BlockStyleWrapper';
 import { TemplateSignatureDecor, type SignatureDecorKind } from './TemplateSignatureDecor';
 import { resolveStoryLayout } from '@/components/blocks/StoryLayouts';
+// Side-effect import — registers all 5 hero variants with the
+// block-style registry. Must run before HeroSection's dispatcher
+// looks up `getBlockStyle('hero', ...)`.
+import { HERO_VARIANTS_REGISTERED } from './hero-variants';
+import { getBlockStyle, getBlockStyles } from '@/lib/block-engine/block-styles';
+void HERO_VARIANTS_REGISTERED;
 import {
   CalendarAddButton,
   SaveContactButton,
@@ -717,300 +723,106 @@ function HeroSection({
         />
       )}
 
-      <div style={{ maxWidth: 1160, margin: '0 auto', position: 'relative' }}>
-        {/* Chapter-mark kicker — replaces the previous `+ TOGETHER,
-            MONDAY` chip. Two hairline rules flank a short italic
-            Fraunces phrase, like a book editor's chapter break.
-            Far calmer, no clip-art `+`, no rounded pill. */}
+      {/* Per-template signature decor lives at the section level
+          (position: absolute relative to <section>) so it doesn't get
+          clipped when a variant uses negative margins to break out of
+          the maxWidth wrapper (e.g. PhotoFirst). */}
+      {(manifest as unknown as { signatureDecor?: string }).signatureDecor && (
         <div
+          className="pl8-hide-mobile"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 16,
-            marginBottom: 22,
-            color: 'var(--ink-soft)',
+            position: 'absolute',
+            top: 0,
+            right: 'max(0px, calc((100vw - 1160px) / 2))',
+            width: 240, height: 240,
+            pointerEvents: 'none', zIndex: 2,
           }}
         >
-          <span aria-hidden style={{ width: 48, height: 1, background: 'currentColor', opacity: 0.45 }} />
-          <EditableText
-            as="span"
-            value={
-              (manifest as unknown as { heroKicker?: string }).heroKicker ??
-              (dateInfo ? `together, ${dateInfo.weekday.toLowerCase()}` : 'save the date')
-            }
-            onSave={(next) =>
-              onEditField?.((m) => ({
-                ...(m as unknown as Record<string, unknown>),
-                heroKicker: next,
-              }) as unknown as StoryManifest)
-            }
-            placeholder="save the date"
-            ariaLabel="Hero kicker"
-            maxLength={60}
-            style={{
-              fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
-              fontStyle: 'italic',
-              fontSize: 18,
-              fontWeight: 400,
-              letterSpacing: '0.01em',
-              color: 'var(--ink)',
-              lineHeight: 1.1,
-              textAlign: 'center',
-            }}
-          />
-          <span aria-hidden style={{ width: 48, height: 1, background: 'currentColor', opacity: 0.45 }} />
-        </div>
-
-        {/* Per-template signature decor — the real illustrated SVG
-            that gives each template a visual identity (citrus on
-            Lake Como, monolith on Marfa, brushstroke on Tokyo, etc).
-            Reads manifest.signatureDecor. */}
-        {(manifest as unknown as { signatureDecor?: string }).signatureDecor && (
-          <div className="pl8-hide-mobile" style={{ position: 'absolute', top: 0, right: 0, width: 240, height: 240, pointerEvents: 'none', zIndex: 1 }}>
-            <TemplateSignatureDecor
-              kind={(manifest as unknown as { signatureDecor?: string }).signatureDecor as SignatureDecorKind}
-              position="top-right"
-              size={220}
-            />
-          </div>
-        )}
-
-        <div style={{ textAlign: 'center', position: 'relative' }}>
-          <h1
-            className="display pl8-hero-names"
-            style={{
-              fontSize: 'clamp(80px, 14vw, 168px)',
-              lineHeight: 0.92,
-              margin: 0,
-              letterSpacing: '-0.02em',
-            }}
-          >
-            <EditableText
-              as="span"
-              value={n1 || ''}
-              onSave={(next) => onEditNames?.([next, n2])}
-              placeholder="Your"
-              ariaLabel="First host name"
-              maxLength={80}
-            />
-            {n2 || onEditNames ? (
-              <>
-                {' '}
-                <span
-                  className="display-italic"
-                  style={{ fontSize: 'clamp(60px, 10vw, 132px)', fontWeight: 400, color: 'var(--ink-soft)' }}
-                >
-                  and
-                </span>{' '}
-                <EditableText
-                  as="span"
-                  value={n2 || ''}
-                  onSave={(next) => onEditNames?.([n1, next])}
-                  placeholder="Partner"
-                  ariaLabel="Second host name"
-                  maxLength={80}
-                />
-              </>
-            ) : null}
-          </h1>
-          {/* Removed: PassportStamp (SAVE THE DATE rectangle) and
-              the floating heart. Both read as wedding-template
-              cliché. The names + the date line below carry it. */}
-        </div>
-
-        <div
-          style={{
-            textAlign: 'center',
-            marginTop: 28,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: 18,
-            flexWrap: 'wrap',
-          }}
-        >
-          {dateInfo && (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 15, color: 'var(--ink)' }}>
-              <Icon name="calendar" size={16} color="var(--gold)" />
-              <span style={{ fontWeight: 600 }}>
-                {dateInfo.weekday}, {dateInfo.pretty}
-              </span>
-            </div>
-          )}
-          {dateInfo && venue && <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--ink-muted)' }} />}
-          {venue && (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 15, color: 'var(--ink)' }}>
-              <Icon name="pin" size={16} color="var(--gold)" />
-              <span style={{ fontWeight: 600 }}>{venue}</span>
-            </div>
-          )}
-        </div>
-
-        <div style={{ textAlign: 'center', maxWidth: 560, margin: '30px auto 36px' }}>
-          <HoverToolbar
-            context="hero tagline"
-            value={heroCopy}
-            onResult={(next) =>
-              onEditField?.((m) => ({
-                ...m,
-                poetry: {
-                  heroTagline: next,
-                  closingLine: m.poetry?.closingLine ?? '',
-                  rsvpIntro: m.poetry?.rsvpIntro ?? '',
-                  welcomeStatement: m.poetry?.welcomeStatement,
-                  milestones: m.poetry?.milestones,
-                },
-              }))
-            }
-          >
-            <EditableText
-              as="p"
-              value={heroCopy}
-              onSave={(next) =>
-                onEditField?.((m) => ({
-                  ...m,
-                  poetry: {
-                    heroTagline: next,
-                    closingLine: m.poetry?.closingLine ?? '',
-                    rsvpIntro: m.poetry?.rsvpIntro ?? '',
-                    welcomeStatement: m.poetry?.welcomeStatement,
-                    milestones: m.poetry?.milestones,
-                  },
-                }))
-              }
-              placeholder="Add a warm hero tagline…"
-              ariaLabel="Hero tagline"
-              multiline
-              maxLength={280}
-              style={{ fontSize: 17, lineHeight: 1.6, color: 'var(--ink-soft)', margin: 0 }}
-            />
-          </HoverToolbar>
-        </div>
-
-        {/* TIER 1 — single primary CTA. The only "real" button in the
-            hero. Everything else is supporting. */}
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <a
-            href="#rsvp"
-            className="btn btn-primary pl8-btn-sheen"
-            style={{ padding: '14px 28px', fontSize: 15 }}
-          >
-            {deadlineStr ? `RSVP by ${deadlineStr}` : 'RSVP'}
-            <Icon name="arrow-right" size={14} />
-          </a>
-        </div>
-
-        {/* TIER 2 — secondary actions as a quiet text-link tray with
-            middot separators. No more "five pills competing for the
-            same attention." */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            gap: 10,
-            marginTop: 18,
-            fontSize: 13,
-            color: 'var(--ink-soft)',
-          }}
-        >
-          <a
-            href="#our-story"
-            style={{
-              color: 'var(--ink)',
-              textDecoration: 'none',
-              borderBottom: '1px solid rgba(61,74,31,0.25)',
-              paddingBottom: 1,
-              transition: 'border-color 200ms ease',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderBottomColor = 'var(--peach-ink, #C6703D)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderBottomColor = 'rgba(61,74,31,0.25)'; }}
-          >
-            Read our story
-          </a>
-          <span aria-hidden style={{ color: 'var(--ink-muted)', opacity: 0.6 }}>·</span>
-          <CalendarAddButton domain={siteSlug ?? ''} manifest={manifest} variant="link" />
-          <span aria-hidden style={{ color: 'var(--ink-muted)', opacity: 0.6 }}>·</span>
-          <SaveContactButton domain={siteSlug ?? ''} manifest={manifest} names={[n1 ?? '', n2 ?? '']} variant="link" />
-        </div>
-
-        {/* TIER 3 — countdown becomes its own editorial display, not a
-            button. Three Fraunces serif numbers separated by hairline
-            rules, with a small italic kicker. Reads as type, never as
-            a clickable control. */}
-        <CountdownDisplay eventDate={manifest.logistics?.date} />
-        <div style={{ textAlign: 'center', marginTop: 14 }}>
-          <TimeZoneCountdown
-            iso={manifest.logistics?.date}
-            time={manifest.logistics?.time}
-            venueTimeZone={(manifest.logistics as unknown as { venueTimeZone?: string } | undefined)?.venueTimeZone}
+          <TemplateSignatureDecor
+            kind={(manifest as unknown as { signatureDecor?: string }).signatureDecor as SignatureDecorKind}
+            position="top-right"
+            size={220}
           />
         </div>
+      )}
 
-        {/* Photo strip */}
-        <div
-          className="pl8-hero-strip"
-          style={{
-            marginTop: 80,
-            display: 'grid',
-            gridTemplateColumns: '1fr 1.2fr 1fr 1.4fr 1fr',
-            gap: 14,
-            alignItems: 'end',
-          }}
-        >
-          {[
-            { tone: 'warm' as const, aspect: '3/4', mt: 0 },
-            { tone: 'field' as const, aspect: '4/5', mt: -30 },
-            { tone: 'lavender' as const, aspect: '1/1', mt: 20 },
-            { tone: 'dusk' as const, aspect: '5/4', mt: -20 },
-            { tone: 'peach' as const, aspect: '4/5', mt: 10 },
-          ].map((p, i) => {
-            const isHeroCover = i === 2;
-            const onDrop = (url: string) => {
-              if (isHeroCover) {
-                onEditField?.((m) => ({ ...m, coverPhoto: url }));
-              } else {
-                onEditField?.((m) => {
-                  const next = [...(m.heroSlideshow ?? [])];
-                  next[i] = url;
-                  return { ...m, heroSlideshow: next };
-                });
-              }
-            };
-            return (
-              <div
-                key={i}
-                style={{
-                  marginTop: p.mt,
-                  transform: `rotate(${(i % 2 === 0 ? -1 : 1) * 1.2}deg)`,
-                }}
-              >
-                <PhotoDropTarget onDrop={onDrop} label={isHeroCover ? 'Drop to set cover' : 'Drop a photo'}>
-                  <div
-                    style={{
-                      background: '#fff',
-                      padding: 8,
-                      boxShadow: '0 16px 36px rgba(61,74,31,0.14), 0 1px 2px rgba(0,0,0,0.05)',
-                      borderRadius: 2,
-                    }}
-                  >
-                    <PhotoPlaceholder tone={p.tone} aspect={p.aspect} src={isHeroCover ? coverPhoto ?? photos[0] : photos[i]} />
-                  </div>
-                </PhotoDropTarget>
-              </div>
-            );
-          })}
-        </div>
-
-        <div style={{ textAlign: 'center', marginTop: 40, color: 'var(--ink-muted)', fontSize: 13 }}>
-          <Icon name="chev-down" size={14} /> Scroll for our story
-        </div>
-      </div>
+      {/* Variant dispatcher. Reads manifest.blockVariants.hero.style;
+          falls back to 'postcard' (the v8 default) if unset. PhotoFirst
+          uses negative margins inside itself to break the section
+          padding for full-bleed; other variants stay inside the
+          centred maxWidth frame. */}
+      <HeroVariantDispatch
+        manifest={manifest}
+        names={names}
+        siteSlug={siteSlug}
+        onEditField={onEditField}
+        onEditNames={onEditNames}
+      />
     </section>
   );
 }
+
+/* ==================== Hero variant dispatcher ==================== */
+
+function HeroVariantDispatch({
+  manifest, names, siteSlug, onEditField, onEditNames,
+}: {
+  manifest: StoryManifest;
+  names: [string, string];
+  siteSlug?: string;
+  onEditField?: FieldEditor;
+  onEditNames?: (next: [string, string]) => void;
+}) {
+  const [n1, n2] = names;
+  const dateInfo = fmtEventDate(manifest.logistics?.date);
+  const venue = manifest.logistics?.venue ?? '';
+  const rsvpDeadline = manifest.logistics?.rsvpDeadline;
+  const deadlineStr = rsvpDeadline
+    ? new Date(rsvpDeadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+    : null;
+  const heroCopy =
+    (manifest as unknown as { poetry?: { heroTagline?: string } }).poetry?.heroTagline ??
+    "We'd love you there. Come celebrate with us — the day will be better for it.";
+  const coverPhoto = manifest.coverPhoto;
+  const photos = manifest.heroSlideshow ?? (manifest.chapters?.flatMap((c) => (c.images ?? []).slice(0, 1).map((i) => i.url)) ?? []);
+  const heroKicker =
+    (manifest as unknown as { heroKicker?: string }).heroKicker ??
+    (dateInfo ? `together, ${dateInfo.weekday.toLowerCase()}` : 'save the date');
+
+  const styleId = (manifest.blockVariants?.hero?.style as string | undefined) ?? 'postcard';
+  const variant = getBlockStyle('hero', styleId) ?? getBlockStyle('hero', 'postcard');
+  if (!variant) {
+    // Registry didn't initialise — render nothing rather than crash.
+    // The side-effect import at the top of this file should guarantee
+    // postcard is always present in production.
+    return null;
+  }
+
+  const Variant = variant.Component;
+  const sharedProps = {
+    manifest, names, siteSlug, onEditField, onEditNames,
+    context: {
+      n1: n1 ?? '', n2: n2 ?? '',
+      coverPhoto, photos, venue,
+      rsvpDeadline, deadlineStr, heroCopy, dateInfo, heroKicker,
+      signatureDecor: (manifest as unknown as { signatureDecor?: string }).signatureDecor,
+      occasion: (manifest as unknown as { occasion?: string }).occasion,
+    },
+  };
+
+  // PhotoFirst manages its own outer wrapper (full-bleed). Other
+  // variants render inside the centred maxWidth frame.
+  if (styleId === 'photo-first') {
+    return <Variant {...sharedProps} />;
+  }
+
+  return (
+    <div style={{ maxWidth: 1160, margin: '0 auto', position: 'relative' }}>
+      <Variant {...sharedProps} />
+    </div>
+  );
+}
+
 
 /* ==================== TIMELINE ==================== */
 /**
