@@ -1316,19 +1316,15 @@ html { scroll-behavior: smooth; }
    it but the animation is now a no-op. */
 .pl8-tab-swipe { /* no animation — instant tab swap */ }
 
-/* ── Bombproof: opt the entire dashboard root out of view
-       transitions explicitly. If a future Next or browser auto-
-       enables them, this still disables them inside .pl8-dashshell.
-       Plus: kill any stray animation class on direct children of
-       <main> so a per-page enter animation can't sneak back in. ── */
+/* ── Belt-and-braces: explicit opt-out of view-transition for the
+       dashboard root + neutralize entrance animations on direct
+       page-content children. Loop animations on inner decoration
+       (pulsing dots, breathing pear) are preserved. ── */
 .pl8-dashshell,
 .pl8-dashshell * {
   view-transition-name: none !important;
 }
 .pl8-dashshell > main > div > * {
-  /* Direct page-content children of the shell main wrapper — they
-     should not animate when route changes. Hover/interaction
-     transitions on inner elements still work fine. */
   animation: none !important;
 }
 
