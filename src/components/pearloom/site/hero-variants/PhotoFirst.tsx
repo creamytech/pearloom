@@ -19,6 +19,9 @@ import type { HeroVariantProps } from './types';
 export function HeroPhotoFirst({ manifest, names, siteSlug, onEditField, onEditNames, context }: HeroVariantProps) {
   const { n1, n2, dateInfo, venue, deadlineStr, coverPhoto, photos } = context;
   const photoSrc = coverPhoto ?? photos[0];
+  const focalPoint =
+    (manifest as unknown as { coverFocalPoint?: { x: number; y: number } }).coverFocalPoint;
+  const bgPosition = focalPoint ? `${focalPoint.x}% ${focalPoint.y}%` : 'center';
 
   return (
     <div
@@ -51,7 +54,10 @@ export function HeroPhotoFirst({ manifest, names, siteSlug, onEditField, onEditN
                 aria-label="Cover photo"
                 style={{
                   width: '100%', height: '100%', minHeight: 'inherit',
-                  background: `url(${photoSrc}) center/cover no-repeat`,
+                  backgroundImage: `url(${photoSrc})`,
+                  backgroundSize: 'cover',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: bgPosition,
                 }}
               />
             ) : (

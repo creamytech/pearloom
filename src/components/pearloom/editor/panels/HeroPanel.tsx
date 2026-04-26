@@ -2,6 +2,7 @@
 
 import type { StoryManifest } from '@/types';
 import { AddRowButton, Field, ListRow, PanelGroup, PanelSection, PanelSmartActions, PhotoSlot, TextArea, TextInput, type PanelSmartAction } from '../atoms';
+import { FocalPointPicker } from './FocalPointPicker';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { TimePicker, DatePicker } from '../v8-forms';
 import { BlockStylePicker } from './BlockStylePicker';
@@ -238,6 +239,29 @@ export function HeroPanel({
           aspect="4/5"
           label="Cover photo"
         />
+        {manifest.coverPhoto && (
+          <Field
+            label="Focal point"
+            help="Drag the dot to set the part of the photo that should stay visible on every device. Used by the photo-first hero variant."
+          >
+            <FocalPointPicker
+              imageUrl={manifest.coverPhoto}
+              value={(manifest as unknown as { coverFocalPoint?: { x: number; y: number } }).coverFocalPoint}
+              onChange={(next) =>
+                onChange({
+                  ...manifest,
+                  coverFocalPoint: next,
+                } as unknown as StoryManifest)
+              }
+              onReset={() =>
+                onChange({
+                  ...manifest,
+                  coverFocalPoint: undefined,
+                } as unknown as StoryManifest)
+              }
+            />
+          </Field>
+        )}
       </PanelSection>
 
       <PanelSection

@@ -85,6 +85,11 @@ export interface StoryManifest {
   names?: [string, string];
   // User-uploaded hero cover photo (overrides AI-generated art)
   coverPhoto?: string;
+  /** Focal point of the cover photo as percentages (0-100). When
+   *  set, the hero variant uses these as `background-position` so
+   *  the most-important part of the photo stays visible across
+   *  device crops. Default { x: 50, y: 50 } when omitted. */
+  coverFocalPoint?: { x: number; y: number };
   // Hero slideshow: multiple photos that auto-rotate in the hero section
   heroSlideshow?: string[];
   // What type of life event is this site for? See SiteOccasion
