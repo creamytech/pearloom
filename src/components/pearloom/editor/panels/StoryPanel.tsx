@@ -6,6 +6,10 @@ import { AddRowButton, EmptyBlockState, Field, PanelSection, PhotoSlot, TextArea
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { Icon } from '../../motifs';
+import { BlockStylePicker } from './BlockStylePicker';
+// Side-effect import — registers the 6 story layouts with the
+// block-style registry before the picker reads from it.
+import '@/components/pearloom/site/story-variants';
 
 function PhotoChaptersAI({
   manifest,
@@ -179,6 +183,14 @@ export function StoryPanel({
 
   return (
     <div>
+      <BlockStylePicker
+        blockType="story"
+        manifest={manifest}
+        onChange={onChange}
+        defaultStyleId={(manifest.storyLayout as string | undefined) ?? 'timeline'}
+        label="Story layout"
+        hint="How chapters render — parallax photos, magazine spreads, bento mosaic, or the classic timeline vine."
+      />
       <PanelSection label="Photos → chapters" hint="Upload a batch and Pear drafts your story from them.">
         <PhotoChaptersAI manifest={manifest} names={effectiveNames} onResult={(next) => onChange({ ...manifest, chapters: [...chapters, ...next] })} />
       </PanelSection>

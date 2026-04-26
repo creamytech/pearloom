@@ -49,6 +49,12 @@ export async function POST(req: NextRequest) {
     venue?: string;
     vibe?: string;
     hint?: string;
+    /** Optional reference image (base64 PNG/JPEG, no data: prefix).
+     *  When set, the request goes through gpt-image-2's edit endpoint
+     *  which preserves the reference's style + composition while
+     *  applying the prompt. Lets the user say "draw something that
+     *  matches this divider" or "in the style of this photo." */
+    referenceImage?: { base64: string; mimeType?: string };
   } = {};
   try {
     body = await req.json();
@@ -56,7 +62,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
   }
 
-  const { siteId, occasion, paletteHex, venue, vibe, hint } = body;
+  const { siteId, occasion, paletteHex, venue, vibe, hint, referenceImage } = body;
   if (!siteId) return NextResponse.json({ error: 'siteId required' }, { status: 400 });
 
   const apiKey = process.env.OPENAI_API_KEY;
@@ -72,13 +78,26 @@ export async function POST(req: NextRequest) {
     paletteHex: paletteHex ?? [],
     venue,
     vibe,
-    hint,
+    hint: hint
+      ? referenceImage
+        ? `${hint}. Match the style + line weight of the reference image.`
+        : hint
+      : referenceImage
+        ? 'Match the style + line weight of the reference image — same hand-drawn feel and palette.'
+        : undefined,
   });
 
   try {
     const result = await openaiGenerateImage({
       apiKey,
       prompt,
+      // When a reference image is supplied we route through the edit
+      // endpoint (gpt-image-2 honours `image` on edits). The model
+      // uses the reference for style continuity while applying the
+      // prompt's subject change.
+      inputImage: referenceImage
+        ? { base64: referenceImage.base64, mimeType: referenceImage.mimeType ?? 'image/png' }
+        : undefined,
       size: '1024x1024',
       quality: 'high',
       format: 'png',

@@ -11,7 +11,7 @@
    from there.
    ======================================================================== */
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Field, PanelSection, TextInput } from '../atoms';
 
@@ -23,10 +23,33 @@ export function StickerTrayPanel({
   onChange: (m: StoryManifest) => void;
 }) {
   const [hint, setHint] = useState('');
+  const [referenceImage, setReferenceImage] = useState<{ base64: string; mimeType: string; previewUrl: string } | null>(null);
   const [status, setStatus] = useState<'idle' | 'running' | 'error'>('idle');
   const [err, setErr] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const stickers = manifest.stickers ?? [];
+
+  function pickReferenceFile(file: File) {
+    if (!file.type.startsWith('image/')) {
+      setErr('Reference must be an image.');
+      return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      setErr('Reference image must be under 4 MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      // Strip data:image/...;base64, prefix
+      const comma = result.indexOf(',');
+      const base64 = comma >= 0 ? result.slice(comma + 1) : result;
+      setReferenceImage({ base64, mimeType: file.type, previewUrl: result });
+      setErr(null);
+    };
+    reader.readAsDataURL(file);
+  }
 
   async function generate() {
     setStatus('running');
@@ -44,7 +67,13 @@ export function StickerTrayPanel({
       const res = await fetch('/api/decor/sticker', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteId, occasion, paletteHex, venue, vibe, hint: hint.trim() || undefined }),
+        body: JSON.stringify({
+          siteId, occasion, paletteHex, venue, vibe,
+          hint: hint.trim() || undefined,
+          referenceImage: referenceImage
+            ? { base64: referenceImage.base64, mimeType: referenceImage.mimeType }
+            : undefined,
+        }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -94,12 +123,89 @@ export function StickerTrayPanel({
           placeholder="e.g. champagne coupe in gold, loose ink lines"
         />
       </Field>
+
+      {/* Match-this reference image — drop in an existing piece of
+          decor and gpt-image-2 will match its style + line weight. */}
+      <div style={{ marginTop: 10 }}>
+        <div
+          style={{
+            fontSize: 11, fontWeight: 700, letterSpacing: '0.14em',
+            textTransform: 'uppercase', color: 'var(--ink-muted)',
+            marginBottom: 6,
+          }}
+        >
+          Match the style of an existing image (optional)
+        </div>
+        {referenceImage ? (
+          <div
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: 8, borderRadius: 10,
+              border: '1px solid var(--line-soft)',
+              background: 'var(--cream-2)',
+            }}
+          >
+            <div
+              style={{
+                width: 40, height: 40, flexShrink: 0,
+                borderRadius: 6,
+                background: `url(${referenceImage.previewUrl}) center/contain no-repeat var(--cream)`,
+                border: '1px solid var(--line-soft)',
+              }}
+            />
+            <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--ink-soft)' }}>
+              Pear will match this style.
+            </div>
+            <button
+              type="button"
+              onClick={() => setReferenceImage(null)}
+              style={{
+                border: 'none', background: 'transparent',
+                color: 'var(--ink-muted)', fontSize: 14, cursor: 'pointer',
+                padding: 4,
+              }}
+              aria-label="Remove reference image"
+            >
+              ×
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              width: '100%', padding: '10px 14px',
+              borderRadius: 10,
+              border: '1px dashed var(--line)',
+              background: 'transparent',
+              color: 'var(--ink-soft)',
+              fontSize: 12.5, cursor: 'pointer',
+              textAlign: 'center',
+            }}
+          >
+            + Drop a reference image
+          </button>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) pickReferenceFile(f);
+            // Reset so picking the same file again still fires onChange.
+            e.target.value = '';
+          }}
+        />
+      </div>
+
       <button
         type="button"
         className="btn btn-primary btn-sm"
         onClick={generate}
         disabled={status === 'running'}
-        style={{ width: '100%', marginTop: 6, justifyContent: 'center' }}
+        style={{ width: '100%', marginTop: 10, justifyContent: 'center' }}
       >
         {status === 'running' ? 'Drafting your sticker…' : 'Draft a sticker'}
       </button>

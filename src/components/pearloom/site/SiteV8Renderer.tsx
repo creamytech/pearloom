@@ -38,12 +38,13 @@ import { ScrollReveal } from './ScrollReveal';
 import { isBlockHidden } from './BlockStyleWrapper';
 import { TemplateSignatureDecor, type SignatureDecorKind } from './TemplateSignatureDecor';
 import { resolveStoryLayout } from '@/components/blocks/StoryLayouts';
-// Side-effect import — registers all 5 hero variants with the
-// block-style registry. Must run before HeroSection's dispatcher
-// looks up `getBlockStyle('hero', ...)`.
+// Side-effect imports — register all variant types with the
+// block-style registry before any dispatcher reads from it.
 import { HERO_VARIANTS_REGISTERED } from './hero-variants';
+import { STORY_VARIANTS_REGISTERED } from './story-variants';
 import { getBlockStyle, getBlockStyles } from '@/lib/block-engine/block-styles';
 void HERO_VARIANTS_REGISTERED;
+void STORY_VARIANTS_REGISTERED;
 import {
   CalendarAddButton,
   SaveContactButton,
@@ -1369,6 +1370,7 @@ function ScheduleSection({ manifest, names, onEditField }: { manifest: StoryMani
     return (a.time ?? '').localeCompare(b.time ?? '');
   });
   const rows = sorted.map((e) => ({
+    id: e.id,
     time: e.time ?? '',
     title: e.name,
     d: e.description ?? '',
@@ -1376,6 +1378,18 @@ function ScheduleSection({ manifest, names, onEditField }: { manifest: StoryMani
     cur: e.type === 'ceremony',
   }));
   void names;
+
+  // Patch a single event by ID — the sorted array decoupled
+  // display order from manifest order, so we always go through
+  // the canonical id lookup.
+  const patchEvent = (eventId: string, field: 'name' | 'description') => (next: string) => {
+    onEditField?.((m) => {
+      const arr = (m.events ?? []).map((e) =>
+        e.id === eventId ? { ...e, [field]: next } : e,
+      );
+      return { ...m, events: arr };
+    });
+  };
 
   return (
     <section id="schedule" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', position: 'relative' }}>
@@ -1425,8 +1439,26 @@ function ScheduleSection({ manifest, names, onEditField }: { manifest: StoryMani
                 {r.time}
               </div>
               <div>
-                <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>{r.title}</div>
-                <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>{r.d}</div>
+                <EditableField
+                  as="div"
+                  context={`Schedule item ${i + 1} title`}
+                  value={r.title}
+                  onSave={r.id ? patchEvent(r.id, 'name') : () => {}}
+                  placeholder="Event name"
+                  ariaLabel={`Schedule item ${i + 1} title`}
+                  rewrite={false}
+                  style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}
+                />
+                <EditableField
+                  as="div"
+                  context={`Schedule item ${i + 1} description`}
+                  value={r.d}
+                  onSave={r.id ? patchEvent(r.id, 'description') : () => {}}
+                  placeholder="What guests can expect…"
+                  multiline
+                  ariaLabel={`Schedule item ${i + 1} description`}
+                  style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}
+                />
               </div>
               <div style={{ textAlign: 'right' }}>
                 <span className={`chip ${tagClass[r.tag] ?? 'chip-cream'}`} style={{ cursor: 'default' }}>
@@ -2164,10 +2196,12 @@ function RSVPSection({
   names,
   manifest,
   siteSlug,
+  onEditField,
 }: {
   names: [string, string];
   manifest: StoryManifest;
   siteSlug: string;
+  onEditField?: FieldEditor;
 }) {
   const [guestName, setGuestName] = useState('');
   const [going, setGoing] = useState<'yes' | 'no' | null>(null);
@@ -2287,6 +2321,37 @@ function RSVPSection({
           <h2 className="display" style={{ fontSize: 'clamp(44px, 7vw, 72px)', margin: 0 }}>
             Will you <span className="display-italic">be there?</span>
           </h2>
+          {/* Editorial intro line — host-editable, AI-rewritable. */}
+          <EditableField
+            as="p"
+            context="RSVP intro"
+            value={
+              (manifest as unknown as { poetry?: { rsvpIntro?: string } }).poetry?.rsvpIntro
+              ?? 'Tell us if you can come — every yes makes the day better.'
+            }
+            onSave={(next) =>
+              onEditField?.((m) => ({
+                ...m,
+                poetry: {
+                  rsvpIntro: next,
+                  heroTagline: m.poetry?.heroTagline ?? '',
+                  closingLine: m.poetry?.closingLine ?? '',
+                  welcomeStatement: m.poetry?.welcomeStatement,
+                  milestones: m.poetry?.milestones,
+                },
+              }))
+            }
+            placeholder="A line that nudges them to reply…"
+            multiline
+            maxLength={240}
+            style={{
+              fontSize: 16,
+              color: 'var(--ink-soft)',
+              maxWidth: 540,
+              margin: '14px auto 0',
+              lineHeight: 1.55,
+            }}
+          />
         </div>
 
         <ConfettiBurst active={state === 'success' && going === 'yes'} url={manifest.decorLibrary?.confetti} />
@@ -3066,17 +3131,16 @@ export function SiteV8Renderer({
     switch (key) {
       case 'story': {
         if (chapters.length === 0 && !editMode) return null;
-        // Honour the template's declared layoutFormat so each template
-        // ships with its own story treatment (filmstrip, magazine,
-        // bento, kenburns, parallax) instead of every site looking
-        // the same as the timeline default. Legacy layoutFormat values
-        // (cascade, scrapbook, chapters, starmap) get mapped to their
-        // canonical StoryLayoutType via resolveStoryLayout — so e.g.
-        // Provence's 'scrapbook' renders as bento and Tokyo's
-        // 'chapters' renders as the timeline vine.
-        const rawStory = manifest.storyLayout as string | undefined;
+        // v9 priority chain for picking the story layout:
+        //   1. manifest.blockVariants.story.style — picked via the
+        //      Inspector's BlockStylePicker (the new shared UI)
+        //   2. manifest.storyLayout — pre-v9 explicit field
+        //   3. manifest.layoutFormat — template-declared legacy field
+        // resolveStoryLayout handles legacy values (cascade /
+        // scrapbook / chapters / starmap) → canonical type mapping.
+        const variantStyle = manifest.blockVariants?.story?.style as string | undefined;
+        const rawStory = (variantStyle ?? manifest.storyLayout) as string | undefined;
         const rawFormat = (manifest as unknown as { layoutFormat?: string }).layoutFormat;
-        // If neither is set, keep the v8 default (timeline).
         if (!rawStory && !rawFormat) {
           return <TimelineSection key="story" chapters={chapters} onEditField={onEditField} manifest={manifest} />;
         }
@@ -3099,7 +3163,7 @@ export function SiteV8Renderer({
       case 'faq':
         return <FaqSection key="faq" manifest={manifest} onEditField={onEditField} />;
       case 'rsvp':
-        return <RSVPSection key="rsvp" names={names} manifest={manifest} siteSlug={siteSlug} />;
+        return <RSVPSection key="rsvp" names={names} manifest={manifest} siteSlug={siteSlug} onEditField={onEditField} />;
       default:
         return null;
     }
