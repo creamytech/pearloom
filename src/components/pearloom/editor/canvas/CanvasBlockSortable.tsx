@@ -58,10 +58,13 @@ interface SortableBlockListProps {
   /** Called when a section dragged from the Outline is dropped into
    *  one of the inline-add gaps. Index = the gap's insert index. */
   onDropOutlineBlock?: (atIndex: number, key: string) => void;
+  /** Pretty labels keyed by blockKey — surfaced in the section
+   *  chip so it reads "Gallery" not "gallery". */
+  blockLabels?: Record<string, string>;
 }
 
 export function SortableBlockList({
-  blockKeys, renderItem, onReorder, onRemove, onEdit, onAddAt, pickerBlocks = [], onDropOutlineBlock,
+  blockKeys, renderItem, onReorder, onRemove, onEdit, onAddAt, pickerBlocks = [], onDropOutlineBlock, blockLabels,
 }: SortableBlockListProps) {
   const edit = useIsEditMode();
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -140,6 +143,7 @@ export function SortableBlockList({
             )}
             <CanvasSortableItem
               id={key}
+              label={blockLabels?.[key]}
               onRemove={onRemove}
               onEdit={onEdit}
               onAddBelow={onAddAt
@@ -195,6 +199,7 @@ export function SortableBlockList({
 
 interface CanvasSortableItemProps {
   id: string;
+  label?: string;
   children: ReactNode;
   onRemove?: (key: string) => void;
   onEdit?: (key: string) => void;
@@ -202,7 +207,7 @@ interface CanvasSortableItemProps {
 }
 
 function CanvasSortableItem({
-  id, children, onRemove, onEdit, onAddBelow,
+  id, label, children, onRemove, onEdit, onAddBelow,
 }: CanvasSortableItemProps) {
   const {
     attributes, listeners,
@@ -244,6 +249,7 @@ function CanvasSortableItem({
       {/* Floating action menu on hover — drag handle + edit + add + remove. */}
       <SectionActionMenu
         blockKey={id}
+        blockLabel={label}
         onEdit={onEdit}
         onAddBelow={onAddBelow}
         onRemove={onRemove}

@@ -61,9 +61,9 @@ export function InlineAddBlock({ onAdd, onDropBlock }: Props) {
       onDrop={handleDrop}
       style={{
         position: 'relative',
-        height: expanded ? 36 : 12,
+        height: expanded ? 28 : 8,
         transition: 'height 220ms cubic-bezier(0.22, 1, 0.36, 1)',
-        margin: '4px 0',
+        margin: '2px 0',
         zIndex: 5,
       }}
     >
@@ -106,12 +106,12 @@ export function InlineAddBlock({ onAdd, onDropBlock }: Props) {
           onClick={handleClick}
           aria-label="Add a section here"
           style={{
-            padding: '6px 14px',
+            padding: '4px 12px',
             borderRadius: 999,
             border: '1px solid var(--peach-ink, #C6703D)',
             background: 'var(--cream, #FBF7EE)',
             color: 'var(--peach-ink, #C6703D)',
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: 700,
             letterSpacing: '0.04em',
             cursor: 'pointer',

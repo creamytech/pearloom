@@ -3527,6 +3527,16 @@ export function SiteV8Renderer({
               } as StoryManifest;
             });
           }}
+          blockLabels={{
+            story: 'Story',
+            details: 'Details',
+            schedule: 'Schedule',
+            travel: 'Travel',
+            registry: 'Registry',
+            gallery: 'Gallery',
+            rsvp: 'RSVP',
+            faq: 'FAQ',
+          }}
           pickerBlocks={(() => {
             // Surface every block currently NOT visible on the site.
             const hidden = ((manifest as unknown as { hiddenBlocks?: string[] }).hiddenBlocks ?? []);
