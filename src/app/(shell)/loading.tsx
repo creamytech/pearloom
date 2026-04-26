@@ -1,14 +1,11 @@
 // ──────────────────────────────────────────────────────────────
 // Shared loading.tsx for every (shell)/* route.
 //
-// Next.js shows this between the moment a Link is clicked and the
-// new server-rendered page is ready. Without it, there's a brief
-// blank frame that reads as a flash — the very thing we're trying
-// to kill on tab switches.
-//
-// Paper-toned, no spinner. The content's only job is to occupy
-// the space at the right rough height so the swap feels like one
-// smooth fade in, not "blank → content."
+// Renders inside the persistent shell (sidebar stays mounted) for
+// the brief gap between Link click and SSR ready. No opacity dim
+// on the wrapper — the user explicitly didn't want the whole shell
+// to read as fading. Just paper-toned skeleton blocks at full
+// opacity so the eye sees "content swapping" not "page fading."
 // ──────────────────────────────────────────────────────────────
 
 export default function ShellLoading() {
@@ -20,7 +17,6 @@ export default function ShellLoading() {
         display: 'flex',
         flexDirection: 'column',
         gap: 16,
-        opacity: 0.55,
       }}
       aria-busy="true"
       aria-live="polite"
@@ -43,7 +39,6 @@ export default function ShellLoading() {
         }}
       />
 
-      {/* Card grid placeholder */}
       <div
         style={{
           marginTop: 12,

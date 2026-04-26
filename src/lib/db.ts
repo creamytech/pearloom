@@ -99,6 +99,61 @@ export async function getSiteConfig(subdomain: string): Promise<SiteConfig | nul
   return baseConfig;
 }
 
+/**
+ * adoptSite — write/normalise the site_config.creator_email so the
+ * dashboard's case-insensitive listing picks the site up.
+ *
+ * Called from the editor's server-side ownership check whenever:
+ *   (a) the site has no creator_email (orphan), OR
+ *   (b) the stored creator_email differs only in casing from the
+ *       current session's email.
+ *
+ * Refuses to overwrite a creator_email that points to a different
+ * identity — the editor's strict-mismatch redirect runs first, so
+ * we should never reach this with a real owner-mismatch, but the
+ * guard is belt-and-braces.
+ */
+export async function adoptSite(
+  subdomain: string,
+  sessionEmail: string,
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = getSupabase();
+  const normalised = sessionEmail.toLowerCase().trim();
+  try {
+    const { data: existing } = await supabase
+      .from('sites')
+      .select('id, site_config')
+      .eq('subdomain', subdomain)
+      .maybeSingle();
+
+    if (!existing) return { success: false, error: 'Site not found.' };
+
+    const cfg = (existing.site_config as Record<string, unknown>) || {};
+    const currentOwner = String(cfg.creator_email ?? '').toLowerCase().trim();
+
+    // If the stored owner is set and differs from the session user,
+    // refuse — the editor route should have already redirected.
+    if (currentOwner && currentOwner !== normalised) {
+      return { success: false, error: 'Owned by a different user.' };
+    }
+
+    const { error } = await supabase
+      .from('sites')
+      .update({
+        site_config: {
+          ...cfg,
+          creator_email: normalised,
+        },
+      })
+      .eq('subdomain', subdomain);
+
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
 export async function saveSiteDraft(
   userId: string,
   subdomain: string,
