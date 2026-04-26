@@ -490,6 +490,7 @@ export function EditorV8({
         prettyPath={prettyPath}
         device={device}
         setDevice={setDevice}
+        showDeviceToggle={!isNarrow}
         saveStatus={saveStatus}
         onPublish={handlePublish}
         onOpenAdvisor={() => setAdvisorOpen(true)}
@@ -599,6 +600,7 @@ function EditorTopbar({
   prettyPath,
   device,
   setDevice,
+  showDeviceToggle,
   saveStatus,
   onPublish,
   onOpenAdvisor,
@@ -612,6 +614,7 @@ function EditorTopbar({
   prettyPath: string;
   device: DeviceKey;
   setDevice: (d: DeviceKey) => void;
+  showDeviceToggle: boolean;
   saveStatus: 'idle' | 'saving' | 'saved' | 'error';
   onPublish: () => void;
   onOpenAdvisor: () => void;
@@ -675,12 +678,13 @@ function EditorTopbar({
         </div>
       </div>
 
-      {/* Zone 2 — Device toggle (centered) */}
+      {/* Zone 2 — Device toggle (centered). Hidden on narrow viewports
+          where the editor forces phone preview anyway. */}
       <div
         role="tablist"
         aria-label="Preview device"
         style={{
-          display: 'flex',
+          display: showDeviceToggle ? 'flex' : 'none',
           gap: 2,
           margin: '0 auto',
           padding: 3,
@@ -717,8 +721,9 @@ function EditorTopbar({
         })}
       </div>
 
-      {/* Zone 3 — Action cluster */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+      {/* Zone 3 — Action cluster (auto-margin keeps it right-aligned
+          even when the device toggle is hidden). */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, marginLeft: showDeviceToggle ? 0 : 'auto' }}>
         <button
           type="button"
           onClick={onUndo}
@@ -1292,7 +1297,7 @@ function Inspector({
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflowY: 'auto' }}>
           <header
             style={{
-              padding: '18px 20px 14px',
+              padding: '14px 20px 12px',
               borderBottom: '1px solid var(--line-soft)',
               position: 'sticky',
               top: 0,
@@ -1300,27 +1305,25 @@ function Inspector({
               zIndex: 2,
             }}
           >
-            <div className="eyebrow" style={{ color: 'var(--peach-ink)', fontSize: 10.5, marginBottom: 6 }}>
-              Editing
-            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div
                 style={{
-                  width: 30,
-                  height: 30,
+                  width: 26,
+                  height: 26,
                   borderRadius: 8,
                   background: 'var(--cream-2)',
                   display: 'grid',
                   placeItems: 'center',
+                  flexShrink: 0,
                 }}
               >
-                <Icon name={meta.icon} size={14} />
+                <Icon name={meta.icon} size={13} />
               </div>
-              <h2 className="display" style={{ fontSize: 22, margin: 0 }}>
+              <h2 className="display" style={{ fontSize: 20, margin: 0, lineHeight: 1.1 }}>
                 {meta.label}
               </h2>
             </div>
-            <p style={{ margin: '8px 0 0', fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>{meta.description}</p>
+            <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.4 }}>{meta.description}</p>
           </header>
 
           <div style={{ padding: '18px 20px 40px', display: 'flex', flexDirection: 'column', gap: 10 }}>
