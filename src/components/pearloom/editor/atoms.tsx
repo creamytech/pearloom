@@ -21,25 +21,65 @@ import {
 import dynamic from 'next/dynamic';
 import { Icon } from '../motifs';
 
-/* ---------- Section heading inside a panel ---------- */
+/* ---------- Section heading inside a panel ----------
+ *  Collapsible so users can scan the Inspector by section headers
+ *  and expand only what they need. The first section in any panel
+ *  defaults to open (defaultOpen=true on the first instance via
+ *  prop). Set `collapsible={false}` for sections that should never
+ *  collapse (e.g. the always-visible style picker at the top).
+ *  Open/closed state is local to each panel mount — switching blocks
+ *  resets to defaults so users always start in a known place.
+ *  Persists through re-renders via useState. */
 export function PanelSection({
   label,
   hint,
   action,
   children,
   style,
+  collapsible = true,
+  defaultOpen = true,
 }: {
   label?: string;
   hint?: string;
   action?: ReactNode;
   children: ReactNode;
   style?: CSSProperties;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
 }) {
+  const [open, setOpen] = useState(defaultOpen);
+  const expanded = !collapsible || open;
+
+  // Header is a button when collapsible so keyboard + screen-reader
+  // users can toggle. Otherwise it's a passive div.
+  const Header = collapsible ? 'button' : 'div';
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24, ...style }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: expanded ? 10 : 0, marginBottom: 16, ...style }}>
       {(label || action) && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 8 }}>
-          <div>
+        <Header
+          {...(collapsible
+            ? {
+                type: 'button',
+                onClick: () => setOpen((o) => !o),
+                'aria-expanded': expanded,
+              }
+            : {})}
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+            gap: 8,
+            background: 'transparent',
+            border: 'none',
+            padding: 0,
+            textAlign: 'left',
+            cursor: collapsible ? 'pointer' : 'default',
+            color: 'var(--ink)',
+            font: 'inherit',
+            width: '100%',
+          }}
+        >
+          <div style={{ flex: 1, minWidth: 0 }}>
             {label && (
               <div
                 style={{
@@ -48,17 +88,38 @@ export function PanelSection({
                   letterSpacing: '0.12em',
                   color: 'var(--peach-ink)',
                   textTransform: 'uppercase',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
                 }}
               >
+                {collapsible && (
+                  <span
+                    aria-hidden
+                    style={{
+                      display: 'inline-block',
+                      width: 10,
+                      transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                      transition: 'transform 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+                      color: 'var(--ink-muted)',
+                    }}
+                  >
+                    ▸
+                  </span>
+                )}
                 {label}
               </div>
             )}
-            {hint && <div style={{ fontSize: 12.5, color: 'var(--ink-muted)', marginTop: 4 }}>{hint}</div>}
+            {hint && expanded && (
+              <div style={{ fontSize: 12.5, color: 'var(--ink-muted)', marginTop: 4, fontWeight: 400, letterSpacing: 0, textTransform: 'none' }}>
+                {hint}
+              </div>
+            )}
           </div>
           {action}
-        </div>
+        </Header>
       )}
-      {children}
+      {expanded && children}
     </div>
   );
 }

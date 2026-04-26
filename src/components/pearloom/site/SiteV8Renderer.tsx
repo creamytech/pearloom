@@ -35,7 +35,7 @@ import { AmbientAudio } from './AmbientAudio';
 import { useHeroParallax } from './useHeroParallax';
 import { SectionBackground } from './SectionBackground';
 import { ScrollReveal } from './ScrollReveal';
-import { isBlockHidden } from './BlockStyleWrapper';
+import { isBlockHidden, BlockStyleWrapper } from './BlockStyleWrapper';
 import { TemplateSignatureDecor, type SignatureDecorKind } from './TemplateSignatureDecor';
 import { NavBrandIcon } from './NavBrandIcon';
 import { resolveStoryLayout } from '@/components/blocks/StoryLayouts';
@@ -3417,7 +3417,13 @@ export function SiteV8Renderer({
                   stickers={manifest.stickers}
                   onEditField={onEditField}
                 >
-                  {block}
+                  {/* Apply per-section visual overrides (padding /
+                      maxWidth / textAlign / textColor) from
+                      manifest.blockStyles[sectionId]. The wrapper
+                      is a no-op when no override is set. */}
+                  <BlockStyleWrapper manifest={manifest} blockId={sectionId}>
+                    {block}
+                  </BlockStyleWrapper>
                 </StickerLayer>
               </>
             );
