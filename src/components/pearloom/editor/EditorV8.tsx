@@ -602,120 +602,194 @@ function EditorTopbar({
   onUndo: () => void;
   onRedo: () => void;
 }) {
+  // Topbar = three zones over one neutral surface + a single
+  // hairline divider. Ghost buttons everywhere except Save & publish
+  // (the only pearl-accented affordance), so the eye lands there.
+  const ghostBtn: React.CSSProperties = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 6,
+    padding: '7px 12px',
+    borderRadius: 999,
+    background: 'transparent',
+    border: '1px solid var(--line-soft)',
+    color: 'var(--ink-soft)',
+    fontSize: 12.5,
+    fontWeight: 600,
+    fontFamily: 'var(--font-ui)',
+    cursor: 'pointer',
+    textDecoration: 'none',
+    transition: 'background 160ms ease, color 160ms ease, border-color 160ms ease',
+  };
+  const iconBtn: React.CSSProperties = {
+    width: 30,
+    height: 30,
+    display: 'grid',
+    placeItems: 'center',
+    borderRadius: 8,
+    background: 'transparent',
+    border: '1px solid transparent',
+    color: 'var(--ink-soft)',
+    cursor: 'pointer',
+  };
+
   return (
     <header
       style={{
         display: 'flex',
         alignItems: 'center',
         gap: 14,
-        padding: '12px 22px',
+        padding: '10px 22px',
         background: 'var(--cream)',
         borderBottom: '1px solid var(--line-soft)',
-        flexWrap: 'wrap',
       }}
     >
-      <Link href="/dashboard" aria-label="Back to dashboard">
+      {/* Zone 1 — Identity (logo + slug + status) */}
+      <Link href="/dashboard" aria-label="Back to dashboard" style={{ display: 'inline-flex', flexShrink: 0 }}>
         <PearloomLogo />
       </Link>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 600 }}>{displayNames}</div>
-        <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
-          {prettyUrl}
-          <span
-            className="pill"
-            style={{ padding: '1px 8px', fontSize: 10, background: 'var(--sage-deep)', color: 'var(--cream)', border: 0 }}
-          >
-            Editing
-          </span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0, flexShrink: 0 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.15 }}>{displayNames}</div>
+        <div style={{ fontSize: 11, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 6, lineHeight: 1.15 }}>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 240 }}>{prettyUrl}</span>
+          <SaveDot saveStatus={saveStatus} />
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 4, margin: '0 auto', padding: 4, background: 'var(--cream-2)', borderRadius: 10 }}>
+      {/* Zone 2 — Device toggle (centered) */}
+      <div
+        role="tablist"
+        aria-label="Preview device"
+        style={{
+          display: 'flex',
+          gap: 2,
+          margin: '0 auto',
+          padding: 3,
+          background: 'var(--cream-2)',
+          borderRadius: 999,
+        }}
+      >
         {(['desktop', 'tablet', 'phone'] as const).map((n) => {
           const on = device === n;
           return (
             <button
               key={n}
               type="button"
+              role="tab"
+              aria-selected={on}
               onClick={() => setDevice(n)}
               aria-label={n}
-              aria-pressed={on}
+              title={n.charAt(0).toUpperCase() + n.slice(1)}
               style={{
-                padding: '8px 14px',
-                borderRadius: 8,
+                padding: '6px 14px',
+                borderRadius: 999,
                 background: on ? 'var(--ink)' : 'transparent',
-                color: on ? 'var(--cream)' : 'var(--ink)',
+                color: on ? 'var(--cream)' : 'var(--ink-soft)',
                 border: 0,
                 cursor: 'pointer',
                 display: 'grid',
                 placeItems: 'center',
+                transition: 'background 180ms ease, color 180ms ease',
               }}
             >
-              <Icon name={n} size={14} />
+              <Icon name={n} size={13} />
             </button>
           );
         })}
       </div>
 
-      <span
-        style={{
-          fontSize: 11.5,
-          color:
-            saveStatus === 'saving'
-              ? 'var(--ink-muted)'
-              : saveStatus === 'saved'
-                ? 'var(--sage-deep)'
-                : saveStatus === 'error'
-                  ? '#7A2D2D'
-                  : 'var(--ink-muted)',
-          fontWeight: 600,
-          minWidth: 70,
-          textAlign: 'right',
-        }}
-      >
-        {saveStatus === 'saving' && 'Saving…'}
-        {saveStatus === 'saved' && 'Saved'}
-        {saveStatus === 'error' && 'Save failed'}
-      </span>
-      <KbdHint />
-
-      {/* Undo / Redo — also bound to Cmd/Ctrl+Z and Cmd/Ctrl+Shift+Z. */}
-      <button
-        type="button"
-        className="btn btn-ghost btn-sm"
-        onClick={onUndo}
-        disabled={!canUndo}
-        aria-label="Undo (Cmd+Z)"
-        title="Undo (Cmd+Z)"
-        style={{ opacity: canUndo ? 1 : 0.4 }}
-      >
-        <Icon name="arrow-left" size={13} /> Undo
-      </button>
-      <button
-        type="button"
-        className="btn btn-ghost btn-sm"
-        onClick={onRedo}
-        disabled={!canRedo}
-        aria-label="Redo (Cmd+Shift+Z)"
-        title="Redo (Cmd+Shift+Z)"
-        style={{ opacity: canRedo ? 1 : 0.4 }}
-      >
-        Redo <Icon name="arrow-right" size={13} />
-      </button>
-
-      <button type="button" className="btn btn-outline btn-sm" onClick={onOpenAdvisor} aria-label="Ask Pear to review">
-        <Icon name="sparkles" size={13} /> Ask Pear
-      </button>
-      <Link href={prettyPath} target="_blank" className="btn btn-outline btn-sm">
-        <Icon name="eye" size={13} /> Preview
-      </Link>
-      <Link href="/dashboard" className="btn btn-outline btn-sm">
-        <Icon name="grid" size={13} /> Dashboard
-      </Link>
-      <button type="button" className="btn btn-primary" onClick={onPublish}>
-        Save &amp; publish <Icon name="arrow-right" size={13} />
-      </button>
+      {/* Zone 3 — Action cluster */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+        <button
+          type="button"
+          onClick={onUndo}
+          disabled={!canUndo}
+          aria-label="Undo (Cmd+Z)"
+          title="Undo (Cmd+Z)"
+          style={{ ...iconBtn, opacity: canUndo ? 1 : 0.35 }}
+        >
+          <Icon name="arrow-left" size={14} />
+        </button>
+        <button
+          type="button"
+          onClick={onRedo}
+          disabled={!canRedo}
+          aria-label="Redo (Cmd+Shift+Z)"
+          title="Redo (Cmd+Shift+Z)"
+          style={{ ...iconBtn, opacity: canRedo ? 1 : 0.35 }}
+        >
+          <Icon name="arrow-right" size={14} />
+        </button>
+        <span style={{ width: 1, height: 18, background: 'var(--line-soft)', margin: '0 4px' }} aria-hidden />
+        <button type="button" onClick={onOpenAdvisor} style={ghostBtn}>
+          <Icon name="sparkles" size={12} /> Ask Pear
+        </button>
+        <Link href={prettyPath} target="_blank" style={ghostBtn}>
+          <Icon name="eye" size={12} /> Preview
+        </Link>
+        <Link href="/dashboard" style={ghostBtn}>
+          <Icon name="grid" size={12} /> Dashboard
+        </Link>
+        <KbdHint />
+        <button
+          type="button"
+          onClick={onPublish}
+          className="pl-pearl-accent"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '8px 16px',
+            borderRadius: 999,
+            fontSize: 12.5,
+            fontWeight: 700,
+            fontFamily: 'var(--font-ui)',
+            cursor: 'pointer',
+            border: 'none',
+            marginLeft: 4,
+          }}
+        >
+          Save &amp; publish <Icon name="arrow-right" size={12} />
+        </button>
+      </div>
     </header>
+  );
+}
+
+/** Status dot rendered next to the slug — quietly tells the host
+ *  whether their work has been written to the server. */
+function SaveDot({ saveStatus }: { saveStatus: 'idle' | 'saving' | 'saved' | 'error' }) {
+  const colour =
+    saveStatus === 'saved'
+      ? 'var(--sage-deep)'
+      : saveStatus === 'saving'
+        ? 'var(--peach-ink, #C6703D)'
+        : saveStatus === 'error'
+          ? '#7A2D2D'
+          : 'var(--ink-muted)';
+  const label =
+    saveStatus === 'saved'
+      ? 'Saved'
+      : saveStatus === 'saving'
+        ? 'Saving…'
+        : saveStatus === 'error'
+          ? 'Save failed'
+          : 'Editing';
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: colour, fontWeight: 600 }}>
+      <span
+        aria-hidden
+        style={{
+          width: 6,
+          height: 6,
+          borderRadius: 999,
+          background: colour,
+          display: 'inline-block',
+          animation: saveStatus === 'saving' ? 'pl-dot-pulse 1.4s ease-in-out infinite' : 'none',
+        }}
+      />
+      {label}
+    </span>
   );
 }
 
