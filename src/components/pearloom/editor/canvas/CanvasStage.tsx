@@ -78,8 +78,14 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
           flex: 1,
           minWidth: 0,
           overflowY: 'auto',
-          padding: 24,
-          background: 'var(--cream-2)',
+          padding: '32px 32px 96px',
+          // Warm dark slate so the device viewport reads as a real
+          // object on a workbench instead of floating in cream space.
+          // Dotted-grid texture is layered on top via a fine repeating
+          // radial-gradient at low alpha — quiet but tangible.
+          background:
+            'radial-gradient(rgba(251,247,238,0.06) 1px, transparent 1px) 0 0 / 18px 18px, linear-gradient(180deg, #1c1a16 0%, #15130f 100%)',
+          backgroundAttachment: 'local, local',
           display: 'grid',
           placeItems: 'start center',
         }}
@@ -89,9 +95,10 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
             width: w,
             maxWidth: '100%',
             background: 'var(--paper)',
-            borderRadius: 20,
-            border: '1px solid var(--card-ring)',
-            boxShadow: 'var(--shadow-md)',
+            borderRadius: 18,
+            border: '1px solid rgba(251,247,238,0.06)',
+            boxShadow:
+              '0 30px 80px -30px rgba(0,0,0,0.6), 0 12px 32px -16px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,0,0,0.4)',
             overflow: 'hidden',
             transition: 'width 240ms cubic-bezier(0.16, 1, 0.3, 1)',
             position: 'relative',
