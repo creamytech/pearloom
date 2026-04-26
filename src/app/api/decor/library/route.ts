@@ -25,6 +25,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { openaiGenerateImage, getLastOpenAIError } from '@/lib/memory-engine/openai-image';
 import { uploadToR2, getR2Url } from '@/lib/r2';
+import { persistUserMedia } from '@/lib/user-media';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import {
   dividerPrompt,
@@ -143,6 +144,36 @@ export async function POST(req: NextRequest) {
         failures.push(`${slotsRequested[i]}: ${r.reason instanceof Error ? r.reason.message : 'failed'}`);
       }
     });
+
+    // Persist every generated asset into the user's media library
+    // so it shows up in the editor's Library tab. Per-slot rows
+    // are tagged with their source so the library can group them.
+    const ownerEmail = session.user!.email!;
+    const mediaRows: Parameters<typeof persistUserMedia>[0] = [];
+    if (typeof library.divider === 'string') {
+      mediaRows.push({ owner_email: ownerEmail, url: library.divider, source: 'ai-decor:divider', source_site_id: siteId, mime_type: 'image/png' });
+    }
+    if (typeof library.confetti === 'string') {
+      mediaRows.push({ owner_email: ownerEmail, url: library.confetti, source: 'ai-decor:confetti', source_site_id: siteId, mime_type: 'image/png' });
+    }
+    if (typeof library.footerBouquet === 'string') {
+      mediaRows.push({ owner_email: ownerEmail, url: library.footerBouquet, source: 'ai-decor:bouquet', source_site_id: siteId, mime_type: 'image/png' });
+    }
+    if (library.sectionStamps && typeof library.sectionStamps === 'object') {
+      for (const [k, v] of Object.entries(library.sectionStamps as Record<string, unknown>)) {
+        if (typeof v === 'string') {
+          mediaRows.push({
+            owner_email: ownerEmail,
+            url: v,
+            source: 'ai-decor:stamp',
+            source_site_id: siteId,
+            mime_type: 'image/png',
+            filename: `section-stamp-${k}.png`,
+          });
+        }
+      }
+    }
+    void persistUserMedia(mediaRows);
 
     return NextResponse.json({ library, prompts, failures, customPrompts: customPrompts ?? null });
   } catch (err) {

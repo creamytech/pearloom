@@ -38,6 +38,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { CanvasStage } from './canvas/CanvasStage';
 import { ThemeQuickBar } from './canvas/ThemeQuickBar';
 import { EditorCanvasProvider } from './canvas/EditorCanvasContext';
+import { AssetLibraryPanel } from './panels/AssetLibraryPanel';
 import { useEditorHistory } from './canvas/useEditorHistory';
 import { HeroPanel } from './panels/HeroPanel';
 import { NavPanel } from './panels/NavPanel';
@@ -429,9 +430,9 @@ export function EditorV8({
       } else if (e.shiftKey && (e.key === 'P' || e.key === 'p')) {
         e.preventDefault();
         void handlePublish();
-      } else if (!isTyping && !e.shiftKey && !e.altKey && (e.key === '1' || e.key === '2' || e.key === '3')) {
+      } else if (!isTyping && !e.shiftKey && !e.altKey && (e.key === '1' || e.key === '2' || e.key === '3' || e.key === '4')) {
         e.preventDefault();
-        const map: Record<string, InspectorTab> = { '1': 'section', '2': 'theme', '3': 'pear' };
+        const map: Record<string, InspectorTab> = { '1': 'section', '2': 'theme', '3': 'library', '4': 'pear' };
         setInspectorTab(map[e.key]);
       }
     }
@@ -888,7 +889,8 @@ function KbdHint() {
             ['Previous block', '⌘↑ / Ctrl↑'],
             ['Section tab', '⌘1 / Ctrl 1'],
             ['Theme tab', '⌘2 / Ctrl 2'],
-            ['Pear tab', '⌘3 / Ctrl 3'],
+            ['Library tab', '⌘3 / Ctrl 3'],
+            ['Pear tab', '⌘4 / Ctrl 4'],
             ['Save & publish', '⌘⇧P / Ctrl⇧P'],
           ].map(([label, keys]) => (
             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginBottom: 4 }}>
@@ -1217,7 +1219,7 @@ function BlockRow({
 //  CanvasStage which renders SiteV8Renderer in-DOM.)
 
 /* ---------- Right inspector ---------- */
-type InspectorTab = 'section' | 'theme' | 'pear';
+type InspectorTab = 'section' | 'theme' | 'library' | 'pear';
 
 function Inspector({
   block,
@@ -1271,7 +1273,7 @@ function Inspector({
         aria-label="Inspector tabs"
         style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr',
+          gridTemplateColumns: 'repeat(4, 1fr)',
           borderBottom: '1px solid var(--line-soft)',
           background: 'var(--cream)',
         }}
@@ -1285,6 +1287,7 @@ function Inspector({
             // when they're inside it.
             { key: 'section', label: 'Section', icon: 'sliders' },
             { key: 'theme', label: 'Theme', icon: 'palette' },
+            { key: 'library', label: 'Library', icon: 'image' },
             { key: 'pear', label: 'Pear', icon: 'sparkles' },
           ] as Array<{ key: InspectorTab; label: string; icon: string }>
         ).map((t) => {
@@ -1385,6 +1388,10 @@ function Inspector({
             />
           </EditorCanvasProvider>
         </div>
+      )}
+
+      {tab === 'library' && (
+        <AssetLibraryPanel />
       )}
 
       {tab === 'pear' && (

@@ -20,6 +20,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { openaiGenerateImage, getLastOpenAIError } from '@/lib/memory-engine/openai-image';
 import { uploadToR2, getR2Url } from '@/lib/r2';
+import { persistUserMedia } from '@/lib/user-media';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { heroAccentPrompt } from '@/lib/decor/prompts';
 import { removeWhiteBackground } from '@/lib/decor/remove-background';
@@ -99,6 +100,17 @@ export async function POST(req: NextRequest) {
     const key = `decor/${siteId}/${Date.now()}-accent.png`;
     await uploadToR2(key, cutout.buffer, 'image/png');
     const url = getR2Url(key);
+
+    // Persist into the user's library so they can re-use it later.
+    void persistUserMedia([{
+      owner_email: session.user!.email!,
+      url,
+      source: 'ai-decor:accent',
+      source_site_id: siteId,
+      mime_type: 'image/png',
+      caption: customPrompt && customPrompt.trim() ? customPrompt.trim() : null,
+      filename: `accent-${Date.now()}.png`,
+    }]);
 
     return NextResponse.json({
       url,

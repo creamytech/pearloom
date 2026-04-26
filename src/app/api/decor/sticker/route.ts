@@ -17,6 +17,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { openaiGenerateImage, getLastOpenAIError } from '@/lib/memory-engine/openai-image';
 import { uploadToR2, getR2Url } from '@/lib/r2';
+import { persistUserMedia } from '@/lib/user-media';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { stickerPrompt } from '@/lib/decor/prompts';
 import { removeWhiteBackground } from '@/lib/decor/remove-background';
@@ -121,6 +122,19 @@ export async function POST(req: NextRequest) {
     const key = `decor/${siteId}/stickers/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.png`;
     await uploadToR2(key, cutout.buffer, 'image/png');
     const url = getR2Url(key);
+
+    // Persist the generated sticker into the user's media library
+    // so they can re-use it later from the Library tab.
+    void persistUserMedia([{
+      owner_email: session.user!.email!,
+      url,
+      source: 'ai-decor:sticker',
+      source_site_id: siteId,
+      mime_type: 'image/png',
+      caption: hint && hint.trim() ? hint.trim() : null,
+      filename: `sticker-${Date.now()}.png`,
+    }]);
+
     return NextResponse.json({
       url,
       isolated: cutout.isolated,

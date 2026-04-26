@@ -19,6 +19,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { uploadToR2 } from '@/lib/r2';
+import { persistUserMedia } from '@/lib/user-media';
 import { generateImage } from '@/lib/memory-engine/image-router';
 import { env } from '@/lib/env';
 
@@ -167,6 +168,17 @@ export async function POST(req: NextRequest) {
 
   try {
     const url = await uploadToR2(key, outBuf, result.mimeType);
+
+    // Persist the stylised photo into the user's library.
+    void persistUserMedia([{
+      owner_email: session.user!.email!,
+      url,
+      source: 'ai-stylize',
+      mime_type: result.mimeType,
+      filename: `stylized-${style}-${Date.now()}.${ext}`,
+      caption: `Stylised: ${preset.prompt.slice(0, 80)}`,
+    }]);
+
     return NextResponse.json({ url, style });
   } catch (err) {
     console.error('[stylize] R2 upload failed:', err);
