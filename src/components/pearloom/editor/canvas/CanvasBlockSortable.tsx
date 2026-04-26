@@ -178,7 +178,7 @@ export function SortableBlockList({
               textTransform: 'uppercase', letterSpacing: '0.12em',
             }}
           >
-            {activeId}
+            {blockLabels?.[activeId] ?? activeId}
           </div>
         ) : null}
       </DragOverlay>

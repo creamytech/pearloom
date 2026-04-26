@@ -28,7 +28,7 @@ export function DetailsPanel({
   const smartActions: PanelSmartAction[] = [
     {
       label: 'Set dress code',
-      icon: 'shirt',
+      icon: 'type',
       onClick: () => {
         const el = document.querySelector('[data-pl-details-dresscode]') as HTMLElement | null;
         el?.scrollIntoView({ behavior: 'smooth', block: 'center' });

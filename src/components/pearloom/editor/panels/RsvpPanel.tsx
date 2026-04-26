@@ -100,7 +100,7 @@ export function RsvpPanel({
     },
     {
       label: 'See responses',
-      icon: 'inbox',
+      icon: 'users',
       onClick: () => {
         if (typeof window !== 'undefined') {
           window.open('/rsvps', '_blank');

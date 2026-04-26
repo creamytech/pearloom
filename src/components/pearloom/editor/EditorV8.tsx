@@ -437,14 +437,16 @@ export function EditorV8({
           role="alert"
           style={{
             position: 'fixed',
-            top: 16,
-            right: 16,
-            maxWidth: 380,
+            top: 64,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            maxWidth: 480,
+            width: 'calc(100% - 64px)',
             padding: '12px 16px',
             background: 'var(--card)',
             border: '1px solid #7A2D2D',
             borderRadius: 12,
-            boxShadow: '0 8px 20px rgba(14,13,11,0.22)',
+            boxShadow: '0 12px 32px rgba(14,13,11,0.28)',
             zIndex: 9999,
             display: 'flex',
             gap: 12,
@@ -1230,7 +1232,7 @@ function Inspector({
           [
             { key: 'section', label: 'Section', icon: meta.icon },
             { key: 'theme', label: 'Theme', icon: 'palette' },
-            { key: 'pear', label: 'Pear', icon: 'sparkle' },
+            { key: 'pear', label: 'Pear', icon: 'sparkles' },
           ] as Array<{ key: InspectorTab; label: string; icon: string }>
         ).map((t) => {
           const active = tab === t.key;
