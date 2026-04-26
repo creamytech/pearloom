@@ -884,45 +884,54 @@ function Outline({
   }
 
   const hero = BLOCKS_BY_KEY.hero;
-  const theme = BLOCKS_BY_KEY.theme;
+  // Theme entry removed from the outline — Theme moved to the
+  // inspector rail's tab. One source of truth for palette controls.
 
   return (
     <aside
       className="pl8-editor-outline"
       style={{
-        width: 308,
+        width: 264,
         flexShrink: 0,
         borderRight: '1px solid var(--line-soft)',
         background: 'var(--cream)',
-        padding: '18px 14px',
+        padding: '14px 12px',
         overflowY: 'auto',
         display: 'flex',
         flexDirection: 'column',
-        gap: 14,
+        gap: 10,
       }}
     >
       {/* Hero — pinned */}
       <BlockRow def={hero} active={block === hero.key} hidden={false} onSelect={() => setBlock(hero.key)} />
 
       {/* Reorderable middle */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginTop: 4,
+          padding: '0 4px',
+        }}
+      >
         <div
           style={{
-            fontSize: 11,
+            fontSize: 10.5,
             fontWeight: 700,
-            letterSpacing: '0.12em',
+            letterSpacing: '0.14em',
             color: 'var(--peach-ink)',
             textTransform: 'uppercase',
           }}
         >
           Sections
         </div>
-        <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>Drag to reorder</span>
+        <span style={{ fontSize: 10.5, color: 'var(--ink-muted)' }}>Drag to reorder</span>
       </div>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={blockOrder} strategy={verticalListSortingStrategy}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {blockOrder.map((key) => {
               const def = BLOCKS_BY_KEY[key];
               const hidden = hiddenBlocks.includes(key);
@@ -941,41 +950,24 @@ function Outline({
         </SortableContext>
       </DndContext>
 
-      {/* Theme — pinned */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
-        <div
-          style={{
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: '0.12em',
-            color: 'var(--peach-ink)',
-            textTransform: 'uppercase',
-            marginBottom: 4,
-          }}
-        >
-          Style
-        </div>
-        <BlockRow def={theme} active={block === theme.key} hidden={false} onSelect={() => setBlock(theme.key)} />
-      </div>
-
       <div
         style={{
           marginTop: 'auto',
           background: 'var(--lavender-bg)',
-          borderRadius: 14,
-          padding: 12,
+          borderRadius: 12,
+          padding: 10,
           display: 'flex',
-          gap: 10,
+          gap: 8,
           alignItems: 'flex-start',
         }}
       >
-        <Pear size={34} tone="sage" />
+        <Pear size={28} tone="sage" />
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--lavender-ink)', marginBottom: 2 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--lavender-ink)', marginBottom: 2 }}>
             Tip from Pear
           </div>
-          <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.4 }}>
-            Drag to reorder. The eye hides a section — drag a hidden row onto the canvas to add it back. Click anything in the preview to edit it.
+          <div style={{ fontSize: 11, color: 'var(--ink-soft)', lineHeight: 1.4 }}>
+            Drag rows to reorder. Hide with the eye — drag hidden rows onto the canvas to add them back. Click anything in the preview to edit it.
           </div>
         </div>
       </div>
@@ -1076,11 +1068,11 @@ function BlockRow({
         : undefined}
       style={{
         display: 'grid',
-        gridTemplateColumns: `${dragHandleProps ? '18px ' : ''}56px 1fr ${onToggleHidden ? '28px' : ''}`.trim(),
-        gap: 10,
-        padding: '8px 10px',
-        borderRadius: 10,
-        background: active ? 'var(--ink)' : hidden ? 'transparent' : 'transparent',
+        gridTemplateColumns: `${dragHandleProps ? '14px ' : ''}40px 1fr ${onToggleHidden ? '24px' : ''}`.trim(),
+        gap: 8,
+        padding: '6px 8px',
+        borderRadius: 8,
+        background: active ? 'var(--ink)' : 'transparent',
         color: active ? 'var(--cream)' : 'var(--ink)',
         border: active ? '1px solid var(--ink)' : '1px solid transparent',
         cursor: nativeDraggable ? 'grab' : 'pointer',
@@ -1099,8 +1091,8 @@ function BlockRow({
           aria-label="Drag to reorder"
           onClick={(e) => e.stopPropagation()}
           style={{
-            width: 18,
-            height: 34,
+            width: 14,
+            height: 28,
             display: 'grid',
             placeItems: 'center',
             background: 'transparent',
@@ -1111,15 +1103,16 @@ function BlockRow({
             padding: 0,
           }}
         >
-          <Icon name="drag" size={14} />
+          <Icon name="drag" size={12} />
         </button>
       )}
-      {/* Mini section preview — replaces the small icon with an
-          illustrative SVG diagram of what the section looks like. */}
+      {/* Mini section preview — small SVG diagram of what the
+          section looks like. Description has moved to the inspector
+          header so we keep rows compact. */}
       <span
         style={{
-          width: 56,
-          height: 34,
+          width: 40,
+          height: 26,
           flexShrink: 0,
           opacity: hidden ? 0.45 : 1,
           display: 'block',
@@ -1128,19 +1121,16 @@ function BlockRow({
         <BlockMiniature block={def.key} active={active} />
       </span>
       <div style={{ minWidth: 0, opacity: hidden ? 0.55 : 1 }}>
-        <div style={{ fontSize: 13.5, fontWeight: 600 }}>{def.label}</div>
         <div
           style={{
-            fontSize: 11.5,
-            color: active ? 'rgba(255,254,247,0.7)' : 'var(--ink-muted)',
-            lineHeight: 1.35,
-            marginTop: 1,
+            fontSize: 13,
+            fontWeight: 600,
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
           }}
         >
-          {def.description}
+          {def.label}
         </div>
       </div>
       {onToggleHidden && (
@@ -1152,8 +1142,8 @@ function BlockRow({
             onToggleHidden();
           }}
           style={{
-            width: 28,
-            height: 28,
+            width: 24,
+            height: 24,
             display: 'grid',
             placeItems: 'center',
             background: 'transparent',
@@ -1164,7 +1154,7 @@ function BlockRow({
             padding: 0,
           }}
         >
-          <Icon name={hidden ? 'eye-off' : 'eye'} size={14} />
+          <Icon name={hidden ? 'eye-off' : 'eye'} size={13} />
         </button>
       )}
     </div>
