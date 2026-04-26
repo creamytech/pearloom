@@ -19,6 +19,8 @@
 import { useCallback, useState } from 'react';
 import type { StoryManifest, DecorDraft, SectionStampsDraft } from '@/types';
 import { PanelSection } from '../atoms';
+import { Icon } from '../../motifs';
+import { getVenueMotifs, describeVenueMatch, type VenueMotif } from '@/lib/decor/venue-motifs';
 import {
   DecorPromptComposer,
   DecorAlternatesStrip,
@@ -238,11 +240,124 @@ export function DecorLibraryPanel({
 
   const allSlots: LibrarySlot[] = ['divider', 'sectionStamps', 'confetti', 'footerBouquet'];
 
+  // Venue-aware motif suggestions. When the venue string matches a
+  // known archetype (desert, vineyard, beach, mountain, ...), Pear
+  // surfaces 3-5 motif chips. Click a chip to drop its prompt into
+  // ALL slot prompts at once — clicking again clears it.
+  const venueMotifs = getVenueMotifs(ctx.venue);
+  const venueMatchLabel = describeVenueMatch(ctx.venue);
+
+  function applyMotifToAllSlots(motif: VenueMotif) {
+    setCustomPrompts((p) => {
+      // Toggle: if every slot already has this motif's prompt,
+      // clear them; otherwise apply to all four.
+      const allMatch = allSlots.every((s) => p[s] === motif.prompt);
+      const next: Record<LibrarySlot, string> = { ...p };
+      for (const s of allSlots) next[s] = allMatch ? '' : motif.prompt;
+      return next;
+    });
+  }
+
   return (
     <PanelSection
       label="Decor library (AI)"
       hint="Ask Pear to draft a full set of bespoke graphics that match your venue, palette, and occasion — divider, six section stamps, RSVP confetti, and a closing flourish. All pieces ship with transparent backgrounds."
     >
+      {!ctx.venue && (
+        <div
+          style={{
+            marginBottom: 12,
+            padding: 10,
+            borderRadius: 12,
+            background: 'var(--cream-2)',
+            border: '1px dashed var(--line-soft)',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 8,
+          }}
+        >
+          <Icon name="pin" size={13} />
+          <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
+            <span style={{ fontWeight: 600, color: 'var(--ink)' }}>Set a venue first.</span> Pear pulls motif
+            suggestions (Joshua trees, cypress, palm fronds…) from the Hero panel's venue field.
+          </div>
+        </div>
+      )}
+      {ctx.venue && !venueMotifs && (
+        <div
+          style={{
+            marginBottom: 12,
+            padding: 10,
+            borderRadius: 12,
+            background: 'var(--cream-2)',
+            border: '1px solid var(--line-soft)',
+            fontSize: 11.5,
+            color: 'var(--ink-soft)',
+            lineHeight: 1.45,
+          }}
+        >
+          <span style={{ fontWeight: 600, color: 'var(--ink)' }}>"{ctx.venue}"</span> didn't match a known
+          archetype. Pear will still use it as context, or write a custom prompt below for any slot.
+        </div>
+      )}
+      {venueMotifs && (
+        <div
+          style={{
+            marginBottom: 12,
+            padding: 10,
+            borderRadius: 12,
+            background: 'var(--peach-bg, #FCE6D7)',
+            border: '1px solid var(--peach-2, #F4C7A4)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 10.5,
+              fontWeight: 700,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: 'var(--peach-ink, #C6703D)',
+              marginBottom: 6,
+            }}
+          >
+            <Icon name="sparkles" size={11} />
+            Pear sees: {venueMatchLabel ?? 'a venue with character'}
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.45, marginBottom: 8 }}>
+            Click a motif and Pear will fold it into every piece in the next draft.
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {venueMotifs.map((m) => {
+              const active = allSlots.every((s) => customPrompts[s] === m.prompt);
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => applyMotifToAllSlots(m)}
+                  title={m.prompt}
+                  style={{
+                    padding: '5px 10px',
+                    borderRadius: 999,
+                    background: active ? 'var(--peach-ink, #C6703D)' : 'var(--cream, #FBF7EE)',
+                    color: active ? '#fff' : 'var(--ink)',
+                    border: active ? '1px solid var(--peach-ink, #C6703D)' : '1px solid var(--line-soft)',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    fontFamily: 'var(--font-ui)',
+                    cursor: 'pointer',
+                    transition: 'background 160ms ease, color 160ms ease',
+                  }}
+                >
+                  {active ? '✓ ' : ''}{m.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
       <button
         type="button"
         className="btn btn-primary btn-sm"
