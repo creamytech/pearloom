@@ -1,22 +1,27 @@
 'use client';
 
 // ──────────────────────────────────────────────────────────────
-// CanvasBlockSortable — true visual builder drag-and-drop.
+// CanvasBlockSortable — direct-manipulation block ordering on the
+// live canvas. v9.1 upgrades over the original Wix-style reorder:
 //
-// Wraps the SiteV8Renderer's per-block list with a dnd-kit
-// SortableContext. Each section becomes a sortable item with a
-// drag handle that only appears in edit mode. Drop indicator
-// (1px sage hairline) animates between sections during drag.
+//   1. Each section gets a hover SectionActionMenu (top-right):
+//      ⋮⋮ drag · ✎ edit · ⊕ add below · × remove. Anyone editing
+//      a site never has to round-trip to the Outline for these.
 //
-// Strict reorder only — no free positioning. Editorial flow
-// integrity.
+//   2. InlineAddBlock — a thin row between every two sections.
+//      Hover reveals a "+ Add section" pill anchored to the gap;
+//      clicking opens the BlockPickerPopover with everything
+//      currently hidden, ready to slot in at that position.
 //
-// Hero + theme are pinned and rendered OUTSIDE this surface;
-// only the middle blocks (story, details, schedule, travel,
-// registry, gallery, rsvp, faq) are sortable.
+//   3. Outline → canvas drag bridge: the same DndContext accepts
+//      drags initiated outside the SortableContext (e.g. from the
+//      Outline) and drops them in the right gap.
+//
+// Strict-reorder still — no free positioning. Editorial flow stays
+// intact.
 // ──────────────────────────────────────────────────────────────
 
-import { type ReactNode, useState, useMemo } from 'react';
+import { type ReactNode, useState, useMemo, useCallback } from 'react';
 import {
   DndContext, DragEndEvent, DragOverlay, DragStartEvent,
   closestCenter, KeyboardSensor, PointerSensor,
@@ -28,20 +33,41 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useIsEditMode } from './EditorCanvasContext';
+import { SectionActionMenu } from './SectionActionMenu';
+import { InlineAddBlock } from './InlineAddBlock';
+import { BlockPickerPopover, type PickerBlock } from './BlockPickerPopover';
 
 interface SortableBlockListProps {
   blockKeys: string[];
-  /** Renders each block. The renderer is called once per key. */
+  /** Renders each block. Called once per key. */
   renderItem: (key: string, idx: number) => ReactNode;
-  /** Callback when user reorders. Receives the new order. */
+  /** Called when reorder happens. Receives the new order. */
   onReorder?: (next: string[]) => void;
+  /** Called when "× remove" is clicked on a section. The host
+   *  decides what removal means (typically: add to hiddenBlocks). */
+  onRemove?: (key: string) => void;
+  /** Called when "✎ edit" is clicked. Host scrolls Inspector to
+   *  the matching block panel. */
+  onEdit?: (key: string) => void;
+  /** Called when "+ Add" inline-zone or section-menu is used. The
+   *  parent decides which block to add and at what index. */
+  onAddAt?: (atIndex: number, key: string) => void;
+  /** All blocks the picker can offer (already-hidden ones the user
+   *  can re-show). Empty list = picker shows empty state. */
+  pickerBlocks?: PickerBlock[];
+  /** Called when a section dragged from the Outline is dropped into
+   *  one of the inline-add gaps. Index = the gap's insert index. */
+  onDropOutlineBlock?: (atIndex: number, key: string) => void;
 }
 
 export function SortableBlockList({
-  blockKeys, renderItem, onReorder,
+  blockKeys, renderItem, onReorder, onRemove, onEdit, onAddAt, pickerBlocks = [], onDropOutlineBlock,
 }: SortableBlockListProps) {
   const edit = useIsEditMode();
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [pickerAnchor, setPickerAnchor] = useState<HTMLElement | null>(null);
+  const [pickerIndex, setPickerIndex] = useState<number>(0);
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -49,9 +75,17 @@ export function SortableBlockList({
 
   const items = useMemo(() => blockKeys.map((k) => ({ id: k })), [blockKeys]);
 
-  // When NOT in edit mode, just render the items unchanged. dnd-kit
-  // is purely an editor concern.
-  if (!edit || !onReorder) {
+  const openPicker = useCallback((index: number, anchor: HTMLElement) => {
+    setPickerIndex(index);
+    setPickerAnchor(anchor);
+  }, []);
+
+  const closePicker = useCallback(() => {
+    setPickerAnchor(null);
+  }, []);
+
+  // When NOT in edit mode, render items unchanged.
+  if (!edit) {
     return (
       <>
         {blockKeys.map((key, i) => {
@@ -73,7 +107,7 @@ export function SortableBlockList({
 
   function onDragEnd(e: DragEndEvent) {
     setActiveId(null);
-    if (!e.over || e.active.id === e.over.id) return;
+    if (!reorderCb || !e.over || e.active.id === e.over.id) return;
     const oldIndex = blockKeys.indexOf(String(e.active.id));
     const newIndex = blockKeys.indexOf(String(e.over.id));
     if (oldIndex < 0 || newIndex < 0) return;
@@ -91,10 +125,40 @@ export function SortableBlockList({
     >
       <SortableContext items={items} strategy={verticalListSortingStrategy}>
         {blockKeys.map((key, i) => (
-          <CanvasSortableItem key={key} id={key}>
-            {renderItem(key, i)}
-          </CanvasSortableItem>
+          <div key={key}>
+            {/* Inline-add zone ABOVE every section. The first one
+                accepts blocks at index 0 — nothing renders above it
+                in edit mode except the hero (which is outside this
+                list), so it doubles as "add at the very top". */}
+            {onAddAt && (
+              <InlineAddBlock
+                onAdd={(anchor) => openPicker(i, anchor)}
+                onDropBlock={onDropOutlineBlock
+                  ? (k) => onDropOutlineBlock(i, k)
+                  : undefined}
+              />
+            )}
+            <CanvasSortableItem
+              id={key}
+              onRemove={onRemove}
+              onEdit={onEdit}
+              onAddBelow={onAddAt
+                ? (k, anchor) => openPicker(i + 1, anchor)
+                : undefined}
+            >
+              {renderItem(key, i)}
+            </CanvasSortableItem>
+          </div>
         ))}
+        {/* Trailing add-zone — at the very end of the section list. */}
+        {onAddAt && (
+          <InlineAddBlock
+            onAdd={(anchor) => openPicker(blockKeys.length, anchor)}
+            onDropBlock={onDropOutlineBlock
+              ? (k) => onDropOutlineBlock(blockKeys.length, k)
+              : undefined}
+          />
+        )}
       </SortableContext>
       <DragOverlay>
         {activeId ? (
@@ -114,6 +178,17 @@ export function SortableBlockList({
           </div>
         ) : null}
       </DragOverlay>
+      {pickerAnchor && onAddAt && (
+        <BlockPickerPopover
+          anchor={pickerAnchor}
+          blocks={pickerBlocks}
+          onClose={closePicker}
+          onPick={(k) => {
+            onAddAt(pickerIndex, k);
+            closePicker();
+          }}
+        />
+      )}
     </DndContext>
   );
 }
@@ -121,9 +196,14 @@ export function SortableBlockList({
 interface CanvasSortableItemProps {
   id: string;
   children: ReactNode;
+  onRemove?: (key: string) => void;
+  onEdit?: (key: string) => void;
+  onAddBelow?: (key: string, anchor: HTMLElement) => void;
 }
 
-function CanvasSortableItem({ id, children }: CanvasSortableItemProps) {
+function CanvasSortableItem({
+  id, children, onRemove, onEdit, onAddBelow,
+}: CanvasSortableItemProps) {
   const {
     attributes, listeners,
     setNodeRef, transform, transition,
@@ -144,8 +224,7 @@ function CanvasSortableItem({ id, children }: CanvasSortableItemProps) {
       data-pl-block={id}
       data-pl-block-sortable
     >
-      {/* Drop indicator — appears between sections when this is the
-          drop target. 1px sage hairline that brightens to peach. */}
+      {/* Drop indicator when this section is the drop target. */}
       {isOver && !isDragging && (
         <div
           aria-hidden
@@ -162,10 +241,15 @@ function CanvasSortableItem({ id, children }: CanvasSortableItemProps) {
         />
       )}
 
-      {/* Drag handle — only shown on hover when edit mode. The
-          ⋮⋮ glyph sits at the left edge of the section so it
-          doesn't compete with content. */}
-      <DragHandle attributes={attributes} listeners={listeners} />
+      {/* Floating action menu on hover — drag handle + edit + add + remove. */}
+      <SectionActionMenu
+        blockKey={id}
+        onEdit={onEdit}
+        onAddBelow={onAddBelow}
+        onRemove={onRemove}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        dragHandle={<DragHandle attributes={attributes as any} listeners={listeners as any} />}
+      />
 
       {children}
     </div>
@@ -177,36 +261,32 @@ function DragHandle({ attributes, listeners }: { attributes: any; listeners: any
   return (
     <button
       type="button"
-      // dnd-kit listeners include onPointerDown etc.
       {...attributes}
       {...(listeners ?? {})}
       aria-label="Drag to reorder section"
-      className="pl8-canvas-drag-handle"
+      title="Drag to reorder"
       style={{
-        position: 'absolute',
-        top: 'calc(50% - 18px)',
-        left: 6,
-        width: 32, height: 36,
-        borderRadius: 8,
+        width: 28, height: 28,
+        borderRadius: 999,
         border: 'none',
         background: 'transparent',
-        color: 'var(--ink-muted, #6F6557)',
+        color: 'rgba(243,233,212,0.92)',
         cursor: 'grab',
-        opacity: 0,
-        transition: 'opacity 180ms cubic-bezier(0.22, 1, 0.36, 1), background-color 180ms ease',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        zIndex: 30,
+        display: 'grid', placeItems: 'center',
         touchAction: 'none',
+        transition: 'background-color 180ms ease',
       }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(243,233,212,0.14)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
       onMouseDown={(e) => e.preventDefault()}
     >
-      <svg width="14" height="20" viewBox="0 0 14 20" aria-hidden>
-        <circle cx="4" cy="4" r="1.5" fill="currentColor" />
-        <circle cx="10" cy="4" r="1.5" fill="currentColor" />
-        <circle cx="4" cy="10" r="1.5" fill="currentColor" />
-        <circle cx="10" cy="10" r="1.5" fill="currentColor" />
-        <circle cx="4" cy="16" r="1.5" fill="currentColor" />
-        <circle cx="10" cy="16" r="1.5" fill="currentColor" />
+      <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden>
+        <circle cx="3" cy="3" r="1.4" fill="currentColor" />
+        <circle cx="9" cy="3" r="1.4" fill="currentColor" />
+        <circle cx="3" cy="7" r="1.4" fill="currentColor" />
+        <circle cx="9" cy="7" r="1.4" fill="currentColor" />
+        <circle cx="3" cy="11" r="1.4" fill="currentColor" />
+        <circle cx="9" cy="11" r="1.4" fill="currentColor" />
       </svg>
     </button>
   );

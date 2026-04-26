@@ -8,6 +8,7 @@
 // ──────────────────────────────────────────────────────────────
 
 import { PhotoDropTarget } from '@/components/pearloom/editor/canvas/PhotoDropTarget';
+import { PhotoActionMenu } from '@/components/pearloom/editor/canvas/PhotoActionMenu';
 import { PhotoPlaceholder } from '@/components/pearloom/motifs';
 import {
   HeroKicker, HeroNames, HeroDateVenue, HeroTagline,
@@ -35,18 +36,28 @@ export function HeroPhotoFirst({ manifest, names, siteSlug, onEditField, onEditN
           onDrop={(url) => onEditField?.((m) => ({ ...m, coverPhoto: url }))}
           label="Drop to set cover"
         >
-          {photoSrc ? (
-            <div
-              role="img"
-              aria-label="Cover photo"
-              style={{
-                width: '100%', height: '100%', minHeight: 'inherit',
-                background: `url(${photoSrc}) center/cover no-repeat`,
-              }}
-            />
-          ) : (
-            <PhotoPlaceholder tone="dusk" aspect="16/10" />
-          )}
+          <PhotoActionMenu
+            imageUrl={photoSrc}
+            onReplace={(url) => onEditField?.((m) => ({ ...m, coverPhoto: url }))}
+            onRemove={() => onEditField?.((m) => {
+              const next = { ...m };
+              delete (next as { coverPhoto?: string }).coverPhoto;
+              return next;
+            })}
+          >
+            {photoSrc ? (
+              <div
+                role="img"
+                aria-label="Cover photo"
+                style={{
+                  width: '100%', height: '100%', minHeight: 'inherit',
+                  background: `url(${photoSrc}) center/cover no-repeat`,
+                }}
+              />
+            ) : (
+              <PhotoPlaceholder tone="dusk" aspect="16/10" />
+            )}
+          </PhotoActionMenu>
         </PhotoDropTarget>
       </div>
 

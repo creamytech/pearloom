@@ -8,6 +8,7 @@
 
 import { Icon, PhotoPlaceholder } from '@/components/pearloom/motifs';
 import { PhotoDropTarget } from '@/components/pearloom/editor/canvas/PhotoDropTarget';
+import { PhotoActionMenu } from '@/components/pearloom/editor/canvas/PhotoActionMenu';
 import {
   HeroKicker, HeroNames, HeroDateVenue, HeroTagline,
   HeroPrimaryCta, HeroLinkTray,
@@ -65,20 +66,40 @@ export function HeroPostcard({ manifest, names, siteSlug, onEditField, onEditNam
               }}
             >
               <PhotoDropTarget onDrop={onDrop} label={isHeroCover ? 'Drop to set cover' : 'Drop a photo'}>
-                <div
-                  style={{
-                    background: '#fff',
-                    padding: 8,
-                    boxShadow: '0 16px 36px rgba(61,74,31,0.14), 0 1px 2px rgba(0,0,0,0.05)',
-                    borderRadius: 2,
+                <PhotoActionMenu
+                  imageUrl={isHeroCover ? (coverPhoto ?? photos[0]) : photos[i]}
+                  onReplace={(url) => onDrop(url)}
+                  onRemove={() => {
+                    if (isHeroCover) {
+                      onEditField?.((m) => {
+                        const next = { ...m };
+                        delete (next as { coverPhoto?: string }).coverPhoto;
+                        return next;
+                      });
+                    } else {
+                      onEditField?.((m) => {
+                        const next = [...(m.heroSlideshow ?? [])];
+                        next[i] = '';
+                        return { ...m, heroSlideshow: next.filter(Boolean) };
+                      });
+                    }
                   }}
                 >
-                  <PhotoPlaceholder
-                    tone={tone}
-                    aspect={STRIP_ASPECTS[i]}
-                    src={isHeroCover ? coverPhoto ?? photos[0] : photos[i]}
-                  />
-                </div>
+                  <div
+                    style={{
+                      background: '#fff',
+                      padding: 8,
+                      boxShadow: '0 16px 36px rgba(61,74,31,0.14), 0 1px 2px rgba(0,0,0,0.05)',
+                      borderRadius: 2,
+                    }}
+                  >
+                    <PhotoPlaceholder
+                      tone={tone}
+                      aspect={STRIP_ASPECTS[i]}
+                      src={isHeroCover ? coverPhoto ?? photos[0] : photos[i]}
+                    />
+                  </div>
+                </PhotoActionMenu>
               </PhotoDropTarget>
             </div>
           );

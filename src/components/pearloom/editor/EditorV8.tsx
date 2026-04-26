@@ -131,6 +131,23 @@ export function EditorV8({
   const [names, setNames] = useState<[string, string]>(initialNames);
   const [block, setBlock] = useState<BlockKey>('hero');
   const [device, setDevice] = useState<DeviceKey>('desktop');
+
+  // Listen for canvas → inspector focus events so the floating
+  // ✎ button on a section opens the matching Inspector panel.
+  useEffect(() => {
+    function onFocus(e: Event) {
+      const detail = (e as CustomEvent<{ blockKey?: string }>).detail;
+      const k = detail?.blockKey;
+      if (!k) return;
+      // Map renderer block keys (story/details/etc) to editor's
+      // BlockKey union — 1:1 for the reorderable set.
+      if (BLOCKS.some((b) => b.key === k)) {
+        setBlock(k as BlockKey);
+      }
+    }
+    window.addEventListener('pearloom:inspector-focus', onFocus as EventListener);
+    return () => window.removeEventListener('pearloom:inspector-focus', onFocus as EventListener);
+  }, []);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [publishError, setPublishError] = useState<string | null>(null);
   const [advisorOpen, setAdvisorOpen] = useState(false);
@@ -871,7 +888,7 @@ function Outline({
             Tip from Pear
           </div>
           <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.4 }}>
-            Drag to reorder. The eye hides a section. Click anything in the preview — the right editor follows.
+            Drag to reorder. The eye hides a section — drag a hidden row onto the canvas to add it back. Click anything in the preview to edit it.
           </div>
         </div>
       </div>
@@ -957,8 +974,19 @@ function BlockRow({
   onToggleHidden?: () => void;
   dragHandleProps?: DragHandleProps;
 }) {
+  // Hidden rows are draggable onto the canvas via HTML5 DnD. We
+  // *don't* enable native drag on visible rows because dnd-kit owns
+  // the pointer there for in-list reorder.
+  const nativeDraggable = hidden;
   return (
     <div
+      draggable={nativeDraggable || undefined}
+      onDragStart={nativeDraggable
+        ? (e) => {
+            e.dataTransfer.setData('application/x-pearloom-block', def.key);
+            e.dataTransfer.effectAllowed = 'move';
+          }
+        : undefined}
       style={{
         display: 'grid',
         gridTemplateColumns: `${dragHandleProps ? '18px ' : ''}56px 1fr ${onToggleHidden ? '28px' : ''}`.trim(),
@@ -968,12 +996,13 @@ function BlockRow({
         background: active ? 'var(--ink)' : hidden ? 'transparent' : 'transparent',
         color: active ? 'var(--cream)' : 'var(--ink)',
         border: active ? '1px solid var(--ink)' : '1px solid transparent',
-        cursor: 'pointer',
+        cursor: nativeDraggable ? 'grab' : 'pointer',
         fontFamily: 'var(--font-ui)',
         alignItems: 'center',
         transition: 'background 160ms, border-color 160ms',
       }}
       onClick={onSelect}
+      title={nativeDraggable ? 'Drag onto the canvas to add' : undefined}
     >
       {dragHandleProps && (
         <button

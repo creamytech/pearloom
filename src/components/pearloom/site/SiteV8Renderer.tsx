@@ -27,6 +27,7 @@ import { SortableBlockList } from '../editor/canvas/CanvasBlockSortable';
 import { SortableChapters } from '../editor/canvas/SortableChapters';
 import { HoverToolbar } from '../editor/canvas/HoverToolbar';
 import { PhotoDropTarget } from '../editor/canvas/PhotoDropTarget';
+import { PhotoActionMenu } from '../editor/canvas/PhotoActionMenu';
 import { OccasionDecor } from './OccasionDecor';
 import { BroadcastBar } from './BroadcastBar';
 import { DecorDivider } from './DecorDivider';
@@ -1224,6 +1225,18 @@ function ChapterCard({
       return { ...m, chapters };
     });
   };
+  const onChapterPhotoRemove = () => {
+    onEditField?.((m) => {
+      const chapters = [...(m.chapters ?? [])];
+      const ch = chapters[chapterIndex];
+      if (!ch) return m;
+      const images = [...((ch.images as Array<{ url: string }> | undefined) ?? [])];
+      if (images.length === 0) return m;
+      images.splice(0, 1);
+      chapters[chapterIndex] = { ...ch, images } as typeof ch;
+      return { ...m, chapters };
+    });
+  };
   return (
     <div
       style={{
@@ -1275,7 +1288,9 @@ function ChapterCard({
         </HoverToolbar>
       </div>
       <PhotoDropTarget onDrop={onChapterPhotoDrop} label="Drop a photo">
-        <PhotoPlaceholder tone={tone} aspect="1/1" src={src} style={{ borderRadius: 14 }} />
+        <PhotoActionMenu imageUrl={src} onReplace={onChapterPhotoDrop} onRemove={onChapterPhotoRemove}>
+          <PhotoPlaceholder tone={tone} aspect="1/1" src={src} style={{ borderRadius: 14 }} />
+        </PhotoActionMenu>
       </PhotoDropTarget>
     </div>
   );
@@ -2107,9 +2122,16 @@ function RegistrySection({ manifest }: { manifest: StoryManifest }) {
 }
 
 /* ==================== GALLERY ==================== */
-function GallerySection({ chapters, manifest }: { chapters: Chapter[]; manifest?: StoryManifest }) {
+function GallerySection({ chapters, manifest, onEditField }: { chapters: Chapter[]; manifest?: StoryManifest; onEditField?: FieldEditor }) {
   const edit = useIsEditMode();
-  const photos = chapters.flatMap((c) => (c.images ?? []).map((i) => i.url)).filter(Boolean).slice(0, 12);
+  // Build a mapping from each photo URL to the (chapter, image) it
+  // came from so PhotoActionMenu can patch the original chapters[]
+  // when a tile is replaced or removed.
+  const photoSources = chapters.flatMap((c, ci) =>
+    (c.images ?? []).map((img, ii) => ({ url: img.url, chapterIndex: ci, imageIndex: ii })),
+  ).filter((x) => x.url);
+  const photos = photoSources.map((p) => p.url).slice(0, 12);
+  const sources = photoSources.slice(0, 12);
   const tones: Tone[] = ['warm', 'field', 'dusk', 'lavender', 'peach', 'sage', 'cream', 'warm', 'dusk', 'lavender', 'field', 'peach'];
   const spans = [
     { cs: 'span 2', rs: 'span 2' },
@@ -2181,7 +2203,32 @@ function GallerySection({ chapters, manifest }: { chapters: Chapter[]; manifest?
             const s = spans[i] ?? {};
             const url = photos[i];
             const photoIndex = url ? lightboxImages.findIndex((img) => img.url === url) : -1;
-            const clickable = photoIndex >= 0;
+            const clickable = photoIndex >= 0 && !edit;
+            const src = sources[i];
+            const onReplace = src && onEditField
+              ? (next: string) => onEditField((m) => {
+                  const arr = [...(m.chapters ?? [])];
+                  const ch = arr[src.chapterIndex];
+                  if (!ch) return m;
+                  const imgs = [...(ch.images ?? [])];
+                  const orig = imgs[src.imageIndex];
+                  if (!orig) return m;
+                  imgs[src.imageIndex] = { ...orig, url: next };
+                  arr[src.chapterIndex] = { ...ch, images: imgs };
+                  return { ...m, chapters: arr };
+                })
+              : undefined;
+            const onRemove = src && onEditField
+              ? () => onEditField((m) => {
+                  const arr = [...(m.chapters ?? [])];
+                  const ch = arr[src.chapterIndex];
+                  if (!ch) return m;
+                  const imgs = [...(ch.images ?? [])];
+                  imgs.splice(src.imageIndex, 1);
+                  arr[src.chapterIndex] = { ...ch, images: imgs };
+                  return { ...m, chapters: arr };
+                })
+              : undefined;
             return (
               <div
                 key={i}
@@ -2198,7 +2245,9 @@ function GallerySection({ chapters, manifest }: { chapters: Chapter[]; manifest?
                 onMouseEnter={clickable ? (e) => { e.currentTarget.style.transform = 'scale(1.015)'; } : undefined}
                 onMouseLeave={clickable ? (e) => { e.currentTarget.style.transform = 'scale(1)'; } : undefined}
               >
-                <PhotoPlaceholder tone={t} aspect="auto" src={url} style={{ height: '100%' }} />
+                <PhotoActionMenu imageUrl={url} onReplace={onReplace} onRemove={onRemove}>
+                  <PhotoPlaceholder tone={t} aspect="auto" src={url} style={{ height: '100%' }} />
+                </PhotoActionMenu>
               </div>
             );
           })}
@@ -3291,7 +3340,7 @@ export function SiteV8Renderer({
       case 'registry':
         return <RegistrySection key="registry" manifest={manifest} />;
       case 'gallery':
-        return <GallerySection key="gallery" chapters={chapters} manifest={manifest} />;
+        return <GallerySection key="gallery" chapters={chapters} manifest={manifest} onEditField={onEditField} />;
       case 'faq':
         return <FaqSection key="faq" manifest={manifest} onEditField={onEditField} />;
       case 'rsvp':
@@ -3382,11 +3431,10 @@ export function SiteV8Renderer({
         >
           <HeroSection names={names} manifest={manifest} siteSlug={siteSlug} onEditField={onEditField} onEditNames={onEditNames} />
         </StickerLayer>
-        {/* Wix-style canvas drag-and-drop. SortableBlockList is a
-            no-op outside edit mode; in edit mode each block gets a
-            ⋮⋮ drag handle on the left edge that lets the user reorder
-            sections directly on the canvas. The previous-only-via-
-            outline experience is now optional. */}
+        {/* Wix-style canvas drag-and-drop with full direct-manipulation:
+            ⋮⋮ drag · ✎ edit · ⊕ add below · × remove on every section,
+            plus inline "+ Add section" zones between every two
+            sections. SortableBlockList is a no-op outside edit mode. */}
         <SortableBlockList
           blockKeys={blockOrder as string[]}
           onReorder={(next) =>
@@ -3395,6 +3443,84 @@ export function SiteV8Renderer({
               blockOrder: next as SiteBlockKey[],
             }))
           }
+          onRemove={(key) => {
+            const sectionId = key === 'story' ? 'our-story' : key;
+            onEditField?.((m) => ({
+              ...m,
+              hiddenBlocks: Array.from(new Set([
+                ...((m as unknown as { hiddenBlocks?: string[] }).hiddenBlocks ?? []),
+                sectionId,
+              ])),
+            }) as StoryManifest);
+          }}
+          onEdit={(key) => {
+            // Surface the inspector via a custom event the editor
+            // shell listens to. Falls through harmlessly outside the
+            // editor.
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('pearloom:inspector-focus', { detail: { blockKey: key } }));
+            }
+          }}
+          onAddAt={(atIndex, key) => {
+            const sectionId = key === 'story' ? 'our-story' : key;
+            onEditField?.((m) => {
+              // Un-hide.
+              const hidden = ((m as unknown as { hiddenBlocks?: string[] }).hiddenBlocks ?? [])
+                .filter((h) => h !== sectionId);
+              // Insert into blockOrder at requested index.
+              const rawOrder = ((m as unknown as { blockOrder?: string[] }).blockOrder ?? []);
+              const cleaned = rawOrder.filter((k) => k !== key);
+              const next = [...cleaned];
+              next.splice(Math.min(atIndex, next.length), 0, key);
+              return {
+                ...m,
+                hiddenBlocks: hidden,
+                blockOrder: next as SiteBlockKey[],
+              } as StoryManifest;
+            });
+          }}
+          // Outline → canvas drag bridge. Drag a section out of the
+          // left rail, drop it in any gap on the canvas to add it
+          // there. Same final state as picking from the popover.
+          onDropOutlineBlock={(atIndex, key) => {
+            const sectionId = key === 'story' ? 'our-story' : key;
+            onEditField?.((m) => {
+              const hidden = ((m as unknown as { hiddenBlocks?: string[] }).hiddenBlocks ?? [])
+                .filter((h) => h !== sectionId);
+              const rawOrder = ((m as unknown as { blockOrder?: string[] }).blockOrder ?? []);
+              const cleaned = rawOrder.filter((k) => k !== key);
+              const next = [...cleaned];
+              next.splice(Math.min(atIndex, next.length), 0, key);
+              return {
+                ...m,
+                hiddenBlocks: hidden,
+                blockOrder: next as SiteBlockKey[],
+              } as StoryManifest;
+            });
+          }}
+          pickerBlocks={(() => {
+            // Surface every block currently NOT visible on the site.
+            const hidden = ((manifest as unknown as { hiddenBlocks?: string[] }).hiddenBlocks ?? []);
+            const meta: Record<string, { label: string; description: string }> = {
+              story: { label: 'Story', description: 'How you got here, chapter by chapter.' },
+              details: { label: 'Details', description: 'Ceremony time, dress code, arrival notes.' },
+              schedule: { label: 'Schedule', description: 'The flow of the day.' },
+              travel: { label: 'Travel', description: 'Venue map, directions, hotels.' },
+              registry: { label: 'Registry', description: 'Gift links + cash funds.' },
+              gallery: { label: 'Gallery', description: 'A bento mosaic of favourites.' },
+              rsvp: { label: 'RSVP', description: 'Meal options, deadline, plus-ones.' },
+              faq: { label: 'FAQ', description: 'Questions guests are likely to ask.' },
+            };
+            const editorKeys = Object.keys(meta);
+            const visibleKeys = blockOrder as string[];
+            const renderableHidden = editorKeys
+              .filter((k) => {
+                const sectionId = k === 'story' ? 'our-story' : k;
+                return hidden.includes(sectionId) || !visibleKeys.includes(k);
+              })
+              .map((k) => ({ key: k, label: meta[k].label, description: meta[k].description }));
+            return renderableHidden;
+          })()}
           renderItem={(key, i) => {
             const k = key as SiteBlockKey;
             // Honour per-block hidden flag.
