@@ -8,8 +8,8 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Heart, Icon, Pear, PearloomLogo, PhotoPlaceholder, Sparkle, Squiggle, Blob } from '../motifs';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Icon, Pear, PearloomLogo, Sparkle, Squiggle, Blob } from '../motifs';
 import { Reveal } from '../motion';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { TEMPLATES_BY_ID } from '../marketplace/templates-data';
@@ -24,6 +24,21 @@ import { GeneratingScreen } from '../wizard/GeneratingScreen';
 
 const STEPS = ['Occasion', 'Basics', 'Details', 'Photos', 'Vibe', 'Palette', 'Layout', 'Review'] as const;
 type StepKey = (typeof STEPS)[number];
+
+// 8 steps grouped into 4 phases. Pearloom's wizard now reads as
+// "you're on Story · 2 of 3" rather than "step 2 of 8" — the
+// phase name carries the meaning, the step count is supporting
+// chrome. PhaseHeader renders this above the canvas.
+type PhaseKey = 'Story' | 'Photos' | 'Look' | 'Review';
+const PHASES: Array<{ key: PhaseKey; steps: readonly StepKey[] }> = [
+  { key: 'Story', steps: ['Occasion', 'Basics', 'Details'] },
+  { key: 'Photos', steps: ['Photos'] },
+  { key: 'Look', steps: ['Vibe', 'Palette', 'Layout'] },
+  { key: 'Review', steps: ['Review'] },
+];
+function phaseFor(step: StepKey): PhaseKey {
+  return PHASES.find((p) => p.steps.includes(step))?.key ?? 'Story';
+}
 
 // Draw occasion list from the Event OS registry (all 28 supported
 // events), grouped by category with a friendly icon + tone per card.
@@ -569,62 +584,378 @@ function slugify(s: string) {
     .slice(0, 40);
 }
 
-function ProgressThread({ active, hiddenSteps }: { active: number; hiddenSteps?: StepKey[] }) {
-  // When a template is selected the Vibe/Palette/Layout steps are
-  // skipped — hide them from the progress thread too so the dots
-  // line up with the real flow.
-  const visibleSteps = STEPS.filter((s) => !(hiddenSteps ?? []).includes(s));
+// The 6 most-picked occasions. Showing these first turns a 31-tile
+// directory into a one-glance question for the 80% of users who
+// want one of them. Everything else lives behind "Show all".
+const POPULAR_OCCASIONS: string[] = [
+  'wedding',
+  'birthday',
+  'anniversary',
+  'memorial',
+  'reunion',
+  'baby-shower',
+];
+
+function OccasionPicker({
+  selected,
+  onPick,
+}: {
+  selected: string;
+  onPick: (id: string) => void;
+}) {
+  const [query, setQuery] = useState('');
+  const [showAll, setShowAll] = useState(false);
+  const q = query.trim().toLowerCase();
+
+  const popular = POPULAR_OCCASIONS
+    .map((id) => OCCASIONS.find((o) => o.id === id))
+    .filter((o): o is OccasionCard => Boolean(o));
+
+  const filtered = q
+    ? OCCASIONS.filter((o) => o.label.toLowerCase().includes(q))
+    : null;
+
+  const showCategorised = showAll || filtered !== null;
+
+  const tile = (o: OccasionCard) => {
+    const on = selected === o.id;
+    return (
+      <button
+        key={o.id}
+        type="button"
+        onClick={() => onPick(o.id)}
+        style={{
+          padding: 14,
+          borderRadius: 14,
+          border: on
+            ? '2px solid var(--peach-ink, #C6703D)'
+            : '1px solid var(--line)',
+          background: on ? 'var(--peach-bg, #FCE6D7)' : 'var(--card)',
+          boxShadow: on ? '0 0 0 4px rgba(198,112,61,0.12)' : 'none',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          cursor: 'pointer',
+          textAlign: 'left',
+          fontFamily: 'var(--font-ui)',
+          transition: 'border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, transform 160ms ease',
+        }}
+        onMouseEnter={(e) => {
+          if (!on) e.currentTarget.style.transform = 'translateY(-1px)';
+        }}
+        onMouseLeave={(e) => {
+          if (!on) e.currentTarget.style.transform = '';
+        }}
+      >
+        <div
+          style={{
+            width: 34,
+            height: 34,
+            borderRadius: 10,
+            flexShrink: 0,
+            background:
+              o.tone === 'peach'
+                ? 'var(--peach-bg)'
+                : o.tone === 'lavender'
+                  ? 'var(--lavender-bg)'
+                  : o.tone === 'sage'
+                    ? 'var(--sage-tint)'
+                    : 'var(--cream-2)',
+            display: 'grid',
+            placeItems: 'center',
+          }}
+        >
+          <Icon name={o.icon} size={15} />
+        </div>
+        <div className="display" style={{ fontSize: 14.5 }}>
+          {o.label}
+        </div>
+      </button>
+    );
+  };
+
   return (
-    <div className="pl8-wizard-progress" style={{ display: 'flex', alignItems: 'center', gap: 0, padding: '18px 0', flex: 1, overflow: 'hidden' }}>
-      {visibleSteps.map((s, i) => {
-        const originalIndex = STEPS.indexOf(s);
-        const done = originalIndex < active;
-        const cur = originalIndex === active;
-        return (
-          <Fragment key={s}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flex: '0 0 auto' }}>
-              <div
+    <>
+      <h2
+        className="display"
+        style={{ fontSize: 'clamp(36px, 5vw, 52px)', margin: '0 0 10px', lineHeight: 1.05 }}
+      >
+        What are we <span className="display-italic">celebrating?</span>
+      </h2>
+      <p
+        style={{
+          color: 'var(--ink-soft)',
+          fontSize: 15,
+          margin: '0 0 24px',
+          maxWidth: 540,
+        }}
+      >
+        Pick the closest — you can change it any time. Pearloom supports {OCCASIONS.length} event types.
+      </p>
+
+      {/* Search input + popular tiles. The 31-tile directory is the
+          escape hatch ("Show all"); 90% of users land on one of the
+          popular ones and never expand. */}
+      <div
+        style={{
+          position: 'relative',
+          marginBottom: 18,
+        }}
+      >
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute',
+            left: 14,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: 'var(--ink-muted)',
+            display: 'inline-grid',
+            placeItems: 'center',
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4.3-4.3" />
+          </svg>
+        </span>
+        <input
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            if (e.target.value && !showAll) setShowAll(true);
+          }}
+          placeholder="Search 31 events…"
+          style={{
+            width: '100%',
+            padding: '12px 14px 12px 38px',
+            borderRadius: 12,
+            border: '1px solid var(--line)',
+            background: 'var(--card)',
+            fontSize: 14,
+            fontFamily: 'inherit',
+            color: 'var(--ink)',
+            outline: 'none',
+          }}
+        />
+      </div>
+
+      {!showCategorised && (
+        <>
+          <div
+            style={{
+              fontSize: 10.5,
+              fontWeight: 700,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-muted)',
+              marginBottom: 10,
+            }}
+          >
+            Popular
+          </div>
+          <div
+            className="pl8-occasion-grid"
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 16 }}
+          >
+            {popular.map(tile)}
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowAll(true)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--peach-ink, #C6703D)',
+              fontFamily: 'inherit',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+              padding: '4px 0',
+            }}
+          >
+            Show all {OCCASIONS.length} events →
+          </button>
+        </>
+      )}
+
+      {showCategorised && filtered === null && (
+        <>
+          {(['wedding-arc', 'family', 'milestone', 'cultural', 'commemoration'] as EventCategory[]).map((cat) => {
+            const items = OCCASIONS.filter((o) => o.category === cat);
+            if (items.length === 0) return null;
+            return (
+              <div key={cat} style={{ marginBottom: 18 }}>
+                <div
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: 'var(--peach-ink)',
+                    marginBottom: 10,
+                  }}
+                >
+                  {CATEGORY_LABELS[cat]}
+                </div>
+                <div className="pl8-occasion-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+                  {items.map(tile)}
+                </div>
+              </div>
+            );
+          })}
+        </>
+      )}
+
+      {filtered !== null && (
+        <div className="pl8-occasion-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+          {filtered.length === 0 ? (
+            <div
+              style={{
+                gridColumn: '1 / -1',
+                padding: '24px 16px',
+                textAlign: 'center',
+                color: 'var(--ink-muted)',
+                fontSize: 13,
+                background: 'var(--cream-2)',
+                borderRadius: 12,
+              }}
+            >
+              Nothing matches "{query}". Try a different word, or{' '}
+              <button
+                type="button"
+                onClick={() => setQuery('')}
                 style={{
-                  width: 26,
-                  height: 26,
-                  borderRadius: '50%',
-                  background: cur ? 'var(--ink)' : done ? 'var(--ink-soft)' : 'var(--cream-2)',
-                  color: cur || done ? 'var(--cream)' : 'var(--ink-muted)',
-                  display: 'grid',
-                  placeItems: 'center',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  border: cur ? '2px solid var(--gold)' : '1.5px solid var(--line)',
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--peach-ink, #C6703D)',
+                  fontFamily: 'inherit',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  padding: 0,
                 }}
               >
-                {done ? '✓' : i + 1}
-              </div>
-              <div
-                data-step-label
-                style={{
-                  fontSize: 10.5,
-                  fontWeight: cur ? 700 : 500,
-                  color: cur ? 'var(--ink)' : 'var(--ink-muted)',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {s}
-              </div>
+                clear search
+              </button>
+              .
             </div>
-            {i < visibleSteps.length - 1 && (
-              <div
-                style={{
-                  flex: 1,
-                  height: 1.5,
-                  minWidth: 14,
-                  marginBottom: 16,
-                  borderTop: `1.5px dashed ${done ? 'var(--ink-soft)' : 'var(--line)'}`,
-                }}
-              />
-            )}
-          </Fragment>
-        );
-      })}
+          ) : (
+            filtered.map(tile)
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
+function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: StepKey[] }) {
+  // Map the 8 steps into 4 phases. Hidden-step ranges (template
+  // skips Vibe/Palette/Layout) collapse the Look phase down so
+  // the progress thread reads accurately.
+  const visibleSteps = STEPS.filter((s) => !(hiddenSteps ?? []).includes(s));
+  const totalVisible = visibleSteps.length;
+  const visibleIndex = visibleSteps.indexOf(STEPS[active]);
+  const completed = Math.max(0, visibleIndex);
+  const fraction = totalVisible > 1 ? completed / (totalVisible - 1) : 0;
+
+  const currentPhase = phaseFor(STEPS[active]);
+  // Step number within the active phase (e.g. Story · 2 of 3).
+  const phaseSteps = PHASES.find((p) => p.key === currentPhase)?.steps ?? [];
+  const visiblePhaseSteps = phaseSteps.filter((s) => !(hiddenSteps ?? []).includes(s));
+  const phaseStepIndex = visiblePhaseSteps.indexOf(STEPS[active]);
+  const phasePosition = `${phaseStepIndex + 1} of ${visiblePhaseSteps.length}`;
+
+  return (
+    <div
+      className="pl8-wizard-progress"
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6,
+        minWidth: 0,
+        maxWidth: 480,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+        <span
+          className="display"
+          style={{
+            fontSize: 18,
+            lineHeight: 1,
+            color: 'var(--ink)',
+            letterSpacing: '-0.01em',
+          }}
+        >
+          {currentPhase}
+        </span>
+        <span
+          style={{
+            fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+            fontSize: 10,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--ink-muted)',
+          }}
+        >
+          {phasePosition} · {STEPS[active]}
+        </span>
+      </div>
+      {/* Single thread fills as the user moves through every step
+          (not just phase transitions) so each click feels like
+          progress. Olive + gold gradient matches Pearloom's
+          loom-shuttle motion language. */}
+      <div
+        aria-hidden
+        style={{
+          height: 2,
+          width: '100%',
+          background: 'var(--line-soft)',
+          borderRadius: 999,
+          overflow: 'hidden',
+          position: 'relative',
+        }}
+      >
+        <div
+          style={{
+            height: '100%',
+            width: `${Math.round(fraction * 100)}%`,
+            background:
+              'linear-gradient(90deg, var(--ink-soft) 0%, var(--peach-ink, #C6703D) 70%, var(--gold, #B89244) 100%)',
+            borderRadius: 999,
+            transition: 'width 360ms cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+        />
+      </div>
+      {/* Phase track — small dots per phase showing which phases
+          are done, current, upcoming. Subtle so it doesn't compete
+          with the active phase header above. */}
+      <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginTop: 2 }}>
+        {PHASES.map((p) => {
+          const phaseStepsAll = p.steps.filter((s) => !(hiddenSteps ?? []).includes(s));
+          if (phaseStepsAll.length === 0) return null;
+          const phaseDone = phaseStepsAll.every((s) => STEPS.indexOf(s) < active);
+          const phaseCur = p.key === currentPhase;
+          return (
+            <div
+              key={p.key}
+              title={p.key}
+              style={{
+                flex: phaseStepsAll.length,
+                height: 4,
+                borderRadius: 999,
+                background: phaseDone
+                  ? 'var(--ink-soft)'
+                  : phaseCur
+                    ? 'var(--peach-ink, #C6703D)'
+                    : 'var(--line-soft)',
+                transition: 'background-color 280ms ease',
+              }}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -695,105 +1026,19 @@ function ContextChips({ st }: { st: WizardState }) {
   );
 }
 
-function PearHelper({ step }: { step: StepKey }) {
-  const copy: Record<StepKey, { title: string; body: string; tip: string }> = {
-    Occasion: {
-      title: 'What brings everyone together?',
-      body: 'Pick what fits best — you can shape the specifics next.',
-      tip: 'Not sure? Pick the closest — we can change it any time.',
-    },
-    Basics: {
-      title: 'The who, when, and where.',
-      body: 'Just the bones. Names, a date, and a place. Details come later.',
-      tip: 'Guests see only what you choose. Names can be first-name-only.',
-    },
-    Details: {
-      title: 'What Pear should know.',
-      body: 'Everything here is fuel for the AI. The more specific, the richer your site.',
-      tip: 'Skip any field you want to write yourself later.',
-    },
-    Photos: {
-      title: 'Let Pear see it.',
-      body: 'Upload photos and Pear analyses scene, mood, and moment to write chapters that fit.',
-      tip: '6–20 photos is the sweet spot. More = more chapters.',
-    },
-    Vibe: {
-      title: 'Set the feeling.',
-      body: 'Your vibe shapes the tone, flow, and language of your site.',
-      tip: 'Most people pick 2–4 vibes that capture the heart of the day.',
-    },
-    Palette: {
-      title: 'A palette to match the mood.',
-      body: 'You can always tweak individual colors later in the studio.',
-      tip: 'Pick what you love — we’ll build matching gradients + accents.',
-    },
-    Layout: {
-      title: 'How should it read?',
-      body: 'Every layout is a full site. Each handles media and timing differently.',
-      tip: 'The Memory Thread is a safe, warm default for weddings.',
-    },
-    Review: {
-      title: 'Check everything over.',
-      body: 'When you save, we’ll build your first draft and open the studio.',
-      tip: 'You can keep editing — nothing is public until you publish.',
-    },
-  };
-  const c = copy[step];
-  return (
-    <aside style={{ width: 340, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <Pear size={30} tone="sage" />
-        <span className="display" style={{ fontSize: 20 }}>
-          Pear is here to help <Sparkle size={12} />
-        </span>
-      </div>
-
-      <div className="card" style={{ padding: 18 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>{c.title}</div>
-        <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5 }}>{c.body}</div>
-      </div>
-
-      <div style={{ background: 'var(--lavender-bg)', borderRadius: 16, padding: 16 }}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            fontWeight: 700,
-            fontSize: 13,
-            color: 'var(--lavender-ink)',
-            marginBottom: 4,
-          }}
-        >
-          <Heart size={12} /> A small tip
-        </div>
-        <div style={{ fontSize: 13, lineHeight: 1.45 }}>{c.tip}</div>
-      </div>
-
-      <div
-        style={{
-          background: 'var(--cream-2)',
-          borderRadius: 16,
-          padding: 14,
-          display: 'flex',
-          gap: 10,
-          alignItems: 'center',
-        }}
-      >
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 2 }}>Need inspiration?</div>
-          <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>See real events that match your vibe.</div>
-          <Link href="/templates" className="btn btn-outline btn-sm" style={{ marginTop: 6 }}>
-            Explore templates
-          </Link>
-        </div>
-        <div style={{ width: 64, height: 64, borderRadius: 10, overflow: 'hidden' }}>
-          <PhotoPlaceholder tone="warm" aspect="1/1" />
-        </div>
-      </div>
-    </aside>
-  );
-}
+// Inline tips per step — replaces the floating PearHelper sidebar.
+// Each step can opt in by reading STEP_TIPS[step] and rendering it
+// as a single low-key line under the question heading.
+const STEP_TIPS: Record<StepKey, string> = {
+  Occasion: 'Not sure? Pick the closest — we can change it any time.',
+  Basics: 'Guests only see what you choose. First names work fine.',
+  Details: 'Skip any field — write it yourself later in the editor.',
+  Photos: '6 to 20 photos is the sweet spot. More = more chapters.',
+  Vibe: 'Pick 2 to 4 vibes that capture the heart of the day.',
+  Palette: 'Pick what you love — Pear builds matching gradients + accents.',
+  Layout: 'Memory Thread is a safe, warm default for weddings.',
+  Review: 'Nothing is public until you publish. Keep editing as long as you like.',
+};
 
 export function WizardV8() {
   const router = useRouter();
@@ -1194,12 +1439,13 @@ export function WizardV8() {
       <header
         className="pl8-wizard-header"
         style={{
-          padding: '18px 32px',
+          padding: '14px 28px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          background: 'rgba(248,241,228,0.85)',
-          backdropFilter: 'blur(14px)',
+          gap: 28,
+          background: 'rgba(248,241,228,0.92)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
           borderBottom: '1px solid var(--line-soft)',
           position: 'sticky',
           top: 0,
@@ -1209,26 +1455,52 @@ export function WizardV8() {
         <Link href="/">
           <PearloomLogo />
         </Link>
-        <ProgressThread
+        <PhaseHeader
           active={stepIndex}
           hiddenSteps={st.templateId ? ['Vibe', 'Palette', 'Layout'] : []}
         />
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Link href="/dashboard" className="btn btn-outline btn-sm">
+        <div style={{ display: 'flex', gap: 6, marginLeft: 'auto', alignItems: 'center', flexShrink: 0 }}>
+          <Link
+            href="/dashboard"
+            style={{
+              padding: '7px 12px',
+              fontSize: 12.5,
+              fontWeight: 600,
+              borderRadius: 999,
+              background: 'transparent',
+              border: '1px solid var(--line-soft)',
+              color: 'var(--ink-soft)',
+              textDecoration: 'none',
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
             Save draft
           </Link>
-          <Link href="/dashboard" className="btn btn-ghost btn-sm">
+          <Link
+            href="/dashboard"
+            style={{
+              padding: '7px 10px',
+              fontSize: 12.5,
+              fontWeight: 600,
+              color: 'var(--ink-muted)',
+              textDecoration: 'none',
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
             Exit
           </Link>
         </div>
       </header>
 
       <div
-        className="pl8-split-wizard"
+        className="pl8-wizard-canvas"
         style={{
-          maxWidth: 1280,
+          // Centered single-column letterpress feel — generous left
+          // and right margins so each question reads like its own
+          // page, no sidebar to fight with.
+          maxWidth: 760,
           margin: '0 auto',
-          padding: '24px 32px 56px',
+          padding: '40px 32px 80px',
           position: 'relative',
           zIndex: 2,
         }}
@@ -1306,91 +1578,43 @@ export function WizardV8() {
           )}
 
           <Reveal y={14} key={step}>
-            <div className="card card-pad-lg" style={{ position: 'relative' }}>
-              <div className="eyebrow" style={{ marginBottom: 10 }}>
-                Step {stepIndex + 1} · {step}
+            <div
+              style={{
+                position: 'relative',
+                // Letterpress page feel — open paper, no card frame
+                // competing with the question. Each step is its own
+                // breath; the PhaseHeader carries the step name.
+                padding: '8px 0 0',
+              }}
+            >
+              {/* One-line inline tip — replaces the floating PearHelper
+                  sidebar. Reads as a small note under the question, not
+                  a competing column of advice. */}
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  marginBottom: 18,
+                  padding: '6px 12px',
+                  borderRadius: 999,
+                  background: 'var(--lavender-bg, #ECE4F5)',
+                  color: 'var(--lavender-ink, #4F4072)',
+                  fontSize: 12,
+                }}
+              >
+                <Pear size={14} tone="sage" shadow={false} />
+                <span style={{ lineHeight: 1.4 }}>{STEP_TIPS[step]}</span>
               </div>
 
               {step === 'Occasion' && (
-                <>
-                  <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
-                    What are we <span className="display-italic">celebrating?</span>
-                  </h2>
-                  <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
-                    Pearloom supports {OCCASIONS.length} event types. Pick the closest — you can tune the details later.
-                  </p>
-                  {(['wedding-arc', 'family', 'milestone', 'cultural', 'commemoration'] as EventCategory[]).map((cat) => {
-                    const items = OCCASIONS.filter((o) => o.category === cat);
-                    if (items.length === 0) return null;
-                    return (
-                      <div key={cat} style={{ marginBottom: 22 }}>
-                        <div
-                          style={{
-                            fontSize: 11,
-                            fontWeight: 700,
-                            letterSpacing: '0.14em',
-                            textTransform: 'uppercase',
-                            color: 'var(--peach-ink)',
-                            marginBottom: 10,
-                          }}
-                        >
-                          {CATEGORY_LABELS[cat]}
-                        </div>
-                        <div className="pl8-occasion-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-                          {items.map((o) => {
-                            const on = st.occasion === o.id;
-                            return (
-                              <button
-                                key={o.id}
-                                type="button"
-                                onClick={() => {
-                                  setSt((s) => ({ ...s, occasion: o.id }));
-                                  autoAdvance();
-                                }}
-                                style={{
-                                  padding: 16,
-                                  borderRadius: 14,
-                                  border: on ? '2px solid var(--ink)' : '1.5px solid var(--line)',
-                                  background: on ? 'var(--cream-2)' : 'var(--card)',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 10,
-                                  cursor: 'pointer',
-                                  textAlign: 'left',
-                                  fontFamily: 'var(--font-ui)',
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    width: 36,
-                                    height: 36,
-                                    borderRadius: 10,
-                                    flexShrink: 0,
-                                    background:
-                                      o.tone === 'peach'
-                                        ? 'var(--peach-bg)'
-                                        : o.tone === 'lavender'
-                                          ? 'var(--lavender-bg)'
-                                          : o.tone === 'sage'
-                                            ? 'var(--sage-tint)'
-                                            : 'var(--cream-2)',
-                                    display: 'grid',
-                                    placeItems: 'center',
-                                  }}
-                                >
-                                  <Icon name={o.icon} size={16} />
-                                </div>
-                                <div className="display" style={{ fontSize: 15 }}>
-                                  {o.label}
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </>
+                <OccasionPicker
+                  selected={st.occasion}
+                  onPick={(id) => {
+                    setSt((s) => ({ ...s, occasion: id }));
+                    autoAdvance();
+                  }}
+                />
               )}
 
               {step === 'Basics' && (() => {
@@ -2205,8 +2429,6 @@ export function WizardV8() {
             </div>
           </Reveal>
         </div>
-
-        <PearHelper step={step} />
       </div>
 
       {busy && <GeneratingScreen genStep={genStep} photoCount={st.photos.length} />}
