@@ -130,7 +130,7 @@ export function DashShell({ children }: DashShellProps) {
   else if (pathname.startsWith('/dashboard/analytics')) active = 'analytics';
   else if (pathname.startsWith('/dashboard/connections')) active = 'connections';
   else if (pathname.startsWith('/dashboard/profile')) active = 'settings';
-  else if (pathname.startsWith('/dashboard/gallery') || pathname.startsWith('/dashboard/submissions') || pathname.startsWith('/dashboard/remember')) active = 'sites';
+  else if (pathname.startsWith('/dashboard/gallery') || pathname.startsWith('/dashboard/submissions')) active = 'sites';
   else if (pathname.startsWith('/dashboard/event')) active = 'sites';
   else if (pathname.startsWith('/dashboard/director')) active = 'studio';
 
