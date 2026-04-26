@@ -725,57 +725,78 @@ interface TopbarProps {
   children?: ReactNode;
 }
 export function Topbar({ subtitle, title, actions, children }: TopbarProps) {
+  // Centered layout to match the v8 PearloomDashLayout topbar.
+  // Title + subtitle stack vertically and centre; actions absolute-
+  // anchor to the top-right so they don't shift the title's centre.
+  // Replaces the old left-aligned space-between header so every
+  // dashboard page reads with the same centered identity.
   return (
     <header
       data-topbar
       style={{
-        padding: '28px 40px 10px',
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'space-between',
-        gap: 24,
-        flexWrap: 'wrap',
+        position: 'relative',
+        padding: 'clamp(28px, 5vw, 48px) clamp(20px, 4vw, 56px) clamp(12px, 2vw, 20px)',
+        textAlign: 'center',
+        maxWidth: 1480,
+        margin: '0 auto',
+        width: '100%',
         fontFamily: 'var(--font-ui)',
       }}
     >
-      <div>
-        {subtitle && (
-          <div
-            className="eyebrow"
-            style={{ fontSize: 11, marginBottom: 8, color: 'var(--peach-ink)' }}
-          >
-            {subtitle}
-          </div>
-        )}
-        <h1
-          className="display"
+      {subtitle && (
+        <div
+          className="eyebrow"
+          style={{ fontSize: 11, marginBottom: 8, color: 'var(--peach-ink)' }}
+        >
+          {subtitle}
+        </div>
+      )}
+      <h1
+        className="display"
+        style={{
+          fontSize: 'clamp(32px, 4.4vw, 44px)',
+          lineHeight: 1.08,
+          margin: 0,
+          fontWeight: 600,
+          letterSpacing: '-0.02em',
+          maxWidth: 820,
+          marginLeft: 'auto',
+          marginRight: 'auto',
+        }}
+      >
+        {title}
+      </h1>
+      {children && (
+        <div
           style={{
-            fontSize: 'clamp(32px, 3.4vw, 52px)',
-            lineHeight: 1.08,
-            margin: 0,
-            fontWeight: 600,
-            letterSpacing: '-0.02em',
-            maxWidth: 820,
+            marginTop: 12,
+            color: 'var(--ink-soft)',
+            fontSize: 14.5,
+            lineHeight: 1.5,
+            maxWidth: 640,
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            fontFamily: 'var(--font-ui)',
           }}
         >
-          {title}
-        </h1>
-        {children && (
-          <div
-            style={{
-              marginTop: 14,
-              color: 'var(--ink-soft)',
-              fontSize: 15,
-              lineHeight: 1.5,
-              maxWidth: 620,
-              fontFamily: 'var(--font-ui)',
-            }}
-          >
-            {children}
-          </div>
-        )}
-      </div>
-      {actions && <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>{actions}</div>}
+          {children}
+        </div>
+      )}
+      {actions && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'clamp(28px, 5vw, 48px)',
+            right: 'clamp(20px, 4vw, 56px)',
+            display: 'flex',
+            gap: 10,
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          {actions}
+        </div>
+      )}
     </header>
   );
 }

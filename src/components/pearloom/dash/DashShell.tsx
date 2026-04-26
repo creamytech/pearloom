@@ -571,7 +571,7 @@ export function DashTopbar({
   ctaText,
   ctaHref,
 }: {
-  title?: string;
+  title?: ReactNode;
   subtitle?: ReactNode;
   ctaText?: string;
   ctaHref?: string;
@@ -656,7 +656,7 @@ export function DashLayout({
   hideTopbar = false,
 }: {
   active?: string;
-  title?: string;
+  title?: ReactNode;
   subtitle?: ReactNode;
   ctaText?: string;
   ctaHref?: string;
