@@ -11,7 +11,7 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { colors, radius, shadow, ease, text as textScale } from '@/lib/design-tokens';
 import { formatLocalDate } from '@/lib/date';
 import { getImageBrightness, textColorForBrightness } from '@/lib/smart-features';
-import { InlineArtHoverToolbar } from '@/components/editor/InlineArtHoverToolbar';
+import { InlineArtHoverToolbar } from './InlineArtHoverToolbar';
 import { SEPARATOR_PRESETS } from '@/lib/separator-presets';
 
 // ── Shared Style Helpers ──────────────────────────────────────

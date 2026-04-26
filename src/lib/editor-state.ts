@@ -10,10 +10,32 @@ import {
   type Dispatch, type RefObject,
 } from 'react';
 import type { StoryManifest, Chapter } from '@/types';
-import type { SectionStyleOverrides } from '@/components/editor/SectionStyleEditor';
-import type { CommandAction } from '@/components/editor/CommandPalette';
 
 // ── Types ──────────────────────────────────────────────────────
+// SectionStyleOverrides + CommandAction were inlined here when the
+// legacy `src/components/editor/` directory was sunset (2026-04-26).
+// Originally lived in SectionStyleEditor.tsx and CommandPalette.tsx
+// respectively; only the type shapes were used elsewhere.
+export interface SectionStyleOverrides {
+  backgroundColor?: string;
+  textColor?: string;
+  accentColor?: string;
+  padding?: 'compact' | 'normal' | 'spacious';
+  dividerBefore?: boolean;
+  dividerAfter?: boolean;
+  fullWidth?: boolean;
+}
+export type CommandAction =
+  | { type: 'tab'; tab: 'story' | 'events' | 'canvas' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' }
+  | { type: 'device'; mode: 'desktop' | 'tablet' | 'mobile' }
+  | { type: 'chapter'; id: string }
+  | { type: 'add-chapter' }
+  | { type: 'preview' }
+  | { type: 'publish' }
+  | { type: 'undo' }
+  | { type: 'redo' }
+  | { type: 'pear'; prompt: string };
+
 export type DeviceMode = 'desktop' | 'tablet' | 'mobile';
 export type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas' | 'messaging' | 'analytics' | 'guests' | 'seating' | 'translate' | 'invite' | 'savethedate' | 'thankyou' | 'spotify' | 'vendors' | 'components' | 'history' | 'media';
 
