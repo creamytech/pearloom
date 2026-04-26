@@ -40,7 +40,7 @@ import { ScrollReveal } from './ScrollReveal';
 import { isBlockHidden, BlockStyleWrapper } from './BlockStyleWrapper';
 import { TemplateSignatureDecor, type SignatureDecorKind } from './TemplateSignatureDecor';
 import { NavBrandIcon } from './NavBrandIcon';
-import { inkFamilyForBackground, parseAnyColorToHex, luminance as wcagLuminance } from '@/lib/color-utils';
+import { inkFamilyForBackground, parseAnyColorToHex, luminance as wcagLuminance, pickInkForBackground } from '@/lib/color-utils';
 import { resolveStoryLayout } from '@/components/blocks/StoryLayouts';
 // Side-effect imports — register all variant types with the
 // block-style registry before any dispatcher reads from it.
@@ -3436,6 +3436,16 @@ export function SiteV8Renderer({
         ['--peach-ink' as string]: themeColors.accent ?? undefined,
         ['--peach-bg' as string]: themeColors.accentLight ?? undefined,
         ['--peach-2' as string]: themeColors.accent ?? undefined,
+        // Primary button — uses the theme's accent as the fill, with
+        // contrast-aware text color picked from accent luminance so
+        // gold/peach/blue/olive accents all render readable buttons
+        // without per-theme tweaks.
+        ...(themeColors.accent
+          ? {
+              ['--btn-primary-bg' as string]: themeColors.accent,
+              ['--btn-primary-fg' as string]: pickInkForBackground(themeColors.accent),
+            }
+          : {}),
         // Keep motif tones (sage/lavender/dusk) intact so each card
         // band still reads distinctly.
         ...(themeFonts?.heading ? { ['--font-display' as string]: `"${themeFonts.heading}", Georgia, serif` } : {}),

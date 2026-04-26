@@ -485,8 +485,20 @@
 }
 .pl8-guest .btn:hover { transform: translate3d(0, -1.5px, 0); }
 .pl8-guest .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
-.pl8-guest .btn-primary { background: var(--ink); color: var(--cream); }
-.pl8-guest .btn-primary:hover { background: #2f3a15; }
+.pl8-guest .btn-primary {
+  /* Primary CTA reads the theme's accent first (--btn-primary-bg
+     is set by SiteV8Renderer's themeStyle when manifest.theme is
+     applied) and falls back to the editorial olive ink for
+     un-themed default sites. Text color is contrast-aware via
+     --btn-primary-fg, also set per-theme. */
+  background: var(--btn-primary-bg, var(--ink));
+  color: var(--btn-primary-fg, var(--cream));
+}
+.pl8-guest .btn-primary:hover {
+  /* Brightness shift instead of a hardcoded olive — works on every
+     accent colour the user can pick. */
+  filter: brightness(0.92);
+}
 .pl8-guest .btn-outline { background: var(--card); border: 1.5px solid var(--line); color: var(--ink); }
 .pl8-guest .btn-outline:hover { background: var(--cream-2); }
 .pl8-guest .btn-sm { padding: 8px 14px; font-size: 13px; }
