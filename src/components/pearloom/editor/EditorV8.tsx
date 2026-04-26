@@ -154,8 +154,16 @@ export function EditorV8({
         setBlock(k as BlockKey);
       }
     }
+    function onFocusTab(e: Event) {
+      const detail = (e as CustomEvent<{ tab?: 'section' | 'theme' | 'pear' }>).detail;
+      if (detail?.tab) setInspectorTab(detail.tab);
+    }
     window.addEventListener('pearloom:inspector-focus', onFocus as EventListener);
-    return () => window.removeEventListener('pearloom:inspector-focus', onFocus as EventListener);
+    window.addEventListener('pearloom:inspector-focus-tab', onFocusTab as EventListener);
+    return () => {
+      window.removeEventListener('pearloom:inspector-focus', onFocus as EventListener);
+      window.removeEventListener('pearloom:inspector-focus-tab', onFocusTab as EventListener);
+    };
   }, []);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [publishError, setPublishError] = useState<string | null>(null);

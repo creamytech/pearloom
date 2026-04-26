@@ -31,6 +31,7 @@ import { PhotoActionMenu } from '../editor/canvas/PhotoActionMenu';
 import { OccasionDecor } from './OccasionDecor';
 import { BroadcastBar } from './BroadcastBar';
 import { DecorDivider } from './DecorDivider';
+import { DecorDividerEditOverlay } from '../editor/canvas/DecorDividerEditOverlay';
 import { LivingAtmosphere, defaultAtmosphereForOccasion, type AtmosphereKind, type AtmosphereIntensity } from './LivingAtmosphere';
 import { AmbientAudio } from './AmbientAudio';
 import { useHeroParallax } from './useHeroParallax';
@@ -3571,12 +3572,14 @@ export function SiteV8Renderer({
             const dividerHidden = decorVis?.[`divider-${k}`] === false;
             return (
               <>
-                <DecorDivider
-                  url={dividerUrl}
-                  index={i}
-                  strength={dividerStrength}
-                  hidden={dividerHidden}
-                />
+                <DecorDividerEditOverlay blockKey={k} onEditField={onEditField}>
+                  <DecorDivider
+                    url={dividerUrl}
+                    index={i}
+                    strength={dividerStrength}
+                    hidden={dividerHidden}
+                  />
+                </DecorDividerEditOverlay>
                 <StickerLayer
                   blockId={k}
                   stickers={manifest.stickers}

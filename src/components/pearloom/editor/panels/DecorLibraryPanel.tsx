@@ -287,6 +287,7 @@ export function DecorLibraryPanel({
   }
 
   return (
+    <div data-pl-decor-library>
     <PanelSection
       label="Decor library (AI)"
       hint="Ask Pear to draft a full set of bespoke graphics that match your venue, palette, and occasion — divider, six section stamps, RSVP confetti, and a closing flourish. All pieces ship with transparent backgrounds."
@@ -491,6 +492,7 @@ export function DecorLibraryPanel({
         </div>
       )}
     </PanelSection>
+    </div>
   );
 }
 

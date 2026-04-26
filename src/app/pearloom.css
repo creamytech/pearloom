@@ -1203,6 +1203,27 @@ html { scroll-behavior: smooth; }
   transform: translateY(0) !important;
 }
 
+/* ── Suppress the section chip when the user is hovering the
+       divider above the section. Otherwise hovering the separator
+       between Travel and Story lights up a misleading "STORY"
+       chip — the divider is its own thing. ── */
+[data-pl-block-sortable]:has(.pl8-divider-edit-zone:hover) > .pl8-canvas-section-menu {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(-4px) !important;
+}
+
+/* ── Divider edit chip — visible only when the divider zone is
+       hovered. Same fade rhythm as the section chip. ── */
+.pl8-divider-edit-zone:hover > .pl8-divider-edit-chip,
+.pl8-divider-edit-zone:focus-within > .pl8-divider-edit-chip,
+.pl8-divider-edit-chip:hover,
+.pl8-divider-edit-chip:focus-within {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translateY(0) !important;
+}
+
 .pl8-photo-action-wrap:hover > .pl8-photo-action-menu,
 .pl8-photo-action-wrap:focus-within > .pl8-photo-action-menu,
 .pl8-photo-action-menu:hover,
