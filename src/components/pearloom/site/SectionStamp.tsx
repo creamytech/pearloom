@@ -32,7 +32,14 @@ export function SectionStamp({ url, size = 44, style, alt = '' }: Props) {
         backgroundSize: 'contain',
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'center',
-        mixBlendMode: 'multiply',
+        // Blend mode + filter are theme-aware via CSS variables.
+        // Default 'multiply' looks great on warm cream paper (the
+        // brand) but disappears on dark backgrounds —
+        // SiteV8Renderer's themeStyle flips this to 'screen' +
+        // brightness lift when the theme bg is dark so the stamp
+        // lifts onto midnight surfaces.
+        mixBlendMode: 'var(--stamp-blend, multiply)' as 'multiply',
+        filter: 'var(--stamp-filter, none)',
         ...style,
       }}
     />

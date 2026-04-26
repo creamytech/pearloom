@@ -386,9 +386,13 @@
 .pl8 .textarea::placeholder { color: var(--ink-muted); }
 .pl8 .input:focus,
 .pl8 .textarea:focus {
-  border-color: var(--sage-deep);
-  box-shadow: 0 0 0 4px rgba(139,156,90,0.18);
-  background: #fff;
+  /* Theme-aware focus ring. Defaults to sage on un-themed sites.
+     SiteV8Renderer's themeStyle sets --focus-ring-color +
+     --focus-ring-glow when a theme is applied so the focus state
+     matches the chosen accent. */
+  border-color: var(--focus-ring-color, var(--sage-deep));
+  box-shadow: 0 0 0 4px var(--focus-ring-glow, rgba(139,156,90,0.18));
+  background: var(--card);
 }
 .pl8 .textarea { min-height: 96px; resize: vertical; }
 

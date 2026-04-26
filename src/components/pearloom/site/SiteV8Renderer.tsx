@@ -3446,6 +3446,35 @@ export function SiteV8Renderer({
               ['--btn-primary-fg' as string]: pickInkForBackground(themeColors.accent),
             }
           : {}),
+        // Theme-aware section stamp blend mode + filter. Multiply
+        // is gorgeous on cream paper but invisible on dark themes;
+        // 'screen' inverts the math and lifts the stamp onto dark
+        // surfaces. Plus a brightness lift so dark stamps don't
+        // disappear into the background.
+        ...(themeColors.background
+          ? (() => {
+              const bgHex = parseAnyColorToHex(themeColors.background);
+              const isDark = bgHex ? (wcagLuminance(bgHex) ?? 1) <= 0.45 : false;
+              return isDark
+                ? {
+                    ['--stamp-blend' as string]: 'screen',
+                    ['--stamp-filter' as string]: 'brightness(1.4) contrast(0.95)',
+                  }
+                : {};
+            })()
+          : {}),
+        // Form input focus ring — themed accent + accent-tinted glow.
+        // Replaces the hardcoded sage on light themes that looked off
+        // when the user picked a non-sage palette.
+        ...(themeColors.accent
+          ? {
+              ['--focus-ring-color' as string]: themeColors.accent,
+              ['--focus-ring-glow' as string]: `${themeColors.accent}33`,
+            }
+          : {}),
+        // Brand-shimmer var (used in pl8-btn-sheen + chip-gold) follows
+        // the theme accent when set, falls back to gold default.
+        ['--gold' as string]: themeColors.accent ?? undefined,
         // Keep motif tones (sage/lavender/dusk) intact so each card
         // band still reads distinctly.
         ...(themeFonts?.heading ? { ['--font-display' as string]: `"${themeFonts.heading}", Georgia, serif` } : {}),
