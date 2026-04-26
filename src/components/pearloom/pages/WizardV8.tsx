@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Icon, Pear, PearloomLogo, Sparkle, Squiggle, Blob } from '../motifs';
+import { OccasionGlyph } from '../icons/OccasionGlyph';
 import { Reveal } from '../motion';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { TEMPLATES_BY_ID } from '../marketplace/templates-data';
@@ -619,11 +620,21 @@ function OccasionPicker({
 
   const tile = (o: OccasionCard) => {
     const on = selected === o.id;
+    const glyphColor =
+      o.tone === 'peach'
+        ? 'var(--peach-ink, #C6703D)'
+        : o.tone === 'lavender'
+          ? 'var(--lavender-ink, #4F4072)'
+          : o.tone === 'sage'
+            ? 'var(--sage-deep, #5C6B3F)'
+            : 'var(--ink, #0E0D0B)';
     return (
       <button
         key={o.id}
         type="button"
         onClick={() => onPick(o.id)}
+        // Hover host — bespoke glyph anims fire on parent hover.
+        className="pl8-glyph-host"
         style={{
           padding: 14,
           borderRadius: 14,
@@ -649,9 +660,9 @@ function OccasionPicker({
       >
         <div
           style={{
-            width: 34,
-            height: 34,
-            borderRadius: 10,
+            width: 38,
+            height: 38,
+            borderRadius: 12,
             flexShrink: 0,
             background:
               o.tone === 'peach'
@@ -663,9 +674,10 @@ function OccasionPicker({
                     : 'var(--cream-2)',
             display: 'grid',
             placeItems: 'center',
+            color: glyphColor,
           }}
         >
-          <Icon name={o.icon} size={15} />
+          <OccasionGlyph id={o.id} size={20} />
         </div>
         <div className="display" style={{ fontSize: 14.5 }}>
           {o.label}

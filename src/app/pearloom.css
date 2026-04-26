@@ -1319,3 +1319,135 @@ html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) {
   .pl8-tab-swipe { animation: none; }
 }
+
+/* =========================================================================
+   OccasionGlyph hover animations — bespoke per-icon motion. Each glyph
+   sits in a parent (.pl8-glyph-host) and gains its anim on parent hover
+   so the surrounding tile/button drives the motion, not the SVG itself.
+   ========================================================================= */
+
+.pl8-glyph {
+  display: inline-grid;
+  place-items: center;
+  transform-origin: center;
+  transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1), filter 220ms ease;
+}
+.pl8-glyph svg {
+  display: block;
+  overflow: visible;
+}
+.pl8-glyph-host:hover .pl8-glyph,
+.pl8-glyph:hover {
+  filter: drop-shadow(0 1px 0 rgba(14,13,11,0.06));
+}
+
+/* spin — slow rotation for rings + watch */
+@keyframes pl8-glyph-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.pl8-glyph-host:hover .pl8-glyph-spin svg,
+.pl8-glyph-spin:hover svg {
+  animation: pl8-glyph-spin 2.4s linear infinite;
+  transform-origin: 50% 55%;
+}
+
+/* wiggle — small back-and-forth for rattle, compass, glasses */
+@keyframes pl8-glyph-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  20%      { transform: rotate(-9deg); }
+  60%      { transform: rotate(7deg); }
+  80%      { transform: rotate(-3deg); }
+}
+.pl8-glyph-host:hover .pl8-glyph-wiggle svg,
+.pl8-glyph-wiggle:hover svg {
+  animation: pl8-glyph-wiggle 700ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  transform-origin: 50% 70%;
+}
+
+/* bloom — scale + opacity in/out for bouquet, starburst, sparkle */
+@keyframes pl8-glyph-bloom {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.16); }
+  100% { transform: scale(1.06); }
+}
+.pl8-glyph-host:hover .pl8-glyph-bloom svg,
+.pl8-glyph-bloom:hover svg {
+  animation: pl8-glyph-bloom 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* flicker — candle flame Y-bob for cake. Targets the inner flame path
+   so the cake stays put; only the wick + flame dance. */
+@keyframes pl8-glyph-flicker {
+  0%, 100% { transform: translateY(0) scale(1, 1); opacity: 1; }
+  25%      { transform: translateY(-1px) scale(0.92, 1.06); opacity: 0.92; }
+  50%      { transform: translateY(0) scale(1.04, 0.96); opacity: 1; }
+  75%      { transform: translateY(-1px) scale(0.96, 1.04); opacity: 0.95; }
+}
+.pl8-glyph-host:hover .pl8-glyph-flicker .pl8-glyph-flicker-flame,
+.pl8-glyph-flicker:hover .pl8-glyph-flicker-flame {
+  animation: pl8-glyph-flicker 700ms ease-in-out infinite;
+  transform-origin: 50% 100%;
+  transform-box: fill-box;
+}
+
+/* draw — stroke-dashoffset reveal for script + book */
+@keyframes pl8-glyph-draw {
+  from { stroke-dashoffset: 80; }
+  to   { stroke-dashoffset: 0; }
+}
+.pl8-glyph-draw .pl8-glyph-draw-path {
+  stroke-dasharray: 80;
+  stroke-dashoffset: 0;
+}
+.pl8-glyph-host:hover .pl8-glyph-draw .pl8-glyph-draw-path,
+.pl8-glyph-draw:hover .pl8-glyph-draw-path {
+  animation: pl8-glyph-draw 800ms cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+/* sway — gentle side-to-side for leaf-bough, dove */
+@keyframes pl8-glyph-sway {
+  0%, 100% { transform: rotate(-3deg); }
+  50%      { transform: rotate(3deg); }
+}
+.pl8-glyph-host:hover .pl8-glyph-sway svg,
+.pl8-glyph-sway:hover svg {
+  animation: pl8-glyph-sway 1.4s ease-in-out infinite;
+  transform-origin: 50% 90%;
+}
+
+/* pop — clean lift for cup, mortarboard, family-circle, home */
+@keyframes pl8-glyph-pop {
+  0%   { transform: translateY(0) scale(1); }
+  40%  { transform: translateY(-3px) scale(1.08); }
+  100% { transform: translateY(-1px) scale(1.04); }
+}
+.pl8-glyph-host:hover .pl8-glyph-pop svg,
+.pl8-glyph-pop:hover svg {
+  animation: pl8-glyph-pop 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Generic hover-pop for the existing Icon catalogue (use via class). */
+.pl8-icon-hover {
+  transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center;
+  display: inline-block;
+}
+.pl8-icon-hover:hover,
+.pl8-glyph-host:hover .pl8-icon-hover {
+  transform: scale(1.12) rotate(-3deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pl8-glyph-host:hover .pl8-glyph-spin svg,
+  .pl8-glyph-host:hover .pl8-glyph-wiggle svg,
+  .pl8-glyph-host:hover .pl8-glyph-bloom svg,
+  .pl8-glyph-host:hover .pl8-glyph-flicker .pl8-glyph-flicker-flame,
+  .pl8-glyph-host:hover .pl8-glyph-draw .pl8-glyph-draw-path,
+  .pl8-glyph-host:hover .pl8-glyph-sway svg,
+  .pl8-glyph-host:hover .pl8-glyph-pop svg,
+  .pl8-icon-hover:hover {
+    animation: none !important;
+    transform: none !important;
+  }
+}
