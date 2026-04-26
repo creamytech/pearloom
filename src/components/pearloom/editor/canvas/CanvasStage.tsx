@@ -76,7 +76,7 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
           flex: 1,
           minWidth: 0,
           overflowY: 'auto',
-          padding: '32px 32px 96px',
+          padding: 'clamp(16px, 3vw, 32px) clamp(16px, 3vw, 32px) clamp(48px, 8vw, 96px)',
           // Warm dark slate so the device viewport reads as a real
           // object on a workbench instead of floating in cream space.
           // Dotted-grid texture is layered on top via a fine repeating

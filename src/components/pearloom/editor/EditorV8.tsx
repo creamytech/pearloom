@@ -789,7 +789,9 @@ function EditorTopbar({
 }
 
 /** Status dot rendered next to the slug — quietly tells the host
- *  whether their work has been written to the server. */
+ *  whether their work has been written to the server. The 'saved'
+ *  state shows a tiny check inside the dot so users get a moment of
+ *  reassurance every time autosave completes. */
 function SaveDot({ saveStatus }: { saveStatus: 'idle' | 'saving' | 'saved' | 'error' }) {
   const colour =
     saveStatus === 'saved'
@@ -807,19 +809,29 @@ function SaveDot({ saveStatus }: { saveStatus: 'idle' | 'saving' | 'saved' | 'er
         : saveStatus === 'error'
           ? 'Save failed'
           : 'Editing';
+  const showCheck = saveStatus === 'saved';
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: colour, fontWeight: 600 }}>
       <span
         aria-hidden
         style={{
-          width: 6,
-          height: 6,
+          width: showCheck ? 12 : 6,
+          height: showCheck ? 12 : 6,
           borderRadius: 999,
           background: colour,
-          display: 'inline-block',
+          display: 'inline-grid',
+          placeItems: 'center',
+          color: '#fff',
           animation: saveStatus === 'saving' ? 'pl-dot-pulse 1.4s ease-in-out infinite' : 'none',
+          transition: 'width 200ms ease, height 200ms ease',
         }}
-      />
+      >
+        {showCheck && (
+          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        )}
+      </span>
       {label}
     </span>
   );
@@ -1109,13 +1121,16 @@ function BlockRow({
         gap: 8,
         padding: '6px 8px',
         borderRadius: 8,
-        background: active ? 'var(--ink)' : 'transparent',
-        color: active ? 'var(--cream)' : 'var(--ink)',
-        border: active ? '1px solid var(--ink)' : '1px solid transparent',
+        background: active ? 'var(--cream-2)' : 'transparent',
+        color: 'var(--ink)',
+        border: active
+          ? '1px solid var(--peach-ink, #C6703D)'
+          : '1px solid transparent',
+        boxShadow: active ? '0 0 0 3px rgba(198,112,61,0.10)' : 'none',
         cursor: nativeDraggable ? 'grab' : 'pointer',
         fontFamily: 'var(--font-ui)',
         alignItems: 'center',
-        transition: 'background 160ms, border-color 160ms',
+        transition: 'background 160ms ease, border-color 160ms ease, box-shadow 160ms ease',
       }}
       onClick={onSelect}
       title={nativeDraggable ? 'Drag onto the canvas to add' : undefined}
@@ -1134,7 +1149,7 @@ function BlockRow({
             placeItems: 'center',
             background: 'transparent',
             border: 'none',
-            color: active ? 'rgba(255,254,247,0.6)' : 'var(--ink-muted)',
+            color: 'var(--ink-muted)',
             cursor: 'grab',
             touchAction: 'none',
             padding: 0,
@@ -1185,7 +1200,7 @@ function BlockRow({
             placeItems: 'center',
             background: 'transparent',
             border: 'none',
-            color: active ? 'rgba(255,254,247,0.8)' : 'var(--ink-muted)',
+            color: 'var(--ink-muted)',
             cursor: 'pointer',
             borderRadius: 6,
             padding: 0,
@@ -1263,7 +1278,12 @@ function Inspector({
       >
         {(
           [
-            { key: 'section', label: 'Section', icon: meta.icon },
+            // Fixed Section icon — always shows the same glyph
+            // regardless of which block is active. The block-
+            // specific icon lives in the panel body header below
+            // so users get one identity per tab + clear context
+            // when they're inside it.
+            { key: 'section', label: 'Section', icon: 'sliders' },
             { key: 'theme', label: 'Theme', icon: 'palette' },
             { key: 'pear', label: 'Pear', icon: 'sparkles' },
           ] as Array<{ key: InspectorTab; label: string; icon: string }>

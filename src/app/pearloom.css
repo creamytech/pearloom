@@ -1203,6 +1203,21 @@ html { scroll-behavior: smooth; }
   transform: translateY(0) !important;
 }
 
+/* ── Section hover ring — when the user mouses over a section in
+       edit mode, a soft peach hairline frames the section so they
+       can see exactly where the boundary is. Inset 2px so it
+       reads as an inner outline rather than hugging the edge. ── */
+[data-pl-block-sortable] {
+  position: relative;
+  transition: box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-pl-block-sortable]:hover {
+  box-shadow: inset 0 0 0 1px rgba(198, 112, 61, 0.32);
+}
+[data-pl-block-sortable]:has(.pl8-divider-edit-zone:hover) {
+  box-shadow: none;
+}
+
 /* ── Suppress the section chip when the user is hovering the
        divider above the section. Otherwise hovering the separator
        between Travel and Story lights up a misleading "STORY"

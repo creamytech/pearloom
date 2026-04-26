@@ -105,13 +105,36 @@ export function BlockPickerPopover({ anchor, blocks, onPick, onClose }: Props) {
       {blocks.length === 0 ? (
         <div
           style={{
-            padding: 24, textAlign: 'center',
-            fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.5,
+            padding: '20px 16px',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 8,
           }}
         >
-          Every section is already on your site.
-          <br />
-          Use the × on a section to hide it, then add it back here.
+          <div
+            aria-hidden
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 999,
+              background: 'var(--cream-2)',
+              display: 'grid',
+              placeItems: 'center',
+              color: 'var(--peach-ink, #C6703D)',
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>
+            All sections are showing.
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', lineHeight: 1.45 }}>
+            Hide one with the eye in the outline, or × on its section chip — then drop it back in here.
+          </div>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>

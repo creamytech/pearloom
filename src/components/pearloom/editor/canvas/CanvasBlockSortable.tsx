@@ -168,16 +168,43 @@ export function SortableBlockList({
         {activeId ? (
           <div
             style={{
-              padding: '12px 18px',
-              borderRadius: 12,
-              background: 'var(--cream-2, #F5EFE2)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '10px 16px 10px 12px',
+              borderRadius: 999,
+              background: 'var(--cream, #FBF7EE)',
               border: '1.5px solid var(--peach-ink, #C6703D)',
-              boxShadow: '0 24px 56px rgba(14,13,11,0.18)',
-              fontSize: 13, fontWeight: 700,
+              boxShadow: '0 20px 48px -12px rgba(14,13,11,0.32), 0 0 0 6px rgba(198,112,61,0.10)',
+              fontSize: 13,
+              fontWeight: 700,
               color: 'var(--ink, #18181B)',
-              textTransform: 'uppercase', letterSpacing: '0.12em',
+              fontFamily: 'var(--font-ui)',
+              letterSpacing: '0.04em',
+              cursor: 'grabbing',
             }}
           >
+            <span
+              aria-hidden
+              style={{
+                display: 'inline-grid',
+                placeItems: 'center',
+                width: 22,
+                height: 22,
+                borderRadius: 999,
+                background: 'var(--peach-ink, #C6703D)',
+                color: '#fff',
+              }}
+            >
+              <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden>
+                <circle cx="3" cy="3" r="1.4" fill="currentColor" />
+                <circle cx="9" cy="3" r="1.4" fill="currentColor" />
+                <circle cx="3" cy="7" r="1.4" fill="currentColor" />
+                <circle cx="9" cy="7" r="1.4" fill="currentColor" />
+                <circle cx="3" cy="11" r="1.4" fill="currentColor" />
+                <circle cx="9" cy="11" r="1.4" fill="currentColor" />
+              </svg>
+            </span>
             {blockLabels?.[activeId] ?? activeId}
           </div>
         ) : null}
