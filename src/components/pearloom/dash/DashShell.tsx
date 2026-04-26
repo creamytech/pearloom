@@ -8,9 +8,9 @@
 
 import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useLinkStatus } from 'next/link';
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, useTransition, type ReactNode } from 'react';
 import { Blob, Heart, Icon, Pear, PearloomLogo, Squiggle } from '../motifs';
 import { useIsInsideShell } from './ShellPersistentLayout';
 
@@ -472,10 +472,29 @@ function NavLink({
   isActive: boolean;
   liveBadge?: string;
 }) {
+  // Navigate via router.push wrapped in startTransition so the
+  // OLD page stays painted while the new page streams in. This is
+  // the only way to truly avoid the brief blank that the user
+  // perceived as 'the whole page fades in'. With useTransition,
+  // React holds the previous tree visible until the new route is
+  // ready, then swaps without any unmount/remount blink.
+  const router = useRouter();
+  const [pending, startNav] = useTransition();
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // Let middle-click / cmd-click / target=_blank do the native
+    // behaviour. Only intercept plain left-clicks.
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    startNav(() => {
+      router.push(item.href);
+    });
+  };
   return (
     <Link
       data-nav-active={isActive ? '1' : undefined}
+      data-nav-pending={pending ? '1' : undefined}
       href={item.href}
+      onClick={handleClick}
       className="pl8-dash-navlink"
       style={{
         position: 'relative',
@@ -513,6 +532,21 @@ function NavLink({
         <Icon name={item.icon} size={18} />
       </span>
       <span style={{ flex: 1 }}>{item.label}</span>
+      {pending && (
+        <span
+          aria-hidden
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: 999,
+            background: isActive ? 'rgba(255,255,255,0.85)' : 'var(--peach-ink, #C6703D)',
+            display: 'inline-block',
+            marginRight: 4,
+            animation: 'pl-dot-pulse 0.9s ease-in-out infinite',
+            flexShrink: 0,
+          }}
+        />
+      )}
       <NavLinkPending isActive={isActive} />
       {liveBadge && (
         <span
@@ -523,19 +557,11 @@ function NavLink({
             background: isActive ? 'rgba(255,255,255,0.18)' : 'var(--peach-bg)',
             color: isActive ? 'var(--cream)' : 'var(--peach-ink)',
             fontWeight: 700,
-            animation: liveBadge ? 'pl8-nav-badge-pop 220ms cubic-bezier(0.22, 1, 0.36, 1)' : undefined,
           }}
         >
           {liveBadge}
         </span>
       )}
-      <style jsx>{`
-        @keyframes pl8-nav-badge-pop {
-          0%   { transform: scale(0.6); opacity: 0; }
-          70%  { transform: scale(1.08); opacity: 1; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-      `}</style>
     </Link>
   );
 }

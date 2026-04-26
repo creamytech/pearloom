@@ -99,7 +99,6 @@ function KickoffCards({ occasion }: { occasion?: string | null }) {
               alignItems: 'flex-start',
               transition:
                 'transform 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 260ms cubic-bezier(0.22, 1, 0.36, 1)',
-              animation: `pl8-kickoff-in 420ms cubic-bezier(0.22, 1, 0.36, 1) ${i * 70}ms both`,
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-3px)';
