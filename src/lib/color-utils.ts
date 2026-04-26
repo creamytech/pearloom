@@ -212,6 +212,85 @@ export function enforcePaletteContrast(palette: {
   };
 }
 
+// ── Color parsing + smart ink selection ──────────────────────
+
+/**
+ * Best-effort parse of any CSS color string into a 7-char hex.
+ * Handles `#rgb`, `#rrggbb`, `rgb(r,g,b)`, `rgba(r,g,b,a)` (alpha
+ * is dropped — composite against the parent if you need it).
+ *
+ * Returns null for `var(--token)`, `oklch(...)`, named colors,
+ * or anything else we can't resolve from a string. Callers should
+ * fall back to a sensible default when this returns null rather
+ * than guess.
+ */
+export function parseAnyColorToHex(input: string | undefined | null): string | null {
+  if (!input) return null;
+  const s = input.trim();
+  if (s.startsWith('#')) {
+    return hexToRgb(s) ? (s.length === 4 ? '#' + s.slice(1).split('').map((c) => c + c).join('') : s.toLowerCase()) : null;
+  }
+  const rgbMatch = s.match(/^rgba?\(\s*([+-]?\d+(?:\.\d+)?)\s*,\s*([+-]?\d+(?:\.\d+)?)\s*,\s*([+-]?\d+(?:\.\d+)?)/i);
+  if (rgbMatch) {
+    const r = Math.round(parseFloat(rgbMatch[1]));
+    const g = Math.round(parseFloat(rgbMatch[2]));
+    const b = Math.round(parseFloat(rgbMatch[3]));
+    return rgbToHex(r, g, b);
+  }
+  return null;
+}
+
+/**
+ * Pick the best ink colour (warm dark or warm cream) for legibility
+ * on `bg`. Uses WCAG luminance — anything brighter than mid-grey
+ * gets dark ink, anything darker gets cream. Defaults to dark ink
+ * when the colour can't be parsed.
+ *
+ * Returns `inkOptions.dark`/`inkOptions.light` — pass overrides if
+ * you want a custom warm ink/cream pair (e.g., `--peach-ink`).
+ */
+export function pickInkForBackground(
+  bg: string | undefined | null,
+  inkOptions?: { dark?: string; light?: string },
+): string {
+  const dark = inkOptions?.dark ?? '#0E0D0B';
+  const light = inkOptions?.light ?? '#FBF7EE';
+  const hex = parseAnyColorToHex(bg);
+  if (!hex) return dark;
+  const lum = luminance(hex);
+  if (lum === null) return dark;
+  return lum > 0.45 ? dark : light;
+}
+
+/** Light/dark family of ink colours for a given background — matches
+ *  the v8 palette (ink, ink-soft, ink-muted, divider). All four flip
+ *  together so subtle text never strands as illegible grey on dark. */
+export interface InkFamily {
+  ink: string;        // primary text
+  inkSoft: string;    // body / secondary
+  inkMuted: string;   // captions / chrome
+  divider: string;    // hairlines
+}
+
+export function inkFamilyForBackground(bg: string | undefined | null): InkFamily {
+  const hex = parseAnyColorToHex(bg);
+  const isDarkBg = hex ? (luminance(hex) ?? 1) <= 0.45 : false;
+  if (isDarkBg) {
+    return {
+      ink: '#FBF7EE',
+      inkSoft: 'rgba(251, 247, 238, 0.82)',
+      inkMuted: 'rgba(251, 247, 238, 0.62)',
+      divider: 'rgba(251, 247, 238, 0.18)',
+    };
+  }
+  return {
+    ink: '#0E0D0B',
+    inkSoft: 'rgba(14, 13, 11, 0.78)',
+    inkMuted: 'rgba(14, 13, 11, 0.56)',
+    divider: 'rgba(14, 13, 11, 0.12)',
+  };
+}
+
 // ── Issue detection ───────────────────────────────────────────
 
 export type IssueSeverity = 'error' | 'warn' | 'ok';

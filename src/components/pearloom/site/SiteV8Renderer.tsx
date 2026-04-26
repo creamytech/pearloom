@@ -39,6 +39,7 @@ import { ScrollReveal } from './ScrollReveal';
 import { isBlockHidden, BlockStyleWrapper } from './BlockStyleWrapper';
 import { TemplateSignatureDecor, type SignatureDecorKind } from './TemplateSignatureDecor';
 import { NavBrandIcon } from './NavBrandIcon';
+import { inkFamilyForBackground, parseAnyColorToHex, luminance as wcagLuminance } from '@/lib/color-utils';
 import { resolveStoryLayout } from '@/components/blocks/StoryLayouts';
 // Side-effect imports — register all variant types with the
 // block-style registry before any dispatcher reads from it.
@@ -277,7 +278,7 @@ interface NavBodyProps {
 
 const NAV_LINK_STYLE: React.CSSProperties = {
   fontSize: 13.5,
-  color: 'var(--ink-soft)',
+  color: 'var(--nav-ink-soft, var(--ink-soft))',
   fontWeight: 500,
   textDecoration: 'none',
   position: 'relative',
@@ -311,7 +312,7 @@ function NavBrand({ manifest, label, size }: { manifest: StoryManifest; label: s
       onMouseLeave={(e) => { e.currentTarget.style.transform = ''; }}
     >
       <NavBrandIcon manifest={manifest} size={size} />
-      <span className="display-italic" style={{ fontSize: 22, color: 'var(--ink)' }}>
+      <span className="display-italic" style={{ fontSize: 22, color: 'var(--nav-ink, var(--ink))' }}>
         {label}
       </span>
     </a>
@@ -375,7 +376,7 @@ function NavBody({ navStyle, scrolled, coupleLabel, links, hasRsvp, manifest }: 
             )}
           </div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'center', borderTop: '1px solid rgba(61,74,31,0.08)', paddingTop: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', borderTop: '1px solid var(--nav-divider, rgba(61,74,31,0.08))', paddingTop: 8 }}>
           <NavLinks links={links} gap={26} />
         </div>
       </div>
@@ -416,17 +417,45 @@ function EventNav({ names, hasRsvp, manifest }: {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Smart contrast: read the theme's page background and pick a
+  // matching ink family + nav surface. Dark themes get a warm-dark
+  // translucent header with cream text + dividers; light themes
+  // keep the cream paper look. Falls back to v8 cream defaults
+  // when the theme bg can't be parsed.
+  const themeBg = (manifest as unknown as { theme?: { colors?: { background?: string } } }).theme?.colors?.background;
+  const ink = inkFamilyForBackground(themeBg);
+  const bgHex = parseAnyColorToHex(themeBg);
+  const bgLum = bgHex ? wcagLuminance(bgHex) : null;
+  const isDarkTheme = bgLum !== null && bgLum <= 0.45;
+  const navSurfaceTop = isDarkTheme
+    ? 'rgba(14, 13, 11, 0.42)'
+    : 'rgba(247, 242, 228, 0.78)';
+  const navSurfaceScrolled = isDarkTheme
+    ? 'rgba(14, 13, 11, 0.78)'
+    : 'rgba(247, 242, 228, 0.96)';
+  const navBorder = isDarkTheme
+    ? 'rgba(251, 247, 238, 0.14)'
+    : 'rgba(61,74,31,0.10)';
+
+  const cssVars: React.CSSProperties & Record<string, string> = {
+    '--nav-ink': ink.ink,
+    '--nav-ink-soft': ink.inkSoft,
+    '--nav-ink-muted': ink.inkMuted,
+    '--nav-divider': ink.divider,
+  } as React.CSSProperties & Record<string, string>;
+
   return (
     <header
       className={`pl8-site-nav${scrolled ? ' pl8-site-nav-scrolled' : ''}`}
       style={{
+        ...cssVars,
         position: 'sticky',
         top: 0,
         zIndex: 40,
-        background: scrolled ? 'rgba(247, 242, 228, 0.96)' : 'rgba(247, 242, 228, 0.78)',
+        background: scrolled ? navSurfaceScrolled : navSurfaceTop,
         backdropFilter: scrolled ? 'blur(18px) saturate(160%)' : 'blur(12px) saturate(140%)',
         WebkitBackdropFilter: scrolled ? 'blur(18px) saturate(160%)' : 'blur(12px) saturate(140%)',
-        borderBottom: scrolled ? '1px solid rgba(61,74,31,0.10)' : '1px solid transparent',
+        borderBottom: scrolled ? `1px solid ${navBorder}` : '1px solid transparent',
         boxShadow: scrolled ? '0 8px 24px -16px rgba(14,13,11,0.18)' : 'none',
         transition:
           'background 380ms cubic-bezier(0.22, 1, 0.36, 1), backdrop-filter 380ms cubic-bezier(0.22, 1, 0.36, 1), border-color 380ms ease, box-shadow 380ms ease',

@@ -19,6 +19,7 @@
 
 import type { StoryManifest, BlockStyleOverride } from '@/types';
 import type { CSSProperties, ElementType, ReactNode } from 'react';
+import { inkFamilyForBackground } from '@/lib/color-utils';
 
 interface Props {
   manifest?: StoryManifest;
@@ -40,11 +41,36 @@ export function BlockStyleWrapper({ manifest, blockId, children, as: Tag = 'div'
   if (override.hidden) {
     return null;
   }
+  // Smart contrast: when the user picks a section background but
+  // doesn't explicitly set textColor, derive an ink family from the
+  // background luminance so primary text and secondary text both
+  // flip together. This also exposes CSS vars children can read for
+  // `var(--ink-soft)` style fallbacks if they want.
+  const hasCustomBg = !!override.background
+    && override.background !== 'paper'
+    && override.background !== 'wash'
+    && override.background !== 'mesh';
+  const ink = hasCustomBg ? inkFamilyForBackground(override.background) : null;
+  const cssVars: CSSProperties & Record<string, string> = ink
+    ? ({
+        '--pl-block-ink': ink.ink,
+        '--pl-block-ink-soft': ink.inkSoft,
+        '--pl-block-ink-muted': ink.inkMuted,
+        '--pl-block-divider': ink.divider,
+      } as CSSProperties & Record<string, string>)
+    : ({} as CSSProperties & Record<string, string>);
+
   const merged: CSSProperties = {
+    ...cssVars,
     ...style,
+    ...(hasCustomBg ? { background: override.background } : {}),
     ...(override.maxWidth ? { maxWidth: override.maxWidth, marginLeft: 'auto', marginRight: 'auto' } : {}),
     ...(override.textAlign ? { textAlign: override.textAlign } : {}),
-    ...(override.textColor ? { color: override.textColor } : {}),
+    ...(override.textColor
+      ? { color: override.textColor }
+      : ink
+        ? { color: ink.ink }
+        : {}),
     ...(override.paddingY != null ? { paddingTop: `calc(${override.paddingY}px + 0px)`, paddingBottom: `calc(${override.paddingY}px + 0px)` } : {}),
   };
   return <Tag style={merged}>{children}</Tag>;
