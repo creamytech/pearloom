@@ -25,7 +25,7 @@ export function HeroPhotoFirst({ manifest, names, siteSlug, onEditField, onEditN
       style={{
         position: 'relative',
         minHeight: 'min(820px, 92vh)',
-        margin: '-clamp(48px, 8vw, 80px) -32px -clamp(48px, 8vw, 110px)',
+        margin: '-clamp(48px, 8cqw, 80px) -32px -clamp(48px, 8cqw, 110px)',
         overflow: 'hidden',
         borderRadius: 0,
       }}

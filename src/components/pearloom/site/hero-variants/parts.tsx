@@ -59,8 +59,12 @@ export function HeroNames({ n1, n2, onEditNames, scale = 1, color, italicColor }
   color?: string;
   italicColor?: string;
 }) {
-  const main = `clamp(${Math.round(80 * scale)}px, ${14 * scale}vw, ${Math.round(168 * scale)}px)`;
-  const italic = `clamp(${Math.round(60 * scale)}px, ${10 * scale}vw, ${Math.round(132 * scale)}px)`;
+  // cqw (container query width) reads the device-frame width in
+  // the editor preview AND the viewport on the published site, so
+  // names size correctly on both. Falls back to vw automatically
+  // when no query container is in the ancestor chain.
+  const main = `clamp(${Math.round(56 * scale)}px, ${14 * scale}cqw, ${Math.round(168 * scale)}px)`;
+  const italic = `clamp(${Math.round(44 * scale)}px, ${10 * scale}cqw, ${Math.round(132 * scale)}px)`;
   return (
     <h1
       className="display pl8-hero-names"

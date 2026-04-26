@@ -529,6 +529,38 @@
   .pl8-guest .pl8-cols-3 { grid-template-columns: 1fr !important; }
 }
 
+/* ── Editor mobile-preview container queries ──────────────────
+   When the canvas device frame switches to phone/tablet, the
+   site's media-query breakpoints don't fire because the *window*
+   is still desktop-wide. Mirror the most-impactful rules as
+   @container queries scoped to the .pl8-canvas-device-frame so
+   they trigger off the device viewport width instead.
+   See CanvasStage.tsx for the container declaration. ── */
+
+@container pl-site (max-width: 960px) {
+  .pl8-guest .pl8-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .pl8-guest .pl8-cols-2 { grid-template-columns: 1fr !important; }
+  .pl8-guest .pl8-site-nav-links { display: none !important; }
+  .pl8-guest .pl8-timeline-thread { display: none !important; }
+  .pl8-guest .pl8-timeline-row { grid-template-columns: 1fr !important; }
+  .pl8-guest .pl8-timeline-row > div:empty { display: none; }
+  .pl8-guest .pl8-schedule-row { grid-template-columns: 70px 1fr !important; padding: 16px 20px !important; }
+  .pl8-guest .pl8-schedule-row > div:last-child { grid-column: 1 / -1; text-align: left !important; }
+  .pl8-guest .pl8-hero-strip { grid-template-columns: repeat(3, 1fr) !important; }
+  .pl8-guest .pl8-hero-strip > div { margin-top: 0 !important; }
+  .pl8-guest .pl8-hero-strip > div:nth-child(n+4) { display: none; }
+  .pl8-guest .pl8-gallery-grid { grid-template-columns: repeat(2, 1fr) !important; grid-auto-rows: 140px !important; }
+  .pl8-guest .pl8-gallery-grid > div { grid-column: auto !important; grid-row: auto !important; }
+  .pl8-guest .pl8-gallery-header { flex-direction: column !important; align-items: flex-start !important; gap: 14px; }
+  .pl8-guest .pl8-site-footer-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
+  .pl8-guest .pl8-hide-mobile { display: none !important; }
+  .pl8-guest .pl8-kickoff { grid-template-columns: 1fr !important; gap: 12px; }
+}
+
+@container pl-site (max-width: 640px) {
+  .pl8-guest .pl8-cols-3 { grid-template-columns: 1fr !important; }
+}
+
 /* =========================================================================
    RESPONSIVE HELPERS — desktop-first; collapse at 900px / 640px
    ========================================================================= */

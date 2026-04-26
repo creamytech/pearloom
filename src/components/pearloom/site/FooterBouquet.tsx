@@ -27,7 +27,7 @@ export function FooterBouquet({ url }: Props) {
         loading="lazy"
         decoding="async"
         style={{
-          width: 'clamp(180px, 42vw, 320px)',
+          width: 'clamp(180px, 42cqw, 320px)',
           height: 'auto',
           maxHeight: 'min(280px, 40vh)',
           aspectRatio: '2 / 3',

@@ -26,7 +26,7 @@ export function HeroSplit({ manifest, names, siteSlug, onEditField, onEditNames,
         maxWidth: 1280, margin: '0 auto',
         display: 'grid',
         gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
-        gap: 'clamp(28px, 5vw, 72px)',
+        gap: 'clamp(28px, 5cqw, 72px)',
         alignItems: 'center',
         position: 'relative',
       }}

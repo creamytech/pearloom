@@ -55,7 +55,7 @@ export function HeroCarousel({ manifest, names, siteSlug, onEditField, onEditNam
               key={i}
               style={{
                 flexShrink: 0,
-                width: 'min(360px, 70vw)',
+                width: 'min(360px, 70cqw)',
                 aspectRatio: '4/5',
                 scrollSnapAlign: 'center',
                 borderRadius: 4,

@@ -810,7 +810,7 @@ function HeroSection({
     <section
       ref={parallax.ref as React.RefObject<HTMLElement>}
       id="top"
-      style={{ position: 'relative', padding: 'clamp(48px, 8vw, 80px) 32px clamp(48px, 8vw, 110px)', overflow: 'hidden' }}
+      style={{ position: 'relative', padding: 'clamp(48px, 8cqw, 80px) 32px clamp(48px, 8cqw, 110px)', overflow: 'hidden' }}
     >
       {/* Animated atmosphere — sits beneath the static decor so it
           reads as light moving through the paper, not on top of it.
@@ -860,7 +860,7 @@ function HeroSection({
           style={{
             position: 'absolute',
             top: 0,
-            right: 'max(0px, calc((100vw - 1160px) / 2))',
+            right: 'max(0px, calc((100cqw - 1160px) / 2))',
             width: 240, height: 240,
             pointerEvents: 'none', zIndex: 2,
           }}
@@ -1005,7 +1005,7 @@ function StoryVariantSection({
   }
 
   return (
-    <section id="our-story" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
+    <section id="our-story" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
       <SectionBackground manifest={manifest} sectionId="our-story" />
       <div style={{ maxWidth: 1160, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 60 }}>
@@ -1025,7 +1025,7 @@ function StoryVariantSection({
             <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.story} size={32} />
             <Icon name="leaf" size={13} /> Our story so far
           </div>
-          <h2 className="display" style={{ fontSize: 'clamp(42px, 6vw, 72px)', margin: 0 }}>
+          <h2 className="display" style={{ fontSize: 'clamp(42px, 6cqw, 72px)', margin: 0 }}>
             How we got <span className="display-italic">here</span>
           </h2>
         </div>
@@ -1074,7 +1074,7 @@ function TimelineSection({ chapters, onEditField, manifest }: { chapters: Chapte
     });
   };
   return (
-    <section id="our-story" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
+    <section id="our-story" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
       <SectionBackground manifest={manifest} sectionId="our-story" />
       <div style={{ maxWidth: 1160, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 60 }}>
@@ -1094,7 +1094,7 @@ function TimelineSection({ chapters, onEditField, manifest }: { chapters: Chapte
             <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.story} size={32} />
             <Icon name="leaf" size={13} /> Our story so far
           </div>
-          <h2 className="display" style={{ fontSize: 'clamp(42px, 6vw, 72px)', margin: 0 }}>
+          <h2 className="display" style={{ fontSize: 'clamp(42px, 6cqw, 72px)', margin: 0 }}>
             How we got <span className="display-italic">here</span>
           </h2>
         </div>
@@ -1397,7 +1397,7 @@ function DetailsStrip({ manifest }: { manifest: StoryManifest }) {
   return (
     <section
       id="details"
-      style={{ padding: 'clamp(48px, 7vw, 80px) 32px', position: 'relative' }}
+      style={{ padding: 'clamp(48px, 7cqw, 80px) 32px', position: 'relative' }}
     >
       <SectionBackground manifest={manifest} sectionId="details" />
       <div style={{ maxWidth: 1160, margin: '0 auto', position: 'relative' }}>
@@ -1532,7 +1532,7 @@ function ScheduleSection({ manifest, names, onEditField }: { manifest: StoryMani
   };
 
   return (
-    <section id="schedule" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', position: 'relative' }}>
+    <section id="schedule" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', position: 'relative' }}>
       <SectionBackground manifest={manifest} sectionId="schedule" />
       <div style={{ maxWidth: 920, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
@@ -1552,7 +1552,7 @@ function ScheduleSection({ manifest, names, onEditField }: { manifest: StoryMani
             <SectionStamp url={manifest.decorLibrary?.sectionStamps?.schedule} size={32} />
             <Icon name="clock" size={13} /> How the day flows
           </div>
-          <h2 className="display" style={{ fontSize: 'clamp(40px, 6vw, 64px)', margin: 0 }}>
+          <h2 className="display" style={{ fontSize: 'clamp(40px, 6cqw, 64px)', margin: 0 }}>
             Schedule {dateInfo && <>for <span className="display-italic">{dateInfo.pretty}</span></>}
           </h2>
         </div>
@@ -1873,7 +1873,7 @@ function TravelSection({ manifest, onEditField }: { manifest: StoryManifest; onE
   // and we're not in edit mode, just show venue + map.
   const showPlacesToStay = hotels.length > 0 || edit;
   return (
-    <section id="travel" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
+    <section id="travel" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
       <SectionBackground manifest={manifest} sectionId="travel" />
       <div style={{ maxWidth: 1160, margin: '0 auto' }}>
         <div className="pl8-cols-2" style={{ gap: 40 }}>
@@ -1894,7 +1894,7 @@ function TravelSection({ manifest, onEditField }: { manifest: StoryManifest; onE
               <SectionStamp url={manifest.decorLibrary?.sectionStamps?.travel} size={32} />
               <Icon name="pin" size={13} /> The venue
             </div>
-            <h3 className="display" style={{ fontSize: 'clamp(32px, 4.5vw, 44px)', margin: '0 0 16px' }}>
+            <h3 className="display" style={{ fontSize: 'clamp(32px, 4.5cqw, 44px)', margin: '0 0 16px' }}>
               {venue}
             </h3>
             {address && (
@@ -1925,7 +1925,7 @@ function TravelSection({ manifest, onEditField }: { manifest: StoryManifest; onE
               >
                 <Icon name="moon" size={13} /> Places to stay
               </div>
-              <h3 className="display" style={{ fontSize: 'clamp(32px, 4.5vw, 44px)', margin: '0 0 16px' }}>
+              <h3 className="display" style={{ fontSize: 'clamp(32px, 4.5cqw, 44px)', margin: '0 0 16px' }}>
                 Sleep <span className="display-italic">somewhere lovely</span>
               </h3>
               {hotels.length === 0 && edit && (
@@ -2079,7 +2079,7 @@ function RegistrySection({ manifest }: { manifest: StoryManifest }) {
   if (gifts.length === 0) return null;
 
   return (
-    <section id="registry" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', position: 'relative' }}>
+    <section id="registry" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', position: 'relative' }}>
       <SectionBackground manifest={manifest} sectionId="registry" />
       <div style={{ maxWidth: 1040, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
@@ -2099,7 +2099,7 @@ function RegistrySection({ manifest }: { manifest: StoryManifest }) {
             <SectionStamp url={manifest.decorLibrary?.sectionStamps?.registry} size={32} />
             <Icon name="gift" size={13} /> If you&apos;re asking
           </div>
-          <h2 className="display" style={{ fontSize: 'clamp(40px, 6vw, 64px)', margin: '0 0 12px' }}>
+          <h2 className="display" style={{ fontSize: 'clamp(40px, 6cqw, 64px)', margin: '0 0 12px' }}>
             Registry, <span className="display-italic">gently</span>
           </h2>
           <p style={{ fontSize: 16, color: 'var(--ink-soft)', maxWidth: 560, margin: '0 auto', lineHeight: 1.55 }}>
@@ -2190,7 +2190,7 @@ function GallerySection({ chapters, manifest, onEditField }: { chapters: Chapter
   const { index, open, close, next, prev } = usePhotoLightbox(lightboxImages);
 
   return (
-    <section id="gallery" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
+    <section id="gallery" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
       <SectionBackground manifest={manifest} sectionId="gallery" />
       <div style={{ maxWidth: 1240, margin: '0 auto' }}>
         <div
@@ -2214,7 +2214,7 @@ function GallerySection({ chapters, manifest, onEditField }: { chapters: Chapter
               <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.gallery} size={32} />
               <Icon name="gallery" size={13} /> Along the way
             </div>
-            <h2 className="display" style={{ fontSize: 'clamp(40px, 6vw, 64px)', margin: 0 }}>
+            <h2 className="display" style={{ fontSize: 'clamp(40px, 6cqw, 64px)', margin: 0 }}>
               A few <span className="display-italic">favorites</span>
             </h2>
           </div>
@@ -2311,7 +2311,7 @@ function FaqSection({ manifest, onEditField }: { manifest: StoryManifest; onEdit
     });
   };
   return (
-    <section id="faq" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', position: 'relative' }}>
+    <section id="faq" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', position: 'relative' }}>
       <SectionBackground manifest={manifest} sectionId="faq" />
       <div style={{ maxWidth: 760, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
@@ -2331,7 +2331,7 @@ function FaqSection({ manifest, onEditField }: { manifest: StoryManifest; onEdit
             <SectionStamp url={manifest.decorLibrary?.sectionStamps?.faq} size={32} />
             <Icon name="heart-icon" size={13} /> Good to know
           </div>
-          <h2 className="display" style={{ fontSize: 'clamp(38px, 6vw, 60px)', margin: 0 }}>
+          <h2 className="display" style={{ fontSize: 'clamp(38px, 6cqw, 60px)', margin: 0 }}>
             Frequently <span className="display-italic">asked.</span>
           </h2>
         </div>
@@ -2506,7 +2506,7 @@ function RSVPSection({
   }
 
   return (
-    <section id="rsvp" style={{ padding: 'clamp(48px, 8vw, 100px) 32px', position: 'relative', overflow: 'hidden' }}>
+    <section id="rsvp" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', position: 'relative', overflow: 'hidden' }}>
       <SectionBackground manifest={manifest} sectionId="rsvp" />
       <Blob tone="peach" size={460} opacity={0.5} style={{ position: 'absolute', top: -120, left: -140 }} />
       <Blob tone="lavender" size={400} opacity={0.45} style={{ position: 'absolute', bottom: -140, right: -120 }} />
@@ -2529,7 +2529,7 @@ function RSVPSection({
             <SectionStamp url={manifest.decorLibrary?.sectionStamps?.rsvp} size={32} />
             <Icon name="mail" size={13} /> Kindly respond by {deadlineStr}
           </div>
-          <h2 className="display" style={{ fontSize: 'clamp(44px, 7vw, 72px)', margin: 0 }}>
+          <h2 className="display" style={{ fontSize: 'clamp(44px, 7cqw, 72px)', margin: 0 }}>
             Will you <span className="display-italic">be there?</span>
           </h2>
           {/* Editorial intro line — host-editable, AI-rewritable. */}
@@ -3229,10 +3229,10 @@ function CustomBlockCase({ block, siteSlug, editMode }: { block: PageBlock; site
     }
     case 'guestPhotoUpload': {
       return wrap(
-        <div style={{ padding: 'clamp(40px, 6vw, 72px) 24px' }}>
+        <div style={{ padding: 'clamp(40px, 6cqw, 72px) 24px' }}>
           <div style={{ maxWidth: 560, margin: '0 auto' }}>
             <div style={{ textAlign: 'center', marginBottom: 18 }}>
-              <h2 className="display" style={{ fontSize: 'clamp(28px, 4vw, 40px)', margin: '0 0 8px' }}>
+              <h2 className="display" style={{ fontSize: 'clamp(28px, 4cqw, 40px)', margin: '0 0 8px' }}>
                 {str('title') ?? 'Share your photos'}
               </h2>
               {(str('subtitle') ?? '') && (
@@ -3248,10 +3248,10 @@ function CustomBlockCase({ block, siteSlug, editMode }: { block: PageBlock; site
     }
     case 'voiceToast': {
       return wrap(
-        <div style={{ padding: 'clamp(40px, 6vw, 72px) 24px' }}>
+        <div style={{ padding: 'clamp(40px, 6cqw, 72px) 24px' }}>
           <div style={{ maxWidth: 560, margin: '0 auto' }}>
             <div style={{ textAlign: 'center', marginBottom: 18 }}>
-              <h2 className="display" style={{ fontSize: 'clamp(28px, 4vw, 40px)', margin: '0 0 8px' }}>
+              <h2 className="display" style={{ fontSize: 'clamp(28px, 4cqw, 40px)', margin: '0 0 8px' }}>
                 {str('title') ?? 'Send a voice toast'}
               </h2>
               {(str('subtitle') ?? '') && (

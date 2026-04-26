@@ -89,6 +89,8 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
         }}
       >
         <div
+          className="pl8-canvas-device-frame"
+          data-device={device}
           style={{
             width: w,
             maxWidth: '100%',
@@ -100,6 +102,13 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
             overflow: 'hidden',
             transition: 'width 240ms cubic-bezier(0.16, 1, 0.3, 1)',
             position: 'relative',
+            // CSS container so site responsive rules can react to
+            // the *device viewport* width via @container queries
+            // instead of window.innerWidth. See pearloom.css —
+            // every @media (max-width: …) for site layouts has a
+            // mirrored @container pl-site rule for editor preview.
+            containerType: 'inline-size',
+            containerName: 'pl-site',
           }}
         >
           <SiteV8Renderer
