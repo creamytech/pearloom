@@ -1309,19 +1309,12 @@ html { scroll-behavior: smooth; }
    No opacity change — the user explicitly didn't want a fade.
    Just a soft 12px → 0 nudge so the swap reads as motion, not
    a blink. */
-.pl8-tab-swipe {
-  /* Pure micro-translate, NO opacity. Any opacity here reads as
-     'the page is fading in' — the user hates that. 120ms hard
-     snap with no fade component. */
-  animation: pl8-tab-swipe-in 120ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-@keyframes pl8-tab-swipe-in {
-  from { transform: translate3d(4px, 0, 0); }
-  to   { transform: translate3d(0, 0, 0); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .pl8-tab-swipe { animation: none; }
-}
+/* pl8-tab-swipe — was a tiny translate animation on the dashboard
+   inner content. User explicitly does not want any motion on tab
+   switch ("the dashboard just basically be all one page with
+   different tabs"). Class kept for any code that still references
+   it but the animation is now a no-op. */
+.pl8-tab-swipe { /* no animation — instant tab swap */ }
 
 /* Loading skeleton fade-in — only visible if shell loading lingers
    past 280ms (see (shell)/loading.tsx). Fast clicks never see this. */

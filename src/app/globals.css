@@ -1339,39 +1339,13 @@ select:focus-visible {
   }
 }
 
-/* ── View Transitions (cross-page navigation) ───────────── */
-@view-transition {
-  navigation: auto;
-}
-
-::view-transition-old(root) {
-  animation: 0.25s ease-out both fade-out;
-}
-::view-transition-new(root) {
-  animation: 0.3s ease-in both fade-in;
-}
-
-@keyframes fade-out {
-  from { opacity: 1; }
-  to   { opacity: 0; }
-}
-
-/* Shared hero element transitions */
-::view-transition-old(hero-image) {
-  animation: 0.3s ease-out both fade-out;
-}
-::view-transition-new(hero-image) {
-  animation: 0.35s ease-in both fade-in;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(root),
-  ::view-transition-new(root),
-  ::view-transition-old(hero-image),
-  ::view-transition-new(hero-image) {
-    animation-duration: 0s !important;
-  }
-}
+/* ── View Transitions REMOVED — they cross-fade the whole page
+       including the persistent sidebar on every nav, which the
+       user did not want. The dashboard is now a single tab-switch
+       experience: only inner content swaps, sidebar stays. If a
+       specific surface ever wants opt-in shared-element transitions
+       (e.g., hero-image), bring them back scoped — never as
+       navigation: auto across the whole app. ── */
 
 /* ═══════════════════════════════════════════════════════════════
    PREMIUM DESIGN POLISH — Animations & Visual Enhancements
@@ -1692,35 +1666,10 @@ button:hover > .pl-palette-swatches > div {
 :root,
 [data-theme='light'] { --pl-cloud-dancer: var(--pl-cream); }
 
-/* ── View Transitions API (Next.js 16 / Chromium) ─────────────
-   Gives a free cross-fade + slide between routes without JS.
-   Runs only on browsers that implement the spec. */
-@view-transition { navigation: auto; }
-
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 360ms;
-  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-}
-::view-transition-old(root) {
-  animation-name: pl-vt-fade-out;
-}
-::view-transition-new(root) {
-  animation-name: pl-vt-fade-in;
-}
-@keyframes pl-vt-fade-out {
-  to { opacity: 0; transform: translateY(-6px); }
-}
-@keyframes pl-vt-fade-in {
-  from { opacity: 0; transform: translateY(10px); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation-name: none;
-  }
-}
+/* ── View Transitions API REMOVED — duplicate of the block above.
+       Was firing pl-vt-fade-out + pl-vt-fade-in on every route
+       navigation, which is exactly what made the dashboard 'fade
+       the whole page including sidebar' on every tab swap. ── */
 
 /* ── Scroll-driven reveal utility (CSS-native, progressive) ───
    Use on any element:
