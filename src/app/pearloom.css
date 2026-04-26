@@ -1176,6 +1176,31 @@ html { scroll-behavior: smooth; }
   transform: none !important;
 }
 
+/* ── Canvas drag-and-drop handle — Wix-style reordering ──
+   Each section gets a ⋮⋮ glyph at its left edge in edit mode.
+   Invisible by default; fades in on hover/focus, brightens to
+   peach-ink when grabbed. Subtle so it never competes with the
+   real content design. */
+.pl8-canvas-drag-handle {
+  /* Sits at left:6px on every [data-pl-block-sortable] section. */
+}
+[data-pl-block-sortable]:hover > .pl8-canvas-drag-handle,
+[data-pl-block-sortable]:focus-within > .pl8-canvas-drag-handle,
+.pl8-canvas-drag-handle:hover,
+.pl8-canvas-drag-handle:focus-visible {
+  opacity: 1 !important;
+  background: var(--cream-2, #F5EFE2) !important;
+}
+.pl8-canvas-drag-handle:active {
+  cursor: grabbing !important;
+  color: var(--peach-ink, #C6703D) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-canvas-drag-handle {
+    transition: none !important;
+  }
+}
+
 /* ── Tab swipe — keyed-on-pathname remount, slide only ──
    Inner content of (shell)/* swipes in horizontally on route
    change. The shell + sidebar (outside this key) never repaint.

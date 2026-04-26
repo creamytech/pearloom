@@ -22,6 +22,7 @@ import {
 } from '../motifs';
 import { EditorCanvasProvider, useIsEditMode } from '../editor/canvas/EditorCanvasContext';
 import { EditableText } from '../editor/canvas/EditableText';
+import { SortableBlockList } from '../editor/canvas/CanvasBlockSortable';
 import { SortableChapters } from '../editor/canvas/SortableChapters';
 import { HoverToolbar } from '../editor/canvas/HoverToolbar';
 import { PhotoDropTarget } from '../editor/canvas/PhotoDropTarget';
@@ -3157,36 +3158,47 @@ export function SiteV8Renderer({
         >
           <HeroSection names={names} manifest={manifest} siteSlug={siteSlug} onEditField={onEditField} onEditNames={onEditNames} />
         </StickerLayer>
-        {blockOrder.map((key, i) => {
-          // Honour per-block hidden flag from manifest.blockStyles.
-          // Map editor block keys to the section IDs the override
-          // panel writes to ('story' → 'our-story').
-          const sectionId = key === 'story' ? 'our-story' : key;
-          if (isBlockHidden(manifest, sectionId)) return null;
-          const block = renderBlock(key);
-          if (!block) return null;
-          // Per-divider visibility: host can hide the divider above
-          // any specific section via manifest.decorVisibility.
-          const decorVis = (manifest as unknown as { decorVisibility?: Record<string, boolean> }).decorVisibility;
-          const dividerHidden = decorVis?.[`divider-${key}`] === false;
-          return (
-            <div key={key}>
-              <DecorDivider
-                url={dividerUrl}
-                index={i}
-                strength={dividerStrength}
-                hidden={dividerHidden}
-              />
-              <StickerLayer
-                blockId={key}
-                stickers={manifest.stickers}
-                onEditField={onEditField}
-              >
-                {block}
-              </StickerLayer>
-            </div>
-          );
-        })}
+        {/* Wix-style canvas drag-and-drop. SortableBlockList is a
+            no-op outside edit mode; in edit mode each block gets a
+            ⋮⋮ drag handle on the left edge that lets the user reorder
+            sections directly on the canvas. The previous-only-via-
+            outline experience is now optional. */}
+        <SortableBlockList
+          blockKeys={blockOrder as string[]}
+          onReorder={(next) =>
+            onEditField?.((m) => ({
+              ...m,
+              blockOrder: next as SiteBlockKey[],
+            }))
+          }
+          renderItem={(key, i) => {
+            const k = key as SiteBlockKey;
+            // Honour per-block hidden flag.
+            const sectionId = k === 'story' ? 'our-story' : k;
+            if (isBlockHidden(manifest, sectionId)) return null;
+            const block = renderBlock(k);
+            if (!block) return null;
+            const decorVis = (manifest as unknown as { decorVisibility?: Record<string, boolean> }).decorVisibility;
+            const dividerHidden = decorVis?.[`divider-${k}`] === false;
+            return (
+              <>
+                <DecorDivider
+                  url={dividerUrl}
+                  index={i}
+                  strength={dividerStrength}
+                  hidden={dividerHidden}
+                />
+                <StickerLayer
+                  blockId={k}
+                  stickers={manifest.stickers}
+                  onEditField={onEditField}
+                >
+                  {block}
+                </StickerLayer>
+              </>
+            );
+          }}
+        />
         <CustomBlocksRail manifest={manifest} siteSlug={siteSlug} />
         <FooterBouquet url={bouquetUrl} />
         <SiteFooter names={names} prettyUrl={prettyUrl} />
