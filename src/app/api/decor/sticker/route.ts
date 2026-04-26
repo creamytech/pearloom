@@ -67,16 +67,18 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const prompt = stickerPrompt({
+    occasion: occasion ?? 'wedding',
+    paletteHex: paletteHex ?? [],
+    venue,
+    vibe,
+    hint,
+  });
+
   try {
     const result = await openaiGenerateImage({
       apiKey,
-      prompt: stickerPrompt({
-        occasion: occasion ?? 'wedding',
-        paletteHex: paletteHex ?? [],
-        venue,
-        vibe,
-        hint,
-      }),
+      prompt,
       size: '1024x1024',
       quality: 'high',
       format: 'png',
@@ -103,6 +105,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       url,
       isolated: cutout.isolated,
+      prompt,
+      customPrompt: hint && hint.trim() ? hint.trim() : null,
       ...(cutout.isolated ? {} : { warning: 'Couldn\'t fully isolate the sticker — try a clearer prompt.' }),
     });
   } catch (err) {

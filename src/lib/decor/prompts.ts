@@ -13,6 +13,10 @@ export interface DecorContext {
   paletteHex: string[];
   venue?: string;
   vibe?: string;
+  /** User-provided custom prompt. When set, REPLACES the auto-picked
+   *  motif vocabulary entry — the user gets to dictate exactly what
+   *  Pear draws. Style rails + palette + negative prompt still apply. */
+  customPrompt?: string;
 }
 
 // Style rails — used at the top of every prompt so the library reads cohesive.
@@ -117,7 +121,8 @@ function motifVocabulary(occasion: string): string {
 
 /** Hero accent — big flourish behind names. 1536x1024. */
 export function heroAccentPrompt(ctx: DecorContext): string {
-  const motif = pickOne(motifVocabulary(ctx.occasion).replace(/^Motif vocabulary:\s*/i, ''));
+  const motif = (ctx.customPrompt && ctx.customPrompt.trim())
+    || pickOne(motifVocabulary(ctx.occasion).replace(/^Motif vocabulary:\s*/i, ''));
   return [
     `Editorial hero-accent illustration for a ${ctx.occasion.replace(/-/g, ' ')} site.`,
     ...STYLE_RAILS,
@@ -134,7 +139,8 @@ export function heroAccentPrompt(ctx: DecorContext): string {
 
 /** Divider between every section — wide, short, repeatable feel. */
 export function dividerPrompt(ctx: DecorContext): string {
-  const motif = pickOne(motifVocabulary(ctx.occasion).replace(/^Motif vocabulary:\s*/i, ''));
+  const motif = (ctx.customPrompt && ctx.customPrompt.trim())
+    || pickOne(motifVocabulary(ctx.occasion).replace(/^Motif vocabulary:\s*/i, ''));
   return [
     `A long horizontal editorial divider ornament for a ${ctx.occasion.replace(/-/g, ' ')} website.`,
     ...STYLE_RAILS,
@@ -153,8 +159,15 @@ export function dividerPrompt(ctx: DecorContext): string {
 /** Section stamps — 2x3 grid of 6 small circular "stamps" (wax-seal feel).
  *  The calling code slices this into individual stamps. */
 export function sectionStampsPrompt(ctx: DecorContext): string {
+  // For section stamps the customPrompt is treated as a STYLE direction
+  // (e.g. "more botanical, less letterpress") that steers the whole sheet.
+  // The 6 motifs themselves are fixed by section meaning.
+  const styleDirective = ctx.customPrompt && ctx.customPrompt.trim()
+    ? `Style direction from the user: ${ctx.customPrompt.trim()}.`
+    : '';
   return [
     `A 3-column 2-row grid of six small circular stamps for a ${ctx.occasion.replace(/-/g, ' ')} site. The stamps are for the sections: story, schedule, travel, registry, gallery, rsvp.`,
+    styleDirective,
     ...STYLE_RAILS,
     'Each stamp is a single small editorial icon centred inside a thin hairline circle, evenly spaced on a flat #FFFFFF white background. ONE motif per stamp — never compound subjects.',
     '- Stamp 1 (story): a single quill OR a single open book corner.',
@@ -174,10 +187,13 @@ export function sectionStampsPrompt(ctx: DecorContext): string {
 
 /** RSVP confetti — single burst, transparent-ish paper.*/
 export function confettiPrompt(ctx: DecorContext): string {
+  const customLine = ctx.customPrompt && ctx.customPrompt.trim()
+    ? `User direction (override the default scatter description): ${ctx.customPrompt.trim()}.`
+    : '';
   return [
     `Hand-drawn confetti scatter for a ${ctx.occasion.replace(/-/g, ' ')} RSVP success moment.`,
     ...STYLE_RAILS,
-    'Six to ten torn-paper pieces scattered loosely around an empty centre — small triangles, single petals, single seeds, soft semi-circles. NO 40-piece chaos. NO hearts. NO stars overlapping each other.',
+    customLine || 'Six to ten torn-paper pieces scattered loosely around an empty centre — small triangles, single petals, single seeds, soft semi-circles. NO 40-piece chaos. NO hearts. NO stars overlapping each other.',
     'Centre should be visibly empty so the RSVP card shows through. Pieces feel quiet, like a single handful of paper tossed at slow shutter.',
     paletteLine(ctx.paletteHex),
     'Pieces should feel like torn paper, not vector shapes.',
@@ -189,7 +205,8 @@ export function confettiPrompt(ctx: DecorContext): string {
 
 /** Footer bouquet — editorial closer above the site footer. */
 export function footerBouquetPrompt(ctx: DecorContext): string {
-  const motif = pickOne(motifVocabulary(ctx.occasion).replace(/^Motif vocabulary:\s*/i, ''));
+  const motif = (ctx.customPrompt && ctx.customPrompt.trim())
+    || pickOne(motifVocabulary(ctx.occasion).replace(/^Motif vocabulary:\s*/i, ''));
   return [
     `Hand-drawn closing flourish for the footer of a ${ctx.occasion.replace(/-/g, ' ')} site.`,
     ...STYLE_RAILS,

@@ -11,6 +11,13 @@ import { FontPicker } from './FontPicker';
 import { ColorTokenInspector } from './ColorTokenInspector';
 import { SpacingPanel } from './SpacingPanel';
 import { SnapshotsPanel } from './SnapshotsPanel';
+import {
+  DecorPromptComposer,
+  DecorAlternatesStrip,
+  pushDraft,
+  buildAutoSummary,
+} from './decor-shared';
+import type { DecorDraft } from '@/types';
 
 interface ThemePreset {
   id: string;
@@ -333,6 +340,7 @@ function AiAccentSection({
 }) {
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [customPrompt, setCustomPrompt] = useState('');
   const existing = (manifest as unknown as { aiAccentUrl?: string }).aiAccentUrl;
   const occasion = (manifest as unknown as { occasion?: string }).occasion ?? 'wedding';
   const venue = manifest.logistics?.venue ?? '';
@@ -341,6 +349,8 @@ function AiAccentSection({
     ? [theme.background, theme.accent, theme.accentLight, theme.foreground, theme.muted].filter(Boolean) as string[]
     : undefined;
   const siteId = (manifest as unknown as { subdomain?: string }).subdomain ?? 'preview';
+  const vibe = (manifest as unknown as { vibeString?: string }).vibeString ?? '';
+  const drafts: DecorDraft[] = manifest.decorDrafts?.accent ?? [];
 
   async function generate() {
     setRunning(true);
@@ -350,20 +360,32 @@ function AiAccentSection({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          siteId,
-          occasion,
-          venue,
-          paletteHex,
-          vibe: (manifest as unknown as { vibeString?: string }).vibeString ?? '',
+          siteId, occasion, venue, paletteHex, vibe,
+          customPrompt: customPrompt.trim() || undefined,
         }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error((body as { error?: string }).error ?? `Accent failed (${res.status})`);
       }
-      const data = (await res.json()) as { url?: string };
+      const data = (await res.json()) as {
+        url?: string; prompt?: string; customPrompt?: string | null; isolated?: boolean; warning?: string;
+      };
       if (!data.url) throw new Error('No accent URL returned');
-      onChange({ ...manifest, aiAccentUrl: data.url } as unknown as StoryManifest);
+      const draft: DecorDraft = {
+        id: `accent-${Date.now()}`,
+        url: data.url,
+        prompt: data.prompt ?? '',
+        customPrompt: data.customPrompt ?? undefined,
+        createdAt: new Date().toISOString(),
+        isolated: data.isolated,
+      };
+      onChange({
+        ...manifest,
+        aiAccentUrl: data.url,
+        decorDrafts: { ...(manifest.decorDrafts ?? {}), accent: pushDraft(drafts, draft) },
+      } as unknown as StoryManifest);
+      if (data.warning) setError(data.warning);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Accent generation failed');
     } finally {
@@ -375,26 +397,45 @@ function AiAccentSection({
     onChange({ ...manifest, aiAccentUrl: undefined } as unknown as StoryManifest);
   }
 
+  function pickDraft(d: DecorDraft) {
+    onChange({ ...manifest, aiAccentUrl: d.url } as unknown as StoryManifest);
+    setCustomPrompt(d.customPrompt ?? '');
+  }
+
+  function deleteDraft(d: DecorDraft) {
+    const next = drafts.filter((x) => x.id !== d.id);
+    const isActive = manifest.aiAccentUrl === d.url;
+    onChange({
+      ...manifest,
+      aiAccentUrl: isActive ? next[0]?.url : manifest.aiAccentUrl,
+      decorDrafts: { ...(manifest.decorDrafts ?? {}), accent: next },
+    } as unknown as StoryManifest);
+  }
+
   return (
     <PanelSection
       label="AI hero accent"
-      hint="Have Pear draft a hand-drawn flourish that matches your venue, palette, and occasion. Uses GPT Image 2."
+      hint="Have Pear draft a hand-drawn flourish behind your hero. Pure transparent PNG — composites cleanly on any palette."
     >
       {existing && (
         <div
           style={{
-            position: 'relative',
-            aspectRatio: '3/2',
-            borderRadius: 10,
-            overflow: 'hidden',
-            marginBottom: 10,
+            position: 'relative', aspectRatio: '3/2',
+            borderRadius: 10, overflow: 'hidden', marginBottom: 10,
             backgroundImage: `url(${existing})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
+            backgroundSize: 'contain', backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            background: `url(${existing}) center/contain no-repeat var(--cream-2)`,
             border: '1px solid var(--line-soft)',
           }}
         />
       )}
+      <DecorPromptComposer
+        value={customPrompt}
+        onChange={setCustomPrompt}
+        autoSummary={buildAutoSummary({ occasion, venue, vibe })}
+        disabled={running}
+      />
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <button
           id="pl-ai-accent-btn"
@@ -416,6 +457,15 @@ function AiAccentSection({
           {error}
         </div>
       )}
+      <DecorAlternatesStrip
+        drafts={drafts}
+        activeUrl={existing}
+        onSelect={pickDraft}
+        onDelete={deleteDraft}
+        onAlternate={generate}
+        busy={running}
+        aspect="3/2"
+      />
     </PanelSection>
   );
 }

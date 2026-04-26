@@ -10,6 +10,33 @@ import type { SiteOccasion } from '@/lib/site-urls';
  * Each section can override these without touching the global theme.
  * All fields optional — undefined means inherit from globals.
  */
+/** One historical AI decor draft. Lives in `manifest.decorDrafts.<slot>[]`,
+ *  most recent first, capped at 5 entries per slot. */
+export interface DecorDraft {
+  id: string;
+  url: string;
+  /** The full prompt that was sent to the model (post auto-context expansion). */
+  prompt: string;
+  /** User-provided custom hint, if any. Re-loaded into the composer
+   *  when the user reverts to this draft. */
+  customPrompt?: string;
+  /** ISO timestamp. */
+  createdAt: string;
+  /** True when alpha-channel cleanup succeeded. False = the original
+   *  opaque output is shown; the UI surfaces a "couldn't isolate" hint. */
+  isolated?: boolean;
+}
+
+/** Section stamps come back as a sheet of 6, sliced into per-section
+ *  URLs. We keep the whole set together so reverting swaps all six. */
+export interface SectionStampsDraft {
+  id: string;
+  stamps: Partial<Record<string, string>>;
+  prompt: string;
+  customPrompt?: string;
+  createdAt: string;
+}
+
 export interface BlockStyleOverride {
   /** Vertical breathing room override: 'cozy' | 'comfortable' | 'spacious' | 'lush' */
   spacing?: string;
@@ -156,6 +183,21 @@ export interface StoryManifest {
     /** Visual prominence of the divider band between sections.
      *  subtle ≈ 44px, standard (default) ≈ 84px, tall ≈ 120px. */
     dividerStrength?: 'subtle' | 'standard' | 'tall';
+  };
+  /** Per-slot draft history. Every successful decor generation gets
+   *  appended (most-recent-first), capped at 5 entries per slot. The
+   *  ACTIVE asset is whatever lives in `aiAccentUrl` /
+   *  `decorLibrary.{divider,confetti,footerBouquet}` /
+   *  `decorLibrary.sectionStamps[*]` — selecting a draft just copies
+   *  its url over. Removing the active asset doesn't drop history. */
+  decorDrafts?: {
+    accent?: DecorDraft[];
+    divider?: DecorDraft[];
+    confetti?: DecorDraft[];
+    footerBouquet?: DecorDraft[];
+    /** Each entry is a full 6-stamp set (the model returns a 3×2 grid
+     *  that we slice into six). */
+    sectionStamps?: SectionStampsDraft[];
   };
   // (stickers array declared below — the existing StickerItem
   // interface has been extended with optional url + blockId + scale

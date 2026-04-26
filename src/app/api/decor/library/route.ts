@@ -69,6 +69,9 @@ export async function POST(req: NextRequest) {
     paletteHex?: string[];
     vibe?: string;
     slots?: SlotName[];
+    /** Per-slot custom prompt overrides. Only the slots being
+     *  generated this call need to be present. */
+    customPrompts?: Partial<Record<SlotName, string>>;
   } = {};
   try {
     body = await req.json();
@@ -76,7 +79,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
   }
 
-  const { siteId, occasion, venue, paletteHex, vibe } = body;
+  const { siteId, occasion, venue, paletteHex, vibe, customPrompts } = body;
   if (!siteId) return NextResponse.json({ error: 'siteId required' }, { status: 400 });
 
   const apiKey = process.env.OPENAI_API_KEY;
@@ -99,18 +102,27 @@ export async function POST(req: NextRequest) {
 
   try {
     // Run all requested slots in parallel. Each slot handler returns
-    // a partial DecorLibrary that we merge into the final result.
+    // a partial DecorLibrary + the prompt actually used.
     const results = await Promise.allSettled(
       slotsRequested.map(async (slot) => {
+        const slotCtx: DecorContext = { ...ctx, customPrompt: customPrompts?.[slot] };
         switch (slot) {
-          case 'divider':
-            return { divider: await generateDivider(apiKey, ctx, siteId) };
-          case 'sectionStamps':
-            return { sectionStamps: await generateSectionStamps(apiKey, ctx, siteId) };
-          case 'confetti':
-            return { confetti: await generateConfetti(apiKey, ctx, siteId) };
-          case 'footerBouquet':
-            return { footerBouquet: await generateFooterBouquet(apiKey, ctx, siteId) };
+          case 'divider': {
+            const r = await generateDivider(apiKey, slotCtx, siteId);
+            return { divider: r.url, prompts: { divider: r.prompt } };
+          }
+          case 'sectionStamps': {
+            const r = await generateSectionStamps(apiKey, slotCtx, siteId);
+            return { sectionStamps: r.stamps, prompts: { sectionStamps: r.prompt } };
+          }
+          case 'confetti': {
+            const r = await generateConfetti(apiKey, slotCtx, siteId);
+            return { confetti: r.url, prompts: { confetti: r.prompt } };
+          }
+          case 'footerBouquet': {
+            const r = await generateFooterBouquet(apiKey, slotCtx, siteId);
+            return { footerBouquet: r.url, prompts: { footerBouquet: r.prompt } };
+          }
           default:
             return {};
         }
@@ -118,16 +130,21 @@ export async function POST(req: NextRequest) {
     );
 
     const library: Record<string, unknown> = { updatedAt: new Date().toISOString() };
+    const prompts: Record<string, string> = {};
     const failures: string[] = [];
     results.forEach((r, i) => {
       if (r.status === 'fulfilled') {
-        Object.assign(library, r.value);
+        const v = r.value as { prompts?: Record<string, string> } & Record<string, unknown>;
+        if (v.prompts) Object.assign(prompts, v.prompts);
+        const { prompts: _p, ...rest } = v;
+        void _p;
+        Object.assign(library, rest);
       } else {
         failures.push(`${slotsRequested[i]}: ${r.reason instanceof Error ? r.reason.message : 'failed'}`);
       }
     });
 
-    return NextResponse.json({ library, failures });
+    return NextResponse.json({ library, prompts, failures, customPrompts: customPrompts ?? null });
   } catch (err) {
     console.error('[decor/library] unexpected error:', err);
     return NextResponse.json(
@@ -139,17 +156,16 @@ export async function POST(req: NextRequest) {
 
 // ── Slot generators ──────────────────────────────────────────────────────
 
-async function generateDivider(apiKey: string, ctx: DecorContext, siteId: string): Promise<string> {
+async function generateDivider(apiKey: string, ctx: DecorContext, siteId: string): Promise<{ url: string; prompt: string }> {
+  const prompt = dividerPrompt(ctx);
   const result = await openaiGenerateImage({
     apiKey,
-    prompt: dividerPrompt(ctx),
+    prompt,
     size: '1536x1024',
     quality: 'high',
     format: 'png',
   });
   if (!result?.base64) throw new Error(`Divider failed: ${getLastOpenAIError() ?? 'no response'}`);
-  // The model returns 1536×1024; grab the middle ~33% band so the
-  // divider reads tight when rendered as a repeating horizontal strip.
   const buf = Buffer.from(result.base64, 'base64');
   const cropped = await sharp(buf)
     .extract({ left: 0, top: 340, width: 1536, height: 340 })
@@ -160,19 +176,20 @@ async function generateDivider(apiKey: string, ctx: DecorContext, siteId: string
 
   const key = `decor/${siteId}/${Date.now()}-divider.png`;
   await uploadToR2(key, cutout.buffer, 'image/png');
-  return getR2Url(key);
+  return { url: getR2Url(key), prompt };
 }
 
 async function generateSectionStamps(
   apiKey: string,
   ctx: DecorContext,
   siteId: string,
-): Promise<Record<string, string>> {
+): Promise<{ stamps: Record<string, string>; prompt: string }> {
   // The model's widest supported size is 1536×1024; we lay six stamps
   // out 3×2 into that frame and slice client-side.
+  const prompt = sectionStampsPrompt(ctx);
   const result = await openaiGenerateImage({
     apiKey,
-    prompt: sectionStampsPrompt(ctx),
+    prompt,
     size: '1536x1024',
     quality: 'high',
     format: 'png',
@@ -198,13 +215,14 @@ async function generateSectionStamps(
     await uploadToR2(key, cutout.buffer, 'image/png');
     stamps[SECTION_KEYS[i]] = getR2Url(key);
   }
-  return stamps;
+  return { stamps, prompt };
 }
 
-async function generateConfetti(apiKey: string, ctx: DecorContext, siteId: string): Promise<string> {
+async function generateConfetti(apiKey: string, ctx: DecorContext, siteId: string): Promise<{ url: string; prompt: string }> {
+  const prompt = confettiPrompt(ctx);
   const result = await openaiGenerateImage({
     apiKey,
-    prompt: confettiPrompt(ctx),
+    prompt,
     size: '1024x1024',
     quality: 'high',
     format: 'png',
@@ -213,17 +231,18 @@ async function generateConfetti(apiKey: string, ctx: DecorContext, siteId: strin
   const cutout = await removeWhiteBackground(Buffer.from(result.base64, 'base64'));
   const key = `decor/${siteId}/${Date.now()}-confetti.png`;
   await uploadToR2(key, cutout.buffer, 'image/png');
-  return getR2Url(key);
+  return { url: getR2Url(key), prompt };
 }
 
 async function generateFooterBouquet(
   apiKey: string,
   ctx: DecorContext,
   siteId: string,
-): Promise<string> {
+): Promise<{ url: string; prompt: string }> {
+  const prompt = footerBouquetPrompt(ctx);
   const result = await openaiGenerateImage({
     apiKey,
-    prompt: footerBouquetPrompt(ctx),
+    prompt,
     size: '1024x1536',
     quality: 'high',
     format: 'png',
@@ -232,5 +251,5 @@ async function generateFooterBouquet(
   const cutout = await removeWhiteBackground(Buffer.from(result.base64, 'base64'));
   const key = `decor/${siteId}/${Date.now()}-bouquet.png`;
   await uploadToR2(key, cutout.buffer, 'image/png');
-  return getR2Url(key);
+  return { url: getR2Url(key), prompt };
 }

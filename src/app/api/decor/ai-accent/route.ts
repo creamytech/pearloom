@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
     venue?: string;
     paletteHex?: string[];
     vibe?: string;
+    customPrompt?: string;
   } = {};
   try {
     body = await req.json();
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
   }
 
-  const { siteId, occasion, venue, paletteHex, vibe } = body;
+  const { siteId, occasion, venue, paletteHex, vibe, customPrompt } = body;
   if (!siteId) {
     return NextResponse.json({ error: 'siteId required' }, { status: 400 });
   }
@@ -70,6 +71,7 @@ export async function POST(req: NextRequest) {
     paletteHex: paletteHex ?? [],
     venue,
     vibe,
+    customPrompt,
   });
 
   try {
@@ -101,6 +103,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       url,
       isolated: cutout.isolated,
+      prompt,
+      customPrompt: customPrompt && customPrompt.trim() ? customPrompt.trim() : null,
       ...(cutout.isolated ? {} : { warning: 'Couldn\'t fully isolate the accent — try regenerating.' }),
     });
   } catch (err) {
