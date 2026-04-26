@@ -2,18 +2,17 @@
 // Pearloom / api/decor/ai-accent/route.ts
 //
 // POST /api/decor/ai-accent
-//   body: { siteId, occasion, venue?, paletteHex?, vibe?, existingUrl? }
-//   returns: { url: string }  // CDN URL of the generated accent
+//   body: { siteId, occasion, venue?, paletteHex?, vibe? }
+//   returns: { url, isolated, warning? }
 //
-// Calls GPT Image 2 with a prompt grounded in the site's occasion
-// + venue + palette so the result reads as "this event's decor"
-// rather than a generic illustration. Uploads to R2 for a
-// permanent URL and returns it. The editor writes this URL onto
-// `manifest.aiAccentUrl` so the hero renders it alongside the
-// OccasionDecor set.
+// Calls gpt-image-2 with the shared `heroAccentPrompt` (single
+// motif, palette-locked, pure white background contract). The
+// post-processor flood-fills the white edges so the resulting PNG
+// has clean alpha and composites into the hero without a square
+// halo. Uploads to R2 and returns the CDN URL — the editor writes
+// it onto `manifest.aiAccentUrl`.
 //
-// Rate-limited per user (6 / hour) to keep this out of the free
-// tier being abused.
+// Rate-limited per user (6 / hour).
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -22,6 +21,8 @@ import { authOptions } from '@/lib/auth';
 import { openaiGenerateImage, getLastOpenAIError } from '@/lib/memory-engine/openai-image';
 import { uploadToR2, getR2Url } from '@/lib/r2';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { heroAccentPrompt } from '@/lib/decor/prompts';
+import { removeWhiteBackground } from '@/lib/decor/remove-background';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 90;
@@ -64,7 +65,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'AI accent generation not configured on this server.' }, { status: 500 });
   }
 
-  const prompt = buildPrompt({ occasion, venue, paletteHex, vibe });
+  const prompt = heroAccentPrompt({
+    occasion: occasion ?? 'wedding',
+    paletteHex: paletteHex ?? [],
+    venue,
+    vibe,
+  });
 
   try {
     const result = await openaiGenerateImage({
@@ -85,11 +91,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const rawBuffer = Buffer.from(result.base64, 'base64');
+    const cutout = await removeWhiteBackground(rawBuffer);
+
     const key = `decor/${siteId}/${Date.now()}-accent.png`;
-    await uploadToR2(key, Buffer.from(result.base64, 'base64'), 'image/png');
+    await uploadToR2(key, cutout.buffer, 'image/png');
     const url = getR2Url(key);
 
-    return NextResponse.json({ url });
+    return NextResponse.json({
+      url,
+      isolated: cutout.isolated,
+      ...(cutout.isolated ? {} : { warning: 'Couldn\'t fully isolate the accent — try regenerating.' }),
+    });
   } catch (err) {
     console.error('[ai-accent] Error:', err);
     return NextResponse.json(
@@ -97,37 +110,4 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   }
-}
-
-function buildPrompt({
-  occasion,
-  venue,
-  paletteHex,
-  vibe,
-}: {
-  occasion?: string;
-  venue?: string;
-  paletteHex?: string[];
-  vibe?: string;
-}): string {
-  const occ = (occasion ?? 'celebration').replace(/-/g, ' ');
-  const paletteLine = paletteHex && paletteHex.length
-    ? `Colour palette (use only these hex values, no rainbow): ${paletteHex.slice(0, 5).join(', ')}.`
-    : 'Colour palette: warm cream + soft sage + muted gold. Editorial, not saturated.';
-  const venueLine = venue ? `The celebration takes place at: ${venue}. Reference its geography or feeling subtly — don't put the venue name in the image.` : '';
-  const vibeLine = vibe ? `Vibe/tone: ${vibe}.` : '';
-
-  return [
-    `Editorial hero accent illustration for a Pearloom site. Occasion: ${occ}.`,
-    'Hand-drawn ink + gouache feel, flat colour, no gradients, no photorealism, no 3D rendering, no stock-illustration look.',
-    'Compose loose botanical + symbolic motifs that a stationery designer would draw: sprigs, ribbons, small objects that suit the occasion (e.g. candles for memorials, rings + laurel for weddings, balloons for a baby shower, a disco ball for a sweet-sixteen, keys for a housewarming).',
-    'Arrange around the edges so the centre stays clear — this is decoration, NOT a focal image. No text, no typography, no logos, no watermarks.',
-    paletteLine,
-    venueLine,
-    vibeLine,
-    'Backdrop: a warm cream paper the same tone as the palette background. Visible paper grain.',
-    'Output should feel like a tasteful editorial flourish — never cute, never cartoon, never AI-glossy.',
-  ]
-    .filter(Boolean)
-    .join('\n');
 }

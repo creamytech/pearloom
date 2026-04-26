@@ -19,6 +19,7 @@ import { openaiGenerateImage, getLastOpenAIError } from '@/lib/memory-engine/ope
 import { uploadToR2, getR2Url } from '@/lib/r2';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { stickerPrompt } from '@/lib/decor/prompts';
+import { removeWhiteBackground } from '@/lib/decor/remove-background';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 90;
@@ -89,10 +90,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // gpt-image-2 returns opaque PNG — flood-fill the white edges to
+    // get a clean alpha so the sticker sits on any block without
+    // a square halo. removeWhiteBackground falls back to the original
+    // if it can't isolate (e.g. prompt drift produced a coloured bg).
+    const rawBuffer = Buffer.from(result.base64, 'base64');
+    const cutout = await removeWhiteBackground(rawBuffer);
+
     const key = `decor/${siteId}/stickers/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.png`;
-    await uploadToR2(key, Buffer.from(result.base64, 'base64'), 'image/png');
+    await uploadToR2(key, cutout.buffer, 'image/png');
     const url = getR2Url(key);
-    return NextResponse.json({ url });
+    return NextResponse.json({
+      url,
+      isolated: cutout.isolated,
+      ...(cutout.isolated ? {} : { warning: 'Couldn\'t fully isolate the sticker — try a clearer prompt.' }),
+    });
   } catch (err) {
     console.error('[decor/sticker] error:', err);
     return NextResponse.json(

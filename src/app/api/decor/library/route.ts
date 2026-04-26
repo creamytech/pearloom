@@ -33,6 +33,7 @@ import {
   footerBouquetPrompt,
   type DecorContext,
 } from '@/lib/decor/prompts';
+import { removeWhiteBackground } from '@/lib/decor/remove-background';
 import sharp from 'sharp';
 
 export const dynamic = 'force-dynamic';
@@ -147,17 +148,18 @@ async function generateDivider(apiKey: string, ctx: DecorContext, siteId: string
     format: 'png',
   });
   if (!result?.base64) throw new Error(`Divider failed: ${getLastOpenAIError() ?? 'no response'}`);
-  // The model returns 1536×1024; grab the middle ~25% band so the
-  // divider reads tight against the paper grain when rendered as a
-  // repeating horizontal strip.
+  // The model returns 1536×1024; grab the middle ~33% band so the
+  // divider reads tight when rendered as a repeating horizontal strip.
   const buf = Buffer.from(result.base64, 'base64');
   const cropped = await sharp(buf)
     .extract({ left: 0, top: 340, width: 1536, height: 340 })
     .png()
     .toBuffer();
 
+  const cutout = await removeWhiteBackground(cropped);
+
   const key = `decor/${siteId}/${Date.now()}-divider.png`;
-  await uploadToR2(key, cropped, 'image/png');
+  await uploadToR2(key, cutout.buffer, 'image/png');
   return getR2Url(key);
 }
 
@@ -191,8 +193,9 @@ async function generateSectionStamps(
       .resize(512, 512, { fit: 'inside' })
       .png()
       .toBuffer();
+    const cutout = await removeWhiteBackground(tile);
     const key = `decor/${siteId}/${timestamp}-stamp-${SECTION_KEYS[i]}.png`;
-    await uploadToR2(key, tile, 'image/png');
+    await uploadToR2(key, cutout.buffer, 'image/png');
     stamps[SECTION_KEYS[i]] = getR2Url(key);
   }
   return stamps;
@@ -207,8 +210,9 @@ async function generateConfetti(apiKey: string, ctx: DecorContext, siteId: strin
     format: 'png',
   });
   if (!result?.base64) throw new Error(`Confetti failed: ${getLastOpenAIError() ?? 'no response'}`);
+  const cutout = await removeWhiteBackground(Buffer.from(result.base64, 'base64'));
   const key = `decor/${siteId}/${Date.now()}-confetti.png`;
-  await uploadToR2(key, Buffer.from(result.base64, 'base64'), 'image/png');
+  await uploadToR2(key, cutout.buffer, 'image/png');
   return getR2Url(key);
 }
 
@@ -225,7 +229,8 @@ async function generateFooterBouquet(
     format: 'png',
   });
   if (!result?.base64) throw new Error(`Bouquet failed: ${getLastOpenAIError() ?? 'no response'}`);
+  const cutout = await removeWhiteBackground(Buffer.from(result.base64, 'base64'));
   const key = `decor/${siteId}/${Date.now()}-bouquet.png`;
-  await uploadToR2(key, Buffer.from(result.base64, 'base64'), 'image/png');
+  await uploadToR2(key, cutout.buffer, 'image/png');
   return getR2Url(key);
 }

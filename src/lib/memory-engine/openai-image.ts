@@ -1,7 +1,8 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / lib/memory-engine/openai-image.ts
 //
-// OpenAI GPT Image client (gpt-image-1).
+// OpenAI GPT Image client. Default model: gpt-image-2 (v9 baseline,
+// 2026-04-26). Override via env OPENAI_IMAGE_MODEL.
 //
 // Params the API actually takes:
 //   - `output_format: 'png' | 'jpeg' | 'webp'` (NOT `format`)
@@ -9,8 +10,11 @@
 //   - `quality: 'low' | 'medium' | 'high' | 'auto'`
 //   - `size: '1024x1024' | '1024x1536' | '1536x1024' | 'auto'`
 //   - `n: 1` (only 1 supported at high quality)
-//   - `background: 'transparent' | 'opaque' | 'auto'`
 //   - `moderation: 'auto' | 'low'`
+//
+// gpt-image-2 does NOT honour `background: 'transparent'`. Decor
+// routes (sticker, accent, library) post-process via flood-fill
+// in src/lib/decor/remove-background.ts to get clean alpha.
 //
 // We log the real API error body on failure so empty responses
 // stop showing up with no explanation in the editor UI.
@@ -22,8 +26,15 @@ import type { GeminiImageInput, GeminiImageResult } from './gemini-client';
 const OPENAI_IMAGES_URL = 'https://api.openai.com/v1/images/generations';
 const OPENAI_EDITS_URL = 'https://api.openai.com/v1/images/edits';
 
-/** Pinned to the current shipping model. */
-export const GPT_IMAGE_MODEL = 'gpt-image-1';
+/** Pinned to the current shipping model.
+ *  Per-environment override via OPENAI_IMAGE_MODEL (set on Vercel
+ *  to roll-back to gpt-image-1 if a v9 issue surfaces in prod
+ *  without a redeploy). Default is gpt-image-2 — the v9 baseline.
+ *
+ *  Note: gpt-image-2 does NOT support `background: 'transparent'` —
+ *  decor routes go through removeWhiteBackground() in
+ *  src/lib/decor/remove-background.ts instead. */
+export const GPT_IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2';
 
 export type ImageQuality = 'low' | 'medium' | 'high' | 'auto';
 

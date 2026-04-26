@@ -16,19 +16,25 @@ export interface DecorContext {
 }
 
 // Style rails — used at the top of every prompt so the library reads cohesive.
-// Updated 2026-04-24: tightened against the busy / chaotic / out-of-palette
-// drift seen in production. Single-motif rule + explicit negative prompts.
+// Updated 2026-04-26 (v9): pure white background is mandatory because
+// gpt-image-2 doesn't honour `background: 'transparent'`. Our
+// post-processor (removeWhiteBackground) flood-fills white from the
+// canvas edges, so the prompt has to GUARANTEE the model gives us
+// a clean #FFFFFF backdrop with no paper grain, gradients, or
+// off-white tones.
 const STYLE_RAILS = [
   'Editorial book-ornament illustration in the style of a Penguin Classics chapter break.',
   'Hand-drawn with a single fine-point pen line — no fills except for solid leaf or petal shapes.',
-  'ONE motif only. No multi-subject compositions. Most of the canvas is calm cream paper.',
+  'ONE motif only. No multi-subject compositions. Most of the canvas is empty.',
   'No gradients, no 3D, no glossy AI finish, no generic stock-illustration look, no modern flat-design icons.',
   'No typography, no text, no logos, no watermarks, no decorative borders around the image edge.',
   'Negative space is the subject. The motif sits in the centre with at least 40% of the frame empty.',
+  // ── BACKGROUND CONTRACT — MUST be honoured. ──
+  'BACKGROUND: pure flat #FFFFFF white only. NO paper texture, NO grain, NO cream tone, NO off-white, NO subtle wash, NO drop shadow, NO gradient. The post-processor will flood-fill the white to transparent — any non-white pixel survives.',
 ];
 
 const NEGATIVE_PROMPT =
-  'Avoid: rainbow colours, multiple competing subjects, busy compositions, overlapping elements, cute cartoon style, glossy AI finish, photo-realistic textures, oversaturated colours, modern flat-design icons, generic clipart, vector-perfect symmetry.';
+  'Avoid: rainbow colours, multiple competing subjects, busy compositions, overlapping elements, cute cartoon style, glossy AI finish, photo-realistic textures, oversaturated colours, modern flat-design icons, generic clipart, vector-perfect symmetry, paper texture in the background, cream-coloured background, off-white background, drop shadows that bleed into the background.';
 
 /** Pick ONE motif at random from a vocabulary list — gpt-image-1
  *  composes far more cleanly when given a single subject than when
@@ -150,14 +156,14 @@ export function sectionStampsPrompt(ctx: DecorContext): string {
   return [
     `A 3-column 2-row grid of six small circular stamps for a ${ctx.occasion.replace(/-/g, ' ')} site. The stamps are for the sections: story, schedule, travel, registry, gallery, rsvp.`,
     ...STYLE_RAILS,
-    'Each stamp is a single small editorial icon centred inside a thin hairline circle, evenly spaced on cream paper. ONE motif per stamp — never compound subjects.',
+    'Each stamp is a single small editorial icon centred inside a thin hairline circle, evenly spaced on a flat #FFFFFF white background. ONE motif per stamp — never compound subjects.',
     '- Stamp 1 (story): a single quill OR a single open book corner.',
     '- Stamp 2 (schedule): a single clock face OR a single sun-over-horizon.',
     '- Stamp 3 (travel): a single compass OR a single map pin.',
     '- Stamp 4 (registry): a single small gift OR a single envelope.',
     '- Stamp 5 (gallery): a single vintage camera silhouette.',
     '- Stamp 6 (rsvp): a single sealed envelope with a ribbon.',
-    'Each stamp uses ONE ink colour from the palette accent. All six share the same paper background.',
+    'Each stamp uses ONE ink colour from the palette accent. All six sit on the SAME flat #FFFFFF background.',
     paletteLine(ctx.paletteHex),
     'Arrange as a clean 3-columns × 2-rows grid with visible gaps. Leave plenty of breathing room between stamps. This sheet will be sliced into six images.',
     NEGATIVE_PROMPT,
@@ -205,8 +211,8 @@ export function stickerPrompt(ctx: DecorContext & { hint?: string }): string {
     `A single small hand-drawn sticker for a ${ctx.occasion.replace(/-/g, ' ')} site.`,
     ...STYLE_RAILS,
     ctx.hint ? `User request: "${ctx.hint}". Render ONLY this — one shape, no embellishments.` : `DRAW EXACTLY ONE motif: ${motif}. Render as a single sticker shape — no scene, no background detail.`,
-    'The sticker should be a single compact shape centred on the canvas with a soft drop-shadow hinting at a peel-back corner.',
-    'Transparent paper-grain background around the sticker so it composites cleanly onto any block.',
+    'The sticker should be a single compact shape centred on the canvas. NO drop shadow — drop shadows confuse the white-flood post-processor.',
+    'Pure flat #FFFFFF background around the sticker — every non-sticker pixel must be exactly white so the post-processor can isolate the shape cleanly.',
     paletteLine(ctx.paletteHex),
     'Square format. The sticker occupies about 70% of the frame with empty margin around it.',
     NEGATIVE_PROMPT,
