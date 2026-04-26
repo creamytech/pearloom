@@ -158,35 +158,133 @@ function StickerPiece({
     }));
   };
 
+  const handleRemove = (e: React.MouseEvent | React.PointerEvent) => {
+    e.stopPropagation();
+    onEditField?.((m) => ({
+      ...m,
+      stickers: (m.stickers ?? []).filter((s) => s.id !== sticker.id),
+    }));
+  };
+
+  const cycleScale = (e: React.MouseEvent | React.PointerEvent) => {
+    e.stopPropagation();
+    const cur = sticker.scale ?? 1;
+    // 0.6 → 1 → 1.4 → 1.8 → 0.6 …
+    const steps = [0.6, 1, 1.4, 1.8];
+    const i = steps.findIndex((s) => Math.abs(s - cur) < 0.05);
+    const next = steps[((i < 0 ? 0 : i) + 1) % steps.length];
+    patchSticker({ scale: next });
+  };
+
   const size = baseSize * (sticker.scale ?? 1);
   return (
     <div
-      role={isEditing ? 'button' : undefined}
-      onPointerDown={onPointerDown}
-      onDoubleClick={onDoubleClick}
-      title={isEditing ? 'Drag to move · Shift-drag to scale · Alt-drag to rotate · double-click to delete' : undefined}
       style={{
         position: 'absolute',
         left: `${sticker.x}%`,
         top: `${sticker.y}%`,
-        transform: `translate(-50%, -50%) rotate(${sticker.rotation}deg)`,
+        transform: `translate(-50%, -50%)`,
+        zIndex: isSelected ? 12 : 10,
+        // Container takes the bounding box, the sticker rotates inside it
+        // so the action chip stays upright above the sticker.
         width: size,
         height: size,
-        backgroundImage: `url(${sticker.url})`,
-        backgroundSize: 'contain',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center',
-        filter: 'drop-shadow(0 6px 10px rgba(61,74,31,0.22))',
-        cursor: isEditing ? 'grab' : 'default',
-        outline: isEditing && isSelected ? '2px dashed var(--sage-deep, #5C6B3F)' : 'none',
-        outlineOffset: 4,
-        transition: isSelected ? 'none' : 'outline 140ms',
-        touchAction: 'none',
-        zIndex: isSelected ? 12 : 10,
       }}
-    />
+    >
+      <div
+        role={isEditing ? 'button' : undefined}
+        onPointerDown={onPointerDown}
+        onDoubleClick={onDoubleClick}
+        title={isEditing ? 'Drag to move · Shift-drag to scale · Alt-drag to rotate' : undefined}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          transform: `rotate(${sticker.rotation}deg)`,
+          backgroundImage: `url(${sticker.url})`,
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          filter: 'drop-shadow(0 6px 10px rgba(61,74,31,0.22))',
+          cursor: isEditing ? 'grab' : 'default',
+          outline: isEditing && isSelected ? '2px dashed var(--sage-deep, #5C6B3F)' : 'none',
+          outlineOffset: 4,
+          transition: isSelected ? 'none' : 'outline 140ms',
+          touchAction: 'none',
+        }}
+      />
+      {/* Action chip — appears above the sticker when selected. Sits
+          OUTSIDE the rotated layer so it's always upright + readable. */}
+      {isEditing && isSelected && (
+        <div
+          role="toolbar"
+          aria-label="Sticker actions"
+          onPointerDown={(e) => e.stopPropagation()}
+          style={{
+            position: 'absolute',
+            top: -36,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 2,
+            padding: '3px 4px',
+            borderRadius: 999,
+            background: 'rgba(14,13,11,0.88)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            boxShadow: '0 6px 16px rgba(14,13,11,0.22)',
+            color: 'rgba(243,233,212,0.92)',
+            fontFamily: 'var(--font-ui)',
+            fontSize: 10.5,
+            fontWeight: 600,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            zIndex: 13,
+          }}
+        >
+          <button
+            type="button"
+            onClick={cycleScale}
+            aria-label="Resize sticker"
+            title="Resize"
+            style={stickerActionBtn}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 3 21 3 21 9" />
+              <polyline points="9 21 3 21 3 15" />
+              <line x1="21" y1="3" x2="14" y2="10" />
+              <line x1="3" y1="21" x2="10" y2="14" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={handleRemove}
+            aria-label="Remove sticker"
+            title="Remove"
+            style={{ ...stickerActionBtn, color: '#FCA5A5' }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
+
+const stickerActionBtn: CSSProperties = {
+  width: 24,
+  height: 24,
+  borderRadius: 999,
+  border: 'none',
+  background: 'transparent',
+  color: 'inherit',
+  cursor: 'pointer',
+  display: 'grid',
+  placeItems: 'center',
+};
 
 function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
