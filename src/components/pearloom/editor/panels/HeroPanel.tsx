@@ -1,7 +1,7 @@
 'use client';
 
 import type { StoryManifest } from '@/types';
-import { AddRowButton, Field, ListRow, PanelSection, PhotoSlot, TextArea, TextInput } from '../atoms';
+import { AddRowButton, Field, ListRow, PanelSection, PanelSmartActions, PhotoSlot, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { TimePicker, DatePicker } from '../v8-forms';
 import { BlockStylePicker } from './BlockStylePicker';
@@ -75,8 +75,47 @@ export function HeroPanel({
   const heroTagline = typeof poetryObj.heroTagline === 'string' ? (poetryObj.heroTagline as string) : '';
   const slideshow = manifest.heroSlideshow ?? [];
 
+  // Smart actions — surface the three things people most often want
+  // to do on the hero panel as chips at the top so they don't have
+  // to scan every collapsible section.
+  const smartActions: PanelSmartAction[] = [
+    {
+      label: 'Pick a layout',
+      icon: 'layout',
+      onClick: () => {
+        document
+          .querySelector('[data-pl-block-style-picker="hero"]')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      },
+      primary: true,
+    },
+    {
+      label: 'Edit names',
+      icon: 'type',
+      onClick: () => {
+        const el = document.getElementById('pl8-hero-n1');
+        if (el instanceof HTMLInputElement) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => el.focus(), 240);
+        }
+      },
+    },
+    {
+      label: 'Set the date',
+      icon: 'calendar-check',
+      onClick: () => {
+        const el = document.getElementById('pl8-hero-date');
+        if (el instanceof HTMLInputElement) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => el.focus(), 240);
+        }
+      },
+    },
+  ];
+
   return (
     <div>
+      <PanelSmartActions actions={smartActions} />
       <BlockStylePicker
         blockType="hero"
         manifest={manifest}

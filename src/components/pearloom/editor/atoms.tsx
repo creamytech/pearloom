@@ -124,6 +124,73 @@ export function PanelSection({
   );
 }
 
+/* ---------- PanelSmartActions ----------
+ *  A horizontal scrolling row of 2-4 quick-action chips that sit at
+ *  the top of an inspector panel body. The primary affordance gets
+ *  the pearl accent; the rest are ghost.
+ *
+ *  Use this to surface the most-likely thing the user wants to do
+ *  *next* on the panel they just landed on — without making them
+ *  scan every collapsible section first. */
+export interface PanelSmartAction {
+  label: string;
+  icon?: string;
+  onClick: () => void;
+  primary?: boolean;
+  /** Disabled state — chip stays visible but ghosted. */
+  disabled?: boolean;
+}
+
+export function PanelSmartActions({ actions }: { actions: PanelSmartAction[] }) {
+  if (actions.length === 0) return null;
+  return (
+    <div
+      role="toolbar"
+      aria-label="Quick actions"
+      style={{
+        display: 'flex',
+        gap: 6,
+        overflowX: 'auto',
+        marginBottom: 14,
+        paddingBottom: 4,
+        // Firefox + WebKit hide scrollbars except when interacting,
+        // so the row stays clean visually.
+        scrollbarWidth: 'thin',
+      }}
+    >
+      {actions.map((a) => (
+        <button
+          key={a.label}
+          type="button"
+          onClick={a.onClick}
+          disabled={a.disabled}
+          className={a.primary ? 'pl-pearl-accent' : undefined}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '7px 12px',
+            borderRadius: 999,
+            background: a.primary ? undefined : 'var(--cream-2)',
+            color: a.primary ? undefined : 'var(--ink)',
+            border: a.primary ? undefined : '1px solid var(--line-soft)',
+            fontSize: 11.5,
+            fontWeight: 600,
+            fontFamily: 'var(--font-ui)',
+            cursor: a.disabled ? 'not-allowed' : 'pointer',
+            whiteSpace: 'nowrap',
+            opacity: a.disabled ? 0.4 : 1,
+            transition: 'background 160ms ease, color 160ms ease',
+          }}
+        >
+          {a.icon && <Icon name={a.icon} size={11} />}
+          {a.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /* ---------- Field wrapper (label + help text + error slot) ---------- */
 export function Field({
   label,

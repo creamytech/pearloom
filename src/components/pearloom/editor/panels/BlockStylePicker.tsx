@@ -50,6 +50,7 @@ export function BlockStylePicker({
   return (
     <PanelSection label={label} hint={hint ?? `Pick how the ${blockType} renders.`}>
       <div
+        data-pl-block-style-picker={blockType}
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
