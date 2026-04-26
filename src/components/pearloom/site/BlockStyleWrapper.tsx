@@ -33,6 +33,27 @@ interface Props {
   style?: CSSProperties;
 }
 
+// Spacing presets — additive vertical padding applied on top of
+// the section's own padding. "comfortable" = no change; cozy
+// pulls in, spacious + lush push out. Maps to px.
+const SPACING_DELTA: Record<string, number> = {
+  cozy: -32,
+  comfortable: 0,
+  spacious: 32,
+  lush: 64,
+};
+
+// Card radius presets — applied via a CSS var that v8 card classes
+// pick up. Inline-styled cards override this since inline always
+// wins over class rules; sections that opt into the var (or use
+// `border-radius: var(--pl-block-card-radius, …)`) will follow it.
+const CARD_RADIUS_PX: Record<string, number> = {
+  sharp: 0,
+  soft: 6,
+  rounded: 16,
+  pillow: 28,
+};
+
 export function BlockStyleWrapper({ manifest, blockId, children, as: Tag = 'div', style }: Props) {
   const override = readOverride(manifest, blockId);
   if (!override) {
@@ -51,17 +72,29 @@ export function BlockStyleWrapper({ manifest, blockId, children, as: Tag = 'div'
     && override.background !== 'wash'
     && override.background !== 'mesh';
   const ink = hasCustomBg ? inkFamilyForBackground(override.background) : null;
-  const cssVars: CSSProperties & Record<string, string> = ink
-    ? ({
-        '--pl-block-ink': ink.ink,
-        '--pl-block-ink-soft': ink.inkSoft,
-        '--pl-block-ink-muted': ink.inkMuted,
-        '--pl-block-divider': ink.divider,
-      } as CSSProperties & Record<string, string>)
-    : ({} as CSSProperties & Record<string, string>);
+
+  // Build CSS vars — ink family for background + card radius for
+  // any descendant that opts into the variable.
+  const cssVars: Record<string, string> = {};
+  if (ink) {
+    cssVars['--pl-block-ink'] = ink.ink;
+    cssVars['--pl-block-ink-soft'] = ink.inkSoft;
+    cssVars['--pl-block-ink-muted'] = ink.inkMuted;
+    cssVars['--pl-block-divider'] = ink.divider;
+  }
+  if (override.cardRadius && CARD_RADIUS_PX[override.cardRadius] != null) {
+    cssVars['--pl-block-card-radius'] = `${CARD_RADIUS_PX[override.cardRadius]}px`;
+  }
+
+  // Spacing: additive padding on top of any explicit paddingY
+  // override. The total stacks: paddingY (raw) + spacing delta.
+  const spacingDelta = override.spacing && SPACING_DELTA[override.spacing] != null
+    ? SPACING_DELTA[override.spacing]
+    : 0;
+  const totalPad = (override.paddingY ?? 0) + spacingDelta;
 
   const merged: CSSProperties = {
-    ...cssVars,
+    ...(cssVars as CSSProperties),
     ...style,
     ...(hasCustomBg ? { background: override.background } : {}),
     ...(override.maxWidth ? { maxWidth: override.maxWidth, marginLeft: 'auto', marginRight: 'auto' } : {}),
@@ -71,9 +104,9 @@ export function BlockStyleWrapper({ manifest, blockId, children, as: Tag = 'div'
       : ink
         ? { color: ink.ink }
         : {}),
-    ...(override.paddingY != null ? { paddingTop: `calc(${override.paddingY}px + 0px)`, paddingBottom: `calc(${override.paddingY}px + 0px)` } : {}),
+    ...(totalPad !== 0 ? { paddingTop: `${totalPad}px`, paddingBottom: `${totalPad}px` } : {}),
   };
-  return <Tag style={merged}>{children}</Tag>;
+  return <Tag style={merged} data-pl-block-styled>{children}</Tag>;
 }
 
 /** Returns true if the section is hidden. Use to short-circuit

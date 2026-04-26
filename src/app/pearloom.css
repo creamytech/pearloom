@@ -1070,6 +1070,17 @@ html { scroll-behavior: smooth; }
   .pl8-page-enter { animation: none; }
 }
 
+/* ── Per-section card radius — when a BlockStyleWrapper sets
+       --pl-block-card-radius, descendant cards that opt in via the
+       `pl8-card` class family pick it up. Inline-styled cards still
+       win because inline > class; sections we want fully responsive
+       to the radius control should switch to class-based radii.
+       Wrapped in :where() for 0,0,0 specificity so any specific
+       override (inline or otherwise) trumps it. ── */
+:where([data-pl-block-styled]) :where(.pl8-card, .pl8-card-2, .pl8-tile, .pl8-bento-tile) {
+  border-radius: var(--pl-block-card-radius, inherit);
+}
+
 /* ── Card lift utility — drop on any card-shaped element to get
        a refined lift on hover. Use sparingly so it stays meaningful. ── */
 .pl8-card-lift {

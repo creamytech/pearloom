@@ -2,57 +2,50 @@
 
 // ──────────────────────────────────────────────────────────────
 // PhotoActionMenu — wraps any image dropzone on the canvas. In
-// edit mode, hovering reveals a small pill at the bottom-right
-// with three actions:
+// edit mode, hovering reveals a small pill at the bottom-right.
+// Clicking Replace opens the full PhotoPicker modal so users can
+// pick from three sources in one place:
 //
-//   ⤓ Replace  — opens a file picker, uploads to R2, sets the URL
-//   ✦ Stylize  — opens an AI stylize prompt (gpt-image-2)
-//   × Remove   — clears the image
+//   📷 Upload from device   — file picker + auto-upload to R2
+//   📁 Pick from gallery     — your existing library
+//   🌥  Google Photos        — Google's official picker flow
+//   ✦  Stylize              — AI stylize prompt (optional)
+//   ×  Remove                — clears the image
 //
-// Doesn't replace PhotoDropTarget — wraps it. Drag-drop still
-// works for users who like that flow; the menu is for everyone
-// else.
+// The PhotoPicker handles the source switching; this component
+// only owns the menu trigger + remove. Drag-drop still works via
+// the surrounding PhotoDropTarget for users who like that flow.
 // ──────────────────────────────────────────────────────────────
 
-import { useRef, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useIsEditMode } from './EditorCanvasContext';
+import { PhotoPicker } from '../PhotoPicker';
 
 interface Props {
   /** Current image URL (renders the menu only when this is set). */
   imageUrl?: string;
-  /** Called when the user picks a new image (data URL after upload). */
-  onReplace?: (dataUrlOrR2Url: string) => void;
+  /** Called when the user picks a new image. URL points to R2 (for
+   *  device + Google Photos uploads) or to a library asset. */
+  onReplace?: (url: string) => void;
   /** Called when the user clicks Remove. */
   onRemove?: () => void;
   /** Called when the user clicks Stylize. Parent opens its own
    *  prompt UI / API call. Optional — hidden when not provided. */
   onStylize?: () => void;
+  /** Title shown in the picker modal header — defaults to a
+   *  generic 'Choose a photo'. Pass a context-specific title
+   *  ('Replace cover photo', 'Add a chapter image') for clarity. */
+  pickerTitle?: string;
   children: ReactNode;
 }
 
 export function PhotoActionMenu({
-  imageUrl, onReplace, onRemove, onStylize, children,
+  imageUrl, onReplace, onRemove, onStylize, pickerTitle = 'Choose a photo', children,
 }: Props) {
   const editMode = useIsEditMode();
-  const fileInput = useRef<HTMLInputElement>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   if (!editMode) return <>{children}</>;
-
-  function handleFile(file: File) {
-    if (!onReplace) return;
-    if (!file.type.startsWith('image/')) return;
-    if (file.size > 8 * 1024 * 1024) {
-      // eslint-disable-next-line no-alert
-      alert('Image must be under 8 MB.');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result === 'string') onReplace(result);
-    };
-    reader.readAsDataURL(file);
-  }
 
   return (
     <div className="pl8-photo-action-wrap" style={{ position: 'relative' }}>
@@ -83,10 +76,10 @@ export function PhotoActionMenu({
         {onReplace && (
           <PhotoActionButton
             ariaLabel="Replace photo"
-            title={imageUrl ? 'Replace photo' : 'Add a photo'}
+            title={imageUrl ? 'Replace from device, gallery, or Google Photos' : 'Add a photo'}
             onClick={(e) => {
               e.stopPropagation();
-              fileInput.current?.click();
+              setPickerOpen(true);
             }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -127,16 +120,14 @@ export function PhotoActionMenu({
           </PhotoActionButton>
         )}
       </div>
-      <input
-        ref={fileInput}
-        type="file"
-        accept="image/*"
-        style={{ display: 'none' }}
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) handleFile(f);
-          e.target.value = '';
+      <PhotoPicker
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onPick={(url) => {
+          if (typeof url === 'string') onReplace?.(url);
         }}
+        title={pickerTitle}
+        accept="single"
       />
     </div>
   );
