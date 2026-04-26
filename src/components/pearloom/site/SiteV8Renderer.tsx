@@ -22,6 +22,7 @@ import {
 } from '../motifs';
 import { EditorCanvasProvider, useIsEditMode } from '../editor/canvas/EditorCanvasContext';
 import { EditableText } from '../editor/canvas/EditableText';
+import { EditableField } from '../editor/canvas/EditableField';
 import { SortableBlockList } from '../editor/canvas/CanvasBlockSortable';
 import { SortableChapters } from '../editor/canvas/SortableChapters';
 import { HoverToolbar } from '../editor/canvas/HoverToolbar';
@@ -2107,20 +2108,22 @@ function FaqSection({ manifest, onEditField }: { manifest: StoryManifest; onEdit
                 borderBottom: i < faq.length - 1 ? '1px solid var(--line-soft)' : 'none',
               }}
             >
-              <EditableText
+              <EditableField
                 as="div"
                 className="display"
                 value={item.question}
                 onSave={patchFaq(i, 'question')}
+                context={`FAQ ${i + 1} question`}
                 placeholder="Question?"
                 ariaLabel={`FAQ ${i + 1} question`}
                 maxLength={240}
                 style={{ fontSize: 20, fontWeight: 600, marginBottom: 6, color: 'var(--ink)' }}
               />
-              <EditableText
+              <EditableField
                 as="div"
                 value={item.answer}
                 onSave={patchFaq(i, 'answer')}
+                context={`FAQ ${i + 1} answer`}
                 placeholder="Write the answer here…"
                 ariaLabel={`FAQ ${i + 1} answer`}
                 multiline
@@ -2647,9 +2650,13 @@ function RSVPSection({
 function SiteFooter({
   names,
   prettyUrl,
+  manifest,
+  onEditField,
 }: {
   names: [string, string];
   prettyUrl: string;
+  manifest?: StoryManifest;
+  onEditField?: FieldEditor;
 }) {
   const [n1, n2] = names;
   const year = new Date().getFullYear();
@@ -2671,9 +2678,30 @@ function SiteFooter({
               )}
             </div>
             <div style={{ fontSize: 13, opacity: 0.7, marginTop: 6 }}>{prettyUrl}</div>
-            <div style={{ fontSize: 13, opacity: 0.7, marginTop: 14, lineHeight: 1.6, maxWidth: 340 }}>
-              Made with love (and Pearloom) by the two of us.
-            </div>
+            <EditableField
+              as="div"
+              context="footer closing line"
+              value={
+                (manifest as unknown as { poetry?: { closingLine?: string } }).poetry?.closingLine
+                ?? 'Made with love (and Pearloom) by the two of us.'
+              }
+              onSave={(next) =>
+                onEditField?.((m) => ({
+                  ...m,
+                  poetry: {
+                    closingLine: next,
+                    heroTagline: m.poetry?.heroTagline ?? '',
+                    rsvpIntro: m.poetry?.rsvpIntro ?? '',
+                    welcomeStatement: m.poetry?.welcomeStatement,
+                    milestones: m.poetry?.milestones,
+                  },
+                }))
+              }
+              placeholder="One last line for the footer…"
+              maxLength={200}
+              multiline
+              style={{ fontSize: 13, opacity: 0.7, marginTop: 14, lineHeight: 1.6, maxWidth: 340, color: 'var(--cream)' }}
+            />
           </div>
           {[
             { h: 'The day', l: [['Our story', '#our-story'], ['Schedule', '#schedule'], ['Travel', '#travel'], ['Registry', '#registry']] },
@@ -3201,7 +3229,7 @@ export function SiteV8Renderer({
         />
         <CustomBlocksRail manifest={manifest} siteSlug={siteSlug} />
         <FooterBouquet url={bouquetUrl} />
-        <SiteFooter names={names} prettyUrl={prettyUrl} />
+        <SiteFooter names={names} prettyUrl={prettyUrl} manifest={manifest} onEditField={onEditField} />
         {/* Guest-side helpers — only on the published site, never in the editor.
             Each is independently dismissable / mobile-aware. */}
         {!editMode && (
