@@ -544,6 +544,7 @@ export function EditorV8({
                 onJumpBlock={(b) => setBlock(b)}
                 onOpenPreview={() => window.open(prettyPath, '_blank')}
                 onPublish={() => void handlePublish()}
+                fluid
               />
             )}
           </MobileDrawer>
@@ -642,6 +643,7 @@ function EditorTopbar({
         padding: '10px 22px',
         background: 'var(--cream)',
         borderBottom: '1px solid var(--line-soft)',
+        flexWrap: 'wrap',
       }}
     >
       {/* Zone 1 — Identity (logo + slug + status) */}
@@ -1179,6 +1181,7 @@ function Inspector({
   onJumpBlock,
   onOpenPreview,
   onPublish,
+  fluid = false,
 }: {
   block: BlockKey;
   manifest: StoryManifest;
@@ -1191,19 +1194,24 @@ function Inspector({
   onJumpBlock: (k: BlockKey) => void;
   onOpenPreview: () => void;
   onPublish: () => void;
+  /** When true, the inspector fills its container instead of being
+   *  fixed to 380px. Used in the mobile drawer where the parent is
+   *  full-width. */
+  fluid?: boolean;
 }) {
   const meta = BLOCKS.find((b) => b.key === block)!;
   return (
     <aside
       className="pl8-editor-inspector"
       style={{
-        width: 380,
+        width: fluid ? '100%' : 380,
         flexShrink: 0,
-        borderLeft: '1px solid var(--line-soft)',
+        borderLeft: fluid ? 'none' : '1px solid var(--line-soft)',
         background: 'var(--cream)',
         display: 'flex',
         flexDirection: 'column',
         minHeight: 0,
+        flex: fluid ? 1 : undefined,
       }}
     >
       {/* Rail tabs — Section / Theme / Pear. Only one body shows at
