@@ -20,7 +20,7 @@ interface Props {
   onAiRewrite?: (selected: string) => Promise<string | null> | string | null;
 }
 
-const TOOLBAR_W = 280;
+const TOOLBAR_W = 360;
 const TOOLBAR_H = 40;
 
 export function FloatingFormatToolbar({ onAiRewrite }: Props) {
@@ -145,6 +145,30 @@ export function FloatingFormatToolbar({ onAiRewrite }: Props) {
         <ToolBtn label="Bold"      shortcut="⌘B" onClick={() => cmd('bold')}>      <strong style={{ fontSize: 14 }}>B</strong></ToolBtn>
         <ToolBtn label="Italic"    shortcut="⌘I" onClick={() => cmd('italic')}>    <em style={{ fontFamily: 'Georgia, serif', fontSize: 15 }}>I</em></ToolBtn>
         <ToolBtn label="Underline" shortcut="⌘U" onClick={() => cmd('underline')}> <span style={{ textDecoration: 'underline', fontSize: 13 }}>U</span></ToolBtn>
+        <ToolBtn label="Strikethrough" onClick={() => cmd('strikethrough')}>
+          <span style={{ textDecoration: 'line-through', fontSize: 13 }}>S</span>
+        </ToolBtn>
+        <Divider />
+        <ToolBtn label="Bullet list" onClick={() => cmd('insertUnorderedList')}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="9" y1="6" x2="20" y2="6" />
+            <line x1="9" y1="12" x2="20" y2="12" />
+            <line x1="9" y1="18" x2="20" y2="18" />
+            <circle cx="4" cy="6" r="1.4" fill="currentColor" />
+            <circle cx="4" cy="12" r="1.4" fill="currentColor" />
+            <circle cx="4" cy="18" r="1.4" fill="currentColor" />
+          </svg>
+        </ToolBtn>
+        <ToolBtn label="Numbered list" onClick={() => cmd('insertOrderedList')}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="10" y1="6" x2="20" y2="6" />
+            <line x1="10" y1="12" x2="20" y2="12" />
+            <line x1="10" y1="18" x2="20" y2="18" />
+            <text x="3" y="9" fontSize="6" fill="currentColor" stroke="none" fontFamily="var(--font-ui)">1</text>
+            <text x="3" y="15" fontSize="6" fill="currentColor" stroke="none" fontFamily="var(--font-ui)">2</text>
+            <text x="3" y="21" fontSize="6" fill="currentColor" stroke="none" fontFamily="var(--font-ui)">3</text>
+          </svg>
+        </ToolBtn>
         <Divider />
         <ToolBtn label="Add link"      onClick={onLinkOpen}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
