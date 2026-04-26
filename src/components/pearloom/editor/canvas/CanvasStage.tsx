@@ -31,6 +31,7 @@ import { forwardRef, useMemo } from 'react';
 import type { StoryManifest } from '@/types';
 import { SiteV8Renderer } from '../../site/SiteV8Renderer';
 import { FloatingFormatToolbar } from './FloatingFormatToolbar';
+import { CanvasContextMenu } from './CanvasContextMenu';
 
 // Match EditorV8's device contract exactly so ref + prop pass
 // through without type friction.
@@ -126,6 +127,7 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
             selection inside an [data-pl-editable] node. Lets the
             host bold / italic / link / clear / ask-Pear-to-rewrite
             without leaving the canvas. */}
+        <CanvasContextMenu />
         <FloatingFormatToolbar
           onAiRewrite={async (text) => {
             try {

@@ -47,8 +47,55 @@ export function PhotoActionMenu({
 
   if (!editMode) return <>{children}</>;
 
+  function handleContextMenu(e: React.MouseEvent<HTMLDivElement>) {
+    if (typeof window === 'undefined') return;
+    // Don't hijack the menu on contenteditable / native form elements.
+    const target = e.target as HTMLElement | null;
+    if (target && (
+      target.isContentEditable ||
+      ['INPUT', 'TEXTAREA'].includes(target.tagName)
+    )) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const items = [
+      onReplace && {
+        id: 'replace',
+        label: imageUrl ? 'Replace photo' : 'Add a photo',
+        icon: 'upload',
+        onSelect: () => setPickerOpen(true),
+      },
+      onStylize && imageUrl && {
+        id: 'stylize',
+        label: 'Stylize with Pear',
+        icon: 'sparkles',
+        onSelect: () => onStylize(),
+      },
+      onRemove && imageUrl && {
+        id: 'remove',
+        label: 'Remove photo',
+        icon: 'close',
+        divider: true,
+        danger: true,
+        onSelect: () => onRemove(),
+      },
+    ].filter(Boolean) as Array<NonNullable<unknown>>;
+    if (items.length === 0) return;
+    window.dispatchEvent(new CustomEvent('pearloom:context-menu-open', {
+      detail: {
+        x: e.clientX,
+        y: e.clientY,
+        title: 'Photo',
+        items,
+      },
+    }));
+  }
+
   return (
-    <div className="pl8-photo-action-wrap" style={{ position: 'relative' }}>
+    <div
+      className="pl8-photo-action-wrap"
+      style={{ position: 'relative' }}
+      onContextMenu={handleContextMenu}
+    >
       {children}
       <div
         className="pl8-photo-action-menu"

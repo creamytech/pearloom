@@ -249,12 +249,56 @@ function CanvasSortableItem({
     position: 'relative',
   };
 
+  // Right-click context menu — same actions as the hover chip,
+  // accessible without aiming for the chip first. Wix users in
+  // particular expect right-click everywhere.
+  function handleContextMenu(e: React.MouseEvent<HTMLDivElement>) {
+    // Don't hijack right-click on inputs / contenteditable / images
+    // where the browser's native menu is more useful.
+    const target = e.target as HTMLElement | null;
+    if (target && (
+      target.isContentEditable ||
+      ['INPUT', 'TEXTAREA', 'IMG', 'VIDEO'].includes(target.tagName)
+    )) return;
+    if (typeof window === 'undefined') return;
+    e.preventDefault();
+    const items = [
+      onEdit && {
+        id: 'edit', label: 'Edit in Inspector', icon: 'sliders', shortcut: '⌘1',
+        onSelect: () => onEdit(id),
+      },
+      onAddBelow && {
+        id: 'add-below', label: 'Add a section below', icon: 'plus',
+        onSelect: () => {
+          // Synthesize an anchor at the click position by passing
+          // the section element itself.
+          const el = (e.currentTarget as HTMLElement);
+          onAddBelow(id, el);
+        },
+      },
+      onRemove && {
+        id: 'remove', label: `Hide ${label ?? id}`, icon: 'eye-off',
+        divider: true, danger: true,
+        onSelect: () => onRemove(id),
+      },
+    ].filter(Boolean) as Array<NonNullable<unknown>>;
+    window.dispatchEvent(new CustomEvent('pearloom:context-menu-open', {
+      detail: {
+        x: e.clientX,
+        y: e.clientY,
+        title: label ?? id,
+        items,
+      },
+    }));
+  }
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       data-pl-block={id}
       data-pl-block-sortable
+      onContextMenu={handleContextMenu}
     >
       {/* Drop indicator when this section is the drop target. */}
       {isOver && !isDragging && (
