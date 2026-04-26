@@ -9,6 +9,7 @@
 import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
+import { useLinkStatus } from 'next/link';
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Blob, Heart, Icon, Pear, PearloomLogo, Squiggle } from '../motifs';
 import { useIsInsideShell } from './ShellPersistentLayout';
@@ -512,6 +513,7 @@ function NavLink({
         <Icon name={item.icon} size={18} />
       </span>
       <span style={{ flex: 1 }}>{item.label}</span>
+      <NavLinkPending isActive={isActive} />
       {liveBadge && (
         <span
           style={{
@@ -535,6 +537,31 @@ function NavLink({
         }
       `}</style>
     </Link>
+  );
+}
+
+/** Per-link pending indicator. Shows a tiny pulsing dot the
+ *  instant the user clicks a sidebar link, before the new page
+ *  has even started rendering. Combines with the global top
+ *  progress bar for two-tier feedback (point-of-click + global
+ *  status). */
+function NavLinkPending({ isActive }: { isActive: boolean }) {
+  const { pending } = useLinkStatus();
+  if (!pending) return null;
+  return (
+    <span
+      aria-hidden
+      style={{
+        width: 6,
+        height: 6,
+        borderRadius: 999,
+        background: isActive ? 'rgba(255,255,255,0.85)' : 'var(--peach-ink, #C6703D)',
+        display: 'inline-block',
+        marginRight: 4,
+        animation: 'pl-dot-pulse 0.9s ease-in-out infinite',
+        flexShrink: 0,
+      }}
+    />
   );
 }
 

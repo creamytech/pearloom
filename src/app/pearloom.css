@@ -1310,14 +1310,70 @@ html { scroll-behavior: smooth; }
    Just a soft 12px → 0 nudge so the swap reads as motion, not
    a blink. */
 .pl8-tab-swipe {
-  animation: pl8-tab-swipe-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* Tighter snap. 220ms → 140ms with a sharper curve so tab clicks
+     register as 'instant + content snaps into place', not 'page
+     slides over'. The opacity 0.92 → 1 layered on top reads as
+     'just arrived' without the dim that felt like a fade. */
+  animation: pl8-tab-swipe-in 140ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 @keyframes pl8-tab-swipe-in {
-  from { transform: translate3d(12px, 0, 0); }
-  to   { transform: translate3d(0, 0, 0); }
+  from { transform: translate3d(6px, 0, 0); opacity: 0.92; }
+  to   { transform: translate3d(0, 0, 0); opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
   .pl8-tab-swipe { animation: none; }
+}
+
+/* Loading skeleton fade-in — only visible if shell loading lingers
+   past 280ms (see (shell)/loading.tsx). Fast clicks never see this. */
+@keyframes pl8-shell-loading-fade-in {
+  to { opacity: 1; }
+}
+
+/* Global top-edge progress bar. Mounts in ShellPersistentLayout
+   and pulses peach across the top whenever React's useTransition
+   reports pending. Indeterminate animation while pending; fades
+   out cleanly when navigation lands. */
+.pl8-top-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 99;
+  pointer-events: none;
+  background: transparent;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+.pl8-top-progress[data-pending='1'] {
+  opacity: 1;
+}
+.pl8-top-progress::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 30%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--peach-ink, #C6703D) 40%,
+    var(--gold, #B89244) 70%,
+    transparent 100%
+  );
+  border-radius: 999px;
+  animation: pl8-top-progress-crawl 1100ms cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@keyframes pl8-top-progress-crawl {
+  0%   { transform: translateX(-100%); width: 30%; }
+  50%  { width: 50%; }
+  100% { transform: translateX(330%); width: 30%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-top-progress::before { animation: none; }
 }
 
 /* =========================================================================
