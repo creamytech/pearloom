@@ -918,6 +918,8 @@ export function Icon({
     case 'arrow-up':      return <svg {...common}><path d="M12 19V5M5 12l7-7 7 7"/></svg>;
     case 'arrow-down':    return <svg {...common}><path d="M12 5v14M5 12l7 7 7-7"/></svg>;
     case 'arrow-ur':      return <svg {...common}><path d="M7 17L17 7M8 7h9v9"/></svg>;
+    case 'undo':          return <svg {...common}><path d="M3 7v6h6"/><path d="M3.5 13a8 8 0 1 0 2.3-7.7L3 8"/></svg>;
+    case 'redo':          return <svg {...common}><path d="M21 7v6h-6"/><path d="M20.5 13a8 8 0 1 1-2.3-7.7L21 8"/></svg>;
     case 'chev-right':    return <svg {...common}><path d="M9 6l6 6-6 6"/></svg>;
     case 'chev-left':     return <svg {...common}><path d="M15 6l-6 6 6 6"/></svg>;
     case 'chev-down':     return <svg {...common}><path d="M6 9l6 6 6-6"/></svg>;

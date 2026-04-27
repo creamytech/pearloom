@@ -168,7 +168,29 @@ export function EditorV8({
     };
   }, []);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  // Wall-clock timestamp of the most recent successful autosave.
+  // Used by SaveDot to render a "Saved 2 min ago" tooltip so the
+  // user can see the most recent persistence point at a glance.
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
   const [publishError, setPublishError] = useState<string | null>(null);
+  // Last successful publish — drives the "View live" pearl pill +
+  // copy-link toast in the topbar. Reset to null on publish error so
+  // the toast doesn't promise a URL the publish API didn't return.
+  const [publishedAt, setPublishedAt] = useState<{ url: string; at: number } | null>(null);
+  const [publishToast, setPublishToast] = useState<{ url: string } | null>(null);
+
+  // If the site was already published before this session, hydrate
+  // the live-URL pill from the manifest flag so the topbar shows
+  // "Live" immediately on load. Without this the pill wouldn't
+  // appear until the user re-published in this tab.
+  useEffect(() => {
+    const wasPublished = Boolean((manifest as unknown as { published?: boolean }).published);
+    if (!wasPublished || publishedAt) return;
+    if (typeof window === 'undefined') return;
+    const origin = window.location.origin;
+    setPublishedAt({ url: `${origin}${prettyPath}`, at: 0 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [advisorOpen, setAdvisorOpen] = useState(false);
   // Mobile-first fallback. <960px collapses the 3-pane layout into
   // a single canvas with drawers for Outline + Inspector (P0 fix,
@@ -230,6 +252,7 @@ export function EditorV8({
           });
           if (!res.ok) throw new Error(String(res.status));
           setSaveStatus('saved');
+          setLastSavedAt(Date.now());
           setTimeout(() => setSaveStatus('idle'), 1400);
         } catch {
           setSaveStatus('error');
@@ -305,7 +328,15 @@ export function EditorV8({
         invalidateSitesCache();
       } catch {}
       setSaveStatus('saved');
-      window.open(prettyPath, '_blank');
+      setLastSavedAt(Date.now());
+      // Build the absolute URL so the copy-link button gives the
+      // host something they can paste into a text message
+      // immediately. Falls back to the relative path if origin
+      // isn't available (SSR, sandboxed iframe).
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const absoluteUrl = origin ? `${origin}${prettyPath}` : prettyPath;
+      setPublishedAt({ url: absoluteUrl, at: Date.now() });
+      setPublishToast({ url: absoluteUrl });
       setTimeout(() => setSaveStatus('idle'), 1500);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Publish failed';
@@ -495,6 +526,12 @@ export function EditorV8({
           </button>
         </div>
       )}
+      {publishToast && (
+        <PublishToast
+          url={publishToast.url}
+          onClose={() => setPublishToast(null)}
+        />
+      )}
       <EditorTopbar
         displayNames={displayNames}
         prettyUrl={prettyUrl}
@@ -503,6 +540,8 @@ export function EditorV8({
         setDevice={setDevice}
         showDeviceToggle={!isNarrow}
         saveStatus={saveStatus}
+        lastSavedAt={lastSavedAt}
+        liveUrl={publishedAt?.url ?? null}
         onPublish={handlePublish}
         onOpenAdvisor={() => setAdvisorOpen(true)}
         canUndo={history.canUndo}
@@ -605,6 +644,164 @@ export function EditorV8({
 }
 
 /* ---------- Topbar ---------- */
+/** PublishToast — top-center confirmation pill that appears on
+ *  successful publish. Replaces the old auto-`window.open(prettyPath)`
+ *  which yanked the user out of the editor unannounced. The toast
+ *  surfaces the canonical URL with a Copy Link button (the most
+ *  common post-publish action: paste it into a text/email) and a
+ *  "View" link if they want to inspect the live render. Auto-
+ *  dismisses after 8s; click × to clear immediately. */
+function PublishToast({ url, onClose }: { url: string; onClose: () => void }) {
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(onClose, 8000);
+    return () => clearTimeout(t);
+  }, [onClose]);
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      // Fallback: select-and-copy on a hidden textarea (older browsers / iframes).
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch {}
+      document.body.removeChild(ta);
+    }
+  }
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      style={{
+        position: 'fixed',
+        top: 12,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '10px 12px 10px 16px',
+        background: 'var(--ink, #0E0D0B)',
+        color: 'rgba(243,233,212,0.95)',
+        borderRadius: 999,
+        boxShadow: '0 18px 46px rgba(14,13,11,0.32), 0 0 0 1px rgba(184,147,90,0.30)',
+        fontFamily: 'var(--font-ui)',
+        fontSize: 12.5,
+        fontWeight: 600,
+        animation: 'pl-enter-up 280ms cubic-bezier(0.22, 1, 0.36, 1) both',
+        maxWidth: 'min(540px, calc(100% - 32px))',
+      }}
+    >
+      <span
+        aria-hidden
+        style={{
+          display: 'inline-grid',
+          placeItems: 'center',
+          width: 22,
+          height: 22,
+          borderRadius: 999,
+          background: 'var(--sage-deep, #5C6B3F)',
+          color: '#fff',
+          flexShrink: 0,
+        }}
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      </span>
+      <span style={{ marginRight: 4, whiteSpace: 'nowrap' }}>Pressed.</span>
+      <code
+        style={{
+          fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+          fontSize: 11.5,
+          color: 'rgba(243,233,212,0.78)',
+          background: 'rgba(243,233,212,0.08)',
+          padding: '4px 8px',
+          borderRadius: 6,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          maxWidth: 280,
+        }}
+      >
+        {url.replace(/^https?:\/\//, '')}
+      </code>
+      <button
+        type="button"
+        onClick={copy}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 5,
+          padding: '5px 11px',
+          borderRadius: 999,
+          fontSize: 11.5,
+          fontWeight: 700,
+          background: copied ? 'var(--sage-deep, #5C6B3F)' : 'rgba(243,233,212,0.14)',
+          color: 'inherit',
+          border: 'none',
+          cursor: 'pointer',
+          fontFamily: 'inherit',
+          letterSpacing: '0.04em',
+          transition: 'background 180ms ease',
+        }}
+      >
+        {copied ? 'Copied' : 'Copy link'}
+      </button>
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 5,
+          padding: '5px 11px',
+          borderRadius: 999,
+          fontSize: 11.5,
+          fontWeight: 700,
+          color: 'inherit',
+          textDecoration: 'none',
+          letterSpacing: '0.04em',
+          background: 'rgba(243,233,212,0.06)',
+        }}
+      >
+        View
+        <Icon name="arrow-right" size={11} />
+      </a>
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Dismiss"
+        style={{
+          width: 22,
+          height: 22,
+          marginLeft: 2,
+          borderRadius: 999,
+          background: 'transparent',
+          border: 'none',
+          color: 'rgba(243,233,212,0.55)',
+          cursor: 'pointer',
+          display: 'grid',
+          placeItems: 'center',
+        }}
+      >
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 function EditorTopbar({
   displayNames,
   prettyUrl,
@@ -613,6 +810,8 @@ function EditorTopbar({
   setDevice,
   showDeviceToggle,
   saveStatus,
+  lastSavedAt,
+  liveUrl,
   onPublish,
   onOpenAdvisor,
   canUndo,
@@ -627,6 +826,11 @@ function EditorTopbar({
   setDevice: (d: DeviceKey) => void;
   showDeviceToggle: boolean;
   saveStatus: 'idle' | 'saving' | 'saved' | 'error';
+  lastSavedAt: number | null;
+  /** Absolute URL of the most-recently-published version. Null until
+   *  the user publishes once this session, after which the topbar
+   *  shows a "View live" pearl pill that opens it in a new tab. */
+  liveUrl: string | null;
   onPublish: () => void;
   onOpenAdvisor: () => void;
   canUndo: boolean;
@@ -685,7 +889,42 @@ function EditorTopbar({
         <div style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.15 }}>{displayNames}</div>
         <div style={{ fontSize: 11, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 6, lineHeight: 1.15 }}>
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 240 }}>{prettyUrl}</span>
-          <SaveDot saveStatus={saveStatus} />
+          <SaveDot saveStatus={saveStatus} lastSavedAt={lastSavedAt} />
+          {liveUrl && (
+            <a
+              href={liveUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={`Live: ${liveUrl}`}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '2px 8px',
+                marginLeft: 4,
+                borderRadius: 999,
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: 'var(--sage-deep, #5C6B3F)',
+                background: 'rgba(92,107,63,0.10)',
+                border: '1px solid rgba(92,107,63,0.30)',
+                textDecoration: 'none',
+              }}
+            >
+              <span
+                aria-hidden
+                style={{
+                  width: 5,
+                  height: 5,
+                  borderRadius: 999,
+                  background: 'currentColor',
+                }}
+              />
+              Live
+            </a>
+          )}
         </div>
       </div>
 
@@ -740,20 +979,20 @@ function EditorTopbar({
           onClick={onUndo}
           disabled={!canUndo}
           aria-label="Undo (Cmd+Z)"
-          title="Undo (Cmd+Z)"
+          title="Undo (⌘Z)"
           style={{ ...iconBtn, opacity: canUndo ? 1 : 0.35 }}
         >
-          <Icon name="arrow-left" size={14} />
+          <Icon name="undo" size={15} />
         </button>
         <button
           type="button"
           onClick={onRedo}
           disabled={!canRedo}
           aria-label="Redo (Cmd+Shift+Z)"
-          title="Redo (Cmd+Shift+Z)"
+          title="Redo (⌘⇧Z)"
           style={{ ...iconBtn, opacity: canRedo ? 1 : 0.35 }}
         >
-          <Icon name="arrow-right" size={14} />
+          <Icon name="redo" size={15} />
         </button>
         <span style={{ width: 1, height: 18, background: 'var(--line-soft)', margin: '0 4px' }} aria-hidden />
         <button type="button" onClick={onOpenAdvisor} style={ghostBtn}>
@@ -795,8 +1034,16 @@ function EditorTopbar({
 /** Status dot rendered next to the slug — quietly tells the host
  *  whether their work has been written to the server. The 'saved'
  *  state shows a tiny check inside the dot so users get a moment of
- *  reassurance every time autosave completes. */
-function SaveDot({ saveStatus }: { saveStatus: 'idle' | 'saving' | 'saved' | 'error' }) {
+ *  reassurance every time autosave completes. Hover surfaces the
+ *  exact wall-clock timestamp of the most recent successful save
+ *  via the title attribute (fast, native, no popover overhead). */
+function SaveDot({
+  saveStatus,
+  lastSavedAt,
+}: {
+  saveStatus: 'idle' | 'saving' | 'saved' | 'error';
+  lastSavedAt: number | null;
+}) {
   const colour =
     saveStatus === 'saved'
       ? 'var(--sage-deep)'
@@ -814,8 +1061,32 @@ function SaveDot({ saveStatus }: { saveStatus: 'idle' | 'saving' | 'saved' | 'er
           ? 'Save failed'
           : 'Editing';
   const showCheck = saveStatus === 'saved';
+  // Title text shown on hover. When idle but we know the last save,
+  // show "Saved 2 min ago" so the host can confirm at a glance —
+  // matches the trust-building patterns in Notion/Linear.
+  const tooltipText = (() => {
+    if (saveStatus === 'saving') return 'Saving your draft…';
+    if (saveStatus === 'error') return 'Last save failed — your edits are local until network returns';
+    if (lastSavedAt) {
+      const ago = Date.now() - lastSavedAt;
+      const wallClock = new Date(lastSavedAt).toLocaleTimeString([], {
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+      const relative =
+        ago < 5_000 ? 'just now' :
+        ago < 60_000 ? `${Math.floor(ago / 1000)}s ago` :
+        ago < 3_600_000 ? `${Math.floor(ago / 60_000)} min ago` :
+        `${Math.floor(ago / 3_600_000)}h ago`;
+      return `Saved ${relative} (${wallClock})`;
+    }
+    return 'Edits autosave every keystroke';
+  })();
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: colour, fontWeight: 600 }}>
+    <span
+      title={tooltipText}
+      style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: colour, fontWeight: 600, cursor: 'help' }}
+    >
       <span
         aria-hidden
         style={{
