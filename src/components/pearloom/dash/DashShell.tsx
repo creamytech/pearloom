@@ -13,6 +13,7 @@ import { useLinkStatus } from 'next/link';
 import { useEffect, useLayoutEffect, useRef, useState, useTransition, type ReactNode } from 'react';
 import { Blob, Heart, Icon, Pear, PearloomLogo, Squiggle } from '../motifs';
 import { useIsInsideShell } from './ShellPersistentLayout';
+import { NotificationBell } from './NotificationBell';
 
 interface DashNavItem {
   id: string;
@@ -875,34 +876,36 @@ export function DashTopbar({
           {subtitle}
         </div>
       )}
-      {(actions || (ctaText && ctaHref)) && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 'clamp(16px, 2.6vw, 28px)',
-            right: 'clamp(20px, 4vw, 40px)',
-            display: 'flex',
-            gap: 10,
-            alignItems: 'center',
-            flexWrap: 'wrap',
-          }}
-        >
-          {actions}
-          {ctaText && ctaHref && (
-            <Link
-              href={ctaHref}
-              className="btn btn-primary"
-              style={{
-                transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = '')}
-            >
-              {ctaText} <Pear size={14} tone="cream" shadow={false} />
-            </Link>
-          )}
-        </div>
-      )}
+      <div
+        style={{
+          position: 'absolute',
+          top: 'clamp(16px, 2.6vw, 28px)',
+          right: 'clamp(20px, 4vw, 40px)',
+          display: 'flex',
+          gap: 10,
+          alignItems: 'center',
+          flexWrap: 'wrap',
+        }}
+      >
+        {/* Aggregated activity bell — always present in the
+            topbar so the host doesn't have to scan multiple
+            widgets to see what's new. Polls every 60s. */}
+        <NotificationBell />
+        {actions}
+        {ctaText && ctaHref && (
+          <Link
+            href={ctaHref}
+            className="btn btn-primary"
+            style={{
+              transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = '')}
+          >
+            {ctaText} <Pear size={14} tone="cream" shadow={false} />
+          </Link>
+        )}
+      </div>
     </div>
   );
 }
