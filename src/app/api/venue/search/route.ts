@@ -51,10 +51,12 @@ export async function GET(req: NextRequest) {
       biasLng = parseFloat(m[2]);
     }
 
-    // `kind=hotel` restricts results to lodging types — the only
-    // place we currently use this is the editor's hotel-add row.
+    // `kind=hotel` restricts to lodging; `kind=airport` to airports.
+    // Used by the editor's hotel-add + airport-add rows so a host
+    // typing "JFK" doesn't get a pizza place.
     const kind = searchParams.get('kind') ?? '';
     const wantsHotel = kind === 'hotel';
+    const wantsAirport = kind === 'airport';
 
     // ── Primary: Google Places API ──
     if (apiKey) {
@@ -67,6 +69,8 @@ export async function GET(req: NextRequest) {
         }
         if (wantsHotel) {
           reqBody.includedPrimaryTypes = ['lodging'];
+        } else if (wantsAirport) {
+          reqBody.includedPrimaryTypes = ['airport'];
         }
         const res = await fetch('https://places.googleapis.com/v1/places:autocomplete', {
           method: 'POST',

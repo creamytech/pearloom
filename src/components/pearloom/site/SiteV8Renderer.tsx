@@ -2744,6 +2744,148 @@ function HotelsMapView({
   );
 }
 
+// AirportsBlock — compact list of nearby airports with the
+// closest tagged "Closest" and a copy-the-IATA-code chip per
+// row. Mixes legacy string entries (just a name) and new
+// AirportEntry objects (name + lat/lng + distance).
+interface AirportRow {
+  id?: string;
+  name: string;
+  code?: string;
+  address?: string;
+  lat?: number;
+  lng?: number;
+  distance?: string;
+}
+function airportToRow(a: string | { id?: string; name?: string; code?: string; address?: string; lat?: number; lng?: number; distance?: string }): AirportRow {
+  if (typeof a === 'string') return { name: a };
+  return {
+    id: a.id,
+    name: a.name ?? '',
+    code: a.code,
+    address: a.address,
+    lat: a.lat,
+    lng: a.lng,
+    distance: a.distance,
+  };
+}
+
+function AirportsBlock({ manifest }: { manifest: StoryManifest }) {
+  const edit = useIsEditMode();
+  const raw = manifest.travelInfo?.airports ?? [];
+  if (!raw.length) {
+    if (!edit) return null;
+    return null; // edit-time hint lives in TravelPanel — no canvas placeholder needed
+  }
+  const airports = raw.map(airportToRow);
+  // Sort by parsed distance for guest-side display so "Closest"
+  // is also at the top. Hotels-style miles parser.
+  function distMeters(a: AirportRow): number {
+    const d = a.distance ?? '';
+    const mi = /^(\d+(?:\.\d+)?)\s*mi\b/i.exec(d);
+    if (mi) return parseFloat(mi[1]) * 1609.344;
+    const ft = /^(\d+(?:\.\d+)?)\s*ft\b/i.exec(d);
+    if (ft) return parseFloat(ft[1]) / 3.28084;
+    const km = /^(\d+(?:\.\d+)?)\s*km/i.exec(d);
+    if (km) return parseFloat(km[1]) * 1000;
+    return Number.MAX_SAFE_INTEGER;
+  }
+  const sorted = [...airports].sort((a, b) => distMeters(a) - distMeters(b));
+  const closestIdx = sorted.findIndex((a) => distMeters(a) !== Number.MAX_SAFE_INTEGER);
+
+  return (
+    <div>
+      <div
+        style={{
+          fontSize: 12,
+          fontWeight: 700,
+          letterSpacing: '0.12em',
+          color: 'var(--peach-ink)',
+          textTransform: 'uppercase',
+          marginBottom: 14,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+        }}
+      >
+        <Icon name="compass" size={13} /> Flying in
+      </div>
+      <h3 className="display" style={{ fontSize: 'clamp(32px, 4.5cqw, 44px)', margin: '0 0 16px' }}>
+        Nearest <span className="display-italic">airports</span>
+      </h3>
+      <ol style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {sorted.map((a, i) => {
+          const isClosest = i === closestIdx;
+          return (
+            <li
+              key={a.id ?? a.name}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'auto 1fr auto',
+                gap: 14,
+                alignItems: 'center',
+                padding: '14px 18px',
+                background: 'var(--card)',
+                border: isClosest ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid var(--card-ring)',
+                borderRadius: 14,
+                boxShadow: isClosest ? '0 4px 12px -8px rgba(198,112,61,0.30)' : 'none',
+              }}
+            >
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 12,
+                  background: isClosest ? 'var(--peach-bg)' : 'var(--cream-2)',
+                  color: isClosest ? 'var(--peach-ink)' : 'var(--ink-soft)',
+                  display: 'grid',
+                  placeItems: 'center',
+                  fontFamily: 'var(--font-ui)',
+                  fontSize: 13,
+                  fontWeight: 800,
+                  letterSpacing: '0.04em',
+                }}
+              >
+                {a.code ?? <Icon name="compass" size={18} />}
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'baseline' }}>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>{a.name}</span>
+                  {isClosest && (
+                    <span
+                      style={{
+                        fontSize: 9.5,
+                        fontWeight: 800,
+                        letterSpacing: '0.14em',
+                        textTransform: 'uppercase',
+                        color: 'var(--peach-ink, #C6703D)',
+                        background: 'rgba(198,112,61,0.10)',
+                        border: '1px solid rgba(198,112,61,0.32)',
+                        padding: '2px 8px',
+                        borderRadius: 999,
+                      }}
+                    >
+                      ★ Closest
+                    </span>
+                  )}
+                </div>
+                {(a.distance || a.address) && (
+                  <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginTop: 3 }}>
+                    {a.distance ? a.distance : a.address}
+                  </div>
+                )}
+              </div>
+              {a.address && (
+                <OpenInMapsButton address={a.address} label="Directions" />
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
+
 // Lightweight badge tags computed by HotelsList. Renders as
 // pearl-flavoured pills in the top-right of each card so a guest
 // scanning the section sees "the best one" at a glance instead
@@ -3375,6 +3517,7 @@ function TravelSectionImpl({ manifest, onEditField }: { manifest: StoryManifest;
               {hotels.length > 0 && <HotelsList manifest={manifest} hotels={hotels as unknown as HotelCardModel[]} hotelTones={hotelTones as Array<'peach' | 'lavender' | 'sage'>} />}
             </div>
           )}
+          <AirportsBlock manifest={manifest} />
         </div>
       </div>
     </section>

@@ -47,8 +47,9 @@ interface Props {
   value: string;
   onChangeText: (next: string) => void;
   onSelect: (place: PlaceDetails) => void;
-  /** 'venue' (open-ended) or 'hotel' (lodging-only). */
-  kind?: 'venue' | 'hotel';
+  /** 'venue' (open-ended), 'hotel' (lodging-only), 'airport'
+   *  (airports-only). */
+  kind?: 'venue' | 'hotel' | 'airport';
   placeholder?: string;
   id?: string;
   /** Disable the autocomplete dropdown but keep the textbox
@@ -130,7 +131,7 @@ export function PlaceAutocomplete({
       try {
         const params = new URLSearchParams({ q, type: 'autocomplete' });
         if (effectiveNear) params.set('near', effectiveNear);
-        if (kind === 'hotel') params.set('kind', 'hotel');
+        if (kind === 'hotel' || kind === 'airport') params.set('kind', kind);
         const res = await fetch(`/api/venue/search?${params.toString()}`, { cache: 'no-store' });
         const data = (await res.json()) as { predictions?: Prediction[] };
         setPredictions(data.predictions ?? []);
@@ -219,7 +220,7 @@ export function PlaceAutocomplete({
         }}
       >
         <span style={{ display: 'inline-flex', color: 'var(--ink-muted)' }}>
-          <Icon name={searching ? 'sparkles' : (kind === 'hotel' ? 'moon' : 'pin')} size={13} />
+          <Icon name={searching ? 'sparkles' : (kind === 'hotel' ? 'moon' : kind === 'airport' ? 'compass' : 'pin')} size={13} />
         </span>
         <input
           ref={inputRef}
@@ -309,7 +310,7 @@ export function PlaceAutocomplete({
                   transition: 'background 120ms ease',
                 }}
               >
-                <Icon name={kind === 'hotel' ? 'moon' : 'pin'} size={12} />
+                <Icon name={kind === 'hotel' ? 'moon' : kind === 'airport' ? 'compass' : 'pin'} size={12} />
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div
                     style={{

@@ -505,7 +505,7 @@ export function TravelSection({
                     }}
                   >
                     <Plane size={12} />
-                    {airport}
+                    {typeof airport === 'string' ? airport : (airport.code ?? airport.name)}
                   </div>
                 ))}
               </div>

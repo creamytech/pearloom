@@ -1045,8 +1045,29 @@ export interface FaqItem {
   order: number;
 }
 
+export interface AirportEntry {
+  id?: string;
+  /** Display name. "Los Angeles International" or
+   *  "Los Angeles International (LAX)". */
+  name: string;
+  /** Optional 3-letter IATA code if the host typed it in. */
+  code?: string;
+  address?: string;
+  /** Cached coords from Google Places — drive the map pin and
+   *  the closest-airport sort. */
+  lat?: number;
+  lng?: number;
+  /** Pre-formatted distance from venue, written by the editor on
+   *  pick. Example: "12 mi · ~25 min drive". */
+  distance?: string;
+  websiteUri?: string;
+}
+
 export interface TravelInfo {
-  airports: string[];
+  /** Mixed shape for backwards-compat: legacy entries are strings
+   *  ("LAX"), new entries are AirportEntry objects. The renderer
+   *  coerces strings into { name } at read time. */
+  airports: Array<string | AirportEntry>;
   hotels: HotelBlock[];
   parkingInfo?: string;
   directions?: string;

@@ -638,6 +638,141 @@ export function TravelPanel({
           }}
         />
       </PanelSection>
+
+      <PanelSection
+        label="Airports"
+        hint="Search to add. Pear computes drive time from the venue and tags the closest one."
+      >
+        <AirportsField manifest={manifest} onChange={onChange} />
+      </PanelSection>
     </PanelGroup>
+  );
+}
+
+// ── AirportsField ──────────────────────────────────────────
+// Stores AirportEntry[] on travelInfo.airports. Each pick uses
+// PlaceAutocomplete with kind='airport' biased to the venue's
+// lat/lng so a host typing "LAX" near a Greek venue still
+// resolves to the right airport. On pick we compute the
+// venue→airport distance + drive-time hint client-side via
+// haversine + 2.8min/mi.
+function AirportsField({
+  manifest,
+  onChange,
+}: {
+  manifest: StoryManifest;
+  onChange: (m: StoryManifest) => void;
+}) {
+  const l = manifest.logistics ?? {};
+  const venueNear = l.venueLat && l.venueLng ? { lat: l.venueLat, lng: l.venueLng } : null;
+  const airportsRaw = manifest.travelInfo?.airports ?? [];
+  // Normalize: legacy strings → { name: string }.
+  const airports = airportsRaw.map((a) =>
+    typeof a === 'string' ? { id: `airport-legacy-${a.replace(/\W/g, '-')}`, name: a } : a,
+  );
+  const [query, setQuery] = useState('');
+
+  function persist(next: typeof airports) {
+    const cur = manifest.travelInfo ?? { airports: [], hotels: [] };
+    onChange({
+      ...manifest,
+      travelInfo: { ...cur, airports: next },
+    } as unknown as StoryManifest);
+  }
+
+  function addAirport(p: { id: string; name: string; address: string; lat?: number; lng?: number; websiteUri?: string }) {
+    // Drive time hint — same formula as the hotel route.
+    let distance = '';
+    if (typeof l.venueLat === 'number' && typeof l.venueLng === 'number' && typeof p.lat === 'number' && typeof p.lng === 'number') {
+      const R = 6371000;
+      const phi1 = (l.venueLat * Math.PI) / 180;
+      const phi2 = (p.lat * Math.PI) / 180;
+      const dPhi = ((p.lat - l.venueLat) * Math.PI) / 180;
+      const dLambda = ((p.lng - l.venueLng) * Math.PI) / 180;
+      const a = Math.sin(dPhi / 2) ** 2 + Math.cos(phi1) * Math.cos(phi2) * Math.sin(dLambda / 2) ** 2;
+      const meters = 2 * R * Math.asin(Math.sqrt(a));
+      const miles = meters / 1609.344;
+      const driveMin = Math.max(1, Math.round(miles * 2.8));
+      if (miles < 0.5) distance = `${miles.toFixed(2)} mi · ~${driveMin} min drive`;
+      else if (miles < 10) distance = `${miles.toFixed(1)} mi · ~${driveMin} min drive`;
+      else distance = `${Math.round(miles)} mi · ~${driveMin} min drive`;
+    }
+    // Try to extract a 3-letter IATA code from the parenthetical
+    // suffix Google often returns ("Los Angeles International (LAX)").
+    const codeMatch = /\(([A-Z]{3})\)/.exec(p.name);
+    const entry = {
+      id: `airport-${Date.now().toString(36)}`,
+      name: p.name,
+      code: codeMatch?.[1],
+      address: p.address,
+      lat: p.lat,
+      lng: p.lng,
+      distance,
+      websiteUri: p.websiteUri,
+    };
+    persist([...airports, entry]);
+    setQuery('');
+  }
+
+  function removeAirport(id: string | undefined) {
+    if (!id) return;
+    persist(airports.filter((a) => a.id !== id));
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <PlaceAutocomplete
+        kind="airport"
+        placeholder={venueNear ? 'Search airports near your venue' : 'JFK, LAX, Dublin Airport…'}
+        value={query}
+        onChangeText={setQuery}
+        near={venueNear}
+        nearLabel="Near venue"
+        onSelect={(place) => addAirport(place)}
+      />
+      {airports.length > 0 && (
+        <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {airports.map((a) => (
+            <li
+              key={a.id ?? a.name}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '8px 12px',
+                background: 'var(--cream-2)',
+                border: '1px solid var(--line-soft)',
+                borderRadius: 10,
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>
+                  {a.name}
+                  {a.code && (
+                    <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--peach-ink, #C6703D)', marginLeft: 6, letterSpacing: '0.06em' }}>
+                      {a.code}
+                    </span>
+                  )}
+                </div>
+                {a.distance && (
+                  <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 2 }}>{a.distance}</div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => removeAirport(a.id)}
+                aria-label={`Remove ${a.name}`}
+                style={{
+                  width: 24, height: 24, borderRadius: 999,
+                  background: 'transparent', border: 'none',
+                  color: 'var(--ink-soft)', cursor: 'pointer',
+                  fontSize: 14, lineHeight: 1,
+                }}
+              >×</button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
