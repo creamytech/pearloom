@@ -33,6 +33,11 @@ export function StickerLayer({ blockId, stickers, onEditField, children, style }
   const edit = useIsEditMode();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Active alignment guides while dragging — Framer-style. Each
+  // entry is a horizontal or vertical line at a percent within the
+  // container; cleared on pointerup. Rendered as 1px hairlines in
+  // peach-ink so users see exactly which edge they're snapping to.
+  const [activeGuides, setActiveGuides] = useState<SnapGuide[]>([]);
   // Render anchored stickers — either image-based (url set) or
   // text-based (type === 'text', text set). Legacy SVG stickers
   // without a blockId render elsewhere in the tree.
@@ -76,29 +81,106 @@ export function StickerLayer({ blockId, stickers, onEditField, children, style }
         <StickerPiece
           key={s.id}
           sticker={s}
+          siblings={mine}
           isEditing={edit}
           isSelected={selectedId === s.id}
           onSelect={() => setSelectedId(s.id)}
+          onGuides={setActiveGuides}
           containerRef={containerRef}
           onEditField={onEditField}
         />
       ))}
+      {/* Alignment guides — only visible while a sticker is dragging.
+          A peach-ink hairline glows over the snap line so the user
+          gets the same Figma/Framer "click into place" feel. */}
+      {edit && activeGuides.length > 0 && (
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            zIndex: 11,
+          }}
+        >
+          {activeGuides.map((g, i) => (
+            <div
+              key={`${g.axis}-${g.pct}-${i}`}
+              style={{
+                position: 'absolute',
+                background: 'var(--peach-ink, #C6703D)',
+                boxShadow: '0 0 6px rgba(198,112,61,0.55)',
+                ...(g.axis === 'x'
+                  ? { left: `${g.pct}%`, top: 0, bottom: 0, width: 1 }
+                  : { top: `${g.pct}%`, left: 0, right: 0, height: 1 }),
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
+// ── Snap geometry ───────────────────────────────────────────────
+//
+// Snap candidates are percentages within the container (the same
+// unit stickers store on the manifest). A drag is snapped when the
+// candidate position is within SNAP_THRESHOLD_PX of a candidate.
+//
+// Candidates = gridlines (0, 25, 50, 75, 100) + every other sticker
+// center in the same block. The Figma-style "tug" is the snapped
+// coordinate; the visual is a hairline at the snap line.
+
+interface SnapGuide {
+  axis: 'x' | 'y';
+  pct: number;
+}
+
+const SNAP_THRESHOLD_PX = 6;
+const GRID_PCTS = [0, 25, 50, 75, 100];
+
+function buildSnapCandidates(siblings: StickerItem[], selfId: string): { x: number[]; y: number[] } {
+  const xs: number[] = [...GRID_PCTS];
+  const ys: number[] = [...GRID_PCTS];
+  for (const s of siblings) {
+    if (s.id === selfId) continue;
+    if (typeof s.x === 'number') xs.push(s.x);
+    if (typeof s.y === 'number') ys.push(s.y);
+  }
+  return { x: xs, y: ys };
+}
+
+function snapAxis(targetPct: number, candidates: number[], pxPerPct: number): { snapped: number; hit: number | null } {
+  const thresholdPct = SNAP_THRESHOLD_PX / Math.max(1, pxPerPct);
+  let best = { snapped: targetPct, hit: null as number | null };
+  let bestDelta = thresholdPct;
+  for (const c of candidates) {
+    const d = Math.abs(c - targetPct);
+    if (d < bestDelta) {
+      bestDelta = d;
+      best = { snapped: c, hit: c };
+    }
+  }
+  return best;
+}
+
 function StickerPiece({
   sticker,
+  siblings,
   isEditing,
   isSelected,
   onSelect,
+  onGuides,
   containerRef,
   onEditField,
 }: {
   sticker: StickerItem;
+  siblings: StickerItem[];
   isEditing: boolean;
   isSelected: boolean;
   onSelect: () => void;
+  onGuides: (guides: SnapGuide[]) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
   onEditField?: FieldEditor;
 }) {
@@ -126,16 +208,34 @@ function StickerPiece({
     const startScale = startSticker.scale ?? 1;
     const mode = e.altKey ? 'rotate' : e.shiftKey ? 'scale' : 'move';
 
+    const candidates = buildSnapCandidates(siblings, startSticker.id);
+    const pxPerPctX = rect.width / 100;
+    const pxPerPctY = rect.height / 100;
+
     const move = (ev: PointerEvent) => {
       const dx = ev.clientX - startX;
       const dy = ev.clientY - startY;
       if (mode === 'move') {
         const pctX = (dx / rect.width) * 100;
         const pctY = (dy / rect.height) * 100;
-        patchSticker({
-          x: clamp(startSticker.x + pctX, 0, 100),
-          y: clamp(startSticker.y + pctY, 0, 100),
-        });
+        const rawX = clamp(startSticker.x + pctX, 0, 100);
+        const rawY = clamp(startSticker.y + pctY, 0, 100);
+        // Snap to nearest gridline / sibling within 6px. Holding
+        // Alt while dragging disables snap so users can drop a
+        // sticker at any pixel — same hatch every modern editor uses.
+        const guides: SnapGuide[] = [];
+        let nextX = rawX;
+        let nextY = rawY;
+        if (!ev.altKey) {
+          const sx = snapAxis(rawX, candidates.x, pxPerPctX);
+          const sy = snapAxis(rawY, candidates.y, pxPerPctY);
+          nextX = sx.snapped;
+          nextY = sy.snapped;
+          if (sx.hit !== null) guides.push({ axis: 'x', pct: sx.hit });
+          if (sy.hit !== null) guides.push({ axis: 'y', pct: sy.hit });
+        }
+        onGuides(guides);
+        patchSticker({ x: nextX, y: nextY });
       } else if (mode === 'scale') {
         const delta = (dx + dy) / 200;
         patchSticker({ scale: clamp(startScale + delta, 0.3, 2.2) });
@@ -145,6 +245,7 @@ function StickerPiece({
       }
     };
     const up = () => {
+      onGuides([]);
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
     };
