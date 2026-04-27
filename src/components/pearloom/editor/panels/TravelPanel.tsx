@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { StoryManifest } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, TextArea, TextInput } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, SegmentedToggle, TextArea, TextInput } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { PlaceAutocomplete } from './PlaceAutocomplete';
@@ -456,6 +456,48 @@ export function TravelPanel({
         hint="Drag to reorder. Guests get rooms + a booking link if you add one."
         action={hotels.length > 0 ? <AddRowButton label="Add hotel" onClick={addHotel} /> : null}
       >
+        <Field
+          label="Display"
+          help="Photo cards show real Google photos. Icon cards are cleaner and editorial."
+        >
+          <SegmentedToggle<'photo' | 'icon'>
+            value={(manifest.travelInfo?.hotelDisplay as 'photo' | 'icon' | undefined) ?? 'photo'}
+            onChange={(v) =>
+              onChange({
+                ...manifest,
+                travelInfo: {
+                  ...(manifest.travelInfo ?? { airports: [], hotels: [] }),
+                  hotelDisplay: v,
+                },
+              } as unknown as StoryManifest)
+            }
+            options={[
+              { value: 'photo', label: 'Photo cards' },
+              { value: 'icon', label: 'Icon cards' },
+            ]}
+          />
+        </Field>
+        <Field
+          label="Highlights"
+          help="Auto-tag the top option, the closest, and the best value. Off for minimalist sites."
+        >
+          <SegmentedToggle<'on' | 'off'>
+            value={(manifest.travelInfo?.hotelBadges ?? true) ? 'on' : 'off'}
+            onChange={(v) =>
+              onChange({
+                ...manifest,
+                travelInfo: {
+                  ...(manifest.travelInfo ?? { airports: [], hotels: [] }),
+                  hotelBadges: v === 'on',
+                },
+              } as unknown as StoryManifest)
+            }
+            options={[
+              { value: 'on', label: 'Show' },
+              { value: 'off', label: 'Hide' },
+            ]}
+          />
+        </Field>
         <Field label="Group block code" help="Optional — if you negotiated a rate, drop the code here.">
           <TextInput
             value={meta.blockCode ?? ''}

@@ -48,14 +48,18 @@ function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number)
 
 function formatDistance(meters?: number): string {
   if (!meters || meters <= 0) return '';
-  if (meters < 1000) return `${Math.round(meters)} m from venue`;
-  const km = meters / 1000;
-  // Rough drive-time guess from straight-line km — usable hint
-  // for guests, not a routed answer. Bias 1.4× to account for
-  // road curve.
-  const driveMin = Math.max(1, Math.round((km * 1.4) / 0.6));
-  if (km < 8) return `${km.toFixed(1)} km · ~${driveMin} min drive`;
-  return `${Math.round(km)} km · ~${driveMin} min drive`;
+  // Sub-300m is "steps from venue" — close enough that an exact
+  // number distracts more than it informs.
+  if (meters < 300) {
+    const ft = Math.round(meters * 3.28084);
+    return `${ft} ft · steps from venue`;
+  }
+  const miles = meters / 1609.344;
+  // ~30 mph city avg × 1.4 road-curve bias → ≈ 2.8 min per mile.
+  const driveMin = Math.max(1, Math.round(miles * 2.8));
+  if (miles < 0.5) return `${miles.toFixed(2)} mi · ~${driveMin} min drive`;
+  if (miles < 10)  return `${miles.toFixed(1)} mi · ~${driveMin} min drive`;
+  return `${Math.round(miles)} mi · ~${driveMin} min drive`;
 }
 
 // Convert raw Google place types ('lodging', 'spa', 'restaurant',

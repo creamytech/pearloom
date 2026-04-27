@@ -205,9 +205,20 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number): numb
 }
 
 function distanceText(meters?: number): string {
-  if (!meters) return '';
-  if (meters < 1000) return `${Math.round(meters)} m`;
-  return `${(meters / 1000).toFixed(meters < 10000 ? 1 : 0)} km`;
+  if (!meters || meters <= 0) return '';
+  // Sub-300m reads as "steps from venue" — anything that close
+  // doesn't need a precise number to be useful.
+  if (meters < 300) {
+    const ft = Math.round(meters * 3.28084);
+    return `${ft} ft · steps from venue`;
+  }
+  const miles = meters / 1609.344;
+  // Drive time: ~30 mph city avg with 1.4× road-curve bias →
+  // roughly 2.8 min per mile. Floor to 1 min for the close ones.
+  const driveMin = Math.max(1, Math.round(miles * 2.8));
+  if (miles < 0.5) return `${miles.toFixed(2)} mi · ~${driveMin} min drive`;
+  if (miles < 10)  return `${miles.toFixed(1)} mi · ~${driveMin} min drive`;
+  return `${Math.round(miles)} mi · ~${driveMin} min drive`;
 }
 
 async function blurbifyClaude(hotels: PlaceHotel[], context: { venueCity?: string; eventDate?: string }): Promise<Record<string, string>> {

@@ -1050,6 +1050,15 @@ export interface TravelInfo {
   hotels: HotelBlock[];
   parkingInfo?: string;
   directions?: string;
+  /** How the hotels render on the live site:
+   *    - 'photo' (default): full Google Places photos + chips
+   *    - 'icon': editorial moon-glyph cards (cleaner, no images)
+   *  Hosts switch via the Travel panel display-mode picker. */
+  hotelDisplay?: 'photo' | 'icon';
+  /** Cap badge auto-tagging — when false, no Pear's pick / Closest /
+   *  Best value badges render. Lets minimalist hosts opt out without
+   *  disabling the toggle entirely. Default true. */
+  hotelBadges?: boolean;
 }
 
 export interface HotelBlock {

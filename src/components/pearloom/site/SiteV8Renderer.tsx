@@ -2168,12 +2168,214 @@ interface HotelCardModel {
   description?: string;
 }
 
-function HotelCard({ hotel, tone }: { hotel: HotelCardModel; tone: 'peach' | 'lavender' | 'sage' }) {
+// Lightweight badge tags computed by HotelsList. Renders as
+// pearl-flavoured pills in the top-right of each card so a guest
+// scanning the section sees "the best one" at a glance instead
+// of having to compare 4 sets of numbers.
+type HotelBadge = 'top' | 'closest' | 'value';
+
+/** Score each hotel for "Pear's pick" + figure out which is the
+ *  closest and which is the best value. Multiple badges can land
+ *  on the same hotel; rare in practice with ≥4 entries. */
+function computeHotelBadges(hotels: HotelCardModel[]): HotelBadge[][] {
+  const out: HotelBadge[][] = hotels.map(() => []);
+  if (hotels.length === 0) return out;
+
+  // Top score: rating × 1000 + log10(reviews) × 100. We don't
+  // include distance here because the host's grid is already
+  // distance-sorted in many cases — surfacing "highest quality"
+  // is the more useful signal.
+  function score(h: HotelCardModel): number {
+    const r = h.rating ?? 0;
+    const c = h.ratingCount ?? 0;
+    return r * 1000 + Math.log10(c + 1) * 100;
+  }
+  const scored = hotels.map((h, i) => ({ i, s: score(h) }));
+  scored.sort((a, b) => b.s - a.s);
+  if (scored[0] && scored[0].s > 0) out[scored[0].i].push('top');
+
+  // Closest: parse the leading number out of the formatted distance
+  // string ("0.9 mi · ~3 min drive" / "200 ft · steps from venue"
+  // / legacy "1.4 km"). Hotels without distance text are skipped —
+  // can't sort what we don't know.
+  function distMeters(h: HotelCardModel): number | null {
+    const d = h.distance ?? '';
+    const mi = /^(\d+(?:\.\d+)?)\s*mi\b/i.exec(d);
+    if (mi) return parseFloat(mi[1]) * 1609.344;
+    const ft = /^(\d+(?:\.\d+)?)\s*ft\b/i.exec(d);
+    if (ft) return parseFloat(ft[1]) / 3.28084;
+    const km = /^(\d+(?:\.\d+)?)\s*km/i.exec(d);
+    if (km) return parseFloat(km[1]) * 1000;
+    const m = /^(\d+(?:\.\d+)?)\s*m\b/i.exec(d);
+    if (m) return parseFloat(m[1]);
+    return null;
+  }
+  const withDist = hotels
+    .map((h, i) => ({ i, d: distMeters(h) }))
+    .filter((x): x is { i: number; d: number } => x.d !== null);
+  if (withDist.length > 1) {
+    withDist.sort((a, b) => a.d - b.d);
+    if (!out[withDist[0].i].includes('top')) {
+      out[withDist[0].i].push('closest');
+    } else if (withDist[1]) {
+      // If the closest is also the top, give the closest badge to
+      // the runner-up so each badge surfaces a different hotel.
+      out[withDist[1].i].push('closest');
+    }
+  }
+
+  // Best value: rating ≥ 4.0, lowest priceLevel ($ or $$). Falls
+  // back to "any rated hotel with priceLevel" when no $ or $$
+  // exists. Skips when no hotel has a price tag at all.
+  function priceTier(h: HotelCardModel): number | null {
+    const p = (h.priceLevel ?? '').toUpperCase();
+    if (p.includes('VERY_EXPENSIVE') || p === '$$$$') return 4;
+    if (p.includes('EXPENSIVE') || p === '$$$') return 3;
+    if (p.includes('MODERATE') || p === '$$') return 2;
+    if (p.includes('INEXPENSIVE') || p === '$') return 1;
+    return null;
+  }
+  const valueCandidates = hotels
+    .map((h, i) => ({ i, t: priceTier(h), r: h.rating ?? 0 }))
+    .filter((x): x is { i: number; t: number; r: number } => x.t !== null && x.r >= 4)
+    .sort((a, b) => a.t - b.t || b.r - a.r);
+  if (valueCandidates[0]) {
+    const idx = valueCandidates[0].i;
+    if (!out[idx].includes('top') && !out[idx].includes('closest')) {
+      out[idx].push('value');
+    }
+  }
+
+  return out;
+}
+
+// Group block code banner — appears above the hotel grid when the
+// host set one in the Travel panel. Click-to-copy because nothing
+// is more annoying than reading a 9-character rate code off a phone
+// screen at the front desk.
+function GroupBlockCodeBanner({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 14,
+        padding: '12px 16px',
+        background: 'var(--peach-bg, rgba(198,112,61,0.10))',
+        border: '1px solid rgba(198,112,61,0.22)',
+        borderRadius: 14,
+      }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <span
+          style={{
+            fontSize: 9.5,
+            fontWeight: 800,
+            letterSpacing: '0.16em',
+            textTransform: 'uppercase',
+            color: 'var(--peach-ink, #C6703D)',
+          }}
+        >
+          Group rate code
+        </span>
+        <span
+          style={{
+            fontSize: 18,
+            fontWeight: 700,
+            color: 'var(--ink)',
+            fontFamily: 'var(--font-ui, ui-monospace, monospace)',
+            letterSpacing: '0.04em',
+          }}
+        >
+          {code}
+        </span>
+      </div>
+      <button
+        type="button"
+        onClick={async () => {
+          try {
+            await navigator.clipboard.writeText(code);
+            setCopied(true);
+            window.setTimeout(() => setCopied(false), 1600);
+          } catch {
+            /* clipboard might be denied — silent */
+          }
+        }}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '7px 14px',
+          borderRadius: 999,
+          background: 'var(--peach-ink, #C6703D)',
+          color: '#FFFFFF',
+          border: 'none',
+          fontSize: 11.5,
+          fontWeight: 700,
+          letterSpacing: '0.06em',
+          textTransform: 'uppercase',
+          cursor: 'pointer',
+          fontFamily: 'inherit',
+        }}
+      >
+        <Icon name={copied ? 'check' : 'copy'} size={11} color="#FFFFFF" />
+        {copied ? 'Copied' : 'Copy'}
+      </button>
+    </div>
+  );
+}
+
+function HotelBadgePill({ kind }: { kind: HotelBadge }) {
+  const config = (
+    kind === 'top'     ? { label: "Pear's pick", bg: 'var(--peach-ink, #C6703D)', fg: '#FFFFFF', border: 'var(--peach-ink, #C6703D)' } :
+    kind === 'closest' ? { label: 'Closest',     bg: 'var(--sage-tint, rgba(123,138,93,0.18))', fg: '#3D4A1F', border: 'rgba(123,138,93,0.4)' } :
+                          { label: 'Best value', bg: 'var(--lavender-bg, rgba(149,141,176,0.16))', fg: '#5C4F8C', border: 'rgba(149,141,176,0.4)' }
+  );
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '3px 9px',
+        background: config.bg,
+        color: config.fg,
+        border: `1px solid ${config.border}`,
+        borderRadius: 999,
+        fontSize: 9.5,
+        fontWeight: 800,
+        letterSpacing: '0.12em',
+        textTransform: 'uppercase',
+        lineHeight: 1.2,
+        boxShadow: kind === 'top' ? '0 4px 10px -4px rgba(198,112,61,0.50)' : 'none',
+      }}
+    >
+      {kind === 'top' && <span aria-hidden style={{ fontSize: 9 }}>★</span>}
+      {config.label}
+    </span>
+  );
+}
+
+function HotelCard({
+  hotel,
+  tone,
+  display = 'photo',
+  badges = [],
+}: {
+  hotel: HotelCardModel;
+  tone: 'peach' | 'lavender' | 'sage';
+  /** 'icon' renders the editorial moon-glyph variant even when a
+   *  Google photoUrl is present. */
+  display?: 'photo' | 'icon';
+  badges?: HotelBadge[];
+}) {
   const tintBg =
     tone === 'peach' ? 'var(--peach-bg)' :
     tone === 'lavender' ? 'var(--lavender-bg)' :
     'var(--sage-tint)';
-  const photo = hotel.photoUrl ?? hotel.image;
+  const photo = display === 'icon' ? null : (hotel.photoUrl ?? hotel.image);
   // Description preference: explicit description → notes (legacy
   // channel that older hotels used) → empty.
   const blurb = hotel.description ?? hotel.notes ?? '';
@@ -2189,23 +2391,48 @@ function HotelCard({ hotel, tone }: { hotel: HotelCardModel; tone: 'peach' | 'la
     if (p.includes('INEXPENSIVE') || p === '$') return '$';
     return p;  // host-typed nightly rate — show as-is
   })();
+  // Pearl-pick gets a pearl-accent border so the eye lands there
+  // first; closest + value just stay as small pills in the corner.
+  const isTop = badges.includes('top');
   // Stack the three meta rails into chips. Hide rails that are empty
   // so the card never reads as half-full.
   return (
     <article
-      className="pl8-hotel-card"
+      className={`pl8-hotel-card${isTop ? ' pl8-hotel-card-top' : ''}`}
       style={{
+        position: 'relative',
         display: 'grid',
         gridTemplateColumns: '120px 1fr',
         gap: 16,
         padding: 14,
         borderRadius: 18,
         background: 'var(--card)',
-        border: '1px solid var(--card-ring)',
-        boxShadow: '0 4px 12px -8px rgba(14,13,11,0.18)',
+        border: isTop ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid var(--card-ring)',
+        boxShadow: isTop
+          ? '0 8px 24px -10px rgba(198,112,61,0.30), 0 0 0 4px rgba(198,112,61,0.06)'
+          : '0 4px 12px -8px rgba(14,13,11,0.18)',
         overflow: 'hidden',
       }}
     >
+      {badges.length > 0 && (
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            top: 10,
+            right: 10,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            gap: 4,
+            zIndex: 2,
+          }}
+        >
+          {badges.includes('top') && <HotelBadgePill kind="top" />}
+          {badges.includes('closest') && <HotelBadgePill kind="closest" />}
+          {badges.includes('value') && <HotelBadgePill kind="value" />}
+        </div>
+      )}
       <div
         aria-hidden={!photo}
         style={{
@@ -2444,16 +2671,35 @@ function TravelSectionImpl({ manifest, onEditField }: { manifest: StoryManifest;
                   Nothing yet. Add hotel blocks from the Travel panel.
                 </p>
               )}
-              {hotels.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  {hotels.slice(0, 6).map((h, i) => {
-                    const tone = hotelTones[i % hotelTones.length] as 'peach' | 'lavender' | 'sage';
-                    return (
-                      <HotelCard key={i} hotel={h as HotelCardModel} tone={tone} />
-                    );
-                  })}
-                </div>
-              )}
+              {hotels.length > 0 && (() => {
+                const visible = hotels.slice(0, 6) as unknown as HotelCardModel[];
+                const display = (manifest.travelInfo?.hotelDisplay ?? 'photo') as 'photo' | 'icon';
+                const badgesEnabled = manifest.travelInfo?.hotelBadges !== false;
+                const badges = badgesEnabled ? computeHotelBadges(visible) : visible.map(() => [] as HotelBadge[]);
+                // Group block code surfaces as an editorial banner
+                // above the grid when set — easy for guests to spot
+                // and copy when calling the hotel for the rate.
+                const blockCode = (manifest.travelInfo as unknown as { blockCode?: string } | undefined)?.blockCode
+                  ?? (manifest as unknown as { travel?: { blockCode?: string } }).travel?.blockCode
+                  ?? '';
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {blockCode && <GroupBlockCodeBanner code={blockCode} />}
+                    {visible.map((h, i) => {
+                      const tone = hotelTones[i % hotelTones.length] as 'peach' | 'lavender' | 'sage';
+                      return (
+                        <HotelCard
+                          key={i}
+                          hotel={h}
+                          tone={tone}
+                          display={display}
+                          badges={badges[i] ?? []}
+                        />
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>
