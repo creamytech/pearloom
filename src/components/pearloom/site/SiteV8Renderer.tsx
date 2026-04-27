@@ -2888,6 +2888,99 @@ function TravelSectionImpl({ manifest, onEditField }: { manifest: StoryManifest;
 }
 
 /* ==================== REGISTRY ==================== */
+// Single registry card — extracted from RegistrySectionImpl so
+// the same shape renders both grouped + flat layouts. The
+// "Most loved" pill stamps the *first* card so the host's
+// preferred order surfaces at the top.
+interface RegistryCardGift {
+  name: string;
+  d: string;
+  url: string;
+  icon: string;
+  tone: 'peach' | 'sage' | 'lavender';
+}
+function RegistryCard({ gift, isMostLoved }: { gift: RegistryCardGift; isMostLoved?: boolean }) {
+  return (
+    <div
+      style={{
+        position: 'relative',
+        background: 'var(--card)',
+        border: isMostLoved ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid var(--card-ring)',
+        borderRadius: 20,
+        padding: 24,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 14,
+        boxShadow: isMostLoved
+          ? '0 8px 24px -10px rgba(198,112,61,0.30), 0 0 0 4px rgba(198,112,61,0.06)'
+          : 'none',
+      }}
+    >
+      {isMostLoved && (
+        <span
+          style={{
+            position: 'absolute',
+            top: 14,
+            right: 14,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            padding: '3px 9px',
+            background: 'var(--peach-ink, #C6703D)',
+            color: '#FFFFFF',
+            borderRadius: 999,
+            fontSize: 9.5,
+            fontWeight: 800,
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            boxShadow: '0 4px 10px -3px rgba(198,112,61,0.45)',
+          }}
+        >
+          <span aria-hidden style={{ fontSize: 9 }}>★</span>
+          Most loved
+        </span>
+      )}
+      <div
+        style={{
+          width: 56,
+          height: 56,
+          borderRadius: 14,
+          background:
+            gift.tone === 'peach' ? 'var(--peach-bg)' : gift.tone === 'sage' ? 'var(--sage-tint)' : 'var(--lavender-bg)',
+          color:
+            gift.tone === 'peach' ? 'var(--peach-ink)' : gift.tone === 'sage' ? 'var(--sage-deep)' : 'var(--lavender-ink)',
+          display: 'grid',
+          placeItems: 'center',
+        }}
+      >
+        <Icon name={gift.icon} size={24} />
+      </div>
+      <div className="display" style={{ fontSize: 26 }}>
+        {gift.name}
+      </div>
+      <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.5, margin: 0 }}>{gift.d}</p>
+      <a href={gift.url} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm" style={{ justifyContent: 'center' }}>
+        Contribute <Icon name="arrow-right" size={12} />
+      </a>
+    </div>
+  );
+}
+
+// Auto-categorize a registry entry by name + note + URL keywords.
+// "Cash fund" wins outright when the entry was minted from
+// reg.cashFundUrl. "Travel" covers honeymoon experiences;
+// "Kitchen" covers cookware/utensils; "Home" covers furnishings/
+// linens; everything else stays under "Shop".
+function categorizeRegistry(name: string, d: string, url: string): string {
+  const text = `${name} ${d} ${url}`.toLowerCase();
+  if (/\bcash\s*fund\b|\bvenmo\b|\bzelle\b|\bpaypal\b|\bgofundme\b|honey\s*moon\s*fund/.test(text)) return 'Cash + funds';
+  if (/honeymoon|travel|trip|hotel|flight|experience|airbnb|viator|getaway/.test(text)) return 'Travel';
+  if (/williams[\s-]?sonoma|sur\s+la\s+table|kitchen|cookware|cookbook|knife|knives|pot\s*&\s*pan|dishes|bowls|baking/.test(text)) return 'Kitchen';
+  if (/pottery\s*barn|cb2|crate\s*&\s*barrel|west\s*elm|home|bedding|linens|lamp|sheet|towel|rug|throw\s*pillow|art|frame|decor/.test(text)) return 'Home';
+  if (/amazon|target|zola|the\s*knot|honeyfund|wayfair|registry|shop/.test(text)) return 'Shop';
+  return 'Shop';
+}
+
 function RegistrySectionImpl({ manifest }: { manifest: StoryManifest }) {
   // Pull from the real manifest shape: registry.entries[] +
   // registry.cashFundUrl / message. When nothing is set, the
@@ -2946,6 +3039,20 @@ function RegistrySectionImpl({ manifest }: { manifest: StoryManifest }) {
   // No user-provided registry? Don't render demo gifts.
   if (gifts.length === 0) return null;
 
+  // Auto-bucket entries — "Cash + funds", "Travel", "Kitchen",
+  // "Home", "Shop". When ≥2 buckets are populated AND ≥4 entries
+  // exist, render under category headers; otherwise stay as a
+  // single grid (small registries don't need the structure).
+  const grouped = gifts.map((g) => ({ ...g, category: categorizeRegistry(g.name, g.d, g.url) }));
+  const buckets: Record<string, typeof grouped> = {};
+  for (const g of grouped) {
+    const key = g.category;
+    if (!buckets[key]) buckets[key] = [];
+    buckets[key].push(g);
+  }
+  const bucketKeys = ['Cash + funds', 'Kitchen', 'Home', 'Travel', 'Shop'].filter((k) => buckets[k]?.length);
+  const showGroups = bucketKeys.length >= 2 && grouped.length >= 4;
+
   return (
     <section id="registry" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', position: 'relative' }}>
       <SectionBackground manifest={manifest} sectionId="registry" />
@@ -2975,45 +3082,42 @@ function RegistrySectionImpl({ manifest }: { manifest: StoryManifest }) {
           </p>
         </div>
 
-        <div className="pl8-cols-3" style={{ gap: 20 }}>
-          {gifts.map((g, i) => (
-            <div
-              key={i}
-              style={{
-                background: 'var(--card)',
-                border: '1px solid var(--card-ring)',
-                borderRadius: 20,
-                padding: 24,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 14,
-              }}
-            >
-              <div
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 14,
-                  background:
-                    g.tone === 'peach' ? 'var(--peach-bg)' : g.tone === 'sage' ? 'var(--sage-tint)' : 'var(--lavender-bg)',
-                  color:
-                    g.tone === 'peach' ? 'var(--peach-ink)' : g.tone === 'sage' ? 'var(--sage-deep)' : 'var(--lavender-ink)',
-                  display: 'grid',
-                  placeItems: 'center',
-                }}
-              >
-                <Icon name={g.icon} size={24} />
+        {showGroups ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
+            {bucketKeys.map((key) => (
+              <div key={key}>
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: '0.18em',
+                    color: 'var(--peach-ink)',
+                    textTransform: 'uppercase',
+                    marginBottom: 14,
+                    textAlign: 'center',
+                  }}
+                >
+                  {key} · {buckets[key].length}
+                </div>
+                <div className="pl8-cols-3" style={{ gap: 20 }}>
+                  {buckets[key].map((g, i) => (
+                    <RegistryCard
+                      key={`${key}-${i}`}
+                      gift={g}
+                      isMostLoved={g === grouped[0] && i === 0 && key === bucketKeys[0]}
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="display" style={{ fontSize: 26 }}>
-                {g.name}
-              </div>
-              <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.5, margin: 0 }}>{g.d}</p>
-              <a href={g.url} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm" style={{ justifyContent: 'center' }}>
-                Contribute <Icon name="arrow-right" size={12} />
-              </a>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="pl8-cols-3" style={{ gap: 20 }}>
+            {grouped.map((g, i) => (
+              <RegistryCard key={i} gift={g} isMostLoved={i === 0} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -3157,10 +3261,49 @@ function GallerySectionImpl({ chapters, manifest, onEditField }: { chapters: Cha
 }
 
 /* ==================== FAQ ==================== */
+// Auto-categorize a FAQ question by keyword. Buckets are kept
+// short on purpose — too many bins and the chip rail gets noisy.
+// The category chips are guest-side filters; "Most asked" is the
+// host-curated first item.
+const FAQ_CATEGORY_RULES: Array<[RegExp, string]> = [
+  [/\b(airport|airline|flight|drive|driving|park|parking|direction|address|map|where is|how to get|car)/i, 'Travel'],
+  [/\b(dress|wear|attire|black\s*tie|cocktail|formal|outfit|tie|tux|gown|shoes|heels)/i, 'Dress code'],
+  [/\b(food|meal|dietary|allerg|vegan|vegetarian|gluten|menu|drink|bar|alcohol|kosher|halal)/i, 'Food + drink'],
+  [/\b(kid|child|children|baby|toddler|family|stroller|nanny)/i, 'Kids'],
+  [/\b(rsvp|reply|deadline|when do|how do i|let you know)/i, 'RSVP'],
+  [/\b(gift|registr|present|honey\s*moon\s*fund|cash)/i, 'Gifts'],
+  [/\b(hotel|stay|lodging|sleep|rooms|airbnb)/i, 'Hotels'],
+  [/\b(plus[\s-]?one|guest|invit|alone|date|partner)/i, 'Plus-ones'],
+  [/\b(photo|video|post|social|hashtag|instagram|share)/i, 'Photos'],
+];
+function categorizeFaq(question: string): string {
+  for (const [rx, label] of FAQ_CATEGORY_RULES) {
+    if (rx.test(question)) return label;
+  }
+  return 'Other';
+}
+
 function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; onEditField?: FieldEditor }) {
   type FaqItem = { id?: string; question: string; answer: string };
   const edit = useIsEditMode();
   const faq = ((manifest as unknown as { faq?: FaqItem[] }).faq ?? []);
+  // Active filter chip — guest-side state. "All" shows everything.
+  const [filter, setFilter] = useState<string>('All');
+  // Build the chip list from actually-present categories so we
+  // never advertise a chip that filters to zero results. Order
+  // mirrors the original rule order so the most-common topics
+  // surface first.
+  const categories = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const f of faq) {
+      const c = categorizeFaq(f.question ?? '');
+      counts.set(c, (counts.get(c) ?? 0) + 1);
+    }
+    const labels = Array.from(counts.keys());
+    // Sort by descending count so the most populous topic comes first.
+    labels.sort((a, b) => (counts.get(b) ?? 0) - (counts.get(a) ?? 0));
+    return labels.length > 1 ? labels : [];
+  }, [faq]);
   if (!faq.length && !edit) return null;
   const patchFaq = (index: number, field: 'question' | 'answer') => (next: string) => {
     onEditField?.((m) => {
@@ -3203,6 +3346,47 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
             Frequently <span className="display-italic">asked.</span>
           </h2>
         </div>
+        {categories.length > 0 && (
+          <div
+            role="tablist"
+            aria-label="Filter FAQ by topic"
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 6,
+              justifyContent: 'center',
+              marginBottom: 24,
+            }}
+          >
+            {(['All', ...categories]).map((c) => {
+              const active = filter === c;
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setFilter(c)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: 999,
+                    border: active ? '1px solid var(--peach-ink, #C6703D)' : '1px solid var(--line-soft)',
+                    background: active ? 'var(--peach-ink, #C6703D)' : 'transparent',
+                    color: active ? '#FFFFFF' : 'var(--ink-soft)',
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    letterSpacing: '0.04em',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-ui)',
+                    transition: 'background 160ms ease, color 160ms ease, border-color 160ms ease',
+                  }}
+                >
+                  {c}
+                </button>
+              );
+            })}
+          </div>
+        )}
         <div
           style={{
             background: 'var(--card)',
@@ -3211,38 +3395,65 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
             overflow: 'hidden',
           }}
         >
-          {faq.map((item, i) => (
-            <div
-              key={item.id ?? i}
-              style={{
-                padding: '22px 26px',
-                borderBottom: i < faq.length - 1 ? '1px solid var(--line-soft)' : 'none',
-              }}
-            >
-              <EditableField
-                as="div"
-                className="display"
-                value={item.question}
-                onSave={patchFaq(i, 'question')}
-                context={`FAQ ${i + 1} question`}
-                placeholder="Question?"
-                ariaLabel={`FAQ ${i + 1} question`}
-                maxLength={240}
-                style={{ fontSize: 20, fontWeight: 600, marginBottom: 6, color: 'var(--ink)' }}
-              />
-              <EditableField
-                as="div"
-                value={item.answer}
-                onSave={patchFaq(i, 'answer')}
-                context={`FAQ ${i + 1} answer`}
-                placeholder="Write the answer here…"
-                ariaLabel={`FAQ ${i + 1} answer`}
-                multiline
-                maxLength={800}
-                style={{ fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.65 }}
-              />
-            </div>
-          ))}
+          {faq.map((item, i) => {
+            const cat = categorizeFaq(item.question ?? '');
+            const visible = filter === 'All' || filter === cat;
+            if (!visible) return null;
+            return (
+              <div
+                key={item.id ?? i}
+                style={{
+                  padding: '22px 26px',
+                  borderBottom: i < faq.length - 1 ? '1px solid var(--line-soft)' : 'none',
+                }}
+              >
+                {i === 0 && filter === 'All' && (
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      padding: '2px 9px',
+                      background: 'rgba(198,112,61,0.10)',
+                      color: 'var(--peach-ink, #C6703D)',
+                      border: '1px solid rgba(198,112,61,0.32)',
+                      borderRadius: 999,
+                      fontSize: 9.5,
+                      fontWeight: 800,
+                      letterSpacing: '0.14em',
+                      textTransform: 'uppercase',
+                      marginBottom: 8,
+                    }}
+                  >
+                    <span aria-hidden style={{ fontSize: 9 }}>★</span>
+                    Most asked
+                  </span>
+                )}
+                <EditableField
+                  as="div"
+                  className="display"
+                  value={item.question}
+                  onSave={patchFaq(i, 'question')}
+                  context={`FAQ ${i + 1} question`}
+                  placeholder="Question?"
+                  ariaLabel={`FAQ ${i + 1} question`}
+                  maxLength={240}
+                  style={{ fontSize: 20, fontWeight: 600, marginBottom: 6, color: 'var(--ink)' }}
+                />
+                <EditableField
+                  as="div"
+                  value={item.answer}
+                  onSave={patchFaq(i, 'answer')}
+                  context={`FAQ ${i + 1} answer`}
+                  placeholder="Write the answer here…"
+                  ariaLabel={`FAQ ${i + 1} answer`}
+                  multiline
+                  maxLength={800}
+                  style={{ fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.65 }}
+                />
+              </div>
+            );
+          })}
           {edit && (
             <button
               type="button"
