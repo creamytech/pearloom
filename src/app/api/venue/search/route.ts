@@ -37,9 +37,37 @@ export async function GET(req: NextRequest) {
     const q = searchParams.get('q') ?? '';
     if (!q || q.length < 2) return NextResponse.json({ predictions: [] });
 
+    // Optional viewer location — `near=lat,lng` biases Google's
+    // ranking toward results within ~50km of that point. Used when
+    // the host has granted geolocation, so a search for "Hilton"
+    // surfaces nearby Hiltons before random matches in another
+    // country.
+    const near = searchParams.get('near') ?? '';
+    let biasLat: number | undefined;
+    let biasLng: number | undefined;
+    const m = /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/.exec(near);
+    if (m) {
+      biasLat = parseFloat(m[1]);
+      biasLng = parseFloat(m[2]);
+    }
+
+    // `kind=hotel` restricts results to lodging types — the only
+    // place we currently use this is the editor's hotel-add row.
+    const kind = searchParams.get('kind') ?? '';
+    const wantsHotel = kind === 'hotel';
+
     // ── Primary: Google Places API ──
     if (apiKey) {
       try {
+        const reqBody: Record<string, unknown> = { input: q };
+        if (typeof biasLat === 'number' && typeof biasLng === 'number') {
+          reqBody.locationBias = {
+            circle: { center: { latitude: biasLat, longitude: biasLng }, radius: 50000 },
+          };
+        }
+        if (wantsHotel) {
+          reqBody.includedPrimaryTypes = ['lodging'];
+        }
         const res = await fetch('https://places.googleapis.com/v1/places:autocomplete', {
           method: 'POST',
           headers: {
@@ -47,7 +75,7 @@ export async function GET(req: NextRequest) {
             'X-Goog-Api-Key': apiKey,
             'X-Goog-FieldMask': 'suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat',
           },
-          body: JSON.stringify({ input: q }),
+          body: JSON.stringify(reqBody),
           signal: AbortSignal.timeout(5000),
         });
 
@@ -66,7 +94,7 @@ export async function GET(req: NextRequest) {
           };
 
           const predictions: PlaceResult[] = (json.suggestions ?? [])
-            .slice(0, 5)
+            .slice(0, 6)
             .map(s => ({
               id: s.placePrediction?.placeId ?? '',
               displayName: s.placePrediction?.structuredFormat?.mainText?.text

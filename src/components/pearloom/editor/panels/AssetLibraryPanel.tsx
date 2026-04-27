@@ -39,7 +39,7 @@ interface LibraryPhoto {
 const DRAG_MIME = 'application/x-pearloom-asset';
 const ICON_DRAG_MIME = 'text/x-pearloom-icon';
 
-type LibraryTab = 'photos' | 'decor' | 'icons';
+type LibraryTab = 'photos' | 'decor';
 
 // Curated motif catalog — every glyph the editor ships with. Order
 // is grouped by purpose so the icon picker doesn't read like a
@@ -281,7 +281,7 @@ export function AssetLibraryPanel({
         aria-label="Asset library tabs"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateColumns: 'repeat(2, 1fr)',
           padding: 4,
           margin: '12px 16px 4px',
           background: 'var(--cream-2)',
@@ -293,10 +293,11 @@ export function AssetLibraryPanel({
         {(
           [
             { v: 'photos' as const, l: 'Photos', n: media?.length ?? 0 },
-            { v: 'decor' as const, l: 'AI decor', n: decorAssets.length },
-            // Icon library count is the sum of every group — fixed
-            // catalog so we don't have to compute on every render.
-            { v: 'icons' as const, l: 'Icons', n: ICON_LIBRARY.reduce((acc, g) => acc + g.names.length, 0) },
+            // Decor counts every flavour now: AI assets + uploads +
+            // the editorial + standard icon catalogue. One number,
+            // one tab — host doesn't have to remember "where do I
+            // find my stamps vs. my icon swaps."
+            { v: 'decor' as const, l: 'Decor', n: decorAssets.length + ICON_LIBRARY.reduce((acc, g) => acc + g.names.length, 0) },
           ]
         ).map((o) => {
           const on = tab === o.v;
@@ -343,14 +344,7 @@ export function AssetLibraryPanel({
         })}
       </div>
 
-      {tab === 'icons' ? (
-        <IconsTab
-          query={query}
-          setQuery={setQuery}
-          manifest={manifest}
-          onChange={onChange}
-        />
-      ) : tab === 'decor' ? (
+      {tab === 'decor' ? (
         <DecorTab
           assets={filteredDecor}
           totalCount={decorAssets.length}
@@ -606,6 +600,53 @@ function DecorTab({
     .map((g) => ({ ...g, items: assets.filter((a) => a.kind === g.kind) }))
     .filter((g) => g.items.length > 0);
 
+  // ── Icon library state (folded in from the old "Icons" tab) ──
+  // Filtering is applied to both the editorial + standard libs.
+  const lower = query.trim().toLowerCase();
+  const filterName = (n: string, label?: string) =>
+    !lower ? true : n.toLowerCase().includes(lower) || (label ?? '').toLowerCase().includes(lower);
+
+  const editorialIconGroups = EDITORIAL_GROUPS.map((g) => ({
+    ...g,
+    items: g.items.filter((d) => filterName(d.name, d.label)),
+  })).filter((g) => g.items.length > 0);
+
+  const stdIconGroups = ICON_LIBRARY.map((g) => ({
+    ...g,
+    matches: g.names.filter((n) => filterName(n)),
+  })).filter((g) => g.matches.length > 0);
+
+  const overrides = (manifest as unknown as { iconOverrides?: Record<string, string> } | undefined)?.iconOverrides ?? {};
+  const overrideEntries = Object.entries(overrides);
+  const animations = (manifest as unknown as { iconAnimations?: Record<string, EditorialAnim> } | undefined)?.iconAnimations ?? {};
+
+  function clearAllOverrides() {
+    if (!manifest || !onChange) return;
+    const next = { ...manifest } as StoryManifest;
+    (next as unknown as { iconOverrides?: Record<string, string> }).iconOverrides = {};
+    onChange(next);
+  }
+  function clearOne(originalName: string) {
+    if (!manifest || !onChange) return;
+    const cur = (manifest as unknown as { iconOverrides?: Record<string, string> }).iconOverrides ?? {};
+    const next = { ...cur };
+    delete next[originalName];
+    onChange({ ...manifest, iconOverrides: next } as unknown as StoryManifest);
+  }
+  function setAnim(originalName: string, mode: EditorialAnim) {
+    if (!manifest || !onChange) return;
+    const cur = (manifest as unknown as { iconAnimations?: Record<string, EditorialAnim> }).iconAnimations ?? {};
+    onChange({ ...manifest, iconAnimations: { ...cur, [originalName]: mode } } as unknown as StoryManifest);
+  }
+  function clearAnim(originalName: string) {
+    if (!manifest || !onChange) return;
+    const cur = (manifest as unknown as { iconAnimations?: Record<string, EditorialAnim> }).iconAnimations ?? {};
+    const next = { ...cur };
+    delete next[originalName];
+    onChange({ ...manifest, iconAnimations: next } as unknown as StoryManifest);
+  }
+  const hasIconLibraryMatches = editorialIconGroups.length > 0 || stdIconGroups.length > 0;
+
   return (
     <>
       {/* Search + Generate button */}
@@ -702,8 +743,48 @@ function DecorTab({
         </div>
       )}
 
+      {/* Active icon swaps — surfaces the host's iconOverrides
+          alongside their AI decor + uploads since "what's currently
+          decorating my site" is the same mental model regardless of
+          source. Only renders when there's at least one swap. */}
+      {overrideEntries.length > 0 && manifest && onChange && (
+        <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--line-soft)', background: 'var(--cream)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+              Active icon swaps
+            </div>
+            <button
+              type="button"
+              onClick={clearAllOverrides}
+              title="Reset every icon swap"
+              style={{
+                fontSize: 10.5, fontWeight: 700,
+                background: 'transparent', border: 'none',
+                color: 'var(--ink-soft)', cursor: 'pointer',
+                fontFamily: 'var(--font-ui)',
+              }}
+            >
+              Reset all
+            </button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {overrideEntries.map(([orig, repl]) => (
+              <ActiveSwapRow
+                key={orig}
+                orig={orig}
+                repl={repl}
+                anim={animations[orig] ?? 'still'}
+                onAnim={(m) => setAnim(orig, m)}
+                onClearAnim={() => clearAnim(orig)}
+                onClear={() => clearOne(orig)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
-        {totalCount === 0 ? (
+        {totalCount === 0 && !hasIconLibraryMatches ? (
           <div
             style={{
               padding: '28px 18px',
@@ -739,43 +820,148 @@ function DecorTab({
               <Icon name="sparkles" size={11} /> Generate decor
             </button>
           </div>
-        ) : assets.length === 0 ? (
-          <div style={{ color: 'var(--ink-soft)', textAlign: 'center', padding: 24, fontSize: 12 }}>
-            No matches for &quot;{query}&quot;.
-          </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {groups.map((g) => (
-              <div key={g.kind}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            {/* AI decor + your uploads — surfaces first when present
+                because they're the highest-effort assets the host has
+                already invested in. */}
+            {assets.length > 0 && (
+              <div>
                 <div
                   style={{
-                    fontSize: 10.5,
+                    fontSize: 9.5,
                     fontWeight: 700,
-                    letterSpacing: '0.16em',
+                    letterSpacing: '0.22em',
                     textTransform: 'uppercase',
-                    color: 'var(--ink-muted)',
-                    marginBottom: 8,
+                    color: 'var(--peach-ink, #C6703D)',
+                    marginBottom: 10,
                     padding: '0 4px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
                   }}
                 >
-                  <span>{g.label}</span>
-                  <span style={{ opacity: 0.65 }}>{g.items.length}</span>
+                  AI decor + uploads
                 </div>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
-                    gap: 8,
-                  }}
-                >
-                  {g.items.map((a) => (
-                    <DecorTile key={a.id} asset={a} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {groups.map((g) => (
+                    <div key={g.kind}>
+                      <div
+                        style={{
+                          fontSize: 10.5,
+                          fontWeight: 700,
+                          letterSpacing: '0.16em',
+                          textTransform: 'uppercase',
+                          color: 'var(--ink-muted)',
+                          marginBottom: 8,
+                          padding: '0 4px',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <span>{g.label}</span>
+                        <span style={{ opacity: 0.65 }}>{g.items.length}</span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+                        {g.items.map((a) => (
+                          <DecorTile key={a.id} asset={a} />
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
-            ))}
+            )}
+
+            {/* Editorial icon library — Pearloom's curated section
+                glyphs with hover-preview animation. */}
+            {editorialIconGroups.length > 0 && (
+              <div>
+                <div
+                  style={{
+                    fontSize: 9.5,
+                    fontWeight: 700,
+                    letterSpacing: '0.22em',
+                    textTransform: 'uppercase',
+                    color: 'var(--peach-ink, #C6703D)',
+                    marginBottom: 10,
+                    padding: '0 4px',
+                  }}
+                >
+                  Editorial icons
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {editorialIconGroups.map((g) => (
+                    <div key={g.key}>
+                      <div
+                        style={{
+                          fontSize: 10.5,
+                          fontWeight: 700,
+                          letterSpacing: '0.16em',
+                          textTransform: 'uppercase',
+                          color: 'var(--ink-muted)',
+                          marginBottom: 6,
+                          padding: '0 4px',
+                        }}
+                      >
+                        {g.label}
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(60px, 1fr))', gap: 6 }}>
+                        {g.items.map((d) => (
+                          <EditorialIconTile key={d.name} name={d.name} label={d.label} onTeach={() => {}} />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Standard library — basic UI glyphs (mail, eye, etc.) */}
+            {stdIconGroups.length > 0 && (
+              <div>
+                <div
+                  style={{
+                    fontSize: 9.5,
+                    fontWeight: 700,
+                    letterSpacing: '0.22em',
+                    textTransform: 'uppercase',
+                    color: 'var(--ink-muted)',
+                    marginBottom: 10,
+                    padding: '0 4px',
+                  }}
+                >
+                  Standard icons
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {stdIconGroups.map((g) => (
+                    <div key={g.group}>
+                      <div
+                        style={{
+                          fontSize: 10.5,
+                          fontWeight: 700,
+                          letterSpacing: '0.16em',
+                          textTransform: 'uppercase',
+                          color: 'var(--ink-muted)',
+                          marginBottom: 6,
+                          padding: '0 4px',
+                        }}
+                      >
+                        {g.group}
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))', gap: 6 }}>
+                        {g.matches.map((n) => (
+                          <IconTile key={n} name={n} onTeach={() => {}} />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {totalCount > 0 && assets.length === 0 && !hasIconLibraryMatches && (
+              <div style={{ color: 'var(--ink-soft)', textAlign: 'center', padding: 24, fontSize: 12 }}>
+                No matches for &quot;{query}&quot;.
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -916,297 +1102,6 @@ function AssetTile({ photo }: { photo: LibraryPhoto }) {
   );
 }
 
-// ── IconsTab ──────────────────────────────────────────────────
-// Every motif icon as a draggable tile. Drag carries the icon
-// name in `text/x-pearloom-icon`; the canvas's IconDropTarget
-// picks it up on drop.  Clicking a tile (without dragging)
-// surfaces a quick "Pick a target" tooltip — drag is the
-// supported gesture, click is just a teach-me hint.
-function IconsTab({
-  query,
-  setQuery,
-  manifest,
-  onChange,
-}: {
-  query: string;
-  setQuery: (q: string) => void;
-  manifest?: StoryManifest;
-  onChange?: (m: StoryManifest) => void;
-}) {
-  const [resetHint, setResetHint] = useState(false);
-  const q = query.trim().toLowerCase();
-  const filterName = (n: string, label?: string) =>
-    !q ? true : n.toLowerCase().includes(q) || (label ?? '').toLowerCase().includes(q);
-
-  // Editorial library — section-grouped custom SVGs with animation
-  // capability. Filter both by glyph name and by human label so a
-  // host typing "moon" finds the candle icon labelled "Candle, lit".
-  const editorialGroups = EDITORIAL_GROUPS.map((g) => ({
-    ...g,
-    items: g.items.filter((d) => filterName(d.name, d.label)),
-  })).filter((g) => g.items.length > 0);
-
-  // Standard motif library — basic UI glyphs.
-  const stdGroups = ICON_LIBRARY.map((g) => ({
-    ...g,
-    matches: g.names.filter((n) => filterName(n)),
-  })).filter((g) => g.matches.length > 0);
-
-  const overrides = (manifest as unknown as { iconOverrides?: Record<string, string> } | undefined)?.iconOverrides ?? {};
-  const overrideEntries = Object.entries(overrides);
-  const animations = (manifest as unknown as { iconAnimations?: Record<string, EditorialAnim> } | undefined)?.iconAnimations ?? {};
-
-  function clearAllOverrides() {
-    if (!manifest || !onChange) return;
-    const next = { ...manifest } as StoryManifest;
-    (next as unknown as { iconOverrides?: Record<string, string> }).iconOverrides = {};
-    onChange(next);
-  }
-
-  function clearOne(originalName: string) {
-    if (!manifest || !onChange) return;
-    const cur = (manifest as unknown as { iconOverrides?: Record<string, string> }).iconOverrides ?? {};
-    const next = { ...cur };
-    delete next[originalName];
-    onChange({ ...manifest, iconOverrides: next } as unknown as StoryManifest);
-  }
-
-  function setAnim(originalName: string, mode: EditorialAnim) {
-    if (!manifest || !onChange) return;
-    const cur = (manifest as unknown as { iconAnimations?: Record<string, EditorialAnim> }).iconAnimations ?? {};
-    const next = { ...cur, [originalName]: mode };
-    onChange({ ...manifest, iconAnimations: next } as unknown as StoryManifest);
-  }
-
-  function clearAnim(originalName: string) {
-    if (!manifest || !onChange) return;
-    const cur = (manifest as unknown as { iconAnimations?: Record<string, EditorialAnim> }).iconAnimations ?? {};
-    const next = { ...cur };
-    delete next[originalName];
-    onChange({ ...manifest, iconAnimations: next } as unknown as StoryManifest);
-  }
-
-  return (
-    <>
-      <div style={{ display: 'flex', gap: 6, padding: '12px 16px 10px', borderBottom: '1px solid var(--line-soft)' }}>
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search icons (heart, leaf, mail…)"
-          style={{
-            flex: 1,
-            padding: '7px 10px',
-            borderRadius: 8,
-            border: '1px solid var(--line-soft)',
-            background: 'var(--card)',
-            fontSize: 12,
-            fontFamily: 'var(--font-ui)',
-            outline: 'none',
-            color: 'var(--ink)',
-          }}
-        />
-        {overrideEntries.length > 0 && manifest && onChange && (
-          <button
-            type="button"
-            onClick={clearAllOverrides}
-            title="Reset every icon swap"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 5,
-              padding: '7px 12px',
-              borderRadius: 8,
-              background: 'var(--cream-2)',
-              border: '1px solid var(--line-soft)',
-              color: 'var(--ink)',
-              fontSize: 11.5,
-              fontWeight: 700,
-              cursor: 'pointer',
-              fontFamily: 'var(--font-ui)',
-            }}
-          >
-            <Icon name="undo" size={11} /> Reset all
-          </button>
-        )}
-      </div>
-
-      <div
-        style={{
-          padding: '10px 16px 6px',
-          fontSize: 11,
-          color: 'var(--ink-soft)',
-          background: 'var(--cream-2)',
-          lineHeight: 1.5,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-        }}
-      >
-        <Icon name="drag" size={11} />
-        Drag any icon onto a canvas glyph to swap it. One drop replaces every instance of the original.
-      </div>
-
-      {/* Active overrides — surfaces the host's swaps as full-row
-          rules so each one gets a "before ↦ after" preview AND an
-          animation-mode picker (still / hover / constant). The
-          original-name keying means the animation choice survives
-          a follow-on swap, which matches host expectations. */}
-      {overrideEntries.length > 0 && manifest && onChange && (
-        <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--line-soft)', background: 'var(--cream)' }}>
-          <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 8 }}>
-            Active swaps
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {overrideEntries.map(([orig, repl]) => (
-              <ActiveSwapRow
-                key={orig}
-                orig={orig}
-                repl={repl}
-                anim={animations[orig] ?? 'still'}
-                onAnim={(m) => setAnim(orig, m)}
-                onClearAnim={() => clearAnim(orig)}
-                onClear={() => clearOne(orig)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
-        {editorialGroups.length === 0 && stdGroups.length === 0 ? (
-          <div style={{ color: 'var(--ink-soft)', textAlign: 'center', padding: 24, fontSize: 12 }}>
-            No icons match &quot;{query}&quot;.
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            {/* Editorial library — custom Pearloom glyphs with
-                animation. Hovering a tile previews the animation
-                so the host knows what they're picking. */}
-            {editorialGroups.length > 0 && (
-              <div>
-                <div
-                  style={{
-                    fontSize: 9.5,
-                    fontWeight: 700,
-                    letterSpacing: '0.22em',
-                    textTransform: 'uppercase',
-                    color: 'var(--peach-ink, #C6703D)',
-                    marginBottom: 10,
-                    padding: '0 4px',
-                  }}
-                >
-                  Editorial library
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {editorialGroups.map((g) => (
-                    <div key={g.key}>
-                      <div
-                        style={{
-                          fontSize: 10.5,
-                          fontWeight: 700,
-                          letterSpacing: '0.16em',
-                          textTransform: 'uppercase',
-                          color: 'var(--ink-muted)',
-                          marginBottom: 6,
-                          padding: '0 4px',
-                        }}
-                      >
-                        {g.label}
-                      </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(60px, 1fr))', gap: 6 }}>
-                        {g.items.map((d) => (
-                          <EditorialIconTile
-                            key={d.name}
-                            name={d.name}
-                            label={d.label}
-                            onTeach={() => setResetHint(true)}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Standard library — basic UI glyphs (mail, eye, etc.) */}
-            {stdGroups.length > 0 && (
-              <div>
-                <div
-                  style={{
-                    fontSize: 9.5,
-                    fontWeight: 700,
-                    letterSpacing: '0.22em',
-                    textTransform: 'uppercase',
-                    color: 'var(--ink-muted)',
-                    marginBottom: 10,
-                    padding: '0 4px',
-                  }}
-                >
-                  Standard library
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {stdGroups.map((g) => (
-                    <div key={g.group}>
-                      <div
-                        style={{
-                          fontSize: 10.5,
-                          fontWeight: 700,
-                          letterSpacing: '0.16em',
-                          textTransform: 'uppercase',
-                          color: 'var(--ink-muted)',
-                          marginBottom: 6,
-                          padding: '0 4px',
-                        }}
-                      >
-                        {g.group}
-                      </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))', gap: 6 }}>
-                        {g.matches.map((n) => (
-                          <IconTile key={n} name={n} onTeach={() => setResetHint(true)} />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-        {resetHint && (
-          <div
-            role="status"
-            onAnimationEnd={() => setResetHint(false)}
-            style={{
-              position: 'sticky',
-              bottom: 8,
-              margin: '12px auto 0',
-              padding: '6px 10px',
-              background: 'var(--ink, #0E0D0B)',
-              color: 'var(--cream, #F5EFE2)',
-              borderRadius: 999,
-              fontSize: 11,
-              fontWeight: 600,
-              fontFamily: 'var(--font-ui)',
-              width: 'fit-content',
-              animation: 'pl-icon-hint-fade 1800ms ease',
-            }}
-          >
-            Drag the tile onto any canvas icon to replace it.
-            <style jsx global>{`
-              @keyframes pl-icon-hint-fade {
-                0%   { opacity: 0; transform: translateY(6px); }
-                15%  { opacity: 1; transform: translateY(0); }
-                80%  { opacity: 1; }
-                100% { opacity: 0; }
-              }
-            `}</style>
-          </div>
-        )}
-      </div>
-    </>
-  );
-}
 
 function IconTile({ name, onTeach }: { name: string; onTeach: () => void }) {
   function onDragStart(e: React.DragEvent<HTMLDivElement>) {

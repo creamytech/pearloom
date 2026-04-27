@@ -1,11 +1,39 @@
 'use client';
 
+import { useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, TextArea, TextInput } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
+import { PlaceAutocomplete } from './PlaceAutocomplete';
 
 type Hotel = { id: string; name: string; distance?: string; price?: string; description?: string; bookingUrl?: string };
+
+// One-shot hotel-add via Places autocomplete. Picking a hotel
+// produces a Hotel row with the name + a "directions" address
+// pre-filled into description so the host doesn't have to retype.
+// Booking URL stays empty — the host pastes that themselves
+// because Places doesn't ship a bookable affiliate URL.
+function HotelSearchRow({ onAdd }: { onAdd: (h: Hotel) => void }) {
+  const [query, setQuery] = useState('');
+  return (
+    <PlaceAutocomplete
+      kind="hotel"
+      placeholder="Marriott, Cedar Inn, Airbnb in Hillsboro…"
+      value={query}
+      onChangeText={setQuery}
+      onSelect={(place) => {
+        onAdd({
+          id: `htl-${Date.now().toString(36)}`,
+          name: place.name,
+          description: place.address || '',
+          bookingUrl: place.websiteUri ?? '',
+        });
+        setQuery('');
+      }}
+    />
+  );
+}
 
 function HotelsAI({ manifest, onResult }: { manifest: StoryManifest; onResult: (h: Hotel[]) => void }) {
   const l = manifest.logistics ?? {};
@@ -142,14 +170,28 @@ export function TravelPanel({
   return (
     <PanelGroup>
       <PanelSection label="The venue" hint="Pulls from the hero section.">
-        <Field label="Venue name">
-          <TextInput
+        <Field label="Venue" help="Search by name — picks fill the address + lat/lng for the map.">
+          <PlaceAutocomplete
+            kind="venue"
+            placeholder="Search for a venue"
             value={logistics.venue ?? ''}
-            onChange={(e) => onChange({ ...manifest, logistics: { ...logistics, venue: e.target.value || undefined } })}
-            placeholder="The Wildflower Barn"
+            onChangeText={(v) =>
+              onChange({ ...manifest, logistics: { ...logistics, venue: v || undefined } })
+            }
+            onSelect={(place) =>
+              onChange({
+                ...manifest,
+                logistics: {
+                  ...logistics,
+                  venue: place.name || undefined,
+                  venueAddress: place.address || undefined,
+                  venuePlaceId: place.id || undefined,
+                },
+              })
+            }
           />
         </Field>
-        <Field label="Address" help="Used to render directions + the map.">
+        <Field label="Address" help="Used to render directions + the map. Auto-fills from venue search.">
           <TextInput
             value={logistics.venueAddress ?? ''}
             onChange={(e) =>
@@ -179,6 +221,9 @@ export function TravelPanel({
             onChange={(e) => setTravel({ blockCode: e.target.value })}
             placeholder="ALEXJAMIE"
           />
+        </Field>
+        <Field label="Search a hotel by name" help="Real Google Places search. Picking adds it as a row below.">
+          <HotelSearchRow onAdd={(h) => setTravel({ hotels: [...hotels, h] })} />
         </Field>
         <HotelsAI manifest={manifest} onResult={(suggestions) => setTravel({ hotels: [...hotels, ...suggestions] })} />
 

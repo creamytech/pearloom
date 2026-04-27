@@ -2,6 +2,7 @@
 
 import type { StoryManifest } from '@/types';
 import { AddRowButton, Field, ListRow, PanelGroup, PanelSection, PanelSmartActions, PhotoSlot, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
+import { PlaceAutocomplete } from './PlaceAutocomplete';
 import { FocalPointPicker } from './FocalPointPicker';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { TimePicker, DatePicker } from '../v8-forms';
@@ -272,20 +273,36 @@ export function HeroPanel({
             placeholder="Long — September 14, 2026"
           />
         </Field>
-        <Field label="Venue name" htmlFor="pl8-hero-venue">
-          <TextInput
+        <Field
+          label="Venue"
+          help="Type to search — picking from the list fills the address, lat/lng, and place ID in one shot."
+          htmlFor="pl8-hero-venue"
+        >
+          <PlaceAutocomplete
             id="pl8-hero-venue"
+            kind="venue"
+            placeholder="Search for a venue (e.g. The Wildflower Barn)"
             value={manifest.logistics?.venue ?? ''}
-            onChange={(e) =>
+            onChangeText={(v) =>
               onChange({
                 ...manifest,
-                logistics: { ...(manifest.logistics ?? {}), venue: e.target.value || undefined },
+                logistics: { ...(manifest.logistics ?? {}), venue: v || undefined },
               })
             }
-            placeholder="The Wildflower Barn"
+            onSelect={(place) =>
+              onChange({
+                ...manifest,
+                logistics: {
+                  ...(manifest.logistics ?? {}),
+                  venue: place.name || undefined,
+                  venueAddress: place.address || undefined,
+                  venuePlaceId: place.id || undefined,
+                },
+              })
+            }
           />
         </Field>
-        <Field label="Venue address" htmlFor="pl8-hero-addr">
+        <Field label="Venue address" htmlFor="pl8-hero-addr" help="Auto-fills when you pick from the venue search.">
           <TextInput
             id="pl8-hero-addr"
             value={manifest.logistics?.venueAddress ?? ''}

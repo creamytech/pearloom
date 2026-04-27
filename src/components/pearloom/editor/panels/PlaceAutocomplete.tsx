@@ -1,0 +1,346 @@
+'use client';
+
+// ─────────────────────────────────────────────────────────────
+// Pearloom / editor/panels/PlaceAutocomplete.tsx
+//
+// v8-styled Google Places autocomplete input. Used by HeroPanel +
+// TravelPanel for the venue/address fields and by the hotel-add
+// row for picking a real lodging by name.
+//
+// Two intent flavours:
+//   kind="venue" — open-ended search across all place types
+//   kind="hotel" — scoped to lodging
+//
+// Geolocation (one-time prompt) is requested on first focus so the
+// `near=lat,lng` query param can bias Google's ranking toward
+// what's actually close. If the host denies, we fall back to plain
+// text-match results — the input still works, just without the
+// "closest first" sort.
+//
+// On select, the picked place flows back to the parent via
+// onSelect with the full PlaceDetails (name + address + lat/lng +
+// website + phone + types). Parents typically write all of these
+// onto manifest.logistics.* in a single onChange call.
+// ─────────────────────────────────────────────────────────────
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Icon } from '../../motifs';
+
+export interface PlaceDetails {
+  id: string;
+  name: string;
+  address: string;
+  lat?: number;
+  lng?: number;
+  websiteUri?: string;
+  phone?: string;
+  types?: string[];
+}
+
+interface Prediction {
+  id: string;
+  displayName: string;
+  formattedAddress: string;
+}
+
+interface Props {
+  value: string;
+  onChangeText: (next: string) => void;
+  onSelect: (place: PlaceDetails) => void;
+  /** 'venue' (open-ended) or 'hotel' (lodging-only). */
+  kind?: 'venue' | 'hotel';
+  placeholder?: string;
+  id?: string;
+  /** Disable the autocomplete dropdown but keep the textbox
+   *  editable — useful when a parent wants to surface the
+   *  control without firing search calls. */
+  searchDisabled?: boolean;
+}
+
+export function PlaceAutocomplete({
+  value,
+  onChangeText,
+  onSelect,
+  kind = 'venue',
+  placeholder,
+  id,
+  searchDisabled,
+}: Props) {
+  const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [open, setOpen] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(-1);
+  const [near, setNear] = useState<string | null>(null);
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  // ── Geolocation, one-shot ─────────────────────────────────
+  // Asked on the first focus event since unfocused background
+  // requests are likely to be denied without context. Cached for
+  // the lifetime of the editor session.
+  const askedGeo = useRef(false);
+  const requestGeo = useCallback(() => {
+    if (askedGeo.current) return;
+    askedGeo.current = true;
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setNear(`${pos.coords.latitude.toFixed(5)},${pos.coords.longitude.toFixed(5)}`);
+      },
+      () => {
+        // User denied; quietly continue without bias.
+      },
+      { timeout: 5000, maximumAge: 5 * 60_000 },
+    );
+  }, []);
+
+  // ── Debounced search ──────────────────────────────────────
+  useEffect(() => {
+    if (searchDisabled) return;
+    const q = value.trim();
+    if (q.length < 2) {
+      setPredictions([]);
+      setOpen(false);
+      return;
+    }
+    const handle = window.setTimeout(async () => {
+      setSearching(true);
+      try {
+        const params = new URLSearchParams({ q, type: 'autocomplete' });
+        if (near) params.set('near', near);
+        if (kind === 'hotel') params.set('kind', 'hotel');
+        const res = await fetch(`/api/venue/search?${params.toString()}`, { cache: 'no-store' });
+        const data = (await res.json()) as { predictions?: Prediction[] };
+        setPredictions(data.predictions ?? []);
+        setOpen(true);
+        setActiveIdx(-1);
+      } catch {
+        setPredictions([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 250);
+    return () => window.clearTimeout(handle);
+  }, [value, near, kind, searchDisabled]);
+
+  // ── Outside-click closes the popover ──────────────────────
+  useEffect(() => {
+    function onMouseDown(e: MouseEvent) {
+      if (!containerRef.current?.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, []);
+
+  // ── Pick a prediction → fetch details → flow up. ──────────
+  const pick = useCallback(async (p: Prediction) => {
+    setOpen(false);
+    onChangeText(p.displayName);
+    try {
+      const res = await fetch(
+        `/api/venue/search?placeId=${encodeURIComponent(p.id)}&type=details`,
+        { cache: 'no-store' },
+      );
+      const data = (await res.json()) as { place?: { id?: string; displayName?: string; formattedAddress?: string; location?: { lat?: number; lng?: number }; websiteUri?: string; internationalPhoneNumber?: string; types?: string[] } };
+      const place = data.place;
+      onSelect({
+        id: place?.id ?? p.id,
+        name: place?.displayName ?? p.displayName,
+        address: place?.formattedAddress ?? p.formattedAddress,
+        lat: place?.location?.lat,
+        lng: place?.location?.lng,
+        websiteUri: place?.websiteUri,
+        phone: place?.internationalPhoneNumber,
+        types: place?.types,
+      });
+    } catch {
+      onSelect({
+        id: p.id,
+        name: p.displayName,
+        address: p.formattedAddress,
+      });
+    }
+  }, [onChangeText, onSelect]);
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (!open || predictions.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIdx((i) => Math.min(predictions.length - 1, i + 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIdx((i) => Math.max(0, i - 1));
+    } else if (e.key === 'Enter' && activeIdx >= 0) {
+      e.preventDefault();
+      void pick(predictions[activeIdx]);
+    } else if (e.key === 'Escape') {
+      setOpen(false);
+    }
+  }
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '8px 12px',
+          background: 'var(--card)',
+          border: '1px solid var(--line)',
+          borderRadius: 10,
+          transition: 'border-color 160ms ease, box-shadow 160ms ease',
+          boxShadow: open ? '0 0 0 3px rgba(198,112,61,0.10)' : undefined,
+          borderColor: open ? 'var(--peach-ink, #C6703D)' : 'var(--line)',
+        }}
+      >
+        <span style={{ display: 'inline-flex', color: 'var(--ink-muted)' }}>
+          <Icon name={searching ? 'sparkles' : (kind === 'hotel' ? 'moon' : 'pin')} size={13} />
+        </span>
+        <input
+          ref={inputRef}
+          id={id}
+          type="text"
+          value={value}
+          onChange={(e) => onChangeText(e.target.value)}
+          onFocus={() => {
+            requestGeo();
+            if (predictions.length > 0) setOpen(true);
+          }}
+          onKeyDown={onKeyDown}
+          placeholder={placeholder}
+          autoComplete="off"
+          style={{
+            flex: 1,
+            background: 'transparent',
+            border: 'none',
+            outline: 'none',
+            fontSize: 13,
+            fontFamily: 'var(--font-ui)',
+            color: 'var(--ink)',
+            minWidth: 0,
+          }}
+        />
+        {near && (
+          <span
+            title="Sorted by closest to your location"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 3,
+              fontSize: 9.5,
+              fontWeight: 700,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: 'var(--peach-ink, #C6703D)',
+              background: 'rgba(198,112,61,0.10)',
+              padding: '2px 6px',
+              borderRadius: 999,
+            }}
+          >
+            <Icon name="compass" size={9} /> Near you
+          </span>
+        )}
+      </div>
+
+      {open && predictions.length > 0 && (
+        <ul
+          role="listbox"
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 6px)',
+            left: 0,
+            right: 0,
+            zIndex: 60,
+            margin: 0,
+            padding: 6,
+            listStyle: 'none',
+            background: 'var(--paper)',
+            border: '1px solid var(--card-ring)',
+            borderRadius: 12,
+            boxShadow: '0 12px 32px rgba(14,13,11,0.20)',
+            maxHeight: 280,
+            overflowY: 'auto',
+          }}
+        >
+          {predictions.map((p, i) => {
+            const on = activeIdx === i;
+            return (
+              <li
+                key={p.id}
+                role="option"
+                aria-selected={on}
+                onMouseEnter={() => setActiveIdx(i)}
+                onMouseDown={(e) => { e.preventDefault(); void pick(p); }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 8,
+                  padding: '8px 10px',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  background: on ? 'var(--cream-2)' : 'transparent',
+                  transition: 'background 120ms ease',
+                }}
+              >
+                <Icon name={kind === 'hotel' ? 'moon' : 'pin'} size={12} />
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: 13,
+                      color: 'var(--ink)',
+                      lineHeight: 1.3,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {p.displayName}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 11.5,
+                      color: 'var(--ink-soft)',
+                      marginTop: 2,
+                      lineHeight: 1.4,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {p.formattedAddress}
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {open && !searching && value.trim().length >= 2 && predictions.length === 0 && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 6px)',
+            left: 0,
+            right: 0,
+            zIndex: 60,
+            padding: '10px 14px',
+            background: 'var(--paper)',
+            border: '1px solid var(--card-ring)',
+            borderRadius: 12,
+            boxShadow: '0 12px 32px rgba(14,13,11,0.20)',
+            fontSize: 12,
+            color: 'var(--ink-soft)',
+          }}
+        >
+          No {kind === 'hotel' ? 'hotels' : 'places'} matched &quot;{value}&quot;. Type more, or drop the address in directly.
+        </div>
+      )}
+    </div>
+  );
+}
