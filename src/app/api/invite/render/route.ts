@@ -1,10 +1,21 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / api/invite/render — bespoke hero artwork via the
-// InviteArchetype recipes. Authenticated + rate-limited because
-// every call burns an OpenAI image credit.
+// InviteArchetype recipes.
+//
+// Async pattern: writing a render_jobs row, scheduling the actual
+// painter call via Next.js after() so it runs after the response
+// returns, and returning { jobId } immediately. The client polls
+// /api/invite/render/[jobId] until status flips. This is what
+// keeps "Pear timed out before the painter finished" from
+// happening — the gateway only sees a fast response, the painter
+// keeps painting up to maxDuration in the background.
+//
+// Authenticated + rate-limited because every call burns an OpenAI
+// image credit.
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server';
+import { after } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
@@ -12,9 +23,16 @@ import { getArchetype } from '@/lib/invite-engine/archetypes';
 import { renderArchetype } from '@/lib/invite-engine/render';
 import { hasOpenAIImageKey, getLastOpenAIError } from '@/lib/memory-engine/openai-image';
 import type { InviteContext, PaletteHex } from '@/lib/invite-engine/designer-prompts';
+import {
+  createJob,
+  markRunning,
+  markComplete,
+  markFailed,
+  renderJobsAvailable,
+} from '@/lib/render-jobs';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 interface Body {
   archetypeId: string;
@@ -79,6 +97,57 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // ── Async path ────────────────────────────────────────────
+  // When render_jobs is available, return a jobId immediately
+  // and let after() run the painter past the gateway timeout.
+  if (renderJobsAvailable()) {
+    const job = await createJob({
+      ownerEmail: session.user.email,
+      siteSlug: body.siteSlug,
+      surface: 'invite',
+      payload: { archetypeId: body.archetypeId, hasInspiration: !!body.inspiration, hasPortrait: !!body.portrait },
+    });
+
+    if (job) {
+      after(async () => {
+        try {
+          await markRunning(job.id);
+          const url = await runRender(body, archetype);
+          await markComplete(job.id, { url, mime: 'image/png' });
+        } catch (err) {
+          const detail = err instanceof Error ? err.message : 'unknown error';
+          console.error('[invite/render][async]', detail);
+          await markFailed(job.id, detail);
+        }
+      });
+
+      return NextResponse.json({ ok: true, jobId: job.id, async: true });
+    }
+    // If the row write itself failed, fall through to the sync
+    // path so we still attempt the render — better to time out
+    // than to silently 500 when a host clicked Paint.
+  }
+
+  // ── Sync path (fallback) ───────────────────────────────────
+  // Used when render_jobs isn't reachable (no Supabase env, local
+  // dev, etc.). Holds the connection like the old route did.
+  try {
+    const url = await runRender(body, archetype);
+    return NextResponse.json({ ok: true, url, mimeType: 'image/png', provider: 'openai' });
+  } catch (err) {
+    console.error('[invite/render][sync]', err);
+    const detail = err instanceof Error ? err.message : 'unknown error';
+    return NextResponse.json({ error: `Renderer hit a snag: ${detail}` }, { status: 502 });
+  }
+}
+
+/** Shared painter call. Throws on failure so both paths can
+ *  consistently bubble the error up. */
+async function runRender(
+  body: Body,
+  archetype: ReturnType<typeof getArchetype>,
+): Promise<string> {
+  if (!archetype) throw new Error('Archetype lost before render.');
   const hasInspiration = Boolean(body.inspiration?.base64);
   const ctx: InviteContext = {
     names: body.names,
@@ -88,45 +157,31 @@ export async function POST(req: NextRequest) {
     occasionLabel: body.occasionLabel ?? 'celebration',
     palette: body.palette,
     hasPortrait: Boolean(body.portrait),
-    // Tack the host's free-form hint onto the prompt context so the
-    // archetype builder can weave it into the system instructions.
     hint: typeof body.hint === 'string' && body.hint.trim().length > 0
       ? body.hint.trim().slice(0, 600)
       : undefined,
     hasInspiration,
   };
 
-  let result;
-  try {
-    // Build the inputImages array from portrait + inspiration. OpenAI
-    // gpt-image-2 supports up to 10 input images on the edits route.
-    const inputImages: Array<{ base64: string; mimeType: string }> = [];
-    if (body.portrait?.base64) inputImages.push({ base64: body.portrait.base64, mimeType: body.portrait.mimeType });
-    if (body.inspiration?.base64) inputImages.push({ base64: body.inspiration.base64, mimeType: body.inspiration.mimeType });
-    result = await renderArchetype({
-      archetype,
-      ctx,
-      portrait: inputImages[0],
-      extraInputImages: inputImages.length > 1 ? inputImages.slice(1) : undefined,
-      siteSlug: body.siteSlug,
-    });
-  } catch (err) {
-    console.error('[invite/render] failed:', err);
-    const detail = err instanceof Error ? err.message : 'unknown error';
-    return NextResponse.json(
-      { error: `Renderer hit a snag: ${detail}` },
-      { status: 502 },
-    );
-  }
+  const inputImages: Array<{ base64: string; mimeType: string }> = [];
+  if (body.portrait?.base64) inputImages.push({ base64: body.portrait.base64, mimeType: body.portrait.mimeType });
+  if (body.inspiration?.base64) inputImages.push({ base64: body.inspiration.base64, mimeType: body.inspiration.mimeType });
+
+  const result = await renderArchetype({
+    archetype,
+    ctx,
+    portrait: inputImages[0],
+    extraInputImages: inputImages.length > 1 ? inputImages.slice(1) : undefined,
+    siteSlug: body.siteSlug,
+  });
 
   if (!result) {
-    // Surface the real OpenAI error if we have one — way more
-    // actionable than the generic "couldn't finish that one."
     const upstream = getLastOpenAIError();
-    const detail = upstream
-      ? `Painter said: ${upstream}`
-      : 'The painter returned nothing — try a different archetype or palette.';
-    return NextResponse.json({ error: detail }, { status: 502 });
+    throw new Error(
+      upstream
+        ? `Painter said: ${upstream}`
+        : 'The painter returned nothing — try a different archetype or palette.',
+    );
   }
-  return NextResponse.json({ ok: true, ...result });
+  return result.url;
 }

@@ -100,6 +100,44 @@ const AI_ARCHETYPE_PICKS: ArchetypeId[] = [
   'midnight-observatory',
 ];
 
+// ── Async render polling ───────────────────────────────────
+// /api/invite/render now kicks off the painter via Next's after()
+// and returns a jobId. The painter writes its result to the
+// render_jobs row when it's done — we poll until status flips to
+// complete or failed. 2s cadence keeps Vercel function cost low
+// while feeling responsive; 4-minute ceiling is a hair beyond the
+// 95th-percentile gpt-image-2 'high' time we've measured.
+async function pollRenderJob(jobId: string): Promise<string | null> {
+  const startedAt = Date.now();
+  const ceilingMs = 240_000; // 4 minutes
+  const intervalMs = 2_000;
+  let consecutiveErrors = 0;
+  while (Date.now() - startedAt < ceilingMs) {
+    await new Promise((r) => setTimeout(r, intervalMs));
+    let res: Response;
+    try {
+      res = await fetch(`/api/invite/render/${encodeURIComponent(jobId)}`, { cache: 'no-store' });
+    } catch {
+      consecutiveErrors += 1;
+      if (consecutiveErrors >= 3) throw new Error('Lost connection to Pear. Try again.');
+      continue;
+    }
+    consecutiveErrors = 0;
+    if (!res.ok) {
+      // 404 here is genuinely terminal — the row is gone.
+      if (res.status === 404) throw new Error('Pear lost the canvas. Try again.');
+      // Anything else, treat as transient and keep polling.
+      continue;
+    }
+    const data = (await res.json()) as { status?: string; url?: string; error?: string };
+    if (data.status === 'complete' && data.url) return data.url;
+    if (data.status === 'failed') {
+      throw new Error(data.error ?? 'Pear couldn\'t finish that one.');
+    }
+  }
+  throw new Error('Pear is still painting — check back in a minute or try again.');
+}
+
 interface Variant {
   id: VariantId;
   label: string;
@@ -611,17 +649,13 @@ export function InviteDesigner({
           hint: aiHint.trim() || undefined,
         }),
       });
-      // Read body as text first — Vercel/edge gateways frequently
-      // return plain "An error occurred" on timeouts (gpt-image-2
-      // can take 30–60s, function timeout caps at the platform's
-      // limit). JSON.parse on plain text crashes with a cryptic
-      // "Unexpected token A" — translate to a useful message.
+      // Read body as text first — non-JSON responses (gateway 504s,
+      // platform error pages) need translating to a useful message
+      // instead of a cryptic "Unexpected token A is not valid JSON".
       const raw = await res.text();
-      let parsed: { ok?: boolean; url?: string; error?: string } = {};
+      let parsed: { ok?: boolean; url?: string; jobId?: string; async?: boolean; error?: string } = {};
       try { parsed = raw ? JSON.parse(raw) : {}; }
       catch {
-        // Non-JSON response (gateway timeout / 504) — surface a
-        // human reason instead of the parse error.
         if (res.status === 504 || /An error occurred/i.test(raw)) {
           throw new Error('Pear timed out before the painter finished. Try a simpler archetype or run it again.');
         }
@@ -630,8 +664,16 @@ export function InviteDesigner({
       if (!res.ok) {
         throw new Error(parsed.error ?? `Render failed (${res.status})`);
       }
-      if (!parsed.url) throw new Error('Pear returned no image URL.');
-      setAiBackgroundUrl(parsed.url);
+
+      // ── Async path: server returned a jobId. Poll until done.
+      // We give the painter up to 4 minutes — enough for gpt-image-2
+      // 'high' on 1024×1536 even when OpenAI is slow.
+      let finalUrl = parsed.url ?? null;
+      if (parsed.async && parsed.jobId) {
+        finalUrl = await pollRenderJob(parsed.jobId);
+      }
+      if (!finalUrl) throw new Error('Pear returned no image URL.');
+      setAiBackgroundUrl(finalUrl);
       completeDecorJob(jobId, true);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Paint failed';

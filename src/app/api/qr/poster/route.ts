@@ -7,14 +7,15 @@
 //   AREA (700×700 px) where the real, scannable QR is composited
 //   client-side at print time.
 //
-// Returns: { ok, url, themeId, qrDark, qrLight }
-//
-// Without OPENAI_API_KEY (or Gemini fallback) returns 503 with a
-// friendly "painter is offline" message — same pattern as the
-// invite designer.
+// Async pattern (matches /api/invite/render): if render_jobs is
+// available, the route writes a job row, schedules the painter
+// via Next's after(), and returns { jobId } immediately. Client
+// polls /api/qr/poster/[jobId]. Falls back to the legacy
+// hold-the-connection flow when Supabase isn't configured.
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server';
+import { after } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
@@ -22,9 +23,16 @@ import { generateImage } from '@/lib/memory-engine/image-router';
 import { getLastOpenAIError, hasOpenAIImageKey } from '@/lib/memory-engine/openai-image';
 import { uploadToR2, getR2Url } from '@/lib/r2';
 import { buildQrPosterPrompt, getQrTheme, type QrThemeId } from '@/lib/qr-engine/themes';
+import {
+  createJob,
+  markRunning,
+  markComplete,
+  markFailed,
+  renderJobsAvailable,
+} from '@/lib/render-jobs';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 interface Body {
   themeId: QrThemeId;
@@ -68,6 +76,60 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // ── Async path ───────────────────────────────────────────
+  if (renderJobsAvailable()) {
+    const job = await createJob({
+      ownerEmail: session.user.email,
+      siteSlug: body.siteSlug,
+      surface: 'qr-poster',
+      payload: { themeId: body.themeId },
+    });
+
+    if (job) {
+      after(async () => {
+        try {
+          await markRunning(job.id);
+          const url = await runRender(body, theme);
+          await markComplete(job.id, { url, mime: 'image/png' });
+        } catch (err) {
+          const detail = err instanceof Error ? err.message : 'unknown error';
+          console.error('[qr/poster][async]', detail);
+          await markFailed(job.id, detail);
+        }
+      });
+
+      return NextResponse.json({
+        ok: true,
+        jobId: job.id,
+        async: true,
+        themeId: theme.id,
+        qrDark: theme.qrDark,
+        qrLight: theme.qrLight,
+        textColor: theme.textColor ?? null,
+      });
+    }
+    // Row write failed — fall through to sync.
+  }
+
+  // ── Sync path (fallback) ─────────────────────────────────
+  try {
+    const url = await runRender(body, theme);
+    return NextResponse.json({
+      ok: true,
+      themeId: theme.id,
+      url,
+      qrDark: theme.qrDark,
+      qrLight: theme.qrLight,
+      textColor: theme.textColor ?? null,
+    });
+  } catch (err) {
+    console.error('[qr/poster][sync]', err);
+    const detail = err instanceof Error ? err.message : 'unknown error';
+    return NextResponse.json({ error: detail }, { status: 502 });
+  }
+}
+
+async function runRender(body: Body, theme: NonNullable<ReturnType<typeof getQrTheme>>): Promise<string> {
   const prompt = buildQrPosterPrompt(theme, {
     names: body.names,
     dateLabel: body.dateLabel,
@@ -84,28 +146,15 @@ export async function POST(req: NextRequest) {
 
   if (!result) {
     const upstream = getLastOpenAIError();
-    const detail = upstream
-      ? `Painter said: ${upstream}`
-      : 'The painter returned nothing — try a different theme.';
-    return NextResponse.json({ error: detail }, { status: 502 });
+    throw new Error(
+      upstream
+        ? `Painter said: ${upstream}`
+        : 'The painter returned nothing — try a different theme.',
+    );
   }
 
-  // Upload to R2.
   const ext = result.mimeType.includes('jpeg') || result.mimeType.includes('jpg') ? 'jpg' : 'png';
   const key = `qr-posters/${body.siteSlug}/${theme.id}-${Date.now().toString(36)}.${ext}`;
-  try {
-    await uploadToR2(key, Buffer.from(result.base64, 'base64'), result.mimeType);
-  } catch (err) {
-    console.error('[qr/poster] R2 upload failed:', err);
-    return NextResponse.json({ error: 'Could not stage the poster artwork.' }, { status: 500 });
-  }
-
-  return NextResponse.json({
-    ok: true,
-    themeId: theme.id,
-    url: getR2Url(key),
-    qrDark: theme.qrDark,
-    qrLight: theme.qrLight,
-    textColor: theme.textColor ?? null,
-  });
+  await uploadToR2(key, Buffer.from(result.base64, 'base64'), result.mimeType);
+  return getR2Url(key);
 }

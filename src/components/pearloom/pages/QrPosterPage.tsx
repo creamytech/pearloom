@@ -17,6 +17,40 @@ import { QR_THEMES, suggestThemesForOccasion, type QrThemeId } from '@/lib/qr-en
 import { startDecorJob, completeDecorJob } from '@/lib/decor-bus';
 import { DecorGenerationToast } from '../editor/DecorGenerationToast';
 
+// ── Async poster polling ─────────────────────────────────
+// /api/qr/poster now schedules the painter via Next's after()
+// and returns a jobId. We poll until the row flips to complete.
+async function pollQrPosterJob(jobId: string): Promise<{ url: string | null; qrDark: string | null; qrLight: string | null }> {
+  const startedAt = Date.now();
+  const ceilingMs = 240_000;
+  const intervalMs = 2_000;
+  let consecutiveErrors = 0;
+  while (Date.now() - startedAt < ceilingMs) {
+    await new Promise((r) => setTimeout(r, intervalMs));
+    let res: Response;
+    try {
+      res = await fetch(`/api/qr/poster/${encodeURIComponent(jobId)}`, { cache: 'no-store' });
+    } catch {
+      consecutiveErrors += 1;
+      if (consecutiveErrors >= 3) throw new Error('Lost connection to Pear. Try again.');
+      continue;
+    }
+    consecutiveErrors = 0;
+    if (!res.ok) {
+      if (res.status === 404) throw new Error('Pear lost the canvas. Try again.');
+      continue;
+    }
+    const data = (await res.json()) as { status?: string; url?: string; qrDark?: string; qrLight?: string; error?: string };
+    if (data.status === 'complete' && data.url) {
+      return { url: data.url, qrDark: data.qrDark ?? null, qrLight: data.qrLight ?? null };
+    }
+    if (data.status === 'failed') {
+      throw new Error(data.error ?? 'Pear couldn\'t finish that one.');
+    }
+  }
+  throw new Error('Pear is still painting — check back in a minute or try again.');
+}
+
 const COPY_PRESETS: Array<{ id: string; label: string; kicker: string; hint: string }> = [
   { id: 'tabletop', label: 'Welcome table', kicker: 'Scan to open', hint: 'our wedding site' },
   { id: 'rsvp', label: 'RSVP reminder', kicker: 'Scan to RSVP', hint: 'kindly reply by the deadline inside' },
@@ -111,7 +145,7 @@ export function QrPosterPage() {
       // Defensive parse — gateway timeouts return plain text that
       // would crash JSON.parse with "Unexpected token A".
       const raw = await res.text();
-      let data: { ok?: boolean; url?: string; qrDark?: string; qrLight?: string; error?: string } = {};
+      let data: { ok?: boolean; url?: string; jobId?: string; async?: boolean; qrDark?: string; qrLight?: string; error?: string } = {};
       try { data = raw ? JSON.parse(raw) : {}; }
       catch {
         if (res.status === 504 || /An error occurred/i.test(raw)) {
@@ -120,9 +154,21 @@ export function QrPosterPage() {
         throw new Error(`Painter responded with non-JSON (${res.status}). Try again in a minute.`);
       }
       if (!res.ok) throw new Error(data.error || `Render failed (${res.status})`);
-      if (!data.url) throw new Error('Pear returned no poster URL.');
-      setThemedPosterUrl(data.url);
-      setThemedQrColors({ dark: data.qrDark || '#0E0D0B', light: data.qrLight || '#FBF7EE' });
+
+      // Async path — kickoff returned a jobId. Poll until done.
+      // QR posters use the same render_jobs table as invites.
+      let finalUrl = data.url ?? null;
+      let finalDark = data.qrDark ?? null;
+      let finalLight = data.qrLight ?? null;
+      if (data.async && data.jobId) {
+        const polled = await pollQrPosterJob(data.jobId);
+        finalUrl = polled.url;
+        finalDark = polled.qrDark ?? finalDark;
+        finalLight = polled.qrLight ?? finalLight;
+      }
+      if (!finalUrl) throw new Error('Pear returned no poster URL.');
+      setThemedPosterUrl(finalUrl);
+      setThemedQrColors({ dark: finalDark || '#0E0D0B', light: finalLight || '#FBF7EE' });
       completeDecorJob(jobId, true);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Render failed.';
