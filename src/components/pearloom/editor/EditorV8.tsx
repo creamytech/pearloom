@@ -36,6 +36,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 import { CanvasStage } from './canvas/CanvasStage';
+import { FirstThreadTour } from './FirstThreadTour';
 import { ThemeQuickBar } from './canvas/ThemeQuickBar';
 import { EditorCanvasProvider } from './canvas/EditorCanvasContext';
 import { AssetLibraryPanel } from './panels/AssetLibraryPanel';
@@ -456,6 +457,7 @@ export function EditorV8({
         overflow: 'hidden',
       }}
     >
+      <FirstThreadTour siteSlug={siteSlug} />
       {publishError && (
         <div
           role="alert"
@@ -768,6 +770,7 @@ function EditorTopbar({
           type="button"
           onClick={onPublish}
           className="pl-pearl-accent"
+          data-tour-anchor="publish"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
