@@ -15,6 +15,7 @@ import { usePathname } from 'next/navigation';
 import { Blob, Squiggle } from '../motifs';
 import { DashSidebar } from './DashShell';
 import { DashSubNav } from './DashSubNav';
+import { DashCommandPalette } from './DashCommandPalette';
 
 const ShellPresentContext = createContext<boolean>(false);
 
@@ -27,6 +28,7 @@ export function ShellPersistentLayout({ children }: { children: ReactNode }) {
   return (
     <ShellPresentContext.Provider value={true}>
       <div className="pl8 pl8-dashshell">
+        <DashCommandPalette />
         <DashSidebar />
         <main style={{ flex: 1, minWidth: 0, position: 'relative' }}>
           <div style={{ position: 'absolute', top: 0, right: 0, pointerEvents: 'none', zIndex: 0 }}>

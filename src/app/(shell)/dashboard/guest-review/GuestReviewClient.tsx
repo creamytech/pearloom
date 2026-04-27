@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { DashEmpty } from '@/components/pearloom/dash/DashEmpty';
+import { DashSkeleton } from '@/components/pearloom/dash/DashSkeleton';
 import { Icon } from '@/components/pearloom/motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import type { GuestInsight } from '@/app/api/guests/intelligence/route';
@@ -84,19 +85,12 @@ export function GuestReviewClient({ siteSlug: urlSiteSlug }: { siteSlug: string 
   }
 
   return (
-    <DashLayout active="event">
-      <div className="pl8-dash-page-enter" style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
-        <div style={{ marginBottom: 24 }}>
-          <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 6 }}>
-            Smart guest list
-          </div>
-          <h1 className="display" style={{ fontSize: 'clamp(28px, 3vw, 36px)', margin: 0 }}>
-            Pear&rsquo;s review
-          </h1>
-          <p style={{ color: 'var(--ink-soft)', fontSize: 14, marginTop: 6, lineHeight: 1.55 }}>
-            Duplicates, VIPs, stale RSVPs, missing addresses — caught before they bite. Pear runs the pass; you decide what to apply.
-          </p>
-        </div>
+    <DashLayout
+      active="event"
+      title="Pear's review"
+      subtitle="Duplicates, VIPs, stale RSVPs, missing addresses — caught before they bite. Pear runs the pass; you decide what to apply."
+    >
+      <div style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
 
         {data && data.guestCount > 0 && (
           <div className="pl8-dash-stagger" style={{
@@ -113,7 +107,10 @@ export function GuestReviewClient({ siteSlug: urlSiteSlug }: { siteSlug: string 
         )}
 
         {loading ? (
-          <div style={{ padding: 28, textAlign: 'center', color: 'var(--ink-muted)' }}>Reviewing your list…</div>
+          <>
+            <DashSkeleton kind="stat-row" />
+            <DashSkeleton kind="list" count={4} label="Reviewing your list" />
+          </>
         ) : error ? (
           <div style={{ padding: 14, background: 'rgba(122,45,45,0.08)', color: '#7A2D2D', borderRadius: 12 }}>{error}</div>
         ) : !data || data.insights.length === 0 ? (

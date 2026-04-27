@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { DashEmpty } from '@/components/pearloom/dash/DashEmpty';
+import { DashSkeleton } from '@/components/pearloom/dash/DashSkeleton';
 
 interface PrintJob {
   id: string;
@@ -97,22 +98,15 @@ export function PrintOrdersClient({ siteFilter }: { siteFilter: string | null })
   }, [jobs]);
 
   return (
-    <DashLayout active="sites">
-      <div className="pl8-dash-page-enter" style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
-        <div style={{ marginBottom: 24 }}>
-          <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 6 }}>
-            Pearloom Print
-          </div>
-          <h1 className="display" style={{ fontSize: 'clamp(28px, 3vw, 36px)', margin: 0 }}>
-            Print orders
-          </h1>
-          <p style={{ color: 'var(--ink-soft)', fontSize: 14, marginTop: 6, lineHeight: 1.55 }}>
-            Every postcard, invitation, and thank-you card sent through Pearloom Print, with delivery tracking.
-          </p>
-        </div>
+    <DashLayout
+      active="sites"
+      title="Print orders"
+      subtitle="Every postcard, invitation, and thank-you card sent through Pearloom Print, with delivery tracking."
+    >
+      <div style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
 
         {loading ? (
-          <div style={{ padding: 28, textAlign: 'center', color: 'var(--ink-muted)' }}>Loading…</div>
+          <DashSkeleton kind="list" count={4} label="Threading print orders" />
         ) : error ? (
           <div style={{ padding: 14, background: 'rgba(122,45,45,0.08)', color: '#7A2D2D', borderRadius: 12 }}>{error}</div>
         ) : batches.length === 0 ? (

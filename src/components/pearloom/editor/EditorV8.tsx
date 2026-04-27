@@ -118,6 +118,18 @@ export function EditorV8({
   previewPathOverride?: string;
 }) {
   const router = useRouter();
+
+  // Editor ↔ dashboard chrome continuity: whenever the editor
+  // mounts for a given site, pin that site as the dashboard's
+  // selected site. Clicking "Back to dashboard" then lands on
+  // a dashboard already scoped to the right event — no second
+  // pick required. localStorage key matches useSelectedSite.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !siteSlug) return;
+    try { window.localStorage.setItem('pl-dash-site', siteSlug); }
+    catch { /* noop */ }
+  }, [siteSlug]);
+
   const [manifest, setManifest] = useState<StoryManifest>(() => {
     // Run any pending schema migrations BEFORE coercing themeFamily
     // so future migrations can reshape fields safely without the

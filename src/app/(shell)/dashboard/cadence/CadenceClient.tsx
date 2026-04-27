@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { DashEmpty } from '@/components/pearloom/dash/DashEmpty';
+import { DashSkeleton } from '@/components/pearloom/dash/DashSkeleton';
 import { Icon } from '@/components/pearloom/motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 
@@ -68,19 +69,12 @@ export function CadenceClient({ siteSlug: urlSiteSlug }: { siteSlug: string | nu
   }, [reload]);
 
   return (
-    <DashLayout active="event">
-      <div className="pl8-dash-page-enter" style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
-        <div style={{ marginBottom: 24 }}>
-          <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 6 }}>
-            Smart cadence
-          </div>
-          <h1 className="display" style={{ fontSize: 'clamp(28px, 3vw, 36px)', margin: 0 }}>
-            Send timeline
-          </h1>
-          <p style={{ color: 'var(--ink-soft)', fontSize: 14, marginTop: 6, lineHeight: 1.55 }}>
-            Pear suggests every send your event needs — save-the-date, RSVP nudge, day-before reminder, thank-you. Approve, edit copy, or schedule.
-          </p>
-        </div>
+    <DashLayout
+      active="event"
+      title="Send timeline"
+      subtitle="Pear suggests every send your event needs — save-the-date, RSVP nudge, day-before reminder, thank-you. Approve, edit copy, or schedule."
+    >
+      <div style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
 
         {!eventDate && !loading && (
           <DashEmpty
@@ -93,7 +87,7 @@ export function CadenceClient({ siteSlug: urlSiteSlug }: { siteSlug: string | nu
         )}
 
         {loading ? (
-          <div style={{ padding: 28, textAlign: 'center', color: 'var(--ink-muted)' }}>Loading…</div>
+          <DashSkeleton kind="list" count={6} label="Threading the cadence" />
         ) : error ? (
           <div style={{ padding: 14, background: 'rgba(122,45,45,0.08)', color: '#7A2D2D', borderRadius: 12 }}>{error}</div>
         ) : phases && phases.length > 0 ? (

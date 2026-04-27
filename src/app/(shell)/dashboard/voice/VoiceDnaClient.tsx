@@ -153,19 +153,12 @@ export function VoiceDnaClient({ siteSlug: urlSiteSlug }: { siteSlug: string | n
   const recordedCount = Object.values(samples).filter((s) => s.text.trim().length > 0).length;
 
   return (
-    <DashLayout active="creative">
-      <div className="pl8-dash-page-enter" style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
-        <div style={{ marginBottom: 24 }}>
-          <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 6 }}>
-            Voice DNA
-          </div>
-          <h1 className="display" style={{ fontSize: 'clamp(28px, 3vw, 36px)', margin: 0 }}>
-            Capture your voice
-          </h1>
-          <p style={{ color: 'var(--ink-soft)', fontSize: 14, marginTop: 6, lineHeight: 1.55, maxWidth: 620 }}>
-            Five minutes of you talking, eight short prompts. Pear listens, extracts your tone + signature phrases, and uses them in every draft from now on — save-the-dates, vows, thank-yous, anniversary recaps. So the words sound like you.
-          </p>
-        </div>
+    <DashLayout
+      active="creative"
+      title="Capture your voice"
+      subtitle="Five minutes of you talking, eight short prompts. Pear listens, extracts your tone + signature phrases, and uses them in every draft from now on — save-the-dates, vows, thank-yous, anniversary recaps. So the words sound like you."
+    >
+      <div style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
 
         {profile && (
           <div style={{

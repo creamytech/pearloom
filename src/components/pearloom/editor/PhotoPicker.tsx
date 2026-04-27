@@ -49,10 +49,52 @@ export function PhotoPicker({
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await fetch('/api/user-media', { cache: 'no-store' });
-      if (!r.ok) throw new Error('Failed');
-      const d = (await r.json()) as { media?: LibraryPhoto[] };
-      setMedia(d.media ?? []);
+      // Pull both user_media (authoritative) AND every site's
+      // manifest photos. Older wizards uploaded straight into
+      // manifest without persisting to user_media; without this
+      // merge, the editor PhotoPicker showed empty even when the
+      // dashboard library + invite designer surfaced photos via
+      // their own manifest scan. Same logic as LibraryPage.tsx.
+      const [mediaRes, sitesRes] = await Promise.all([
+        fetch('/api/user-media', { cache: 'no-store' }).then((r) => r.ok ? r.json() : { media: [] }).catch(() => ({ media: [] })),
+        fetch('/api/sites', { cache: 'no-store' }).then((r) => r.ok ? r.json() : { sites: [] }).catch(() => ({ sites: [] })),
+      ]);
+      const tableMedia = (mediaRes.media ?? []) as LibraryPhoto[];
+      const seen = new Set(tableMedia.map((m) => m.url));
+      const manifestRows: LibraryPhoto[] = [];
+      type SiteRow = {
+        id?: string;
+        domain?: string;
+        manifest?: {
+          coverPhoto?: string;
+          chapters?: Array<{ heroImage?: string; images?: Array<{ url?: string }> }>;
+        };
+      };
+      const sites = (sitesRes.sites ?? []) as SiteRow[];
+      for (const s of sites) {
+        const sid = s.domain ?? s.id ?? '';
+        const m = s.manifest;
+        if (!m) continue;
+        const collect = (url?: string) => {
+          if (!url || typeof url !== 'string') return;
+          if (seen.has(url)) return;
+          seen.add(url);
+          manifestRows.push({
+            id: `manifest:${sid}:${url}`,
+            url,
+            source: 'wizard',
+            source_site_id: sid || null,
+            filename: url.split('/').pop() ?? null,
+            created_at: new Date().toISOString(),
+          } as LibraryPhoto);
+        };
+        collect(m.coverPhoto);
+        for (const ch of m.chapters ?? []) {
+          collect(ch.heroImage);
+          for (const img of ch.images ?? []) collect(img.url);
+        }
+      }
+      setMedia([...tableMedia, ...manifestRows]);
     } catch {
       setMedia([]);
     } finally {

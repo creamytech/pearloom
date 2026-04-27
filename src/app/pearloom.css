@@ -792,7 +792,19 @@
 .pl8-dash-sidebar:hover::-webkit-scrollbar-thumb { background: var(--line); }
 .pl8-dash-sidebar { scrollbar-width: thin; scrollbar-color: var(--line-soft) transparent; }
 
+/* Invite designer + canvas inspector — collapse the right rail
+   into a stacked column on tablet and mobile. The aside has rich
+   per-element controls; on small screens it sits below the canvas
+   instead of next to it. */
+@media (max-width: 960px) {
+  .pl8-invite-layout { grid-template-columns: 1fr !important; }
+  .pl8-invite-inspector { position: static !important; max-height: none !important; }
+}
+
 .pl8-pulse-layout { display: grid; grid-template-columns: 280px 1fr; gap: 28px; align-items: center; }
+@media (max-width: 960px) {
+  .pl8-pulse-layout { grid-template-columns: 1fr !important; }
+}
 .pl8-pulse-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
 
 .pl8-footer-strip {
