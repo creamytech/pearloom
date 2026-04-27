@@ -9,14 +9,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,400;1,9..144,500;1,9..144,600;1,9..144,700&family=Caveat:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Paper & ink */
-  --cream:       #F8F1E4;
-  --cream-2:     #F3E9D4;
-  --cream-3:     #EDE0C5;
-  --ink:         #3D4A1F;
-  --ink-soft:    #566438;
-  --ink-2:       #6B7A45;
-  --ink-muted:   #8a8671;
+  /* Paper & ink — aligned to v8 palette (CLAUDE-DESIGN.md §2.1).
+     Pl8 originally shipped olive-tinted ink (#3D4A1F); v8 canon
+     is near-black (#0E0D0B) so olive is reserved for the brand
+     voice, not body text. Aligning these here unifies every
+     pl8-namespaced dashboard panel with the v8 dashboards
+     without rewriting JSX. */
+  --cream:       #F5EFE2;
+  --cream-2:     #FBF7EE;
+  --cream-3:     #EBE3D2;
+  --ink:         #0E0D0B;
+  --ink-soft:    #3A332C;
+  --ink-2:       #6F6557;
+  --ink-muted:   #6F6557;
 
   /* Brand */
   --sage:        #8B9C5A;
@@ -41,12 +46,14 @@
   --gold-line:   #D4A95D;
   --heart:       #E8A07A;
 
-  /* Surfaces */
-  --paper:       #FDFAF0;
-  --card:        #FFFEF7;
-  --card-ring:   rgba(61, 74, 31, 0.10);
-  --line:        rgba(61, 74, 31, 0.14);
-  --line-soft:   rgba(61, 74, 31, 0.08);
+  /* Surfaces — v8 cream family. The cool white #FFFEF7 was the
+     original pl8 card; replaced with the warm cream-card so
+     pl8 panels match v8 panels side by side. */
+  --paper:       #F5EFE2;
+  --card:        #FBF7EE;
+  --card-ring:   rgba(14, 13, 11, 0.08);
+  --line:        rgba(14, 13, 11, 0.14);
+  --line-soft:   rgba(14, 13, 11, 0.06);
 
   /* Shadow */
   --shadow-sm:  0 2px 6px rgba(61, 74, 31, 0.05);

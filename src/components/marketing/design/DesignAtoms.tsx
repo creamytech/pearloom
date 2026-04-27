@@ -324,20 +324,28 @@ export function PLButton({
   );
 }
 
-// Design mono utility — uppercase eyebrow text
+// Eyebrow text — aligned with the v8 .eyebrow utility class
+// (sans-serif Inter, 700 weight, 0.14em tracking) so both
+// DesignAtoms-using pages and v8 pages share the same eyebrow
+// voice. Was: mono Geist + 0.04em + 500. Updated 2026-04-28 to
+// finish the visual unification.
 export const MONO_STYLE: CSSProperties = {
-  fontFamily: 'var(--pl-font-mono)',
-  letterSpacing: '0.04em',
+  fontFamily: 'var(--font-ui), Inter, system-ui, sans-serif',
+  letterSpacing: '0.14em',
   textTransform: 'uppercase',
   fontSize: 11,
-  fontWeight: 500,
+  fontWeight: 700,
 };
 
+// Display headline — aligned with the v8 .display utility class:
+// 600 weight, line-height 1.02, opsz auto. Was 400 weight which
+// looked thin next to v8 page headers.
 export const DISPLAY_STYLE: CSSProperties = {
   fontFamily: '"Fraunces", Georgia, serif',
-  fontVariationSettings: '"SOFT" 80, "WONK" 0, "opsz" 144',
-  fontWeight: 400,
+  fontOpticalSizing: 'auto',
+  fontWeight: 600,
   letterSpacing: '-0.02em',
+  lineHeight: 1.02,
 };
 
 // Design palette tokens — migrated 2026-04-27 to align with the v8
