@@ -56,6 +56,7 @@ import { FaqPanel } from './panels/FaqPanel';
 import { ToastsPanel } from './panels/ToastsPanel';
 import { ThemePanel } from './panels/ThemePanel';
 import { PanelSearch } from './atoms';
+import { blockFillState, FILL_STATE_COLORS, type ScoredBlockKey } from '@/lib/site-progress';
 import { PearCommand } from './PearCommand';
 import { DesignAdvisor } from './DesignAdvisor';
 import { PearCopilot } from './pear/PearCopilot';
@@ -584,6 +585,7 @@ export function EditorV8({
             hiddenBlocks={hiddenBlocks}
             onReorder={reorderBlocks}
             onToggleHidden={toggleBlockHidden}
+            manifest={manifest}
           />
         )}
         <CanvasStage
@@ -624,6 +626,7 @@ export function EditorV8({
                 hiddenBlocks={hiddenBlocks}
                 onReorder={reorderBlocks}
                 onToggleHidden={toggleBlockHidden}
+                manifest={manifest}
               />
             ) : (
               <Inspector
@@ -1371,85 +1374,6 @@ function KbdHint() {
 }
 
 /* ---------- Left outline ---------- */
-// Compute a "fill state" for each block so the Outline can surface a
-// progress dot per row — green for filled, gold for partial, grey
-// for empty. Lets the host see at a glance which sections still
-// need attention before publishing without opening every panel.
-type FillState = 'filled' | 'partial' | 'empty';
-
-function blockFillState(block: BlockKey, manifest: StoryManifest): FillState {
-  const m = manifest as unknown as Record<string, unknown>;
-  switch (block) {
-    case 'nav':
-      // Nav is structural chrome — always considered filled.
-      return 'filled';
-    case 'hero': {
-      const names = m.names as [string, string] | undefined;
-      const cover = m.coverPhoto as string | undefined;
-      const tagline = (m.poetry as { heroTagline?: string } | undefined)?.heroTagline;
-      const hasNames = Boolean(names?.[0] && names?.[1]);
-      const hasCover = Boolean(cover);
-      const hasTagline = Boolean(tagline?.trim());
-      if (hasNames && hasCover && hasTagline) return 'filled';
-      if (hasNames || hasCover || hasTagline) return 'partial';
-      return 'empty';
-    }
-    case 'story': {
-      const chapters = (m.chapters as Array<{ description?: string; images?: unknown[] }> | undefined) ?? [];
-      if (chapters.length === 0) return 'empty';
-      const hasContent = chapters.some((c) => c.description || (c.images?.length ?? 0) > 0);
-      return hasContent ? 'filled' : 'partial';
-    }
-    case 'details':
-    case 'schedule': {
-      const events = (m.events as unknown[] | undefined) ?? [];
-      const date = (m.logistics as { date?: string } | undefined)?.date;
-      if (events.length > 0 && date) return 'filled';
-      if (events.length > 0 || date) return 'partial';
-      return 'empty';
-    }
-    case 'travel': {
-      const venue = (m.logistics as { venue?: string } | undefined)?.venue;
-      const travelInfo = m.travelInfo as { hotels?: unknown[]; transport?: unknown } | undefined;
-      const hasHotels = (travelInfo?.hotels as unknown[] | undefined)?.length ?? 0;
-      if (venue && hasHotels) return 'filled';
-      if (venue || hasHotels) return 'partial';
-      return 'empty';
-    }
-    case 'registry': {
-      const reg = m.registry as { entries?: unknown[]; cashFundUrl?: string } | undefined;
-      const entries = reg?.entries?.length ?? 0;
-      if (entries > 0 || reg?.cashFundUrl) return 'filled';
-      return 'empty';
-    }
-    case 'gallery': {
-      const chapters = (m.chapters as Array<{ images?: unknown[] }> | undefined) ?? [];
-      const photoCount = chapters.reduce((n, c) => n + (c.images?.length ?? 0), 0);
-      if (photoCount >= 6) return 'filled';
-      if (photoCount > 0) return 'partial';
-      return 'empty';
-    }
-    case 'rsvp': {
-      const date = (m.logistics as { date?: string; rsvpDeadline?: string } | undefined);
-      if (date?.date && date?.rsvpDeadline) return 'filled';
-      if (date?.date || date?.rsvpDeadline) return 'partial';
-      return 'empty';
-    }
-    case 'faq': {
-      const faqs = (m.faqs as unknown[] | undefined) ?? [];
-      return faqs.length >= 3 ? 'filled' : faqs.length > 0 ? 'partial' : 'empty';
-    }
-    case 'toasts': {
-      const samples = (m.voiceSamples as unknown[] | undefined) ?? [];
-      return samples.length > 0 ? 'filled' : 'empty';
-    }
-    case 'theme':
-      return 'filled';
-    default:
-      return 'empty';
-  }
-}
-
 function Outline({
   block,
   setBlock,
@@ -1457,6 +1381,7 @@ function Outline({
   hiddenBlocks,
   onReorder,
   onToggleHidden,
+  manifest,
 }: {
   block: BlockKey;
   setBlock: (k: BlockKey) => void;
@@ -1464,8 +1389,9 @@ function Outline({
   hiddenBlocks: BlockKey[];
   onReorder: (next: BlockKey[]) => void;
   onToggleHidden: (k: BlockKey) => void;
+  /** Manifest used to compute the per-row fill-state pip. */
+  manifest: StoryManifest;
 }) {
-  void blockFillState;
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -1500,7 +1426,13 @@ function Outline({
       }}
     >
       {/* Hero — pinned */}
-      <BlockRow def={hero} active={block === hero.key} hidden={false} onSelect={() => setBlock(hero.key)} />
+      <BlockRow
+        def={hero}
+        active={block === hero.key}
+        hidden={false}
+        onSelect={() => setBlock(hero.key)}
+        fillState={blockFillState(hero.key as ScoredBlockKey, manifest)}
+      />
 
       {/* Reorderable middle */}
       <div
@@ -1540,6 +1472,7 @@ function Outline({
                   hidden={hidden}
                   onSelect={() => setBlock(key)}
                   onToggleHidden={() => onToggleHidden(key)}
+                  fillState={blockFillState(key as ScoredBlockKey, manifest)}
                 />
               );
             })}
@@ -1578,12 +1511,14 @@ function SortableBlockRow({
   hidden,
   onSelect,
   onToggleHidden,
+  fillState,
 }: {
   def: BlockDef;
   active: boolean;
   hidden: boolean;
   onSelect: () => void;
   onToggleHidden: () => void;
+  fillState?: ReturnType<typeof blockFillState>;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } = useSortable({ id: def.key });
   const style: React.CSSProperties = {
@@ -1625,6 +1560,7 @@ function SortableBlockRow({
         onSelect={onSelect}
         onToggleHidden={onToggleHidden}
         dragHandleProps={{ attributes, listeners }}
+        fillState={fillState}
       />
     </div>
   );
@@ -1642,6 +1578,7 @@ function BlockRow({
   onSelect,
   onToggleHidden,
   dragHandleProps,
+  fillState,
 }: {
   def: BlockDef;
   active: boolean;
@@ -1649,6 +1586,7 @@ function BlockRow({
   onSelect: () => void;
   onToggleHidden?: () => void;
   dragHandleProps?: DragHandleProps;
+  fillState?: ReturnType<typeof blockFillState>;
 }) {
   // Hidden rows are draggable onto the canvas via HTML5 DnD. We
   // *don't* enable native drag on visible rows because dnd-kit owns
@@ -1728,9 +1666,27 @@ function BlockRow({
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 7,
           }}
         >
-          {def.label}
+          {fillState && (
+            <span
+              aria-label={FILL_STATE_COLORS[fillState].label}
+              title={FILL_STATE_COLORS[fillState].label}
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: 999,
+                background: FILL_STATE_COLORS[fillState].bg,
+                boxShadow: `0 0 0 3px ${FILL_STATE_COLORS[fillState].ring}`,
+                flexShrink: 0,
+                display: 'inline-block',
+              }}
+            />
+          )}
+          <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{def.label}</span>
         </div>
       </div>
       {onToggleHidden && (

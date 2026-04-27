@@ -14,6 +14,8 @@ import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/
 import { useDashStats, useLinkedCelebrations, useDaysToGo } from '@/components/marketing/v2/useDashStats';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { getKickoffCards, getKickoffEyebrow, type KickoffCard } from '@/lib/event-os/dashboard-presets';
+import { siteProgressPct } from '@/lib/site-progress';
+import type { StoryManifest } from '@/types';
 
 function Section({
   title,
@@ -172,7 +174,7 @@ function EventSites({
   sites,
   loading,
 }: {
-  sites: Array<{ id: string; domain: string; published?: boolean; coverPhoto?: string | null; names?: [string, string] | null; occasion?: string }>;
+  sites: Array<{ id: string; domain: string; published?: boolean; coverPhoto?: string | null; names?: [string, string] | null; occasion?: string; manifest?: unknown }>;
   loading: boolean;
 }) {
   const statusFor = (s: { published?: boolean; updatedAt?: unknown }) =>
@@ -225,12 +227,14 @@ function EventSites({
           const prettyUrl = formatSiteDisplayUrl(s.domain, '', normalizeOccasion(s.occasion));
           const status = statusFor(s);
           const c = statusColor[status];
+          const progress = siteProgressPct(s.manifest as StoryManifest | null | undefined);
           return (
             <Link
               key={s.id}
               href={`/dashboard/event?site=${encodeURIComponent(s.id)}`}
               style={{
-                display: 'flex',
+                display: 'grid',
+                gridTemplateColumns: '54px 1fr auto',
                 alignItems: 'center',
                 gap: 12,
                 padding: 10,
@@ -245,9 +249,43 @@ function EventSites({
                   aspect="54/44"
                 />
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>{name}</div>
-                <div style={{ fontSize: 12, color: 'var(--ink-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{prettyUrl}</div>
+                <div style={{ fontSize: 12, color: 'var(--ink-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: 4 }}>
+                  {prettyUrl}
+                </div>
+                {/* Progress hairline — fills proportionally so the
+                    host can read "how done is this site?" without
+                    opening the editor. Dashboard mirrors the same
+                    fill scoring as the editor's Outline pips. */}
+                <div
+                  aria-label={`${progress}% complete`}
+                  title={`${progress}% complete — fields filled across hero, story, schedule, RSVP, and more`}
+                  style={{
+                    position: 'relative',
+                    height: 3,
+                    borderRadius: 2,
+                    background: 'rgba(14,13,11,0.08)',
+                    overflow: 'hidden',
+                    maxWidth: 220,
+                  }}
+                >
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: `${progress}%`,
+                      background: progress >= 75
+                        ? 'var(--sage-deep, #5C6B3F)'
+                        : progress >= 35
+                          ? 'var(--gold, #B8935A)'
+                          : 'var(--peach-ink, #C6703D)',
+                      transition: 'width 320ms cubic-bezier(0.22, 1, 0.36, 1)',
+                    }}
+                  />
+                </div>
               </div>
               <span
                 style={{
