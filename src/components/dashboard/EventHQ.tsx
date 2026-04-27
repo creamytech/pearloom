@@ -27,7 +27,6 @@ import {
 } from 'lucide-react';
 import { StatTile, Button } from '@/components/shell';
 import { formatSiteDisplayUrl } from '@/lib/site-urls';
-import { BlurFade, GrooveBlob } from '@/components/brand/groove';
 
 export interface EventHQSite {
   id: string;
@@ -52,8 +51,6 @@ interface EventHQProps {
 }
 
 export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
-  const titleNames = site.names?.filter(Boolean).join(' & ') || site.domain;
-
   const daysUntil = useMemo(() => {
     if (!site.eventDate) return null;
     const event = new Date(site.eventDate).getTime();
@@ -65,148 +62,98 @@ export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
   const rsvp = site.rsvpStats ?? { attending: 0, declined: 0, pending: 0, total: 0 };
   const rsvpRate = rsvp.total > 0 ? Math.round(((rsvp.attending + rsvp.declined) / rsvp.total) * 100) : 0;
 
-  const year = new Date().getFullYear();
-
   return (
-    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 36, maxWidth: 1180, margin: '0 auto' }}>
-      {/* Ambient warmth — two groove blobs drifting behind the hq */}
-      <GrooveBlob
-        palette="sunrise"
-        size={460}
-        blur={80}
-        opacity={0.24}
-        style={{ position: 'absolute', top: '-100px', right: '-60px', zIndex: 0, pointerEvents: 'none' }}
-      />
-      <GrooveBlob
-        palette="orchard"
-        size={340}
-        blur={70}
-        opacity={0.18}
-        style={{ position: 'absolute', top: '45%', left: '-80px', zIndex: 0, pointerEvents: 'none' }}
-      />
-
-      {/* ── Editorial masthead ─────────────────────────────────── */}
-      <BlurFade>
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 28, maxWidth: 1180, margin: '0 auto' }}>
+      {/* ── Action toolbar — v8 chrome ─────────────────────────
+          DashLayout already renders the page title + subtitle from
+          EventPageClient, so we don't duplicate a masthead here.
+          This row is just the host's control surface for the site:
+          quick metadata pill, then the four primary actions. ── */}
       <header
         style={{
-          position: 'relative',
-          zIndex: 1,
-          paddingTop: 20,
-          paddingBottom: 28,
-          borderBottom: '1px solid color-mix(in oklab, var(--pl-groove-terra) 22%, transparent)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
+          flexWrap: 'wrap',
+          paddingBottom: 16,
+          borderBottom: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
         }}
       >
-        <span
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 3,
-            background:
-              'linear-gradient(90deg, var(--pl-groove-terra) 0%, var(--pl-groove-butter) 40%, transparent 75%)',
-            borderRadius: 'var(--pl-groove-radius-pill)',
-          }}
-        />
         <div
           style={{
-            display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'space-between',
-            gap: 24,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            fontFamily: 'var(--font-ui)',
+            fontSize: 12.5,
+            color: 'var(--ink-soft)',
             flexWrap: 'wrap',
           }}
         >
-          <div style={{ flex: 1, minWidth: 260 }}>
-            <div
-              style={{
-                fontFamily: 'var(--pl-font-body)',
-                fontSize: '0.92rem',
-                fontWeight: 500,
-                color: 'var(--pl-groove-terra)',
-                marginBottom: 10,
-              }}
-            >
-              Your headquarters for this one.
-            </div>
-            <h1
-              style={{
-                margin: 0,
-                fontFamily: 'var(--pl-font-body)',
-                fontSize: 'clamp(2rem, 4vw, 2.8rem)',
-                color: 'var(--pl-groove-ink)',
-                lineHeight: 1.1,
-                letterSpacing: '-0.02em',
-                fontWeight: 700,
-              }}
-            >
-              {titleNames}
-            </h1>
-            {/* Meta — sentence-case, mid-weight body copy. */}
-            <div
-              style={{
-                marginTop: 14,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 12,
-                flexWrap: 'wrap',
-                fontFamily: 'var(--pl-font-body)',
-                fontSize: '0.92rem',
-                color: 'color-mix(in oklab, var(--pl-groove-ink) 70%, transparent)',
-              }}
-            >
-              <span style={{ color: 'var(--pl-groove-terra)', fontWeight: 600, textTransform: 'capitalize' }}>
-                {site.occasion || 'Event'}
-              </span>
-              {site.eventDate && (
-                <>
-                  <span style={{ color: 'color-mix(in oklab, var(--pl-groove-ink) 35%, transparent)' }}>·</span>
-                  <span>{formatEventDate(site.eventDate)}</span>
-                </>
-              )}
-              <span style={{ color: 'color-mix(in oklab, var(--pl-groove-ink) 35%, transparent)' }}>·</span>
-              <span>
-                {formatSiteDisplayUrl(site.domain, '', site.occasion)}
-              </span>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Button
-              variant="ghost"
-              size="sm"
-              leftIcon={<Download size={15} />}
-              onClick={() => {
-                // JSON site export — opens in a new tab so the
-                // browser triggers the native save dialog.
-                if (site.id) window.open(`/api/export/site?siteId=${encodeURIComponent(site.id)}`, '_blank');
-              }}
-            >
-              Export
+          <span
+            style={{
+              padding: '3px 10px',
+              borderRadius: 999,
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: 'var(--peach-ink, #C6703D)',
+              background: 'var(--peach-bg, rgba(198,112,61,0.08))',
+            }}
+          >
+            {site.occasion || 'Event'}
+          </span>
+          {site.eventDate && (
+            <span style={{ whiteSpace: 'nowrap' }}>{formatEventDate(site.eventDate)}</span>
+          )}
+          <span
+            style={{
+              fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+              fontSize: 11.5,
+              color: 'var(--ink-muted)',
+              background: 'var(--cream-2)',
+              padding: '3px 8px',
+              borderRadius: 6,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {formatSiteDisplayUrl(site.domain, '', site.occasion)}
+          </span>
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginLeft: 'auto' }}>
+          <Button
+            variant="ghost"
+            size="sm"
+            leftIcon={<Download size={15} />}
+            onClick={() => {
+              if (site.id) window.open(`/api/export/site?siteId=${encodeURIComponent(site.id)}`, '_blank');
+            }}
+          >
+            Export
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            leftIcon={<FileText size={15} />}
+            onClick={() => {
+              if (site.id) window.open(`/api/export-pdf?siteId=${encodeURIComponent(site.id)}`, '_blank');
+            }}
+          >
+            Printable book
+          </Button>
+          {onShare && (
+            <Button variant="outline" size="sm" onClick={onShare} leftIcon={<ArrowUpRight size={16} />}>
+              Share site
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              leftIcon={<FileText size={15} />}
-              onClick={() => {
-                if (site.id) window.open(`/api/export-pdf?siteId=${encodeURIComponent(site.id)}`, '_blank');
-              }}
-            >
-              Printable book
+          )}
+          {onEdit && (
+            <Button variant="primary" size="sm" onClick={onEdit} leftIcon={<Edit3 size={16} />}>
+              Edit site
             </Button>
-            {onShare && (
-              <Button variant="outline" size="sm" onClick={onShare} leftIcon={<ArrowUpRight size={16} />}>
-                Share site
-              </Button>
-            )}
-            {onEdit && (
-              <Button variant="primary" size="sm" onClick={onEdit} leftIcon={<Edit3 size={16} />}>
-                Edit site
-              </Button>
-            )}
-          </div>
+          )}
         </div>
       </header>
-      </BlurFade>
 
       {/* ── Stat row ───────────────────────────────────────────── */}
       <section style={{ position: 'relative', zIndex: 1 }}>
