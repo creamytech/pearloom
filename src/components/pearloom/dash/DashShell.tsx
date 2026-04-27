@@ -172,53 +172,35 @@ export function DashSidebar({ active }: { active?: string }) {
             position: 'relative',
             background: 'var(--cream-2)',
             border: '1px solid var(--line-soft)',
-            borderRadius: 14,
-            padding: 14,
+            borderRadius: 12,
+            padding: '8px 10px',
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
             gap: 8,
-            textAlign: 'center',
             overflow: 'hidden',
           }}
         >
-          {/* Soft breathing glow behind the Pear — reads as the card
-              "thinking". Honors reduced-motion. */}
-          <div
-            aria-hidden="true"
+          {/* Compact plan strip — was a 200px+ tall card with a
+              breathing pear, halo, and three lines of copy.
+              Slimmed to a single row so it doesn't dominate the
+              sidebar bottom. */}
+          <Pear size={26} tone="sage" />
+          <div style={{ flex: 1, minWidth: 0, fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.3 }}>
+            <strong style={{ color: 'var(--ink)' }}>Evergreen</strong>
+            <span style={{ color: 'var(--ink-muted)', marginLeft: 4 }}>· trial</span>
+          </div>
+          <Link
+            href="/dashboard/help"
             style={{
-              position: 'absolute',
-              top: 6,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: 70,
-              height: 70,
-              borderRadius: '50%',
-              background:
-                'radial-gradient(circle, color-mix(in oklab, var(--sage-deep) 24%, transparent) 0%, transparent 70%)',
-              filter: 'blur(6px)',
-              animation: 'pl8-plan-halo 4.8s ease-in-out infinite',
-              pointerEvents: 'none',
-            }}
-          />
-          <span
-            style={{
-              display: 'inline-flex',
-              animation: 'pl8-plan-breathe 4.8s ease-in-out infinite',
-              transformOrigin: 'center',
+              fontSize: 11,
+              fontWeight: 600,
+              color: 'var(--peach-ink, #C6703D)',
+              textDecoration: 'none',
+              padding: '2px 6px',
+              borderRadius: 6,
             }}
           >
-            <Pear size={44} tone="sage" sparkle />
-          </span>
-          <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.4 }}>
-            You&apos;re on the
-            <br />
-            <strong style={{ color: 'var(--ink)' }}>Evergreen Plan</strong>
-            <br />
-            <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>Free while in trial</span>
-          </div>
-          <Link href="/dashboard/help" className="btn btn-outline btn-sm" style={{ width: '100%', justifyContent: 'center' }}>
-            View plan
+            View
           </Link>
         </div>
 
@@ -378,7 +360,13 @@ function CelebrationCard() {
   );
 }
 
-/* ── Nav group with sliding active pill ─────────────────────── */
+/* ── Nav group with collapsible header ───────────────────────
+   The dashboard has 22+ nav items across 5 groups — too much to
+   fit one viewport. Each group is now collapsible: groups
+   containing the current route are open by default, others
+   collapsed. State persists in localStorage so the user's
+   open/closed choices stick across navigations.
+   ──────────────────────────────────────────────────────────── */
 function NavGroup({
   group,
   active,
@@ -397,11 +385,42 @@ function NavGroup({
     visible: false,
   });
 
+  // Group is open if it contains the active route. User can manually
+  // expand/collapse via the header button; that override persists
+  // in localStorage under a per-group key.
+  const containsActive = group.items.some((item) => {
+    if (active) return item.id === active;
+    return pathname === item.href;
+  });
+  const storageKey = `pl-dash-nav-open:${group.id}`;
+  const [open, setOpen] = useState<boolean>(containsActive);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const stored = window.localStorage.getItem(storageKey);
+    if (stored === '1') setOpen(true);
+    else if (stored === '0') setOpen(false);
+    else setOpen(containsActive);
+    // We only want to read storage on mount + when the active group
+    // changes, not on every pathname tick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [containsActive]);
+  const toggleOpen = () => {
+    const next = !open;
+    setOpen(next);
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem(storageKey, next ? '1' : '0');
+      } catch {}
+    }
+  };
+
   // Measure the active item's offsetTop + height so the pill can
-  // slide to it with a CSS transition. Runs synchronously before
-  // paint so there's no flicker when the route changes.
+  // snap into place. Skipped while collapsed.
   useLayoutEffect(() => {
-    if (!listRef.current) return;
+    if (!listRef.current || !open) {
+      setPill((p) => ({ ...p, visible: false }));
+      return;
+    }
     const activeEl = listRef.current.querySelector<HTMLAnchorElement>('[data-nav-active="1"]');
     if (!activeEl) {
       setPill((p) => ({ ...p, visible: false }));
@@ -410,57 +429,79 @@ function NavGroup({
     const listRect = listRef.current.getBoundingClientRect();
     const itemRect = activeEl.getBoundingClientRect();
     setPill({ top: itemRect.top - listRect.top, height: itemRect.height, visible: true });
-  }, [active, pathname]);
+  }, [active, pathname, open]);
 
   return (
     <div>
-      <div
+      <button
+        type="button"
+        onClick={toggleOpen}
+        aria-expanded={open}
         style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 6,
+          padding: '4px 12px 6px',
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
           fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
           fontSize: 9.5,
           fontWeight: 700,
           letterSpacing: '0.22em',
           textTransform: 'uppercase',
           color: 'var(--ink-muted)',
-          padding: '0 12px 6px',
+          textAlign: 'left',
         }}
       >
-        {group.label}
-      </div>
-      <div ref={listRef} style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {/* Active pill — instant snap to the active row. Previously
-            faded opacity 1 → 0 → 1 during a 320ms slide, which the
-            user perceived as 'the whole page fades' (multiple pills
-            fading simultaneously across nav groups looks like a
-            page-level transition). Now just shows or hides. */}
-        <div
-          aria-hidden="true"
+        <span>{group.label}</span>
+        <span
+          aria-hidden
           style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            top: pill.top,
-            height: pill.height,
-            background: 'var(--ink)',
-            borderRadius: 10,
-            opacity: pill.visible ? 1 : 0,
-            pointerEvents: 'none',
-            zIndex: 0,
+            display: 'inline-flex',
+            transform: open ? 'rotate(0deg)' : 'rotate(-90deg)',
+            transition: 'transform 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+            color: 'var(--ink-muted)',
           }}
-        />
-        {group.items.map((item) => {
-          const isActive = active ? item.id === active : pathname === item.href;
-          const liveBadge = item.id === 'bridge' && unread > 0 ? String(unread) : item.badge;
-          return (
-            <NavLink
-              key={item.id}
-              item={item}
-              isActive={isActive}
-              liveBadge={liveBadge}
-            />
-          );
-        })}
-      </div>
+        >
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </span>
+      </button>
+      {open && (
+        <div ref={listRef} style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              top: pill.top,
+              height: pill.height,
+              background: 'var(--ink)',
+              borderRadius: 10,
+              opacity: pill.visible ? 1 : 0,
+              pointerEvents: 'none',
+              zIndex: 0,
+            }}
+          />
+          {group.items.map((item) => {
+            const isActive = active ? item.id === active : pathname === item.href;
+            const liveBadge = item.id === 'bridge' && unread > 0 ? String(unread) : item.badge;
+            return (
+              <NavLink
+                key={item.id}
+                item={item}
+                isActive={isActive}
+                liveBadge={liveBadge}
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

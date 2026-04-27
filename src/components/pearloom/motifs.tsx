@@ -975,8 +975,34 @@ export function Icon({
     /* heart-icon used to render a heart silhouette; v9 swaps in the
        Sprig glyph so existing "Made with care"-style labels read as
        an olive sprig instead of a heart. */
-    case 'heart-icon':
+    case 'heart-icon': {
+      // Now renders the Pearloom pear silhouette — a proper brand
+      // mark instead of the old sprig (which read as a slash at
+      // small sizes). 'sprig' kept as an alias for the original
+      // sprig pattern so any decorative use still works.
+      return (
+        <svg {...common}>
+          {/* Pear body — tapered top, rounded bottom-heavy belly. */}
+          <path d="M 12 4.5 C 9.8 4.5 8.5 6 8.5 8 C 8.5 9.4 7.6 10.4 6.6 11.6 C 5.4 13 4.5 14.5 4.5 16.5 C 4.5 19.5 7.5 22 12 22 C 16.5 22 19.5 19.5 19.5 16.5 C 19.5 14.5 18.6 13 17.4 11.6 C 16.4 10.4 15.5 9.4 15.5 8 C 15.5 6 14.2 4.5 12 4.5 Z" />
+          {/* Stem + leaf — quick flick at the top so the silhouette
+              reads clearly even at 12-14px. */}
+          <path d="M 12 4.5 L 12 2.4" strokeWidth={1.5} />
+          <path d="M 12 3 C 14 1.5 16.4 2.6 16.6 4.6 C 14.6 5 12.6 4.4 12 3 Z" fill={color} stroke="none" />
+        </svg>
+      );
+    }
     case 'sprig':         return <svg {...common}><path d="M 4 21 C 8 17, 11 13, 19 4" strokeWidth={1.4}/><ellipse cx="6.5" cy="18" rx="2.2" ry="1.05" fill={color} stroke="none" transform="rotate(-32 6.5 18)"/><ellipse cx="9" cy="15" rx="2.2" ry="1.05" fill={color} stroke="none" transform="rotate(-38 9 15)"/><ellipse cx="12" cy="11.8" rx="2.2" ry="1" fill={color} stroke="none" transform="rotate(-44 12 11.8)"/><ellipse cx="14.6" cy="9" rx="2.0" ry="0.95" fill={color} stroke="none" transform="rotate(-50 14.6 9)"/><ellipse cx="17" cy="6" rx="1.7" ry="0.85" fill={color} stroke="none" transform="rotate(-58 17 6)"/></svg>;
+    case 'pear': {
+      // Explicit pear icon — same shape as heart-icon now. Use this
+      // name when you specifically want a pear rather than 'heart'.
+      return (
+        <svg {...common}>
+          <path d="M 12 4.5 C 9.8 4.5 8.5 6 8.5 8 C 8.5 9.4 7.6 10.4 6.6 11.6 C 5.4 13 4.5 14.5 4.5 16.5 C 4.5 19.5 7.5 22 12 22 C 16.5 22 19.5 19.5 19.5 16.5 C 19.5 14.5 18.6 13 17.4 11.6 C 16.4 10.4 15.5 9.4 15.5 8 C 15.5 6 14.2 4.5 12 4.5 Z" />
+          <path d="M 12 4.5 L 12 2.4" strokeWidth={1.5} />
+          <path d="M 12 3 C 14 1.5 16.4 2.6 16.6 4.6 C 14.6 5 12.6 4.4 12 3 Z" fill={color} stroke="none" />
+        </svg>
+      );
+    }
     case 'asterism':      return <svg {...common}><path d="M6 12 L9 9 L12 12 L9 15 Z" fill={color} stroke="none"/><path d="M14 8 L17 5 L20 8 L17 11 Z" fill={color} stroke="none"/><path d="M14 16 L17 13 L20 16 L17 19 Z" fill={color} stroke="none"/></svg>;
     case 'fleuron':       return <svg {...common}><path d="M 3 14 C 5 6, 13 6, 15 11 C 13 13, 7 14, 3 14 Z" fill={color} stroke="none" opacity="0.92"/><path d="M 21 14 C 19 6, 13 6, 11 11 C 13 13, 17 14, 21 14 Z" fill={color} stroke="none" opacity="0.92"/><circle cx="12" cy="12" r="1.5" fill={color} stroke="none"/></svg>;
     case 'file':          return <svg {...common}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6"/></svg>;
