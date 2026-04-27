@@ -208,6 +208,17 @@ export interface StoryManifest {
      *  Surfaces on the editor's Decor tab as draggable tiles. */
     uploads?: Array<{ id: string; url: string; label: string; mime: 'image/svg+xml' | 'image/png'; addedAt: string }>;
   };
+  /** Per-icon name override map. Drag any icon from the asset
+   *  library onto a canvas glyph to write
+   *  `iconOverrides[<originalName>] = <newName>`. The renderer
+   *  reads this map and renders the swapped icon everywhere the
+   *  original used to appear. Reset via the editor's Icons tab. */
+  iconOverrides?: Record<string, string>;
+  /** Per-icon animation choice keyed by the original icon name.
+   *  Modes: 'still' (no motion), 'hover' (one play on parent
+   *  hover), 'constant' (gentle continuous loop). Editorial icons
+   *  ship with a default mode that the host can override here. */
+  iconAnimations?: Record<string, 'still' | 'hover' | 'constant'>;
   /** Block-type → variant choice map (registered via
    *  registerBlockStyle in src/lib/block-engine/block-styles.ts).
    *  Distinct from `blockStyles` above, which holds per-section

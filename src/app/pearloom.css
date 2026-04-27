@@ -1720,3 +1720,148 @@ html { scroll-behavior: smooth; }
     transform: none !important;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Editorial icon library — animation system
+
+   Every icon in src/components/pearloom/editorial-icons.tsx
+   tags itself with `data-pl-icon-anim="hover" | "constant"` and
+   exposes an inner element with `data-pl-flair`. The classes
+   below drive that inner element's keyframe based on the icon's
+   `data-pl-flair-kind` (twinkle, tick, rotate, breathe, flicker,
+   draw, sway). `still` is the absence of either attribute.
+
+   Constant-mode animations are deliberately gentle — slow loops,
+   tiny amplitude — so a page full of icons doesn't read as an
+   ad-break. Hover-mode is a single play on parent hover for a
+   moment of life when the host points at the glyph.
+   ───────────────────────────────────────────────────────────── */
+
+@keyframes pl-icon-twinkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.55; transform: scale(0.92); }
+}
+@keyframes pl-icon-tick {
+  0%   { transform: rotate(0); }
+  25%  { transform: rotate(8deg); }
+  60%  { transform: rotate(-6deg); }
+  100% { transform: rotate(0); }
+}
+@keyframes pl-icon-rotate {
+  from { transform: rotate(0); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes pl-icon-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.06); }
+}
+@keyframes pl-icon-flicker {
+  0%, 100% { opacity: 1; transform: scaleY(1) translateY(0); }
+  10%      { opacity: 0.9; transform: scaleY(0.96) translateY(0.4px); }
+  30%      { opacity: 1; transform: scaleY(1.05) translateY(-0.4px); }
+  60%      { opacity: 0.85; transform: scaleY(0.92) translateY(0.3px); }
+}
+@keyframes pl-icon-draw {
+  from { stroke-dashoffset: 60; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes pl-icon-sway {
+  0%, 100% { transform: rotate(0); }
+  35%      { transform: rotate(2.5deg); }
+  70%      { transform: rotate(-2deg); }
+}
+
+/* Anchor the rotation/scale on the glyph centre — without this,
+   the inner <g data-pl-flair> rotates around the SVG origin and
+   slides off-frame on the constant-rotate icons. */
+[data-pl-icon-anim="constant"] [data-pl-flair],
+[data-pl-icon-anim="hover"] [data-pl-flair] {
+  transform-origin: 12px 12px;
+  transform-box: fill-box;
+}
+
+/* Constant-mode icons. Loops continuously while the icon is in
+   the DOM. The `[data-pl-icon-anim="constant"]` attribute lives
+   on the SVG; the keyframe targets the inner <g data-pl-flair>. */
+[data-pl-icon-anim="constant"][data-pl-flair-kind="twinkle"]  [data-pl-flair] { animation: pl-icon-twinkle 2.4s ease-in-out infinite; }
+[data-pl-icon-anim="constant"][data-pl-flair-kind="rotate"]   [data-pl-flair] { animation: pl-icon-rotate 12s linear infinite; }
+[data-pl-icon-anim="constant"][data-pl-flair-kind="breathe"]  [data-pl-flair] { animation: pl-icon-breathe 3.2s ease-in-out infinite; }
+[data-pl-icon-anim="constant"][data-pl-flair-kind="flicker"]  [data-pl-flair] { animation: pl-icon-flicker 1.8s ease-in-out infinite; transform-origin: 12px 9px; }
+[data-pl-icon-anim="constant"][data-pl-flair-kind="sway"]     [data-pl-flair] { animation: pl-icon-sway 4s ease-in-out infinite; transform-origin: 12px 21px; }
+[data-pl-icon-anim="constant"][data-pl-flair-kind="tick"]     [data-pl-flair] { animation: pl-icon-tick 2.6s ease-in-out infinite; }
+/* Draw doesn't have a sensible "constant" mode (a path can only
+   be drawn once per cycle without resetting the dashoffset jarringly),
+   so a constant-draw is rendered as a slow draw + idle pause. */
+[data-pl-icon-anim="constant"][data-pl-flair-kind="draw"]     [data-pl-flair] {
+  stroke-dasharray: 60;
+  animation: pl-icon-draw 3s ease-in-out 1.4s infinite;
+}
+
+/* Hover-mode icons. The keyframe plays once per parent hover. We
+   target the parent (`*:hover [data-pl-icon-anim="hover"]`) so
+   icons embedded in cards animate when the host hovers the card
+   — feels organic compared to the rare case of hovering the icon
+   itself with a stylus or carefully-aimed pointer. */
+*:hover > [data-pl-icon-anim="hover"][data-pl-flair-kind="twinkle"]  [data-pl-flair] { animation: pl-icon-twinkle 800ms ease-in-out; }
+*:hover > [data-pl-icon-anim="hover"][data-pl-flair-kind="tick"]     [data-pl-flair] { animation: pl-icon-tick 600ms ease-in-out; }
+*:hover > [data-pl-icon-anim="hover"][data-pl-flair-kind="rotate"]   [data-pl-flair] { animation: pl-icon-rotate 1.6s linear; }
+*:hover > [data-pl-icon-anim="hover"][data-pl-flair-kind="breathe"]  [data-pl-flair] { animation: pl-icon-breathe 1s ease-in-out; }
+*:hover > [data-pl-icon-anim="hover"][data-pl-flair-kind="flicker"]  [data-pl-flair] { animation: pl-icon-flicker 900ms ease-in-out; transform-origin: 12px 9px; }
+*:hover > [data-pl-icon-anim="hover"][data-pl-flair-kind="sway"]     [data-pl-flair] { animation: pl-icon-sway 1.4s ease-in-out; transform-origin: 12px 21px; }
+*:hover > [data-pl-icon-anim="hover"][data-pl-flair-kind="draw"]     [data-pl-flair] {
+  stroke-dasharray: 60;
+  animation: pl-icon-draw 900ms ease-out;
+}
+
+/* Honour reduced motion — turn every constant + hover loop off. */
+@media (prefers-reduced-motion: reduce) {
+  [data-pl-icon-anim="constant"] [data-pl-flair],
+  [data-pl-icon-anim="hover"]    [data-pl-flair] {
+    animation: none !important;
+  }
+}
+
+/* Asset library tile preview — when the host hovers an editorial
+   icon tile, mirror the icon's `hover` keyframe even though the
+   tile didn't write iconAnimations. The wrapper stamps
+   `data-pl-tile-hover` so we can reuse the same keyframe per
+   `data-pl-icon-flair-kind` *if it were attached*. The editorial
+   Icon doesn't render the kind attribute when animMode is 'still'
+   (which it is in the asset library), so this rule alone isn't
+   enough — instead we drive the animation off the SVG's stable
+   `data-pl-icon-name` for the 7 most common flair-bearing names. */
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-asterism-tri"]   g { animation: pl-icon-twinkle 800ms ease-in-out; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-sparkle-four"]   g { animation: pl-icon-twinkle 800ms ease-in-out; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-compass-rose"]   g[data-pl-flair] { animation: pl-icon-rotate 1.6s linear; transform-origin: 12px 12px; transform-box: fill-box; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-clock-editorial"] g[data-pl-flair] { animation: pl-icon-rotate 1.8s linear; transform-origin: 12px 12px; transform-box: fill-box; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-thread-spool"]   g[data-pl-flair] { animation: pl-icon-rotate 1.6s linear; transform-origin: 12px 12px; transform-box: fill-box; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-film-strip"]     g { animation: pl-icon-rotate 2s linear; transform-origin: 12px 12px; transform-box: fill-box; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-candle-lit"]     g[data-pl-flair] { animation: pl-icon-flicker 900ms ease-in-out; transform-origin: 12px 9px; transform-box: fill-box; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-lightbulb-filament"] g[data-pl-flair] { animation: pl-icon-flicker 900ms ease-in-out; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-bell-time"]      g[data-pl-flair] { animation: pl-icon-tick 600ms ease-in-out; transform-origin: 12px 5px; transform-box: fill-box; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-hourglass"]      g[data-pl-flair] { animation: pl-icon-tick 600ms ease-in-out; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-laurel-half"]    g[data-pl-flair] { animation: pl-icon-sway 1.4s ease-in-out; transform-origin: 12px 21px; transform-box: fill-box; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-pressed-flower"] g[data-pl-flair] { animation: pl-icon-sway 1.4s ease-in-out; transform-origin: 12px 21px; transform-box: fill-box; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-ribbon-tied"]    g[data-pl-flair] { animation: pl-icon-sway 1.4s ease-in-out; transform-origin: 12px 21px; transform-box: fill-box; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-quill"]          g[data-pl-flair] { animation: pl-icon-sway 1.4s ease-in-out; transform-origin: 12px 21px; transform-box: fill-box; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-sun-arc"]        g[data-pl-flair] { animation: pl-icon-rotate 2s linear; transform-origin: 12px 17px; transform-box: fill-box; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-knot"]           g[data-pl-flair] { animation: pl-icon-breathe 1s ease-in-out; transform-origin: 12px 12px; transform-box: fill-box; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-rings-band"]     g[data-pl-flair] { animation: pl-icon-breathe 1s ease-in-out; transform-origin: 12px 14px; transform-box: fill-box; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-gift-tied"]      g[data-pl-flair] { animation: pl-icon-breathe 1s ease-in-out; transform-origin: 12px 13px; transform-box: fill-box; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-fleuron-pair"]   g { animation: pl-icon-breathe 1s ease-in-out; transform-origin: 12px 12px; transform-box: fill-box; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-pear-glyph"]     g[data-pl-flair] { animation: pl-icon-breathe 1s ease-in-out; transform-origin: 12px 12px; transform-box: fill-box; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-envelope-wax"]   g[data-pl-flair] { animation: pl-icon-breathe 1s ease-in-out; transform-origin: 12px 13px; transform-box: fill-box; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-speech-italic"]  g[data-pl-flair] { animation: pl-icon-breathe 1s ease-in-out; transform-origin: 12px 12px; transform-box: fill-box; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-camera-vintage"] g[data-pl-flair] { animation: pl-icon-tick 600ms ease-in-out; transform-origin: 12px 13px; transform-box: fill-box; }
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-checkmark-flourish"] g[data-pl-flair] {
+  stroke-dasharray: 60;
+  animation: pl-icon-draw 800ms ease-out;
+}
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-plane-trail"]    g[data-pl-flair] {
+  stroke-dasharray: 60;
+  animation: pl-icon-draw 800ms ease-out;
+}
+[data-pl-tile-hover="1"] svg[data-pl-icon-name="pl-road-winding"]   g[data-pl-flair] {
+  stroke-dasharray: 60;
+  animation: pl-icon-draw 800ms ease-out;
+}

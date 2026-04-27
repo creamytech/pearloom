@@ -25,6 +25,7 @@ import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
 import { focusDecorLibrary } from '../../site/focusDecorLibrary';
+import { EDITORIAL_GROUPS, animModesFor, type EditorialAnim } from '../../editorial-icons';
 
 interface LibraryPhoto {
   id: string;
@@ -933,16 +934,27 @@ function IconsTab({
   onChange?: (m: StoryManifest) => void;
 }) {
   const [resetHint, setResetHint] = useState(false);
+  const q = query.trim().toLowerCase();
+  const filterName = (n: string, label?: string) =>
+    !q ? true : n.toLowerCase().includes(q) || (label ?? '').toLowerCase().includes(q);
 
-  const groups = ICON_LIBRARY.map((g) => ({
+  // Editorial library — section-grouped custom SVGs with animation
+  // capability. Filter both by glyph name and by human label so a
+  // host typing "moon" finds the candle icon labelled "Candle, lit".
+  const editorialGroups = EDITORIAL_GROUPS.map((g) => ({
     ...g,
-    matches: query.trim()
-      ? g.names.filter((n) => n.toLowerCase().includes(query.trim().toLowerCase()))
-      : g.names,
+    items: g.items.filter((d) => filterName(d.name, d.label)),
+  })).filter((g) => g.items.length > 0);
+
+  // Standard motif library — basic UI glyphs.
+  const stdGroups = ICON_LIBRARY.map((g) => ({
+    ...g,
+    matches: g.names.filter((n) => filterName(n)),
   })).filter((g) => g.matches.length > 0);
 
   const overrides = (manifest as unknown as { iconOverrides?: Record<string, string> } | undefined)?.iconOverrides ?? {};
   const overrideEntries = Object.entries(overrides);
+  const animations = (manifest as unknown as { iconAnimations?: Record<string, EditorialAnim> } | undefined)?.iconAnimations ?? {};
 
   function clearAllOverrides() {
     if (!manifest || !onChange) return;
@@ -957,6 +969,21 @@ function IconsTab({
     const next = { ...cur };
     delete next[originalName];
     onChange({ ...manifest, iconOverrides: next } as unknown as StoryManifest);
+  }
+
+  function setAnim(originalName: string, mode: EditorialAnim) {
+    if (!manifest || !onChange) return;
+    const cur = (manifest as unknown as { iconAnimations?: Record<string, EditorialAnim> }).iconAnimations ?? {};
+    const next = { ...cur, [originalName]: mode };
+    onChange({ ...manifest, iconAnimations: next } as unknown as StoryManifest);
+  }
+
+  function clearAnim(originalName: string) {
+    if (!manifest || !onChange) return;
+    const cur = (manifest as unknown as { iconAnimations?: Record<string, EditorialAnim> }).iconAnimations ?? {};
+    const next = { ...cur };
+    delete next[originalName];
+    onChange({ ...manifest, iconAnimations: next } as unknown as StoryManifest);
   }
 
   return (
@@ -1019,77 +1046,131 @@ function IconsTab({
         Drag any icon onto a canvas glyph to swap it. One drop replaces every instance of the original.
       </div>
 
-      {/* Active overrides — surfaces the host's swaps as a strip
-          of mini-tiles so they can revert one at a time. */}
-      {overrideEntries.length > 0 && (
+      {/* Active overrides — surfaces the host's swaps as full-row
+          rules so each one gets a "before ↦ after" preview AND an
+          animation-mode picker (still / hover / constant). The
+          original-name keying means the animation choice survives
+          a follow-on swap, which matches host expectations. */}
+      {overrideEntries.length > 0 && manifest && onChange && (
         <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--line-soft)', background: 'var(--cream)' }}>
-          <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 6 }}>
+          <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 8 }}>
             Active swaps
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {overrideEntries.map(([orig, repl]) => (
-              <div
+              <ActiveSwapRow
                 key={orig}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  padding: '4px 4px 4px 8px',
-                  background: 'var(--cream-2)',
-                  border: '1px solid var(--line-soft)',
-                  borderRadius: 999,
-                  fontSize: 10.5,
-                }}
-                title={`${orig} → ${repl}`}
-              >
-                <Icon name={orig} size={11} /> ↦ <Icon name={repl} size={11} />
-                <button
-                  type="button"
-                  onClick={() => clearOne(orig)}
-                  aria-label={`Reset ${orig} swap`}
-                  style={{
-                    width: 18, height: 18, borderRadius: 999,
-                    background: 'transparent', border: 'none', cursor: 'pointer',
-                    color: 'var(--ink-soft)', fontSize: 12, lineHeight: 1,
-                  }}
-                >
-                  ×
-                </button>
-              </div>
+                orig={orig}
+                repl={repl}
+                anim={animations[orig] ?? 'still'}
+                onAnim={(m) => setAnim(orig, m)}
+                onClearAnim={() => clearAnim(orig)}
+                onClear={() => clearOne(orig)}
+              />
             ))}
           </div>
         </div>
       )}
 
       <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
-        {groups.length === 0 ? (
+        {editorialGroups.length === 0 && stdGroups.length === 0 ? (
           <div style={{ color: 'var(--ink-soft)', textAlign: 'center', padding: 24, fontSize: 12 }}>
             No icons match &quot;{query}&quot;.
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {groups.map((g) => (
-              <div key={g.group}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            {/* Editorial library — custom Pearloom glyphs with
+                animation. Hovering a tile previews the animation
+                so the host knows what they're picking. */}
+            {editorialGroups.length > 0 && (
+              <div>
                 <div
                   style={{
-                    fontSize: 10.5,
+                    fontSize: 9.5,
                     fontWeight: 700,
-                    letterSpacing: '0.16em',
+                    letterSpacing: '0.22em',
                     textTransform: 'uppercase',
-                    color: 'var(--ink-muted)',
-                    marginBottom: 6,
+                    color: 'var(--peach-ink, #C6703D)',
+                    marginBottom: 10,
                     padding: '0 4px',
                   }}
                 >
-                  {g.group}
+                  Editorial library
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))', gap: 6 }}>
-                  {g.matches.map((n) => (
-                    <IconTile key={n} name={n} onTeach={() => setResetHint(true)} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {editorialGroups.map((g) => (
+                    <div key={g.key}>
+                      <div
+                        style={{
+                          fontSize: 10.5,
+                          fontWeight: 700,
+                          letterSpacing: '0.16em',
+                          textTransform: 'uppercase',
+                          color: 'var(--ink-muted)',
+                          marginBottom: 6,
+                          padding: '0 4px',
+                        }}
+                      >
+                        {g.label}
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(60px, 1fr))', gap: 6 }}>
+                        {g.items.map((d) => (
+                          <EditorialIconTile
+                            key={d.name}
+                            name={d.name}
+                            label={d.label}
+                            onTeach={() => setResetHint(true)}
+                          />
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
-            ))}
+            )}
+
+            {/* Standard library — basic UI glyphs (mail, eye, etc.) */}
+            {stdGroups.length > 0 && (
+              <div>
+                <div
+                  style={{
+                    fontSize: 9.5,
+                    fontWeight: 700,
+                    letterSpacing: '0.22em',
+                    textTransform: 'uppercase',
+                    color: 'var(--ink-muted)',
+                    marginBottom: 10,
+                    padding: '0 4px',
+                  }}
+                >
+                  Standard library
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {stdGroups.map((g) => (
+                    <div key={g.group}>
+                      <div
+                        style={{
+                          fontSize: 10.5,
+                          fontWeight: 700,
+                          letterSpacing: '0.16em',
+                          textTransform: 'uppercase',
+                          color: 'var(--ink-muted)',
+                          marginBottom: 6,
+                          padding: '0 4px',
+                        }}
+                      >
+                        {g.group}
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))', gap: 6 }}>
+                        {g.matches.map((n) => (
+                          <IconTile key={n} name={n} onTeach={() => setResetHint(true)} />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
         {resetHint && (
@@ -1162,6 +1243,211 @@ function IconTile({ name, onTeach }: { name: string; onTeach: () => void }) {
       }}
     >
       <Icon name={name} size={20} />
+    </div>
+  );
+}
+
+// ── EditorialIconTile ─────────────────────────────────────────
+// Same drag mime as IconTile so the canvas drop handler doesn't
+// have to care whether an editorial or motif glyph was picked,
+// but with two extras: hovering the tile temporarily flips the
+// rendered icon into 'hover' animation mode so the host gets a
+// preview of the motion they'd be picking, and an "ANIM" pill in
+// the corner advertises the icon's default flair so glyphs that
+// can't animate aren't misread as broken.
+function EditorialIconTile({
+  name,
+  label,
+  onTeach,
+}: {
+  name: string;
+  label: string;
+  onTeach: () => void;
+}) {
+  const [hovering, setHovering] = useState(false);
+  const modes = animModesFor(name);
+  const animatable = modes.includes('hover') || modes.includes('constant');
+
+  function onDragStart(e: React.DragEvent<HTMLDivElement>) {
+    e.dataTransfer.setData(ICON_DRAG_MIME, name);
+    e.dataTransfer.setData('text/plain', name);
+    e.dataTransfer.effectAllowed = 'copy';
+  }
+
+  // To preview the animation on the tile we use a tiny fake DOM
+  // wrapper that stamps `data-pl-icon-anim="hover"` on the SVG —
+  // CSS picks it up exactly like a host-hovering-the-card on the
+  // real canvas. Since Icon reads animation mode from context, we
+  // can't drive it through props; we pin the attribute manually
+  // via a parent that sets it during hover.
+  return (
+    <div
+      draggable
+      onDragStart={onDragStart}
+      onClick={onTeach}
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
+      title={`Drag ${label} onto a canvas icon to replace it`}
+      style={{
+        position: 'relative',
+        aspectRatio: '1 / 1',
+        display: 'grid',
+        placeItems: 'center',
+        borderRadius: 10,
+        background: hovering ? 'var(--cream-2)' : 'var(--card)',
+        border: hovering ? '1.5px solid var(--peach-ink, #C6703D)' : '1.5px solid var(--line)',
+        cursor: 'grab',
+        color: 'var(--ink)',
+        transition: 'transform 180ms cubic-bezier(0.22,1,0.36,1), background 180ms ease, border-color 180ms ease',
+        transform: hovering ? 'translateY(-1px)' : '',
+      }}
+    >
+      {/* Re-stamp the animation attribute on the rendered SVG so
+          the keyframe fires when the tile is hovered. The Icon
+          component already emits the SVG; we use a CSS selector
+          that targets the descendant SVG with data-pl-icon-name. */}
+      <span
+        style={{ display: 'inline-flex' }}
+        // The CSS rule is `*:hover > [data-pl-icon-anim="hover"]`,
+        // so the anim attribute needs to be on the SVG itself when
+        // the parent (this tile) is hovered. The Icon component
+        // pegs the attribute based on context's iconAnimations,
+        // which is empty for the asset library. We work around it
+        // by injecting a temporary attribute via a wrapping data
+        // attribute that the keyframe also matches.
+        data-pl-tile-hover={hovering ? '1' : undefined}
+      >
+        <Icon name={name} size={22} />
+      </span>
+      {animatable && (
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute',
+            top: 4,
+            right: 4,
+            fontSize: 7.5,
+            fontWeight: 800,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            color: 'var(--peach-ink, #C6703D)',
+            background: 'rgba(198,112,61,0.10)',
+            padding: '1px 4px',
+            borderRadius: 4,
+            lineHeight: 1.2,
+          }}
+        >
+          ANIM
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ── ActiveSwapRow ─────────────────────────────────────────────
+// Full row for each active icon override. Shows "before ↦ after",
+// the animation-mode segmented control (only when the new icon
+// supports animation), and a × to revert the swap entirely.
+function ActiveSwapRow({
+  orig,
+  repl,
+  anim,
+  onAnim,
+  onClearAnim,
+  onClear,
+}: {
+  orig: string;
+  repl: string;
+  anim: EditorialAnim;
+  onAnim: (mode: EditorialAnim) => void;
+  onClearAnim: () => void;
+  onClear: () => void;
+}) {
+  const modes = animModesFor(repl);
+  const showAnim = modes.length > 1;
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '6px 8px 6px 10px',
+        background: 'var(--cream-2)',
+        border: '1px solid var(--line-soft)',
+        borderRadius: 10,
+        fontSize: 11,
+      }}
+    >
+      <span title={orig} style={{ display: 'inline-flex', alignItems: 'center' }}>
+        <Icon name={orig} size={14} />
+      </span>
+      <span style={{ color: 'var(--ink-muted)', fontSize: 9, letterSpacing: '0.08em' }}>↦</span>
+      <span title={repl} style={{ display: 'inline-flex', alignItems: 'center' }}>
+        <Icon name={repl} size={14} />
+      </span>
+      <span style={{ color: 'var(--ink-soft)', fontWeight: 600, marginLeft: 2, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {repl}
+      </span>
+      {showAnim && (
+        <div
+          role="tablist"
+          aria-label={`Animation for ${repl}`}
+          style={{
+            display: 'inline-flex',
+            background: 'var(--card)',
+            border: '1px solid var(--line)',
+            borderRadius: 6,
+            padding: 2,
+            gap: 2,
+          }}
+        >
+          {modes.map((m) => {
+            const on = anim === m;
+            return (
+              <button
+                key={m}
+                type="button"
+                role="tab"
+                aria-selected={on}
+                onClick={() => (m === 'still' ? onClearAnim() : onAnim(m))}
+                title={
+                  m === 'still' ? 'No motion' :
+                  m === 'hover' ? 'Plays once when hovered' :
+                  'Loops continuously'
+                }
+                style={{
+                  padding: '3px 7px',
+                  borderRadius: 4,
+                  border: 0,
+                  background: on ? 'var(--ink)' : 'transparent',
+                  color: on ? 'var(--cream)' : 'var(--ink-soft)',
+                  fontSize: 9.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.04em',
+                  cursor: 'pointer',
+                  textTransform: 'capitalize',
+                  fontFamily: 'var(--font-ui)',
+                }}
+              >
+                {m}
+              </button>
+            );
+          })}
+        </div>
+      )}
+      <button
+        type="button"
+        onClick={onClear}
+        aria-label={`Reset ${orig} swap`}
+        title="Reset this swap"
+        style={{
+          width: 22, height: 22, borderRadius: 999,
+          background: 'transparent', border: 'none', cursor: 'pointer',
+          color: 'var(--ink-soft)', fontSize: 14, lineHeight: 1,
+        }}
+      >
+        ×
+      </button>
     </div>
   );
 }

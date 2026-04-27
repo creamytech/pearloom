@@ -20,6 +20,7 @@
 
 import React, { useId, type CSSProperties, type ReactNode } from 'react';
 import { useEditorCanvas } from './editor/canvas/EditorCanvasContext';
+import { getEditorialIcon, type EditorialAnim } from './editorial-icons';
 
 type PearTone = 'sage' | 'lavender' | 'peach' | 'cream' | 'ink';
 
@@ -916,6 +917,15 @@ export function Icon({
   const ctx = useEditorCanvas();
   const overrides = ctx.iconOverrides;
   const effectiveName = (overrides && overrides[name]) ? overrides[name] : name;
+  // Animation mode is keyed off the *original* name so a host's
+  // "this heart should pulse" preference survives if they later
+  // swap the heart for sparkles — same icon slot, same intent.
+  const animations = ctx.iconAnimations;
+  const editorial = getEditorialIcon(effectiveName);
+  const animMode: EditorialAnim =
+    (animations && animations[name])
+      ?? editorial?.defaultAnim
+      ?? 'still';
 
   // ── Hit-area expansion in edit mode ───────────────────────────
   // Icon SVGs render with fill="none" and stroked paths only. By
@@ -937,7 +947,7 @@ export function Icon({
     ? ({ pointerEvents: 'bounding-box' as 'auto', cursor: 'pointer', ...style })
     : style;
 
-  const common = {
+  const common: Record<string, unknown> = {
     width: size,
     height: size,
     viewBox: '0 0 24 24',
@@ -956,6 +966,18 @@ export function Icon({
     'data-pl-icon-name': effectiveName,
     'data-pl-icon-original': name,
   };
+  // Editorial-icon path: when an icon name resolves into the
+  // curated editorial library, render its body and stamp the
+  // animation attributes the CSS keyframes target. Falls through
+  // to the built-in switch when there's no editorial match (most
+  // basic UI glyphs are still defined inline below).
+  if (editorial) {
+    if (animMode !== 'still' && editorial.flair) {
+      common['data-pl-icon-anim'] = animMode;
+      common['data-pl-icon-flair-kind'] = editorial.flair;
+    }
+    return <svg {...common}>{editorial.body(color)}</svg>;
+  }
   return renderIconBody(effectiveName, common, color);
 }
 

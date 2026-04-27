@@ -3927,9 +3927,10 @@ export function SiteV8Renderer({
   // selectedBlockIds array — that's intentional, blocks need to know
   // when they enter or leave the selection set.
   const iconOverrides = (manifest as unknown as { iconOverrides?: Record<string, string> }).iconOverrides;
+  const iconAnimations = (manifest as unknown as { iconAnimations?: Record<string, 'still' | 'hover' | 'constant'> }).iconAnimations;
   const canvasCtxValue = useMemo(
-    () => ({ editMode, selectedBlockIds, selectBlock, clearSelection, onEditField, iconOverrides }),
-    [editMode, selectedBlockIds, selectBlock, clearSelection, onEditField, iconOverrides],
+    () => ({ editMode, selectedBlockIds, selectBlock, clearSelection, onEditField, iconOverrides, iconAnimations }),
+    [editMode, selectedBlockIds, selectBlock, clearSelection, onEditField, iconOverrides, iconAnimations],
   );
 
   const blockOrderRaw =

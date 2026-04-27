@@ -46,6 +46,10 @@ export interface EditorCanvasContextShape {
    *  'stamp.story.fallback'). Surfaced here so deep primitives
    *  can swap their default glyph without prop-drilling. */
   iconOverrides?: Record<string, string>;
+  /** Per-icon animation mode keyed by the *original* name (so a
+   *  host's "this heart should pulse" preference survives a
+   *  later swap to sparkles). Values: 'still' | 'hover' | 'constant'. */
+  iconAnimations?: Record<string, 'still' | 'hover' | 'constant'>;
 }
 
 const defaultCtx: EditorCanvasContextShape = {
