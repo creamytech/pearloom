@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic';
-
 import type { Metadata } from 'next';
 import { DashHomeV8 } from '@/components/pearloom/pages/DashHomeV8';
 

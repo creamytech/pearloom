@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic';
-
 import type { Metadata } from 'next';
 import { VendorsPage } from '@/components/pearloom/pages/VendorsPage';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';

@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic';
-
 import type { Metadata } from 'next';
 import { DashDirector } from '@/components/marketing/design/dash/DashDirector';
 

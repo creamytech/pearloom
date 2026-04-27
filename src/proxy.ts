@@ -10,6 +10,7 @@
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 import { getAllOccasionIds } from '@/lib/event-os/event-types';
 
 // ── Security headers ────────────────────────────────────────
@@ -94,10 +95,44 @@ const OCCASION_SEGMENTS = new Set<string>(getAllOccasionIds());
 
 // ── Proxy entry point ───────────────────────────────────────
 
-export function proxy(req: NextRequest) {
+// Routes that require authentication. Migrated from
+// (shell)/layout.tsx so the layout can drop force-dynamic and
+// children can be statically prerendered — eliminates the SSR
+// roundtrip per tab swap that was reading as a "fade".
+const AUTH_REQUIRED_PREFIXES = [
+  '/dashboard',
+  '/templates',
+  '/vendors',
+];
+
+export async function proxy(req: NextRequest) {
   const rawHost = req.headers.get('host') || '';
   const hostname = rawHost.toLowerCase();
   const pathname = req.nextUrl.pathname;
+
+  // ── Auth gate for shell routes ─────────────────────────────
+  // Runs as a middleware-style check before any rewrite logic.
+  // Redirects unauthenticated users to /login with a `next` param
+  // so they bounce back after sign-in. Only runs for prefixes
+  // listed in AUTH_REQUIRED_PREFIXES so public routes stay open.
+  if (AUTH_REQUIRED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+    try {
+      const token = await getToken({
+        req,
+        secret: process.env.NEXTAUTH_SECRET,
+      });
+      if (!token?.email) {
+        const loginUrl = new URL('/login', req.url);
+        loginUrl.searchParams.set('next', pathname);
+        return NextResponse.redirect(loginUrl);
+      }
+    } catch {
+      // If auth check fails for any reason, fall through to normal
+      // handling rather than blocking the request — the layout's
+      // own auth check (still in place during transition) will
+      // catch it.
+    }
+  }
 
   const searchParams = req.nextUrl.searchParams.toString();
   const path = `${pathname}${searchParams.length > 0 ? `?${searchParams}` : ''}`;

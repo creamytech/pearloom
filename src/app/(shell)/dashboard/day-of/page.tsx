@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic';
-
 import type { Metadata } from 'next';
 import { DayOfV8 } from '@/components/pearloom/pages/DayOfV8';
 

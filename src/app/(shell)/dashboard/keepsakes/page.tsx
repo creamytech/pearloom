@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic';
-
 import type { Metadata } from 'next';
 import { KeepsakesPage } from '@/components/pearloom/pages/KeepsakesPage';
 

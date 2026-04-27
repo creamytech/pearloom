@@ -6,27 +6,15 @@
 // child route navigations — when you click between tabs, only the
 // inner content re-renders. The sidebar stays mounted, no flash.
 //
-// This is a Next.js route group: the (shell) segment doesn't show
-// in URLs. /dashboard, /templates, /vendors all live under here
-// and share this layout.
-//
-// Auth is centralised here too — every (shell) route requires a
-// signed-in user.
+// Auth is now enforced in src/proxy.ts (middleware) so this layout
+// can render statically. That eliminates the per-tab SSR roundtrip
+// that was reading as a 'fade' — pages now serve from prerendered
+// HTML and hydrate client-side instantly.
 // ─────────────────────────────────────────────────────────────
 
-import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import type { ReactNode } from 'react';
 import { ShellPersistentLayout } from '@/components/pearloom/dash/ShellPersistentLayout';
 
-export const dynamic = 'force-dynamic';
-
-export default async function ShellLayout({ children }: { children: ReactNode }) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    // Preserve the route the user was trying to reach.
-    redirect('/login?next=/dashboard');
-  }
+export default function ShellLayout({ children }: { children: ReactNode }) {
   return <ShellPersistentLayout>{children}</ShellPersistentLayout>;
 }

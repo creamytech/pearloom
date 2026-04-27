@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic';
-
 import type { Metadata } from 'next';
 import { SpeechComposerPage } from '@/components/pearloom/pages/SpeechComposerPage';
 
