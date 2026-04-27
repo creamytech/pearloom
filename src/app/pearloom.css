@@ -900,10 +900,17 @@ button.pl8-mobile-only { display: none !important; }
 .pl8-editor-inspector textarea {
   font-family: var(--font-ui);
 }
+.pl8-editor-inspector .pl8-input:hover {
+  border-color: var(--ink-muted, #6F6557);
+}
 .pl8-editor-inspector .pl8-input:focus {
-  border-color: var(--sage-deep) !important;
-  box-shadow: 0 0 0 3px rgba(139,156,90,0.18);
+  border-color: var(--peach-ink, #C6703D) !important;
+  box-shadow: 0 0 0 3px rgba(198,112,61,0.18);
   background: var(--card);
+}
+.pl8-editor-inspector .pl8-input::placeholder {
+  color: var(--ink-muted, #6F6557);
+  opacity: 0.6;
 }
 
 /* Memory Book + Passport card print mode */

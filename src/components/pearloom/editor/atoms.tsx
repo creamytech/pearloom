@@ -96,7 +96,18 @@ export function PanelSection({
   // users can toggle. Otherwise it's a passive div.
   const Header = collapsible ? 'button' : 'div';
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: expanded ? 10 : 0, marginBottom: 16, ...style }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: expanded ? 14 : 0,
+        marginBottom: expanded ? 28 : 18,
+        paddingBottom: expanded ? 22 : 0,
+        borderBottom: expanded ? '1px solid var(--line-soft)' : 'none',
+        transition: 'gap 200ms ease, margin-bottom 200ms ease, padding-bottom 200ms ease',
+        ...style,
+      }}
+    >
       {(label || action) && (
         <Header
           {...(collapsible
@@ -109,7 +120,7 @@ export function PanelSection({
           style={{
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'flex-end',
+            alignItems: 'flex-start',
             gap: 8,
             background: 'transparent',
             border: 'none',
@@ -125,43 +136,76 @@ export function PanelSection({
             {label && (
               <div
                 style={{
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: 700,
-                  letterSpacing: '0.12em',
-                  color: 'var(--peach-ink)',
+                  letterSpacing: '0.16em',
+                  color: 'var(--ink)',
                   textTransform: 'uppercase',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 6,
+                  justifyContent: 'space-between',
+                  gap: 8,
+                  fontFamily: 'var(--font-ui)',
                 }}
               >
-                {collapsible && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                   <span
                     aria-hidden
                     style={{
                       display: 'inline-block',
                       width: 10,
-                      transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)',
-                      transition: 'transform 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+                      height: 1,
+                      background: 'var(--peach-ink, #C6703D)',
+                      flexShrink: 0,
+                    }}
+                  />
+                  {label}
+                </span>
+                {collapsible && (
+                  <span
+                    aria-hidden
+                    style={{
+                      display: 'inline-flex',
+                      width: 16,
+                      height: 16,
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       color: 'var(--ink-muted)',
+                      transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
                     }}
                   >
-                    ▸
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
                   </span>
                 )}
-                {label}
               </div>
             )}
             {hint && expanded && (
-              <div style={{ fontSize: 12.5, color: 'var(--ink-muted)', marginTop: 4, fontWeight: 400, letterSpacing: 0, textTransform: 'none' }}>
+              <div
+                style={{
+                  fontSize: 12.5,
+                  color: 'var(--ink-muted)',
+                  marginTop: 6,
+                  fontWeight: 400,
+                  letterSpacing: 0,
+                  textTransform: 'none',
+                  lineHeight: 1.45,
+                }}
+              >
                 {hint}
               </div>
             )}
           </div>
-          {action}
+          {action && <div style={{ flexShrink: 0 }}>{action}</div>}
         </Header>
       )}
-      {expanded && children}
+      {expanded && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {children}
+        </div>
+      )}
     </div>
   );
 }
@@ -191,9 +235,9 @@ export function PanelSmartActions({ actions }: { actions: PanelSmartAction[] }) 
       aria-label="Quick actions"
       style={{
         display: 'flex',
-        gap: 6,
+        gap: 8,
         overflowX: 'auto',
-        marginBottom: 14,
+        marginBottom: 18,
         paddingBottom: 4,
         // Firefox + WebKit hide scrollbars except when interacting,
         // so the row stays clean visually.
@@ -211,21 +255,21 @@ export function PanelSmartActions({ actions }: { actions: PanelSmartAction[] }) 
             display: 'inline-flex',
             alignItems: 'center',
             gap: 6,
-            padding: '7px 12px',
+            padding: '8px 14px',
             borderRadius: 999,
             background: a.primary ? undefined : 'var(--cream-2)',
             color: a.primary ? undefined : 'var(--ink)',
             border: a.primary ? undefined : '1px solid var(--line-soft)',
-            fontSize: 11.5,
+            fontSize: 12,
             fontWeight: 600,
             fontFamily: 'var(--font-ui)',
             cursor: a.disabled ? 'not-allowed' : 'pointer',
             whiteSpace: 'nowrap',
             opacity: a.disabled ? 0.4 : 1,
-            transition: 'background 160ms ease, color 160ms ease',
+            transition: 'background 160ms ease, color 160ms ease, border-color 160ms ease',
           }}
         >
-          {a.icon && <Icon name={a.icon} size={11} />}
+          {a.icon && <Icon name={a.icon} size={12} />}
           {a.label}
         </button>
       ))}
@@ -250,29 +294,44 @@ export function Field({
   right?: ReactNode;
 }) {
   return (
-    <label htmlFor={htmlFor} style={{ display: 'flex', flexDirection: 'column', gap: 6, cursor: htmlFor ? 'default' : 'inherit' }}>
+    <label htmlFor={htmlFor} style={{ display: 'flex', flexDirection: 'column', gap: 8, cursor: htmlFor ? 'default' : 'inherit' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)', letterSpacing: '0.01em' }}>{label}</span>
+        <span
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: 'var(--ink)',
+            letterSpacing: '-0.005em',
+            fontFamily: 'var(--font-ui)',
+          }}
+        >
+          {label}
+        </span>
         {right}
       </div>
       {children}
       {help && !error && (
-        <span style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>{help}</span>
+        <span style={{ fontSize: 12, color: 'var(--ink-muted)', lineHeight: 1.45 }}>{help}</span>
       )}
       {error && (
-        <span style={{ fontSize: 11.5, color: '#7A2D2D' }}>{error}</span>
+        <span style={{ fontSize: 12, color: '#7A2D2D', lineHeight: 1.45 }}>{error}</span>
       )}
     </label>
   );
 }
 
+// Single source of truth for input chrome. Every text/textarea/select
+// in the editor inherits this so they share padding (12×14), radius
+// (10), font (13.5px Geist), border weight (1.5px). Hover/focus is
+// handled in pearloom.css under .pl8-input.
 const sharedInputStyle: CSSProperties = {
   width: '100%',
-  padding: '10px 12px',
+  padding: '11px 14px',
   background: 'var(--paper)',
   border: '1.5px solid var(--line)',
   borderRadius: 10,
-  fontSize: 14,
+  fontSize: 13.5,
+  lineHeight: 1.4,
   color: 'var(--ink)',
   fontFamily: 'var(--font-ui)',
   outline: 'none',
@@ -365,10 +424,11 @@ export function SegmentedToggle<T extends string>({
     <div
       style={{
         display: 'flex',
-        padding: 3,
+        padding: 4,
         background: 'var(--cream-2)',
         borderRadius: 10,
         gap: 2,
+        border: '1px solid var(--line-soft)',
       }}
     >
       {options.map((o) => {
@@ -380,15 +440,16 @@ export function SegmentedToggle<T extends string>({
             onClick={() => onChange(o.value)}
             style={{
               flex: 1,
-              padding: '7px 10px',
-              borderRadius: 8,
+              padding: '8px 12px',
+              borderRadius: 7,
               border: 0,
               background: on ? 'var(--ink)' : 'transparent',
-              color: on ? 'var(--cream)' : 'var(--ink)',
+              color: on ? 'var(--cream)' : 'var(--ink-soft)',
               fontSize: 12.5,
               fontWeight: 600,
               cursor: 'pointer',
               fontFamily: 'var(--font-ui)',
+              transition: 'background 160ms ease, color 160ms ease',
             }}
           >
             {o.label}
@@ -400,6 +461,10 @@ export function SegmentedToggle<T extends string>({
 }
 
 /* ---------- Checkbox toggle ---------- */
+// Calmer than the prior sage-tinted card. The on-state used to flood
+// the whole row green which competed with the section header's peach
+// accent and made the panel feel garish; now the card stays paper
+// and only the switch carries the colour.
 export function Toggle({
   on,
   onChange,
@@ -419,26 +484,27 @@ export function Toggle({
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 12,
+        gap: 14,
         width: '100%',
-        padding: '10px 14px',
-        background: on ? 'var(--sage-tint)' : 'var(--paper)',
-        border: `1.5px solid ${on ? 'var(--sage-deep)' : 'var(--line)'}`,
-        borderRadius: 12,
+        padding: '12px 14px',
+        background: 'var(--paper)',
+        border: '1.5px solid var(--line)',
+        borderRadius: 10,
         cursor: 'pointer',
         fontFamily: 'var(--font-ui)',
         textAlign: 'left',
+        transition: 'border-color 160ms ease, background 160ms ease',
       }}
     >
       <span
         style={{
-          width: 34,
-          height: 20,
+          width: 36,
+          height: 22,
           borderRadius: 999,
-          background: on ? 'var(--sage-deep)' : 'var(--line)',
+          background: on ? 'var(--sage-deep, #5C6B3F)' : 'var(--line)',
           position: 'relative',
           flexShrink: 0,
-          transition: 'background 180ms ease',
+          transition: 'background 200ms cubic-bezier(0.34, 1.56, 0.64, 1)',
         }}
       >
         <span
@@ -446,18 +512,18 @@ export function Toggle({
             position: 'absolute',
             top: 2,
             left: on ? 16 : 2,
-            width: 16,
-            height: 16,
+            width: 18,
+            height: 18,
             borderRadius: '50%',
             background: '#fff',
-            transition: 'left 180ms ease',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+            transition: 'left 200ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.22)',
           }}
         />
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>{label}</div>
-        {help && <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 2 }}>{help}</div>}
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>{label}</div>
+        {help && <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 2, lineHeight: 1.4 }}>{help}</div>}
       </div>
     </button>
   );
@@ -657,12 +723,12 @@ export function ListRow({
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: dragHandle ? '28px 1fr auto' : '1fr auto',
-        gap: 12,
+        gridTemplateColumns: dragHandle ? '24px 1fr auto' : '1fr auto',
+        gap: 14,
         padding: 16,
         background: 'var(--card)',
         border: '1px solid var(--card-ring)',
-        borderRadius: 14,
+        borderRadius: 12,
         alignItems: 'start',
         ...style,
       }}
@@ -674,14 +740,14 @@ export function ListRow({
             placeItems: 'center',
             color: 'var(--ink-muted)',
             cursor: 'grab',
-            marginTop: 4,
+            marginTop: 6,
           }}
           aria-label="Drag to reorder"
         >
-          <Icon name="drag" size={16} />
+          <Icon name="drag" size={14} />
         </div>
       )}
-      <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>{children}</div>
+      <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>{children}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, color: 'var(--ink-muted)' }}>
         {onMoveUp && (
           <button
@@ -690,7 +756,7 @@ export function ListRow({
             aria-label="Move up"
             style={iconButtonStyle}
           >
-            <Icon name="chev-up" size={14} />
+            <Icon name="chev-up" size={13} />
           </button>
         )}
         {onMoveDown && (
@@ -700,7 +766,7 @@ export function ListRow({
             aria-label="Move down"
             style={iconButtonStyle}
           >
-            <Icon name="chev-down" size={14} />
+            <Icon name="chev-down" size={13} />
           </button>
         )}
         {onDelete && (
@@ -708,9 +774,9 @@ export function ListRow({
             type="button"
             onClick={onDelete}
             aria-label="Delete"
-            style={{ ...iconButtonStyle, color: '#7A2D2D' }}
+            style={{ ...iconButtonStyle, color: '#7A2D2D', borderColor: 'rgba(122,45,45,0.20)' }}
           >
-            <Icon name="close" size={14} />
+            <Icon name="close" size={13} />
           </button>
         )}
       </div>
@@ -719,15 +785,16 @@ export function ListRow({
 }
 
 const iconButtonStyle: CSSProperties = {
-  width: 28,
-  height: 28,
+  width: 26,
+  height: 26,
   display: 'grid',
   placeItems: 'center',
   background: 'transparent',
-  border: '1px solid var(--line)',
-  borderRadius: 8,
+  border: '1px solid var(--line-soft)',
+  borderRadius: 7,
   cursor: 'pointer',
   color: 'inherit',
+  transition: 'background 160ms ease, border-color 160ms ease',
 };
 
 /* ---------- Color swatch row ---------- */
@@ -770,15 +837,15 @@ export function EmptyBlockState({
   return (
     <div
       style={{
-        padding: 32,
+        padding: '32px 28px',
         background: 'var(--cream-2)',
         border: '1.5px dashed var(--line)',
-        borderRadius: 16,
+        borderRadius: 14,
         textAlign: 'center',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 10,
+        gap: 12,
       }}
     >
       <div
@@ -794,11 +861,11 @@ export function EmptyBlockState({
       >
         <Icon name={icon} size={22} />
       </div>
-      <div className="display" style={{ fontSize: 20, lineHeight: 1.15 }}>
+      <div className="display" style={{ fontSize: 22, lineHeight: 1.15, letterSpacing: '-0.01em' }}>
         {title}
       </div>
       <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.55, maxWidth: 320 }}>{body}</div>
-      {action && <div style={{ marginTop: 6 }}>{action}</div>}
+      {action && <div style={{ marginTop: 8 }}>{action}</div>}
     </div>
   );
 }
@@ -810,10 +877,10 @@ export function AddRowButton({ label, onClick }: { label: string; onClick: () =>
       type="button"
       onClick={onClick}
       style={{
-        padding: '10px 14px',
+        padding: '12px 14px',
         background: 'transparent',
         border: '1.5px dashed var(--line)',
-        borderRadius: 12,
+        borderRadius: 10,
         color: 'var(--ink-soft)',
         fontSize: 13,
         fontWeight: 600,
@@ -824,9 +891,18 @@ export function AddRowButton({ label, onClick }: { label: string; onClick: () =>
         gap: 8,
         justifyContent: 'center',
         width: '100%',
+        transition: 'border-color 160ms ease, color 160ms ease, background 160ms ease',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)';
+        e.currentTarget.style.color = 'var(--peach-ink, #C6703D)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = 'var(--line)';
+        e.currentTarget.style.color = 'var(--ink-soft)';
       }}
     >
-      <Icon name="plus" size={14} /> {label}
+      <Icon name="plus" size={13} /> {label}
     </button>
   );
 }

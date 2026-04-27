@@ -1731,8 +1731,10 @@ function Inspector({
         flex: fluid ? 1 : undefined,
       }}
     >
-      {/* Rail tabs — Section / Theme / Pear. Only one body shows at
-          a time, so floaters never overlap the canvas. */}
+      {/* Rail tabs — Section / Theme / Library / Pear. Bigger touch
+          target (16px vertical), clearer active indicator (peach
+          underline pill, animated). Only one body shows at a time,
+          so floaters never overlap the canvas. */}
       <div
         role="tablist"
         aria-label="Inspector tabs"
@@ -1741,6 +1743,7 @@ function Inspector({
           gridTemplateColumns: 'repeat(4, 1fr)',
           borderBottom: '1px solid var(--line-soft)',
           background: 'var(--cream)',
+          padding: '0 4px',
         }}
       >
         {(
@@ -1765,25 +1768,39 @@ function Inspector({
               aria-selected={active}
               onClick={() => setTab(t.key)}
               style={{
-                padding: '12px 8px 10px',
+                position: 'relative',
+                padding: '14px 8px 12px',
                 fontFamily: 'var(--font-ui)',
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: '0.04em',
+                fontSize: 12.5,
+                fontWeight: active ? 700 : 600,
+                letterSpacing: '0.02em',
                 color: active ? 'var(--ink)' : 'var(--ink-muted)',
                 background: 'transparent',
                 border: 'none',
-                borderBottom: active ? '2px solid var(--peach-ink, #C6703D)' : '2px solid transparent',
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 6,
-                transition: 'color 180ms ease, border-color 180ms ease',
+                gap: 7,
+                transition: 'color 180ms ease',
               }}
             >
-              <Icon name={t.icon} size={12} />
+              <Icon name={t.icon} size={13} />
               {t.label}
+              {active && (
+                <span
+                  aria-hidden
+                  style={{
+                    position: 'absolute',
+                    bottom: -1,
+                    left: '14%',
+                    right: '14%',
+                    height: 2,
+                    borderRadius: 2,
+                    background: 'var(--peach-ink, #C6703D)',
+                  }}
+                />
+              )}
             </button>
           );
         })}
@@ -1793,7 +1810,7 @@ function Inspector({
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflowY: 'auto' }}>
           <header
             style={{
-              padding: '14px 20px 12px',
+              padding: '18px 22px 16px',
               borderBottom: '1px solid var(--line-soft)',
               position: 'sticky',
               top: 0,
@@ -1801,28 +1818,34 @@ function Inspector({
               zIndex: 2,
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div
                 style={{
-                  width: 26,
-                  height: 26,
-                  borderRadius: 8,
+                  width: 32,
+                  height: 32,
+                  borderRadius: 9,
                   background: 'var(--cream-2)',
+                  border: '1px solid var(--line-soft)',
                   display: 'grid',
                   placeItems: 'center',
                   flexShrink: 0,
+                  color: 'var(--peach-ink, #C6703D)',
                 }}
               >
-                <Icon name={meta.icon} size={13} />
+                <Icon name={meta.icon} size={15} />
               </div>
-              <h2 className="display" style={{ fontSize: 20, margin: 0, lineHeight: 1.1 }}>
+              <h2 className="display" style={{ fontSize: 22, margin: 0, lineHeight: 1.05, letterSpacing: '-0.01em' }}>
                 {meta.label}
               </h2>
             </div>
-            <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.4 }}>{meta.description}</p>
+            {meta.description && (
+              <p style={{ margin: '8px 0 0 44px', fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
+                {meta.description}
+              </p>
+            )}
           </header>
 
-          <div style={{ padding: '18px 20px 40px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ padding: '22px 22px 48px', display: 'flex', flexDirection: 'column' }}>
             <PanelSwitch
               block={block}
               manifest={manifest}
