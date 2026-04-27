@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { invalidateSitesCache, useUserSites, type SiteSummary } from '@/components/marketing/design/dash/hooks';
 import { DashLayout } from '../dash/DashShell';
 import { DashEmpty } from '../dash/DashEmpty';
+import { DashSkeleton } from '../dash/DashSkeleton';
 import { Heart, Icon, Pear, PhotoPlaceholder, Sparkle } from '../motifs';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 
@@ -381,9 +382,7 @@ export function EventIndexPage() {
       ctaHref={pickMode ? undefined : '/wizard/new'}
     >
       <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
-        {loading && (
-          <div style={{ color: 'var(--ink-soft)', padding: 40, textAlign: 'center' }}>Threading your sites…</div>
-        )}
+        {loading && <DashSkeleton kind="card-grid" count={3} label="Threading your sites" />}
         {!loading && (!sites || sites.length === 0) && (
           <DashEmpty
             size="page"
