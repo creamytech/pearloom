@@ -155,20 +155,78 @@ type Tone = 'warm' | 'field' | 'dusk' | 'lavender' | 'peach' | 'sage' | 'cream';
 
 const CHAPTER_TONES: Tone[] = ['lavender', 'sage', 'peach', 'cream', 'lavender', 'peach'];
 
-function fmtEventDate(iso?: string | null): { pretty: string; weekday: string } | null {
+function fmtEventDate(
+  iso?: string | null,
+  format?: 'long' | 'short' | 'numeric' | 'iso' | 'month-year',
+  timezone?: string,
+): { pretty: string; weekday: string } | null {
   const d = parseLocalDate(iso);
   if (!d) return null;
+  const tz = timezone || undefined;
+  let pretty: string;
+  switch (format) {
+    case 'short':
+      pretty = d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: tz });
+      break;
+    case 'numeric':
+      pretty = d.toLocaleDateString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: tz });
+      break;
+    case 'iso':
+      // YYYY-MM-DD anchored to the chosen zone — Intl.DateTimeFormat
+      // doesn't expose ISO directly, so format parts and assemble.
+      {
+        const parts = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: tz }).format(d);
+        pretty = parts;
+      }
+      break;
+    case 'month-year':
+      pretty = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', timeZone: tz });
+      break;
+    case 'long':
+    default:
+      pretty = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: tz });
+  }
   return {
-    pretty: d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-    weekday: d.toLocaleDateString('en-US', { weekday: 'long' }),
+    pretty,
+    weekday: d.toLocaleDateString('en-US', { weekday: 'long', timeZone: tz }),
   };
 }
 
-function useCountdown(iso?: string | null) {
+function useCountdown(iso?: string | null, timezone?: string, time?: string) {
   return useMemo(() => {
     const d = parseLocalDate(iso);
     if (!d) return null;
-    const target = d.getTime();
+    // If the host set a timezone *and* a time, anchor the target on
+    // that wall-clock + zone (e.g., 4pm Eastern). Without a zone we
+    // keep the historical behaviour of using the viewer's local
+    // midnight, which is what useCountdown has always done.
+    let target = d.getTime();
+    if (timezone && time && /^\d{2}:\d{2}/.test(time)) {
+      const [hh, mm] = time.split(':').map(Number);
+      // Round-trip via Date.UTC then offset by the zone offset for
+      // that specific instant. Intl.DateTimeFormat tells us what the
+      // zone's offset is at that wall-clock; we subtract it from a
+      // UTC-coded version of the same wall-clock to get the real ms.
+      const utcWall = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), hh, mm, 0, 0);
+      try {
+        const fmt = new Intl.DateTimeFormat('en-US', {
+          timeZone: timezone,
+          hour: 'numeric',
+          hour12: false,
+          timeZoneName: 'shortOffset',
+        });
+        const parts = fmt.formatToParts(new Date(utcWall));
+        const offPart = parts.find((p) => p.type === 'timeZoneName')?.value ?? 'GMT+0';
+        const m = /GMT([+-])(\d+)(?::(\d+))?/.exec(offPart);
+        if (m) {
+          const sign = m[1] === '-' ? -1 : 1;
+          const offHrs = Number(m[2]);
+          const offMin = m[3] ? Number(m[3]) : 0;
+          const offsetMs = sign * (offHrs * 60 + offMin) * 60_000;
+          target = utcWall - offsetMs;
+        }
+      } catch { /* fall through to date-only target */ }
+    }
     if (Number.isNaN(target)) return null;
     const now = Date.now();
     const diffMs = target - now;
@@ -177,7 +235,7 @@ function useCountdown(iso?: string | null) {
     const hrs = Math.floor((diffMs % 86_400_000) / 3_600_000);
     const min = Math.floor((diffMs % 3_600_000) / 60_000);
     return { days, hrs, min };
-  }, [iso]);
+  }, [iso, timezone, time]);
 }
 
 /* ==================== LANGUAGE SWITCHER ==================== */
@@ -837,8 +895,8 @@ function PassportStamp({ dateLabel }: { dateLabel: string }) {
    Editorial display version — three Fraunces serif numbers
    separated by hairline rules, with a small italic kicker
    beneath. Reads as type, never as a button. */
-function CountdownDisplay({ eventDate }: { eventDate?: string | null }) {
-  const c = useCountdown(eventDate);
+function CountdownDisplay({ eventDate, timezone, time }: { eventDate?: string | null; timezone?: string; time?: string }) {
+  const c = useCountdown(eventDate, timezone, time);
   if (!c) return null;
   const items: Array<{ n: number; label: string }> = [
     { n: c.days, label: 'days' },
@@ -919,8 +977,8 @@ function CountdownDisplay({ eventDate }: { eventDate?: string | null }) {
 }
 
 /* ==================== COUNTDOWN PILL (legacy) ==================== */
-function CountdownPill({ eventDate }: { eventDate?: string | null }) {
-  const c = useCountdown(eventDate);
+function CountdownPill({ eventDate, timezone, time }: { eventDate?: string | null; timezone?: string; time?: string }) {
+  const c = useCountdown(eventDate, timezone, time);
   if (!c) return null;
   return (
     <div
@@ -990,7 +1048,7 @@ function HeroSection({
   onEditNames?: (next: [string, string]) => void;
 }) {
   const [n1, n2] = names;
-  const dateInfo = fmtEventDate(manifest.logistics?.date);
+  const dateInfo = fmtEventDate(manifest.logistics?.date, manifest.dateFormat, manifest.logistics?.timezone);
   const venue = manifest.logistics?.venue ?? '';
   const rsvpDeadline = manifest.logistics?.rsvpDeadline;
   const deadlineStr = rsvpDeadline ? new Date(rsvpDeadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) : null;
@@ -1123,7 +1181,7 @@ function HeroVariantDispatch({
   onEditNames?: (next: [string, string]) => void;
 }) {
   const [n1, n2] = names;
-  const dateInfo = fmtEventDate(manifest.logistics?.date);
+  const dateInfo = fmtEventDate(manifest.logistics?.date, manifest.dateFormat, manifest.logistics?.timezone);
   const venue = manifest.logistics?.venue ?? '';
   const rsvpDeadline = manifest.logistics?.rsvpDeadline;
   const deadlineStr = rsvpDeadline
@@ -1551,7 +1609,7 @@ function ChapterCard({
 /* ==================== DETAILS STRIP ==================== */
 function DetailsStripImpl({ manifest }: { manifest: StoryManifest }) {
   const l = manifest.logistics ?? {};
-  const dateInfo = fmtEventDate(l.date);
+  const dateInfo = fmtEventDate(l.date, manifest.dateFormat, l.timezone);
   const events = manifest.events ?? [];
 
   // Build items from actual manifest data — only surface what the
@@ -1687,7 +1745,7 @@ function DetailsStripImpl({ manifest }: { manifest: StoryManifest }) {
 /* ==================== SCHEDULE ==================== */
 function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: StoryManifest; names: [string, string]; onEditField?: FieldEditor }) {
   const edit = useIsEditMode();
-  const dateInfo = fmtEventDate(manifest.logistics?.date);
+  const dateInfo = fmtEventDate(manifest.logistics?.date, manifest.dateFormat, manifest.logistics?.timezone);
   const events = manifest.events ?? [];
   // Hide the whole section rather than ship a demo schedule.
   if (events.length === 0 && !edit) return null;

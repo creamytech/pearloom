@@ -1,7 +1,7 @@
 'use client';
 
 import type { StoryManifest } from '@/types';
-import { AddRowButton, Field, ListRow, PanelGroup, PanelSection, PanelSmartActions, PhotoSlot, TextArea, TextInput, type PanelSmartAction } from '../atoms';
+import { AddRowButton, Field, ListRow, PanelGroup, PanelSection, PanelSmartActions, PhotoSlot, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { FocalPointPicker } from './FocalPointPicker';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { TimePicker, DatePicker } from '../v8-forms';
@@ -9,6 +9,55 @@ import { BlockStylePicker } from './BlockStylePicker';
 // Side-effect import — registers all hero variants with the registry
 // before BlockStylePicker reads them.
 import '@/components/pearloom/site/hero-variants';
+
+// Curated common-case zones rather than every IANA name. Hosts who
+// need an obscure zone can paste a custom IANA string in via the
+// Pear command palette later if requested. The empty value is
+// "viewer's local zone" — the historical behaviour.
+const TIMEZONE_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: '', label: "Viewer's local time" },
+  { value: 'America/New_York',     label: 'Eastern (New York / Atlanta)' },
+  { value: 'America/Chicago',      label: 'Central (Chicago / Dallas)' },
+  { value: 'America/Denver',       label: 'Mountain (Denver / Phoenix)' },
+  { value: 'America/Los_Angeles',  label: 'Pacific (LA / Seattle)' },
+  { value: 'America/Anchorage',    label: 'Alaska (Anchorage)' },
+  { value: 'Pacific/Honolulu',     label: 'Hawaii (Honolulu)' },
+  { value: 'America/Toronto',      label: 'Toronto / Eastern Canada' },
+  { value: 'America/Mexico_City',  label: 'Mexico City' },
+  { value: 'America/Sao_Paulo',    label: 'São Paulo / BRT' },
+  { value: 'Europe/London',        label: 'London / GMT-BST' },
+  { value: 'Europe/Paris',         label: 'Paris / CET' },
+  { value: 'Europe/Berlin',        label: 'Berlin / CET' },
+  { value: 'Europe/Madrid',        label: 'Madrid / CET' },
+  { value: 'Europe/Rome',          label: 'Rome / CET' },
+  { value: 'Europe/Athens',        label: 'Athens / EET' },
+  { value: 'Europe/Istanbul',      label: 'Istanbul / TRT' },
+  { value: 'Africa/Johannesburg',  label: 'Johannesburg / SAST' },
+  { value: 'Africa/Cairo',         label: 'Cairo / EET' },
+  { value: 'Asia/Dubai',           label: 'Dubai / Gulf Time' },
+  { value: 'Asia/Kolkata',         label: 'India (Kolkata / Mumbai)' },
+  { value: 'Asia/Bangkok',         label: 'Bangkok / ICT' },
+  { value: 'Asia/Singapore',       label: 'Singapore / SGT' },
+  { value: 'Asia/Hong_Kong',       label: 'Hong Kong / HKT' },
+  { value: 'Asia/Shanghai',        label: 'Shanghai / CST' },
+  { value: 'Asia/Tokyo',           label: 'Tokyo / JST' },
+  { value: 'Asia/Seoul',           label: 'Seoul / KST' },
+  { value: 'Australia/Sydney',     label: 'Sydney / AEST-AEDT' },
+  { value: 'Australia/Perth',      label: 'Perth / AWST' },
+  { value: 'Pacific/Auckland',     label: 'Auckland / NZST-NZDT' },
+];
+
+// Date format presets — names match the union in StoryManifest.dateFormat.
+// Sample copy uses Sept 14, 2026 so the host sees what each preset
+// will look like on the live site without leaving the panel.
+const DATE_FORMAT_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: '',           label: 'Long — September 14, 2026' },
+  { value: 'long',       label: 'Long — September 14, 2026' },
+  { value: 'short',      label: 'Short — Sep 14, 2026' },
+  { value: 'numeric',    label: 'Numeric — 9/14/2026' },
+  { value: 'iso',        label: 'ISO — 2026-09-14' },
+  { value: 'month-year', label: 'Month + year — September 2026' },
+];
 
 function HeroTaglineAI({
   manifest,
@@ -189,6 +238,38 @@ export function HeroPanel({
               })
             }
             ariaLabel="Event start time"
+          />
+        </Field>
+        <Field
+          label="Time zone"
+          help="The countdown anchors here so a guest in Tokyo and a host in NYC see the same wall-clock time."
+        >
+          <SelectInput
+            value={manifest.logistics?.timezone ?? ''}
+            onChange={(v) =>
+              onChange({
+                ...manifest,
+                logistics: { ...(manifest.logistics ?? {}), timezone: v || undefined },
+              })
+            }
+            options={TIMEZONE_OPTIONS}
+            placeholder="Use the viewer's local zone"
+          />
+        </Field>
+        <Field
+          label="Date format"
+          help="How dates render in chapter headers and section meta. Defaults to 'September 14, 2026'."
+        >
+          <SelectInput
+            value={(manifest as unknown as { dateFormat?: string }).dateFormat ?? ''}
+            onChange={(v) =>
+              onChange({
+                ...manifest,
+                dateFormat: (v as 'long' | 'short' | 'numeric' | 'iso' | 'month-year' | '') || undefined,
+              } as unknown as StoryManifest)
+            }
+            options={DATE_FORMAT_OPTIONS}
+            placeholder="Long — September 14, 2026"
           />
         </Field>
         <Field label="Venue name" htmlFor="pl8-hero-venue">

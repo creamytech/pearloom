@@ -124,6 +124,11 @@ export interface StoryManifest {
     rsvpDeadline?: string;
     dresscode?: string;
     notes?: string;
+    /** IANA timezone identifier (e.g. 'America/Los_Angeles'). When
+     *  set, the countdown + display formatters anchor on this zone
+     *  so a guest in Tokyo and a host in NYC see the same wall-clock
+     *  time for the event. Falls back to the viewer's local zone. */
+    timezone?: string;
   };
   registry?: {
     enabled: boolean;
