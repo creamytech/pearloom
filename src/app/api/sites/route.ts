@@ -53,18 +53,30 @@ export async function GET() {
       return NextResponse.json({ sites: [], _error: error.message }, { status: 200 });
     }
 
-    const mappedSites = data?.map(site => ({
-      id: site.id,
-      domain: site.subdomain,
-      manifest: site.ai_manifest,
-      created_at: site.created_at,
-      updated_at: (site as Record<string, unknown>).updated_at as string | undefined,
-      published: Boolean((site as Record<string, unknown>).published),
-      // Ensure names is always an array
-      names: Array.isArray((site.site_config as Record<string, unknown>)?.names)
-        ? (site.site_config as Record<string, unknown>).names
-        : ['', ''],
-    })) || [];
+    const mappedSites = data?.map(site => {
+      const manifest = site.ai_manifest as Record<string, unknown> | null;
+      const config = site.site_config as Record<string, unknown> | null;
+      // Surface occasion at the top level so consumers don't have to
+      // dig into manifest. Read order: manifest.occasion (canonical) →
+      // site_config.occasion (legacy fallback for sites generated
+      // before occasion landed on the manifest). Without this the
+      // dashboard fell back to /sites/{slug} URLs whenever the
+      // streaming generation failed to write the field.
+      const occasion = (manifest?.occasion as string | undefined)
+        ?? (config?.occasion as string | undefined)
+        ?? null;
+      return {
+        id: site.id,
+        domain: site.subdomain,
+        occasion,
+        manifest,
+        created_at: site.created_at,
+        updated_at: (site as Record<string, unknown>).updated_at as string | undefined,
+        published: Boolean((site as Record<string, unknown>).published),
+        // Ensure names is always an array
+        names: Array.isArray(config?.names) ? config.names : ['', ''],
+      };
+    }) || [];
 
     return NextResponse.json({ sites: mappedSites }, { status: 200 });
   } catch (error) {

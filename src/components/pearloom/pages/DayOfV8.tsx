@@ -6,6 +6,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { buildSitePath } from '@/lib/site-urls';
 import { Icon, Pear, PhotoPlaceholder, Squiggle } from '../motifs';
 import { DashLayout } from '../dash/DashShell';
 import { BroadcastComposer } from '../dash/BroadcastComposer';
@@ -861,7 +862,10 @@ export function DayOfV8() {
             <button className="btn btn-outline btn-sm">
               <Icon name="share" size={13} /> Share with crew
             </button>
-            <Link href={site ? `/sites/${site.domain}` : '/'} className="btn btn-primary btn-sm">
+            <Link
+              href={site ? buildSitePath(site.domain, '', site.occasion) : '/'}
+              className="btn btn-primary btn-sm"
+            >
               <Icon name="eye" size={13} /> View the site
             </Link>
           </div>

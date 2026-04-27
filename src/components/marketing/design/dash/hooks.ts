@@ -61,6 +61,10 @@ interface ApiSitesResponse {
   sites: Array<{
     id: string;
     domain: string;
+    /** Top-level occasion from /api/sites (extracted server-side from
+     *  manifest.occasion or site_config.occasion). Falls back to
+     *  manifest.occasion below if the API hasn't been redeployed. */
+    occasion?: string | null;
     names?: [string, string] | null;
     manifest?: {
       occasion?: string;
@@ -100,7 +104,10 @@ export function useUserSites(): UserSitesState {
           id: s.id,
           domain: s.domain,
           names: (s.names ?? m?.names ?? null) as [string, string] | null,
-          occasion: m?.occasion,
+          // Prefer the API's top-level occasion (now extracted server-
+          // side, defensive against legacy sites where it lived only on
+          // site_config). Falls back to manifest for older deployments.
+          occasion: s.occasion ?? m?.occasion ?? undefined,
           manifest: s.manifest,
           coverPhoto: m?.coverPhoto ?? null,
           eventDate: m?.logistics?.date ?? null,

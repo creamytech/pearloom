@@ -15,6 +15,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import type { StoryManifest } from '@/types';
+import { buildSiteUrl, normalizeOccasion } from '@/lib/site-urls';
 
 interface BaseProps {
   domain: string;
@@ -152,7 +153,16 @@ export function SaveContactButton({ names, domain, manifest, variant = 'pill' }:
   const [name1, name2] = names;
   const venue = manifest.logistics?.venue ?? '';
   const note = (manifest as unknown as { poetry?: { heroTagline?: string } }).poetry?.heroTagline ?? '';
-  const url = typeof window !== 'undefined' ? window.location.origin + `/sites/${domain}` : `https://pearloom.com/sites/${domain}`;
+  // Canonical occasion-prefixed URL (e.g. /wedding/scott). buildSiteUrl
+  // reads window.location.origin client-side, falls back to the
+  // configured app origin server-side, and normalises occasion to a
+  // valid prefix (defaulting to 'wedding' for legacy/missing values).
+  const url = buildSiteUrl(
+    domain,
+    '',
+    undefined,
+    normalizeOccasion((manifest as unknown as { occasion?: string }).occasion),
+  );
   const fullName = [name1, name2].filter(Boolean).join(' & ');
   const vcard = [
     'BEGIN:VCARD',

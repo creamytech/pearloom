@@ -9,6 +9,7 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { StoryManifest } from '@/types';
+import { buildSitePath } from '@/lib/site-urls';
 
 interface GalleryPhoto {
   url: string;
@@ -83,6 +84,7 @@ function formatDateLong(iso?: string): string {
 
 export function AnniversaryRecap({
   names,
+  manifest,
   gallery,
   guestbook,
   rsvpNotes,
@@ -430,7 +432,7 @@ export function AnniversaryRecap({
           }}
         >
           <a
-            href={`/sites/${subdomain}`}
+            href={buildSitePath(subdomain, '', manifest?.occasion as string | undefined)}
             style={{
               fontFamily: FONT_MONO,
               fontSize: '0.62rem',

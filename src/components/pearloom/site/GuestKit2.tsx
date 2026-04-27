@@ -362,7 +362,7 @@ export function ScrollSpy({ sections }: { sections: string[] }) {
 // link that deep-jumps to /sites/<domain>/live.
 // ─────────────────────────────────────────────────────────────
 
-export function LiveWallDiscover({ subdomain }: { subdomain: string }) {
+export function LiveWallDiscover({ subdomain, occasion }: { subdomain: string; occasion?: string }) {
   const [active, setActive] = useState(false);
   useEffect(() => {
     let cancelled = false;
@@ -391,7 +391,7 @@ export function LiveWallDiscover({ subdomain }: { subdomain: string }) {
 
   return (
     <a
-      href={`/sites/${subdomain}/live`}
+      href={occasion ? `/${occasion}/${subdomain}/live` : `/sites/${subdomain}/live`}
       target="_blank"
       rel="noreferrer"
       style={{

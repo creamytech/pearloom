@@ -10,6 +10,7 @@ import { Pear, Pearl, Pill, Squiggle, PD, DISPLAY_STYLE, MONO_STYLE } from '../D
 import { Panel, SectionTitle, btnInk, btnGhost } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { siteDisplayName, useUserSites, type SiteSummary } from './hooks';
+import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 
 const PATHS = [
   {
@@ -346,7 +347,7 @@ function SiteCard({ site }: { site: SiteSummary }) {
             fontFamily: 'var(--pl-font-body)',
           }}
         >
-          <span>pearloom.com/{site.occasion ?? 'wedding'}/{site.domain}</span>
+          <span>{formatSiteDisplayUrl(site.domain, '', normalizeOccasion(site.occasion))}</span>
           <span style={{ marginLeft: 'auto' }}>→</span>
         </div>
       </div>

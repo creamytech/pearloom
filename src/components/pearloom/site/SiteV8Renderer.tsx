@@ -3906,7 +3906,10 @@ export function SiteV8Renderer({
               }
             />
             <AskPearFloater domain={siteSlug} manifest={manifest} names={names} />
-            <LiveWallDiscover subdomain={siteSlug} />
+            <LiveWallDiscover
+              subdomain={siteSlug}
+              occasion={(manifest as unknown as { occasion?: string }).occasion}
+            />
             {/* Optional ambient audio — opt-in only, off by default.
                 Host enables it in the editor and the loop URL must
                 be set on manifest.atmosphere.audio. */}

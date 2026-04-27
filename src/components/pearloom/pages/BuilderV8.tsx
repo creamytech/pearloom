@@ -92,7 +92,15 @@ export function BuilderV8({
   useEffect(() => {
     if (demoMode) return;
     let cancelled = false;
-    const probe = previewPathOverride ?? `/sites/${siteSlug}`;
+    // Probe the canonical path once. The proxy rewrites this internally
+    // so /sites/{slug} also resolves, but probing the canonical URL
+    // matches what the iframe will actually request.
+    const probe = previewPathOverride
+      ?? buildSitePath(
+        siteSlug,
+        '',
+        (manifest as unknown as { occasion?: string }).occasion,
+      );
     fetch(probe)
       .then(async (r) => {
         if (cancelled) return;
@@ -187,7 +195,7 @@ export function BuilderV8({
       });
       if (!res.ok) throw new Error(String(res.status));
       setSaveStatus('saved');
-      window.open(`/sites/${siteSlug}`, '_blank');
+      window.open(prettyPath, '_blank');
       setTimeout(() => setSaveStatus('idle'), 1800);
     } catch {
       setSaveStatus('error');
@@ -292,6 +300,7 @@ export function BuilderV8({
           motif={motif}
           spacing={spacing}
           imagery={imagery}
+          prettyUrl={prettyUrl}
           onUpdate={updateManifest}
         />
       </div>
@@ -575,6 +584,7 @@ function StylePanel({
   motif,
   spacing,
   imagery,
+  prettyUrl,
   onUpdate,
 }: {
   tab: 'Style' | 'Settings';
@@ -584,6 +594,7 @@ function StylePanel({
   motif: string;
   spacing: string;
   imagery: string;
+  prettyUrl: string;
   onUpdate: (patch: Record<string, unknown>) => void;
 }) {
   const activePalette = PALETTES.find((p) => p.id === palette) ?? PALETTES[0];
@@ -857,9 +868,10 @@ function StylePanel({
               style={{ width: '100%', justifyContent: 'center' }}
               onClick={() => {
                 if (typeof navigator === 'undefined') return;
-                navigator.clipboard
-                  ?.writeText(`${window.location.origin}/sites/${window.location.pathname.split('/').pop()}`)
-                  .catch(() => {});
+                // prettyUrl is already host+occasion+slug — turn it
+                // into a full URL by prefixing the current scheme.
+                const fullUrl = `${window.location.protocol}//${prettyUrl}`;
+                navigator.clipboard?.writeText(fullUrl).catch(() => {});
               }}
             >
               <Icon name="link" size={12} /> Copy share link

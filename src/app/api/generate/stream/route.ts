@@ -814,9 +814,9 @@ export async function POST(req: Request) {
         // Persist the wizard's occasion onto the manifest so the
         // publish URL ends up at /{occasion}/{slug} instead of
         // /sites/{slug}. Dashboard lookups also key on this.
-        if (occasion) {
-          (manifest as unknown as { occasion?: string }).occasion = occasion;
-        }
+        // Default to 'wedding' so old wizard payloads that didn't
+        // ship occasion never produce a /sites/{slug} URL.
+        (manifest as unknown as { occasion?: string }).occasion = occasion || 'wedding';
 
         // ── User-picked palette wins over AI-generated vibeSkin ──
         // When the wizard user picked a palette (either a preset or
