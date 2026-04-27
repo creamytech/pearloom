@@ -55,8 +55,15 @@ export async function GET(req: NextRequest) {
       .limit(50);
 
     if (error) {
-      console.error('[live-updates GET] Supabase error:', error);
-      return NextResponse.json({ updates: [], _error: error.message });
+      // PGRST205 = "table not found in schema cache". Means the
+      // 20260502_live_updates migration hasn't been applied to this
+      // database yet. Degrade silently — the feature is optional and
+      // every consumer treats an empty list as "no updates posted".
+      const isMissingTable = (error as { code?: string }).code === 'PGRST205';
+      if (!isMissingTable) {
+        console.error('[live-updates GET] Supabase error:', error);
+      }
+      return NextResponse.json({ updates: [], _error: isMissingTable ? 'unconfigured' : error.message });
     }
 
     return NextResponse.json({ updates: data || [] });

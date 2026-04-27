@@ -39,17 +39,22 @@ export async function GET() {
     // backstops legacy rows from before the normalisation landed —
     // if the eq query returns 0 rows we widen to a case-insensitive
     // match so an old "Foo@Bar.com" row still resolves.
+    // Note: `published` is intentionally NOT in the SELECT. The
+    // sites table doesn't have that column in current deployments —
+    // we derive published-state from manifest.published instead, so
+    // the row schema stays narrow and migrations stay optional.
+    const SELECT_COLUMNS = 'id, subdomain, ai_manifest, site_config, created_at, updated_at';
     const sessionEmail = session.user.email.toLowerCase().trim();
     let { data, error } = await supabase
       .from('sites')
-      .select('id, subdomain, ai_manifest, site_config, created_at, updated_at, published')
+      .select(SELECT_COLUMNS)
       .eq('site_config->>creator_email', sessionEmail)
       .order('updated_at', { ascending: false, nullsFirst: false });
 
     if (!error && (!data || data.length === 0)) {
       const { data: legacyData, error: legacyError } = await supabase
         .from('sites')
-        .select('id, subdomain, ai_manifest, site_config, created_at, updated_at, published')
+        .select(SELECT_COLUMNS)
         .ilike('site_config->>creator_email', sessionEmail)
         .order('updated_at', { ascending: false, nullsFirst: false });
       if (!legacyError) {
@@ -89,7 +94,7 @@ export async function GET() {
           // sites even if the JSONB filter syntax isn't matching.
           const { data: allRows } = await supabase
             .from('sites')
-            .select('id, subdomain, ai_manifest, site_config, created_at, updated_at, published')
+            .select(SELECT_COLUMNS)
             .order('updated_at', { ascending: false, nullsFirst: false })
             .limit(200);
           const filtered = (allRows ?? []).filter((r) => {
@@ -123,6 +128,13 @@ export async function GET() {
       const occasion = (manifest?.occasion as string | undefined)
         ?? (config?.occasion as string | undefined)
         ?? null;
+      // Derive published-state from manifest.published rather than a
+      // dedicated column. The sites table doesn't ship a `published`
+      // boolean in current deployments and selecting it threw 42703
+      // ("column sites.published does not exist"). The publish
+      // pipeline already stamps manifest.published = true on the row
+      // it writes, so this is the canonical signal anyway.
+      const published = Boolean(manifest?.published);
       return {
         id: site.id,
         domain: site.subdomain,
@@ -130,7 +142,7 @@ export async function GET() {
         manifest,
         created_at: site.created_at,
         updated_at: (site as Record<string, unknown>).updated_at as string | undefined,
-        published: Boolean((site as Record<string, unknown>).published),
+        published,
         // Ensure names is always an array
         names: Array.isArray(config?.names) ? config.names : ['', ''],
       };
