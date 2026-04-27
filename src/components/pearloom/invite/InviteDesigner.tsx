@@ -593,13 +593,27 @@ export function InviteDesigner({
           hint: aiHint.trim() || undefined,
         }),
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error((body as { error?: string }).error ?? `Render failed (${res.status})`);
+      // Read body as text first — Vercel/edge gateways frequently
+      // return plain "An error occurred" on timeouts (gpt-image-2
+      // can take 30–60s, function timeout caps at the platform's
+      // limit). JSON.parse on plain text crashes with a cryptic
+      // "Unexpected token A" — translate to a useful message.
+      const raw = await res.text();
+      let parsed: { ok?: boolean; url?: string; error?: string } = {};
+      try { parsed = raw ? JSON.parse(raw) : {}; }
+      catch {
+        // Non-JSON response (gateway timeout / 504) — surface a
+        // human reason instead of the parse error.
+        if (res.status === 504 || /An error occurred/i.test(raw)) {
+          throw new Error('Pear timed out before the painter finished. Try a simpler archetype or run it again.');
+        }
+        throw new Error(`Painter responded with non-JSON (${res.status}). Try again in a minute.`);
       }
-      const data = (await res.json()) as { ok?: boolean; url?: string };
-      if (!data.url) throw new Error('Pear returned no image URL.');
-      setAiBackgroundUrl(data.url);
+      if (!res.ok) {
+        throw new Error(parsed.error ?? `Render failed (${res.status})`);
+      }
+      if (!parsed.url) throw new Error('Pear returned no image URL.');
+      setAiBackgroundUrl(parsed.url);
       completeDecorJob(jobId, true);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Paint failed';

@@ -2,16 +2,16 @@
 
 /* ========================================================================
    ShellPersistentLayout — persistent dashboard chrome.
-   User explicitly does not want any motion on tab switch. So:
-     - No key={pathname} on the children wrapper. React reconciles
-       across nav instead of unmounting + remounting, eliminating
-       the brief blank gap that read as a fade-in.
-     - No tab-swipe animation class.
-     - No top progress bar.
-     - Sidebar persistent, atmospheric background persistent.
+   • Sidebar + atmospheric background stay mounted across tab nav
+     so there's no flash of empty layout between routes.
+   • Inner content is wrapped in a pathname-keyed div with the
+     `pl8-dash-page-enter` class so each tab navigation re-fires
+     the 540ms slide+fade entry animation. The CSS keyframe
+     respects prefers-reduced-motion automatically.
    ======================================================================== */
 
 import { createContext, useContext, type ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { Blob, Squiggle } from '../motifs';
 import { DashSidebar } from './DashShell';
 
@@ -22,6 +22,7 @@ export function useIsInsideShell(): boolean {
 }
 
 export function ShellPersistentLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   return (
     <ShellPresentContext.Provider value={true}>
       <div className="pl8 pl8-dashshell">
@@ -32,7 +33,13 @@ export function ShellPersistentLayout({ children }: { children: ReactNode }) {
             <Squiggle variant={1} width={180} style={{ position: 'absolute', top: 40, right: 200, transform: 'rotate(-15deg)', opacity: 0.6 }} />
           </div>
           <div style={{ position: 'relative', zIndex: 1 }}>
-            {children}
+            {/* Pathname-keyed wrapper — remounts on every route
+                change so the CSS animation re-triggers. Without
+                this key, the animation only fires on initial
+                mount. */}
+            <div key={`shell:${pathname}`} className="pl8-dash-page-enter">
+              {children}
+            </div>
           </div>
         </main>
       </div>

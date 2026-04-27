@@ -108,10 +108,21 @@ export function QrPosterPage() {
           siteSlug: site.domain,
         }),
       });
-      const data = await res.json();
+      // Defensive parse — gateway timeouts return plain text that
+      // would crash JSON.parse with "Unexpected token A".
+      const raw = await res.text();
+      let data: { ok?: boolean; url?: string; qrDark?: string; qrLight?: string; error?: string } = {};
+      try { data = raw ? JSON.parse(raw) : {}; }
+      catch {
+        if (res.status === 504 || /An error occurred/i.test(raw)) {
+          throw new Error('Pear timed out before the painter finished. Try a different theme or run it again.');
+        }
+        throw new Error(`Painter responded with non-JSON (${res.status}). Try again in a minute.`);
+      }
       if (!res.ok) throw new Error(data.error || `Render failed (${res.status})`);
+      if (!data.url) throw new Error('Pear returned no poster URL.');
       setThemedPosterUrl(data.url);
-      setThemedQrColors({ dark: data.qrDark, light: data.qrLight });
+      setThemedQrColors({ dark: data.qrDark || '#0E0D0B', light: data.qrLight || '#FBF7EE' });
       completeDecorJob(jobId, true);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Render failed.';

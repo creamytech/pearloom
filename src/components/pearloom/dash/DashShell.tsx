@@ -1025,6 +1025,10 @@ export function DashLayout({
   const pageKey = `page:${pathname}`;
 
   if (insideShell) {
+    // ShellPersistentLayout already wraps children in a
+    // pathname-keyed pl8-dash-page-enter div, so we DON'T
+    // double-wrap here. Just render the topbar + children.
+    void pageKey;
     return (
       <>
         {!hideTopbar && (
@@ -1037,9 +1041,7 @@ export function DashLayout({
             showHeart={showHeart}
           />
         )}
-        <div key={pageKey} className="pl8-dash-page-enter">
-          {children}
-        </div>
+        {children}
       </>
     );
   }
