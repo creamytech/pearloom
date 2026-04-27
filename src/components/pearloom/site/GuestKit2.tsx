@@ -14,6 +14,7 @@
    ======================================================================== */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 
 // ─────────────────────────────────────────────────────────────
 // Photo lightbox
@@ -47,6 +48,16 @@ export function PhotoLightbox({
   onNext: () => void;
   onPrev: () => void;
 }) {
+  // Render via portal so the fixed-position overlay isn't trapped
+  // by an ancestor with transform / filter / will-change (which
+  // breaks `position: fixed` and was why the v1 lightbox showed
+  // up off-centre, half-hidden under the nav).
+  const [portalNode, setPortalNode] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    setPortalNode(document.body);
+  }, []);
+
   useEffect(() => {
     if (index === null) return;
     function onKey(e: KeyboardEvent) {
@@ -63,7 +74,8 @@ export function PhotoLightbox({
     };
   }, [index, onClose, onNext, onPrev]);
 
-  // Touch swipe — left = next, right = prev.
+  // Touch swipe — left = next, right = prev. 60px threshold so
+  // small fidgets don't accidentally page through.
   const startXRef = useRef<number | null>(null);
   const onTouchStart = (e: React.TouchEvent) => {
     startXRef.current = e.touches[0]?.clientX ?? null;
@@ -72,14 +84,14 @@ export function PhotoLightbox({
     if (startXRef.current === null) return;
     const endX = e.changedTouches[0]?.clientX ?? startXRef.current;
     const dx = endX - startXRef.current;
-    if (Math.abs(dx) > 50) {
+    if (Math.abs(dx) > 60) {
       if (dx < 0) onNext();
       else onPrev();
     }
     startXRef.current = null;
   };
 
-  if (index === null) return null;
+  if (index === null || !portalNode) return null;
   const img = images[index];
   if (!img) return null;
 
@@ -90,7 +102,10 @@ export function PhotoLightbox({
     } catch {}
   }
 
-  return (
+  // Editorial v8 chrome: cream-on-ink dialog with paper grain
+  // pulled from the global pearloom.css `.pl-grain` utility, big
+  // serif counter, and click-outside-to-close.
+  const overlay = (
     <div
       role="dialog"
       aria-modal="true"
@@ -101,106 +116,206 @@ export function PhotoLightbox({
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 9000,
-        background: 'rgba(14, 13, 11, 0.94)',
-        display: 'grid',
-        placeItems: 'center',
-        animation: 'pl8-lb-in 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+        zIndex: 9999,
+        background: 'rgba(14, 13, 11, 0.92)',
+        backdropFilter: 'blur(18px)',
+        WebkitBackdropFilter: 'blur(18px)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 'clamp(24px, 4vw, 56px) clamp(16px, 4vw, 56px) clamp(80px, 8vw, 120px)',
+        animation: 'pl8-lb-in 220ms cubic-bezier(0.22, 1, 0.36, 1)',
       }}
     >
-      <button
-        type="button"
-        aria-label="Close"
-        onClick={onClose}
-        style={{
-          position: 'absolute',
-          top: 18,
-          right: 18,
-          width: 40,
-          height: 40,
-          borderRadius: '50%',
-          border: '1px solid rgba(255,255,255,0.2)',
-          background: 'rgba(0,0,0,0.4)',
-          color: '#fff',
-          cursor: 'pointer',
-          fontSize: 20,
-        }}
-      >
-        ×
-      </button>
-      <button
-        type="button"
-        aria-label="Previous"
-        onClick={(e) => { e.stopPropagation(); onPrev(); }}
-        style={navBtn('left')}
-      >
-        ‹
-      </button>
-      <img
-        src={img.url}
-        alt={img.alt ?? ''}
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          maxWidth: '92vw',
-          maxHeight: '88vh',
-          objectFit: 'contain',
-          borderRadius: 6,
-          boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
-        }}
-      />
-      <button
-        type="button"
-        aria-label="Next"
-        onClick={(e) => { e.stopPropagation(); onNext(); }}
-        style={navBtn('right')}
-      >
-        ›
-      </button>
+      {/* Top rail — counter on the left, Close on the right. Stays
+          out of the image's way and matches the editorial nav vibe. */}
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
           position: 'absolute',
-          bottom: 18,
+          top: 'clamp(16px, 2vw, 28px)',
+          left: 0,
+          right: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 clamp(16px, 4vw, 32px)',
+          color: 'var(--cream, #F5EFE2)',
+          pointerEvents: 'none',
+        }}
+      >
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'baseline',
+            gap: 6,
+            fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
+            fontSize: 18,
+            fontStyle: 'italic',
+            color: 'rgba(243,233,212,0.9)',
+            textShadow: '0 1px 2px rgba(0,0,0,0.4)',
+          }}
+        >
+          <span style={{ fontSize: 22, fontWeight: 600, fontStyle: 'normal', color: 'var(--cream)' }}>
+            {String(index + 1).padStart(2, '0')}
+          </span>
+          <span style={{ opacity: 0.55 }}>/</span>
+          <span style={{ opacity: 0.6, fontStyle: 'normal', fontSize: 14, fontWeight: 500 }}>
+            {String(images.length).padStart(2, '0')}
+          </span>
+        </div>
+        <button
+          type="button"
+          aria-label="Close"
+          onClick={onClose}
+          style={{
+            pointerEvents: 'auto',
+            width: 38,
+            height: 38,
+            borderRadius: 999,
+            border: '1px solid rgba(243,233,212,0.22)',
+            background: 'rgba(243,233,212,0.06)',
+            color: 'var(--cream, #F5EFE2)',
+            cursor: 'pointer',
+            display: 'grid',
+            placeItems: 'center',
+            fontSize: 18,
+            fontWeight: 300,
+            transition: 'background 160ms ease, border-color 160ms ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(243,233,212,0.14)';
+            e.currentTarget.style.borderColor = 'rgba(243,233,212,0.4)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(243,233,212,0.06)';
+            e.currentTarget.style.borderColor = 'rgba(243,233,212,0.22)';
+          }}
+        >
+          ×
+        </button>
+      </div>
+
+      {/* Image — actual centred element. The picture is pinned in
+          the middle of the flex column; the chrome floats around it. */}
+      <figure
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          margin: 0,
+          maxWidth: 'min(92vw, 1280px)',
+          maxHeight: 'min(78vh, 920px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flex: 1,
+          minHeight: 0,
+        }}
+      >
+        <img
+          src={img.url}
+          alt={img.alt ?? img.caption ?? ''}
+          style={{
+            maxWidth: '100%',
+            maxHeight: '100%',
+            width: 'auto',
+            height: 'auto',
+            objectFit: 'contain',
+            borderRadius: 8,
+            boxShadow: '0 24px 72px rgba(0,0,0,0.6), 0 0 0 1px rgba(243,233,212,0.06)',
+            background: '#0E0D0B',
+          }}
+        />
+      </figure>
+
+      {/* Caption — sits between image and chrome rail, optional. */}
+      {img.caption && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            marginTop: 14,
+            color: 'rgba(243,233,212,0.78)',
+            fontSize: 13,
+            fontStyle: 'italic',
+            fontFamily: 'var(--pl-font-display, "Fraunces", serif)',
+            textAlign: 'center',
+            maxWidth: '60ch',
+            lineHeight: 1.5,
+          }}
+        >
+          {img.caption}
+        </div>
+      )}
+
+      {/* Chrome rail at the bottom — Prev / Share / Save / Next. The
+          big nav arrows sit at the edges so guests on a phone can
+          thumb through without aiming at a small button. */}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: 'absolute',
+          bottom: 'clamp(20px, 3vw, 32px)',
           left: '50%',
           transform: 'translateX(-50%)',
           display: 'flex',
           alignItems: 'center',
-          gap: 10,
-          padding: '8px 14px',
-          background: 'rgba(0,0,0,0.55)',
-          color: '#fff',
+          gap: 6,
+          padding: 6,
+          background: 'rgba(243,233,212,0.08)',
+          border: '1px solid rgba(243,233,212,0.16)',
           borderRadius: 999,
-          fontSize: 12,
-          backdropFilter: 'blur(8px)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
         }}
       >
-        <span>
-          {index + 1} / {images.length}
-        </span>
+        <RailButton ariaLabel="Previous photo" onClick={(e) => { e.stopPropagation(); onPrev(); }}>‹</RailButton>
+        <span style={{ width: 1, height: 16, background: 'rgba(243,233,212,0.18)', margin: '0 2px' }} />
         {typeof navigator !== 'undefined' && 'share' in navigator && (
           <>
-            <span style={{ opacity: 0.4 }}>·</span>
-            <button
-              type="button"
-              onClick={share}
-              style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', padding: 0 }}
-            >
-              Share
-            </button>
+            <RailButton ariaLabel="Share" onClick={share}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
+              </svg>
+            </RailButton>
+            <span style={{ width: 1, height: 16, background: 'rgba(243,233,212,0.18)', margin: '0 2px' }} />
           </>
         )}
-        <span style={{ opacity: 0.4 }}>·</span>
-        <a href={img.url} target="_blank" rel="noreferrer" style={{ color: '#fff', textDecoration: 'underline' }}>
+        <a
+          href={img.url}
+          target="_blank"
+          rel="noreferrer"
+          download
+          aria-label="Open or save photo"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 5,
+            padding: '6px 14px',
+            color: 'var(--cream, #F5EFE2)',
+            textDecoration: 'none',
+            fontSize: 12,
+            fontWeight: 600,
+            letterSpacing: '0.04em',
+            borderRadius: 999,
+            transition: 'background 140ms ease',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(243,233,212,0.12)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 3v14M5 12l7 7 7-7M3 21h18" />
+          </svg>
           Save
         </a>
-        {img.caption && (
-          <>
-            <span style={{ opacity: 0.4 }}>·</span>
-            <span style={{ fontStyle: 'italic', opacity: 0.85 }}>{img.caption}</span>
-          </>
-        )}
+        <span style={{ width: 1, height: 16, background: 'rgba(243,233,212,0.18)', margin: '0 2px' }} />
+        <RailButton ariaLabel="Next photo" onClick={(e) => { e.stopPropagation(); onNext(); }}>›</RailButton>
       </div>
-      <style jsx>{`
+
+      <style jsx global>{`
         @keyframes pl8-lb-in {
           from { opacity: 0; }
           to { opacity: 1; }
@@ -208,26 +323,45 @@ export function PhotoLightbox({
       `}</style>
     </div>
   );
+
+  return createPortal(overlay, portalNode);
 }
 
-function navBtn(side: 'left' | 'right'): React.CSSProperties {
-  return {
-    position: 'absolute',
-    [side]: 18,
-    top: '50%',
-    transform: 'translateY(-50%)',
-    width: 48,
-    height: 48,
-    borderRadius: '50%',
-    border: '1px solid rgba(255,255,255,0.25)',
-    background: 'rgba(0,0,0,0.4)',
-    color: '#fff',
-    fontSize: 26,
-    cursor: 'pointer',
-    display: 'grid',
-    placeItems: 'center',
-    backdropFilter: 'blur(6px)',
-  };
+function RailButton({
+  ariaLabel,
+  children,
+  onClick,
+}: {
+  ariaLabel: string;
+  children: ReactNode;
+  onClick: (e: React.MouseEvent) => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={ariaLabel}
+      onClick={onClick}
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: 999,
+        border: 'none',
+        background: 'transparent',
+        color: 'var(--cream, #F5EFE2)',
+        cursor: 'pointer',
+        display: 'grid',
+        placeItems: 'center',
+        fontSize: 22,
+        lineHeight: 1,
+        fontFamily: 'inherit',
+        transition: 'background 140ms ease',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(243,233,212,0.14)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+    >
+      {children}
+    </button>
+  );
 }
 
 // ─────────────────────────────────────────────────────────────
