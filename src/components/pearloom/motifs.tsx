@@ -917,6 +917,26 @@ export function Icon({
   const overrides = ctx.iconOverrides;
   const effectiveName = (overrides && overrides[name]) ? overrides[name] : name;
 
+  // ── Hit-area expansion in edit mode ───────────────────────────
+  // Icon SVGs render with fill="none" and stroked paths only. By
+  // default that means clicks only register where the stroke
+  // actually paints — clicking the empty inside of a "moon" or
+  // anywhere just adjacent to a thin stroke misses the SVG and
+  // lands on the parent. The editor's drop/click handler then
+  // sees a non-icon target and bails.
+  //
+  // pointer-events: bounding-box makes the entire 24×24 viewBox
+  // catch clicks. Supported across every browser we care about
+  // (Chrome 47+, Firefox 90+, Safari 14+). On the published site
+  // we keep the default so clicks still bubble naturally to
+  // wrapping links / buttons that contain icons.
+  // pointerEvents: 'bounding-box' isn't in the React CSSProperties
+  // typedef yet (CSS spec is fully shipped, the type lags) — cast
+  // through to avoid disabling the typecheck for the whole object.
+  const editStyle: CSSProperties | undefined = ctx.editMode
+    ? ({ pointerEvents: 'bounding-box' as 'auto', cursor: 'pointer', ...style })
+    : style;
+
   const common = {
     width: size,
     height: size,
@@ -927,7 +947,7 @@ export function Icon({
     strokeLinecap: 'round' as const,
     strokeLinejoin: 'round' as const,
     className,
-    style,
+    style: editStyle,
     'aria-hidden': true,
     // Both attributes survive on the rendered DOM. The original
     // (`-original`) lets the editor's drop handler key the override
