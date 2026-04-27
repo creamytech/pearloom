@@ -815,13 +815,24 @@ button.pl8-mobile-only { display: none !important; }
   .pl8 .display, .pl8-guest .display { font-size: clamp(32px, 9vw, 56px) !important; }
 }
 
-/* Container safety net — prevents horizontal scroll from inline overflow */
-.pl8 { overflow-x: hidden; }
+/* Container safety net — prevents horizontal scroll from inline
+   overflow. We use `overflow-x: clip` instead of `hidden` because
+   `hidden` forces `overflow-y: auto` per the CSS spec, which turns
+   .pl8 into a scroll container and breaks `position: sticky` on
+   the dashboard sidebar (it sticks to .pl8, not the viewport).
+   `clip` blocks horizontal overflow without creating a scroll
+   context — sidebar sticks to the viewport like it should.
+   Supported in every modern browser since ~2022. */
+.pl8 { overflow-x: clip; }
 .pl8 img, .pl8 svg { max-width: 100%; }
 .pl8 * { min-width: 0; }
 .pl8 .topnav-inner .nav-links a { white-space: nowrap; }
 
-/* Dashboard shell mobile — sidebar becomes drawer */
+/* Dashboard shell — flex row with a sticky-to-viewport sidebar.
+   The wrapper itself MUST NOT create a scroll context (no overflow
+   set here) so the aside's `position: sticky; top: 0` resolves
+   against the viewport. Long pages scroll the document; the
+   sidebar stays put. */
 .pl8-dashshell { display: flex; min-height: 100vh; background: var(--cream); position: relative; }
 .pl8-dashshell > aside { width: 260px; flex-shrink: 0; }
 .pl8-dashshell > main { flex: 1; min-width: 0; position: relative; }

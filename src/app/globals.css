@@ -902,7 +902,14 @@ body {
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
+  /* `overflow-x: hidden` on body forces `overflow-y: auto` per
+   * spec, turning the body into a scroll container. That breaks
+   * `position: sticky` on the dashboard sidebar (it would stick
+   * to the body's content height, not the viewport). Use
+   * `overflow-x: clip` instead — it blocks horizontal overflow
+   * without creating a scroll context. Supported in every
+   * modern browser since ~2022. */
+  overflow-x: clip;
   -webkit-overflow-scrolling: touch;
   -webkit-tap-highlight-color: transparent;
 }
