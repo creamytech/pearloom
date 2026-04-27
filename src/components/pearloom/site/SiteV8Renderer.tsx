@@ -6,7 +6,7 @@
    "Alex & Jamie" layout from the handoff mockup.
    ======================================================================== */
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { memo, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { StoryManifest, Chapter } from '@/types';
 import {
   Blob,
@@ -89,6 +89,61 @@ import type { PageBlock } from '@/types';
 // Callback passed down for inline edits. Parent (CanvasStage)
 // owns the manifest and wires each field edit back.
 type FieldEditor = (patch: (m: StoryManifest) => StoryManifest) => void;
+
+// ──────────────────────────────────────────────────────────────
+// Block-level memoization.
+//
+// SiteV8Renderer is a 3.6k-line tree that re-renders whenever the
+// manifest reference changes — and writePath now uses Immer, so
+// every edit produces a new manifest top-level ref. Without
+// memoization, typing a single character into the hero tagline
+// re-renders the timeline, gallery, schedule, RSVP, and FAQ
+// sections too.
+//
+// The trick: Immer gives us *structural sharing*. If you edit
+// manifest.poetry.heroTagline, manifest.chapters, manifest.theme,
+// manifest.events, etc. all keep their previous reference. So a
+// per-section memo comparator can drill into the slices that
+// section actually consumes and bail out when none of them
+// changed — even though the manifest top-level ref is new.
+//
+// The comparators below are conservative on purpose: each lists a
+// superset of slices the section reads (directly or via children
+// like SectionBackground / SectionStamp). When in doubt, add the
+// slice — the cost of a missed bail-out is a wasted render, the
+// cost of a missing slice is a stale UI.
+// ──────────────────────────────────────────────────────────────
+
+/**
+ * Compare two manifests by a fixed list of top-level slice names.
+ * Returns true iff every named slice keeps reference equality.
+ * Relies on Immer structural sharing for siblings to stay stable.
+ */
+function manifestSlicesEqual(
+  a: StoryManifest | undefined,
+  b: StoryManifest | undefined,
+  keys: ReadonlyArray<keyof StoryManifest>,
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  for (const k of keys) {
+    if (a[k] !== b[k]) return false;
+  }
+  return true;
+}
+
+// Slices every section reads via shared chrome (SectionBackground,
+// SectionStamp, BlockStyleWrapper, decor visibility, theme).
+const COMMON_CHROME_KEYS = [
+  'theme',
+  'sectionBackgrounds',
+  'blockStyles',
+  'decorLibrary',
+  'decorVisibility',
+  'blockVariants',
+  'storyLayout',
+  'layoutFormat',
+] as unknown as ReadonlyArray<keyof StoryManifest>;
 
 type Tone = 'warm' | 'field' | 'dusk' | 'lavender' | 'peach' | 'sage' | 'cream';
 
@@ -960,7 +1015,7 @@ function HeroVariantDispatch({
  * components there have all the per-layout polish (parallax photos,
  * magazine spreads, bento tiles, ken-burns crops).
  */
-function StoryVariantSection({
+function StoryVariantSectionImpl({
   chapters,
   layout,
   manifest,
@@ -1055,7 +1110,7 @@ function StoryVariantSection({
   );
 }
 
-function TimelineSection({ chapters, onEditField, manifest }: { chapters: Chapter[]; onEditField?: FieldEditor; manifest?: StoryManifest }) {
+function TimelineSectionImpl({ chapters, onEditField, manifest }: { chapters: Chapter[]; onEditField?: FieldEditor; manifest?: StoryManifest }) {
   const edit = useIsEditMode();
   if (!chapters.length && !edit) return null;
   const addChapter = () => {
@@ -1327,7 +1382,7 @@ function ChapterCard({
 }
 
 /* ==================== DETAILS STRIP ==================== */
-function DetailsStrip({ manifest }: { manifest: StoryManifest }) {
+function DetailsStripImpl({ manifest }: { manifest: StoryManifest }) {
   const l = manifest.logistics ?? {};
   const dateInfo = fmtEventDate(l.date);
   const events = manifest.events ?? [];
@@ -1463,7 +1518,7 @@ function DetailsStrip({ manifest }: { manifest: StoryManifest }) {
 }
 
 /* ==================== SCHEDULE ==================== */
-function ScheduleSection({ manifest, names, onEditField }: { manifest: StoryManifest; names: [string, string]; onEditField?: FieldEditor }) {
+function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: StoryManifest; names: [string, string]; onEditField?: FieldEditor }) {
   const edit = useIsEditMode();
   const dateInfo = fmtEventDate(manifest.logistics?.date);
   const events = manifest.events ?? [];
@@ -1863,7 +1918,7 @@ function pillBtn(): React.CSSProperties {
   };
 }
 
-function TravelSection({ manifest, onEditField }: { manifest: StoryManifest; onEditField?: FieldEditor }) {
+function TravelSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; onEditField?: FieldEditor }) {
   const edit = useIsEditMode();
   const venue = manifest.logistics?.venue ?? 'Our venue';
   const address = manifest.logistics?.venueAddress ?? '';
@@ -2020,7 +2075,7 @@ function TravelSection({ manifest, onEditField }: { manifest: StoryManifest; onE
 }
 
 /* ==================== REGISTRY ==================== */
-function RegistrySection({ manifest }: { manifest: StoryManifest }) {
+function RegistrySectionImpl({ manifest }: { manifest: StoryManifest }) {
   // Pull from the real manifest shape: registry.entries[] +
   // registry.cashFundUrl / message. When nothing is set, the
   // whole section hides so we never ship "Honeymoon fund / A
@@ -2152,7 +2207,7 @@ function RegistrySection({ manifest }: { manifest: StoryManifest }) {
 }
 
 /* ==================== GALLERY ==================== */
-function GallerySection({ chapters, manifest, onEditField }: { chapters: Chapter[]; manifest?: StoryManifest; onEditField?: FieldEditor }) {
+function GallerySectionImpl({ chapters, manifest, onEditField }: { chapters: Chapter[]; manifest?: StoryManifest; onEditField?: FieldEditor }) {
   const edit = useIsEditMode();
   // Build a mapping from each photo URL to the (chapter, image) it
   // came from so PhotoActionMenu can patch the original chapters[]
@@ -2289,7 +2344,7 @@ function GallerySection({ chapters, manifest, onEditField }: { chapters: Chapter
 }
 
 /* ==================== FAQ ==================== */
-function FaqSection({ manifest, onEditField }: { manifest: StoryManifest; onEditField?: FieldEditor }) {
+function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; onEditField?: FieldEditor }) {
   type FaqItem = { id?: string; question: string; answer: string };
   const edit = useIsEditMode();
   const faq = ((manifest as unknown as { faq?: FaqItem[] }).faq ?? []);
@@ -2403,7 +2458,7 @@ function FaqSection({ manifest, onEditField }: { manifest: StoryManifest; onEdit
 }
 
 /* ==================== RSVP ==================== */
-function RSVPSection({
+function RSVPSectionImpl({
   names,
   manifest,
   siteSlug,
@@ -2921,6 +2976,109 @@ function RSVPSection({
     </section>
   );
 }
+
+// ──────────────────────────────────────────────────────────────
+// Memoized exports of the section components above. Each
+// comparator drills into the manifest slices that the section
+// (and its subtree) consumes; with Immer's structural sharing
+// from useFieldEdit/writePath, those slices keep referential
+// equality across unrelated edits, so the memo bails out and
+// the section's whole subtree (including SortableChapters,
+// SortableBlockList, lightboxes, etc.) skips re-rendering.
+//
+// Conservative on purpose: every comparator includes
+// COMMON_CHROME_KEYS (theme, sectionBackgrounds, blockStyles,
+// decorLibrary, decorVisibility, blockVariants, storyLayout,
+// layoutFormat). Section-specific slices added on top.
+// ──────────────────────────────────────────────────────────────
+
+const StoryVariantSection = memo(StoryVariantSectionImpl, (p, n) => {
+  return (
+    p.chapters === n.chapters &&
+    p.layout === n.layout &&
+    manifestSlicesEqual(p.manifest, n.manifest, COMMON_CHROME_KEYS)
+  );
+});
+
+const TimelineSection = memo(TimelineSectionImpl, (p, n) => {
+  return (
+    p.chapters === n.chapters &&
+    p.onEditField === n.onEditField &&
+    manifestSlicesEqual(p.manifest, n.manifest, COMMON_CHROME_KEYS)
+  );
+});
+
+const DetailsStrip = memo(DetailsStripImpl, (p, n) => {
+  return manifestSlicesEqual(p.manifest, n.manifest, [
+    ...COMMON_CHROME_KEYS,
+    'logistics',
+    'events',
+  ] as unknown as ReadonlyArray<keyof StoryManifest>);
+});
+
+const ScheduleSection = memo(ScheduleSectionImpl, (p, n) => {
+  return (
+    p.onEditField === n.onEditField &&
+    p.names[0] === n.names[0] &&
+    p.names[1] === n.names[1] &&
+    manifestSlicesEqual(p.manifest, n.manifest, [
+      ...COMMON_CHROME_KEYS,
+      'logistics',
+      'events',
+      'mealOptions',
+    ] as unknown as ReadonlyArray<keyof StoryManifest>)
+  );
+});
+
+const TravelSection = memo(TravelSectionImpl, (p, n) => {
+  return (
+    p.onEditField === n.onEditField &&
+    manifestSlicesEqual(p.manifest, n.manifest, [
+      ...COMMON_CHROME_KEYS,
+      'travelInfo',
+      'logistics',
+    ] as unknown as ReadonlyArray<keyof StoryManifest>)
+  );
+});
+
+const RegistrySection = memo(RegistrySectionImpl, (p, n) => {
+  return manifestSlicesEqual(p.manifest, n.manifest, [
+    ...COMMON_CHROME_KEYS,
+    'registry',
+  ] as unknown as ReadonlyArray<keyof StoryManifest>);
+});
+
+const GallerySection = memo(GallerySectionImpl, (p, n) => {
+  return (
+    p.chapters === n.chapters &&
+    p.onEditField === n.onEditField &&
+    manifestSlicesEqual(p.manifest, n.manifest, COMMON_CHROME_KEYS)
+  );
+});
+
+const FaqSection = memo(FaqSectionImpl, (p, n) => {
+  return (
+    p.onEditField === n.onEditField &&
+    manifestSlicesEqual(p.manifest, n.manifest, [
+      ...COMMON_CHROME_KEYS,
+      'faqs',
+    ] as unknown as ReadonlyArray<keyof StoryManifest>)
+  );
+});
+
+const RSVPSection = memo(RSVPSectionImpl, (p, n) => {
+  return (
+    p.onEditField === n.onEditField &&
+    p.siteSlug === n.siteSlug &&
+    p.names[0] === n.names[0] &&
+    p.names[1] === n.names[1] &&
+    manifestSlicesEqual(p.manifest, n.manifest, [
+      ...COMMON_CHROME_KEYS,
+      'mealOptions',
+      'logistics',
+    ] as unknown as ReadonlyArray<keyof StoryManifest>)
+  );
+});
 
 /* ==================== FOOTER ==================== */
 function SiteFooter({

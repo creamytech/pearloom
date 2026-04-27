@@ -21,6 +21,7 @@
 // ──────────────────────────────────────────────────────────────
 
 import { useCallback, useMemo } from 'react';
+import { produce } from 'immer';
 import type { StoryManifest } from '@/types';
 
 type FieldEditor = (patch: (m: StoryManifest) => StoryManifest) => void;
@@ -74,21 +75,26 @@ function readPath(root: unknown, ts: Array<string | number>): unknown {
 
 function writePath<T>(root: T, ts: Array<string | number>, value: unknown): T {
   if (ts.length === 0) return value as T;
-  // Walk + clone each level so React sees a new reference.
-  const head = ts[0]!;
-  const rest = ts.slice(1);
-  if (typeof head === 'number') {
-    const arr = Array.isArray(root) ? [...root] : [];
-    arr[head] = writePath(arr[head], rest, value);
-    return arr as unknown as T;
-  }
-  const obj = root && typeof root === 'object' ? { ...(root as Record<string, unknown>) } : {};
-  (obj as Record<string, unknown>)[head] = writePath(
-    (obj as Record<string, unknown>)[head],
-    rest,
-    value,
-  );
-  return obj as T;
+  // Immer's produce gives us structural sharing — only the
+  // objects + arrays on the path get new identities. Sibling
+  // subtrees (e.g. manifest.chapters when only manifest.poetry
+  // changed) keep referential equality, which is what makes the
+  // memoized block-renderers in SiteV8Renderer actually bail out
+  // of re-rendering.
+  return produce(root, (draft) => {
+    let cur = draft as unknown as Record<string | number, unknown>;
+    for (let i = 0; i < ts.length - 1; i++) {
+      const k = ts[i]!;
+      const next = cur[k];
+      if (typeof ts[i + 1] === 'number') {
+        if (!Array.isArray(next)) cur[k] = [];
+      } else {
+        if (next === null || typeof next !== 'object' || Array.isArray(next)) cur[k] = {};
+      }
+      cur = cur[k] as Record<string | number, unknown>;
+    }
+    cur[ts[ts.length - 1]!] = value;
+  });
 }
 
 /** Hook: returns a stable {value, set} pair for a manifest path. */
