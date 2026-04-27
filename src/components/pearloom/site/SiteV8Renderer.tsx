@@ -3868,9 +3868,10 @@ export function SiteV8Renderer({
   // refs (useCallback above) so the only churning identity is the
   // selectedBlockIds array — that's intentional, blocks need to know
   // when they enter or leave the selection set.
+  const iconOverrides = (manifest as unknown as { iconOverrides?: Record<string, string> }).iconOverrides;
   const canvasCtxValue = useMemo(
-    () => ({ editMode, selectedBlockIds, selectBlock, clearSelection, onEditField }),
-    [editMode, selectedBlockIds, selectBlock, clearSelection, onEditField],
+    () => ({ editMode, selectedBlockIds, selectBlock, clearSelection, onEditField, iconOverrides }),
+    [editMode, selectedBlockIds, selectBlock, clearSelection, onEditField, iconOverrides],
   );
 
   const blockOrderRaw =

@@ -42,6 +42,10 @@ export interface EditorCanvasContextShape {
    *  can wrap themselves in edit overlays without prop-drilling
    *  the editor's onEditField through ten layers. */
   onEditField?: (patch: (m: StoryManifest) => StoryManifest) => void;
+  /** Icon name overrides keyed by purpose (e.g.
+   *  'stamp.story.fallback'). Surfaced here so deep primitives
+   *  can swap their default glyph without prop-drilling. */
+  iconOverrides?: Record<string, string>;
 }
 
 const defaultCtx: EditorCanvasContextShape = {

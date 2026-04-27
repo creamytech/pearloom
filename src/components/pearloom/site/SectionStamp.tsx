@@ -23,6 +23,7 @@ import { focusDecorLibrary } from './focusDecorLibrary';
 import { Icon } from '../motifs';
 
 import { DecorEditOverlay } from '../editor/canvas/DecorEditOverlay';
+import { EditableIcon } from '../editor/canvas/EditableIcon';
 
 interface Props {
   url?: string;
@@ -79,12 +80,15 @@ export function SectionStamp({ url, size = 20, style, alt = '', fallbackIcon, sl
     return stamp;
   }
 
-  // Fallback icon — rendered when no AI stamp exists. Keeps the
-  // eyebrow visually anchored regardless of whether the host has
-  // run the Decor Library. Sized 0.65× the stamp size so the
-  // smaller, lighter motif reads as restrained next to the
-  // eyebrow type.
-  if (!editMode && fallbackIcon) {
+  // Fallback icon — rendered when no AI stamp exists. Resolves
+  // through manifest.iconOverrides[`stamp.${slot}.fallback`] so
+  // hosts can swap defaults without regenerating decor.
+  const ctx = useEditorCanvas();
+  const overrideName = slotKey
+    ? ctx.iconOverrides?.[`stamp.${slotKey}.fallback`]
+    : undefined;
+  const resolvedFallback = overrideName ?? fallbackIcon;
+  if (!editMode && resolvedFallback) {
     const iconSize = Math.round(size * 0.65);
     return (
       <span
@@ -98,7 +102,28 @@ export function SectionStamp({ url, size = 20, style, alt = '', fallbackIcon, sl
           ...style,
         }}
       >
-        <Icon name={fallbackIcon} size={iconSize} />
+        <Icon name={resolvedFallback} size={iconSize} />
+      </span>
+    );
+  }
+  if (editMode && resolvedFallback && slotKey) {
+    const iconSize = Math.round(size * 0.65);
+    return (
+      <span
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          marginRight: 6,
+          verticalAlign: 'middle',
+          color: 'inherit',
+          ...style,
+        }}
+      >
+        <EditableIcon
+          name={resolvedFallback}
+          purpose={`stamp.${slotKey}.fallback`}
+          size={iconSize}
+        />
       </span>
     );
   }
