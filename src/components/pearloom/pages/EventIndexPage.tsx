@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { invalidateSitesCache, useUserSites, type SiteSummary } from '@/components/marketing/design/dash/hooks';
 import { DashLayout } from '../dash/DashShell';
+import { DashEmpty } from '../dash/DashEmpty';
 import { Heart, Icon, Pear, PhotoPlaceholder, Sparkle } from '../motifs';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 
@@ -384,26 +385,18 @@ export function EventIndexPage() {
           <div style={{ color: 'var(--ink-soft)', padding: 40, textAlign: 'center' }}>Threading your sites…</div>
         )}
         {!loading && (!sites || sites.length === 0) && (
-          <div
-            style={{
-              padding: 56,
-              textAlign: 'center',
-              background: 'var(--card)',
-              border: '1px dashed var(--line)',
-              borderRadius: 20,
-            }}
-          >
-            <div className="display" style={{ fontSize: 28, marginBottom: 10 }}>
-              Nothing yet.
-            </div>
-            <div style={{ fontSize: 14, color: 'var(--ink-soft)', maxWidth: 420, margin: '0 auto 20px' }}>
-              Begin a thread — Pear will draft a site in about twenty seconds. You pick the occasion, the names, and the
-              feeling.
-            </div>
-            <Link href="/wizard/new" className="btn btn-primary">
-              <Icon name="sparkles" size={14} /> Begin a thread
-            </Link>
-          </div>
+          <DashEmpty
+            size="page"
+            tone="pear"
+            eyebrow="No sites yet"
+            title="Begin a thread."
+            body="Pear will draft a complete site in about twenty seconds — you pick the occasion, the names, and the feeling. Edit anything afterwards."
+            examples={['Wedding · Scott & Shauna', 'Birthday · 30 in Lisbon', 'Memorial · In loving memory', 'Reunion · Class of 2010']}
+            actions={[
+              { label: 'Begin a thread', href: '/wizard/new', icon: 'sparkles', primary: true },
+              { label: 'Browse templates', href: '/templates' },
+            ]}
+          />
         )}
         {!loading && visibleSites.length > 0 && (
           <div

@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { buildSitePath } from '@/lib/site-urls';
 import { Icon, Pear, PhotoPlaceholder, Squiggle } from '../motifs';
+import { DashEmpty } from '../dash/DashEmpty';
 import { DashLayout } from '../dash/DashShell';
 import { BroadcastComposer } from '../dash/BroadcastComposer';
 import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
@@ -229,23 +230,13 @@ function MomentTimeline({
             </h3>
           </div>
         </div>
-        <div
-          style={{
-            padding: 24,
-            textAlign: 'center',
-            background: 'var(--cream-2)',
-            border: '1px dashed var(--line)',
-            borderRadius: 14,
-          }}
-        >
-          <div style={{ fontSize: 14.5, fontWeight: 600, marginBottom: 6 }}>No schedule yet.</div>
-          <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 360, margin: '0 auto 14px' }}>
-            Add events in the editor — Pearloom will show them here, in order, on the day.
-          </div>
-          <Link href={editHref} className="btn btn-outline btn-sm">
-            <Icon name="brush" size={12} /> Add events
-          </Link>
-        </div>
+        <DashEmpty
+          eyebrow="Today's rundown"
+          title="No schedule yet."
+          body="Add events in the editor — Pearloom will show them here in order on the day, with a live now-marker."
+          examples={['3:00 — Ceremony begins', '4:30 — Cocktail hour', '6:00 — Dinner served', '9:00 — First dance']}
+          actions={[{ label: 'Add events', href: editHref, icon: 'brush', primary: true }]}
+        />
       </div>
     );
   }
