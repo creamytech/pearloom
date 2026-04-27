@@ -14,6 +14,7 @@ import { useEffect, useLayoutEffect, useRef, useState, useTransition, type React
 import { Blob, Heart, Icon, Pear, PearloomLogo, Squiggle } from '../motifs';
 import { useIsInsideShell } from './ShellPersistentLayout';
 import { NotificationBell } from './NotificationBell';
+import { useDashDrawer } from './useDashDrawer';
 
 interface DashNavItem {
   id: string;
@@ -92,6 +93,14 @@ void DASH_NAV;
 export function DashSidebar({ active }: { active?: string }) {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const { open: drawerOpen, setOpen: setDrawerOpen } = useDashDrawer();
+  // Auto-close the mobile drawer whenever the route changes, so
+  // tapping a nav item inside the drawer dismisses it instead of
+  // leaving it pinned over the new page.
+  useEffect(() => {
+    if (drawerOpen) setDrawerOpen(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
   const name = session?.user?.name ?? 'Guest';
   const email = session?.user?.email ?? '';
   const initial = (name.trim()[0] ?? 'P').toUpperCase();
@@ -118,8 +127,27 @@ export function DashSidebar({ active }: { active?: string }) {
   }, []);
 
   return (
+    <>
+      {/* Mobile drawer scrim — covers the canvas when the sidebar
+          is open as a drawer. Click to dismiss. */}
+      {drawerOpen && (
+        <div
+          aria-hidden
+          onClick={() => setDrawerOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(14,13,11,0.42)',
+            backdropFilter: 'blur(2px)',
+            WebkitBackdropFilter: 'blur(2px)',
+            zIndex: 80,
+            animation: 'pl-enter-fade-in 200ms ease both',
+          }}
+        />
+      )}
     <aside
       className="pl8-dash-sidebar"
+      data-drawer-open={drawerOpen ? '' : undefined}
       style={{
         width: 264,
         flexShrink: 0,
@@ -243,6 +271,7 @@ export function DashSidebar({ active }: { active?: string }) {
         }
       `}</style>
     </aside>
+    </>
   );
 }
 
@@ -800,6 +829,50 @@ function NavLinkPending({ isActive }: { isActive: boolean }) {
   );
 }
 
+// Mobile-only hamburger pinned to the topbar's leading edge. On
+// desktop it's hidden via .pl8-dash-mobile-menu visibility CSS.
+function MobileMenuButton() {
+  const { toggle, open } = useDashDrawer();
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label={open ? 'Close menu' : 'Open menu'}
+      className="pl8-dash-mobile-menu"
+      style={{
+        position: 'absolute',
+        top: 'clamp(16px, 2.6vw, 28px)',
+        left: 'clamp(16px, 4vw, 24px)',
+        width: 38,
+        height: 38,
+        borderRadius: 999,
+        border: '1px solid var(--line)',
+        background: 'var(--card)',
+        color: 'var(--ink)',
+        cursor: 'pointer',
+        display: 'none', // CSS media query reveals it
+        placeItems: 'center',
+        zIndex: 5,
+      }}
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+        {open ? (
+          <>
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </>
+        ) : (
+          <>
+            <line x1="3" y1="7" x2="21" y2="7" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="17" x2="21" y2="17" />
+          </>
+        )}
+      </svg>
+    </button>
+  );
+}
+
 export function DashTopbar({
   title = 'Welcome back',
   subtitle,
@@ -841,6 +914,7 @@ export function DashTopbar({
         textAlign: 'center',
       }}
     >
+      <MobileMenuButton />
       <h1
         className="display"
         style={{

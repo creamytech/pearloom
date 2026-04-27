@@ -697,36 +697,58 @@ button.pl8-mobile-only { display: none !important; }
 .pl8-dashshell > main { flex: 1; min-width: 0; position: relative; }
 
 @media (max-width: 960px) {
-  .pl8-dashshell { flex-direction: column; }
-  .pl8-dashshell > aside {
-    width: 100% !important;
-    min-height: auto !important;
-    flex-direction: row !important;
-    align-items: center;
-    padding: 12px 16px !important;
-    gap: 10px !important;
-    overflow-x: auto;
-    border-right: none !important;
-    border-bottom: 1px solid var(--line-soft);
-    position: sticky; top: 0; z-index: 30;
-    background: rgba(248,241,228,0.95);
-    backdrop-filter: blur(12px);
+  /* Mobile dashboard — sidebar becomes a real drawer, not a
+     squashed icon strip. Hamburger button (rendered in the
+     DashTopbar) toggles data-drawer-open on the aside, which
+     slides the full sidebar in from the left. */
+  .pl8-dashshell > aside.pl8-dash-sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: min(86vw, 320px) !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    z-index: 90;
+    transform: translateX(-100%);
+    transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: 0 24px 60px rgba(14, 13, 11, 0.36);
+    border-right: 1px solid var(--line-soft);
   }
-  .pl8-dashshell > aside > :not(.pl8-dash-logo):not(.pl8-dash-nav) { display: none !important; }
-  .pl8-dashshell > aside .pl8-dash-nav {
-    display: flex; flex-direction: row !important; gap: 4px !important; margin: 0 !important;
-    flex: 1; overflow-x: auto; scrollbar-width: none;
+  .pl8-dashshell > aside.pl8-dash-sidebar[data-drawer-open] {
+    transform: translateX(0);
   }
-  .pl8-dashshell > aside .pl8-dash-nav a {
-    padding: 8px 12px !important; font-size: 13px; white-space: nowrap;
+  .pl8-dashshell > main {
+    width: 100%;
   }
-  .pl8-dashshell > aside .pl8-dash-nav a span { display: none !important; }
-  .pl8-dashshell > aside .pl8-dash-nav a svg { margin: 0 !important; }
-  .pl8-dashshell > main > div > div:first-child { padding: 14px 20px !important; }
-  .pl8-dashshell > main [data-topbar] { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
-  .pl8-dashshell > main [data-topbar] h1 { font-size: clamp(28px, 8vw, 40px) !important; }
-  .pl8-dashshell > main [data-welcome-notes] { display: none !important; }
-  .pl8-dashshell > main .card { padding: 16px !important; }
+  .pl8-dash-mobile-menu {
+    display: grid !important;
+  }
+  /* Topbar leaves room for the hamburger on the left + the
+     bell on the right and keeps the title editorial-feeling. */
+  .pl8-dashshell > main [data-topbar] {
+    padding-left: 64px !important;
+    padding-right: 64px !important;
+  }
+  .pl8-dashshell > main [data-topbar] h1 {
+    font-size: clamp(22px, 6vw, 30px) !important;
+  }
+  .pl8-dashshell > main [data-welcome-notes] {
+    display: none !important;
+  }
+  .pl8-dashshell > main .card {
+    padding: 16px !important;
+  }
+  /* Stack action grids that were two-up on desktop. */
+  .pl8-dash-threecol,
+  .pl8-dash-threecol-b,
+  .pl8-kickoff,
+  .pd-connections-main,
+  .pd-director-main,
+  .pd-settings-main,
+  .pd-guests-main,
+  .pd-dayof-main {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* Wizard-specific adjustments */
