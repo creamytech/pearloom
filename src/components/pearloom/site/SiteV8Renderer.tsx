@@ -2306,6 +2306,7 @@ interface HotelCardModel {
   groupRate?: string;
   notes?: string;
   photoUrl?: string;
+  photoUrls?: string[];
   image?: string;
   rating?: number;
   ratingCount?: number;
@@ -2313,6 +2314,222 @@ interface HotelCardModel {
   distance?: string;
   priceLevel?: string;
   description?: string;
+}
+
+type HotelSort = 'pearPick' | 'closest' | 'rating' | 'priceAsc';
+
+const AMENITY_FILTERS: Array<{ key: string; label: string; matches: RegExp }> = [
+  { key: 'pool',    label: 'Pool',    matches: /pool/i },
+  { key: 'spa',     label: 'Spa',     matches: /spa/i },
+  { key: 'gym',     label: 'Gym',     matches: /gym|fitness/i },
+  { key: 'bar',     label: 'Bar',     matches: /bar\b/i },
+  { key: 'parking', label: 'Parking', matches: /parking/i },
+  { key: 'beach',   label: 'Beach',   matches: /beach/i },
+];
+
+// Reads the same distance parser the badge logic uses so sorting
+// by distance lines up with the "Closest" badge auto-tag.
+function hotelDistanceMeters(h: HotelCardModel): number {
+  const d = h.distance ?? '';
+  const mi = /^(\d+(?:\.\d+)?)\s*mi\b/i.exec(d);
+  if (mi) return parseFloat(mi[1]) * 1609.344;
+  const ft = /^(\d+(?:\.\d+)?)\s*ft\b/i.exec(d);
+  if (ft) return parseFloat(ft[1]) / 3.28084;
+  const km = /^(\d+(?:\.\d+)?)\s*km/i.exec(d);
+  if (km) return parseFloat(km[1]) * 1000;
+  const m = /^(\d+(?:\.\d+)?)\s*m\b/i.exec(d);
+  if (m) return parseFloat(m[1]);
+  return Number.MAX_SAFE_INTEGER;
+}
+
+function hotelPriceTier(h: HotelCardModel): number {
+  const p = (h.priceLevel ?? '').toUpperCase();
+  if (p.includes('VERY_EXPENSIVE') || p === '$$$$') return 4;
+  if (p.includes('EXPENSIVE') || p === '$$$') return 3;
+  if (p.includes('MODERATE') || p === '$$') return 2;
+  if (p.includes('INEXPENSIVE') || p === '$') return 1;
+  return 99; // unknown sorts last
+}
+
+// HotelsList — sort + amenity filter + render. Hoisted so the
+// hotel section can stay readable; all per-section UI state lives
+// here. Defaults to pearPick sort and no amenity filter so the
+// out-of-box render matches what the host saw before this added
+// the controls.
+function HotelsList({
+  manifest,
+  hotels,
+  hotelTones,
+}: {
+  manifest: StoryManifest;
+  hotels: HotelCardModel[];
+  hotelTones: ('peach' | 'lavender' | 'sage')[];
+}) {
+  const [sort, setSort] = useState<HotelSort>('pearPick');
+  const [amenitySet, setAmenitySet] = useState<Set<string>>(new Set());
+  const display = (manifest.travelInfo?.hotelDisplay ?? 'photo') as 'photo' | 'icon';
+  const badgesEnabled = manifest.travelInfo?.hotelBadges !== false;
+  const blockCode = (manifest.travelInfo as unknown as { blockCode?: string } | undefined)?.blockCode
+    ?? (manifest as unknown as { travel?: { blockCode?: string } }).travel?.blockCode
+    ?? '';
+
+  // Filter amenities first, then sort, then cap at 6. The order
+  // matters — sort+cap then filter would hide the cap-out hotels'
+  // amenities from the chip rail.
+  const filtered = hotels.filter((h) => {
+    if (amenitySet.size === 0) return true;
+    const amen = (h.amenities ?? '').toLowerCase();
+    for (const key of amenitySet) {
+      const rule = AMENITY_FILTERS.find((a) => a.key === key);
+      if (rule && !rule.matches.test(amen)) return false;
+    }
+    return true;
+  });
+  const sorted = [...filtered].sort((a, b) => {
+    if (sort === 'closest') return hotelDistanceMeters(a) - hotelDistanceMeters(b);
+    if (sort === 'rating') return (b.rating ?? 0) - (a.rating ?? 0);
+    if (sort === 'priceAsc') return hotelPriceTier(a) - hotelPriceTier(b);
+    // pearPick — same scoring as the auto-badges
+    const score = (h: HotelCardModel) =>
+      (h.rating ?? 0) * 1000 + Math.log10((h.ratingCount ?? 0) + 1) * 100;
+    return score(b) - score(a);
+  });
+  const visible = sorted.slice(0, 6);
+  const badges = badgesEnabled ? computeHotelBadges(visible) : visible.map(() => [] as HotelBadge[]);
+
+  // Hide amenity filter chips that don't match any hotel — chips
+  // that always filter to zero just teach the guest that nothing
+  // works. The Sort picker is always shown when ≥3 hotels.
+  const availableAmenities = AMENITY_FILTERS.filter((rule) =>
+    hotels.some((h) => rule.matches.test(h.amenities ?? '')),
+  );
+  const showSort = hotels.length >= 3;
+  const showFilters = availableAmenities.length >= 2;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {blockCode && <GroupBlockCodeBanner code={blockCode} />}
+      {(showSort || showFilters) && (
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 12,
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '10px 14px',
+            background: 'var(--cream-2)',
+            border: '1px solid var(--line-soft)',
+            borderRadius: 14,
+          }}
+        >
+          {showFilters && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {availableAmenities.map((rule) => {
+                const active = amenitySet.has(rule.key);
+                return (
+                  <button
+                    key={rule.key}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => {
+                      setAmenitySet((prev) => {
+                        const next = new Set(prev);
+                        if (active) next.delete(rule.key); else next.add(rule.key);
+                        return next;
+                      });
+                    }}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: 999,
+                      border: active ? '1px solid var(--peach-ink, #C6703D)' : '1px solid var(--line)',
+                      background: active ? 'var(--peach-ink, #C6703D)' : 'transparent',
+                      color: active ? '#FFFFFF' : 'var(--ink-soft)',
+                      fontSize: 11,
+                      fontWeight: 700,
+                      letterSpacing: '0.04em',
+                      cursor: 'pointer',
+                      fontFamily: 'var(--font-ui)',
+                      transition: 'background 160ms ease, color 160ms ease, border-color 160ms ease',
+                    }}
+                  >
+                    {rule.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          {showSort && (
+            <label
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                color: 'var(--ink-soft)',
+                marginLeft: 'auto',
+              }}
+            >
+              Sort
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value as HotelSort)}
+                style={{
+                  padding: '5px 10px',
+                  borderRadius: 8,
+                  border: '1px solid var(--line)',
+                  background: 'var(--card)',
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  color: 'var(--ink)',
+                  fontFamily: 'var(--font-ui)',
+                  letterSpacing: 'normal',
+                  textTransform: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                <option value="pearPick">Pear&apos;s pick</option>
+                <option value="closest">Closest to venue</option>
+                <option value="rating">Highest rated</option>
+                <option value="priceAsc">Price: low to high</option>
+              </select>
+            </label>
+          )}
+        </div>
+      )}
+      {visible.length === 0 ? (
+        <div
+          style={{
+            padding: '24px 18px',
+            textAlign: 'center',
+            background: 'var(--cream-2)',
+            border: '1px dashed var(--line)',
+            borderRadius: 14,
+            color: 'var(--ink-soft)',
+            fontSize: 13,
+          }}
+        >
+          No hotels match those filters. Clear them to see every option.
+        </div>
+      ) : (
+        visible.map((h, i) => {
+          const tone = hotelTones[i % hotelTones.length] as 'peach' | 'lavender' | 'sage';
+          return (
+            <HotelCard
+              key={i}
+              hotel={h}
+              tone={tone}
+              display={display}
+              badges={badges[i] ?? []}
+            />
+          );
+        })
+      )}
+    </div>
+  );
 }
 
 // Lightweight badge tags computed by HotelsList. Renders as
@@ -2550,11 +2767,23 @@ function HotelCard({
   // Old manifests stored the formatted distance in km/m. Convert
   // at render time so guests always see miles + minutes.
   const distanceLabel = reformatDistanceToMiles(hotel.distance);
+
+  // Photo carousel — up to 5 Google Places photos, flipped
+  // through with prev/next buttons. Guest-side state, resets on
+  // re-render of a different hotel since `photoIdx` is per-card.
+  const allPhotos = (hotel.photoUrls && hotel.photoUrls.length > 0)
+    ? hotel.photoUrls
+    : (hotel.photoUrl ? [hotel.photoUrl] : []);
+  const [photoIdx, setPhotoIdx] = useState(0);
+  const safeIdx = Math.min(photoIdx, Math.max(0, allPhotos.length - 1));
+  const currentPhoto = display === 'icon' ? null : (allPhotos[safeIdx] ?? null);
+  const showCarouselNav = display !== 'icon' && allPhotos.length > 1;
   const tintBg =
     tone === 'peach' ? 'var(--peach-bg)' :
     tone === 'lavender' ? 'var(--lavender-bg)' :
     'var(--sage-tint)';
-  const photo = display === 'icon' ? null : (hotel.photoUrl ?? hotel.image);
+  // (legacy single-photo helper — `currentPhoto` from the
+  // carousel below is what actually renders.)
   // Description preference: explicit description → notes (legacy
   // channel that older hotels used) → empty.
   const blurb = hotel.description ?? hotel.notes ?? '';
@@ -2599,22 +2828,103 @@ function HotelCard({
           two lines under the badge). Now they live inline at the
           top of the content cell so the title always has room. */}
       <div
-        aria-hidden={!photo}
+        aria-hidden={!currentPhoto}
         style={{
           width: 120,
           aspectRatio: '4 / 5',
           borderRadius: 12,
-          background: photo
-            ? `linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.20) 100%), url(${photo}) center/cover no-repeat`
+          background: currentPhoto
+            ? `linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.20) 100%), url(${currentPhoto}) center/cover no-repeat`
             : tintBg,
           display: 'grid',
           placeItems: 'center',
           color: 'var(--ink-soft)',
           flexShrink: 0,
           position: 'relative',
+          transition: 'background-image 220ms ease',
         }}
       >
-        {!photo && <Icon name="moon" size={32} />}
+        {!currentPhoto && <Icon name="moon" size={32} />}
+        {showCarouselNav && (
+          <>
+            <button
+              type="button"
+              aria-label="Previous photo"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setPhotoIdx((i) => (i - 1 + allPhotos.length) % allPhotos.length);
+              }}
+              style={{
+                position: 'absolute',
+                left: 4, top: '50%',
+                transform: 'translateY(-50%)',
+                width: 22, height: 22,
+                borderRadius: 999,
+                background: 'rgba(14,13,11,0.55)',
+                color: '#FFFFFF',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 14,
+                lineHeight: 1,
+                backdropFilter: 'blur(4px)',
+              }}
+            >‹</button>
+            <button
+              type="button"
+              aria-label="Next photo"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setPhotoIdx((i) => (i + 1) % allPhotos.length);
+              }}
+              style={{
+                position: 'absolute',
+                right: 4, top: '50%',
+                transform: 'translateY(-50%)',
+                width: 22, height: 22,
+                borderRadius: 999,
+                background: 'rgba(14,13,11,0.55)',
+                color: '#FFFFFF',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 14,
+                lineHeight: 1,
+                backdropFilter: 'blur(4px)',
+              }}
+            >›</button>
+            {/* Photo dot indicator at the bottom — small enough to
+                stay decorative, big enough to read which slide
+                you're on without counting. */}
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute',
+                bottom: 6,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                display: 'inline-flex',
+                gap: 3,
+              }}
+            >
+              {allPhotos.map((_, j) => (
+                <span
+                  key={j}
+                  style={{
+                    width: 4,
+                    height: 4,
+                    borderRadius: 999,
+                    background: j === safeIdx ? '#FFFFFF' : 'rgba(255,255,255,0.45)',
+                  }}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
         {badges.length > 0 && (
@@ -2850,35 +3160,7 @@ function TravelSectionImpl({ manifest, onEditField }: { manifest: StoryManifest;
                   Nothing yet. Add hotel blocks from the Travel panel.
                 </p>
               )}
-              {hotels.length > 0 && (() => {
-                const visible = hotels.slice(0, 6) as unknown as HotelCardModel[];
-                const display = (manifest.travelInfo?.hotelDisplay ?? 'photo') as 'photo' | 'icon';
-                const badgesEnabled = manifest.travelInfo?.hotelBadges !== false;
-                const badges = badgesEnabled ? computeHotelBadges(visible) : visible.map(() => [] as HotelBadge[]);
-                // Group block code surfaces as an editorial banner
-                // above the grid when set — easy for guests to spot
-                // and copy when calling the hotel for the rate.
-                const blockCode = (manifest.travelInfo as unknown as { blockCode?: string } | undefined)?.blockCode
-                  ?? (manifest as unknown as { travel?: { blockCode?: string } }).travel?.blockCode
-                  ?? '';
-                return (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    {blockCode && <GroupBlockCodeBanner code={blockCode} />}
-                    {visible.map((h, i) => {
-                      const tone = hotelTones[i % hotelTones.length] as 'peach' | 'lavender' | 'sage';
-                      return (
-                        <HotelCard
-                          key={i}
-                          hotel={h}
-                          tone={tone}
-                          display={display}
-                          badges={badges[i] ?? []}
-                        />
-                      );
-                    })}
-                  </div>
-                );
-              })()}
+              {hotels.length > 0 && <HotelsList manifest={manifest} hotels={hotels as unknown as HotelCardModel[]} hotelTones={hotelTones as Array<'peach' | 'lavender' | 'sage'>} />}
             </div>
           )}
         </div>

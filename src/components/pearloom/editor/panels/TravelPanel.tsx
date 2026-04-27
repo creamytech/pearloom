@@ -46,6 +46,8 @@ type Hotel = {
    *  hotel — used by the renderer to show a thumbnail instead of
    *  the moon-icon placeholder. */
   photoUrl?: string;
+  /** Up to 5 Google Places photos for the in-card carousel. */
+  photoUrls?: string[];
   /** Comma-separated amenities pulled from Place Details. */
   amenities?: string;
   /** Star rating (0–5) from Google. Persisted on the manifest so
@@ -91,6 +93,7 @@ async function enrichPickedHotel(
         amenities?: string;
         distanceText?: string;
         photoUrl?: string;
+        photoUrls?: string[];
         blurb?: string;
       };
     };
@@ -107,6 +110,7 @@ async function enrichPickedHotel(
       distance: h.distanceText ?? '',
       price: h.priceLevel ?? '',
       photoUrl: h.photoUrl,
+      photoUrls: h.photoUrls,
       amenities: h.amenities,
       rating: h.rating,
       ratingCount: h.ratingCount,
@@ -278,8 +282,8 @@ function HotelsAI({ manifest, onResult }: { manifest: StoryManifest; onResult: (
         id: string; name: string; address: string;
         distanceText?: string; priceLevel?: string;
         websiteUri?: string; phone?: string; rating?: number;
-        ratingCount?: number; photoUrl?: string; blurb?: string;
-        types?: string[]; editorialSummary?: string;
+        ratingCount?: number; photoUrl?: string; photoUrls?: string[];
+        blurb?: string; types?: string[]; editorialSummary?: string;
       }>;
     };
     const now = Date.now();
@@ -294,6 +298,7 @@ function HotelsAI({ manifest, onResult }: { manifest: StoryManifest; onResult: (
       rating: h.rating,
       ratingCount: h.ratingCount,
       photoUrl: h.photoUrl,
+      photoUrls: h.photoUrls,
       // Build a short amenities line from the types array. Same
       // mapping as /api/hotels/enrich's summariseAmenities so a
       // hotel populated via "Find real hotels" reads consistently
@@ -363,6 +368,7 @@ export function TravelPanel({
           groupRate: h.price,
           notes: h.description,
           photoUrl: h.photoUrl,
+          photoUrls: h.photoUrls,
           rating: h.rating,
           ratingCount: h.ratingCount,
           amenities: h.amenities,

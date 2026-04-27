@@ -1071,6 +1071,9 @@ export interface HotelBlock {
    *  renderer uses this to render a real thumbnail instead of
    *  the moon-icon placeholder. */
   photoUrl?: string;
+  /** Up to 5 photo URLs for the live card's carousel — guests
+   *  can flip through them to see the lobby, room, pool, etc. */
+  photoUrls?: string[];
   /** Star rating 0-5 from Google. */
   rating?: number;
   /** Total review count behind that rating. */

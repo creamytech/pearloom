@@ -152,10 +152,10 @@ async function searchNearbyHotels(lat: number, lng: number, apiKey: string): Pro
       }>;
     };
     return (data.places ?? []).map((p) => {
-      const photoRef = p.photos?.[0]?.name;
-      const photoUrl = photoRef
-        ? `https://places.googleapis.com/v1/${photoRef}/media?maxWidthPx=600&key=${apiKey}`
-        : undefined;
+      const photoUrls = (p.photos ?? [])
+        .slice(0, 5)
+        .map((ph) => `https://places.googleapis.com/v1/${ph.name}/media?maxWidthPx=600&key=${apiKey}`);
+      const photoUrl = photoUrls[0];
       const dist = p.location
         ? Math.round(haversine(lat, lng, p.location.latitude, p.location.longitude))
         : undefined;
@@ -170,6 +170,7 @@ async function searchNearbyHotels(lat: number, lng: number, apiKey: string): Pro
         websiteUri: p.websiteUri,
         internationalPhoneNumber: p.internationalPhoneNumber,
         photoUrl,
+        photoUrls,
         types: p.types,
         editorialSummary: p.editorialSummary?.text,
       };
@@ -317,6 +318,7 @@ export async function POST(req: NextRequest) {
     websiteUri: h.websiteUri,
     phone: h.internationalPhoneNumber,
     photoUrl: h.photoUrl,
+    photoUrls: h.photoUrls,
     blurb: blurbs[h.id] ?? h.editorialSummary ?? '',
     types: h.types,
     editorialSummary: h.editorialSummary,
