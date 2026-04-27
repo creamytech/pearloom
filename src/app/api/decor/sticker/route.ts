@@ -102,6 +102,8 @@ export async function POST(req: NextRequest) {
       size: '1024x1024',
       quality: 'high',
       format: 'png',
+      // Native transparent alpha — was flood-fill before 2026-04-27.
+      background: 'transparent',
     });
 
     if (!result?.base64) {
@@ -112,10 +114,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // gpt-image-2 returns opaque PNG — flood-fill the white edges to
-    // get a clean alpha so the sticker sits on any block without
-    // a square halo. removeWhiteBackground falls back to the original
-    // if it can't isolate (e.g. prompt drift produced a coloured bg).
+    // gpt-image-2 returns native alpha now. Flood-fill remains as
+    // a defence in depth for prompt-drift cases where the model
+    // emits a coloured backdrop instead of honouring 'transparent'.
     const rawBuffer = Buffer.from(result.base64, 'base64');
     const cutout = await removeWhiteBackground(rawBuffer);
 

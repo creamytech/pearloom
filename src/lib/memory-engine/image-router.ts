@@ -19,6 +19,7 @@ import {
   type ImageSize,
   type ImageFormat,
   type ImageModeration,
+  type ImageBackground,
 } from './openai-image';
 
 export type ImageProvider = 'openai' | 'gemini' | 'auto';
@@ -38,6 +39,10 @@ export interface GenerateImageOpts {
   format?: ImageFormat;
   outputCompression?: number;
   moderation?: ImageModeration;
+  /** Pass `'transparent'` to get a PNG with native alpha (decor
+   *  stickers, accents, motifs). OpenAI-only; on Gemini fallback
+   *  the caller still has to flood-fill if it needs alpha. */
+  background?: ImageBackground;
   /** Use-case tag for logging + provider routing. Stylize + couple
    *  scene edits now prefer OpenAI since gpt-image-2 handles faces
    *  more faithfully than Nano Banana. */
@@ -70,6 +75,13 @@ export async function generateImage(opts: GenerateImageOpts): Promise<GeminiImag
   if (provider === 'openai') {
     const openaiKey = process.env.OPENAI_API_KEY;
     if (!openaiKey) return fallbackToGemini();
+    // Decor-style purposes default to transparent so callers don't
+    // need to remember to opt in for stickers/accents/motifs. Other
+    // purposes (hero, chapter, scene, invite) default to opaque so
+    // the painter still composes with a real ground.
+    const decorLikePurpose = ['motif', 'stamp', 'seal'].includes(opts.purpose ?? '');
+    const background = opts.background ?? (decorLikePurpose ? 'transparent' : 'auto');
+
     const result = await openaiGenerateImage({
       apiKey: openaiKey,
       prompt: opts.prompt,
@@ -81,6 +93,7 @@ export async function generateImage(opts: GenerateImageOpts): Promise<GeminiImag
       format: opts.format,
       outputCompression: opts.outputCompression,
       moderation: opts.moderation,
+      background,
     });
     // Fall back to Gemini when OpenAI returns null (rate limit, bad
     // prompt, etc.) — we never let the pipeline silently lose art.

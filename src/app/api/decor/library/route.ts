@@ -195,6 +195,7 @@ async function generateDivider(apiKey: string, ctx: DecorContext, siteId: string
     size: '1536x1024',
     quality: 'high',
     format: 'png',
+    background: 'transparent',
   });
   if (!result?.base64) throw new Error(`Divider failed: ${getLastOpenAIError() ?? 'no response'}`);
   const buf = Buffer.from(result.base64, 'base64');
@@ -224,6 +225,7 @@ async function generateSectionStamps(
     size: '1536x1024',
     quality: 'high',
     format: 'png',
+    background: 'transparent',
   });
   if (!result?.base64) throw new Error(`Stamps failed: ${getLastOpenAIError() ?? 'no response'}`);
 
@@ -257,6 +259,7 @@ async function generateConfetti(apiKey: string, ctx: DecorContext, siteId: strin
     size: '1024x1024',
     quality: 'high',
     format: 'png',
+    background: 'transparent',
   });
   if (!result?.base64) throw new Error(`Confetti failed: ${getLastOpenAIError() ?? 'no response'}`);
   const cutout = await removeWhiteBackground(Buffer.from(result.base64, 'base64'));
@@ -277,6 +280,7 @@ async function generateFooterBouquet(
     size: '1024x1536',
     quality: 'high',
     format: 'png',
+    background: 'transparent',
   });
   if (!result?.base64) throw new Error(`Bouquet failed: ${getLastOpenAIError() ?? 'no response'}`);
   const cutout = await removeWhiteBackground(Buffer.from(result.base64, 'base64'));

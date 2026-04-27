@@ -19,6 +19,7 @@
    ======================================================================== */
 
 import React, { useId, type CSSProperties, type ReactNode } from 'react';
+import { useEditorCanvas } from './editor/canvas/EditorCanvasContext';
 
 type PearTone = 'sage' | 'lavender' | 'peach' | 'cream' | 'ink';
 
@@ -883,7 +884,16 @@ export function Atmosphere({
   );
 }
 
-/* Icon set */
+/* Icon set
+ *
+ * Every Icon SVG carries `data-pl-icon-name={name}` so the editor's
+ * canvas-level drag/click handler can target it. In edit mode the
+ * editor's IconOverridesContext (set by SiteV8Renderer) supplies an
+ * iconOverrides map keyed by the original icon name; if a key is
+ * present, we render that icon instead. This is the per-name global
+ * override (replacing every 'heart-icon' with 'sparkles' once
+ * replaces them everywhere) which matches host expectations after
+ * a single drag-drop. */
 export function Icon({
   name,
   size = 16,
@@ -899,6 +909,14 @@ export function Icon({
   style?: CSSProperties;
   strokeWidth?: number;
 }) {
+  // useEditorCanvas reads the EditorCanvasContext set by the
+  // editor's SiteV8Renderer mount. Outside the editor it falls
+  // back to the default context (editMode: false, no overrides),
+  // so this is safe on the public site.
+  const ctx = useEditorCanvas();
+  const overrides = ctx.iconOverrides;
+  const effectiveName = (overrides && overrides[name]) ? overrides[name] : name;
+
   const common = {
     width: size,
     height: size,
@@ -911,7 +929,21 @@ export function Icon({
     className,
     style,
     'aria-hidden': true,
+    // Both attributes survive on the rendered DOM. The original
+    // (`-original`) lets the editor's drop handler key the override
+    // off the *unaltered* name so a host can drop a third icon onto
+    // an already-replaced one and the chain still resolves cleanly.
+    'data-pl-icon-name': effectiveName,
+    'data-pl-icon-original': name,
   };
+  return renderIconBody(effectiveName, common, color);
+}
+
+function renderIconBody(
+  name: string,
+  common: Record<string, unknown>,
+  color: string,
+): React.ReactElement {
   switch (name) {
     case 'arrow-right':   return <svg {...common}><path d="M5 12h14M13 5l7 7-7 7"/></svg>;
     case 'arrow-left':    return <svg {...common}><path d="M19 12H5M11 5l-7 7 7 7"/></svg>;

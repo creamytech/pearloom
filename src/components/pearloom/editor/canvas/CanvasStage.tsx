@@ -27,11 +27,12 @@
 // a fixed-width container.
 // ─────────────────────────────────────────────────────────────
 
-import { forwardRef, useMemo } from 'react';
+import { forwardRef, useEffect, useMemo, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { SiteV8Renderer } from '../../site/SiteV8Renderer';
 import { FloatingFormatToolbar } from './FloatingFormatToolbar';
 import { CanvasContextMenu } from './CanvasContextMenu';
+import { IconDropTarget } from './IconDropTarget';
 
 // Match EditorV8's device contract exactly so ref + prop pass
 // through without type friction.
@@ -64,6 +65,21 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
   ) {
     const w = DEVICE_WIDTH[device];
 
+    // Mirror the forwarded ref into a local node ref so child
+    // components (IconDropTarget) can register listeners on the
+    // canvas root without each route having to thread the ref.
+    const [rootEl, setRootEl] = useState<HTMLDivElement | null>(null);
+    function attachRef(node: HTMLDivElement | null) {
+      setRootEl(node);
+      if (typeof ref === 'function') ref(node);
+      else if (ref) ref.current = node;
+    }
+    // Force-resync the rootEl on every mount so the listener
+    // useEffects in IconDropTarget see a stable element. (Pure
+    // setState in attachRef handles re-renders; this is just
+    // belt + braces if React StrictMode double-invokes.)
+    useEffect(() => { /* no-op intentional */ }, [rootEl]);
+
     // Patch helper — each EditableText in the tree calls onEditField
     // with a pure manifest → manifest transform, we apply + push up.
     // In previewMode we DON'T pass onEditField so the renderer's
@@ -78,7 +94,7 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
 
     return (
       <div
-        ref={ref}
+        ref={attachRef}
         className="pl8-editor-canvas"
         style={{
           flex: 1,
@@ -135,6 +151,16 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
             host bold / italic / link / clear / ask-Pear-to-rewrite
             without leaving the canvas. */}
         <CanvasContextMenu />
+        {/* Click-to-swap + drag-to-replace for every icon. The
+            modal that picks the new icon (IconSwapModal) is mounted
+            once at the editor root. Dragging here happens against
+            the *canvas* element so listeners can't fire when the
+            host is rearranging the inspector or topbar. */}
+        <IconDropTarget
+          editMode={!previewMode}
+          onEditField={previewMode ? undefined : onEditField}
+          canvasRoot={rootEl}
+        />
         <FloatingFormatToolbar
           onAiRewrite={async (text) => {
             try {

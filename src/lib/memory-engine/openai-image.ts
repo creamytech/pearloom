@@ -12,9 +12,13 @@
 //   - `n: 1` (only 1 supported at high quality)
 //   - `moderation: 'auto' | 'low'`
 //
-// gpt-image-2 does NOT honour `background: 'transparent'`. Decor
-// routes (sticker, accent, library) post-process via flood-fill
-// in src/lib/decor/remove-background.ts to get clean alpha.
+// gpt-image-2 NOW supports `background: 'transparent'` (rolled out
+// 2026-04-27). Decor routes pass background:'transparent' directly
+// instead of running the post-process flood-fill in
+// src/lib/decor/remove-background.ts. The flood-fill helper still
+// exists as a Gemini-fallback path since Gemini doesn't expose a
+// transparent option — the router calls it only when the provider
+// resolves to Gemini.
 //
 // We log the real API error body on failure so empty responses
 // stop showing up with no explanation in the editor UI.
@@ -31,9 +35,10 @@ const OPENAI_EDITS_URL = 'https://api.openai.com/v1/images/edits';
  *  to roll-back to gpt-image-1 if a v9 issue surfaces in prod
  *  without a redeploy). Default is gpt-image-2 — the v9 baseline.
  *
- *  Note: gpt-image-2 does NOT support `background: 'transparent'` —
- *  decor routes go through removeWhiteBackground() in
- *  src/lib/decor/remove-background.ts instead. */
+ *  As of 2026-04-27 gpt-image-2 supports `background: 'transparent'`
+ *  natively — decor routes pass it directly. removeWhiteBackground()
+ *  in src/lib/decor/remove-background.ts still ships for the Gemini
+ *  fallback path. */
 export const GPT_IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2';
 
 export type ImageQuality = 'low' | 'medium' | 'high' | 'auto';
@@ -65,6 +70,10 @@ export function normalizeSize(requested: string): ImageSize {
 
 export type ImageFormat = 'png' | 'jpeg' | 'webp';
 export type ImageModeration = 'auto' | 'low';
+/** gpt-image-2 background mode. `'transparent'` is only valid with
+ *  PNG output; gating is enforced when we set the param below.
+ *  `'auto'` lets the model decide; `'opaque'` forces a solid bg. */
+export type ImageBackground = 'transparent' | 'opaque' | 'auto';
 
 export interface OpenAIImageOpts {
   apiKey: string;
@@ -85,6 +94,11 @@ export interface OpenAIImageOpts {
    *  portraiture of the couple — avoids false positives on
    *  wedding portraits. */
   moderation?: ImageModeration;
+  /** gpt-image-2 background mode. `'transparent'` returns a PNG
+   *  with native alpha (replaces the flood-fill post-process for
+   *  decor stickers, accents, motifs). Only honoured when format
+   *  is `'png'`; silently ignored otherwise. Default `'auto'`. */
+  background?: ImageBackground;
 }
 
 function mimeFromFormat(f: ImageFormat): string {
@@ -114,6 +128,7 @@ export async function openaiGenerateImage(opts: OpenAIImageOpts): Promise<Gemini
     format = 'png',
     outputCompression,
     moderation = 'auto',
+    background = 'auto',
   } = opts;
 
   const isEdit = Boolean(inputImage || inputImages?.length);
@@ -131,6 +146,11 @@ export async function openaiGenerateImage(opts: OpenAIImageOpts): Promise<Gemini
       form.append('moderation', moderation);
       if (outputCompression != null && (format === 'jpeg' || format === 'webp')) {
         form.append('output_compression', String(outputCompression));
+      }
+      // gpt-image-2 transparent backgrounds are PNG-only. Sending
+      // `transparent` with jpeg/webp returns a 400 — silently drop it.
+      if (background !== 'auto' && format === 'png') {
+        form.append('background', background);
       }
 
       const images = inputImages?.length ? inputImages : inputImage ? [inputImage] : [];
@@ -180,6 +200,9 @@ export async function openaiGenerateImage(opts: OpenAIImageOpts): Promise<Gemini
     };
     if (outputCompression != null && (format === 'jpeg' || format === 'webp')) {
       body.output_compression = outputCompression;
+    }
+    if (background !== 'auto' && format === 'png') {
+      body.background = background;
     }
 
     const res = await fetch(OPENAI_IMAGES_URL, {

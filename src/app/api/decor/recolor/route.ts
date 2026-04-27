@@ -85,6 +85,9 @@ export async function POST(req: NextRequest) {
     quality: 'high',
     size: '1024x1024',
     moderation: 'low',
+    // Recolor preserves the source's transparent backdrop. Was
+    // hard-removed via flood-fill before gpt-image-2 supported it.
+    background: 'transparent',
   });
 
   if (!result) {

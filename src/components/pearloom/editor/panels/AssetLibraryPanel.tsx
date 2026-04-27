@@ -36,8 +36,23 @@ interface LibraryPhoto {
 }
 
 const DRAG_MIME = 'application/x-pearloom-asset';
+const ICON_DRAG_MIME = 'text/x-pearloom-icon';
 
-type LibraryTab = 'photos' | 'decor';
+type LibraryTab = 'photos' | 'decor' | 'icons';
+
+// Curated motif catalog — every glyph the editor ships with. Order
+// is grouped by purpose so the icon picker doesn't read like a
+// dictionary dump. Mirrors the catalog in IconSwapModal but adds a
+// few more domain-specific entries.
+const ICON_LIBRARY: Array<{ group: string; names: string[] }> = [
+  { group: 'Action', names: ['arrow-right', 'arrow-left', 'arrow-up', 'arrow-down', 'arrow-ur', 'send', 'upload', 'download', 'share', 'link', 'play', 'pause'] },
+  { group: 'UI', names: ['plus', 'minus', 'check', 'close', 'dot', 'eye', 'eye-off', 'lock', 'undo', 'redo', 'search', 'filter', 'settings', 'sliders'] },
+  { group: 'Content', names: ['image', 'gallery', 'camera', 'video', 'music', 'mic', 'mic-wave', 'mail', 'bell', 'page', 'file', 'folder', 'type', 'text'] },
+  { group: 'Place', names: ['pin', 'map', 'compass', 'globe', 'home', 'clock', 'calendar', 'calendar-check', 'ticket'] },
+  { group: 'People', names: ['user', 'users', 'user-plus', 'heart-icon'] },
+  { group: 'Brand', names: ['leaf', 'sparkles', 'sun', 'moon', 'star', 'wand', 'gift', 'fleuron', 'asterism'] },
+  { group: 'Layout', names: ['grid', 'list', 'layers', 'layout', 'section', 'block', 'phone', 'tablet', 'desktop'] },
+];
 
 interface DecorAsset {
   id: string;
@@ -265,7 +280,7 @@ export function AssetLibraryPanel({
         aria-label="Asset library tabs"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
+          gridTemplateColumns: 'repeat(3, 1fr)',
           padding: 4,
           margin: '12px 16px 4px',
           background: 'var(--cream-2)',
@@ -278,6 +293,9 @@ export function AssetLibraryPanel({
           [
             { v: 'photos' as const, l: 'Photos', n: media?.length ?? 0 },
             { v: 'decor' as const, l: 'AI decor', n: decorAssets.length },
+            // Icon library count is the sum of every group — fixed
+            // catalog so we don't have to compute on every render.
+            { v: 'icons' as const, l: 'Icons', n: ICON_LIBRARY.reduce((acc, g) => acc + g.names.length, 0) },
           ]
         ).map((o) => {
           const on = tab === o.v;
@@ -324,7 +342,14 @@ export function AssetLibraryPanel({
         })}
       </div>
 
-      {tab === 'decor' ? (
+      {tab === 'icons' ? (
+        <IconsTab
+          query={query}
+          setQuery={setQuery}
+          manifest={manifest}
+          onChange={onChange}
+        />
+      ) : tab === 'decor' ? (
         <DecorTab
           assets={filteredDecor}
           totalCount={decorAssets.length}
@@ -886,6 +911,257 @@ function AssetTile({ photo }: { photo: LibraryPhoto }) {
           pointerEvents: 'none',
         }}
       />
+    </div>
+  );
+}
+
+// ── IconsTab ──────────────────────────────────────────────────
+// Every motif icon as a draggable tile. Drag carries the icon
+// name in `text/x-pearloom-icon`; the canvas's IconDropTarget
+// picks it up on drop.  Clicking a tile (without dragging)
+// surfaces a quick "Pick a target" tooltip — drag is the
+// supported gesture, click is just a teach-me hint.
+function IconsTab({
+  query,
+  setQuery,
+  manifest,
+  onChange,
+}: {
+  query: string;
+  setQuery: (q: string) => void;
+  manifest?: StoryManifest;
+  onChange?: (m: StoryManifest) => void;
+}) {
+  const [resetHint, setResetHint] = useState(false);
+
+  const groups = ICON_LIBRARY.map((g) => ({
+    ...g,
+    matches: query.trim()
+      ? g.names.filter((n) => n.toLowerCase().includes(query.trim().toLowerCase()))
+      : g.names,
+  })).filter((g) => g.matches.length > 0);
+
+  const overrides = (manifest as unknown as { iconOverrides?: Record<string, string> } | undefined)?.iconOverrides ?? {};
+  const overrideEntries = Object.entries(overrides);
+
+  function clearAllOverrides() {
+    if (!manifest || !onChange) return;
+    const next = { ...manifest } as StoryManifest;
+    (next as unknown as { iconOverrides?: Record<string, string> }).iconOverrides = {};
+    onChange(next);
+  }
+
+  function clearOne(originalName: string) {
+    if (!manifest || !onChange) return;
+    const cur = (manifest as unknown as { iconOverrides?: Record<string, string> }).iconOverrides ?? {};
+    const next = { ...cur };
+    delete next[originalName];
+    onChange({ ...manifest, iconOverrides: next } as unknown as StoryManifest);
+  }
+
+  return (
+    <>
+      <div style={{ display: 'flex', gap: 6, padding: '12px 16px 10px', borderBottom: '1px solid var(--line-soft)' }}>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search icons (heart, leaf, mail…)"
+          style={{
+            flex: 1,
+            padding: '7px 10px',
+            borderRadius: 8,
+            border: '1px solid var(--line-soft)',
+            background: 'var(--card)',
+            fontSize: 12,
+            fontFamily: 'var(--font-ui)',
+            outline: 'none',
+            color: 'var(--ink)',
+          }}
+        />
+        {overrideEntries.length > 0 && manifest && onChange && (
+          <button
+            type="button"
+            onClick={clearAllOverrides}
+            title="Reset every icon swap"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+              padding: '7px 12px',
+              borderRadius: 8,
+              background: 'var(--cream-2)',
+              border: '1px solid var(--line-soft)',
+              color: 'var(--ink)',
+              fontSize: 11.5,
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
+            <Icon name="undo" size={11} /> Reset all
+          </button>
+        )}
+      </div>
+
+      <div
+        style={{
+          padding: '10px 16px 6px',
+          fontSize: 11,
+          color: 'var(--ink-soft)',
+          background: 'var(--cream-2)',
+          lineHeight: 1.5,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+        }}
+      >
+        <Icon name="drag" size={11} />
+        Drag any icon onto a canvas glyph to swap it. One drop replaces every instance of the original.
+      </div>
+
+      {/* Active overrides — surfaces the host's swaps as a strip
+          of mini-tiles so they can revert one at a time. */}
+      {overrideEntries.length > 0 && (
+        <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--line-soft)', background: 'var(--cream)' }}>
+          <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 6 }}>
+            Active swaps
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {overrideEntries.map(([orig, repl]) => (
+              <div
+                key={orig}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '4px 4px 4px 8px',
+                  background: 'var(--cream-2)',
+                  border: '1px solid var(--line-soft)',
+                  borderRadius: 999,
+                  fontSize: 10.5,
+                }}
+                title={`${orig} → ${repl}`}
+              >
+                <Icon name={orig} size={11} /> ↦ <Icon name={repl} size={11} />
+                <button
+                  type="button"
+                  onClick={() => clearOne(orig)}
+                  aria-label={`Reset ${orig} swap`}
+                  style={{
+                    width: 18, height: 18, borderRadius: 999,
+                    background: 'transparent', border: 'none', cursor: 'pointer',
+                    color: 'var(--ink-soft)', fontSize: 12, lineHeight: 1,
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
+        {groups.length === 0 ? (
+          <div style={{ color: 'var(--ink-soft)', textAlign: 'center', padding: 24, fontSize: 12 }}>
+            No icons match &quot;{query}&quot;.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {groups.map((g) => (
+              <div key={g.group}>
+                <div
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    letterSpacing: '0.16em',
+                    textTransform: 'uppercase',
+                    color: 'var(--ink-muted)',
+                    marginBottom: 6,
+                    padding: '0 4px',
+                  }}
+                >
+                  {g.group}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))', gap: 6 }}>
+                  {g.matches.map((n) => (
+                    <IconTile key={n} name={n} onTeach={() => setResetHint(true)} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {resetHint && (
+          <div
+            role="status"
+            onAnimationEnd={() => setResetHint(false)}
+            style={{
+              position: 'sticky',
+              bottom: 8,
+              margin: '12px auto 0',
+              padding: '6px 10px',
+              background: 'var(--ink, #0E0D0B)',
+              color: 'var(--cream, #F5EFE2)',
+              borderRadius: 999,
+              fontSize: 11,
+              fontWeight: 600,
+              fontFamily: 'var(--font-ui)',
+              width: 'fit-content',
+              animation: 'pl-icon-hint-fade 1800ms ease',
+            }}
+          >
+            Drag the tile onto any canvas icon to replace it.
+            <style jsx global>{`
+              @keyframes pl-icon-hint-fade {
+                0%   { opacity: 0; transform: translateY(6px); }
+                15%  { opacity: 1; transform: translateY(0); }
+                80%  { opacity: 1; }
+                100% { opacity: 0; }
+              }
+            `}</style>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+function IconTile({ name, onTeach }: { name: string; onTeach: () => void }) {
+  function onDragStart(e: React.DragEvent<HTMLDivElement>) {
+    e.dataTransfer.setData(ICON_DRAG_MIME, name);
+    e.dataTransfer.setData('text/plain', name);
+    e.dataTransfer.effectAllowed = 'copy';
+  }
+  return (
+    <div
+      draggable
+      onDragStart={onDragStart}
+      onClick={onTeach}
+      title={`Drag ${name} onto a canvas icon to replace it`}
+      style={{
+        aspectRatio: '1 / 1',
+        display: 'grid',
+        placeItems: 'center',
+        borderRadius: 10,
+        background: 'var(--card)',
+        border: '1.5px solid var(--line)',
+        cursor: 'grab',
+        color: 'var(--ink)',
+        transition: 'transform 180ms cubic-bezier(0.22,1,0.36,1), background 180ms ease, border-color 180ms ease',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-1px)';
+        e.currentTarget.style.background = 'var(--cream-2)';
+        e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = '';
+        e.currentTarget.style.background = 'var(--card)';
+        e.currentTarget.style.borderColor = 'var(--line)';
+      }}
+    >
+      <Icon name={name} size={20} />
     </div>
   );
 }

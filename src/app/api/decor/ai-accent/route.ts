@@ -84,6 +84,8 @@ export async function POST(req: NextRequest) {
       quality: 'high',
       format: 'png',
       moderation: 'auto',
+      // gpt-image-2 returns native alpha — skip the flood-fill cutout.
+      background: 'transparent',
     });
 
     if (!result?.base64) {
@@ -95,6 +97,10 @@ export async function POST(req: NextRequest) {
     }
 
     const rawBuffer = Buffer.from(result.base64, 'base64');
+    // Native alpha from gpt-image-2 is the happy path; flood-fill
+    // is kept as a defence in depth for stray off-white pixels (the
+    // model occasionally emits a beige border with very pale
+    // stationery prompts).
     const cutout = await removeWhiteBackground(rawBuffer);
 
     const key = `decor/${siteId}/${Date.now()}-accent.png`;
