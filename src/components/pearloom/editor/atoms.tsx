@@ -23,6 +23,7 @@ import {
 } from 'react';
 import dynamic from 'next/dynamic';
 import { Icon } from '../motifs';
+import { CustomSelect } from './v8-forms';
 
 /* ---------- PanelGroup ----------
  *  Opt-in wrapper that gives nested PanelSections positional
@@ -474,6 +475,13 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
   }
 );
 
+/**
+ * SelectInput — thin wrapper that delegates to the v8 CustomSelect
+ * popover instead of the native dropdown. The native variant looked
+ * OS-default in the panel rail; CustomSelect renders the same option
+ * list inside a paper-styled popover that matches everything else
+ * in the editor. Same prop shape so consumers don't change.
+ */
 export function SelectInput({
   value,
   onChange,
@@ -487,34 +495,15 @@ export function SelectInput({
   placeholder?: string;
   id?: string;
 }) {
+  void id;
   return (
-    <div style={{ position: 'relative' }}>
-      <select
-        id={id}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        style={{
-          ...sharedInputStyle,
-          appearance: 'none',
-          WebkitAppearance: 'none',
-          paddingRight: 36,
-          cursor: 'pointer',
-        }}
-      >
-        {placeholder && <option value="">{placeholder}</option>}
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-      <Icon
-        name="chev-down"
-        size={14}
-        style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
-        color="var(--ink-muted)"
-      />
-    </div>
+    <CustomSelect
+      value={value}
+      onChange={onChange}
+      options={options}
+      placeholder={placeholder}
+      width="100%"
+    />
   );
 }
 

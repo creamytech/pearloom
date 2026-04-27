@@ -8,6 +8,7 @@
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { StoryManifest, Chapter } from '@/types';
+import { parseLocalDate } from '@/lib/date-utils';
 import {
   Blob,
   Heart,
@@ -154,9 +155,8 @@ type Tone = 'warm' | 'field' | 'dusk' | 'lavender' | 'peach' | 'sage' | 'cream';
 const CHAPTER_TONES: Tone[] = ['lavender', 'sage', 'peach', 'cream', 'lavender', 'peach'];
 
 function fmtEventDate(iso?: string | null): { pretty: string; weekday: string } | null {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
+  const d = parseLocalDate(iso);
+  if (!d) return null;
   return {
     pretty: d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
     weekday: d.toLocaleDateString('en-US', { weekday: 'long' }),
@@ -165,8 +165,9 @@ function fmtEventDate(iso?: string | null): { pretty: string; weekday: string } 
 
 function useCountdown(iso?: string | null) {
   return useMemo(() => {
-    if (!iso) return null;
-    const target = new Date(iso).getTime();
+    const d = parseLocalDate(iso);
+    if (!d) return null;
+    const target = d.getTime();
     if (Number.isNaN(target)) return null;
     const now = Date.now();
     const diffMs = target - now;
@@ -4282,11 +4283,10 @@ export function SiteV8Renderer({
             <ScrollSpy sections={['top', 'our-story', 'schedule', 'travel', 'registry', 'gallery', 'faq', 'rsvp']} />
             <FloatingCountdown manifest={manifest} />
             <StickyMobileCta
-              deadline={
-                manifest.logistics?.rsvpDeadline
-                  ? new Date(manifest.logistics.rsvpDeadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                  : null
-              }
+              deadline={(() => {
+                const d = parseLocalDate(manifest.logistics?.rsvpDeadline);
+                return d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : null;
+              })()}
             />
             <AskPearFloater domain={siteSlug} manifest={manifest} names={names} />
             <LiveWallDiscover
