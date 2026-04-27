@@ -11,7 +11,10 @@ function HotelsAI({ manifest, onResult }: { manifest: StoryManifest; onResult: (
   const l = manifest.logistics ?? {};
   const canRun = !!(l.venue || l.venueAddress);
   const { state, error, run } = useAICall(async () => {
-    const res = await fetch('/api/ai-hotels', {
+    // Real Google Places searchNearby + Claude blurbs. The legacy
+    // /api/ai-hotels just asked Gemini to fabricate hotel names
+    // from training data — guests booked nonexistent hotels.
+    const res = await fetch('/api/hotels/nearby', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -24,28 +27,35 @@ function HotelsAI({ manifest, onResult }: { manifest: StoryManifest; onResult: (
       const data = (await res.json().catch(() => null)) as { error?: string } | null;
       throw new Error(data?.error ?? `Pear couldn't fetch hotels (${res.status})`);
     }
-    const data = (await res.json()) as { hotels?: Array<{ name: string; description?: string; priceRange?: string; distance?: string; url?: string }> };
+    const data = (await res.json()) as {
+      hotels?: Array<{
+        id: string; name: string; address: string;
+        distanceText?: string; priceLevel?: string;
+        websiteUri?: string; phone?: string; rating?: number;
+        photoUrl?: string; blurb?: string;
+      }>;
+    };
     const now = Date.now();
     const next: Hotel[] = (data.hotels ?? []).map((h, i) => ({
-      id: `htl-ai-${now.toString(36)}-${i}`,
+      id: `htl-real-${now.toString(36)}-${i}`,
       name: h.name,
-      description: h.description,
-      price: h.priceRange,
-      distance: h.distance,
-      bookingUrl: h.url,
+      description: h.blurb || h.address,
+      price: h.priceLevel,
+      distance: h.distanceText,
+      bookingUrl: h.websiteUri,
     }));
-    if (!next.length) throw new Error('No hotels returned');
+    if (!next.length) throw new Error('No hotels found near the venue');
     onResult(next);
     return next;
   });
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <AIHint>
-        Pear scans your venue and picks 3–5 hotels guests will actually like. Add + edit them from here.
+        Pear pulls real hotels near your venue (Google Places) and Claude writes a one-line blurb for each. Add + edit from the rows below.
       </AIHint>
       <AISuggestButton
-        label={canRun ? 'Suggest hotels near my venue' : 'Add a venue first'}
-        runningLabel="Scouting hotels…"
+        label={canRun ? 'Find real hotels near my venue' : 'Add a venue first'}
+        runningLabel="Scanning Google Places…"
         state={canRun ? state : 'idle'}
         onClick={() => canRun && void run()}
         error={error ?? undefined}
