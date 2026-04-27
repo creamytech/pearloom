@@ -1865,3 +1865,12 @@ html { scroll-behavior: smooth; }
   stroke-dasharray: 60;
   animation: pl-icon-draw 800ms ease-out;
 }
+
+/* "Live now" pulse on schedule rows during the event window. */
+@keyframes pl8-live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.55; transform: scale(0.7); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-live-pill > [aria-hidden] { animation: none !important; }
+}

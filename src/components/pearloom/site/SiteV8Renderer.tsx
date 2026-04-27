@@ -22,6 +22,7 @@ import {
   Stamp,
 } from '../motifs';
 import { EditorCanvasProvider, useIsEditMode } from '../editor/canvas/EditorCanvasContext';
+import { terminologyFor } from '@/lib/event-terminology';
 import { EditableText } from '../editor/canvas/EditableText';
 import { EditableField } from '../editor/canvas/EditableField';
 import { SortableBlockList } from '../editor/canvas/CanvasBlockSortable';
@@ -1743,10 +1744,83 @@ function DetailsStripImpl({ manifest }: { manifest: StoryManifest }) {
 }
 
 /* ==================== SCHEDULE ==================== */
+// Pick the row to spotlight as the day's "main moment" — the
+// ceremony / service / centre-piece event. Strategy:
+//   1. Explicit type=='ceremony' wins.
+//   2. Failing that, name-match for "ceremony", "vows", "service",
+//      "wedding mass", "I do", "exchange of vows".
+//   3. Otherwise no main moment — the strip just renders without
+//      the badge (host hasn't said which is centre).
+function computeMainEventIndex(events: Array<{ name?: string; type?: string }>): number {
+  const explicit = events.findIndex((e) => e.type === 'ceremony');
+  if (explicit >= 0) return explicit;
+  const NAME_HINTS = /\b(ceremony|service|vows|nuptials|exchange|i do)\b/i;
+  return events.findIndex((e) => NAME_HINTS.test(e.name ?? ''));
+}
+
+// "Live now" detection — when the guest's clock is between
+// event.start and event.start + ~30 minutes (anchored on the
+// venue timezone if the host set one). Returns -1 when nothing
+// is currently happening.
+function computeLiveEventIndex(
+  events: Array<{ time?: string }>,
+  isoDate: string,
+  timezone: string | undefined,
+): number {
+  if (!isoDate || events.length === 0) return -1;
+  const now = Date.now();
+  // Build the venue-local instant for each event's HH:MM and
+  // compare to "now". A 30-minute trailing window keeps the badge
+  // up briefly past start so guests opening the site mid-walk-in
+  // still see "Live now" instead of nothing.
+  for (let i = 0; i < events.length; i++) {
+    const t = events[i].time ?? '';
+    const m = /^(\d{1,2}):(\d{2})/.exec(t);
+    if (!m) continue;
+    const hh = parseInt(m[1], 10);
+    const mm = parseInt(m[2], 10);
+    const utcWall = Date.UTC(
+      parseInt(isoDate.slice(0, 4), 10),
+      parseInt(isoDate.slice(5, 7), 10) - 1,
+      parseInt(isoDate.slice(8, 10), 10),
+      hh, mm, 0,
+    );
+    let target = utcWall;
+    if (timezone) {
+      try {
+        const fmt = new Intl.DateTimeFormat('en-US', {
+          timeZone: timezone, hour: 'numeric', hour12: false,
+          timeZoneName: 'shortOffset',
+        });
+        const offPart = fmt.formatToParts(new Date(utcWall)).find((p) => p.type === 'timeZoneName')?.value ?? 'GMT+0';
+        const om = /GMT([+-])(\d+)(?::(\d+))?/.exec(offPart);
+        if (om) {
+          const sign = om[1] === '-' ? -1 : 1;
+          const offHrs = Number(om[2]);
+          const offMin = om[3] ? Number(om[3]) : 0;
+          target = utcWall - sign * (offHrs * 60 + offMin) * 60_000;
+        }
+      } catch { /* keep target as utcWall */ }
+    }
+    if (now >= target && now < target + 30 * 60_000) return i;
+  }
+  return -1;
+}
+
 function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: StoryManifest; names: [string, string]; onEditField?: FieldEditor }) {
   const edit = useIsEditMode();
   const dateInfo = fmtEventDate(manifest.logistics?.date, manifest.dateFormat, manifest.logistics?.timezone);
   const events = manifest.events ?? [];
+  // Per-occasion section title + ceremony label + time format.
+  // Wedding → "Order of service · Ceremony · half past four in the
+  // afternoon"; baby shower → "The plan · Shower · 2pm". One config
+  // module, no scattered if-occasion-equals chains.
+  const term = terminologyFor((manifest as unknown as { occasion?: string }).occasion);
+  // "Live now" + "Main moment" — figure out which row is *the* one
+  // the host wants spotlighted, and which row is currently happening
+  // (if guests open the site between event.start and start+30min).
+  const eventDateStr = manifest.logistics?.date ?? '';
+  const eventTZ = manifest.logistics?.timezone;
   // Hide the whole section rather than ship a demo schedule.
   if (events.length === 0 && !edit) return null;
   const addEvent = () => {
@@ -1789,13 +1863,21 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
     if (ao !== bo) return ao - bo;
     return (a.time ?? '').localeCompare(b.time ?? '');
   });
-  const rows = sorted.map((e) => ({
+  // Pre-figure-out the live + main rows so per-row render is
+  // a cheap lookup instead of recomputing.
+  const liveIdx = computeLiveEventIndex(sorted, eventDateStr, eventTZ);
+  const mainIdx = computeMainEventIndex(sorted);
+
+  const rows = sorted.map((e, i) => ({
     id: e.id,
-    time: e.time ?? '',
+    rawTime: e.time ?? '',
+    time: term.formatTime(e.time ?? ''),
     title: e.name,
     d: e.description ?? '',
     tag: tagFromType[e.type] ?? 'Other',
     cur: e.type === 'ceremony',
+    isMain: i === mainIdx,
+    isLive: i === liveIdx,
   }));
   void names;
 
@@ -1833,7 +1915,7 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
             How the day flows
           </div>
           <h2 className="display" style={{ fontSize: 'clamp(40px, 6cqw, 64px)', margin: 0 }}>
-            Schedule {dateInfo && <>for <span className="display-italic">{dateInfo.pretty}</span></>}
+            {term.scheduleLabel} {dateInfo && <>for <span className="display-italic">{dateInfo.pretty}</span></>}
           </h2>
         </div>
 
@@ -1843,22 +1925,87 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
               key={i}
               className="pl8-schedule-row"
               style={{
+                position: 'relative',
                 display: 'grid',
-                gridTemplateColumns: '110px 1fr 140px',
+                gridTemplateColumns: '120px 1fr 140px',
                 alignItems: 'center',
                 gap: 20,
                 padding: '22px 28px',
                 borderBottom: i < rows.length - 1 ? '1px solid var(--line-soft)' : 'none',
-                background: r.cur ? 'var(--peach-bg)' : 'transparent',
+                background: r.isLive ? 'var(--peach-bg)' : (r.isMain && r.cur) ? 'rgba(198,112,61,0.05)' : 'transparent',
+                borderLeft: r.isLive ? '3px solid var(--peach-ink, #C6703D)' : (r.isMain ? '3px solid rgba(198,112,61,0.45)' : '3px solid transparent'),
+                transition: 'background 220ms ease, border-color 220ms ease',
               }}
             >
               <div
                 className="display"
-                style={{ fontSize: 28, fontWeight: 600, lineHeight: 1, color: r.cur ? 'var(--peach-ink)' : 'var(--ink)' }}
+                style={{
+                  fontSize: r.rawTime && term.tone === 'formal' ? 14 : 28,
+                  fontStyle: term.tone === 'formal' ? 'italic' : 'normal',
+                  fontWeight: 600,
+                  lineHeight: 1.15,
+                  color: r.isLive ? 'var(--peach-ink)' : (r.cur || r.isMain ? 'var(--peach-ink)' : 'var(--ink)'),
+                }}
               >
                 {r.time}
               </div>
               <div>
+                {(r.isLive || r.isMain) && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 5 }}>
+                    {r.isLive && (
+                      <span
+                        className="pl8-live-pill"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 5,
+                          padding: '2px 9px 2px 6px',
+                          background: 'var(--peach-ink, #C6703D)',
+                          color: '#FFFFFF',
+                          borderRadius: 999,
+                          fontSize: 9.5,
+                          fontWeight: 800,
+                          letterSpacing: '0.14em',
+                          textTransform: 'uppercase',
+                          boxShadow: '0 4px 10px -3px rgba(198,112,61,0.45)',
+                        }}
+                      >
+                        <span
+                          aria-hidden
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: 999,
+                            background: '#FFFFFF',
+                            animation: 'pl8-live-pulse 1.4s ease-in-out infinite',
+                          }}
+                        />
+                        Live now
+                      </span>
+                    )}
+                    {r.isMain && !r.isLive && (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          padding: '2px 9px',
+                          background: 'rgba(198,112,61,0.10)',
+                          color: 'var(--peach-ink, #C6703D)',
+                          border: '1px solid rgba(198,112,61,0.32)',
+                          borderRadius: 999,
+                          fontSize: 9.5,
+                          fontWeight: 800,
+                          letterSpacing: '0.14em',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        <span aria-hidden style={{ fontSize: 9 }}>★</span>
+                        Main moment
+                      </span>
+                    )}
+                  </div>
+                )}
                 <EditableField
                   as="div"
                   context={`Schedule item ${i + 1} title`}
