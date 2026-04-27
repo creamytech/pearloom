@@ -119,6 +119,13 @@ export interface StoryManifest {
     venue?: string;
     venueAddress?: string;
     venuePlaceId?: string;
+    /** Cached lat/lng of the picked venue. Written when the host
+     *  selects from PlaceAutocomplete so downstream search (hotel
+     *  nearby + autocomplete bias) and the map renderer don't have
+     *  to re-geocode. Without these, "fira" or other terse venue
+     *  names fail geocoding and the hotel-suggest button errors. */
+    venueLat?: number;
+    venueLng?: number;
     date?: string;
     time?: string;
     rsvpDeadline?: string;

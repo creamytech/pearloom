@@ -297,6 +297,8 @@ export function HeroPanel({
                   venue: place.name || undefined,
                   venueAddress: place.address || undefined,
                   venuePlaceId: place.id || undefined,
+                  venueLat: place.lat,
+                  venueLng: place.lng,
                 },
               })
             }

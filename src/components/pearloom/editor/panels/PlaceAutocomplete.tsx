@@ -55,6 +55,14 @@ interface Props {
    *  editable — useful when a parent wants to surface the
    *  control without firing search calls. */
   searchDisabled?: boolean;
+  /** Explicit location bias overriding the geolocation default.
+   *  Hotel pickers pass the *venue's* lat/lng so a host planning
+   *  a Santorini wedding from NYC sees Santorini hotels — not
+   *  random Manhattan ones. When set, geolocation isn't asked. */
+  near?: { lat: number; lng: number } | null;
+  /** Label shown next to the "near you" pill — defaults to "Near
+   *  you" but parents that bias to the venue can pass "Near venue". */
+  nearLabel?: string;
 }
 
 export function PlaceAutocomplete({
@@ -65,35 +73,48 @@ export function PlaceAutocomplete({
   placeholder,
   id,
   searchDisabled,
+  near: nearOverride,
+  nearLabel,
 }: Props) {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [open, setOpen] = useState(false);
   const [searching, setSearching] = useState(false);
   const [activeIdx, setActiveIdx] = useState(-1);
-  const [near, setNear] = useState<string | null>(null);
+  const [geoNear, setGeoNear] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  // Effective bias point: explicit override (typically the venue's
+  // lat/lng for hotel search) wins over user-geolocation. The pill
+  // label tracks which one is in use so the host sees "Near venue"
+  // vs "Near you" — same control, different reference frame.
+  const effectiveNear: string | null =
+    nearOverride
+      ? `${nearOverride.lat.toFixed(5)},${nearOverride.lng.toFixed(5)}`
+      : geoNear;
+  const effectiveNearLabel: string =
+    nearOverride ? (nearLabel ?? 'Near venue') : (nearLabel ?? 'Near you');
+
   // ── Geolocation, one-shot ─────────────────────────────────
-  // Asked on the first focus event since unfocused background
-  // requests are likely to be denied without context. Cached for
-  // the lifetime of the editor session.
+  // Only asked when there's no explicit override. Triggers on the
+  // first focus event since unfocused background requests are
+  // likely to be denied without context.
   const askedGeo = useRef(false);
   const requestGeo = useCallback(() => {
-    if (askedGeo.current) return;
+    if (nearOverride || askedGeo.current) return;
     askedGeo.current = true;
     if (typeof navigator === 'undefined' || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setNear(`${pos.coords.latitude.toFixed(5)},${pos.coords.longitude.toFixed(5)}`);
+        setGeoNear(`${pos.coords.latitude.toFixed(5)},${pos.coords.longitude.toFixed(5)}`);
       },
       () => {
         // User denied; quietly continue without bias.
       },
       { timeout: 5000, maximumAge: 5 * 60_000 },
     );
-  }, []);
+  }, [nearOverride]);
 
   // ── Debounced search ──────────────────────────────────────
   useEffect(() => {
@@ -108,7 +129,7 @@ export function PlaceAutocomplete({
       setSearching(true);
       try {
         const params = new URLSearchParams({ q, type: 'autocomplete' });
-        if (near) params.set('near', near);
+        if (effectiveNear) params.set('near', effectiveNear);
         if (kind === 'hotel') params.set('kind', 'hotel');
         const res = await fetch(`/api/venue/search?${params.toString()}`, { cache: 'no-store' });
         const data = (await res.json()) as { predictions?: Prediction[] };
@@ -122,7 +143,7 @@ export function PlaceAutocomplete({
       }
     }, 250);
     return () => window.clearTimeout(handle);
-  }, [value, near, kind, searchDisabled]);
+  }, [value, effectiveNear, kind, searchDisabled]);
 
   // ── Outside-click closes the popover ──────────────────────
   useEffect(() => {
@@ -224,9 +245,11 @@ export function PlaceAutocomplete({
             minWidth: 0,
           }}
         />
-        {near && (
+        {effectiveNear && (
           <span
-            title="Sorted by closest to your location"
+            title={nearOverride
+              ? 'Sorted by closest to your venue'
+              : 'Sorted by closest to your location'}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -241,7 +264,7 @@ export function PlaceAutocomplete({
               borderRadius: 999,
             }}
           >
-            <Icon name="compass" size={9} /> Near you
+            <Icon name="compass" size={9} /> {effectiveNearLabel}
           </span>
         )}
       </div>
