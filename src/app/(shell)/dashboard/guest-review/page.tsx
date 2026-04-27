@@ -19,6 +19,5 @@ export default async function GuestReviewPage({
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect('/login?next=/dashboard/guest-review');
   const sp = await searchParams;
-  if (!sp.site) redirect('/dashboard/event?next=/dashboard/guest-review');
-  return <GuestReviewClient siteSlug={sp.site} />;
+  return <GuestReviewClient siteSlug={sp.site ?? null} />;
 }

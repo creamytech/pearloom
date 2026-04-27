@@ -41,10 +41,68 @@ export function LibraryPage() {
 
   const load = useCallback(async () => {
     try {
-      const r = await fetch('/api/user-media', { cache: 'no-store' });
-      if (!r.ok) throw new Error('Failed');
-      const d = (await r.json()) as { media?: UserMedia[] };
-      setMedia(d.media ?? []);
+      // Pull the user_media table (authoritative) AND every site's
+      // manifest photos (chapter images, cover photo). Older
+      // wizards uploaded straight into manifest without persisting
+      // to user_media, so the library would show empty even when
+      // photos clearly existed inside the invite designer's "From
+      // your site" picker. Merging both surfaces unifies the view.
+      const [mediaRes, sitesRes] = await Promise.all([
+        fetch('/api/user-media', { cache: 'no-store' }).then((r) => r.ok ? r.json() : { media: [] }).catch(() => ({ media: [] })),
+        fetch('/api/sites', { cache: 'no-store' }).then((r) => r.ok ? r.json() : { sites: [] }).catch(() => ({ sites: [] })),
+      ]);
+      const tableMedia = (mediaRes.media ?? []) as UserMedia[];
+      const seenUrls = new Set(tableMedia.map((m) => m.url));
+      // Pluck every photo URL the user has on any site that isn't
+      // already in user_media. Synthesize lightweight UserMedia
+      // rows so the gallery renderer doesn't need to special-case
+      // them — and persist to user_media in the background so the
+      // next load is a single query.
+      const manifestRows: UserMedia[] = [];
+      const toPersist: Array<{ url: string; source_site_id: string; filename: string }> = [];
+      type SiteRow = {
+        id?: string;
+        domain?: string;
+        manifest?: {
+          coverPhoto?: string;
+          chapters?: Array<{ heroImage?: string; images?: Array<{ url?: string }> }>;
+        };
+      };
+      const sites = (sitesRes.sites ?? []) as SiteRow[];
+      for (const s of sites) {
+        const sid = s.domain ?? s.id ?? '';
+        const m = s.manifest;
+        if (!m) continue;
+        const collect = (url?: string) => {
+          if (!url || typeof url !== 'string') return;
+          if (seenUrls.has(url)) return;
+          seenUrls.add(url);
+          manifestRows.push({
+            id: `manifest:${sid}:${url}`,
+            url,
+            source: 'wizard',
+            source_site_id: sid || null,
+            filename: url.split('/').pop() ?? null,
+            created_at: new Date().toISOString(),
+          });
+          if (sid) toPersist.push({ url, source_site_id: sid, filename: url.split('/').pop() ?? 'photo.jpg' });
+        };
+        collect(m.coverPhoto);
+        for (const ch of m.chapters ?? []) {
+          collect(ch.heroImage);
+          for (const img of ch.images ?? []) collect(img.url);
+        }
+      }
+      setMedia([...tableMedia, ...manifestRows]);
+      // Best-effort backfill so future loads are O(1) — fire-and-
+      // forget; failures are silent.
+      if (toPersist.length > 0) {
+        void fetch('/api/user-media/backfill', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ photos: toPersist }),
+        }).catch(() => {});
+      }
     } catch {
       setMedia([]);
     } finally {

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { DashEmpty } from '@/components/pearloom/dash/DashEmpty';
 import { Icon } from '@/components/pearloom/motifs';
+import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import type { GuestInsight } from '@/app/api/guests/intelligence/route';
 
 interface IntelligencePayload {
@@ -29,13 +30,19 @@ const KIND_ICONS: Record<GuestInsight['kind'], string> = {
   'address-gap': 'pin',
 };
 
-export function GuestReviewClient({ siteSlug }: { siteSlug: string }) {
+export function GuestReviewClient({ siteSlug: urlSiteSlug }: { siteSlug: string | null }) {
+  const { site } = useSelectedSite();
+  const siteSlug = urlSiteSlug ?? site?.domain ?? '';
   const [data, setData] = useState<IntelligencePayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [merging, setMerging] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
+    if (!siteSlug) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch(`/api/guests/intelligence?siteId=${encodeURIComponent(siteSlug)}`);

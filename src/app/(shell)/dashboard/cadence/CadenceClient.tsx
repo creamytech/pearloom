@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { DashEmpty } from '@/components/pearloom/dash/DashEmpty';
 import { Icon } from '@/components/pearloom/motifs';
+import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 
 interface MergedPhase {
   id: string;
@@ -32,7 +33,11 @@ const STATUS_TONE: Record<MergedPhase['status'], { bg: string; fg: string; label
   failed:    { bg: 'rgba(122,45,45,0.18)',  fg: '#7A2D2D',          label: 'Failed' },
 };
 
-export function CadenceClient({ siteSlug }: { siteSlug: string }) {
+export function CadenceClient({ siteSlug: urlSiteSlug }: { siteSlug: string | null }) {
+  // URL ?site= param wins; otherwise fall back to the global
+  // sidebar-picked site so users don't get re-prompted on every nav.
+  const { site } = useSelectedSite();
+  const siteSlug = urlSiteSlug ?? site?.domain ?? '';
   const [phases, setPhases] = useState<MergedPhase[] | null>(null);
   const [eventDate, setEventDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,6 +45,10 @@ export function CadenceClient({ siteSlug }: { siteSlug: string }) {
   const [openPhase, setOpenPhase] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
+    if (!siteSlug) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch(`/api/cadence?site=${encodeURIComponent(siteSlug)}`);

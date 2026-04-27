@@ -19,6 +19,5 @@ export default async function VoiceDnaPage({
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect('/login?next=/dashboard/voice');
   const sp = await searchParams;
-  if (!sp.site) redirect('/dashboard/event?next=/dashboard/voice');
-  return <VoiceDnaClient siteSlug={sp.site} />;
+  return <VoiceDnaClient siteSlug={sp.site ?? null} />;
 }

@@ -240,7 +240,16 @@ export function InviteCanvas({ scene, setScene, selectedId, setSelectedId, editi
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerLeave={onPointerUp}
-        onClick={() => editing && setSelectedId(null)}
+        // Deselect ONLY when the user clicks the empty stage
+        // background, not when a click bubbles up from an element
+        // (which would otherwise deselect immediately after the
+        // element's own pointerdown selected it). We compare
+        // event.target to the stage ref so descendant clicks pass
+        // through unchanged.
+        onPointerDown={(e) => {
+          if (!editing) return;
+          if (e.target === stageRef.current) setSelectedId(null);
+        }}
         style={{
           width: 'min(640px, 100%)',
           aspectRatio: `${CANVAS_WIDTH} / ${CANVAS_HEIGHT}`,

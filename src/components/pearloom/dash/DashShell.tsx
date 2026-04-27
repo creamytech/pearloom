@@ -15,6 +15,7 @@ import { Blob, Heart, Icon, Pear, PearloomLogo, Squiggle } from '../motifs';
 import { useIsInsideShell } from './ShellPersistentLayout';
 import { NotificationBell } from './NotificationBell';
 import { useDashDrawer } from './useDashDrawer';
+import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
 
 interface DashNavItem {
   id: string;
@@ -525,49 +526,237 @@ function UserMenuItem({
 
 /* ── Celebration switcher card (top of sidebar) ──────────────── */
 function CelebrationCard() {
+  const { site, sites, selectSite } = useSelectedSite();
+  const [open, setOpen] = useState(false);
+  const popoverRef = useRef<HTMLDivElement | null>(null);
+
+  // Close on outside click + Esc.
+  useEffect(() => {
+    if (!open) return;
+    function onClick(e: MouseEvent) {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const label = site ? siteDisplayName(site) : 'Your celebration';
+  const subline = site
+    ? (site.eventDate
+        ? new Date(site.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        : 'Tap to switch')
+    : (sites && sites.length === 0 ? 'Create a site' : 'Tap to switch');
+  const hasOptions = (sites?.length ?? 0) > 0;
+
   return (
-    <Link
-      href="/dashboard/event"
-      className="pl8-dash-cele"
-      style={{
-        background: 'var(--card)',
-        border: '1px solid var(--card-ring)',
-        borderRadius: 14,
-        padding: 10,
-        display: 'flex',
-        gap: 10,
-        alignItems: 'center',
-        textDecoration: 'none',
-        color: 'inherit',
-        transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 220ms',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-1px)';
-        e.currentTarget.style.boxShadow = '0 6px 14px rgba(61,74,31,0.10)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = '';
-        e.currentTarget.style.boxShadow = '';
-      }}
-    >
-      <div
-        style={{
-          width: 38,
-          height: 38,
-          borderRadius: 10,
-          flexShrink: 0,
-          background:
-            'conic-gradient(from 140deg at 50% 50%, var(--peach-2), var(--lavender-ink), var(--sage-deep), var(--peach-2))',
-          opacity: 0.88,
-          animation: 'pl8-sb-cele-spin 24s linear infinite',
+    <div ref={popoverRef} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        className="pl8-dash-cele"
+        onClick={() => {
+          if (!hasOptions) {
+            // No sites yet — kick straight to creation.
+            window.location.href = '/dashboard/event';
+            return;
+          }
+          setOpen((o) => !o);
         }}
-      />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          Your celebration
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        style={{
+          width: '100%',
+          background: open ? 'var(--cream-2)' : 'var(--card)',
+          border: '1px solid var(--card-ring)',
+          borderRadius: 14,
+          padding: 10,
+          display: 'flex',
+          gap: 10,
+          alignItems: 'center',
+          textAlign: 'left',
+          cursor: 'pointer',
+          fontFamily: 'var(--font-ui)',
+          color: 'inherit',
+          transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 220ms, background 200ms ease',
+        }}
+        onMouseEnter={(e) => {
+          if (open) return;
+          e.currentTarget.style.transform = 'translateY(-1px)';
+          e.currentTarget.style.boxShadow = '0 6px 14px rgba(61,74,31,0.10)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = '';
+          e.currentTarget.style.boxShadow = '';
+        }}
+      >
+        <div
+          aria-hidden
+          style={{
+            width: 38,
+            height: 38,
+            borderRadius: 10,
+            flexShrink: 0,
+            background:
+              'conic-gradient(from 140deg at 50% 50%, var(--peach-2), var(--lavender-ink), var(--sage-deep), var(--peach-2))',
+            opacity: 0.88,
+            animation: 'pl8-sb-cele-spin 24s linear infinite',
+          }}
+        />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: 13, fontWeight: 600, color: 'var(--ink)',
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}
+          >
+            {label}
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{subline}</div>
         </div>
-        <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>Tap to switch</div>
-      </div>
+        {hasOptions && (
+          <svg
+            aria-hidden
+            width="12" height="12" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" strokeWidth="2.4"
+            strokeLinecap="round" strokeLinejoin="round"
+            style={{
+              color: 'var(--ink-muted)',
+              flexShrink: 0,
+              transform: open ? 'rotate(180deg)' : 'none',
+              transition: 'transform 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+            }}
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        )}
+      </button>
+
+      {open && hasOptions && (
+        <div
+          role="listbox"
+          aria-label="Switch celebration"
+          className="pl8-content-fade-in"
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 6px)',
+            left: 0,
+            right: 0,
+            zIndex: 30,
+            background: 'var(--card)',
+            border: '1px solid var(--card-ring)',
+            borderRadius: 12,
+            boxShadow: '0 24px 48px -16px rgba(14,13,11,0.24)',
+            padding: 6,
+            maxHeight: 360,
+            overflowY: 'auto',
+            fontFamily: 'var(--font-ui)',
+          }}
+        >
+          {sites!.map((s) => {
+            const on = site?.id === s.id;
+            return (
+              <button
+                key={s.id}
+                type="button"
+                role="option"
+                aria-selected={on}
+                onClick={() => {
+                  selectSite(s.id);
+                  setOpen(false);
+                }}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '8px 10px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: on ? 'var(--cream-2)' : 'transparent',
+                  color: 'var(--ink)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  fontFamily: 'inherit',
+                  transition: 'background 160ms ease',
+                }}
+                onMouseEnter={(e) => {
+                  if (!on) e.currentTarget.style.background = 'var(--cream-2)';
+                }}
+                onMouseLeave={(e) => {
+                  if (!on) e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                <span
+                  aria-hidden
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 999,
+                    background: on ? 'var(--peach-ink, #C6703D)' : 'transparent',
+                    border: on ? 'none' : '1.5px solid var(--line)',
+                    flexShrink: 0,
+                  }}
+                />
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span
+                    style={{
+                      display: 'block',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: 'var(--ink)',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {siteDisplayName(s)}
+                  </span>
+                  <span
+                    style={{
+                      display: 'block',
+                      fontSize: 10.5,
+                      color: 'var(--ink-muted)',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      letterSpacing: '0.02em',
+                    }}
+                  >
+                    {s.occasion ?? '—'}
+                    {s.eventDate ? ` · ${new Date(s.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : ''}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+          <div style={{ height: 1, background: 'var(--line-soft)', margin: '4px 6px' }} />
+          <Link
+            href="/dashboard/event"
+            onClick={() => setOpen(false)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '8px 10px',
+              borderRadius: 8,
+              fontSize: 12.5,
+              fontWeight: 600,
+              color: 'var(--peach-ink, #C6703D)',
+              textDecoration: 'none',
+            }}
+          >
+            <Icon name="sparkles" size={12} /> Manage sites
+          </Link>
+        </div>
+      )}
       <style jsx>{`
         @keyframes pl8-sb-cele-spin {
           from { transform: rotate(0deg); }
@@ -580,7 +769,7 @@ function CelebrationCard() {
           }
         }
       `}</style>
-    </Link>
+    </div>
   );
 }
 

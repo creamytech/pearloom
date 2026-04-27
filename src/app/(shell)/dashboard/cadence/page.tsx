@@ -19,6 +19,8 @@ export default async function CadencePage({
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect('/login?next=/dashboard/cadence');
   const sp = await searchParams;
-  if (!sp.site) redirect('/dashboard/event?next=/dashboard/cadence');
-  return <CadenceClient siteSlug={sp.site} />;
+  // No more "select a site" redirect — the sidebar's site picker
+  // is the single source of truth. Pass the URL site param (if any)
+  // and the client falls back to the globally-selected site.
+  return <CadenceClient siteSlug={sp.site ?? null} />;
 }

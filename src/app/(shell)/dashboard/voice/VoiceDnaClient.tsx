@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { Icon } from '@/components/pearloom/motifs';
+import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 
 const PROMPTS = [
   { id: 'meet', label: 'How did you meet?', body: 'Tell me the story — the version you tell at parties.' },
@@ -35,7 +36,9 @@ interface VoiceProfile {
   capturedAt: string;
 }
 
-export function VoiceDnaClient({ siteSlug }: { siteSlug: string }) {
+export function VoiceDnaClient({ siteSlug: urlSiteSlug }: { siteSlug: string | null }) {
+  const { site } = useSelectedSite();
+  const siteSlug = urlSiteSlug ?? site?.domain ?? '';
   const [samples, setSamples] = useState<Record<string, Sample>>({});
   const [activeId, setActiveId] = useState<string | null>(null);
   const [recordingForId, setRecordingForId] = useState<string | null>(null);
@@ -47,6 +50,7 @@ export function VoiceDnaClient({ siteSlug }: { siteSlug: string }) {
 
   // Load existing profile on mount.
   useEffect(() => {
+    if (!siteSlug) return;
     let cancelled = false;
     fetch(`/api/voice-dna/analyze?site=${encodeURIComponent(siteSlug)}`)
       .then((r) => r.ok ? r.json() : null)
