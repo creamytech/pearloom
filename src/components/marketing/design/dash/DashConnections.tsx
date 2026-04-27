@@ -297,6 +297,28 @@ export function DashConnections() {
                 ? `${focusCeleb.sites.length} thread${focusCeleb.sites.length === 1 ? '' : 's'}`
                 : `${grouped.unlinked.length} site${grouped.unlinked.length === 1 ? '' : 's'} waiting`}
             </div>
+            {focusCeleb && (
+              <div style={{ marginTop: 18, position: 'relative' }}>
+                <Link
+                  href={`/legacy/${focusCeleb.celebration.id}`}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '8px 14px',
+                    borderRadius: 999,
+                    background: PD.ink,
+                    color: PD.paper,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  Open the memory vault →
+                </Link>
+              </div>
+            )}
 
             {focusCeleb && (
               <div style={{ marginTop: 22, paddingTop: 14, borderTop: '1px solid rgba(31,36,24,0.1)' }}>
