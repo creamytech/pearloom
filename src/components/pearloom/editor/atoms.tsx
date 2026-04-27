@@ -49,6 +49,107 @@ export function PanelGroup({ children }: { children: ReactNode }) {
   return <PanelGroupContext.Provider value={value}>{children}</PanelGroupContext.Provider>;
 }
 
+/* ---------- PanelSearch ----------
+ *  Wraps a tree of PanelSections with a live filter input. When the
+ *  user types, every PanelSection inside the provider checks its
+ *  label + hint against the query and hides itself if neither
+ *  matches. The Theme tab is the main beneficiary — 12 sections
+ *  long, previously required scrolling to find anything.
+ *
+ *  Sections with no label always render (decorative groupings, the
+ *  search itself). Auto-expands matching collapsed sections so the
+ *  field the user typed for is visible at a glance.
+ */
+interface PanelSearchContextValue {
+  query: string;
+}
+const PanelSearchContext = createContext<PanelSearchContextValue>({ query: '' });
+
+export function PanelSearch({
+  placeholder = 'Search palette, fonts, decor…',
+  children,
+}: {
+  placeholder?: string;
+  children: ReactNode;
+}) {
+  const [query, setQuery] = useState('');
+  return (
+    <PanelSearchContext.Provider value={{ query }}>
+      <div
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 1,
+          background: 'var(--cream)',
+          padding: '0 0 16px',
+          marginBottom: 4,
+        }}
+      >
+        <div style={{ position: 'relative' }}>
+          <span
+            aria-hidden
+            style={{
+              position: 'absolute',
+              left: 12,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: 'var(--ink-muted)',
+              display: 'inline-flex',
+              pointerEvents: 'none',
+            }}
+          >
+            <Icon name="search" size={14} />
+          </span>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={placeholder}
+            className="pl8-input"
+            style={{
+              ...sharedInputStyle,
+              paddingLeft: 36,
+              fontSize: 13,
+            }}
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery('')}
+              aria-label="Clear search"
+              style={{
+                position: 'absolute',
+                right: 8,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: 22,
+                height: 22,
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--ink-muted)',
+                cursor: 'pointer',
+                display: 'grid',
+                placeItems: 'center',
+                borderRadius: 999,
+              }}
+            >
+              <Icon name="close" size={12} />
+            </button>
+          )}
+        </div>
+      </div>
+      {children}
+    </PanelSearchContext.Provider>
+  );
+}
+
+function panelSectionMatches(query: string, label?: string, hint?: string): boolean {
+  if (!query) return true;
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  return Boolean((label && label.toLowerCase().includes(q)) || (hint && hint.toLowerCase().includes(q)));
+}
+
 /* ---------- Section heading inside a panel ----------
  *  Collapsible so users can scan the Inspector by section headers
  *  and expand only what they need. The first section in any panel
@@ -79,6 +180,7 @@ export function PanelSection({
   defaultOpen?: boolean;
 }) {
   const groupCtx = useContext(PanelGroupContext);
+  const searchCtx = useContext(PanelSearchContext);
   const positionRef = useRef<number | null>(null);
   if (positionRef.current === null) {
     positionRef.current = groupCtx ? groupCtx.register() : 0;
@@ -90,7 +192,13 @@ export function PanelSection({
         ? positionRef.current === 1
         : true;
   const [open, setOpen] = useState(initialOpen);
-  const expanded = !collapsible || open;
+  // When a search query is active, hide non-matching sections AND
+  // force-expand matching ones so the field the user typed for is
+  // visible immediately. When the query clears, sections snap back
+  // to their user-controlled open/closed state.
+  const matches = panelSectionMatches(searchCtx.query, label, hint);
+  if (!matches) return null;
+  const expanded = !collapsible || open || Boolean(searchCtx.query.trim());
 
   // Header is a button when collapsible so keyboard + screen-reader
   // users can toggle. Otherwise it's a passive div.

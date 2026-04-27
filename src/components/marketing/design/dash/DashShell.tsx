@@ -735,9 +735,13 @@ export function Topbar({ subtitle, title, actions, children }: TopbarProps) {
       data-topbar
       style={{
         position: 'relative',
-        padding: 'clamp(28px, 5vw, 48px) clamp(20px, 4vw, 56px) clamp(12px, 2vw, 20px)',
+        // Match the v8 DashTopbar rhythm so the marketing/design
+        // dashboard pages don't tower over the v8 ones when the
+        // user navigates between them. Same vertical scale + same
+        // 1240 maxWidth as the rest of the dashboard.
+        padding: 'clamp(16px, 2.6vw, 28px) clamp(20px, 4vw, 40px) clamp(8px, 1.4vw, 12px)',
         textAlign: 'center',
-        maxWidth: 1480,
+        maxWidth: 1240,
         margin: '0 auto',
         width: '100%',
         fontFamily: 'var(--font-ui)',
@@ -746,7 +750,7 @@ export function Topbar({ subtitle, title, actions, children }: TopbarProps) {
       {subtitle && (
         <div
           className="eyebrow"
-          style={{ fontSize: 11, marginBottom: 8, color: 'var(--peach-ink)' }}
+          style={{ fontSize: 11, marginBottom: 6, color: 'var(--peach-ink)' }}
         >
           {subtitle}
         </div>
@@ -754,11 +758,11 @@ export function Topbar({ subtitle, title, actions, children }: TopbarProps) {
       <h1
         className="display"
         style={{
-          fontSize: 'clamp(32px, 4.4vw, 44px)',
+          fontSize: 'clamp(28px, 3.6vw, 38px)',
           lineHeight: 1.08,
           margin: 0,
           fontWeight: 600,
-          letterSpacing: '-0.02em',
+          letterSpacing: '-0.01em',
           maxWidth: 820,
           marginLeft: 'auto',
           marginRight: 'auto',
@@ -786,8 +790,8 @@ export function Topbar({ subtitle, title, actions, children }: TopbarProps) {
         <div
           style={{
             position: 'absolute',
-            top: 'clamp(28px, 5vw, 48px)',
-            right: 'clamp(20px, 4vw, 56px)',
+            top: 'clamp(16px, 2.6vw, 28px)',
+            right: 'clamp(20px, 4vw, 40px)',
             display: 'flex',
             gap: 10,
             alignItems: 'center',

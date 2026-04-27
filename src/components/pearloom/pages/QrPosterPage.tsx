@@ -83,7 +83,7 @@ export function QrPosterPage() {
       title="QR poster"
       subtitle="A printable scan-to-site poster — drop on the welcome table, the bar, or by the RSVP card so guests open the site without typing a link."
     >
-      <div style={{ padding: '0 32px 40px', maxWidth: 1180 }}>
+      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
         {/* Controls — hidden when printing */}
         <div className="pl8-no-print" style={{ marginBottom: 24, display: 'grid', gap: 14 }}>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>

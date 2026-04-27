@@ -839,7 +839,7 @@ export function DayOfV8() {
 
   return (
     <DashLayout active="timeline" hideTopbar>
-      <div className="pl8-dayof-wrap" style={{ padding: 32 }}>
+      <div className="pl8-dayof-wrap" style={{ padding: '24px clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
         <div className="pl8-dayof-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <div>
             <div

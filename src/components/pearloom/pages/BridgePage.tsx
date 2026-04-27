@@ -40,7 +40,7 @@ export function BridgePage() {
       title="The bridge"
       subtitle="Every thread Pear is weaving between you and your guests — memories, whispers, songs, and time capsules."
     >
-      <div style={{ padding: '0 32px 40px', maxWidth: 1160 }}>
+      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
         <div
           style={{
             display: 'flex',

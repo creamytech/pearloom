@@ -101,7 +101,7 @@ export function WeekendBuilderPage() {
 
   return (
     <DashLayout active="weekend" title="Weekend builder" subtitle="One date, one base name. Pear creates a linked site for every event in your weekend.">
-      <div className="pl8" style={{ padding: '0 clamp(20px, 4vw, 56px) 56px', maxWidth: 1080, margin: '0 auto' }}>
+      <div className="pl8" style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1080, margin: '0 auto' }}>
         {created ? (
           <div
             style={{

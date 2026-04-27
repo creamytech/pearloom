@@ -379,7 +379,7 @@ export function EventIndexPage() {
       ctaText={pickMode ? undefined : 'Start a new one'}
       ctaHref={pickMode ? undefined : '/wizard/new'}
     >
-      <div style={{ padding: '0 32px 40px', maxWidth: 1240 }}>
+      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
         {loading && (
           <div style={{ color: 'var(--ink-soft)', padding: 40, textAlign: 'center' }}>Threading your sites…</div>
         )}

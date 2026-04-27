@@ -166,7 +166,7 @@ export function SeatingArrangerPage() {
 
   return (
     <DashLayout active="seating" title="Seating arranger" subtitle="Drag guests onto tables. Pear auto-solves with constraints.">
-      <div className="pl8" style={{ padding: '0 clamp(20px, 4vw, 56px) 56px', maxWidth: 1480, margin: '0 auto' }}>
+      <div className="pl8" style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
           <button type="button" className="btn btn-primary btn-sm" onClick={autoSolve} disabled={!guests.length}>
             <Pear size={12} tone="cream" shadow={false} /> Auto-solve

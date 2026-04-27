@@ -126,7 +126,7 @@ export function VendorsPage({ embedded = false }: { embedded?: boolean } = {}) {
         </div>
       </header>
 
-      <main style={{ padding: '0 clamp(20px, 5vw, 56px) 80px', maxWidth: 1240, margin: '0 auto' }}>
+      <main style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
         {loading && (
           <div style={{ padding: 80, textAlign: 'center', color: 'var(--ink-muted)' }}>
             Pear is gathering the directory…

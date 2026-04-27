@@ -842,7 +842,7 @@ export function DashHomeV8() {
         <Stamp size={80} tone="peach" text="MADE FOR MEANINGFUL MOMENTS" icon="pear" rotation={10} />
       </div>
 
-      <div style={{ padding: '0 clamp(20px, 4vw, 56px) 24px', maxWidth: 1480, margin: '0 auto' }}>
+      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 24px', maxWidth: 1240, margin: '0 auto' }}>
         <KickoffCards occasion={site?.occasion} />
         <div className="pl8-dash-threecol pl8-dash-stagger" style={{ marginTop: 24 }}>
           <EventSites sites={sites ?? []} loading={loading} />

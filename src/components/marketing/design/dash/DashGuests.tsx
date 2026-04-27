@@ -266,7 +266,9 @@ export function DashGuests() {
       <main
         className="pd-guests-main"
         style={{
-          padding: '20px 40px 60px',
+          padding: '0 clamp(20px, 4vw, 40px) 32px',
+          maxWidth: 1240,
+          margin: '0 auto',
           display: 'grid',
           gridTemplateColumns: '1fr 320px',
           gap: 20,

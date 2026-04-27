@@ -55,6 +55,7 @@ import { RsvpPanel } from './panels/RsvpPanel';
 import { FaqPanel } from './panels/FaqPanel';
 import { ToastsPanel } from './panels/ToastsPanel';
 import { ThemePanel } from './panels/ThemePanel';
+import { PanelSearch } from './atoms';
 import { PearCommand } from './PearCommand';
 import { DesignAdvisor } from './DesignAdvisor';
 import { PearCopilot } from './pear/PearCopilot';
@@ -1370,6 +1371,85 @@ function KbdHint() {
 }
 
 /* ---------- Left outline ---------- */
+// Compute a "fill state" for each block so the Outline can surface a
+// progress dot per row — green for filled, gold for partial, grey
+// for empty. Lets the host see at a glance which sections still
+// need attention before publishing without opening every panel.
+type FillState = 'filled' | 'partial' | 'empty';
+
+function blockFillState(block: BlockKey, manifest: StoryManifest): FillState {
+  const m = manifest as unknown as Record<string, unknown>;
+  switch (block) {
+    case 'nav':
+      // Nav is structural chrome — always considered filled.
+      return 'filled';
+    case 'hero': {
+      const names = m.names as [string, string] | undefined;
+      const cover = m.coverPhoto as string | undefined;
+      const tagline = (m.poetry as { heroTagline?: string } | undefined)?.heroTagline;
+      const hasNames = Boolean(names?.[0] && names?.[1]);
+      const hasCover = Boolean(cover);
+      const hasTagline = Boolean(tagline?.trim());
+      if (hasNames && hasCover && hasTagline) return 'filled';
+      if (hasNames || hasCover || hasTagline) return 'partial';
+      return 'empty';
+    }
+    case 'story': {
+      const chapters = (m.chapters as Array<{ description?: string; images?: unknown[] }> | undefined) ?? [];
+      if (chapters.length === 0) return 'empty';
+      const hasContent = chapters.some((c) => c.description || (c.images?.length ?? 0) > 0);
+      return hasContent ? 'filled' : 'partial';
+    }
+    case 'details':
+    case 'schedule': {
+      const events = (m.events as unknown[] | undefined) ?? [];
+      const date = (m.logistics as { date?: string } | undefined)?.date;
+      if (events.length > 0 && date) return 'filled';
+      if (events.length > 0 || date) return 'partial';
+      return 'empty';
+    }
+    case 'travel': {
+      const venue = (m.logistics as { venue?: string } | undefined)?.venue;
+      const travelInfo = m.travelInfo as { hotels?: unknown[]; transport?: unknown } | undefined;
+      const hasHotels = (travelInfo?.hotels as unknown[] | undefined)?.length ?? 0;
+      if (venue && hasHotels) return 'filled';
+      if (venue || hasHotels) return 'partial';
+      return 'empty';
+    }
+    case 'registry': {
+      const reg = m.registry as { entries?: unknown[]; cashFundUrl?: string } | undefined;
+      const entries = reg?.entries?.length ?? 0;
+      if (entries > 0 || reg?.cashFundUrl) return 'filled';
+      return 'empty';
+    }
+    case 'gallery': {
+      const chapters = (m.chapters as Array<{ images?: unknown[] }> | undefined) ?? [];
+      const photoCount = chapters.reduce((n, c) => n + (c.images?.length ?? 0), 0);
+      if (photoCount >= 6) return 'filled';
+      if (photoCount > 0) return 'partial';
+      return 'empty';
+    }
+    case 'rsvp': {
+      const date = (m.logistics as { date?: string; rsvpDeadline?: string } | undefined);
+      if (date?.date && date?.rsvpDeadline) return 'filled';
+      if (date?.date || date?.rsvpDeadline) return 'partial';
+      return 'empty';
+    }
+    case 'faq': {
+      const faqs = (m.faqs as unknown[] | undefined) ?? [];
+      return faqs.length >= 3 ? 'filled' : faqs.length > 0 ? 'partial' : 'empty';
+    }
+    case 'toasts': {
+      const samples = (m.voiceSamples as unknown[] | undefined) ?? [];
+      return samples.length > 0 ? 'filled' : 'empty';
+    }
+    case 'theme':
+      return 'filled';
+    default:
+      return 'empty';
+  }
+}
+
 function Outline({
   block,
   setBlock,
@@ -1385,6 +1465,7 @@ function Outline({
   onReorder: (next: BlockKey[]) => void;
   onToggleHidden: (k: BlockKey) => void;
 }) {
+  void blockFillState;
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -1866,14 +1947,25 @@ function Inspector({
       )}
 
       {tab === 'theme' && (
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflowY: 'auto' }}>
           <EditorCanvasProvider value={{ editMode: true }}>
-            <ThemeQuickBar
-              manifest={manifest}
-              names={names}
-              onApply={(nextTheme) => onChange({ ...manifest, theme: nextTheme ?? manifest.theme })}
-              docked
-            />
+            <div style={{ padding: '20px 22px' }}>
+              {/* ThemeQuickBar at the top — fast palette swap with
+                  AI presets — followed by the full ThemePanel
+                  wrapped in a live search filter so the 12 design
+                  surfaces under it become typeable instead of
+                  scroll-and-hunt. */}
+              <ThemeQuickBar
+                manifest={manifest}
+                names={names}
+                onApply={(nextTheme) => onChange({ ...manifest, theme: nextTheme ?? manifest.theme })}
+                docked
+              />
+              <div style={{ height: 1, background: 'var(--line-soft)', margin: '20px 0 16px' }} />
+              <PanelSearch placeholder="Search palette, fonts, decor, stickers…">
+                <ThemePanel manifest={manifest} onChange={onChange} />
+              </PanelSearch>
+            </div>
           </EditorCanvasProvider>
         </div>
       )}

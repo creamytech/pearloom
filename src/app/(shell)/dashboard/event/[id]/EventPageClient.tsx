@@ -74,7 +74,7 @@ export default function EventPageClient({ siteId }: EventPageClientProps) {
       title={site ? title(site.names, site.occasion) : 'Event HQ'}
       subtitle="Everything about this site — at a glance, in one place."
     >
-      <div style={{ padding: '0 32px 40px', maxWidth: 1240 }}>
+      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
         {loading ? (
           <div style={{ padding: 80, textAlign: 'center', color: 'var(--ink-soft)' }}>Threading…</div>
         ) : site ? (

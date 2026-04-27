@@ -150,7 +150,7 @@ export function DashSites() {
       }
     >
 
-      <main style={{ padding: '24px 40px 80px' }}>
+      <main style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
         {error && (
           <Panel
             bg="#F1D7CE"

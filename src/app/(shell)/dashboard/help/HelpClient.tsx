@@ -60,7 +60,7 @@ export default function HelpClient() {
       title="Help & docs"
       subtitle="Shortcuts, recipes, and answers — the way Pear explains them."
     >
-      <div className="pl8" style={{ padding: '0 32px 56px', maxWidth: 980, margin: '0 auto', position: 'relative' }}>
+      <div className="pl8" style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 980, margin: '0 auto', position: 'relative' }}>
         {/* Editorial masthead */}
         <header
           style={{

@@ -808,42 +808,46 @@ export function DashTopbar({
       className="pl8-dash-topbar"
       style={{
         position: 'relative',
-        padding: 'clamp(28px, 5vw, 48px) clamp(20px, 4vw, 56px) clamp(12px, 2vw, 20px)',
-        maxWidth: 1480,
+        // Tightened vertical rhythm. The previous clamp left ~140px
+        // between the page top and the first content card on
+        // average viewports — pushing 6-card grids below the fold
+        // unnecessarily. New scale (16-28 top / 8-12 bottom) keeps
+        // the editorial feel without forcing a scroll.
+        padding: 'clamp(16px, 2.6vw, 28px) clamp(20px, 4vw, 40px) clamp(8px, 1.4vw, 12px)',
+        // Match page content maxWidth (1240) so the title sits
+        // visually centered above the card grid instead of being
+        // 240px wider than the content rail beneath it.
+        maxWidth: 1240,
         margin: '0 auto',
         width: '100%',
         textAlign: 'center',
-        // Centered headline, CTA pinned to the top-right so the
-        // title reads cleanly as the page identity. Topbar no
-        // longer fades in on tab switch — sidebar was always
-        // persistent, the topbar opacity-fade was the visible
-        // 'page fades in' perception.
       }}
     >
       <h1
         className="display"
         style={{
-          fontSize: 'clamp(32px, 4.4vw, 44px)',
+          fontSize: 'clamp(28px, 3.6vw, 38px)',
           margin: 0,
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'center',
           gap: 12,
           lineHeight: 1.05,
+          letterSpacing: '-0.01em',
         }}
       >
         {title}
         {showHeart && (
           <span style={{ display: 'inline-flex', color: 'var(--peach-ink, #C6703D)' }}>
-            <Heart size={20} />
+            <Heart size={18} />
           </span>
         )}
       </h1>
       {subtitle && (
         <div
           style={{
-            marginTop: 8,
-            fontSize: 14.5,
+            marginTop: 6,
+            fontSize: 13.5,
             color: 'var(--ink-soft)',
             maxWidth: 640,
             marginLeft: 'auto',
@@ -858,8 +862,8 @@ export function DashTopbar({
         <div
           style={{
             position: 'absolute',
-            top: 'clamp(28px, 5vw, 48px)',
-            right: 'clamp(20px, 4vw, 56px)',
+            top: 'clamp(16px, 2.6vw, 28px)',
+            right: 'clamp(20px, 4vw, 40px)',
             display: 'flex',
             gap: 10,
             alignItems: 'center',

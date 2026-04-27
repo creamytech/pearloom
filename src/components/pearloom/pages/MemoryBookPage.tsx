@@ -79,7 +79,7 @@ export function MemoryBookPage() {
       title="Memory book"
       subtitle="Everything you and your guests wrote, one printable keepsake. Save as PDF or send to a letterpress printer."
     >
-      <div style={{ padding: '0 32px 40px', maxWidth: 820 }}>
+      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 820, margin: '0 auto' }}>
         <div style={{ display: 'flex', gap: 10, marginBottom: 22 }} className="pl8-no-print">
           <button type="button" className="btn btn-primary" onClick={print}>
             <Icon name="sparkles" size={14} /> Print or save as PDF

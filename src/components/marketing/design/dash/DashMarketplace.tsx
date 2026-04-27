@@ -128,7 +128,7 @@ export function DashMarketplace() {
       }
     >
 
-      <main style={{ padding: '20px 40px 60px' }}>
+      <main style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
           {([

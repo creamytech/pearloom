@@ -74,7 +74,9 @@ export function DashSettings() {
       <main
         className="pd-settings-main"
         style={{
-          padding: '20px 40px 60px',
+          padding: '0 clamp(20px, 4vw, 40px) 32px',
+          maxWidth: 1240,
+          margin: '0 auto',
           display: 'grid',
           gridTemplateColumns: '240px 1fr',
           gap: 28,

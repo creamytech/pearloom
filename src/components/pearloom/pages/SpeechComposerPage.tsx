@@ -57,7 +57,7 @@ export function SpeechComposerPage() {
 
   return (
     <DashLayout active="speech" title="Speech composer" subtitle="Paste a draft. Pear scores length, sentiment arc, and specificity, then suggests surgical edits.">
-      <div className="pl8" style={{ padding: '0 clamp(20px, 4vw, 56px) 56px', maxWidth: 1240, margin: '0 auto' }}>
+      <div className="pl8" style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 0.9fr)', gap: 28 }} className="pl8-speech-grid">
           {/* LEFT — composer */}
           <div>

@@ -80,7 +80,7 @@ export function KeepsakesPage() {
 
   return (
     <DashLayout active="keepsakes" title="Keepsakes" subtitle={subtitle}>
-      <div style={{ padding: '0 32px 40px', maxWidth: 1160 }}>
+      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
         {/* Two-Tap Thanks lives full-width above the grid; it's the
             headline "write 150 notes on a plane" feature. */}
         <div style={{ marginBottom: 22 }}>

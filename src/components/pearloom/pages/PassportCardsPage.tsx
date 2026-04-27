@@ -92,7 +92,7 @@ export function PassportCardsPage() {
       title="Passport cards"
       subtitle="One personal card per guest — their name, their QR, their private view of the site. Print 4-up on card stock for the welcome bag."
     >
-      <div style={{ padding: '0 32px 40px', maxWidth: 1160 }}>
+      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
         <div style={{ display: 'flex', gap: 10, marginBottom: 18, flexWrap: 'wrap' }} className="pl8-no-print">
           <button type="button" className="btn btn-primary" onClick={print} disabled={!guests.length}>
             <Icon name="sparkles" size={14} /> Print / save as PDF
