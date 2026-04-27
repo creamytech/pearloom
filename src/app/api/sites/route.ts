@@ -32,20 +32,78 @@ export async function GET() {
       return NextResponse.json({ sites: [] }, { status: 200 });
     }
 
-    // Match on site_config->>creator_email. Two reasons not to
-    // tighten this further:
-    //   - ILIKE is case-insensitive, which fixes the "Foo@bar.com"
-    //     vs "foo@bar.com" sign-in casing variance.
-    //   - The stored value is normalised on every editor open (see
-    //     adoptSite in lib/db.ts) and on every save (saveSiteDraft),
-    //     so trim/case mismatches self-heal the next time the user
-    //     edits or saves.
+    // Match on site_config->>creator_email. saveSiteDraft +
+    // publishSite + adoptSite all normalise to lowercase + trim on
+    // write, so a plain `.eq()` against the lowercased session email
+    // catches every site the user owns. The follow-up ilike pass
+    // backstops legacy rows from before the normalisation landed —
+    // if the eq query returns 0 rows we widen to a case-insensitive
+    // match so an old "Foo@Bar.com" row still resolves.
     const sessionEmail = session.user.email.toLowerCase().trim();
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('sites')
       .select('id, subdomain, ai_manifest, site_config, created_at, updated_at, published')
-      .filter('site_config->>creator_email', 'ilike', sessionEmail)
+      .eq('site_config->>creator_email', sessionEmail)
       .order('updated_at', { ascending: false, nullsFirst: false });
+
+    if (!error && (!data || data.length === 0)) {
+      const { data: legacyData, error: legacyError } = await supabase
+        .from('sites')
+        .select('id, subdomain, ai_manifest, site_config, created_at, updated_at, published')
+        .ilike('site_config->>creator_email', sessionEmail)
+        .order('updated_at', { ascending: false, nullsFirst: false });
+      if (!legacyError) {
+        data = legacyData;
+      }
+    }
+
+    // Log a one-line summary so production logs answer "did the query
+    // find the user's sites?" without needing to attach a debugger.
+    // Cheap and grep-able: `grep "[api/sites] list"`.
+    console.log(`[api/sites] list email=${sessionEmail} count=${data?.length ?? 0}`);
+
+    // Diagnostic safety net: if both queries returned 0 rows but the
+    // service-role client can see ANY rows where the JSON extraction
+    // matches a substring of the user's email, surface that in the
+    // log so we can tell missing-data from broken-filter at a glance.
+    if (!data || data.length === 0) {
+      try {
+        const { data: probe } = await supabase
+          .from('sites')
+          .select('id, subdomain, site_config')
+          .limit(8);
+        const probeRows = (probe ?? []) as Array<{ id: string; subdomain: string; site_config: Record<string, unknown> | null }>;
+        const matches = probeRows
+          .map((r) => ({
+            id: r.id,
+            subdomain: r.subdomain,
+            owner: String((r.site_config as Record<string, unknown> | null)?.creator_email ?? ''),
+          }))
+          .filter((r) => r.owner.toLowerCase() === sessionEmail);
+        if (matches.length > 0) {
+          console.warn(
+            `[api/sites] FILTER MISMATCH — ${matches.length} site(s) match in JS but not in SQL. Subdomains:`,
+            matches.map((m) => m.subdomain).join(','),
+          );
+          // Fall back to the JS-side filter so the user gets their
+          // sites even if the JSONB filter syntax isn't matching.
+          const { data: allRows } = await supabase
+            .from('sites')
+            .select('id, subdomain, ai_manifest, site_config, created_at, updated_at, published')
+            .order('updated_at', { ascending: false, nullsFirst: false })
+            .limit(200);
+          const filtered = (allRows ?? []).filter((r) => {
+            const owner = String((r.site_config as Record<string, unknown> | null)?.creator_email ?? '').toLowerCase().trim();
+            return owner === sessionEmail;
+          });
+          if (filtered.length > 0) {
+            data = filtered;
+          }
+        }
+      } catch (probeErr) {
+        console.warn('[api/sites] probe failed (non-fatal):', probeErr);
+      }
+    }
 
     if (error) {
       console.error('Database error fetching sites:', error);
