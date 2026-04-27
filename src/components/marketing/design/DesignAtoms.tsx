@@ -340,26 +340,39 @@ export const DISPLAY_STYLE: CSSProperties = {
   letterSpacing: '-0.02em',
 };
 
-// Design palette tokens — use these in place of hex for clarity.
+// Design palette tokens — migrated 2026-04-27 to align with the v8
+// brand palette (CLAUDE-DESIGN.md §2). The marketing/design dash
+// pages and the v8 dash pages had drifted into two visually
+// distinct families; remapping these hex values to their v8
+// equivalents reskins the 9 marketing/design dashboard pages
+// without touching their JSX, so the whole product reads as one
+// system. Order of keys preserved so existing consumers compile.
 export const PD = {
-  paper:    '#F4ECD8',
-  paper2:   '#EADFC4',
-  paper3:   '#EFE4C3',
-  paperCard:'#F7F0DC',
-  paperDeep:'#F1E6C8',
-  ink:      '#1F2418',
-  inkSoft:  '#4A4A3A',
-  olive:    '#6B7A3A',
-  oliveDeep:'#4C5A26',
+  // Surfaces — match v8 cream family
+  paper:    '#F5EFE2',  // was #F4ECD8 — now var(--pl-cream)
+  paper2:   '#EBE3D2',  // was #EADFC4 — now var(--pl-cream-deep)
+  paper3:   '#EBE3D2',  // was #EFE4C3 — collapsed onto cream-deep
+  paperCard:'#FBF7EE',  // was #F7F0DC — now var(--pl-cream-card)
+  paperDeep:'#EBE3D2',  // was #F1E6C8 — collapsed onto cream-deep
+  // Ink — match v8 ink family
+  ink:      '#0E0D0B',  // was #1F2418 — now var(--pl-ink)
+  inkSoft:  '#3A332C',  // was #4A4A3A — now var(--pl-ink-soft)
+  // Brand voice — olive (primary), peach-ink (accent)
+  olive:    '#5C6B3F',  // was #6B7A3A — now var(--pl-olive)
+  oliveDeep:'#363F22',  // was #4C5A26 — matches v8 olive-deep
+  // Pearloom mascot warm tones — kept (these are brand-unique)
   pear:     '#B8C96B',
   pearSkin: '#D5DE86',
   butter:   '#E8C77A',
-  gold:     '#B89244',
-  terra:    '#B5613A',
+  // Gold + Terra — align with v8 gold + peach-ink
+  gold:     '#B8935A',  // was #B89244 — now var(--pl-gold)
+  terra:    '#C6703D',  // was #B5613A — now matches editor peach-ink
+  // Specialty — kept
   rose:     '#D9A89E',
-  plum:     '#704A5A',
+  plum:     '#7A2D2D',  // was #704A5A — now var(--pl-plum)
   stone:    '#C8BFA5',
-  line:     '#D4C9AC',
+  // Lines + grain
+  line:     '#D8CFB8',  // was #D4C9AC — now var(--pl-divider)
   sand:     '#E8DCB4',
   wash:     '#E8D9D3',
   blush:    '#E3DCC0',
