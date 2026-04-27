@@ -20,6 +20,7 @@ import { startDecorJob, completeDecorJob } from '@/lib/decor-bus';
 import { DecorGenerationToast } from '../editor/DecorGenerationToast';
 import { ARCHETYPES, type ArchetypeId } from '@/lib/invite-engine/archetypes';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
+import { PrintMailModal } from './PrintMailModal';
 
 type VariantId =
   // Save-the-date — photo-first
@@ -226,6 +227,7 @@ export function InviteDesigner({
   const [variantId, setVariantId] = useState<VariantId>(DEFAULT_VARIANT_BY_KIND['save-the-date']);
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [printOpen, setPrintOpen] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   // ── Photo state ─────────────────────────────────────────────
@@ -643,8 +645,27 @@ export function InviteDesigner({
           </div>
 
           <div style={{ marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button type="button" className="btn btn-primary" onClick={onDownloadPng} disabled={downloading}>
-              <Icon name="download" size={13} color="var(--cream)" />
+            <button
+              type="button"
+              className="pl-pearl-accent"
+              onClick={() => setPrintOpen(true)}
+              style={{
+                padding: '10px 18px',
+                borderRadius: 999,
+                fontSize: 13,
+                fontWeight: 700,
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-ui)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <Icon name="send" size={13} /> Print &amp; mail
+            </button>
+            <button type="button" className="btn btn-outline" onClick={onDownloadPng} disabled={downloading}>
+              <Icon name="download" size={13} />
               {downloading ? 'Exporting…' : 'Download PNG'}
             </button>
             <button type="button" className="btn btn-outline" onClick={onCopyLink}>
@@ -655,7 +676,7 @@ export function InviteDesigner({
               href={`/dashboard/rsvp?action=bulk-invite&source=${kind}`}
               className="btn btn-outline"
             >
-              <Icon name="send" size={13} /> Send to guest list
+              <Icon name="mail" size={13} /> Email to guests
             </Link>
           </div>
         </main>
@@ -924,6 +945,17 @@ export function InviteDesigner({
           jobs. Mounted at the page level so the host sees the
           progress dot while the renderer is working. */}
       <DecorGenerationToast />
+      <PrintMailModal
+        open={printOpen}
+        onClose={() => setPrintOpen(false)}
+        siteSlug={siteSlug}
+        kind={kind === 'save-the-date' ? 'save-the-date' : 'invitation'}
+        getSvg={() => {
+          const el = svgRef.current;
+          if (!el) return null;
+          return new XMLSerializer().serializeToString(el);
+        }}
+      />
     </DashLayout>
   );
 }
