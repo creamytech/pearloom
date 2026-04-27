@@ -29,6 +29,7 @@ import { HoverToolbar } from '../editor/canvas/HoverToolbar';
 import { PhotoDropTarget } from '../editor/canvas/PhotoDropTarget';
 import { PhotoActionMenu } from '../editor/canvas/PhotoActionMenu';
 import { OccasionDecor } from './OccasionDecor';
+import { OwnerEditPill } from './OwnerEditPill';
 import { BroadcastBar } from './BroadcastBar';
 import { DecorDivider } from './DecorDivider';
 import { DecorDividerEditOverlay } from '../editor/canvas/DecorDividerEditOverlay';
@@ -3457,6 +3458,7 @@ export function SiteV8Renderer({
   names,
   siteSlug,
   prettyUrl,
+  creatorEmail,
   // Optional — only passed when rendered inside the editor canvas.
   // Presence of onEditField flips edit-mode chrome on for every
   // EditableText inside the tree.
@@ -3467,6 +3469,10 @@ export function SiteV8Renderer({
   names: [string, string];
   siteSlug: string;
   prettyUrl: string;
+  /** Site owner's email. Passed only on the published view (NOT in
+   *  the editor canvas) so the OwnerEditPill can match against the
+   *  current session and surface the "Edit" affordance to the host. */
+  creatorEmail?: string | null;
   /** When provided, enables inline edit mode. Each editable field
    *  calls this with a pure `(manifest) => newManifest` patch. */
   onEditField?: FieldEditor;
@@ -3735,6 +3741,9 @@ export function SiteV8Renderer({
       <div className="pl8-guest" style={themeStyle}>
         {!editMode && <BroadcastBar subdomain={siteSlug} />}
         {!editMode && <PersonalGuestGreeting domain={siteSlug} />}
+        {!editMode && creatorEmail && (
+          <OwnerEditPill siteSlug={siteSlug} creatorEmail={creatorEmail} />
+        )}
         <EventNav names={names} hasRsvp={hasRsvp} manifest={manifest} />
         <StickerLayer
           blockId="hero"

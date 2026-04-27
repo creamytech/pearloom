@@ -358,6 +358,27 @@ function StickerPiece({
       >
         {isText ? (sticker.text ?? '') : null}
       </div>
+      {/* Resize + rotation handles — Figma-style corner squares
+          plus a knob above the top edge. Only mount when selected
+          so they don't compete with the sticker visually. */}
+      {isEditing && isSelected && (
+        <>
+          {(['nw', 'ne', 'sw', 'se'] as const).map((corner) => (
+            <CornerHandle
+              key={corner}
+              corner={corner}
+              sticker={sticker}
+              containerRef={containerRef}
+              patchSticker={patchSticker}
+            />
+          ))}
+          <RotateHandle
+            sticker={sticker}
+            containerRef={containerRef}
+            patchSticker={patchSticker}
+          />
+        </>
+      )}
       {/* Action chip — appears above the sticker when selected. Sits
           OUTSIDE the rotated layer so it's always upright + readable. */}
       {isEditing && isSelected && (
@@ -434,4 +455,149 @@ const stickerActionBtn: CSSProperties = {
 
 function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
+}
+
+// ── Corner resize handles ──────────────────────────────────────
+//
+// Drag any corner outward to scale the sticker up; drag inward to
+// scale down. Uses the distance-from-center heuristic so the user
+// gets a uniform scale regardless of which corner they grab — the
+// sticker doesn't hop around the way it would if we mapped corner
+// to corner. Hold Shift to constrain the change to integer
+// percent steps (snappy, predictable).
+
+type Corner = 'nw' | 'ne' | 'sw' | 'se';
+
+const CORNER_POSITIONS: Record<Corner, { left?: string; right?: string; top?: string; bottom?: string; cursor: string }> = {
+  nw: { left: '-6px', top: '-6px', cursor: 'nwse-resize' },
+  ne: { right: '-6px', top: '-6px', cursor: 'nesw-resize' },
+  sw: { left: '-6px', bottom: '-6px', cursor: 'nesw-resize' },
+  se: { right: '-6px', bottom: '-6px', cursor: 'nwse-resize' },
+};
+
+function CornerHandle({
+  corner,
+  sticker,
+  containerRef,
+  patchSticker,
+}: {
+  corner: Corner;
+  sticker: StickerItem;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  patchSticker: (patch: Partial<StickerItem>) => void;
+}) {
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const layer = containerRef.current;
+    if (!layer) return;
+    const rect = layer.getBoundingClientRect();
+    // Sticker center in absolute screen coords (xy on the container).
+    const cx = rect.left + (sticker.x / 100) * rect.width;
+    const cy = rect.top + (sticker.y / 100) * rect.height;
+    const startScale = sticker.scale ?? 1;
+    const startDist = Math.hypot(e.clientX - cx, e.clientY - cy);
+    if (startDist <= 0) return;
+
+    const move = (ev: PointerEvent) => {
+      const d = Math.hypot(ev.clientX - cx, ev.clientY - cy);
+      let next = startScale * (d / startDist);
+      if (ev.shiftKey) next = Math.round(next * 10) / 10; // snap to 0.1
+      patchSticker({ scale: clamp(next, 0.3, 2.4) });
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up, { once: true });
+  };
+
+  const pos = CORNER_POSITIONS[corner];
+
+  return (
+    <div
+      role="button"
+      aria-label={`Resize sticker (${corner.toUpperCase()})`}
+      onPointerDown={onPointerDown}
+      data-pl-no-select=""
+      style={{
+        position: 'absolute',
+        width: 12,
+        height: 12,
+        borderRadius: 3,
+        background: 'var(--cream-card, #FBF7EE)',
+        border: '1.5px solid var(--peach-ink, #C6703D)',
+        boxShadow: '0 2px 6px rgba(14,13,11,0.20)',
+        zIndex: 14,
+        touchAction: 'none',
+        ...pos,
+      }}
+    />
+  );
+}
+
+// ── Rotation handle ────────────────────────────────────────────
+//
+// Knob 24px above the sticker. Drag to rotate; held Shift snaps to
+// 15° increments (matches Figma + Photoshop). The rotation fires
+// against the sticker center, not the knob itself.
+function RotateHandle({
+  sticker,
+  containerRef,
+  patchSticker,
+}: {
+  sticker: StickerItem;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  patchSticker: (patch: Partial<StickerItem>) => void;
+}) {
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const layer = containerRef.current;
+    if (!layer) return;
+    const rect = layer.getBoundingClientRect();
+    const cx = rect.left + (sticker.x / 100) * rect.width;
+    const cy = rect.top + (sticker.y / 100) * rect.height;
+    const startAngle = Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI);
+    const startRotation = sticker.rotation ?? 0;
+
+    const move = (ev: PointerEvent) => {
+      const cur = Math.atan2(ev.clientY - cy, ev.clientX - cx) * (180 / Math.PI);
+      let next = startRotation + (cur - startAngle);
+      if (ev.shiftKey) next = Math.round(next / 15) * 15;
+      patchSticker({ rotation: next });
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up, { once: true });
+  };
+
+  return (
+    <div
+      role="button"
+      aria-label="Rotate sticker"
+      title="Drag to rotate · Shift snaps to 15°"
+      onPointerDown={onPointerDown}
+      data-pl-no-select=""
+      style={{
+        position: 'absolute',
+        top: -28,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: 14,
+        height: 14,
+        borderRadius: 999,
+        background: 'var(--cream-card, #FBF7EE)',
+        border: '1.5px solid var(--peach-ink, #C6703D)',
+        boxShadow: '0 2px 6px rgba(14,13,11,0.20)',
+        cursor: 'grab',
+        zIndex: 14,
+        touchAction: 'none',
+      }}
+    />
+  );
 }

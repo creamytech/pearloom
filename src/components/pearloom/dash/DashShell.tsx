@@ -204,78 +204,7 @@ export function DashSidebar({ active }: { active?: string }) {
           </Link>
         </div>
 
-        <div
-          style={{
-            marginTop: 12,
-            background: 'var(--card)',
-            border: '1px solid var(--card-ring)',
-            borderRadius: 14,
-            padding: '10px 12px',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              paddingBottom: 10,
-              borderBottom: '1px solid var(--line-soft)',
-            }}
-          >
-            <div
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: '50%',
-                background: 'var(--lavender)',
-                display: 'grid',
-                placeItems: 'center',
-                fontSize: 12,
-                fontWeight: 700,
-                color: 'var(--ink)',
-              }}
-            >
-              {initial}
-            </div>
-            <div style={{ flex: 1, fontSize: 13, fontWeight: 600, minWidth: 0 }}>
-              <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</div>
-              {email && <div style={{ fontSize: 11, fontWeight: 400, color: 'var(--ink-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{email}</div>}
-            </div>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingTop: 8 }}>
-            <Link
-              href="/dashboard/help"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                fontSize: 12.5,
-                color: 'var(--ink-soft)',
-                padding: '6px 4px',
-              }}
-            >
-              <Icon name="bell" size={14} /> Help center
-            </Link>
-            <button
-              type="button"
-              onClick={() => signOut({ callbackUrl: '/' })}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                fontSize: 12.5,
-                color: 'var(--ink-soft)',
-                padding: '6px 4px',
-                background: 'transparent',
-                border: 0,
-                textAlign: 'left',
-                cursor: 'pointer',
-              }}
-            >
-              <Icon name="arrow-right" size={14} /> Log out
-            </button>
-          </div>
-        </div>
+        <UserMenu name={name} email={email} initial={initial} />
       </div>
       <style jsx>{`
         @keyframes pl8-plan-breathe {
@@ -296,6 +225,222 @@ export function DashSidebar({ active }: { active?: string }) {
         }
       `}</style>
     </aside>
+  );
+}
+
+/* ── User menu (bottom of sidebar) ─────────────────────────────
+   The whole avatar + name + email row is a single button. Clicking
+   reveals a small popover with View settings / Help / Log out. The
+   user's previous expectation — "I should be able to click on my
+   profile to see settings" — is honoured here without giving up
+   the existing space-saving compact look. ──────────────────── */
+function UserMenu({ name, email, initial }: { name: string; email: string; initial: string }) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDocClick(e: MouseEvent) {
+      const t = e.target as Node;
+      if (menuRef.current?.contains(t) || buttonRef.current?.contains(t)) return;
+      setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  return (
+    <div style={{ position: 'relative', marginTop: 12 }}>
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        style={{
+          width: '100%',
+          background: 'var(--card)',
+          border: `1px solid ${open ? 'var(--ink)' : 'var(--card-ring)'}`,
+          borderRadius: 14,
+          padding: '10px 12px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          cursor: 'pointer',
+          textAlign: 'left',
+          color: 'inherit',
+          fontFamily: 'inherit',
+          transition: 'border-color 160ms ease, background 160ms ease',
+        }}
+        onMouseEnter={(e) => {
+          if (!open) e.currentTarget.style.background = 'var(--cream-2)';
+        }}
+        onMouseLeave={(e) => {
+          if (!open) e.currentTarget.style.background = 'var(--card)';
+        }}
+      >
+        <div
+          style={{
+            width: 30,
+            height: 30,
+            borderRadius: '50%',
+            background: 'var(--lavender)',
+            display: 'grid',
+            placeItems: 'center',
+            fontSize: 12,
+            fontWeight: 700,
+            color: 'var(--ink)',
+            flexShrink: 0,
+          }}
+        >
+          {initial}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {name}
+          </div>
+          {email && (
+            <div style={{ fontSize: 11, fontWeight: 400, color: 'var(--ink-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {email}
+            </div>
+          )}
+        </div>
+        <span
+          aria-hidden
+          style={{
+            display: 'inline-flex',
+            color: 'var(--ink-muted)',
+            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+        >
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="18 15 12 9 6 15" />
+          </svg>
+        </span>
+      </button>
+
+      {open && (
+        <div
+          ref={menuRef}
+          role="menu"
+          style={{
+            position: 'absolute',
+            bottom: 'calc(100% + 8px)',
+            left: 0,
+            right: 0,
+            background: 'var(--card)',
+            border: '1px solid var(--card-ring)',
+            borderRadius: 14,
+            padding: 6,
+            boxShadow: '0 18px 40px rgba(14,13,11,0.18), 0 4px 10px rgba(14,13,11,0.10)',
+            zIndex: 5,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+          }}
+        >
+          <UserMenuItem
+            href="/dashboard/profile"
+            icon="sliders"
+            label="Settings"
+            description="Profile, preferences, theme"
+            onSelect={() => setOpen(false)}
+          />
+          <UserMenuItem
+            href="/dashboard/payments"
+            icon="star"
+            label="Plan & billing"
+            onSelect={() => setOpen(false)}
+          />
+          <UserMenuItem
+            href="/dashboard/help"
+            icon="bell"
+            label="Help center"
+            onSelect={() => setOpen(false)}
+          />
+          <div style={{ height: 1, background: 'var(--line-soft)', margin: '4px 6px' }} />
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              signOut({ callbackUrl: '/' });
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '8px 10px',
+              background: 'transparent',
+              border: 'none',
+              borderRadius: 8,
+              cursor: 'pointer',
+              fontSize: 13,
+              color: 'var(--ink)',
+              textAlign: 'left',
+              fontFamily: 'inherit',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--cream-2)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+          >
+            <Icon name="arrow-right" size={14} />
+            Log out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function UserMenuItem({
+  href,
+  icon,
+  label,
+  description,
+  onSelect,
+}: {
+  href: string;
+  icon: string;
+  label: string;
+  description?: string;
+  onSelect: () => void;
+}) {
+  return (
+    <Link
+      href={href}
+      role="menuitem"
+      onClick={onSelect}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '8px 10px',
+        borderRadius: 8,
+        textDecoration: 'none',
+        color: 'var(--ink)',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--cream-2)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+    >
+      <span style={{ display: 'inline-flex', color: 'var(--ink-soft)', flexShrink: 0 }}>
+        <Icon name={icon} size={14} />
+      </span>
+      <span style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
+        <span style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.2 }}>{label}</span>
+        {description && (
+          <span style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.25 }}>{description}</span>
+        )}
+      </span>
+    </Link>
   );
 }
 

@@ -243,8 +243,19 @@ export default async function SubdomainSite({
       ? ([siteConfig.names[0], siteConfig.names[1]] as [string, string])
       : (['Our', 'Story'] as [string, string]);
     const prettyUrl = formatSiteDisplayUrl(domain, '', normalizeOccasion(manifest.occasion));
+    // Read the site owner's email from the raw site_config JSON so
+    // the OwnerEditPill can compare it against the visitor's session
+    // and surface the "Edit" affordance only to the host. Field isn't
+    // typed on SiteConfig, so coerce through Record<string, unknown>.
+    const creatorEmail = ((siteConfig as unknown as Record<string, unknown>).creator_email as string | undefined) ?? null;
     return (
-      <SiteV8Renderer manifest={manifest} names={names} siteSlug={domain} prettyUrl={prettyUrl} />
+      <SiteV8Renderer
+        manifest={manifest}
+        names={names}
+        siteSlug={domain}
+        prettyUrl={prettyUrl}
+        creatorEmail={creatorEmail}
+      />
     );
   }
 }
