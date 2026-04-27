@@ -24,7 +24,14 @@ export async function DELETE(
     }
 
     const { domain } = await params;
-    const userEmail = session.user.email;
+    // Normalize: stored creator_email is always lowercased + trimmed
+    // by saveSiteDraft / publishSite / adoptSite. The session email
+    // comes back from NextAuth in whatever case the IdP returned —
+    // for Google that's the user's casing at signup. Comparing raw
+    // strings rejected the owner whenever those differed (e.g.
+    // "Foo@Gmail.com" session vs "foo@gmail.com" stored), which is
+    // exactly the symptom the user just reported.
+    const userEmail = session.user.email.toLowerCase().trim();
     const supabase = getSupabase();
 
     if (!supabase) {
@@ -53,7 +60,8 @@ export async function DELETE(
     }
 
     // Ownership check — only block if a creator_email is set AND it doesn't match
-    const ownerEmail = (site.site_config as Record<string, unknown>)?.creator_email as string | undefined;
+    const rawOwner = (site.site_config as Record<string, unknown>)?.creator_email as string | undefined;
+    const ownerEmail = rawOwner?.toLowerCase().trim();
     if (ownerEmail && ownerEmail !== userEmail) {
       console.warn('[Delete] Ownership mismatch:', { ownerEmail, userEmail });
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });

@@ -46,7 +46,14 @@ export async function POST(req: NextRequest) {
           .select('creator_email')
           .eq('subdomain', cleanSubdomain)
           .maybeSingle();
-        if (existing && existing.creator_email && existing.creator_email !== session.user.email) {
+        // Compare normalised — saveSiteDraft / publishSite store
+        // creator_email lowercased + trimmed; the session email comes
+        // back in whatever case the IdP supplied. Without
+        // normalisation the owner gets 403'd whenever Google returns
+        // their email with different casing than was stored.
+        const storedOwner = String(existing?.creator_email ?? '').toLowerCase().trim();
+        const requestUser = session.user.email.toLowerCase().trim();
+        if (storedOwner && storedOwner !== requestUser) {
           return NextResponse.json(
             { error: 'Only the site owner can publish. Ask the owner to do it.' },
             { status: 403 },
