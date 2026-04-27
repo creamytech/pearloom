@@ -154,6 +154,7 @@ export function DashGuests() {
   const [filter, setFilter] = useState<RsvpKey | 'all'>('all');
   const [q, setQ] = useState('');
   const [importOpen, setImportOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -258,7 +259,9 @@ export function DashGuests() {
       actions={
         <>
           <button style={btnGhost} onClick={() => setImportOpen(true)}>Import CSV</button>
-          <button style={btnInk}>✦ Add a guest</button>
+          <button style={btnInk} onClick={() => setAddOpen(true)} disabled={!site?.id}>
+            ✦ Add a guest
+          </button>
         </>
       }
     >
@@ -656,9 +659,225 @@ export function DashGuests() {
         onClose={() => setImportOpen(false)}
         onImported={() => setRefreshKey((k) => k + 1)}
       />
+      {addOpen && (
+        <AddGuestDialog
+          siteId={site.id}
+          onClose={() => setAddOpen(false)}
+          onAdded={() => {
+            setAddOpen(false);
+            setRefreshKey((k) => k + 1);
+          }}
+        />
+      )}
     </DashLayout>
   );
 }
+
+// ── AddGuestDialog ────────────────────────────────────────────
+// Lightweight modal that posts to POST /api/guests with the host's
+// inputs and asks DashGuests to refresh on success. Kept local to
+// the page since the only consumer is this one button — no need
+// for a shared primitive yet.
+function AddGuestDialog({
+  siteId,
+  onClose,
+  onAdded,
+}: {
+  siteId: string;
+  onClose: () => void;
+  onAdded: () => void;
+}) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [plusOne, setPlusOne] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (busy) return;
+    if (!name.trim()) {
+      setError('Name is required.');
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/guests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId,
+          name: name.trim(),
+          email: email.trim() || undefined,
+          plusOne,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { error?: string }).error ?? `Failed (${res.status})`);
+      }
+      onAdded();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not add guest.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Add a guest"
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(14,13,11,0.46)',
+        backdropFilter: 'blur(2px)',
+        WebkitBackdropFilter: 'blur(2px)',
+        display: 'grid',
+        placeItems: 'center',
+        zIndex: 600,
+        padding: 16,
+        animation: 'pl-enter-fade-in 200ms ease both',
+      }}
+    >
+      <form
+        onSubmit={submit}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 'min(440px, 100%)',
+          background: PD.paperCard,
+          borderRadius: 18,
+          padding: '24px 24px 20px',
+          boxShadow: '0 28px 60px rgba(14,13,11,0.32)',
+          fontFamily: 'var(--pl-font-body)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+        }}
+      >
+        <div>
+          <div
+            style={{
+              ...MONO_STYLE,
+              fontSize: 10,
+              letterSpacing: '0.22em',
+              color: PD.terra,
+              textTransform: 'uppercase',
+              marginBottom: 6,
+            }}
+          >
+            Add a guest
+          </div>
+          <h2
+            style={{
+              ...DISPLAY_STYLE,
+              fontSize: 24,
+              margin: 0,
+              fontWeight: 600,
+              letterSpacing: '-0.01em',
+            }}
+          >
+            One name at a time.
+          </h2>
+          <p style={{ margin: '6px 0 0', fontSize: 13, color: PD.inkSoft, lineHeight: 1.5 }}>
+            We&apos;ll mark them as pending — Pear can email when you&apos;re ready, or they can RSVP through the link.
+          </p>
+        </div>
+
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: PD.ink }}>Name</span>
+          <input
+            autoFocus
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Jordan Alex"
+            style={inputStyle}
+          />
+        </label>
+
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: PD.ink }}>Email <span style={{ color: PD.inkSoft, fontWeight: 400, opacity: 0.7 }}>(optional)</span></span>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="jordan@example.com"
+            style={inputStyle}
+          />
+        </label>
+
+        <label
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '10px 12px',
+            background: 'rgba(31,36,24,0.04)',
+            borderRadius: 10,
+            cursor: 'pointer',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={plusOne}
+            onChange={(e) => setPlusOne(e.target.checked)}
+            style={{ width: 16, height: 16, accentColor: PD.olive }}
+          />
+          <span style={{ fontSize: 13, color: PD.ink }}>Allow a plus-one</span>
+        </label>
+
+        {error && (
+          <div
+            role="alert"
+            style={{
+              fontSize: 12,
+              color: '#7A2D2D',
+              background: 'rgba(122,45,45,0.08)',
+              padding: '8px 10px',
+              borderRadius: 8,
+            }}
+          >
+            {error}
+          </div>
+        )}
+
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 4 }}>
+          <button type="button" onClick={onClose} style={btnGhost}>
+            Cancel
+          </button>
+          <button type="submit" disabled={busy} style={{ ...btnInk, opacity: busy ? 0.6 : 1 }}>
+            {busy ? 'Adding…' : 'Add guest'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+const inputStyle: CSSProperties = {
+  width: '100%',
+  padding: '11px 14px',
+  background: PD.paper,
+  border: `1.5px solid ${PD.line}`,
+  borderRadius: 10,
+  fontSize: 13.5,
+  color: PD.ink,
+  fontFamily: 'inherit',
+  outline: 'none',
+  boxSizing: 'border-box',
+};
 
 function Insight({ label, n, total }: { label: string; n: number; total: string }) {
   const style: CSSProperties = { padding: '10px 12px', background: PD.paperCard, borderRadius: 10 };
