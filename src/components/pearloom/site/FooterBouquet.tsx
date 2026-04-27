@@ -10,16 +10,17 @@
 
 import { useEditorCanvas } from '../editor/canvas/EditorCanvasContext';
 import { focusDecorLibrary } from './focusDecorLibrary';
+import { DecorEditOverlay } from '../editor/canvas/DecorEditOverlay';
 
 interface Props {
   url?: string;
 }
 
 export function FooterBouquet({ url }: Props) {
-  const { editMode } = useEditorCanvas();
+  const { editMode, onEditField } = useEditorCanvas();
 
   if (url) {
-    return (
+    const bouquet = (
       <div
         aria-hidden="true"
         style={{
@@ -45,6 +46,20 @@ export function FooterBouquet({ url }: Props) {
         />
       </div>
     );
+    if (editMode) {
+      return (
+        <DecorEditOverlay
+          kind="bouquet"
+          url={url}
+          visibilityKey="footer-bouquet"
+          label="Closing flourish"
+          onEditField={onEditField}
+        >
+          {bouquet}
+        </DecorEditOverlay>
+      );
+    }
+    return bouquet;
   }
 
   if (!editMode) return null;

@@ -37,6 +37,7 @@ import { DayOfBroadcastDock } from './DayOfBroadcastDock';
 import { computeDayOfState } from '@/lib/day-of/state';
 import { DecorDivider } from './DecorDivider';
 import { DecorDividerEditOverlay } from '../editor/canvas/DecorDividerEditOverlay';
+import { DecorEditOverlay } from '../editor/canvas/DecorEditOverlay';
 import { LivingAtmosphere, defaultAtmosphereForOccasion, type AtmosphereKind, type AtmosphereIntensity } from './LivingAtmosphere';
 import { AmbientAudio } from './AmbientAudio';
 import { useHeroParallax } from './useHeroParallax';
@@ -1243,7 +1244,7 @@ function StoryVariantSectionImpl({
               gap: 6,
             }}
           >
-            <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.story} fallbackIcon="leaf" size={20} />
+            <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.story} fallbackIcon="leaf" size={20} slotKey="story" />
             Our story so far
           </div>
           <h2 className="display" style={{ fontSize: 'clamp(42px, 6cqw, 72px)', margin: 0 }}>
@@ -1312,7 +1313,7 @@ function TimelineSectionImpl({ chapters, onEditField, manifest }: { chapters: Ch
               gap: 6,
             }}
           >
-            <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.story} fallbackIcon="leaf" size={20} />
+            <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.story} fallbackIcon="leaf" size={20} slotKey="story" />
             Our story so far
           </div>
           <h2 className="display" style={{ fontSize: 'clamp(42px, 6cqw, 72px)', margin: 0 }}>
@@ -1770,7 +1771,7 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
               gap: 6,
             }}
           >
-            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.schedule} fallbackIcon="clock" size={20} />
+            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.schedule} fallbackIcon="clock" size={20} slotKey="schedule" />
             How the day flows
           </div>
           <h2 className="display" style={{ fontSize: 'clamp(40px, 6cqw, 64px)', margin: 0 }}>
@@ -2112,7 +2113,7 @@ function TravelSectionImpl({ manifest, onEditField }: { manifest: StoryManifest;
                 gap: 6,
               }}
             >
-              <SectionStamp url={manifest.decorLibrary?.sectionStamps?.travel} fallbackIcon="pin" size={20} />
+              <SectionStamp url={manifest.decorLibrary?.sectionStamps?.travel} fallbackIcon="pin" size={20} slotKey="travel" />
               The venue
             </div>
             <h3 className="display" style={{ fontSize: 'clamp(32px, 4.5cqw, 44px)', margin: '0 0 16px' }}>
@@ -2317,7 +2318,7 @@ function RegistrySectionImpl({ manifest }: { manifest: StoryManifest }) {
               gap: 6,
             }}
           >
-            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.registry} fallbackIcon="gift" size={20} />
+            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.registry} fallbackIcon="gift" size={20} slotKey="registry" />
             If you&apos;re asking
           </div>
           <h2 className="display" style={{ fontSize: 'clamp(40px, 6cqw, 64px)', margin: '0 0 12px' }}>
@@ -2432,7 +2433,7 @@ function GallerySectionImpl({ chapters, manifest, onEditField }: { chapters: Cha
                 gap: 6,
               }}
             >
-              <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.gallery} fallbackIcon="gallery" size={20} />
+              <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.gallery} fallbackIcon="gallery" size={20} slotKey="gallery" />
               Along the way
             </div>
             <h2 className="display" style={{ fontSize: 'clamp(40px, 6cqw, 64px)', margin: 0 }}>
@@ -2549,7 +2550,7 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
               gap: 6,
             }}
           >
-            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.faq} fallbackIcon="heart-icon" size={20} />
+            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.faq} fallbackIcon="heart-icon" size={20} slotKey="faq" />
             Good to know
           </div>
           <h2 className="display" style={{ fontSize: 'clamp(38px, 6cqw, 60px)', margin: 0 }}>
@@ -2747,7 +2748,7 @@ function RSVPSectionImpl({
               gap: 6,
             }}
           >
-            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.rsvp} fallbackIcon="mail" size={20} />
+            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.rsvp} fallbackIcon="mail" size={20} slotKey="rsvp" />
             Kindly respond by {deadlineStr}
           </div>
           <h2 className="display" style={{ fontSize: 'clamp(44px, 7cqw, 72px)', margin: 0 }}>
@@ -3868,8 +3869,8 @@ export function SiteV8Renderer({
   // selectedBlockIds array — that's intentional, blocks need to know
   // when they enter or leave the selection set.
   const canvasCtxValue = useMemo(
-    () => ({ editMode, selectedBlockIds, selectBlock, clearSelection }),
-    [editMode, selectedBlockIds, selectBlock, clearSelection],
+    () => ({ editMode, selectedBlockIds, selectBlock, clearSelection, onEditField }),
+    [editMode, selectedBlockIds, selectBlock, clearSelection, onEditField],
   );
 
   const blockOrderRaw =

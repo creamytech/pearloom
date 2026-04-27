@@ -19,6 +19,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { createContext, useContext, type ReactNode } from 'react';
+import type { StoryManifest } from '@/types';
 
 export interface EditorCanvasContextShape {
   editMode: boolean;
@@ -36,6 +37,11 @@ export interface EditorCanvasContextShape {
   selectBlock?: (id: string, additive?: boolean) => void;
   /** Empty the selection set. Bound to Escape at the editor root. */
   clearSelection?: () => void;
+  /** Manifest patcher exposed via context so deep canvas
+   *  primitives (SectionStamp, FooterBouquet, ConfettiBurst)
+   *  can wrap themselves in edit overlays without prop-drilling
+   *  the editor's onEditField through ten layers. */
+  onEditField?: (patch: (m: StoryManifest) => StoryManifest) => void;
 }
 
 const defaultCtx: EditorCanvasContextShape = {

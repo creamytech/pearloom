@@ -22,6 +22,8 @@ import { useEditorCanvas } from '../editor/canvas/EditorCanvasContext';
 import { focusDecorLibrary } from './focusDecorLibrary';
 import { Icon } from '../motifs';
 
+import { DecorEditOverlay } from '../editor/canvas/DecorEditOverlay';
+
 interface Props {
   url?: string;
   size?: number;
@@ -32,13 +34,17 @@ interface Props {
    *  etc.). Provided so the eyebrow always has exactly ONE glyph,
    *  whether or not the host has generated a decor library. */
   fallbackIcon?: string;
+  /** Section slot — when provided + url + edit mode, wraps the
+   *  stamp with DecorEditOverlay so hosts can recolor / regenerate
+   *  / hide directly from the canvas. */
+  slotKey?: 'story' | 'schedule' | 'travel' | 'registry' | 'gallery' | 'faq' | 'rsvp';
 }
 
-export function SectionStamp({ url, size = 20, style, alt = '', fallbackIcon }: Props) {
-  const { editMode } = useEditorCanvas();
+export function SectionStamp({ url, size = 20, style, alt = '', fallbackIcon, slotKey }: Props) {
+  const { editMode, onEditField } = useEditorCanvas();
 
   if (url) {
-    return (
+    const stamp = (
       <span
         aria-hidden={!alt}
         style={{
@@ -51,18 +57,26 @@ export function SectionStamp({ url, size = 20, style, alt = '', fallbackIcon }: 
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center',
-          // Blend mode + filter are theme-aware via CSS variables.
-          // Default 'multiply' looks great on warm cream paper (the
-          // brand) but disappears on dark backgrounds —
-          // SiteV8Renderer's themeStyle flips this to 'screen' +
-          // brightness lift when the theme bg is dark so the stamp
-          // lifts onto midnight surfaces.
           mixBlendMode: 'var(--stamp-blend, multiply)' as 'multiply',
           filter: 'var(--stamp-filter, none)',
           ...style,
         }}
       />
     );
+    if (editMode && slotKey) {
+      return (
+        <DecorEditOverlay
+          kind="stamp"
+          url={url}
+          visibilityKey={`stamp-${slotKey}`}
+          label={`${slotKey[0]?.toUpperCase()}${slotKey.slice(1)} stamp`}
+          onEditField={onEditField}
+        >
+          {stamp}
+        </DecorEditOverlay>
+      );
+    }
+    return stamp;
   }
 
   // Fallback icon — rendered when no AI stamp exists. Keeps the
