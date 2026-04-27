@@ -48,6 +48,12 @@ type Hotel = {
   photoUrl?: string;
   /** Up to 5 Google Places photos for the in-card carousel. */
   photoUrls?: string[];
+  /** Lat/lng for the renderer's hotel-map mode (numbered pins
+   *  beside the venue marker). Only set on hotels picked or
+   *  fetched from Google Places — host-typed entries skip the
+   *  map until they pick from autocomplete. */
+  lat?: number;
+  lng?: number;
   /** Comma-separated amenities pulled from Place Details. */
   amenities?: string;
   /** Star rating (0–5) from Google. Persisted on the manifest so
@@ -94,6 +100,8 @@ async function enrichPickedHotel(
         distanceText?: string;
         photoUrl?: string;
         photoUrls?: string[];
+        lat?: number;
+        lng?: number;
         blurb?: string;
       };
     };
@@ -114,6 +122,8 @@ async function enrichPickedHotel(
       amenities: h.amenities,
       rating: h.rating,
       ratingCount: h.ratingCount,
+      lat: h.lat,
+      lng: h.lng,
     };
   } catch {
     return {
@@ -299,6 +309,8 @@ function HotelsAI({ manifest, onResult }: { manifest: StoryManifest; onResult: (
       ratingCount: h.ratingCount,
       photoUrl: h.photoUrl,
       photoUrls: h.photoUrls,
+      lat: (h as { lat?: number }).lat,
+      lng: (h as { lng?: number }).lng,
       // Build a short amenities line from the types array. Same
       // mapping as /api/hotels/enrich's summariseAmenities so a
       // hotel populated via "Find real hotels" reads consistently
@@ -369,6 +381,8 @@ export function TravelPanel({
           notes: h.description,
           photoUrl: h.photoUrl,
           photoUrls: h.photoUrls,
+          lat: h.lat,
+          lng: h.lng,
           rating: h.rating,
           ratingCount: h.ratingCount,
           amenities: h.amenities,
@@ -466,8 +480,8 @@ export function TravelPanel({
           label="Display"
           help="Photo cards show real Google photos. Icon cards are cleaner and editorial."
         >
-          <SegmentedToggle<'photo' | 'icon'>
-            value={(manifest.travelInfo?.hotelDisplay as 'photo' | 'icon' | undefined) ?? 'photo'}
+          <SegmentedToggle<'photo' | 'icon' | 'map'>
+            value={(manifest.travelInfo?.hotelDisplay as 'photo' | 'icon' | 'map' | undefined) ?? 'photo'}
             onChange={(v) =>
               onChange({
                 ...manifest,
@@ -480,6 +494,7 @@ export function TravelPanel({
             options={[
               { value: 'photo', label: 'Photo cards' },
               { value: 'icon', label: 'Icon cards' },
+              { value: 'map', label: 'Map' },
             ]}
           />
         </Field>

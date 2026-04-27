@@ -43,6 +43,8 @@ interface PlaceHotel {
   internationalPhoneNumber?: string;
   photoUrl?: string;
   photoUrls?: string[];
+  lat?: number;
+  lng?: number;
   types?: string[];
   editorialSummary?: string;
 }
@@ -171,6 +173,10 @@ async function searchNearbyHotels(lat: number, lng: number, apiKey: string): Pro
         internationalPhoneNumber: p.internationalPhoneNumber,
         photoUrl,
         photoUrls,
+        // lat/lng for the static-map markers in the renderer's
+        // "map mode" hotel display option.
+        lat: p.location?.latitude,
+        lng: p.location?.longitude,
         types: p.types,
         editorialSummary: p.editorialSummary?.text,
       };
@@ -319,6 +325,8 @@ export async function POST(req: NextRequest) {
     phone: h.internationalPhoneNumber,
     photoUrl: h.photoUrl,
     photoUrls: h.photoUrls,
+    lat: h.lat,
+    lng: h.lng,
     blurb: blurbs[h.id] ?? h.editorialSummary ?? '',
     types: h.types,
     editorialSummary: h.editorialSummary,

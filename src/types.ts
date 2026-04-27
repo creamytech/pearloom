@@ -1053,8 +1053,9 @@ export interface TravelInfo {
   /** How the hotels render on the live site:
    *    - 'photo' (default): full Google Places photos + chips
    *    - 'icon': editorial moon-glyph cards (cleaner, no images)
+   *    - 'map': Google Static Map with venue + numbered hotel pins
    *  Hosts switch via the Travel panel display-mode picker. */
-  hotelDisplay?: 'photo' | 'icon';
+  hotelDisplay?: 'photo' | 'icon' | 'map';
   /** Cap badge auto-tagging — when false, no Pear's pick / Closest /
    *  Best value badges render. Lets minimalist hosts opt out without
    *  disabling the toggle entirely. Default true. */
@@ -1074,6 +1075,11 @@ export interface HotelBlock {
   /** Up to 5 photo URLs for the live card's carousel — guests
    *  can flip through them to see the lobby, room, pool, etc. */
   photoUrls?: string[];
+  /** Lat/lng cached from Google Places. Powers the hotel-map
+   *  display mode (numbered pins next to the venue marker on a
+   *  static map) without an extra fetch at render time. */
+  lat?: number;
+  lng?: number;
   /** Star rating 0-5 from Google. */
   rating?: number;
   /** Total review count behind that rating. */

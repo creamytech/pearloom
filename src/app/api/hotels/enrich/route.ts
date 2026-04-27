@@ -235,6 +235,8 @@ export async function POST(req: NextRequest) {
       distanceText,
       photoUrl,
       photoUrls,
+      lat: details.location?.latitude,
+      lng: details.location?.longitude,
       blurb,
     },
   });

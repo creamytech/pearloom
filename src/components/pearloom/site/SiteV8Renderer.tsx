@@ -2314,6 +2314,8 @@ interface HotelCardModel {
   distance?: string;
   priceLevel?: string;
   description?: string;
+  lat?: number;
+  lng?: number;
 }
 
 type HotelSort = 'pearPick' | 'closest' | 'rating' | 'priceAsc';
@@ -2367,7 +2369,7 @@ function HotelsList({
 }) {
   const [sort, setSort] = useState<HotelSort>('pearPick');
   const [amenitySet, setAmenitySet] = useState<Set<string>>(new Set());
-  const display = (manifest.travelInfo?.hotelDisplay ?? 'photo') as 'photo' | 'icon';
+  const display = (manifest.travelInfo?.hotelDisplay ?? 'photo') as 'photo' | 'icon' | 'map';
   const badgesEnabled = manifest.travelInfo?.hotelBadges !== false;
   const blockCode = (manifest.travelInfo as unknown as { blockCode?: string } | undefined)?.blockCode
     ?? (manifest as unknown as { travel?: { blockCode?: string } }).travel?.blockCode
@@ -2514,6 +2516,15 @@ function HotelsList({
         >
           No hotels match those filters. Clear them to see every option.
         </div>
+      ) : display === 'map' ? (
+        <HotelsMapView
+          venueLat={manifest.logistics?.venueLat}
+          venueLng={manifest.logistics?.venueLng}
+          venueName={manifest.logistics?.venue}
+          hotels={visible}
+          tones={hotelTones}
+          badges={badges}
+        />
       ) : (
         visible.map((h, i) => {
           const tone = hotelTones[i % hotelTones.length] as 'peach' | 'lavender' | 'sage';
@@ -2528,6 +2539,207 @@ function HotelsList({
           );
         })
       )}
+    </div>
+  );
+}
+
+// HotelsMapView — static map with venue + numbered hotel pins,
+// followed by a compact legend list below. Hotels missing lat/lng
+// just don't get a pin (the legend still shows them so the host's
+// hand-typed entries aren't hidden).
+function HotelsMapView({
+  venueLat,
+  venueLng,
+  venueName,
+  hotels,
+  tones,
+  badges,
+}: {
+  venueLat?: number;
+  venueLng?: number;
+  venueName?: string;
+  hotels: HotelCardModel[];
+  tones: Array<'peach' | 'lavender' | 'sage'>;
+  badges: HotelBadge[][];
+}) {
+  // Map-pinnable hotels = those with lat/lng. Always-visible
+  // legend = all visible hotels regardless of pin availability.
+  const pinned = hotels
+    .map((h, i) => ({ h, i, lat: h.lat, lng: h.lng }))
+    .filter((x): x is { h: HotelCardModel; i: number; lat: number; lng: number } =>
+      typeof x.lat === 'number' && typeof x.lng === 'number',
+    );
+  const center = (typeof venueLat === 'number' && typeof venueLng === 'number')
+    ? `${venueLat.toFixed(5)},${venueLng.toFixed(5)}`
+    : pinned[0] ? `${pinned[0].lat.toFixed(5)},${pinned[0].lng.toFixed(5)}` : null;
+
+  const params = new URLSearchParams();
+  if (center) params.set('center', center);
+  // Auto-zoom: 12 if hotels span >5km, 14 if all within 1km, 13 default.
+  let zoom = 13;
+  if (pinned.length > 0 && typeof venueLat === 'number' && typeof venueLng === 'number') {
+    const maxDistKm = Math.max(...pinned.map((p) => {
+      const R = 6371;
+      const phi1 = (venueLat * Math.PI) / 180;
+      const phi2 = (p.lat * Math.PI) / 180;
+      const dPhi = ((p.lat - venueLat) * Math.PI) / 180;
+      const dLambda = ((p.lng - venueLng) * Math.PI) / 180;
+      const a = Math.sin(dPhi / 2) ** 2 + Math.cos(phi1) * Math.cos(phi2) * Math.sin(dLambda / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(a));
+    }));
+    if (maxDistKm < 1) zoom = 14;
+    else if (maxDistKm > 8) zoom = 11;
+    else if (maxDistKm > 5) zoom = 12;
+  }
+  params.set('zoom', String(zoom));
+  params.set('size', '720x420');
+  if (typeof venueLat === 'number' && typeof venueLng === 'number') {
+    params.set('venue', `${venueLat.toFixed(5)},${venueLng.toFixed(5)}`);
+  }
+  if (pinned.length > 0) {
+    params.set('hotels', pinned.map((p) => `${p.lat.toFixed(5)},${p.lng.toFixed(5)}`).join(';'));
+  }
+
+  const mapSrc = center ? `/api/maps/static?${params.toString()}` : null;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {mapSrc ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={mapSrc}
+          alt={venueName ? `Map of ${venueName} and nearby hotels` : 'Map of nearby hotels'}
+          style={{
+            width: '100%',
+            aspectRatio: '720 / 420',
+            objectFit: 'cover',
+            borderRadius: 18,
+            border: '1px solid var(--card-ring)',
+            boxShadow: '0 4px 12px -8px rgba(14,13,11,0.18)',
+            background: 'var(--cream-2)',
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            padding: 24,
+            textAlign: 'center',
+            background: 'var(--cream-2)',
+            border: '1px dashed var(--line)',
+            borderRadius: 14,
+            color: 'var(--ink-soft)',
+            fontSize: 13,
+          }}
+        >
+          Set a venue with a real address, then hotels will pin to the map.
+        </div>
+      )}
+      <ol
+        style={{
+          margin: 0,
+          padding: 0,
+          listStyle: 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+        }}
+      >
+        {hotels.map((h, i) => {
+          const num = pinned.find((p) => p.i === i);
+          const numLabel = num ? pinned.findIndex((p) => p.i === i) + 1 : null;
+          const tone = tones[i % tones.length];
+          const tintBg =
+            tone === 'peach' ? 'var(--peach-bg)' :
+            tone === 'lavender' ? 'var(--lavender-bg)' :
+            'var(--sage-tint)';
+          return (
+            <li
+              key={i}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '32px 1fr auto',
+                gap: 12,
+                alignItems: 'center',
+                padding: '10px 14px',
+                background: 'var(--card)',
+                border: '1px solid var(--card-ring)',
+                borderRadius: 12,
+              }}
+            >
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 999,
+                  background: numLabel ? 'var(--ink)' : tintBg,
+                  color: numLabel ? 'var(--cream)' : 'var(--ink-soft)',
+                  display: 'grid',
+                  placeItems: 'center',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  fontFamily: 'var(--font-ui)',
+                }}
+              >
+                {numLabel ?? <Icon name="moon" size={14} />}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'baseline' }}>
+                  <span style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--ink)' }}>{h.name}</span>
+                  {(badges[i] ?? []).includes('top') && (
+                    <span
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 800,
+                        letterSpacing: '0.14em',
+                        textTransform: 'uppercase',
+                        color: 'var(--peach-ink, #C6703D)',
+                      }}
+                    >
+                      ★ Pear&apos;s pick
+                    </span>
+                  )}
+                </div>
+                <div
+                  style={{
+                    fontSize: 11.5,
+                    color: 'var(--ink-soft)',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {[
+                    typeof h.rating === 'number' ? `★ ${h.rating.toFixed(1)}` : null,
+                    reformatDistanceToMiles(h.distance),
+                  ].filter(Boolean).join(' · ') || h.address}
+                </div>
+              </div>
+              {h.bookingUrl && (
+                <a
+                  href={h.bookingUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    padding: '5px 12px',
+                    borderRadius: 999,
+                    background: 'var(--ink)',
+                    color: 'var(--cream)',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  Book
+                </a>
+              )}
+            </li>
+          );
+        })}
+      </ol>
     </div>
   );
 }
