@@ -47,6 +47,7 @@ const DASH_NAV_GROUPS: DashNavGroup[] = [
       { id: 'timeline', label: 'Timeline', icon: 'clock', href: '/dashboard/day-of' },
       { id: 'cadence', label: 'Send cadence', icon: 'mail', href: '/dashboard/cadence' },
       { id: 'guests', label: 'Guests', icon: 'users', href: '/dashboard/rsvp' },
+      { id: 'guest-review', label: "Pear's review", icon: 'sparkles', href: '/dashboard/guest-review' },
       { id: 'seating', label: 'Seating', icon: 'grid', href: '/dashboard/seating' },
       { id: 'submissions', label: 'Submissions', icon: 'mail', href: '/dashboard/submissions' },
       { id: 'connections', label: 'Guest Manager', icon: 'user-plus', href: '/dashboard/connections' },
