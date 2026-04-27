@@ -2181,7 +2181,7 @@ function Inspector({
       )}
 
       {tab === 'library' && (
-        <AssetLibraryPanel manifest={manifest} />
+        <AssetLibraryPanel manifest={manifest} onChange={onChange} />
       )}
 
       {tab === 'pear' && (

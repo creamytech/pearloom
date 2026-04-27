@@ -39,6 +39,12 @@ export function DecorRecolorModal({ manifest, onEditField }: Props) {
   const [soft, setSoft] = useState(themeSoft);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Preview gate. When the recolor API returns we hold the result
+  // here instead of writing back immediately — the host sees the
+  // before/after side-by-side and can Approve, Try again with new
+  // tones, or Cancel. Eliminates the "uh oh that's not what I
+  // wanted, where's my old one" moment that motivated this gate.
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     function onEvt(e: Event) {
@@ -49,6 +55,7 @@ export function DecorRecolorModal({ manifest, onEditField }: Props) {
       setAccent(themeAccent);
       setSoft(themeSoft);
       setError(null);
+      setPreviewUrl(null);
     }
     window.addEventListener('pearloom:decor-recolor', onEvt);
     return () => window.removeEventListener('pearloom:decor-recolor', onEvt);
@@ -120,9 +127,10 @@ export function DecorRecolorModal({ manifest, onEditField }: Props) {
       }
       if (!res.ok) throw new Error(data.error ?? `Recolor failed (${res.status})`);
       if (!data.url) throw new Error('Pear returned no image URL.');
-      writeBack(data.url);
+      // Don't write back yet — surface the result as a preview so
+      // the host can compare against the original before applying.
+      setPreviewUrl(data.url);
       completeDecorJob(jobId, true);
-      setPending(null);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Recolor failed.';
       setError(msg);
@@ -180,62 +188,161 @@ export function DecorRecolorModal({ manifest, onEditField }: Props) {
             ×
           </button>
         </div>
-        <div style={{ display: 'flex', gap: 14, marginBottom: 16 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={pending.url} alt="" style={{ width: 88, height: 88, objectFit: 'contain', background: 'var(--cream-2)', borderRadius: 8, padding: 6, flexShrink: 0 }} />
-          <div style={{ flex: 1, fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
-            Pear keeps the composition + lines identical and just swaps the colors. Pick three tones below or use the theme defaults.
-          </div>
-        </div>
-        <div style={{ display: 'grid', gap: 10, marginBottom: 16 }}>
-          <ColorRow label="Ink" value={ink} onChange={setInk} />
-          <ColorRow label="Accent" value={accent} onChange={setAccent} />
-          <ColorRow label="Soft" value={soft} onChange={setSoft} />
-        </div>
-        {error && (
-          <div style={{ padding: '10px 12px', background: 'rgba(122,45,45,0.08)', color: '#7A2D2D', borderRadius: 8, fontSize: 12, marginBottom: 14 }}>
-            {error}
-          </div>
+        {previewUrl ? (
+          // Preview state — show before/after side-by-side. The
+          // "Apply" button writes back; "Try again" returns to the
+          // palette picker so the host can adjust the tones.
+          <>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 12,
+                marginBottom: 16,
+              }}
+            >
+              <PreviewTile label="Before" url={pending.url} />
+              <PreviewTile label="After" url={previewUrl} highlight />
+            </div>
+            <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5, margin: '0 0 14px' }}>
+              Apply this recolor to the live site, or try a different palette without rolling back.
+            </p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => { setPreviewUrl(null); }}
+                style={{
+                  padding: '9px 16px',
+                  borderRadius: 999,
+                  background: 'transparent',
+                  color: 'var(--ink)',
+                  border: '1.5px solid var(--line)',
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Try again
+              </button>
+              <button
+                type="button"
+                onClick={() => { writeBack(previewUrl); setPending(null); }}
+                className="pl-pearl-accent"
+                style={{
+                  padding: '9px 18px',
+                  borderRadius: 999,
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  border: 'none',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Apply recolor
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{ display: 'flex', gap: 14, marginBottom: 16 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={pending.url} alt="" style={{ width: 88, height: 88, objectFit: 'contain', background: 'var(--cream-2)', borderRadius: 8, padding: 6, flexShrink: 0 }} />
+              <div style={{ flex: 1, fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
+                Pear keeps the composition + lines identical and just swaps the colors. Pick three tones below or use the theme defaults.
+              </div>
+            </div>
+            <div style={{ display: 'grid', gap: 10, marginBottom: 16 }}>
+              <ColorRow label="Ink" value={ink} onChange={setInk} />
+              <ColorRow label="Accent" value={accent} onChange={setAccent} />
+              <ColorRow label="Soft" value={soft} onChange={setSoft} />
+            </div>
+            {error && (
+              <div style={{ padding: '10px 12px', background: 'rgba(122,45,45,0.08)', color: '#7A2D2D', borderRadius: 8, fontSize: 12, marginBottom: 14 }}>
+                {error}
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setPending(null)}
+                disabled={busy}
+                style={{
+                  padding: '9px 16px',
+                  borderRadius: 999,
+                  background: 'transparent',
+                  color: 'var(--ink)',
+                  border: '1.5px solid var(--line)',
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleSubmit()}
+                disabled={busy}
+                className="pl-pearl-accent"
+                style={{
+                  padding: '9px 18px',
+                  borderRadius: 999,
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  cursor: busy ? 'wait' : 'pointer',
+                  border: 'none',
+                  fontFamily: 'inherit',
+                  opacity: busy ? 0.7 : 1,
+                }}
+              >
+                {busy ? 'Pear is painting…' : 'Preview recolor'}
+              </button>
+            </div>
+          </>
         )}
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-          <button
-            type="button"
-            onClick={() => setPending(null)}
-            disabled={busy}
-            style={{
-              padding: '9px 16px',
-              borderRadius: 999,
-              background: 'transparent',
-              color: 'var(--ink)',
-              border: '1.5px solid var(--line)',
-              fontSize: 12.5,
-              fontWeight: 600,
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-            }}
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => void handleSubmit()}
-            disabled={busy}
-            className="pl-pearl-accent"
-            style={{
-              padding: '9px 18px',
-              borderRadius: 999,
-              fontSize: 12.5,
-              fontWeight: 700,
-              cursor: busy ? 'wait' : 'pointer',
-              border: 'none',
-              fontFamily: 'inherit',
-              opacity: busy ? 0.7 : 1,
-            }}
-          >
-            {busy ? 'Pear is painting…' : 'Recolor'}
-          </button>
-        </div>
       </div>
+    </div>
+  );
+}
+
+function PreviewTile({ label, url, highlight = false }: { label: string; url: string; highlight?: boolean }) {
+  return (
+    <div
+      style={{
+        background: 'var(--cream-2)',
+        borderRadius: 12,
+        padding: 10,
+        border: highlight ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid var(--line)',
+      }}
+    >
+      <div
+        style={{
+          fontSize: 10.5,
+          fontWeight: 700,
+          letterSpacing: '0.16em',
+          textTransform: 'uppercase',
+          color: highlight ? 'var(--peach-ink, #C6703D)' : 'var(--ink-muted)',
+          marginBottom: 6,
+        }}
+      >
+        {label}
+      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={url}
+        alt=""
+        style={{
+          width: '100%',
+          height: 100,
+          objectFit: 'contain',
+          background: 'var(--card)',
+          borderRadius: 8,
+          padding: 8,
+          mixBlendMode: 'multiply' as const,
+        }}
+      />
     </div>
   );
 }

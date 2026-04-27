@@ -202,6 +202,11 @@ export interface StoryManifest {
     /** Visual prominence of the divider band between sections.
      *  subtle ≈ 44px, standard (default) ≈ 84px, tall ≈ 120px. */
     dividerStrength?: 'subtle' | 'standard' | 'tall';
+    /** Host-uploaded SVG/PNG decor — stationer monograms, custom
+     *  flourishes, anything an AI pass wouldn't draw exactly. Each
+     *  entry is a permanent R2 URL plus a label the host typed in.
+     *  Surfaces on the editor's Decor tab as draggable tiles. */
+    uploads?: Array<{ id: string; url: string; label: string; mime: 'image/svg+xml' | 'image/png'; addedAt: string }>;
   };
   /** Block-type → variant choice map (registered via
    *  registerBlockStyle in src/lib/block-engine/block-styles.ts).

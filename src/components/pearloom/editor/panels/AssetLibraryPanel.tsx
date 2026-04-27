@@ -42,8 +42,10 @@ type LibraryTab = 'photos' | 'decor';
 interface DecorAsset {
   id: string;
   url: string;
-  /** Asset family — drives the badge label + filter group. */
-  kind: 'stamp' | 'divider' | 'confetti' | 'footer' | 'accent' | 'invite';
+  /** Asset family — drives the badge label + filter group.
+   *  'upload' is for host-supplied SVG/PNG monograms — they don't
+   *  belong to a slot until the host drags them onto a target. */
+  kind: 'stamp' | 'divider' | 'confetti' | 'footer' | 'accent' | 'invite' | 'upload';
   /** Where this asset is wired into the manifest right now —
    *  surfaces an "In use" badge on the tile. */
   usage?: string;
@@ -61,7 +63,13 @@ function flattenDecorAssets(manifest: StoryManifest | null | undefined): DecorAs
   if (!manifest) return [];
   const out: DecorAsset[] = [];
   const lib = manifest.decorLibrary as
-    | { divider?: string; sectionStamps?: Record<string, string>; confetti?: string; footerBouquet?: string }
+    | {
+        divider?: string;
+        sectionStamps?: Record<string, string>;
+        confetti?: string;
+        footerBouquet?: string;
+        uploads?: Array<{ id: string; url: string; label: string; mime?: string; addedAt?: string }>;
+      }
     | undefined;
   const drafts = (manifest as unknown as { decorDrafts?: Record<string, unknown> }).decorDrafts ?? {};
   const aiAccentUrl = (manifest as unknown as { aiAccentUrl?: string }).aiAccentUrl;
@@ -115,6 +123,14 @@ function flattenDecorAssets(manifest: StoryManifest | null | undefined): DecorAs
   pushDrafts('confetti', 'Confetti', 'confetti');
   pushDrafts('footerBouquet', 'Bouquet', 'footer');
   pushDrafts('accent', 'Accent', 'accent');
+
+  // Host-uploaded SVG/PNG decor — surfaces as 'upload' kind so it
+  // groups separately under "Your uploads" rather than mixing into
+  // the AI-generated tiles.
+  const uploads = lib?.uploads ?? [];
+  for (const u of uploads) {
+    out.push({ id: `upload-${u.id}`, url: u.url, kind: 'upload', label: u.label });
+  }
   // Section stamp drafts are stored as a list of full stamp sets;
   // surface each set's six stamps as individual saved tiles so
   // the host can swap back to a previous look.
@@ -136,7 +152,16 @@ function flattenDecorAssets(manifest: StoryManifest | null | undefined): DecorAs
   return out;
 }
 
-export function AssetLibraryPanel({ manifest }: { manifest?: StoryManifest } = {}) {
+export function AssetLibraryPanel({
+  manifest,
+  onChange,
+}: {
+  manifest?: StoryManifest;
+  /** Required for the decor SVG upload action. Optional so other
+   *  call sites that only need the photo browser don't have to
+   *  thread state. */
+  onChange?: (m: StoryManifest) => void;
+} = {}) {
   const [tab, setTab] = useState<LibraryTab>('photos');
   const [media, setMedia] = useState<LibraryPhoto[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -300,7 +325,14 @@ export function AssetLibraryPanel({ manifest }: { manifest?: StoryManifest } = {
       </div>
 
       {tab === 'decor' ? (
-        <DecorTab assets={filteredDecor} totalCount={decorAssets.length} query={query} setQuery={setQuery} />
+        <DecorTab
+          assets={filteredDecor}
+          totalCount={decorAssets.length}
+          query={query}
+          setQuery={setQuery}
+          manifest={manifest}
+          onChange={onChange}
+        />
       ) : (
       <>
       {/* Source actions — Upload + Google Photos */}
@@ -468,16 +500,75 @@ function DecorTab({
   totalCount,
   query,
   setQuery,
+  manifest,
+  onChange,
 }: {
   assets: DecorAsset[];
   totalCount: number;
   query: string;
   setQuery: (q: string) => void;
+  manifest?: StoryManifest;
+  onChange?: (m: StoryManifest) => void;
 }) {
-  // Group by kind so the visual reads as "stamps, then divider,
-  // then confetti, then footer, then hero, then invite scenes."
+  const svgInput = useRef<HTMLInputElement>(null);
+  const [svgUploading, setSvgUploading] = useState(false);
+  const [svgError, setSvgError] = useState<string | null>(null);
+
+  async function onPickSvg(files: FileList | null) {
+    if (!files || files.length === 0 || !manifest || !onChange) return;
+    setSvgUploading(true);
+    setSvgError(null);
+    try {
+      for (const file of Array.from(files)) {
+        if (!['image/svg+xml', 'image/png'].includes(file.type)) {
+          setSvgError('Only SVG and PNG decor uploads are supported.');
+          continue;
+        }
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
+          reader.onerror = () => reject(new Error('Could not read file.'));
+          reader.readAsDataURL(file);
+        });
+        const res = await fetch('/api/decor/upload-svg', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            base64: dataUrl,
+            filename: file.name,
+            label: file.name.replace(/\.(svg|png)$/i, ''),
+          }),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          setSvgError((body as { error?: string }).error ?? 'Upload failed.');
+          continue;
+        }
+        const data = (await res.json()) as { url: string; label: string; mime: 'image/svg+xml' | 'image/png' };
+        const id = `up-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+        const existing = manifest.decorLibrary?.uploads ?? [];
+        onChange({
+          ...manifest,
+          decorLibrary: {
+            ...(manifest.decorLibrary ?? {}),
+            uploads: [
+              ...existing,
+              { id, url: data.url, label: data.label, mime: data.mime, addedAt: new Date().toISOString() },
+            ],
+          },
+        });
+      }
+    } finally {
+      setSvgUploading(false);
+    }
+  }
+
+  // Group by kind so the visual reads as "uploads (host's own),
+  // then stamps, then divider, then confetti, then footer, then
+  // hero accents, then invite scenes."
   const groups: Array<{ kind: DecorAsset['kind']; label: string; items: DecorAsset[] }> = (
     [
+      { kind: 'upload', label: 'Your uploads' },
       { kind: 'stamp', label: 'Section stamps' },
       { kind: 'divider', label: 'Dividers' },
       { kind: 'confetti', label: 'Confetti' },
@@ -530,7 +621,60 @@ function DecorTab({
         >
           <Icon name="sparkles" size={11} /> Generate
         </button>
+        {onChange && manifest && (
+          <>
+            <input
+              ref={svgInput}
+              type="file"
+              accept="image/svg+xml,image/png"
+              multiple
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                void onPickSvg(e.target.files);
+                e.target.value = '';
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => svgInput.current?.click()}
+              disabled={svgUploading}
+              title="Upload an SVG monogram, logo, or PNG decor"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '7px 12px',
+                borderRadius: 8,
+                background: 'var(--cream-2)',
+                border: '1px solid var(--line-soft)',
+                color: 'var(--ink)',
+                fontSize: 11.5,
+                fontWeight: 700,
+                cursor: svgUploading ? 'wait' : 'pointer',
+                fontFamily: 'var(--font-ui)',
+              }}
+            >
+              <Icon name="upload" size={11} /> {svgUploading ? 'Uploading…' : 'Upload SVG'}
+            </button>
+          </>
+        )}
       </div>
+      {svgError && (
+        <div
+          role="alert"
+          style={{
+            margin: '8px 16px 0',
+            padding: '8px 10px',
+            background: 'rgba(122,45,45,0.08)',
+            color: '#7A2D2D',
+            border: '1px solid rgba(122,45,45,0.18)',
+            borderRadius: 8,
+            fontSize: 11.5,
+          }}
+        >
+          {svgError}
+        </div>
+      )}
 
       <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
         {totalCount === 0 ? (
