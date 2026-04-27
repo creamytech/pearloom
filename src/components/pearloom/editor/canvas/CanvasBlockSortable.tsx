@@ -87,14 +87,24 @@ export function SortableBlockList({
     setPickerAnchor(null);
   }, []);
 
-  // When NOT in edit mode, render items unchanged.
+  // When NOT in edit mode, render items unchanged. Each section
+  // gets content-visibility: auto so off-screen sections skip
+  // layout + paint until they scroll near the viewport — saves
+  // first-paint work on long sites for guests on low-end devices.
   if (!edit) {
     return (
       <>
         {blockKeys.map((key, i) => {
           const node = renderItem(key, i);
           return (
-            <div key={key} data-pl-block={key}>
+            <div
+              key={key}
+              data-pl-block={key}
+              style={{
+                contentVisibility: 'auto',
+                containIntrinsicSize: '1px 800px',
+              }}
+            >
               {node}
             </div>
           );
@@ -315,7 +325,18 @@ function CanvasSortableItem({
   return (
     <div
       ref={setNodeRef}
-      style={style}
+      style={{
+        ...style,
+        // Lazy-paint off-screen sections. content-visibility: auto
+        // tells the browser it can skip layout + paint until the
+        // element scrolls within ~viewport range, while preserving
+        // the element's natural box for scroll height calculations.
+        // contain-intrinsic-size keeps the scrollbar accurate before
+        // first paint. Net effect: editing the hero doesn't pay the
+        // paint cost of a 12-photo gallery six sections below.
+        contentVisibility: 'auto',
+        containIntrinsicSize: '1px 800px',
+      }}
       data-pl-block={id}
       data-pl-block-sortable
       data-pl-selected={isSelected ? '' : undefined}
