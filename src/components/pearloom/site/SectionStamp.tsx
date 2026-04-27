@@ -1,30 +1,40 @@
 'use client';
 
 /* ========================================================================
-   SectionStamp — a tiny wax-seal stamp rendered next to each section's
-   eyebrow label. Pulled from manifest.decorLibrary.sectionStamps[key]
-   where key is one of story | schedule | travel | registry | gallery
-   | rsvp | faq.
+   SectionStamp — single glyph for a section's eyebrow.
+   Reads manifest.decorLibrary.sectionStamps[key] for a per-section
+   AI-generated mark; falls back to an inline icon when the host
+   hasn't generated stamps yet. Either way one glyph renders, never
+   two — the previous "stamp + icon" combo was redundant noise.
 
-   In published mode the empty state is null (silent — guests never
-   see "missing" affordance). In edit mode an "+ ornament" pill appears
-   inline so the host knows they can generate stamps. Clicking it
-   opens the Theme panel's Decor Library so the host can run the AI
-   pass that fills every section's stamp slot in one shot.
+   Sized to match the eyebrow line-height (default 20px) so the
+   layout doesn't shift when the host generates a library and the
+   stamp swaps in for the icon.
+
+   In edit mode without a URL: renders an "+ ornament" pill that
+   drops the user into the Theme tab's Decor Library so they can
+   generate the missing set. Published mode with no URL falls back
+   to the icon if one was provided, otherwise renders nothing.
    ======================================================================== */
 
 import type { CSSProperties } from 'react';
 import { useEditorCanvas } from '../editor/canvas/EditorCanvasContext';
 import { focusDecorLibrary } from './focusDecorLibrary';
+import { Icon } from '../motifs';
 
 interface Props {
   url?: string;
   size?: number;
   style?: CSSProperties;
   alt?: string;
+  /** Inline icon name to render when no AI stamp URL is present.
+   *  Typically the section's existing motif (leaf, clock, gift,
+   *  etc.). Provided so the eyebrow always has exactly ONE glyph,
+   *  whether or not the host has generated a decor library. */
+  fallbackIcon?: string;
 }
 
-export function SectionStamp({ url, size = 44, style, alt = '' }: Props) {
+export function SectionStamp({ url, size = 20, style, alt = '', fallbackIcon }: Props) {
   const { editMode } = useEditorCanvas();
 
   if (url) {
@@ -35,7 +45,7 @@ export function SectionStamp({ url, size = 44, style, alt = '' }: Props) {
           display: 'inline-block',
           width: size,
           height: size,
-          marginRight: 10,
+          marginRight: 6,
           verticalAlign: 'middle',
           backgroundImage: `url(${url})`,
           backgroundSize: 'contain',
@@ -52,6 +62,30 @@ export function SectionStamp({ url, size = 44, style, alt = '' }: Props) {
           ...style,
         }}
       />
+    );
+  }
+
+  // Fallback icon — rendered when no AI stamp exists. Keeps the
+  // eyebrow visually anchored regardless of whether the host has
+  // run the Decor Library. Sized 0.65× the stamp size so the
+  // smaller, lighter motif reads as restrained next to the
+  // eyebrow type.
+  if (!editMode && fallbackIcon) {
+    const iconSize = Math.round(size * 0.65);
+    return (
+      <span
+        aria-hidden
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          marginRight: 6,
+          verticalAlign: 'middle',
+          color: 'inherit',
+          ...style,
+        }}
+      >
+        <Icon name={fallbackIcon} size={iconSize} />
+      </span>
     );
   }
 

@@ -1078,8 +1078,8 @@ function StoryVariantSectionImpl({
               gap: 6,
             }}
           >
-            <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.story} size={32} />
-            <Icon name="leaf" size={13} /> Our story so far
+            <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.story} fallbackIcon="leaf" size={20} />
+            Our story so far
           </div>
           <h2 className="display" style={{ fontSize: 'clamp(42px, 6cqw, 72px)', margin: 0 }}>
             How we got <span className="display-italic">here</span>
@@ -1147,8 +1147,8 @@ function TimelineSectionImpl({ chapters, onEditField, manifest }: { chapters: Ch
               gap: 6,
             }}
           >
-            <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.story} size={32} />
-            <Icon name="leaf" size={13} /> Our story so far
+            <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.story} fallbackIcon="leaf" size={20} />
+            Our story so far
           </div>
           <h2 className="display" style={{ fontSize: 'clamp(42px, 6cqw, 72px)', margin: 0 }}>
             How we got <span className="display-italic">here</span>
@@ -1605,8 +1605,8 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
               gap: 6,
             }}
           >
-            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.schedule} size={32} />
-            <Icon name="clock" size={13} /> How the day flows
+            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.schedule} fallbackIcon="clock" size={20} />
+            How the day flows
           </div>
           <h2 className="display" style={{ fontSize: 'clamp(40px, 6cqw, 64px)', margin: 0 }}>
             Schedule {dateInfo && <>for <span className="display-italic">{dateInfo.pretty}</span></>}
@@ -1947,8 +1947,8 @@ function TravelSectionImpl({ manifest, onEditField }: { manifest: StoryManifest;
                 gap: 6,
               }}
             >
-              <SectionStamp url={manifest.decorLibrary?.sectionStamps?.travel} size={32} />
-              <Icon name="pin" size={13} /> The venue
+              <SectionStamp url={manifest.decorLibrary?.sectionStamps?.travel} fallbackIcon="pin" size={20} />
+              The venue
             </div>
             <h3 className="display" style={{ fontSize: 'clamp(32px, 4.5cqw, 44px)', margin: '0 0 16px' }}>
               {venue}
@@ -2152,8 +2152,8 @@ function RegistrySectionImpl({ manifest }: { manifest: StoryManifest }) {
               gap: 6,
             }}
           >
-            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.registry} size={32} />
-            <Icon name="gift" size={13} /> If you&apos;re asking
+            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.registry} fallbackIcon="gift" size={20} />
+            If you&apos;re asking
           </div>
           <h2 className="display" style={{ fontSize: 'clamp(40px, 6cqw, 64px)', margin: '0 0 12px' }}>
             Registry, <span className="display-italic">gently</span>
@@ -2267,8 +2267,8 @@ function GallerySectionImpl({ chapters, manifest, onEditField }: { chapters: Cha
                 gap: 6,
               }}
             >
-              <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.gallery} size={32} />
-              <Icon name="gallery" size={13} /> Along the way
+              <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.gallery} fallbackIcon="gallery" size={20} />
+              Along the way
             </div>
             <h2 className="display" style={{ fontSize: 'clamp(40px, 6cqw, 64px)', margin: 0 }}>
               A few <span className="display-italic">favorites</span>
@@ -2384,8 +2384,8 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
               gap: 6,
             }}
           >
-            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.faq} size={32} />
-            <Icon name="heart-icon" size={13} /> Good to know
+            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.faq} fallbackIcon="heart-icon" size={20} />
+            Good to know
           </div>
           <h2 className="display" style={{ fontSize: 'clamp(38px, 6cqw, 60px)', margin: 0 }}>
             Frequently <span className="display-italic">asked.</span>
@@ -2582,8 +2582,8 @@ function RSVPSectionImpl({
               gap: 6,
             }}
           >
-            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.rsvp} size={32} />
-            <Icon name="mail" size={13} /> Kindly respond by {deadlineStr}
+            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.rsvp} fallbackIcon="mail" size={20} />
+            Kindly respond by {deadlineStr}
           </div>
           <h2 className="display" style={{ fontSize: 'clamp(44px, 7cqw, 72px)', margin: 0 }}>
             Will you <span className="display-italic">be there?</span>
