@@ -9,6 +9,19 @@ import { useEffect, useMemo, useState } from 'react';
 import { buildSitePath } from '@/lib/site-urls';
 import { Icon, Pear, PhotoPlaceholder, Squiggle } from '../motifs';
 import { DashEmpty } from '../dash/DashEmpty';
+
+// Shared deep-link helper for day-of CTAs. EditorV8 reads ?focus=
+// (block key) and ?anchor= (Theme-tab anchor) on mount and fires
+// pearloom:design-jump so the host lands inside the right panel
+// instead of the editor's default block.
+function editorDeepLink(siteDomain: string | null | undefined, block?: string, anchor?: string): string {
+  if (!siteDomain) return '/dashboard/event';
+  const sp = new URLSearchParams();
+  if (block) sp.set('focus', block);
+  if (anchor) sp.set('anchor', anchor);
+  const q = sp.toString();
+  return `/editor/${encodeURIComponent(siteDomain)}${q ? `?${q}` : ''}`;
+}
 import { DashLayout } from '../dash/DashShell';
 import { BroadcastComposer } from '../dash/BroadcastComposer';
 import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
@@ -235,7 +248,7 @@ function MomentTimeline({
           title="No schedule yet."
           body="Add events in the editor — Pearloom will show them here in order on the day, with a live now-marker."
           examples={['3:00 — Ceremony begins', '4:30 — Cocktail hour', '6:00 — Dinner served', '9:00 — First dance']}
-          actions={[{ label: 'Add events', href: editHref, icon: 'brush', primary: true }]}
+          actions={[{ label: 'Add events', href: editorDeepLink(siteDomain, 'schedule'), icon: 'brush', primary: true }]}
         />
       </div>
     );
@@ -424,7 +437,7 @@ function LiveReel({ siteDomain, siteId, occasion }: { siteDomain?: string | null
           <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 360, margin: '0 auto 12px' }}>
             Turn on a guest photo wall in the editor — any photo uploaded lands here for quick moderation.
           </div>
-          <Link href={editHref} className="btn btn-outline btn-sm">
+          <Link href={editorDeepLink(siteDomain, 'gallery')} className="btn btn-outline btn-sm">
             <Icon name="brush" size={12} /> Set up photo wall
           </Link>
         </div>
@@ -498,7 +511,7 @@ function RequestsCard({ siteDomain, occasion }: { siteDomain?: string | null; oc
         <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 360, margin: '0 auto 12px' }}>
           {copy.body} Nothing right now.
         </div>
-        <Link href={editHref} className="btn btn-outline btn-sm">
+        <Link href={editorDeepLink(siteDomain, 'travel')} className="btn btn-outline btn-sm">
           <Icon name="brush" size={12} /> Add vendors
         </Link>
       </div>
@@ -586,7 +599,7 @@ function AttendanceCard({ siteId, occasion, siteDomain }: { siteId?: string | nu
           <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 340, margin: '0 auto 12px' }}>
             No guests yet. Share your link or import a CSV to start tracking responses.
           </div>
-          <Link href={editHref} className="btn btn-outline btn-sm">
+          <Link href={editorDeepLink(siteDomain, 'rsvp')} className="btn btn-outline btn-sm">
             <Icon name="brush" size={12} /> Open editor
           </Link>
         </div>
@@ -715,7 +728,7 @@ function GuestWall({ siteId, siteDomain, occasion }: { siteId?: string | null; s
           <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 340, margin: '0 auto 12px' }}>
             No notes yet. Add a guestbook block on your site — any message guests leave shows up here.
           </div>
-          <Link href={editHref} className="btn btn-outline btn-sm">
+          <Link href={editorDeepLink(siteDomain, 'faq')} className="btn btn-outline btn-sm">
             <Icon name="brush" size={12} /> Add guestbook
           </Link>
         </div>
@@ -810,7 +823,7 @@ function SongQueue({ siteDomain }: { siteDomain?: string | null }) {
         <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 340, margin: '0 auto 12px' }}>
           Connect a Spotify playlist in the editor. Guest song requests — from the RSVP form — will queue up here.
         </div>
-        <Link href={editHref} className="btn btn-outline btn-sm">
+        <Link href={editorDeepLink(siteDomain, 'theme')} className="btn btn-outline btn-sm">
           <Icon name="brush" size={12} /> Set up playlist
         </Link>
       </div>

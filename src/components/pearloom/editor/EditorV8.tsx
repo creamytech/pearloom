@@ -145,6 +145,33 @@ export function EditorV8({
   }, [block]);
   const [device, setDevice] = useState<DeviceKey>('desktop');
 
+  // ── Deep-link from external pages ──────────────────────────
+  // Dashboard pages (Day-of room, kickoff cards, etc.) link to
+  // /editor/{slug}?focus=<blockKey>&anchor=<themeAnchor> when
+  // they want the host to land in a specific panel. We read the
+  // search params on mount and dispatch the same events as the
+  // in-editor Design dropdown so the editor lands in one place.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const sp = new URLSearchParams(window.location.search);
+    const focus = sp.get('focus');
+    const anchor = sp.get('anchor');
+    if (!focus && !anchor) return;
+    // Defer one tick so all the editor providers/components mount
+    // before we fire the jump.
+    const t = setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('pearloom:design-jump', {
+        detail: { block: focus ?? undefined, anchor: anchor ?? undefined },
+      }));
+    }, 120);
+    // Strip the params so refresh doesn't re-jump.
+    const url = new URL(window.location.href);
+    url.searchParams.delete('focus');
+    url.searchParams.delete('anchor');
+    window.history.replaceState({}, '', url.toString());
+    return () => clearTimeout(t);
+  }, []);
+
   // Listen for canvas → inspector focus events so the floating
   // ✎ button on a section opens the matching Inspector panel.
   useEffect(() => {
