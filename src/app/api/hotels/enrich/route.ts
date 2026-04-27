@@ -204,10 +204,13 @@ export async function POST(req: NextRequest) {
     distanceText = formatDistance(m);
   }
 
-  const photoRef = details.photos?.[0]?.name;
-  const photoUrl = photoRef
-    ? `https://places.googleapis.com/v1/${photoRef}/media?maxWidthPx=600&key=${apiKey}`
-    : undefined;
+  // Up to 5 photo URLs so the renderer can ship a carousel.
+  // photoUrl (singular) is kept for backwards compatibility with
+  // older renderers that read the first photo only.
+  const photoUrls = (details.photos ?? [])
+    .slice(0, 5)
+    .map((p) => `https://places.googleapis.com/v1/${p.name}/media?maxWidthPx=600&key=${apiKey}`);
+  const photoUrl = photoUrls[0];
 
   const name = details.displayName?.text ?? '';
   const address = details.formattedAddress ?? '';
@@ -231,6 +234,7 @@ export async function POST(req: NextRequest) {
       amenities,
       distanceText,
       photoUrl,
+      photoUrls,
       blurb,
     },
   });

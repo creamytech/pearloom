@@ -42,6 +42,7 @@ interface PlaceHotel {
   websiteUri?: string;
   internationalPhoneNumber?: string;
   photoUrl?: string;
+  photoUrls?: string[];
   types?: string[];
   editorialSummary?: string;
 }

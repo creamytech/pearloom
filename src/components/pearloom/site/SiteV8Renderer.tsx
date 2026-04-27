@@ -2358,6 +2358,35 @@ function HotelBadgePill({ kind }: { kind: HotelBadge }) {
   );
 }
 
+/** Reformat a stored `distance` string into miles + drive minutes
+ *  at render time, so manifests written before the miles switchover
+ *  ("602 m", "1.4 km") still render in the new format without
+ *  needing a re-fetch. Returns the original string when it's already
+ *  in mi / ft (or is something we can't parse). */
+function reformatDistanceToMiles(input: string | undefined): string {
+  if (!input) return '';
+  const trimmed = input.trim();
+  if (!trimmed) return '';
+  // Already mi or ft — leave alone.
+  if (/\bmi\b|\bft\b/i.test(trimmed)) return trimmed;
+  // Pull out the leading distance value.
+  const km = /^(\d+(?:\.\d+)?)\s*km/i.exec(trimmed);
+  const m = /^(\d+(?:\.\d+)?)\s*m\b/i.exec(trimmed);
+  let meters: number | null = null;
+  if (km) meters = parseFloat(km[1]) * 1000;
+  else if (m) meters = parseFloat(m[1]);
+  if (meters === null) return trimmed;
+  if (meters < 300) {
+    const ft = Math.round(meters * 3.28084);
+    return `${ft} ft · steps from venue`;
+  }
+  const miles = meters / 1609.344;
+  const driveMin = Math.max(1, Math.round(miles * 2.8));
+  if (miles < 0.5) return `${miles.toFixed(2)} mi · ~${driveMin} min drive`;
+  if (miles < 10)  return `${miles.toFixed(1)} mi · ~${driveMin} min drive`;
+  return `${Math.round(miles)} mi · ~${driveMin} min drive`;
+}
+
 function HotelCard({
   hotel,
   tone,
@@ -2371,6 +2400,9 @@ function HotelCard({
   display?: 'photo' | 'icon';
   badges?: HotelBadge[];
 }) {
+  // Old manifests stored the formatted distance in km/m. Convert
+  // at render time so guests always see miles + minutes.
+  const distanceLabel = reformatDistanceToMiles(hotel.distance);
   const tintBg =
     tone === 'peach' ? 'var(--peach-bg)' :
     tone === 'lavender' ? 'var(--lavender-bg)' :
@@ -2414,25 +2446,11 @@ function HotelCard({
         overflow: 'hidden',
       }}
     >
-      {badges.length > 0 && (
-        <div
-          aria-hidden
-          style={{
-            position: 'absolute',
-            top: 10,
-            right: 10,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-end',
-            gap: 4,
-            zIndex: 2,
-          }}
-        >
-          {badges.includes('top') && <HotelBadgePill kind="top" />}
-          {badges.includes('closest') && <HotelBadgePill kind="closest" />}
-          {badges.includes('value') && <HotelBadgePill kind="value" />}
-        </div>
-      )}
+      {/* Badges row was previously absolute-positioned in the
+          top-right of the article — that overlapped longer hotel
+          names ("Hyatt Centric Las Olas Fort Lauderdale" wrapped
+          two lines under the badge). Now they live inline at the
+          top of the content cell so the title always has room. */}
       <div
         aria-hidden={!photo}
         style={{
@@ -2452,6 +2470,20 @@ function HotelCard({
         {!photo && <Icon name="moon" size={32} />}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+        {badges.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 4,
+              marginBottom: 2,
+            }}
+          >
+            {badges.includes('top') && <HotelBadgePill kind="top" />}
+            {badges.includes('closest') && <HotelBadgePill kind="closest" />}
+            {badges.includes('value') && <HotelBadgePill kind="value" />}
+          </div>
+        )}
         <h3
           style={{
             fontSize: 'clamp(16px, 1.6cqw, 18px)',
@@ -2463,7 +2495,7 @@ function HotelCard({
         >
           {hotel.name || 'Hotel'}
         </h3>
-        {(typeof hotel.rating === 'number' || priceGlyph || hotel.distance) && (
+        {(typeof hotel.rating === 'number' || priceGlyph || distanceLabel) && (
           <div
             style={{
               display: 'flex',
