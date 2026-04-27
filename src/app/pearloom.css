@@ -668,15 +668,48 @@
 }
 
 /* ── Page enter ──────────────────────────────────────────────
-   Wraps a dashboard route's content. Subtle slide + fade so
-   navigating between tabs feels like leafing through pages,
-   not slamming new windows open. */
+   Wraps a dashboard route's content. Two layers:
+     1) Wrapper itself fades + slides up (the "page lift").
+     2) Direct children stagger in beneath it so cards appear
+        in sequence rather than all at once.
+   Keyed by pathname in DashShell so it re-fires on every nav. */
 .pl8-dash-page-enter {
-  animation: pl8-dash-page-enter 540ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: pl8-dash-page-enter 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @keyframes pl8-dash-page-enter {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(18px); filter: blur(2px); }
+  to   { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+/* Auto-stagger every direct child of the page wrapper so the
+   sequence reads as "the page rises, then the cards arrive."
+   We give each child a delay calculated by nth-child so up to 16
+   children animate distinctly; deeper children inherit the
+   16th delay so very long pages still finish in a reasonable
+   beat. */
+.pl8-dash-page-enter > * {
+  animation: pl8-card-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  opacity: 0;
+}
+.pl8-dash-page-enter > *:nth-child(1)  { animation-delay: 80ms; }
+.pl8-dash-page-enter > *:nth-child(2)  { animation-delay: 160ms; }
+.pl8-dash-page-enter > *:nth-child(3)  { animation-delay: 220ms; }
+.pl8-dash-page-enter > *:nth-child(4)  { animation-delay: 280ms; }
+.pl8-dash-page-enter > *:nth-child(5)  { animation-delay: 330ms; }
+.pl8-dash-page-enter > *:nth-child(6)  { animation-delay: 380ms; }
+.pl8-dash-page-enter > *:nth-child(7)  { animation-delay: 430ms; }
+.pl8-dash-page-enter > *:nth-child(8)  { animation-delay: 480ms; }
+.pl8-dash-page-enter > *:nth-child(9)  { animation-delay: 520ms; }
+.pl8-dash-page-enter > *:nth-child(10) { animation-delay: 560ms; }
+.pl8-dash-page-enter > *:nth-child(11) { animation-delay: 600ms; }
+.pl8-dash-page-enter > *:nth-child(12) { animation-delay: 640ms; }
+.pl8-dash-page-enter > *:nth-child(13) { animation-delay: 680ms; }
+.pl8-dash-page-enter > *:nth-child(14) { animation-delay: 720ms; }
+.pl8-dash-page-enter > *:nth-child(15) { animation-delay: 760ms; }
+.pl8-dash-page-enter > *:nth-child(n+16) { animation-delay: 800ms; }
+@keyframes pl8-card-enter {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
 }
 
 /* ── Tab content crossfade ───────────────────────────────────
@@ -736,12 +769,14 @@
 @media (prefers-reduced-motion: reduce) {
   .pl8-dash-stagger > *,
   .pl8-card-lift, .pl8-tile-lift,
-  .pl8-dash-page-enter, .pl8-tab-enter,
+  .pl8-dash-page-enter, .pl8-dash-page-enter > *,
+  .pl8-tab-enter,
   .pl8-stat-rise, .pl8-chip-pop,
   .pl8-btn-press, .pl8-content-fade-in {
     animation: none !important;
     transition: none !important;
     transform: none !important;
+    filter: none !important;
     opacity: 1 !important;
   }
 }

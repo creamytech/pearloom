@@ -292,13 +292,11 @@ export function InviteDesigner({
   const [printOpen, setPrintOpen] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
-  // ── Designer surface mode ──
-  // 'template' = the existing rigid SVG variants (legacy).
-  // 'canvas'   = the new free-form drag/resize/select editor.
-  // Hosts toggle at the top of the page; switching to canvas
-  // seeds a CanvasScene from the currently-picked template so
-  // the work-in-progress carries over instead of starting blank.
-  const [surfaceMode, setSurfaceMode] = useState<'template' | 'canvas'>('template');
+  // Canvas is now the only editing surface — templates seed it,
+  // Pear paint applies as a backdrop, photos are individual
+  // elements that drag/resize/restyle freely. The inspector at
+  // right exposes Templates / Theme / Pear paint / Element /
+  // Layers in one stack.
   const [canvasTemplateId, setCanvasTemplateId] = useState<CanvasTemplateId>('classic-stack');
   const [canvasScene, setCanvasScene] = useState<CanvasScene | null>(null);
   const [canvasSelectedId, setCanvasSelectedId] = useState<string | null>(null);
@@ -670,161 +668,75 @@ export function InviteDesigner({
               </h1>
             </div>
 
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-              {/* Surface mode — Template = legacy SVG variants;
-                  Canvas = the new free-form drag/resize editor. */}
-              <div style={{ display: 'flex', padding: 3, background: 'var(--cream-2)', borderRadius: 10, gap: 2 }}>
-                {(
-                  [
-                    { v: 'template' as const, l: 'Templates' },
-                    { v: 'canvas' as const,   l: 'Canvas' },
-                  ]
-                ).map((o) => {
-                  const on = surfaceMode === o.v;
-                  return (
-                    <button
-                      key={o.v}
-                      type="button"
-                      onClick={() => {
-                        setSurfaceMode(o.v);
-                        if (o.v === 'canvas' && !canvasScene) {
-                          // Seed a scene from the currently-picked
-                          // legacy variant so the canvas isn't blank.
-                          const stamp = kind === 'save-the-date'
-                            ? invitationLabels.stampShort.save
-                            : invitationLabels.stampShort.invite;
-                          setCanvasScene(buildScene(canvasTemplateId, {
-                            names,
-                            dateLabel: date.long,
-                            venue,
-                            occasionLabel: occasion,
-                            photo: manifestPhotos[0],
-                            stamp,
-                          }));
-                        }
-                      }}
-                      style={{
-                        padding: '8px 14px',
-                        borderRadius: 8,
-                        background: on ? 'var(--ink)' : 'transparent',
-                        color: on ? 'var(--cream)' : 'var(--ink)',
-                        border: 0,
-                        fontSize: 13,
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        fontFamily: 'var(--font-ui)',
-                      }}
-                    >
-                      {o.l}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div style={{ display: 'flex', padding: 3, background: 'var(--cream-2)', borderRadius: 10, gap: 2 }}>
-                {(
-                  [
-                    { v: 'save-the-date', l: invitationLabels.kindLabel.save },
-                    { v: 'invitation', l: invitationLabels.kindLabel.invite },
-                  ] as const
-                ).map((o) => {
-                  const on = kind === o.v;
-                  return (
-                    <button
-                      key={o.v}
-                      type="button"
-                      onClick={() => setKindAndAdjust(o.v)}
-                      style={{
-                        padding: '8px 14px',
-                        borderRadius: 8,
-                        background: on ? 'var(--ink)' : 'transparent',
-                        color: on ? 'var(--cream)' : 'var(--ink)',
-                        border: 0,
-                        fontSize: 13,
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        fontFamily: 'var(--font-ui)',
-                      }}
-                    >
-                      {o.l}
-                    </button>
-                  );
-                })}
-              </div>
+            <div style={{ display: 'flex', padding: 3, background: 'var(--cream-2)', borderRadius: 10, gap: 2 }}>
+              {(
+                [
+                  { v: 'save-the-date', l: invitationLabels.kindLabel.save },
+                  { v: 'invitation', l: invitationLabels.kindLabel.invite },
+                ] as const
+              ).map((o) => {
+                const on = kind === o.v;
+                return (
+                  <button
+                    key={o.v}
+                    type="button"
+                    onClick={() => setKindAndAdjust(o.v)}
+                    style={{
+                      padding: '8px 14px',
+                      borderRadius: 8,
+                      background: on ? 'var(--ink)' : 'transparent',
+                      color: on ? 'var(--cream)' : 'var(--ink)',
+                      border: 0,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontFamily: 'var(--font-ui)',
+                    }}
+                  >
+                    {o.l}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {surfaceMode === 'template' ? (
-            <div
-              style={{
-                background: 'var(--cream-2)',
-                borderRadius: 24,
-                padding: 'clamp(20px, 3vw, 40px)',
-                border: '1px solid var(--card-ring)',
-                display: 'grid',
-                placeItems: 'center',
-                minHeight: 560,
-              }}
-            >
-              <div
-                style={{
-                  width: 'min(520px, 100%)',
-                  aspectRatio: '1000 / 1400',
-                  boxShadow: '0 24px 60px rgba(61,74,31,0.18), 0 2px 6px rgba(0,0,0,0.06)',
-                  borderRadius: 6,
-                  overflow: 'hidden',
-                  background: variant.paper,
-                }}
-              >
-                <InviteSvg
-                  ref={svgRef}
-                  variant={variant}
-                  headline={headline}
-                  names={names}
-                  date={date}
-                  venue={venue}
-                  prettyUrl={prettyUrl}
-                  kind={kind}
-                  stampLabel={kind === 'save-the-date' ? invitationLabels.stampShort.save : invitationLabels.stampShort.invite}
-                  qrDataUrl={qrPosition === 'hidden' ? null : qrDataUrl}
-                  qrPosition={qrPosition}
-                  headlineFontFamily={FONT_FAMILIES[headlineFont].value}
-                  bodyFontFamily={FONT_FAMILIES[bodyFont].value}
-                  aiBackgroundUrl={aiBackgroundUrl}
-                  photoSelections={photoSelections}
-                  photoFilter={photoFilter}
-                  photoTransform={photoTransform}
-                  inviteCopy={{
-                    hostingLine,
-                    ceremonyTime,
-                    receptionLine,
-                    dressCode,
-                    rsvpDeadline,
-                  }}
-                />
-              </div>
-            </div>
-          ) : (
-            <CanvasSurface
-              scene={canvasScene}
-              setScene={setCanvasScene}
-              selectedId={canvasSelectedId}
-              setSelectedId={setCanvasSelectedId}
-              templateId={canvasTemplateId}
-              setTemplateId={(id) => {
-                setCanvasTemplateId(id);
-                const stamp = kind === 'save-the-date'
-                  ? invitationLabels.stampShort.save
-                  : invitationLabels.stampShort.invite;
-                setCanvasScene(buildScene(id, {
-                  names, dateLabel: date.long, venue,
-                  occasionLabel: occasion,
-                  photo: manifestPhotos[0], stamp,
-                }));
-                setCanvasSelectedId(null);
-              }}
-            />
-          )}
+          {/* Unified canvas — every host edits on the same surface.
+              Templates seed the canvas via the chip strip in the
+              inspector; AI paint applies as a backdrop; photos are
+              individually placeable elements. No more mode toggles. */}
+          <CanvasSurface
+            scene={canvasScene ?? (() => {
+              const stamp = kind === 'save-the-date'
+                ? invitationLabels.stampShort.save
+                : invitationLabels.stampShort.invite;
+              const seed = buildScene(canvasTemplateId, {
+                names, dateLabel: date.long, venue,
+                occasionLabel: occasion,
+                photo: manifestPhotos[0], stamp,
+              });
+              // Fire-and-forget: persist the seed so subsequent
+              // renders reuse it. setState is safe outside render
+              // because we're in a render-time fallback.
+              setTimeout(() => setCanvasScene(seed), 0);
+              return seed;
+            })()}
+            setScene={setCanvasScene}
+            selectedId={canvasSelectedId}
+            setSelectedId={setCanvasSelectedId}
+            templateId={canvasTemplateId}
+            setTemplateId={(id) => {
+              setCanvasTemplateId(id);
+              const stamp = kind === 'save-the-date'
+                ? invitationLabels.stampShort.save
+                : invitationLabels.stampShort.invite;
+              setCanvasScene(buildScene(id, {
+                names, dateLabel: date.long, venue,
+                occasionLabel: occasion,
+                photo: manifestPhotos[0], stamp,
+              }));
+              setCanvasSelectedId(null);
+            }}
+          />
 
           <div style={{ marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <button
@@ -878,7 +790,7 @@ export function InviteDesigner({
             top: 24,
           }}
         >
-          {surfaceMode === 'canvas' && canvasScene ? (
+          {canvasScene && (
             <CanvasInspector
               scene={canvasScene}
               setScene={setCanvasScene}
@@ -886,9 +798,24 @@ export function InviteDesigner({
               setSelectedId={setCanvasSelectedId}
               libraryPhotos={manifestPhotos}
               pearPaintUrl={aiBackgroundUrl}
+              aiPanel={{
+                archetype: aiArchetype,
+                setArchetype: (id: string) => setAiArchetype(id as ArchetypeId),
+                busy: aiBusy,
+                error: aiPaintError,
+                onPaint: paintWithPear,
+                hasResult: Boolean(aiBackgroundUrl),
+                onClear: () => {
+                  setAiBackgroundUrl(null);
+                  setAiPaintError(null);
+                },
+                inspirationImage,
+                setInspirationImage,
+                aiHint,
+                setAiHint,
+              }}
+              kind={kind}
             />
-          ) : (
-            <InspectorTabsAndContent />
           )}
         </aside>
       </div>

@@ -19,6 +19,20 @@ import {
   type CanvasElement, type CanvasScene, type PhotoFilter,
 } from '@/lib/invite-canvas/types';
 
+interface AiPanelProps {
+  archetype: string;
+  setArchetype: (id: string) => void;
+  busy: boolean;
+  error: string | null;
+  onPaint: () => void;
+  hasResult: boolean;
+  onClear: () => void;
+  inspirationImage: { base64: string; mimeType: string; preview: string } | null;
+  setInspirationImage: (next: { base64: string; mimeType: string; preview: string } | null) => void;
+  aiHint: string;
+  setAiHint: (next: string) => void;
+}
+
 interface Props {
   scene: CanvasScene;
   setScene: (next: CanvasScene) => void;
@@ -28,7 +42,29 @@ interface Props {
   libraryPhotos?: string[];
   /** Optional Pear-paint background URL — can be set as bg image. */
   pearPaintUrl?: string | null;
+  /** Pear paint controls — when provided, the inspector renders an
+   *  expandable AI section so the host can paint a backdrop without
+   *  switching modes. */
+  aiPanel?: AiPanelProps;
+  /** Save-the-date vs invitation kind. Drives default kicker text
+   *  + tone hints when seeding new elements. */
+  kind?: 'save-the-date' | 'invitation';
 }
+
+/** A handful of the strongest archetypes for the inspector's
+ *  Pear-paint section. The full list lives in
+ *  src/lib/invite-engine/archetypes.ts; we surface a small,
+ *  curated set so the picker doesn't sprawl. */
+const AI_ARCHETYPE_OPTIONS: Array<{ id: string; label: string }> = [
+  { id: 'art-deco', label: 'Art deco' },
+  { id: 'italian-poster', label: 'Italian poster' },
+  { id: 'garden-table', label: 'Garden table' },
+  { id: 'kyoto-winter', label: 'Kyoto winter' },
+  { id: 'tulum-dusk', label: 'Tulum dusk' },
+  { id: 'parisian-salon', label: 'Parisian salon' },
+  { id: 'desert-heirloom', label: 'Desert heirloom' },
+  { id: 'midnight-observatory', label: 'Midnight observatory' },
+];
 
 const FONT_OPTIONS: Array<{ label: string; value: string }> = [
   { label: 'Fraunces · serif',         value: 'Fraunces, Georgia, serif' },
@@ -51,10 +87,12 @@ const FILTER_OPTIONS: Array<{ v: PhotoFilter; l: string }> = [
 ];
 
 export function CanvasInspector({
-  scene, setScene, selectedId, setSelectedId, libraryPhotos, pearPaintUrl,
+  scene, setScene, selectedId, setSelectedId, libraryPhotos, pearPaintUrl, aiPanel, kind,
 }: Props) {
   const selected = scene.elements.find((e) => e.id === selectedId) ?? null;
   const photoUploadRef = useRef<HTMLInputElement | null>(null);
+  const inspirationUploadRef = useRef<HTMLInputElement | null>(null);
+  void kind;
 
   function patch(id: string, p: Partial<CanvasElement>) {
     setScene({
@@ -145,6 +183,22 @@ export function CanvasInspector({
     addPhoto(dataUrl);
   }
 
+  async function onInspirationUpload(files: FileList | null) {
+    if (!files || files.length === 0 || !aiPanel) return;
+    const file = files[0];
+    if (!file.type.startsWith('image/')) return;
+    if (file.size > 8 * 1024 * 1024) return;
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onerror = () => reject(new Error('read failed'));
+      r.onload = () => resolve(String(r.result || ''));
+      r.readAsDataURL(file);
+    });
+    const commaIdx = dataUrl.indexOf(',');
+    const base64 = commaIdx > -1 ? dataUrl.slice(commaIdx + 1) : dataUrl;
+    aiPanel.setInspirationImage({ base64, mimeType: file.type, preview: dataUrl });
+  }
+
   const orderedReversed = [...scene.elements].sort((a, b) => b.z - a.z);
 
   return (
@@ -193,6 +247,121 @@ export function CanvasInspector({
           </>
         )}
       </Section>
+
+      {/* ── Pear paint — only visible when wired by parent ── */}
+      {aiPanel && (
+        <Section title="Pear paint">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
+              Pear paints a bespoke backdrop to drop behind your design — gardens, art deco, watercolor, more. Generate one and apply it to the canvas background.
+            </div>
+            <select
+              value={aiPanel.archetype}
+              onChange={(e) => aiPanel.setArchetype(e.target.value)}
+              style={inputStyle}
+            >
+              {AI_ARCHETYPE_OPTIONS.map((a) => (
+                <option key={a.id} value={a.id}>{a.label}</option>
+              ))}
+            </select>
+            <div>
+              <input
+                ref={inspirationUploadRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={(e) => { void onInspirationUpload(e.target.files); e.target.value = ''; }}
+              />
+              {aiPanel.inspirationImage ? (
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center', padding: 8, background: 'var(--cream-2)', borderRadius: 8 }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={aiPanel.inspirationImage.preview} alt="" style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: 6 }} />
+                  <span style={{ flex: 1, fontSize: 11, color: 'var(--ink-soft)' }}>
+                    Inspiration locked in
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => aiPanel.setInspirationImage(null)}
+                    style={{
+                      padding: '4px 10px', borderRadius: 6,
+                      border: '1px solid var(--line)', background: 'transparent',
+                      color: 'var(--ink-soft)', fontSize: 11, fontWeight: 600,
+                      cursor: 'pointer', fontFamily: 'var(--font-ui)',
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => inspirationUploadRef.current?.click()}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: 9,
+                    border: '1.5px dashed var(--line)',
+                    background: 'var(--card)',
+                    color: 'var(--ink-soft)',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-ui)',
+                  }}
+                >
+                  + Inspiration image (optional)
+                </button>
+              )}
+            </div>
+            <input
+              type="text"
+              value={aiPanel.aiHint}
+              onChange={(e) => aiPanel.setAiHint(e.target.value)}
+              placeholder='Direction (e.g. "Tuscany at dusk")'
+              maxLength={200}
+              style={inputStyle}
+            />
+            <button
+              type="button"
+              onClick={aiPanel.onPaint}
+              disabled={aiPanel.busy}
+              className="pl-pearl-accent"
+              style={{
+                padding: '10px 16px',
+                borderRadius: 999,
+                fontSize: 12.5,
+                fontWeight: 700,
+                cursor: aiPanel.busy ? 'wait' : 'pointer',
+                border: 'none',
+                fontFamily: 'var(--font-ui)',
+                opacity: aiPanel.busy ? 0.7 : 1,
+              }}
+            >
+              {aiPanel.busy ? 'Pear is painting…' : aiPanel.hasResult ? 'Paint another' : 'Paint with Pear'}
+            </button>
+            {aiPanel.hasResult && pearPaintUrl && (
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={pearPaintUrl} alt="" style={{ width: 56, height: 78, objectFit: 'cover', borderRadius: 6, border: '1px solid var(--line)' }} />
+                <span style={{ flex: 1, fontSize: 11.5, color: 'var(--ink-soft)' }}>
+                  Select the background element on the canvas to apply this as a backdrop.
+                </span>
+              </div>
+            )}
+            {aiPanel.error && (
+              <div style={{
+                fontSize: 11.5,
+                color: '#7A2D2D',
+                background: 'rgba(122,45,45,0.08)',
+                padding: '8px 10px',
+                borderRadius: 8,
+              }}>
+                {aiPanel.error}
+              </div>
+            )}
+          </div>
+        </Section>
+      )}
 
       {/* ── Selected element controls ── */}
       {selected ? (
