@@ -2744,6 +2744,142 @@ function HotelsMapView({
   );
 }
 
+// RsvpPulseRibbon — fetches /api/rsvp/pulse on mount, renders
+// a 3-stat ribbon (Yes / No / Pending) and a "Recently RSVPd"
+// stream of first names. Hides itself when no responses exist
+// yet so a brand-new site doesn't read as "0 yes / 0 no" at
+// the top of the form. Auto-refreshes every 60 seconds for
+// the pre-day-of host who keeps the tab open.
+interface RsvpPulse {
+  yes: number;
+  no: number;
+  pending: number;
+  total: number;
+  recent: Array<{ firstName: string; status: 'yes' | 'no'; ts: string }>;
+}
+function RsvpPulseRibbon({ siteSlug }: { siteSlug?: string }) {
+  const [pulse, setPulse] = useState<RsvpPulse | null>(null);
+  useEffect(() => {
+    if (!siteSlug) return;
+    let cancelled = false;
+    async function load() {
+      try {
+        const res = await fetch(`/api/rsvp/pulse?siteId=${encodeURIComponent(siteSlug ?? '')}`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = (await res.json()) as RsvpPulse;
+        if (!cancelled) setPulse(data);
+      } catch { /* silent */ }
+    }
+    void load();
+    const id = window.setInterval(load, 60_000);
+    return () => { cancelled = true; window.clearInterval(id); };
+  }, [siteSlug]);
+
+  if (!pulse || pulse.total === 0) return null;
+
+  return (
+    <div
+      style={{
+        marginTop: 22,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 14,
+        alignItems: 'center',
+      }}
+    >
+      <div
+        role="status"
+        aria-label="RSVP counts"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 12,
+          padding: '8px 16px',
+          background: 'var(--card)',
+          border: '1px solid var(--card-ring)',
+          borderRadius: 999,
+          boxShadow: '0 4px 12px -8px rgba(14,13,11,0.15)',
+        }}
+      >
+        <RsvpStat n={pulse.yes} label="yes" tone="peach" />
+        <span style={{ width: 1, height: 16, background: 'var(--line-soft)' }} aria-hidden />
+        <RsvpStat n={pulse.no} label="no" tone="muted" />
+        {pulse.pending > 0 && (
+          <>
+            <span style={{ width: 1, height: 16, background: 'var(--line-soft)' }} aria-hidden />
+            <RsvpStat n={pulse.pending} label="pending" tone="muted" />
+          </>
+        )}
+      </div>
+      {pulse.recent.length > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 6,
+            justifyContent: 'center',
+            maxWidth: 520,
+            fontSize: 11.5,
+            color: 'var(--ink-soft)',
+          }}
+        >
+          <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginRight: 4 }}>
+            Recently RSVPd
+          </span>
+          {pulse.recent.map((r, i) => (
+            <span
+              key={i}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '2px 9px',
+                background: r.status === 'yes' ? 'var(--peach-bg, rgba(198,112,61,0.10))' : 'var(--cream-2)',
+                color: r.status === 'yes' ? 'var(--peach-ink, #C6703D)' : 'var(--ink-soft)',
+                border: '1px solid var(--line-soft)',
+                borderRadius: 999,
+                fontSize: 11,
+                fontWeight: 600,
+              }}
+            >
+              {r.status === 'yes' ? '✓' : '·'} {r.firstName}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RsvpStat({ n, label, tone }: { n: number; label: string; tone: 'peach' | 'muted' }) {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 5 }}>
+      <span
+        className="display"
+        style={{
+          fontSize: 22,
+          fontWeight: 700,
+          lineHeight: 1,
+          color: tone === 'peach' ? 'var(--peach-ink, #C6703D)' : 'var(--ink)',
+        }}
+      >
+        {n}
+      </span>
+      <span
+        style={{
+          fontSize: 10.5,
+          fontWeight: 700,
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--ink-muted)',
+        }}
+      >
+        {label}
+      </span>
+    </span>
+  );
+}
+
 // AirportsBlock — compact list of nearby airports with the
 // closest tagged "Closest" and a copy-the-IATA-code chip per
 // row. Mixes legacy string entries (just a name) and new
@@ -4279,6 +4415,7 @@ function RSVPSectionImpl({
               lineHeight: 1.55,
             }}
           />
+          <RsvpPulseRibbon siteSlug={siteSlug} />
         </div>
 
         <ConfettiBurst active={state === 'success' && going === 'yes'} url={manifest.decorLibrary?.confetti} />
