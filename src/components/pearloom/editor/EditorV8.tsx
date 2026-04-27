@@ -38,6 +38,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { CanvasStage } from './canvas/CanvasStage';
 import { FirstThreadTour } from './FirstThreadTour';
 import { DecorGenerationToast } from './DecorGenerationToast';
+import { DecorRecolorModal } from './DecorRecolorModal';
 import { ThemeQuickBar } from './canvas/ThemeQuickBar';
 import { EditorCanvasProvider } from './canvas/EditorCanvasContext';
 import { AssetLibraryPanel } from './panels/AssetLibraryPanel';
@@ -556,6 +557,7 @@ export function EditorV8({
     >
       <FirstThreadTour siteSlug={siteSlug} />
       <DecorGenerationToast />
+      <DecorRecolorModal manifest={manifest} onEditField={(patch) => setManifest((m) => patch(m))} />
       {publishError && (
         <div
           role="alert"
