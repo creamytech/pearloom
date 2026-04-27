@@ -160,11 +160,36 @@ export function EditorV8({
       const detail = (e as CustomEvent<{ tab?: 'section' | 'theme' | 'pear' }>).detail;
       if (detail?.tab) setInspectorTab(detail.tab);
     }
+    // ── pearloom:design-jump ─────────────────────────────────
+    // Top-level Design dropdown + ⌘K design entries fire this with
+    // an `anchor` slug that matches a [data-pl-design-anchor=…] on
+    // ThemePanel. The handler switches to the Theme tab, then waits
+    // one render tick for the panel to mount before scrolling the
+    // anchor into view. Two-step is intentional — without it the
+    // first jump from a non-theme tab races the panel mount and
+    // resolves on a stale DOM that doesn't have the anchor yet.
+    function onDesignJump(e: Event) {
+      const detail = (e as CustomEvent<{ anchor?: string; block?: string }>).detail;
+      if (detail?.block && BLOCKS.some((b) => b.key === detail.block)) {
+        setBlock(detail.block as BlockKey);
+        setInspectorTab('section');
+        return;
+      }
+      const anchor = detail?.anchor;
+      if (!anchor) return;
+      setInspectorTab('theme');
+      setTimeout(() => {
+        const el = document.querySelector(`[data-pl-design-anchor="${anchor}"]`);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+    }
     window.addEventListener('pearloom:inspector-focus', onFocus as EventListener);
     window.addEventListener('pearloom:inspector-focus-tab', onFocusTab as EventListener);
+    window.addEventListener('pearloom:design-jump', onDesignJump as EventListener);
     return () => {
       window.removeEventListener('pearloom:inspector-focus', onFocus as EventListener);
       window.removeEventListener('pearloom:inspector-focus-tab', onFocusTab as EventListener);
+      window.removeEventListener('pearloom:design-jump', onDesignJump as EventListener);
     };
   }, []);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -802,6 +827,171 @@ function PublishToast({ url, onClose }: { url: string; onClose: () => void }) {
   );
 }
 
+// ── Design menu ──────────────────────────────────────────────
+//
+// One-click access to every feature that lived behind "click an
+// art element first". Buckets the surfaces by what hosts ask for
+// most (palette, fonts, AI decor, nav style) so they don't have
+// to hunt through the Theme tab. Each item dispatches a
+// pearloom:design-jump event the editor listens to — see the
+// onDesignJump handler in EditorV8 — which switches to the right
+// tab and scrolls the right anchor into view.
+function DesignMenu() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDoc(e: MouseEvent) {
+      if (ref.current?.contains(e.target as Node)) return;
+      setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  function jumpAnchor(anchor: string) {
+    setOpen(false);
+    window.dispatchEvent(new CustomEvent('pearloom:design-jump', { detail: { anchor } }));
+  }
+  function jumpBlock(block: string) {
+    setOpen(false);
+    window.dispatchEvent(new CustomEvent('pearloom:design-jump', { detail: { block } }));
+  }
+
+  const itemStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    padding: '8px 10px',
+    borderRadius: 8,
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    fontFamily: 'var(--font-ui)',
+    fontSize: 13,
+    color: 'var(--ink)',
+    textAlign: 'left',
+    width: '100%',
+  };
+  const groupLabel: React.CSSProperties = {
+    fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+    fontSize: 9.5,
+    fontWeight: 700,
+    letterSpacing: '0.22em',
+    textTransform: 'uppercase',
+    color: 'var(--ink-muted)',
+    padding: '8px 10px 4px',
+  };
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        title="Design — palette, fonts, AI decor, nav style"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '7px 12px',
+          borderRadius: 999,
+          background: open ? 'var(--cream-2)' : 'transparent',
+          border: '1px solid var(--line-soft)',
+          color: 'var(--ink-soft)',
+          fontSize: 12.5,
+          fontWeight: 600,
+          fontFamily: 'var(--font-ui)',
+          cursor: 'pointer',
+          transition: 'background 160ms ease',
+        }}
+      >
+        <Icon name="palette" size={12} /> Design
+        <span
+          aria-hidden
+          style={{
+            display: 'inline-flex',
+            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+        >
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </span>
+      </button>
+      {open && (
+        <div
+          role="menu"
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 6px)',
+            right: 0,
+            minWidth: 280,
+            background: 'var(--card)',
+            border: '1px solid var(--card-ring)',
+            borderRadius: 14,
+            padding: 6,
+            boxShadow: '0 24px 48px rgba(14,13,11,0.20), 0 4px 12px rgba(14,13,11,0.10)',
+            zIndex: 50,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <div style={groupLabel}>Look &amp; feel</div>
+          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('palette')}>
+            <Icon name="palette" size={14} /> Color palette
+          </button>
+          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('fonts')}>
+            <Icon name="type" size={14} /> Fonts
+          </button>
+          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('motif')}>
+            <Icon name="sparkles" size={14} /> Motif &amp; shapes
+          </button>
+          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('spacing')}>
+            <Icon name="layout" size={14} /> Spacing
+          </button>
+          <div style={{ height: 1, background: 'var(--line-soft)', margin: '4px 6px' }} />
+          <div style={groupLabel}>AI decor</div>
+          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('decor')}>
+            <Icon name="brush" size={14} /> Decor library
+            <span style={{ marginLeft: 'auto', fontSize: 9.5, color: 'var(--peach-ink, #C6703D)', fontWeight: 700, letterSpacing: '0.12em' }}>NEW</span>
+          </button>
+          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('ai-accent')}>
+            <Icon name="sparkles" size={14} /> Hero flourish
+          </button>
+          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('hero-decor')}>
+            <Icon name="image" size={14} /> Hero decoration style
+          </button>
+          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('atmosphere')}>
+            <Icon name="image" size={14} /> Atmosphere
+          </button>
+          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('stickers')}>
+            <Icon name="sparkles" size={14} /> Stickers
+          </button>
+          <div style={{ height: 1, background: 'var(--line-soft)', margin: '4px 6px' }} />
+          <div style={groupLabel}>Layout</div>
+          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpBlock('nav')}>
+            <Icon name="layout" size={14} /> Navigation bar
+          </button>
+          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpBlock('hero')}>
+            <Icon name="image" size={14} /> Hero block
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function EditorTopbar({
   displayNames,
   prettyUrl,
@@ -995,6 +1185,7 @@ function EditorTopbar({
           <Icon name="redo" size={15} />
         </button>
         <span style={{ width: 1, height: 18, background: 'var(--line-soft)', margin: '0 4px' }} aria-hidden />
+        <DesignMenu />
         <button type="button" onClick={onOpenAdvisor} style={ghostBtn}>
           <Icon name="sparkles" size={12} /> Ask Pear
         </button>

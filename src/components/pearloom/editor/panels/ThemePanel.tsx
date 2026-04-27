@@ -225,102 +225,123 @@ export function ThemePanel({
 
   return (
     <div>
-      <PanelSection label="Active theme" hint="Pearloom themes bundle palette, motif, and typography into a named look.">
-        <div
-          style={{
-            display: 'flex',
-            gap: 14,
-            alignItems: 'center',
-            padding: 14,
-            background: 'var(--card)',
-            border: '1px solid var(--card-ring)',
-            borderRadius: 14,
-          }}
-        >
+      <div data-pl-design-anchor="theme">
+        <PanelSection label="Active theme" hint="Pearloom themes bundle palette, motif, and typography into a named look.">
           <div
             style={{
-              width: 56,
-              height: 56,
-              borderRadius: 12,
-              background: `linear-gradient(135deg, ${active.colors[0]}, ${active.colors[1]}, ${active.colors[2]})`,
+              display: 'flex',
+              gap: 14,
+              alignItems: 'center',
+              padding: 14,
+              background: 'var(--card)',
+              border: '1px solid var(--card-ring)',
+              borderRadius: 14,
             }}
-          />
-          <div style={{ flex: 1 }}>
-            <Field label="Theme name">
-              <TextInput
-                value={themeName}
-                onChange={(e) => update({ themeName: e.target.value })}
-                placeholder="Our theme"
-              />
-            </Field>
+          >
+            <div
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 12,
+                background: `linear-gradient(135deg, ${active.colors[0]}, ${active.colors[1]}, ${active.colors[2]})`,
+              }}
+            />
+            <div style={{ flex: 1 }}>
+              <Field label="Theme name">
+                <TextInput
+                  value={themeName}
+                  onChange={(e) => update({ themeName: e.target.value })}
+                  placeholder="Our theme"
+                />
+              </Field>
+            </div>
           </div>
-        </div>
-      </PanelSection>
+        </PanelSection>
+      </div>
 
-      <PaletteSection manifest={manifest} active={active} palette={palette} applyPalette={applyPalette} onChange={onChange} />
+      <div data-pl-design-anchor="palette">
+        <PaletteSection manifest={manifest} active={active} palette={palette} applyPalette={applyPalette} onChange={onChange} />
+        <CustomPaletteEditor manifest={manifest} onChange={onChange} applyPalette={applyPalette} />
+      </div>
 
-      <CustomPaletteEditor manifest={manifest} onChange={onChange} applyPalette={applyPalette} />
+      <div data-pl-design-anchor="motif">
+        <PanelSection label="Motif" hint="Decorative shapes that punctuate the design.">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+            {MOTIFS.map((m) => {
+              const on = motif === m.id;
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => update({ motif: m.id })}
+                  style={{
+                    padding: 12,
+                    borderRadius: 12,
+                    background: on ? 'var(--sage-tint)' : 'var(--card)',
+                    border: on ? '1.5px solid var(--sage-deep)' : '1.5px solid var(--line)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontFamily: 'var(--font-ui)',
+                  }}
+                >
+                  <div style={{ height: 30, display: 'grid', placeItems: 'center' }}>{m.icon}</div>
+                  <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ink)' }}>{m.name}</div>
+                </button>
+              );
+            })}
+          </div>
+        </PanelSection>
+      </div>
 
-      <PanelSection label="Motif" hint="Decorative shapes that punctuate the design.">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-          {MOTIFS.map((m) => {
-            const on = motif === m.id;
-            return (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => update({ motif: m.id })}
-                style={{
-                  padding: 12,
-                  borderRadius: 12,
-                  background: on ? 'var(--sage-tint)' : 'var(--card)',
-                  border: on ? '1.5px solid var(--sage-deep)' : '1.5px solid var(--line)',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 6,
-                  fontFamily: 'var(--font-ui)',
-                }}
-              >
-                <div style={{ height: 30, display: 'grid', placeItems: 'center' }}>{m.icon}</div>
-                <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ink)' }}>{m.name}</div>
-              </button>
-            );
-          })}
-        </div>
-      </PanelSection>
+      <div data-pl-design-anchor="fonts">
+        <FontPicker manifest={manifest} onChange={onChange} />
+      </div>
 
-      <FontPicker manifest={manifest} onChange={onChange} />
+      <div data-pl-design-anchor="colors">
+        <ColorTokenInspector manifest={manifest} onChange={onChange} />
+      </div>
 
-      <ColorTokenInspector manifest={manifest} onChange={onChange} />
-
-      <SpacingPanel manifest={manifest} onChange={onChange} />
+      <div data-pl-design-anchor="spacing">
+        <SpacingPanel manifest={manifest} onChange={onChange} />
+      </div>
 
       <SnapshotsPanel manifest={manifest} onChange={onChange} />
 
-      <PanelSection
-        label="Hero decoration"
-        hint="Occasion-aware shapes match your event; classic keeps the v8 cream blobs; off is clean."
-      >
-        <SegmentedToggle<string>
-          value={read<string>(manifest, 'decorStyle', 'occasion')}
-          onChange={(v) => update({ decorStyle: v })}
-          options={[
-            { value: 'occasion', label: 'By occasion' },
-            { value: 'classic', label: 'Classic' },
-            { value: 'off', label: 'Off' },
-          ]}
-        />
-      </PanelSection>
+      <div data-pl-design-anchor="hero-decor">
+        <PanelSection
+          label="Hero decoration"
+          hint="Occasion-aware shapes match your event; classic keeps the v8 cream blobs; off is clean."
+        >
+          <SegmentedToggle<string>
+            value={read<string>(manifest, 'decorStyle', 'occasion')}
+            onChange={(v) => update({ decorStyle: v })}
+            options={[
+              { value: 'occasion', label: 'By occasion' },
+              { value: 'classic', label: 'Classic' },
+              { value: 'off', label: 'Off' },
+            ]}
+          />
+        </PanelSection>
+      </div>
 
-      <AiAccentSection manifest={manifest} onChange={onChange} />
+      <div data-pl-design-anchor="ai-accent">
+        <AiAccentSection manifest={manifest} onChange={onChange} />
+      </div>
 
-      <AtmospherePanel manifest={manifest} onChange={onChange} />
+      <div data-pl-design-anchor="atmosphere">
+        <AtmospherePanel manifest={manifest} onChange={onChange} />
+      </div>
 
-      <DecorLibraryPanel manifest={manifest} onChange={onChange} />
+      <div data-pl-design-anchor="decor">
+        <DecorLibraryPanel manifest={manifest} onChange={onChange} />
+      </div>
 
-      <StickerTrayPanel manifest={manifest} onChange={onChange} />
+      <div data-pl-design-anchor="stickers">
+        <StickerTrayPanel manifest={manifest} onChange={onChange} />
+      </div>
     </div>
   );
 }

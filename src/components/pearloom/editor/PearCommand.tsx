@@ -25,9 +25,17 @@ type Command = {
   label: string;
   hint: string;
   icon: string;
-  group: 'jump' | 'ai' | 'act';
+  group: 'jump' | 'design' | 'ai' | 'act';
   run: () => void | Promise<void>;
 };
+
+// Helper that fires the same pearloom:design-jump event the topbar
+// Design dropdown uses, so ⌘K and the dropdown stay in lock-step on
+// what counts as a "design feature" (and where to land the user).
+function dispatchDesignJump(detail: { anchor?: string; block?: string }) {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent('pearloom:design-jump', { detail }));
+}
 
 // Client-side rate limit for ⌘K AI commands. Server rate-limits by
 // IP/user too; this just prevents the user from accidentally holding
@@ -187,6 +195,19 @@ export function PearCommand({
       { id: 'j-rsvp', label: 'Edit RSVP', hint: 'Deadline, meals, plus-ones', icon: 'mail', group: 'jump', run: () => onJumpBlock('rsvp') },
       { id: 'j-theme', label: 'Edit theme', hint: 'Palette, motif, typography', icon: 'palette', group: 'jump', run: () => onJumpBlock('theme') },
 
+      // Design — every theme/decor/typography surface, deep-linked
+      { id: 'd-palette', label: 'Color palette', hint: 'Curated palettes + custom colors', icon: 'palette', group: 'design', run: () => dispatchDesignJump({ anchor: 'palette' }) },
+      { id: 'd-fonts', label: 'Fonts', hint: 'Heading + body + script', icon: 'type', group: 'design', run: () => dispatchDesignJump({ anchor: 'fonts' }) },
+      { id: 'd-motif', label: 'Motif & shapes', hint: 'Decorative punctuation', icon: 'sparkles', group: 'design', run: () => dispatchDesignJump({ anchor: 'motif' }) },
+      { id: 'd-spacing', label: 'Spacing', hint: 'Padding + section gaps', icon: 'layout', group: 'design', run: () => dispatchDesignJump({ anchor: 'spacing' }) },
+      { id: 'd-decor', label: 'AI decor library', hint: 'Dividers, stamps, confetti, footer', icon: 'brush', group: 'design', run: () => dispatchDesignJump({ anchor: 'decor' }) },
+      { id: 'd-accent', label: 'Hero flourish', hint: 'AI-generated cover ornament', icon: 'sparkles', group: 'design', run: () => dispatchDesignJump({ anchor: 'ai-accent' }) },
+      { id: 'd-hero-decor', label: 'Hero decoration style', hint: 'Occasion / classic / off', icon: 'image', group: 'design', run: () => dispatchDesignJump({ anchor: 'hero-decor' }) },
+      { id: 'd-atmosphere', label: 'Atmosphere', hint: 'Living background + audio', icon: 'image', group: 'design', run: () => dispatchDesignJump({ anchor: 'atmosphere' }) },
+      { id: 'd-stickers', label: 'Stickers', hint: 'Drag-and-drop accents', icon: 'sparkles', group: 'design', run: () => dispatchDesignJump({ anchor: 'stickers' }) },
+      { id: 'd-colors', label: 'Color tokens', hint: 'Granular ink/cream overrides', icon: 'palette', group: 'design', run: () => dispatchDesignJump({ anchor: 'colors' }) },
+      { id: 'd-nav', label: 'Navigation bar', hint: 'Layout style + brand icon', icon: 'layout', group: 'design', run: () => dispatchDesignJump({ block: 'nav' }) },
+
       // AI
       { id: 'ai-warmer', label: 'Rewrite my tagline, warmer', hint: 'Pear softens the tone', icon: 'sparkles', group: 'ai', run: () => rewriteTagline('Rewrite this tagline to feel warmer and more handwritten — like a friend, not a brand. Keep it 1-2 sentences.', 'Warmer tagline') },
       { id: 'ai-shorter', label: 'Rewrite my tagline, shorter', hint: 'One crisp line', icon: 'sparkles', group: 'ai', run: () => rewriteTagline('Rewrite this tagline to a single sentence, 14 words or fewer.', 'Shorter tagline') },
@@ -325,6 +346,7 @@ export function PearCommand({
           )}
 
           {renderGroup('Jump to a block', filtered.filter((c) => c.group === 'jump'), cursor, filtered, busy)}
+          {renderGroup('Design & decor', filtered.filter((c) => c.group === 'design'), cursor, filtered, busy)}
           {renderGroup('Ask Pear', filtered.filter((c) => c.group === 'ai'), cursor, filtered, busy)}
           {renderGroup('Actions', filtered.filter((c) => c.group === 'act'), cursor, filtered, busy)}
 
