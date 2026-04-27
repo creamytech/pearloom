@@ -41,12 +41,19 @@ export function PhotoLightbox({
   onClose,
   onNext,
   onPrev,
+  reactions,
+  onToggleReaction,
 }: {
   images: LightboxImage[];
   index: number | null;
   onClose: () => void;
   onNext: () => void;
   onPrev: () => void;
+  /** Heart count + my-reaction map keyed by photoUrl. When
+   *  provided + onToggleReaction is set, the lightbox renders a
+   *  heart button in the chrome rail. */
+  reactions?: { counts: Record<string, number>; mine: Record<string, true> };
+  onToggleReaction?: (photoUrl: string) => void | Promise<void>;
 }) {
   // Render via portal so the fixed-position overlay isn't trapped
   // by an ancestor with transform / filter / will-change (which
@@ -270,6 +277,40 @@ export function PhotoLightbox({
       >
         <RailButton ariaLabel="Previous photo" onClick={(e) => { e.stopPropagation(); onPrev(); }}>‹</RailButton>
         <span style={{ width: 1, height: 16, background: 'rgba(243,233,212,0.18)', margin: '0 2px' }} />
+        {reactions && onToggleReaction && (
+          <>
+            <button
+              type="button"
+              aria-label={reactions.mine[img.url] ? 'Unheart photo' : 'Heart photo'}
+              onClick={(e) => { e.stopPropagation(); void onToggleReaction(img.url); }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 12px',
+                background: reactions.mine[img.url] ? 'var(--peach-ink, #C6703D)' : 'transparent',
+                color: reactions.mine[img.url] ? '#FFFFFF' : 'var(--cream, #F5EFE2)',
+                border: 'none',
+                borderRadius: 999,
+                cursor: 'pointer',
+                fontSize: 12,
+                fontWeight: 700,
+                fontFamily: 'inherit',
+                transition: 'background 140ms ease, transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+              }}
+              onMouseEnter={(e) => {
+                if (!reactions.mine[img.url]) e.currentTarget.style.background = 'rgba(243,233,212,0.14)';
+              }}
+              onMouseLeave={(e) => {
+                if (!reactions.mine[img.url]) e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              <span aria-hidden style={{ fontSize: 13, transform: reactions.mine[img.url] ? 'scale(1.1)' : 'scale(1)', transition: 'transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1)' }}>♥</span>
+              {(reactions.counts[img.url] ?? 0) > 0 ? reactions.counts[img.url] : ''}
+            </button>
+            <span style={{ width: 1, height: 16, background: 'rgba(243,233,212,0.18)', margin: '0 2px' }} />
+          </>
+        )}
         {typeof navigator !== 'undefined' && 'share' in navigator && (
           <>
             <RailButton ariaLabel="Share" onClick={share}>

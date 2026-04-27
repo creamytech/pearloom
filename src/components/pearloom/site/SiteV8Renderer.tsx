@@ -3897,7 +3897,14 @@ function RegistrySectionImpl({ manifest }: { manifest: StoryManifest }) {
 }
 
 /* ==================== GALLERY ==================== */
-function GallerySectionImpl({ chapters, manifest, onEditField }: { chapters: Chapter[]; manifest?: StoryManifest; onEditField?: FieldEditor }) {
+function GallerySectionImpl({
+  chapters, manifest, onEditField, siteSlug,
+}: {
+  chapters: Chapter[];
+  manifest?: StoryManifest;
+  onEditField?: FieldEditor;
+  siteSlug?: string;
+}) {
   const edit = useIsEditMode();
   // Build a mapping from each photo URL to the (chapter, image) it
   // came from so PhotoActionMenu can patch the original chapters[]
@@ -3907,6 +3914,47 @@ function GallerySectionImpl({ chapters, manifest, onEditField }: { chapters: Cha
   ).filter((x) => x.url);
   const photos = photoSources.map((p) => p.url).slice(0, 12);
   const sources = photoSources.slice(0, 12);
+
+  // Live reactions — { [photoUrl]: count } + which ones I've hearted.
+  // Polled once on mount + when the lightbox toggles a reaction
+  // (the lightbox calls onReactionChange with the new count).
+  const [reactions, setReactions] = useState<{ counts: Record<string, number>; mine: Record<string, true> }>({ counts: {}, mine: {} });
+  useEffect(() => {
+    if (!siteSlug) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch(`/api/gallery/reactions?siteId=${encodeURIComponent(siteSlug)}`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = (await res.json()) as { counts: Record<string, number>; mine: Record<string, true> };
+        if (!cancelled) setReactions(data);
+      } catch { /* silent */ }
+    })();
+    return () => { cancelled = true; };
+  }, [siteSlug]);
+
+  // Find the most-loved photo to flag with a badge. Only when at
+  // least 1 reaction exists — otherwise no photo deserves the
+  // "Most loved" pin yet.
+  const mostLovedUrl = (() => {
+    let best: string | null = null;
+    let bestCount = 0;
+    for (const url of photos) {
+      const c = reactions.counts[url] ?? 0;
+      if (c > bestCount) { best = url; bestCount = c; }
+    }
+    return bestCount > 0 ? best : null;
+  })();
+
+  function applyReaction(photoUrl: string, count: number, reacted: boolean) {
+    setReactions((prev) => {
+      const counts = { ...prev.counts, [photoUrl]: count };
+      const mine = { ...prev.mine };
+      if (reacted) mine[photoUrl] = true;
+      else delete mine[photoUrl];
+      return { counts, mine };
+    });
+  }
   const tones: Tone[] = ['warm', 'field', 'dusk', 'lavender', 'peach', 'sage', 'cream', 'warm', 'dusk', 'lavender', 'field', 'peach'];
   const spans = [
     { cs: 'span 2', rs: 'span 2' },
@@ -3933,6 +3981,20 @@ function GallerySectionImpl({ chapters, manifest, onEditField }: { chapters: Cha
   // tiles aren't openable.
   const lightboxImages = photos.map((url) => ({ url }));
   const { index, open, close, next, prev } = usePhotoLightbox(lightboxImages);
+
+  async function toggleReaction(photoUrl: string) {
+    if (!siteSlug) return;
+    try {
+      const res = await fetch('/api/gallery/react', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteSlug, photoUrl }),
+      });
+      if (!res.ok) return;
+      const data = (await res.json()) as { reacted: boolean; count: number };
+      applyReaction(photoUrl, data.count, data.reacted);
+    } catch { /* silent */ }
+  }
 
   return (
     <section id="gallery" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
@@ -4004,16 +4066,21 @@ function GallerySectionImpl({ chapters, manifest, onEditField }: { chapters: Cha
                   return { ...m, chapters: arr };
                 })
               : undefined;
+            const reactionCount = url ? (reactions.counts[url] ?? 0) : 0;
+            const isMostLoved = !!url && url === mostLovedUrl;
             return (
               <div
                 key={i}
                 onClick={clickable ? () => open(photoIndex) : undefined}
                 style={{
+                  position: 'relative',
                   gridColumn: s.cs,
                   gridRow: s.rs,
                   borderRadius: 14,
                   overflow: 'hidden',
-                  boxShadow: '0 8px 20px rgba(61,74,31,0.1)',
+                  boxShadow: isMostLoved
+                    ? '0 12px 28px rgba(198,112,61,0.30), 0 0 0 2px var(--peach-ink, #C6703D)'
+                    : '0 8px 20px rgba(61,74,31,0.1)',
                   cursor: clickable ? 'zoom-in' : 'default',
                   transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
                 }}
@@ -4023,12 +4090,68 @@ function GallerySectionImpl({ chapters, manifest, onEditField }: { chapters: Cha
                 <PhotoActionMenu imageUrl={url} onReplace={onReplace} onRemove={onRemove}>
                   <PhotoPlaceholder tone={t} aspect="auto" src={url} style={{ height: '100%' }} />
                 </PhotoActionMenu>
+                {isMostLoved && (
+                  <span
+                    aria-hidden
+                    style={{
+                      position: 'absolute',
+                      top: 10,
+                      left: 10,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      padding: '3px 9px',
+                      background: 'var(--peach-ink, #C6703D)',
+                      color: '#FFFFFF',
+                      borderRadius: 999,
+                      fontSize: 9.5,
+                      fontWeight: 800,
+                      letterSpacing: '0.14em',
+                      textTransform: 'uppercase',
+                      boxShadow: '0 4px 10px -3px rgba(198,112,61,0.50)',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    ♥ Most loved
+                  </span>
+                )}
+                {reactionCount > 0 && (
+                  <span
+                    aria-label={`${reactionCount} reactions`}
+                    style={{
+                      position: 'absolute',
+                      bottom: 10,
+                      right: 10,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      padding: '4px 10px',
+                      background: 'rgba(14,13,11,0.55)',
+                      color: '#FFFFFF',
+                      borderRadius: 999,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      backdropFilter: 'blur(6px)',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    ♥ {reactionCount}
+                  </span>
+                )}
               </div>
             );
           })}
         </div>
       </div>
-      <PhotoLightbox images={lightboxImages} index={index} onClose={close} onNext={next} onPrev={prev} />
+      <PhotoLightbox
+        images={lightboxImages}
+        index={index}
+        onClose={close}
+        onNext={next}
+        onPrev={prev}
+        reactions={siteSlug ? reactions : undefined}
+        onToggleReaction={siteSlug ? (url) => void toggleReaction(url) : undefined}
+      />
     </section>
   );
 }
@@ -4850,6 +4973,7 @@ const GallerySection = memo(GallerySectionImpl, (p, n) => {
   return (
     p.chapters === n.chapters &&
     p.onEditField === n.onEditField &&
+    p.siteSlug === n.siteSlug &&
     manifestSlicesEqual(p.manifest, n.manifest, COMMON_CHROME_KEYS)
   );
 });
@@ -5593,7 +5717,7 @@ export function SiteV8Renderer({
       case 'registry':
         return <RegistrySection key="registry" manifest={manifest} />;
       case 'gallery':
-        return <GallerySection key="gallery" chapters={chapters} manifest={manifest} onEditField={onEditField} />;
+        return <GallerySection key="gallery" chapters={chapters} manifest={manifest} onEditField={onEditField} siteSlug={siteSlug} />;
       case 'faq':
         return <FaqSection key="faq" manifest={manifest} onEditField={onEditField} />;
       case 'rsvp':
