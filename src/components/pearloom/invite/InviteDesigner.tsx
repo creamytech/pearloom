@@ -9,7 +9,7 @@
    ======================================================================== */
 
 import Link from 'next/link';
-import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import type { StoryManifest } from '@/types';
 import { Icon } from '../motifs';
@@ -17,13 +17,48 @@ import { DashLayout } from '../dash/DashShell';
 import { buildSiteUrl, formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { AISuggestButton, useAICall } from '../editor/ai';
 import { startDecorJob, completeDecorJob } from '@/lib/decor-bus';
+import { DecorGenerationToast } from '../editor/DecorGenerationToast';
 import { ARCHETYPES, type ArchetypeId } from '@/lib/invite-engine/archetypes';
+import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
 
-type VariantId = 'garden' | 'editorial' | 'groovy' | 'polaroid' | 'modern' | 'botanical' | 'cinema' | 'linen';
+type VariantId =
+  // Save-the-date — photo-first
+  | 'photo-postcard'
+  | 'polaroid-stack'
+  | 'photo-frame'
+  // Invitation — type-first formal
+  | 'formal-engraved'
+  | 'letterpress'
+  | 'monogram-crest'
+  // Cross-kind classics
+  | 'garden'
+  | 'editorial'
+  | 'groovy'
+  | 'polaroid'
+  | 'modern'
+  | 'botanical'
+  | 'cinema'
+  | 'linen';
 type DesignKind = 'save-the-date' | 'invitation';
-type DesignerMode = 'variant' | 'style' | 'ai';
+type DesignerMode = 'variant' | 'photos' | 'style' | 'ai';
 type QRPosition = 'br' | 'bl' | 'bc' | 'tr' | 'hidden';
 type FontKey = 'fraunces' | 'cormorant' | 'allura' | 'space-grotesk' | 'system';
+
+interface PhotoSlot {
+  id: string;
+  // Position + size in the 1000×1400 viewBox.
+  x: number; y: number; w: number; h: number;
+  // Crop shape — defaults to 'rect'. Renderer applies the matching
+  // SVG clipPath so the photo never bleeds outside the slot.
+  shape?: 'rect' | 'rounded' | 'circle' | 'arch' | 'polaroid';
+  // Optional rotation in degrees, around the slot's centre. Used by
+  // the polaroid-stack variant to scatter photos.
+  rotation?: number;
+  // How aggressively the renderer should darken the slot when text
+  // sits on top of the photo. 'auto' adds a tint plate; 'none'
+  // leaves it raw.
+  textTint?: 'none' | 'auto';
+}
 
 const FONT_FAMILIES: Record<FontKey, { label: string; value: string }> = {
   fraunces:        { label: 'Fraunces · classic serif', value: 'Fraunces, Georgia, serif' },
@@ -51,22 +86,122 @@ interface Variant {
   id: VariantId;
   label: string;
   description: string;
+  /** Which kind(s) the picker shows this variant in. */
+  kind: DesignKind | 'both';
   paper: string;
   ink: string;
   accent: string;
   soft: string;
+  /** Photo slots — only set on photo-first variants. Each slot is
+   *  filled from the host's photoSelections map by id. Slots without
+   *  a matching selection render a soft placeholder. */
+  photoSlots?: PhotoSlot[];
 }
 
 const VARIANTS: Variant[] = [
-  { id: 'garden', label: 'Garden Party', description: 'Sage + cream with a soft squiggle.', paper: '#F3E9D4', ink: '#3D4A1F', accent: '#8B9C5A', soft: '#CBD29E' },
-  { id: 'editorial', label: 'Editorial', description: 'Serif type on cream paper.', paper: '#F8F1E4', ink: '#3D4A1F', accent: '#B89244', soft: '#EDE0C5' },
-  { id: 'groovy', label: 'Groovy', description: 'Loopy type, warm peach.', paper: '#F7DDC2', ink: '#8B4720', accent: '#C6703D', soft: '#EAB286' },
-  { id: 'polaroid', label: 'Polaroid', description: 'Photo-first with handwriting.', paper: '#FFFFFF', ink: '#3D4A1F', accent: '#EAB286', soft: '#F3E9D4' },
-  { id: 'modern', label: 'Modern', description: 'Minimal ink, sans body.', paper: '#F8F1E4', ink: '#0E0D0B', accent: '#6B5A8C', soft: '#EDE0C5' },
-  { id: 'botanical', label: 'Botanical', description: 'Lavender wash.', paper: '#EDE0C5', ink: '#4A3F6B', accent: '#B7A4D0', soft: '#D7CCE5' },
-  { id: 'cinema', label: 'Cinema', description: 'Dark olive with gold leaf.', paper: '#3D4A1F', ink: '#F3E9D4', accent: '#D4A95D', soft: '#8B9C5A' },
-  { id: 'linen', label: 'Linen', description: 'Warm peach with gold rules.', paper: '#F7DDC2', ink: '#3D4A1F', accent: '#B89244', soft: '#F0C9A8' },
+  // ── Save-the-date · photo-first ──
+  // Modern save-the-dates are visual-first. The photo is the design;
+  // type sits over it. Three takes: postcard, scattered polaroids,
+  // and an editorial frame. Each surfaces guests' photos prominently.
+  {
+    id: 'photo-postcard',
+    label: 'Photo postcard',
+    description: 'Full-bleed engagement photo with date stamped over.',
+    kind: 'save-the-date',
+    paper: '#F8F1E4', ink: '#FFFFFF', accent: '#C6703D', soft: '#EDE0C5',
+    photoSlots: [{ id: 'main', x: 0, y: 0, w: 1000, h: 1400, shape: 'rect', textTint: 'auto' }],
+  },
+  {
+    id: 'polaroid-stack',
+    label: 'Polaroid stack',
+    description: 'Two scattered polaroids over cream paper.',
+    kind: 'save-the-date',
+    paper: '#F8F1E4', ink: '#3D4A1F', accent: '#C6703D', soft: '#EDE0C5',
+    photoSlots: [
+      { id: 'left', x: 90, y: 200, w: 380, h: 460, shape: 'polaroid', rotation: -6 },
+      { id: 'right', x: 540, y: 280, w: 380, h: 460, shape: 'polaroid', rotation: 5 },
+    ],
+  },
+  {
+    id: 'photo-frame',
+    label: 'Frame',
+    description: 'Photo in an editorial double-rule frame, names below.',
+    kind: 'save-the-date',
+    paper: '#F8F1E4', ink: '#3D4A1F', accent: '#B89244', soft: '#EDE0C5',
+    photoSlots: [{ id: 'main', x: 130, y: 180, w: 740, h: 720, shape: 'rounded' }],
+  },
+
+  // ── Invitation · type-first formal ──
+  // Wedding invitations follow a long tradition: hosting line on top,
+  // names featured, ceremony details, reception line, RSVP card line.
+  // No photo by default — the type IS the design.
+  {
+    id: 'formal-engraved',
+    label: 'Engraved',
+    description: 'Centered serif type with a single hairline rule.',
+    kind: 'invitation',
+    paper: '#FBF7EE', ink: '#0E0D0B', accent: '#5C4F2E', soft: '#E8E0D0',
+  },
+  {
+    id: 'letterpress',
+    label: 'Letterpress',
+    description: 'Wide caps, paired hairlines, formal blocks.',
+    kind: 'invitation',
+    paper: '#F5EFE2', ink: '#0E0D0B', accent: '#5C6B3F', soft: '#D8CFB8',
+  },
+  {
+    id: 'monogram-crest',
+    label: 'Monogram',
+    description: 'Initials medallion over a double-rule frame.',
+    kind: 'invitation',
+    paper: '#F8F1E4', ink: '#3D4A1F', accent: '#B89244', soft: '#EDE0C5',
+  },
+
+  // ── Cross-kind classics ──
+  // Flexible templates that read well as either save-the-date or
+  // formal invitation; copy fields adapt to whichever kind the host
+  // picked in the topbar toggle.
+  { id: 'garden',    label: 'Garden Party', description: 'Sage + cream with a soft squiggle.', kind: 'both', paper: '#F3E9D4', ink: '#3D4A1F', accent: '#8B9C5A', soft: '#CBD29E' },
+  { id: 'editorial', label: 'Editorial',    description: 'Serif type on cream paper.',          kind: 'both', paper: '#F8F1E4', ink: '#3D4A1F', accent: '#B89244', soft: '#EDE0C5' },
+  { id: 'groovy',    label: 'Groovy',       description: 'Loopy type, warm peach.',             kind: 'both', paper: '#F7DDC2', ink: '#8B4720', accent: '#C6703D', soft: '#EAB286' },
+  { id: 'polaroid',  label: 'Polaroid',     description: 'Photo-first with handwriting.',        kind: 'both', paper: '#FFFFFF', ink: '#3D4A1F', accent: '#EAB286', soft: '#F3E9D4',
+    photoSlots: [{ id: 'main', x: 120, y: 160, w: 760, h: 720, shape: 'rect' }] },
+  { id: 'modern',    label: 'Modern',       description: 'Minimal ink, sans body.',             kind: 'both', paper: '#F8F1E4', ink: '#0E0D0B', accent: '#6B5A8C', soft: '#EDE0C5' },
+  { id: 'botanical', label: 'Botanical',    description: 'Lavender wash.',                       kind: 'both', paper: '#EDE0C5', ink: '#4A3F6B', accent: '#B7A4D0', soft: '#D7CCE5' },
+  { id: 'cinema',    label: 'Cinema',       description: 'Dark olive with gold leaf.',          kind: 'both', paper: '#3D4A1F', ink: '#F3E9D4', accent: '#D4A95D', soft: '#8B9C5A' },
+  { id: 'linen',     label: 'Linen',        description: 'Warm peach with gold rules.',         kind: 'both', paper: '#F7DDC2', ink: '#3D4A1F', accent: '#B89244', soft: '#F0C9A8' },
 ];
+
+/** Default variant per kind — picked when the user toggles between
+ *  save-the-date and invitation modes so the preview snaps to a
+ *  template that matches the new format's conventions. */
+const DEFAULT_VARIANT_BY_KIND: Record<DesignKind, VariantId> = {
+  'save-the-date': 'photo-postcard',
+  'invitation': 'formal-engraved',
+};
+
+function variantsForKind(kind: DesignKind): Variant[] {
+  return VARIANTS.filter((v) => v.kind === kind || v.kind === 'both');
+}
+
+/** Pluck every photo URL we know about from the manifest so the
+ *  Photos tab can show a grid of "use one of these." Pulls from
+ *  coverPhoto, chapter heroes, and chapter image arrays. Dedupes
+ *  by URL string. */
+function collectManifestPhotos(manifest: StoryManifest): string[] {
+  const out: string[] = [];
+  const push = (url?: string | null) => {
+    if (!url || typeof url !== 'string') return;
+    if (out.includes(url)) return;
+    out.push(url);
+  };
+  push((manifest as unknown as { coverPhoto?: string }).coverPhoto);
+  for (const ch of manifest.chapters ?? []) {
+    push((ch as unknown as { heroImage?: string }).heroImage);
+    for (const img of (ch.images ?? []) as Array<{ url?: string }>) push(img?.url);
+  }
+  return out;
+}
 
 function fmtDate(iso?: string | null): { long: string; line: string; short: string } {
   if (!iso) return { long: 'Save the date', line: 'Date to come', short: '' };
@@ -87,11 +222,30 @@ export function InviteDesigner({
   manifest: StoryManifest;
   names: [string, string];
 }) {
-  const [variantId, setVariantId] = useState<VariantId>('garden');
   const [kind, setKind] = useState<DesignKind>('save-the-date');
+  const [variantId, setVariantId] = useState<VariantId>(DEFAULT_VARIANT_BY_KIND['save-the-date']);
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
+
+  // ── Photo state ─────────────────────────────────────────────
+  // Photo slots on a variant are filled from this map: slotId →
+  // image URL. Switching variants clears slot selections that no
+  // longer apply. Hosts pick from manifest photos (engagement
+  // shoot, hero, chapter images) or paste an external URL.
+  const [photoSelections, setPhotoSelections] = useState<Record<string, string>>({});
+
+  // ── Invitation-specific copy ────────────────────────────────
+  // Save-the-dates need only headline + names + date + venue. Real
+  // wedding invitations also need: hosting line ("Together with
+  // their families..."), ceremony time, reception line, dress code,
+  // and an RSVP card line. These default to sensible boilerplate
+  // and are only surfaced in the inspector when kind = 'invitation'.
+  const [hostingLine, setHostingLine] = useState<string>('Together with their families');
+  const [ceremonyTime, setCeremonyTime] = useState<string>('');
+  const [receptionLine, setReceptionLine] = useState<string>('Reception to follow');
+  const [dressCode, setDressCode] = useState<string>('');
+  const [rsvpDeadline, setRsvpDeadline] = useState<string>('');
 
   // ── Customization state ─────────────────────────────────────
   // Inspector mode controls which set of controls is visible.
@@ -113,7 +267,25 @@ export function InviteDesigner({
   const [aiBusy, setAiBusy] = useState(false);
   const [aiPaintError, setAiPaintError] = useState<string | null>(null);
 
-  const baseVariant = VARIANTS.find((v) => v.id === variantId)!;
+  // Variant might not exist on the current kind's filtered list (when
+  // host toggles save-the-date ↔ invitation). Fall back to a sensible
+  // default so the preview never blanks out.
+  const baseVariant =
+    VARIANTS.find((v) => v.id === variantId) ??
+    VARIANTS.find((v) => v.id === DEFAULT_VARIANT_BY_KIND[kind])!;
+  const availableVariants = useMemo(() => variantsForKind(kind), [kind]);
+  const manifestPhotos = useMemo(() => collectManifestPhotos(manifest), [manifest]);
+
+  // When the host toggles save-the-date ↔ invitation, snap the
+  // variant to one that fits the new kind. If the current variant
+  // is cross-kind ('both'), keep it.
+  function setKindAndAdjust(next: DesignKind) {
+    setKind(next);
+    const current = VARIANTS.find((v) => v.id === variantId);
+    if (!current || (current.kind !== 'both' && current.kind !== next)) {
+      setVariantId(DEFAULT_VARIANT_BY_KIND[next]);
+    }
+  }
   // Apply overrides on top of the chosen template. When the host
   // hasn't touched a slot, the variant's own colour wins so the
   // template still reads as itself.
@@ -402,7 +574,7 @@ export function InviteDesigner({
                   <button
                     key={o.v}
                     type="button"
-                    onClick={() => setKind(o.v)}
+                    onClick={() => setKindAndAdjust(o.v)}
                     style={{
                       padding: '8px 14px',
                       borderRadius: 8,
@@ -458,6 +630,14 @@ export function InviteDesigner({
                 headlineFontFamily={FONT_FAMILIES[headlineFont].value}
                 bodyFontFamily={FONT_FAMILIES[bodyFont].value}
                 aiBackgroundUrl={aiBackgroundUrl}
+                photoSelections={photoSelections}
+                inviteCopy={{
+                  hostingLine,
+                  ceremonyTime,
+                  receptionLine,
+                  dressCode,
+                  rsvpDeadline,
+                }}
               />
             </div>
           </div>
@@ -501,7 +681,7 @@ export function InviteDesigner({
             aria-label="Designer mode"
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
+              gridTemplateColumns: 'repeat(4, 1fr)',
               gap: 2,
               padding: 3,
               background: 'var(--cream-2)',
@@ -512,6 +692,7 @@ export function InviteDesigner({
             {(
               [
                 { v: 'variant', l: 'Templates' },
+                { v: 'photos', l: 'Photos' },
                 { v: 'style', l: 'Style' },
                 { v: 'ai', l: 'Pear paint' },
               ] as const
@@ -525,12 +706,12 @@ export function InviteDesigner({
                   aria-selected={on}
                   onClick={() => setMode(o.v)}
                   style={{
-                    padding: '7px 8px',
+                    padding: '7px 6px',
                     borderRadius: 7,
                     border: 0,
                     background: on ? 'var(--ink)' : 'transparent',
                     color: on ? 'var(--cream)' : 'var(--ink-soft)',
-                    fontSize: 12,
+                    fontSize: 11.5,
                     fontWeight: 600,
                     cursor: 'pointer',
                     fontFamily: 'var(--font-ui)',
@@ -545,10 +726,10 @@ export function InviteDesigner({
           {mode === 'variant' && (
             <div>
               <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 8 }}>
-                Template
+                {kind === 'save-the-date' ? 'Save-the-date templates' : 'Invitation templates'}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-                {VARIANTS.map((v) => {
+                {availableVariants.map((v) => {
                   const on = variantId === v.id;
                   return (
                     <button
@@ -558,6 +739,9 @@ export function InviteDesigner({
                         setVariantId(v.id);
                         // Switching template also drops manual color
                         // overrides so the new variant reads as itself.
+                        // Photo selections persist by slot id — if the
+                        // new variant has a slot with the same id (e.g.
+                        // 'main'), it inherits the previous photo.
                         setColorOverrides({});
                       }}
                       style={{
@@ -594,6 +778,15 @@ export function InviteDesigner({
                 })}
               </div>
             </div>
+          )}
+
+          {mode === 'photos' && (
+            <PhotoControls
+              variant={variant}
+              photoSelections={photoSelections}
+              setPhotoSelections={setPhotoSelections}
+              libraryPhotos={manifestPhotos}
+            />
           )}
 
           {mode === 'style' && (
@@ -667,6 +860,49 @@ export function InviteDesigner({
             </div>
           </div>
 
+          {/* Invitation-only copy fields. Real wedding invitations
+              follow a long-standing form: hosting line, ceremony
+              time, reception line, dress code, RSVP deadline. We
+              only surface these when kind = 'invitation' so save-
+              the-dates stay simple. */}
+          {kind === 'invitation' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div className="eyebrow" style={{ color: 'var(--peach-ink)' }}>
+                Invitation copy
+              </div>
+              <InviteFieldInput
+                label="Hosting line"
+                value={hostingLine}
+                placeholder="Together with their families"
+                onChange={setHostingLine}
+              />
+              <InviteFieldInput
+                label="Ceremony time"
+                value={ceremonyTime}
+                placeholder="4:00 in the afternoon"
+                onChange={setCeremonyTime}
+              />
+              <InviteFieldInput
+                label="Reception line"
+                value={receptionLine}
+                placeholder="Reception to follow"
+                onChange={setReceptionLine}
+              />
+              <InviteFieldInput
+                label="Dress code"
+                value={dressCode}
+                placeholder="Black tie optional"
+                onChange={setDressCode}
+              />
+              <InviteFieldInput
+                label="RSVP line"
+                value={rsvpDeadline}
+                placeholder="Kindly respond by September 1"
+                onChange={setRsvpDeadline}
+              />
+            </div>
+          )}
+
           <div
             style={{
               padding: 12,
@@ -684,7 +920,47 @@ export function InviteDesigner({
           </div>
         </aside>
       </div>
+      {/* Floating bottom-right pill that surfaces in-flight Pear-paint
+          jobs. Mounted at the page level so the host sees the
+          progress dot while the renderer is working. */}
+      <DecorGenerationToast />
     </DashLayout>
+  );
+}
+
+// Small input row — keeps invitation fields visually consistent.
+function InviteFieldInput({
+  label,
+  value,
+  placeholder,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  placeholder: string;
+  onChange: (next: string) => void;
+}) {
+  return (
+    <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-soft)' }}>{label}</span>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        style={{
+          padding: '9px 12px',
+          background: 'var(--paper)',
+          border: '1.5px solid var(--line)',
+          borderRadius: 9,
+          fontSize: 13,
+          color: 'var(--ink)',
+          fontFamily: 'var(--font-ui)',
+          outline: 'none',
+          boxSizing: 'border-box',
+        }}
+      />
+    </label>
   );
 }
 
@@ -1037,7 +1313,404 @@ function AIControls({
   );
 }
 
+// ── PhotoControls ──────────────────────────────────────────
+// Per-slot photo picker. Supports four sources:
+//   1. Library — photos already on the manifest (chapter / hero
+//      images + uploaded user_media that ship with the site).
+//   2. Device upload — file picker → base64 → /api/photos/upload
+//      → R2/Supabase URL.
+//   3. Google Photos — OAuth picker → server-side mirror to R2.
+//   4. Paste URL — instant, useful for Dropbox / iCloud links.
+//
+// Variants without photoSlots show a friendly empty state explaining
+// to switch to a photo template (or to use Pear paint).
+function PhotoControls({
+  variant,
+  photoSelections,
+  setPhotoSelections,
+  libraryPhotos,
+}: {
+  variant: Variant;
+  photoSelections: Record<string, string>;
+  setPhotoSelections: (next: Record<string, string>) => void;
+  libraryPhotos: string[];
+}) {
+  const slots = variant.photoSlots ?? [];
+  const [activeSlot, setActiveSlot] = useState<string>(() => slots[0]?.id ?? '');
+  const [pasteUrl, setPasteUrl] = useState('');
+  const [uploadBusy, setUploadBusy] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const { pick: pickGoogle, state: gpState, error: gpError, isActive: gpActive } = useGooglePhotosPicker();
+
+  // Reset active slot whenever the variant changes (the slot ids
+  // might not match between variants — e.g. polaroid-stack uses
+  // 'left' + 'right', the others use 'main').
+  useEffect(() => {
+    if (slots.length === 0) {
+      setActiveSlot('');
+      return;
+    }
+    if (!slots.some((s) => s.id === activeSlot)) {
+      setActiveSlot(slots[0].id);
+    }
+  }, [variant.id, slots, activeSlot]);
+
+  function setSlot(slotId: string, url: string | null) {
+    const next = { ...photoSelections };
+    if (url) {
+      next[slotId] = url;
+    } else {
+      delete next[slotId];
+    }
+    setPhotoSelections(next);
+  }
+
+  const onUploadFiles = useCallback(async (files: FileList | null) => {
+    if (!files || files.length === 0 || !activeSlot) return;
+    const file = files[0];
+    if (!file.type.startsWith('image/')) {
+      setUploadError('Please choose an image file.');
+      return;
+    }
+    if (file.size > 12 * 1024 * 1024) {
+      setUploadError('That photo is over 12MB — please pick a smaller one.');
+      return;
+    }
+    setUploadBusy(true);
+    setUploadError(null);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('read failed'));
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.readAsDataURL(file);
+      });
+      const res = await fetch('/api/photos/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          photos: [{
+            base64,
+            filename: file.name,
+            mimeType: file.type,
+            capturedAt: new Date(file.lastModified).toISOString(),
+          }],
+          source: 'invite',
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        photos?: Array<{ baseUrl?: string }>;
+        error?: string;
+      };
+      if (!res.ok || !data.photos?.[0]?.baseUrl) {
+        throw new Error(data.error || `Upload failed (${res.status})`);
+      }
+      setSlot(activeSlot, data.photos[0].baseUrl);
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Upload failed.');
+    } finally {
+      setUploadBusy(false);
+    }
+  }, [activeSlot, photoSelections]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const onPickGoogle = useCallback(async () => {
+    if (!activeSlot) return;
+    setUploadError(null);
+    try {
+      await pickGoogle(async (picked: PickedPhoto[]) => {
+        const first = picked[0];
+        if (!first?.baseUrl) return;
+        // Mirror to R2 via the upload route so we don't depend on
+        // Google's 1h-expiring CDN URL. Uses sourceUrl path.
+        try {
+          setUploadBusy(true);
+          const res = await fetch('/api/photos/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              photos: [{
+                sourceUrl: first.baseUrl,
+                filename: first.filename || `google-${first.id}.jpg`,
+                mimeType: first.mimeType || 'image/jpeg',
+                width: first.width,
+                height: first.height,
+              }],
+              source: 'invite',
+            }),
+          });
+          const data = (await res.json().catch(() => ({}))) as {
+            photos?: Array<{ baseUrl?: string }>;
+            error?: string;
+          };
+          if (!res.ok || !data.photos?.[0]?.baseUrl) {
+            throw new Error(data.error || `Upload failed (${res.status})`);
+          }
+          setSlot(activeSlot, data.photos[0].baseUrl);
+        } catch (err) {
+          setUploadError(err instanceof Error ? err.message : 'Could not import that Google photo.');
+        } finally {
+          setUploadBusy(false);
+        }
+      });
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Google Photos picker failed.');
+    }
+  }, [activeSlot, pickGoogle]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (slots.length === 0) {
+    return (
+      <div
+        style={{
+          padding: '14px 14px',
+          background: 'var(--cream-2)',
+          border: '1px dashed var(--line)',
+          borderRadius: 12,
+          fontSize: 12.5,
+          color: 'var(--ink-soft)',
+          lineHeight: 1.55,
+        }}
+      >
+        <strong style={{ color: 'var(--ink)' }}>This template is type-first.</strong>
+        <div style={{ marginTop: 6 }}>
+          To put a photo on the front, switch to one of the photo templates ({variant.kind === 'invitation' ? 'Polaroid' : 'Photo postcard, Polaroid stack, or Frame'}) in the <em>Templates</em> tab.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* Slot picker — only shown when the variant has more than one
+          slot. The polaroid-stack template has two photos, so the
+          host needs to know which one they're filling. */}
+      {slots.length > 1 && (
+        <div>
+          <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 8 }}>
+            Photo slot
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${slots.length}, 1fr)`, gap: 6 }}>
+            {slots.map((s) => {
+              const on = activeSlot === s.id;
+              const filled = Boolean(photoSelections[s.id]);
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setActiveSlot(s.id)}
+                  style={{
+                    padding: '10px 12px',
+                    borderRadius: 10,
+                    border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
+                    background: on ? 'var(--cream-2)' : 'var(--card)',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    fontFamily: 'var(--font-ui)',
+                  }}
+                >
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)' }}>{s.id}</div>
+                  <div style={{ fontSize: 10.5, color: filled ? 'var(--peach-ink)' : 'var(--ink-muted)', marginTop: 2 }}>
+                    {filled ? '● filled' : 'empty'}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Sources stack — three actions + a paste-URL input */}
+      <div>
+        <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 8 }}>
+          Add a photo
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadBusy || !activeSlot}
+            style={photoActionStyle(uploadBusy)}
+          >
+            <Icon name="image" size={13} /> Upload
+          </button>
+          <button
+            type="button"
+            onClick={() => void onPickGoogle()}
+            disabled={uploadBusy || gpActive || !activeSlot}
+            style={photoActionStyle(uploadBusy || gpActive)}
+          >
+            <Icon name="image" size={13} /> Google Photos
+          </button>
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            void onUploadFiles(e.target.files);
+            e.target.value = '';
+          }}
+        />
+        <div style={{ marginTop: 10, display: 'flex', gap: 6 }}>
+          <input
+            type="url"
+            placeholder="Paste a photo URL"
+            value={pasteUrl}
+            onChange={(e) => setPasteUrl(e.target.value)}
+            style={{
+              flex: 1,
+              padding: '8px 10px',
+              background: 'var(--paper)',
+              border: '1.5px solid var(--line)',
+              borderRadius: 8,
+              fontSize: 12,
+              color: 'var(--ink)',
+              fontFamily: 'var(--font-ui)',
+              outline: 'none',
+            }}
+          />
+          <button
+            type="button"
+            disabled={!pasteUrl.trim() || !activeSlot}
+            onClick={() => {
+              const t = pasteUrl.trim();
+              if (!t) return;
+              setSlot(activeSlot, t);
+              setPasteUrl('');
+            }}
+            style={{
+              padding: '8px 12px',
+              borderRadius: 8,
+              background: 'var(--ink)',
+              color: 'var(--cream)',
+              border: 0,
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: pasteUrl.trim() ? 'pointer' : 'default',
+              opacity: pasteUrl.trim() ? 1 : 0.5,
+            }}
+          >
+            Use
+          </button>
+        </div>
+        {(uploadBusy || gpState === 'creating' || gpState === 'waiting' || gpState === 'fetching') && (
+          <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 8 }}>
+            {gpState === 'waiting' ? 'Waiting on Google Photos…' : 'Uploading…'}
+          </div>
+        )}
+        {(uploadError || gpError) && (
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: 11.5,
+              color: '#7A2D2D',
+              background: 'rgba(122,45,45,0.08)',
+              padding: '8px 10px',
+              borderRadius: 8,
+            }}
+          >
+            {uploadError || gpError}
+          </div>
+        )}
+      </div>
+
+      {/* Library — manifest photos as a clickable grid */}
+      {libraryPhotos.length > 0 && (
+        <div>
+          <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 8 }}>
+            From your site
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+            {libraryPhotos.slice(0, 12).map((url) => {
+              const on = activeSlot && photoSelections[activeSlot] === url;
+              return (
+                <button
+                  key={url}
+                  type="button"
+                  onClick={() => activeSlot && setSlot(activeSlot, url)}
+                  disabled={!activeSlot}
+                  title="Use this photo"
+                  style={{
+                    padding: 0,
+                    border: on ? '2px solid var(--peach-ink)' : '1.5px solid var(--line)',
+                    borderRadius: 8,
+                    overflow: 'hidden',
+                    aspectRatio: '1 / 1',
+                    background: 'var(--cream-2)',
+                    cursor: activeSlot ? 'pointer' : 'default',
+                  }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Active slot preview + clear */}
+      {activeSlot && photoSelections[activeSlot] && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, background: 'var(--cream-2)', borderRadius: 10 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={photoSelections[activeSlot]}
+            alt=""
+            style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6, flexShrink: 0 }}
+          />
+          <div style={{ flex: 1, fontSize: 11.5, color: 'var(--ink-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            Photo set for <strong style={{ color: 'var(--ink)' }}>{activeSlot}</strong>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSlot(activeSlot, null)}
+            style={{
+              padding: '6px 10px',
+              borderRadius: 6,
+              border: '1px solid var(--line)',
+              background: 'transparent',
+              color: 'var(--ink-soft)',
+              fontSize: 11,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
+            Remove
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const photoActionStyle = (busy: boolean): React.CSSProperties => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 6,
+  justifyContent: 'center',
+  padding: '9px 10px',
+  borderRadius: 10,
+  background: 'var(--card)',
+  border: '1.5px solid var(--line)',
+  color: 'var(--ink)',
+  fontSize: 12,
+  fontWeight: 600,
+  cursor: busy ? 'wait' : 'pointer',
+  fontFamily: 'var(--font-ui)',
+  opacity: busy ? 0.7 : 1,
+});
+
 /* ==================== SVG — all 8 variants in one switch ==================== */
+
+interface InviteCopyFields {
+  hostingLine?: string;
+  ceremonyTime?: string;
+  receptionLine?: string;
+  dressCode?: string;
+  rsvpDeadline?: string;
+}
 
 const InviteSvg = forwardRef<
   SVGSVGElement,
@@ -1058,11 +1731,23 @@ const InviteSvg = forwardRef<
      *  the PNG full-bleed under the SVG text + a soft tinted plate
      *  for legibility. */
     aiBackgroundUrl?: string | null;
+    /** Slot id → photo URL. Variants with photoSlots fill them in
+     *  declared order; missing entries render a placeholder so the
+     *  composition still reads. */
+    photoSelections?: Record<string, string>;
+    /** Invitation-only copy fields. Only consumed when the variant
+     *  is a formal invitation template (kind = 'invitation'). */
+    inviteCopy?: InviteCopyFields;
   }
->(function InviteSvg({ variant, headline, names, date, venue, prettyUrl, kind, stampLabel, qrDataUrl, qrPosition = 'br', headlineFontFamily, bodyFontFamily, aiBackgroundUrl }, ref) {
+>(function InviteSvg({ variant, headline, names, date, venue, prettyUrl, kind, stampLabel, qrDataUrl, qrPosition = 'br', headlineFontFamily, bodyFontFamily, aiBackgroundUrl, photoSelections, inviteCopy }, ref) {
   const [n1, n2] = names;
   const nameLine = n2 ? `${n1 || ''} & ${n2}` : n1 || 'Our celebration';
   const { paper, ink, accent, soft, id } = variant;
+  const photoSlots = variant.photoSlots ?? [];
+  const sels = photoSelections ?? {};
+  const copy = inviteCopy ?? {};
+  // Initials for the monogram-crest variant.
+  const monogram = `${(n1 || 'A').charAt(0).toUpperCase()}${(n2 || 'B').charAt(0).toUpperCase()}`;
   const stamp =
     stampLabel ?? (kind === 'save-the-date' ? 'SAVE THE DATE' : 'INVITATION');
   const stampSoft = stamp.toLowerCase();
@@ -1117,6 +1802,306 @@ const InviteSvg = forwardRef<
               Tone-locked to the variant's paper so it feels like
               part of the same design system. */}
           <rect x="0" y="380" width="1000" height="640" fill={paper} opacity="0.62" />
+        </>
+      )}
+
+      {/* ── Photo slots ──
+          Render photos declared by the variant. Each slot gets a
+          unique clipPath so its shape (rect / rounded / circle /
+          arch / polaroid) carves the photo edges cleanly. Polaroid
+          slots add a thick paper border and a soft shadow so they
+          read as physical prints, not flat insets. */}
+      {photoSlots.length > 0 && (
+        <>
+          <defs>
+            {photoSlots.map((slot) => {
+              const cx = slot.x + slot.w / 2;
+              const cy = slot.y + slot.h / 2;
+              return (
+                <clipPath key={`clip-${slot.id}`} id={`photoclip-${id}-${slot.id}`}>
+                  {slot.shape === 'circle' && (
+                    <ellipse cx={cx} cy={cy} rx={slot.w / 2} ry={slot.h / 2} />
+                  )}
+                  {slot.shape === 'rounded' && (
+                    <rect x={slot.x} y={slot.y} width={slot.w} height={slot.h} rx="14" ry="14" />
+                  )}
+                  {slot.shape === 'arch' && (
+                    <path
+                      d={`M ${slot.x} ${slot.y + slot.h}
+                          L ${slot.x} ${slot.y + slot.w / 2}
+                          A ${slot.w / 2} ${slot.w / 2} 0 0 1 ${slot.x + slot.w} ${slot.y + slot.w / 2}
+                          L ${slot.x + slot.w} ${slot.y + slot.h} Z`}
+                    />
+                  )}
+                  {(!slot.shape || slot.shape === 'rect' || slot.shape === 'polaroid') && (
+                    <rect x={slot.x} y={slot.y} width={slot.w} height={slot.h} />
+                  )}
+                </clipPath>
+              );
+            })}
+          </defs>
+          {photoSlots.map((slot) => {
+            const cx = slot.x + slot.w / 2;
+            const cy = slot.y + slot.h / 2;
+            const transform = slot.rotation ? `rotate(${slot.rotation} ${cx} ${cy})` : undefined;
+            const url = sels[slot.id];
+            const isPolaroid = slot.shape === 'polaroid';
+            return (
+              <g key={`photo-${slot.id}`} transform={transform}>
+                {/* Polaroid paper border + shadow */}
+                {isPolaroid && (
+                  <>
+                    <rect
+                      x={slot.x - 18}
+                      y={slot.y - 18}
+                      width={slot.w + 36}
+                      height={slot.h + 70}
+                      fill="#FFFFFF"
+                      stroke="rgba(14,13,11,0.08)"
+                      strokeWidth="1"
+                      rx="2"
+                      filter="drop-shadow(0 6px 12px rgba(14,13,11,0.18))"
+                    />
+                  </>
+                )}
+                {url ? (
+                  <image
+                    href={url}
+                    x={slot.x}
+                    y={slot.y}
+                    width={slot.w}
+                    height={slot.h}
+                    preserveAspectRatio="xMidYMid slice"
+                    clipPath={`url(#photoclip-${id}-${slot.id})`}
+                  />
+                ) : (
+                  <g clipPath={`url(#photoclip-${id}-${slot.id})`}>
+                    <rect x={slot.x} y={slot.y} width={slot.w} height={slot.h} fill={soft} />
+                    <text
+                      x={cx}
+                      y={cy}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      fontFamily="Inter, sans-serif"
+                      fontSize="14"
+                      fontWeight="600"
+                      letterSpacing="0.18em"
+                      fill={ink}
+                      opacity="0.42"
+                    >
+                      ADD A PHOTO
+                    </text>
+                  </g>
+                )}
+                {/* Auto text-tint plate over photo for legibility */}
+                {url && slot.textTint === 'auto' && (
+                  <rect
+                    x={slot.x}
+                    y={slot.y}
+                    width={slot.w}
+                    height={slot.h}
+                    fill="rgba(14,13,11,0.32)"
+                    clipPath={`url(#photoclip-${id}-${slot.id})`}
+                  />
+                )}
+              </g>
+            );
+          })}
+        </>
+      )}
+
+      {/* ── Save-the-date · Photo postcard ──
+          Big bleed photo. Date stamp lower-left, names lower-right
+          so the photo's mid-frame stays clear. */}
+      {id === 'photo-postcard' && (
+        <>
+          <text
+            x="80" y="170"
+            fontFamily="Inter, sans-serif"
+            fontSize="20"
+            fill="#FFFFFF"
+            opacity="0.85"
+            letterSpacing="14"
+          >
+            {stamp}
+          </text>
+          {/* Date stamp ribbon */}
+          <g transform="translate(72, 1100)">
+            <rect x="0" y="0" width="380" height="200" fill="rgba(0,0,0,0.36)" rx="2" />
+            <text x="20" y="60" fontFamily="Inter, sans-serif" fontSize="14" fill="#FFFFFF" opacity="0.7" letterSpacing="6">
+              {date.short || 'DATE TO COME'}
+            </text>
+            <text x="20" y="130" fontFamily="Fraunces, Georgia, serif" fontSize="62" fontWeight="600" fill="#FFFFFF" letterSpacing="-1">
+              {n1 || 'Our'}
+            </text>
+            <text x="20" y="180" fontFamily="Fraunces, Georgia, serif" fontStyle="italic" fontSize="42" fill="#FFFFFF" opacity="0.95">
+              & {n2 || 'Story'}
+            </text>
+          </g>
+          {/* Bottom-right city + URL */}
+          <text x="920" y="1240" textAnchor="end" fontFamily="Fraunces, Georgia, serif" fontStyle="italic" fontSize="32" fill="#FFFFFF" opacity="0.9">
+            {venue}
+          </text>
+          <text x="920" y="1280" textAnchor="end" fontFamily="Inter, sans-serif" fontSize="16" fill="#FFFFFF" opacity="0.72" letterSpacing="3">
+            {prettyUrl.toUpperCase()}
+          </text>
+          {kind === 'save-the-date' && (
+            <text x="920" y="1340" textAnchor="end" fontFamily="Inter, sans-serif" fontStyle="italic" fontSize="14" fill="#FFFFFF" opacity="0.72">
+              invitation to follow
+            </text>
+          )}
+        </>
+      )}
+
+      {/* ── Save-the-date · Polaroid stack ──
+          Two scattered polaroids over cream paper. Date + names
+          centered below. Photos rendered above by the slot loop. */}
+      {id === 'polaroid-stack' && (
+        <>
+          <text x="500" y="140" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="20" fill={ink} letterSpacing="14">{stamp}</text>
+          <text x="500" y="900" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontSize="118" fontWeight="600" letterSpacing="-2" fill={ink}>{nameLine}</text>
+          <line x1="380" y1="970" x2="620" y2="970" stroke={accent} strokeWidth="1.4" />
+          <text x="500" y="1050" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontSize="38" fill={ink}>{date.long}</text>
+          <text x="500" y="1100" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="22" fill={ink} opacity="0.7">{venue}</text>
+          {kind === 'save-the-date' && (
+            <text x="500" y="1300" textAnchor="middle" fontFamily="Inter, sans-serif" fontStyle="italic" fontSize="18" fill={ink} opacity="0.65">
+              invitation to follow · {prettyUrl}
+            </text>
+          )}
+          {kind === 'invitation' && (
+            <text x="500" y="1300" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="18" fill={ink} opacity="0.65">
+              {copy.rsvpDeadline || `more at ${prettyUrl}`}
+            </text>
+          )}
+        </>
+      )}
+
+      {/* ── Save-the-date · Photo frame ──
+          Photo inside a centered editorial frame, names + date
+          below in classic stacked layout. */}
+      {id === 'photo-frame' && (
+        <>
+          <text x="500" y="130" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="20" fill={ink} letterSpacing="14">{stamp}</text>
+          {/* Double-rule frame around the photo */}
+          <rect x="120" y="170" width="760" height="740" fill="none" stroke={accent} strokeWidth="2" rx="14" ry="14" />
+          <rect x="130" y="180" width="740" height="720" fill="none" stroke={accent} strokeWidth="0.7" opacity="0.7" rx="10" ry="10" />
+          <text x="500" y="990" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontSize="108" fontWeight="600" letterSpacing="-2" fill={ink}>{nameLine}</text>
+          <line x1="380" y1="1050" x2="620" y2="1050" stroke={accent} strokeWidth="1.4" />
+          <text x="500" y="1130" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontSize="40" fill={ink}>{date.long}</text>
+          <text x="500" y="1180" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="22" fill={ink} opacity="0.7">{venue}</text>
+          <text x="500" y="1310" textAnchor="middle" fontFamily="Inter, sans-serif" fontStyle="italic" fontSize="18" fill={ink} opacity="0.6">
+            {kind === 'save-the-date' ? `invitation to follow · ${prettyUrl}` : (copy.rsvpDeadline || prettyUrl)}
+          </text>
+        </>
+      )}
+
+      {/* ── Invitation · Engraved ──
+          Centered serif type with a single hairline rule. Reads as
+          a traditional engraved invite. Hosting line, ceremony
+          time, reception line, dress code each lay out cleanly. */}
+      {id === 'formal-engraved' && (
+        <>
+          <text x="500" y="180" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontStyle="italic" fontSize="26" fill={ink} opacity="0.65">
+            {copy.hostingLine || 'Together with their families'}
+          </text>
+          <text x="500" y="280" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="14" fill={ink} opacity="0.55" letterSpacing="6">
+            INVITE YOU TO CELEBRATE
+          </text>
+          <text x="500" y="450" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontSize="92" fontWeight="500" letterSpacing="-1.5" fill={ink}>{n1 || 'Our'}</text>
+          <text x="500" y="540" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontStyle="italic" fontSize="44" fontWeight="400" fill={accent}>and</text>
+          <text x="500" y="650" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontSize="92" fontWeight="500" letterSpacing="-1.5" fill={ink}>{n2 || 'Celebration'}</text>
+          <line x1="430" y1="730" x2="570" y2="730" stroke={accent} strokeWidth="1" />
+          <text x="500" y="810" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontSize="32" fill={ink}>{date.long}</text>
+          {copy.ceremonyTime && (
+            <text x="500" y="855" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontStyle="italic" fontSize="22" fill={ink} opacity="0.7">{copy.ceremonyTime}</text>
+          )}
+          <text x="500" y="930" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="20" fill={ink} opacity="0.78">{venue}</text>
+          {copy.receptionLine && (
+            <text x="500" y="1020" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontStyle="italic" fontSize="22" fill={ink} opacity="0.65">{copy.receptionLine}</text>
+          )}
+          {copy.dressCode && (
+            <text x="500" y="1140" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="14" fill={ink} opacity="0.55" letterSpacing="5">{copy.dressCode.toUpperCase()}</text>
+          )}
+          {copy.rsvpDeadline && (
+            <text x="500" y="1240" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontStyle="italic" fontSize="20" fill={ink} opacity="0.7">{copy.rsvpDeadline}</text>
+          )}
+          <text x="500" y="1330" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="14" fill={ink} opacity="0.5" letterSpacing="4">{prettyUrl.toUpperCase()}</text>
+        </>
+      )}
+
+      {/* ── Invitation · Letterpress ──
+          Wide letter-spaced caps, paired hairline rules, formal
+          rhythm. Reads as deeply pressed type. */}
+      {id === 'letterpress' && (
+        <>
+          <line x1="120" y1="160" x2="880" y2="160" stroke={accent} strokeWidth="2" />
+          <line x1="120" y1="172" x2="880" y2="172" stroke={accent} strokeWidth="0.6" />
+          <text x="500" y="240" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="13" fill={ink} opacity="0.62" letterSpacing="8">
+            {(copy.hostingLine || 'TOGETHER WITH THEIR FAMILIES').toUpperCase()}
+          </text>
+          <text x="500" y="430" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontSize="78" fontWeight="600" letterSpacing="6" fill={ink}>
+            {(n1 || 'OUR').toUpperCase()}
+          </text>
+          <text x="500" y="510" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontStyle="italic" fontSize="34" fill={accent}>&</text>
+          <text x="500" y="600" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontSize="78" fontWeight="600" letterSpacing="6" fill={ink}>
+            {(n2 || 'CELEBRATION').toUpperCase()}
+          </text>
+          <line x1="370" y1="690" x2="630" y2="690" stroke={accent} strokeWidth="1.2" />
+          <text x="500" y="780" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="14" fill={ink} opacity="0.55" letterSpacing="6">CEREMONY</text>
+          <text x="500" y="830" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontSize="30" fill={ink}>{date.long}</text>
+          {copy.ceremonyTime && (
+            <text x="500" y="870" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="18" fill={ink} opacity="0.7">{copy.ceremonyTime}</text>
+          )}
+          <text x="500" y="930" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="18" fill={ink} opacity="0.78">{venue}</text>
+          {copy.receptionLine && (
+            <>
+              <text x="500" y="1020" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="14" fill={ink} opacity="0.55" letterSpacing="6">RECEPTION</text>
+              <text x="500" y="1062" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontStyle="italic" fontSize="22" fill={ink} opacity="0.78">{copy.receptionLine}</text>
+            </>
+          )}
+          {copy.dressCode && (
+            <text x="500" y="1170" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="13" fill={ink} opacity="0.6" letterSpacing="6">{copy.dressCode.toUpperCase()}</text>
+          )}
+          {copy.rsvpDeadline && (
+            <text x="500" y="1240" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontStyle="italic" fontSize="18" fill={ink} opacity="0.7">{copy.rsvpDeadline}</text>
+          )}
+          <line x1="120" y1="1280" x2="880" y2="1280" stroke={accent} strokeWidth="2" />
+          <line x1="120" y1="1292" x2="880" y2="1292" stroke={accent} strokeWidth="0.6" />
+          <text x="500" y="1340" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="13" fill={ink} opacity="0.55" letterSpacing="4">{prettyUrl.toUpperCase()}</text>
+        </>
+      )}
+
+      {/* ── Invitation · Monogram crest ──
+          Initials medallion over a double-rule frame. Reads as a
+          family-crest invite — formal but with a personal mark. */}
+      {id === 'monogram-crest' && (
+        <>
+          <rect x="80" y="80" width="840" height="1240" fill="none" stroke={accent} strokeWidth="2" />
+          <rect x="100" y="100" width="800" height="1200" fill="none" stroke={accent} strokeWidth="0.6" />
+          <circle cx="500" cy="240" r="90" fill={soft} stroke={accent} strokeWidth="1.5" />
+          <text x="500" y="270" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontStyle="italic" fontSize="58" fontWeight="600" fill={ink}>{monogram}</text>
+          <text x="500" y="400" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontStyle="italic" fontSize="24" fill={ink} opacity="0.7">
+            {copy.hostingLine || 'Together with their families'}
+          </text>
+          <text x="500" y="450" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="13" fill={ink} opacity="0.55" letterSpacing="6">REQUEST THE HONOUR OF YOUR PRESENCE</text>
+          <text x="500" y="600" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontSize="86" fontWeight="500" letterSpacing="-1" fill={ink}>{n1 || 'Our'}</text>
+          <text x="500" y="690" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontStyle="italic" fontSize="40" fill={accent}>and</text>
+          <text x="500" y="800" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontSize="86" fontWeight="500" letterSpacing="-1" fill={ink}>{n2 || 'Celebration'}</text>
+          <line x1="430" y1="870" x2="570" y2="870" stroke={accent} strokeWidth="1" />
+          <text x="500" y="950" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontSize="28" fill={ink}>{date.long}</text>
+          {copy.ceremonyTime && (
+            <text x="500" y="990" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontStyle="italic" fontSize="20" fill={ink} opacity="0.72">{copy.ceremonyTime}</text>
+          )}
+          <text x="500" y="1050" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="18" fill={ink} opacity="0.72">{venue}</text>
+          {copy.receptionLine && (
+            <text x="500" y="1130" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontStyle="italic" fontSize="22" fill={ink} opacity="0.65">{copy.receptionLine}</text>
+          )}
+          {copy.dressCode && (
+            <text x="500" y="1190" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="13" fill={ink} opacity="0.55" letterSpacing="6">{copy.dressCode.toUpperCase()}</text>
+          )}
+          {copy.rsvpDeadline && (
+            <text x="500" y="1240" textAnchor="middle" fontFamily="Inter, sans-serif" fontStyle="italic" fontSize="18" fill={ink} opacity="0.6">{copy.rsvpDeadline}</text>
+          )}
         </>
       )}
 

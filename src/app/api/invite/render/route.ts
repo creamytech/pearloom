@@ -10,6 +10,7 @@ import { authOptions } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { getArchetype } from '@/lib/invite-engine/archetypes';
 import { renderArchetype } from '@/lib/invite-engine/render';
+import { hasOpenAIImageKey } from '@/lib/memory-engine/openai-image';
 import type { InviteContext, PaletteHex } from '@/lib/invite-engine/designer-prompts';
 
 export const dynamic = 'force-dynamic';
@@ -57,6 +58,21 @@ export async function POST(req: NextRequest) {
   const archetype = getArchetype(body.archetypeId);
   if (!archetype) return NextResponse.json({ error: 'Unknown archetype.' }, { status: 400 });
 
+  // Verify at least one image provider is configured before we tell
+  // the user "Pear is painting…" — otherwise we burn 30s on an
+  // inevitable null result and surface a generic 502. Better to fail
+  // loud and clear at the door.
+  const hasGeminiKey =
+    !!(process.env.GEMINI_API_KEY ||
+       process.env.GOOGLE_AI_KEY ||
+       process.env.GOOGLE_API_KEY);
+  if (!hasOpenAIImageKey() && !hasGeminiKey) {
+    return NextResponse.json(
+      { error: 'Pear\'s painter is offline — image generation isn\'t configured on this server.' },
+      { status: 503 },
+    );
+  }
+
   const ctx: InviteContext = {
     names: body.names,
     date: body.date,
@@ -79,11 +95,18 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error('[invite/render] failed:', err);
-    return NextResponse.json({ error: 'Renderer is busy. Try again shortly.' }, { status: 502 });
+    const detail = err instanceof Error ? err.message : 'unknown error';
+    return NextResponse.json(
+      { error: `Renderer hit a snag: ${detail}` },
+      { status: 502 },
+    );
   }
 
   if (!result) {
-    return NextResponse.json({ error: 'Could not render this archetype.' }, { status: 502 });
+    return NextResponse.json(
+      { error: 'Pear couldn\'t finish that one — the painter timed out or rejected the prompt. Try a different archetype.' },
+      { status: 502 },
+    );
   }
   return NextResponse.json({ ok: true, ...result });
 }
