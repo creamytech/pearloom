@@ -43,6 +43,7 @@ import { IconSwapModal } from './IconSwapModal';
 import { ThemeQuickBar } from './canvas/ThemeQuickBar';
 import { EditorCanvasProvider } from './canvas/EditorCanvasContext';
 import { AssetLibraryPanel } from './panels/AssetLibraryPanel';
+import { DecorLibraryPanel } from './panels/DecorLibraryPanel';
 import { useEditorHistory } from './canvas/useEditorHistory';
 import { HeroPanel } from './panels/HeroPanel';
 import { NavPanel } from './panels/NavPanel';
@@ -158,6 +159,32 @@ export function EditorV8({
     setInspectorTab('section');
   }, [block]);
   const [device, setDevice] = useState<DeviceKey>('desktop');
+  // Preview-as-guest toggle. When true, the canvas renders the
+  // published-mode view (no edit chrome, no overlays) so the host
+  // can read the page exactly as a guest will. Toggle via the
+  // topbar eye button or ⌘P. Inspector + outline rail collapse
+  // away at the same time so the canvas takes the whole width.
+  const [previewMode, setPreviewMode] = useState(false);
+  // Resizable inspector rail. Default 380px (the value we shipped as
+  // a static width before this session). Clamped to 320–620px so the
+  // canvas always has room and the panel never collapses below the
+  // narrowest field-row layout. Persisted to localStorage so the
+  // host's preferred width survives reloads — different events have
+  // different "I want a wider rail" preferences (long FAQ blocks vs.
+  // short hero blocks).
+  const [inspectorWidth, setInspectorWidth] = useState<number>(() => {
+    if (typeof window === 'undefined') return 380;
+    try {
+      const raw = window.localStorage.getItem('pl-editor-inspector-w');
+      const n = raw ? Number(raw) : NaN;
+      if (Number.isFinite(n) && n >= 320 && n <= 620) return n;
+    } catch {}
+    return 380;
+  });
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try { window.localStorage.setItem('pl-editor-inspector-w', String(inspectorWidth)); } catch {}
+  }, [inspectorWidth]);
 
   // ── Deep-link from external pages ──────────────────────────
   // Dashboard pages (Day-of room, kickoff cards, etc.) link to
@@ -530,16 +557,31 @@ export function EditorV8({
       } else if (e.shiftKey && (e.key === 'P' || e.key === 'p')) {
         e.preventDefault();
         void handlePublish();
-      } else if (!isTyping && !e.shiftKey && !e.altKey && (e.key === '1' || e.key === '2' || e.key === '3' || e.key === '4')) {
+      } else if (!e.shiftKey && !e.altKey && !isTyping && (e.key === 'p' || e.key === 'P')) {
+        // ⌘P — toggle preview-as-guest. Browsers normally bind this
+        // to Print; we override inside the editor since the print
+        // shortcut isn't useful here (you'd want a PDF of the guest
+        // view, which is what preview-as-guest gives them anyway).
         e.preventDefault();
-        const map: Record<string, InspectorTab> = { '1': 'section', '2': 'theme', '3': 'library', '4': 'pear' };
+        setPreviewMode((p) => !p);
+      } else if (!e.shiftKey && !e.altKey && (e.key === 's' || e.key === 'S')) {
+        // ⌘S — force-save the draft. Always intercept the browser's
+        // "Save Page" dialog (would dump the live DOM as HTML, which
+        // is worse than useless here). The save itself is debounced
+        // to 900ms inside queueSave; ⌘S nudges the timer to fire
+        // immediately by re-queueing with the latest state.
+        e.preventDefault();
+        queueSave(manifest, names);
+      } else if (!isTyping && !e.shiftKey && !e.altKey && (e.key === '1' || e.key === '2' || e.key === '3' || e.key === '4' || e.key === '5')) {
+        e.preventDefault();
+        const map: Record<string, InspectorTab> = { '1': 'section', '2': 'theme', '3': 'decor', '4': 'library', '5': 'pear' };
         setInspectorTab(map[e.key]);
       }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [block, blockOrder]);
+  }, [block, blockOrder, manifest, names, queueSave]);
 
   return (
     <div
@@ -619,9 +661,11 @@ export function EditorV8({
         canRedo={history.canRedo}
         onUndo={history.undo}
         onRedo={history.redo}
+        previewMode={previewMode}
+        onTogglePreview={() => setPreviewMode((p) => !p)}
       />
       <div className="pl8-editor-main" style={{ display: 'flex', flex: 1, minHeight: 0, position: 'relative' }}>
-        {!isNarrow && (
+        {!isNarrow && !previewMode && (
           <Outline
             block={block}
             setBlock={setBlock}
@@ -641,8 +685,9 @@ export function EditorV8({
           device={isNarrow ? 'phone' : device}
           onManifestChange={onManifestChange}
           onNamesChange={onNamesChange}
+          previewMode={previewMode}
         />
-        {!isNarrow && (
+        {!isNarrow && !previewMode && (
           <Inspector
             block={block}
             manifest={manifest}
@@ -655,6 +700,8 @@ export function EditorV8({
             onJumpBlock={(b) => setBlock(b)}
             onOpenPreview={() => window.open(prettyPath, '_blank')}
             onPublish={() => void handlePublish()}
+            width={inspectorWidth}
+            onResize={setInspectorWidth}
           />
         )}
         {isNarrow && mobileDrawer && (
@@ -1062,6 +1109,8 @@ function EditorTopbar({
   canRedo,
   onUndo,
   onRedo,
+  previewMode,
+  onTogglePreview,
 }: {
   displayNames: string;
   prettyUrl: string;
@@ -1081,6 +1130,12 @@ function EditorTopbar({
   canRedo: boolean;
   onUndo: () => void;
   onRedo: () => void;
+  /** Preview-as-guest toggle. When on, edit chrome (rails, overlays,
+   *  click-to-edit) disappears so the host reads the page like a guest.
+   *  Toggle button replaces "Preview" (which opens a new tab) since the
+   *  host can do both from the same place — single button, two intents. */
+  previewMode: boolean;
+  onTogglePreview: () => void;
 }) {
   // Topbar = three zones over one neutral surface + a single
   // hairline divider. Ghost buttons everywhere except Save & publish
@@ -1243,8 +1298,28 @@ function EditorTopbar({
         <button type="button" onClick={onOpenAdvisor} style={ghostBtn}>
           <Icon name="sparkles" size={12} /> Ask Pear
         </button>
-        <Link href={prettyPath} target="_blank" style={ghostBtn}>
-          <Icon name="eye" size={12} /> Preview
+        <button
+          type="button"
+          onClick={onTogglePreview}
+          aria-pressed={previewMode}
+          title={previewMode ? 'Back to editing (⌘P)' : 'Preview as a guest (⌘P)'}
+          style={{
+            ...ghostBtn,
+            background: previewMode ? 'var(--ink)' : 'transparent',
+            color: previewMode ? 'var(--cream)' : 'var(--ink-soft)',
+            borderColor: previewMode ? 'var(--ink)' : 'var(--line-soft)',
+          }}
+        >
+          <Icon name="eye" size={12} /> {previewMode ? 'Editing' : 'Preview'}
+        </button>
+        <Link
+          href={prettyPath}
+          target="_blank"
+          title="Open in a new tab"
+          aria-label="Open the published view in a new tab"
+          style={{ ...iconBtn, color: 'var(--ink-soft)' }}
+        >
+          <Icon name="arrow-ur" size={13} />
         </Link>
         <Link href="/dashboard" style={ghostBtn}>
           <Icon name="grid" size={12} /> Dashboard
@@ -1408,9 +1483,13 @@ function KbdHint() {
             ['Previous block', '⌘↑ / Ctrl↑'],
             ['Section tab', '⌘1 / Ctrl 1'],
             ['Theme tab', '⌘2 / Ctrl 2'],
-            ['Library tab', '⌘3 / Ctrl 3'],
-            ['Pear tab', '⌘4 / Ctrl 4'],
+            ['Decor tab', '⌘3 / Ctrl 3'],
+            ['Library tab', '⌘4 / Ctrl 4'],
+            ['Pear tab', '⌘5 / Ctrl 5'],
+            ['Preview as guest', '⌘P / Ctrl P'],
             ['Save & publish', '⌘⇧P / Ctrl⇧P'],
+            ['Force-save draft', '⌘S / Ctrl S'],
+            ['Bold / italic / underline', '⌘B / ⌘I / ⌘U'],
           ].map(([label, keys]) => (
             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginBottom: 4 }}>
               <span style={{ color: 'var(--ink-soft)' }}>{label}</span>
@@ -1829,7 +1908,7 @@ function BlockRow({
 //  CanvasStage which renders SiteV8Renderer in-DOM.)
 
 /* ---------- Right inspector ---------- */
-type InspectorTab = 'section' | 'theme' | 'library' | 'pear';
+type InspectorTab = 'section' | 'theme' | 'decor' | 'library' | 'pear';
 
 function Inspector({
   block,
@@ -1844,6 +1923,8 @@ function Inspector({
   onOpenPreview,
   onPublish,
   fluid = false,
+  width,
+  onResize,
 }: {
   block: BlockKey;
   manifest: StoryManifest;
@@ -1857,16 +1938,47 @@ function Inspector({
   onOpenPreview: () => void;
   onPublish: () => void;
   /** When true, the inspector fills its container instead of being
-   *  fixed to 380px. Used in the mobile drawer where the parent is
+   *  fixed-width. Used in the mobile drawer where the parent is
    *  full-width. */
   fluid?: boolean;
+  /** Persisted user-chosen width in px. Falls back to 380. */
+  width?: number;
+  /** Called with each px while the host drags the resize handle. */
+  onResize?: (w: number) => void;
 }) {
   const meta = BLOCKS.find((b) => b.key === block)!;
+  const resolvedWidth = fluid ? '100%' : (width ?? 380);
+
+  // Drag-to-resize. Pointer events on a 6px hit-strip flush against
+  // the rail's left edge. We compute width from the right edge of the
+  // viewport so the math is independent of layout shifts (sidebar
+  // collapsing, mobile chrome appearing). Clamp matches the state's
+  // [320, 620] window.
+  function onResizeStart(e: React.PointerEvent<HTMLDivElement>) {
+    if (!onResize) return;
+    e.preventDefault();
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+    const move = (ev: PointerEvent) => {
+      const next = Math.round(window.innerWidth - ev.clientX);
+      onResize(Math.max(320, Math.min(620, next)));
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }
+
   return (
     <aside
       className="pl8-editor-inspector"
       style={{
-        width: fluid ? '100%' : 380,
+        width: resolvedWidth,
         flexShrink: 0,
         borderLeft: fluid ? 'none' : '1px solid var(--line-soft)',
         background: 'var(--cream)',
@@ -1874,8 +1986,26 @@ function Inspector({
         flexDirection: 'column',
         minHeight: 0,
         flex: fluid ? 1 : undefined,
+        position: 'relative',
       }}
     >
+      {!fluid && onResize && (
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize inspector"
+          onPointerDown={onResizeStart}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: -3,
+            width: 6,
+            height: '100%',
+            cursor: 'col-resize',
+            zIndex: 5,
+          }}
+        />
+      )}
       {/* Rail tabs — Section / Theme / Library / Pear. Bigger touch
           target (16px vertical), clearer active indicator (peach
           underline pill, animated). Only one body shows at a time,
@@ -1885,7 +2015,7 @@ function Inspector({
         aria-label="Inspector tabs"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
+          gridTemplateColumns: 'repeat(5, 1fr)',
           borderBottom: '1px solid var(--line-soft)',
           background: 'var(--cream)',
           padding: '0 4px',
@@ -1900,6 +2030,12 @@ function Inspector({
             // when they're inside it.
             { key: 'section', label: 'Section', icon: 'sliders' },
             { key: 'theme', label: 'Theme', icon: 'palette' },
+            // Decor used to be a sub-anchor inside Theme. It's so
+            // important to the v8 visual identity (stamps, dividers,
+            // bouquets, the AI accent) that it gets its own tab now —
+            // hosts no longer have to scroll past palette / fonts /
+            // motif before they reach it.
+            { key: 'decor', label: 'Decor', icon: 'fleuron' },
             { key: 'library', label: 'Library', icon: 'image' },
             { key: 'pear', label: 'Pear', icon: 'sparkles' },
           ] as Array<{ key: InspectorTab; label: string; icon: string }>
@@ -2029,6 +2165,16 @@ function Inspector({
               <PanelSearch placeholder="Search palette, fonts, decor, stickers…">
                 <ThemePanel manifest={manifest} onChange={onChange} />
               </PanelSearch>
+            </div>
+          </EditorCanvasProvider>
+        </div>
+      )}
+
+      {tab === 'decor' && (
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflowY: 'auto' }}>
+          <EditorCanvasProvider value={{ editMode: true, onEditField: (patch) => onChange(patch(manifest)) }}>
+            <div style={{ padding: '20px 22px' }}>
+              <DecorLibraryPanel manifest={manifest} onChange={onChange} />
             </div>
           </EditorCanvasProvider>
         </div>

@@ -51,17 +51,24 @@ export interface CanvasStageProps {
   device: DeviceKey;
   onManifestChange: (next: StoryManifest) => void;
   onNamesChange: (next: [string, string]) => void;
+  /** When true, the canvas renders the published-mode view —
+   *  no edit chrome, no overlays, no toolbars. Used by the
+   *  "Preview as guest" toggle in the editor topbar. */
+  previewMode?: boolean;
 }
 
 export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
   function CanvasStage(
-    { manifest, names, siteSlug, prettyUrl, device, onManifestChange, onNamesChange },
+    { manifest, names, siteSlug, prettyUrl, device, onManifestChange, onNamesChange, previewMode },
     ref,
   ) {
     const w = DEVICE_WIDTH[device];
 
     // Patch helper — each EditableText in the tree calls onEditField
     // with a pure manifest → manifest transform, we apply + push up.
+    // In previewMode we DON'T pass onEditField so the renderer's
+    // editMode = Boolean(onEditField) goes false and every edit
+    // overlay disappears — host sees the page as a guest does.
     const onEditField = useMemo(
       () => (patch: (m: StoryManifest) => StoryManifest) => {
         onManifestChange(patch(manifest));
@@ -117,8 +124,8 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
             names={names}
             siteSlug={siteSlug}
             prettyUrl={prettyUrl}
-            onEditField={onEditField}
-            onEditNames={onNamesChange}
+            onEditField={previewMode ? undefined : onEditField}
+            onEditNames={previewMode ? undefined : onNamesChange}
           />
         </div>
         {/* Theme picker now lives in the inspector rail's Theme
