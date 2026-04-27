@@ -1956,6 +1956,10 @@ function VenueHero({ venue, address, manifest, onEditField }: { venue: string; a
         body: JSON.stringify({
           photoUrl,
           style: 'watercolor',
+          // Critical: flag this as a venue stylize so the route
+          // picks the no-people prompt. Without this the model
+          // hallucinates a couple into the Fort-Lauderdale skyline.
+          subject: 'venue',
         }),
       });
       if (!stylRes.ok) {

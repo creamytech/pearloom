@@ -27,10 +27,18 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 90;
 
 // ── Style presets ────────────────────────────────────────────
-// Each prompt preserves the couple's identity (faces, pose,
-// clothing silhouettes) while restyling the scene. Keep them
-// dense and directive — the image model follows specifics.
-const STYLES = {
+// Two subject families: 'couple' (Save-the-Date portraits — preserve
+// faces + pose) and 'venue' (location photos — preserve architecture,
+// no people). Calling the route without `subject` defaults to
+// 'couple' for backwards compatibility with existing Save-the-Date
+// callers. The venue prompts EXPLICITLY ban human figures because
+// the model otherwise invents a couple whenever it sees a wedding-y
+// stylization brief — which is exactly the bug the user hit when
+// stylizing a Fort Lauderdale skyline produced a watercolor of two
+// strangers in a forest.
+type StyleSubject = 'couple' | 'venue';
+
+const STYLES_COUPLE = {
   'paper-craft': {
     label: 'Paper craft',
     prompt: `Transform this photograph into a meticulous layered paper-craft diorama. Preserve the exact faces, expressions, pose, and clothing silhouettes of the people — they must remain unmistakably the same individuals. Render every element (subjects, clothes, background, foliage, props) as cut-paper layers with visible soft drop shadows between the layers, gentle paper grain, and subtle scissor-cut edges. Warm natural daylight. Muted pastel palette with cream, sage, dusty rose, and ivory. No text, no watermarks, no borders. Square framing, centred composition.`,
@@ -49,13 +57,50 @@ const STYLES = {
   },
 } as const satisfies Record<string, { label: string; prompt: string }>;
 
-type StyleId = keyof typeof STYLES;
+// Venue stylization. Strict no-people rule because gpt-image-2
+// otherwise inserts a couple every time a "wedding" themed
+// transform sees a landscape — same brief that built the original
+// Save-the-Date prompts. PRESERVE the place's actual identity
+// (skyline, water, hills, materials, signage if any) so a guest
+// looking at the painted version recognises the venue.
+const STYLES_VENUE = {
+  watercolor: {
+    label: 'Watercolor',
+    prompt: `Transform this photograph of a place into a hand-painted watercolor scene. PRESERVE THE EXACT LOCATION: every building, the skyline silhouette, the waterline, the trees, the ground plane, and any landmarks must remain faithfully recognisable to anyone familiar with this venue. ABSOLUTELY NO PEOPLE — this is a place portrait. Render with loose wet-on-wet washes, soft bleeding colour edges, visible paper texture, and delicate ink line work for architectural details. Soft natural light. Palette: warm creams, blush, sepia, muted sage, faded indigo. No text, no watermarks, no figures, no human silhouettes, no faces.`,
+  },
+  'pen-ink': {
+    label: 'Pen & ink',
+    prompt: `Transform this photograph of a place into a fine pen-and-ink architectural sketch. PRESERVE THE EXACT LOCATION: skyline silhouette, building proportions, water, foliage, signage shapes — anyone familiar with this venue must recognise it. ABSOLUTELY NO PEOPLE in the scene. Render with crisp confident contour lines, expressive crosshatching for shadow, stippling for texture, and tasteful blank space. Pure black ink on warm cream paper. Loose hand-drawn quality, not technical drafting. No text, no watermarks, no figures.`,
+  },
+  gouache: {
+    label: 'Gouache postcard',
+    prompt: `Transform this photograph of a place into an editorial gouache illustration in the style of a 1950s travel postcard. PRESERVE THE EXACT LOCATION: skyline, architecture, water, vegetation, ground plane — the venue must remain unmistakably recognisable. ABSOLUTELY NO PEOPLE. Render with flat opaque gouache shapes, simplified colour fields, gentle hand-painted texture, and confident outlines. Palette: muted travel-poster — terracotta, sage, ivory, dusty teal, faded gold. No text, no captions, no watermarks, no figures.`,
+  },
+  engraving: {
+    label: 'Antique engraving',
+    prompt: `Transform this photograph of a place into a fine 19th-century copper-plate engraving. PRESERVE THE EXACT LOCATION: silhouette, buildings, water, foliage, ground plane must read as the same venue. ABSOLUTELY NO PEOPLE. Render entirely in inked line work — crosshatching for tones, stippling for texture, delicate parallel lines for sky and water. Monochrome sepia ink on ivory paper. Detailed but not photorealistic. No text, no watermarks, no decorative frame, no human figures.`,
+  },
+} as const satisfies Record<string, { label: string; prompt: string }>;
+
+type CoupleStyleId = keyof typeof STYLES_COUPLE;
+type VenueStyleId = keyof typeof STYLES_VENUE;
+type StyleId = CoupleStyleId | VenueStyleId;
+
+function presetFor(subject: StyleSubject, style: string): { label: string; prompt: string } | null {
+  if (subject === 'venue') {
+    return (STYLES_VENUE as Record<string, { label: string; prompt: string }>)[style] ?? null;
+  }
+  return (STYLES_COUPLE as Record<string, { label: string; prompt: string }>)[style] ?? null;
+}
 
 const MAX_SOURCE_BYTES = 15 * 1024 * 1024; // 15 MB
 
 interface StylizePayload {
   photoUrl?: string;
   style?: StyleId;
+  /** 'couple' (default) preserves faces — Save-the-Date flow.
+   *  'venue' bans figures and preserves architecture/landscape. */
+  subject?: StyleSubject;
 }
 
 export async function POST(req: NextRequest) {
@@ -92,12 +137,20 @@ export async function POST(req: NextRequest) {
   }
 
   const { photoUrl, style } = body;
+  const subject: StyleSubject = body.subject === 'venue' ? 'venue' : 'couple';
   if (!photoUrl || typeof photoUrl !== 'string') {
     return NextResponse.json({ error: 'photoUrl is required' }, { status: 400 });
   }
-  if (!style || !(style in STYLES)) {
+  if (!style) {
+    return NextResponse.json({ error: 'style is required' }, { status: 400 });
+  }
+  const preset = presetFor(subject, style);
+  if (!preset) {
+    const valid = subject === 'venue'
+      ? Object.keys(STYLES_VENUE).join(', ')
+      : Object.keys(STYLES_COUPLE).join(', ');
     return NextResponse.json(
-      { error: `Unknown style. Valid: ${Object.keys(STYLES).join(', ')}` },
+      { error: `Unknown ${subject} style. Valid: ${valid}` },
       { status: 400 },
     );
   }
@@ -132,7 +185,6 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Image-gen call (gpt-image-2 preferred, Gemini fallback) ─
-  const preset = STYLES[style];
   let result;
   try {
     result = await generateImage({
