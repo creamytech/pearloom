@@ -150,7 +150,7 @@ export function VoiceDnaClient({ siteSlug }: { siteSlug: string }) {
 
   return (
     <DashLayout active="creative">
-      <div style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
+      <div className="pl8-dash-page-enter" style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ marginBottom: 24 }}>
           <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 6 }}>
             Voice DNA
@@ -229,7 +229,7 @@ export function VoiceDnaClient({ siteSlug }: { siteSlug: string }) {
           </div>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div className="pl8-dash-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {PROMPTS.map((p) => {
             const s = samples[p.id];
             const isRecording = recordingForId === p.id;
@@ -237,6 +237,7 @@ export function VoiceDnaClient({ siteSlug }: { siteSlug: string }) {
             return (
               <div
                 key={p.id}
+                className="pl8-card-lift"
                 style={{
                   background: 'var(--cream-2)',
                   border: '1px solid var(--line-soft)',
@@ -309,7 +310,7 @@ export function VoiceDnaClient({ siteSlug }: { siteSlug: string }) {
                   )}
                 </div>
                 {isExpanded && (s?.text || s?.error) && (
-                  <div style={{
+                  <div className="pl8-tab-enter" style={{
                     marginTop: 12,
                     padding: 12,
                     background: 'var(--paper)',

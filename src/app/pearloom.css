@@ -603,22 +603,147 @@
 .pl8-kickoff { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 @media (max-width: 960px) { .pl8-kickoff { grid-template-columns: 1fr !important; gap: 12px; } }
 
-/* Dashboard section stagger reveal — child > offset gets animated
-   via CSS variable so the markup stays declarative. */
+/* ════════════════════════════════════════════════════════════
+   Dashboard motion system v2 — refined entries, hover lifts,
+   tab swaps, and page transitions. Every named easing here is
+   chosen so the dashboard reads as paper-with-momentum, never
+   as snappy software. Reduced-motion respected throughout.
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Easing tokens (locally scoped for documentation) ──
+   • out-soft    — gentle settle, default for content reveals
+   • out-spring  — micro overshoot, for buttons + chips
+   • in-out-fluid — symmetric, for tab content swaps
+*/
+
+/* ── Stagger reveal ──────────────────────────────────────────
+   Children fade + lift in sequence. The cap at 12 children +
+   max delay 660ms keeps long lists from feeling like they're
+   loading forever. Items past the 12th get the same delay as
+   the 12th — the eye stops noticing precise stagger after that. */
 .pl8-dash-stagger > * {
-  animation: pl8-dash-stagger-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: pl8-dash-stagger-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  opacity: 0;
 }
-.pl8-dash-stagger > *:nth-child(1) { animation-delay: 40ms; }
-.pl8-dash-stagger > *:nth-child(2) { animation-delay: 110ms; }
-.pl8-dash-stagger > *:nth-child(3) { animation-delay: 180ms; }
-.pl8-dash-stagger > *:nth-child(4) { animation-delay: 250ms; }
-.pl8-dash-stagger > *:nth-child(5) { animation-delay: 320ms; }
+.pl8-dash-stagger > *:nth-child(1)  { animation-delay:  40ms; }
+.pl8-dash-stagger > *:nth-child(2)  { animation-delay: 100ms; }
+.pl8-dash-stagger > *:nth-child(3)  { animation-delay: 160ms; }
+.pl8-dash-stagger > *:nth-child(4)  { animation-delay: 220ms; }
+.pl8-dash-stagger > *:nth-child(5)  { animation-delay: 280ms; }
+.pl8-dash-stagger > *:nth-child(6)  { animation-delay: 340ms; }
+.pl8-dash-stagger > *:nth-child(7)  { animation-delay: 400ms; }
+.pl8-dash-stagger > *:nth-child(8)  { animation-delay: 460ms; }
+.pl8-dash-stagger > *:nth-child(9)  { animation-delay: 520ms; }
+.pl8-dash-stagger > *:nth-child(10) { animation-delay: 580ms; }
+.pl8-dash-stagger > *:nth-child(11) { animation-delay: 620ms; }
+.pl8-dash-stagger > *:nth-child(n+12) { animation-delay: 660ms; }
 @keyframes pl8-dash-stagger-in {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+/* ── Card hover lift ─────────────────────────────────────────
+   A card's resting shadow is barely there; on hover, the shadow
+   blooms and the card rises 2px. Subtle but communicates
+   tappability without feeling like a button. */
+.pl8-card-lift,
+.pl8-tile-lift {
+  transition:
+    transform 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 220ms ease;
+  will-change: transform, box-shadow;
+}
+.pl8-card-lift:hover,
+.pl8-tile-lift:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 18px 36px -16px rgba(14, 13, 11, 0.18),
+    0 4px 12px  -6px  rgba(14, 13, 11, 0.10);
+}
+.pl8-card-lift:active,
+.pl8-tile-lift:active {
+  transform: translateY(-1px);
+  transition-duration: 120ms;
+}
+
+/* ── Page enter ──────────────────────────────────────────────
+   Wraps a dashboard route's content. Subtle slide + fade so
+   navigating between tabs feels like leafing through pages,
+   not slamming new windows open. */
+.pl8-dash-page-enter {
+  animation: pl8-dash-page-enter 540ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pl8-dash-page-enter {
+  from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ── Tab content crossfade ───────────────────────────────────
+   When a panel's inner content changes (filter pill, sub-tab),
+   pl8-tab-enter applies a quick crossfade rather than a hard
+   replace. */
+.pl8-tab-enter {
+  animation: pl8-tab-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pl8-tab-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Stat number reveal ──────────────────────────────────────
+   For tile values that should "fade up" rather than appear. */
+.pl8-stat-rise {
+  animation: pl8-stat-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pl8-stat-rise {
+  from { opacity: 0; transform: translateY(8px); letter-spacing: 0.04em; }
+  to   { opacity: 1; transform: translateY(0); letter-spacing: 0; }
+}
+
+/* ── Pill / chip pop ─────────────────────────────────────────
+   Tiny spring on hover so chips feel like physical objects. */
+.pl8-chip-pop {
+  transition: transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.pl8-chip-pop:hover { transform: scale(1.04); }
+.pl8-chip-pop:active { transform: scale(0.96); transition-duration: 100ms; }
+
+/* ── Button ripple-ish press ─────────────────────────────────
+   Apply on primary CTAs to add a subtle scale-down on tap. */
+.pl8-btn-press {
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 220ms ease;
+}
+.pl8-btn-press:active { transform: scale(0.97); transition-duration: 80ms; }
+
+/* ── Icon tile breathing ─────────────────────────────────────
+   Empty-state mascot or tile icon gets a slow breath when its
+   parent is hovered, telegraphing interactivity. */
+.pl8-tile-breath { transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1); }
+.pl8-card-lift:hover .pl8-tile-breath { transform: scale(1.06); }
+
+/* ── Skeleton → content crossfade ────────────────────────────
+   When a list mounts content over a previous skeleton row, the
+   new row uses .pl8-content-fade-in to avoid the snap-flicker. */
+.pl8-content-fade-in {
+  animation: pl8-content-fade-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pl8-content-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .pl8-dash-stagger > * { animation: none !important; }
+  .pl8-dash-stagger > *,
+  .pl8-card-lift, .pl8-tile-lift,
+  .pl8-dash-page-enter, .pl8-tab-enter,
+  .pl8-stat-rise, .pl8-chip-pop,
+  .pl8-btn-press, .pl8-content-fade-in {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
 }
 
 /* Sidebar custom scrollbar — barely visible but clean. */
@@ -1163,22 +1288,7 @@ html { scroll-behavior: smooth; }
   border-radius: var(--pl-block-card-radius, inherit);
 }
 
-/* ── Card lift utility — drop on any card-shaped element to get
-       a refined lift on hover. Use sparingly so it stays meaningful. ── */
-.pl8-card-lift {
-  transition:
-    transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 360ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 240ms ease;
-  will-change: transform;
-}
-.pl8-card-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 22px 50px -28px rgba(14, 13, 11, 0.32);
-}
-@media (prefers-reduced-motion: reduce) {
-  .pl8-card-lift:hover { transform: none; }
-}
+/* (.pl8-card-lift now lives in the dashboard motion system v2 block above) */
 
 /* ── Make existing v8 nav-links match the new look on hover (no
        heavy pill background, since the underline does the work). ── */

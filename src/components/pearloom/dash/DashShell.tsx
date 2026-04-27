@@ -1015,7 +1015,14 @@ export function DashLayout({
   // navigation between dashboard tabs flash-free: only the inner
   // content + topbar re-render.
   const insideShell = useIsInsideShell();
+  const pathname = usePathname();
   void active; // sidebar reads pathname directly when persistent
+
+  // Route-keyed children wrapper — remounts on every tab change so
+  // the CSS .pl8-dash-page-enter animation retriggers. Without this
+  // key, navigation between tabs would only fire the animation
+  // once on initial mount.
+  const pageKey = `page:${pathname}`;
 
   if (insideShell) {
     return (
@@ -1030,7 +1037,9 @@ export function DashLayout({
             showHeart={showHeart}
           />
         )}
-        {children}
+        <div key={pageKey} className="pl8-dash-page-enter">
+          {children}
+        </div>
       </>
     );
   }
@@ -1054,7 +1063,9 @@ export function DashLayout({
               showHeart={showHeart}
             />
           )}
-          {children}
+          <div key={pageKey} className="pl8-dash-page-enter">
+            {children}
+          </div>
         </div>
       </main>
     </div>

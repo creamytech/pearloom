@@ -68,6 +68,7 @@ export function DashEmpty({
 
   return (
     <div
+      className="pl8-content-fade-in"
       style={{
         position: 'relative',
         background: 'var(--cream-2)',

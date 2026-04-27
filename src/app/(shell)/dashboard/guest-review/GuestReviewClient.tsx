@@ -78,7 +78,7 @@ export function GuestReviewClient({ siteSlug }: { siteSlug: string }) {
 
   return (
     <DashLayout active="event">
-      <div style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
+      <div className="pl8-dash-page-enter" style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ marginBottom: 24 }}>
           <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 6 }}>
             Smart guest list
@@ -92,7 +92,7 @@ export function GuestReviewClient({ siteSlug }: { siteSlug: string }) {
         </div>
 
         {data && data.guestCount > 0 && (
-          <div style={{
+          <div className="pl8-dash-stagger" style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
             gap: 10,
@@ -120,7 +120,7 @@ export function GuestReviewClient({ siteSlug }: { siteSlug: string }) {
             actions={[{ label: 'Open the guest list', href: '/dashboard/rsvp' }]}
           />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div className="pl8-dash-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {data.insights.map((insight, i) => (
               <InsightCard
                 key={`${insight.kind}-${i}`}
@@ -139,7 +139,7 @@ export function GuestReviewClient({ siteSlug }: { siteSlug: string }) {
 
 function Stat({ label, value, tone }: { label: string; value: number; tone?: string }) {
   return (
-    <div style={{
+    <div className="pl8-card-lift" style={{
       padding: '14px 16px',
       background: 'var(--cream-2)',
       borderRadius: 12,
@@ -148,7 +148,7 @@ function Stat({ label, value, tone }: { label: string; value: number; tone?: str
       <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: tone ?? 'var(--peach-ink, #C6703D)' }}>
         {label}
       </div>
-      <div className="display" style={{ fontSize: 28, color: 'var(--ink)', marginTop: 4 }}>
+      <div className="display pl8-stat-rise" style={{ fontSize: 28, color: 'var(--ink)', marginTop: 4 }}>
         {value}
       </div>
     </div>
@@ -169,6 +169,7 @@ function InsightCard({
   const tone = SEVERITY_TONE[insight.severity];
   return (
     <div
+      className="pl8-card-lift"
       style={{
         background: tone.bg,
         border: `1px solid ${tone.border}`,

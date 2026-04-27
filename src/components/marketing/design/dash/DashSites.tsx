@@ -166,7 +166,7 @@ export function DashSites() {
           <>
             <SectionTitle eyebrow="YOUR SITES" title="Every thread you’ve" italic="already pulled." />
             <div
-              className="pd-sites-grid"
+              className="pd-sites-grid pl8-dash-stagger"
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',

@@ -281,7 +281,7 @@ export function DashGuests() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* STATS */}
           <div
-            className="pd-guests-stats"
+            className="pd-guests-stats pl8-dash-stagger"
             style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 10 }}
           >
             {[

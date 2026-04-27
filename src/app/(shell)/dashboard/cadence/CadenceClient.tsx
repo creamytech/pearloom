@@ -60,7 +60,7 @@ export function CadenceClient({ siteSlug }: { siteSlug: string }) {
 
   return (
     <DashLayout active="event">
-      <div style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
+      <div className="pl8-dash-page-enter" style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ marginBottom: 24 }}>
           <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 6 }}>
             Smart cadence
@@ -88,7 +88,7 @@ export function CadenceClient({ siteSlug }: { siteSlug: string }) {
         ) : error ? (
           <div style={{ padding: 14, background: 'rgba(122,45,45,0.08)', color: '#7A2D2D', borderRadius: 12 }}>{error}</div>
         ) : phases && phases.length > 0 ? (
-          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="pl8-dash-stagger" style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 8 }}>
             {/* Timeline rail */}
             <div aria-hidden style={{
               position: 'absolute',
@@ -149,6 +149,7 @@ function PhaseRow({
 
   return (
     <div
+      className="pl8-card-lift"
       style={{
         position: 'relative',
         marginLeft: 12,
@@ -315,7 +316,7 @@ function PhaseEditor({
   }
 
   return (
-    <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--line-soft)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div className="pl8-tab-enter" style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--line-soft)', display: 'flex', flexDirection: 'column', gap: 10 }}>
       {!eventDate && (
         <div style={{ fontSize: 12, color: '#7A2D2D', background: 'rgba(122,45,45,0.08)', padding: '8px 10px', borderRadius: 8 }}>
           Set the event date in the editor to anchor the schedule.

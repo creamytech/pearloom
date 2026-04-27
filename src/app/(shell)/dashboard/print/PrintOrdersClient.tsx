@@ -98,7 +98,7 @@ export function PrintOrdersClient({ siteFilter }: { siteFilter: string | null })
 
   return (
     <DashLayout active="sites">
-      <div style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
+      <div className="pl8-dash-page-enter" style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ marginBottom: 24 }}>
           <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 6 }}>
             Pearloom Print
@@ -124,7 +124,7 @@ export function PrintOrdersClient({ siteFilter }: { siteFilter: string | null })
             actions={[{ label: 'Open the invite designer', href: '/dashboard/event' }]}
           />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className="pl8-dash-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {batches.map((b) => (
               <BatchCard key={b.batchId} batch={b} />
             ))}
@@ -146,6 +146,7 @@ function BatchCard({ batch }: { batch: Batch }) {
 
   return (
     <div
+      className="pl8-card-lift"
       style={{
         background: 'var(--cream-2, #FBF7EE)',
         borderRadius: 16,

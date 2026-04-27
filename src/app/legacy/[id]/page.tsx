@@ -117,6 +117,7 @@ export default async function LegacyVaultPage(
       </header>
 
       <main
+        className={printMode ? '' : 'pl8-dash-stagger'}
         style={{
           maxWidth: 880,
           margin: '0 auto',
