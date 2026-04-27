@@ -251,7 +251,7 @@ export function EditorV8({
     },
     [queueSave],
   );
-  const history = useEditorHistory(manifest, names, restoreFromHistory);
+  const history = useEditorHistory(manifest, names, restoreFromHistory, siteSlug);
 
   const onManifestChange = useCallback(
     (next: StoryManifest) => {
