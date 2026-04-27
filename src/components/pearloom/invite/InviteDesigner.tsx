@@ -21,6 +21,15 @@ import { DecorGenerationToast } from '../editor/DecorGenerationToast';
 import { ARCHETYPES, type ArchetypeId } from '@/lib/invite-engine/archetypes';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
 import { PrintMailModal } from './PrintMailModal';
+import { InviteCanvas } from './canvas/InviteCanvas';
+import { CanvasInspector } from './canvas/CanvasInspector';
+import { CanvasToolbar } from './canvas/CanvasToolbar';
+import {
+  CANVAS_TEMPLATES,
+  buildScene,
+  type CanvasTemplateId,
+} from '@/lib/invite-canvas/templates';
+import type { CanvasScene } from '@/lib/invite-canvas/types';
 
 type VariantId =
   // Save-the-date — photo-first
@@ -282,6 +291,17 @@ export function InviteDesigner({
   const [downloading, setDownloading] = useState(false);
   const [printOpen, setPrintOpen] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
+
+  // ── Designer surface mode ──
+  // 'template' = the existing rigid SVG variants (legacy).
+  // 'canvas'   = the new free-form drag/resize/select editor.
+  // Hosts toggle at the top of the page; switching to canvas
+  // seeds a CanvasScene from the currently-picked template so
+  // the work-in-progress carries over instead of starting blank.
+  const [surfaceMode, setSurfaceMode] = useState<'template' | 'canvas'>('template');
+  const [canvasTemplateId, setCanvasTemplateId] = useState<CanvasTemplateId>('classic-stack');
+  const [canvasScene, setCanvasScene] = useState<CanvasScene | null>(null);
+  const [canvasSelectedId, setCanvasSelectedId] = useState<string | null>(null);
 
   // ── Photo state ─────────────────────────────────────────────
   // Photo slots on a variant are filled from this map: slotId →
@@ -650,87 +670,161 @@ export function InviteDesigner({
               </h1>
             </div>
 
-            <div style={{ display: 'flex', padding: 3, background: 'var(--cream-2)', borderRadius: 10, gap: 2 }}>
-              {(
-                [
-                  { v: 'save-the-date', l: invitationLabels.kindLabel.save },
-                  { v: 'invitation', l: invitationLabels.kindLabel.invite },
-                ] as const
-              ).map((o) => {
-                const on = kind === o.v;
-                return (
-                  <button
-                    key={o.v}
-                    type="button"
-                    onClick={() => setKindAndAdjust(o.v)}
-                    style={{
-                      padding: '8px 14px',
-                      borderRadius: 8,
-                      background: on ? 'var(--ink)' : 'transparent',
-                      color: on ? 'var(--cream)' : 'var(--ink)',
-                      border: 0,
-                      fontSize: 13,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontFamily: 'var(--font-ui)',
-                    }}
-                  >
-                    {o.l}
-                  </button>
-                );
-              })}
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              {/* Surface mode — Template = legacy SVG variants;
+                  Canvas = the new free-form drag/resize editor. */}
+              <div style={{ display: 'flex', padding: 3, background: 'var(--cream-2)', borderRadius: 10, gap: 2 }}>
+                {(
+                  [
+                    { v: 'template' as const, l: 'Templates' },
+                    { v: 'canvas' as const,   l: 'Canvas' },
+                  ]
+                ).map((o) => {
+                  const on = surfaceMode === o.v;
+                  return (
+                    <button
+                      key={o.v}
+                      type="button"
+                      onClick={() => {
+                        setSurfaceMode(o.v);
+                        if (o.v === 'canvas' && !canvasScene) {
+                          // Seed a scene from the currently-picked
+                          // legacy variant so the canvas isn't blank.
+                          const stamp = kind === 'save-the-date'
+                            ? invitationLabels.stampShort.save
+                            : invitationLabels.stampShort.invite;
+                          setCanvasScene(buildScene(canvasTemplateId, {
+                            names,
+                            dateLabel: date.long,
+                            venue,
+                            occasionLabel: occasion,
+                            photo: manifestPhotos[0],
+                            stamp,
+                          }));
+                        }
+                      }}
+                      style={{
+                        padding: '8px 14px',
+                        borderRadius: 8,
+                        background: on ? 'var(--ink)' : 'transparent',
+                        color: on ? 'var(--cream)' : 'var(--ink)',
+                        border: 0,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontFamily: 'var(--font-ui)',
+                      }}
+                    >
+                      {o.l}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div style={{ display: 'flex', padding: 3, background: 'var(--cream-2)', borderRadius: 10, gap: 2 }}>
+                {(
+                  [
+                    { v: 'save-the-date', l: invitationLabels.kindLabel.save },
+                    { v: 'invitation', l: invitationLabels.kindLabel.invite },
+                  ] as const
+                ).map((o) => {
+                  const on = kind === o.v;
+                  return (
+                    <button
+                      key={o.v}
+                      type="button"
+                      onClick={() => setKindAndAdjust(o.v)}
+                      style={{
+                        padding: '8px 14px',
+                        borderRadius: 8,
+                        background: on ? 'var(--ink)' : 'transparent',
+                        color: on ? 'var(--cream)' : 'var(--ink)',
+                        border: 0,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontFamily: 'var(--font-ui)',
+                      }}
+                    >
+                      {o.l}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
-          <div
-            style={{
-              background: 'var(--cream-2)',
-              borderRadius: 24,
-              padding: 'clamp(20px, 3vw, 40px)',
-              border: '1px solid var(--card-ring)',
-              display: 'grid',
-              placeItems: 'center',
-              minHeight: 560,
-            }}
-          >
+          {surfaceMode === 'template' ? (
             <div
               style={{
-                width: 'min(520px, 100%)',
-                aspectRatio: '1000 / 1400',
-                boxShadow: '0 24px 60px rgba(61,74,31,0.18), 0 2px 6px rgba(0,0,0,0.06)',
-                borderRadius: 6,
-                overflow: 'hidden',
-                background: variant.paper,
+                background: 'var(--cream-2)',
+                borderRadius: 24,
+                padding: 'clamp(20px, 3vw, 40px)',
+                border: '1px solid var(--card-ring)',
+                display: 'grid',
+                placeItems: 'center',
+                minHeight: 560,
               }}
             >
-              <InviteSvg
-                ref={svgRef}
-                variant={variant}
-                headline={headline}
-                names={names}
-                date={date}
-                venue={venue}
-                prettyUrl={prettyUrl}
-                kind={kind}
-                stampLabel={kind === 'save-the-date' ? invitationLabels.stampShort.save : invitationLabels.stampShort.invite}
-                qrDataUrl={qrPosition === 'hidden' ? null : qrDataUrl}
-                qrPosition={qrPosition}
-                headlineFontFamily={FONT_FAMILIES[headlineFont].value}
-                bodyFontFamily={FONT_FAMILIES[bodyFont].value}
-                aiBackgroundUrl={aiBackgroundUrl}
-                photoSelections={photoSelections}
-                photoFilter={photoFilter}
-                photoTransform={photoTransform}
-                inviteCopy={{
-                  hostingLine,
-                  ceremonyTime,
-                  receptionLine,
-                  dressCode,
-                  rsvpDeadline,
+              <div
+                style={{
+                  width: 'min(520px, 100%)',
+                  aspectRatio: '1000 / 1400',
+                  boxShadow: '0 24px 60px rgba(61,74,31,0.18), 0 2px 6px rgba(0,0,0,0.06)',
+                  borderRadius: 6,
+                  overflow: 'hidden',
+                  background: variant.paper,
                 }}
-              />
+              >
+                <InviteSvg
+                  ref={svgRef}
+                  variant={variant}
+                  headline={headline}
+                  names={names}
+                  date={date}
+                  venue={venue}
+                  prettyUrl={prettyUrl}
+                  kind={kind}
+                  stampLabel={kind === 'save-the-date' ? invitationLabels.stampShort.save : invitationLabels.stampShort.invite}
+                  qrDataUrl={qrPosition === 'hidden' ? null : qrDataUrl}
+                  qrPosition={qrPosition}
+                  headlineFontFamily={FONT_FAMILIES[headlineFont].value}
+                  bodyFontFamily={FONT_FAMILIES[bodyFont].value}
+                  aiBackgroundUrl={aiBackgroundUrl}
+                  photoSelections={photoSelections}
+                  photoFilter={photoFilter}
+                  photoTransform={photoTransform}
+                  inviteCopy={{
+                    hostingLine,
+                    ceremonyTime,
+                    receptionLine,
+                    dressCode,
+                    rsvpDeadline,
+                  }}
+                />
+              </div>
             </div>
-          </div>
+          ) : (
+            <CanvasSurface
+              scene={canvasScene}
+              setScene={setCanvasScene}
+              selectedId={canvasSelectedId}
+              setSelectedId={setCanvasSelectedId}
+              templateId={canvasTemplateId}
+              setTemplateId={(id) => {
+                setCanvasTemplateId(id);
+                const stamp = kind === 'save-the-date'
+                  ? invitationLabels.stampShort.save
+                  : invitationLabels.stampShort.invite;
+                setCanvasScene(buildScene(id, {
+                  names, dateLabel: date.long, venue,
+                  occasionLabel: occasion,
+                  photo: manifestPhotos[0], stamp,
+                }));
+                setCanvasSelectedId(null);
+              }}
+            />
+          )}
 
           <div style={{ marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <button
@@ -784,6 +878,43 @@ export function InviteDesigner({
             top: 24,
           }}
         >
+          {surfaceMode === 'canvas' && canvasScene ? (
+            <CanvasInspector
+              scene={canvasScene}
+              setScene={setCanvasScene}
+              selectedId={canvasSelectedId}
+              setSelectedId={setCanvasSelectedId}
+              libraryPhotos={manifestPhotos}
+              pearPaintUrl={aiBackgroundUrl}
+            />
+          ) : (
+            <InspectorTabsAndContent />
+          )}
+        </aside>
+      </div>
+      <DecorGenerationToast />
+      <PrintMailModal
+        open={printOpen}
+        onClose={() => setPrintOpen(false)}
+        siteSlug={siteSlug}
+        kind={kind === 'save-the-date' ? 'save-the-date' : 'invitation'}
+        getSvg={() => {
+          const el = svgRef.current;
+          if (!el) return null;
+          return new XMLSerializer().serializeToString(el);
+        }}
+      />
+    </DashLayout>
+  );
+
+  // Hoisted as a function component within the closure so it
+  // captures all the state above without prop-drilling. Renders
+  // the legacy template-mode inspector (variant picker, photo
+  // controls, AI paint, etc.). Only invoked when surfaceMode
+  // === 'template'.
+  function InspectorTabsAndContent() {
+    return (
+      <>
           {/* Mode tabs — three lanes for designing the invite. */}
           <div
             role="tablist"
@@ -1035,25 +1166,9 @@ export function InviteDesigner({
               Downloads at 3000×4200 PNG (300dpi at 10×14 in). Scales cleanly to 5×7 postcards and 4×6 photo prints.
             </div>
           </div>
-        </aside>
-      </div>
-      {/* Floating bottom-right pill that surfaces in-flight Pear-paint
-          jobs. Mounted at the page level so the host sees the
-          progress dot while the renderer is working. */}
-      <DecorGenerationToast />
-      <PrintMailModal
-        open={printOpen}
-        onClose={() => setPrintOpen(false)}
-        siteSlug={siteSlug}
-        kind={kind === 'save-the-date' ? 'save-the-date' : 'invitation'}
-        getSvg={() => {
-          const el = svgRef.current;
-          if (!el) return null;
-          return new XMLSerializer().serializeToString(el);
-        }}
-      />
-    </DashLayout>
-  );
+      </>
+    );
+  }
 }
 
 // Small input row — keeps invitation fields visually consistent.
@@ -2077,6 +2192,98 @@ function SliderRow({
         {value.toFixed(suffix === '×' ? 2 : 2)}{suffix}
       </span>
     </label>
+  );
+}
+
+// ── CanvasSurface ──────────────────────────────────────────
+// Wraps the new free-form canvas editor. Renders a template
+// chip strip at the top, the toolbar centered above the canvas,
+// and the canvas itself. Inspector lives in the right rail
+// (handled by the parent layout).
+function CanvasSurface({
+  scene, setScene, selectedId, setSelectedId, templateId, setTemplateId,
+}: {
+  scene: CanvasScene | null;
+  setScene: (next: CanvasScene | null) => void;
+  selectedId: string | null;
+  setSelectedId: (id: string | null) => void;
+  templateId: CanvasTemplateId;
+  setTemplateId: (id: CanvasTemplateId) => void;
+}) {
+  return (
+    <div
+      style={{
+        background: 'var(--cream-2)',
+        borderRadius: 24,
+        padding: 'clamp(16px, 2.5vw, 28px)',
+        border: '1px solid var(--card-ring)',
+        minHeight: 560,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 14,
+      }}
+    >
+      {/* Template chip strip */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {CANVAS_TEMPLATES.map((t) => {
+          const on = templateId === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setTemplateId(t.id)}
+              className="pl8-chip-pop"
+              style={{
+                padding: '7px 14px',
+                borderRadius: 999,
+                border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
+                background: on ? 'var(--ink)' : 'var(--card)',
+                color: on ? 'var(--cream)' : 'var(--ink)',
+                fontSize: 11.5,
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'var(--font-ui)',
+              }}
+            >
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Toolbar (centered above the canvas) */}
+      <div style={{ display: 'flex', justifyContent: 'center', minHeight: 42 }}>
+        {scene && (
+          <CanvasToolbar
+            scene={scene}
+            setScene={(s) => setScene(s)}
+            selectedId={selectedId}
+            setSelectedId={setSelectedId}
+          />
+        )}
+      </div>
+
+      {/* Canvas */}
+      {scene ? (
+        <InviteCanvas
+          scene={scene}
+          setScene={(s) => setScene(s)}
+          selectedId={selectedId}
+          setSelectedId={setSelectedId}
+          editing
+        />
+      ) : (
+        <div style={{ padding: 60, textAlign: 'center', color: 'var(--ink-muted)' }}>
+          Threading the canvas…
+        </div>
+      )}
+
+      {/* Hint */}
+      <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', textAlign: 'center', lineHeight: 1.5 }}>
+        Click an element to select. Drag to move. Pull a corner to resize. Double-click text to retype.
+        Arrow keys nudge by 1px (Shift = 10px).
+      </div>
+    </div>
   );
 }
 
