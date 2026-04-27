@@ -49,7 +49,6 @@ import { DetailsPanel } from './panels/DetailsPanel';
 import { SchedulePanel } from './panels/SchedulePanel';
 import { TravelPanel } from './panels/TravelPanel';
 import { BlockStylePanel } from './panels/BlockStylePanel';
-import { BlockMiniature } from './BlockMiniature';
 import { RegistryPanel } from './panels/RegistryPanel';
 import { GalleryPanel } from './panels/GalleryPanel';
 import { RsvpPanel } from './panels/RsvpPanel';
@@ -1416,48 +1415,60 @@ function Outline({
     <aside
       className="pl8-editor-outline"
       style={{
-        width: 264,
+        width: 252,
         flexShrink: 0,
         borderRight: '1px solid var(--line-soft)',
         background: 'var(--cream)',
-        padding: '14px 12px',
+        padding: '16px 10px',
         overflowY: 'auto',
         display: 'flex',
         flexDirection: 'column',
-        gap: 10,
+        gap: 14,
       }}
     >
-      {/* Hero — pinned */}
-      <BlockRow
-        def={hero}
-        active={block === hero.key}
-        hidden={false}
-        onSelect={() => setBlock(hero.key)}
-        fillState={blockFillState(hero.key as ScoredBlockKey, manifest)}
-      />
+      {/* Identity group — Hero is structurally pinned at the top
+          since the section never moves. Wrapped in its own micro-
+          group so the pearl outline + drag-to-reorder hint reads
+          for the rest of the list. */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <BlockRow
+          def={hero}
+          active={block === hero.key}
+          hidden={false}
+          onSelect={() => setBlock(hero.key)}
+          fillState={blockFillState(hero.key as ScoredBlockKey, manifest)}
+        />
+      </div>
 
-      {/* Reorderable middle */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginTop: 4,
-          padding: '0 4px',
+          padding: '0 12px',
         }}
       >
-        <div
+        <span
           style={{
-            fontSize: 10.5,
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            fontSize: 10,
             fontWeight: 700,
-            letterSpacing: '0.14em',
-            color: 'var(--peach-ink)',
+            letterSpacing: '0.22em',
+            color: 'var(--ink-muted)',
             textTransform: 'uppercase',
           }}
         >
           Sections
-        </div>
-        <span style={{ fontSize: 10.5, color: 'var(--ink-muted)' }}>Drag to reorder</span>
+        </span>
+        <span
+          style={{
+            fontSize: 10,
+            color: 'var(--ink-muted)',
+            opacity: 0.65,
+          }}
+        >
+          Drag to reorder
+        </span>
       </div>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -1486,20 +1497,33 @@ function Outline({
         style={{
           marginTop: 'auto',
           background: 'var(--lavender-bg)',
+          border: '1px solid rgba(196,181,217,0.35)',
           borderRadius: 12,
-          padding: 10,
+          padding: '12px 14px',
           display: 'flex',
-          gap: 8,
+          gap: 10,
           alignItems: 'flex-start',
         }}
       >
-        <Pear size={28} tone="sage" />
+        <span style={{ flexShrink: 0, marginTop: 1 }}>
+          <Pear size={24} tone="sage" />
+        </span>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--lavender-ink)', marginBottom: 2 }}>
+          <div
+            style={{
+              fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+              fontSize: 9.5,
+              fontWeight: 700,
+              letterSpacing: '0.22em',
+              color: 'var(--lavender-ink)',
+              textTransform: 'uppercase',
+              marginBottom: 4,
+            }}
+          >
             Tip from Pear
           </div>
-          <div style={{ fontSize: 11, color: 'var(--ink-soft)', lineHeight: 1.4 }}>
-            Drag rows to reorder. Hide with the eye — drag hidden rows onto the canvas to add them back. Click anything in the preview to edit it.
+          <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
+            Drag to reorder, eye to hide. Drag hidden rows onto the canvas to add them back. Click anything in the preview to edit it.
           </div>
         </div>
       </div>
@@ -1594,6 +1618,10 @@ function BlockRow({
   // *don't* enable native drag on visible rows because dnd-kit owns
   // the pointer there for in-list reorder.
   const nativeDraggable = hidden;
+  const [hovered, setHovered] = useState(false);
+  // Chrome (drag handle, eye toggle) shows on hover or when active
+  // so an idle row is just glyph + label + status pip — calm.
+  const showChrome = hovered || active;
   return (
     <div
       draggable={nativeDraggable || undefined}
@@ -1603,26 +1631,42 @@ function BlockRow({
             e.dataTransfer.effectAllowed = 'move';
           }
         : undefined}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
+        position: 'relative',
         display: 'grid',
-        gridTemplateColumns: `${dragHandleProps ? '14px ' : ''}40px 1fr ${onToggleHidden ? '24px' : ''}`.trim(),
-        gap: 8,
-        padding: '6px 8px',
-        borderRadius: 8,
-        background: active ? 'var(--cream-2)' : 'transparent',
+        gridTemplateColumns: `${dragHandleProps ? '14px ' : ''}24px 1fr ${onToggleHidden ? '22px' : ''}`.trim(),
+        gap: 10,
+        padding: '8px 10px',
+        borderRadius: 10,
+        background: active ? 'var(--cream-2)' : hovered ? 'rgba(14,13,11,0.03)' : 'transparent',
         color: 'var(--ink)',
-        border: active
-          ? '1px solid var(--peach-ink, #C6703D)'
-          : '1px solid transparent',
-        boxShadow: active ? '0 0 0 3px rgba(198,112,61,0.10)' : 'none',
         cursor: nativeDraggable ? 'grab' : 'pointer',
         fontFamily: 'var(--font-ui)',
         alignItems: 'center',
-        transition: 'background 160ms ease, border-color 160ms ease, box-shadow 160ms ease',
+        transition: 'background 160ms ease',
       }}
       onClick={onSelect}
       title={nativeDraggable ? 'Drag onto the canvas to add' : undefined}
     >
+      {/* Active marker — peach hairline on the leading edge, signals
+          "this is the open block" without surrounding the row in a
+          loud peach box. Hides when not active so idle rows breathe. */}
+      {active && (
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 8,
+            bottom: 8,
+            width: 2,
+            borderRadius: 2,
+            background: 'var(--peach-ink, #C6703D)',
+          }}
+        />
+      )}
       {dragHandleProps && (
         <button
           type="button"
@@ -1632,7 +1676,7 @@ function BlockRow({
           onClick={(e) => e.stopPropagation()}
           style={{
             width: 14,
-            height: 28,
+            height: 24,
             display: 'grid',
             placeItems: 'center',
             background: 'transparent',
@@ -1641,36 +1685,48 @@ function BlockRow({
             cursor: 'grab',
             touchAction: 'none',
             padding: 0,
+            opacity: showChrome ? 0.7 : 0,
+            transition: 'opacity 140ms ease',
           }}
         >
           <Icon name="drag" size={12} />
         </button>
       )}
-      {/* Mini section preview — small SVG diagram of what the
-          section looks like. Description has moved to the inspector
-          header so we keep rows compact. */}
+      {/* Glyph — a single icon at the row's leading edge. Replaces
+          the boxed schematic miniature, which read as wireframe
+          clipart. Active rows tint the glyph peach to hint at
+          "this is the one being edited"; idle rows use ink-soft. */}
       <span
+        aria-hidden
         style={{
-          width: 40,
-          height: 26,
+          width: 24,
+          height: 24,
+          display: 'grid',
+          placeItems: 'center',
+          color: active
+            ? 'var(--peach-ink, #C6703D)'
+            : hidden
+              ? 'var(--ink-muted)'
+              : 'var(--ink-soft)',
+          opacity: hidden ? 0.55 : 1,
           flexShrink: 0,
-          opacity: hidden ? 0.45 : 1,
-          display: 'block',
+          transition: 'color 160ms ease',
         }}
       >
-        <BlockMiniature block={def.key} active={active} />
+        <Icon name={def.icon} size={16} />
       </span>
       <div style={{ minWidth: 0, opacity: hidden ? 0.55 : 1 }}>
         <div
           style={{
             fontSize: 13,
-            fontWeight: 600,
+            fontWeight: active ? 700 : 600,
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             display: 'flex',
             alignItems: 'center',
             gap: 7,
+            letterSpacing: '-0.005em',
           }}
         >
           {fillState && (
@@ -1678,11 +1734,10 @@ function BlockRow({
               aria-label={FILL_STATE_COLORS[fillState].label}
               title={FILL_STATE_COLORS[fillState].label}
               style={{
-                width: 6,
-                height: 6,
+                width: 5,
+                height: 5,
                 borderRadius: 999,
                 background: FILL_STATE_COLORS[fillState].bg,
-                boxShadow: `0 0 0 3px ${FILL_STATE_COLORS[fillState].ring}`,
                 flexShrink: 0,
                 display: 'inline-block',
               }}
@@ -1700,8 +1755,8 @@ function BlockRow({
             onToggleHidden();
           }}
           style={{
-            width: 24,
-            height: 24,
+            width: 22,
+            height: 22,
             display: 'grid',
             placeItems: 'center',
             background: 'transparent',
@@ -1710,6 +1765,8 @@ function BlockRow({
             cursor: 'pointer',
             borderRadius: 6,
             padding: 0,
+            opacity: hidden ? 1 : showChrome ? 0.7 : 0,
+            transition: 'opacity 140ms ease',
           }}
         >
           <Icon name={hidden ? 'eye-off' : 'eye'} size={13} />
