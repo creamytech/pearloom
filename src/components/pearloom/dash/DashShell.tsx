@@ -122,34 +122,43 @@ export function DashSidebar({ active }: { active?: string }) {
       style={{
         width: 264,
         flexShrink: 0,
-        padding: '18px 14px',
         display: 'flex',
         flexDirection: 'column',
-        gap: 10,
         background: 'var(--cream)',
         borderRight: '1px solid var(--line-soft)',
-        minHeight: '100vh',
+        // Sidebar is exactly the viewport height and pinned to the
+        // top of the viewport so it always reads as a fixed shell
+        // even on long pages. We deliberately set both min + max to
+        // 100vh so flex stretching can't blow it past the window.
         position: 'sticky',
         top: 0,
+        height: '100vh',
         maxHeight: '100vh',
-        overflowY: 'auto',
+        // Outer aside no longer scrolls — the nav block in the
+        // middle is the only scroll surface. Logo + celebration
+        // card pin to the top, plan card + user menu pin to the
+        // bottom, and the user can never accidentally push them
+        // off-screen by mouse-wheeling the sidebar.
+        overflow: 'hidden',
       }}
     >
-      <Link
-        href="/"
-        className="pl8-dash-logo"
-        style={{
-          padding: '4px 8px 8px',
-          display: 'inline-flex',
-          transition: 'transform 240ms cubic-bezier(0.22, 1, 0.36, 1)',
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.035)')}
-        onMouseLeave={(e) => (e.currentTarget.style.transform = '')}
-      >
-        <PearloomLogo />
-      </Link>
+      <div style={{ padding: '18px 14px 12px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <Link
+          href="/"
+          className="pl8-dash-logo"
+          style={{
+            padding: '4px 8px 8px',
+            display: 'inline-flex',
+            transition: 'transform 240ms cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.035)')}
+          onMouseLeave={(e) => (e.currentTarget.style.transform = '')}
+        >
+          <PearloomLogo />
+        </Link>
 
-      <CelebrationCard />
+        <CelebrationCard />
+      </div>
 
       <nav
         className="pl8-dash-nav"
@@ -157,7 +166,15 @@ export function DashSidebar({ active }: { active?: string }) {
           display: 'flex',
           flexDirection: 'column',
           gap: 14,
-          marginTop: 4,
+          // The only scrollable region of the sidebar. Long nav
+          // (5 groups, expanded) scrolls inside this lane while the
+          // pinned chrome above + below stays put. Slim scrollbar
+          // styling already lives in pearloom.css under
+          // .pl8-dash-sidebar::-webkit-scrollbar.
+          flex: 1,
+          minHeight: 0,
+          overflowY: 'auto',
+          padding: '4px 14px 12px',
         }}
       >
         {DASH_NAV_GROUPS.map((group) => (
@@ -165,7 +182,7 @@ export function DashSidebar({ active }: { active?: string }) {
         ))}
       </nav>
 
-      <div style={{ marginTop: 'auto' }}>
+      <div style={{ flexShrink: 0, padding: '0 14px 18px' }}>
         <div
           className="pl8-dash-plan"
           style={{
