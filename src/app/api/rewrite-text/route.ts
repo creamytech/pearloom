@@ -77,13 +77,35 @@ export async function POST(req: NextRequest) {
     //   (b) v8 instruction:  { instruction, tone? }     — wizard + PearCommand + HeroPanel + InviteDesigner
     // Both return a response containing { text, rewrite, rewritten, result }
     // so every caller can read whichever field it prefers.
-    const { text, context, style, instruction, tone } = body as {
+    const { text, context, style, instruction, tone, voiceProfile } = body as {
       text?: unknown;
       context?: unknown;
       style?: unknown;
       instruction?: unknown;
       tone?: unknown;
+      voiceProfile?: {
+        tone?: string;
+        formality?: number;
+        phrases?: string[];
+        avoidList?: string[];
+      };
     };
+
+    // Optional voice block — when the caller passes a voiceProfile
+    // (typically pulled from manifest.voiceDNA), prepend it to the
+    // prompt so generated copy sounds like the host, not Pear.
+    const voiceBlock = voiceProfile
+      ? `Voice profile (write IN this voice):\n` +
+        `- Tone: ${voiceProfile.tone ?? 'warm'}\n` +
+        (typeof voiceProfile.formality === 'number' ? `- Formality (1=very casual, 5=very formal): ${voiceProfile.formality}\n` : '') +
+        (Array.isArray(voiceProfile.phrases) && voiceProfile.phrases.length
+          ? `- Use these signature phrases naturally when fitting: ${voiceProfile.phrases.slice(0, 6).map((p) => `"${p}"`).join(', ')}\n`
+          : '') +
+        (Array.isArray(voiceProfile.avoidList) && voiceProfile.avoidList.length
+          ? `- Avoid these words/clichés: ${voiceProfile.avoidList.slice(0, 5).map((w) => `"${w}"`).join(', ')}\n`
+          : '') +
+        `\n`
+      : '';
 
     let prompt: string;
 
@@ -103,7 +125,7 @@ export async function POST(req: NextRequest) {
 
 ${toneHint}
 
-Task:
+${voiceBlock}Task:
 ${instruction}
 
 Rules:
@@ -139,7 +161,7 @@ Rules:
 
 ${STYLE_INSTRUCTIONS[style as RewriteStyle]}
 
-Context about this wedding site: ${context}
+${voiceBlock}Context about this wedding site: ${context}
 
 Text to rewrite:
 "${text}"

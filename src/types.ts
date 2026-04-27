@@ -255,6 +255,19 @@ export interface StoryManifest {
   // event day + morning after. 'on' forces live-mode chrome
   // (rehearsals / demos). 'off' suppresses it entirely.
   dayOfMode?: 'auto' | 'on' | 'off';
+  // Voice DNA — captured by the host once via /dashboard/voice
+  // and threaded into every Claude pass that drafts copy. Makes
+  // generated text sound like the host, not a brand.
+  voiceDNA?: {
+    tone: string;
+    formality: number;          // 1 (very casual) .. 5 (very formal)
+    vocabulary: string[];       // distinctive words they use
+    phrases: string[];          // signature short phrases
+    avoidList?: string[];
+    greetingStyle?: string;
+    signoffStyle?: string;
+    capturedAt: string;
+  };
   // Which sections live on the home page in multi-page mode.
   // Defaults to ['story','gallery'] when omitted. 'details' is
   // always included implicitly. All other sections become their
