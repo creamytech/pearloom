@@ -2013,7 +2013,7 @@ function Inspector({
       )}
 
       {tab === 'library' && (
-        <AssetLibraryPanel />
+        <AssetLibraryPanel manifest={manifest} />
       )}
 
       {tab === 'pear' && (
