@@ -343,7 +343,154 @@ export function ThemePanel({
       <div data-pl-design-anchor="stickers">
         <StickerTrayPanel manifest={manifest} onChange={onChange} />
       </div>
+
+      <div data-pl-design-anchor="footer">
+        <FooterCustomizationSection manifest={manifest} onChange={onChange} />
+      </div>
     </div>
+  );
+}
+
+// ── FooterCustomizationSection ─────────────────────────────
+// Layout picker + brand mark + heading overrides + attribution
+// toggle. Writes to manifest.footer; SiteFooter reads from it
+// with defaults when fields are unset.
+function FooterCustomizationSection({
+  manifest,
+  onChange,
+}: {
+  manifest: StoryManifest;
+  onChange: (m: StoryManifest) => void;
+}) {
+  const cfg = ((manifest as unknown as { footer?: {
+    layout?: 'anchor' | 'minimal' | 'stacked';
+    brandMark?: 'pear' | 'heart' | 'sparkle' | 'leaf' | 'off';
+    showAttribution?: boolean;
+    headings?: { day?: string; about?: string };
+  } }).footer) ?? {};
+
+  function patch<K extends string>(key: K, value: unknown) {
+    onChange({
+      ...manifest,
+      footer: { ...cfg, [key]: value },
+    } as unknown as StoryManifest);
+  }
+  function patchHeading(slot: 'day' | 'about', value: string) {
+    onChange({
+      ...manifest,
+      footer: {
+        ...cfg,
+        headings: { ...(cfg.headings ?? {}), [slot]: value },
+      },
+    } as unknown as StoryManifest);
+  }
+
+  const layout = cfg.layout ?? 'anchor';
+  const brandMark = cfg.brandMark ?? 'pear';
+  const showAttribution = cfg.showAttribution !== false;
+
+  return (
+    <PanelSection
+      label="Footer"
+      hint="Layout, brand mark, and column headers for the closing footer."
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div>
+          <Field label="Layout">
+            <SegmentedToggle<string>
+              value={layout}
+              onChange={(v) => patch('layout', v)}
+              options={[
+                { value: 'anchor', label: 'Anchor' },
+                { value: 'stacked', label: 'Stacked' },
+                { value: 'minimal', label: 'Minimal' },
+              ]}
+            />
+          </Field>
+          <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 6, lineHeight: 1.45 }}>
+            Anchor — 4-column editorial spread (default). Stacked — names left, link columns right. Minimal — centered single column with closing line.
+          </div>
+        </div>
+
+        <Field label="Brand mark">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
+            {(
+              [
+                { v: 'pear', l: 'Pear' },
+                { v: 'heart', l: 'Heart' },
+                { v: 'sparkle', l: 'Spark' },
+                { v: 'leaf', l: 'Leaf' },
+                { v: 'off', l: 'Off' },
+              ] as const
+            ).map((o) => {
+              const on = brandMark === o.v;
+              return (
+                <button
+                  key={o.v}
+                  type="button"
+                  onClick={() => patch('brandMark', o.v)}
+                  style={{
+                    padding: '8px 4px',
+                    borderRadius: 8,
+                    border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
+                    background: on ? 'var(--cream-2)' : 'var(--card)',
+                    color: 'var(--ink)',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-ui)',
+                  }}
+                >
+                  {o.l}
+                </button>
+              );
+            })}
+          </div>
+        </Field>
+
+        <Field label="Column headings">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <TextInput
+              value={cfg.headings?.day ?? ''}
+              onChange={(e) => patchHeading('day', e.target.value)}
+              placeholder="The day"
+            />
+            <TextInput
+              value={cfg.headings?.about ?? ''}
+              onChange={(e) => patchHeading('about', e.target.value)}
+              placeholder="About"
+            />
+          </div>
+        </Field>
+
+        <label
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '10px 12px',
+            background: 'var(--cream-2)',
+            borderRadius: 10,
+            cursor: 'pointer',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={showAttribution}
+            onChange={(e) => patch('showAttribution', e.target.checked)}
+            style={{ accentColor: 'var(--peach-ink, #C6703D)' }}
+          />
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)', display: 'block' }}>
+              Show &ldquo;Made with Pearloom&rdquo;
+            </span>
+            <span style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.4 }}>
+              Discreet attribution in the legal row + the &ldquo;Built on Pearloom&rdquo; link in the About column.
+            </span>
+          </span>
+        </label>
+      </div>
+    </PanelSection>
   );
 }
 

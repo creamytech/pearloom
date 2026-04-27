@@ -1018,6 +1018,9 @@ function DesignMenu() {
           <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpBlock('hero')}>
             <Icon name="image" size={14} /> Hero block
           </button>
+          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('footer')}>
+            <Icon name="section" size={14} /> Footer
+          </button>
         </div>
       )}
     </div>

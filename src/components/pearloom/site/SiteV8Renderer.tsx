@@ -3082,6 +3082,39 @@ const RSVPSection = memo(RSVPSectionImpl, (p, n) => {
 });
 
 /* ==================== FOOTER ==================== */
+// ── Footer config ──────────────────────────────────────────
+// Lives at manifest.footer, all fields optional with sensible
+// defaults. Exposes layout + brand mark + columns + the
+// "Made with Pearloom" attribution toggle. The FooterPanel in
+// the editor binds to these fields.
+type FooterLayout = 'anchor' | 'minimal' | 'stacked';
+type FooterBrandMark = 'pear' | 'heart' | 'sparkle' | 'leaf' | 'off';
+
+interface FooterConfig {
+  layout?: FooterLayout;
+  brandMark?: FooterBrandMark;
+  /** When true the Pearloom attribution shows in the legal row. */
+  showAttribution?: boolean;
+  /** Trailing link in the legal row. Defaults to "Make one like
+   *  this" pointing at /. Set to null to hide entirely. */
+  trailingLinkLabel?: string | null;
+  trailingLinkHref?: string;
+  /** Custom column headers. Keys map to the same hard-coded link
+   *  groups; values override the default heading text. */
+  headings?: { day?: string; about?: string };
+}
+
+function brandMarkGlyph(mark: FooterBrandMark) {
+  switch (mark) {
+    case 'pear':    return <Pear size={44} tone="cream" shadow={false} />;
+    case 'heart':   return <Heart size={36} color="var(--cream)" />;
+    case 'sparkle': return <Sparkle size={36} color="var(--cream)" />;
+    case 'leaf':    return <Icon name="leaf" size={32} color="var(--cream)" />;
+    case 'off':
+    default:        return null;
+  }
+}
+
 function SiteFooter({
   names,
   prettyUrl,
@@ -3095,80 +3128,114 @@ function SiteFooter({
 }) {
   const [n1, n2] = names;
   const year = new Date().getFullYear();
+  const cfg = ((manifest as unknown as { footer?: FooterConfig }).footer ?? {}) as FooterConfig;
+  const layout: FooterLayout = cfg.layout ?? 'anchor';
+  const brandMark: FooterBrandMark = cfg.brandMark ?? 'pear';
+  const showAttribution = cfg.showAttribution !== false;
+  const trailingLabel = cfg.trailingLinkLabel === null
+    ? null
+    : (cfg.trailingLinkLabel ?? 'Make one like this');
+  const trailingHref = cfg.trailingLinkHref ?? '/';
+  const dayLinks: Array<[string, string]> = [
+    ['Our story', '#our-story'],
+    ['Schedule', '#schedule'],
+    ['Travel', '#travel'],
+    ['Registry', '#registry'],
+  ];
+  const aboutLinks: Array<[string, string]> = [
+    ...(showAttribution ? [['Built on Pearloom', '/']] as Array<[string, string]> : []),
+    ['Privacy', '/privacy'],
+    ['Terms', '/terms'],
+  ];
+
+  const closingLineSlot = (
+    <EditableField
+      as="div"
+      context="footer closing line"
+      value={
+        (manifest as unknown as { poetry?: { closingLine?: string } }).poetry?.closingLine
+        ?? 'Made with love (and Pearloom) by the two of us.'
+      }
+      onSave={(next) =>
+        onEditField?.((m) => ({
+          ...m,
+          poetry: {
+            closingLine: next,
+            heroTagline: m.poetry?.heroTagline ?? '',
+            rsvpIntro: m.poetry?.rsvpIntro ?? '',
+            welcomeStatement: m.poetry?.welcomeStatement,
+            milestones: m.poetry?.milestones,
+          },
+        }))
+      }
+      placeholder="One last line for the footer…"
+      maxLength={200}
+      multiline
+      style={{ fontSize: 13, opacity: 0.7, marginTop: 14, lineHeight: 1.6, maxWidth: 340, color: 'var(--cream)' }}
+    />
+  );
+
+  const namesBlock = (
+    <>
+      {brandMarkGlyph(brandMark)}
+      <div className="display" style={{ fontSize: layout === 'minimal' ? 38 : 32, marginTop: 14, color: 'var(--cream)' }}>
+        {n1 || 'Your'}{' '}
+        {n2 && (
+          <>
+            <span className="display-italic">&amp;</span> {n2}
+          </>
+        )}
+      </div>
+      <div style={{ fontSize: 13, opacity: 0.7, marginTop: 6 }}>{prettyUrl}</div>
+    </>
+  );
+
   return (
     <footer style={{ background: 'var(--ink)', color: 'var(--cream)', padding: '60px 32px 32px' }}>
       <div style={{ maxWidth: 1160, margin: '0 auto' }}>
-        <div
-          className="pl8-site-footer-grid"
-          style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 40, marginBottom: 40 }}
-        >
-          <div>
-            <Pear size={44} tone="cream" shadow={false} />
-            <div className="display" style={{ fontSize: 32, marginTop: 14, color: 'var(--cream)' }}>
-              {n1 || 'Your'}{' '}
-              {n2 && (
-                <>
-                  <span className="display-italic">&amp;</span> {n2}
-                </>
-              )}
-            </div>
-            <div style={{ fontSize: 13, opacity: 0.7, marginTop: 6 }}>{prettyUrl}</div>
-            <EditableField
-              as="div"
-              context="footer closing line"
-              value={
-                (manifest as unknown as { poetry?: { closingLine?: string } }).poetry?.closingLine
-                ?? 'Made with love (and Pearloom) by the two of us.'
-              }
-              onSave={(next) =>
-                onEditField?.((m) => ({
-                  ...m,
-                  poetry: {
-                    closingLine: next,
-                    heroTagline: m.poetry?.heroTagline ?? '',
-                    rsvpIntro: m.poetry?.rsvpIntro ?? '',
-                    welcomeStatement: m.poetry?.welcomeStatement,
-                    milestones: m.poetry?.milestones,
-                  },
-                }))
-              }
-              placeholder="One last line for the footer…"
-              maxLength={200}
-              multiline
-              style={{ fontSize: 13, opacity: 0.7, marginTop: 14, lineHeight: 1.6, maxWidth: 340, color: 'var(--cream)' }}
-            />
+        {layout === 'minimal' ? (
+          // Centered single column. Brand mark, names, URL,
+          // closing line, then the legal row underneath.
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 40 }}>
+            {namesBlock}
+            {closingLineSlot}
           </div>
-          {[
-            { h: 'The day', l: [['Our story', '#our-story'], ['Schedule', '#schedule'], ['Travel', '#travel'], ['Registry', '#registry']] },
-            { h: 'About', l: [['Built on Pearloom', '/'], ['Privacy', '/privacy'], ['Terms', '/terms']] },
-          ].map((c) => (
-            <div key={c.h}>
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  opacity: 0.7,
-                  marginBottom: 14,
-                }}
-              >
-                {c.h}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {c.l.map(([label, href]) => (
-                  <a
-                    key={label}
-                    href={href}
-                    style={{ fontSize: 13.5, color: 'var(--cream)', opacity: 0.85, textDecoration: 'none' }}
-                  >
-                    {label}
-                  </a>
-                ))}
-              </div>
+        ) : layout === 'stacked' ? (
+          // Two-column: identity block left, link columns stacked
+          // right. Reads more like a quiet endpaper than the wide
+          // 4-column anchor variant.
+          <div
+            className="pl8-site-footer-grid"
+            style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 40, marginBottom: 40 }}
+          >
+            <div>
+              {namesBlock}
+              {closingLineSlot}
             </div>
-          ))}
-        </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+              {[
+                { h: cfg.headings?.day ?? 'The day', l: dayLinks },
+                { h: cfg.headings?.about ?? 'About', l: aboutLinks },
+              ].map((c) => (
+                <FooterColumn key={c.h} heading={c.h} links={c.l} />
+              ))}
+            </div>
+          </div>
+        ) : (
+          // Anchor layout — 4 columns. Default editorial spread.
+          <div
+            className="pl8-site-footer-grid"
+            style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 40, marginBottom: 40 }}
+          >
+            <div>
+              {namesBlock}
+              {closingLineSlot}
+            </div>
+            <FooterColumn heading={cfg.headings?.day ?? 'The day'} links={dayLinks} />
+            <FooterColumn heading={cfg.headings?.about ?? 'About'} links={aboutLinks} />
+            <div />
+          </div>
+        )}
         <div
           style={{
             borderTop: '1px solid rgba(243,233,212,0.14)',
@@ -3181,13 +3248,49 @@ function SiteFooter({
             gap: 10,
           }}
         >
-          <div>© {year} {(n1 && n2 ? `${n1} & ${n2}` : n1) || 'Pearloom'} · Made with Pearloom</div>
-          <a href="/" style={{ color: 'var(--cream)' }}>
-            Make one like this
-          </a>
+          <div>
+            © {year} {(n1 && n2 ? `${n1} & ${n2}` : n1) || 'Pearloom'}
+            {showAttribution ? ' · Made with Pearloom' : ''}
+          </div>
+          {trailingLabel && (
+            <a href={trailingHref} style={{ color: 'var(--cream)' }}>
+              {trailingLabel}
+            </a>
+          )}
         </div>
       </div>
     </footer>
+  );
+}
+
+function FooterColumn({ heading, links }: { heading: string; links: Array<[string, string]> }) {
+  if (links.length === 0) return null;
+  return (
+    <div>
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          opacity: 0.7,
+          marginBottom: 14,
+        }}
+      >
+        {heading}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {links.map(([label, href]) => (
+          <a
+            key={label}
+            href={href}
+            style={{ fontSize: 13.5, color: 'var(--cream)', opacity: 0.85, textDecoration: 'none' }}
+          >
+            {label}
+          </a>
+        ))}
+      </div>
+    </div>
   );
 }
 
