@@ -812,6 +812,8 @@ interface PanelProps {
   bg?: string;
   padding?: number | string;
   border?: boolean;
+  /** Extra utility classes (e.g. pl8-card-lift). */
+  className?: string;
 }
 export function Panel({
   children,
@@ -819,9 +821,11 @@ export function Panel({
   bg,
   padding = 28,
   border = true,
+  className,
 }: PanelProps) {
   return (
     <div
+      className={className}
       style={{
         background: bg ?? 'var(--card)',
         borderRadius: 20,

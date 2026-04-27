@@ -14,6 +14,7 @@ import { createContext, useContext, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { Blob, Squiggle } from '../motifs';
 import { DashSidebar } from './DashShell';
+import { DashSubNav } from './DashSubNav';
 
 const ShellPresentContext = createContext<boolean>(false);
 
@@ -33,6 +34,11 @@ export function ShellPersistentLayout({ children }: { children: ReactNode }) {
             <Squiggle variant={1} width={180} style={{ position: 'absolute', top: 40, right: 200, transform: 'rotate(-15deg)', opacity: 0.6 }} />
           </div>
           <div style={{ position: 'relative', zIndex: 1 }}>
+            {/* Section sub-nav — mounted ABOVE the page-enter
+                wrapper so it stays put across tab swaps within
+                the same section (Guests > Roster → Cadence
+                doesn't re-fire the heavy slide+stagger). */}
+            <DashSubNav />
             {/* Pathname-keyed wrapper — remounts on every route
                 change so the CSS animation re-triggers. Without
                 this key, the animation only fires on initial

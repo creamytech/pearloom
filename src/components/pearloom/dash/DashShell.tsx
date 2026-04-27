@@ -32,62 +32,90 @@ interface DashNavGroup {
 
 const DASH_NAV_GROUPS: DashNavGroup[] = [
   {
-    id: 'overview',
-    label: 'Overview',
+    id: 'main',
+    label: '',
     items: [
-      { id: 'dashboard', label: 'Dashboard', icon: 'home', href: '/dashboard' },
-      { id: 'sites', label: 'My Sites', icon: 'layout', href: '/dashboard/event' },
-      { id: 'weekend', label: 'Weekend builder', icon: 'sparkles', href: '/dashboard/weekend' },
-    ],
-  },
-  {
-    id: 'event',
-    label: 'Your event',
-    items: [
-      { id: 'timeline', label: 'Timeline', icon: 'clock', href: '/dashboard/day-of' },
-      { id: 'cadence', label: 'Send cadence', icon: 'mail', href: '/dashboard/cadence' },
-      { id: 'guests', label: 'Guests', icon: 'users', href: '/dashboard/rsvp' },
-      { id: 'guest-review', label: "Pear's review", icon: 'sparkles', href: '/dashboard/guest-review' },
-      { id: 'seating', label: 'Seating', icon: 'grid', href: '/dashboard/seating' },
-      { id: 'submissions', label: 'Submissions', icon: 'mail', href: '/dashboard/submissions' },
-      { id: 'connections', label: 'Guest Manager', icon: 'user-plus', href: '/dashboard/connections' },
-      { id: 'registry', label: 'Registry', icon: 'gift', href: '/dashboard/registry' },
-      { id: 'payments', label: 'Gifts & payments', icon: 'sparkles', href: '/dashboard/payments' },
-    ],
-  },
-  {
-    id: 'creative',
-    label: 'Creative',
-    items: [
-      { id: 'library', label: 'Photo library', icon: 'image', href: '/dashboard/library' },
-      { id: 'invite', label: 'Invite designer', icon: 'mail', href: '/dashboard/invite' },
-      { id: 'print', label: 'Print orders', icon: 'send', href: '/dashboard/print' },
-      { id: 'speech', label: 'Speech composer', icon: 'mic', href: '/dashboard/speech' },
-      { id: 'voice', label: 'Voice DNA', icon: 'mic', href: '/dashboard/voice' },
-      { id: 'vendors', label: 'Vendors', icon: 'layers', href: '/vendors' },
-      { id: 'passport-cards', label: 'Passport cards', icon: 'user-plus', href: '/dashboard/passport-cards' },
-      { id: 'qr-poster', label: 'QR poster', icon: 'sparkles', href: '/dashboard/qr-poster' },
-      { id: 'templates', label: 'Templates', icon: 'grid', href: '/templates' },
-    ],
-  },
-  {
-    id: 'after',
-    label: 'After the day',
-    items: [
-      { id: 'keepsakes', label: 'Keepsakes', icon: 'heart-icon', href: '/dashboard/keepsakes' },
-      { id: 'memory-book', label: 'Memory book', icon: 'grid', href: '/dashboard/memory-book' },
-      { id: 'bridge', label: 'The bridge', icon: 'sparkles', href: '/dashboard/bridge' },
-    ],
-  },
-  {
-    id: 'insights',
-    label: 'Insights',
-    items: [
-      { id: 'analytics', label: 'Analytics', icon: 'sparkles', href: '/dashboard/analytics' },
+      { id: 'home',    label: 'Home',     icon: 'home',     href: '/dashboard' },
+      { id: 'site',    label: 'Site',     icon: 'layout',   href: '/dashboard/event' },
+      { id: 'guests',  label: 'Guests',   icon: 'users',    href: '/dashboard/rsvp' },
+      { id: 'day',     label: 'Day',      icon: 'clock',    href: '/dashboard/day-of' },
+      { id: 'studio',  label: 'Studio',   icon: 'sparkles', href: '/dashboard/invite' },
+      { id: 'memory',  label: 'Memory',   icon: 'heart-icon', href: '/dashboard/keepsakes' },
       { id: 'settings', label: 'Settings', icon: 'settings', href: '/dashboard/profile' },
     ],
   },
 ];
+
+/** Section → sub-tabs map. Mounted at the top of each landing
+ *  page via <DashSubNav>. Routes still match the old paths so no
+ *  redirects + no broken bookmarks; we just visually group them
+ *  under one umbrella entry in the sidebar. */
+export const DASH_SECTIONS: Record<string, { label: string; tabs: Array<{ id: string; label: string; href: string }> }> = {
+  site: {
+    label: 'Site',
+    tabs: [
+      { id: 'sites',     label: 'My sites',  href: '/dashboard/event' },
+      { id: 'weekend',   label: 'Weekend',   href: '/dashboard/weekend' },
+      { id: 'connections', label: 'Linked',  href: '/dashboard/connections' },
+      { id: 'templates', label: 'Templates', href: '/templates' },
+    ],
+  },
+  guests: {
+    label: 'Guests',
+    tabs: [
+      { id: 'roster',      label: 'Roster',       href: '/dashboard/rsvp' },
+      { id: 'cadence',     label: 'Send cadence', href: '/dashboard/cadence' },
+      { id: 'review',      label: "Pear's review", href: '/dashboard/guest-review' },
+      { id: 'submissions', label: 'Submissions',  href: '/dashboard/submissions' },
+      { id: 'registry',    label: 'Registry',     href: '/dashboard/registry' },
+      { id: 'payments',    label: 'Payments',     href: '/dashboard/payments' },
+    ],
+  },
+  day: {
+    label: 'Day of',
+    tabs: [
+      { id: 'timeline', label: 'Timeline', href: '/dashboard/day-of' },
+      { id: 'seating',  label: 'Seating',  href: '/dashboard/seating' },
+      { id: 'gallery',  label: 'Live wall', href: '/dashboard/gallery' },
+    ],
+  },
+  studio: {
+    label: 'Studio',
+    tabs: [
+      { id: 'invite',    label: 'Invites',     href: '/dashboard/invite' },
+      { id: 'print',     label: 'Print orders', href: '/dashboard/print' },
+      { id: 'qr-poster', label: 'QR poster',   href: '/dashboard/qr-poster' },
+      { id: 'library',   label: 'Photo library', href: '/dashboard/library' },
+      { id: 'speech',    label: 'Speech',      href: '/dashboard/speech' },
+      { id: 'voice',     label: 'Voice DNA',   href: '/dashboard/voice' },
+      { id: 'passport-cards', label: 'Passport cards', href: '/dashboard/passport-cards' },
+      { id: 'vendors',   label: 'Vendors',     href: '/vendors' },
+    ],
+  },
+  memory: {
+    label: 'Memory',
+    tabs: [
+      { id: 'keepsakes',  label: 'Keepsakes',  href: '/dashboard/keepsakes' },
+      { id: 'memory-book', label: 'Book',      href: '/dashboard/memory-book' },
+      { id: 'bridge',     label: 'The bridge', href: '/dashboard/bridge' },
+      { id: 'analytics',  label: 'Analytics',  href: '/dashboard/analytics' },
+    ],
+  },
+};
+
+/** Map of every sub-tab href → its parent section id. Used by
+ *  <DashSubNav> to figure out which section to render when the
+ *  consumer doesn't pass it explicitly. */
+const HREF_TO_SECTION: Record<string, string> = (() => {
+  const map: Record<string, string> = {};
+  for (const [sectionId, section] of Object.entries(DASH_SECTIONS)) {
+    for (const tab of section.tabs) map[tab.href] = sectionId;
+  }
+  return map;
+})();
+export function sectionForHref(href: string): string | null {
+  return HREF_TO_SECTION[href] ?? null;
+}
 
 // Flattened list for quick lookup when other parts of the app still
 // want the single-level DASH_NAV map.
@@ -627,8 +655,14 @@ function NavGroup({
     setPill({ top: itemRect.top - listRect.top, height: itemRect.height, visible: true });
   }, [active, pathname, open]);
 
+  // Hide the collapsible group header entirely when label is empty.
+  // The new IA renders a single "main" group with no header so the
+  // sidebar reads as a flat 7-item list.
+  const headerless = !group.label || group.label.trim().length === 0;
+
   return (
     <div>
+      {!headerless && (
       <button
         type="button"
         onClick={toggleOpen}
@@ -667,7 +701,8 @@ function NavGroup({
           </svg>
         </span>
       </button>
-      {open && (
+      )}
+      {(headerless || open) && (
         <div ref={listRef} style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 2 }}>
           <div
             aria-hidden="true"

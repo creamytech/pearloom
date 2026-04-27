@@ -240,7 +240,7 @@ export function DashSettings() {
                   accent={PD.terra}
                 />
                 <div
-                  className="pd-voice-grid"
+                  className="pd-voice-grid pl8-dash-stagger"
                   style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(4, 1fr)',

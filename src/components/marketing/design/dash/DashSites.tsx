@@ -425,7 +425,7 @@ function NewSiteTile() {
 function PathsGrid() {
   return (
     <div
-      className="pd-sites-paths"
+      className="pd-sites-paths pl8-dash-stagger"
       style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(3, 1fr)',

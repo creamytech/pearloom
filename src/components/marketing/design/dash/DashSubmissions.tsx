@@ -327,6 +327,7 @@ export function DashSubmissions() {
           </Panel>
         ) : (
           <div
+            className="pl8-dash-stagger"
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
@@ -338,6 +339,7 @@ export function DashSubmissions() {
                 key={s.id}
                 bg={s.status === 'flagged' ? '#F1D7CE' : PD.paperCard}
                 style={{ padding: 18 }}
+                className="pl8-card-lift"
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                   <div
