@@ -24,6 +24,7 @@ import type { StoryManifest } from '@/types';
 import { PersonalGuestHero } from '@/components/guest-experience/PersonalGuestHero';
 import { VoiceToastRecorder } from '@/components/guest-experience/VoiceToastRecorder';
 import { PassportSections } from '@/components/pearloom/passport/PassportSections';
+import { GuestPhaseStrip } from '@/components/pearloom/passport/GuestPhaseStrip';
 
 export const metadata: Metadata = {
   title: "You're Invited | Pearloom",
@@ -104,6 +105,27 @@ export default async function PersonalGuestPage({
         fontFamily: bodyFont,
       }}
     >
+      {/* Year-round phase strip — flips copy + CTAs based on lifecycle
+          (upcoming → live → fresh-memory → year-ago → archived). Also
+          surfaces day-of push pings + add-to-home-screen + dietary /
+          table chips. Mounted above the hero so guests always see
+          where they are in the journey. */}
+      <GuestPhaseStrip
+        eventDateIso={manifest.logistics?.date ?? null}
+        firstName={guest.display_name.split(' ')[0]}
+        coupleNames={coupleNames.filter(Boolean).join(' & ')}
+        venue={manifest.logistics?.venue}
+        sitePath={sitePublicUrl}
+        rsvpHref={`/rsvp?site=${site.subdomain}&g=${token}`}
+        accent={theme?.accent ?? '#5C6B3F'}
+        paper={theme?.background ?? '#F5F1E8'}
+        ink={theme?.foreground ?? '#0E0D0B'}
+        guestToken={token}
+        logistics={{
+          dietary: Array.isArray(guest.dietary) ? guest.dietary : undefined,
+          accessibility: Array.isArray(guest.accessibility) ? guest.accessibility : undefined,
+        }}
+      />
       <PersonalGuestHero
         guestFirstName={guest.display_name.split(' ')[0]}
         coupleNames={coupleNames}
