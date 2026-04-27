@@ -212,7 +212,11 @@ function MomentTimeline({
       : occasion === 'bachelor-party' || occasion === 'bachelorette-party' || occasion === 'reunion'
         ? 'The itinerary'
         : "Today's rundown";
-  const editHref = siteDomain ? `/editor?site=${encodeURIComponent(siteDomain)}` : '/editor';
+  // Path-based editor URL — /editor is route-grouped under
+  // [siteSlug], so the legacy ?site=… form 404s. Without a site
+  // selected we send the host to /dashboard/event so they can
+  // pick which one they want before editing.
+  const editHref = siteDomain ? `/editor/${encodeURIComponent(siteDomain)}` : '/dashboard/event';
 
   if (items.length === 0) {
     return (
@@ -386,7 +390,11 @@ function relativeTime(iso?: string): string {
 
 function LiveReel({ siteDomain, siteId, occasion }: { siteDomain?: string | null; siteId?: string | null; occasion?: string | null }) {
   const { items, loading } = useGuestPhotos(siteId);
-  const editHref = siteDomain ? `/editor?site=${encodeURIComponent(siteDomain)}` : '/editor';
+  // Path-based editor URL — /editor is route-grouped under
+  // [siteSlug], so the legacy ?site=… form 404s. Without a site
+  // selected we send the host to /dashboard/event so they can
+  // pick which one they want before editing.
+  const editHref = siteDomain ? `/editor/${encodeURIComponent(siteDomain)}` : '/dashboard/event';
   const heading = occasion === 'memorial' || occasion === 'funeral' ? 'What guests shared' : 'The live reel';
   return (
     <div className="card" style={{ padding: 24 }}>
@@ -466,7 +474,11 @@ function LiveReel({ siteDomain, siteId, occasion }: { siteDomain?: string | null
 }
 
 function RequestsCard({ siteDomain, occasion }: { siteDomain?: string | null; occasion?: string | null }) {
-  const editHref = siteDomain ? `/editor?site=${encodeURIComponent(siteDomain)}` : '/editor';
+  // Path-based editor URL — /editor is route-grouped under
+  // [siteSlug], so the legacy ?site=… form 404s. Without a site
+  // selected we send the host to /dashboard/event so they can
+  // pick which one they want before editing.
+  const editHref = siteDomain ? `/editor/${encodeURIComponent(siteDomain)}` : '/dashboard/event';
   // Nothing real here yet — vendor / crew messaging isn't wired. Show
   // an honest empty state so the page doesn't lie about its state.
   const copy =
@@ -534,7 +546,11 @@ function useGuestRollup(siteId?: string | null) {
 
 function AttendanceCard({ siteId, occasion, siteDomain }: { siteId?: string | null; occasion?: string | null; siteDomain?: string | null }) {
   const { rows, loading } = useGuestRollup(siteId);
-  const editHref = siteDomain ? `/editor?site=${encodeURIComponent(siteDomain)}` : '/editor';
+  // Path-based editor URL — /editor is route-grouped under
+  // [siteSlug], so the legacy ?site=… form 404s. Without a site
+  // selected we send the host to /dashboard/event so they can
+  // pick which one they want before editing.
+  const editHref = siteDomain ? `/editor/${encodeURIComponent(siteDomain)}` : '/dashboard/event';
   const heading = occasion === 'memorial' || occasion === 'funeral' ? 'Who’s attending' : 'Who’s coming';
 
   const buckets: Array<{ group: string; count: number; total: number; tone: 'sage' | 'peach' | 'lavender' | 'cream' }> = useMemo(() => {
@@ -669,7 +685,11 @@ function initials(name?: string): string {
 
 function GuestWall({ siteId, siteDomain, occasion }: { siteId?: string | null; siteDomain?: string | null; occasion?: string | null }) {
   const { items, loading } = useGuestbook(siteId);
-  const editHref = siteDomain ? `/editor?site=${encodeURIComponent(siteDomain)}` : '/editor';
+  // Path-based editor URL — /editor is route-grouped under
+  // [siteSlug], so the legacy ?site=… form 404s. Without a site
+  // selected we send the host to /dashboard/event so they can
+  // pick which one they want before editing.
+  const editHref = siteDomain ? `/editor/${encodeURIComponent(siteDomain)}` : '/dashboard/event';
   const heading =
     occasion === 'memorial' || occasion === 'funeral'
       ? 'Notes of memory'
@@ -773,7 +793,11 @@ function GuestWall({ siteId, siteDomain, occasion }: { siteId?: string | null; s
 function SongQueue({ siteDomain }: { siteDomain?: string | null }) {
   // Song requests aren't wired to an API yet. Rather than lie with
   // fake data, invite the user to connect Spotify in the editor.
-  const editHref = siteDomain ? `/editor?site=${encodeURIComponent(siteDomain)}` : '/editor';
+  // Path-based editor URL — /editor is route-grouped under
+  // [siteSlug], so the legacy ?site=… form 404s. Without a site
+  // selected we send the host to /dashboard/event so they can
+  // pick which one they want before editing.
+  const editHref = siteDomain ? `/editor/${encodeURIComponent(siteDomain)}` : '/dashboard/event';
   return (
     <div className="card" style={{ padding: 24, position: 'relative', overflow: 'hidden' }}>
       <Squiggle variant={2} width={180} style={{ position: 'absolute', top: 20, right: 20, opacity: 0.3 }} />

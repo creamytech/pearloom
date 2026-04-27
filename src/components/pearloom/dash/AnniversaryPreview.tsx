@@ -214,7 +214,7 @@ export function AnniversaryPreview() {
             </button>
             {site?.domain && (
               <a
-                href={`/editor?site=${encodeURIComponent(site.domain)}`}
+                href={`/editor/${encodeURIComponent(site.domain)}`}
                 className="btn btn-outline btn-sm"
               >
                 <Icon name="brush" size={12} /> Polish in editor

@@ -73,8 +73,16 @@ function kickoffIcon(kind: KickoffCard['icon']) {
   }
 }
 
-function KickoffCards({ occasion }: { occasion?: string | null }) {
-  const cards = getKickoffCards(occasion);
+function KickoffCards({ occasion, siteDomain }: { occasion?: string | null; siteDomain?: string | null }) {
+  // Kickoff card hrefs ship as '/editor' (no slug) because the
+  // preset is shared across sites. At render time we rewrite to
+  // /editor/{slug} when a site is known so the host lands in the
+  // editor in one click; otherwise we send them to the site
+  // picker so they can choose first.
+  const cards = getKickoffCards(occasion).map((c) => {
+    if (c.href !== '/editor') return c;
+    return { ...c, href: siteDomain ? `/editor/${encodeURIComponent(siteDomain)}` : '/dashboard/event' };
+  });
   const eyebrow = getKickoffEyebrow(occasion);
   return (
     <div>
@@ -881,7 +889,7 @@ export function DashHomeV8() {
       </div>
 
       <div style={{ padding: '0 clamp(20px, 4vw, 40px) 24px', maxWidth: 1240, margin: '0 auto' }}>
-        <KickoffCards occasion={site?.occasion} />
+        <KickoffCards occasion={site?.occasion} siteDomain={site?.domain} />
         <div className="pl8-dash-threecol pl8-dash-stagger" style={{ marginTop: 24 }}>
           <EventSites sites={sites ?? []} loading={loading} />
           <Milestones eventDate={site?.eventDate ?? null} />
