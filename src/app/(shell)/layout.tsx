@@ -15,6 +15,14 @@
 import type { ReactNode } from 'react';
 import { ShellPersistentLayout } from '@/components/pearloom/dash/ShellPersistentLayout';
 
+// Opt every (shell) route out of static prerendering. The sidebar
+// site picker uses useSearchParams() internally; without dynamic
+// rendering, Next 16 requires a Suspense boundary on every page
+// that descendants might call useSearchParams from. Marking the
+// layout dynamic is the single switch that keeps the picker
+// working everywhere without per-page boundaries.
+export const dynamic = 'force-dynamic';
+
 export default function ShellLayout({ children }: { children: ReactNode }) {
   return <ShellPersistentLayout>{children}</ShellPersistentLayout>;
 }

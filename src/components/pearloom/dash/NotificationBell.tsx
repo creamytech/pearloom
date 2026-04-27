@@ -150,7 +150,14 @@ export function NotificationBell() {
   if (!site) return null;
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
+    // Wrapper carries its own stacking context above the page's
+    // card grid. Without an explicit z-index here, cards with
+    // position:relative + will-change paint over our absolutely-
+    // positioned dropdown even though we set zIndex on the
+    // dropdown itself — stacking is bounded by the parent's own
+    // stacking context. zIndex on the wrapper lifts the whole
+    // popover tree above page content.
+    <div ref={ref} style={{ position: 'relative', zIndex: 100 }}>
       <button
         type="button"
         onClick={handleOpen}
@@ -213,7 +220,12 @@ export function NotificationBell() {
             border: '1px solid var(--card-ring)',
             borderRadius: 14,
             boxShadow: '0 24px 48px rgba(14,13,11,0.20), 0 4px 12px rgba(14,13,11,0.10)',
-            zIndex: 60,
+            // Bump above the page's card stacking contexts. Cards
+            // with position:relative + transitions create their own
+            // stacking contexts that were occluding the dropdown
+            // at the previous zIndex of 60. Modal-tier (300) is
+            // safely above everything except toast.
+            zIndex: 300,
             display: 'flex',
             flexDirection: 'column',
             maxHeight: 480,
