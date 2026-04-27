@@ -37,6 +37,7 @@ import { CSS } from '@dnd-kit/utilities';
 
 import { CanvasStage } from './canvas/CanvasStage';
 import { FirstThreadTour } from './FirstThreadTour';
+import { DecorGenerationToast } from './DecorGenerationToast';
 import { ThemeQuickBar } from './canvas/ThemeQuickBar';
 import { EditorCanvasProvider } from './canvas/EditorCanvasContext';
 import { AssetLibraryPanel } from './panels/AssetLibraryPanel';
@@ -516,6 +517,7 @@ export function EditorV8({
       }}
     >
       <FirstThreadTour siteSlug={siteSlug} />
+      <DecorGenerationToast />
       {publishError && (
         <div
           role="alert"

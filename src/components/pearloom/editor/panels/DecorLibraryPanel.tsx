@@ -20,6 +20,18 @@ import { useCallback, useState } from 'react';
 import type { StoryManifest, DecorDraft, SectionStampsDraft } from '@/types';
 import { PanelSection } from '../atoms';
 import { Icon } from '../../motifs';
+import { startDecorJob, completeDecorJob } from '@/lib/decor-bus';
+
+function decorJobLabel(slot: string): string {
+  switch (slot) {
+    case 'divider': return 'Section dividers';
+    case 'sectionStamps': return 'Section stamps';
+    case 'confetti': return 'Confetti burst';
+    case 'footerBouquet': return 'Closing flourish';
+    case 'accent': return 'Hero flourish';
+    default: return slot;
+  }
+}
 import { getVenueMotifs, describeVenueMatch, type VenueMotif } from '@/lib/decor/venue-motifs';
 import {
   DecorPromptComposer,
@@ -72,6 +84,14 @@ export function DecorLibraryPanel({
         for (const k of slots) next[k] = null;
         return next;
       });
+      // Surface every slot as a job in the floating decor toast so
+      // the user sees progress even after they navigate away from
+      // the Theme tab. One job per slot keeps the toast specific
+      // about what's running.
+      const jobIds: Record<string, string> = {};
+      for (const k of slots) {
+        jobIds[k] = startDecorJob(k, decorJobLabel(k));
+      }
       try {
         const slotPrompts: Partial<Record<LibrarySlot, string>> = {};
         for (const k of slots) {
@@ -150,6 +170,8 @@ export function DecorLibraryPanel({
           for (const k of slots) {
             const hit = (k === 'sectionStamps' ? incoming.sectionStamps : incoming[k]);
             next[k] = hit ? 'ok' : 'error';
+            // Mirror the per-slot result into the floating toast.
+            completeDecorJob(jobIds[k], Boolean(hit), hit ? undefined : 'No image returned');
           }
           return next;
         });
@@ -176,6 +198,9 @@ export function DecorLibraryPanel({
           for (const k of slots) next[k] = 'error';
           return next;
         });
+        for (const k of slots) {
+          completeDecorJob(jobIds[k], false, msg);
+        }
       }
     },
     [ctx, customPrompts, manifest, onChange],

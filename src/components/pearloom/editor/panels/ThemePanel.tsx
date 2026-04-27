@@ -5,6 +5,7 @@ import type { StoryManifest } from '@/types';
 import { Field, PanelSection, SegmentedToggle, SelectInput, TextInput } from '../atoms';
 import { Blob, Pear, Sparkle, Squiggle, Icon } from '../../motifs';
 import { DecorLibraryPanel } from './DecorLibraryPanel';
+import { startDecorJob, completeDecorJob } from '@/lib/decor-bus';
 import { StickerTrayPanel } from './StickerTrayPanel';
 import { AtmospherePanel } from './AtmospherePanel';
 import { FontPicker } from './FontPicker';
@@ -376,6 +377,9 @@ function AiAccentSection({
   async function generate() {
     setRunning(true);
     setError(null);
+    // Surface in the floating toast so the user can navigate away
+    // while Pear paints (~10-20s).
+    const jobId = startDecorJob('accent', 'Hero flourish');
     try {
       const res = await fetch('/api/decor/ai-accent', {
         method: 'POST',
@@ -407,8 +411,11 @@ function AiAccentSection({
         decorDrafts: { ...(manifest.decorDrafts ?? {}), accent: pushDraft(drafts, draft) },
       } as unknown as StoryManifest);
       if (data.warning) setError(data.warning);
+      completeDecorJob(jobId, true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Accent generation failed');
+      const msg = err instanceof Error ? err.message : 'Accent generation failed';
+      setError(msg);
+      completeDecorJob(jobId, false, msg);
     } finally {
       setRunning(false);
     }
