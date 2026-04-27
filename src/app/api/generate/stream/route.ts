@@ -11,11 +11,14 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { clusterPhotos, reverseGeocode } from '@/lib/google-photos';
 import { generateStoryManifest } from '@/lib/memory-engine';
+import type { StoryManifest } from '@/types';
 import type { GooglePhotoMetadata, PhotoCluster, WeddingEvent, LogoIconId } from '@/types';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import pLimit from 'p-limit';
 import { encryptBuffer, isEncryptionEnabled } from '@/lib/crypto';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
+import { seedBlocksFromEventDetails } from '@/lib/event-os/seed-event-details';
+import { getDefaultThemeFamily } from '@/lib/event-os/theme-family';
 
 // ── Pass labels (index 0-7) ────────────────────────────────────
 const PASS_LABELS = [
@@ -152,6 +155,73 @@ function getDefaultBlocks(occasion: string, _hasEvents: boolean, _hasDate: boole
 }
 
 /** Generate a custom logo SVG icon via AI based on the couple's vibe + occasion */
+/**
+ * Default logo: a typographic monogram in the chosen serif.
+ * Cheaper, more tasteful, higher keep-rate than an AI-drawn SVG
+ * for event sites. Returns the same shape as generateLogoIcon so
+ * the call site doesn't care which path produced it.
+ *
+ * Shape variants:
+ *   - couple: interlocking initials "A & J" style
+ *   - solo:   single initial with a gold rule under it
+ *   - memorial: single initial set in a ring
+ */
+function buildMonogram(
+  occasion: string | undefined,
+  names: [string, string],
+): { logoIcon: LogoIconId; logoSvg?: string } {
+  const fallbackIcon: LogoIconId = occasion === 'wedding'
+    ? 'wedding-rings'
+    : occasion === 'anniversary'
+    ? 'champagne'
+    : occasion === 'engagement'
+    ? 'heart'
+    : occasion === 'birthday'
+    ? 'gift'
+    : occasion === 'memorial' || occasion === 'funeral' || occasion === 'celebration-life'
+    ? 'pearl'
+    : 'pear';
+
+  const initial = (s: string | undefined) =>
+    (s?.trim().charAt(0) || '').toUpperCase();
+  const a = initial(names[0]);
+  const b = initial(names[1]);
+  const isMemorial =
+    occasion === 'memorial' || occasion === 'funeral' || occasion === 'celebration-life';
+
+  // Escape safely — initials are already single letters but be paranoid.
+  const esc = (c: string) => c.replace(/[<>&]/g, '');
+  const A = esc(a);
+  const B = esc(b);
+
+  // Couple monogram: two italic initials with an ampersand between.
+  if (A && B) {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+<text x="8" y="44" font-family="Fraunces, Georgia, serif" font-size="36" font-style="italic" font-weight="500" fill="currentColor">${A}</text>
+<text x="26" y="42" font-family="Fraunces, Georgia, serif" font-size="16" font-style="italic" fill="currentColor" opacity="0.5">&amp;</text>
+<text x="38" y="50" font-family="Fraunces, Georgia, serif" font-size="36" font-style="italic" font-weight="500" fill="currentColor">${B}</text>
+</svg>`;
+    return { logoIcon: fallbackIcon, logoSvg: svg };
+  }
+
+  // Solo initial: memorial gets a ring, everyone else gets a gold rule.
+  if (A) {
+    const svg = isMemorial
+      ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+<circle cx="32" cy="32" r="26" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
+<text x="32" y="44" font-family="Fraunces, Georgia, serif" font-size="30" font-style="italic" font-weight="500" fill="currentColor" text-anchor="middle">${A}</text>
+</svg>`
+      : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+<text x="32" y="42" font-family="Fraunces, Georgia, serif" font-size="38" font-style="italic" font-weight="500" fill="currentColor" text-anchor="middle">${A}</text>
+<line x1="22" y1="52" x2="42" y2="52" stroke="#B89244" stroke-width="1.5" stroke-linecap="round"/>
+</svg>`;
+    return { logoIcon: fallbackIcon, logoSvg: svg };
+  }
+
+  // No usable name — ship the occasion icon alone.
+  return { logoIcon: fallbackIcon };
+}
+
 async function generateLogoIcon(occasion: string | undefined, vibeString: string | undefined, names: [string, string], apiKey: string): Promise<{ logoIcon: LogoIconId; logoSvg?: string }> {
   const fallbackIcon: LogoIconId = occasion === 'wedding' ? 'wedding-rings'
     : occasion === 'anniversary' ? 'champagne'
@@ -180,7 +250,7 @@ Create a SINGLE elegant SVG icon that reflects their SPECIFIC interests, not a g
 Return ONLY a valid SVG string. ViewBox must be "0 0 24 24". Use stroke-based design (stroke-width 1.5, stroke-linecap round). NO fill on the main paths (fill="none"). Keep it minimal — 3-6 path elements max. The icon should be recognizable at 18px.`;
 
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -233,7 +303,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'Gemini API key not configured' }), { status: 500 });
   }
@@ -249,9 +319,21 @@ export async function POST(req: Request) {
     photos,
     clusters: prebuiltClusters,
     vibeString,
+    vibeName,
+    category,
     names,
     occasion,
     eventDate,
+    dateMode,
+    dateSeason,
+    guestCount,
+    hostRole,
+    factSheet,
+    songMeta,
+    visibility: visibilityIn,
+    tonePolicy: tonePolicyIn,
+    storyLayoutPreference,
+    optInAILogo,
     ceremonyVenue,
     ceremonyAddress,
     ceremonyTime,
@@ -268,13 +350,55 @@ export async function POST(req: Request) {
     rsvpDeadline,
     cashFundUrl,
     eventVenue,
+    selectedPaletteColors,
+    photoNotes,
+    storyLayout,
+    songUrl,
+    eventDetails,
+    templateId,
   } = body as {
     photos: GooglePhotoMetadata[];
     clusters?: PhotoCluster[];
     vibeString: string;
+    /** Raw user description, untouched — lets poetry pass honor their literal words. */
+    vibeName?: string;
+    /** 'wedding-arc'|'family'|'milestone'|'cultural'|'commemoration' — drives tone + consent rails. */
+    category?: string;
     names: [string, string];
     occasion?: string;
     eventDate?: string;
+    /** 'specific'|'season'|'year'|'tba' — lets poetry avoid fake dates when user hasn't locked it. */
+    dateMode?: 'specific' | 'season' | 'year' | 'tba';
+    dateSeason?: string;
+    /** Exact number or bucket — shapes hero density + schedule treatment. */
+    guestCount?: number | 'small' | 'medium' | 'large';
+    /** 'principal'|'co-host'|'family'|'organizer' — shifts invitation voice. */
+    hostRole?: 'principal' | 'co-host' | 'family' | 'organizer';
+    /** Optional factual anchors Pass 1 must draw from (and Pass 1.5 grounds against). */
+    factSheet?: {
+      howWeMet?: string;
+      why?: string;
+      favorite?: string;
+    };
+    /** Song title/artist so Pass 2 can weight vibeSkin by mood. */
+    songMeta?: { title: string; artist?: string };
+    /** Default: derived from category (memorial/funeral → unlisted); overridable. */
+    visibility?: 'public' | 'unlisted' | 'private';
+    /** Default: derived from tone/occasion; overridable. */
+    tonePolicy?: 'celebratory' | 'reflective' | 'mixed';
+    /** Lets the pipeline pick the layout after chapter count is known. */
+    storyLayoutPreference?:
+      | 'auto'
+      | 'parallax'
+      | 'filmstrip'
+      | 'magazine'
+      | 'timeline'
+      | 'kenburns'
+      | 'bento';
+    /** Default false — skip the AI-drawn logo pass (most users turn it
+     *  off first thing) and ship a typographic monogram instead. The
+     *  wizard can enable this via an explicit opt-in toggle. */
+    optInAILogo?: boolean;
     ceremonyVenue?: string;
     ceremonyAddress?: string;
     ceremonyTime?: string;
@@ -291,7 +415,34 @@ export async function POST(req: Request) {
     rsvpDeadline?: string;
     cashFundUrl?: string;
     eventVenue?: string;
+    selectedPaletteColors?: string[];
+    photoNotes?: Record<string, { note?: string; location?: string; date?: string }>;
+    storyLayout?: 'parallax' | 'filmstrip' | 'magazine' | 'timeline' | 'kenburns' | 'bento';
+    songUrl?: string;
+    eventDetails?: {
+      days?: number;
+      livestreamUrl?: string;
+      inMemoryOf?: string;
+      school?: string;
+    };
+    templateId?: string;
   };
+
+  // Derive defaults from category / occasion when the wizard didn't
+  // provide them explicitly.
+  const isMemorialish =
+    category === 'commemoration' ||
+    occasion === 'memorial' ||
+    occasion === 'funeral' ||
+    occasion === 'celebration-life';
+
+  const visibility =
+    visibilityIn ??
+    (isMemorialish ? 'unlisted' : 'public');
+
+  const tonePolicy: 'celebratory' | 'reflective' | 'mixed' =
+    tonePolicyIn ??
+    (isMemorialish ? 'reflective' : 'celebratory');
 
   if (!photos?.length) {
     return new Response(JSON.stringify({ error: 'No photos selected' }), { status: 400 });
@@ -341,6 +492,41 @@ export async function POST(req: Request) {
     );
   }
 
+  // Attach per-photo user notes (from the photo-review step) onto the
+  // containing cluster so Pass 1's prompt can cite them verbatim. Each
+  // cluster aggregates the notes + any user-entered locations for its
+  // member photos.
+  if (photoNotes && Object.keys(photoNotes).length > 0) {
+    enrichedClusters = enrichedClusters.map((cluster) => {
+      const notesForCluster: string[] = [];
+      let manualLocation: string | null = null;
+      const clusterPhotos = Array.isArray(cluster.photos) ? cluster.photos : [];
+      for (const photo of clusterPhotos) {
+        const entry = photoNotes[photo.id];
+        if (!entry) continue;
+        if (entry.note && entry.note.trim().length > 0) {
+          notesForCluster.push(entry.note.trim());
+        }
+        if (!manualLocation && entry.location && entry.location.trim().length > 0) {
+          manualLocation = entry.location.trim();
+        }
+      }
+      const mergedNote = notesForCluster.length > 0
+        ? notesForCluster.join(' • ')
+        : cluster.note;
+      // Only overwrite location label if the user actually typed one.
+      let location = cluster.location;
+      if (manualLocation) {
+        location = location
+          ? { ...location, label: manualLocation }
+          : { lat: 0, lng: 0, label: manualLocation };
+      }
+      return { ...cluster, note: mergedNote, location };
+    });
+    const withNotes = enrichedClusters.filter(c => c.note && c.note.length > 0).length;
+    console.log(`[Generate/Stream] Attached user notes to ${withNotes}/${enrichedClusters.length} clusters`);
+  }
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
@@ -364,9 +550,18 @@ export async function POST(req: Request) {
           eventDate,
           inspirationUrls,
           layoutFormat,
-          (pass) => {
-            send({ type: 'progress', pass, label: PASS_LABELS[Math.min(pass, 7)] });
-          }
+          (pass, snapshot) => {
+            send({
+              type: 'progress',
+              pass,
+              label: PASS_LABELS[Math.min(pass, 7)],
+              // Stream intermediate manifest snapshots as each pass completes
+              // so the live preview updates in real time.
+              manifest: snapshot ?? undefined,
+            });
+          },
+          selectedPaletteColors,
+          factSheet,
         );
 
         // ── Post-processing (mirrors /api/generate/route.ts lines 354-506) ──
@@ -457,7 +652,25 @@ export async function POST(req: Request) {
         // Initialize blocks: occasion-aware defaults.
         {
           const blocks = getDefaultBlocks(occasion ?? 'story', events.length > 0, !!eventDate);
+          // Seed block configs from the wizard's event-details
+          // step (days → itinerary skeleton, livestreamUrl →
+          // livestream block URL, school → hero subtitle, etc.).
+          seedBlocksFromEventDetails(
+            blocks as unknown as import('@/types').PageBlock[],
+            occasion,
+            eventDetails,
+            names,
+          );
           manifest.blocks = blocks as typeof manifest.blocks;
+        }
+
+        // Seed the theme family from the occasion voice.
+        // Ceremonial / solemn / intimate → editorial (weddings,
+        // memorials, showers). Celebratory / playful → groove
+        // (bachelor parties, birthdays, retirements, reunions).
+        // Host can override in the editor.
+        if (!manifest.themeFamily) {
+          manifest.themeFamily = getDefaultThemeFamily(occasion);
         }
 
         // Hide all sub-pages from nav by default.
@@ -471,19 +684,40 @@ export async function POST(req: Request) {
           manifest.logistics = { ...(manifest.logistics ?? {}), notes: guestNotes };
         }
 
-        // Trim chapters to cluster count
+        // Trim chapters to cluster count. Defensive: the engine has
+        // returned an empty-chapters manifest on occasion when the
+        // model produced no valid chapter objects; treating that as
+        // fatal prevents post-processing from crashing further down.
+        if (!Array.isArray(manifest.chapters)) manifest.chapters = [];
         if (manifest.chapters.length > enrichedClusters.length) {
           manifest.chapters = manifest.chapters.slice(0, enrichedClusters.length);
         }
         const uploadLimit = pLimit(8); // max 8 concurrent R2 uploads
 
-        // Run chapter photo uploads and logo generation in parallel
-        const [updatedChapters, logoResult] = await Promise.all([
+        // Pre-upload the first few photos to R2 while the OAuth token
+        // is still fresh so we can fill `coverPhoto` + `heroSlideshow`
+        // with permanent URLs before the client ever hits save. This
+        // is the first-ever save's safety net — without it, the
+        // skeleton's proxy-wrapped Picker URLs would survive into the
+        // DB and 404 within the hour.
+        const heroPhotoSources = photos.slice(0, 6);
+        const heroUploadPromise = Promise.all(
+          heroPhotoSources.map(p => uploadLimit(() => uploadPhotoUrl(p.baseUrl))),
+        );
+
+        // Run chapter photo uploads, logo generation, and hero mirroring in parallel
+        const [updatedChapters, logoResult, heroUrls] = await Promise.all([
           // 1. Upload chapter photos to R2 + resolve locations
-          Promise.all(manifest.chapters.map(async (chapter, i) => {
+          Promise.all((manifest.chapters ?? []).map(async (chapter, i) => {
             const cluster = enrichedClusters[i];
             if (cluster) {
-              const photosToUpload = cluster.photos.slice(0, 3);
+              // Attach EVERY photo in the cluster, not just the first 3.
+              // Individual layouts cap their own display counts at render
+              // time (FilmStrip/MagazineSpread/TimelineVine use photos[0],
+              // BentoGrid caps at 5, KenBurns at 6). Keeping the full set
+              // in the manifest means the dashboard gallery can show every
+              // photo the user actually uploaded instead of losing the tail.
+              const photosToUpload = Array.isArray(cluster.photos) ? cluster.photos : [];
               const uploadedUrls = await Promise.all(
                 photosToUpload.map(p => uploadLimit(() => uploadPhotoUrl(p.baseUrl)))
               );
@@ -510,15 +744,202 @@ export async function POST(req: Request) {
             return chapter;
           })),
 
-          // 2. Generate custom AI logo icon
-          generateLogoIcon(occasion, vibeString, names, apiKey),
+          // 2. Logo — now opt-in. Most event-site users turn the
+          //    AI SVG off on first open, so the default is a
+          //    tasteful typographic monogram (initials in the chosen
+          //    serif). The wizard's opt-in flag flips this to the
+          //    AI-drawn SVG only when explicitly asked.
+          optInAILogo
+            ? generateLogoIcon(occasion, vibeString, names, apiKey)
+            : Promise.resolve(buildMonogram(occasion, names)),
+
+          // 3. Pre-upload hero photos to R2 while the OAuth token is fresh
+          heroUploadPromise,
         ]);
 
         manifest.chapters = updatedChapters;
         manifest.logoIcon = logoResult.logoIcon;
         if (logoResult.logoSvg) manifest.logoSvg = logoResult.logoSvg;
 
-        send({ type: 'complete', manifest });
+        // Auto-reveal the photos block whenever the user uploaded
+        // photos. The gallery renders by aggregating chapter images,
+        // so if any chapter has images it means the user gave us
+        // something to show — no reason to leave the block hidden
+        // and force them to toggle it on manually.
+        {
+          const hasAnyChapterPhoto = (manifest.chapters || []).some(
+            (c) => Array.isArray(c.images) && c.images.length > 0,
+          );
+          if (hasAnyChapterPhoto && manifest.blocks) {
+            manifest.blocks = manifest.blocks.map((b) =>
+              b.type === 'photos' ? { ...b, visible: true } : b,
+            );
+          }
+        }
+        // Seed the hero media with the freshly-uploaded R2 URLs.
+        // `uploadPhotoUrl` falls back to the original baseUrl on
+        // failure so we only adopt values that actually look
+        // permanent (`/api/img/…` or an R2 public URL).
+        const permanentHeroUrls = heroUrls.filter((u: string) => u && !u.includes('googleusercontent.com'));
+        if (permanentHeroUrls.length > 0) {
+          manifest.coverPhoto = permanentHeroUrls[0];
+          manifest.heroSlideshow = permanentHeroUrls.slice(0, 5);
+        }
+        // ── Story layout resolution ───────────────────────────
+        // If the wizard picked a specific layout, honor it. If they
+        // left it on "auto" (or didn't set one), pick the layout
+        // that suits the chapter count now that we know it.
+        const chapterCount = (manifest.chapters ?? []).length;
+        const chosenLayout =
+          storyLayout && storyLayout !== undefined
+            ? storyLayout
+            : storyLayoutPreference && storyLayoutPreference !== 'auto'
+            ? storyLayoutPreference
+            : chapterCount <= 2
+            ? 'magazine'
+            : chapterCount <= 4
+            ? 'parallax'
+            : chapterCount <= 7
+            ? 'timeline'
+            : 'filmstrip';
+        manifest.storyLayout = chosenLayout;
+
+        // ── Renderer version — v8 is the only renderer now.
+        //    Keep rendererVersion=v2 for legacy DB consumers that
+        //    still dispatch on it, but the site route prioritises
+        //    themeFamily='v8' first so the right layout ships.
+        manifest.rendererVersion = 'v2';
+        (manifest as unknown as { themeFamily?: string }).themeFamily = 'v8';
+
+        // Persist the wizard's occasion onto the manifest so the
+        // publish URL ends up at /{occasion}/{slug} instead of
+        // /sites/{slug}. Dashboard lookups also key on this.
+        // Default to 'wedding' so old wizard payloads that didn't
+        // ship occasion never produce a /sites/{slug} URL.
+        (manifest as unknown as { occasion?: string }).occasion = occasion || 'wedding';
+
+        // ── User-picked palette wins over AI-generated vibeSkin ──
+        // When the wizard user picked a palette (either a preset or
+        // an AI-suggested one), honour their choice on `manifest.theme.colors`
+        // — that's what SiteV8Renderer reads. Without this, we spent
+        // pipeline time on colour picking and then ignored the user's
+        // actual selection.
+        if (Array.isArray(selectedPaletteColors) && selectedPaletteColors.length >= 3) {
+          const [bg, accent, accentLight, foreground, muted] = [
+            selectedPaletteColors[0] ?? '#F5EFE2',
+            selectedPaletteColors[1] ?? '#5C6B3F',
+            selectedPaletteColors[2] ?? '#E0DDC9',
+            selectedPaletteColors[3] ?? '#0E0D0B',
+            selectedPaletteColors[4] ?? '#6F6557',
+          ];
+          manifest.theme = {
+            ...(manifest.theme ?? {}),
+            colors: {
+              ...(manifest.theme?.colors ?? {}),
+              background: bg,
+              foreground,
+              accent,
+              accentLight,
+              muted,
+              cardBg: bg,
+            },
+          } as StoryManifest['theme'];
+        }
+
+        // ── Consent + tone rails ──────────────────────────────
+        // Write the wizard's soft signals onto the manifest so the
+        // editor can read them and the published site can honor them.
+        // Memorial sites default to unlisted + reflective tone; the
+        // user can override via explicit body.visibility.
+        manifest.visibility = visibility;
+        manifest.tonePolicy = tonePolicy;
+        if (category) manifest.category = category as StoryManifest['category'];
+        if (dateMode) manifest.dateMode = dateMode;
+        if (dateSeason) manifest.dateSeason = dateSeason;
+        if (guestCount !== undefined) manifest.guestCount = guestCount;
+        if (hostRole) manifest.hostRole = hostRole;
+        if (factSheet && Object.keys(factSheet).length > 0) {
+          manifest.factSheet = factSheet;
+        }
+        if (vibeName) manifest.vibeName = vibeName;
+        if (songMeta && songMeta.title) {
+          manifest.songMeta = songMeta;
+        }
+
+        // ── Block visibility policy ──────────────────────────
+        // For memorial/funeral/celebration-of-life: hide countdown,
+        // registry (unless donation-in-lieu is explicit), and any
+        // plus-one/RSVP celebratory copy. For non-specific dates:
+        // hide countdown (it has nothing to count to).
+        const suppressCelebratoryBlocks =
+          isMemorialish || tonePolicy === 'reflective';
+        const hideCountdown = suppressCelebratoryBlocks || dateMode !== 'specific';
+        const hideRegistry = suppressCelebratoryBlocks && !eventDetails?.inMemoryOf;
+
+        if (Array.isArray(manifest.blocks)) {
+          manifest.blocks = manifest.blocks.map((b) => {
+            if (b.type === 'countdown' && hideCountdown) return { ...b, visible: false };
+            if (b.type === 'registry' && hideRegistry) return { ...b, visible: false };
+            return b;
+          });
+        }
+
+        // Insert a Spotify/YouTube music block if the user
+        // pasted a song URL on the wizard's song step. The
+        // block is added right after the hero so it's visible
+        // above the fold on the published site.
+        if (songUrl && typeof songUrl === 'string' && songUrl.trim().length > 0) {
+          const songBlock = {
+            id: `spotify-${Date.now()}`,
+            type: 'spotify' as const,
+            visible: true,
+            order: 1,
+            config: { url: songUrl.trim() },
+          };
+          const existing = manifest.blocks || [];
+          // Bump every existing block's order by 1 to make
+          // room for the song block at order 1 (just under the
+          // hero which lives at order 0).
+          manifest.blocks = [
+            ...existing.map((b) =>
+              b.order >= 1 ? { ...b, order: b.order + 1 } : b,
+            ),
+            songBlock,
+          ].sort((a, b) => a.order - b.order);
+        }
+
+        // ── Pass 7: auto-populate FAQ / Registry / Travel ──
+        try {
+          send({ type: 'progress', pass: 7, label: 'Filling the details…' });
+          const { runPass7Content } = await import('@/lib/memory-engine/pass-7-content');
+          const { getEventType } = await import('@/lib/event-os/event-types');
+          const voice = getEventType(occasion as never)?.voice ?? 'celebratory';
+          const baseUrl = (() => {
+            try {
+              return new URL(req.url).origin;
+            } catch {
+              return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+            }
+          })();
+          const result = await runPass7Content({
+            manifest,
+            occasion: occasion ?? 'wedding',
+            voice: voice as 'solemn' | 'intimate' | 'ceremonial' | 'playful' | 'celebratory',
+            names,
+            baseUrl,
+          });
+          if (result.faqs && result.faqs.length > 0) manifest.faqs = result.faqs;
+          if (result.registry) manifest.registry = result.registry;
+          if (result.travelInfo) manifest.travelInfo = result.travelInfo;
+        } catch (err) {
+          console.warn('[Pass 7] Non-fatal failure:', err);
+        }
+
+        // Layer the selected template's motifs, blockOrder, hiddenBlocks,
+        // and seeded theme/poetry on top of the AI-generated manifest.
+        const { applyTemplateToManifest } = await import('@/lib/templates/apply-template');
+        const themed = applyTemplateToManifest(manifest, templateId ?? null);
+        send({ type: 'complete', manifest: themed });
       } catch (err) {
         send({ type: 'error', message: err instanceof Error ? err.message : 'Generation failed' });
       } finally {

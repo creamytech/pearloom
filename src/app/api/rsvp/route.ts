@@ -41,6 +41,9 @@ export async function POST(req: NextRequest) {
       message,
       selectedEvents,
       mailingAddress,
+      // New: non-wedding RSVP form sends these
+      preset,
+      answers,
     } = body;
 
     if (!siteId || !guestName) {
@@ -69,6 +72,9 @@ export async function POST(req: NextRequest) {
           message: message || null,
           event_ids: selectedEvents || [],
           mailing_address: mailingAddress || null,
+          // Preset-driven RSVP columns (20260422_rsvp_preset_answers.sql)
+          rsvp_preset: preset || null,
+          rsvp_answers: answers && typeof answers === 'object' ? answers : {},
           responded_at: new Date().toISOString(),
           created_at: new Date().toISOString(),
         },
@@ -81,9 +87,26 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      console.error('RSVP upsert error:', error);
-      // Graceful: confirm success even if table doesn't exist yet
-      return NextResponse.json({ success: true, guest: { name: guestName, status } });
+      console.error('[RSVP] Upsert failed:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        siteId,
+        guestName,
+      });
+      // Surface a clear error to the client so the guest knows their RSVP did not save.
+      // Postgres 42P01 = undefined_table — help operators diagnose missing schema quickly.
+      const isMissingTable = error.code === '42P01';
+      return NextResponse.json(
+        {
+          error: isMissingTable
+            ? 'RSVP storage is not set up yet. Please contact the site owner.'
+            : 'We could not save your RSVP. Please try again in a moment.',
+          code: error.code || null,
+        },
+        { status: isMissingTable ? 503 : 500 }
+      );
     }
 
     // Always log new RSVP responses
@@ -115,7 +138,7 @@ export async function POST(req: NextRequest) {
               ${songRequest ? `<tr><td style="padding:0.4rem 0;color:#999">Song request</td><td style="font-style:italic">${esc(String(songRequest))}</td></tr>` : ''}
               ${message ? `<tr><td style="padding:0.4rem 0;color:#999">Message</td><td style="font-style:italic">"${esc(String(message))}"</td></tr>` : ''}
             </table>
-            <p style="margin:1.5rem 0 0;font-size:0.8rem;color:#aaa">Sent by Pearloom · <a href="${esc(process.env.NEXT_PUBLIC_SITE_URL || '')}" style="color:#A3B18A">pearloom.com</a></p>
+            <p style="margin:1.5rem 0 0;font-size:0.8rem;color:#aaa">Sent by Pearloom · <a href="${esc(process.env.NEXT_PUBLIC_SITE_URL || '')}" style="color:#5C6B3F">pearloom.com</a></p>
           </div>
         `,
       }).catch((e: unknown) => console.error('[RSVP] Resend error:', e));

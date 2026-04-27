@@ -84,6 +84,32 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ clusters: enriched, totalPhotos: photos.length });
       }
 
+      // Persist picked Google photos into the user's library so
+      // they're available in the dashboard Gallery / editor picker
+      // without another save step.
+      try {
+        const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (supaUrl && key && session.user?.email && photos.length > 0) {
+          const { createClient } = await import('@supabase/supabase-js');
+          const db = createClient(supaUrl, key);
+          await db.from('user_media').insert(
+            photos.map((p) => ({
+              owner_email: session.user!.email!,
+              url: p.baseUrl,
+              width: p.width || null,
+              height: p.height || null,
+              mime_type: p.mimeType,
+              filename: p.filename,
+              taken_at: p.creationTime || null,
+              source: 'google',
+            })),
+          );
+        }
+      } catch (err) {
+        console.warn('[Photos API] user_media persist failed (non-fatal):', err);
+      }
+
       // Include debug info so we can check in browser console
       console.log('[Photos API] Returning', photos.length, 'photos. First photo baseUrl:', photos[0]?.baseUrl);
       return NextResponse.json({ photos, total: photos.length, _debug_first: photos[0] || null });

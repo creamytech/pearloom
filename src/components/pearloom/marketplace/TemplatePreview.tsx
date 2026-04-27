@@ -1,0 +1,361 @@
+'use client';
+
+/* ========================================================================
+   TemplatePreview — a miniature, stylized render of a site based on the
+   template's palette + layout. Designed to look gorgeous at small sizes.
+   ======================================================================== */
+
+import { Pear, Sparkle, Squiggle } from '../motifs';
+import type { Template, TemplateLayout, TemplatePalette } from './templates-data';
+import { resolveTemplateDesign } from './template-themes';
+import { findMatchingSiteTemplate } from './template-matcher';
+import { seedPreviewManifest } from './seed-preview-manifest';
+import { TemplateSignatureDecor, type SignatureDecorKind } from '../site/TemplateSignatureDecor';
+
+type Tone = { deep: string; mid: string; soft: string; paper: string; ink: string; accent: string };
+
+// Legacy token fallback for any template that somehow has no
+// bespoke design spec. The curated per-template palettes live in
+// template-themes.ts and are what the tile actually renders with.
+const PALETTE_TONES: Record<TemplatePalette, Tone> = {
+  'groovy-garden': { deep: '#3D4A1F', mid: '#8B9C5A', soft: '#CBD29E', paper: '#F3E9D4', ink: '#3D4A1F', accent: '#EAB286' },
+  'dusk-meadow': { deep: '#6B5A8C', mid: '#B7A4D0', soft: '#D7CCE5', paper: '#F3E9D4', ink: '#4A3F6B', accent: '#CBD29E' },
+  'warm-linen': { deep: '#8B4720', mid: '#EAB286', soft: '#F7DDC2', paper: '#F3E9D4', ink: '#8B4720', accent: '#C6703D' },
+  'olive-gold': { deep: '#3D4A1F', mid: '#6d7d3f', soft: '#CBD29E', paper: '#F3E9D4', ink: '#3D4A1F', accent: '#D4A95D' },
+  'lavender-ink': { deep: '#6B5A8C', mid: '#B7A4D0', soft: '#D7CCE5', paper: '#EDE0C5', ink: '#3D4A1F', accent: '#B89244' },
+  'cream-sage': { deep: '#6d7d3f', mid: '#8B9C5A', soft: '#E3E6C8', paper: '#F3E9D4', ink: '#3D4A1F', accent: '#D4A95D' },
+  'peach-cream': { deep: '#C6703D', mid: '#EAB286', soft: '#F7DDC2', paper: '#F3E9D4', ink: '#8B4720', accent: '#6B5A8C' },
+};
+
+export function TemplatePreview({ template, small = false }: { template: Template; small?: boolean }) {
+  // Match the modal's source priority: SITE_TEMPLATE first (the real
+  // theme the editor will render — Provence's lavender + olive +
+  // ink, Kyoto's stone + tea-bowl etc), then the legacy DESIGNS map,
+  // then the palette-token fallback. Without this, Provence's tile
+  // pulled the gold "classic" fallback and didn't match its own
+  // modal preview.
+  const site = findMatchingSiteTemplate(template);
+  const design = resolveTemplateDesign(template.id);
+  const tone = PALETTE_TONES[template.palette];
+  const t: Tone = site
+    ? {
+        deep: site.theme.colors.foreground,
+        mid: site.theme.colors.accent,
+        soft: site.theme.colors.accentLight,
+        paper: site.theme.colors.background,
+        ink: site.theme.colors.foreground,
+        accent: site.theme.colors.accent,
+      }
+    : design
+      ? {
+          deep: design.theme.foreground,
+          mid: design.theme.accent,
+          soft: design.theme.accentLight,
+          paper: design.theme.background,
+          ink: design.theme.foreground,
+          accent: design.theme.accent,
+        }
+      : tone;
+  // Tile + modal must show the same names / tagline / stamp so users
+  // see consistent identity across the marketplace flow. Pull from the
+  // same seed the modal uses (per-occasion sample names + matched
+  // SITE_TEMPLATE poetry/motifs) instead of template.heroWord which
+  // diverges from the modal.
+  const seed = seedPreviewManifest(template);
+  const seedNames = (seed.manifest.names as [string, string]) ?? ['', ''];
+  const compositeName =
+    seedNames[1]
+      ? `${seedNames[0]} & ${seedNames[1]}`
+      : seedNames[0] || template.heroWord || template.name;
+  const name = compositeName;
+  const sub =
+    (seed.manifest as unknown as { poetry?: { heroTagline?: string } }).poetry?.heroTagline
+    ?? template.heroScript
+    ?? 'a day worth keeping';
+  const scale = small ? 0.78 : 1;
+  // Heading font — same priority as the modal: SITE_TEMPLATE first,
+  // then the DESIGNS map fallback.
+  const fontHeading = site?.theme.fonts.heading ?? design?.fonts?.heading ?? 'Fraunces';
+  // Tile uses the family name so tiles where the browser has the
+  // font cached render in-voice; otherwise falls through to serif
+  // (acceptable for a miniature). The modal preview loads fonts
+  // via <link> so the full-size preview always shows true type.
+  const headingStack = `"${fontHeading}", Georgia, serif`;
+  // Pull the template's signature stamp motif for the tile hero.
+  const stampText = site?.motifs?.stamp?.text ?? template.name.toUpperCase();
+  // Per-template signature illustration (citrus for Lake Como, monolith
+  // for Marfa, brushstroke for Tokyo, etc). Rendered as a corner motif
+  // in the tile so the marketplace card carries the same identity as
+  // the editor preview — not the generic rectangular stamp.
+  const signatureKind = (site?.signatureDecor ?? 'none') as SignatureDecorKind;
+  const hasSignature = signatureKind && signatureKind !== 'none';
+  // Effective layout — `template.layout` is already the projected
+  // value from siteTemplateToMarketplace's nearestLayout mapper, so
+  // bento/kenburns/parallax/etc all carry through to the LayoutHint
+  // correctly. No need to re-cast site?.layoutFormat here.
+  const effectiveLayout = template.layout;
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        background: `linear-gradient(155deg, ${t.paper}, ${t.soft})`,
+        overflow: 'hidden',
+      }}
+    >
+      <div style={{ position: 'absolute', top: -40, left: -40, width: 180, height: 180, borderRadius: '50%', background: t.soft, opacity: 0.8 }} />
+      <div style={{ position: 'absolute', bottom: -40, right: -30, width: 160, height: 160, borderRadius: '50%', background: t.mid, opacity: 0.35 }} />
+
+      {/* Signature illustration in the corner — citrus, monolith,
+          tea-bowl, brushstroke, etc. Matches the editor hero's
+          TemplateSignatureDecor so the tile carries the same
+          identity. Only renders when the matched SITE_TEMPLATE
+          declares a signatureDecor (13 templates so far). */}
+      {hasSignature && (
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            width: small ? 72 : 90,
+            height: small ? 72 : 90,
+            opacity: 0.92,
+            pointerEvents: 'none',
+            color: t.ink,
+            zIndex: 1,
+          }}
+        >
+          <TemplateSignatureDecor
+            kind={signatureKind}
+            position="top-right"
+            size={small ? 72 : 90}
+          />
+        </div>
+      )}
+
+      <div style={{ position: 'relative', padding: small ? 14 : 18, height: '100%', display: 'flex', flexDirection: 'column' }}>
+        {/* Mini nav */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '6px 10px',
+            borderRadius: 6,
+            background: 'rgba(255,255,255,0.55)',
+            marginBottom: 12,
+          }}
+        >
+          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+            <Pear size={12} tone="sage" shadow={false} />
+            <div style={{ width: 26, height: 3, borderRadius: 2, background: t.ink, opacity: 0.8 }} />
+          </div>
+          <div style={{ display: 'flex', gap: 3 }}>
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} style={{ width: 14, height: 2.5, borderRadius: 1.5, background: t.ink, opacity: 0.35 }} />
+            ))}
+          </div>
+          <div style={{ width: 28, height: 10, borderRadius: 4, background: t.deep }} />
+        </div>
+
+        {/* Hero body — mirrors SiteV8Renderer's hero treatment so
+            the tile is fidelity-matched to the editor output. The
+            layout prop still sub-decorates the area beneath the
+            hero, but the hero itself is consistent. */}
+        <V8HeroBody
+          tone={t}
+          name={name}
+          sub={sub}
+          scale={scale}
+          headingStack={headingStack}
+          stampText={stampText}
+          layout={effectiveLayout}
+          showStamp={!hasSignature}
+        />
+
+        {/* Footer strip */}
+        <div
+          style={{
+            marginTop: 'auto',
+            paddingTop: 8,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <div style={{ display: 'flex', gap: 4 }}>
+            {[t.deep, t.mid, t.soft, t.accent].map((c, i) => (
+              <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />
+            ))}
+          </div>
+          <div style={{ fontSize: 8, fontWeight: 700, color: t.ink, opacity: 0.55, letterSpacing: '0.14em' }}>PEARLOOM</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function V8HeroBody({
+  tone: t,
+  name,
+  sub,
+  scale,
+  headingStack,
+  stampText,
+  layout,
+  showStamp = true,
+}: {
+  tone: Tone;
+  name: string;
+  sub: string;
+  scale: number;
+  headingStack: string;
+  stampText: string;
+  layout: TemplateLayout;
+  showStamp?: boolean;
+}) {
+  // Split an "A & B" or "A and B" name into two parts so the tile
+  // can mimic the real hero's "<A> and <B>" italic middle word.
+  const parts = name.split(/\s+(?:&|and)\s+/i);
+  const n1 = parts[0] ?? name;
+  const n2 = parts[1] ?? '';
+  const nameFontSize = Math.round(28 * scale);
+  const italicFontSize = Math.round(20 * scale);
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 6 }}>
+      {/* Stamp motif — matches SiteV8Renderer hero stamp. Hidden when
+          a signature illustration is showing in the tile corner so we
+          don't double up on the template's identity marker. */}
+      {showStamp && (
+        <div
+          style={{
+            fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+            fontSize: Math.round(8 * scale),
+            fontWeight: 800,
+            letterSpacing: '0.22em',
+            color: t.accent,
+            border: `1.4px solid ${t.accent}`,
+            padding: '3px 8px',
+            borderRadius: 3,
+            textTransform: 'uppercase',
+            transform: 'rotate(-3deg)',
+            maxWidth: '90%',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {stampText.slice(0, 20)}
+        </div>
+      )}
+
+      {/* Names — big serif + italic "and" mirror */}
+      <div style={{ fontFamily: headingStack, color: t.ink, lineHeight: 0.95, fontWeight: 600, fontSize: nameFontSize }}>
+        {n1}
+      </div>
+      {n2 && (
+        <>
+          <div
+            style={{
+              fontFamily: headingStack,
+              fontStyle: 'italic',
+              fontWeight: 400,
+              fontSize: italicFontSize,
+              color: t.deep,
+              opacity: 0.82,
+              lineHeight: 0.9,
+              marginTop: -2,
+              marginBottom: -2,
+            }}
+          >
+            and
+          </div>
+          <div style={{ fontFamily: headingStack, color: t.ink, lineHeight: 0.95, fontWeight: 600, fontSize: nameFontSize }}>
+            {n2}
+          </div>
+        </>
+      )}
+
+      {/* Italic tagline — mirrors heroTagline */}
+      <div
+        style={{
+          fontFamily: headingStack,
+          fontStyle: 'italic',
+          fontSize: Math.round(11 * scale),
+          color: t.deep,
+          opacity: 0.85,
+          marginTop: 4,
+          maxWidth: '90%',
+        }}
+      >
+        {sub}
+      </div>
+
+      {/* Photo-strip hint — mirrors SiteV8Renderer photostrip */}
+      <LayoutHint layout={layout} tone={t} scale={scale} />
+    </div>
+  );
+}
+
+function LayoutHint({ layout, tone: t, scale }: { layout: TemplateLayout; tone: Tone; scale: number }) {
+  // Small decorative hint below the hero body that varies with the
+  // template's declared layout. Kept lightweight so the hero always
+  // reads as v8 but the tile still telegraphs its story treatment.
+  const h = Math.round(14 * scale);
+  if (layout === 'timeline') {
+    return (
+      <div style={{ marginTop: 6, display: 'flex', gap: 5, alignItems: 'center' }}>
+        {[t.soft, t.accent, t.soft, t.soft].map((c, i) => (
+          <div key={i} style={{ width: h, height: h, borderRadius: '50%', background: c, border: `1px solid ${t.mid}` }} />
+        ))}
+      </div>
+    );
+  }
+  if (layout === 'filmstrip' || layout === 'mosaic') {
+    return (
+      <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 3, width: '80%' }}>
+        {[t.accent, t.soft, t.mid, t.soft, t.accent].map((c, i) => (
+          <div key={i} style={{ aspectRatio: '3/4', background: c, borderRadius: 2, transform: `rotate(${i % 2 === 0 ? -1 : 1}deg)` }} />
+        ))}
+      </div>
+    );
+  }
+  if (layout === 'bento') {
+    return (
+      <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridAutoRows: Math.round(12 * scale), gap: 3, width: '80%' }}>
+        <div style={{ gridRow: 'span 2', background: t.accent, borderRadius: 3 }} />
+        <div style={{ background: t.soft, borderRadius: 3 }} />
+        <div style={{ background: t.mid, borderRadius: 3 }} />
+        <div style={{ gridColumn: 'span 2', background: t.mid, borderRadius: 3 }} />
+      </div>
+    );
+  }
+  if (layout === 'kenburns') {
+    return (
+      <div style={{ marginTop: 8, width: '80%', height: Math.round(24 * scale), borderRadius: 4, background: `linear-gradient(145deg, ${t.deep}, ${t.accent})` }} />
+    );
+  }
+  if (layout === 'magazine') {
+    return (
+      <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: '40% 1fr', gap: 5, width: '80%' }}>
+        <div style={{ height: Math.round(20 * scale), background: t.mid, borderRadius: 2 }} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, justifyContent: 'center' }}>
+          {[1, 2, 3].map((i) => (
+            <div key={i} style={{ height: 2, borderRadius: 1, background: t.ink, opacity: 0.35 }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+  // parallax + default
+  return (
+    <div style={{ marginTop: 8, display: 'flex', gap: 4, justifyContent: 'center' }}>
+      {[t.soft, t.mid, t.accent].map((c, i) => (
+        <div key={i} style={{ width: Math.round(12 * scale), height: Math.round(12 * scale), borderRadius: '50%', background: c }} />
+      ))}
+    </div>
+  );
+}

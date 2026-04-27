@@ -12,54 +12,64 @@ import { cn } from '@/lib/cn';
 // All variants use ONLY Tailwind classes. No inline style overrides.
 // ─────────────────────────────────────────────────────────────
 
+// Shared class string for ink-filled variants so primary/accent/ink
+// stay visually locked — a single point of truth instead of three
+// drifted copies. When we want one of them to differentiate (e.g.,
+// make `primary` pearl-driven), change this in one place.
+const INK_FILLED = [
+  'bg-[var(--pl-ink)] text-[var(--pl-cream)] border border-[var(--pl-ink)]',
+  'hover:opacity-90',
+  'shadow-[var(--pl-shadow-sm)]',
+].join(' ');
+
 const buttonVariants = cva(
   // Base — shared across all variants
   [
     'inline-flex items-center justify-center font-semibold leading-none',
-    'transition-all duration-200 cursor-pointer select-none',
-    'font-body',
+    'tracking-[0.02em]',
+    'transition-all duration-[var(--pl-dur-fast)] ease-[cubic-bezier(0.22,1,0.36,1)] cursor-pointer select-none',
     'disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--pl-olive)] focus-visible:ring-offset-2',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--pl-ink)] focus-visible:ring-offset-2',
   ].join(' '),
   {
     variants: {
       variant: {
-        /** Ink-filled — primary CTA */
-        primary: [
-          'bg-[var(--pl-ink)] text-white border border-[var(--pl-ink)]',
-          'hover:bg-[var(--pl-ink-soft)] hover:-translate-y-px',
-          'shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)] hover:shadow-[0_4px_20px_rgba(43,30,20,0.12),0_8px_30px_rgba(43,30,20,0.07)]',
-        ].join(' '),
-
-        /** Olive-filled — brand CTA */
-        accent: [
-          'bg-[var(--pl-olive)] text-white border border-[var(--pl-olive)]',
-          'hover:bg-[var(--pl-olive-hover)] hover:-translate-y-px',
-          'shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)] hover:shadow-[0_4px_20px_rgba(43,30,20,0.12),0_8px_30px_rgba(43,30,20,0.07)]',
-        ].join(' '),
+        /** Ink-filled — primary CTA (canonical). */
+        primary: INK_FILLED,
+        /** Alias of primary. Kept for semantic intent at call sites. */
+        accent: INK_FILLED,
+        /** Alias of primary. Kept for legacy "ink CTA" callers. */
+        ink: INK_FILLED,
 
         /** Outlined — secondary action */
         secondary: [
-          'bg-transparent text-[var(--pl-ink)] border border-[var(--pl-divider)]',
-          'hover:border-[var(--pl-olive)] hover:bg-[var(--pl-olive-mist)]',
+          'bg-[var(--pl-cream-card)] text-[var(--pl-ink)] border border-[var(--pl-divider)]',
+          'hover:border-[var(--pl-ink)] hover:bg-[var(--pl-cream-deep)]',
         ].join(' '),
 
-        /** No background — tertiary / inline action */
+        /** Minimal text — tertiary / inline action */
         ghost: [
           'bg-transparent text-[var(--pl-muted)] border border-transparent',
-          'hover:text-[var(--pl-ink)] hover:bg-[rgba(0,0,0,0.04)]',
+          'hover:text-[var(--pl-ink)] hover:bg-[var(--pl-cream-deep)]',
         ].join(' '),
 
-        /** Gold-outlined — premium / upgrade prompt */
+        /** Gold-filled — premium / upgrade prompt */
         gold: [
-          'bg-[var(--pl-gold-mist)] text-[var(--pl-gold)] border border-[var(--pl-gold)]',
-          'hover:bg-[rgba(196,169,106,0.20)] hover:-translate-y-px',
+          'bg-[var(--pl-gold)] text-[var(--pl-cream)] border border-[var(--pl-gold)]',
+          'hover:opacity-90',
+          'shadow-[var(--pl-shadow-sm)]',
+        ].join(' '),
+
+        /** Warning — outline */
+        warning: [
+          'bg-transparent text-[var(--pl-warning)] border border-[var(--pl-warning)]',
+          'hover:bg-[var(--pl-warning-mist)]',
         ].join(' '),
 
         /** Destructive */
         danger: [
           'bg-destructive text-destructive-foreground border border-destructive',
-          'hover:opacity-90 shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)]',
+          'hover:opacity-90 shadow-[var(--pl-shadow-sm)]',
         ].join(' '),
 
         /** Dark-surface ghost — for use inside editor / dark panels */
@@ -70,14 +80,14 @@ const buttonVariants = cva(
       },
 
       size: {
-        xs: 'text-[0.72rem] px-2.5 py-1.5 gap-1 rounded-[var(--pl-radius-xs)]',
-        sm: 'text-[0.82rem] px-3.5 py-2 gap-1.5 rounded-[var(--pl-radius-sm)]',
-        md: 'text-[0.92rem] px-5 py-2.5 gap-2 rounded-[var(--pl-radius-sm)]',
-        lg: 'text-[1rem] px-7 py-3 gap-2.5 rounded-[var(--pl-radius-md)]',
-        xl: 'text-[1.05rem] px-9 py-4 gap-3 rounded-[var(--pl-radius-md)]',
+        xs: 'text-[0.68rem] px-2.5 py-1.5 gap-1 rounded-md',
+        sm: 'text-[0.75rem] px-3.5 py-2 gap-1.5 rounded-md',
+        md: 'text-[0.78rem] px-5 py-2.5 gap-2 rounded-md',
+        lg: 'text-[0.82rem] px-7 py-3 gap-2.5 rounded-lg',
+        xl: 'text-[0.88rem] px-9 py-4 gap-3 rounded-lg',
         /** Icon-only square */
-        icon: 'w-9 h-9 rounded-[var(--pl-radius-sm)]',
-        iconLg: 'w-11 h-11 rounded-[var(--pl-radius-md)]',
+        icon: 'w-9 h-9 rounded-md',
+        iconLg: 'w-11 h-11 rounded-lg',
       },
     },
     defaultVariants: {

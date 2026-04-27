@@ -1,0 +1,603 @@
+'use client';
+
+/* ========================================================================
+   StickerLayer — wraps any block and renders every sticker anchored to
+   that block. Stickers are read from manifest.stickers[] and filtered by
+   blockId. In published mode the stickers are static overlays; in edit
+   mode they become draggable + rotatable + scalable with keyboard + mouse.
+
+   A single drag moves the sticker; Shift+drag scales; Alt+drag rotates.
+   Double-click a sticker to delete. Click empty space to deselect.
+
+   All sticker state lives on the manifest. Every move/scale/rotate
+   patches via onEditField, which flows to CanvasStage → queueSave.
+   ======================================================================== */
+
+import { useCallback, useRef, useState, useEffect, type CSSProperties } from 'react';
+import type { StoryManifest, StickerItem } from '@/types';
+import { useIsEditMode } from '../editor/canvas/EditorCanvasContext';
+
+type FieldEditor = (patch: (m: StoryManifest) => StoryManifest) => void;
+
+interface Props {
+  blockId: string;
+  stickers?: StickerItem[];
+  onEditField?: FieldEditor;
+  /** Visual nudge in the gutter — when non-empty, the layer shows a
+   *  dashed outline on hover so users know they can drop here. */
+  children?: React.ReactNode;
+  style?: CSSProperties;
+}
+
+export function StickerLayer({ blockId, stickers, onEditField, children, style }: Props) {
+  const edit = useIsEditMode();
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Active alignment guides while dragging — Framer-style. Each
+  // entry is a horizontal or vertical line at a percent within the
+  // container; cleared on pointerup. Rendered as 1px hairlines in
+  // peach-ink so users see exactly which edge they're snapping to.
+  const [activeGuides, setActiveGuides] = useState<SnapGuide[]>([]);
+  // Render anchored stickers — either image-based (url set) or
+  // text-based (type === 'text', text set). Legacy SVG stickers
+  // without a blockId render elsewhere in the tree.
+  const mine = (stickers ?? []).filter(
+    (s) => s.blockId === blockId && (s.url || (s.type === 'text' && s.text)),
+  );
+
+  // Delete the selected sticker on Backspace/Delete.
+  useEffect(() => {
+    if (!edit || !selectedId) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        const target = e.target as HTMLElement | null;
+        if (target && (target.isContentEditable || ['INPUT', 'TEXTAREA'].includes(target.tagName))) return;
+        e.preventDefault();
+        onEditField?.((m) => ({
+          ...m,
+          stickers: (m.stickers ?? []).filter((s) => s.id !== selectedId),
+        }));
+        setSelectedId(null);
+      } else if (e.key === 'Escape') {
+        setSelectedId(null);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [edit, selectedId, onEditField]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="pl8-sticker-layer"
+      data-sticker-block={blockId}
+      style={{
+        position: 'relative',
+        ...style,
+      }}
+    >
+      {children}
+      {mine.map((s) => (
+        <StickerPiece
+          key={s.id}
+          sticker={s}
+          siblings={mine}
+          isEditing={edit}
+          isSelected={selectedId === s.id}
+          onSelect={() => setSelectedId(s.id)}
+          onGuides={setActiveGuides}
+          containerRef={containerRef}
+          onEditField={onEditField}
+        />
+      ))}
+      {/* Alignment guides — only visible while a sticker is dragging.
+          A peach-ink hairline glows over the snap line so the user
+          gets the same Figma/Framer "click into place" feel. */}
+      {edit && activeGuides.length > 0 && (
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            zIndex: 11,
+          }}
+        >
+          {activeGuides.map((g, i) => (
+            <div
+              key={`${g.axis}-${g.pct}-${i}`}
+              style={{
+                position: 'absolute',
+                background: 'var(--peach-ink, #C6703D)',
+                boxShadow: '0 0 6px rgba(198,112,61,0.55)',
+                ...(g.axis === 'x'
+                  ? { left: `${g.pct}%`, top: 0, bottom: 0, width: 1 }
+                  : { top: `${g.pct}%`, left: 0, right: 0, height: 1 }),
+              }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Snap geometry ───────────────────────────────────────────────
+//
+// Snap candidates are percentages within the container (the same
+// unit stickers store on the manifest). A drag is snapped when the
+// candidate position is within SNAP_THRESHOLD_PX of a candidate.
+//
+// Candidates = gridlines (0, 25, 50, 75, 100) + every other sticker
+// center in the same block. The Figma-style "tug" is the snapped
+// coordinate; the visual is a hairline at the snap line.
+
+interface SnapGuide {
+  axis: 'x' | 'y';
+  pct: number;
+}
+
+const SNAP_THRESHOLD_PX = 6;
+const GRID_PCTS = [0, 25, 50, 75, 100];
+
+function buildSnapCandidates(siblings: StickerItem[], selfId: string): { x: number[]; y: number[] } {
+  const xs: number[] = [...GRID_PCTS];
+  const ys: number[] = [...GRID_PCTS];
+  for (const s of siblings) {
+    if (s.id === selfId) continue;
+    if (typeof s.x === 'number') xs.push(s.x);
+    if (typeof s.y === 'number') ys.push(s.y);
+  }
+  return { x: xs, y: ys };
+}
+
+function snapAxis(targetPct: number, candidates: number[], pxPerPct: number): { snapped: number; hit: number | null } {
+  const thresholdPct = SNAP_THRESHOLD_PX / Math.max(1, pxPerPct);
+  let best = { snapped: targetPct, hit: null as number | null };
+  let bestDelta = thresholdPct;
+  for (const c of candidates) {
+    const d = Math.abs(c - targetPct);
+    if (d < bestDelta) {
+      bestDelta = d;
+      best = { snapped: c, hit: c };
+    }
+  }
+  return best;
+}
+
+function StickerPiece({
+  sticker,
+  siblings,
+  isEditing,
+  isSelected,
+  onSelect,
+  onGuides,
+  containerRef,
+  onEditField,
+}: {
+  sticker: StickerItem;
+  siblings: StickerItem[];
+  isEditing: boolean;
+  isSelected: boolean;
+  onSelect: () => void;
+  onGuides: (guides: SnapGuide[]) => void;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  onEditField?: FieldEditor;
+}) {
+  const baseSize = 160; // Natural sticker size before scale.
+  const patchSticker = useCallback(
+    (patch: Partial<StickerItem>) => {
+      onEditField?.((m) => ({
+        ...m,
+        stickers: (m.stickers ?? []).map((s) => (s.id === sticker.id ? { ...s, ...patch } : s)),
+      }));
+    },
+    [onEditField, sticker.id],
+  );
+
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isEditing) return;
+    e.stopPropagation();
+    onSelect();
+    const el = containerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startSticker = { ...sticker };
+    const startScale = startSticker.scale ?? 1;
+    const mode = e.altKey ? 'rotate' : e.shiftKey ? 'scale' : 'move';
+
+    const candidates = buildSnapCandidates(siblings, startSticker.id);
+    const pxPerPctX = rect.width / 100;
+    const pxPerPctY = rect.height / 100;
+
+    const move = (ev: PointerEvent) => {
+      const dx = ev.clientX - startX;
+      const dy = ev.clientY - startY;
+      if (mode === 'move') {
+        const pctX = (dx / rect.width) * 100;
+        const pctY = (dy / rect.height) * 100;
+        const rawX = clamp(startSticker.x + pctX, 0, 100);
+        const rawY = clamp(startSticker.y + pctY, 0, 100);
+        // Snap to nearest gridline / sibling within 6px. Holding
+        // Alt while dragging disables snap so users can drop a
+        // sticker at any pixel — same hatch every modern editor uses.
+        const guides: SnapGuide[] = [];
+        let nextX = rawX;
+        let nextY = rawY;
+        if (!ev.altKey) {
+          const sx = snapAxis(rawX, candidates.x, pxPerPctX);
+          const sy = snapAxis(rawY, candidates.y, pxPerPctY);
+          nextX = sx.snapped;
+          nextY = sy.snapped;
+          if (sx.hit !== null) guides.push({ axis: 'x', pct: sx.hit });
+          if (sy.hit !== null) guides.push({ axis: 'y', pct: sy.hit });
+        }
+        onGuides(guides);
+        patchSticker({ x: nextX, y: nextY });
+      } else if (mode === 'scale') {
+        const delta = (dx + dy) / 200;
+        patchSticker({ scale: clamp(startScale + delta, 0.3, 2.2) });
+      } else {
+        // rotate — map horizontal drag to degrees (1px → 1deg)
+        patchSticker({ rotation: startSticker.rotation + dx });
+      }
+    };
+    const up = () => {
+      onGuides([]);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up, { once: true });
+  };
+
+  const onDoubleClick = () => {
+    if (!isEditing) return;
+    if (sticker.type === 'text') {
+      // For text stickers, double-click opens an inline prompt to
+      // change the text instead of deleting (use × on chip or
+      // Backspace key to delete).
+      // eslint-disable-next-line no-alert
+      const next = window.prompt('Sticker text', sticker.text ?? '');
+      if (next !== null && next !== sticker.text) {
+        patchSticker({ text: next });
+      }
+      return;
+    }
+    onEditField?.((m) => ({
+      ...m,
+      stickers: (m.stickers ?? []).filter((s) => s.id !== sticker.id),
+    }));
+  };
+
+  const handleRemove = (e: React.MouseEvent | React.PointerEvent) => {
+    e.stopPropagation();
+    onEditField?.((m) => ({
+      ...m,
+      stickers: (m.stickers ?? []).filter((s) => s.id !== sticker.id),
+    }));
+  };
+
+  const cycleScale = (e: React.MouseEvent | React.PointerEvent) => {
+    e.stopPropagation();
+    const cur = sticker.scale ?? 1;
+    // 0.6 → 1 → 1.4 → 1.8 → 0.6 …
+    const steps = [0.6, 1, 1.4, 1.8];
+    const i = steps.findIndex((s) => Math.abs(s - cur) < 0.05);
+    const next = steps[((i < 0 ? 0 : i) + 1) % steps.length];
+    patchSticker({ scale: next });
+  };
+
+  const isText = sticker.type === 'text';
+  const fontFam =
+    sticker.fontFamily === 'mono' ? 'var(--font-mono)' :
+    sticker.fontFamily === 'body' ? 'var(--font-ui)' :
+    'var(--font-display, "Fraunces", serif)';
+  const fontSize = (sticker.fontSize ?? 32) * (sticker.scale ?? 1);
+  const size = baseSize * (sticker.scale ?? 1);
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: `${sticker.x}%`,
+        top: `${sticker.y}%`,
+        transform: `translate(-50%, -50%)`,
+        zIndex: isSelected ? 12 : 10,
+        // Container takes the bounding box, the sticker rotates inside it
+        // so the action chip stays upright above the sticker.
+        width: isText ? 'auto' : size,
+        height: isText ? 'auto' : size,
+      }}
+    >
+      <div
+        role={isEditing ? 'button' : undefined}
+        onPointerDown={onPointerDown}
+        onDoubleClick={onDoubleClick}
+        title={isEditing ? 'Drag to move · Shift-drag to scale · Alt-drag to rotate' : undefined}
+        style={
+          isText
+            ? {
+                position: 'relative',
+                transform: `rotate(${sticker.rotation}deg)`,
+                fontFamily: fontFam,
+                fontSize,
+                fontWeight: sticker.fontWeight ?? 600,
+                fontStyle: sticker.italic ? 'italic' : 'normal',
+                lineHeight: 1.05,
+                color: sticker.color ?? 'var(--ink, #0E0D0B)',
+                opacity: sticker.opacity ?? 1,
+                whiteSpace: 'pre',
+                userSelect: isEditing && isSelected ? 'text' : 'none',
+                cursor: isEditing ? 'grab' : 'default',
+                padding: '4px 8px',
+                outline: isEditing && isSelected ? '2px dashed var(--sage-deep, #5C6B3F)' : 'none',
+                outlineOffset: 4,
+                transition: isSelected ? 'none' : 'outline 140ms',
+                touchAction: 'none',
+                textShadow: '0 1px 0 rgba(255,255,255,0.4)',
+              }
+            : {
+                position: 'absolute',
+                inset: 0,
+                transform: `rotate(${sticker.rotation}deg)`,
+                backgroundImage: `url(${sticker.url})`,
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                filter: 'drop-shadow(0 6px 10px rgba(61,74,31,0.22))',
+                cursor: isEditing ? 'grab' : 'default',
+                outline: isEditing && isSelected ? '2px dashed var(--sage-deep, #5C6B3F)' : 'none',
+                outlineOffset: 4,
+                transition: isSelected ? 'none' : 'outline 140ms',
+                touchAction: 'none',
+              }
+        }
+      >
+        {isText ? (sticker.text ?? '') : null}
+      </div>
+      {/* Resize + rotation handles — Figma-style corner squares
+          plus a knob above the top edge. Only mount when selected
+          so they don't compete with the sticker visually. */}
+      {isEditing && isSelected && (
+        <>
+          {(['nw', 'ne', 'sw', 'se'] as const).map((corner) => (
+            <CornerHandle
+              key={corner}
+              corner={corner}
+              sticker={sticker}
+              containerRef={containerRef}
+              patchSticker={patchSticker}
+            />
+          ))}
+          <RotateHandle
+            sticker={sticker}
+            containerRef={containerRef}
+            patchSticker={patchSticker}
+          />
+        </>
+      )}
+      {/* Action chip — appears above the sticker when selected. Sits
+          OUTSIDE the rotated layer so it's always upright + readable. */}
+      {isEditing && isSelected && (
+        <div
+          role="toolbar"
+          aria-label="Sticker actions"
+          onPointerDown={(e) => e.stopPropagation()}
+          style={{
+            position: 'absolute',
+            top: -36,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 2,
+            padding: '3px 4px',
+            borderRadius: 999,
+            background: 'rgba(14,13,11,0.88)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            boxShadow: '0 6px 16px rgba(14,13,11,0.22)',
+            color: 'rgba(243,233,212,0.92)',
+            fontFamily: 'var(--font-ui)',
+            fontSize: 10.5,
+            fontWeight: 600,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            zIndex: 13,
+          }}
+        >
+          <button
+            type="button"
+            onClick={cycleScale}
+            aria-label="Resize sticker"
+            title="Resize"
+            style={stickerActionBtn}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 3 21 3 21 9" />
+              <polyline points="9 21 3 21 3 15" />
+              <line x1="21" y1="3" x2="14" y2="10" />
+              <line x1="3" y1="21" x2="10" y2="14" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={handleRemove}
+            aria-label="Remove sticker"
+            title="Remove"
+            style={{ ...stickerActionBtn, color: '#FCA5A5' }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const stickerActionBtn: CSSProperties = {
+  width: 24,
+  height: 24,
+  borderRadius: 999,
+  border: 'none',
+  background: 'transparent',
+  color: 'inherit',
+  cursor: 'pointer',
+  display: 'grid',
+  placeItems: 'center',
+};
+
+function clamp(n: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, n));
+}
+
+// ── Corner resize handles ──────────────────────────────────────
+//
+// Drag any corner outward to scale the sticker up; drag inward to
+// scale down. Uses the distance-from-center heuristic so the user
+// gets a uniform scale regardless of which corner they grab — the
+// sticker doesn't hop around the way it would if we mapped corner
+// to corner. Hold Shift to constrain the change to integer
+// percent steps (snappy, predictable).
+
+type Corner = 'nw' | 'ne' | 'sw' | 'se';
+
+const CORNER_POSITIONS: Record<Corner, { left?: string; right?: string; top?: string; bottom?: string; cursor: string }> = {
+  nw: { left: '-6px', top: '-6px', cursor: 'nwse-resize' },
+  ne: { right: '-6px', top: '-6px', cursor: 'nesw-resize' },
+  sw: { left: '-6px', bottom: '-6px', cursor: 'nesw-resize' },
+  se: { right: '-6px', bottom: '-6px', cursor: 'nwse-resize' },
+};
+
+function CornerHandle({
+  corner,
+  sticker,
+  containerRef,
+  patchSticker,
+}: {
+  corner: Corner;
+  sticker: StickerItem;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  patchSticker: (patch: Partial<StickerItem>) => void;
+}) {
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const layer = containerRef.current;
+    if (!layer) return;
+    const rect = layer.getBoundingClientRect();
+    // Sticker center in absolute screen coords (xy on the container).
+    const cx = rect.left + (sticker.x / 100) * rect.width;
+    const cy = rect.top + (sticker.y / 100) * rect.height;
+    const startScale = sticker.scale ?? 1;
+    const startDist = Math.hypot(e.clientX - cx, e.clientY - cy);
+    if (startDist <= 0) return;
+
+    const move = (ev: PointerEvent) => {
+      const d = Math.hypot(ev.clientX - cx, ev.clientY - cy);
+      let next = startScale * (d / startDist);
+      if (ev.shiftKey) next = Math.round(next * 10) / 10; // snap to 0.1
+      patchSticker({ scale: clamp(next, 0.3, 2.4) });
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up, { once: true });
+  };
+
+  const pos = CORNER_POSITIONS[corner];
+
+  return (
+    <div
+      role="button"
+      aria-label={`Resize sticker (${corner.toUpperCase()})`}
+      onPointerDown={onPointerDown}
+      data-pl-no-select=""
+      style={{
+        position: 'absolute',
+        width: 12,
+        height: 12,
+        borderRadius: 3,
+        background: 'var(--cream-card, #FBF7EE)',
+        border: '1.5px solid var(--peach-ink, #C6703D)',
+        boxShadow: '0 2px 6px rgba(14,13,11,0.20)',
+        zIndex: 14,
+        touchAction: 'none',
+        ...pos,
+      }}
+    />
+  );
+}
+
+// ── Rotation handle ────────────────────────────────────────────
+//
+// Knob 24px above the sticker. Drag to rotate; held Shift snaps to
+// 15° increments (matches Figma + Photoshop). The rotation fires
+// against the sticker center, not the knob itself.
+function RotateHandle({
+  sticker,
+  containerRef,
+  patchSticker,
+}: {
+  sticker: StickerItem;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  patchSticker: (patch: Partial<StickerItem>) => void;
+}) {
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const layer = containerRef.current;
+    if (!layer) return;
+    const rect = layer.getBoundingClientRect();
+    const cx = rect.left + (sticker.x / 100) * rect.width;
+    const cy = rect.top + (sticker.y / 100) * rect.height;
+    const startAngle = Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI);
+    const startRotation = sticker.rotation ?? 0;
+
+    const move = (ev: PointerEvent) => {
+      const cur = Math.atan2(ev.clientY - cy, ev.clientX - cx) * (180 / Math.PI);
+      let next = startRotation + (cur - startAngle);
+      if (ev.shiftKey) next = Math.round(next / 15) * 15;
+      patchSticker({ rotation: next });
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up, { once: true });
+  };
+
+  return (
+    <div
+      role="button"
+      aria-label="Rotate sticker"
+      title="Drag to rotate · Shift snaps to 15°"
+      onPointerDown={onPointerDown}
+      data-pl-no-select=""
+      style={{
+        position: 'absolute',
+        top: -28,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: 14,
+        height: 14,
+        borderRadius: 999,
+        background: 'var(--cream-card, #FBF7EE)',
+        border: '1.5px solid var(--peach-ink, #C6703D)',
+        boxShadow: '0 2px 6px rgba(14,13,11,0.20)',
+        cursor: 'grab',
+        zIndex: 14,
+        touchAction: 'none',
+      }}
+    />
+  );
+}

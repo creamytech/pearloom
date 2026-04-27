@@ -44,16 +44,8 @@ function getSupabase() {
   return createClient(url, key);
 }
 
-// ── Mock data used when the table doesn't exist yet ─────────
-const MOCK_PHOTOS = [
-  {
-    id: 'mock-1',
-    url: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=400',
-    uploadedBy: 'Sarah M.',
-    caption: 'What a beautiful ceremony!',
-    uploadedAt: new Date().toISOString(),
-  },
-];
+// Table-missing + unexpected-error responses return an empty
+// list. We never ship placeholder guest photos to a real site.
 
 // ── GET ──────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
@@ -71,7 +63,7 @@ export async function GET(req: NextRequest) {
     if (error) {
       // Table likely doesn't exist yet — return mock data in development
       console.warn('[wedding-day] GET fallback (table missing?):', error.message);
-      return NextResponse.json({ photos: MOCK_PHOTOS });
+      return NextResponse.json({ photos: [] });
     }
 
     const photos = (data || []).map((r) => ({
@@ -85,7 +77,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ photos });
   } catch (err) {
     console.error('[wedding-day] GET unexpected error:', err);
-    return NextResponse.json({ photos: MOCK_PHOTOS });
+    return NextResponse.json({ photos: [] });
   }
 }
 

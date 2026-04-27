@@ -5,7 +5,7 @@
 // Hotels, airports, directions — full travel logistics
 // ─────────────────────────────────────────────────────────────
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Plane, Hotel, Car, ExternalLink, Phone } from 'lucide-react';
 import { LocationPinIcon } from '@/components/icons/PearloomIcons';
@@ -38,8 +38,8 @@ function StarDots({ count }: { count: number }) {
             width: '6px',
             height: '6px',
             borderRadius: '50%',
-            background: i < count ? 'var(--eg-gold)' : 'rgba(0,0,0,0.1)',
-            transition: 'background 0.2s',
+            background: i < count ? 'var(--pl-gold)' : 'rgba(0,0,0,0.1)',
+            transition: 'background var(--pl-dur-fast)',
           }}
         />
       ))}
@@ -54,20 +54,29 @@ function HotelCard({
   hotel: HotelBlockExtended;
   index: number;
 }) {
+  const [isFocused, setIsFocused] = useState(false);
+  const handleFocus = useCallback(() => setIsFocused(true), []);
+  const handleBlur = useCallback(() => setIsFocused(false), []);
+
   return (
     <motion.div
+      tabIndex={0}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.75, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{ y: -3, boxShadow: '0 16px 50px rgba(43,43,43,0.08)' }}
+      whileHover={{ y: -3, boxShadow: '0 16px 50px rgba(43,30,20,0.08)' }}
       style={{
-        background: '#ffffff',
+        background: 'var(--pl-cream-card, #ffffff)',
         borderRadius: '1.25rem',
         border: '1px solid rgba(0,0,0,0.06)',
         overflow: 'hidden',
-        boxShadow: '0 4px 20px rgba(43,43,43,0.04)',
+        boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
         transition: 'box-shadow 0.4s ease, transform 0.4s ease',
+        outline: isFocused ? '2px solid var(--pl-olive)' : 'none',
+        outlineOffset: isFocused ? '2px' : undefined,
       }}
     >
       {/* Top accent */}
@@ -75,7 +84,7 @@ function HotelCard({
         style={{
           height: '3px',
           background:
-            'linear-gradient(90deg, var(--eg-accent) 0%, color-mix(in srgb, var(--eg-accent) 30%, transparent) 100%)',
+            'linear-gradient(90deg, var(--pl-olive) 0%, color-mix(in srgb, var(--pl-olive) 30%, transparent) 100%)',
         }}
       />
 
@@ -93,7 +102,7 @@ function HotelCard({
             width: '40px',
             height: '40px',
             borderRadius: '50%',
-            background: 'var(--eg-accent-light)',
+            background: 'var(--pl-olive-mist)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -101,16 +110,18 @@ function HotelCard({
             marginTop: '0.1rem',
           }}
         >
-          <Hotel size={16} color="var(--eg-accent)" />
+          <Hotel size={16} color="var(--pl-olive)" />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h4
+            data-pe-editable="true"
+            data-pe-path={`travelInfo.hotels.${index}.name`}
             style={{
-              fontFamily: 'var(--eg-font-heading)',
+              fontFamily: 'var(--pl-font-heading)',
               fontSize: '1.1rem',
               fontWeight: 500,
               fontStyle: 'italic',
-              color: 'var(--eg-fg)',
+              color: 'var(--pl-ink)',
               letterSpacing: '-0.015em',
               lineHeight: 1.2,
               marginBottom: '0.4rem',
@@ -128,13 +139,13 @@ function HotelCard({
                 fontWeight: 800,
                 letterSpacing: '0.15em',
                 textTransform: 'uppercase',
-                color: 'var(--eg-accent)',
-                background: 'var(--eg-accent-light)',
+                color: 'var(--pl-olive)',
+                background: 'var(--pl-olive-mist)',
                 padding: '0.2rem 0.65rem',
-                borderRadius: '100px',
+                borderRadius: 'var(--pl-radius-full)',
                 marginTop: '0.5rem',
                 display: 'inline-block',
-                border: '1px solid color-mix(in srgb, var(--eg-accent) 15%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--pl-olive) 15%, transparent)',
               }}
             >
               Group Rate: {hotel.groupRate}
@@ -155,14 +166,17 @@ function HotelCard({
           <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-start' }}>
             <LocationPinIcon
               size={13}
-              color="var(--eg-muted)"
+              color="var(--pl-muted)"
               style={{ flexShrink: 0, marginTop: '0.2rem', opacity: 0.6 }}
             />
             <span
+              data-pe-editable="true"
+              data-pe-path={`travelInfo.hotels.${index}.address`}
               style={{
                 fontSize: '0.83rem',
-                color: 'var(--eg-muted)',
+                color: 'var(--pl-muted)',
                 lineHeight: 1.55,
+                wordBreak: 'break-word',
               }}
             >
               {hotel.address}
@@ -172,11 +186,11 @@ function HotelCard({
 
         {hotel.distance && (
           <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
-            <Car size={13} color="var(--eg-muted)" style={{ flexShrink: 0, opacity: 0.6 }} />
+            <Car size={13} color="var(--pl-muted)" style={{ flexShrink: 0, opacity: 0.6 }} />
             <span
               style={{
                 fontSize: '0.83rem',
-                color: 'var(--eg-muted)',
+                color: 'var(--pl-muted)',
               }}
             >
               {hotel.distance}
@@ -186,13 +200,16 @@ function HotelCard({
 
         {hotel.phone && (
           <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
-            <Phone size={13} color="var(--eg-muted)" style={{ flexShrink: 0, opacity: 0.6 }} />
+            <Phone size={13} color="var(--pl-muted)" style={{ flexShrink: 0, opacity: 0.6 }} />
             <a
               href={`tel:${hotel.phone}`}
+              aria-label={`Call ${hotel.name} at ${hotel.phone}`}
               style={{
                 fontSize: '0.83rem',
-                color: 'var(--eg-muted)',
-                textDecoration: 'none',
+                color: 'var(--pl-olive)',
+                textDecoration: 'underline',
+                textUnderlineOffset: '2px',
+                textDecorationColor: 'color-mix(in srgb, var(--pl-olive) 40%, transparent)',
               }}
             >
               {hotel.phone}
@@ -204,7 +221,7 @@ function HotelCard({
           <p
             style={{
               fontSize: '0.83rem',
-              color: 'var(--eg-muted)',
+              color: 'var(--pl-muted)',
               fontStyle: 'italic',
               lineHeight: 1.65,
               paddingTop: '0.25rem',
@@ -224,9 +241,9 @@ function HotelCard({
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.45rem',
-              padding: '0.6rem 1.25rem',
-              borderRadius: '100px',
-              background: 'var(--eg-accent)',
+              padding: '0.75rem 1.35rem',
+              borderRadius: 'var(--pl-radius-full)',
+              background: 'var(--pl-olive)',
               color: '#fff',
               fontSize: '0.72rem',
               fontWeight: 700,
@@ -236,13 +253,14 @@ function HotelCard({
               textTransform: 'uppercase' as const,
               alignSelf: 'flex-start',
               transition: 'transform 0.2s ease, background 0.2s ease',
+              minHeight: '44px',
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.background = 'var(--eg-accent-hover)';
+              e.currentTarget.style.background = 'var(--pl-olive-hover)';
               e.currentTarget.style.transform = 'translateY(-1px)';
             }}
             onMouseOut={(e) => {
-              e.currentTarget.style.background = 'var(--eg-accent)';
+              e.currentTarget.style.background = 'var(--pl-olive)';
               e.currentTarget.style.transform = 'none';
             }}
           >
@@ -274,13 +292,13 @@ export function TravelSection({
     <section
       data-pe-section="travel" data-pe-label="Travel"
       style={{
-        background: 'var(--eg-bg-section)',
+        background: 'var(--pl-cream-deep)',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
       {/* Wave divider at top */}
-      <SectionDivider color="var(--eg-bg)" />
+      <SectionDivider color="var(--pl-cream)" />
 
       <div style={{ padding: '4rem 2rem 8rem' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
@@ -306,16 +324,16 @@ export function TravelSection({
                 style={{
                   width: '48px',
                   height: '1px',
-                  background: 'var(--eg-accent)',
+                  background: 'var(--pl-olive)',
                   opacity: 0.3,
                 }}
               />
-              <LocationPinIcon size={20} color="var(--eg-accent)" style={{ opacity: 0.75 }} />
+              <LocationPinIcon size={20} color="var(--pl-olive)" style={{ opacity: 0.75 }} />
               <div
                 style={{
                   width: '48px',
                   height: '1px',
-                  background: 'var(--eg-accent)',
+                  background: 'var(--pl-olive)',
                   opacity: 0.3,
                 }}
               />
@@ -323,12 +341,12 @@ export function TravelSection({
 
             <h2
               style={{
-                fontFamily: 'var(--eg-font-heading)',
+                fontFamily: 'var(--pl-font-heading)',
                 fontSize: 'clamp(2.25rem, 5vw, 3.75rem)',
                 fontWeight: 600,
                 fontStyle: 'italic',
                 letterSpacing: '-0.03em',
-                color: 'var(--eg-fg)',
+                color: 'var(--pl-ink)',
                 lineHeight: 1.05,
                 marginBottom: '1.5rem',
               }}
@@ -350,7 +368,7 @@ export function TravelSection({
                 style={{
                   width: '24px',
                   height: '1px',
-                  background: 'var(--eg-accent)',
+                  background: 'var(--pl-olive)',
                   opacity: 0.35,
                 }}
               />
@@ -358,7 +376,7 @@ export function TravelSection({
                 style={{
                   width: '4px',
                   height: '4px',
-                  background: 'var(--eg-accent)',
+                  background: 'var(--pl-olive)',
                   transform: 'rotate(45deg)',
                   opacity: 0.5,
                 }}
@@ -367,7 +385,7 @@ export function TravelSection({
                 style={{
                   width: '24px',
                   height: '1px',
-                  background: 'var(--eg-accent)',
+                  background: 'var(--pl-olive)',
                   opacity: 0.35,
                 }}
               />
@@ -375,7 +393,7 @@ export function TravelSection({
 
             <p
               style={{
-                color: 'var(--eg-muted)',
+                color: 'var(--pl-muted)',
                 fontSize: '1.05rem',
                 fontStyle: 'italic',
                 lineHeight: 1.65,
@@ -395,7 +413,7 @@ export function TravelSection({
               style={{
                 marginBottom: '2.5rem',
                 padding: '1rem 1.5rem',
-                background: 'var(--eg-accent)',
+                background: 'var(--pl-olive)',
                 borderRadius: '0.75rem',
                 display: 'flex',
                 alignItems: 'center',
@@ -425,10 +443,10 @@ export function TravelSection({
               style={{
                 marginBottom: '3rem',
                 padding: '2rem 2.25rem',
-                background: '#ffffff',
+                background: 'var(--pl-cream-card, #ffffff)',
                 borderRadius: '1.25rem',
                 border: '1px solid rgba(0,0,0,0.06)',
-                boxShadow: '0 4px 20px rgba(43,43,43,0.03)',
+                boxShadow: '0 4px 20px rgba(43,30,20,0.03)',
               }}
             >
               <div
@@ -444,21 +462,21 @@ export function TravelSection({
                     width: '36px',
                     height: '36px',
                     borderRadius: '50%',
-                    background: 'var(--eg-accent-light)',
+                    background: 'var(--pl-olive-mist)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0,
                   }}
                 >
-                  <Plane size={16} color="var(--eg-accent)" />
+                  <Plane size={16} color="var(--pl-olive)" />
                 </div>
                 <h3
                   style={{
-                    fontFamily: 'var(--eg-font-heading)',
+                    fontFamily: 'var(--pl-font-heading)',
                     fontSize: '1.15rem',
                     fontWeight: 400,
-                    color: 'var(--eg-fg)',
+                    color: 'var(--pl-ink)',
                     letterSpacing: '-0.01em',
                   }}
                 >
@@ -469,16 +487,18 @@ export function TravelSection({
                 {info.airports.map((airport, i) => (
                   <div
                     key={i}
+                    data-pe-editable="true"
+                    data-pe-path={`travelInfo.airports.${i}`}
                     style={{
                       padding: '0.5rem 1.1rem',
-                      background: 'var(--eg-accent-light)',
-                      color: 'var(--eg-accent)',
-                      borderRadius: '100px',
+                      background: 'var(--pl-olive-mist)',
+                      color: 'var(--pl-olive)',
+                      borderRadius: 'var(--pl-radius-full)',
                       fontSize: '0.8rem',
                       fontWeight: 600,
                       letterSpacing: '0.03em',
                       border:
-                        '1px solid color-mix(in srgb, var(--eg-accent) 15%, transparent)',
+                        '1px solid color-mix(in srgb, var(--pl-olive) 15%, transparent)',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '0.4rem',
@@ -497,10 +517,10 @@ export function TravelSection({
             <div style={{ marginBottom: '3rem' }}>
               <h3
                 style={{
-                  fontFamily: 'var(--eg-font-heading)',
+                  fontFamily: 'var(--pl-font-heading)',
                   fontSize: '1.35rem',
                   fontWeight: 400,
-                  color: 'var(--eg-fg)',
+                  color: 'var(--pl-ink)',
                   marginBottom: '1.5rem',
                   display: 'flex',
                   alignItems: 'center',
@@ -508,7 +528,7 @@ export function TravelSection({
                   letterSpacing: '-0.01em',
                 }}
               >
-                <Hotel size={16} color="var(--eg-accent)" style={{ opacity: 0.8 }} />
+                <Hotel size={16} color="var(--pl-olive)" style={{ opacity: 0.8 }} />
                 Where to Stay
               </h3>
               <div
@@ -545,16 +565,16 @@ export function TravelSection({
                     borderRadius: '1.25rem',
                     border: '1px solid rgba(0,0,0,0.06)',
                     overflow: 'hidden',
-                    boxShadow: '0 4px 20px rgba(43,43,43,0.03)',
+                    boxShadow: '0 4px 20px rgba(43,30,20,0.03)',
                   }}
                 >
                   {/* Map-placeholder visual */}
                   <div
                     style={{
                       height: '100px',
-                      background: 'var(--eg-gold)',
+                      background: 'var(--pl-gold)',
                       backgroundImage:
-                        'radial-gradient(circle, rgba(43,43,43,0.08) 1px, transparent 1px)',
+                        'radial-gradient(circle, rgba(43,30,20,0.08) 1px, transparent 1px)',
                       backgroundSize: '18px 18px',
                       position: 'relative',
                       display: 'flex',
@@ -562,9 +582,9 @@ export function TravelSection({
                       justifyContent: 'center',
                     }}
                   >
-                    <LocationPinIcon size={28} color="rgba(43,43,43,0.35)" />
+                    <LocationPinIcon size={28} color="rgba(43,30,20,0.35)" />
                   </div>
-                  <div style={{ padding: '1.75rem 2rem', background: '#ffffff' }}>
+                  <div style={{ padding: '1.75rem 2rem', background: 'var(--pl-cream-card, #ffffff)' }}>
                     <div
                       style={{
                         display: 'flex',
@@ -573,10 +593,10 @@ export function TravelSection({
                         marginBottom: '1.1rem',
                       }}
                     >
-                      <LocationPinIcon size={15} color="var(--eg-accent)" style={{ opacity: 0.8 }} />
+                      <LocationPinIcon size={15} color="var(--pl-olive)" style={{ opacity: 0.8 }} />
                       <h4
                         style={{
-                          fontFamily: 'var(--eg-font-heading)',
+                          fontFamily: 'var(--pl-font-heading)',
                           fontSize: '1.05rem',
                           fontWeight: 400,
                           letterSpacing: '-0.005em',
@@ -587,7 +607,7 @@ export function TravelSection({
                     </div>
                     <p
                       style={{
-                        color: 'var(--eg-muted)',
+                        color: 'var(--pl-muted)',
                         fontSize: '0.88rem',
                         lineHeight: 1.75,
                       }}
@@ -607,10 +627,10 @@ export function TravelSection({
                   transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
                   style={{
                     padding: '1.75rem 2rem',
-                    background: '#ffffff',
+                    background: 'var(--pl-cream-card, #ffffff)',
                     borderRadius: '1.25rem',
                     border: '1px solid rgba(0,0,0,0.06)',
-                    boxShadow: '0 4px 20px rgba(43,43,43,0.03)',
+                    boxShadow: '0 4px 20px rgba(43,30,20,0.03)',
                   }}
                 >
                   <div
@@ -626,18 +646,18 @@ export function TravelSection({
                         width: '36px',
                         height: '36px',
                         borderRadius: '50%',
-                        background: 'var(--eg-accent-light)',
+                        background: 'var(--pl-olive-mist)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         flexShrink: 0,
                       }}
                     >
-                      <Car size={15} color="var(--eg-accent)" />
+                      <Car size={15} color="var(--pl-olive)" />
                     </div>
                     <h4
                       style={{
-                        fontFamily: 'var(--eg-font-heading)',
+                        fontFamily: 'var(--pl-font-heading)',
                         fontSize: '1.05rem',
                         fontWeight: 400,
                         letterSpacing: '-0.005em',
@@ -648,7 +668,7 @@ export function TravelSection({
                   </div>
                   <p
                     style={{
-                      color: 'var(--eg-muted)',
+                      color: 'var(--pl-muted)',
                       fontSize: '0.88rem',
                       lineHeight: 1.75,
                     }}

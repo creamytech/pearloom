@@ -2,21 +2,23 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / app/editor/[siteSlug]/EditorClient.tsx
-// Client shell for the deep-linked editor route.
-// Receives server-loaded manifest, auto-saves on change.
+//
+// Editor mode router. Two modes:
+//   1. ?view=studio   → BuilderV8 (the 3-pane design studio — shell
+//                        only, reads theme/palette/motif). Good for
+//                        quick re-skinning.
+//   2. (default)      → EditorV8 — the v8 block editor: left outline,
+//                        live preview in the middle, per-block field
+//                        panel on the right.
+//
+// The legacy `?view=legacy` FullscreenEditor mode was sunset
+// 2026-04-26 along with its supporting v2 components.
 // ─────────────────────────────────────────────────────────────
 
-import { useCallback, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import dynamic from 'next/dynamic';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { PublishModal } from '@/components/shared/PublishModal';
+import { useSearchParams } from 'next/navigation';
+import { EditorV8 } from '@/components/pearloom/editor/EditorV8';
+import { BuilderV8 } from '@/components/pearloom/pages/BuilderV8';
 import type { StoryManifest } from '@/types';
-
-const FullscreenEditor = dynamic(
-  () => import('@/components/editor/FullscreenEditor').then(m => m.FullscreenEditor),
-  { ssr: false },
-);
 
 interface EditorClientProps {
   manifest: StoryManifest;
@@ -24,45 +26,13 @@ interface EditorClientProps {
   names: [string, string];
 }
 
-export default function EditorClient({ manifest: initialManifest, siteSlug, names }: EditorClientProps) {
-  const router = useRouter();
-  const [manifest, setManifest] = useState<StoryManifest>(initialManifest);
-  const [showPublish, setShowPublish] = useState(false);
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+export default function EditorClient({ manifest, siteSlug, names }: EditorClientProps) {
+  const searchParams = useSearchParams();
+  const view = searchParams.get('view');
 
-  const handleChange = useCallback((m: StoryManifest) => {
-    setManifest(m);
-    // Debounced auto-save — 2s after last change
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => {
-      fetch('/api/sites', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subdomain: siteSlug, manifest: m, names }),
-      }).catch(() => {/* silent — editor still works offline */});
-    }, 2000);
-  }, [siteSlug, names]);
+  if (view === 'studio') {
+    return <BuilderV8 manifest={manifest} siteSlug={siteSlug} names={names} />;
+  }
 
-  return (
-    <>
-      <ErrorBoundary>
-        <FullscreenEditor
-          manifest={manifest}
-          coupleNames={names}
-          subdomain={siteSlug}
-          onChange={handleChange}
-          onPublish={() => setShowPublish(true)}
-          onExit={() => router.push('/dashboard')}
-        />
-      </ErrorBoundary>
-
-      <PublishModal
-        open={showPublish}
-        onClose={() => setShowPublish(false)}
-        manifest={manifest}
-        coupleNames={names}
-        initialSubdomain={siteSlug}
-      />
-    </>
-  );
+  return <EditorV8 manifest={manifest} siteSlug={siteSlug} names={names} />;
 }

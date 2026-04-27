@@ -178,7 +178,7 @@ export function LivePhotoWall({ domain, manifest, names }: LivePhotoWallProps) {
       </div>
 
       {/* QR Overlay */}
-      <LiveQROverlay domain={domain} />
+      <LiveQROverlay domain={domain} occasion={manifest?.occasion} />
 
       <style>{`
         @media (max-width: 900px) {
@@ -209,7 +209,7 @@ function PhotoCard({ photo, isNew }: { photo: GuestPhoto; isNew: boolean }) {
       transition={{ type: 'spring', stiffness: 300, damping: 28 }}
       whileHover={{ scale: 1.02 }}
       style={{
-        borderRadius: '12px',
+        borderRadius: 'var(--pl-radius-lg)',
         overflow: 'hidden',
         marginBottom: '12px',
         breakInside: 'avoid',
@@ -240,7 +240,7 @@ function PhotoCard({ photo, isNew }: { photo: GuestPhoto; isNew: boolean }) {
               style={{
                 margin: 0,
                 fontSize: '0.82rem',
-                color: 'rgba(255,255,255,0.8)',
+                color: 'var(--pl-ink)',
                 lineHeight: 1.4,
               }}
             >
@@ -252,7 +252,7 @@ function PhotoCard({ photo, isNew }: { photo: GuestPhoto; isNew: boolean }) {
               style={{
                 margin: photo.caption ? '4px 0 0' : 0,
                 fontSize: '0.72rem',
-                color: 'rgba(255,255,255,0.4)',
+                color: 'var(--pl-ink-soft)',
               }}
             >
               — {photo.uploaderName}

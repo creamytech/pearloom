@@ -144,10 +144,29 @@ export function EditBridge({ enabled }: EditBridgeProps) {
           }
 
           const chapterId = htmlEl.closest('[data-pe-chapter]')?.getAttribute('data-pe-chapter');
+          const sectionId = htmlEl.closest('[data-pe-section]')?.getAttribute('data-pe-section');
           const field = htmlEl.getAttribute('data-pe-field');
+          const manifestPath = htmlEl.getAttribute('data-pe-path');
           const value = htmlEl.innerText.trim();
           if (chapterId && field) {
             window.parent.postMessage({ type: 'pearloom-edit-commit', chapterId, field, value }, '*');
+          } else if (manifestPath) {
+            // Non-chapter field: events, FAQ, registry, etc.
+            window.parent.postMessage({ type: 'pearloom-manifest-edit', path: manifestPath, value }, '*');
+          } else if (sectionId === 'hero' && field) {
+            // Hero section fields: heroTagline, subtitle, names
+            const pathMap: Record<string, string> = {
+              heroTagline: 'poetry.heroTagline',
+              subtitle: 'chapters.0.subtitle',
+              names: '__names__',
+            };
+            const path = pathMap[field];
+            if (path === '__names__') {
+              // Names are stored as coupleNames, not in manifest — send special message
+              window.parent.postMessage({ type: 'pearloom-hero-names-edit', value }, '*');
+            } else if (path) {
+              window.parent.postMessage({ type: 'pearloom-manifest-edit', path, value }, '*');
+            }
           }
         });
 
@@ -161,7 +180,85 @@ export function EditBridge({ enabled }: EditBridgeProps) {
     makeEditable();
     const observer = new MutationObserver(makeEditable);
     observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
+
+    // ── Icon swap click handler ──────────────────────────
+    const ICON_OPTIONS = ['✦', '♡', '❋', '✿', '◆', '☆', '✧', '♢', '❀', '✻', '❖', '△', '◎', '⟡', '✶', '❁', '♤', '⚘', '✽', '⟐'];
+
+    const handleIconClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest('[data-pe-icon]') as HTMLElement | null;
+      if (!target) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const field = target.getAttribute('data-pe-icon') || 'accentSymbol';
+      const rect = target.getBoundingClientRect();
+
+      // Remove existing picker
+      document.getElementById('pe-icon-picker')?.remove();
+
+      // Create icon picker popup
+      const picker = document.createElement('div');
+      picker.id = 'pe-icon-picker';
+      picker.style.cssText = `
+        position: fixed; z-index: 99999;
+        top: ${Math.min(rect.bottom + 8, window.innerHeight - 260)}px;
+        left: ${Math.max(8, Math.min(rect.left - 80, window.innerWidth - 240))}px;
+        width: 220px; padding: 12px;
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+        border-radius: 16px;
+        border: 1px solid rgba(0,0,0,0.08);
+        box-shadow: 0 12px 40px rgba(43,30,20,0.12), 0 4px 12px rgba(43,30,20,0.06);
+        display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
+        animation: peIconPickerIn 0.15s ease-out;
+      `;
+      picker.innerHTML = ICON_OPTIONS.map(icon => `
+        <button style="
+          width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+          border-radius: 10px; border: 1px solid rgba(0,0,0,0.04);
+          background: ${target.textContent?.trim() === icon ? 'rgba(163,177,138,0.15)' : 'transparent'};
+          cursor: pointer; font-size: 1.1rem; transition: all 0.12s;
+        " data-icon="${icon}" title="${icon}">
+          ${icon}
+        </button>
+      `).join('');
+
+      // Add style tag for animation
+      if (!document.getElementById('pe-icon-picker-style')) {
+        const s = document.createElement('style');
+        s.id = 'pe-icon-picker-style';
+        s.textContent = `@keyframes peIconPickerIn { from { opacity: 0; transform: translateY(-4px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }`;
+        document.head.appendChild(s);
+      }
+
+      picker.addEventListener('click', (ev) => {
+        const btn = (ev.target as HTMLElement).closest('[data-icon]') as HTMLElement | null;
+        if (!btn) return;
+        const newIcon = btn.getAttribute('data-icon') || '✦';
+        window.parent.postMessage({ type: 'pearloom-icon-swap', field, value: newIcon }, '*');
+        target.textContent = newIcon;
+        picker.remove();
+      });
+
+      document.body.appendChild(picker);
+
+      // Close on outside click
+      const closeHandler = (ev: MouseEvent) => {
+        if (!picker.contains(ev.target as Node) && ev.target !== target) {
+          picker.remove();
+          document.removeEventListener('mousedown', closeHandler);
+        }
+      };
+      setTimeout(() => document.addEventListener('mousedown', closeHandler), 50);
+    };
+
+    document.addEventListener('click', handleIconClick);
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener('click', handleIconClick);
+      document.getElementById('pe-icon-picker')?.remove();
+    };
   }, [enabled]);
 
   // ── Inject "Edit Cover Photo" button into the hero section ───
@@ -190,9 +287,9 @@ export function EditBridge({ enabled }: EditBridgeProps) {
         'z-index:20', 'cursor:pointer',
         'background:rgba(22,18,14,0.88)', 'backdrop-filter:blur(16px)',
         '-webkit-backdrop-filter:blur(16px)',
-        'border:1px solid rgba(255,255,255,0.15)',
+        'border:1px solid rgba(0,0,0,0.08)',
         'border-radius:100px',
-        'color:rgba(255,255,255,0.9)',
+        'color:var(--pl-ink)',
         'font-family:system-ui,-apple-system,sans-serif',
         'font-size:13px', 'font-weight:700',
         'padding:10px 18px', 'min-height:44px',
@@ -251,6 +348,121 @@ export function EditBridge({ enabled }: EditBridgeProps) {
 
     document.addEventListener('click', handler, true);
     return () => document.removeEventListener('click', handler, true);
+  }, [enabled]);
+
+  // ── Drag-to-canvas drop zones ──────────────────────────────
+  // Parent sends pearloom-drag-highlight when user is dragging a block
+  // over the canvas. We show drop zone indicators between sections.
+  useEffect(() => {
+    if (!enabled) return;
+
+    const DROP_ZONE_CLASS = 'pe-drop-zone';
+    let activeZones: HTMLElement[] = [];
+    let highlightedIdx = -1;
+
+    const createDropZones = () => {
+      removeDropZones();
+      const sections = document.querySelectorAll('[data-pe-section]');
+      const positions: Array<{ top: number; sectionId: string }> = [];
+
+      sections.forEach((section, i) => {
+        const rect = section.getBoundingClientRect();
+        positions.push({ top: rect.top, sectionId: section.getAttribute('data-pe-section') || '' });
+
+        // Create a drop zone div above each section
+        const zone = document.createElement('div');
+        zone.className = DROP_ZONE_CLASS;
+        zone.dataset.dropIndex = String(i);
+        zone.style.cssText = `
+          position: absolute; left: 10%; right: 10%;
+          top: ${rect.top + window.scrollY - 2}px;
+          height: 4px; border-radius: 4px; z-index: 9998;
+          background: transparent; pointer-events: none;
+          transition: background 0.15s, box-shadow 0.15s, height 0.15s;
+        `;
+        document.body.appendChild(zone);
+        activeZones.push(zone);
+      });
+
+      // Also add one at the very bottom
+      const lastSection = sections[sections.length - 1];
+      if (lastSection) {
+        const rect = lastSection.getBoundingClientRect();
+        const zone = document.createElement('div');
+        zone.className = DROP_ZONE_CLASS;
+        zone.dataset.dropIndex = String(sections.length);
+        zone.style.cssText = `
+          position: absolute; left: 10%; right: 10%;
+          top: ${rect.bottom + window.scrollY - 2}px;
+          height: 4px; border-radius: 4px; z-index: 9998;
+          background: transparent; pointer-events: none;
+          transition: background 0.15s, box-shadow 0.15s, height 0.15s;
+        `;
+        document.body.appendChild(zone);
+        activeZones.push(zone);
+      }
+
+      // Send positions to parent
+      window.parent.postMessage({
+        type: 'pearloom-drop-zones-ready',
+        zones: positions.map((p, i) => ({ index: i, top: p.top, sectionId: p.sectionId })),
+        totalSections: sections.length,
+      }, '*');
+    };
+
+    const removeDropZones = () => {
+      activeZones.forEach(z => z.remove());
+      activeZones = [];
+      highlightedIdx = -1;
+    };
+
+    const highlightZone = (index: number) => {
+      activeZones.forEach((z, i) => {
+        if (i === index) {
+          z.style.background = '#5C6B3F';
+          z.style.height = '6px';
+          z.style.boxShadow = '0 0 12px rgba(163,177,138,0.5)';
+        } else {
+          z.style.background = 'transparent';
+          z.style.height = '4px';
+          z.style.boxShadow = 'none';
+        }
+      });
+      highlightedIdx = index;
+    };
+
+    const messageHandler = (event: MessageEvent) => {
+      if (event.data?.type === 'pearloom-drag-start') {
+        createDropZones();
+      }
+      if (event.data?.type === 'pearloom-drag-end') {
+        removeDropZones();
+      }
+      if (event.data?.type === 'pearloom-drag-highlight') {
+        const { yPercent } = event.data;
+        // Find which zone is closest to the y position
+        const scrollTop = window.scrollY;
+        const pageHeight = document.documentElement.scrollHeight;
+        const yAbsolute = yPercent * pageHeight / 100;
+        let closestIdx = 0;
+        let closestDist = Infinity;
+        activeZones.forEach((z, i) => {
+          const zoneTop = parseFloat(z.style.top);
+          const dist = Math.abs(yAbsolute - zoneTop);
+          if (dist < closestDist) {
+            closestDist = dist;
+            closestIdx = i;
+          }
+        });
+        if (closestIdx !== highlightedIdx) highlightZone(closestIdx);
+      }
+    };
+
+    window.addEventListener('message', messageHandler);
+    return () => {
+      window.removeEventListener('message', messageHandler);
+      removeDropZones();
+    };
   }, [enabled]);
 
   // ── Photo click → show action overlay ────────────────────────
@@ -396,13 +608,13 @@ export function EditBridge({ enabled }: EditBridgeProps) {
           background: 'rgba(22,18,14,0.95)',
           backdropFilter: 'blur(16px)',
           border: '1px solid rgba(163,177,138,0.3)',
-          borderRadius: '100px',
+          borderRadius: 'var(--pl-radius-full)',
           padding: '10px 20px',
           display: 'flex', alignItems: 'center', gap: '10px',
           boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
           fontFamily: 'system-ui, sans-serif',
           fontSize: '13px', fontWeight: 600,
-          color: 'rgba(255,255,255,0.85)',
+          color: 'var(--pl-ink)',
           whiteSpace: 'nowrap',
           animation: 'pe-fadein 0.2s ease',
         }}>
@@ -487,8 +699,8 @@ function PhotoActionBtn({
         gap: '6px',
         padding: '8px 14px',
         minHeight: '44px', // WCAG touch target
-        borderRadius: '100px',
-        border: `1px solid ${danger ? 'rgba(248,113,113,0.35)' : accent ? 'rgba(163,177,138,0.4)' : 'rgba(255,255,255,0.15)'}`,
+        borderRadius: 'var(--pl-radius-full)',
+        border: `1px solid ${danger ? 'rgba(248,113,113,0.35)' : accent ? 'rgba(163,177,138,0.4)' : 'rgba(0,0,0,0.08)'}`,
         background: danger
           ? 'rgba(40,10,10,0.92)'
           : accent
@@ -496,7 +708,7 @@ function PhotoActionBtn({
           : 'rgba(22,18,14,0.92)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
-        color: danger ? '#fca5a5' : accent ? '#A3B18A' : 'rgba(255,255,255,0.88)',
+        color: danger ? '#fca5a5' : accent ? '#5C6B3F' : 'rgba(255,255,255,0.88)',
         cursor: 'pointer',
         fontSize: '13px',
         fontWeight: 700,

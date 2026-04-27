@@ -103,6 +103,13 @@ export interface VibeSkinContext {
   inspirationUrls?: string[];
   photoUrls?: string[];
   coupleProfile?: CoupleProfile;
+  /**
+   * User-chosen hex colors from the wizard (typically 3–4 colors:
+   * [accent, accent2, background, foreground]). When provided, the
+   * final palette MUST use these colors — generateVibeSkin applies
+   * a hard override after the AI response to enforce this.
+   */
+  preferredPalette?: string[];
 }
 
 export interface SiteArtResult {

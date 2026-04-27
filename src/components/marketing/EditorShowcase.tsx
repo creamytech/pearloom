@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
 import {
   Layers,
@@ -12,6 +12,7 @@ import {
   PenLine,
   Columns2,
   ZoomIn,
+  MousePointer2,
 } from 'lucide-react';
 import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
@@ -29,60 +30,83 @@ const FEATURE_ITEMS = [
   { icon: ZoomIn, label: 'Zoom Controls' },
 ];
 
-/* Stylized editor mockup */
+/* Stylized editor mockup with animated cursor */
 function EditorMockup() {
+  const [typingIdx, setTypingIdx] = useState(0);
+  const storyText = 'It started with a coffee that lasted four hours and a conversation that never really ended...';
+
+  useEffect(() => {
+    if (typingIdx >= storyText.length) return;
+    const t = setTimeout(() => setTypingIdx(i => i + 1), 40);
+    return () => clearTimeout(t);
+  }, [typingIdx, storyText.length]);
+
+  // Reset typing animation every 8 seconds
+  useEffect(() => {
+    const interval = setInterval(() => setTypingIdx(0), 8000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div
+      className="relative"
       style={{
         borderRadius: card.radius,
-        border: card.border,
-        boxShadow: card.shadow,
-        background: card.bg,
+        border: '1px solid var(--pl-divider)',
+        boxShadow: '0 25px 80px rgba(43,30,20,0.12), 0 8px 24px rgba(43,30,20,0.06)',
+        background: 'var(--pl-cream-card)',
         overflow: 'hidden',
       }}
     >
-      {/* Toolbar */}
+      {/* Browser chrome */}
       <div
-        className="flex items-center justify-between px-4 py-2"
-        style={{ borderBottom: card.border, background: card.bg }}
+        className="flex items-center justify-between px-5 py-3"
+        style={{ borderBottom: '1px solid var(--pl-divider)', background: 'color-mix(in oklab, var(--pl-cream-card) 80%, transparent)' }}
       >
         <div className="flex items-center gap-3">
-          <div className="w-2 h-2 rounded-full" style={{ background: C.olive }} />
-          <span className="font-semibold" style={{ fontSize: text.xs }}>
-            Emma & James
-          </span>
-          <span style={{ fontSize: text.xs, color: C.muted }}>
-            / Story / Our Beginning
-          </span>
+          <div className="flex gap-1.5">
+            <div className="w-3 h-3 rounded-full" style={{ background: '#FF5F57' }} />
+            <div className="w-3 h-3 rounded-full" style={{ background: '#FFBD2E' }} />
+            <div className="w-3 h-3 rounded-full" style={{ background: '#28C840' }} />
+          </div>
+          <div className="ml-4 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full" style={{ background: C.olive }} />
+            <span className="font-semibold" style={{ fontSize: text.xs }}>
+              Emma & James
+            </span>
+            <span style={{ fontSize: text.xs, color: 'var(--pl-muted)' }}>
+              / Story / Our Beginning
+            </span>
+          </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="px-2 py-0.5 rounded font-semibold" style={{ fontSize: text.xs, background: `${C.olive}1A`, color: C.olive }}>
+          <div className="px-3 py-1 rounded-md font-semibold" style={{ fontSize: text.xs, background: `${C.olive}1A`, color: C.olive }}>
             Preview
           </div>
-          <div className="px-2 py-0.5 rounded font-semibold" style={{ fontSize: text.xs, background: C.olive, color: 'white' }}>
+          <div className="px-3 py-1 rounded-md font-semibold" style={{ fontSize: text.xs, background: C.olive, color: 'white' }}>
             Publish
           </div>
         </div>
       </div>
 
       {/* Body */}
-      <div className="flex" style={{ minHeight: 280, maxHeight: 420, height: 'clamp(280px, 40vw, 360px)', background: C.cream }}>
+      <div className="flex" style={{ minHeight: 340, maxHeight: 480, height: 'clamp(340px, 45vw, 440px)', background: 'var(--pl-cream)' }}>
         {/* Sidebar */}
         <div
-          className="w-[180px] p-3 flex-shrink-0 hidden sm:block"
-          style={{ borderRight: card.border, background: card.bg }}
+          className="w-[200px] p-4 flex-shrink-0 hidden sm:block"
+          style={{ borderRight: '1px solid var(--pl-divider)', background: 'var(--pl-cream-card)' }}
         >
-          <div className="font-bold tracking-[0.12em] uppercase mb-3" style={{ fontSize: text.xs, color: C.muted }}>
+          <div className="font-bold tracking-[0.12em] uppercase mb-3" style={{ fontSize: text.xs, color: 'var(--pl-muted)' }}>
             Chapters
           </div>
           {['Our Beginning', 'The Proposal', 'Wedding Day', 'Photo Gallery'].map((ch, i) => (
             <div
               key={ch}
-              className="flex items-center gap-2 py-1.5 px-2 rounded-md mb-1"
+              className="flex items-center gap-2 py-2 px-2.5 rounded-lg mb-1 transition-colors duration-150"
               style={{
                 fontSize: text.sm,
                 background: i === 0 ? `${C.olive}1A` : 'transparent',
-                color: i === 0 ? C.ink : C.muted,
+                color: i === 0 ? 'var(--pl-ink)' : 'var(--pl-muted)',
                 fontWeight: i === 0 ? 600 : 400,
               }}
             >
@@ -91,15 +115,15 @@ function EditorMockup() {
             </div>
           ))}
 
-          <div className="font-bold tracking-[0.12em] uppercase mt-4 mb-2" style={{ fontSize: text.xs, color: C.muted }}>
+          <div className="font-bold tracking-[0.12em] uppercase mt-5 mb-2" style={{ fontSize: text.xs, color: 'var(--pl-muted)' }}>
             Add Block
           </div>
           <div className="grid grid-cols-2 gap-1.5">
             {['Story', 'Gallery', 'RSVP', 'Timeline'].map(b => (
               <div
                 key={b}
-                className="text-center py-1.5 rounded font-medium"
-                style={{ fontSize: text.xs, background: `${C.divider}66`, color: C.muted }}
+                className="text-center py-2 rounded-md font-medium cursor-pointer transition-all duration-150 hover:scale-[1.02]"
+                style={{ fontSize: text.xs, background: 'color-mix(in oklab, var(--pl-divider) 40%, transparent)', color: 'var(--pl-muted)' }}
               >
                 {b}
               </div>
@@ -108,37 +132,59 @@ function EditorMockup() {
         </div>
 
         {/* Canvas */}
-        <div className="flex-1 flex flex-col items-center justify-center p-4 gap-4">
+        <div className="flex-1 flex flex-col items-center justify-center p-6 gap-4 relative">
+          {/* Animated cursor */}
+          <motion.div
+            className="absolute z-20 pointer-events-none"
+            animate={{
+              x: [60, 120, 80, 140, 60],
+              y: [40, 100, 160, 80, 40],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          >
+            <MousePointer2 size={16} style={{ color: C.plum, filter: `drop-shadow(0 2px 4px rgba(109,89,122,0.3))` }} />
+          </motion.div>
+
           <div
-            className="w-full max-w-[300px] rounded-lg p-5 text-center"
-            style={{ background: card.bg, border: card.border }}
+            className="w-full max-w-[340px] rounded-xl p-6 text-center relative"
+            style={{ background: 'var(--pl-cream-card)', border: '1px solid var(--pl-divider)', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
           >
             <div className="font-bold tracking-[0.16em] uppercase mb-2" style={{ fontSize: text.xs, color: C.olive }}>
               Chapter 1
             </div>
             <div
-              className="font-heading text-[1.1rem] font-bold italic mb-2"
-              style={{ color: C.ink }}
+              className="font-heading text-[1.2rem] font-bold italic mb-3"
+              style={{ color: 'var(--pl-ink)' }}
             >
               Our Beginning
             </div>
-            <div className="leading-relaxed" style={{ fontSize: text.sm, color: C.muted }}>
-              It started with a coffee that lasted four hours and a conversation that
-              never really ended...
+            <div className="leading-relaxed text-left" style={{ fontSize: text.sm, color: 'var(--pl-muted)', minHeight: '2.5rem' }}>
+              {storyText.slice(0, typingIdx)}
+              <motion.span
+                animate={{ opacity: [1, 0] }}
+                transition={{ duration: 0.6, repeat: Infinity }}
+                className="inline-block w-[2px] h-[1em] ml-0.5 align-middle"
+                style={{ background: C.olive }}
+              />
             </div>
             {/* Placeholder image */}
             <div
-              className="w-full h-14 rounded-md mt-3"
+              className="w-full h-16 rounded-lg mt-4"
               style={{ background: `linear-gradient(135deg, ${C.gold}4D, ${C.plum}26)` }}
             />
           </div>
           {/* Photo grid placeholder */}
-          <div className="w-full max-w-[300px] flex gap-2">
+          <div className="w-full max-w-[340px] flex gap-2">
             {[C.gold, C.olive, C.plum, C.gold].map((color, j) => (
-              <div
+              <motion.div
                 key={j}
-                className="flex-1 h-10 rounded-md"
+                className="flex-1 h-12 rounded-lg"
                 style={{ background: `${color}33` }}
+                whileHover={{ scale: 1.05, transition: { duration: 0.15 } }}
               />
             ))}
           </div>
@@ -157,23 +203,23 @@ export function EditorShowcase() {
       ref={ref}
       id="editor"
       className="relative overflow-hidden"
-      style={{ background: C.cream, padding: `${sectionPadding.y} ${sectionPadding.x}` }}
+      style={{ background: 'var(--pl-cream)', padding: `${sectionPadding.y} ${sectionPadding.x}` }}
     >
       <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
         {/* Header */}
         <SectionHeader
           pill={{ label: 'The Editor', sparkle: true }}
           title="Design like a studio. Edit like a pro."
-          subtitle={<>A Webflow-grade visual editor that&rsquo;s actually easy to use. Drag blocks, tweak your Rind, preview on any device — no code required.</>}
+          subtitle={<>A studio-quality visual editor anyone can use. Drag sections, refine your design, and preview on every device — zero code needed.</>}
           inView={inView}
         />
 
-        {/* Editor mockup */}
+        {/* Editor mockup — enlarged */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.3, duration: 0.7 }}
-          className="mb-16"
+          className="mb-12"
         >
           <EditorMockup />
         </motion.div>
@@ -210,7 +256,7 @@ export function EditorShowcase() {
                         >
                           <Icon size={13} style={{ color: C.olive }} />
                         </div>
-                        <span className="font-medium" style={{ fontSize: text.sm, color: C.dark }}>
+                        <span className="font-medium" style={{ fontSize: text.sm, color: 'var(--pl-ink-soft)' }}>
                           {f.label}
                         </span>
                       </div>

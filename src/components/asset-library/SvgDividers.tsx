@@ -16,7 +16,7 @@ export interface DividerProps {
 // ── WAVE DIVIDERS ─────────────────────────────────────────────────────────────
 
 /** Gentle single-crest wave — classic, romantic */
-export function WaveGentleDivider({ width = '100%', height = 60, color = '#A3B18A', opacity = 1 }: DividerProps) {
+export function WaveGentleDivider({ width = '100%', height = 60, color = '#5C6B3F', opacity = 1 }: DividerProps) {
   return (
     <svg width={width} height={height} viewBox="0 0 1200 60" preserveAspectRatio="none" fill="none">
       <path d="M0,30 C200,0 400,60 600,30 C800,0 1000,60 1200,30 L1200,60 L0,60 Z" fill={color} opacity={opacity} />

@@ -1,0 +1,402 @@
+'use client';
+
+import type { StoryManifest } from '@/types';
+import { AddRowButton, Field, ListRow, PanelGroup, PanelSection, PanelSmartActions, PhotoSlot, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
+import { FocalPointPicker } from './FocalPointPicker';
+import { AIHint, AISuggestButton, useAICall } from '../ai';
+import { TimePicker, DatePicker } from '../v8-forms';
+import { BlockStylePicker } from './BlockStylePicker';
+// Side-effect import — registers all hero variants with the registry
+// before BlockStylePicker reads them.
+import '@/components/pearloom/site/hero-variants';
+
+// Curated common-case zones rather than every IANA name. Hosts who
+// need an obscure zone can paste a custom IANA string in via the
+// Pear command palette later if requested. The empty value is
+// "viewer's local zone" — the historical behaviour.
+const TIMEZONE_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: '', label: "Viewer's local time" },
+  { value: 'America/New_York',     label: 'Eastern (New York / Atlanta)' },
+  { value: 'America/Chicago',      label: 'Central (Chicago / Dallas)' },
+  { value: 'America/Denver',       label: 'Mountain (Denver / Phoenix)' },
+  { value: 'America/Los_Angeles',  label: 'Pacific (LA / Seattle)' },
+  { value: 'America/Anchorage',    label: 'Alaska (Anchorage)' },
+  { value: 'Pacific/Honolulu',     label: 'Hawaii (Honolulu)' },
+  { value: 'America/Toronto',      label: 'Toronto / Eastern Canada' },
+  { value: 'America/Mexico_City',  label: 'Mexico City' },
+  { value: 'America/Sao_Paulo',    label: 'São Paulo / BRT' },
+  { value: 'Europe/London',        label: 'London / GMT-BST' },
+  { value: 'Europe/Paris',         label: 'Paris / CET' },
+  { value: 'Europe/Berlin',        label: 'Berlin / CET' },
+  { value: 'Europe/Madrid',        label: 'Madrid / CET' },
+  { value: 'Europe/Rome',          label: 'Rome / CET' },
+  { value: 'Europe/Athens',        label: 'Athens / EET' },
+  { value: 'Europe/Istanbul',      label: 'Istanbul / TRT' },
+  { value: 'Africa/Johannesburg',  label: 'Johannesburg / SAST' },
+  { value: 'Africa/Cairo',         label: 'Cairo / EET' },
+  { value: 'Asia/Dubai',           label: 'Dubai / Gulf Time' },
+  { value: 'Asia/Kolkata',         label: 'India (Kolkata / Mumbai)' },
+  { value: 'Asia/Bangkok',         label: 'Bangkok / ICT' },
+  { value: 'Asia/Singapore',       label: 'Singapore / SGT' },
+  { value: 'Asia/Hong_Kong',       label: 'Hong Kong / HKT' },
+  { value: 'Asia/Shanghai',        label: 'Shanghai / CST' },
+  { value: 'Asia/Tokyo',           label: 'Tokyo / JST' },
+  { value: 'Asia/Seoul',           label: 'Seoul / KST' },
+  { value: 'Australia/Sydney',     label: 'Sydney / AEST-AEDT' },
+  { value: 'Australia/Perth',      label: 'Perth / AWST' },
+  { value: 'Pacific/Auckland',     label: 'Auckland / NZST-NZDT' },
+];
+
+// Date format presets — names match the union in StoryManifest.dateFormat.
+// Sample copy uses Sept 14, 2026 so the host sees what each preset
+// will look like on the live site without leaving the panel.
+const DATE_FORMAT_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: '',           label: 'Long — September 14, 2026' },
+  { value: 'long',       label: 'Long — September 14, 2026' },
+  { value: 'short',      label: 'Short — Sep 14, 2026' },
+  { value: 'numeric',    label: 'Numeric — 9/14/2026' },
+  { value: 'iso',        label: 'ISO — 2026-09-14' },
+  { value: 'month-year', label: 'Month + year — September 2026' },
+];
+
+function HeroTaglineAI({
+  manifest,
+  names,
+  onResult,
+}: {
+  manifest: StoryManifest;
+  names: [string, string];
+  onResult: (text: string) => void;
+}) {
+  const { state, error, run } = useAICall(async () => {
+    const occasion = (manifest as unknown as { occasion?: string }).occasion ?? 'wedding';
+    const vibes = (manifest as unknown as { vibes?: string[] }).vibes ?? [];
+    const venue = manifest.logistics?.venue ?? '';
+    const res = await fetch('/api/rewrite-text', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        instruction: `Write a warm, 1-2 sentence hero tagline for a ${occasion} site for ${names.filter(Boolean).join(' & ') || 'the hosts'}${
+          venue ? ` at ${venue}` : ''
+        }${vibes.length ? `. Vibes: ${vibes.join(', ')}` : ''}. No exclamation marks. No cliches ("tying the knot", "magical day"). Specific over generic. Write like a friend, not a brand.`,
+        tone: 'warm',
+      }),
+    });
+    if (!res.ok) throw new Error(`Pear couldn't write one (${res.status})`);
+    const data = (await res.json()) as { text?: string; rewritten?: string; result?: string };
+    const text = (data.text ?? data.rewritten ?? data.result ?? '').trim();
+    if (!text) throw new Error('Empty response from Pear');
+    onResult(text);
+    return text;
+  });
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <AIHint>
+        Pear reads your occasion, vibes, and venue and proposes a tagline. Each run is a fresh take — try a few.
+      </AIHint>
+      <AISuggestButton
+        label="Write with Pear"
+        runningLabel="Writing your tagline…"
+        state={state}
+        onClick={() => void run()}
+        error={error ?? undefined}
+      />
+    </div>
+  );
+}
+
+export function HeroPanel({
+  manifest,
+  names,
+  onNamesChange,
+  onChange,
+}: {
+  manifest: StoryManifest;
+  names: [string, string];
+  onNamesChange: (n: [string, string]) => void;
+  onChange: (m: StoryManifest) => void;
+}) {
+  // Read poetry.heroTagline safely — manifest.poetry may be missing,
+  // malformed (older drafts), or carry the wrong type if a partial
+  // save landed. Treat anything non-string as empty.
+  const rawPoetry = (manifest as unknown as { poetry?: unknown }).poetry;
+  const poetryObj: Record<string, unknown> =
+    rawPoetry && typeof rawPoetry === 'object' ? (rawPoetry as Record<string, unknown>) : {};
+  const heroTagline = typeof poetryObj.heroTagline === 'string' ? (poetryObj.heroTagline as string) : '';
+  const slideshow = manifest.heroSlideshow ?? [];
+
+  // Smart actions — surface the three things people most often want
+  // to do on the hero panel as chips at the top so they don't have
+  // to scan every collapsible section.
+  const smartActions: PanelSmartAction[] = [
+    {
+      label: 'Pick a layout',
+      icon: 'layout',
+      onClick: () => {
+        document
+          .querySelector('[data-pl-block-style-picker="hero"]')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      },
+      primary: true,
+    },
+    {
+      label: 'Edit names',
+      icon: 'type',
+      onClick: () => {
+        const el = document.getElementById('pl8-hero-n1');
+        if (el instanceof HTMLInputElement) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => el.focus(), 240);
+        }
+      },
+    },
+    {
+      label: 'Set the date',
+      icon: 'calendar-check',
+      onClick: () => {
+        const el = document.getElementById('pl8-hero-date');
+        if (el instanceof HTMLInputElement) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => el.focus(), 240);
+        }
+      },
+    },
+  ];
+
+  return (
+    <PanelGroup>
+      <PanelSmartActions actions={smartActions} />
+      <BlockStylePicker
+        blockType="hero"
+        manifest={manifest}
+        onChange={onChange}
+        defaultStyleId="postcard"
+        label="Hero layout"
+        hint="Pick how the hero composes your names + cover photo."
+      />
+      <PanelSection label="The lockup" hint="The big names that anchor your hero.">
+        <Field label="Name 1" htmlFor="pl8-hero-n1">
+          <TextInput
+            id="pl8-hero-n1"
+            value={names[0]}
+            onChange={(e) => onNamesChange([e.target.value, names[1]])}
+            placeholder="Alex"
+          />
+        </Field>
+        <Field label="Name 2" help="Leave empty for a solo event (birthday, memorial, retirement)." htmlFor="pl8-hero-n2">
+          <TextInput
+            id="pl8-hero-n2"
+            value={names[1]}
+            onChange={(e) => onNamesChange([names[0], e.target.value])}
+            placeholder="Jamie"
+          />
+        </Field>
+      </PanelSection>
+
+      <PanelSection label="Tagline" hint="A short line underneath the names — sets the tone in one breath.">
+        <Field label="Hero tagline" htmlFor="pl8-hero-tagline">
+          <TextArea
+            id="pl8-hero-tagline"
+            value={heroTagline}
+            onChange={(e) =>
+              onChange({
+                ...manifest,
+                poetry: { ...poetryObj, heroTagline: e.target.value },
+              } as unknown as StoryManifest)
+            }
+            placeholder="After seven summers, one big move, and a very patient golden retriever, we're finally doing the thing."
+            rows={3}
+          />
+        </Field>
+        <HeroTaglineAI manifest={manifest} names={names} onResult={(text) => onChange({
+          ...manifest,
+          poetry: { ...poetryObj, heroTagline: text },
+        } as unknown as StoryManifest)} />
+      </PanelSection>
+
+      <PanelSection label="When & where" hint="These drive the countdown, schedule, and travel sections.">
+        <Field label="Event date" htmlFor="pl8-hero-date">
+          <TextInput
+            id="pl8-hero-date"
+            type="date"
+            value={(manifest.logistics?.date ?? '').slice(0, 10)}
+            onChange={(e) =>
+              onChange({
+                ...manifest,
+                logistics: { ...(manifest.logistics ?? {}), date: e.target.value || undefined },
+              })
+            }
+          />
+        </Field>
+        <Field label="Start time" htmlFor="pl8-hero-time">
+          <TimePicker
+            value={manifest.logistics?.time ?? ''}
+            onChange={(v) =>
+              onChange({
+                ...manifest,
+                logistics: { ...(manifest.logistics ?? {}), time: v || undefined },
+              })
+            }
+            ariaLabel="Event start time"
+          />
+        </Field>
+        <Field
+          label="Time zone"
+          help="The countdown anchors here so a guest in Tokyo and a host in NYC see the same wall-clock time."
+        >
+          <SelectInput
+            value={manifest.logistics?.timezone ?? ''}
+            onChange={(v) =>
+              onChange({
+                ...manifest,
+                logistics: { ...(manifest.logistics ?? {}), timezone: v || undefined },
+              })
+            }
+            options={TIMEZONE_OPTIONS}
+            placeholder="Use the viewer's local zone"
+          />
+        </Field>
+        <Field
+          label="Date format"
+          help="How dates render in chapter headers and section meta. Defaults to 'September 14, 2026'."
+        >
+          <SelectInput
+            value={(manifest as unknown as { dateFormat?: string }).dateFormat ?? ''}
+            onChange={(v) =>
+              onChange({
+                ...manifest,
+                dateFormat: (v as 'long' | 'short' | 'numeric' | 'iso' | 'month-year' | '') || undefined,
+              } as unknown as StoryManifest)
+            }
+            options={DATE_FORMAT_OPTIONS}
+            placeholder="Long — September 14, 2026"
+          />
+        </Field>
+        <Field label="Venue name" htmlFor="pl8-hero-venue">
+          <TextInput
+            id="pl8-hero-venue"
+            value={manifest.logistics?.venue ?? ''}
+            onChange={(e) =>
+              onChange({
+                ...manifest,
+                logistics: { ...(manifest.logistics ?? {}), venue: e.target.value || undefined },
+              })
+            }
+            placeholder="The Wildflower Barn"
+          />
+        </Field>
+        <Field label="Venue address" htmlFor="pl8-hero-addr">
+          <TextInput
+            id="pl8-hero-addr"
+            value={manifest.logistics?.venueAddress ?? ''}
+            onChange={(e) =>
+              onChange({
+                ...manifest,
+                logistics: { ...(manifest.logistics ?? {}), venueAddress: e.target.value || undefined },
+              })
+            }
+            placeholder="4721 Meadow Ln, Hillsboro, OR 97123"
+          />
+        </Field>
+        <Field label="RSVP deadline" help="Guests see this on the RSVP section." htmlFor="pl8-hero-rsvp">
+          <TextInput
+            id="pl8-hero-rsvp"
+            type="date"
+            value={(manifest.logistics?.rsvpDeadline ?? '').slice(0, 10)}
+            onChange={(e) =>
+              onChange({
+                ...manifest,
+                logistics: { ...(manifest.logistics ?? {}), rsvpDeadline: e.target.value || undefined },
+              })
+            }
+          />
+        </Field>
+      </PanelSection>
+
+      <PanelSection label="Hero photo" hint="Shown as the featured portrait on the cover polaroid.">
+        <PhotoSlot
+          src={manifest.coverPhoto}
+          onChange={(url) => onChange({ ...manifest, coverPhoto: url })}
+          aspect="4/5"
+          label="Cover photo"
+        />
+        {manifest.coverPhoto && (
+          <Field
+            label="Focal point"
+            help="Drag the dot to set the part of the photo that should stay visible on every device. Used by the photo-first hero variant."
+          >
+            <FocalPointPicker
+              imageUrl={manifest.coverPhoto}
+              value={(manifest as unknown as { coverFocalPoint?: { x: number; y: number } }).coverFocalPoint}
+              onChange={(next) =>
+                onChange({
+                  ...manifest,
+                  coverFocalPoint: next,
+                } as unknown as StoryManifest)
+              }
+              onReset={() =>
+                onChange({
+                  ...manifest,
+                  coverFocalPoint: undefined,
+                } as unknown as StoryManifest)
+              }
+            />
+          </Field>
+        )}
+      </PanelSection>
+
+      <PanelSection
+        label="Hero slideshow"
+        hint="Up to 5 photos. The v8 hero renders these as a rotating polaroid strip."
+        action={
+          slideshow.length < 5 ? (
+            <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{5 - slideshow.length} slots left</span>
+          ) : null
+        }
+      >
+        {slideshow.length === 0 && (
+          <AddRowButton
+            label="Add first slideshow photo"
+            onClick={() => onChange({ ...manifest, heroSlideshow: [''] })}
+          />
+        )}
+        {slideshow.map((url, i) => (
+          <ListRow
+            key={i}
+            onMoveUp={i > 0 ? () => {
+              const next = [...slideshow];
+              [next[i - 1], next[i]] = [next[i], next[i - 1]];
+              onChange({ ...manifest, heroSlideshow: next });
+            } : undefined}
+            onMoveDown={i < slideshow.length - 1 ? () => {
+              const next = [...slideshow];
+              [next[i + 1], next[i]] = [next[i], next[i + 1]];
+              onChange({ ...manifest, heroSlideshow: next });
+            } : undefined}
+            onDelete={() => {
+              const next = slideshow.filter((_, idx) => idx !== i);
+              onChange({ ...manifest, heroSlideshow: next.length ? next : undefined });
+            }}
+          >
+            <PhotoSlot
+              src={url || undefined}
+              aspect="1/1"
+              label={`Slide ${i + 1}`}
+              onChange={(nextUrl) => {
+                const next = [...slideshow];
+                next[i] = nextUrl ?? '';
+                onChange({ ...manifest, heroSlideshow: next });
+              }}
+            />
+          </ListRow>
+        ))}
+        {slideshow.length > 0 && slideshow.length < 5 && (
+          <AddRowButton
+            label="Add another slide"
+            onClick={() => onChange({ ...manifest, heroSlideshow: [...slideshow, ''] })}
+          />
+        )}
+      </PanelSection>
+    </PanelGroup>
+  );
+}

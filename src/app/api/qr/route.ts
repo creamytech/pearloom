@@ -6,10 +6,17 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import QRCode from 'qrcode';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`qr:${ip}`, { max: 20, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   const { searchParams } = req.nextUrl;
   const url = searchParams.get('url');
   if (!url) return NextResponse.json({ error: 'url required' }, { status: 400 });

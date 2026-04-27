@@ -6,18 +6,18 @@ import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-to
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 
-const FAQS = [
+export const FAQS = [
   {
     q: 'Is it really free to start?',
-    a: 'Yes. Create your site, get your custom visual identity, and share it on a Pearloom link — completely free, forever. Upgrade to Pair ($19 one-time) when you want extras like a custom domain, all 19 block types, seating charts, and full guest management.',
+    a: 'Yes. Create your site, get your custom visual identity, and share it on a Pearloom link — completely free, forever. Upgrade to Atelier ($19 one-time) when you want extras like a custom domain, all 19+ block types, seating charts, and full guest management.',
   },
   {
-    q: "What's the difference between Seed, Pair, and Perennial?",
-    a: 'Seed (free) gives you everything to launch a beautiful site: AI generation, your visual identity, 7 block types, and up to 75 guest RSVPs. Pair ($19 one-time per celebration) unlocks the full platform for a single event — all 19 blocks, unlimited guests, seating charts, bulk messaging, AI concierge, 9-language translations, analytics, Save the Date cards, hashtag generator, time capsule, and guestbook. Perennial ($12/month) gives you Pair for every celebration, forever, plus anniversary mode, coordinator collaboration, and early AI features.',
+    q: "What's the difference between Journal, Atelier, and Legacy?",
+    a: 'Journal (free) gives you everything to launch a beautiful site: AI generation, your visual identity, 7 block types, and up to 150 guest RSVPs. Atelier ($19 one-time per celebration) unlocks the full platform for a single event — all 19+ blocks, unlimited guests, seating charts, bulk messaging, AI concierge, 9-language translations, analytics, Save the Date cards, hashtag generator, time capsule, and guestbook. Legacy ($12/month) gives you Atelier for every celebration, forever, plus anniversary mode, coordinator collaboration, and early AI features.',
   },
   {
     q: 'Do I need a subscription?',
-    a: 'No. Pair is a one-time payment per celebration — pay once and that site is yours with no recurring charges. Perennial is a monthly subscription for couples who want to use Pearloom for multiple occasions (anniversaries, birthdays, future celebrations) without paying per event.',
+    a: 'No. Atelier is a one-time payment per celebration — pay once and that site is yours with no recurring charges. Legacy is a monthly subscription for couples who want to use Pearloom for multiple occasions (anniversaries, birthdays, future celebrations) without paying per event.',
   },
   {
     q: 'How long does it take to create a site?',
@@ -25,7 +25,7 @@ const FAQS = [
   },
   {
     q: 'Can I use my own domain?',
-    a: 'Absolutely. Pair and Perennial sites can connect a custom domain (like emma-and-james.com). We handle SSL and DNS setup for you. Seed sites use a yourname.pearloom.com subdomain.',
+    a: 'Absolutely. Atelier and Legacy sites can connect a custom domain (like emma-and-james.com). We handle SSL and DNS setup for you. Journal sites live at pearloom.com/sites/yourname.',
   },
   {
     q: 'What languages are supported?',
@@ -33,7 +33,7 @@ const FAQS = [
   },
   {
     q: 'What happens after the wedding?',
-    a: 'Your site stays live forever on your plan. With Perennial, it automatically transitions into anniversary mode after your wedding date — preserving your story, unlocking time capsule messages on anniversaries, and letting you add new chapters as your life together continues.',
+    a: 'Your site stays live forever on your plan. With Legacy, it automatically transitions into anniversary mode after your wedding date — preserving your story, unlocking time capsule messages on anniversaries, and letting you add new chapters as your life together continues.',
   },
   {
     q: 'What types of events does Pearloom support?',
@@ -57,12 +57,12 @@ export function FAQSection() {
     <section
       ref={ref}
       id="faq"
-      style={{ background: C.cream, padding: `${sectionPadding.y} ${sectionPadding.x}` }}
+      style={{ background: 'var(--pl-cream)', padding: `${sectionPadding.y} ${sectionPadding.x}` }}
     >
       <div style={{ maxWidth: layout.narrowWidth, margin: '0 auto' }}>
         <SectionHeader
           eyebrow="FAQ"
-          title="Questions? Woven answers."
+          title="Your questions, answered."
           inView={inView}
         />
 
@@ -73,9 +73,9 @@ export function FAQSection() {
           className="p-5 sm:p-8"
           style={{
             borderRadius: card.radius,
-            background: card.bg,
-            border: card.border,
-            boxShadow: card.shadow,
+            background: 'var(--pl-cream-card)',
+            border: '1px solid var(--pl-divider)',
+            boxShadow: 'var(--pl-shadow-sm)',
           }}
         >
           <Accordion type="single" collapsible defaultValue="faq-0">

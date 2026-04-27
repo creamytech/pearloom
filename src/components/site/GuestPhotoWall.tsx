@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, X, Upload } from 'lucide-react';
 import type { VibeSkin } from '@/lib/vibe-engine';
 import type { GuestPhoto } from '@/types';
+import { getSupabaseBrowser } from '@/lib/supabase-realtime';
 
 export interface GuestPhotoWallProps {
   siteId: string;
@@ -29,7 +30,7 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const accent = vibeSkin?.palette?.accent || 'var(--eg-accent, #A3B18A)';
+  const accent = vibeSkin?.palette?.accent || 'var(--pl-olive, #5C6B3F)';
   const headingFont = vibeSkin?.fonts?.heading || 'Playfair Display';
 
   const fetchPhotos = useCallback(async () => {
@@ -47,9 +48,34 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
   useEffect(() => {
     if (!enabled) return;
     fetchPhotos();
+
+    // Prefer Supabase Realtime when configured; fall back to polling.
+    const sb = getSupabaseBrowser();
+    if (sb) {
+      const channel = sb
+        .channel(`guest-photos-${siteId}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'guest_photos', filter: `site_id=eq.${siteId}` },
+          () => { fetchPhotos(); },
+        )
+        .subscribe();
+      const onFocus = () => fetchPhotos();
+      window.addEventListener('focus', onFocus);
+      return () => {
+        sb.removeChannel(channel);
+        window.removeEventListener('focus', onFocus);
+      };
+    }
+
     const interval = setInterval(fetchPhotos, 30_000);
-    return () => clearInterval(interval);
-  }, [enabled, fetchPhotos]);
+    const onFocus = () => fetchPhotos();
+    window.addEventListener('focus', onFocus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [enabled, fetchPhotos, siteId]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -111,7 +137,7 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
     <section
       id="photo-wall"
       style={{
-        background: 'var(--eg-bg-section, var(--eg-bg, #F5F1E8))',
+        background: 'var(--pl-cream-deep, var(--pl-cream, #F5F1E8))',
         padding: '5rem 0',
         position: 'relative',
       }}
@@ -133,7 +159,7 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
               fontWeight: 600,
               fontStyle: 'italic',
               letterSpacing: '-0.03em',
-              color: 'var(--eg-fg, #2B2B2B)',
+              color: 'var(--pl-ink, #2B2B2B)',
               margin: '0 0 1rem',
               lineHeight: 1.05,
             }}
@@ -145,7 +171,7 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
             <div style={{ width: '4px', height: '4px', background: accent, transform: 'rotate(45deg)', opacity: 0.5 }} />
             <div style={{ width: '24px', height: '1px', background: accent, opacity: 0.35 }} />
           </div>
-          <p style={{ color: 'var(--eg-muted, #9A9488)', fontSize: '1rem', lineHeight: 1.7, margin: 0, fontStyle: 'italic' }}>
+          <p style={{ color: 'var(--pl-muted, #9A9488)', fontSize: '1rem', lineHeight: 1.7, margin: 0, fontStyle: 'italic' }}>
             Upload a photo from the celebration
           </p>
         </div>
@@ -161,8 +187,8 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
               borderRadius: '1rem',
               background: `${accent}08`,
               cursor: 'pointer',
-              transition: 'all 0.2s',
-              color: 'var(--eg-fg, #2B2B2B)',
+              transition: 'all var(--pl-dur-fast)',
+              color: 'var(--pl-ink, #2B2B2B)',
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = `${accent}14`; }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = `${accent}08`; }}
@@ -181,7 +207,7 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
               exit={{ opacity: 0, y: 20 }}
               style={{
                 position: 'fixed', bottom: '2rem', right: '2rem',
-                background: 'var(--eg-plum, #6D597A)', color: '#fff',
+                background: 'var(--pl-plum, #6D597A)', color: '#fff',
                 padding: '1rem 1.5rem', borderRadius: '0.75rem',
                 boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
                 zIndex: 1000, fontSize: '0.9rem', fontWeight: 600,
@@ -209,7 +235,7 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
                   marginBottom: '12px',
                   borderRadius: '0.75rem',
                   overflow: 'hidden',
-                  background: 'var(--eg-card, rgba(255,255,255,0.05))',
+                  background: 'var(--pl-glass)',
                   cursor: 'default',
                 }}
               >
@@ -221,7 +247,7 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
                   style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }}
                 />
                 <div style={{ padding: '0.5rem 0.75rem' }}>
-                  <span style={{ fontSize: '0.78rem', opacity: 0.6, color: 'var(--eg-fg, #2B2B2B)' }}>
+                  <span style={{ fontSize: '0.78rem', opacity: 0.6, color: 'var(--pl-ink, #2B2B2B)' }}>
                     {photo.uploaderName}
                   </span>
                 </div>
@@ -231,7 +257,7 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
         ) : (
           <div style={{ textAlign: 'center', padding: '3rem 2rem', opacity: 0.5 }}>
             <Camera size={40} style={{ color: accent, margin: '0 auto 1rem', display: 'block' }} />
-            <p style={{ fontSize: '1rem', color: 'var(--eg-muted, #9A9488)', fontStyle: 'italic' }}>
+            <p style={{ fontSize: '1rem', color: 'var(--pl-muted, #9A9488)', fontStyle: 'italic' }}>
               Be the first to share a photo!
             </p>
           </div>
@@ -265,11 +291,11 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
                 position: 'fixed', top: '50%', left: '50%',
                 transform: 'translate(-50%, -50%)',
                 zIndex: 1200, width: '90%', maxWidth: '480px',
-                background: 'var(--eg-card, #fff)',
+                background: 'var(--pl-cream-card)',
                 borderRadius: '1.25rem',
                 padding: '2rem',
                 boxShadow: '0 24px 64px rgba(0,0,0,0.25)',
-                color: 'var(--eg-fg, #2B2B2B)',
+                color: 'var(--pl-ink, #2B2B2B)',
               }}
             >
               {/* Modal header */}
@@ -277,7 +303,7 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
                 <h3 style={{
                   fontFamily: `"${headingFont}", serif`,
                   fontSize: '1.35rem', fontWeight: 600, fontStyle: 'italic',
-                  margin: 0, color: 'var(--eg-fg, #2B2B2B)',
+                  margin: 0, color: 'var(--pl-ink, #2B2B2B)',
                 }}>
                   Share a Photo
                 </h3>
@@ -301,7 +327,7 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
                     cursor: 'pointer',
                     marginBottom: '1.25rem',
                     background: previewUrl ? 'transparent' : `${accent}08`,
-                    transition: 'all 0.2s',
+                    transition: 'all var(--pl-dur-fast)',
                     overflow: 'hidden',
                   }}
                 >
@@ -402,7 +428,7 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
                       background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
                       color: '#fff', fontSize: '0.9rem', fontWeight: 600,
                       opacity: uploading || !selectedFile || !uploaderName.trim() ? 0.5 : 1,
-                      transition: 'opacity 0.2s',
+                      transition: 'opacity var(--pl-dur-fast)',
                     }}
                   >
                     {uploading ? 'Uploading...' : 'Upload Photo'}

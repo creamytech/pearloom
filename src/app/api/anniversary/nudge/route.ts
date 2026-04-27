@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSiteConfig } from '@/lib/db';
 import { GEMINI_PRO, geminiRetryFetch } from '@/lib/memory-engine/gemini-client';
 import type { Chapter } from '@/types';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 120;
@@ -89,7 +90,7 @@ async function handle(subdomain: string | null, force: boolean) {
     );
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
       { error: 'Gemini API key not configured' },
@@ -224,6 +225,12 @@ Return JSON only — no markdown, no explanation:
 }
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`anniversary-nudge:${ip}`, { max: 10, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   try {
     const body = await req.json();
     const subdomain: string | null = body?.subdomain ?? null;
@@ -236,6 +243,12 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`anniversary-nudge:${ip}`, { max: 10, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   const subdomain = req.nextUrl.searchParams.get('subdomain');
   const force = req.nextUrl.searchParams.get('force') === 'true';
   return handle(subdomain, force);

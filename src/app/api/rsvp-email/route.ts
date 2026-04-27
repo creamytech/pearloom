@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   const resendKey = process.env.RESEND_API_KEY;
   if (!apiKey || !resendKey) {
     return NextResponse.json({ error: 'Email service not configured' }, { status: 500 });
@@ -85,7 +85,7 @@ RULES:
 Just write the body paragraph(s).`;
 
     const aiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -122,7 +122,7 @@ Just write the body paragraph(s).`;
           <strong>${name1} & ${name2}</strong>
         </p>
         ${logistics?.date ? `<p style="font-size: 0.85rem; color: #9A9488; margin-top: 2rem; border-top: 1px solid #E6DFD2; padding-top: 1rem;">${logistics.date}${logistics.venue ? ` at ${logistics.venue}` : ''}</p>` : ''}
-        <p style="font-size: 0.72rem; color: #B5AFA5; margin-top: 1rem;">Sent via <a href="https://pearloom.com" style="color: #A3B18A;">Pearloom</a></p>
+        <p style="font-size: 0.72rem; color: #B5AFA5; margin-top: 1rem;">Sent via <a href="https://pearloom.com" style="color: #5C6B3F;">Pearloom</a></p>
       </div>
     `;
 

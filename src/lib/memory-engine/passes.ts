@@ -175,8 +175,9 @@ export async function generatePoetryPass(
     .trim();
 
   // Pull a few chapter titles to give Gemini narrative context
-  const chapterTitles = chapters.slice(0, 5).map(c => `"${c.title}"`).join(', ');
-  const chapterContext = chapters.slice(0, 8).map(c =>
+  const safeChapters = Array.isArray(chapters) ? chapters : [];
+  const chapterTitles = safeChapters.slice(0, 5).map(c => `"${c.title}"`).join(', ');
+  const chapterContext = safeChapters.slice(0, 8).map(c =>
     `"${c.title}": ${c.description?.slice(0, 300) || ''}`
   ).join('\n');
 

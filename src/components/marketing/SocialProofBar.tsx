@@ -76,16 +76,24 @@ export function SocialProofBar() {
     >
       <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
         {/* Stats card */}
-        <div className="bg-white/85 rounded-[var(--pl-radius-lg)] border border-[var(--pl-divider)] shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)] py-[clamp(1.5rem,3vw,2.5rem)]">
+        <div className="rounded-[var(--pl-radius-lg)] border border-[var(--pl-divider)] shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)] py-[clamp(1.5rem,3vw,2.5rem)]" style={{ background: 'color-mix(in oklab, var(--pl-cream-card) 94%, transparent)' }}>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0">
             {STATS.map((s, i) => (
-              <div key={s.label} className="text-center relative px-4">
+              <div
+                key={s.label}
+                className="text-center relative px-4"
+                style={{
+                  opacity: inView ? 1 : 0,
+                  transform: inView ? 'translateY(0)' : 'translateY(12px)',
+                  transition: `opacity 0.5s ${i * 0.1}s, transform 0.5s ${i * 0.1}s`,
+                }}
+              >
                 {/* Divider line */}
                 {i < STATS.length - 1 && (
                   <div className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 w-px h-[60%] bg-gradient-to-b from-transparent via-[var(--pl-divider)] to-transparent" />
                 )}
 
-                <div className="flex justify-center mb-3 text-[var(--pl-olive)] opacity-70">
+                <div className="flex justify-center mb-3 text-[var(--pl-olive)]">
                   <StatIcon icon={s.icon} />
                 </div>
 
@@ -107,7 +115,8 @@ export function SocialProofBar() {
             {testimonials.map((t, i) => (
               <div
                 key={i}
-                className="flex items-center gap-2 px-4 py-2 rounded-[var(--pl-radius-full)] bg-white/70 border border-[var(--pl-divider)] text-[0.82rem]"
+                className="flex items-center gap-2 px-4 py-2 rounded-[var(--pl-radius-full)] border border-[var(--pl-divider)] text-[0.82rem]"
+                style={{ background: 'color-mix(in oklab, var(--pl-cream-card) 82%, transparent)' }}
               >
                 <span className="font-semibold text-[var(--pl-ink-soft)]">{t.names}</span>
                 <span className="text-[var(--pl-muted)]">{t.quote}</span>

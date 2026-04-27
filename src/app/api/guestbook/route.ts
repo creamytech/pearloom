@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
 
 // Re-pick the most beautiful wish using Gemini
 async function reHighlight(siteId: string) {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) return;
 
   const supabase = getSupabase();
@@ -113,7 +113,7 @@ ${data.map(r => `ID: ${r.id}\nMessage: ${r.message}`).join('\n\n')}`;
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

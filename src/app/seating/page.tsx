@@ -41,11 +41,12 @@ function SeatingPageInner() {
 
   return (
     <div
+      className="pl8"
       style={{
         display: 'flex',
         flexDirection: 'column',
         height: '100dvh',
-        background: 'var(--eg-bg)',
+        background: 'var(--cream)',
         overflow: 'hidden',
       }}
     >
@@ -56,7 +57,7 @@ function SeatingPageInner() {
           alignItems: 'center',
           gap: '1rem',
           padding: '0.75rem 1.25rem',
-          borderBottom: '1px solid var(--eg-divider)',
+          borderBottom: '1px solid var(--line)',
           background: 'rgba(245,241,232,0.95)',
           backdropFilter: 'blur(12px)',
           flexShrink: 0,
@@ -71,10 +72,10 @@ function SeatingPageInner() {
             alignItems: 'center',
             gap: '0.35rem',
             fontSize: '0.8rem',
-            color: 'var(--eg-muted)',
+            color: 'var(--ink-muted)',
             textDecoration: 'none',
-            fontFamily: 'var(--eg-font-body)',
-            transition: 'color 0.15s',
+            fontFamily: 'var(--pl-font-body)',
+            transition: 'color var(--pl-dur-instant)',
           }}
         >
           <ArrowLeft size={14} />
@@ -82,15 +83,15 @@ function SeatingPageInner() {
         </Link>
 
         {/* Divider */}
-        <span style={{ color: 'var(--eg-divider)', fontSize: '1rem' }}>|</span>
+        <span style={{ color: 'var(--line)', fontSize: '1rem' }}>|</span>
 
         {/* Page title */}
         <h1
           style={{
             fontSize: '1rem',
             fontWeight: 600,
-            color: 'var(--eg-fg)',
-            fontFamily: 'var(--eg-font-heading)',
+            color: 'var(--ink)',
+            fontFamily: 'var(--pl-font-heading)',
             margin: 0,
           }}
         >
@@ -98,7 +99,7 @@ function SeatingPageInner() {
         </h1>
 
         {siteName && (
-          <span style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', fontFamily: 'var(--eg-font-body)' }}>
+          <span style={{ fontSize: '0.78rem', color: 'var(--ink-muted)', fontFamily: 'var(--pl-font-body)' }}>
             — {siteName}
           </span>
         )}
@@ -113,9 +114,9 @@ function SeatingPageInner() {
           style={{
             display: 'flex', alignItems: 'center', gap: '0.3rem',
             padding: '0.4rem 0.75rem', borderRadius: '0.75rem',
-            border: '1.5px solid var(--eg-divider)', background: 'transparent',
-            color: 'var(--eg-muted)', fontSize: '0.78rem',
-            fontFamily: 'var(--eg-font-body)', cursor: 'pointer',
+            border: '1.5px solid var(--line)', background: 'transparent',
+            color: 'var(--ink-muted)', fontSize: '0.78rem',
+            fontFamily: 'var(--pl-font-body)', cursor: 'pointer',
           }}
         >
           ⌘Z
@@ -126,15 +127,15 @@ function SeatingPageInner() {
           style={{
             display: 'flex', alignItems: 'center', gap: '0.3rem',
             padding: '0.4rem 0.75rem', borderRadius: '0.75rem',
-            border: '1.5px solid var(--eg-divider)', background: 'transparent',
-            color: 'var(--eg-muted)', fontSize: '0.78rem',
-            fontFamily: 'var(--eg-font-body)', cursor: 'pointer',
+            border: '1.5px solid var(--line)', background: 'transparent',
+            color: 'var(--ink-muted)', fontSize: '0.78rem',
+            fontFamily: 'var(--pl-font-body)', cursor: 'pointer',
           }}
         >
           ⌘⇧Z
         </button>
 
-        <div style={{ width: '1px', height: '1.5rem', background: 'var(--eg-divider)' }} />
+        <div style={{ width: '1px', height: '1.5rem', background: 'var(--line)' }} />
 
         {/* AI Arrange button — coming soon */}
         <button
@@ -145,11 +146,11 @@ function SeatingPageInner() {
             gap: '0.4rem',
             padding: '0.45rem 0.9rem',
             borderRadius: '0.75rem',
-            border: '1.5px dashed var(--eg-accent)',
+            border: '1.5px dashed var(--sage-deep)',
             background: 'transparent',
-            color: 'var(--eg-accent)',
+            color: 'var(--sage-deep)',
             fontSize: '0.8rem',
-            fontFamily: 'var(--eg-font-body)',
+            fontFamily: 'var(--pl-font-body)',
             cursor: 'not-allowed',
             fontWeight: 500,
             opacity: 0.6,
@@ -169,17 +170,17 @@ function SeatingPageInner() {
       {showAIToast && (
         <div style={{
           position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)',
-          background: '#1a1713', color: '#fff',
+          background: 'var(--sage-deep)', color: '#fff',
           padding: '0.9rem 1.5rem', borderRadius: '0.875rem',
           boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
-          fontSize: '0.875rem', fontFamily: 'var(--eg-font-body)',
+          fontSize: '0.875rem', fontFamily: 'var(--pl-font-body)',
           display: 'flex', alignItems: 'center', gap: '0.75rem',
-          zIndex: 100, maxWidth: 'calc(100vw - 3rem)',
+          zIndex: 'var(--z-sticky)', maxWidth: 'calc(100vw - 3rem)',
           animation: 'fadeInUp 0.3s ease',
         }}>
-          <Sparkles size={16} color="var(--eg-accent, #A3B18A)" />
+          <Sparkles size={16} color="var(--pl-olive, #5C6B3F)" />
           <div>
-            <span style={{ fontWeight: 700, color: '#A3B18A' }}>AI Arrange</span>
+            <span style={{ fontWeight: 700, color: '#5C6B3F' }}>AI Arrange</span>
             {' '}is coming soon — it will seat guests automatically based on your relationships and constraints.
           </div>
         </div>
@@ -194,8 +195,8 @@ export default function SeatingPage() {
     <Suspense fallback={
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        height: '100dvh', background: 'var(--eg-bg)',
-        fontFamily: 'var(--eg-font-body)', color: 'var(--eg-muted)', fontSize: '0.9rem',
+        height: '100dvh', background: 'var(--cream)',
+        fontFamily: 'var(--pl-font-body)', color: 'var(--ink-muted)', fontSize: '0.9rem',
       }}>
         Loading seating chart…
       </div>

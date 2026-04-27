@@ -50,7 +50,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
   const [selectedEmoji, setSelectedEmoji] = useState('💕');
   const [showForm, setShowForm] = useState(false);
 
-  const accent = vibeSkin?.palette?.accent || 'var(--eg-accent, #A3B18A)';
+  const accent = vibeSkin?.palette?.accent || 'var(--pl-olive, #5C6B3F)';
   const headingFont = vibeSkin?.fonts?.heading || 'Playfair Display';
 
   const fetchMessages = useCallback(async () => {
@@ -123,7 +123,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
       id="guestbook"
       style={{
         padding: '5rem 2rem',
-        background: 'var(--eg-bg, #F5F1E8)',
+        background: 'var(--pl-cream, #F5F1E8)',
         position: 'relative',
       }}
     >
@@ -143,7 +143,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
             fontSize: 'clamp(2.25rem, 5vw, 3.75rem)',
             fontWeight: 600,
             fontStyle: 'italic',
-            color: 'var(--eg-fg, #2B2B2B)',
+            color: 'var(--pl-ink, var(--pl-ink-soft))',
             margin: '0 0 1.5rem',
             letterSpacing: '-0.03em',
             lineHeight: 1.05,
@@ -157,7 +157,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
           <div style={{ width: '4px', height: '4px', background: accent, transform: 'rotate(45deg)', opacity: 0.5 }} />
           <div style={{ width: '24px', height: '1px', background: accent, opacity: 0.35 }} />
         </div>
-        <p style={{ color: 'var(--eg-muted, #9A9488)', fontSize: '1rem', lineHeight: 1.7, margin: 0, fontStyle: 'italic' }}>
+        <p style={{ color: 'var(--pl-muted, #9A9488)', fontSize: '1rem', lineHeight: 1.7, margin: 0, fontStyle: 'italic' }}>
           Leave a note — your words will mean the world to them.
         </p>
       </div>
@@ -169,7 +169,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
             position: 'fixed',
             bottom: '2rem',
             right: '2rem',
-            background: 'var(--eg-plum, #6D597A)',
+            background: 'var(--pl-plum, #6D597A)',
             color: '#fff',
             padding: '1rem 1.5rem',
             borderRadius: '0.75rem',
@@ -185,7 +185,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
 
       {/* Messages grid */}
       {loading ? (
-        <div style={{ textAlign: 'center', color: 'var(--eg-muted, #9A9488)', padding: '2rem' }}>
+        <div style={{ textAlign: 'center', color: 'var(--pl-muted, #9A9488)', padding: '2rem' }}>
           Loading messages...
         </div>
       ) : messages.length > 0 ? (
@@ -202,15 +202,15 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
             <div
               key={msg.id}
               style={{
-                background: 'rgba(255,255,255,0.8)',
-                border: '1px solid var(--eg-divider, #E6DFD2)',
+                background: 'var(--pl-ink)',
+                border: '1px solid var(--pl-divider, #E6DFD2)',
                 borderRadius: '1rem',
                 padding: '1.5rem',
                 backdropFilter: 'blur(8px)',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '0.75rem',
-                transition: 'box-shadow 0.2s',
+                transition: 'box-shadow var(--pl-dur-fast)',
               }}
             >
               {/* Emoji + Name row */}
@@ -221,7 +221,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
                     fontFamily: `"${headingFont}", serif`,
                     fontWeight: 600,
                     fontSize: '1rem',
-                    color: 'var(--eg-fg, #2B2B2B)',
+                    color: 'var(--pl-ink, var(--pl-ink-soft))',
                   }}
                 >
                   {msg.name}
@@ -232,7 +232,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
               <p
                 style={{
                   margin: 0,
-                  color: 'var(--eg-fg, #2B2B2B)',
+                  color: 'var(--pl-ink, var(--pl-ink-soft))',
                   fontSize: '0.95rem',
                   lineHeight: 1.65,
                   opacity: 0.85,
@@ -246,8 +246,8 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
               <div
                 style={{
                   fontSize: '0.78rem',
-                  color: 'var(--eg-muted, #9A9488)',
-                  borderTop: '1px solid var(--eg-divider, #E6DFD2)',
+                  color: 'var(--pl-muted, #9A9488)',
+                  borderTop: '1px solid var(--pl-divider, #E6DFD2)',
                   paddingTop: '0.6rem',
                 }}
               >
@@ -260,7 +260,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
         <div
           style={{
             textAlign: 'center',
-            color: 'var(--eg-muted, #9A9488)',
+            color: 'var(--pl-muted, #9A9488)',
             padding: '2rem',
             maxWidth: '500px',
             margin: '0 auto 3rem',
@@ -278,10 +278,10 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
             <button
               onClick={() => setShowForm(true)}
               style={{
-                background: 'var(--eg-plum, #6D597A)',
+                background: 'var(--pl-plum, #6D597A)',
                 color: '#fff',
                 border: 'none',
-                borderRadius: '100px',
+                borderRadius: 'var(--pl-radius-full)',
                 padding: '0.9rem 2.5rem',
                 fontSize: '0.95rem',
                 fontWeight: 700,
@@ -299,8 +299,8 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
           <form
             onSubmit={handleSubmit}
             style={{
-              background: 'rgba(255,255,255,0.8)',
-              border: '1px solid var(--eg-divider, #E6DFD2)',
+              background: 'var(--pl-ink)',
+              border: '1px solid var(--pl-divider, #E6DFD2)',
               borderRadius: '1.25rem',
               padding: '2rem',
               backdropFilter: 'blur(8px)',
@@ -311,7 +311,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
                 fontFamily: `"${headingFont}", serif`,
                 fontSize: '1.2rem',
                 fontWeight: 600,
-                color: 'var(--eg-fg, #2B2B2B)',
+                color: 'var(--pl-ink, var(--pl-ink-soft))',
                 margin: '0 0 1.5rem',
               }}
             >
@@ -327,7 +327,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
                   fontWeight: 700,
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',
-                  color: 'var(--eg-muted, #9A9488)',
+                  color: 'var(--pl-muted, #9A9488)',
                   marginBottom: '0.4rem',
                 }}
               >
@@ -344,9 +344,9 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
                   width: '100%',
                   padding: '0.65rem 0.8rem',
                   borderRadius: '0.6rem',
-                  border: '1px solid var(--eg-divider, #E6DFD2)',
-                  background: 'rgba(255,255,255,0.9)',
-                  color: 'var(--eg-fg, #2B2B2B)',
+                  border: '1px solid var(--pl-divider, #E6DFD2)',
+                  background: 'var(--pl-ink)',
+                  color: 'var(--pl-ink, var(--pl-ink-soft))',
                   fontSize: '0.95rem',
                   outline: 'none',
                   boxSizing: 'border-box',
@@ -364,7 +364,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
                   fontWeight: 700,
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',
-                  color: 'var(--eg-muted, #9A9488)',
+                  color: 'var(--pl-muted, #9A9488)',
                   marginBottom: '0.4rem',
                 }}
               >
@@ -381,9 +381,9 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
                   width: '100%',
                   padding: '0.65rem 0.8rem',
                   borderRadius: '0.6rem',
-                  border: '1px solid var(--eg-divider, #E6DFD2)',
-                  background: 'rgba(255,255,255,0.9)',
-                  color: 'var(--eg-fg, #2B2B2B)',
+                  border: '1px solid var(--pl-divider, #E6DFD2)',
+                  background: 'var(--pl-ink)',
+                  color: 'var(--pl-ink, var(--pl-ink-soft))',
                   fontSize: '0.95rem',
                   outline: 'none',
                   resize: 'vertical',
@@ -396,7 +396,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
                 style={{
                   textAlign: 'right',
                   fontSize: '0.75rem',
-                  color: message.length >= 180 ? 'var(--eg-plum, #6D597A)' : 'var(--eg-muted, #9A9488)',
+                  color: message.length >= 180 ? 'var(--pl-plum, #6D597A)' : 'var(--pl-muted, #9A9488)',
                   marginTop: '0.2rem',
                 }}
               >
@@ -413,7 +413,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
                   fontWeight: 700,
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',
-                  color: 'var(--eg-muted, #9A9488)',
+                  color: 'var(--pl-muted, #9A9488)',
                   marginBottom: '0.6rem',
                 }}
               >
@@ -430,13 +430,13 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
                       padding: '0.4rem',
                       borderRadius: '0.5rem',
                       border: selectedEmoji === emoji
-                        ? `2px solid var(--eg-plum, #6D597A)`
+                        ? `2px solid var(--pl-plum, #6D597A)`
                         : '2px solid transparent',
                       background: selectedEmoji === emoji
                         ? 'rgba(109,89,122,0.08)'
                         : 'transparent',
                       cursor: 'pointer',
-                      transition: 'all 0.12s',
+                      transition: 'all var(--pl-dur-instant)',
                       lineHeight: 1,
                     }}
                     title={emoji}
@@ -470,10 +470,10 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
                 onClick={() => { setShowForm(false); setSubmitError(null); }}
                 style={{
                   padding: '0.65rem 1.25rem',
-                  borderRadius: '100px',
-                  border: '1px solid var(--eg-divider, #E6DFD2)',
+                  borderRadius: 'var(--pl-radius-full)',
+                  border: '1px solid var(--pl-divider, #E6DFD2)',
                   background: 'transparent',
-                  color: 'var(--eg-muted, #9A9488)',
+                  color: 'var(--pl-muted, #9A9488)',
                   fontSize: '0.9rem',
                   cursor: 'pointer',
                   fontWeight: 600,
@@ -487,15 +487,15 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
                 disabled={submitting || !name.trim() || !message.trim()}
                 style={{
                   padding: '0.65rem 1.75rem',
-                  borderRadius: '100px',
+                  borderRadius: 'var(--pl-radius-full)',
                   border: 'none',
-                  background: 'var(--eg-plum, #6D597A)',
+                  background: 'var(--pl-plum, #6D597A)',
                   color: '#fff',
                   fontSize: '0.9rem',
                   fontWeight: 700,
                   cursor: submitting ? 'not-allowed' : 'pointer',
                   opacity: submitting || !name.trim() || !message.trim() ? 0.6 : 1,
-                  transition: 'opacity 0.15s',
+                  transition: 'opacity var(--pl-dur-instant)',
                   fontFamily: 'inherit',
                   letterSpacing: '0.04em',
                 }}

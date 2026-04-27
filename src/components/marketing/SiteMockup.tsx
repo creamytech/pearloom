@@ -47,7 +47,7 @@ export function SiteMockup() {
       {/* Browser chrome */}
       <div
         className="rounded-t-xl border border-b-0 px-4 py-2.5 flex items-center gap-2"
-        style={{ background: 'rgba(255,255,255,0.7)', borderColor: C.divider }}
+        style={{ background: 'var(--pl-ink)', borderColor: C.divider }}
       >
         <div className="flex gap-1.5">
           <div className="w-2.5 h-2.5 rounded-full" style={{ background: '#FF5F57' }} />
@@ -58,7 +58,7 @@ export function SiteMockup() {
           className="flex-1 text-center text-[0.65rem] tracking-wide font-medium"
           style={{ color: C.muted }}
         >
-          pearloom.com/emma-james
+          pearloom.com/sites/emma-james
         </div>
       </div>
 
@@ -67,7 +67,7 @@ export function SiteMockup() {
         className="rounded-b-xl border overflow-hidden relative"
         style={{ borderColor: C.divider, height: 'clamp(280px, 45vw, 380px)' }}
       >
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
           <motion.div
             key={rind.label}
             initial={{ opacity: 0 }}
@@ -116,7 +116,7 @@ export function SiteMockup() {
             {/* Mini blocks bar */}
             <div
               className="flex justify-center gap-3 py-3 border-t"
-              style={{ borderColor: 'rgba(0,0,0,0.06)', background: 'rgba(255,255,255,0.5)' }}
+              style={{ borderColor: 'rgba(0,0,0,0.06)', background: 'var(--pl-ink-soft)' }}
             >
               {rind.blocks.map(b => (
                 <span

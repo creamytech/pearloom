@@ -9,6 +9,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { VibeSkin } from '@/lib/vibe-engine';
+import { getSupabaseBrowser } from '@/lib/supabase-realtime';
 
 interface WeddingDayPhoto {
   id: string;
@@ -52,12 +53,36 @@ export function WeddingDayPhotoFeed({ siteId, vibeSkin }: WeddingDayPhotoFeedPro
     }
   }, [siteId]);
 
-  // Initial fetch + polling every 30s
+  // Initial fetch + Realtime subscription (with polling fallback).
   useEffect(() => {
     fetchPhotos();
+
+    const sb = getSupabaseBrowser();
+    if (sb) {
+      const channel = sb
+        .channel(`wedding-day-${siteId}`)
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'wedding_day_photos', filter: `site_id=eq.${siteId}` },
+          () => { fetchPhotos(); },
+        )
+        .subscribe();
+      const onFocus = () => fetchPhotos();
+      window.addEventListener('focus', onFocus);
+      return () => {
+        sb.removeChannel(channel);
+        window.removeEventListener('focus', onFocus);
+      };
+    }
+
     const timer = setInterval(fetchPhotos, POLL_INTERVAL_MS);
-    return () => clearInterval(timer);
-  }, [fetchPhotos]);
+    const onFocus = () => fetchPhotos();
+    window.addEventListener('focus', onFocus);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [fetchPhotos, siteId]);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0] ?? null;
@@ -187,7 +212,7 @@ export function WeddingDayPhotoFeed({ siteId, vibeSkin }: WeddingDayPhotoFeedPro
               textAlign: 'center',
               cursor: 'pointer',
               background: filePreview ? 'transparent' : `${accent}08`,
-              transition: 'border-color 0.2s',
+              transition: 'border-color var(--pl-dur-fast)',
               position: 'relative',
               overflow: 'hidden',
               minHeight: 120,
@@ -266,7 +291,7 @@ export function WeddingDayPhotoFeed({ siteId, vibeSkin }: WeddingDayPhotoFeedPro
               fontWeight: 600,
               fontSize: '1rem',
               cursor: uploading ? 'not-allowed' : 'pointer',
-              transition: 'background 0.2s',
+              transition: 'background var(--pl-dur-fast)',
               opacity: uploading ? 0.7 : 1,
             }}
           >
@@ -296,7 +321,7 @@ export function WeddingDayPhotoFeed({ siteId, vibeSkin }: WeddingDayPhotoFeedPro
                 breakInside: 'avoid',
                 marginBottom: '16px',
                 background: '#fff',
-                borderRadius: '4px',
+                borderRadius: 'var(--pl-radius-xs)',
                 padding: '10px 10px 14px',
                 boxShadow: `0 4px 14px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08)`,
                 display: 'inline-block',
@@ -311,7 +336,7 @@ export function WeddingDayPhotoFeed({ siteId, vibeSkin }: WeddingDayPhotoFeedPro
                 style={{
                   width: '100%',
                   display: 'block',
-                  borderRadius: '2px',
+                  borderRadius: 'var(--pl-radius-xs)',
                   objectFit: 'cover',
                 }}
               />

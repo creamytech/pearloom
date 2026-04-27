@@ -1,10 +1,13 @@
 // ─────────────────────────────────────────────────────────────
-// everglow / lib/auth.ts — NextAuth configuration
+// Pearloom / lib/auth.ts — NextAuth configuration
+// Supports: Google OAuth (with Photos API) + Email/Password
 // ─────────────────────────────────────────────────────────────
 
 import type { NextAuthOptions, Session } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import GoogleProvider from 'next-auth/providers/google';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import { createHash } from 'crypto';
 
 /**
  * Extend the default session/token types to include
@@ -14,6 +17,7 @@ declare module 'next-auth' {
   interface Session {
     accessToken?: string;
     error?: string;
+    provider?: string;
   }
 }
 
@@ -23,8 +27,24 @@ declare module 'next-auth/jwt' {
     refreshToken?: string;
     accessTokenExpires?: number;
     error?: string;
+    provider?: string;
   }
 }
+
+/**
+ * Simple password hashing — in production, use bcrypt.
+ * This is a SHA-256 hash with a salt prefix for basic security.
+ */
+function hashPassword(password: string): string {
+  const salt = process.env.NEXTAUTH_SECRET || 'pearloom-salt';
+  return createHash('sha256').update(`${salt}:${password}`).digest('hex');
+}
+
+/**
+ * In-memory user store for credentials auth.
+ * In production, replace with database queries (Supabase, Prisma, etc.)
+ */
+const credentialUsers = new Map<string, { id: string; email: string; name: string; passwordHash: string }>();
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -44,21 +64,68 @@ export const authOptions: NextAuthOptions = {
         },
       },
     }),
+
+    CredentialsProvider({
+      id: 'credentials',
+      name: 'Email',
+      credentials: {
+        email: { label: 'Email', type: 'email', placeholder: 'you@example.com' },
+        password: { label: 'Password', type: 'password' },
+        name: { label: 'Name', type: 'text' },
+        action: { label: 'Action', type: 'text' }, // 'login' | 'register'
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) return null;
+
+        const email = credentials.email.toLowerCase().trim();
+        const passwordHash = hashPassword(credentials.password);
+
+        if (credentials.action === 'register') {
+          // Register new user
+          if (credentialUsers.has(email)) {
+            throw new Error('An account with this email already exists. Try signing in.');
+          }
+          if (credentials.password.length < 6) {
+            throw new Error('Password must be at least 6 characters.');
+          }
+          const id = `user-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+          const name = credentials.name?.trim() || email.split('@')[0];
+          credentialUsers.set(email, { id, email, name, passwordHash });
+          return { id, email, name };
+        }
+
+        // Login existing user
+        const user = credentialUsers.get(email);
+        if (!user || user.passwordHash !== passwordHash) {
+          throw new Error('Invalid email or password.');
+        }
+        return { id: user.id, email: user.email, name: user.name };
+      },
+    }),
   ],
 
   callbacks: {
-    async jwt({ token, account }): Promise<JWT> {
+    async jwt({ token, account, user }): Promise<JWT> {
       // On initial sign in, persist the access & refresh tokens
       if (account) {
-        return {
-          ...token,
-          accessToken: account.access_token,
-          refreshToken: account.refresh_token,
-          accessTokenExpires: account.expires_at
-            ? account.expires_at * 1000
-            : Date.now() + 3600 * 1000,
-        };
+        token.provider = account.provider;
+        if (account.provider === 'google') {
+          return {
+            ...token,
+            provider: 'google',
+            accessToken: account.access_token,
+            refreshToken: account.refresh_token,
+            accessTokenExpires: account.expires_at
+              ? account.expires_at * 1000
+              : Date.now() + 3600 * 1000,
+          };
+        }
+        // Credentials provider — no access token needed
+        return { ...token, provider: 'credentials' };
       }
+
+      // For credentials users, no token refresh needed
+      if (token.provider === 'credentials') return token;
 
       // Return the token if it hasn't expired
       if (token.accessTokenExpires && Date.now() < token.accessTokenExpires) {
@@ -72,6 +139,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }): Promise<Session> {
       session.accessToken = token.accessToken;
       session.error = token.error;
+      session.provider = token.provider;
       return session;
     },
   },
@@ -110,7 +178,6 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
       ...token,
       accessToken: refreshed.access_token,
       accessTokenExpires: Date.now() + refreshed.expires_in * 1000,
-      // Keep the old refresh token if a new one wasn't issued
       refreshToken: refreshed.refresh_token ?? token.refreshToken,
     };
   } catch (error) {

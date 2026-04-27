@@ -20,15 +20,22 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const siteId = req.nextUrl.searchParams.get('siteId');
+    // Accept both `siteId` (legacy) and `site` (new) for compatibility.
+    const siteId = req.nextUrl.searchParams.get('siteId') || req.nextUrl.searchParams.get('site');
     if (!siteId) return NextResponse.json({ error: 'siteId required' }, { status: 400 });
 
+    const hasAddressOnly = req.nextUrl.searchParams.get('hasAddress') === '1';
+
     const supabase = getSupabase();
-    const { data, error } = await supabase
+    let q = supabase
       .from('guests')
       .select('*')
       .eq('site_id', siteId)
       .order('created_at', { ascending: true });
+    if (hasAddressOnly) {
+      q = q.not('mailing_address_line1', 'is', null);
+    }
+    const { data, error } = await q;
 
     if (error) {
       console.error('Guests fetch error:', error);
@@ -46,6 +53,14 @@ export async function GET(req: NextRequest) {
       dietaryRestrictions: row.dietary_restrictions,
       message: row.message,
       respondedAt: row.responded_at,
+      eventIds: Array.isArray(row.event_ids) ? row.event_ids : [],
+      mailingAddress: row.mailing_address_line1 ? {
+        line1: row.mailing_address_line1,
+        line2: row.mailing_address_line2,
+        city: row.city,
+        state: row.state,
+        zip: row.postal_code,
+      } : null,
     }));
 
     return NextResponse.json({ guests });

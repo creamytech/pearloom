@@ -10,12 +10,50 @@ import {
   type Dispatch, type RefObject,
 } from 'react';
 import type { StoryManifest, Chapter } from '@/types';
-import type { SectionStyleOverrides } from '@/components/editor/SectionStyleEditor';
-import type { CommandAction } from '@/components/editor/CommandPalette';
 
 // ── Types ──────────────────────────────────────────────────────
+// SectionStyleOverrides + CommandAction were inlined here when the
+// legacy `src/components/editor/` directory was sunset (2026-04-26).
+// Originally lived in SectionStyleEditor.tsx and CommandPalette.tsx
+// respectively; only the type shapes were used elsewhere.
+export interface SectionStyleOverrides {
+  backgroundColor?: string;
+  textColor?: string;
+  accentColor?: string;
+  padding?: 'compact' | 'normal' | 'spacious';
+  dividerBefore?: boolean;
+  dividerAfter?: boolean;
+  fullWidth?: boolean;
+}
+export type CommandAction =
+  | { type: 'tab'; tab: 'story' | 'events' | 'canvas' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' }
+  | { type: 'device'; mode: 'desktop' | 'tablet' | 'mobile' }
+  | { type: 'chapter'; id: string }
+  | { type: 'add-chapter' }
+  | { type: 'preview' }
+  | { type: 'publish' }
+  | { type: 'undo' }
+  | { type: 'redo' }
+  | { type: 'pear'; prompt: string };
+
 export type DeviceMode = 'desktop' | 'tablet' | 'mobile';
-export type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas' | 'messaging' | 'analytics' | 'guests' | 'seating' | 'translate' | 'invite' | 'savethedate' | 'thankyou' | 'spotify' | 'vendors';
+export type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas' | 'messaging' | 'analytics' | 'guests' | 'seating' | 'translate' | 'invite' | 'savethedate' | 'thankyou' | 'spotify' | 'vendors' | 'components' | 'history' | 'media';
+
+export interface UndoHistoryEntry {
+  label: string;
+  timestamp: number;
+}
+
+export interface HistoryEntry {
+  manifest: import('@/types').StoryManifest;
+  label: string;
+  timestamp: number;
+}
+
+export const MAX_UNDO_ENTRIES = 50;
+// Item 77: Coalesce consecutive design changes targeting the same key within this window
+// into a single history entry to avoid one-entry-per-keystroke for sliders.
+export const DESIGN_COALESCE_MS = 400;
 export type SaveState = 'saved' | 'unsaved';
 export type DraftBannerState = 'visible' | 'hidden' | null;
 
@@ -80,6 +118,27 @@ export interface EditorState {
   // Chapter alternates
   chapterAlternates: Record<string, string[]>;
   alternatesLoadingId: string | null;
+
+  // Multi-select blocks
+  selectedBlockIds: string[];
+
+  // Contextual section — tells panels which sub-section to auto-expand
+  contextSection: string | null;
+
+  // Field focus — tells panels which specific field to scroll to + highlight
+  fieldFocus: string | null;
+
+  // Undo history entries
+  undoHistory: UndoHistoryEntry[];
+  undoIndex: number;
+
+  // Item 75: Set to true transiently when the oldest undo entry is dropped due to
+  // MAX_UNDO_ENTRIES. Components can read this to show a toast. Auto-clears on the
+  // very next action.
+  undoTruncated: boolean;
+
+  // Canvas width for responsive editing
+  canvasWidth: number;
 }
 
 export type EditorAction =
@@ -122,9 +181,54 @@ export type EditorAction =
   | { type: 'MARK_PUBLISHED'; url: string }
   | { type: 'OPEN_PUBLISH' }
   | { type: 'SET_CHAPTER_ALTERNATES'; id: string; alternates: string[] }
-  | { type: 'SET_ALTERNATES_LOADING'; id: string | null };
+  | { type: 'SET_ALTERNATES_LOADING'; id: string | null }
+  | { type: 'SET_SELECTED_BLOCKS'; ids: string[] }
+  | { type: 'TOGGLE_BLOCK_SELECTION'; id: string }
+  | { type: 'SET_CONTEXT_SECTION'; section: string | null }
+  | { type: 'SET_FIELD_FOCUS'; field: string | null }
+  | { type: 'CLEAR_FIELD_FOCUS' }
+  | { type: 'PUSH_UNDO_ENTRY'; label: string; coalesceKey?: string }
+  | { type: 'SET_UNDO_INDEX'; index: number }
+  | { type: 'CLEAR_UNDO_HISTORY' }
+  | { type: 'CLEAR_REWRITE_ERROR' }
+  | { type: 'CLEAR_PUBLISH_ERROR' }
+  | { type: 'SET_CANVAS_WIDTH'; width: number };
+
+// Item 77: Track the last design-coalesce key + timestamp so PUSH_UNDO_ENTRY can
+// collapse rapid, same-target design changes (e.g. slider drags) into one history
+// entry instead of one-per-keystroke. Kept in module scope so it survives across
+// dispatches without polluting state (which would trigger re-renders).
+let lastCoalesceKey: string | null = null;
+let lastCoalesceAt = 0;
 
 function editorReducer(state: EditorState, action: EditorAction): EditorState {
+  // Item 75: `undoTruncated` is a one-shot signal — it auto-clears on the next
+  // action, whatever that action may be.
+  const clearTruncated = state.undoTruncated && action.type !== 'PUSH_UNDO_ENTRY'
+    ? { undoTruncated: false }
+    : null;
+
+  const next = reduceInner(state, action);
+  // Item 78: Always derive canUndo/canRedo from the history array so they can
+  // never desync from undoHistory/undoIndex. We only override when the action
+  // touched history — otherwise we leave existing values (preserves the
+  // dispatch contract for the legacy SET_CAN_UNDO / SET_CAN_REDO actions which
+  // reflect an external manifest-stack maintained in refs).
+  const touchedHistory =
+    action.type === 'PUSH_UNDO_ENTRY' ||
+    action.type === 'SET_UNDO_INDEX' ||
+    action.type === 'CLEAR_UNDO_HISTORY';
+  const derived = touchedHistory
+    ? {
+        canUndo: next.undoIndex > 0,
+        canRedo: next.undoIndex < next.undoHistory.length - 1,
+      }
+    : null;
+  if (!clearTruncated && !derived) return next;
+  return { ...next, ...(clearTruncated || {}), ...(derived || {}) };
+}
+
+function reduceInner(state: EditorState, action: EditorAction): EditorState {
   switch (action.type) {
     case 'SET_CHAPTERS':
       return { ...state, chapters: action.chapters };
@@ -167,9 +271,12 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
     case 'SET_CAN_REDO':
       return { ...state, canRedo: action.can };
     case 'SET_REWRITING':
-      return { ...state, rewritingId: action.id };
+      // Item 79: Starting a new rewrite clears any stale rewrite error.
+      return { ...state, rewritingId: action.id, rewriteError: action.id ? null : state.rewriteError };
     case 'SET_REWRITE_ERROR':
       return { ...state, rewriteError: action.error };
+    case 'CLEAR_REWRITE_ERROR':
+      return { ...state, rewriteError: null };
     case 'SET_STREAMING_TEXT':
       return { ...state, streamingText: action.text, streamingChapterId: action.chapterId };
     case 'SET_SHOW_PUBLISH':
@@ -177,9 +284,12 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
     case 'SET_SUBDOMAIN':
       return { ...state, subdomain: action.subdomain };
     case 'SET_PUBLISHING':
-      return { ...state, isPublishing: action.publishing };
+      // Item 79: Kicking off a publish clears any stale publish error.
+      return { ...state, isPublishing: action.publishing, publishError: action.publishing ? null : state.publishError };
     case 'SET_PUBLISH_ERROR':
       return { ...state, publishError: action.error };
+    case 'CLEAR_PUBLISH_ERROR':
+      return { ...state, publishError: null };
     case 'SET_PUBLISHED_URL':
       return { ...state, publishedUrl: action.url };
     case 'SET_CANVAS_DRAG':
@@ -206,6 +316,75 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
       return { ...state, chapterAlternates: { ...state.chapterAlternates, [action.id]: action.alternates } };
     case 'SET_ALTERNATES_LOADING':
       return { ...state, alternatesLoadingId: action.id };
+    case 'SET_SELECTED_BLOCKS':
+      return { ...state, selectedBlockIds: action.ids };
+    case 'TOGGLE_BLOCK_SELECTION': {
+      const ids = state.selectedBlockIds.includes(action.id)
+        ? state.selectedBlockIds.filter(id => id !== action.id)
+        : [...state.selectedBlockIds, action.id];
+      return { ...state, selectedBlockIds: ids };
+    }
+    case 'SET_CONTEXT_SECTION':
+      return { ...state, contextSection: action.section };
+    case 'SET_FIELD_FOCUS':
+      // Item 76: No auto-clear here — `fieldFocus` persists until the component
+      // explicitly dispatches CLEAR_FIELD_FOCUS (or overwrites it). This prevents
+      // the focus highlight from vanishing on users who scroll slowly.
+      return { ...state, fieldFocus: action.field };
+    case 'CLEAR_FIELD_FOCUS':
+      return { ...state, fieldFocus: null };
+    case 'PUSH_UNDO_ENTRY': {
+      const now = Date.now();
+      // Item 77: Coalesce consecutive design changes that target the same key
+      // within DESIGN_COALESCE_MS — replace the last entry instead of appending.
+      const coalesceKey = action.coalesceKey ?? null;
+      const canCoalesce =
+        coalesceKey !== null &&
+        coalesceKey === lastCoalesceKey &&
+        now - lastCoalesceAt < DESIGN_COALESCE_MS &&
+        state.undoHistory.length > 0 &&
+        state.undoIndex === state.undoHistory.length - 1;
+
+      // Item 74: When dispatching a new action while the cursor is not at the
+      // tip of the stack, discard any redo branch BEFORE appending the new
+      // snapshot — otherwise stale redo entries linger alongside new work.
+      const history = state.undoHistory.slice(0, state.undoIndex + 1);
+      let undoTruncated = false;
+      if (canCoalesce) {
+        // Replace the previous entry's label + timestamp.
+        history[history.length - 1] = { label: action.label, timestamp: now };
+      } else {
+        history.push({ label: action.label, timestamp: now });
+        // Item 75: When the oldest entry is dropped to enforce MAX_UNDO_ENTRIES,
+        // set a transient flag so components can surface a toast. The flag
+        // auto-clears on the next action (handled in the wrapper reducer).
+        if (history.length > MAX_UNDO_ENTRIES) {
+          history.shift();
+          undoTruncated = true;
+        }
+      }
+      lastCoalesceKey = coalesceKey;
+      lastCoalesceAt = now;
+      return {
+        ...state,
+        undoHistory: history,
+        undoIndex: history.length - 1,
+        undoTruncated: undoTruncated || state.undoTruncated,
+      };
+    }
+    case 'SET_UNDO_INDEX':
+      return { ...state, undoIndex: Math.max(0, Math.min(action.index, state.undoHistory.length - 1)) };
+    case 'CLEAR_UNDO_HISTORY':
+      lastCoalesceKey = null;
+      lastCoalesceAt = 0;
+      return {
+        ...state,
+        undoHistory: [{ label: 'Initial state', timestamp: Date.now() }],
+        undoIndex: 0,
+        undoTruncated: false,
+      };
+    case 'SET_CANVAS_WIDTH':
+      return { ...state, canvasWidth: action.width };
     default:
       return state;
   }
@@ -213,22 +392,30 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
 
 // ── Context ────────────────────────────────────────────────────
 
+// Item 2: options accepted by history-pushing actions. `coalesceKey` is
+// forwarded to PUSH_UNDO_ENTRY so that rapid per-keystroke text edits to the
+// same field collapse into a single undo entry within DESIGN_COALESCE_MS.
+export interface HistoryPushOpts {
+  coalesceKey?: string;
+  label?: string;
+}
+
 export interface EditorActions {
   // Chapter mutations
-  updateChapter: (id: string, data: Partial<Chapter>) => void;
+  updateChapter: (id: string, data: Partial<Chapter>, opts?: HistoryPushOpts) => void;
   deleteChapter: (id: string) => void;
   addChapter: () => void;
   handleReorder: (chapters: Chapter[]) => void;
 
   // Manifest mutations
-  syncManifest: (chapters: Chapter[]) => void;
-  handleDesignChange: (m: StoryManifest) => void;
+  syncManifest: (chapters: Chapter[], opts?: HistoryPushOpts) => void;
+  handleDesignChange: (m: StoryManifest, opts?: HistoryPushOpts) => void;
   handleChatManifestUpdate: (updates: Partial<StoryManifest>) => void;
 
   // History
   undo: () => void;
   redo: () => void;
-  pushHistory: (m: StoryManifest) => void;
+  pushHistory: (m: StoryManifest, opts?: HistoryPushOpts) => void;
 
   // Preview
   pushToPreview: (m: StoryManifest) => void;
@@ -249,6 +436,11 @@ export interface EditorActions {
 
   // Store preview for external use
   storePreviewForOpen: () => void;
+
+  // History (for UndoTimeline)
+  jumpToHistory: (index: number) => void;
+  getHistoryEntries: () => HistoryEntry[];
+  getHistoryIndex: () => number;
 }
 
 export interface EditorContextValue {
@@ -316,6 +508,13 @@ export function createInitialEditorState(
     mobileActionChapterId: null,
     chapterAlternates: {},
     alternatesLoadingId: null,
+    selectedBlockIds: [],
+    contextSection: null,
+    fieldFocus: null,
+    undoHistory: [{ label: 'Initial state', timestamp: Date.now() }],
+    undoIndex: 0,
+    undoTruncated: false,
+    canvasWidth: 1280,
   };
 }
 

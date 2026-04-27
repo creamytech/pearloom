@@ -1,6 +1,6 @@
 // ── Pearloom UI Primitives ─────────────────────────────────────
 // Component library built on shadcn/ui + Radix primitives,
-// styled with --eg-* design tokens and Tailwind utilities.
+// styled with --pl-* design tokens and Tailwind utilities.
 
 export { Button, buttonVariants, type ButtonProps } from './button';
 export { Input, Label, type InputProps } from './input';
@@ -27,3 +27,6 @@ export {
 export { Separator } from './separator';
 export { FormField, FormSection, Select, DateInput, TimeInput } from './form';
 export type { FormFieldProps, FormSectionProps, SelectProps, DateInputProps, TimeInputProps } from './form';
+export { Switch, type SwitchProps } from './switch';
+export { Skeleton, SkeletonText, SkeletonCircle, type SkeletonProps, type SkeletonTextProps, type SkeletonCircleProps } from './skeleton';
+export { EmptyState, type EmptyStateProps } from './empty-state';

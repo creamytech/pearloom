@@ -5,7 +5,13 @@
 
 export const dynamic = 'force-dynamic';
 
+import type { Metadata } from 'next';
 import { CapsuleReveal } from './CapsuleReveal';
+
+export const metadata: Metadata = {
+  title: 'Time Capsule | Pearloom',
+  description: 'Unlock your love letter time capsule.',
+};
 import { parseLocalDate } from '@/lib/date';
 
 interface CapsuleData {
@@ -149,7 +155,7 @@ const sealedStyles: Record<string, React.CSSProperties> = {
   card: {
     background: 'rgba(214,198,168,0.06)',
     border: '1px solid rgba(214,198,168,0.18)',
-    borderRadius: '16px',
+    borderRadius: 'var(--pl-radius-xl)',
     padding: '48px 40px',
     maxWidth: '440px',
     width: '100%',
@@ -163,7 +169,7 @@ const sealedStyles: Record<string, React.CSSProperties> = {
     margin: '0 0 16px 0',
     fontSize: '22px',
     fontWeight: 600,
-    color: '#D6C6A8',
+    color: 'var(--pl-muted)',
     lineHeight: 1.3,
   },
   body: {
@@ -178,15 +184,15 @@ const sealedStyles: Record<string, React.CSSProperties> = {
     margin: '0 0 28px 0',
   },
   highlight: {
-    color: '#D6C6A8',
+    color: 'var(--pl-muted)',
     fontWeight: 600,
   },
   calBtn: {
     display: 'inline-block',
     background: 'rgba(214,198,168,0.1)',
     border: '1px solid rgba(214,198,168,0.25)',
-    borderRadius: '8px',
-    color: '#D6C6A8',
+    borderRadius: 'var(--pl-radius-md)',
+    color: 'var(--pl-muted)',
     textDecoration: 'none',
     fontSize: '14px',
     fontWeight: 500,

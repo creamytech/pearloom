@@ -6,7 +6,7 @@ import {
   Wand2,
   Users,
   MessageCircle,
-  Heart,
+  Leaf,
   Layers,
   GripVertical,
   Globe,
@@ -69,7 +69,7 @@ const FEATURE_GROUPS: FeatureGroup[] = [
     ],
   },
   {
-    groupIcon: Heart,
+    groupIcon: Leaf,
     title: 'After the Day',
     accent: C.plum,
     items: [
@@ -90,9 +90,9 @@ export function GuestExperience() {
       ref={ref}
       id="features"
       style={{
-        background: C.cream,
+        background: 'var(--pl-cream)',
         padding: `${sectionPadding.y} ${sectionPadding.x}`,
-        borderTop: `1px solid ${C.divider}`,
+        borderTop: '1px solid var(--pl-divider)',
       }}
     >
       <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
@@ -114,13 +114,13 @@ export function GuestExperience() {
             </p>
             <h2
               className="font-heading font-bold tracking-tight leading-[1.1]"
-              style={{ fontSize: 'clamp(2rem,3.5vw,2.75rem)', color: C.ink, marginBottom: '1rem' }}
+              style={{ fontSize: 'clamp(2rem,3.5vw,2.75rem)', color: 'var(--pl-ink)', marginBottom: '1rem' }}
             >
               Everything built in.{' '}
               <em style={{ color: C.plum, fontStyle: 'italic' }}>Nothing bolted on.</em>
             </h2>
-            <p style={{ fontSize: text.base, color: C.muted, lineHeight: 1.75, maxWidth: '340px' }}>
-              From your first photo upload to your anniversary ten years later, Pearloom handles every detail of your celebration.
+            <p style={{ fontSize: text.base, color: 'var(--pl-muted)', lineHeight: 1.75, maxWidth: '340px' }}>
+              Guest RSVPs, seating charts, photo sharing, and thank-you notes — every detail of your celebration, all in one place.
             </p>
           </motion.div>
 
@@ -149,7 +149,7 @@ export function GuestExperience() {
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '7px',
                     padding: '6px 13px',
-                    borderRadius: '100px',
+                    borderRadius: 'var(--pl-radius-full)',
                     background: `${pill.accent}12`,
                     border: `1px solid ${pill.accent}28`,
                     fontSize: '0.8rem', fontWeight: 600,
@@ -174,12 +174,14 @@ export function GuestExperience() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: gi * 0.08 + 0.3, duration: 0.55 }}
+                whileHover={{ y: -4, boxShadow: '0 8px 32px rgba(43,30,20,0.08)', transition: { duration: 0.2 } }}
                 style={{
-                  background: '#FFFFFF',
-                  border: `1px solid ${C.divider}`,
-                  borderRadius: '12px',
+                  background: 'var(--pl-cream-card)',
+                  border: '1px solid var(--pl-divider)',
+                  borderRadius: 'var(--pl-radius-lg)',
                   padding: '1.5rem',
                   boxShadow: '0 1px 4px rgba(43,30,20,0.04)',
+                  cursor: 'default',
                 }}
               >
                 {/* Group header */}
@@ -223,7 +225,7 @@ export function GuestExperience() {
                         }}>
                           <ItemIcon size={13} color={group.accent} />
                         </div>
-                        <span style={{ fontSize: text.sm, color: C.ink, fontWeight: 500 }}>
+                        <span style={{ fontSize: text.sm, color: 'var(--pl-ink)', fontWeight: 500 }}>
                           {item.label}
                         </span>
                       </motion.div>

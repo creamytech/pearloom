@@ -55,7 +55,7 @@ describe('isValidSvg', () => {
 
 describe('buildFallbackArt', () => {
   it('generates all required SVG art pieces', () => {
-    const art = buildFallbackArt('#A3B18A', 'organic');
+    const art = buildFallbackArt('#5C6B3F', 'organic');
     expect(art.heroPatternSvg).toContain('<svg');
     expect(art.sectionBorderSvg).toContain('<svg');
     expect(art.cornerFlourishSvg).toContain('<svg');
@@ -73,7 +73,7 @@ describe('buildFallbackArt', () => {
 
   it('falls back to default color when accent is empty', () => {
     const art = buildFallbackArt('', 'organic');
-    expect(art.heroPatternSvg).toContain('#A3B18A');
+    expect(art.heroPatternSvg).toContain('#5C6B3F');
   });
 
   it('generates different patterns for different curve types', () => {

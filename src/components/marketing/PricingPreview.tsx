@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { ArrowRight, Check, Sprout, Heart, Leaf } from 'lucide-react';
+import { ArrowRight, Check, Sprout, Feather, Leaf } from 'lucide-react';
 import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 
@@ -22,71 +22,69 @@ type Tier = {
 
 const TIERS: Tier[] = [
   {
-    name: 'Seed',
-    price: '$0',
+    name: 'Journal',
+    price: 'Free',
     period: 'forever',
-    tagline: 'Plant your story',
-    desc: 'Create a beautiful site and go live — no credit card, no catch.',
+    tagline: 'Start your story',
+    desc: 'Everything you need to create a beautiful celebration site.',
     features: [
-      'Pearloom AI site generation',
-      'Custom visual identity',
+      'AI-generated site from photos',
       '7 core block types',
+      'Up to 150 guest RSVPs',
       'Pearloom subdomain',
-      'Up to 75 guest RSVPs',
-      'Up to 100 photos',
-      'Mobile-responsive site',
+      'Mobile-responsive design',
+      'Google Photos integration',
+      'RSVP with meal selection',
     ],
-    cta: 'Start Free',
+    cta: 'Get Started Free',
     accent: C.olive,
     highlighted: false,
     Icon: Sprout,
   },
   {
-    name: 'Pair',
+    name: 'Atelier',
     price: '$19',
-    period: '/celebration',
-    tagline: 'Everything for your big day',
-    desc: 'The full Pearloom experience for one celebration. One price, no subscriptions.',
+    period: 'one-time',
+    tagline: 'The full creative studio',
+    desc: 'Unlock every feature for your celebration — pay once, keep forever.',
     features: [
-      'Everything in Seed, plus:',
+      'Everything in Journal, plus:',
       'Custom domain',
-      'All 19 block types',
+      'All 19+ block types',
       'Unlimited guests & photos',
-      'Full guest management + CSV import',
       'Interactive seating chart',
       'Bulk messaging & email invitations',
-      'AI guest concierge (voice-trained)',
+      'AI voice-trained concierge',
       '9-language translations',
       'Analytics & RSVP insights',
       'Save the Date card designer',
       'Wedding hashtag generator',
       'Time capsule messages',
-      'Guest photo guestbook',
       'Priority support',
     ],
-    cta: 'Get Pair',
+    cta: 'Upgrade for $19',
     accent: C.plum,
     highlighted: true,
     badge: 'Most Popular',
-    Icon: Heart,
+    Icon: Feather,
   },
   {
-    name: 'Perennial',
+    name: 'Legacy',
     price: '$12',
     period: '/month',
-    tagline: 'A lifetime of celebrations',
-    desc: 'Pair features for every occasion, every year — weddings, anniversaries, birthdays, and beyond.',
+    tagline: 'For every celebration',
+    desc: 'All Atelier features for unlimited celebrations, forever.',
     features: [
-      'Everything in Pair, plus:',
-      'Unlimited celebrations',
-      'Post-wedding anniversary mode',
-      'Community photo moderation',
-      'Coordinator collaboration access',
+      'Everything in Atelier, plus:',
+      'Unlimited celebration sites',
+      'Anniversary & memory mode',
+      'Coordinator collaboration',
       'Advanced visual effects & custom CSS',
       'PDF export & print-ready',
       'Early AI feature access',
+      'White-glove support',
     ],
-    cta: 'Go Perennial',
+    cta: 'Go Legacy',
     accent: C.gold,
     highlighted: false,
     badge: 'Best for recurring events',
@@ -94,26 +92,35 @@ const TIERS: Tier[] = [
   },
 ];
 
-export function PricingPreview() {
+interface PricingPreviewProps {
+  onGetStarted?: () => void;
+}
+
+export function PricingPreview({ onGetStarted }: PricingPreviewProps = {}) {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.08 });
+
+  const handleTierClick = () => {
+    if (onGetStarted) onGetStarted();
+    else if (typeof window !== 'undefined') window.location.hash = 'try';
+  };
 
   return (
     <section
       ref={ref}
       id="pricing"
       style={{
-        background: C.deep,
+        background: 'var(--pl-cream-deep)',
         padding: `${sectionPadding.y} ${sectionPadding.x}`,
-        borderTop: `1px solid ${C.divider}`,
+        borderTop: '1px solid var(--pl-divider)',
       }}
     >
       <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
         <SectionHeader
           eyebrow="Pricing"
           eyebrowColor={C.gold}
-          title={<>Start free. Upgrade when you&rsquo;re ready.</>}
-          subtitle="No surprise fees. No subscriptions unless you want them."
+          title={<>Simple, transparent pricing</>}
+          subtitle="Create your first site for free. One-time upgrade — no subscriptions, no hidden costs."
           inView={inView}
         />
 
@@ -134,17 +141,20 @@ export function PricingPreview() {
               >
                 <div
                   style={{
-                    borderRadius: '14px',
-                    background: '#FFFFFF',
+                    borderRadius: 'var(--pl-radius-xl)',
+                    background: 'var(--pl-cream-card)',
                     border: isHighlighted
-                      ? `2px solid ${tier.accent}`
-                      : card.border,
+                      ? `2.5px solid ${tier.accent}`
+                      : '1px solid var(--pl-divider)',
                     boxShadow: isHighlighted
-                      ? `0 8px 32px ${tier.accent}26, 0 2px 8px ${tier.accent}14`
-                      : card.shadow,
+                      ? `0 12px 40px ${tier.accent}30, 0 4px 12px ${tier.accent}18`
+                      : 'var(--pl-shadow-sm)',
                     padding: '1.75rem',
                     display: 'flex',
                     flexDirection: 'column',
+                    transform: isHighlighted ? 'scale(1.03)' : 'none',
+                    position: 'relative',
+                    zIndex: isHighlighted ? 2 : 1,
                   }}
                 >
                   {/* Badge row */}
@@ -153,7 +163,7 @@ export function PricingPreview() {
                       <span style={{
                         display: 'inline-flex', alignItems: 'center',
                         padding: '2px 10px',
-                        borderRadius: '100px',
+                        borderRadius: 'var(--pl-radius-full)',
                         fontSize: '0.66rem', fontWeight: 700,
                         letterSpacing: '0.06em', textTransform: 'uppercase',
                         background: `${tier.accent}16`,
@@ -189,12 +199,12 @@ export function PricingPreview() {
                     <span style={{
                       fontFamily: 'var(--font-heading)',
                       fontSize: '2.8rem', fontWeight: 700, lineHeight: 1,
-                      color: C.ink,
+                      color: 'var(--pl-ink)',
                       letterSpacing: '-0.02em',
                     }}>
                       {tier.price}
                     </span>
-                    <span style={{ fontSize: text.sm, color: C.muted, paddingBottom: '2px' }}>
+                    <span style={{ fontSize: text.sm, color: 'var(--pl-muted)', paddingBottom: '2px' }}>
                       {tier.period}
                     </span>
                   </div>
@@ -210,21 +220,25 @@ export function PricingPreview() {
 
                   {/* Description */}
                   <p style={{
-                    fontSize: text.sm, color: C.muted,
+                    fontSize: text.sm, color: 'var(--pl-muted)',
                     lineHeight: 1.65, marginBottom: '1.5rem',
                   }}>
                     {tier.desc}
                   </p>
 
-                  {/* CTA */}
+                  {/* CTA — highlighted tier gets the pearl shimmer,
+                      the others keep their accent-filled identity so the
+                      upsell moment stays visually louder than its neighbours. */}
                   <button
+                    onClick={handleTierClick}
+                    className={isHighlighted ? 'pl-pearl-accent' : undefined}
                     style={{
                       width: '100%',
                       padding: '11px 16px',
-                      borderRadius: '8px',
-                      border: isHighlighted ? 'none' : `1px solid ${tier.accent}38`,
-                      background: isHighlighted ? tier.accent : `${tier.accent}12`,
-                      color: isHighlighted ? '#fff' : tier.accent,
+                      borderRadius: 'var(--pl-radius-md)',
+                      border: isHighlighted ? undefined : `1px solid ${tier.accent}38`,
+                      background: isHighlighted ? undefined : `${tier.accent}12`,
+                      color: isHighlighted ? undefined : tier.accent,
                       fontSize: text.sm,
                       fontWeight: 700,
                       letterSpacing: '0.04em',
@@ -236,7 +250,7 @@ export function PricingPreview() {
                       marginBottom: '1.75rem',
                       transition: 'filter 0.15s',
                     }}
-                    onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(0.92)')}
+                    onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(0.94)')}
                     onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
                   >
                     {tier.cta}
@@ -244,7 +258,7 @@ export function PricingPreview() {
                   </button>
 
                   {/* Divider */}
-                  <div style={{ height: '1px', background: C.divider, marginBottom: '1.5rem' }} />
+                  <div style={{ height: '1px', background: 'var(--pl-divider)', marginBottom: '1.5rem' }} />
 
                   {/* Feature list */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
@@ -256,7 +270,7 @@ export function PricingPreview() {
                             <span style={{
                               fontSize: '0.66rem', fontWeight: 700,
                               letterSpacing: '0.07em', textTransform: 'uppercase',
-                              color: C.muted,
+                              color: 'var(--pl-muted)',
                             }}>
                               {f}
                             </span>
@@ -271,7 +285,7 @@ export function PricingPreview() {
                               }}>
                                 <Check size={9} color={tier.accent} strokeWidth={3} />
                               </div>
-                              <span style={{ fontSize: text.sm, color: C.dark, lineHeight: 1.5 }}>
+                              <span style={{ fontSize: text.sm, color: 'var(--pl-ink-soft)', lineHeight: 1.5 }}>
                                 {f}
                               </span>
                             </>
@@ -294,7 +308,7 @@ export function PricingPreview() {
           style={{
             textAlign: 'center',
             fontSize: '0.75rem',
-            color: C.muted,
+            color: 'var(--pl-muted)',
             marginTop: '2rem',
             letterSpacing: '0.01em',
             lineHeight: 1.6,

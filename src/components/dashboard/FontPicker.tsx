@@ -2,16 +2,21 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/dashboard/FontPicker.tsx
-// Beautiful font pair picker for the site editor.
-// Dark panel theme with category filters and live font previews.
+// Font picker with two modes: curated pairings and custom
+// independent heading + body font selection.
+// Designed for light panel backgrounds (editor sidebar).
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Check } from 'lucide-react';
 import {
   FONT_CATALOG,
   FONT_CATEGORIES,
+  ALL_HEADING_FONTS,
+  ALL_BODY_FONTS,
   buildFontsUrl,
+  buildSingleFontUrl,
   type FontPair,
 } from '@/lib/font-catalog';
 
@@ -22,15 +27,16 @@ interface FontPickerProps {
 }
 
 type CategoryFilter = 'all' | FontPair['category'];
+type TabId = 'pairings' | 'custom';
 
 const CATEGORY_LABELS: Record<FontPair['category'], string> = {
-  romantic: 'Romantic',
-  modern: 'Modern',
-  classic: 'Classic',
-  playful: 'Playful',
+  romantic:  'Romantic',
+  modern:    'Modern',
+  classic:   'Classic',
+  playful:   'Playful',
   editorial: 'Editorial',
-  rustic: 'Rustic',
-  luxe: 'Luxe',
+  rustic:    'Rustic',
+  luxe:      'Luxe',
 };
 
 // Track which fonts have already been injected into <head>
@@ -47,15 +53,30 @@ function injectFontLink(pair: FontPair): void {
   document.head.appendChild(link);
 }
 
+function injectSingleFont(name: string): void {
+  if (typeof document === 'undefined') return;
+  const key = `single:${name}`;
+  if (injectedFonts.has(key)) return;
+  injectedFonts.add(key);
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = buildSingleFontUrl(name);
+  document.head.appendChild(link);
+}
+
 export default function FontPicker({
   currentHeading,
   currentBody,
   onChange,
 }: FontPickerProps) {
+  const [tab, setTab] = useState<TabId>('pairings');
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('all');
-  const [hovered, setHovered] = useState<string | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const cardRefs = useRef<Map<string, HTMLElement>>(new Map());
+
+  // Custom tab state
+  const [headingSearch, setHeadingSearch] = useState('');
+  const [bodySearch, setBodySearch] = useState('');
 
   const filtered = activeCategory === 'all'
     ? FONT_CATALOG
@@ -64,7 +85,6 @@ export default function FontPicker({
   // Inject fonts for visible cards via IntersectionObserver
   useEffect(() => {
     observerRef.current?.disconnect();
-
     observerRef.current = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -74,353 +94,316 @@ export default function FontPicker({
               const pair = FONT_CATALOG.find((p) => p.id === id);
               if (pair) injectFontLink(pair);
             }
+            const fontName = (entry.target as HTMLElement).dataset.fontName;
+            if (fontName) injectSingleFont(fontName);
           }
         }
       },
       { threshold: 0.1 },
     );
-
-    for (const [, el] of cardRefs.current) {
-      observerRef.current.observe(el);
-    }
-
+    for (const [, el] of cardRefs.current) observerRef.current.observe(el);
     return () => observerRef.current?.disconnect();
-  }, [filtered]);
+  }, [filtered, tab, headingSearch, bodySearch]);
 
-  // When category changes, scroll back to top
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [activeCategory]);
+  }, [activeCategory, tab]);
 
   const isSelected = (pair: FontPair) =>
     pair.heading === currentHeading && pair.body === currentBody;
 
+  const filteredHeadingFonts = headingSearch
+    ? ALL_HEADING_FONTS.filter(f => f.toLowerCase().includes(headingSearch.toLowerCase()))
+    : ALL_HEADING_FONTS;
+
+  const filteredBodyFonts = bodySearch
+    ? ALL_BODY_FONTS.filter(f => f.toLowerCase().includes(bodySearch.toLowerCase()))
+    : ALL_BODY_FONTS;
+
   return (
-    <div
-      style={{
-        background: '#1E1B16',
-        color: '#FFFFFF',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        fontFamily: 'system-ui, sans-serif',
-      }}
-    >
-      {/* Header */}
-      <div
-        style={{
-          padding: '16px 20px 12px',
-          borderBottom: '1px solid rgba(255,255,255,0.08)',
-          flexShrink: 0,
-        }}
-      >
-        <h2
-          style={{
-            margin: '0 0 4px',
-            fontSize: '1rem',
-            fontWeight: 600,
-            letterSpacing: '0.02em',
-            color: '#FFFFFF',
-          }}
-        >
-          Font Pairing
-        </h2>
-        <p
-          style={{
-            margin: 0,
-            fontSize: '0.75rem',
-            color: 'rgba(255,255,255,0.45)',
-          }}
-        >
-          {FONT_CATALOG.length} curated pairings across 7 styles
-        </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0', background: 'transparent', color: '#18181B' }}>
+
+      {/* ── Current pairing preview ── */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '10px',
+        padding: '10px 12px', borderRadius: 'var(--pl-radius-lg)',
+        background: '#F4F4F5', marginBottom: '8px', border: '1px solid #E4E4E7',
+      }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontFamily: `'${currentHeading}', serif`,
+            fontSize: '1.1rem', fontWeight: 600, lineHeight: 1.2,
+            color: '#18181B', letterSpacing: '-0.01em',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {currentHeading}
+          </div>
+          <div style={{
+            fontFamily: `'${currentBody}', sans-serif`,
+            fontSize: '0.75rem', fontWeight: 400, lineHeight: 1.4,
+            color: '#71717A', marginTop: '2px',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {currentBody}
+          </div>
+        </div>
+        <div style={{
+          fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.1em',
+          textTransform: 'uppercase', color: 'var(--pl-olive)', flexShrink: 0,
+        }}>Active</div>
       </div>
 
-      {/* Category filter pills */}
-      <div
-        style={{
-          padding: '12px 20px',
-          borderBottom: '1px solid rgba(255,255,255,0.08)',
-          flexShrink: 0,
-          overflowX: 'auto',
-          display: 'flex',
-          gap: '6px',
-          scrollbarWidth: 'none',
-        }}
-      >
-        {/* All pill */}
-        {(['all', ...FONT_CATEGORIES] as const).map((cat) => {
-          const isActive = activeCategory === cat;
-          const label = cat === 'all' ? 'All' : CATEGORY_LABELS[cat as FontPair['category']];
-          return (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              style={{ ...pillStyle(isActive), position: 'relative' }}
-            >
-              {isActive && (
-                <motion.span
-                  layoutId="font-category-active"
+      {/* ── Tab switcher ── */}
+      <div style={{
+        display: 'flex', gap: '2px', padding: '3px',
+        background: '#F4F4F5', borderRadius: '9px', marginBottom: '8px',
+      }}>
+        {(['pairings', 'custom'] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            style={{
+              flex: 1, border: 'none', borderRadius: '7px', cursor: 'pointer',
+              padding: '6px 0', fontSize: '0.73rem', fontWeight: 600,
+              fontFamily: 'inherit', transition: 'all var(--pl-dur-instant)',
+              background: tab === t ? '#ffffff' : 'transparent',
+              color: tab === t ? '#18181B' : '#71717A',
+              boxShadow: tab === t ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+            }}
+          >
+            {t === 'pairings' ? 'Pairings' : 'Custom'}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'pairings' ? (
+        <>
+          {/* Category filter pills */}
+          <div style={{
+            display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '8px',
+          }}>
+            {(['all', ...FONT_CATEGORIES] as const).map((cat) => {
+              const isActive = activeCategory === cat;
+              const label = cat === 'all' ? 'All' : CATEGORY_LABELS[cat as FontPair['category']];
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
                   style={{
-                    position: 'absolute', inset: 0, borderRadius: '100px',
-                    background: '#A3B18A', zIndex: -1,
+                    border: 'none', borderRadius: 'var(--pl-radius-sm)', cursor: 'pointer',
+                    padding: '4px 9px', fontSize: '0.68rem', fontWeight: 600,
+                    fontFamily: 'inherit', letterSpacing: '0.02em',
+                    transition: 'all var(--pl-dur-instant)',
+                    background: isActive ? '#18181B' : '#F4F4F5',
+                    color: isActive ? '#ffffff' : '#52525B',
                   }}
-                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                />
-              )}
-              {label}
-            </button>
-          );
-        })}
-      </div>
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
 
-      {/* Font grid */}
-      <div
-        ref={scrollRef}
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '16px',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '12px',
-          alignContent: 'start',
-        }}
-      >
-        {filtered.map((pair, idx) => {
-          const selected = isSelected(pair);
+          {/* Font pairing cards */}
+          <div
+            ref={scrollRef}
+            style={{
+              display: 'flex', flexDirection: 'column', gap: '4px',
+              maxHeight: '420px', overflowY: 'auto',
+              scrollbarWidth: 'thin',
+            }}
+          >
+            {filtered.map((pair, idx) => {
+              const selected = isSelected(pair);
+              return (
+                <motion.button
+                  key={pair.id}
+                  data-pair-id={pair.id}
+                  ref={(el) => {
+                    if (el) cardRefs.current.set(pair.id, el);
+                    else cardRefs.current.delete(pair.id);
+                  }}
+                  onClick={() => onChange(pair.heading, pair.body)}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.22, delay: Math.min(idx * 0.025, 0.3) }}
+                  whileHover={{ backgroundColor: selected ? undefined : 'rgba(0,0,0,0.03)' }}
+                  whileTap={{ scale: 0.98 }}
+                  style={{
+                    all: 'unset',
+                    display: 'flex', alignItems: 'stretch', gap: '0',
+                    borderRadius: 'var(--pl-radius-lg)', cursor: 'pointer',
+                    background: selected ? 'rgba(163,177,138,0.12)' : '#FAFAFA',
+                    border: selected ? '1.5px solid var(--pl-olive)' : '1.5px solid #E4E4E7',
+                    overflow: 'hidden', boxSizing: 'border-box', width: '100%',
+                    transition: 'border-color 0.12s',
+                  }}
+                  title={pair.pairRationale}
+                >
+                  {/* Left: heading preview swatch */}
+                  <div style={{
+                    width: '80px', flexShrink: 0,
+                    background: selected ? 'rgba(163,177,138,0.18)' : '#F0EFE9',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: '10px 8px',
+                  }}>
+                    <span style={{
+                      fontFamily: `'${pair.heading}', serif`,
+                      fontSize: '1.05rem',
+                      fontWeight: pair.headingWeight,
+                      fontStyle: pair.headingStyle ?? 'normal',
+                      color: '#18181B',
+                      lineHeight: 1.2,
+                      textAlign: 'center',
+                      overflow: 'hidden',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                    }}>
+                      {pair.preview}
+                    </span>
+                  </div>
 
-          return (
-            <motion.button
-              key={pair.id}
-              data-pair-id={pair.id}
-              ref={(el) => {
-                if (el) cardRefs.current.set(pair.id, el);
-                else cardRefs.current.delete(pair.id);
-              }}
-              onClick={() => onChange(pair.heading, pair.body)}
-              onMouseEnter={() => setHovered(pair.id)}
-              onMouseLeave={() => setHovered(null)}
-              title={pair.pairRationale}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.28, delay: Math.min(idx * 0.035, 0.5), ease: [0.16, 1, 0.3, 1] }}
-              whileHover={{ y: -2, scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              style={{
-                all: 'unset',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '6px',
-                padding: '14px',
-                borderRadius: '10px',
-                cursor: 'pointer',
-                background: selected
-                  ? 'rgba(163, 177, 138, 0.12)'
-                  : 'rgba(255,255,255,0.03)',
-                border: selected
-                  ? '1.5px solid #A3B18A'
-                  : '1.5px solid rgba(255,255,255,0.07)',
-                transition: 'background 0.15s ease, border-color 0.15s ease',
-                position: 'relative',
-                textAlign: 'left',
-                boxSizing: 'border-box',
-              }}
-            >
-              {/* Selected checkmark */}
-              <AnimatePresence>
-                {selected && (
-                  <motion.span
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-                    style={{
-                      position: 'absolute',
-                      top: '10px',
-                      right: '10px',
-                      width: '18px',
-                      height: '18px',
-                      borderRadius: '50%',
-                      background: '#A3B18A',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '10px',
-                      color: '#1E1B16',
-                      fontWeight: 700,
-                      lineHeight: 1,
-                    }}
-                  >
-                    ✓
-                  </motion.span>
-                )}
-              </AnimatePresence>
+                  {/* Right: names + meta */}
+                  <div style={{
+                    flex: 1, padding: '9px 10px', display: 'flex',
+                    flexDirection: 'column', gap: '2px', minWidth: 0,
+                  }}>
+                    <span style={{
+                      fontFamily: `'${pair.heading}', serif`,
+                      fontSize: '0.78rem', fontWeight: 600,
+                      color: '#18181B', lineHeight: 1.2,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
+                      {pair.heading}
+                    </span>
+                    <span style={{
+                      fontFamily: `'${pair.body}', sans-serif`,
+                      fontSize: '0.7rem', fontWeight: pair.bodyWeight,
+                      color: '#71717A', lineHeight: 1.3,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
+                      {pair.body}
+                    </span>
+                    <div style={{ display: 'flex', gap: '3px', marginTop: '2px' }}>
+                      <span style={{
+                        fontSize: '0.57rem', fontWeight: 600, letterSpacing: '0.06em',
+                        textTransform: 'uppercase', color: 'var(--pl-olive)',
+                        background: 'rgba(163,177,138,0.12)', padding: '1px 5px',
+                        borderRadius: 'var(--pl-radius-xs)',
+                      }}>
+                        {CATEGORY_LABELS[pair.category]}
+                      </span>
+                      <span style={{
+                        fontSize: '0.57rem', fontWeight: 500, color: '#A1A1AA',
+                        background: '#F0EFE9', padding: '1px 5px', borderRadius: 'var(--pl-radius-xs)',
+                      }}>
+                        {pair.mood}
+                      </span>
+                    </div>
+                  </div>
 
-              {/* Sample phrase in heading font */}
-              <span
+                  {/* Selected check */}
+                  <div style={{
+                    width: '32px', flexShrink: 0, display: 'flex',
+                    alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <AnimatePresence>
+                      {selected && (
+                        <motion.div
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0, opacity: 0 }}
+                          transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+                          style={{
+                            width: '20px', height: '20px', borderRadius: '50%',
+                            background: 'var(--pl-olive)', display: 'flex',
+                            alignItems: 'center', justifyContent: 'center',
+                          }}
+                        >
+                          <Check size={10} color="#fff" strokeWidth={3} />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
+        </>
+      ) : (
+        /* ── Custom font selection ── */
+        <div ref={scrollRef} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {[
+            { label: 'Heading Font', list: filteredHeadingFonts, active: currentHeading, search: headingSearch, onSearch: setHeadingSearch, onSelect: (f: string) => onChange(f, currentBody), fontType: 'serif' },
+            { label: 'Body Font', list: filteredBodyFonts, active: currentBody, search: bodySearch, onSearch: setBodySearch, onSelect: (f: string) => onChange(currentHeading, f), fontType: 'sans-serif' },
+          ].map(({ label, list, active, search, onSearch, onSelect, fontType }) => (
+            <div key={label}>
+              <div style={{
+                fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.12em',
+                textTransform: 'uppercase', color: '#71717A', marginBottom: '6px',
+              }}>
+                {label}
+              </div>
+              <input
+                type="text"
+                placeholder={`Search ${label.toLowerCase()}s...`}
+                value={search}
+                onChange={e => onSearch(e.target.value)}
                 style={{
-                  fontFamily: `'${pair.heading}', serif`,
-                  fontSize: '1.1rem',
-                  fontWeight: pair.headingWeight,
-                  fontStyle: pair.headingStyle ?? 'normal',
-                  color: '#FFFFFF',
-                  lineHeight: 1.2,
-                  display: 'block',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {pair.preview}
-              </span>
-
-              {/* Heading font name */}
-              <span
-                style={{
-                  fontFamily: `'${pair.heading}', serif`,
-                  fontSize: '0.78rem',
-                  fontWeight: pair.headingWeight,
-                  fontStyle: pair.headingStyle ?? 'normal',
-                  color: 'rgba(255,255,255,0.55)',
-                  letterSpacing: '0.01em',
-                  display: 'block',
-                }}
-              >
-                {pair.heading}
-              </span>
-
-              {/* Divider */}
-              <span
-                style={{
-                  display: 'block',
-                  height: '1px',
-                  background: 'rgba(255,255,255,0.08)',
+                  width: '100%', padding: '7px 10px', borderRadius: 'var(--pl-radius-md)',
+                  border: '1px solid #E4E4E7', background: '#FAFAFA',
+                  color: '#18181B', fontSize: '0.78rem', outline: 'none',
+                  boxSizing: 'border-box', marginBottom: '6px', fontFamily: 'inherit',
                 }}
               />
-
-              {/* Body font name */}
-              <span
-                style={{
-                  fontFamily: `'${pair.body}', sans-serif`,
-                  fontSize: '0.78rem',
-                  fontWeight: pair.bodyWeight,
-                  color: 'rgba(255,255,255,0.5)',
-                  letterSpacing: '0.01em',
-                  display: 'block',
-                }}
-              >
-                {pair.body}
-              </span>
-
-              {/* Category + mood badges */}
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '4px',
-                  flexWrap: 'wrap',
-                  marginTop: '2px',
-                }}
-              >
-                <span style={badgeStyle('#A3B18A', '#1E1B16')}>
-                  {CATEGORY_LABELS[pair.category]}
-                </span>
-                <span style={badgeStyle('rgba(255,255,255,0.08)', 'rgba(255,255,255,0.5)')}>
-                  {pair.mood}
-                </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', maxHeight: '180px', overflowY: 'auto' }}>
+                {list.map(font => {
+                  const isActive = font === active;
+                  return (
+                    <button
+                      key={font}
+                      data-font-name={font}
+                      ref={(el) => {
+                        if (el) cardRefs.current.set(`${label}-${font}`, el);
+                        else cardRefs.current.delete(`${label}-${font}`);
+                      }}
+                      onClick={() => onSelect(font)}
+                      style={{
+                        all: 'unset', display: 'flex', alignItems: 'center',
+                        justifyContent: 'space-between', padding: '8px 10px',
+                        borderRadius: '7px', cursor: 'pointer',
+                        background: isActive ? 'rgba(163,177,138,0.12)' : 'transparent',
+                        border: isActive ? '1px solid var(--pl-olive)' : '1px solid transparent',
+                        transition: 'all 0.1s', width: '100%', boxSizing: 'border-box',
+                      }}
+                    >
+                      <span style={{
+                        fontFamily: `'${font}', ${fontType}`,
+                        fontSize: '0.95rem', fontWeight: isActive ? 600 : 400,
+                        color: isActive ? '#18181B' : '#3F3F46',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
+                      }}>
+                        {font}
+                      </span>
+                      {isActive && (
+                        <div style={{
+                          width: '16px', height: '16px', borderRadius: '50%',
+                          background: 'var(--pl-olive)', display: 'flex',
+                          alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                        }}>
+                          <Check size={8} color="#fff" strokeWidth={3} />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
-            </motion.button>
-          );
-        })}
-      </div>
-
-      {/* Footer: current selection summary */}
-      <div
-        style={{
-          padding: '12px 20px',
-          borderTop: '1px solid rgba(255,255,255,0.08)',
-          flexShrink: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '2px',
-        }}
-      >
-        <span
-          style={{
-            fontSize: '0.65rem',
-            textTransform: 'uppercase',
-            letterSpacing: '0.12em',
-            color: 'rgba(255,255,255,0.3)',
-          }}
-        >
-          Current Pairing
-        </span>
-        <span
-          style={{
-            fontSize: '0.8rem',
-            color: 'rgba(255,255,255,0.7)',
-          }}
-        >
-          <span
-            style={{
-              fontFamily: `'${currentHeading}', serif`,
-              color: '#FFFFFF',
-            }}
-          >
-            {currentHeading}
-          </span>
-          {' '}
-          <span style={{ color: 'rgba(255,255,255,0.3)' }}>+</span>
-          {' '}
-          <span
-            style={{
-              fontFamily: `'${currentBody}', sans-serif`,
-              color: 'rgba(255,255,255,0.6)',
-            }}
-          >
-            {currentBody}
-          </span>
-        </span>
-      </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
-}
-
-// ── Style helpers ────────────────────────────────────────────
-
-function pillStyle(active: boolean): React.CSSProperties {
-  return {
-    all: 'unset',
-    display: 'inline-flex',
-    alignItems: 'center',
-    padding: '5px 12px',
-    borderRadius: '100px',
-    fontSize: '0.72rem',
-    fontWeight: active ? 600 : 400,
-    letterSpacing: '0.03em',
-    whiteSpace: 'nowrap',
-    cursor: 'pointer',
-    background: active ? 'transparent' : 'rgba(255,255,255,0.07)',
-    color: active ? '#1E1B16' : 'rgba(255,255,255,0.6)',
-    border: active ? '1px solid transparent' : '1px solid rgba(255,255,255,0.1)',
-    transition: 'color 0.15s ease',
-    flexShrink: 0,
-    zIndex: 0,
-  };
-}
-
-function badgeStyle(bg: string, color: string): React.CSSProperties {
-  return {
-    display: 'inline-flex',
-    alignItems: 'center',
-    padding: '2px 6px',
-    borderRadius: '4px',
-    fontSize: '0.6rem',
-    fontWeight: 500,
-    letterSpacing: '0.04em',
-    background: bg,
-    color,
-    lineHeight: 1.5,
-  };
 }

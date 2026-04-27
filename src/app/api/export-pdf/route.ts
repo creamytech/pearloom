@@ -9,6 +9,7 @@ import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import type { StoryManifest } from '@/types';
 import { parseLocalDate } from '@/lib/date';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -298,12 +299,19 @@ function buildHtml(manifest: StoryManifest, siteId: string): string {
 
   <!-- Cover -->
   <div class="cover">
+    ${(manifest as any).coverPhoto ? `<img src="${escapeHtml((manifest as any).coverPhoto)}" alt="Cover" style="max-width:60%;max-height:10cm;border-radius:8px;margin-bottom:2rem;object-fit:cover;" />` : ''}
     <div class="cover-eyebrow">A Love Story</div>
     <h1 class="cover-title">${escapeHtml(title)}</h1>
     <div class="cover-accent">♡</div>
     <p class="cover-subtitle">
       ${chapters.length} chapter${chapters.length !== 1 ? 's' : ''} &nbsp;·&nbsp; ${escapeHtml(formatDate(new Date().toISOString()))}
     </p>
+    ${((manifest as any).heroSlideshow || []).filter(Boolean).length > 0 ? `
+    <div class="chapter-images" style="margin-top:1.5cm;justify-content:center;">
+      ${((manifest as any).heroSlideshow as string[]).filter(Boolean).slice(0, 4).map((u: string) =>
+        `<img src="${escapeHtml(u)}" alt="" style="max-width:40%;max-height:6cm;border-radius:4px;object-fit:cover;" />`
+      ).join('')}
+    </div>` : ''}
   </div>
 
   <!-- Chapters -->
@@ -328,6 +336,12 @@ function buildHtml(manifest: StoryManifest, siteId: string): string {
 }
 
 export async function GET(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`export-pdf:${ip}`, { max: 20, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return new Response('Too many requests', { status: 429 });
+  }
+
   try {
     const siteId = req.nextUrl.searchParams.get('siteId');
     if (!siteId) {

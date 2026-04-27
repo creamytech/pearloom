@@ -39,15 +39,40 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
   const [dragOver, setDragOver] = useState(false);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
   const [uploadName, setUploadName] = useState('');
+  const [showSwipeHint, setShowSwipeHint] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Show the "swipe to navigate" gesture hint once per client,
+  // on touch devices only. Auto-dismisses after 2.6s or on first drag.
+  useEffect(() => {
+    if (lightboxIdx === null) return;
+    if (typeof window === 'undefined') return;
+    const isTouch = window.matchMedia('(pointer: coarse)').matches;
+    if (!isTouch) return;
+    try {
+      if (localStorage.getItem('pl:swipe-hint-seen') === '1') return;
+    } catch {
+      /* private mode — show once per session instead */
+    }
+    setShowSwipeHint(true);
+    const t = setTimeout(() => {
+      setShowSwipeHint(false);
+      try {
+        localStorage.setItem('pl:swipe-hint-seen', '1');
+      } catch {
+        /* ignore */
+      }
+    }, 2600);
+    return () => clearTimeout(t);
+  }, [lightboxIdx]);
 
   const fetchPhotos = useCallback(async () => {
     try {
       const res = await fetch(`/api/gallery?siteId=${encodeURIComponent(siteId)}`);
       const data = await res.json();
       setPhotos(data.photos || []);
-    } catch {
-      console.error('Failed to fetch gallery');
+    } catch (err) {
+      console.error('[PhotoGallery] Failed to fetch gallery:', err);
     } finally {
       setLoading(false);
     }
@@ -106,7 +131,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
 
       {/* ── Name input ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-        <Camera size={16} color="var(--eg-muted)" />
+        <Camera size={16} color="var(--pl-muted)" />
         <input
           type="text"
           value={uploadName}
@@ -117,11 +142,11 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
             border: '1.5px solid rgba(0,0,0,0.08)',
             fontSize: 'max(16px, 0.9rem)',
             background: '#fff', outline: 'none',
-            fontFamily: 'var(--eg-font-body)',
-            color: 'var(--eg-fg)',
-            transition: 'border-color 0.2s',
+            fontFamily: 'var(--pl-font-body)',
+            color: 'var(--pl-ink)',
+            transition: 'border-color var(--pl-dur-fast)',
           }}
-          onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; }}
+          onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--pl-olive)'; }}
           onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'; }}
         />
       </div>
@@ -133,7 +158,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
         onDrop={onDrop}
         onClick={() => fileInputRef.current?.click()}
         style={{
-          border: `2px dashed ${dragOver ? 'var(--eg-accent)' : 'rgba(0,0,0,0.1)'}`,
+          border: `2px dashed ${dragOver ? 'var(--pl-olive)' : 'rgba(0,0,0,0.1)'}`,
           borderRadius: '1.25rem',
           padding: '2.5rem',
           textAlign: 'center',
@@ -156,7 +181,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
           {uploading ? (
             <Loader2
               size={32}
-              color="var(--eg-accent)"
+              color="var(--pl-olive)"
               style={{ animation: 'spin 1s linear infinite' }}
             />
           ) : (
@@ -165,18 +190,18 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
                 width: '52px', height: '52px', borderRadius: '50%',
                 background: dragOver ? 'rgba(163,177,138,0.15)' : 'rgba(0,0,0,0.04)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'background 0.25s',
+                transition: 'background var(--pl-dur-base)',
                 animation: dragOver ? 'pulse-zone 1s ease-in-out infinite' : 'none',
               }}
             >
-              <Upload size={22} color={dragOver ? 'var(--eg-accent)' : 'var(--eg-muted)'} />
+              <Upload size={22} color={dragOver ? 'var(--pl-olive)' : 'var(--pl-muted)'} />
             </div>
           )}
           <div>
-            <p style={{ fontSize: '0.95rem', fontWeight: 500, color: 'var(--eg-fg)' }}>
+            <p style={{ fontSize: '0.95rem', fontWeight: 500, color: 'var(--pl-ink)' }}>
               {uploading ? 'Uploading...' : dragOver ? 'Drop to upload' : 'Drop photos here or tap to upload'}
             </p>
-            <p style={{ fontSize: '0.8rem', color: 'var(--eg-muted)', marginTop: '0.25rem' }}>
+            <p style={{ fontSize: '0.8rem', color: 'var(--pl-muted)', marginTop: '0.25rem' }}>
               JPG, PNG, WebP &middot; Max 10MB each
             </p>
           </div>
@@ -194,7 +219,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
       ) : photos.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem 0' }}>
           <Upload size={48} color="rgba(0,0,0,0.12)" style={{ margin: '0 auto 1rem' }} />
-          <p style={{ color: 'var(--eg-muted)', fontSize: '0.925rem' }}>
+          <p style={{ color: 'var(--pl-muted)', fontSize: '0.925rem' }}>
             No photos yet — be the first to share a moment.
           </p>
         </div>
@@ -205,7 +230,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
             columns: '3 200px',
             gap: '0.75rem',
           }}
-          className="photo-masonry"
+          className="photo-masonry pl-scroll-fade-up"
         >
           {photos.map((photo, idx) => (
             <motion.div
@@ -257,11 +282,11 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
                   transition={{ duration: 0.2, delay: 0.05 }}
                 >
                   {photo.uploadedBy && (
-                    <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.78rem', fontWeight: 600 }}>
+                    <p style={{ color: 'var(--pl-ink)', fontSize: '0.78rem', fontWeight: 600 }}>
                       {photo.uploadedBy}
                     </p>
                   )}
-                  <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.68rem', marginTop: '0.15rem' }}>
+                  <p style={{ color: 'var(--pl-ink-soft)', fontSize: '0.68rem', marginTop: '0.15rem' }}>
                     {new Date(photo.uploadedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </p>
                 </motion.div>
@@ -281,7 +306,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
             transition={{ duration: 0.2 }}
             onClick={() => setLightboxIdx(null)}
             style={{
-              position: 'fixed', inset: 0, zIndex: 100,
+              position: 'fixed', inset: 0, zIndex: 'var(--z-sticky)',
               background: 'rgba(0,0,0,0.92)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               padding: '1.5rem',
@@ -292,13 +317,13 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
               onClick={(e) => { e.stopPropagation(); setLightboxIdx(null); }}
               style={{
                 position: 'absolute', top: '1rem', right: '1rem',
-                padding: '0.5rem', background: 'rgba(255,255,255,0.1)',
+                padding: '0.5rem', background: 'rgba(0,0,0,0.06)',
                 border: 'none', borderRadius: '50%',
-                color: 'rgba(255,255,255,0.8)', cursor: 'pointer', zIndex: 10,
-                display: 'flex', transition: 'background 0.15s',
+                color: 'var(--pl-ink)', cursor: 'pointer', zIndex: 10,
+                display: 'flex', transition: 'background var(--pl-dur-instant)',
               }}
-              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; }}
-              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; }}
             >
               <X size={20} />
             </button>
@@ -309,13 +334,13 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
                 onClick={(e) => { e.stopPropagation(); prevPhoto(); }}
                 style={{
                   position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)',
-                  padding: '0.75rem', background: 'rgba(255,255,255,0.1)',
+                  padding: '0.75rem', background: 'rgba(0,0,0,0.06)',
                   border: 'none', borderRadius: '50%',
-                  color: 'rgba(255,255,255,0.8)', cursor: 'pointer', zIndex: 10,
-                  display: 'flex', transition: 'background 0.15s',
+                  color: 'var(--pl-ink)', cursor: 'pointer', zIndex: 10,
+                  display: 'flex', transition: 'background var(--pl-dur-instant)',
                 }}
-                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; }}
-                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; }}
               >
                 <ChevronLeft size={22} />
               </button>
@@ -327,35 +352,90 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
                 onClick={(e) => { e.stopPropagation(); nextPhoto(); }}
                 style={{
                   position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)',
-                  padding: '0.75rem', background: 'rgba(255,255,255,0.1)',
+                  padding: '0.75rem', background: 'rgba(0,0,0,0.06)',
                   border: 'none', borderRadius: '50%',
-                  color: 'rgba(255,255,255,0.8)', cursor: 'pointer', zIndex: 10,
-                  display: 'flex', transition: 'background 0.15s',
+                  color: 'var(--pl-ink)', cursor: 'pointer', zIndex: 10,
+                  display: 'flex', transition: 'background var(--pl-dur-instant)',
                 }}
-                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; }}
-                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; }}
               >
                 <ChevronRight size={22} />
               </button>
             )}
 
-            {/* Image */}
-            <AnimatePresence mode="wait">
+            {/* Image with swipe gestures */}
+            <AnimatePresence mode="popLayout">
               <motion.img
                 key={lightboxPhoto.id}
                 initial={{ scale: 0.88, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
+                animate={{ scale: 1, opacity: 1, x: 0 }}
                 exit={{ scale: 0.88, opacity: 0 }}
                 transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.15}
+                onDragStart={() => setShowSwipeHint(false)}
+                onDragEnd={(_: unknown, info: { offset: { x: number } }) => {
+                  if (info.offset.x < -80 && lightboxIdx < photos.length - 1) nextPhoto();
+                  else if (info.offset.x > 80 && lightboxIdx > 0) prevPhoto();
+                }}
                 src={lightboxPhoto.url}
                 alt={lightboxPhoto.caption || ''}
                 style={{
                   maxWidth: '100%', maxHeight: '85vh',
                   objectFit: 'contain', borderRadius: '0.75rem',
                   boxShadow: '0 40px 80px rgba(0,0,0,0.6)',
+                  touchAction: 'pan-y',
                 }}
                 onClick={(e) => e.stopPropagation()}
               />
+            </AnimatePresence>
+
+            {/* Swipe gesture hint — first-visit, touch only */}
+            <AnimatePresence>
+              {showSwipeHint && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.35 }}
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    padding: '10px 18px',
+                    background: 'rgba(0,0,0,0.55)',
+                    backdropFilter: 'blur(8px)',
+                    borderRadius: 'var(--pl-radius-full)',
+                    color: '#FDFAF0',
+                    fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                    fontSize: '0.66rem',
+                    letterSpacing: '0.24em',
+                    textTransform: 'uppercase',
+                    pointerEvents: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    zIndex: 20,
+                  }}
+                >
+                  <motion.span
+                    animate={{ x: [-6, 6, -6] }}
+                    transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
+                  >
+                    ←
+                  </motion.span>
+                  Swipe to browse
+                  <motion.span
+                    animate={{ x: [6, -6, 6] }}
+                    transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
+                  >
+                    →
+                  </motion.span>
+                </motion.div>
+              )}
             </AnimatePresence>
 
             {/* Caption row */}
@@ -367,11 +447,11 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
               }}
             >
               {lightboxPhoto.uploadedBy && (
-                <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.82rem' }}>
+                <p style={{ color: 'var(--pl-ink)', fontSize: '0.82rem' }}>
                   {lightboxPhoto.uploadedBy}
                 </p>
               )}
-              <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.72rem' }}>
+              <p style={{ color: 'var(--pl-muted)', fontSize: '0.72rem' }}>
                 {lightboxIdx + 1} / {photos.length}
               </p>
             </div>
@@ -384,9 +464,6 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
           0% { background-position: -200% 0; }
           100% { background-position: 200% 0; }
         }
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
         }
         @keyframes pulse-zone {
           0%, 100% { transform: scale(1); }

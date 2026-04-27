@@ -74,13 +74,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { siteId, manifest } = body as { siteId: string; manifest?: StoryManifest };
+    const { siteId, manifest, ttlHours } = body as {
+      siteId: string;
+      manifest?: StoryManifest;
+      ttlHours?: number;
+    };
     if (!siteId) {
       return NextResponse.json({ error: 'Missing siteId' }, { status: 400 });
     }
 
+    // Cap TTL between 1 hour and 14 days; default 7 days.
+    const hours =
+      typeof ttlHours === 'number' && ttlHours > 0
+        ? Math.min(Math.max(ttlHours, 1), 14 * 24)
+        : 7 * 24;
     const token = generateToken();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000);
 
     const supabase = getSupabase();
     let usedSupabase = false;

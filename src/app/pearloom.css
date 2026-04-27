@@ -1,0 +1,1722 @@
+/* ═══════════════════════════════════════════════════════════════
+   PEARLOOM — HANDOFF DESIGN SYSTEM (v8, warm sage + cream)
+   Ported from pearloom-home-page/project/shared/pearloom.css.
+   Namespaced by class (.pl8-*) where possible; :root tokens use the
+   handoff names (--cream, --ink, --sage, --peach, --lavender, --gold)
+   which do NOT clash with the existing --pl-* namespace.
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,400;1,9..144,500;1,9..144,600;1,9..144,700&family=Caveat:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Paper & ink — aligned to v8 palette (CLAUDE-DESIGN.md §2.1).
+     Pl8 originally shipped olive-tinted ink (#3D4A1F); v8 canon
+     is near-black (#0E0D0B) so olive is reserved for the brand
+     voice, not body text. Aligning these here unifies every
+     pl8-namespaced dashboard panel with the v8 dashboards
+     without rewriting JSX. */
+  --cream:       #F5EFE2;
+  --cream-2:     #FBF7EE;
+  --cream-3:     #EBE3D2;
+  --ink:         #0E0D0B;
+  --ink-soft:    #3A332C;
+  --ink-2:       #6F6557;
+  --ink-muted:   #6F6557;
+
+  /* Brand */
+  --sage:        #8B9C5A;
+  --sage-2:      #A8BA72;
+  --sage-deep:   #6d7d3f;
+  --sage-bg:     #CBD29E;
+  --sage-tint:   #E3E6C8;
+
+  --lavender:    #C4B5D9;
+  --lavender-2:  #B7A4D0;
+  --lavender-3:  #D7CCE5;
+  --lavender-bg: #E8E0F0;
+  --lavender-ink:#6B5A8C;
+
+  --peach:       #F0C9A8;
+  --peach-2:     #EAB286;
+  --peach-3:     #F7DDC2;
+  --peach-bg:    #FBE8D6;
+  --peach-ink:   #C6703D;
+
+  --gold:        #B89244;
+  --gold-line:   #D4A95D;
+  --heart:       #E8A07A;
+
+  /* Surfaces — v8 cream family. The cool white #FFFEF7 was the
+     original pl8 card; replaced with the warm cream-card so
+     pl8 panels match v8 panels side by side. */
+  --paper:       #F5EFE2;
+  --card:        #FBF7EE;
+  --card-ring:   rgba(14, 13, 11, 0.08);
+  --line:        rgba(14, 13, 11, 0.14);
+  --line-soft:   rgba(14, 13, 11, 0.06);
+
+  /* Shadow */
+  --shadow-sm:  0 2px 6px rgba(61, 74, 31, 0.05);
+  --shadow:     0 6px 18px rgba(61, 74, 31, 0.08);
+  --shadow-md:  0 12px 32px rgba(61, 74, 31, 0.10);
+  --shadow-lg:  0 24px 56px rgba(61, 74, 31, 0.14);
+
+  /* Radii */
+  --r-xs: 8px;
+  --r-sm: 10px;
+  --r:    14px;
+  --r-md: 20px;
+  --r-lg: 28px;
+  --r-xl: 36px;
+
+  /* Type */
+  --font-display: 'Fraunces', 'Times New Roman', serif;
+  --font-script:  'Caveat', cursive;
+  --font-ui:      'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Layout */
+  --maxw: 1280px;
+  --nav-h: 76px;
+  --sidebar-w: 260px;
+}
+
+/* ── Pearloom v8 page shell ── */
+.pl8 {
+  font-family: var(--font-ui);
+  color: var(--ink);
+  background: var(--cream);
+  -webkit-font-smoothing: antialiased;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.pl8 *, .pl8 *::before, .pl8 *::after { box-sizing: border-box; }
+.pl8 a { color: inherit; text-decoration: none; }
+.pl8 img { max-width: 100%; display: block; }
+
+/* Typography */
+.pl8 .display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+  color: var(--ink);
+}
+.pl8 .display-italic {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--lavender-ink);
+  letter-spacing: -0.01em;
+}
+.pl8 .script {
+  font-family: var(--font-script);
+  font-weight: 500;
+  color: var(--ink);
+}
+.pl8 .eyebrow {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.pl8 .muted { color: var(--ink-muted); }
+.pl8 .ink-soft { color: var(--ink-soft); }
+.pl8 .peach-ink { color: var(--peach-ink); }
+.pl8 .lav-ink { color: var(--lavender-ink); }
+
+/* Buttons */
+.pl8 .btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 12px 20px; border-radius: 999px;
+  font-family: var(--font-ui); font-weight: 600; font-size: 14px;
+  transition:
+    transform 280ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 280ms cubic-bezier(0.16, 1, 0.3, 1),
+    background 200ms ease,
+    color 200ms ease,
+    border-color 200ms ease;
+  white-space: nowrap;
+  will-change: transform;
+  cursor: pointer;
+  border: 0;
+}
+.pl8 .btn:hover { transform: translate3d(0, -1.5px, 0); }
+.pl8 .btn:active { transform: translate3d(0, 0, 0) scale(0.98); transition-duration: 120ms; }
+.pl8 .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+.pl8 .btn-primary {
+  background: var(--ink); color: var(--cream);
+  box-shadow: 0 4px 0 rgba(0,0,0,0.06);
+}
+.pl8 .btn-primary:hover { background: #2f3a15; }
+.pl8 .btn-outline {
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  color: var(--ink);
+}
+.pl8 .btn-outline:hover { background: var(--cream-2); border-color: var(--ink-soft); }
+.pl8 .btn-ghost { color: var(--ink); background: transparent; }
+.pl8 .btn-ghost:hover { background: var(--cream-2); }
+.pl8 .btn-cream { background: var(--cream); color: var(--ink); }
+.pl8 .btn-cream:hover { background: var(--cream-2); }
+.pl8 .btn-lg { padding: 16px 28px; font-size: 15px; }
+.pl8 .btn-sm { padding: 8px 14px; font-size: 13px; }
+
+/* Cards */
+.pl8 .card {
+  background: var(--card);
+  border: 1px solid var(--card-ring);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
+}
+.pl8 .card-pad { padding: 22px; }
+.pl8 .card-pad-lg { padding: 28px; }
+
+/* Pills */
+.pl8 .pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 999px;
+  font-size: 12.5px; font-weight: 500;
+  background: var(--card); border: 1px solid var(--line);
+  color: var(--ink-soft);
+}
+.pl8 .pill-sage { background: var(--sage-tint); color: var(--sage-deep); border-color: transparent; }
+.pl8 .pill-lav, .pl8 .pill-lavender { background: var(--lavender-bg); color: var(--lavender-ink); border-color: transparent; }
+.pl8 .pill-peach { background: var(--peach-bg); color: var(--peach-ink); border-color: transparent; }
+.pl8 .pill-cream { background: var(--cream-2); color: var(--ink-soft); border-color: transparent; }
+.pl8 .pill-filled { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+
+/* Chips */
+.pl8 .chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px; border-radius: 999px;
+  font-size: 13.5px; font-weight: 500;
+  background: var(--card); border: 1px solid var(--line);
+  color: var(--ink);
+  transition: all 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+.pl8 .chip:hover { background: var(--cream-2); transform: translate3d(0, -1px, 0); }
+.pl8 .chip:active { transform: translate3d(0, 0, 0) scale(0.98); transition-duration: 120ms; }
+.pl8 .chip-on { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+.pl8 .chip-sage { background: var(--sage-tint); color: var(--sage-deep); border-color: transparent; }
+.pl8 .chip-lavender { background: var(--lavender-bg); color: var(--lavender-ink); border-color: transparent; }
+.pl8 .chip-peach { background: var(--peach-bg); color: var(--peach-ink); border-color: transparent; }
+.pl8 .chip-cream { background: var(--cream-2); color: var(--ink-soft); border-color: transparent; }
+
+/* Polaroids + tape */
+.pl8 .polaroid {
+  background: #fff;
+  padding: 10px 10px 42px;
+  box-shadow: 0 6px 22px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.06);
+  position: relative;
+}
+.pl8 .polaroid img { width: 100%; display: block; background: #e8e4d5; }
+.pl8 .polaroid-caption {
+  position: absolute; bottom: 8px; left: 0; right: 0;
+  text-align: center; font-family: var(--font-script);
+  font-size: 20px; color: var(--ink-soft);
+}
+.pl8 .tape {
+  position: absolute;
+  width: 70px; height: 22px;
+  background: rgba(234, 178, 134, 0.55);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  top: -10px; left: 50%; transform: translateX(-50%) rotate(-3deg);
+}
+
+/* Atmosphere */
+.pl8 .atmosphere {
+  position: absolute; inset: 0;
+  pointer-events: none; overflow: hidden; z-index: 0;
+}
+.pl8 .atmosphere > * { position: absolute; }
+
+/* Top nav — sticky, scroll-aware, with sliding underline indicator. */
+.pl8 .topnav {
+  position: sticky; top: 0; z-index: 40;
+  background: rgba(248, 241, 228, 0.78);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border-bottom: 1px solid transparent;
+  transition:
+    padding 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    background 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    backdrop-filter 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 380ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pl8 .topnav.topnav-scrolled {
+  background: rgba(248, 241, 228, 0.94);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border-bottom-color: var(--line-soft);
+  box-shadow: 0 8px 24px -16px rgba(14, 13, 11, 0.18);
+}
+.pl8 .topnav-inner {
+  max-width: var(--maxw); margin: 0 auto;
+  padding: 18px 32px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 24px;
+  transition: padding 380ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pl8 .topnav.topnav-scrolled .topnav-inner {
+  padding-top: 11px;
+  padding-bottom: 11px;
+}
+.pl8 .logo {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 24px; color: var(--ink);
+}
+.pl8 .logo-glyph { width: 34px; height: 34px; flex: 0 0 34px; }
+
+.pl8-topnav-logo {
+  transition: transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+.pl8-topnav-logo:hover { transform: rotate(-2deg) translateY(-1px); }
+.pl8-topnav-logo:active { transform: scale(0.97); transition-duration: 120ms; }
+
+.pl8 .nav-links {
+  display: flex; align-items: center; gap: 4px;
+  position: relative;
+}
+.pl8 .nav-links a {
+  padding: 10px 14px; border-radius: 999px;
+  font-size: 14px; font-weight: 500;
+  color: var(--ink); opacity: .72;
+  display: inline-flex; align-items: center; gap: 4px;
+  position: relative; z-index: 1;
+  transition: opacity 220ms cubic-bezier(0.22, 1, 0.36, 1), color 220ms ease;
+}
+.pl8 .nav-links a:hover,
+.pl8 .nav-links a:focus-visible { opacity: 1; outline: none; }
+.pl8 .nav-links a.active { opacity: 1; }
+
+/* Sliding underline that follows hover/active across nav links. */
+.pl8 .pl8-nav-underline {
+  height: 2px;
+  background: linear-gradient(90deg, var(--peach-ink, #C6703D) 0%, var(--gold, #D4A95D) 100%);
+  border-radius: 2px;
+  transform-origin: center;
+  transition:
+    left 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 220ms ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Burger button micro-bounce */
+.pl8-burger { transition: transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1), background 200ms ease; }
+.pl8-burger:hover { transform: scale(1.05); background: var(--cream-2); }
+.pl8-burger:active { transform: scale(0.94); transition-duration: 120ms; }
+
+/* ── Scroll progress bar pinned to the bottom edge of the topnav. ── */
+.pl8-scroll-progress {
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 2px;
+  pointer-events: none;
+  background: transparent;
+}
+.pl8-scroll-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg,
+    var(--peach-ink, #C6703D) 0%,
+    var(--gold, #D4A95D) 55%,
+    var(--peach-ink, #C6703D) 100%);
+  background-size: 200% 100%;
+  border-top-right-radius: 2px;
+  border-bottom-right-radius: 2px;
+  box-shadow: 0 0 8px rgba(198, 112, 61, 0.45);
+  animation: pl8-progress-shimmer 2.6s linear infinite;
+  transition: width 140ms linear;
+}
+@keyframes pl8-progress-shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+@keyframes pl8-skeleton-shimmer {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-scroll-progress-bar { animation: none; }
+  *[style*="pl8-skeleton-shimmer"] { animation: none !important; }
+}
+
+/* Footer bar */
+.pl8 .footbar {
+  background: var(--ink);
+  color: var(--cream);
+  position: relative;
+  overflow: hidden;
+}
+.pl8 .footbar-inner {
+  max-width: var(--maxw); margin: 0 auto;
+  padding: 28px 40px;
+  display: flex; align-items: center; gap: 28px;
+  flex-wrap: wrap;
+}
+
+/* Layout helpers */
+.pl8 .container { max-width: var(--maxw); margin: 0 auto; padding: 0 32px; }
+.pl8 .row { display: flex; gap: 16px; align-items: center; }
+.pl8 .col { display: flex; flex-direction: column; }
+.pl8 .stack { display: flex; flex-direction: column; gap: 16px; }
+.pl8 .grow { flex: 1; }
+
+/* Inputs */
+.pl8 .field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 6px;
+}
+.pl8 .input,
+.pl8 .textarea {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r);
+  color: var(--ink);
+  font-size: 14.5px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 200ms ease, box-shadow 200ms ease, background 200ms ease;
+}
+.pl8 .input::placeholder,
+.pl8 .textarea::placeholder { color: var(--ink-muted); }
+.pl8 .input:focus,
+.pl8 .textarea:focus {
+  /* Theme-aware focus ring. Defaults to sage on un-themed sites.
+     SiteV8Renderer's themeStyle sets --focus-ring-color +
+     --focus-ring-glow when a theme is applied so the focus state
+     matches the chosen accent. */
+  border-color: var(--focus-ring-color, var(--sage-deep));
+  box-shadow: 0 0 0 4px var(--focus-ring-glow, rgba(139,156,90,0.18));
+  background: var(--card);
+}
+.pl8 .textarea { min-height: 96px; resize: vertical; }
+
+/* Animations */
+@keyframes pearloom-float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(0, calc(-1 * var(--float-a, 6px)), 0); }
+}
+@keyframes pearloom-spin { to { transform: rotate(360deg); } }
+@keyframes pearloom-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  33%      { transform: translate3d(6px, -4px, 0) rotate(1.5deg); }
+  66%      { transform: translate3d(-4px, 6px, 0) rotate(-1deg); }
+}
+@keyframes pearloom-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+@keyframes pearloom-pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(0.9); }
+}
+@keyframes pearloom-bob {
+  0%, 100% { transform: translate3d(0,0,0) rotate(-2deg); }
+  50%      { transform: translate3d(0,-3px,0) rotate(2deg); }
+}
+@keyframes pearloom-reveal {
+  from { opacity: 0; transform: translate3d(var(--rx, 0px), var(--ry, 14px), 0) scale(var(--rs, 1)); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+.pl8 .float      { animation: pearloom-float 6s ease-in-out infinite; }
+.pl8 .drift      { animation: pearloom-drift 18s ease-in-out infinite; }
+.pl8 .pulse-dot  { animation: pearloom-pulse-dot 1.6s ease-in-out infinite; }
+.pl8 .bob        { animation: pearloom-bob 4s ease-in-out infinite; }
+
+.pl8 .lift {
+  transition:
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 240ms ease;
+  will-change: transform;
+}
+.pl8 .lift:hover {
+  transform: translate3d(0, -5px, 0);
+  box-shadow: 0 24px 50px -28px rgba(14, 13, 11, 0.32), var(--shadow-md);
+  border-color: var(--peach-2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8 .lift:hover { transform: none; box-shadow: var(--shadow-sm); }
+}
+
+.pl8 ::selection { background: var(--peach); color: var(--ink); }
+
+/* Util */
+.pl8 .rot-n3 { transform: rotate(-3deg); }
+.pl8 .rot-n2 { transform: rotate(-2deg); }
+.pl8 .rot-2  { transform: rotate(2deg); }
+.pl8 .rot-3  { transform: rotate(3deg); }
+.pl8 .rot-5  { transform: rotate(5deg); }
+.pl8 .rot-8  { transform: rotate(-8deg); }
+.pl8 .rot-12 { transform: rotate(12deg); }
+.pl8 .heart { color: var(--heart); }
+.pl8 .spark { color: var(--gold); }
+.pl8 hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 0; }
+.pl8 .prose { max-width: 64ch; }
+.pl8 .prose p { margin: 0 0 14px; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .pl8 *, .pl8 *::before, .pl8 *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Published guest site — full-bleed, no pl8 chrome needed ── */
+.pl8-guest { background: var(--paper); color: var(--ink); font-family: var(--font-ui); }
+.pl8-guest *, .pl8-guest *::before, .pl8-guest *::after { box-sizing: border-box; }
+.pl8-guest img, .pl8-guest svg { max-width: 100%; }
+.pl8-guest a { color: inherit; text-decoration: none; }
+.pl8-guest button { cursor: pointer; }
+.pl8-guest .display { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.02em; line-height: 1.02; color: var(--ink); }
+.pl8-guest .display-italic { font-family: var(--font-display); font-style: italic; font-weight: 500; letter-spacing: -0.01em; }
+.pl8-guest .btn, .pl8-guest .chip, .pl8-guest .pill, .pl8-guest .card { all: revert; }
+.pl8-guest .btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 12px 20px; border-radius: 999px;
+  font-family: var(--font-ui); font-weight: 600; font-size: 14px;
+  transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1), background 200ms ease, border-color 200ms ease;
+  white-space: nowrap; cursor: pointer; border: 0;
+}
+.pl8-guest .btn:hover { transform: translate3d(0, -1.5px, 0); }
+.pl8-guest .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+.pl8-guest .btn-primary {
+  /* Primary CTA reads the theme's accent first (--btn-primary-bg
+     is set by SiteV8Renderer's themeStyle when manifest.theme is
+     applied) and falls back to the editorial olive ink for
+     un-themed default sites. Text color is contrast-aware via
+     --btn-primary-fg, also set per-theme. */
+  background: var(--btn-primary-bg, var(--ink));
+  color: var(--btn-primary-fg, var(--cream));
+}
+.pl8-guest .btn-primary:hover {
+  /* Brightness shift instead of a hardcoded olive — works on every
+     accent colour the user can pick. */
+  filter: brightness(0.92);
+}
+.pl8-guest .btn-outline { background: var(--card); border: 1.5px solid var(--line); color: var(--ink); }
+.pl8-guest .btn-outline:hover { background: var(--cream-2); }
+.pl8-guest .btn-sm { padding: 8px 14px; font-size: 13px; }
+.pl8-guest .chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px; border-radius: 999px;
+  font-size: 13.5px; font-weight: 500;
+  background: var(--card); border: 1px solid var(--line); color: var(--ink);
+}
+.pl8-guest .chip-sage { background: var(--sage-tint); color: var(--sage-deep); border-color: transparent; }
+.pl8-guest .chip-lavender { background: var(--lavender-bg); color: var(--lavender-ink); border-color: transparent; }
+.pl8-guest .chip-peach { background: var(--peach-bg); color: var(--peach-ink); border-color: transparent; }
+.pl8-guest .chip-cream { background: var(--cream-2); color: var(--ink-soft); border-color: transparent; }
+.pl8-guest .chip-gold { background: color-mix(in oklab, var(--gold) 20%, var(--cream)); color: var(--ink); border-color: transparent; }
+.pl8-guest .pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 500; background: var(--card); border: 1px solid var(--line); color: var(--ink-soft); }
+
+.pl8-guest .pl8-cols-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.pl8-guest .pl8-cols-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+
+@media (max-width: 960px) {
+  .pl8-guest .pl8-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .pl8-guest .pl8-cols-2 { grid-template-columns: 1fr !important; }
+  .pl8-guest .pl8-site-nav-links { display: none !important; }
+  .pl8-guest .pl8-timeline-thread { display: none !important; }
+  .pl8-guest .pl8-timeline-row { grid-template-columns: 1fr !important; }
+  .pl8-guest .pl8-timeline-row > div:empty { display: none; }
+  .pl8-guest .pl8-schedule-row { grid-template-columns: 70px 1fr !important; padding: 16px 20px !important; }
+  .pl8-guest .pl8-schedule-row > div:last-child { grid-column: 1 / -1; text-align: left !important; }
+  .pl8-guest .pl8-hero-strip { grid-template-columns: repeat(3, 1fr) !important; }
+  .pl8-guest .pl8-hero-strip > div { margin-top: 0 !important; }
+  .pl8-guest .pl8-hero-strip > div:nth-child(n+4) { display: none; }
+  .pl8-guest .pl8-gallery-grid { grid-template-columns: repeat(2, 1fr) !important; grid-auto-rows: 140px !important; }
+  .pl8-guest .pl8-gallery-grid > div { grid-column: auto !important; grid-row: auto !important; }
+  .pl8-guest .pl8-gallery-header { flex-direction: column !important; align-items: flex-start !important; gap: 14px; }
+  .pl8-guest .pl8-site-footer-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
+  .pl8-guest .pl8-hide-mobile { display: none !important; }
+}
+
+@media (max-width: 640px) {
+  .pl8-guest .pl8-cols-3 { grid-template-columns: 1fr !important; }
+}
+
+/* ── Editor mobile-preview container queries ──────────────────
+   When the canvas device frame switches to phone/tablet, the
+   site's media-query breakpoints don't fire because the *window*
+   is still desktop-wide. Mirror the most-impactful rules as
+   @container queries scoped to the .pl8-canvas-device-frame so
+   they trigger off the device viewport width instead.
+   See CanvasStage.tsx for the container declaration. ── */
+
+@container pl-site (max-width: 960px) {
+  .pl8-guest .pl8-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .pl8-guest .pl8-cols-2 { grid-template-columns: 1fr !important; }
+  .pl8-guest .pl8-site-nav-links { display: none !important; }
+  .pl8-guest .pl8-timeline-thread { display: none !important; }
+  .pl8-guest .pl8-timeline-row { grid-template-columns: 1fr !important; }
+  .pl8-guest .pl8-timeline-row > div:empty { display: none; }
+  .pl8-guest .pl8-schedule-row { grid-template-columns: 70px 1fr !important; padding: 16px 20px !important; }
+  .pl8-guest .pl8-schedule-row > div:last-child { grid-column: 1 / -1; text-align: left !important; }
+  .pl8-guest .pl8-hero-strip { grid-template-columns: repeat(3, 1fr) !important; }
+  .pl8-guest .pl8-hero-strip > div { margin-top: 0 !important; }
+  .pl8-guest .pl8-hero-strip > div:nth-child(n+4) { display: none; }
+  .pl8-guest .pl8-gallery-grid { grid-template-columns: repeat(2, 1fr) !important; grid-auto-rows: 140px !important; }
+  .pl8-guest .pl8-gallery-grid > div { grid-column: auto !important; grid-row: auto !important; }
+  .pl8-guest .pl8-gallery-header { flex-direction: column !important; align-items: flex-start !important; gap: 14px; }
+  .pl8-guest .pl8-site-footer-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
+  .pl8-guest .pl8-hide-mobile { display: none !important; }
+  .pl8-guest .pl8-kickoff { grid-template-columns: 1fr !important; gap: 12px; }
+}
+
+@container pl-site (max-width: 640px) {
+  .pl8-guest .pl8-cols-3 { grid-template-columns: 1fr !important; }
+}
+
+/* =========================================================================
+   RESPONSIVE HELPERS — desktop-first; collapse at 900px / 640px
+   ========================================================================= */
+
+/* Two-col layouts that stack on tablet */
+.pl8-split { display: grid; grid-template-columns: 1fr 1.15fr; gap: 40px; align-items: start; }
+.pl8-split-auth { display: grid; grid-template-columns: 1fr 1.1fr; gap: 80px; align-items: center; }
+.pl8-split-wizard { display: grid; grid-template-columns: 1fr 340px; gap: 28px; align-items: start; }
+.pl8-split-dash { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 22px; }
+
+/* Card grids */
+.pl8-cols-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.pl8-cols-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.pl8-cols-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
+.pl8-cols-5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+
+.pl8-dash-threecol { display: grid; grid-template-columns: 1.1fr 1.1fr 1.2fr; gap: 16px; }
+.pl8-dash-threecol-b { display: grid; grid-template-columns: 1.4fr 1fr 1.2fr; gap: 16px; }
+.pl8-kickoff { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 960px) { .pl8-kickoff { grid-template-columns: 1fr !important; gap: 12px; } }
+
+/* ════════════════════════════════════════════════════════════
+   Dashboard motion system v2 — refined entries, hover lifts,
+   tab swaps, and page transitions. Every named easing here is
+   chosen so the dashboard reads as paper-with-momentum, never
+   as snappy software. Reduced-motion respected throughout.
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Easing tokens (locally scoped for documentation) ──
+   • out-soft    — gentle settle, default for content reveals
+   • out-spring  — micro overshoot, for buttons + chips
+   • in-out-fluid — symmetric, for tab content swaps
+*/
+
+/* ── Stagger reveal ──────────────────────────────────────────
+   Children fade + lift in sequence. The cap at 12 children +
+   max delay 660ms keeps long lists from feeling like they're
+   loading forever. Items past the 12th get the same delay as
+   the 12th — the eye stops noticing precise stagger after that. */
+.pl8-dash-stagger > * {
+  animation: pl8-dash-stagger-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  opacity: 0;
+}
+.pl8-dash-stagger > *:nth-child(1)  { animation-delay:  40ms; }
+.pl8-dash-stagger > *:nth-child(2)  { animation-delay: 100ms; }
+.pl8-dash-stagger > *:nth-child(3)  { animation-delay: 160ms; }
+.pl8-dash-stagger > *:nth-child(4)  { animation-delay: 220ms; }
+.pl8-dash-stagger > *:nth-child(5)  { animation-delay: 280ms; }
+.pl8-dash-stagger > *:nth-child(6)  { animation-delay: 340ms; }
+.pl8-dash-stagger > *:nth-child(7)  { animation-delay: 400ms; }
+.pl8-dash-stagger > *:nth-child(8)  { animation-delay: 460ms; }
+.pl8-dash-stagger > *:nth-child(9)  { animation-delay: 520ms; }
+.pl8-dash-stagger > *:nth-child(10) { animation-delay: 580ms; }
+.pl8-dash-stagger > *:nth-child(11) { animation-delay: 620ms; }
+.pl8-dash-stagger > *:nth-child(n+12) { animation-delay: 660ms; }
+@keyframes pl8-dash-stagger-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+/* ── Card hover lift ─────────────────────────────────────────
+   A card's resting shadow is barely there; on hover, the shadow
+   blooms and the card rises 2px. Subtle but communicates
+   tappability without feeling like a button. */
+.pl8-card-lift,
+.pl8-tile-lift {
+  transition:
+    transform 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 220ms ease;
+  will-change: transform, box-shadow;
+}
+.pl8-card-lift:hover,
+.pl8-tile-lift:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 18px 36px -16px rgba(14, 13, 11, 0.18),
+    0 4px 12px  -6px  rgba(14, 13, 11, 0.10);
+}
+.pl8-card-lift:active,
+.pl8-tile-lift:active {
+  transform: translateY(-1px);
+  transition-duration: 120ms;
+}
+
+/* ── Page enter ──────────────────────────────────────────────
+   Wraps a dashboard route's content. Two layers:
+     1) Wrapper itself fades + slides up (the "page lift").
+     2) Direct children stagger in beneath it so cards appear
+        in sequence rather than all at once.
+   Keyed by pathname in DashShell so it re-fires on every nav. */
+.pl8-dash-page-enter {
+  animation: pl8-dash-page-enter 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pl8-dash-page-enter {
+  from { opacity: 0; transform: translateY(18px); filter: blur(2px); }
+  to   { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+/* Auto-stagger every direct child of the page wrapper so the
+   sequence reads as "the page rises, then the cards arrive."
+   We give each child a delay calculated by nth-child so up to 16
+   children animate distinctly; deeper children inherit the
+   16th delay so very long pages still finish in a reasonable
+   beat. */
+.pl8-dash-page-enter > * {
+  animation: pl8-card-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  opacity: 0;
+}
+.pl8-dash-page-enter > *:nth-child(1)  { animation-delay: 80ms; }
+.pl8-dash-page-enter > *:nth-child(2)  { animation-delay: 160ms; }
+.pl8-dash-page-enter > *:nth-child(3)  { animation-delay: 220ms; }
+.pl8-dash-page-enter > *:nth-child(4)  { animation-delay: 280ms; }
+.pl8-dash-page-enter > *:nth-child(5)  { animation-delay: 330ms; }
+.pl8-dash-page-enter > *:nth-child(6)  { animation-delay: 380ms; }
+.pl8-dash-page-enter > *:nth-child(7)  { animation-delay: 430ms; }
+.pl8-dash-page-enter > *:nth-child(8)  { animation-delay: 480ms; }
+.pl8-dash-page-enter > *:nth-child(9)  { animation-delay: 520ms; }
+.pl8-dash-page-enter > *:nth-child(10) { animation-delay: 560ms; }
+.pl8-dash-page-enter > *:nth-child(11) { animation-delay: 600ms; }
+.pl8-dash-page-enter > *:nth-child(12) { animation-delay: 640ms; }
+.pl8-dash-page-enter > *:nth-child(13) { animation-delay: 680ms; }
+.pl8-dash-page-enter > *:nth-child(14) { animation-delay: 720ms; }
+.pl8-dash-page-enter > *:nth-child(15) { animation-delay: 760ms; }
+.pl8-dash-page-enter > *:nth-child(n+16) { animation-delay: 800ms; }
+@keyframes pl8-card-enter {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+/* ── Tab content crossfade ───────────────────────────────────
+   When a panel's inner content changes (filter pill, sub-tab),
+   pl8-tab-enter applies a quick crossfade rather than a hard
+   replace. */
+.pl8-tab-enter {
+  animation: pl8-tab-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pl8-tab-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Stat number reveal ──────────────────────────────────────
+   For tile values that should "fade up" rather than appear. */
+.pl8-stat-rise {
+  animation: pl8-stat-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pl8-stat-rise {
+  from { opacity: 0; transform: translateY(8px); letter-spacing: 0.04em; }
+  to   { opacity: 1; transform: translateY(0); letter-spacing: 0; }
+}
+
+/* ── Pill / chip pop ─────────────────────────────────────────
+   Tiny spring on hover so chips feel like physical objects. */
+.pl8-chip-pop {
+  transition: transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.pl8-chip-pop:hover { transform: scale(1.04); }
+.pl8-chip-pop:active { transform: scale(0.96); transition-duration: 100ms; }
+
+/* ── Button ripple-ish press ─────────────────────────────────
+   Apply on primary CTAs to add a subtle scale-down on tap. */
+.pl8-btn-press {
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 220ms ease;
+}
+.pl8-btn-press:active { transform: scale(0.97); transition-duration: 80ms; }
+
+/* ── Icon tile breathing ─────────────────────────────────────
+   Empty-state mascot or tile icon gets a slow breath when its
+   parent is hovered, telegraphing interactivity. */
+.pl8-tile-breath { transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1); }
+.pl8-card-lift:hover .pl8-tile-breath { transform: scale(1.06); }
+
+/* ── Skeleton → content crossfade ────────────────────────────
+   When a list mounts content over a previous skeleton row, the
+   new row uses .pl8-content-fade-in to avoid the snap-flicker. */
+.pl8-content-fade-in {
+  animation: pl8-content-fade-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pl8-content-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pl8-dash-stagger > *,
+  .pl8-card-lift, .pl8-tile-lift,
+  .pl8-dash-page-enter, .pl8-dash-page-enter > *,
+  .pl8-tab-enter,
+  .pl8-stat-rise, .pl8-chip-pop,
+  .pl8-btn-press, .pl8-content-fade-in {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    filter: none !important;
+    opacity: 1 !important;
+  }
+}
+
+/* Sidebar custom scrollbar — barely visible but clean. */
+.pl8-dash-sidebar::-webkit-scrollbar { width: 8px; }
+.pl8-dash-sidebar::-webkit-scrollbar-track { background: transparent; }
+.pl8-dash-sidebar::-webkit-scrollbar-thumb {
+  background: var(--line-soft);
+  border-radius: 999px;
+  border: 2px solid var(--cream);
+}
+.pl8-dash-sidebar:hover::-webkit-scrollbar-thumb { background: var(--line); }
+.pl8-dash-sidebar { scrollbar-width: thin; scrollbar-color: var(--line-soft) transparent; }
+
+/* Invite designer + canvas inspector — collapse the right rail
+   into a stacked column on tablet and mobile. The aside has rich
+   per-element controls; on small screens it sits below the canvas
+   instead of next to it. */
+@media (max-width: 960px) {
+  .pl8-invite-layout { grid-template-columns: 1fr !important; }
+  .pl8-invite-inspector { position: static !important; max-height: none !important; }
+}
+
+.pl8-pulse-layout { display: grid; grid-template-columns: 280px 1fr; gap: 28px; align-items: center; }
+@media (max-width: 960px) {
+  .pl8-pulse-layout { grid-template-columns: 1fr !important; }
+}
+.pl8-pulse-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+
+.pl8-footer-strip {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  gap: 22px;
+  align-items: center;
+}
+
+/* Nav-link visibility */
+.pl8-desktop-only { display: inline-flex; }
+.pl8-mobile-only { display: none; }
+button.pl8-mobile-only { display: none !important; }
+
+/* Tablet breakpoint */
+@media (max-width: 960px) {
+  .pl8-split,
+  .pl8-split-auth,
+  .pl8-split-wizard,
+  .pl8-split-dash,
+  .pl8-dash-threecol,
+  .pl8-dash-threecol-b {
+    grid-template-columns: 1fr !important;
+    gap: 22px;
+  }
+  .pl8-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .pl8-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .pl8-cols-5 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .pl8-pulse-layout { grid-template-columns: 1fr !important; gap: 18px; }
+  .pl8-pulse-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 14px; }
+  .pl8-footer-strip {
+    grid-template-columns: 1fr !important;
+    text-align: center;
+    justify-items: center;
+  }
+  .pl8 .nav-links { display: none !important; }
+  .pl8 .topnav-inner { padding: 14px 20px; gap: 12px; flex-wrap: wrap; }
+  .pl8 .container { padding: 0 20px; }
+}
+
+/* Phone breakpoint */
+@media (max-width: 640px) {
+  .pl8-cols-2 { grid-template-columns: 1fr !important; }
+  .pl8-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .pl8-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .pl8-cols-5 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .pl8-pulse-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .pl8-desktop-only { display: none !important; }
+  .pl8-mobile-only { display: inline-flex !important; }
+  button.pl8-mobile-only { display: inline-flex !important; }
+  .pl8 .topnav-inner .btn-outline.btn-sm,
+  .pl8 .topnav-inner .btn-ghost.btn-sm { padding: 6px 10px; font-size: 12px; }
+  .pl8 .logo { font-size: 20px; gap: 6px; }
+  .pl8 .logo-glyph { width: 28px; height: 28px; flex: 0 0 28px; }
+  .pl8 .display, .pl8-guest .display { font-size: clamp(32px, 9vw, 56px) !important; }
+}
+
+/* Container safety net — prevents horizontal scroll from inline
+   overflow. We use `overflow-x: clip` instead of `hidden` because
+   `hidden` forces `overflow-y: auto` per the CSS spec, which turns
+   .pl8 into a scroll container and breaks `position: sticky` on
+   the dashboard sidebar (it sticks to .pl8, not the viewport).
+   `clip` blocks horizontal overflow without creating a scroll
+   context — sidebar sticks to the viewport like it should.
+   Supported in every modern browser since ~2022. */
+.pl8 { overflow-x: clip; }
+.pl8 img, .pl8 svg { max-width: 100%; }
+.pl8 * { min-width: 0; }
+.pl8 .topnav-inner .nav-links a { white-space: nowrap; }
+
+/* Dashboard shell — flex row with a sticky-to-viewport sidebar.
+   The wrapper itself MUST NOT create a scroll context (no overflow
+   set here) so the aside's `position: sticky; top: 0` resolves
+   against the viewport. Long pages scroll the document; the
+   sidebar stays put. */
+.pl8-dashshell { display: flex; min-height: 100vh; background: var(--cream); position: relative; }
+.pl8-dashshell > aside { width: 260px; flex-shrink: 0; }
+.pl8-dashshell > main { flex: 1; min-width: 0; position: relative; }
+
+@media (max-width: 960px) {
+  /* Mobile dashboard — sidebar becomes a real drawer, not a
+     squashed icon strip. Hamburger button (rendered in the
+     DashTopbar) toggles data-drawer-open on the aside, which
+     slides the full sidebar in from the left. */
+  .pl8-dashshell > aside.pl8-dash-sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: min(86vw, 320px) !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    z-index: 90;
+    transform: translateX(-100%);
+    transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: 0 24px 60px rgba(14, 13, 11, 0.36);
+    border-right: 1px solid var(--line-soft);
+  }
+  .pl8-dashshell > aside.pl8-dash-sidebar[data-drawer-open] {
+    transform: translateX(0);
+  }
+  .pl8-dashshell > main {
+    width: 100%;
+  }
+  .pl8-dash-mobile-menu {
+    display: grid !important;
+  }
+  /* Topbar leaves room for the hamburger on the left + the
+     bell on the right and keeps the title editorial-feeling. */
+  .pl8-dashshell > main [data-topbar] {
+    padding-left: 64px !important;
+    padding-right: 64px !important;
+  }
+  .pl8-dashshell > main [data-topbar] h1 {
+    font-size: clamp(22px, 6vw, 30px) !important;
+  }
+  .pl8-dashshell > main [data-welcome-notes] {
+    display: none !important;
+  }
+  .pl8-dashshell > main .card {
+    padding: 16px !important;
+  }
+  /* Stack action grids that were two-up on desktop. */
+  .pl8-dash-threecol,
+  .pl8-dash-threecol-b,
+  .pl8-kickoff,
+  .pd-connections-main,
+  .pd-director-main,
+  .pd-settings-main,
+  .pd-guests-main,
+  .pd-dayof-main {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Wizard-specific adjustments */
+@media (max-width: 960px) {
+  .pl8-wizard-header { flex-wrap: wrap; gap: 8px !important; }
+  .pl8-wizard-progress { order: 3; width: 100% !important; overflow-x: auto; padding: 10px 0 !important; }
+  .pl8-wizard-progress > div > div[data-step-label] { display: none !important; }
+  .pl8-occasion-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .pl8-basics-grid { grid-template-columns: 1fr !important; }
+  .pl8-palette-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .pl8-layout-grid { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 640px) {
+  .pl8-occasion-grid, .pl8-palette-grid { grid-template-columns: 1fr !important; }
+}
+
+/* Sign-in: hide right collage on narrow screens */
+@media (max-width: 960px) {
+  .pl8-signin-collage { display: none !important; }
+  .pl8-signin-root { padding: 80px 22px 40px !important; min-height: auto !important; }
+  .pl8-signin-logo { position: static !important; padding-bottom: 20px; }
+  .pl8-signin-meta { position: static !important; padding-top: 30px; flex-direction: column; gap: 12px !important; }
+}
+
+/* Home hero tweaks on mobile */
+@media (max-width: 960px) {
+  .pl8-hero-right { display: none !important; }
+  .pl8-hero-left { padding-top: 0 !important; }
+  .pl8-hero-left > div { padding-left: 0 !important; }
+  .pl8-hero-left div[data-stamp] { position: static !important; transform: rotate(-12deg); margin-bottom: 12px; }
+  .pl8 h1.display { font-size: clamp(42px, 12vw, 78px) !important; }
+}
+
+@media (max-width: 640px) {
+  .pl8 h1.display { font-size: clamp(38px, 11vw, 56px) !important; }
+  .pl8 h2.display { font-size: clamp(28px, 8vw, 42px) !important; }
+}
+
+/* Templates-specific */
+@media (max-width: 960px) {
+  .pl8-templates-hero { padding: 48px 20px 32px !important; }
+  .pl8-templates-hero h1.display { font-size: clamp(44px, 11vw, 72px) !important; }
+  .pl8-filter-bar { padding: 12px 20px !important; }
+  .pl8-pear-offer {
+    grid-template-columns: 1fr !important;
+    padding: 32px 24px !important;
+  }
+}
+
+/* Day-of tweaks */
+@media (max-width: 960px) {
+  .pl8-dayof-wrap { padding: 20px !important; }
+  .pl8-dayof-header { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+  .pl8-dayof-pulse { padding: 16px 20px !important; }
+  .pl8-dayof-main { grid-template-columns: 1fr !important; gap: 18px !important; }
+}
+
+/* Builder responsive — outline + style collapse to drawers below tablet */
+@media (max-width: 1100px) {
+  .pl8-builder-topbar { gap: 10px !important; padding: 12px 16px !important; }
+  .pl8-builder-topbar .btn-outline.btn-sm,
+  .pl8-builder-topbar .btn-outline { padding: 8px 12px; }
+  .pl8-builder-outline { width: 220px !important; }
+  .pl8-builder-style { width: 260px !important; }
+  .pl8-editor-outline { width: 220px !important; }
+  .pl8-editor-inspector { width: 320px !important; }
+}
+@media (max-width: 900px) {
+  .pl8-builder-main { flex-direction: column !important; overflow-y: auto; }
+  .pl8-builder-outline,
+  .pl8-builder-style {
+    width: 100% !important;
+    max-height: 60vh;
+    border: 0 !important;
+    border-bottom: 1px solid var(--line-soft) !important;
+  }
+  .pl8-builder-preview,
+  .pl8-editor-canvas { padding: 16px !important; }
+  .pl8-builder-preview iframe,
+  .pl8-editor-canvas iframe { height: 600px !important; }
+}
+
+/* Editor v8 mobile — the full-height drawers slide up over the canvas. */
+@keyframes pl8-drawer-up {
+  from { transform: translateY(100%); opacity: 0.6; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@media (max-width: 959px) {
+  .pl8-editor-drawer { width: 100% !important; }
+  /* The mobile drawer supersedes the inline outline/inspector panels,
+     which are hidden by the component tree at <960px anyway. */
+}
+
+/* Marketplace grid + sidebar responsive behavior */
+.pl8-mkt-grid { display: grid; gap: 24px; }
+.pl8-mkt-grid-lg { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.pl8-mkt-grid-md { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+@media (max-width: 1100px) {
+  .pl8-mkt-layout { grid-template-columns: 1fr !important; }
+  .pl8-mkt-sidebar { position: static !important; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+  .pl8-mkt-grid-md { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .pl8-mkt-grid-lg { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+/* Mobile-only pagination: hide tiles past the initial 12 at ≤720px */
+.pl8-mkt-show-more { display: none; }
+/* Widen the search input on narrow screens so it fills the stack */
+@media (max-width: 720px) {
+  .pl8-mkt-search { width: 100% !important; }
+  .pl8-mkt-search > div { width: 100% !important; }
+}
+@media (max-width: 720px) {
+  .pl8-mkt-tile-hidden-mobile { display: none !important; }
+  /* Reveal the "Show more" button only on narrow screens — desktop
+     sees the full grid at load. */
+  .pl8-mkt-show-more { display: block !important; }
+  /* Collapse the occasion sidebar to a horizontally-scrolling chip
+     rail so the mobile templates page doesn't become 30k pixels
+     tall. Apply to the direct sidebar *container* only; its inner
+     group/occasion lists stay as-is. */
+  .pl8-mkt-sidebar {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 10px !important;
+    padding: 10px 20px 14px !important;
+    margin: 0 -20px !important;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+  .pl8-mkt-sidebar > * {
+    flex: 0 0 auto;
+    min-width: 128px;
+    max-width: 180px;
+  }
+  /* Keep a 2-column grid on mobile — 1 col × 56 tiles makes
+     an endless scroll. 2 tiles fit comfortably at 390px with
+     reduced gap. */
+  .pl8-mkt-grid-md,
+  .pl8-mkt-grid-lg {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+  .pl8-mkt-filterbar { grid-template-columns: 1fr !important; }
+}
+
+/* Invite designer responsive */
+@media (max-width: 1000px) {
+  .pl8-invite-layout { grid-template-columns: 1fr !important; }
+  .pl8-invite-inspector { position: static !important; }
+}
+
+/* Keepsakes page grid */
+.pl8-keepsakes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  align-items: start;
+}
+@media (max-width: 960px) {
+  .pl8-keepsakes-grid { grid-template-columns: 1fr; }
+}
+
+/* Editor inputs in inspector use a more compact look */
+.pl8-editor-inspector input[type="text"],
+.pl8-editor-inspector input[type="email"],
+.pl8-editor-inspector input[type="url"],
+.pl8-editor-inspector input[type="date"],
+.pl8-editor-inspector input[type="time"],
+.pl8-editor-inspector select,
+.pl8-editor-inspector textarea {
+  font-family: var(--font-ui);
+}
+.pl8-editor-inspector .pl8-input:hover {
+  border-color: var(--ink-muted, #6F6557);
+}
+.pl8-editor-inspector .pl8-input:focus {
+  border-color: var(--peach-ink, #C6703D) !important;
+  box-shadow: 0 0 0 3px rgba(198,112,61,0.18);
+  background: var(--card);
+}
+.pl8-editor-inspector .pl8-input::placeholder {
+  color: var(--ink-muted, #6F6557);
+  opacity: 0.6;
+}
+
+/* Memory Book + Passport card print mode */
+@media print {
+  body { background: #fff !important; }
+  .pl8-no-print { display: none !important; }
+  .pl8-memory-book {
+    box-shadow: none !important;
+    padding: 0 !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .pl8-passport-sheet {
+    box-shadow: none !important;
+    padding: 0 !important;
+    background: #fff !important;
+    border-radius: 0 !important;
+  }
+  .pl8-passport-sheet > div {
+    gap: 0 !important;
+  }
+  .pl8-passport-card {
+    border: 1px dashed #ccc !important;
+    background: #fff !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    break-inside: avoid !important;
+  }
+  .pl8-dashshell, .pl8-dashshell aside, .pl8-dashshell header { display: none !important; }
+  .pl8-dashshell main { padding: 0 !important; }
+  @page { margin: 12mm; size: A4; }
+}
+
+/* ── Scroll-spy active state — paints the matching nav link
+   when its section is in view (set by GuestKit2 ScrollSpy). ── */
+.pl8-site-nav-links a {
+  position: relative;
+}
+.pl8-site-nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--peach-ink, #C6703D) 0%, var(--gold, #D4A95D) 100%);
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 240ms ease;
+}
+.pl8-site-nav-links a:hover {
+  color: var(--ink) !important;
+}
+.pl8-site-nav-links a:hover::after {
+  transform: scaleX(1);
+  opacity: 0.6;
+}
+.pl8-site-nav-links a[data-pl-scroll-active="1"] {
+  color: var(--ink) !important;
+  font-weight: 600;
+}
+.pl8-site-nav-links a[data-pl-scroll-active="1"]::after {
+  transform: scaleX(1);
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-site-nav-links a::after { transition: none; }
+}
+
+
+/* ============================================================
+   pl8 — Smoothness pass (2026-04-24)
+   - Sheen sweep on primary CTAs
+   - Mobile drawer enters with spring + staggered links
+   - Page-enter fade-rise wrapper
+   - Card-lift micro-interaction
+   - Smooth in-page anchor scroll
+   ============================================================ */
+
+/* Smooth scroll for in-page anchor links (#hero, #pricing, etc.) */
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* ── Button sheen — diagonal highlight that sweeps across the
+       button on hover. Subtle, premium. Applied via .pl8-btn-sheen
+       to keep it opt-in (we don't want it on every button). ── */
+.pl8 .pl8-btn-sheen,
+.pl8-guest .pl8-btn-sheen {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.pl8 .pl8-btn-sheen::after,
+.pl8-guest .pl8-btn-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.42) 48%,
+    rgba(255, 255, 255, 0.42) 52%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+  transition: transform 720ms cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 0;
+}
+.pl8 .pl8-btn-sheen:hover::after,
+.pl8 .pl8-btn-sheen:focus-visible::after,
+.pl8-guest .pl8-btn-sheen:hover::after,
+.pl8-guest .pl8-btn-sheen:focus-visible::after {
+  transform: translateX(120%);
+}
+.pl8 .pl8-btn-sheen > *,
+.pl8-guest .pl8-btn-sheen > * {
+  position: relative;
+  z-index: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8 .pl8-btn-sheen::after,
+  .pl8-guest .pl8-btn-sheen::after { display: none; }
+}
+
+/* Ramp button hover lift slightly stronger + add a soft shadow. */
+.pl8 .btn-primary:hover {
+  box-shadow: 0 10px 24px -10px rgba(14, 13, 11, 0.45);
+}
+.pl8 .btn-outline:hover,
+.pl8 .btn-cream:hover {
+  box-shadow: 0 6px 18px -10px rgba(14, 13, 11, 0.25);
+}
+
+/* ── Mobile drawer — backdrop fade + panel spring-slide ── */
+.pl8-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(61, 74, 31, 0.42);
+  z-index: 999;
+  display: flex;
+  justify-content: flex-end;
+  animation: pl8-drawer-fade 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.pl8-drawer-panel {
+  width: min(320px, 88vw);
+  height: 100%;
+  background: var(--cream);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: -24px 0 60px rgba(0, 0, 0, 0.18);
+  animation: pl8-drawer-in 420ms cubic-bezier(0.34, 1.32, 0.55, 1);
+  will-change: transform;
+}
+@keyframes pl8-drawer-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes pl8-drawer-in {
+  from { transform: translateX(110%); }
+  to   { transform: translateX(0); }
+}
+.pl8-drawer-link {
+  padding: 14px 12px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  background: transparent;
+  text-decoration: none;
+  position: relative;
+  opacity: 0;
+  transform: translateX(18px);
+  animation: pl8-drawer-link-in 420ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transition: background 200ms ease, transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pl8-drawer-link:hover {
+  background: var(--cream-2);
+  transform: translateX(2px);
+}
+@keyframes pl8-drawer-link-in {
+  to { opacity: 1; transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-drawer-backdrop,
+  .pl8-drawer-panel { animation: none; }
+  .pl8-drawer-link {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}
+
+/* ── Page-enter wrapper — fade-rise applied to the marketing
+       PearloomPage scaffold so route transitions feel intentional. ── */
+.pl8-page-enter {
+  animation: pl8-page-fade-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pl8-page-fade-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-page-enter { animation: none; }
+}
+
+/* ── Per-section card radius — when a BlockStyleWrapper sets
+       --pl-block-card-radius, descendant cards that opt in via the
+       `pl8-card` class family pick it up. Inline-styled cards still
+       win because inline > class; sections we want fully responsive
+       to the radius control should switch to class-based radii.
+       Wrapped in :where() for 0,0,0 specificity so any specific
+       override (inline or otherwise) trumps it. ── */
+:where([data-pl-block-styled]) :where(.pl8-card, .pl8-card-2, .pl8-tile, .pl8-bento-tile) {
+  border-radius: var(--pl-block-card-radius, inherit);
+}
+
+/* (.pl8-card-lift now lives in the dashboard motion system v2 block above) */
+
+/* ── Make existing v8 nav-links match the new look on hover (no
+       heavy pill background, since the underline does the work). ── */
+.pl8 .nav-links a:hover {
+  background: transparent;
+  opacity: 1;
+}
+
+/* ============================================================
+   pl8 — Living surfaces (2026-04-24)
+   - Sections fade-rise as they enter the viewport
+   - Filigree dividers draw on with stroke-dashoffset
+   - Gallery photos drift slightly slower than scroll
+   ============================================================ */
+
+/* On-view fade-rise for major sections. Activated by JS adding
+   data-pl-revealed when the section enters the viewport. */
+.pl8-guest section {
+  opacity: 1;
+  transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+              transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pl8-guest section[data-pl-reveal="pending"] {
+  opacity: 0;
+  transform: translateY(18px);
+}
+.pl8-guest section[data-pl-reveal="shown"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-guest section[data-pl-reveal="pending"] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Gallery photo slight parallax — pulls each tile up 20px slower
+   than scroll. The transform value is set per tile by JS. */
+.pl8-gallery-grid > * {
+  transition: transform 80ms linear;
+  will-change: transform;
+}
+
+/* Section-decor draw-on: applies a stroke-dashoffset animation to
+   any inline <path> inside [data-pl-stroke-draw]. Triggers when the
+   element scrolls into view (data-pl-revealed). */
+[data-pl-stroke-draw] path {
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  transition: stroke-dashoffset 1400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-pl-stroke-draw][data-pl-reveal="shown"] path {
+  stroke-dashoffset: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-pl-stroke-draw] path {
+    stroke-dashoffset: 0 !important;
+    transition: none !important;
+  }
+}
+
+/* ============================================================
+   Editor — lock to viewport so panels stay in view on scroll.
+   Uses 100dvh on supporting browsers so the mobile address bar
+   doesn't push the layout taller than the visible area.
+   ============================================================ */
+@supports (height: 100dvh) {
+  .pl8-editor-v8 {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+  }
+}
+
+/* ============================================================
+   Dashboard navigation — instant, no animation.
+   View-transitions crossfade was the wrong call. Removed.
+   Cream background paints immediately so no white flash appears
+   during the brief client-routing gap.
+   ============================================================ */
+.pl8-dashshell { background: var(--cream, #F8F1E4); }
+/* Kill any page-enter fade that pages might inherit from
+   pl8-page-enter (used by the marketing PearloomPage scaffold)
+   when rendered inside the dashboard shell. */
+.pl8-dashshell .pl8-page-enter {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* ── Canvas direct-manipulation chrome ────────────────────────
+   In edit mode, sections expose a hover SectionActionMenu (top-
+   right floating pill) and photo dropzones expose a hover
+   PhotoActionMenu (bottom-right floating pill). Both hidden by
+   default — fade in on hover/focus-within so the canvas reads
+   as the live site at rest, not as scaffolding. */
+
+[data-pl-block-sortable]:hover > .pl8-canvas-section-menu,
+[data-pl-block-sortable]:focus-within > .pl8-canvas-section-menu,
+.pl8-canvas-section-menu:hover,
+.pl8-canvas-section-menu:focus-within {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translateY(0) !important;
+}
+
+/* ── Section hover ring — when the user mouses over a section in
+       edit mode, a soft peach hairline frames the section so they
+       can see exactly where the boundary is. Inset 2px so it
+       reads as an inner outline rather than hugging the edge. ── */
+[data-pl-block-sortable] {
+  position: relative;
+  transition: box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-pl-block-sortable]:hover {
+  box-shadow: inset 0 0 0 1px rgba(198, 112, 61, 0.32);
+}
+[data-pl-block-sortable]:has(.pl8-divider-edit-zone:hover) {
+  box-shadow: none;
+}
+
+/* ── Suppress the section chip when the user is hovering the
+       divider above the section. Otherwise hovering the separator
+       between Travel and Story lights up a misleading "STORY"
+       chip — the divider is its own thing. ── */
+[data-pl-block-sortable]:has(.pl8-divider-edit-zone:hover) > .pl8-canvas-section-menu {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(-4px) !important;
+}
+
+/* ── Divider edit chip — visible only when the divider zone is
+       hovered. Same fade rhythm as the section chip. ── */
+.pl8-divider-edit-zone:hover > .pl8-divider-edit-chip,
+.pl8-divider-edit-zone:focus-within > .pl8-divider-edit-chip,
+.pl8-divider-edit-chip:hover,
+.pl8-divider-edit-chip:focus-within {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translateY(0) !important;
+}
+
+.pl8-photo-action-wrap:hover > .pl8-photo-action-menu,
+.pl8-photo-action-wrap:focus-within > .pl8-photo-action-menu,
+.pl8-photo-action-menu:hover,
+.pl8-photo-action-menu:focus-within {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translateY(0) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pl8-canvas-section-menu,
+  .pl8-photo-action-menu {
+    transition: none !important;
+  }
+}
+
+/* ── Tab swipe — keyed-on-pathname remount, slide only ──
+   Inner content of (shell)/* swipes in horizontally on route
+   change. The shell + sidebar (outside this key) never repaint.
+   No opacity change — the user explicitly didn't want a fade.
+   Just a soft 12px → 0 nudge so the swap reads as motion, not
+   a blink. */
+/* pl8-tab-swipe — was a tiny translate animation on the dashboard
+   inner content. User explicitly does not want any motion on tab
+   switch ("the dashboard just basically be all one page with
+   different tabs"). Class kept for any code that still references
+   it but the animation is now a no-op. */
+.pl8-tab-swipe { /* no animation — instant tab swap */ }
+
+/* ── Belt-and-braces: explicit opt-out of view-transition for the
+       dashboard root + neutralize entrance animations on direct
+       page-content children. Loop animations on inner decoration
+       (pulsing dots, breathing pear) are preserved. ── */
+.pl8-dashshell,
+.pl8-dashshell * {
+  view-transition-name: none !important;
+}
+.pl8-dashshell > main > div > * {
+  animation: none !important;
+}
+
+/* Loading skeleton fade-in — only visible if shell loading lingers
+   past 280ms (see (shell)/loading.tsx). Fast clicks never see this. */
+@keyframes pl8-shell-loading-fade-in {
+  to { opacity: 1; }
+}
+
+/* Global top-edge progress bar. Mounts in ShellPersistentLayout
+   and pulses peach across the top whenever React's useTransition
+   reports pending. Indeterminate animation while pending; fades
+   out cleanly when navigation lands. */
+.pl8-top-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 99;
+  pointer-events: none;
+  background: transparent;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+.pl8-top-progress[data-pending='1'] {
+  opacity: 1;
+}
+.pl8-top-progress::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 30%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--peach-ink, #C6703D) 40%,
+    var(--gold, #B89244) 70%,
+    transparent 100%
+  );
+  border-radius: 999px;
+  animation: pl8-top-progress-crawl 1100ms cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@keyframes pl8-top-progress-crawl {
+  0%   { transform: translateX(-100%); width: 30%; }
+  50%  { width: 50%; }
+  100% { transform: translateX(330%); width: 30%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-top-progress::before { animation: none; }
+}
+
+/* =========================================================================
+   OccasionGlyph hover animations — bespoke per-icon motion. Each glyph
+   sits in a parent (.pl8-glyph-host) and gains its anim on parent hover
+   so the surrounding tile/button drives the motion, not the SVG itself.
+   ========================================================================= */
+
+.pl8-glyph {
+  display: inline-grid;
+  place-items: center;
+  transform-origin: center;
+  transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1), filter 220ms ease;
+}
+.pl8-glyph svg {
+  display: block;
+  overflow: visible;
+}
+.pl8-glyph-host:hover .pl8-glyph,
+.pl8-glyph:hover {
+  filter: drop-shadow(0 1px 0 rgba(14,13,11,0.06));
+}
+
+/* spin — slow rotation for rings + watch */
+@keyframes pl8-glyph-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.pl8-glyph-host:hover .pl8-glyph-spin svg,
+.pl8-glyph-spin:hover svg {
+  animation: pl8-glyph-spin 2.4s linear infinite;
+  transform-origin: 50% 55%;
+}
+
+/* wiggle — small back-and-forth for rattle, compass, glasses */
+@keyframes pl8-glyph-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  20%      { transform: rotate(-9deg); }
+  60%      { transform: rotate(7deg); }
+  80%      { transform: rotate(-3deg); }
+}
+.pl8-glyph-host:hover .pl8-glyph-wiggle svg,
+.pl8-glyph-wiggle:hover svg {
+  animation: pl8-glyph-wiggle 700ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  transform-origin: 50% 70%;
+}
+
+/* bloom — scale + opacity in/out for bouquet, starburst, sparkle */
+@keyframes pl8-glyph-bloom {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.16); }
+  100% { transform: scale(1.06); }
+}
+.pl8-glyph-host:hover .pl8-glyph-bloom svg,
+.pl8-glyph-bloom:hover svg {
+  animation: pl8-glyph-bloom 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* flicker — candle flame Y-bob for cake. Targets the inner flame path
+   so the cake stays put; only the wick + flame dance. */
+@keyframes pl8-glyph-flicker {
+  0%, 100% { transform: translateY(0) scale(1, 1); opacity: 1; }
+  25%      { transform: translateY(-1px) scale(0.92, 1.06); opacity: 0.92; }
+  50%      { transform: translateY(0) scale(1.04, 0.96); opacity: 1; }
+  75%      { transform: translateY(-1px) scale(0.96, 1.04); opacity: 0.95; }
+}
+.pl8-glyph-host:hover .pl8-glyph-flicker .pl8-glyph-flicker-flame,
+.pl8-glyph-flicker:hover .pl8-glyph-flicker-flame {
+  animation: pl8-glyph-flicker 700ms ease-in-out infinite;
+  transform-origin: 50% 100%;
+  transform-box: fill-box;
+}
+
+/* draw — stroke-dashoffset reveal for script + book */
+@keyframes pl8-glyph-draw {
+  from { stroke-dashoffset: 80; }
+  to   { stroke-dashoffset: 0; }
+}
+.pl8-glyph-draw .pl8-glyph-draw-path {
+  stroke-dasharray: 80;
+  stroke-dashoffset: 0;
+}
+.pl8-glyph-host:hover .pl8-glyph-draw .pl8-glyph-draw-path,
+.pl8-glyph-draw:hover .pl8-glyph-draw-path {
+  animation: pl8-glyph-draw 800ms cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+/* sway — gentle side-to-side for leaf-bough, dove */
+@keyframes pl8-glyph-sway {
+  0%, 100% { transform: rotate(-3deg); }
+  50%      { transform: rotate(3deg); }
+}
+.pl8-glyph-host:hover .pl8-glyph-sway svg,
+.pl8-glyph-sway:hover svg {
+  animation: pl8-glyph-sway 1.4s ease-in-out infinite;
+  transform-origin: 50% 90%;
+}
+
+/* pop — clean lift for cup, mortarboard, family-circle, home */
+@keyframes pl8-glyph-pop {
+  0%   { transform: translateY(0) scale(1); }
+  40%  { transform: translateY(-3px) scale(1.08); }
+  100% { transform: translateY(-1px) scale(1.04); }
+}
+.pl8-glyph-host:hover .pl8-glyph-pop svg,
+.pl8-glyph-pop:hover svg {
+  animation: pl8-glyph-pop 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Generic hover-pop for the existing Icon catalogue (use via class). */
+.pl8-icon-hover {
+  transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center;
+  display: inline-block;
+}
+.pl8-icon-hover:hover,
+.pl8-glyph-host:hover .pl8-icon-hover {
+  transform: scale(1.12) rotate(-3deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pl8-glyph-host:hover .pl8-glyph-spin svg,
+  .pl8-glyph-host:hover .pl8-glyph-wiggle svg,
+  .pl8-glyph-host:hover .pl8-glyph-bloom svg,
+  .pl8-glyph-host:hover .pl8-glyph-flicker .pl8-glyph-flicker-flame,
+  .pl8-glyph-host:hover .pl8-glyph-draw .pl8-glyph-draw-path,
+  .pl8-glyph-host:hover .pl8-glyph-sway svg,
+  .pl8-glyph-host:hover .pl8-glyph-pop svg,
+  .pl8-icon-hover:hover {
+    animation: none !important;
+    transform: none !important;
+  }
+}

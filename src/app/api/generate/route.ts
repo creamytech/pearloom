@@ -19,6 +19,8 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import pLimit from 'p-limit';
 import { encryptBuffer, isEncryptionEnabled } from '@/lib/crypto';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
+import { seedBlocksFromEventDetails } from '@/lib/event-os/seed-event-details';
+import { getDefaultThemeFamily } from '@/lib/event-os/theme-family';
 
 // ── R2 upload helper — fetches a URL and stores it permanently ─
 function getR2Client() {
@@ -179,7 +181,7 @@ Create a SINGLE elegant SVG icon that reflects their SPECIFIC interests, not a g
 Return ONLY a valid SVG string. ViewBox must be "0 0 24 24". Use stroke-based design (stroke-width 1.5, stroke-linecap round). NO fill on the main paths (fill="none"). Keep it minimal — 3-6 path elements max. The icon should be recognizable at 18px.`;
 
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -232,7 +234,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
       { error: 'Gemini API key not configured' },
@@ -262,9 +264,30 @@ export async function POST(req: NextRequest) {
       guestNotes,
       inspirationUrls,
       layoutFormat,
+      voiceSamples,
       rsvpDeadline,
       cashFundUrl,
       eventVenue,
+      selectedPaletteColors,
+      photoNotes,
+      storyLayout,
+      songUrl,
+      // Occasion-specific context (anniversary / birthday / engagement)
+      anniversaryYears,
+      anniversaryMilestone,
+      originalDate,
+      coupleEvolution,
+      birthdayAge,
+      isSurprise,
+      birthdayPassions,
+      birthdayTribute,
+      proposalStory,
+      proposalDate,
+      weddingTimeline,
+      ringDetails,
+      venueAesthetic,
+      eventDetails,
+      templateId,
     }: {
       photos: GooglePhotoMetadata[];
       clusters?: PhotoCluster[];
@@ -285,9 +308,34 @@ export async function POST(req: NextRequest) {
       guestNotes?: string;
       inspirationUrls?: string[];
       layoutFormat?: string;
+      voiceSamples?: string[];
       rsvpDeadline?: string;
       cashFundUrl?: string;
       eventVenue?: string;
+      selectedPaletteColors?: string[];
+      photoNotes?: Record<string, { note?: string; location?: string; date?: string }>;
+      storyLayout?: 'parallax' | 'filmstrip' | 'magazine' | 'timeline' | 'kenburns' | 'bento';
+      songUrl?: string;
+      anniversaryYears?: string;
+      anniversaryMilestone?: string;
+      originalDate?: string;
+      coupleEvolution?: string;
+      birthdayAge?: string;
+      isSurprise?: boolean;
+      birthdayPassions?: string;
+      birthdayTribute?: string;
+      proposalStory?: string;
+      proposalDate?: string;
+      weddingTimeline?: string;
+      ringDetails?: string;
+      venueAesthetic?: string;
+      eventDetails?: {
+        days?: number;
+        livestreamUrl?: string;
+        inMemoryOf?: string;
+        school?: string;
+      };
+      templateId?: string;
     } = body;
 
     if (!photos?.length) {
@@ -337,17 +385,105 @@ export async function POST(req: NextRequest) {
       console.log(`[Generate] Built ${enrichedClusters.length} clusters from scratch`);
     }
 
+    // Attach per-photo user notes (from the photo-review step) onto the
+    // containing cluster so Pass 1's prompt cites them verbatim.
+    if (photoNotes && Object.keys(photoNotes).length > 0) {
+      enrichedClusters = enrichedClusters.map((cluster) => {
+        const notesForCluster: string[] = [];
+        let manualLocation: string | null = null;
+        for (const photo of cluster.photos) {
+          const entry = photoNotes[photo.id];
+          if (!entry) continue;
+          if (entry.note && entry.note.trim().length > 0) {
+            notesForCluster.push(entry.note.trim());
+          }
+          if (!manualLocation && entry.location && entry.location.trim().length > 0) {
+            manualLocation = entry.location.trim();
+          }
+        }
+        const mergedNote = notesForCluster.length > 0
+          ? notesForCluster.join(' • ')
+          : cluster.note;
+        let location = cluster.location;
+        if (manualLocation) {
+          location = location
+            ? { ...location, label: manualLocation }
+            : { lat: 0, lng: 0, label: manualLocation };
+        }
+        return { ...cluster, note: mergedNote, location };
+      });
+      const withNotes = enrichedClusters.filter(c => c.note && c.note.length > 0).length;
+      console.log(`[Generate] Attached user notes to ${withNotes}/${enrichedClusters.length} clusters`);
+    }
+
+    // ── Photo Intelligence — score photos for story arc ──────────
+    // Enhances hero selection and narrative ordering by analyzing
+    // emotional intensity and visual quality of each cluster's best photo.
+    try {
+      const { scoreStoryArc } = await import('@/lib/photo-intelligence/analyzer');
+      // Build lightweight analyses for scoring (without Gemini Vision call for speed)
+      const quickAnalyses = enrichedClusters.flatMap(c =>
+        c.photos.slice(0, 1).map(p => ({
+          photoId: p.id,
+          faces: [],
+          scene: { scene: 'portrait' as const, timeOfDay: 'unknown' as const, season: 'unknown' as const, lighting: 'natural-soft' as const, colorTemp: 0, dominantColors: [] },
+          emotion: { intensity: Math.min(10, c.photos.length * 1.5), primary: 'joy' as const, isPeak: c.photos.length > 4, narrativeWeight: Math.min(10, c.photos.length * 2) },
+          quality: { score: 7, sharpness: 7, composition: 7, exposure: 7, heroCandidate: c.photos.length > 3, isDuplicate: false },
+          storyArc: { position: 'setup' as const, role: 'establishing' as const, captionStyle: 'descriptive' as const },
+          tags: [],
+          analyzedAt: Date.now(),
+        }))
+      );
+      scoreStoryArc(quickAnalyses);
+      console.log(`[Generate] Photo intelligence: scored ${quickAnalyses.length} photos for story arc`);
+    } catch {}
+
     // Generate the Story Manifest via Gemini (3-pass: generate → critique → vibeSkin)
+    // If no photos at all, pass a minimal dummy cluster so the AI has something to work with
+    const clustersForGeneration = enrichedClusters.length > 0
+      ? enrichedClusters
+      : [{ photos: [], location: null, startDate: eventDate || new Date().toISOString(), endDate: eventDate || new Date().toISOString() }] as PhotoCluster[];
+
+    // Synthesize occasion-specific context into the vibe string so the AI
+    // weaves these details into chapter copy instead of dropping them.
+    const occasionContext: string[] = [];
+    if (occasion === 'anniversary') {
+      if (anniversaryYears) occasionContext.push(`Celebrating ${anniversaryYears} years together.`);
+      if (anniversaryMilestone) occasionContext.push(`Milestone: ${anniversaryMilestone}.`);
+      if (originalDate) occasionContext.push(`Originally married on ${originalDate}.`);
+      if (coupleEvolution) occasionContext.push(`How they've grown: ${coupleEvolution}`);
+    }
+    if (occasion === 'birthday') {
+      if (birthdayAge) occasionContext.push(`Turning ${birthdayAge}.`);
+      if (isSurprise) occasionContext.push('This is a surprise party — keep details warm but discreet.');
+      if (birthdayPassions) occasionContext.push(`Passions: ${birthdayPassions}`);
+      if (birthdayTribute) occasionContext.push(`Tribute notes from loved ones: ${birthdayTribute}`);
+    }
+    if (occasion === 'engagement') {
+      if (proposalStory) occasionContext.push(`Proposal: ${proposalStory}`);
+      if (proposalDate) occasionContext.push(`Proposal date: ${proposalDate}.`);
+      if (weddingTimeline) occasionContext.push(`Wedding timeline: ${weddingTimeline}.`);
+      if (ringDetails) occasionContext.push(`Ring details: ${ringDetails}`);
+    }
+    if (venueAesthetic) occasionContext.push(`Venue aesthetic: ${venueAesthetic}`);
+
+    const baseVibe = vibeString || `${occasion || 'celebration'} ${names[0]} ${names[1] || ''}`.trim();
+    const enrichedVibe = occasionContext.length > 0
+      ? `${baseVibe}\n\nADDITIONAL CONTEXT:\n${occasionContext.join('\n')}`
+      : baseVibe;
+
     const manifest = await generateStoryManifest(
-      enrichedClusters,
-      vibeString,
+      clustersForGeneration,
+      enrichedVibe,
       names,
       apiKey,
       session.accessToken,
       occasion,
       eventDate,
       inspirationUrls,  // passed to memory-engine for visual style matching
-      layoutFormat
+      layoutFormat,
+      undefined,
+      selectedPaletteColors,
     );
 
     // Pre-populate logistics from user-provided fields
@@ -436,16 +572,49 @@ export async function POST(req: NextRequest) {
     manifest.faqs = [];
 
     // ── Initialize blocks: occasion-aware defaults.
-    // Hero + Story are always shown. Remaining blocks are shown/hidden based on occasion.
+    // Hero + Story are always shown. Remaining blocks are auto-revealed based
+    // on what the user supplied during the wizard so they don't have to manually
+    // toggle every relevant section after generation.
     {
       const blocks = getDefaultBlocks(occasion ?? 'story', events.length > 0, !!eventDate);
-      manifest.blocks = blocks as typeof manifest.blocks;
+      const hasEvents = events.length > 0;
+      const hasDate = !!eventDate;
+      const hasRsvp = !!rsvpDeadline;
+      const hasRegistry = !!cashFundUrl;
+      const revealed = new Set<string>();
+      if (hasEvents) revealed.add('event');
+      if (hasDate)   revealed.add('countdown');
+      if (hasRsvp)   revealed.add('rsvp');
+      if (hasRegistry) revealed.add('registry');
+      const revealedBlocks = blocks.map((b) =>
+        revealed.has(b.type) ? { ...b, visible: true } : b
+      );
+      // Seed block configs from the wizard's event-details step.
+      seedBlocksFromEventDetails(
+        revealedBlocks as unknown as import('@/types').PageBlock[],
+        occasion,
+        eventDetails,
+        names,
+      );
+      manifest.blocks = revealedBlocks as typeof manifest.blocks;
     }
 
-    // Hide all sub-pages from nav by default — users enable them in the editor.
-    // This prevents nav links to empty schedule/rsvp/travel/faq pages appearing
-    // on freshly generated sites before the user has filled in that content.
-    manifest.hiddenPages = ['schedule', 'rsvp', 'travel', 'faq', 'registry'];
+    // Seed theme family from occasion voice — see
+    // lib/event-os/theme-family.ts for the mapping.
+    if (!manifest.themeFamily) {
+      manifest.themeFamily = getDefaultThemeFamily(occasion);
+    }
+
+    // Hide sub-pages by default, then unhide the ones backed by user-supplied data
+    // so generated sites don't ship with dead nav links to empty pages, but DO ship
+    // with nav for pages the couple actually filled in.
+    {
+      const hidden = new Set<string>(['schedule', 'rsvp', 'travel', 'faq', 'registry']);
+      if (events.length > 0) hidden.delete('schedule');
+      if (rsvpDeadline)      hidden.delete('rsvp');
+      if (cashFundUrl)       hidden.delete('registry');
+      manifest.hiddenPages = Array.from(hidden);
+    }
 
     // Set top-level logistics fields from user-supplied details
     if (dresscode) {
@@ -453,6 +622,16 @@ export async function POST(req: NextRequest) {
     }
     if (guestNotes) {
       manifest.logistics = { ...(manifest.logistics ?? {}), notes: guestNotes };
+    }
+
+    // Stash raw occasion-specific fields on the manifest so editor surfaces and
+    // future regenerations can re-use them without re-asking the user.
+    if (occasionContext.length > 0) {
+      (manifest as unknown as Record<string, unknown>)._occasionDetails = {
+        anniversaryYears, anniversaryMilestone, originalDate, coupleEvolution,
+        birthdayAge, isSurprise, birthdayPassions, birthdayTribute,
+        proposalStory, proposalDate, weddingTimeline, ringDetails, venueAesthetic,
+      };
     }
 
     // Map actual photo URLs + REAL locations into generated chapters.
@@ -464,13 +643,27 @@ export async function POST(req: NextRequest) {
     }
     const uploadLimit = pLimit(8); // max 8 concurrent R2 uploads
 
-    // Run chapter photo uploads and logo generation in parallel
-    const [updatedChapters, logoResult] = await Promise.all([
+    // Pre-upload the first few photos to R2 while the OAuth token is
+    // still fresh so `coverPhoto` + `heroSlideshow` land permanent
+    // before the client hits save.
+    const heroPhotoSources = photos.slice(0, 6);
+    const heroUploadPromise = Promise.all(
+      heroPhotoSources.map(p => uploadLimit(() => uploadPhotoUrl(p.baseUrl))),
+    );
+
+    // Run chapter photo uploads, logo generation, and hero mirroring in parallel
+    const [updatedChapters, logoResult, heroUrls] = await Promise.all([
       // 1. Upload chapter photos to R2 + resolve locations
       Promise.all(manifest.chapters.map(async (chapter, i) => {
         const cluster = enrichedClusters[i];
         if (cluster) {
-          const photosToUpload = cluster.photos.slice(0, 3);
+          // Attach EVERY photo in the cluster, not just the first 3.
+          // Individual layouts cap their own display counts at render
+          // time (FilmStrip/MagazineSpread/TimelineVine use photos[0],
+          // BentoGrid caps at 5, KenBurns at 6). Keeping the full set
+          // in the manifest means the dashboard gallery can show every
+          // photo the user actually uploaded instead of losing the tail.
+          const photosToUpload = cluster.photos;
           const uploadedUrls = await Promise.all(
             photosToUpload.map(p => uploadLimit(() => uploadPhotoUrl(p.baseUrl)))
           );
@@ -499,13 +692,120 @@ export async function POST(req: NextRequest) {
 
       // 2. Generate custom AI logo icon
       generateLogoIcon(occasion, vibeString, names, apiKey),
+
+      // 3. Pre-upload hero photos to R2 while the OAuth token is fresh
+      heroUploadPromise,
     ]);
 
     manifest.chapters = updatedChapters;
     manifest.logoIcon = logoResult.logoIcon;
     if (logoResult.logoSvg) manifest.logoSvg = logoResult.logoSvg;
 
-    return NextResponse.json({ manifest });
+    // Auto-reveal the photos block whenever the user uploaded photos.
+    // The gallery renders by aggregating chapter images, so if any
+    // chapter has images it means we have something to show — no
+    // reason to leave the block hidden and force users to toggle it
+    // on manually in the editor.
+    {
+      const hasAnyChapterPhoto = (manifest.chapters || []).some(
+        (c) => Array.isArray(c.images) && c.images.length > 0,
+      );
+      if (hasAnyChapterPhoto && manifest.blocks) {
+        manifest.blocks = manifest.blocks.map((b) =>
+          b.type === 'photos' ? { ...b, visible: true } : b,
+        );
+      }
+    }
+    // Seed hero media with the freshly-uploaded R2 URLs. Fall back
+    // to the original baseUrl silently if upload failed (the
+    // /api/sites mirror pass will retry on save).
+    const permanentHeroUrls = heroUrls.filter((u: string) => u && !u.includes('googleusercontent.com'));
+    if (permanentHeroUrls.length > 0) {
+      manifest.coverPhoto = permanentHeroUrls[0];
+      manifest.heroSlideshow = permanentHeroUrls.slice(0, 5);
+    }
+    // Persist the wizard's story layout pick onto the final manifest so
+    // the published site renders with it.
+    if (storyLayout) {
+      manifest.storyLayout = storyLayout;
+    }
+
+    // Insert a Spotify/YouTube music block if the user pasted a
+    // song URL on the wizard's song step.
+    if (songUrl && typeof songUrl === 'string' && songUrl.trim().length > 0) {
+      const songBlock = {
+        id: `spotify-${Date.now()}`,
+        type: 'spotify' as const,
+        visible: true,
+        order: 1,
+        config: { url: songUrl.trim() },
+      };
+      const existing = manifest.blocks || [];
+      manifest.blocks = [
+        ...existing.map((b) =>
+          b.order >= 1 ? { ...b, order: b.order + 1 } : b,
+        ),
+        songBlock,
+      ].sort((a, b) => a.order - b.order);
+    }
+
+    // Train voice profile if samples provided
+    if (voiceSamples && voiceSamples.length > 0) {
+      try {
+        const { trainVoiceProfile } = await import('@/lib/voice-engine/trainer');
+        const profile = trainVoiceProfile(
+          voiceSamples.map((text: string) => ({ text, source: 'freeform' as const })),
+          session.user?.email || 'anon',
+        );
+        manifest.voiceSamples = voiceSamples;
+        // Store the trained system prompt for future AI rewrites
+        (manifest as unknown as Record<string, unknown>)._voiceSystemPrompt = profile.systemPrompt;
+      } catch {}
+    }
+
+    // ── Quality evaluation ──────────────────────────────
+    const { evaluateQuality: evalQuality } = await import('@/lib/intelligence/quality-eval');
+    const qualityReport = evalQuality(manifest);
+    console.log(`[Generate] Quality score: ${qualityReport.overallScore}/100 (${qualityReport.passed ? 'PASSED' : 'FLAGGED'})`);
+    if (qualityReport.issues.filter(i => i.severity === 'critical').length > 0) {
+      console.warn('[Generate] Critical quality issues:', qualityReport.issues.filter(i => i.severity === 'critical').map(i => i.message));
+    }
+
+    // Pass 7 — auto-populate functional blocks (FAQ, Registry, Travel)
+    // so the published site doesn't ship with empty sections.
+    try {
+      const { runPass7Content } = await import('@/lib/memory-engine/pass-7-content');
+      const { getEventType } = await import('@/lib/event-os/event-types');
+      const voice = getEventType(occasion as never)?.voice ?? 'celebratory';
+      const baseUrl = (() => {
+        try {
+          return new URL(req.url).origin;
+        } catch {
+          return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+        }
+      })();
+      const result = await runPass7Content({
+        manifest,
+        occasion: occasion ?? 'wedding',
+        voice: voice as 'solemn' | 'intimate' | 'ceremonial' | 'playful' | 'celebratory',
+        names,
+        baseUrl,
+      });
+      if (result.faqs && result.faqs.length > 0) manifest.faqs = result.faqs;
+      if (result.registry) manifest.registry = result.registry;
+      if (result.travelInfo) manifest.travelInfo = result.travelInfo;
+    } catch (err) {
+      console.warn('[Pass 7] Non-fatal failure:', err);
+    }
+
+    // Apply the selected template's signature motifs, blockOrder,
+    // hiddenBlocks, and (if the manifest doesn't already have one)
+    // theme + poetry. The AI passes generate the heart of the manifest;
+    // the template layers its voice on top.
+    const { applyTemplateToManifest } = await import('@/lib/templates/apply-template');
+    const themed = applyTemplateToManifest(manifest, templateId ?? null);
+
+    return NextResponse.json({ manifest: themed });
   } catch (error) {
     console.error('Generation error:', error);
     return NextResponse.json(

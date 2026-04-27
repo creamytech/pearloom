@@ -152,7 +152,7 @@ export async function POST(req: NextRequest) {
             </td>
           </tr>
           <tr>
-            <td style="background:rgba(255,255,255,0.03);border:1px solid rgba(196,169,106,0.2);border-radius:16px;padding:48px 40px;text-align:center;">
+            <td style="background:rgba(163,177,138,0.04);border:1px solid rgba(196,169,106,0.2);border-radius:16px;padding:48px 40px;text-align:center;">
               <p style="margin:0 0 8px;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:rgba(196,169,106,0.7);">You are cordially invited</p>
               <h1 style="margin:0 0 8px;font-size:36px;font-weight:400;color:#F5F1E8;line-height:1.2;">${esc(coupleNames)}</h1>
               <p style="margin:0 0 32px;font-size:15px;color:rgba(245,241,232,0.6);letter-spacing:1px;">invite you to celebrate their ${esc(occasionLabel)}</p>

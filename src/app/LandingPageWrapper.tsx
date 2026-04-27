@@ -1,9 +1,7 @@
 'use client';
 
-import { useSession, signIn } from 'next-auth/react';
-import { LandingPage } from '@/components/landing-page';
+import { HomeV8 } from '@/components/pearloom/pages/HomeV8';
 
 export default function LandingPageWrapper() {
-  const { status } = useSession();
-  return <LandingPage handleSignIn={() => signIn('google')} status={status} />;
+  return <HomeV8 />;
 }

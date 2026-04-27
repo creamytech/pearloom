@@ -1,8 +1,71 @@
 // ─────────────────────────────────────────────────────────────
-// everglow / types.ts — canonical type system
+// Pearloom / types.ts — canonical type system
 // ─────────────────────────────────────────────────────────────
 
 import type { VibeSkin } from '@/lib/vibe-engine';
+import type { SiteOccasion } from '@/lib/site-urls';
+
+/**
+ * Per-block style overrides.
+ * Each section can override these without touching the global theme.
+ * All fields optional — undefined means inherit from globals.
+ */
+/** Per-block-type style choice. Stored in `manifest.blockStyles[blockType]`.
+ *  The variant id is registered via registerBlockStyle() in
+ *  src/lib/block-engine/block-styles.ts; options is opaque to the
+ *  engine and validated by the variant itself. */
+export interface BlockStyleSelection {
+  style: string;
+  options?: Record<string, unknown>;
+}
+
+/** One historical AI decor draft. Lives in `manifest.decorDrafts.<slot>[]`,
+ *  most recent first, capped at 5 entries per slot. */
+export interface DecorDraft {
+  id: string;
+  url: string;
+  /** The full prompt that was sent to the model (post auto-context expansion). */
+  prompt: string;
+  /** User-provided custom hint, if any. Re-loaded into the composer
+   *  when the user reverts to this draft. */
+  customPrompt?: string;
+  /** ISO timestamp. */
+  createdAt: string;
+  /** True when alpha-channel cleanup succeeded. False = the original
+   *  opaque output is shown; the UI surfaces a "couldn't isolate" hint. */
+  isolated?: boolean;
+}
+
+/** Section stamps come back as a sheet of 6, sliced into per-section
+ *  URLs. We keep the whole set together so reverting swaps all six. */
+export interface SectionStampsDraft {
+  id: string;
+  stamps: Partial<Record<string, string>>;
+  prompt: string;
+  customPrompt?: string;
+  createdAt: string;
+}
+
+export interface BlockStyleOverride {
+  /** Vertical breathing room override: 'cozy' | 'comfortable' | 'spacious' | 'lush' */
+  spacing?: string;
+  /** Card corner radius override: 'sharp' | 'soft' | 'rounded' | 'pillow' */
+  cardRadius?: string;
+  /** Horizontal alignment of section copy. */
+  textAlign?: 'left' | 'center' | 'right';
+  /** Override container max-width (px). Useful for narrowing prose-heavy
+   *  sections so reading lines stay tight. */
+  maxWidth?: number;
+  /** Pad the inside of the section by extra px. */
+  paddingY?: number;
+  /** Override text colour for this section. CSS color string. */
+  textColor?: string;
+  /** Override background. CSS color string, or 'paper' / 'wash' / 'mesh'
+   *  (which delegate to SectionBackground). */
+  background?: string;
+  /** Hide the entire section without removing it from the manifest. */
+  hidden?: boolean;
+}
 
 /**
  * Story Manifest
@@ -16,10 +79,42 @@ export interface StoryManifest {
   theme: ThemeSchema;
   chapters: Chapter[];
   comingSoon: ComingSoonConfig;
-  // What type of life event is this site for?
-  occasion?: 'wedding' | 'anniversary' | 'engagement' | 'birthday' | 'story';
+  // Couple names — mirrored into the manifest so the editor can
+  // write through without needing a separate parent-level setter.
+  // Falls back to the `coupleNames` prop when absent.
+  names?: [string, string];
+  // User-uploaded hero cover photo (overrides AI-generated art)
+  coverPhoto?: string;
+  /** Focal point of the cover photo as percentages (0-100). When
+   *  set, the hero variant uses these as `background-position` so
+   *  the most-important part of the photo stays visible across
+   *  device crops. Default { x: 50, y: 50 } when omitted. */
+  coverFocalPoint?: { x: number; y: number };
+  // Hero slideshow: multiple photos that auto-rotate in the hero section
+  heroSlideshow?: string[];
+  // What type of life event is this site for? See SiteOccasion
+  // in src/lib/site-urls.ts for the full registry (28 events as
+  // of 2026-04-22). The legacy 5 ship; the rest are in beta.
+  occasion?: SiteOccasion;
+  // Which brand family renders the published site?
+  //   'editorial' — the classic Pearloom letterpress + thread
+  //                 aesthetic. Default for weddings, anniversaries,
+  //                 memorials, funerals, religious ceremonies.
+  //   'groove'    — warm, wavy, pear-and-loom organic aesthetic.
+  //                 Default for bachelor/ette, birthdays, reunions,
+  //                 baby showers, retirements — celebratory events.
+  // Seeded by occasion voice at generation time; host can override
+  // in the editor. See src/lib/event-os/theme-family.ts.
+  themeFamily?: 'editorial' | 'groove';
   // Timeline macro layout format chosen by user
   layoutFormat?: 'cascade' | 'filmstrip' | 'scrapbook' | 'magazine' | 'chapters' | 'starmap';
+  // Story chapter layout — controls how individual chapters render in the story section.
+  // Defaults to 'parallax' (premium cinematic) when unset. See src/components/blocks/StoryLayouts.tsx.
+  storyLayout?: 'parallax' | 'filmstrip' | 'magazine' | 'timeline' | 'kenburns' | 'bento';
+  // User-configurable date format for chapter headers. Presets are defined
+  // in CHAPTER_DATE_FORMATS in src/components/blocks/StoryLayouts.tsx.
+  // Omitted = "long" default (January 15, 2024).
+  dateFormat?: 'long' | 'short' | 'numeric' | 'iso' | 'month-year';
   logistics?: {
     venue?: string;
     venueAddress?: string;
@@ -29,6 +124,11 @@ export interface StoryManifest {
     rsvpDeadline?: string;
     dresscode?: string;
     notes?: string;
+    /** IANA timezone identifier (e.g. 'America/Los_Angeles'). When
+     *  set, the countdown + display formatters anchor on this zone
+     *  so a guest in Tokyo and a host in NYC see the same wall-clock
+     *  time for the event. Falls back to the viewer's local zone. */
+    timezone?: string;
   };
   registry?: {
     enabled: boolean;
@@ -48,8 +148,141 @@ export interface StoryManifest {
   travelInfo?: TravelInfo;
   // Real text samples from the couple — used to train the Ask the Couple AI chatbot
   voiceSamples?: string[];
+  // Public-site renderer version. 'v2' uses the editorial Alex-&-Jamie
+  // layout (SiteRendererV2); omitted or 'classic' uses the legacy
+  // block-driven renderer. Set on new wizard generations.
+  rendererVersion?: 'classic' | 'v2';
   // Free-canvas block order and visibility
   blocks?: PageBlock[];
+  // Template-applied identifier (optional). When set, references an id in
+  // SITE_TEMPLATES — used by the renderer to look up signature motifs.
+  templateId?: string;
+  // Template-applied signature ornaments: blob, stamp, squiggle, sparkle,
+  // heart, postIt, polaroid. Rendered on the hero and page decorations.
+  motifs?: {
+    blob?: 'sage' | 'peach' | 'lavender' | 'cream' | 'dusk' | 'warm' | 'none';
+    stamp?: { text: string; icon?: string; tone?: string; rotation?: number };
+    squiggle?: 1 | 2 | 3;
+    sparkle?: boolean;
+    heart?: boolean;
+    postIt?: { text: string; tone?: string; rotation?: number };
+    polaroid?: boolean;
+  };
+  /** Hero decoration library.
+   *  - `occasion` (default): per-event shape set (disco ball for sweet-16,
+   *    candles for memorial, balloons for baby shower, etc.) drawn by
+   *    OccasionDecor. Adapts to the template palette automatically.
+   *  - `classic`: the original v8 cream-blobs + squiggle look that ships
+   *    with most wedding templates today.
+   *  - `off`: clean hero, no ambient decoration. */
+  decorStyle?: 'occasion' | 'classic' | 'off';
+  /** AI-generated hero graphic — cached PNG URL. When set, the renderer
+   *  overlays this accent alongside the OccasionDecor set. Produced by
+   *  /api/decor/ai-accent from venue + palette + occasion. */
+  aiAccentUrl?: string;
+  /** Full AI decor library — generated once per site from the palette +
+   *  occasion + venue via /api/decor/library. Each slot caches a
+   *  permanent R2 URL that the renderer composites into the real site. */
+  decorLibrary?: {
+    /** Wide divider image used between every section — breaks the flat
+     *  hairline rule with hand-drawn editorial flourish. */
+    divider?: string;
+    /** Per-section stamp URLs (wax-seal feel) keyed by block type:
+     *  story, schedule, travel, registry, rsvp, faq, gallery. Rendered
+     *  inside each section's eyebrow. */
+    sectionStamps?: Partial<Record<string, string>>;
+    /** Confetti PNG that plays on RSVP 'yes' submission — a single
+     *  burst tile, animated client-side. */
+    confetti?: string;
+    /** Editorial closing flourish rendered above the site footer. */
+    footerBouquet?: string;
+    /** ISO timestamp of the last full-library regeneration. Used by
+     *  the editor to decide whether a re-prompt is cheap or costly. */
+    updatedAt?: string;
+    /** Visual prominence of the divider band between sections.
+     *  subtle ≈ 44px, standard (default) ≈ 84px, tall ≈ 120px. */
+    dividerStrength?: 'subtle' | 'standard' | 'tall';
+    /** Host-uploaded SVG/PNG decor — stationer monograms, custom
+     *  flourishes, anything an AI pass wouldn't draw exactly. Each
+     *  entry is a permanent R2 URL plus a label the host typed in.
+     *  Surfaces on the editor's Decor tab as draggable tiles. */
+    uploads?: Array<{ id: string; url: string; label: string; mime: 'image/svg+xml' | 'image/png'; addedAt: string }>;
+  };
+  /** Block-type → variant choice map (registered via
+   *  registerBlockStyle in src/lib/block-engine/block-styles.ts).
+   *  Distinct from `blockStyles` above, which holds per-section
+   *  visual overrides (padding, divider, etc.) — `blockVariants`
+   *  picks WHICH layout shape a block renders with. */
+  blockVariants?: Partial<Record<string, BlockStyleSelection>>;
+  /** Top-of-page nav customization. Shape:
+   *    - style: registered nav variant id ('classic' default)
+   *    - icon: brand glyph customization
+   *        - kind: 'pear' (default), 'asset' (preset library),
+   *          'image' (uploaded URL), 'ai' (gpt-image-2 generated)
+   *        - assetId: when kind='asset', the entry id from
+   *          src/components/pearloom/assets/nav-icons
+   *        - imageUrl: when kind='image' or 'ai', the R2 URL
+   *  All fields optional — unset = current Pear default. */
+  nav?: {
+    style?: string;
+    icon?: {
+      kind?: 'pear' | 'asset' | 'image' | 'ai';
+      assetId?: string;
+      imageUrl?: string;
+    };
+  };
+  /** Per-slot draft history. Every successful decor generation gets
+   *  appended (most-recent-first), capped at 5 entries per slot. The
+   *  ACTIVE asset is whatever lives in `aiAccentUrl` /
+   *  `decorLibrary.{divider,confetti,footerBouquet}` /
+   *  `decorLibrary.sectionStamps[*]` — selecting a draft just copies
+   *  its url over. Removing the active asset doesn't drop history. */
+  decorDrafts?: {
+    accent?: DecorDraft[];
+    divider?: DecorDraft[];
+    confetti?: DecorDraft[];
+    footerBouquet?: DecorDraft[];
+    /** Each entry is a full 6-stamp set (the model returns a 3×2 grid
+     *  that we slice into six). */
+    sectionStamps?: SectionStampsDraft[];
+  };
+  // (stickers array declared below — the existing StickerItem
+  // interface has been extended with optional url + blockId + scale
+  // so AI-generated stickers and library-based stickers share the
+  // same array shape.)
+  // Ordered list of block types (matches PageBlock['type']) that the
+  // renderer should follow when a template imposes a specific structure.
+  blockOrder?: string[];
+  // Block types that the template explicitly hides (e.g. minimalist templates
+  // that omit registry/faq).
+  hiddenBlocks?: string[];
+  // Site rendering mode. 'scroll' (default) renders every section on
+  // a single home page. 'multi-page' splits each section into its own
+  // route at /{occasion}/{slug}/{block}, leaving only homePageBlocks
+  // on the home page. EventNav resolves links accordingly.
+  siteMode?: 'scroll' | 'multi-page';
+  // Day-Of Mode override. 'auto' (default) auto-enables on the
+  // event day + morning after. 'on' forces live-mode chrome
+  // (rehearsals / demos). 'off' suppresses it entirely.
+  dayOfMode?: 'auto' | 'on' | 'off';
+  // Voice DNA — captured by the host once via /dashboard/voice
+  // and threaded into every Claude pass that drafts copy. Makes
+  // generated text sound like the host, not a brand.
+  voiceDNA?: {
+    tone: string;
+    formality: number;          // 1 (very casual) .. 5 (very formal)
+    vocabulary: string[];       // distinctive words they use
+    phrases: string[];          // signature short phrases
+    avoidList?: string[];
+    greetingStyle?: string;
+    signoffStyle?: string;
+    capturedAt: string;
+  };
+  // Which sections live on the home page in multi-page mode.
+  // Defaults to ['story','gallery'] when omitted. 'details' is
+  // always included implicitly. All other sections become their
+  // own dedicated pages.
+  homePageBlocks?: string[];
   // Custom SVG background pattern CSS (e.g. url("data:image/svg+xml,..."))
   backgroundPatternCss?: string;
   // User-created custom pages (photo gallery, our venue, etc.)
@@ -80,8 +313,27 @@ export interface StoryManifest {
   // Anniversary mode — transforms site after wedding date passes
   anniversaryMode?: boolean;
   anniversaryPhotos?: ChapterImage[];
-  // Multi-language: translated content keyed by locale
-  translations?: Record<string, { chapters?: Array<{ title: string; subtitle: string; description: string }> }>;
+  // Multi-language: translated content keyed by locale (e.g. 'es',
+  // 'fr', 'ja'). Replaces the runtime DOM-walk translate hack with a
+  // proper persisted shape — published sites read from
+  // translations[locale] when ?lang=xx is set or browser language matches.
+  translations?: Record<string, {
+    /** Per-chapter translated copy. Keyed by chapter id when
+     *  available, falls back to index. */
+    chapters?: Array<{ id?: string; title?: string; subtitle?: string; description?: string }>;
+    /** Translated poetry: heroTagline, closingLine, rsvpIntro,
+     *  welcomeStatement. Each optional. */
+    poetry?: { heroTagline?: string; closingLine?: string; rsvpIntro?: string; welcomeStatement?: string };
+    /** Translated FAQ array (same shape as faq[]). */
+    faq?: Array<{ id?: string; question?: string; answer?: string }>;
+    /** Translated event names + descriptions. */
+    events?: Array<{ id?: string; name?: string; description?: string }>;
+    /** Free-form key→string for everything else (block titles,
+     *  subtitles, custom labels). */
+    strings?: Record<string, string>;
+    /** When this locale was last regenerated. */
+    updatedAt?: string;
+  }>;
   activeLocale?: string;
   // Real-time collab: current editor session info
   collaborators?: Array<{ userId: string; name: string; color: string; cursor?: string }>;
@@ -97,7 +349,33 @@ export interface StoryManifest {
   logoIcon?: LogoIconId;
   // AI-generated custom SVG logo icon (overrides logoIcon when present)
   logoSvg?: string;
-  // Page ids to hide from nav: 'schedule' | 'rsvp' | 'registry' | 'travel' | 'faq' | 'venue'
+  // Navigation bar style variant
+  navStyle?: 'glass' | 'minimal' | 'solid' | 'editorial' | 'floating' | 'centered' | 'sidebar' | 'command';
+  // Mobile-specific nav style (independent from desktop)
+  mobileNavStyle?: 'classic' | 'compact-glass' | 'floating-pill' | 'bottom-tabs' | 'hidden' | 'floating-island';
+  // Custom page label overrides (page id → display text in nav)
+  pageLabels?: Record<string, string>;
+  // Nav bar customization — opacity (0-100) and custom background color
+  navOpacity?: number;
+  navBackground?: string;
+  // Site layout mode: multi-page (each section = separate page) or single-scroll (one long page)
+  pageMode?: 'multi-page' | 'single-scroll';
+  // SEO
+  seoTitle?: string;
+  seoDescription?: string;
+  ogImage?: string;
+  // Site protection
+  sitePassword?: string;
+  // Celebration — groups this site with sibling Pearloom sites
+  // that belong to the same real-world celebration (e.g. a
+  // wedding weekend with its own bachelor party + rehearsal +
+  // brunch sites). Sites sharing the same `id` are siblings;
+  // the group is discoverable via /api/celebrations/siblings.
+  celebration?: {
+    id: string;    // opaque grouping key (UUID or host-defined)
+    name: string;  // display name — "Emma & James's wedding weekend"
+  };
+  // Page ids to hide from nav
   hiddenPages?: string[];
   // Feature flags for optional site sections
   features?: {
@@ -108,6 +386,181 @@ export interface StoryManifest {
   };
   // Decorative SVG stickers placed on the site
   stickers?: StickerItem[];
+  // Wedding party members
+  weddingParty?: WeddingPartyMember[];
+  // Meal options for RSVP
+  mealOptions?: MealOption[];
+  // Guest broadcast messages
+  broadcasts?: GuestBroadcast[];
+  // Post-event mode settings
+  postEventMode?: 'active' | 'thank-you' | 'archive';
+  // Parchment tint filter applied to site photos
+  parchmentTint?: 'none' | 'ivory' | 'linen' | 'parchment' | 'sepia';
+  // Show "Hand-curated with Pearloom" watermark on published site
+  watermark?: boolean;
+  // Private gallery — hide photo gallery from public visitors
+  privateGallery?: boolean;
+  // Typography pair preset for the site
+  typographyPair?: 'serif-sans' | 'mono-serif' | 'display-body' | 'editorial';
+  /**
+   * Living atmosphere — animated background layer that gives the
+   * published site movement. Eight named kinds, three intensity
+   * levels, a host-controlled list of which sections receive it.
+   * Honours prefers-reduced-motion and pauses in background tabs.
+   * See src/components/pearloom/site/LivingAtmosphere.tsx.
+   */
+  atmosphere?: {
+    /** 'motes' | 'threads' | 'petals' | 'confetti' | 'candlelight'
+     *   | 'stars' | 'sunshimmer' | 'none' */
+    kind?: string;
+    /** 'subtle' | 'standard' | 'lush' */
+    intensity?: string;
+    /** Which sections render the atmosphere. Empty = hero only. */
+    sections?: string[];
+    /** Optional accent color override; falls back to theme accent. */
+    accent?: string;
+    /** Audio opt-in: if set, plays an ambient loop at -22dB after first
+     *  user interaction. URL points to a 30-60s seamless loop. */
+    audio?: { url?: string; label?: string; enabled?: boolean };
+  };
+  /** Per-section background overrides — 'paper' | 'wash' | 'mesh'
+   *  | 'atmosphere' | 'none'. Sections fall back to default when
+   *  not set. Section keys: 'top' | 'our-story' | 'schedule'
+   *  | 'travel' | 'registry' | 'gallery' | 'rsvp' | 'faq'. */
+  sectionBackgrounds?: Record<string, string>;
+  /** Per-section atmosphere overrides. When the section background
+   *  is 'atmosphere', these let the host swap kind/intensity for
+   *  just that section without changing the global hero atmosphere. */
+  sectionAtmosphere?: Record<string, { kind?: string; intensity?: string }>;
+  /** Show / hide individual decor primitives the editor renders.
+   *  Keys are the decor element ids; values are visibility flags. */
+  decorVisibility?: Record<string, boolean>;
+  /** Per-decor placement overrides — host can drag and resize any
+   *  decor element. dx/dy are pixel offsets from the slot's natural
+   *  position; scale is a 0.5–2 multiplier on the rendered size. */
+  decorPlacements?: Record<string, { dx?: number; dy?: number; scale?: number }>;
+  /** Custom palettes saved by the host — surfaced in the Theme panel
+   *  alongside the curated library. Each carries the same shape as a
+   *  curated preset so the picker treats them identically. */
+  customPalettes?: Array<{
+    id: string;
+    name: string;
+    /** [accent, secondary, tertiary, paper, deep, soft] for the swatch row. */
+    colors: string[];
+    theme: { background: string; foreground: string; accent: string; accentLight: string; muted: string; cardBg: string };
+    /** Marks AI-generated entries so the UI can label them. */
+    source?: 'ai' | 'custom';
+    rationale?: string;
+    createdAt?: string;
+  }>;
+  /** Manifest schema version — bumped when we add migration-required
+   *  fields. Editor reads this and runs migrations on open if older. */
+  schemaVersion?: number;
+  /** Last 10 manifest snapshots taken at every save. Lets the host
+   *  scrub backwards through time inside the editor without leaving
+   *  the page. Persisted with the manifest so it survives reloads. */
+  snapshots?: Array<{
+    id: string;
+    createdAt: string;
+    /** Plain-English label — auto-derived from what changed. */
+    label: string;
+    /** Compact diff: a short hash of the manifest at this point so we
+     *  can tell snapshots apart visually. The full payload lives at
+     *  the top-level manifest itself when the snapshot is restored. */
+    payload: Record<string, unknown>;
+  }>;
+  /** Per-block style overrides. Lets the host tweak any one section's
+   *  spacing, alignment, padding, or text colour without touching the
+   *  global theme. Sections fall back to global defaults when not set.
+   *  Section keys: 'top' | 'our-story' | 'schedule' | 'travel'
+   *  | 'registry' | 'gallery' | 'rsvp' | 'faq'. */
+  blockStyles?: Record<string, BlockStyleOverride>;
+  /** Per-template signature illustrated decor key (e.g. 'monolith',
+   *  'citrus', 'brushstroke'). Rendered in the hero by
+   *  TemplateSignatureDecor; gives each template a distinct visual
+   *  identity beyond palette/typography. */
+  signatureDecor?: string;
+  // Per-field inline text formatting overrides keyed by manifest path (e.g. "poetry.heroTagline")
+  textFormats?: Record<string, {
+    italic?: boolean;
+    bold?: boolean;
+    /** Relative size multiplier: sm=0.85em, md=1em(default), lg=1.2em, xl=1.5em */
+    size?: 'sm' | 'md' | 'lg' | 'xl';
+    color?: string;
+    /** Font family override — pulled from a curated picklist in the editor. */
+    fontFamily?: string;
+  }>;
+  /**
+   * Per-slot overrides for AI-generated decorative art. Live at the top
+   * level (not inside vibeSkin) so a full vibeSkin regeneration doesn't
+   * nuke user tweaks. Keys map loosely to vibeSkin art slots.
+   */
+  artSettings?: {
+    sectionBorder?: {
+      opacity?: number;       // 0..1, default 0.5
+      scale?: number;         // 0.5..2, default 1 — affects height
+      color?: string;         // CSS color override, default inherits tint
+      /** Preset variant id from separator-presets.ts, overrides the AI svg when set. */
+      variant?: string;
+      /** Where separators appear inside the story block. */
+      placement?: 'between' | 'bookend' | 'top' | 'bottom' | 'none';
+    };
+    medallion?:        { opacity?: number; scale?: number; color?: string };
+    heroBlob?:         { opacity?: number; scale?: number; color?: string };
+    cornerFlourish?:   { opacity?: number; scale?: number; color?: string };
+    accentBlob?:       { opacity?: number; scale?: number; color?: string };
+    heroPattern?:      { opacity?: number; scale?: number; color?: string };
+  };
+  // Hero badge style (pill = default pill, outlined = border-only, card = card-style, minimal = text-only dots)
+  heroBadgeStyle?: 'pill' | 'outlined' | 'card' | 'minimal';
+  // Hero countdown widget style
+  heroCountdownStyle?: 'cards' | 'minimal' | 'large';
+  // Hero text color override (overrides automatic dark/light based on photo presence)
+  heroTextColorOverride?: string;
+  /** Site customization options (borders, frames, transitions, etc.) */
+  customization?: import("./types").SiteCustomization;
+  /** Saved reusable components (symbols) */
+  savedComponents?: SavedComponent[];
+
+  // ── Wizard soft-signal fields ────────────────────────────────
+  // Captured from the wizard, persisted here so the editor + published
+  // site can honor them (visibility rails, reflective tone, date-mode
+  // phrasing, etc.). See /api/generate/stream for the rails that
+  // derive defaults from these at generation time.
+  category?: 'wedding-arc' | 'family' | 'milestone' | 'cultural' | 'commemoration';
+  visibility?: 'public' | 'unlisted' | 'private';
+  tonePolicy?: 'celebratory' | 'reflective' | 'mixed';
+  dateMode?: 'specific' | 'season' | 'year' | 'tba';
+  dateSeason?: string;
+  guestCount?: number | 'small' | 'medium' | 'large';
+  hostRole?: 'principal' | 'co-host' | 'family' | 'organizer';
+  /** Raw user words from the vibe step — preserved so the poetry pass
+   *  can quote them literally. `vibeString` is the derived composite. */
+  vibeName?: string;
+  /** Optional factual anchors the user gave the wizard. Pass 1 is
+   *  instructed to draw from these; Pass 1.5 grounds chapters against them. */
+  factSheet?: {
+    howWeMet?: string;
+    why?: string;
+    favorite?: string;
+  };
+  /** Track title/artist the user pasted on the song step, used by
+   *  vibeSkin weighting so a Bon Iver song pulls the palette muted/cool
+   *  even if the photos are warm. */
+  songMeta?: { title: string; artist?: string };
+}
+
+export type ComponentCategory = 'layout' | 'content' | 'media' | 'interactive';
+
+export interface SavedComponent {
+  id: string;
+  name: string;
+  type: BlockType;
+  category: ComponentCategory;
+  config?: Record<string, unknown>;
+  blockEffects?: PageBlock['blockEffects'];
+  createdAt: string;
+  builtIn?: boolean;
 }
 
 export interface Chapter {
@@ -119,7 +572,7 @@ export interface Chapter {
   images: ChapterImage[];
   location: GeoLocation | null;
   mood: string; // AI-generated mood tag (e.g. "golden hour", "cozy winter")
-  layout?: 'editorial' | 'fullbleed' | 'split' | 'cinematic' | 'gallery' | 'mosaic'; // visual layout variant
+  layout?: 'editorial' | 'fullbleed' | 'split' | 'cinematic' | 'gallery' | 'mosaic' | 'bento'; // visual layout variant
   order: number;
   /** Object-position for the cover image (percentages 0–100). Default: { x: 50, y: 50 } */
   imagePosition?: { x: number; y: number };
@@ -159,6 +612,7 @@ export interface GeoLocation {
   lat: number;
   lng: number;
   label: string; // reverse-geocoded (e.g. "Central Park, NY")
+  needsReverseGeocode?: boolean;
 }
 
 /**
@@ -179,6 +633,18 @@ export interface ThemeSchema {
     accentLight: string; // hex
     muted: string; // hex
     cardBg: string; // hex
+  };
+  /**
+   * Optional dark-mode palette. When omitted, ThemeProvider auto-derives
+   * a readable dark variant from `colors` via deriveDarkPalette().
+   */
+  darkColors?: {
+    background: string;
+    foreground: string;
+    accent: string;
+    accentLight: string;
+    muted: string;
+    cardBg: string;
   };
   borderRadius: string; // e.g. "0.5rem"
   // Dynamic UI Generation properties
@@ -202,16 +668,34 @@ export interface ThemeSchema {
     };
     /** Custom cursor shape */
     customCursor?: 'none' | 'pearl' | 'heart' | 'ring' | 'petal' | 'star';
+    /** Custom cursor color override — defaults to theme accent */
+    cursorColor?: string;
     /** SVG dividers between page sections */
     sectionDivider?: {
-      style: 'none' | 'wave' | 'wave2' | 'diagonal' | 'zigzag' | 'torn' | 'chevron' | 'arc';
+      style:
+        // Classic shape dividers
+        | 'none' | 'wave' | 'wave2' | 'diagonal' | 'zigzag' | 'torn' | 'chevron' | 'arc'
+        // Decorative animated dividers
+        | 'botanical' | 'petals' | 'ink' | 'flourish' | 'sparkle' | 'ribbon' | 'confetti' | 'constellation';
       height: number; // px 30–200
       flip: boolean; // alternate direction every other section
+      /** Enables the built-in motion for whichever style is picked.
+       *  Always respects prefers-reduced-motion regardless of this flag.
+       *  Defaults to true when omitted. */
+      animated?: boolean;
     };
     /** Scroll-triggered entrance animations for content blocks */
     scrollReveal?: 'none' | 'fade' | 'slide-up' | 'slide-left' | 'zoom' | 'blur-in';
     /** Tiling texture layered over background */
     textureOverlay?: 'none' | 'paper' | 'linen' | 'concrete' | 'velvet' | 'bokeh';
+  };
+
+  /** Typographic scale — mathematical ratio for font size hierarchy */
+  typeScale?: 'minor-third' | 'major-third' | 'perfect-fourth' | 'golden-ratio';
+  /** Computed font sizes from the type scale */
+  typeSizes?: {
+    hero: string; h1: string; h2: string; h3: string;
+    body: string; caption: string; label: string;
   };
 }
 
@@ -221,10 +705,11 @@ export interface ThemeSchema {
  */
 export interface ComingSoonConfig {
   enabled: boolean;
-  title: string;
-  subtitle: string;
+  title?: string;
+  subtitle?: string;
+  message?: string;
   revealDate?: string; // ISO 8601
-  passwordProtected: boolean;
+  passwordProtected?: boolean;
   password?: string;
 }
 
@@ -392,6 +877,7 @@ export interface WeddingEvent {
 // ─────────────────────────────────────────────────────────────
 
 export type BlockType =
+  // ── Core (shipping) ──
   | 'hero'
   | 'story'
   | 'countdown'
@@ -410,15 +896,61 @@ export type BlockType =
   | 'spotify'
   | 'quiz'
   | 'storymap'
-  | 'hashtag';
+  | 'hashtag'
+  | 'photoWall'
+  | 'gallery'
+  | 'vibeQuote'
+  | 'welcome'
+  | 'footer'
+  | 'anniversary'
+  | 'weddingParty'
+  // ── Event-OS expansion (CLAUDE-PRODUCT.md §4, implementations pending) ──
+  | 'itinerary'       // Multi-day hourly schedule
+  | 'costSplitter'    // Shared group-trip budget
+  | 'activityVote'    // Multi-choice poll
+  | 'toastSignup'     // Rehearsal dinner / milestone toast slots
+  | 'rooms'           // Reunion / bachelor-trip bed pairing
+  | 'tributeWall'     // Memorial / retirement submissions
+  | 'adviceWall'      // Baby shower / bridal shower advice
+  | 'nameVote'        // Baby-shower name polling
+  | 'program'         // Cultural / religious ceremony order
+  | 'livestream'      // Memorial / destination-wedding livestream
+  | 'obituary'        // Memorial long-form
+  | 'dressCode'       // Visual dress-code guide
+  | 'menu'            // Course list with dietary tags
+  | 'packingList'     // Destination trip checklist
+  | 'thenAndNow'      // Before/after photo pairs (reunions, milestone)
+  | 'whosWho'         // Face cards with roles (reunion, wedding party)
+  | 'groupChat'       // Threaded chat pinned to the site
+  | 'privacyGate'     // Password / invite-list gate
+  | 'guestPhotoUpload' // Mobile-first guest photo wall uploader
+  | 'voiceToast'      // In-browser voice-toast recorder
+  // ── v8 Tier S: native registry + payments ──
+  | 'registryItems'   // Native registry — items couples list, guests pay through Pearloom
+  | 'cashGift';       // Cash gift / honey fund via Stripe Checkout
 
 export interface PageBlock {
   id: string;
   type: BlockType;
   order: number;
   visible: boolean;
-  // Optional per-block config overrides
+  /**
+   * Per-block config — every block can override its title, subtitle,
+   * and carry type-specific settings. This makes every section editable.
+   *
+   * Common fields:
+   *   title    — custom section heading (overrides vibeSkin.sectionLabels)
+   *   subtitle — custom subheading or intro text
+   *   text     — main body content (for text/quote blocks)
+   *   url      — media URL (for video/spotify/map blocks)
+   *   symbol   — decorative symbol (for quote/divider blocks)
+   *   label    — action label or countdown text
+   */
   config?: Record<string, unknown>;
+  /** Tablet-specific config overrides (layered on top of config) */
+  tabletConfig?: Record<string, unknown>;
+  /** Mobile-specific config overrides (layered on top of tabletConfig → config) */
+  mobileConfig?: Record<string, unknown>;
   /** Per-block visual effects — override or supplement global theme effects */
   blockEffects?: {
     /** Entrance animation when this section scrolls into view */
@@ -701,12 +1233,106 @@ export interface PlaceResult {
 
 export interface StickerItem {
   id: string;
-  name: string;          // SVG component name e.g. 'RoseIllustration'
-  type: 'illustrations' | 'accents' | 'dividers';
+  /** SVG component name when `type !== 'ai'`. For AI stickers this
+   *  becomes a short label only (e.g. 'ai sticker'). For text
+   *  stickers this is the rendered string itself (legacy alias —
+   *  prefer `text` for new stickers). */
+  name?: string;
+  /** 'text' adds a free-form positionable text overlay on top of
+   *  the editorial flow — Pearloom's contained answer to free-form
+   *  positioning. The strict block flow stays intact; text stickers
+   *  are the layer above. */
+  type?: 'illustrations' | 'accents' | 'dividers' | 'ai' | 'text';
   x: number;             // left % (0-100)
   y: number;             // top % (0-100)
-  size: number;          // px size
+  size?: number;         // px size (legacy SVG stickers)
   rotation: number;      // degrees
-  opacity: number;       // 0-1
+  opacity?: number;      // 0-1
   color?: string;
+  /** AI-generated sticker PNG URL (mutually exclusive with `name`). */
+  url?: string;
+  /** Anchor block id — 'hero', 'story', 'schedule', etc. When set,
+   *  the sticker renders inside that block's layer; otherwise it
+   *  floats at the page level (legacy behaviour). */
+  blockId?: string;
+  /** 0.3–2 — proportional multiplier used by AI stickers. */
+  scale?: number;
+  /** Text content for text stickers. */
+  text?: string;
+  /** Font family for text stickers. Defaults to display Fraunces. */
+  fontFamily?: 'display' | 'body' | 'mono';
+  /** Font size in px (pre-scale). Default 32. */
+  fontSize?: number;
+  /** Font weight 100-900. Default 600. */
+  fontWeight?: number;
+  /** Italic toggle for text stickers. */
+  italic?: boolean;
+}
+
+// ── Wedding Party ─────────────────────────────────────────────
+
+export interface WeddingPartyMember {
+  id: string;
+  name: string;
+  role: 'bride' | 'groom' | 'maid-of-honor' | 'best-man' | 'bridesmaid' | 'groomsman'
+    | 'flower-girl' | 'ring-bearer' | 'officiant' | 'parent' | 'grandparent' | 'other';
+  customRole?: string;
+  bio?: string;
+  photo?: string;
+  relationship?: string; // "Bride's sister", "Groom's college roommate"
+  order: number;
+}
+
+// ── Meal Options ──────────────────────────────────────────────
+
+export interface MealOption {
+  id: string;
+  name: string; // "Herb-Crusted Chicken", "Pan-Seared Salmon", "Garden Risotto"
+  description?: string;
+  dietaryTags: Array<'vegetarian' | 'vegan' | 'gluten-free' | 'dairy-free' | 'nut-free' | 'halal' | 'kosher'>;
+  /** Allergens this dish CONTAINS — surfaced as warning badges so
+   *  guests with severe allergies don't have to ask. Distinct from
+   *  dietaryTags which are positive labels (vegetarian, gluten-free).
+   *  These are negative warnings (contains nuts, contains shellfish). */
+  allergens?: Array<'nuts' | 'tree-nuts' | 'peanuts' | 'shellfish' | 'fish' | 'eggs' | 'dairy' | 'soy' | 'gluten' | 'sesame'>;
+  /** Which event this meal belongs to (ceremony, reception, brunch) */
+  eventId?: string;
+}
+
+// ── Guest Broadcasts ──────────────────────────────────────────
+
+export interface GuestBroadcast {
+  id: string;
+  message: string;
+  type: 'update' | 'thank-you' | 'reminder' | 'emergency';
+  sentAt: number;
+  /** Number of guests this was sent to */
+  recipientCount: number;
+  /** Delivery channel */
+  channel: 'email' | 'sms' | 'site-banner';
+}
+
+// ── Customization Options ─────────────────────────────────────
+
+export interface SiteCustomization {
+  /** Card border style ID */
+  cardBorder?: string;
+  /** Section background ID per section (blockId → bgId) */
+  sectionBackgrounds?: Record<string, string>;
+  /** Photo frame style ID */
+  photoFrame?: string;
+  /** Monogram style + initials */
+  monogram?: { style: string; initials: string; color: string };
+  /** Section transition style ID */
+  sectionTransition?: string;
+  /** Custom RSVP questions */
+  rsvpQuestions?: Array<{ id: string; question: string; type: 'text' | 'select' | 'radio'; options?: string[]; required: boolean }>;
+  /** Custom guestbook prompts (IDs from GUESTBOOK_PROMPTS) */
+  guestbookPrompts?: string[];
+  /** Countdown style ID */
+  countdownStyle?: string;
+  /** Text animation effect ID */
+  textEffect?: string;
+  /** Background music config */
+  backgroundMusic?: { url: string; autoPlay: boolean; volume: number; showControls: boolean; position: string; consentMessage: string };
 }

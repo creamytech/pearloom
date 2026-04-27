@@ -8,6 +8,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createSiteInvite, getSiteInvites, deleteSiteInvite } from '@/lib/db';
 import { Resend } from 'resend';
+import { getAppOrigin } from '@/lib/site-urls';
 import { checkRateLimit } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
       invitedBy: session.user.email,
     });
 
-    const acceptUrl = `https://pearloom.com/invite?token=${token}`;
+    const acceptUrl = `${getAppOrigin()}/invite?token=${token}`;
     const inviterName = session.user.name || session.user.email;
     const roleLabel = role === 'coordinator' ? 'coordinator' : 'viewer';
 
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest) {
   <h1 style="font-size: 28px; font-weight: 400; font-style: italic; color: #2B2B2B; margin: 0 0 16px;">You're invited to help plan a wedding</h1>
   <p style="font-size: 16px; line-height: 1.7; color: #5A5450;">${inviterName} has invited you as a ${roleLabel} for their Pearloom wedding site.</p>
   <div style="margin: 32px 0; text-align: center;">
-    <a href="${acceptUrl}" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #A3B18A, #6D597A); color: white; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 15px;">Accept Invitation</a>
+    <a href="${acceptUrl}" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #5C6B3F, #6D597A); color: white; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 15px;">Accept Invitation</a>
   </div>
   <p style="font-size: 12px; color: #9A9488;">This invite expires in 7 days.</p>
 </div>

@@ -99,6 +99,61 @@ export async function getSiteConfig(subdomain: string): Promise<SiteConfig | nul
   return baseConfig;
 }
 
+/**
+ * adoptSite — write/normalise the site_config.creator_email so the
+ * dashboard's case-insensitive listing picks the site up.
+ *
+ * Called from the editor's server-side ownership check whenever:
+ *   (a) the site has no creator_email (orphan), OR
+ *   (b) the stored creator_email differs only in casing from the
+ *       current session's email.
+ *
+ * Refuses to overwrite a creator_email that points to a different
+ * identity — the editor's strict-mismatch redirect runs first, so
+ * we should never reach this with a real owner-mismatch, but the
+ * guard is belt-and-braces.
+ */
+export async function adoptSite(
+  subdomain: string,
+  sessionEmail: string,
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = getSupabase();
+  const normalised = sessionEmail.toLowerCase().trim();
+  try {
+    const { data: existing } = await supabase
+      .from('sites')
+      .select('id, site_config')
+      .eq('subdomain', subdomain)
+      .maybeSingle();
+
+    if (!existing) return { success: false, error: 'Site not found.' };
+
+    const cfg = (existing.site_config as Record<string, unknown>) || {};
+    const currentOwner = String(cfg.creator_email ?? '').toLowerCase().trim();
+
+    // If the stored owner is set and differs from the session user,
+    // refuse — the editor route should have already redirected.
+    if (currentOwner && currentOwner !== normalised) {
+      return { success: false, error: 'Owned by a different user.' };
+    }
+
+    const { error } = await supabase
+      .from('sites')
+      .update({
+        site_config: {
+          ...cfg,
+          creator_email: normalised,
+        },
+      })
+      .eq('subdomain', subdomain);
+
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
 export async function saveSiteDraft(
   userId: string,
   subdomain: string,
@@ -106,6 +161,10 @@ export async function saveSiteDraft(
   names: [string, string] = ['', '']
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = getSupabase();
+  // Normalize the user id so future case-mismatches don't cause the
+  // dashboard to lose track of the site (the listing query is now
+  // case-insensitive too — belt and braces).
+  const normalizedUserId = userId.toLowerCase().trim();
   try {
     const { data: existing } = await supabase
       .from('sites')
@@ -114,8 +173,8 @@ export async function saveSiteDraft(
       .maybeSingle();
 
     if (existing) {
-      const ownerEmail = (existing.site_config as Record<string, unknown>)?.creator_email;
-      if (ownerEmail && ownerEmail !== userId) {
+      const ownerEmail = String((existing.site_config as Record<string, unknown>)?.creator_email ?? '').toLowerCase();
+      if (ownerEmail && ownerEmail !== normalizedUserId) {
         return { success: false, error: 'Subdomain is already taken by another user.' };
       }
       const { error } = await supabase
@@ -125,7 +184,7 @@ export async function saveSiteDraft(
           site_config: {
             ...((existing.site_config as Record<string, unknown>) || {}),
             slug: subdomain,
-            creator_email: userId,
+            creator_email: normalizedUserId,
             names,
           },
         })
@@ -141,7 +200,7 @@ export async function saveSiteDraft(
         ai_manifest: { ...(manifest as Record<string, unknown>), comingSoon: { enabled: true } },
         site_config: {
           slug: subdomain,
-          creator_email: userId,
+          creator_email: normalizedUserId,
           names,
           createdAt: new Date().toISOString(),
         },
@@ -154,12 +213,15 @@ export async function saveSiteDraft(
 }
 
 export async function publishSite(
-  userId: string, 
-  subdomain: string, 
+  userId: string,
+  subdomain: string,
   manifest: unknown,
   names: [string, string] = ['', '']
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = getSupabase();
+  // Match saveSiteDraft — normalize on write so the dashboard's
+  // case-insensitive listing always finds this row later.
+  const normalizedUserId = userId.toLowerCase().trim();
   try {
     // Check if this subdomain is owned by someone else
     const { data: existing } = await supabase
@@ -169,8 +231,8 @@ export async function publishSite(
       .maybeSingle();
 
     if (existing) {
-      const ownerEmail = (existing.site_config as Record<string, unknown>)?.creator_email;
-      if (ownerEmail && ownerEmail !== userId) {
+      const ownerEmail = String((existing.site_config as Record<string, unknown>)?.creator_email ?? '').toLowerCase();
+      if (ownerEmail && ownerEmail !== normalizedUserId) {
         return { success: false, error: 'Subdomain is already taken by another user.' };
       }
 
@@ -182,7 +244,7 @@ export async function publishSite(
           site_config: {
             ...((existing.site_config as Record<string, unknown>) || {}),
             slug: subdomain,
-            creator_email: userId,
+            creator_email: normalizedUserId,
             names,
             createdAt: new Date().toISOString()
           }
@@ -204,7 +266,7 @@ export async function publishSite(
         ai_manifest: manifest,
         site_config: {
           slug: subdomain,
-          creator_email: userId,
+          creator_email: normalizedUserId,
           names,
           createdAt: new Date().toISOString()
         }
@@ -762,4 +824,38 @@ export async function acceptSiteInvite(token: string, acceptorEmail: string): Pr
 export async function deleteSiteInvite(id: string): Promise<void> {
   const supabase = getSupabase();
   await supabase.from('site_invites').delete().eq('id', id);
+}
+
+/**
+ * Get all published sites for sitemap generation.
+ */
+export async function getPublishedSites(): Promise<Array<{ domain: string; created_at: string; updated_at?: string; occasion?: string }>> {
+  const supabase = getSupabase();
+  try {
+    const { data, error } = await supabase
+      .from('sites')
+      .select('subdomain, created_at, updated_at, ai_manifest')
+      .not('ai_manifest', 'is', null)
+      .limit(5000);
+    if (error || !data) return [];
+    // Filter out coming-soon sites (comingSoon.enabled is set in the manifest JSON)
+    return data
+      .filter((row: Record<string, unknown>) => {
+        const manifest = row.ai_manifest as Record<string, unknown> | null;
+        if (!manifest) return false;
+        const comingSoon = manifest.comingSoon as { enabled?: boolean } | undefined;
+        return !comingSoon?.enabled;
+      })
+      .map((row: Record<string, unknown>) => {
+        const manifest = row.ai_manifest as Record<string, unknown> | null;
+        return {
+          domain: row.subdomain as string,
+          created_at: row.created_at as string,
+          updated_at: row.updated_at as string | undefined,
+          occasion: (manifest?.occasion as string | undefined),
+        };
+      });
+  } catch {
+    return [];
+  }
 }

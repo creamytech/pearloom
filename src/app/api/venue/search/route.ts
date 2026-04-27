@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,12 @@ export interface PlaceResult {
 // GET /api/venue/search?q=...&type=autocomplete
 // GET /api/venue/search?placeId=...&type=details
 export async function GET(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`venue-search:${ip}`, { max: 60, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   const { searchParams } = req.nextUrl;
   const type = searchParams.get('type');
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;

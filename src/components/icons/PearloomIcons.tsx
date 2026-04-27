@@ -42,28 +42,43 @@ export function PearlIcon({ size = 24, color = 'currentColor', className, style 
 
 /** BRAND MARK — beautiful organic pear silhouette with stem and small leaf. */
 export function PearIcon({ size = 24, color = 'currentColor', className, style }: IconProps) {
-  // Custom aspect ratio: 26x36
   const w = size * (26 / 36);
   const h = size;
+  const id = `pear-${Math.random().toString(36).slice(2, 8)}`;
   return (
     <svg
       width={w}
       height={h}
       viewBox="0 0 26 36"
       fill="none"
-      stroke={color}
-      strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
       style={style}
       aria-hidden="true"
     >
-      {/*
-        Pear silhouette: narrow top neck widening dramatically into a fat rounded bottom.
-        Starts from stem base at top-centre, curves inward to a narrow waist,
-        then sweeps out wide to the round belly and closes back up at bottom.
-      */}
+      <defs>
+        {/* Luminous gradient fill */}
+        <linearGradient id={`${id}-fill`} x1="13" y1="8" x2="13" y2="35" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor={color} stopOpacity="0.15" />
+          <stop offset="60%" stopColor={color} stopOpacity="0.08" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.03" />
+        </linearGradient>
+        {/* Inner glow */}
+        <radialGradient id={`${id}-glow`} cx="11" cy="22" r="12" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor={color} stopOpacity="0.12" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </radialGradient>
+        {/* Sparkle filter */}
+        <filter id={`${id}-soft`} x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="0.3" />
+        </filter>
+      </defs>
+
+      {/* Soft ambient glow behind the pear */}
+      <ellipse cx="13" cy="25" rx="10" ry="9" fill={`url(#${id}-glow)`} />
+
+      {/* Pear body — filled with luminous gradient */}
       <path d="
         M13 11
         C13 11 10.5 12 9 14
@@ -73,13 +88,33 @@ export function PearIcon({ size = 24, color = 'currentColor', className, style }
         C17.8 35 21.5 31.5 21.5 26.5
         C21.5 24 20.5 22 19 21
         C19.5 18.5 19 16.5 17 14
-        C15.5 12 13 11 13 11
-        Z
-      " />
-      {/* Stem — curves slightly to one side */}
-      <path d="M13 11 C13 9 13.5 7 13 5" />
-      {/* Leaf — small filled oval off the stem */}
-      <path d="M13 7.5 C14.5 6 17.5 6.5 17 8.5 C15.5 7.5 14 7.5 13 7.5 Z" fill={color} stroke="none" opacity="0.75" />
+        C15.5 12 13 11 13 11 Z
+      " fill={`url(#${id}-fill)`} stroke={color} strokeWidth="1.4" />
+
+      {/* Light reflection — crescent highlight on the body */}
+      <path d="M9.5 18 C10 20 9.5 24 10.5 28" stroke={color} strokeWidth="0.6" opacity="0.2" fill="none" />
+
+      {/* Stem — elegant curve */}
+      <path d="M13 11 C13 9 13.8 6.5 12.5 4" stroke={color} strokeWidth="1.3" />
+
+      {/* Leaf — lush, filled with slight transparency */}
+      <path d="
+        M13 7 C14.5 5.5 18 5.5 17.5 8
+        C16 7 14.5 6.8 13 7 Z
+      " fill={color} stroke="none" opacity="0.6" />
+
+      {/* Sparkle — top right, 4-pointed star */}
+      <g filter={`url(#${id}-soft)`} opacity="0.7">
+        <path d="M20 6 L20.5 4.5 L21 6 L22.5 6.5 L21 7 L20.5 8.5 L20 7 L18.5 6.5 Z" fill={color} stroke="none" />
+      </g>
+
+      {/* Sparkle — small, bottom left */}
+      <g filter={`url(#${id}-soft)`} opacity="0.45">
+        <path d="M5.5 16 L5.8 15 L6.1 16 L7 16.3 L6.1 16.6 L5.8 17.5 L5.5 16.6 L4.5 16.3 Z" fill={color} stroke="none" />
+      </g>
+
+      {/* Tiny sparkle dot — mid right */}
+      <circle cx="22" cy="12" r="0.6" fill={color} opacity="0.35" />
     </svg>
   );
 }

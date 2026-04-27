@@ -7,7 +7,8 @@ import type { StoryManifest } from '@/types';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
 import { Hero } from '@/components/hero';
-import { Timeline } from '@/components/timeline';
+import { StorySection, chapterDateFormatOptions } from '@/components/blocks/StoryLayouts';
+import { sanitizeSvg } from '@/lib/sanitize-svg';
 import { WeddingEvents } from '@/components/wedding-events';
 import { RegistryShowcase } from '@/components/registry-showcase';
 import { FaqSection } from '@/components/faq-section';
@@ -56,7 +57,7 @@ function FeedbackForm({ token, onClose }: { token: string; onClose: () => void }
         width: '320px',
         background: 'rgba(30,27,22,0.97)',
         backdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255,255,255,0.12)',
+        border: '1px solid rgba(0,0,0,0.07)',
         borderRadius: '1rem',
         padding: '1.25rem',
         zIndex: 10000,
@@ -67,14 +68,14 @@ function FeedbackForm({ token, onClose }: { token: string; onClose: () => void }
         <span style={{ color: '#f5f0e8', fontWeight: 600, fontSize: '0.9rem' }}>Leave feedback</span>
         <button
           onClick={onClose}
-          style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '1.1rem', padding: 0 }}
+          style={{ background: 'none', border: 'none', color: 'var(--pl-ink-soft)', cursor: 'pointer', fontSize: '1.1rem', padding: 0 }}
           aria-label="Close"
         >
           ×
         </button>
       </div>
       {status === 'sent' ? (
-        <p style={{ color: '#A3B18A', fontSize: '0.875rem', textAlign: 'center', padding: '0.5rem 0' }}>
+        <p style={{ color: '#5C6B3F', fontSize: '0.875rem', textAlign: 'center', padding: '0.5rem 0' }}>
           Thanks for your feedback!
         </p>
       ) : (
@@ -89,8 +90,8 @@ function FeedbackForm({ token, onClose }: { token: string; onClose: () => void }
               width: '100%',
               padding: '0.6rem 0.75rem',
               borderRadius: '0.5rem',
-              border: '1px solid rgba(255,255,255,0.15)',
-              background: 'rgba(255,255,255,0.07)',
+              border: '1px solid rgba(0,0,0,0.08)',
+              background: 'rgba(0,0,0,0.05)',
               color: '#f5f0e8',
               fontSize: '0.875rem',
               marginBottom: '0.6rem',
@@ -108,8 +109,8 @@ function FeedbackForm({ token, onClose }: { token: string; onClose: () => void }
               width: '100%',
               padding: '0.6rem 0.75rem',
               borderRadius: '0.5rem',
-              border: '1px solid rgba(255,255,255,0.15)',
-              background: 'rgba(255,255,255,0.07)',
+              border: '1px solid rgba(0,0,0,0.08)',
+              background: 'rgba(0,0,0,0.05)',
               color: '#f5f0e8',
               fontSize: '0.875rem',
               resize: 'vertical',
@@ -129,7 +130,7 @@ function FeedbackForm({ token, onClose }: { token: string; onClose: () => void }
               width: '100%',
               padding: '0.6rem',
               borderRadius: '0.5rem',
-              background: '#A3B18A',
+              background: '#5C6B3F',
               color: '#1e1b16',
               fontWeight: 600,
               fontSize: '0.875rem',
@@ -165,10 +166,10 @@ function PreviewBanner({ token }: { token: string }) {
         style={{
           position: 'sticky',
           top: 0,
-          zIndex: 9999,
+          zIndex: 'var(--z-max)',
           background: 'rgba(30,27,22,0.97)',
           backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(255,255,255,0.1)',
+          borderBottom: '1px solid rgba(0,0,0,0.06)',
           padding: '0.65rem 1.25rem',
           display: 'flex',
           alignItems: 'center',
@@ -182,8 +183,8 @@ function PreviewBanner({ token }: { token: string }) {
           <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.875rem', fontWeight: 500 }}>
             Preview Mode
           </span>
-          <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.875rem' }}>·</span>
-          <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>
+          <span style={{ color: 'var(--pl-muted)', fontSize: '0.875rem' }}>·</span>
+          <span style={{ color: 'var(--pl-ink-soft)', fontSize: '0.8rem' }}>
             This site hasn&apos;t been published yet
           </span>
         </div>
@@ -193,9 +194,9 @@ function PreviewBanner({ token }: { token: string }) {
             style={{
               padding: '0.35rem 0.85rem',
               borderRadius: '0.4rem',
-              border: '1px solid rgba(255,255,255,0.2)',
+              border: '1px solid var(--pl-muted)',
               background: 'transparent',
-              color: 'rgba(255,255,255,0.8)',
+              color: 'var(--pl-ink)',
               fontSize: '0.8rem',
               cursor: 'pointer',
               fontWeight: 500,
@@ -210,7 +211,7 @@ function PreviewBanner({ token }: { token: string }) {
               borderRadius: '0.4rem',
               border: '1px solid rgba(163,177,138,0.5)',
               background: 'rgba(163,177,138,0.15)',
-              color: '#A3B18A',
+              color: '#5C6B3F',
               fontSize: '0.8rem',
               cursor: 'pointer',
               fontWeight: 500,
@@ -247,7 +248,9 @@ function getVideoEmbedUrl(url?: string): string | null {
 
 // ── Site Renderer ────────────────────────────────────────────────────────────
 function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
-  const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
+  const vibeSkin = (manifest.vibeSkin && manifest.vibeSkin.palette)
+    ? manifest.vibeSkin
+    : deriveVibeSkin(manifest.vibeString || '');
   const pal = vibeSkin.palette;
   const bgColor = pal.background;
   const cardBg = pal.card;
@@ -278,7 +281,7 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
   ];
 
   const sitePages = [
-    { id: 'story', slug: 'our-story', label: 'Our Story', enabled: true, order: 0 },
+    { id: 'story', slug: 'our-story', label: vibeSkin.sectionLabels?.story || 'Our Story', enabled: true, order: 0 },
   ] as import('@/types').SitePage[];
 
   // FaqSection expects FaqItemWithCategory — add a default category if missing
@@ -306,8 +309,18 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
       case 'story':
         if (!(manifest.chapters?.length)) return null;
         return (
-          <section key="story" id="our-story">
-            <Timeline chapters={manifest.chapters ?? []} layoutFormat={manifest.layoutFormat} />
+          <section key="story" id="our-story" style={{ position: 'relative' }}>
+            <StorySection
+              chapters={manifest.chapters ?? []}
+              storyLayout={manifest.storyLayout}
+              layoutFormat={manifest.layoutFormat}
+              chapterIcons={(vibeSkin.chapterIcons || []).map(svg => sanitizeSvg(svg))}
+              sectionBorderSvg={vibeSkin.sectionBorderSvg ? sanitizeSvg(vibeSkin.sectionBorderSvg) : undefined}
+              medallionSvg={vibeSkin.medallionSvg ? sanitizeSvg(vibeSkin.medallionSvg) : undefined}
+              accentColor={pal.accent}
+              dateFormat={chapterDateFormatOptions(manifest.dateFormat)}
+              transformUrl={(url) => proxyUrl(url, 1600, 1200)}
+            />
           </section>
         );
       case 'event':
@@ -448,7 +461,20 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
       case 'divider':
         return <WaveDivider key="divider" skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={60} />;
       case 'photos': {
-        const allPhotos = (manifest.chapters || []).flatMap((ch: import('@/types').Chapter) => ch.images || []).slice(0, 9);
+        const tpSeen = new Set<string>();
+        const allPhotos: Array<{ url: string; alt?: string }> = [];
+        if ((manifest as any).coverPhoto) {
+          const u = (manifest as any).coverPhoto as string;
+          if (!tpSeen.has(u)) { tpSeen.add(u); allPhotos.push({ url: u, alt: 'Cover photo' }); }
+        }
+        for (const u of ((manifest as any).heroSlideshow || []) as string[]) {
+          if (u && !tpSeen.has(u)) { tpSeen.add(u); allPhotos.push({ url: u, alt: 'Hero slideshow' }); }
+        }
+        for (const ch of ((manifest as any).chapters || [])) {
+          for (const img of (ch.images || [])) {
+            if (img.url && !tpSeen.has(img.url)) { tpSeen.add(img.url); allPhotos.push(img); }
+          }
+        }
         if (!allPhotos.length) return null;
         return (
           <section key="photos" style={{ padding: 'clamp(2rem, 5vw, 5rem) clamp(1rem, 4vw, 2rem)', maxWidth: '1200px', margin: '0 auto' }}>
@@ -551,7 +577,7 @@ export default function PreviewPage({ params }: PreviewPageProps) {
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', background: '#1e1b16', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'sans-serif', fontSize: '1rem' }}>Loading preview…</p>
+        <p style={{ color: 'var(--pl-ink-soft)', fontFamily: 'sans-serif', fontSize: '1rem' }}>Loading preview…</p>
       </div>
     );
   }

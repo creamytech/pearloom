@@ -14,6 +14,7 @@ interface CountdownWidgetProps {
   targetDate: string; // ISO date string
   coupledNames?: [string, string];
   onPhoto?: boolean; // true = white text mode (on hero photo)
+  countdownStyle?: 'cards' | 'minimal' | 'large';
 }
 
 interface TimeLeft {
@@ -71,7 +72,7 @@ function getAmbientGlow(days: number | null): { bg: string; glow: string; textAc
   };
 }
 
-export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidgetProps) {
+export function CountdownWidget({ targetDate, onPhoto = false, countdownStyle = 'cards' }: CountdownWidgetProps) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -116,10 +117,10 @@ export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidget
             position: 'relative',
             zIndex: 1,
             textAlign: 'center',
-            color: onPhoto ? 'rgba(255,255,255,0.85)' : ambient.textAccent,
+            color: onPhoto ? 'var(--pl-ink)' : ambient.textAccent,
             fontSize: '1.4rem',
             fontStyle: 'italic',
-            fontFamily: 'var(--eg-font-heading)',
+            fontFamily: 'var(--pl-font-heading)',
             fontWeight: 400,
             letterSpacing: '0.04em',
             marginTop: '2rem',
@@ -131,12 +132,12 @@ export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidget
     );
   }
 
-  const textColor = onPhoto ? 'rgba(255,255,255,0.97)' : 'var(--eg-fg)';
-  const mutedColor = onPhoto ? 'rgba(255,255,255,0.52)' : 'var(--eg-muted)';
-  const cardBg = onPhoto ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.85)';
-  const cardBorder = onPhoto ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.07)';
+  const textColor = onPhoto ? '#ffffff' : 'var(--pl-ink)';
+  const mutedColor = onPhoto ? 'rgba(255,255,255,0.75)' : 'var(--pl-muted)';
+  const cardBg = onPhoto ? 'rgba(0,0,0,0.3)' : 'var(--pl-cream-card, #FDFAF4)';
+  const cardBorder = onPhoto ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.07)';
   const cardShadow = onPhoto
-    ? '0 4px 20px rgba(0,0,0,0.15)'
+    ? '0 4px 20px rgba(0,0,0,0.25)'
     : '0 4px 20px rgba(43,43,43,0.07), 0 1px 4px rgba(43,43,43,0.04)';
 
   const segments = [
@@ -182,7 +183,7 @@ export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidget
       >
         {/* Section icon + label */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
-          <CalendarHeartIcon size={14} color={onPhoto ? 'rgba(255,255,255,0.6)' : ambient.textAccent} />
+          <CalendarHeartIcon size={14} color={onPhoto ? 'var(--pl-ink-soft)' : ambient.textAccent} />
           <span style={{
             fontSize: '0.58rem',
             letterSpacing: '0.38em',
@@ -194,67 +195,104 @@ export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidget
           </span>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          {segments.map((seg, i) => (
-            <div key={seg.label} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              {/* Unit card */}
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                background: cardBg,
-                border: `1px solid ${cardBorder}`,
-                borderRadius: '1.25rem',
-                padding: '1.1rem 1.6rem',
-                minWidth: '68px',
-                boxShadow: cardShadow,
-                backdropFilter: onPhoto ? 'blur(12px)' : 'none',
-              }}>
+        {/* ── Cards variant (default) ── */}
+        {countdownStyle !== 'minimal' && (
+          <div style={{ display: 'flex', gap: 'clamp(0.25rem, 1.5vw, 0.5rem)', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+            {segments.map((seg, i) => (
+              <div key={seg.label} style={{ display: 'flex', alignItems: 'center', gap: 'clamp(0.25rem, 1.5vw, 0.5rem)' }}>
+                {/* Unit card */}
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  background: cardBg,
+                  border: `1px solid ${cardBorder}`,
+                  borderRadius: 'clamp(0.75rem, 2vw, 1.25rem)',
+                  padding: countdownStyle === 'large'
+                    ? 'clamp(0.9rem, 3vw, 1.5rem) clamp(1.1rem, 3.5vw, 2.2rem)'
+                    : 'clamp(0.6rem, 2vw, 1.1rem) clamp(0.8rem, 2.5vw, 1.6rem)',
+                  minWidth: countdownStyle === 'large' ? 'clamp(64px, 18vw, 86px)' : 'clamp(52px, 14vw, 68px)',
+                  boxShadow: cardShadow,
+                  backdropFilter: onPhoto ? 'blur(16px) saturate(1.2)' : 'none',
+                  WebkitBackdropFilter: onPhoto ? 'blur(16px) saturate(1.2)' : 'none',
+                }}>
+                  <motion.span
+                    key={seg.value}
+                    initial={{ y: -8, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                    style={{
+                      fontSize: countdownStyle === 'large' ? 'clamp(2rem, 7vw, 3.25rem)' : 'clamp(1.5rem, 5vw, 2.25rem)',
+                      fontWeight: 600,
+                      color: textColor,
+                      lineHeight: 1,
+                      fontFamily: 'var(--pl-font-heading)',
+                      fontVariantNumeric: 'tabular-nums',
+                      ...(seg.isTick ? { animation: 'countdown-tick 1s steps(1) infinite' } : {}),
+                    }}
+                  >
+                    {String(seg.value).padStart(2, '0')}
+                  </motion.span>
+                  <span style={{
+                    fontSize: countdownStyle === 'large' ? '0.6rem' : '0.52rem',
+                    letterSpacing: '0.2em',
+                    textTransform: 'uppercase',
+                    color: mutedColor,
+                    marginTop: '0.4rem',
+                    fontWeight: 700,
+                  }}>
+                    {seg.label}
+                  </span>
+                </div>
+
+                {/* Blinking colon separator (not after last) */}
+                {i < 3 && (
+                  <motion.span
+                    animate={{ opacity: [1, 0.2, 1] }}
+                    transition={{ duration: 1, repeat: Infinity }}
+                    style={{
+                      color: mutedColor,
+                      fontSize: countdownStyle === 'large' ? '1.8rem' : '1.4rem',
+                      fontWeight: 300, marginBottom: '14px',
+                    }}
+                  >
+                    :
+                  </motion.span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── Minimal variant — just numbers + labels inline ── */}
+        {countdownStyle === 'minimal' && (
+          <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'baseline', justifyContent: 'center', flexWrap: 'wrap' }}>
+            {segments.map((seg) => (
+              <div key={seg.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
                 <motion.span
                   key={seg.value}
-                  initial={{ y: -8, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ duration: 0.3 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
                   style={{
-                    fontSize: '2.25rem',
-                    fontWeight: 600,
+                    fontSize: 'clamp(1.8rem, 5vw, 2.5rem)',
+                    fontWeight: 500,
                     color: textColor,
                     lineHeight: 1,
-                    fontFamily: 'var(--eg-font-heading)',
+                    fontFamily: 'var(--pl-font-heading)',
                     fontVariantNumeric: 'tabular-nums',
-                    // CSS tick animation on seconds
-                    ...(seg.isTick ? {
-                      animation: 'countdown-tick 1s steps(1) infinite',
-                    } : {}),
+                    ...(seg.isTick ? { animation: 'countdown-tick 1s steps(1) infinite' } : {}),
                   }}
                 >
                   {String(seg.value).padStart(2, '0')}
                 </motion.span>
-                <span style={{
-                  fontSize: '0.52rem',
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                  color: mutedColor,
-                  marginTop: '0.4rem',
-                  fontWeight: 700,
-                }}>
+                <span style={{ fontSize: '0.52rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: mutedColor, fontWeight: 700 }}>
                   {seg.label}
                 </span>
               </div>
-
-              {/* Blinking colon separator (not after last) */}
-              {i < 3 && (
-                <motion.span
-                  animate={{ opacity: [1, 0.2, 1] }}
-                  transition={{ duration: 1, repeat: Infinity }}
-                  style={{ color: mutedColor, fontSize: '1.4rem', fontWeight: 300, marginBottom: '14px' }}
-                >
-                  :
-                </motion.span>
-              )}
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Floating orb — pulses once per second in sync with the seconds tick */}
         {!onPhoto && (

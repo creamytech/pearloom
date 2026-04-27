@@ -11,7 +11,7 @@ import React from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useMemo, useState, useEffect, useCallback } from 'react';
 import { Hero } from '@/components/hero';
-import { Timeline } from '@/components/timeline';
+import { StorySection, chapterDateFormatOptions } from '@/components/blocks/StoryLayouts';
 import { ComingSoon } from '@/components/coming-soon';
 import { WeddingEvents } from '@/components/wedding-events';
 import { RegistryShowcase } from '@/components/registry-showcase';
@@ -23,8 +23,10 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
 import { CelebrationOverlay } from '@/components/vibe/CelebrationOverlay';
 import { WaveDivider } from '@/components/vibe/WaveDivider';
+import { SectionDivider } from '@/components/effects/SectionDivider';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { sanitizeSvg } from '@/lib/sanitize-svg';
+import { enforcePaletteContrast } from '@/lib/color-utils';
 import type { StoryManifest, SitePage } from '@/types';
 import { StickerLayer } from '@/components/site-stickers/StickerLayer';
 
@@ -32,7 +34,7 @@ import { StickerLayer } from '@/components/site-stickers/StickerLayer';
 
 function proxyUrl(rawUrl: string, w: number, h: number): string {
   if (!rawUrl) return '';
-  if (rawUrl.includes('googleusercontent.com')) {
+  if (rawUrl.includes('googleusercontent.com') || rawUrl.includes('lh3.google')) {
     return `/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=${w}&h=${h}`;
   }
   return rawUrl;
@@ -59,13 +61,16 @@ function getVideoEmbedUrl(url?: string): string | null {
 
 // ── Subpage preview (mirrors [domain]/[page] route) ──────────
 function SubpagePreview({ page, manifest, names, rawParams }: { page: string; manifest: StoryManifest; names: [string, string]; rawParams?: string }) {
-  const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
-  const pal = vibeSkin.palette;
+  const vibeSkin = (manifest.vibeSkin && manifest.vibeSkin.palette)
+    ? manifest.vibeSkin
+    : deriveVibeSkin(manifest.vibeString || '');
+  const pal = enforcePaletteContrast(vibeSkin.palette);
   const bgColor = pal.background;
   const cardBg = pal.card;
+  const subMeshActive = manifest.theme?.effects?.gradientMesh && manifest.theme.effects.gradientMesh.preset !== 'none' && (manifest.theme.effects.gradientMesh.opacity ?? 0) > 0;
   const fontUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(vibeSkin.fonts.heading)}:ital,wght@0,400;0,600;0,700;1,400&family=${encodeURIComponent(vibeSkin.fonts.body)}:wght@300;400;500;600&display=swap`;
   const sitePages: SitePage[] = [
-    { id: 'story', slug: 'our-story', label: 'Our Story', enabled: true, order: 0 },
+    { id: 'story', slug: 'our-story', label: vibeSkin.sectionLabels?.story || 'Our Story', enabled: true, order: 0 },
     ...(manifest.events?.length ? [{ id: 'schedule', slug: 'schedule', label: 'Schedule', enabled: true, order: 1 }] : []),
     ...(manifest.events?.length ? [{ id: 'rsvp', slug: 'rsvp', label: 'RSVP', enabled: true, order: 2 }] : []),
     ...((manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? [{ id: 'registry', slug: 'registry', label: 'Registry', enabled: true, order: 3 }] : []),
@@ -117,22 +122,11 @@ function SubpagePreview({ page, manifest, names, rawParams }: { page: string; ma
   }
 
   return (
-    <ThemeProvider theme={manifest.theme || dynamicTheme}>
+    <ThemeProvider theme={{ ...dynamicTheme, ...manifest.theme, colors: { ...dynamicTheme.colors, ...(manifest.theme?.colors || {}) }, effects: manifest.theme?.effects }}>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="stylesheet" href={fontUrl} />
-      <SiteNav
-        names={names}
-        pages={sitePages}
-        logoIcon={manifest.logoIcon}
-        logoSvg={manifest.logoSvg}
-        pageHrefOverride={(slug) => {
-          const params = new URLSearchParams(rawParams ?? '');
-          if (!slug || slug === 'our-story') { params.delete('page'); }
-          else { params.set('page', slug); }
-          return `/preview?${params.toString()}`;
-        }}
-      />
-      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor }}>
+      {subMeshActive && <style>{`body { background: ${bgColor}; }`}</style>}
+      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: subMeshActive ? 'transparent' : bgColor }}>
         {content}
       </main>
     </ThemeProvider>
@@ -197,14 +191,55 @@ function PreviewContent() {
 
   if (!manifest) {
     return (
-      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F5F1E8' }}>
-        <div style={{ textAlign: 'center', padding: '2rem' }}>
-          <h1 style={{ fontSize: '2rem', fontWeight: 300, letterSpacing: '0.04em', color: '#2B2B2B', marginBottom: '0.75rem' }}>
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FDFAF0', padding: 32 }}>
+        <div style={{ textAlign: 'center', maxWidth: 440 }}>
+          <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 40, fontStyle: 'italic', color: '#18181B', margin: '0 0 10px', fontWeight: 500 }}>
             Preview
           </h1>
-          <p style={{ color: '#9A9488', fontSize: '0.95rem' }}>
-            No story data yet. Generate your story from the dashboard.
+          <p style={{ color: '#4A5642', fontSize: 14.5, margin: '0 0 26px', lineHeight: 1.55 }}>
+            There's no story here yet. Start a site from a template, or jump into the
+            dashboard to generate one from your photos.
           </p>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <a
+              href="/templates"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '10px 18px',
+                borderRadius: 999,
+                background: '#18181B',
+                color: '#FDFAF0',
+                fontSize: 14,
+                fontWeight: 600,
+                textDecoration: 'none',
+              }}
+            >
+              Browse templates
+            </a>
+            <a
+              href="/dashboard"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '10px 18px',
+                borderRadius: 999,
+                background: 'transparent',
+                color: '#18181B',
+                fontSize: 14,
+                fontWeight: 600,
+                border: '1.5px solid #E2D9C3',
+                textDecoration: 'none',
+              }}
+            >
+              Go to dashboard
+            </a>
+          </div>
+          <div style={{ marginTop: 28, fontSize: 12, color: '#6F6557' }}>
+            <a href="/" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: 3 }}>
+              ← Back to Pearloom
+            </a>
+          </div>
         </div>
       </div>
     );
@@ -217,8 +252,10 @@ function PreviewContent() {
   }
 
   // Derive visual skin
-  const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
-  const pal = vibeSkin.palette;
+  const vibeSkin = (manifest.vibeSkin && manifest.vibeSkin.palette)
+    ? manifest.vibeSkin
+    : deriveVibeSkin(manifest.vibeString || '');
+  const pal = enforcePaletteContrast(vibeSkin.palette);
   const bgColor = pal.background;
   const cardBg = pal.card;
   const accentLight = pal.accent2;
@@ -244,17 +281,18 @@ function PreviewContent() {
   const rawCoverPhoto = manifest.chapters?.[0]?.images?.[0]?.url || '';
   const occasion = manifest.occasion || 'wedding';
   const safeNames = [names[0] || 'Celebrating', names[1] || ''];
+  // Hero image priority: 1) user-uploaded cover, 2) AI-generated art, 3) hero-art API
   const heroArtParams = new URLSearchParams({
     n1: safeNames[0], n2: safeNames[1],
     occasion, accent: pal.accent, bg: pal.background,
   });
-  const proxiedCover = rawCoverPhoto
-    ? proxyUrl(rawCoverPhoto, 1920, 1080)
-    : `/api/hero-art?${heroArtParams.toString()}`;
+  const proxiedCover = manifest.coverPhoto
+    || vibeSkin.heroArtDataUrl
+    || `/api/hero-art?${heroArtParams.toString()}`;
 
   // Build nav pages — only show pages that have real content
   const sitePages: SitePage[] = [
-    { id: 'story', slug: 'our-story', label: 'Our Story', enabled: true, order: 0 },
+    { id: 'story', slug: 'our-story', label: vibeSkin.sectionLabels?.story || 'Our Story', enabled: true, order: 0 },
     ...(manifest.events?.length ? [{ id: 'schedule', slug: 'schedule', label: 'Schedule', enabled: true, order: 1 }] : []),
     ...(manifest.events?.length ? [{ id: 'rsvp', slug: 'rsvp', label: 'RSVP', enabled: true, order: 2 }] : []),
     ...((manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? [{ id: 'registry', slug: 'registry', label: 'Registry', enabled: true, order: 3 }] : []),
@@ -268,7 +306,7 @@ function PreviewContent() {
     switch (type) {
       case 'hero':
         return (
-          <div key={key} style={{ position: 'relative' }}>
+          <div key={key} data-pe-section="hero" data-pe-label="Hero" style={{ position: 'relative' }}>
             <Hero
               names={names}
               subtitle={manifest.chapters?.[0]?.subtitle || `${manifest.chapters?.length || 0} chapters of your love story`}
@@ -281,20 +319,32 @@ function PreviewContent() {
           </div>
         );
       case 'story':
-        return <section key={key} id="our-story"><Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} /></section>;
+        return (
+          <section key={key} id="our-story" data-pe-section="story" data-pe-label="Story" style={{ position: 'relative' }}>
+            <StorySection
+              chapters={manifest.chapters || []}
+              storyLayout={manifest.storyLayout}
+              layoutFormat={manifest.layoutFormat}
+              chapterIcons={(vibeSkin.chapterIcons || []).map(svg => sanitizeSvg(svg))}
+              sectionBorderSvg={vibeSkin.sectionBorderSvg ? sanitizeSvg(vibeSkin.sectionBorderSvg) : undefined}
+              medallionSvg={vibeSkin.medallionSvg ? sanitizeSvg(vibeSkin.medallionSvg) : undefined}
+              accentColor={pal.accent}
+              dateFormat={chapterDateFormatOptions(manifest.dateFormat)}
+              transformUrl={(url) => proxyUrl(url, 1600, 1200)}
+            />
+          </section>
+        );
       case 'event':
         if (!manifest.events?.length) return null;
         return (
-          <section key={key} id="schedule" style={{ position: 'relative', overflow: 'hidden' }}>
+          <section key={key} id="schedule" data-pe-section="events" data-pe-label="Events" style={{ position: 'relative', overflow: 'hidden' }}>
             {vibeSkin.accentBlobSvg && (
               <div
                 style={{ position: 'absolute', left: '-8%', bottom: '5%', width: '55%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.16 }}
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.accentBlobSvg) }}
               />
             )}
-            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} />
             <WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} />
-            <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted />
           </section>
         );
       case 'rsvp':
@@ -307,30 +357,26 @@ function PreviewContent() {
       case 'registry':
         if (!manifest.registry?.entries?.length && !manifest.registry?.cashFundUrl) return null;
         return (
-          <section key={key} id="registry">
-            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={accentLight} height={80} />
+          <section key={key} id="registry" data-pe-section="registry" data-pe-label="Registry">
             <RegistryShowcase
               registries={manifest.registry?.entries || []}
               cashFundUrl={manifest.registry?.cashFundUrl}
               cashFundMessage={manifest.registry?.cashFundMessage}
               title={vibeSkin.sectionLabels.registry}
             />
-            <WaveDivider skin={vibeSkin} fromColor={accentLight} toColor={bgColor} height={70} inverted />
           </section>
         );
       case 'travel':
         if (!manifest.travelInfo) return null;
         return (
-          <section key={key} id="travel">
-            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={70} />
+          <section key={key} id="travel" data-pe-section="travel" data-pe-label="Travel">
             <TravelSection info={manifest.travelInfo} />
           </section>
         );
       case 'faq':
         if (!manifest.faqs?.length) return null;
         return (
-          <section key={key} id="faq">
-            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
+          <section key={key} id="faq" data-pe-section="faq" data-pe-label="FAQ">
             <FaqSection faqs={manifest.faqs} />
           </section>
         );
@@ -357,8 +403,8 @@ function PreviewContent() {
       case 'quote':
         return (
           <section key={key} data-pe-section="quote" data-pe-label="Quote" style={{ padding: '5rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
-            <div style={{ fontSize: '2rem', color: pal.accent, opacity: 0.4, marginBottom: '1rem' }}>{vibeSkin.accentSymbol || '✦'}</div>
-            <p style={{
+            <div style={{ fontSize: '2rem', color: pal.accent, opacity: 0.4, marginBottom: '1rem' }}><span data-pe-icon="accentSymbol" style={{ cursor: 'pointer' }}>{vibeSkin.accentSymbol || '✦'}</span></div>
+            <p data-pe-editable="true" data-pe-path="poetry.dividerQuote" style={{
               fontFamily: `"${vibeSkin.fonts.heading}", serif`,
               fontSize: 'clamp(1.3rem, 3vw, 2rem)', fontWeight: 400, fontStyle: 'italic',
               lineHeight: 1.65, color: pal.foreground, opacity: 0.75,
@@ -402,7 +448,20 @@ function PreviewContent() {
       case 'divider':
         return <WaveDivider key={key} skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={60} />;
       case 'photos': {
-        const allPhotos = manifest.chapters?.flatMap(ch => ch.images || []).slice(0, 9) || [];
+        const pvSeen = new Set<string>();
+        const allPhotos: Array<{ url: string; alt?: string }> = [];
+        if ((manifest as any).coverPhoto) {
+          const u = (manifest as any).coverPhoto as string;
+          if (!pvSeen.has(u)) { pvSeen.add(u); allPhotos.push({ url: u, alt: 'Cover photo' }); }
+        }
+        for (const u of ((manifest as any).heroSlideshow || []) as string[]) {
+          if (u && !pvSeen.has(u)) { pvSeen.add(u); allPhotos.push({ url: u, alt: 'Hero slideshow' }); }
+        }
+        for (const ch of (manifest.chapters || [])) {
+          for (const img of (ch.images || [])) {
+            if (img.url && !pvSeen.has(img.url)) { pvSeen.add(img.url); allPhotos.push(img); }
+          }
+        }
         return (
           <section key={key} data-pe-section="photos" data-pe-label="Photos" style={{ padding: '4rem 2rem' }}>
             <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
@@ -417,7 +476,7 @@ function PreviewContent() {
                   <div key={i} style={{
                     aspectRatio: i === 0 ? '2/1' : '1',
                     gridColumn: i === 0 ? 'span 2' : undefined,
-                    borderRadius: '10px', overflow: 'hidden',
+                    borderRadius: 'var(--pl-radius-lg)', overflow: 'hidden',
                     boxShadow: `0 8px 30px ${pal.foreground}12`,
                   }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -450,6 +509,122 @@ function PreviewContent() {
   const visibleBlocks = manifest.blocks && manifest.blocks.length > 0
     ? [...manifest.blocks].sort((a, b) => a.order - b.order).filter(b => b.visible !== false)
     : null;
+
+  // Global section divider setting from design panel
+  const globalDivider = manifest.theme?.effects?.sectionDivider;
+  const useCustomDivider = globalDivider && globalDivider.style !== 'none';
+
+  // When gradient mesh is active, make main background transparent so the mesh shows through
+  const meshActive = manifest.theme?.effects?.gradientMesh && manifest.theme.effects.gradientMesh.preset !== 'none' && (manifest.theme.effects.gradientMesh.opacity ?? 0) > 0;
+  const mainBg = meshActive ? 'transparent' : bgColor;
+
+  // Determines the background color a block enters with
+  const blockEntryColor = (type: string): string => {
+    switch (type) {
+      case 'event': return cardBg;
+      case 'registry': return accentLight;
+      case 'travel': return cardBg;
+      case 'guestbook': return cardBg;
+      default: return bgColor;
+    }
+  };
+
+  const blockExitColor = (type: string): string => {
+    switch (type) {
+      case 'event': return cardBg;
+      case 'registry': return accentLight;
+      case 'travel': return cardBg;
+      case 'guestbook': return cardBg;
+      default: return bgColor;
+    }
+  };
+
+  // Build block sequence with dividers injected between sections (mirrors live site)
+  const renderBlockSequence = () => {
+    if (!visibleBlocks) return null;
+    const result: React.ReactNode[] = [];
+    let prevExitColor = bgColor;
+    let dividerIdx = 0;
+
+    visibleBlocks.forEach((block) => {
+      const rendered = renderBlock(block.type, block.id);
+      if (rendered === null) return;
+
+      const thisEntryColor = blockEntryColor(block.type);
+
+      // Inject divider before every non-hero block
+      if (block.type !== 'hero') {
+        const divAbove = (block as any).blockEffects?.dividerAbove;
+        if (divAbove) {
+          // Per-block custom divider
+          result.push(
+            <SectionDivider
+              key={`divider-before-${block.id}`}
+              style={divAbove.style}
+              color={thisEntryColor}
+              bgColor={prevExitColor}
+              height={divAbove.height}
+            />
+          );
+        } else if (useCustomDivider) {
+          // Global section divider from design panel
+          const shouldFlip = globalDivider!.flip && dividerIdx % 2 === 1;
+          result.push(
+            <SectionDivider
+              key={`divider-before-${block.id}`}
+              style={globalDivider!.style}
+              color={thisEntryColor}
+              bgColor={prevExitColor}
+              height={globalDivider!.height}
+              flip={shouldFlip}
+              animated={globalDivider!.animated ?? true}
+            />
+          );
+          dividerIdx++;
+        } else {
+          // Default wave divider
+          result.push(
+            <WaveDivider
+              key={`divider-before-${block.id}`}
+              skin={vibeSkin}
+              fromColor={prevExitColor}
+              toColor={thisEntryColor}
+              height={80}
+            />
+          );
+        }
+      }
+
+      // Wrap in scroll-reveal container — per-block overrides global
+      const blockReveal = (block as any).blockEffects?.scrollReveal;
+      const globalReveal = manifest.theme?.effects?.scrollReveal;
+      const effectiveReveal = (blockReveal && blockReveal !== 'none') ? blockReveal : globalReveal;
+      if (effectiveReveal && effectiveReveal !== 'none' && block.type !== 'hero') {
+        result.push(
+          <div key={block.id} data-pl-reveal={effectiveReveal}>
+            {rendered}
+          </div>
+        );
+      } else {
+        result.push(rendered);
+      }
+
+      // After hero, inject the vibe quote + welcome statement
+      if (block.type === 'hero') {
+        result.push(
+          <WaveDivider key="divider-hero-quote" skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />,
+          <VibeQuote key="vibe-quote" />,
+          ...(manifest.poetry?.welcomeStatement ? [<WelcomeStatement key="welcome-statement" />] : []),
+          <ArtStrip key="art-strip" />,
+        );
+        prevExitColor = bgColor;
+      } else {
+        prevExitColor = blockExitColor(block.type);
+      }
+    });
+
+    return result;
+  };
 
   // Vibe quote section — mirrors live site art rendering
   const VibeQuote = () => (
@@ -485,10 +660,10 @@ function PreviewContent() {
         )}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginBottom: '2.5rem' }}>
           <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: pal.accent, opacity: 0.3 }} />
-          <span style={{ fontSize: '1.5rem', color: pal.accent, opacity: 0.7 }}>{vibeSkin.accentSymbol || '✦'}</span>
+          <span style={{ fontSize: '1.5rem', color: pal.accent, opacity: 0.7 }}><span data-pe-icon="accentSymbol" style={{ cursor: 'pointer' }}>{vibeSkin.accentSymbol || '✦'}</span></span>
           <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: pal.accent, opacity: 0.3 }} />
         </div>
-        <p style={{
+        <p data-pe-editable="true" data-pe-path="poetry.vibeQuote" style={{
           fontFamily: `"${vibeSkin.fonts.heading}", serif`,
           fontSize: 'clamp(1.2rem, 2.5vw, 1.9rem)', fontWeight: 400, fontStyle: 'italic',
           lineHeight: 1.7, color: pal.foreground, opacity: 0.78,
@@ -523,7 +698,7 @@ function PreviewContent() {
     if (!statement) return null;
     return (
       <div style={{ padding: '0 2rem 5rem', maxWidth: '680px', margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
-        <p style={{
+        <p data-pe-editable="true" data-pe-path="poetry.welcomeStatement" style={{
           fontFamily: `"${vibeSkin.fonts.body}", sans-serif`,
           fontSize: 'clamp(1rem, 2.2vw, 1.15rem)', lineHeight: 1.85,
           color: pal.foreground, opacity: 0.7,
@@ -535,23 +710,25 @@ function PreviewContent() {
   };
 
   return (
-    <ThemeProvider theme={manifest.theme || dynamicTheme}>
+    <ThemeProvider theme={{ ...dynamicTheme, ...manifest.theme, colors: { ...dynamicTheme.colors, ...(manifest.theme?.colors || {}) }, effects: manifest.theme?.effects }}>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="stylesheet" href={fontUrl} />
 
       <EditBridge enabled={editMode} />
+      {/* SiteNav shown in both edit and preview modes so users see the full site */}
       <SiteNav
-        names={names}
-        pages={sitePages}
-        logoIcon={manifest.logoIcon}
-        logoSvg={manifest.logoSvg}
-        pageHrefOverride={(slug) => {
-          const params = new URLSearchParams(searchParams.toString());
-          if (!slug || slug === 'our-story') { params.delete('page'); }
-          else { params.set('page', slug); }
-          return `/preview?${params.toString()}`;
-        }}
-      />
+          names={names}
+          pages={sitePages}
+          logoIcon={manifest.logoIcon}
+          logoSvg={manifest.logoSvg}
+          navStyle={manifest.navStyle}
+          pageHrefOverride={(slug) => {
+            const params = new URLSearchParams(searchParams.toString());
+            if (!slug || slug === 'our-story') { params.delete('page'); }
+            else { params.set('page', slug); }
+            return `/preview?${params.toString()}`;
+          }}
+        />
 
       <CelebrationOverlay
         occasion={(manifest.occasion as 'wedding' | 'engagement' | 'anniversary' | 'birthday' | 'story') || 'wedding'}
@@ -559,7 +736,20 @@ function PreviewContent() {
         accentColor2={pal.accent2 || pal.highlight || pal.accent}
       />
 
-      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor, position: 'relative', isolation: 'isolate' }}>
+      {/* Set body bg so it shows behind the mesh when main is transparent */}
+      {meshActive && <style>{`body { background: ${bgColor}; }`}</style>}
+
+      {/* AI-generated bespoke background art from the Design panel */}
+      {manifest.backgroundPatternCss && (
+        <div aria-hidden="true" style={{
+          position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+          backgroundImage: manifest.backgroundPatternCss,
+          backgroundRepeat: 'repeat', backgroundSize: '400px 400px',
+          opacity: 0.12,
+        }} />
+      )}
+
+      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: mainBg, position: 'relative', isolation: 'isolate' }}>
         {visibleBlocks ? (
           <>
             {/* Ambient art overlay — very subtle painted page texture */}
@@ -578,15 +768,7 @@ function PreviewContent() {
                 backgroundRepeat: 'repeat', backgroundSize: '220px 220px', opacity: 0.22,
               }} />
             ) : null}
-            {visibleBlocks.map(block => renderBlock(block.type, block.id))}
-            {visibleBlocks[0]?.type === 'hero' && (
-              <>
-                <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
-                <VibeQuote />
-                <WelcomeStatement />
-                <ArtStrip />
-              </>
-            )}
+            {renderBlockSequence()}
           </>
         ) : (
           <>
@@ -595,12 +777,36 @@ function PreviewContent() {
             <VibeQuote />
             <WelcomeStatement />
             <ArtStrip />
-            <section id="our-story"><Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} /></section>
-            {manifest.events?.length ? <><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} /><section id="schedule"><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></section><WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted /></> : null}
-            {manifest.events?.length ? <section id="rsvp"><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></section> : null}
-            {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? <><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={accentLight} height={80} /><section id="registry"><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></section></> : null}
-            {manifest.travelInfo ? <section id="travel"><TravelSection info={manifest.travelInfo} /></section> : null}
-            {manifest.faqs?.length ? <section id="faq"><FaqSection faqs={manifest.faqs} /></section> : null}
+            {(() => {
+              const legacyReveal = manifest.theme?.effects?.scrollReveal;
+              const rvAttr = (legacyReveal && legacyReveal !== 'none') ? { 'data-pl-reveal': legacyReveal } : {};
+              const legacyDivider = (color: string, fallbackFrom: string, fallbackTo: string, height = 80, flip = false) =>
+                useCustomDivider
+                  ? <SectionDivider style={globalDivider!.style} color={color} height={globalDivider!.height} flip={flip} />
+                  : <WaveDivider skin={vibeSkin} fromColor={fallbackFrom} toColor={fallbackTo} height={height} />;
+              return (
+                <>
+                  <div {...rvAttr}><section id="our-story" style={{ position: 'relative' }}>
+                    <StorySection
+                      chapters={manifest.chapters || []}
+                      storyLayout={manifest.storyLayout}
+                      layoutFormat={manifest.layoutFormat}
+                      chapterIcons={(vibeSkin.chapterIcons || []).map(svg => sanitizeSvg(svg))}
+                      sectionBorderSvg={vibeSkin.sectionBorderSvg ? sanitizeSvg(vibeSkin.sectionBorderSvg) : undefined}
+                      medallionSvg={vibeSkin.medallionSvg ? sanitizeSvg(vibeSkin.medallionSvg) : undefined}
+                      accentColor={pal.accent}
+                      dateFormat={chapterDateFormatOptions(manifest.dateFormat)}
+                      transformUrl={(url) => proxyUrl(url, 1600, 1200)}
+                    />
+                  </section></div>
+                  {manifest.events?.length ? <>{legacyDivider(cardBg, bgColor, cardBg)}<div {...rvAttr}><section id="schedule"><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></section></div></> : null}
+                  {manifest.events?.length ? <div {...rvAttr}><section id="rsvp"><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></section></div> : null}
+                  {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? <>{legacyDivider(accentLight, bgColor, accentLight, 80, !!globalDivider?.flip)}<div {...rvAttr}><section id="registry"><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></section></div></> : null}
+                  {manifest.travelInfo ? <>{legacyDivider(cardBg, bgColor, cardBg, 70)}<div {...rvAttr}><section id="travel"><TravelSection info={manifest.travelInfo} /></section></div></> : null}
+                  {manifest.faqs?.length ? <>{legacyDivider(bgColor, bgColor, bgColor, 70, !!globalDivider?.flip)}<div {...rvAttr}><section id="faq"><FaqSection faqs={manifest.faqs} /></section></div></> : null}
+                </>
+              );
+            })()}
           </>
         )}
 
@@ -614,7 +820,7 @@ function PreviewContent() {
       }}>
         <div style={{ marginBottom: '0.5rem', fontSize: '1rem', opacity: 0.6 }}>{vibeSkin.accentSymbol || '♡'}</div>
         <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>
-          {names[0]} & {names[1]}
+          {names[0]}{names[1]?.trim() ? ` & ${names[1]}` : ''}
         </div>
         <div style={{ opacity: 0.5 }}>Made with Pearloom</div>
       </footer>

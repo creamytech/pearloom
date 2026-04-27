@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/email",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/film",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/recap/day-after",
+      "schedule": "0 15 * * *"
+    }
+  ]
+}

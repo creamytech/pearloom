@@ -33,10 +33,10 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 const TYPE_COLORS: Record<string, string> = {
-  ceremony: 'var(--eg-gold, #D6C6A8)',
-  reception: 'var(--eg-plum, #6D597A)',
-  cocktail: 'var(--eg-accent, #A3B18A)',
-  misc: 'var(--eg-muted, #9A9488)',
+  ceremony: 'var(--pl-gold, #D6C6A8)',
+  reception: 'var(--pl-plum, #6D597A)',
+  cocktail: 'var(--pl-olive, #5C6B3F)',
+  misc: 'var(--pl-muted, #9A9488)',
 };
 
 function formatTime(iso: string): string {
@@ -73,7 +73,7 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const headingFont = vibeSkin?.fonts?.heading || 'Playfair Display';
-  const accent = vibeSkin?.palette?.accent || 'var(--eg-accent, #A3B18A)';
+  const accent = vibeSkin?.palette?.accent || 'var(--pl-olive, #5C6B3F)';
 
   const fetchUpdates = useCallback(async () => {
     try {
@@ -114,7 +114,7 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
       id="live-updates"
       style={{
         padding: '5rem 2rem',
-        background: 'var(--eg-bg, #F5F1E8)',
+        background: 'var(--pl-cream, #F5F1E8)',
         position: 'relative',
       }}
     >
@@ -138,14 +138,14 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
               gap: '0.5rem',
               background: 'rgba(163,177,138,0.12)',
               border: '1px solid rgba(163,177,138,0.3)',
-              borderRadius: '100px',
+              borderRadius: 'var(--pl-radius-full)',
               padding: '0.4rem 1rem',
               marginBottom: '1.25rem',
               fontSize: '0.8rem',
               fontWeight: 700,
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              color: 'var(--eg-accent, #A3B18A)',
+              color: 'var(--pl-olive, #5C6B3F)',
             }}
           >
             <motion.span
@@ -155,7 +155,7 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
                 width: '8px',
                 height: '8px',
                 borderRadius: '50%',
-                background: 'var(--eg-accent, #A3B18A)',
+                background: 'var(--pl-olive, #5C6B3F)',
                 display: 'inline-block',
               }}
             />
@@ -168,14 +168,14 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
             fontFamily: `"${headingFont}", serif`,
             fontSize: 'clamp(1.8rem, 4vw, 2.8rem)',
             fontWeight: 600,
-            color: 'var(--eg-fg, #2B2B2B)',
+            color: 'var(--pl-ink, var(--pl-ink-soft))',
             margin: '0 0 1rem',
             letterSpacing: '-0.02em',
           }}
         >
           Day-Of Updates
         </h2>
-        <p style={{ color: 'var(--eg-muted, #9A9488)', fontSize: '1rem', lineHeight: 1.7, margin: 0 }}>
+        <p style={{ color: 'var(--pl-muted, #9A9488)', fontSize: '1rem', lineHeight: 1.7, margin: 0 }}>
           {isLive
             ? 'Follow along as we celebrate! Updates coming throughout the day.'
             : 'Updates from the wedding day.'}
@@ -183,14 +183,14 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', color: 'var(--eg-muted, #9A9488)', padding: '2rem' }}>
+        <div style={{ textAlign: 'center', color: 'var(--pl-muted, #9A9488)', padding: '2rem' }}>
           Loading updates...
         </div>
       ) : updates.length === 0 ? (
         <div
           style={{
             textAlign: 'center',
-            color: 'var(--eg-muted, #9A9488)',
+            color: 'var(--pl-muted, #9A9488)',
             padding: '3rem 2rem',
             maxWidth: '500px',
             margin: '0 auto',
@@ -248,7 +248,7 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
                       height: '14px',
                       borderRadius: '50%',
                       background: TYPE_COLORS[update.type] || accent,
-                      border: '3px solid var(--eg-bg, #F5F1E8)',
+                      border: '3px solid var(--pl-cream, #F5F1E8)',
                       flexShrink: 0,
                       marginTop: '0.5rem',
                       boxShadow: `0 0 0 2px ${TYPE_COLORS[update.type] || accent}40`,
@@ -263,7 +263,7 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
                     height: '14px',
                     borderRadius: '50%',
                     background: TYPE_COLORS[update.type] || accent,
-                    border: '3px solid var(--eg-bg, #F5F1E8)',
+                    border: '3px solid var(--pl-cream, #F5F1E8)',
                     flexShrink: 0,
                     marginTop: '0.5rem',
                     boxShadow: `0 0 0 2px ${TYPE_COLORS[update.type] || accent}40`,
@@ -277,8 +277,8 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
                 <div
                   style={{
                     flex: 1,
-                    background: 'rgba(255,255,255,0.8)',
-                    border: '1px solid var(--eg-divider, #E6DFD2)',
+                    background: 'var(--pl-ink)',
+                    border: '1px solid var(--pl-divider, #E6DFD2)',
                     borderRadius: '1rem',
                     padding: '1.25rem',
                     backdropFilter: 'blur(8px)',
@@ -309,7 +309,7 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
                     <span
                       style={{
                         fontSize: '0.78rem',
-                        color: 'var(--eg-muted, #9A9488)',
+                        color: 'var(--pl-muted, #9A9488)',
                       }}
                     >
                       {formatTime(update.created_at)}
@@ -320,7 +320,7 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
                   <p
                     style={{
                       margin: 0,
-                      color: 'var(--eg-fg, #2B2B2B)',
+                      color: 'var(--pl-ink, var(--pl-ink-soft))',
                       fontSize: '0.95rem',
                       lineHeight: 1.65,
                     }}
@@ -358,7 +358,7 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
               style={{
                 textAlign: 'center',
                 marginTop: '2rem',
-                color: 'var(--eg-muted, #9A9488)',
+                color: 'var(--pl-muted, #9A9488)',
                 fontSize: '0.78rem',
                 display: 'flex',
                 alignItems: 'center',
@@ -373,7 +373,7 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
                   width: '6px',
                   height: '6px',
                   borderRadius: '50%',
-                  background: 'var(--eg-accent, #A3B18A)',
+                  background: 'var(--pl-olive, #5C6B3F)',
                   display: 'inline-block',
                 }}
               />

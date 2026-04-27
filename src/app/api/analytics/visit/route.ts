@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +19,12 @@ function getSupabase() {
 
 // POST — record a visit
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`analytics-visit:${ip}`, { max: 60, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return NextResponse.json({ ok: false }, { status: 429 });
+  }
+
   try {
     const { siteId, referrer } = await req.json();
     if (!siteId) return NextResponse.json({ ok: false });
@@ -42,6 +49,12 @@ export async function POST(req: NextRequest) {
 
 // GET — return aggregate stats for the owner dashboard
 export async function GET(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`analytics-visit-get:${ip}`, { max: 60, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return NextResponse.json({ visits: 0, mobile: 0, desktop: 0, today: 0 }, { status: 429 });
+  }
+
   const siteId = req.nextUrl.searchParams.get('siteId');
   if (!siteId) return NextResponse.json({ visits: 0, mobile: 0, desktop: 0, today: 0 });
 

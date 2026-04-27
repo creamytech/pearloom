@@ -2,12 +2,18 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/invite/InviteReveal.tsx
-// Animated digital invitation reveal with envelope unfold + inline RSVP
+// Editorial Modernism guest-facing invitation. Cream paper,
+// gold hairlines, Fraunces italic display. Mobile-first —
+// info card visible in ~1s, no 4s envelope gate on small
+// screens or prefers-reduced-motion.
 // ─────────────────────────────────────────────────────────────
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import type { StoryManifest } from '@/types';
+import { useEffect, useMemo, useState } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { Calendar, MapPin, Check } from 'lucide-react';
+import type { StoryManifest, WeddingEvent } from '@/types';
+import { InviteRsvpForm } from './InviteRsvpForm';
+import { GooeyText } from '@/components/brand/GooeyText';
 
 interface InviteRevealProps {
   manifest: StoryManifest | null;
@@ -16,688 +22,741 @@ interface InviteRevealProps {
   coupleNames: [string, string];
 }
 
-// ── Particle component ──────────────────────────────────────────
-const PARTICLE_COLORS = ['#A3B18A', '#C4A96A', '#F5F1E8', '#C4A96A', '#A3B18A'];
+// ── v8 palette (locked for guest page) ───────────────────────
+// Migrated from the editorial (Fraunces italic + gold hairlines)
+// voice to v8 (paper + sage hairlines + peach accent) so the
+// guest-facing invite sits in the same family as the rest of
+// the product. Keeps the warm personality; drops the letterpress
+// affect.
+const CREAM = '#FDFAF0';       // v8 paper
+const CREAM_DEEP = '#FBF7EE';  // v8 cream-2
+const INK = '#18181B';
+const INK_SOFT = '#4A5642';    // sage-deep-soft
+const MUTED = '#6F6557';
+const GOLD = '#C19A4B';        // warmer peach-gold rather than cool editorial gold
+const GOLD_RULE = 'rgba(193,154,75,0.28)';
+const CRIMSON = '#C6563D';     // v8 peach-ink (replaces editorial crimson)
 
-function Particle({ index }: { index: number }) {
-  const angle = (index / 12) * Math.PI * 2;
-  const distance = 80 + Math.random() * 60;
-  const x = Math.cos(angle) * distance;
-  const y = Math.sin(angle) * distance;
-  const color = PARTICLE_COLORS[index % PARTICLE_COLORS.length];
-  const size = 4 + Math.random() * 5;
+const FONT_DISPLAY = 'var(--pl-font-heading, "Fraunces", Georgia, serif)';
+const FONT_BODY = 'var(--pl-font-body, system-ui, -apple-system, sans-serif)';
+const FONT_MONO = 'var(--pl-font-mono, ui-monospace, "Geist Mono", monospace)';
 
-  return (
-    <motion.div
-      style={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        width: size,
-        height: size,
-        borderRadius: '50%',
-        background: color,
-        marginLeft: -size / 2,
-        marginTop: -size / 2,
-      }}
-      initial={{ x: 0, y: 0, opacity: 0, scale: 0 }}
-      animate={{ x, y, opacity: [0, 1, 0], scale: [0, 1, 0] }}
-      transition={{
-        duration: 1.2,
-        delay: index * 0.04,
-        ease: 'easeOut',
-      }}
-    />
-  );
+function useIsSmall() {
+  const [small, setSmall] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 640px)');
+    const sync = () => setSmall(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+  return small;
 }
 
-// ── RSVP form ──────────────────────────────────────────────────
-interface RsvpFormProps {
-  manifest: StoryManifest | null;
-  guestName: string;
-  token: string;
-  coupleNames: [string, string];
-}
-
-function RsvpForm({ manifest, guestName, token, coupleNames }: RsvpFormProps) {
-  const [name, setName] = useState(guestName === 'Guest' ? '' : guestName);
-  const [attending, setAttending] = useState<'yes' | 'no' | null>(null);
-  const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState('');
-
-  const siteId = manifest?.coupleId || manifest?.subdomain || '';
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name.trim() || attending === null) return;
-
-    setLoading(true);
-    setError('');
-
-    try {
-      const res = await fetch('/api/rsvp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          siteId,
-          guestName: name.trim(),
-          status: attending === 'yes' ? 'attending' : 'declined',
-          message: message.trim() || undefined,
-          inviteToken: token,
-        }),
-      });
-
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        setError(d.error || 'Something went wrong. Please try again.');
-      } else {
-        setSubmitted(true);
-      }
-    } catch {
-      setError('Network error. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+function formatDateLong(iso?: string): string {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso.includes('T') ? iso : iso + 'T12:00:00');
+    if (Number.isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  } catch {
+    return iso;
   }
-
-  if (submitted) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        style={{ textAlign: 'center', padding: '2rem 0' }}
-      >
-        <div style={{ fontSize: 40, marginBottom: 16 }}>
-          {attending === 'yes' ? '✦' : '♡'}
-        </div>
-        <h3
-          style={{
-            fontFamily: 'Georgia, serif',
-            fontSize: '1.5rem',
-            fontWeight: 400,
-            color: '#F5F1E8',
-            margin: '0 0 12px',
-          }}
-        >
-          {attending === 'yes'
-            ? `We can't wait to celebrate with you!`
-            : 'Thank you for letting us know.'}
-        </h3>
-        <p
-          style={{
-            fontSize: '0.9rem',
-            color: 'rgba(245,241,232,0.55)',
-            margin: 0,
-            lineHeight: 1.7,
-          }}
-        >
-          With love,
-          <br />
-          <em>
-            {coupleNames[0]} &amp; {coupleNames[1]}
-          </em>
-        </p>
-      </motion.div>
-    );
-  }
-
-  const rsvpDeadline = manifest?.logistics?.rsvpDeadline;
-
-  return (
-    <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-      <div
-        style={{
-          marginBottom: 20,
-          paddingBottom: 20,
-          borderBottom: '1px solid rgba(196,169,106,0.15)',
-        }}
-      >
-        <p
-          style={{
-            margin: '0 0 20px',
-            fontSize: '0.85rem',
-            letterSpacing: '2px',
-            textTransform: 'uppercase',
-            color: 'rgba(196,169,106,0.7)',
-            textAlign: 'center',
-          }}
-        >
-          {rsvpDeadline ? `RSVP by ${rsvpDeadline}` : 'RSVP'}
-        </p>
-
-        {/* Attending buttons */}
-        <div
-          style={{
-            display: 'flex',
-            gap: 12,
-            marginBottom: 20,
-            justifyContent: 'center',
-          }}
-        >
-          {(['yes', 'no'] as const).map((v) => (
-            <button
-              key={v}
-              type="button"
-              onClick={() => setAttending(v)}
-              style={{
-                flex: 1,
-                maxWidth: 160,
-                padding: '12px 0',
-                background:
-                  attending === v
-                    ? v === 'yes'
-                      ? 'rgba(163,177,138,0.25)'
-                      : 'rgba(180,90,90,0.2)'
-                    : 'transparent',
-                border:
-                  attending === v
-                    ? v === 'yes'
-                      ? '1px solid rgba(163,177,138,0.6)'
-                      : '1px solid rgba(180,90,90,0.5)'
-                    : '1px solid rgba(196,169,106,0.25)',
-                borderRadius: 8,
-                color:
-                  attending === v
-                    ? v === 'yes'
-                      ? '#A3B18A'
-                      : '#c87070'
-                    : 'rgba(245,241,232,0.55)',
-                fontSize: '0.8rem',
-                letterSpacing: '1.5px',
-                textTransform: 'uppercase',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                fontFamily: 'Georgia, serif',
-              }}
-            >
-              {v === 'yes' ? 'Joyfully Accept' : 'Regretfully Decline'}
-            </button>
-          ))}
-        </div>
-
-        {/* Name field */}
-        <div style={{ marginBottom: 14 }}>
-          <input
-            type="text"
-            placeholder="Your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            style={{
-              width: '100%',
-              padding: '12px 16px',
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(196,169,106,0.2)',
-              borderRadius: 8,
-              color: '#F5F1E8',
-              fontSize: '0.95rem',
-              fontFamily: 'Georgia, serif',
-              outline: 'none',
-              boxSizing: 'border-box',
-            }}
-          />
-        </div>
-
-        {/* Message textarea */}
-        <textarea
-          placeholder="Leave a message for the couple (optional)"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          rows={3}
-          style={{
-            width: '100%',
-            padding: '12px 16px',
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(196,169,106,0.2)',
-            borderRadius: 8,
-            color: '#F5F1E8',
-            fontSize: '0.9rem',
-            fontFamily: 'Georgia, serif',
-            outline: 'none',
-            resize: 'vertical',
-            boxSizing: 'border-box',
-          }}
-        />
-      </div>
-
-      {error && (
-        <p
-          style={{
-            color: '#c87070',
-            fontSize: '0.85rem',
-            marginBottom: 12,
-            textAlign: 'center',
-          }}
-        >
-          {error}
-        </p>
-      )}
-
-      <button
-        type="submit"
-        disabled={loading || attending === null || !name.trim()}
-        style={{
-          width: '100%',
-          padding: '14px',
-          background:
-            attending !== null && name.trim()
-              ? 'rgba(196,169,106,0.18)'
-              : 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(196,169,106,0.35)',
-          borderRadius: 8,
-          color:
-            attending !== null && name.trim()
-              ? '#C4A96A'
-              : 'rgba(245,241,232,0.3)',
-          fontSize: '0.8rem',
-          letterSpacing: '2px',
-          textTransform: 'uppercase',
-          cursor:
-            attending !== null && name.trim() ? 'pointer' : 'not-allowed',
-          fontFamily: 'Georgia, serif',
-          transition: 'all 0.2s ease',
-        }}
-      >
-        {loading ? 'Sending...' : 'Send RSVP'}
-      </button>
-    </form>
-  );
 }
 
-// ── Main InviteReveal ──────────────────────────────────────────
 export function InviteReveal({
   manifest,
   guestName,
   token,
   coupleNames,
 }: InviteRevealProps) {
-  // phase: 0 = sealed, 1 = shaking, 2 = card rising, 3 = full
-  const [phase, setPhase] = useState(0);
-  const [showParticles, setShowParticles] = useState(false);
+  const prefersReduced = useReducedMotion();
+  const small = useIsSmall();
 
-  // Derive palette from vibeSkin, or fall back to defaults
-  const palette = manifest?.vibeSkin?.palette;
-  const bg = '#0E0B12';
+  // Skip envelope anim on mobile or prefers-reduced-motion.
+  const skipEnvelope = prefersReduced || small;
+  const [revealed, setRevealed] = useState(skipEnvelope);
+  const [calendarAdded, setCalendarAdded] = useState(false);
 
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase(1), 1500);       // flap opens
-    const t2 = setTimeout(() => {
-      setPhase(2);
-      setShowParticles(true);
-    }, 2800);                                             // particles + card starts rising
-    const t3 = setTimeout(() => setShowParticles(false), 4200); // particles fade
-    const t4 = setTimeout(() => setPhase(3), 3800);       // full content
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-      clearTimeout(t4);
-    };
-  }, []);
+    if (skipEnvelope) {
+      setRevealed(true);
+      return;
+    }
+    // Auto-open after a beat, but user can tap to open sooner.
+    const t = setTimeout(() => setRevealed(true), 1800);
+    return () => clearTimeout(t);
+  }, [skipEnvelope]);
 
   const logistics = manifest?.logistics;
-  const heroImage =
-    manifest?.chapters?.[0]?.images?.[manifest.chapters[0].heroPhotoIndex ?? 0]?.url;
+  const events = useMemo<WeddingEvent[]>(() => manifest?.events ?? [], [manifest]);
+  const ceremony = events.find((e) => e.type === 'ceremony') ?? events[0];
+  const headlineDate = ceremony?.date || logistics?.date;
+  const headlineTime = ceremony?.time || logistics?.time;
+  const headlineVenue = ceremony?.venue || logistics?.venue;
+  const headlineAddress = ceremony?.address || logistics?.venueAddress;
+
+  const heroPhoto =
+    manifest?.coverPhoto ||
+    manifest?.heroSlideshow?.[0] ||
+    manifest?.chapters?.[0]?.images?.[
+      manifest?.chapters?.[0]?.heroPhotoIndex ?? 0
+    ]?.url;
+
+  const rsvpIntro = manifest?.poetry?.rsvpIntro;
+  const displayNames = coupleNames.filter(Boolean).join(' & ') || 'The Couple';
+  const firstName = coupleNames[0] || '';
+  const secondName = coupleNames[1] || '';
+
+  // ── Practical actions (calendar / directions) ─────────────
+  const icsHref = useMemo(() => {
+    if (!headlineDate) return null;
+    const eventName = ceremony?.name || `${displayNames}'s Celebration`;
+    const descLines = [
+      `Save the date for ${displayNames}`,
+      headlineVenue ? `Venue: ${headlineVenue}` : '',
+      headlineAddress ? `Address: ${headlineAddress}` : '',
+    ].filter(Boolean);
+    const dateStr = headlineDate.includes('T') ? headlineDate.slice(0, 10) : headlineDate;
+    const [y, m, d] = dateStr.split('-').map(Number);
+    if (!y || !m || !d) return null;
+    const pad = (n: number) => String(n).padStart(2, '0');
+
+    // Parse headline time if present; default to 16:00 local.
+    let hh = 16, mm = 0;
+    if (headlineTime) {
+      const t = headlineTime.trim().toUpperCase();
+      const m12 = t.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/);
+      const m24 = t.match(/^(\d{1,2}):(\d{2})$/);
+      if (m12) {
+        hh = parseInt(m12[1], 10);
+        mm = m12[2] ? parseInt(m12[2], 10) : 0;
+        if (m12[3] === 'AM' && hh === 12) hh = 0;
+        if (m12[3] === 'PM' && hh !== 12) hh += 12;
+      } else if (m24) {
+        hh = parseInt(m24[1], 10);
+        mm = parseInt(m24[2], 10);
+      }
+    }
+    const endHh = (hh + 3) % 24;
+    const dtStart = `${y}${pad(m)}${pad(d)}T${pad(hh)}${pad(mm)}00`;
+    const dtEnd = `${y}${pad(m)}${pad(d)}T${pad(endHh)}${pad(mm)}00`;
+    const esc = (s: string) => s.replace(/[,;\\]/g, ' ');
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Pearloom//Invitation//EN',
+      'BEGIN:VEVENT',
+      `UID:invite-${token}@pearloom.com`,
+      `DTSTART:${dtStart}`,
+      `DTEND:${dtEnd}`,
+      `SUMMARY:${esc(eventName)}`,
+      `LOCATION:${esc([headlineVenue, headlineAddress].filter(Boolean).join(', '))}`,
+      `DESCRIPTION:${esc(descLines.join(' \\n '))}`,
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+    return `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
+  }, [headlineDate, headlineTime, headlineVenue, headlineAddress, ceremony?.name, displayNames, token]);
+
+  const directionsHref = useMemo(() => {
+    const q = [headlineVenue, headlineAddress].filter(Boolean).join(', ');
+    if (!q) return null;
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+  }, [headlineVenue, headlineAddress]);
 
   return (
     <div
       style={{
         minHeight: '100vh',
-        background: bg,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: phase < 3 ? 'center' : 'flex-start',
-        padding: phase < 3 ? '0' : '0 0 80px',
+        background: CREAM,
+        color: INK,
+        fontFamily: FONT_BODY,
+        position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* ── Phase 0-2: Envelope animation ── */}
+      {/* Paper grain */}
+      <div
+        aria-hidden
+        style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundImage:
+            'radial-gradient(rgba(14,13,11,0.025) 1px, transparent 1px)',
+          backgroundSize: '3px 3px',
+          pointerEvents: 'none',
+          mixBlendMode: 'multiply',
+        }}
+      />
+
+      {/* ── Envelope overlay — desktop + motion-ok only.
+          Three-layer reveal: flap pivots open, card lifts out,
+          envelope back lowers behind. Tap anywhere to open. ── */}
       <AnimatePresence>
-        {phase < 3 && (
-          <motion.div
-            key="envelope-stage"
+        {!revealed && !skipEnvelope && (
+          <motion.button
+            key="envelope"
+            type="button"
+            aria-label="Open invitation"
+            onClick={() => setRevealed(true)}
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.65, delay: 0.15 } }}
             style={{
-              position: 'relative',
+              position: 'fixed',
+              inset: 0,
+              zIndex: 30,
+              background: CREAM,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              flexDirection: 'column',
+              gap: 24,
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              fontFamily: FONT_BODY,
+              perspective: '1200px',
             }}
-            exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.4 } }}
           >
-            {/* Soft glow behind envelope */}
+            <motion.p
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              style={{
+                fontFamily: FONT_MONO,
+                fontSize: '0.6rem',
+                letterSpacing: '0.28em',
+                textTransform: 'uppercase',
+                color: MUTED,
+                margin: 0,
+              }}
+            >
+              An invitation for {guestName && guestName !== 'Guest' ? guestName : 'you'}
+            </motion.p>
+
+            {/* 3-layer envelope: back, card inside, flap. Flap is
+                overlaid last so its pivot sits on top during the
+                closed state; exit motion pivots it 180° open. */}
             <motion.div
               style={{
-                position: 'absolute',
+                position: 'relative',
                 width: 260,
-                height: 180,
-                borderRadius: '50%',
-                background:
-                  'radial-gradient(ellipse, rgba(196,169,106,0.15) 0%, transparent 70%)',
-                filter: 'blur(20px)',
+                height: 170,
+                transformStyle: 'preserve-3d',
               }}
-              animate={{
-                opacity: [0.4, 0.7, 0.4],
-                scale: [1, 1.08, 1],
-              }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-            />
-
-            {/* Envelope SVG */}
-            <motion.div
-              style={{ position: 'relative', zIndex: 1 }}
-              animate={
-                phase === 1
-                  ? {
-                      rotate: [0, -2, 2, -2, 2, 0],
-                      transition: { duration: 0.7, ease: 'easeInOut' },
-                    }
-                  : {}
-              }
+              initial={{ y: 8, opacity: 0 }}
+              animate={{ y: [0, -4, 0], opacity: 1 }}
+              transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
             >
+              {/* Layer 1 — envelope back (stays, has seal) */}
               <svg
-                viewBox="0 0 300 200"
-                width={300}
-                height={200}
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 260 170"
+                width={260}
+                height={170}
+                style={{ position: 'absolute', inset: 0 }}
               >
-                {/* Envelope body */}
-                <rect
-                  x="2"
-                  y="80"
-                  width="296"
-                  height="118"
-                  rx="4"
-                  stroke="rgba(196,169,106,0.6)"
-                  strokeWidth="1.5"
-                  fill="rgba(255,255,255,0.03)"
-                />
-
-                {/* Bottom V fold lines */}
-                <path
-                  d="M 2 198 L 150 120 L 298 198"
-                  stroke="rgba(196,169,106,0.3)"
-                  strokeWidth="1"
-                />
-
-                {/* Left diagonal */}
-                <path
-                  d="M 2 80 L 150 150"
-                  stroke="rgba(196,169,106,0.25)"
-                  strokeWidth="1"
-                />
-                {/* Right diagonal */}
-                <path
-                  d="M 298 80 L 150 150"
-                  stroke="rgba(196,169,106,0.25)"
-                  strokeWidth="1"
-                />
-
-                {/* Envelope flap — animates open */}
-                <motion.path
-                  d={
-                    phase === 0
-                      ? 'M 2 80 L 150 160 L 298 80' // closed: triangle pointing down into envelope
-                      : 'M 2 80 L 150 0 L 298 80' // open: triangle pointing up
-                  }
-                  stroke="rgba(196,169,106,0.8)"
-                  strokeWidth="1.5"
-                  fill="rgba(14,11,18,0.95)"
-                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                />
-
-                {/* Wax seal dot (hidden once open) */}
-                {phase === 0 && (
-                  <circle
-                    cx="150"
-                    cy="130"
-                    r="12"
-                    stroke="rgba(196,169,106,0.5)"
-                    strokeWidth="1"
-                    fill="rgba(196,169,106,0.08)"
-                  />
-                )}
+                <rect x="2" y="40" width="256" height="128" rx="3" fill="#FFFFFF" stroke={GOLD} strokeWidth="1" />
+                <path d="M 2 40 L 130 120 L 258 40" fill="none" stroke={GOLD_RULE} strokeWidth="1" />
+                <circle cx="130" cy="94" r="9" fill={CRIMSON} opacity="0.92" />
+                <text
+                  x="130"
+                  y="98.5"
+                  textAnchor="middle"
+                  fontSize="8"
+                  fontFamily={FONT_DISPLAY}
+                  fontStyle="italic"
+                  fill={CREAM}
+                >
+                  {firstName && secondName ? `${firstName[0]}${secondName[0]}` : '✦'}
+                </text>
               </svg>
-            </motion.div>
 
-            {/* Particle burst */}
-            {showParticles && (
+              {/* Layer 2 — card inside, static at closed state */}
               <div
                 style={{
                   position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  width: 0,
-                  height: 0,
+                  left: 20,
+                  right: 20,
+                  top: 54,
+                  bottom: 20,
+                  background: CREAM_DEEP,
+                  border: `1px solid ${GOLD_RULE}`,
+                  borderRadius: 2,
+                  boxShadow: '0 2px 6px rgba(24,24,27,0.06)',
                 }}
+              />
+
+              {/* Layer 3 — the flap, pivoting on top edge */}
+              <motion.svg
+                viewBox="0 0 260 90"
+                width={260}
+                height={90}
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  transformOrigin: '50% 100%',
+                }}
+                initial={{ rotateX: 0 }}
+                animate={{ rotateX: 0 }}
+                exit={{ rotateX: -180, transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1] } }}
               >
-                {Array.from({ length: 12 }, (_, i) => (
-                  <Particle key={i} index={i} />
-                ))}
-              </div>
-            )}
-          </motion.div>
+                <path
+                  d="M 2 90 L 130 2 L 258 90 Z"
+                  fill="#FFFFFF"
+                  stroke={GOLD}
+                  strokeWidth="1"
+                />
+              </motion.svg>
+            </motion.div>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+              style={{
+                fontFamily: FONT_DISPLAY,
+                fontStyle: 'italic',
+                fontSize: '1rem',
+                color: INK_SOFT,
+                margin: 0,
+              }}
+            >
+              Tap to open
+            </motion.p>
+          </motion.button>
         )}
       </AnimatePresence>
 
-      {/* ── Phase 2+: Invitation card slides up ── */}
-      <motion.div
-        initial={{ y: 200, opacity: 0 }}
-        animate={
-          phase >= 2
-            ? { y: 0, opacity: 1 }
-            : { y: 200, opacity: 0 }
-        }
-        transition={{
-          delay: phase >= 2 ? 0 : 0,
-          duration: 0.8,
-          type: 'spring',
-          stiffness: 280,
-          damping: 28,
-        }}
+      {/* Main column */}
+      <motion.main
+        initial={skipEnvelope ? false : { opacity: 0, y: 12 }}
+        animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         style={{
-          width: '100%',
-          maxWidth: 560,
-          margin: phase >= 3 ? '0 auto' : '0 auto',
-          padding: '0 16px',
-          paddingTop: phase >= 3 ? 48 : 0,
-          display: phase >= 2 ? 'block' : 'none',
+          position: 'relative',
+          maxWidth: 640,
+          margin: '0 auto',
+          padding: 'clamp(40px, 8vw, 88px) clamp(20px, 5vw, 40px) 120px',
         }}
       >
-        {/* Card */}
-        <div
-          style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px solid rgba(196,169,106,0.2)',
-            borderRadius: 16,
-            overflow: 'hidden',
-          }}
-        >
-          {/* Hero image */}
-          {heroImage && (
-            <div
+        {/* Masthead */}
+        <header style={{ textAlign: 'center', marginBottom: 40 }}>
+          <div
+            style={{
+              fontFamily: FONT_MONO,
+              fontSize: '0.66rem',
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: MUTED,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 12,
+            }}
+          >
+            <span style={{ width: 18, height: 1, background: GOLD }} />
+            You&rsquo;re invited
+            <span style={{ width: 18, height: 1, background: GOLD }} />
+          </div>
+        </header>
+
+        {/* Hero photo — optional */}
+        {heroPhoto && (
+          <figure
+            style={{
+              margin: '0 0 36px',
+              borderTop: `1px solid ${GOLD_RULE}`,
+              borderBottom: `1px solid ${GOLD_RULE}`,
+              padding: '24px 0',
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={heroPhoto}
+              alt={displayNames}
               style={{
                 width: '100%',
-                height: 240,
-                overflow: 'hidden',
-                position: 'relative',
+                height: 'clamp(220px, 38vw, 360px)',
+                objectFit: 'cover',
+                display: 'block',
+                filter: 'saturate(0.92) contrast(0.98)',
               }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={heroImage}
-                alt={`${coupleNames[0]} & ${coupleNames[1]}`}
+            />
+          </figure>
+        )}
+
+        {/* Editorial heading */}
+        <section style={{ textAlign: 'center', marginBottom: 48 }}>
+          <p
+            style={{
+              fontFamily: FONT_MONO,
+              fontSize: '0.62rem',
+              letterSpacing: '0.28em',
+              textTransform: 'uppercase',
+              color: MUTED,
+              margin: '0 0 22px',
+            }}
+          >
+            Together with their families
+          </p>
+
+          {/* Signature name-reveal — the two names gooey-bleed in, one
+              after the other, the way ink spreads on warm paper. */}
+          <h1
+            style={{
+              fontFamily: FONT_DISPLAY,
+              fontStyle: 'italic',
+              fontWeight: 400,
+              fontSize: 'clamp(2.4rem, 8vw, 4rem)',
+              lineHeight: 1.05,
+              letterSpacing: '-0.015em',
+              color: INK,
+              margin: '0 0 4px',
+              minHeight: '1.2em',
+            }}
+          >
+            <GooeyText
+              words={firstName ? [firstName] : ['\u2014']}
+              fontSize="inherit"
+              italic
+              color={INK}
+              intensity={0.55}
+            />
+          </h1>
+          <p
+            style={{
+              fontFamily: FONT_DISPLAY,
+              fontStyle: 'italic',
+              fontWeight: 400,
+              color: GOLD,
+              fontSize: 'clamp(1.1rem, 3vw, 1.4rem)',
+              margin: '6px 0',
+            }}
+          >
+            &amp;
+          </p>
+          <h1
+            style={{
+              fontFamily: FONT_DISPLAY,
+              fontStyle: 'italic',
+              fontWeight: 400,
+              fontSize: 'clamp(2.4rem, 8vw, 4rem)',
+              lineHeight: 1.05,
+              letterSpacing: '-0.015em',
+              color: INK,
+              margin: '4px 0 28px',
+              minHeight: '1.2em',
+            }}
+          >
+            <GooeyText
+              words={secondName ? [secondName] : ['\u2014']}
+              fontSize="inherit"
+              italic
+              color={INK}
+              intensity={0.55}
+            />
+          </h1>
+
+          <p
+            style={{
+              fontFamily: FONT_MONO,
+              fontSize: '0.64rem',
+              letterSpacing: '0.28em',
+              textTransform: 'uppercase',
+              color: MUTED,
+              margin: '0 0 8px',
+            }}
+          >
+            Request the honour of your company
+          </p>
+        </section>
+
+        {/* Logistics plate */}
+        {(headlineDate || headlineVenue) && (
+          <section
+            style={{
+              textAlign: 'center',
+              padding: '32px 20px',
+              margin: '0 0 48px',
+              background: CREAM_DEEP,
+              border: `1px solid ${GOLD_RULE}`,
+              borderRadius: 'var(--pl-radius-xs)',
+            }}
+          >
+            {headlineDate && (
+              <p
                 style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  opacity: 0.85,
-                }}
-              />
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  background:
-                    'linear-gradient(to bottom, transparent 40%, rgba(14,11,18,0.9))',
-                }}
-              />
-            </div>
-          )}
-
-          {/* Invitation content */}
-          <div style={{ padding: '40px 36px 36px', textAlign: 'center' }}>
-            {/* Ornament */}
-            <p
-              style={{
-                margin: '0 0 16px',
-                fontSize: 13,
-                letterSpacing: '3px',
-                textTransform: 'uppercase',
-                color: 'rgba(196,169,106,0.65)',
-              }}
-            >
-              You are cordially invited
-            </p>
-
-            {/* Couple names */}
-            <h1
-              style={{
-                fontFamily: 'Georgia, "Times New Roman", serif',
-                fontSize: 'clamp(2rem, 6vw, 2.8rem)',
-                fontWeight: 400,
-                fontStyle: 'italic',
-                color: palette?.foreground || '#F5F1E8',
-                margin: '0 0 8px',
-                lineHeight: 1.2,
-              }}
-            >
-              {coupleNames[0]} &amp; {coupleNames[1]}
-            </h1>
-
-            {/* Invite copy */}
-            <p
-              style={{
-                fontSize: '0.85rem',
-                letterSpacing: '1.5px',
-                textTransform: 'uppercase',
-                color: 'rgba(245,241,232,0.5)',
-                margin: '0 0 28px',
-              }}
-            >
-              invite you to celebrate
-            </p>
-
-            {/* Date + venue */}
-            {(logistics?.date || logistics?.venue) && (
-              <div
-                style={{
-                  marginBottom: 28,
-                  padding: '20px',
-                  background: 'rgba(196,169,106,0.06)',
-                  borderRadius: 10,
-                  border: '1px solid rgba(196,169,106,0.12)',
+                  fontFamily: FONT_DISPLAY,
+                  fontSize: 'clamp(1.1rem, 3vw, 1.5rem)',
+                  fontStyle: 'italic',
+                  color: INK,
+                  margin: '0 0 6px',
                 }}
               >
-                {logistics.date && (
+                {formatDateLong(headlineDate)}
+              </p>
+            )}
+            {(ceremony?.time || logistics?.time) && (
+              <p
+                style={{
+                  fontFamily: FONT_MONO,
+                  fontSize: '0.72rem',
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  color: MUTED,
+                  margin: '0 0 18px',
+                }}
+              >
+                {ceremony?.time || logistics?.time}
+              </p>
+            )}
+            {headlineVenue && (
+              <>
+                <div
+                  style={{
+                    width: 32,
+                    height: 1,
+                    background: GOLD,
+                    margin: '14px auto',
+                  }}
+                />
+                <p
+                  style={{
+                    fontSize: '0.95rem',
+                    color: INK_SOFT,
+                    margin: '0 0 4px',
+                  }}
+                >
+                  {headlineVenue}
+                </p>
+                {headlineAddress && (
                   <p
                     style={{
-                      margin: '0 0 6px',
-                      fontSize: '1.05rem',
-                      color: palette?.accent || '#C4A96A',
-                      fontFamily: 'Georgia, serif',
-                      fontStyle: 'italic',
+                      fontSize: '0.8rem',
+                      color: MUTED,
+                      margin: 0,
+                      lineHeight: 1.5,
                     }}
                   >
-                    {logistics.date}
-                    {logistics.time && ` · ${logistics.time}`}
+                    {headlineAddress}
                   </p>
                 )}
-                {logistics.venue && (
-                  <p
+              </>
+            )}
+
+            {/* Practical actions — calendar + directions */}
+            {(icsHref || directionsHref) && (
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  justifyContent: 'center',
+                  gap: 8,
+                  marginTop: 22,
+                  paddingTop: 18,
+                  borderTop: `1px solid ${GOLD_RULE}`,
+                }}
+              >
+                {icsHref && (
+                  <a
+                    href={icsHref}
+                    download={`invite-${token}.ics`}
+                    onClick={() => setCalendarAdded(true)}
                     style={{
-                      margin: 0,
-                      fontSize: '0.9rem',
-                      color: 'rgba(245,241,232,0.65)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '9px 14px',
+                      border: `1px solid ${GOLD_RULE}`,
+                      background: CREAM,
+                      color: INK,
+                      textDecoration: 'none',
+                      fontFamily: FONT_MONO,
+                      fontSize: '0.6rem',
+                      letterSpacing: '0.2em',
+                      textTransform: 'uppercase',
+                      borderRadius: 'var(--pl-radius-xs)',
+                      transition: 'background 0.18s ease, border-color 0.18s ease',
                     }}
                   >
-                    {logistics.venue}
-                    {logistics.venueAddress && (
-                      <>
-                        <br />
-                        <span
-                          style={{
-                            fontSize: '0.8rem',
-                            color: 'rgba(245,241,232,0.4)',
-                          }}
-                        >
-                          {logistics.venueAddress}
-                        </span>
-                      </>
-                    )}
-                  </p>
+                    {calendarAdded ? <Check size={12} color={GOLD} /> : <Calendar size={12} />}
+                    {calendarAdded ? 'Added' : 'Add to calendar'}
+                  </a>
+                )}
+                {directionsHref && (
+                  <a
+                    href={directionsHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '9px 14px',
+                      border: `1px solid ${GOLD_RULE}`,
+                      background: CREAM,
+                      color: INK,
+                      textDecoration: 'none',
+                      fontFamily: FONT_MONO,
+                      fontSize: '0.6rem',
+                      letterSpacing: '0.2em',
+                      textTransform: 'uppercase',
+                      borderRadius: 'var(--pl-radius-xs)',
+                    }}
+                  >
+                    <MapPin size={12} />
+                    Directions
+                  </a>
                 )}
               </div>
             )}
+          </section>
+        )}
 
-            {/* Guest greeting */}
-            {guestName && guestName !== 'Guest' && (
-              <p
-                style={{
-                  margin: '0 0 28px',
-                  fontSize: '1rem',
-                  color: 'rgba(245,241,232,0.7)',
-                  fontFamily: 'Georgia, serif',
-                  fontStyle: 'italic',
-                }}
-              >
-                Dear <strong style={{ fontWeight: 400 }}>{guestName}</strong>,
-              </p>
-            )}
-
-            {/* RSVP section */}
-            <div
+        {/* All events (if more than one) */}
+        {events.length > 1 && (
+          <section style={{ marginBottom: 48 }}>
+            <p
               style={{
-                borderTop: '1px solid rgba(196,169,106,0.15)',
-                paddingTop: 28,
+                fontFamily: FONT_MONO,
+                fontSize: '0.6rem',
+                letterSpacing: '0.28em',
+                textTransform: 'uppercase',
+                color: MUTED,
+                textAlign: 'center',
+                margin: '0 0 18px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 12,
               }}
             >
-              <AnimatePresence>
-                {phase >= 3 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3, duration: 0.5 }}
+              <span style={{ flex: 1, height: 1, background: GOLD_RULE }} />
+              The day at a glance
+              <span style={{ flex: 1, height: 1, background: GOLD_RULE }} />
+            </p>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+              {events.map((e) => (
+                <li
+                  key={e.id}
+                  style={{
+                    padding: '16px 0',
+                    borderBottom: `1px solid ${GOLD_RULE}`,
+                    display: 'grid',
+                    gridTemplateColumns: small ? '1fr' : '120px 1fr',
+                    gap: small ? 6 : 20,
+                    alignItems: 'baseline',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontFamily: FONT_MONO,
+                      fontSize: '0.66rem',
+                      letterSpacing: '0.2em',
+                      textTransform: 'uppercase',
+                      color: GOLD,
+                    }}
                   >
-                    <RsvpForm
-                      manifest={manifest}
-                      guestName={guestName}
-                      token={token}
-                      coupleNames={coupleNames}
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-        </div>
+                    {e.time || formatDateLong(e.date).split(',')[0]}
+                  </div>
+                  <div>
+                    <p
+                      style={{
+                        fontFamily: FONT_DISPLAY,
+                        fontStyle: 'italic',
+                        fontSize: '1.05rem',
+                        color: INK,
+                        margin: '0 0 4px',
+                      }}
+                    >
+                      {e.name}
+                    </p>
+                    <p style={{ fontSize: '0.82rem', color: MUTED, margin: 0 }}>
+                      {e.venue}
+                      {e.dressCode ? ` · ${e.dressCode}` : ''}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
-        {/* Footer */}
-        <p
+        {/* Guest salutation + RSVP form */}
+        <section
           style={{
-            textAlign: 'center',
-            marginTop: 24,
-            fontSize: '0.75rem',
-            color: 'rgba(245,241,232,0.2)',
-            letterSpacing: 1,
+            marginTop: 56,
+            paddingTop: 32,
+            borderTop: `1px solid ${GOLD_RULE}`,
           }}
         >
-          Sent with love via Pearloom
-        </p>
-      </motion.div>
+          {guestName && guestName !== 'Guest' && (
+            <p
+              style={{
+                fontFamily: FONT_DISPLAY,
+                fontStyle: 'italic',
+                fontSize: '1.1rem',
+                color: INK_SOFT,
+                margin: '0 0 8px',
+                textAlign: 'center',
+              }}
+            >
+              Dear {guestName},
+            </p>
+          )}
+          {rsvpIntro && (
+            <p
+              style={{
+                fontSize: '0.95rem',
+                lineHeight: 1.7,
+                color: INK_SOFT,
+                textAlign: 'center',
+                margin: '0 auto 28px',
+                maxWidth: 460,
+              }}
+            >
+              {rsvpIntro}
+            </p>
+          )}
+
+          <InviteRsvpForm
+            manifest={manifest}
+            guestName={guestName}
+            token={token}
+            coupleNames={coupleNames}
+            events={events}
+          />
+        </section>
+
+        {/* Footer signature */}
+        <footer
+          style={{
+            marginTop: 64,
+            paddingTop: 20,
+            borderTop: `1px solid ${GOLD_RULE}`,
+            textAlign: 'center',
+          }}
+        >
+          <p
+            style={{
+              fontFamily: FONT_MONO,
+              fontSize: '0.58rem',
+              letterSpacing: '0.24em',
+              textTransform: 'uppercase',
+              color: MUTED,
+              margin: 0,
+            }}
+          >
+            Sent with love · Made with Pearloom
+          </p>
+        </footer>
+      </motion.main>
     </div>
   );
 }

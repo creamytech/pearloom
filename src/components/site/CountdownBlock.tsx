@@ -40,7 +40,7 @@ function calcTimeLeft(target: string): TimeLeft | null {
 
 export function CountdownBlock({
   targetDate,
-  accentColor = '#A3B18A',
+  accentColor = '#5C6B3F',
   headingFont = 'Playfair Display',
   bodyFont = 'Inter',
   bgColor = '#F5F1E8',
