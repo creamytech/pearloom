@@ -6,7 +6,7 @@
    "Alex & Jamie" layout from the handoff mockup.
    ======================================================================== */
 
-import { memo, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { StoryManifest, Chapter } from '@/types';
 import {
   Blob,
@@ -3477,10 +3477,95 @@ export function SiteV8Renderer({
   const chapters = manifest.chapters ?? [];
   const hasRsvp = !!manifest.logistics?.date;
   const editMode = Boolean(onEditField);
+
+  // ── Multi-select state ─────────────────────────────────────
+  // Lives at the renderer root so every block in the canvas
+  // shares the same selection set via context. Click selects;
+  // Shift-click or Cmd-click toggles membership; Esc clears.
+  const [selectedBlockIds, setSelectedBlockIds] = useState<string[]>([]);
+  const selectBlock = useCallback((id: string, additive?: boolean) => {
+    setSelectedBlockIds((prev) => {
+      if (additive) {
+        return prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      }
+      // Already the only selected — clicking again clears (so a
+      // second click on a non-editable region of a block deselects).
+      if (prev.length === 1 && prev[0] === id) return prev;
+      return [id];
+    });
+  }, []);
+  const clearSelection = useCallback(() => setSelectedBlockIds([]), []);
+
+  // Stable refs so the keydown listener doesn't churn on every
+  // render — it reads through the ref into the latest values.
+  const onEditFieldRef = useRef(onEditField);
+  const selectionRef = useRef(selectedBlockIds);
+  useEffect(() => {
+    onEditFieldRef.current = onEditField;
+  }, [onEditField]);
+  useEffect(() => {
+    selectionRef.current = selectedBlockIds;
+  }, [selectedBlockIds]);
+
+  // Edit-mode keyboard router. ⌫/Delete bulk-hides every selected
+  // section (adds to manifest.hiddenBlocks); Escape clears the
+  // selection. Skips when focus is in a text input / contentEditable
+  // so typing keeps working.
+  useEffect(() => {
+    if (!editMode) return;
+    function onKey(e: KeyboardEvent) {
+      const t = e.target as HTMLElement | null;
+      if (t) {
+        const tag = t.tagName;
+        if (
+          tag === 'INPUT' ||
+          tag === 'TEXTAREA' ||
+          tag === 'SELECT' ||
+          t.isContentEditable
+        ) {
+          // Escape still clears selection from inside fields — match
+          // Figma's behaviour where Esc both blurs and deselects.
+          if (e.key === 'Escape') setSelectedBlockIds([]);
+          return;
+        }
+      }
+      if (e.key === 'Escape') {
+        if (selectionRef.current.length > 0) {
+          e.preventDefault();
+          setSelectedBlockIds([]);
+        }
+        return;
+      }
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        const sel = selectionRef.current;
+        if (sel.length === 0) return;
+        e.preventDefault();
+        const sectionIds = sel.map((k) => (k === 'story' ? 'our-story' : k));
+        onEditFieldRef.current?.((m) => ({
+          ...m,
+          hiddenBlocks: Array.from(
+            new Set([
+              ...((m as unknown as { hiddenBlocks?: string[] }).hiddenBlocks ?? []),
+              ...sectionIds,
+            ]),
+          ),
+        }) as StoryManifest);
+        setSelectedBlockIds([]);
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [editMode]);
+
   // Memoize context value so every EditableText doesn't re-render on
-  // every unrelated manifest change. The context value shape is tiny
-  // (one boolean), so a stable reference is cheap and meaningful.
-  const canvasCtxValue = useMemo(() => ({ editMode }), [editMode]);
+  // every unrelated manifest change. Selection setters are stable
+  // refs (useCallback above) so the only churning identity is the
+  // selectedBlockIds array — that's intentional, blocks need to know
+  // when they enter or leave the selection set.
+  const canvasCtxValue = useMemo(
+    () => ({ editMode, selectedBlockIds, selectBlock, clearSelection }),
+    [editMode, selectedBlockIds, selectBlock, clearSelection],
+  );
 
   const blockOrderRaw =
     (manifest as unknown as { blockOrder?: SiteBlockKey[] }).blockOrder ?? DEFAULT_ORDER;

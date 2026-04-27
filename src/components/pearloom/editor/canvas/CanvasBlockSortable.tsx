@@ -32,7 +32,7 @@ import {
   useSortable, verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { useIsEditMode } from './EditorCanvasContext';
+import { useEditorCanvas, useIsEditMode } from './EditorCanvasContext';
 import { SectionActionMenu } from './SectionActionMenu';
 import { InlineAddBlock } from './InlineAddBlock';
 import { BlockPickerPopover, type PickerBlock } from './BlockPickerPopover';
@@ -242,12 +242,32 @@ function CanvasSortableItem({
     isDragging, isOver,
   } = useSortable({ id });
 
+  // Multi-select wiring: read selection from the canvas context and
+  // toggle this block in/out on bare-block clicks. We only select on
+  // non-editable targets so EditableText / inputs keep their normal
+  // click-to-focus behaviour. Shift/Cmd-click adds to the set.
+  const { selectedBlockIds, selectBlock } = useEditorCanvas();
+  const isSelected = (selectedBlockIds ?? []).includes(id);
+
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.4 : 1,
     position: 'relative',
   };
+
+  function handleMouseDownCapture(e: React.MouseEvent<HTMLDivElement>) {
+    if (!selectBlock) return;
+    const t = e.target as HTMLElement | null;
+    if (!t) return;
+    // Pass through clicks that land on an editable surface — text
+    // edit, form controls, sortable handles. Selection only fires
+    // when clicking the section's chrome / non-interactive areas.
+    if (
+      t.closest('input, textarea, select, [contenteditable="true"], [data-pl-no-select]')
+    ) return;
+    selectBlock(id, e.shiftKey || e.metaKey || e.ctrlKey);
+  }
 
   // Right-click context menu — same actions as the hover chip,
   // accessible without aiming for the chip first. Wix users in
@@ -298,7 +318,10 @@ function CanvasSortableItem({
       style={style}
       data-pl-block={id}
       data-pl-block-sortable
+      data-pl-selected={isSelected ? '' : undefined}
+      className={isSelected ? 'pl-block-selected' : undefined}
       onContextMenu={handleContextMenu}
+      onMouseDownCapture={handleMouseDownCapture}
     >
       {/* Drop indicator when this section is the drop target. */}
       {isOver && !isDragging && (

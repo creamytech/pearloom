@@ -27,6 +27,15 @@ export interface EditorCanvasContextShape {
   /** Setter for block focus — call when user clicks any element
    *  inside a block. */
   setFocusedBlockId?: (id: string | null) => void;
+  /** Multi-select set of block ids/keys currently selected on the
+   *  canvas. Used to apply the .pl-block-selected outline and to
+   *  drive bulk keyboard actions (⌫ to hide all, Esc to clear). */
+  selectedBlockIds?: string[];
+  /** Pick exactly one block (replaces selection) or toggle membership
+   *  when `additive` is true (Shift-click / Cmd-click). */
+  selectBlock?: (id: string, additive?: boolean) => void;
+  /** Empty the selection set. Bound to Escape at the editor root. */
+  clearSelection?: () => void;
 }
 
 const defaultCtx: EditorCanvasContextShape = {
