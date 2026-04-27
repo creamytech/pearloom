@@ -428,7 +428,11 @@ function NavGroup({
         {group.label}
       </div>
       <div ref={listRef} style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {/* Animated active pill — slides between items as the route changes. */}
+        {/* Active pill — instant snap to the active row. Previously
+            faded opacity 1 → 0 → 1 during a 320ms slide, which the
+            user perceived as 'the whole page fades' (multiple pills
+            fading simultaneously across nav groups looks like a
+            page-level transition). Now just shows or hides. */}
         <div
           aria-hidden="true"
           style={{
@@ -440,8 +444,6 @@ function NavGroup({
             background: 'var(--ink)',
             borderRadius: 10,
             opacity: pill.visible ? 1 : 0,
-            transition:
-              'top 320ms cubic-bezier(0.22, 1, 0.36, 1), height 260ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms ease',
             pointerEvents: 'none',
             zIndex: 0,
           }}
@@ -508,7 +510,10 @@ function NavLink({
         color: isActive ? 'var(--cream)' : 'var(--ink)',
         textDecoration: 'none',
         zIndex: 1,
-        transition: 'color 260ms cubic-bezier(0.22, 1, 0.36, 1)',
+        // No color transition — snap to active state. The 260ms
+        // color fade was firing on every link in the sidebar
+        // simultaneously when active row changed, contributing to
+        // the perceived 'whole sidebar fades' effect.
       }}
       onMouseEnter={(e) => {
         if (isActive) return;
