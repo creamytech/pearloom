@@ -246,6 +246,16 @@ export interface StoryManifest {
   // Block types that the template explicitly hides (e.g. minimalist templates
   // that omit registry/faq).
   hiddenBlocks?: string[];
+  // Site rendering mode. 'scroll' (default) renders every section on
+  // a single home page. 'multi-page' splits each section into its own
+  // route at /{occasion}/{slug}/{block}, leaving only homePageBlocks
+  // on the home page. EventNav resolves links accordingly.
+  siteMode?: 'scroll' | 'multi-page';
+  // Which sections live on the home page in multi-page mode.
+  // Defaults to ['story','gallery'] when omitted. 'details' is
+  // always included implicitly. All other sections become their
+  // own dedicated pages.
+  homePageBlocks?: string[];
   // Custom SVG background pattern CSS (e.g. url("data:image/svg+xml,..."))
   backgroundPatternCss?: string;
   // User-created custom pages (photo gallery, our venue, etc.)

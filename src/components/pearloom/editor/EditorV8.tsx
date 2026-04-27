@@ -1021,6 +1021,9 @@ function DesignMenu() {
           <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('footer')}>
             <Icon name="section" size={14} /> Footer
           </button>
+          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('layout-mode')}>
+            <Icon name="grid" size={14} /> Layout mode
+          </button>
         </div>
       )}
     </div>

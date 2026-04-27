@@ -324,12 +324,19 @@ function LanguageSwitcher() {
 
 /* ==================== NAV ==================== */
 
+interface NavLink {
+  label: string;
+  href: string;
+}
+
 interface NavBodyProps {
   navStyle: string;
   scrolled: boolean;
   coupleLabel: string;
-  links: string[];
+  links: NavLink[];
   hasRsvp: boolean;
+  rsvpHref: string;
+  brandHref: string;
   manifest: StoryManifest;
 }
 
@@ -343,22 +350,22 @@ const NAV_LINK_STYLE: React.CSSProperties = {
   transition: 'color 220ms ease',
 };
 
-function NavLinks({ links, gap = 22 }: { links: string[]; gap?: number }) {
+function NavLinks({ links, gap = 22 }: { links: NavLink[]; gap?: number }) {
   return (
     <nav style={{ display: 'flex', gap, alignItems: 'center' }} className="pl8-site-nav-links">
       {links.map((l) => (
-        <a key={l} href={`#${l.toLowerCase().replace(' ', '-')}`} style={NAV_LINK_STYLE}>
-          {l}
+        <a key={l.label} href={l.href} style={NAV_LINK_STYLE}>
+          {l.label}
         </a>
       ))}
     </nav>
   );
 }
 
-function NavBrand({ manifest, label, size }: { manifest: StoryManifest; label: string; size: number }) {
+function NavBrand({ manifest, label, size, href }: { manifest: StoryManifest; label: string; size: number; href: string }) {
   return (
     <a
-      href="#top"
+      href={href}
       className="pl8-site-nav-brand"
       style={{
         display: 'flex', alignItems: 'center', gap: 8,
@@ -376,7 +383,7 @@ function NavBrand({ manifest, label, size }: { manifest: StoryManifest; label: s
   );
 }
 
-function NavBody({ navStyle, scrolled, coupleLabel, links, hasRsvp, manifest }: NavBodyProps) {
+function NavBody({ navStyle, scrolled, coupleLabel, links, hasRsvp, rsvpHref, brandHref, manifest }: NavBodyProps) {
   const innerPadding = scrolled ? '10px 32px' : '14px 32px';
 
   // ── Centered: brand centered, links split left/right around it. ──
@@ -387,12 +394,12 @@ function NavBody({ navStyle, scrolled, coupleLabel, links, hasRsvp, manifest }: 
     return (
       <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 28, transition: 'padding 380ms cubic-bezier(0.22, 1, 0.36, 1)' }}>
         <NavLinks links={left} gap={22} />
-        <NavBrand manifest={manifest} label={coupleLabel} size={28} />
+        <NavBrand manifest={manifest} label={coupleLabel} size={28} href={brandHref} />
         <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 18 }}>
           <NavLinks links={right} gap={22} />
           <LanguageSwitcher />
           {hasRsvp && (
-            <a href="#rsvp" className="btn btn-primary btn-sm pl8-btn-sheen">
+            <a href={rsvpHref} className="btn btn-primary btn-sm pl8-btn-sheen">
               RSVP <Icon name="arrow-right" size={12} />
             </a>
           )}
@@ -405,11 +412,11 @@ function NavBody({ navStyle, scrolled, coupleLabel, links, hasRsvp, manifest }: 
   if (navStyle === 'minimal') {
     return (
       <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 28, transition: 'padding 380ms cubic-bezier(0.22, 1, 0.36, 1)' }}>
-        <NavBrand manifest={manifest} label={coupleLabel} size={26} />
+        <NavBrand manifest={manifest} label={coupleLabel} size={26} href={brandHref} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <LanguageSwitcher />
           {hasRsvp && (
-            <a href="#rsvp" className="btn btn-primary btn-sm pl8-btn-sheen">
+            <a href={rsvpHref} className="btn btn-primary btn-sm pl8-btn-sheen">
               RSVP <Icon name="arrow-right" size={12} />
             </a>
           )}
@@ -423,11 +430,11 @@ function NavBody({ navStyle, scrolled, coupleLabel, links, hasRsvp, manifest }: 
     return (
       <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'flex', flexDirection: 'column', gap: 8, transition: 'padding 380ms cubic-bezier(0.22, 1, 0.36, 1)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <NavBrand manifest={manifest} label={coupleLabel} size={32} />
+          <NavBrand manifest={manifest} label={coupleLabel} size={32} href={brandHref} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <LanguageSwitcher />
             {hasRsvp && (
-              <a href="#rsvp" className="btn btn-primary btn-sm pl8-btn-sheen">
+              <a href={rsvpHref} className="btn btn-primary btn-sm pl8-btn-sheen">
                 RSVP <Icon name="arrow-right" size={12} />
               </a>
             )}
@@ -443,13 +450,13 @@ function NavBody({ navStyle, scrolled, coupleLabel, links, hasRsvp, manifest }: 
   // ── Classic (default): brand left, links right, RSVP at end. ──
   return (
     <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'flex', alignItems: 'center', gap: 28, transition: 'padding 380ms cubic-bezier(0.22, 1, 0.36, 1)' }}>
-      <NavBrand manifest={manifest} label={coupleLabel} size={28} />
+      <NavBrand manifest={manifest} label={coupleLabel} size={28} href={brandHref} />
       <div style={{ marginLeft: 'auto' }}>
         <NavLinks links={links} gap={22} />
       </div>
       <LanguageSwitcher />
       {hasRsvp && (
-        <a href="#rsvp" className="btn btn-primary btn-sm pl8-btn-sheen">
+        <a href={rsvpHref} className="btn btn-primary btn-sm pl8-btn-sheen">
           RSVP <Icon name="arrow-right" size={12} />
         </a>
       )}
@@ -457,12 +464,134 @@ function NavBody({ navStyle, scrolled, coupleLabel, links, hasRsvp, manifest }: 
   );
 }
 
-function EventNav({ names, hasRsvp, manifest }: {
+/* ==================== SUB-PAGE HEADER ====================
+   Shown above the single section on multi-page sub-routes.
+   Editorial breadcrumb + display title + couple kicker — keeps the
+   visual continuity of the home page without forcing a full hero. */
+function SubPageHeader({
+  blockKey,
+  manifest,
+  names,
+  basePath,
+}: {
+  blockKey: SiteBlockKey;
+  manifest: StoryManifest;
+  names: [string, string];
+  basePath: string;
+}) {
+  const SUB_PAGE_TITLES: Record<SiteBlockKey, { title: string; kicker: string }> = {
+    story: { title: 'Our Story', kicker: 'How we got here' },
+    details: { title: 'The Details', kicker: 'Save the date' },
+    schedule: { title: 'The Schedule', kicker: 'The flow of the day' },
+    travel: { title: 'Travel', kicker: 'Hotels, airports, directions' },
+    registry: { title: 'Registry', kicker: 'Your presence is the gift' },
+    gallery: { title: 'Gallery', kicker: 'A few of our favourites' },
+    faq: { title: 'Questions & Answers', kicker: 'Everything else' },
+    rsvp: { title: 'RSVP', kicker: 'Will you join us?' },
+  };
+  const meta = SUB_PAGE_TITLES[blockKey];
+  const coupleLabel = names.filter(Boolean).join(' & ');
+  const accentSymbol =
+    (manifest as unknown as { vibeSkin?: { accentSymbol?: string } }).vibeSkin?.accentSymbol || '✦';
+  return (
+    <section
+      style={{
+        padding: '5.5rem 2rem 3rem',
+        textAlign: 'center',
+        borderBottom: '1px solid var(--line, rgba(14,13,11,0.08))',
+      }}
+    >
+      <div style={{ maxWidth: 720, margin: '0 auto' }}>
+        <nav aria-label="Breadcrumb" style={{ marginBottom: 24 }}>
+          <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 12.5, letterSpacing: '0.02em' }}>
+            <li>
+              <a href={basePath} style={{ color: 'var(--peach-ink, #C6703D)', textDecoration: 'none', fontWeight: 600 }}>
+                Home
+              </a>
+            </li>
+            <li aria-hidden="true" style={{ color: 'var(--ink-muted)', opacity: 0.5 }}>·</li>
+            <li aria-current="page" style={{ color: 'var(--ink-muted)' }}>{meta.title}</li>
+          </ol>
+        </nav>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: 18 }}>
+          <div style={{ flex: 1, maxWidth: 60, height: 1, background: 'var(--peach-ink, #C6703D)', opacity: 0.3 }} />
+          <span style={{ fontSize: 14, color: 'var(--peach-ink, #C6703D)', opacity: 0.65 }}>{accentSymbol}</span>
+          <div style={{ flex: 1, maxWidth: 60, height: 1, background: 'var(--peach-ink, #C6703D)', opacity: 0.3 }} />
+        </div>
+        <h1
+          className="display-italic"
+          style={{
+            fontSize: 'clamp(2.4rem, 5vw, 3.8rem)',
+            fontWeight: 400,
+            letterSpacing: '-0.02em',
+            color: 'var(--ink)',
+            margin: '0 0 12px',
+            lineHeight: 1.05,
+          }}
+        >
+          {meta.title}
+        </h1>
+        <p style={{ color: 'var(--ink-soft)', fontSize: 15, fontStyle: 'italic', margin: 0 }}>
+          {meta.kicker}
+        </p>
+        {coupleLabel && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginTop: 24 }}>
+            <div style={{ flex: 1, maxWidth: 60, height: 1, background: 'var(--peach-ink, #C6703D)', opacity: 0.25 }} />
+            <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--peach-ink, #C6703D)', opacity: 0.55 }}>
+              {coupleLabel}
+            </span>
+            <div style={{ flex: 1, maxWidth: 60, height: 1, background: 'var(--peach-ink, #C6703D)', opacity: 0.25 }} />
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function EventNav({ names, hasRsvp, manifest, siteSlug, basePath, siteMode, homePageBlocks, pageFilter }: {
   names: [string, string];
   hasRsvp: boolean;
   manifest: StoryManifest;
+  siteSlug: string;
+  basePath: string;
+  siteMode: SiteMode;
+  homePageBlocks: SiteBlockKey[];
+  pageFilter?: SiteBlockKey | 'home';
 }) {
-  const links = ['Our Story', 'Details', 'Schedule', 'Travel', 'Registry', 'Gallery'];
+  // Build the link set. In scroll mode every link is an anchor on the
+  // current page. In multi-page mode, blocks rendered on home stay as
+  // anchors but route to the home path; blocks promoted to their own
+  // page route to /{basePath}/{slug}. From a sub-page, anchors target
+  // the home path with the hash so guests don't get stuck.
+  const NAV_BLOCKS: Array<{ key: SiteBlockKey; label: string; anchor: string }> = [
+    { key: 'story', label: 'Our Story', anchor: 'our-story' },
+    { key: 'details', label: 'Details', anchor: 'details' },
+    { key: 'schedule', label: 'Schedule', anchor: 'schedule' },
+    { key: 'travel', label: 'Travel', anchor: 'travel' },
+    { key: 'registry', label: 'Registry', anchor: 'registry' },
+    { key: 'gallery', label: 'Gallery', anchor: 'gallery' },
+  ];
+  const onSubPage = pageFilter && pageFilter !== 'home';
+  const homeBlockSet = new Set<SiteBlockKey>(homePageBlocks);
+  const links: NavLink[] = NAV_BLOCKS.map(({ key, label, anchor }) => {
+    if (siteMode === 'multi-page') {
+      const onHome = key === 'details' || homeBlockSet.has(key);
+      if (onHome) {
+        // Anchor on the home page. From a sub-page, prefix with basePath.
+        return { label, href: `${basePath}#${anchor}` };
+      }
+      return { label, href: `${basePath}/${BLOCK_PAGE_SLUG[key]}` };
+    }
+    // Scroll mode: anchor on current page (or basePath when on a sub
+    // route that still wants to target home — uncommon but safe).
+    return { label, href: onSubPage ? `${basePath}#${anchor}` : `#${anchor}` };
+  });
+  const rsvpHref = siteMode === 'multi-page'
+    ? `${basePath}/rsvp`
+    : (onSubPage ? `${basePath}#rsvp` : '#rsvp');
+  const brandHref = onSubPage || siteMode === 'multi-page' ? basePath : '#top';
+
+  void siteSlug; // reserved for future analytics hooks
   const coupleLabel = names.filter(Boolean).join(' & ') || 'Our celebration';
   const [scrolled, setScrolled] = useState(false);
   const navStyle = manifest.nav?.style ?? 'classic';
@@ -524,6 +653,8 @@ function EventNav({ names, hasRsvp, manifest }: {
         coupleLabel={coupleLabel}
         links={links}
         hasRsvp={hasRsvp}
+        rsvpHref={rsvpHref}
+        brandHref={brandHref}
         manifest={manifest}
       />
     </header>
@@ -3298,6 +3429,31 @@ function FooterColumn({ heading, links }: { heading: string; links: Array<[strin
 type SiteBlockKey = 'story' | 'details' | 'schedule' | 'travel' | 'registry' | 'gallery' | 'faq' | 'rsvp';
 const DEFAULT_ORDER: SiteBlockKey[] = ['story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'faq', 'rsvp'];
 
+// Multi-page mode constants. When manifest.siteMode === 'multi-page',
+// the home page renders only manifest.homePageBlocks (default story +
+// gallery) and every other section becomes its own route at
+// /{occasion}/{slug}/{block}. Sub-page renders skip the hero and show
+// only the requested block. EventNav wires links to the right path
+// vs. anchor based on which mode + filter is active.
+type SiteMode = 'scroll' | 'multi-page';
+const DEFAULT_HOME_BLOCKS: SiteBlockKey[] = ['story', 'gallery'];
+// Sections that get their own dedicated page in multi-page mode.
+// 'details' stays on home — it's a summary strip, not a destination.
+const MULTI_PAGE_BLOCKS: SiteBlockKey[] = ['story', 'schedule', 'travel', 'registry', 'gallery', 'faq', 'rsvp'];
+
+// Block → URL slug for sub-pages. Keep these stable; they're the
+// public URL surface for multi-page sites.
+const BLOCK_PAGE_SLUG: Record<SiteBlockKey, string> = {
+  story: 'story',
+  details: 'details',
+  schedule: 'schedule',
+  travel: 'travel',
+  registry: 'registry',
+  gallery: 'gallery',
+  faq: 'faq',
+  rsvp: 'rsvp',
+};
+
 // Event-OS block types that live on manifest.blocks[]. These
 // weren't rendered before — hosts could add them in the editor
 // but guests never saw them. Now they ship.
@@ -3562,6 +3718,7 @@ export function SiteV8Renderer({
   siteSlug,
   prettyUrl,
   creatorEmail,
+  pageFilter,
   // Optional — only passed when rendered inside the editor canvas.
   // Presence of onEditField flips edit-mode chrome on for every
   // EditableText inside the tree.
@@ -3576,6 +3733,11 @@ export function SiteV8Renderer({
    *  the editor canvas) so the OwnerEditPill can match against the
    *  current session and surface the "Edit" affordance to the host. */
   creatorEmail?: string | null;
+  /** Multi-page filter. When set to a SiteBlockKey, the renderer
+   *  shows only that block (sub-page route). When set to 'home',
+   *  it shows the hero plus the homePageBlocks subset (multi-page
+   *  home). Undefined = scroll mode (render everything). */
+  pageFilter?: SiteBlockKey | 'home';
   /** When provided, enables inline edit mode. Each editable field
    *  calls this with a pure `(manifest) => newManifest` patch. */
   onEditField?: FieldEditor;
@@ -3678,16 +3840,57 @@ export function SiteV8Renderer({
 
   const blockOrderRaw =
     (manifest as unknown as { blockOrder?: SiteBlockKey[] }).blockOrder ?? DEFAULT_ORDER;
-  const blockOrder: SiteBlockKey[] = blockOrderRaw.filter((k): k is SiteBlockKey =>
+  const fullBlockOrder: SiteBlockKey[] = blockOrderRaw.filter((k): k is SiteBlockKey =>
     DEFAULT_ORDER.includes(k as SiteBlockKey)
   );
-  for (const key of DEFAULT_ORDER) if (!blockOrder.includes(key)) blockOrder.push(key);
+  for (const key of DEFAULT_ORDER) if (!fullBlockOrder.includes(key)) fullBlockOrder.push(key);
 
   const hidden: Set<SiteBlockKey> = new Set(
     ((manifest as unknown as { hiddenBlocks?: SiteBlockKey[] }).hiddenBlocks ?? []).filter((k): k is SiteBlockKey =>
       DEFAULT_ORDER.includes(k as SiteBlockKey)
     )
   );
+
+  // ── Multi-page mode resolution ──
+  // siteMode: 'scroll' | 'multi-page'. Defaults to scroll.
+  // homePageBlocks: which blocks render on the home page when in
+  // multi-page mode. Defaults to story + gallery — the editorial
+  // reading experience the user wants. Always implicitly includes
+  // the hero (rendered separately from blockOrder).
+  const siteMode: SiteMode =
+    (manifest as unknown as { siteMode?: SiteMode }).siteMode === 'multi-page'
+      ? 'multi-page'
+      : 'scroll';
+  const rawHomeBlocks =
+    (manifest as unknown as { homePageBlocks?: SiteBlockKey[] }).homePageBlocks;
+  const homePageBlocks: SiteBlockKey[] = Array.isArray(rawHomeBlocks) && rawHomeBlocks.length
+    ? rawHomeBlocks.filter((k): k is SiteBlockKey =>
+        DEFAULT_ORDER.includes(k as SiteBlockKey)
+      )
+    : DEFAULT_HOME_BLOCKS;
+
+  // Apply pageFilter to blockOrder.
+  const blockOrder: SiteBlockKey[] = (() => {
+    if (!pageFilter) return fullBlockOrder;
+    if (pageFilter === 'home') {
+      // Home in multi-page mode: keep only blocks marked as home blocks
+      // plus 'details' (a permanent fixture on home — it's a thin strip,
+      // not a destination).
+      const homeSet = new Set<SiteBlockKey>([...homePageBlocks, 'details']);
+      return fullBlockOrder.filter((k) => homeSet.has(k));
+    }
+    // Sub-page: show only the requested block.
+    return fullBlockOrder.filter((k) => k === pageFilter);
+  })();
+
+  // Hide hero on sub-pages — sub-pages get a focused single-block view.
+  const showHero = !pageFilter || pageFilter === 'home';
+
+  // Base path for nav links. Prefer the occasion-prefixed canonical
+  // path so multi-page links match the URL bar; fall back to the
+  // legacy /sites/{slug} form.
+  const occasion = (manifest as unknown as { occasion?: string }).occasion;
+  const basePath = occasion ? `/${occasion}/${siteSlug}` : `/sites/${siteSlug}`;
 
   const renderBlock = (key: SiteBlockKey) => {
     if (hidden.has(key)) return null;
@@ -3847,14 +4050,33 @@ export function SiteV8Renderer({
         {!editMode && creatorEmail && (
           <OwnerEditPill siteSlug={siteSlug} creatorEmail={creatorEmail} />
         )}
-        <EventNav names={names} hasRsvp={hasRsvp} manifest={manifest} />
-        <StickerLayer
-          blockId="hero"
-          stickers={manifest.stickers}
-          onEditField={onEditField}
-        >
-          <HeroSection names={names} manifest={manifest} siteSlug={siteSlug} onEditField={onEditField} onEditNames={onEditNames} />
-        </StickerLayer>
+        <EventNav
+          names={names}
+          hasRsvp={hasRsvp}
+          manifest={manifest}
+          siteSlug={siteSlug}
+          basePath={basePath}
+          siteMode={siteMode}
+          homePageBlocks={homePageBlocks}
+          pageFilter={pageFilter}
+        />
+        {showHero && (
+          <StickerLayer
+            blockId="hero"
+            stickers={manifest.stickers}
+            onEditField={onEditField}
+          >
+            <HeroSection names={names} manifest={manifest} siteSlug={siteSlug} onEditField={onEditField} onEditNames={onEditNames} />
+          </StickerLayer>
+        )}
+        {pageFilter && pageFilter !== 'home' && (
+          <SubPageHeader
+            blockKey={pageFilter}
+            manifest={manifest}
+            names={names}
+            basePath={basePath}
+          />
+        )}
         {/* Wix-style canvas drag-and-drop with full direct-manipulation:
             ⋮⋮ drag · ✎ edit · ⊕ add below · × remove on every section,
             plus inline "+ Add section" zones between every two

@@ -208,6 +208,7 @@ export function PearCommand({
       { id: 'd-colors', label: 'Color tokens', hint: 'Granular ink/cream overrides', icon: 'palette', group: 'design', run: () => dispatchDesignJump({ anchor: 'colors' }) },
       { id: 'd-nav', label: 'Navigation bar', hint: 'Layout style + brand icon', icon: 'layout', group: 'design', run: () => dispatchDesignJump({ block: 'nav' }) },
       { id: 'd-footer', label: 'Footer', hint: 'Layout, brand mark, column headers', icon: 'section', group: 'design', run: () => dispatchDesignJump({ anchor: 'footer' }) },
+      { id: 'd-layout-mode', label: 'Layout mode', hint: 'Single scroll or magazine (multi-page)', icon: 'grid', group: 'design', run: () => dispatchDesignJump({ anchor: 'layout-mode' }) },
 
       // AI
       { id: 'ai-warmer', label: 'Rewrite my tagline, warmer', hint: 'Pear softens the tone', icon: 'sparkles', group: 'ai', run: () => rewriteTagline('Rewrite this tagline to feel warmer and more handwritten — like a friend, not a brand. Keep it 1-2 sentences.', 'Warmer tagline') },

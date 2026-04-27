@@ -248,6 +248,13 @@ export default async function SubdomainSite({
     // and surface the "Edit" affordance only to the host. Field isn't
     // typed on SiteConfig, so coerce through Record<string, unknown>.
     const creatorEmail = ((siteConfig as unknown as Record<string, unknown>).creator_email as string | undefined) ?? null;
+    // Multi-page mode: home page should only render homePageBlocks
+    // (default: story + gallery). All other sections live on their
+    // own routes at /{occasion}/{slug}/{block}. SiteV8Renderer
+    // honours pageFilter='home' to filter blockOrder accordingly.
+    const siteMode = (manifest as unknown as { siteMode?: string }).siteMode === 'multi-page'
+      ? 'multi-page'
+      : 'scroll';
     return (
       <SiteV8Renderer
         manifest={manifest}
@@ -255,6 +262,7 @@ export default async function SubdomainSite({
         siteSlug={domain}
         prettyUrl={prettyUrl}
         creatorEmail={creatorEmail}
+        pageFilter={siteMode === 'multi-page' ? 'home' : undefined}
       />
     );
   }
