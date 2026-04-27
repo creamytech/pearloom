@@ -16,9 +16,36 @@ import { Icon } from '../motifs';
 import { DashLayout } from '../dash/DashShell';
 import { buildSiteUrl, formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { AISuggestButton, useAICall } from '../editor/ai';
+import { startDecorJob, completeDecorJob } from '@/lib/decor-bus';
+import { ARCHETYPES, type ArchetypeId } from '@/lib/invite-engine/archetypes';
 
 type VariantId = 'garden' | 'editorial' | 'groovy' | 'polaroid' | 'modern' | 'botanical' | 'cinema' | 'linen';
 type DesignKind = 'save-the-date' | 'invitation';
+type DesignerMode = 'variant' | 'style' | 'ai';
+type QRPosition = 'br' | 'bl' | 'bc' | 'tr' | 'hidden';
+type FontKey = 'fraunces' | 'cormorant' | 'allura' | 'space-grotesk' | 'system';
+
+const FONT_FAMILIES: Record<FontKey, { label: string; value: string }> = {
+  fraunces:        { label: 'Fraunces · classic serif', value: 'Fraunces, Georgia, serif' },
+  cormorant:       { label: 'Cormorant · romantic',     value: '"Cormorant Garamond", "Cormorant", Georgia, serif' },
+  allura:          { label: 'Allura · script',           value: '"Allura", "Caveat", cursive' },
+  'space-grotesk': { label: 'Space Grotesk · modern',    value: '"Space Grotesk", Inter, sans-serif' },
+  system:          { label: 'System sans',               value: 'Inter, system-ui, sans-serif' },
+};
+
+// Curated subset of archetypes shown in the AI tab (full list of 12
+// in archetypes.ts is too dense for a single picker grid — we pick
+// the ones that read distinctly across occasions).
+const AI_ARCHETYPE_PICKS: ArchetypeId[] = [
+  'art-deco',
+  'italian-poster',
+  'garden-table',
+  'kyoto-winter',
+  'tulum-dusk',
+  'parisian-salon',
+  'desert-heirloom',
+  'midnight-observatory',
+];
 
 interface Variant {
   id: VariantId;
@@ -66,7 +93,40 @@ export function InviteDesigner({
   const [downloading, setDownloading] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
-  const variant = VARIANTS.find((v) => v.id === variantId)!;
+  // ── Customization state ─────────────────────────────────────
+  // Inspector mode controls which set of controls is visible.
+  // Variant = the 8 SVG templates (current behaviour). Style =
+  // color/font/qr overrides on top of the chosen template. AI =
+  // Pear paints a bespoke background scene via /api/invite/render.
+  const [mode, setMode] = useState<DesignerMode>('variant');
+  const [colorOverrides, setColorOverrides] = useState<{
+    paper?: string;
+    ink?: string;
+    accent?: string;
+    soft?: string;
+  }>({});
+  const [headlineFont, setHeadlineFont] = useState<FontKey>('fraunces');
+  const [bodyFont, setBodyFont] = useState<FontKey>('system');
+  const [qrPosition, setQrPosition] = useState<QRPosition>('br');
+  const [aiBackgroundUrl, setAiBackgroundUrl] = useState<string | null>(null);
+  const [aiArchetype, setAiArchetype] = useState<ArchetypeId>('garden-table');
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiPaintError, setAiPaintError] = useState<string | null>(null);
+
+  const baseVariant = VARIANTS.find((v) => v.id === variantId)!;
+  // Apply overrides on top of the chosen template. When the host
+  // hasn't touched a slot, the variant's own colour wins so the
+  // template still reads as itself.
+  const variant: Variant = useMemo(
+    () => ({
+      ...baseVariant,
+      paper: colorOverrides.paper ?? baseVariant.paper,
+      ink: colorOverrides.ink ?? baseVariant.ink,
+      accent: colorOverrides.accent ?? baseVariant.accent,
+      soft: colorOverrides.soft ?? baseVariant.soft,
+    }),
+    [baseVariant, colorOverrides],
+  );
   const date = fmtDate(manifest.logistics?.date);
   const venue = manifest.logistics?.venue ?? 'Venue details to come';
   const occasion = normalizeOccasion((manifest as unknown as { occasion?: string }).occasion ?? 'wedding');
@@ -253,6 +313,57 @@ export function InviteDesigner({
 
   const headline = aiMessage.trim() || defaultMessage;
 
+  // ── AI scene generation ─────────────────────────────────────
+  // Calls the existing /api/invite/render archetype renderer. The
+  // result is a tall PNG on R2 — we composite it as the background
+  // of the SVG preview so the host can see it under the text. Toast
+  // updates via the global decor-bus so the user can navigate away
+  // while Pear paints (~20-40s).
+  async function paintWithPear() {
+    if (aiBusy) return;
+    const archetype = ARCHETYPES.find((a) => a.id === aiArchetype);
+    if (!archetype) return;
+    setAiBusy(true);
+    setAiPaintError(null);
+    const jobId = startDecorJob('invite', `Painting ${archetype.label}`);
+    try {
+      const palette = {
+        background: variant.paper,
+        foreground: variant.ink,
+        accent: variant.accent,
+        accentLight: variant.soft,
+      };
+      const res = await fetch('/api/invite/render', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          archetypeId: aiArchetype,
+          siteSlug,
+          names: names.filter(Boolean).join(' & ') || 'Our celebration',
+          date: manifest.logistics?.date ?? '',
+          venue: manifest.logistics?.venue,
+          city: manifest.logistics?.venue,
+          occasionLabel: occasion,
+          palette,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { error?: string }).error ?? `Render failed (${res.status})`);
+      }
+      const data = (await res.json()) as { ok?: boolean; url?: string };
+      if (!data.url) throw new Error('Pear returned no image URL.');
+      setAiBackgroundUrl(data.url);
+      completeDecorJob(jobId, true);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Paint failed';
+      setAiPaintError(msg);
+      completeDecorJob(jobId, false, msg);
+    } finally {
+      setAiBusy(false);
+    }
+  }
+
   return (
     <DashLayout active="sites" hideTopbar>
       <div
@@ -342,7 +453,11 @@ export function InviteDesigner({
                 prettyUrl={prettyUrl}
                 kind={kind}
                 stampLabel={kind === 'save-the-date' ? invitationLabels.stampShort.save : invitationLabels.stampShort.invite}
-                qrDataUrl={qrDataUrl}
+                qrDataUrl={qrPosition === 'hidden' ? null : qrDataUrl}
+                qrPosition={qrPosition}
+                headlineFontFamily={FONT_FAMILIES[headlineFont].value}
+                bodyFontFamily={FONT_FAMILIES[bodyFont].value}
+                aiBackgroundUrl={aiBackgroundUrl}
               />
             </div>
           </div>
@@ -380,53 +495,144 @@ export function InviteDesigner({
             top: 24,
           }}
         >
-          <div>
-            <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 8 }}>
-              Variant
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-              {VARIANTS.map((v) => {
-                const on = variantId === v.id;
-                return (
-                  <button
-                    key={v.id}
-                    type="button"
-                    onClick={() => setVariantId(v.id)}
-                    style={{
-                      padding: 10,
-                      borderRadius: 12,
-                      background: on ? 'var(--cream-2)' : 'var(--card)',
-                      border: on ? '2px solid var(--ink)' : '1.5px solid var(--line)',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 6,
-                      textAlign: 'left',
-                      fontFamily: 'var(--font-ui)',
-                    }}
-                  >
-                    <div style={{ display: 'flex', gap: 4 }}>
-                      {[v.paper, v.ink, v.accent, v.soft].map((c, i) => (
-                        <div
-                          key={i}
-                          style={{
-                            width: 18,
-                            height: 18,
-                            borderRadius: '50%',
-                            background: c,
-                            border: '1.5px solid rgba(255,255,255,0.5)',
-                          }}
-                        />
-                      ))}
-                    </div>
-                    <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}>{v.label}</div>
-                    <div style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.35 }}>{v.description}</div>
-                  </button>
-                );
-              })}
-            </div>
+          {/* Mode tabs — three lanes for designing the invite. */}
+          <div
+            role="tablist"
+            aria-label="Designer mode"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: 2,
+              padding: 3,
+              background: 'var(--cream-2)',
+              borderRadius: 10,
+              border: '1px solid var(--line-soft)',
+            }}
+          >
+            {(
+              [
+                { v: 'variant', l: 'Templates' },
+                { v: 'style', l: 'Style' },
+                { v: 'ai', l: 'Pear paint' },
+              ] as const
+            ).map((o) => {
+              const on = mode === o.v;
+              return (
+                <button
+                  key={o.v}
+                  type="button"
+                  role="tab"
+                  aria-selected={on}
+                  onClick={() => setMode(o.v)}
+                  style={{
+                    padding: '7px 8px',
+                    borderRadius: 7,
+                    border: 0,
+                    background: on ? 'var(--ink)' : 'transparent',
+                    color: on ? 'var(--cream)' : 'var(--ink-soft)',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-ui)',
+                  }}
+                >
+                  {o.l}
+                </button>
+              );
+            })}
           </div>
 
+          {mode === 'variant' && (
+            <div>
+              <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 8 }}>
+                Template
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+                {VARIANTS.map((v) => {
+                  const on = variantId === v.id;
+                  return (
+                    <button
+                      key={v.id}
+                      type="button"
+                      onClick={() => {
+                        setVariantId(v.id);
+                        // Switching template also drops manual color
+                        // overrides so the new variant reads as itself.
+                        setColorOverrides({});
+                      }}
+                      style={{
+                        padding: 10,
+                        borderRadius: 12,
+                        background: on ? 'var(--cream-2)' : 'var(--card)',
+                        border: on ? '2px solid var(--ink)' : '1.5px solid var(--line)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 6,
+                        textAlign: 'left',
+                        fontFamily: 'var(--font-ui)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        {[v.paper, v.ink, v.accent, v.soft].map((c, i) => (
+                          <div
+                            key={i}
+                            style={{
+                              width: 18,
+                              height: 18,
+                              borderRadius: '50%',
+                              background: c,
+                              border: '1.5px solid rgba(255,255,255,0.5)',
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}>{v.label}</div>
+                      <div style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.35 }}>{v.description}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {mode === 'style' && (
+            <StyleControls
+              variant={variant}
+              colorOverrides={colorOverrides}
+              setColorOverrides={setColorOverrides}
+              headlineFont={headlineFont}
+              setHeadlineFont={setHeadlineFont}
+              bodyFont={bodyFont}
+              setBodyFont={setBodyFont}
+              qrPosition={qrPosition}
+              setQrPosition={setQrPosition}
+            />
+          )}
+
+          {mode === 'ai' && (
+            <AIControls
+              archetype={aiArchetype}
+              setArchetype={setAiArchetype}
+              busy={aiBusy}
+              error={aiPaintError}
+              onPaint={paintWithPear}
+              hasResult={Boolean(aiBackgroundUrl)}
+              onClear={() => {
+                setAiBackgroundUrl(null);
+                setAiPaintError(null);
+              }}
+              context={{
+                names: names.filter(Boolean).join(' & ') || 'the host',
+                venue: manifest.logistics?.venue,
+                occasion,
+              }}
+            />
+          )}
+
+          {/* Headline editor lives beneath the mode tabs because all
+              three modes share it. AI mode still wants the host to
+              own the words even if Pear paints the picture. */}
           <div>
             <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 8 }}>
               Headline
@@ -482,6 +688,355 @@ export function InviteDesigner({
   );
 }
 
+// ── StyleControls ──────────────────────────────────────────
+// Color overrides + font dropdowns + QR position. Applied on
+// top of the chosen template variant — clearing an override
+// snaps that slot back to the template default.
+function StyleControls({
+  variant,
+  colorOverrides,
+  setColorOverrides,
+  headlineFont,
+  setHeadlineFont,
+  bodyFont,
+  setBodyFont,
+  qrPosition,
+  setQrPosition,
+}: {
+  variant: Variant;
+  colorOverrides: { paper?: string; ink?: string; accent?: string; soft?: string };
+  setColorOverrides: (next: { paper?: string; ink?: string; accent?: string; soft?: string }) => void;
+  headlineFont: FontKey;
+  setHeadlineFont: (k: FontKey) => void;
+  bodyFont: FontKey;
+  setBodyFont: (k: FontKey) => void;
+  qrPosition: QRPosition;
+  setQrPosition: (p: QRPosition) => void;
+}) {
+  function setColor(slot: 'paper' | 'ink' | 'accent' | 'soft', value: string) {
+    setColorOverrides({ ...colorOverrides, [slot]: value });
+  }
+  function clearColor(slot: 'paper' | 'ink' | 'accent' | 'soft') {
+    const next = { ...colorOverrides };
+    delete next[slot];
+    setColorOverrides(next);
+  }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <div>
+        <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 8 }}>
+          Colors
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+          {(
+            [
+              { slot: 'paper', label: 'Paper' },
+              { slot: 'ink', label: 'Ink' },
+              { slot: 'accent', label: 'Accent' },
+              { slot: 'soft', label: 'Soft' },
+            ] as const
+          ).map(({ slot, label }) => {
+            const value = (colorOverrides[slot] ?? variant[slot]) as string;
+            const overridden = colorOverrides[slot] !== undefined;
+            return (
+              <label key={slot} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-soft)', display: 'flex', justifyContent: 'space-between' }}>
+                  {label}
+                  {overridden && (
+                    <button
+                      type="button"
+                      onClick={() => clearColor(slot)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--peach-ink)',
+                        fontSize: 10,
+                        cursor: 'pointer',
+                        padding: 0,
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      reset
+                    </button>
+                  )}
+                </span>
+                <span
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '6px 8px',
+                    background: 'var(--card)',
+                    border: '1.5px solid var(--line)',
+                    borderRadius: 9,
+                  }}
+                >
+                  <input
+                    type="color"
+                    value={value}
+                    onChange={(e) => setColor(slot, e.target.value)}
+                    style={{
+                      width: 26,
+                      height: 26,
+                      padding: 0,
+                      border: 'none',
+                      borderRadius: 6,
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                      background: 'transparent',
+                    }}
+                  />
+                  <code
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--ink-soft)',
+                      fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    {value.toUpperCase()}
+                  </code>
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 8 }}>
+          Fonts
+        </div>
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-soft)' }}>Headline</span>
+          <select
+            value={headlineFont}
+            onChange={(e) => setHeadlineFont(e.target.value as FontKey)}
+            style={fontSelectStyle}
+          >
+            {Object.entries(FONT_FAMILIES).map(([key, info]) => (
+              <option key={key} value={key}>{info.label}</option>
+            ))}
+          </select>
+        </label>
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-soft)' }}>Body</span>
+          <select
+            value={bodyFont}
+            onChange={(e) => setBodyFont(e.target.value as FontKey)}
+            style={fontSelectStyle}
+          >
+            {Object.entries(FONT_FAMILIES).map(([key, info]) => (
+              <option key={key} value={key}>{info.label}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div>
+        <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 8 }}>
+          QR position
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4 }}>
+          {(
+            [
+              { v: 'tr', l: '↗' },
+              { v: 'br', l: '↘' },
+              { v: 'bc', l: '↓' },
+              { v: 'bl', l: '↙' },
+              { v: 'hidden', l: '×' },
+            ] as const
+          ).map((o) => {
+            const on = qrPosition === o.v;
+            return (
+              <button
+                key={o.v}
+                type="button"
+                onClick={() => setQrPosition(o.v)}
+                title={o.v === 'hidden' ? 'Hide QR' : `QR ${o.v.toUpperCase()}`}
+                style={{
+                  padding: '8px 0',
+                  borderRadius: 8,
+                  background: on ? 'var(--ink)' : 'var(--card)',
+                  color: on ? 'var(--cream)' : 'var(--ink-soft)',
+                  border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-ui)',
+                }}
+              >
+                {o.l}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const fontSelectStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '9px 12px',
+  background: 'var(--card)',
+  border: '1.5px solid var(--line)',
+  borderRadius: 9,
+  fontSize: 12.5,
+  color: 'var(--ink)',
+  fontFamily: 'var(--font-ui)',
+  outline: 'none',
+};
+
+// ── AIControls ─────────────────────────────────────────────
+// Picker for the AI archetype + Pear-suggested prompt context
+// + Paint button that calls /api/invite/render and composites
+// the result as the SVG background.
+function AIControls({
+  archetype,
+  setArchetype,
+  busy,
+  error,
+  onPaint,
+  hasResult,
+  onClear,
+  context,
+}: {
+  archetype: ArchetypeId;
+  setArchetype: (id: ArchetypeId) => void;
+  busy: boolean;
+  error: string | null;
+  onPaint: () => void;
+  hasResult: boolean;
+  onClear: () => void;
+  context: { names: string; venue?: string; occasion: string };
+}) {
+  const picks = AI_ARCHETYPE_PICKS.map((id) => ARCHETYPES.find((a) => a.id === id)).filter(Boolean) as typeof ARCHETYPES;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div>
+        <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 8 }}>
+          Pear paints from
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.5, marginBottom: 10 }}>
+          {context.venue
+            ? <>Pear knows the venue is <strong>{context.venue}</strong> — pick a world and Pear&apos;ll work the venue&apos;s feel into the painting.</>
+            : <>Pick a world and Pear paints a bespoke background for {context.names}. Add a venue in the editor for richer context.</>}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {picks.map((a) => {
+            const on = archetype === a.id;
+            return (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => setArchetype(a.id)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 10,
+                  padding: '10px 12px',
+                  borderRadius: 10,
+                  background: on ? 'var(--cream-2)' : 'var(--card)',
+                  border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-ui)',
+                  textAlign: 'left',
+                }}
+              >
+                <span
+                  aria-hidden
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: 999,
+                    background: on ? 'var(--peach-ink)' : 'var(--ink-muted)',
+                    flexShrink: 0,
+                    marginTop: 6,
+                  }}
+                />
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)', display: 'block' }}>
+                    {a.label}
+                  </span>
+                  <span style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.4 }}>{a.blurb}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={onPaint}
+        disabled={busy}
+        className="pl-pearl-accent"
+        style={{
+          padding: '10px 16px',
+          borderRadius: 999,
+          fontSize: 13,
+          fontWeight: 700,
+          cursor: busy ? 'wait' : 'pointer',
+          border: 'none',
+          fontFamily: 'var(--font-ui)',
+          opacity: busy ? 0.7 : 1,
+        }}
+      >
+        {busy ? 'Pear is painting…' : hasResult ? 'Paint another' : 'Paint with Pear'}
+      </button>
+
+      {hasResult && !busy && (
+        <button
+          type="button"
+          onClick={onClear}
+          style={{
+            padding: '8px 14px',
+            borderRadius: 999,
+            fontSize: 12,
+            fontWeight: 600,
+            background: 'transparent',
+            color: 'var(--ink-soft)',
+            border: '1px solid var(--line)',
+            cursor: 'pointer',
+            fontFamily: 'var(--font-ui)',
+          }}
+        >
+          Remove background
+        </button>
+      )}
+
+      {error && (
+        <div
+          style={{
+            fontSize: 11.5,
+            color: '#7A2D2D',
+            background: 'rgba(122,45,45,0.08)',
+            padding: '8px 10px',
+            borderRadius: 8,
+          }}
+        >
+          {error}
+        </div>
+      )}
+
+      <div
+        style={{
+          fontSize: 11,
+          color: 'var(--ink-muted)',
+          lineHeight: 1.45,
+          padding: '10px 12px',
+          background: 'var(--lavender-bg)',
+          border: '1px solid rgba(107,90,140,0.2)',
+          borderRadius: 10,
+        }}
+      >
+        Pear paints in ~30 seconds — you can switch tabs and keep editing while it works. The toast in the bottom-right will tell you when it&apos;s ready.
+      </div>
+    </div>
+  );
+}
+
 /* ==================== SVG — all 8 variants in one switch ==================== */
 
 const InviteSvg = forwardRef<
@@ -496,14 +1051,40 @@ const InviteSvg = forwardRef<
     kind: DesignKind;
     stampLabel?: string;
     qrDataUrl?: string | null;
+    qrPosition?: QRPosition;
+    headlineFontFamily?: string;
+    bodyFontFamily?: string;
+    /** AI-painted background image (R2 URL). When set, composites
+     *  the PNG full-bleed under the SVG text + a soft tinted plate
+     *  for legibility. */
+    aiBackgroundUrl?: string | null;
   }
->(function InviteSvg({ variant, headline, names, date, venue, prettyUrl, kind, stampLabel, qrDataUrl }, ref) {
+>(function InviteSvg({ variant, headline, names, date, venue, prettyUrl, kind, stampLabel, qrDataUrl, qrPosition = 'br', headlineFontFamily, bodyFontFamily, aiBackgroundUrl }, ref) {
   const [n1, n2] = names;
   const nameLine = n2 ? `${n1 || ''} & ${n2}` : n1 || 'Our celebration';
   const { paper, ink, accent, soft, id } = variant;
   const stamp =
     stampLabel ?? (kind === 'save-the-date' ? 'SAVE THE DATE' : 'INVITATION');
   const stampSoft = stamp.toLowerCase();
+  // Font overrides — when the host picked a custom font in the
+  // Style tab, every text node inherits it via the SVG root's
+  // `font-family`. Individual text nodes may still set their own
+  // family for variants that need a specific look (e.g. Polaroid's
+  // handwritten note); those win because inline > inherit.
+  const rootFontFamily = bodyFontFamily ?? 'Inter, sans-serif';
+  const titleFontFamily = headlineFontFamily ?? 'Fraunces, Georgia, serif';
+  // QR position helper — translates the corner key into x/y on the
+  // 1000×1400 viewBox. Hidden mode falls through (caller passes
+  // null qrDataUrl) so this only runs when we're rendering one.
+  const qrCoords = (() => {
+    switch (qrPosition) {
+      case 'tr': return { x: 830, y: 60, labelY: 200 };
+      case 'bl': return { x: 50, y: 1230, labelY: 1370 };
+      case 'bc': return { x: 440, y: 1230, labelY: 1370 };
+      case 'br':
+      default:   return { x: 830, y: 1230, labelY: 1370 };
+    }
+  })();
 
   return (
     <svg
@@ -512,12 +1093,32 @@ const InviteSvg = forwardRef<
       viewBox="0 0 1000 1400"
       width="100%"
       height="100%"
-      style={{ display: 'block', background: paper }}
+      style={{ display: 'block', background: paper, fontFamily: rootFontFamily }}
       shapeRendering="geometricPrecision"
       textRendering="geometricPrecision"
     >
-      {/* Paper */}
+      {/* Paper — solid colour, then optional AI-painted background
+          image overlaid full-bleed (when host chose Pear paint
+          mode). A soft tinted plate sits over the image so the
+          centre text stays legible regardless of what Pear painted. */}
       <rect x="0" y="0" width="1000" height="1400" fill={paper} />
+      {aiBackgroundUrl && (
+        <>
+          <image
+            href={aiBackgroundUrl}
+            x="0"
+            y="0"
+            width="1000"
+            height="1400"
+            preserveAspectRatio="xMidYMid slice"
+          />
+          {/* Vertical luminance plate — keeps the centre band
+              readable when the AI scene has a busy middle.
+              Tone-locked to the variant's paper so it feels like
+              part of the same design system. */}
+          <rect x="0" y="380" width="1000" height="640" fill={paper} opacity="0.62" />
+        </>
+      )}
 
       {id === 'garden' && (
         <>
@@ -633,12 +1234,25 @@ const InviteSvg = forwardRef<
         </>
       )}
 
-      {/* QR code (bottom-right). Scans → the couple's site (or future
-          per-guest passport). Shown on every variant. */}
+      {/* QR code — position chosen by the host in the Style tab.
+          Hidden mode skips render entirely (caller passes null
+          qrDataUrl). Scans → the couple's site (or future per-guest
+          passport). */}
       {qrDataUrl && (
         <g>
-          <image href={qrDataUrl} x="830" y="1230" width="120" height="120" />
-          <text x="890" y="1370" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="11" fill={ink} opacity="0.62" letterSpacing="2">SCAN</text>
+          <image href={qrDataUrl} x={qrCoords.x} y={qrCoords.y} width="120" height="120" />
+          <text
+            x={qrCoords.x + 60}
+            y={qrCoords.labelY}
+            textAnchor="middle"
+            fontFamily={rootFontFamily}
+            fontSize="11"
+            fill={ink}
+            opacity="0.62"
+            letterSpacing="2"
+          >
+            SCAN
+          </text>
         </g>
       )}
     </svg>
