@@ -31,6 +31,9 @@ import { PhotoActionMenu } from '../editor/canvas/PhotoActionMenu';
 import { OccasionDecor } from './OccasionDecor';
 import { OwnerEditPill } from './OwnerEditPill';
 import { BroadcastBar } from './BroadcastBar';
+import { LiveNowHero } from './LiveNowHero';
+import { DayOfBroadcastDock } from './DayOfBroadcastDock';
+import { computeDayOfState } from '@/lib/day-of/state';
 import { DecorDivider } from './DecorDivider';
 import { DecorDividerEditOverlay } from '../editor/canvas/DecorDividerEditOverlay';
 import { LivingAtmosphere, defaultAtmosphereForOccasion, type AtmosphereKind, type AtmosphereIntensity } from './LivingAtmosphere';
@@ -462,6 +465,36 @@ function NavBody({ navStyle, scrolled, coupleLabel, links, hasRsvp, rsvpHref, br
       )}
     </div>
   );
+}
+
+/* ==================== DAY-OF HOST BROADCAST WRAPPER ====================
+   Owner-only floating dock for sending day-of broadcasts (push +
+   announcement). Mirrors OwnerEditPill's session-vs-creator-email
+   check so the dock only renders when the signed-in user is the
+   site host. */
+function DayOfHostBroadcastWrapper({
+  siteSlug,
+  creatorEmail,
+}: {
+  siteSlug: string;
+  creatorEmail: string;
+}) {
+  const [isHost, setIsHost] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/auth/session')
+      .then((r) => r.ok ? r.json() : null)
+      .then((data: { user?: { email?: string } } | null) => {
+        if (cancelled) return;
+        if (data?.user?.email && data.user.email.toLowerCase() === creatorEmail.toLowerCase()) {
+          setIsHost(true);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [creatorEmail]);
+  if (!isHost) return null;
+  return <DayOfBroadcastDock siteSlug={siteSlug} />;
 }
 
 /* ==================== SUB-PAGE HEADER ====================
@@ -4050,6 +4083,13 @@ export function SiteV8Renderer({
         {!editMode && creatorEmail && (
           <OwnerEditPill siteSlug={siteSlug} creatorEmail={creatorEmail} />
         )}
+        {/* Day-Of broadcast dock — owner-only, only when Day-Of Mode
+            is active. Renders inside OwnerEditPill's auth check via
+            its own creatorEmail comparison so non-host visitors
+            never see it. */}
+        {!editMode && creatorEmail && computeDayOfState(manifest).active && (
+          <DayOfHostBroadcastWrapper siteSlug={siteSlug} creatorEmail={creatorEmail} />
+        )}
         <EventNav
           names={names}
           hasRsvp={hasRsvp}
@@ -4060,15 +4100,33 @@ export function SiteV8Renderer({
           homePageBlocks={homePageBlocks}
           pageFilter={pageFilter}
         />
-        {showHero && (
-          <StickerLayer
-            blockId="hero"
-            stickers={manifest.stickers}
-            onEditField={onEditField}
-          >
-            <HeroSection names={names} manifest={manifest} siteSlug={siteSlug} onEditField={onEditField} onEditNames={onEditNames} />
-          </StickerLayer>
-        )}
+        {showHero && (() => {
+          // Day-Of Mode: when active and we're on the live site (not
+          // editor canvas), swap the hero for LiveNowHero so guests
+          // see "Happening now: Ceremony" / "Up next: Reception" /
+          // "The day, in your hands" depending on phase.
+          const dayOf = !editMode ? computeDayOfState(manifest) : { active: false };
+          if (dayOf.active) {
+            return (
+              <StickerLayer
+                blockId="hero"
+                stickers={manifest.stickers}
+                onEditField={onEditField}
+              >
+                <LiveNowHero manifest={manifest} names={names} />
+              </StickerLayer>
+            );
+          }
+          return (
+            <StickerLayer
+              blockId="hero"
+              stickers={manifest.stickers}
+              onEditField={onEditField}
+            >
+              <HeroSection names={names} manifest={manifest} siteSlug={siteSlug} onEditField={onEditField} onEditNames={onEditNames} />
+            </StickerLayer>
+          );
+        })()}
         {pageFilter && pageFilter !== 'home' && (
           <SubPageHeader
             blockKey={pageFilter}

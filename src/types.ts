@@ -251,6 +251,10 @@ export interface StoryManifest {
   // route at /{occasion}/{slug}/{block}, leaving only homePageBlocks
   // on the home page. EventNav resolves links accordingly.
   siteMode?: 'scroll' | 'multi-page';
+  // Day-Of Mode override. 'auto' (default) auto-enables on the
+  // event day + morning after. 'on' forces live-mode chrome
+  // (rehearsals / demos). 'off' suppresses it entirely.
+  dayOfMode?: 'auto' | 'on' | 'off';
   // Which sections live on the home page in multi-page mode.
   // Defaults to ['story','gallery'] when omitted. 'details' is
   // always included implicitly. All other sections become their
