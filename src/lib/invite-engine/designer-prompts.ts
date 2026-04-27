@@ -26,6 +26,14 @@ export interface InviteContext {
   palette: PaletteHex;
   /** True when a couple portrait will be passed as inputImage. */
   hasPortrait: boolean;
+  /** Optional free-form host hint: "feels like Tuscany", "more
+   *  modern", "moody dark blues", etc. Concatenated into the
+   *  prompt's instruction tail. */
+  hint?: string;
+  /** True when an inspiration mood-board image will also be sent
+   *  as a reference. Painter is told to mimic palette + composition
+   *  but NOT copy literal subjects. */
+  hasInspiration?: boolean;
 }
 
 /** Substitute a limited set of template tokens into a prompt
@@ -59,7 +67,17 @@ export function buildArchetypePrompt(archetype: InviteArchetype, ctx: InviteCont
     palette: `${ctx.palette.background}, ${ctx.palette.foreground}, ${ctx.palette.accent}`,
     photoInstruction: photoInstruction(archetype, ctx),
   };
-  return fill(archetype.prompt, slots).replace(/\s+/g, ' ').trim();
+  let prompt = fill(archetype.prompt, slots).replace(/\s+/g, ' ').trim();
+  // Append optional host hint + inspiration directives so the
+  // archetype prompt stays canonical but bespoke renders honour
+  // the host's intent.
+  if (ctx.hasInspiration) {
+    prompt += ' Use the second attached image as MOOD / PALETTE / COMPOSITION reference only — mimic its lighting, colour relationships, and rhythm of negative space. Do NOT copy specific subjects, faces, or recognisable landmarks from the reference.';
+  }
+  if (ctx.hint && ctx.hint.length > 0) {
+    prompt += ` Host's note: "${ctx.hint}". Honour this even if it bends the archetype's defaults.`;
+  }
+  return prompt;
 }
 
 // ── Companion elements (stamp, seal, postmark, avatar) ───────

@@ -27,6 +27,12 @@ type VariantId =
   | 'photo-postcard'
   | 'polaroid-stack'
   | 'photo-frame'
+  // Save-the-date — photo-as-accent (small inset, type leads)
+  | 'split-portrait'
+  | 'corner-photo'
+  | 'photo-disc'
+  | 'banner-strip'
+  | 'tape-snapshot'
   // Invitation — type-first formal
   | 'formal-engraved'
   | 'letterpress'
@@ -40,6 +46,8 @@ type VariantId =
   | 'botanical'
   | 'cinema'
   | 'linen';
+
+type PhotoFilter = 'none' | 'sepia' | 'film' | 'dreamy' | 'mono' | 'vintage' | 'noir' | 'sunwash';
 type DesignKind = 'save-the-date' | 'invitation';
 type DesignerMode = 'variant' | 'photos' | 'style' | 'ai';
 type QRPosition = 'br' | 'bl' | 'bc' | 'tr' | 'hidden';
@@ -130,6 +138,51 @@ const VARIANTS: Variant[] = [
     kind: 'save-the-date',
     paper: '#F8F1E4', ink: '#3D4A1F', accent: '#B89244', soft: '#EDE0C5',
     photoSlots: [{ id: 'main', x: 130, y: 180, w: 740, h: 720, shape: 'rounded' }],
+  },
+
+  // ── Save-the-date · photo-as-accent (type leads, photo supports) ──
+  // Five layouts where the photo is one element on the page, not the
+  // whole canvas. Hosts who want type-driven design with a photo
+  // inset live here.
+  {
+    id: 'split-portrait',
+    label: 'Split portrait',
+    description: 'Half photo on the left, type on the right.',
+    kind: 'save-the-date',
+    paper: '#F8F1E4', ink: '#3D4A1F', accent: '#C6703D', soft: '#EDE0C5',
+    photoSlots: [{ id: 'main', x: 0, y: 0, w: 480, h: 1400, shape: 'rect' }],
+  },
+  {
+    id: 'corner-photo',
+    label: 'Corner photo',
+    description: 'Small editorial photo tucked into the top-right.',
+    kind: 'save-the-date',
+    paper: '#FBF7EE', ink: '#0E0D0B', accent: '#5C6B3F', soft: '#E8E0D0',
+    photoSlots: [{ id: 'main', x: 580, y: 110, w: 320, h: 380, shape: 'rounded' }],
+  },
+  {
+    id: 'photo-disc',
+    label: 'Photo medallion',
+    description: 'Round photo medallion above a centered date stamp.',
+    kind: 'save-the-date',
+    paper: '#F5EFE2', ink: '#0E0D0B', accent: '#B89244', soft: '#EDE0C5',
+    photoSlots: [{ id: 'main', x: 340, y: 160, w: 320, h: 320, shape: 'circle' }],
+  },
+  {
+    id: 'banner-strip',
+    label: 'Photo banner',
+    description: 'Wide photo banner with a clean two-block typography lockup.',
+    kind: 'save-the-date',
+    paper: '#FBF7EE', ink: '#0E0D0B', accent: '#C6703D', soft: '#EDE0C5',
+    photoSlots: [{ id: 'main', x: 0, y: 940, w: 1000, h: 460, shape: 'rect' }],
+  },
+  {
+    id: 'tape-snapshot',
+    label: 'Taped snapshot',
+    description: 'Single photo taped to cream paper with handwritten date.',
+    kind: 'save-the-date',
+    paper: '#F8F1E4', ink: '#3D4A1F', accent: '#C6703D', soft: '#EDE0C5',
+    photoSlots: [{ id: 'main', x: 220, y: 220, w: 560, h: 540, shape: 'rect', rotation: -3 }],
   },
 
   // ── Invitation · type-first formal ──
@@ -236,6 +289,21 @@ export function InviteDesigner({
   // longer apply. Hosts pick from manifest photos (engagement
   // shoot, hero, chapter images) or paste an external URL.
   const [photoSelections, setPhotoSelections] = useState<Record<string, string>>({});
+  // Per-photo filter — applied as an SVG <filter> over the slot.
+  const [photoFilter, setPhotoFilter] = useState<PhotoFilter>('none');
+  // Per-photo zoom + pan offset (light Canva mode). Lets the host
+  // zoom into a portion of the photo and reposition it within the
+  // slot without leaving the designer.
+  const [photoTransform, setPhotoTransform] = useState<{ zoom: number; offsetX: number; offsetY: number }>({
+    zoom: 1,
+    offsetX: 0,
+    offsetY: 0,
+  });
+  // Inspiration mood-board image for AI generation. Base64 + mime
+  // sent alongside the portrait when the host clicks "Paint with
+  // Pear" so the painter mimics palette/composition.
+  const [inspirationImage, setInspirationImage] = useState<{ base64: string; mimeType: string; preview: string } | null>(null);
+  const [aiHint, setAiHint] = useState<string>('');
 
   // ── Invitation-specific copy ────────────────────────────────
   // Save-the-dates need only headline + names + date + venue. Real
@@ -519,6 +587,10 @@ export function InviteDesigner({
           city: manifest.logistics?.venue,
           occasionLabel: occasion,
           palette,
+          inspiration: inspirationImage
+            ? { base64: inspirationImage.base64, mimeType: inspirationImage.mimeType }
+            : undefined,
+          hint: aiHint.trim() || undefined,
         }),
       });
       if (!res.ok) {
@@ -633,6 +705,8 @@ export function InviteDesigner({
                 bodyFontFamily={FONT_FAMILIES[bodyFont].value}
                 aiBackgroundUrl={aiBackgroundUrl}
                 photoSelections={photoSelections}
+                photoFilter={photoFilter}
+                photoTransform={photoTransform}
                 inviteCopy={{
                   hostingLine,
                   ceremonyTime,
@@ -807,6 +881,10 @@ export function InviteDesigner({
               photoSelections={photoSelections}
               setPhotoSelections={setPhotoSelections}
               libraryPhotos={manifestPhotos}
+              photoFilter={photoFilter}
+              setPhotoFilter={setPhotoFilter}
+              photoTransform={photoTransform}
+              setPhotoTransform={setPhotoTransform}
             />
           )}
 
@@ -841,6 +919,10 @@ export function InviteDesigner({
                 venue: manifest.logistics?.venue,
                 occasion,
               }}
+              inspirationImage={inspirationImage}
+              setInspirationImage={setInspirationImage}
+              aiHint={aiHint}
+              setAiHint={setAiHint}
             />
           )}
 
@@ -1209,6 +1291,10 @@ function AIControls({
   hasResult,
   onClear,
   context,
+  inspirationImage,
+  setInspirationImage,
+  aiHint,
+  setAiHint,
 }: {
   archetype: ArchetypeId;
   setArchetype: (id: ArchetypeId) => void;
@@ -1218,7 +1304,29 @@ function AIControls({
   hasResult: boolean;
   onClear: () => void;
   context: { names: string; venue?: string; occasion: string };
+  inspirationImage: { base64: string; mimeType: string; preview: string } | null;
+  setInspirationImage: (next: { base64: string; mimeType: string; preview: string } | null) => void;
+  aiHint: string;
+  setAiHint: (next: string) => void;
 }) {
+  const inspirationInputRef = useRef<HTMLInputElement | null>(null);
+
+  async function onInspirationChange(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    if (!file.type.startsWith('image/')) return;
+    if (file.size > 8 * 1024 * 1024) return;
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('read failed'));
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.readAsDataURL(file);
+    });
+    const commaIdx = dataUrl.indexOf(',');
+    const base64 = commaIdx > -1 ? dataUrl.slice(commaIdx + 1) : dataUrl;
+    setInspirationImage({ base64, mimeType: file.type, preview: dataUrl });
+  }
+
   const picks = AI_ARCHETYPE_PICKS.map((id) => ARCHETYPES.find((a) => a.id === id)).filter(Boolean) as typeof ARCHETYPES;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -1273,6 +1381,100 @@ function AIControls({
             );
           })}
         </div>
+      </div>
+
+      {/* ── Inspiration image (mood board) ──
+          Hosts can upload one reference image — Pear uses it for
+          palette + composition cues, not literal subject copying. */}
+      <div>
+        <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 8 }}>
+          Inspiration (optional)
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--ink-muted)', lineHeight: 1.5, marginBottom: 8 }}>
+          Drop a mood-board image and Pear will mimic its palette + composition. We don&apos;t copy subjects or faces from it.
+        </div>
+        {inspirationImage ? (
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', padding: 10, background: 'var(--cream-2)', borderRadius: 10 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={inspirationImage.preview} alt="" style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }} />
+            <div style={{ flex: 1, fontSize: 11.5, color: 'var(--ink-soft)' }}>
+              Pear will use this as a reference.
+            </div>
+            <button
+              type="button"
+              onClick={() => setInspirationImage(null)}
+              style={{
+                padding: '6px 10px', borderRadius: 6,
+                border: '1px solid var(--line)', background: 'transparent',
+                color: 'var(--ink-soft)', fontSize: 11, fontWeight: 600,
+                cursor: 'pointer', fontFamily: 'var(--font-ui)',
+              }}
+            >
+              Remove
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => inspirationInputRef.current?.click()}
+            style={{
+              width: '100%',
+              padding: '14px 12px',
+              borderRadius: 10,
+              border: '1.5px dashed var(--line)',
+              background: 'var(--card)',
+              color: 'var(--ink-soft)',
+              fontSize: 12.5,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'var(--font-ui)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+            }}
+          >
+            <Icon name="image" size={13} /> Upload mood-board image
+          </button>
+        )}
+        <input
+          ref={inspirationInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            void onInspirationChange(e.target.files);
+            e.target.value = '';
+          }}
+        />
+      </div>
+
+      {/* ── Free-form hint ──
+          Tells Pear something the archetype doesn't know — e.g.
+          "feels like Tuscany at dusk" or "more art deco." */}
+      <div>
+        <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 8 }}>
+          Direction (optional)
+        </div>
+        <input
+          type="text"
+          value={aiHint}
+          onChange={(e) => setAiHint(e.target.value)}
+          placeholder="e.g. feels like Tuscany at dusk, more art deco"
+          maxLength={200}
+          style={{
+            width: '100%',
+            padding: '10px 12px',
+            background: 'var(--paper)',
+            border: '1.5px solid var(--line)',
+            borderRadius: 10,
+            fontSize: 13,
+            color: 'var(--ink)',
+            fontFamily: 'var(--font-ui)',
+            outline: 'none',
+            boxSizing: 'border-box',
+          }}
+        />
       </div>
 
       <button
@@ -1361,11 +1563,19 @@ function PhotoControls({
   photoSelections,
   setPhotoSelections,
   libraryPhotos,
+  photoFilter,
+  setPhotoFilter,
+  photoTransform,
+  setPhotoTransform,
 }: {
   variant: Variant;
   photoSelections: Record<string, string>;
   setPhotoSelections: (next: Record<string, string>) => void;
   libraryPhotos: string[];
+  photoFilter: PhotoFilter;
+  setPhotoFilter: (next: PhotoFilter) => void;
+  photoTransform: { zoom: number; offsetX: number; offsetY: number };
+  setPhotoTransform: (next: { zoom: number; offsetX: number; offsetY: number }) => void;
 }) {
   const slots = variant.photoSlots ?? [];
   const [activeSlot, setActiveSlot] = useState<string>(() => slots[0]?.id ?? '');
@@ -1713,7 +1923,146 @@ function PhotoControls({
           </button>
         </div>
       )}
+
+      {/* ── Filter chips ──
+          Six SVG-driven looks applied across every photo slot. The
+          shared filter id pattern is pf-{variantId}-{filter} which
+          the InviteSvg defines in <defs>. */}
+      {Object.values(photoSelections).some(Boolean) && (
+        <div>
+          <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 8 }}>
+            Filter
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+            {(
+              [
+                { v: 'none' as const, l: 'None' },
+                { v: 'sepia' as const, l: 'Sepia' },
+                { v: 'film' as const, l: 'Film' },
+                { v: 'dreamy' as const, l: 'Dreamy' },
+                { v: 'mono' as const, l: 'B&W' },
+                { v: 'vintage' as const, l: 'Vintage' },
+                { v: 'noir' as const, l: 'Noir' },
+                { v: 'sunwash' as const, l: 'Sunwash' },
+              ]
+            ).map((o) => {
+              const on = photoFilter === o.v;
+              return (
+                <button
+                  key={o.v}
+                  type="button"
+                  onClick={() => setPhotoFilter(o.v)}
+                  className="pl8-chip-pop"
+                  style={{
+                    padding: '7px 4px',
+                    borderRadius: 8,
+                    border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
+                    background: on ? 'var(--cream-2)' : 'var(--card)',
+                    color: 'var(--ink)',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-ui)',
+                  }}
+                >
+                  {o.l}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Light Canva mode — zoom + offset sliders ──
+          Lets the host crop into a portion of any photo without
+          opening a separate editor. Applied uniformly across all
+          slots in the current design. */}
+      {Object.values(photoSelections).some(Boolean) && (
+        <div>
+          <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 8 }}>
+            Crop &amp; reposition
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <SliderRow
+              label="Zoom"
+              value={photoTransform.zoom}
+              min={1}
+              max={2.5}
+              step={0.05}
+              suffix="×"
+              onChange={(z) => setPhotoTransform({ ...photoTransform, zoom: z })}
+            />
+            <SliderRow
+              label="Horizontal"
+              value={photoTransform.offsetX}
+              min={-0.5}
+              max={0.5}
+              step={0.02}
+              suffix=""
+              onChange={(x) => setPhotoTransform({ ...photoTransform, offsetX: x })}
+            />
+            <SliderRow
+              label="Vertical"
+              value={photoTransform.offsetY}
+              min={-0.5}
+              max={0.5}
+              step={0.02}
+              suffix=""
+              onChange={(y) => setPhotoTransform({ ...photoTransform, offsetY: y })}
+            />
+            <button
+              type="button"
+              onClick={() => setPhotoTransform({ zoom: 1, offsetX: 0, offsetY: 0 })}
+              style={{
+                alignSelf: 'flex-start',
+                padding: '6px 12px',
+                borderRadius: 999,
+                border: '1px solid var(--line)',
+                background: 'transparent',
+                color: 'var(--ink-soft)',
+                fontSize: 11,
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'var(--font-ui)',
+              }}
+            >
+              Reset crop
+            </button>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+function SliderRow({
+  label, value, min, max, step, suffix, onChange,
+}: {
+  label: string;
+  value: number;
+  min: number; max: number; step: number;
+  suffix: string;
+  onChange: (next: number) => void;
+}) {
+  return (
+    <label style={{ display: 'grid', gridTemplateColumns: '70px 1fr 56px', alignItems: 'center', gap: 10 }}>
+      <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-soft)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>{label}</span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(parseFloat(e.target.value))}
+        style={{
+          accentColor: 'var(--peach-ink, #C6703D)',
+          width: '100%',
+        }}
+      />
+      <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink)', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+        {value.toFixed(suffix === '×' ? 2 : 2)}{suffix}
+      </span>
+    </label>
   );
 }
 
@@ -1767,17 +2116,28 @@ const InviteSvg = forwardRef<
      *  declared order; missing entries render a placeholder so the
      *  composition still reads. */
     photoSelections?: Record<string, string>;
+    /** SVG-based filter applied to every photo slot. Defined
+     *  per-render in <defs>, referenced via filter="url(#…)" on
+     *  each <image>. */
+    photoFilter?: PhotoFilter;
+    /** Per-photo zoom + pan within the slot. zoom > 1 crops in;
+     *  offsetX/Y in fractional units shift the image. */
+    photoTransform?: { zoom: number; offsetX: number; offsetY: number };
     /** Invitation-only copy fields. Only consumed when the variant
      *  is a formal invitation template (kind = 'invitation'). */
     inviteCopy?: InviteCopyFields;
   }
->(function InviteSvg({ variant, headline, names, date, venue, prettyUrl, kind, stampLabel, qrDataUrl, qrPosition = 'br', headlineFontFamily, bodyFontFamily, aiBackgroundUrl, photoSelections, inviteCopy }, ref) {
+>(function InviteSvg({ variant, headline, names, date, venue, prettyUrl, kind, stampLabel, qrDataUrl, qrPosition = 'br', headlineFontFamily, bodyFontFamily, aiBackgroundUrl, photoSelections, photoFilter, photoTransform, inviteCopy }, ref) {
   const [n1, n2] = names;
   const nameLine = n2 ? `${n1 || ''} & ${n2}` : n1 || 'Our celebration';
   const { paper, ink, accent, soft, id } = variant;
   const photoSlots = variant.photoSlots ?? [];
   const sels = photoSelections ?? {};
   const copy = inviteCopy ?? {};
+  const filter = photoFilter ?? 'none';
+  const xform = photoTransform ?? { zoom: 1, offsetX: 0, offsetY: 0 };
+  // Stable filter id so all slots share the same filter definition.
+  const filterId = `pf-${variant.id}-${filter}`;
   // Initials for the monogram-crest variant.
   const monogram = `${(n1 || 'A').charAt(0).toUpperCase()}${(n2 || 'B').charAt(0).toUpperCase()}`;
   const stamp =
@@ -1837,6 +2197,65 @@ const InviteSvg = forwardRef<
         </>
       )}
 
+      {/* ── Photo filter defs ──
+          Six SVG filter presets that mimic Lightroom-style looks
+          without leaving the browser. Each is a feColorMatrix +
+          (optional) feComponentTransfer/feGaussianBlur stack.
+          Applied to every photo slot via filter="url(#…)". */}
+      <defs>
+        {/* sepia — warm one-tone wash */}
+        <filter id={`pf-${variant.id}-sepia`} x="0" y="0" width="1" height="1">
+          <feColorMatrix type="matrix" values="0.39 0.77 0.19 0 0  0.35 0.69 0.17 0 0  0.27 0.53 0.13 0 0  0 0 0 1 0" />
+        </filter>
+        {/* film — slightly warm + lifted shadows + subtle vignette */}
+        <filter id={`pf-${variant.id}-film`}>
+          <feColorMatrix type="matrix" values="1.05 0 0 0 0  0 0.96 0 0 0  0 0 0.92 0 0  0 0 0 1 0" />
+          <feComponentTransfer>
+            <feFuncR type="linear" slope="1.05" intercept="0.02" />
+            <feFuncB type="linear" slope="0.95" intercept="0" />
+          </feComponentTransfer>
+        </filter>
+        {/* dreamy — soft glow + lifted blacks */}
+        <filter id={`pf-${variant.id}-dreamy`}>
+          <feGaussianBlur stdDeviation="1.4" />
+          <feComponentTransfer>
+            <feFuncR type="linear" slope="0.95" intercept="0.06" />
+            <feFuncG type="linear" slope="0.95" intercept="0.06" />
+            <feFuncB type="linear" slope="0.97" intercept="0.04" />
+          </feComponentTransfer>
+        </filter>
+        {/* mono — true greyscale */}
+        <filter id={`pf-${variant.id}-mono`}>
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
+        {/* vintage — desaturated + amber overlay tone */}
+        <filter id={`pf-${variant.id}-vintage`}>
+          <feColorMatrix type="saturate" values="0.55" />
+          <feComponentTransfer>
+            <feFuncR type="linear" slope="1.1" intercept="0.04" />
+            <feFuncG type="linear" slope="0.98" intercept="0.02" />
+            <feFuncB type="linear" slope="0.85" intercept="-0.02" />
+          </feComponentTransfer>
+        </filter>
+        {/* noir — high contrast black + white */}
+        <filter id={`pf-${variant.id}-noir`}>
+          <feColorMatrix type="saturate" values="0" />
+          <feComponentTransfer>
+            <feFuncR type="gamma" amplitude="1" exponent="0.7" offset="0" />
+            <feFuncG type="gamma" amplitude="1" exponent="0.7" offset="0" />
+            <feFuncB type="gamma" amplitude="1" exponent="0.7" offset="0" />
+          </feComponentTransfer>
+        </filter>
+        {/* sunwash — bleached highlights + lifted yellows */}
+        <filter id={`pf-${variant.id}-sunwash`}>
+          <feComponentTransfer>
+            <feFuncR type="linear" slope="1.15" intercept="0.05" />
+            <feFuncG type="linear" slope="1.10" intercept="0.06" />
+            <feFuncB type="linear" slope="0.95" intercept="-0.02" />
+          </feComponentTransfer>
+        </filter>
+      </defs>
+
       {/* ── Photo slots ──
           Render photos declared by the variant. Each slot gets a
           unique clipPath so its shape (rect / rounded / circle /
@@ -1862,6 +2281,7 @@ const InviteSvg = forwardRef<
                       d={`M ${slot.x} ${slot.y + slot.h}
                           L ${slot.x} ${slot.y + slot.w / 2}
                           A ${slot.w / 2} ${slot.w / 2} 0 0 1 ${slot.x + slot.w} ${slot.y + slot.w / 2}
+                          L ${slot.x + slot.w} ${slot.y + slot.w / 2}
                           L ${slot.x + slot.w} ${slot.y + slot.h} Z`}
                     />
                   )}
@@ -1899,12 +2319,13 @@ const InviteSvg = forwardRef<
                 {url ? (
                   <image
                     href={url}
-                    x={slot.x}
-                    y={slot.y}
-                    width={slot.w}
-                    height={slot.h}
+                    x={slot.x - (slot.w * (xform.zoom - 1)) / 2 + slot.w * xform.offsetX}
+                    y={slot.y - (slot.h * (xform.zoom - 1)) / 2 + slot.h * xform.offsetY}
+                    width={slot.w * xform.zoom}
+                    height={slot.h * xform.zoom}
                     preserveAspectRatio="xMidYMid slice"
                     clipPath={`url(#photoclip-${id}-${slot.id})`}
+                    filter={filter !== 'none' ? `url(#${filterId})` : undefined}
                   />
                 ) : (
                   <g clipPath={`url(#photoclip-${id}-${slot.id})`}>
@@ -2023,6 +2444,94 @@ const InviteSvg = forwardRef<
           <text x="500" y="1180" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="22" fill={ink} opacity="0.7">{venue}</text>
           <text x="500" y="1310" textAnchor="middle" fontFamily="Inter, sans-serif" fontStyle="italic" fontSize="18" fill={ink} opacity="0.6">
             {kind === 'save-the-date' ? `invitation to follow · ${prettyUrl}` : (copy.rsvpDeadline || prettyUrl)}
+          </text>
+        </>
+      )}
+
+      {/* ── Save-the-date · Split portrait ──
+          Half photo on the left, type stack on the right. Photo
+          slot is rendered above by the slot loop; here we only
+          paint the right-column type lockup. */}
+      {id === 'split-portrait' && (
+        <>
+          <line x1="540" y1="220" x2="900" y2="220" stroke={accent} strokeWidth="1" />
+          <text x="540" y="200" fontFamily="Inter, sans-serif" fontSize="14" fill={ink} letterSpacing="8">{stamp}</text>
+          <text x="540" y="500" fontFamily="Fraunces, Georgia, serif" fontSize="92" fontWeight="600" letterSpacing="-2" fill={ink}>{n1 || 'Our'}</text>
+          <text x="540" y="600" fontFamily="Fraunces, Georgia, serif" fontStyle="italic" fontSize="46" fill={accent}>and</text>
+          <text x="540" y="700" fontFamily="Fraunces, Georgia, serif" fontSize="92" fontWeight="600" letterSpacing="-2" fill={ink}>{n2 || 'Story'}</text>
+          <line x1="540" y1="780" x2="700" y2="780" stroke={accent} strokeWidth="1.3" />
+          <text x="540" y="860" fontFamily="Fraunces, Georgia, serif" fontSize="32" fill={ink}>{date.long}</text>
+          <text x="540" y="910" fontFamily="Inter, sans-serif" fontSize="20" fill={ink} opacity="0.7">{venue}</text>
+          <text x="540" y="1320" fontFamily="Inter, sans-serif" fontSize="14" fill={ink} opacity="0.55" letterSpacing="3">
+            {kind === 'save-the-date' ? `invitation to follow · ${prettyUrl}` : prettyUrl.toUpperCase()}
+          </text>
+        </>
+      )}
+
+      {/* ── Save-the-date · Corner photo ──
+          Small editorial photo tucked into the top-right. Type
+          lockup centred and dominant. */}
+      {id === 'corner-photo' && (
+        <>
+          <text x="100" y="200" fontFamily="Inter, sans-serif" fontSize="14" fill={ink} letterSpacing="10">{stamp}</text>
+          <text x="100" y="640" fontFamily="Fraunces, Georgia, serif" fontSize="118" fontWeight="500" letterSpacing="-3" fill={ink}>{nameLine}</text>
+          <line x1="100" y1="730" x2="280" y2="730" stroke={accent} strokeWidth="1.5" />
+          <text x="100" y="820" fontFamily="Fraunces, Georgia, serif" fontSize="40" fill={ink}>{date.long}</text>
+          <text x="100" y="870" fontFamily="Inter, sans-serif" fontSize="22" fill={ink} opacity="0.7">{venue}</text>
+          <text x="100" y="1320" fontFamily="Inter, sans-serif" fontSize="14" fill={ink} opacity="0.55" letterSpacing="3">{prettyUrl.toUpperCase()}</text>
+          <text x="900" y="540" textAnchor="end" fontFamily="Fraunces, Georgia, serif" fontStyle="italic" fontSize="22" fill={accent}>{kind === 'save-the-date' ? 'save the date' : 'you are invited'}</text>
+        </>
+      )}
+
+      {/* ── Save-the-date · Photo medallion ──
+          Round photo medallion above a centered date stamp. */}
+      {id === 'photo-disc' && (
+        <>
+          <text x="500" y="150" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="14" fill={ink} letterSpacing="14">{stamp}</text>
+          {/* Photo lives in the slot at y=160 (rendered by slot loop) */}
+          <text x="500" y="610" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontSize="98" fontWeight="500" letterSpacing="-2" fill={ink}>{nameLine}</text>
+          <line x1="380" y1="700" x2="620" y2="700" stroke={accent} strokeWidth="1.5" />
+          <text x="500" y="800" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontStyle="italic" fontSize="44" fill={accent}>{date.long}</text>
+          <text x="500" y="870" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="22" fill={ink} opacity="0.7">{venue}</text>
+          {/* Decorative double rule at base */}
+          <line x1="120" y1="1180" x2="880" y2="1180" stroke={accent} strokeWidth="1.5" />
+          <line x1="120" y1="1190" x2="880" y2="1190" stroke={accent} strokeWidth="0.6" />
+          <text x="500" y="1320" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="14" fill={ink} opacity="0.55" letterSpacing="4">
+            {kind === 'save-the-date' ? `invitation to follow · ${prettyUrl}` : prettyUrl.toUpperCase()}
+          </text>
+        </>
+      )}
+
+      {/* ── Save-the-date · Photo banner ──
+          Wide bottom-third photo with type lockup occupying the
+          top two-thirds. */}
+      {id === 'banner-strip' && (
+        <>
+          <text x="500" y="220" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="14" fill={ink} letterSpacing="14">{stamp}</text>
+          <text x="500" y="460" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontSize="128" fontWeight="500" letterSpacing="-3" fill={ink}>{n1 || 'Our'}</text>
+          <text x="500" y="580" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontStyle="italic" fontSize="56" fill={accent}>and</text>
+          <text x="500" y="720" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontSize="128" fontWeight="500" letterSpacing="-3" fill={ink}>{n2 || 'Story'}</text>
+          <line x1="380" y1="820" x2="620" y2="820" stroke={accent} strokeWidth="1.4" />
+          <text x="500" y="890" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontSize="34" fill={ink}>{date.long}</text>
+          {/* Subtle overlay caption on the banner photo */}
+          <text x="500" y="1340" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="14" fill="#FFFFFF" opacity="0.85" letterSpacing="6">{venue.toUpperCase()}</text>
+        </>
+      )}
+
+      {/* ── Save-the-date · Taped snapshot ──
+          Single rotated snapshot with washi-tape detail + handwritten
+          date strip below. */}
+      {id === 'tape-snapshot' && (
+        <>
+          {/* Washi-tape strips at top + bottom of the snapshot */}
+          <rect x="320" y="200" width="100" height="20" fill={accent} opacity="0.4" transform="rotate(-12 370 210)" />
+          <rect x="600" y="780" width="100" height="20" fill={accent} opacity="0.4" transform="rotate(8 650 790)" />
+          <text x="500" y="160" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="14" fill={ink} letterSpacing="14">{stamp}</text>
+          <text x="500" y="900" textAnchor="middle" fontFamily="Caveat, Fraunces, cursive" fontSize="68" fill={ink}>{nameLine}</text>
+          <text x="500" y="1000" textAnchor="middle" fontFamily="Caveat, Fraunces, cursive" fontSize="48" fill={accent}>{date.long}</text>
+          <text x="500" y="1080" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="20" fill={ink} opacity="0.7">{venue}</text>
+          <text x="500" y="1310" textAnchor="middle" fontFamily="Inter, sans-serif" fontStyle="italic" fontSize="16" fill={ink} opacity="0.55">
+            {kind === 'save-the-date' ? `more soon · ${prettyUrl}` : prettyUrl}
           </text>
         </>
       )}

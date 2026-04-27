@@ -10,7 +10,7 @@ import { authOptions } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { getArchetype } from '@/lib/invite-engine/archetypes';
 import { renderArchetype } from '@/lib/invite-engine/render';
-import { hasOpenAIImageKey } from '@/lib/memory-engine/openai-image';
+import { hasOpenAIImageKey, getLastOpenAIError } from '@/lib/memory-engine/openai-image';
 import type { InviteContext, PaletteHex } from '@/lib/invite-engine/designer-prompts';
 
 export const dynamic = 'force-dynamic';
@@ -27,6 +27,12 @@ interface Body {
   palette: PaletteHex;
   /** Optional base64 couple portrait + mime. Edits endpoint. */
   portrait?: { base64: string; mimeType: string };
+  /** Optional inspiration image — passed alongside the portrait
+   *  so the painter mimics composition, palette, mood. */
+  inspiration?: { base64: string; mimeType: string };
+  /** Optional free-form host hint that gets concatenated into the
+   *  archetype's prompt (e.g. "feels like Tuscany, gold leaf"). */
+  hint?: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -73,6 +79,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const hasInspiration = Boolean(body.inspiration?.base64);
   const ctx: InviteContext = {
     names: body.names,
     date: body.date,
@@ -81,16 +88,26 @@ export async function POST(req: NextRequest) {
     occasionLabel: body.occasionLabel ?? 'celebration',
     palette: body.palette,
     hasPortrait: Boolean(body.portrait),
+    // Tack the host's free-form hint onto the prompt context so the
+    // archetype builder can weave it into the system instructions.
+    hint: typeof body.hint === 'string' && body.hint.trim().length > 0
+      ? body.hint.trim().slice(0, 600)
+      : undefined,
+    hasInspiration,
   };
 
   let result;
   try {
+    // Build the inputImages array from portrait + inspiration. OpenAI
+    // gpt-image-2 supports up to 10 input images on the edits route.
+    const inputImages: Array<{ base64: string; mimeType: string }> = [];
+    if (body.portrait?.base64) inputImages.push({ base64: body.portrait.base64, mimeType: body.portrait.mimeType });
+    if (body.inspiration?.base64) inputImages.push({ base64: body.inspiration.base64, mimeType: body.inspiration.mimeType });
     result = await renderArchetype({
       archetype,
       ctx,
-      portrait: body.portrait
-        ? { base64: body.portrait.base64, mimeType: body.portrait.mimeType }
-        : undefined,
+      portrait: inputImages[0],
+      extraInputImages: inputImages.length > 1 ? inputImages.slice(1) : undefined,
       siteSlug: body.siteSlug,
     });
   } catch (err) {
@@ -103,10 +120,13 @@ export async function POST(req: NextRequest) {
   }
 
   if (!result) {
-    return NextResponse.json(
-      { error: 'Pear couldn\'t finish that one — the painter timed out or rejected the prompt. Try a different archetype.' },
-      { status: 502 },
-    );
+    // Surface the real OpenAI error if we have one — way more
+    // actionable than the generic "couldn't finish that one."
+    const upstream = getLastOpenAIError();
+    const detail = upstream
+      ? `Painter said: ${upstream}`
+      : 'The painter returned nothing — try a different archetype or palette.';
+    return NextResponse.json({ error: detail }, { status: 502 });
   }
   return NextResponse.json({ ok: true, ...result });
 }

@@ -67,6 +67,10 @@ export async function renderArchetype(opts: {
   archetype: InviteArchetype;
   ctx: InviteContext;
   portrait?: GeminiImageInput;
+  /** Additional reference images (e.g. host's inspiration mood
+   *  board). Concatenated with the portrait when calling the
+   *  edits endpoint. */
+  extraInputImages?: GeminiImageInput[];
   siteSlug: string;
   size?: ImageSize;
 }): Promise<RenderResult | null> {
@@ -74,9 +78,11 @@ export async function renderArchetype(opts: {
     ...opts.ctx,
     hasPortrait: Boolean(opts.portrait),
   });
+  const inputImages = [opts.portrait, ...(opts.extraInputImages ?? [])].filter(Boolean) as GeminiImageInput[];
   const result = await generateImage({
     prompt,
     inputImage: opts.portrait,
+    inputImages: inputImages.length > 1 ? inputImages : undefined,
     purpose: 'invite',
     quality: 'high',
     size: opts.size ?? opts.archetype.size,
