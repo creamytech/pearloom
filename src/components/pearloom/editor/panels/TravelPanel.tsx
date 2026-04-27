@@ -7,9 +7,37 @@ import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { PlaceAutocomplete } from './PlaceAutocomplete';
 
+// Mirrors the AMENITY_HINTS map in /api/hotels/enrich so a hotel
+// pulled via "Find real hotels" and one picked via Search-by-name
+// produce the same human-readable amenities line.
+const AMENITY_LABELS: Record<string, string> = {
+  spa: 'spa',
+  restaurant: 'restaurant on-site',
+  bar: 'bar',
+  meal_takeaway: 'room service',
+  gym: 'fitness centre',
+  swimming_pool: 'pool',
+  pool: 'pool',
+  parking: 'parking',
+  beach: 'beach access',
+  resort_hotel: 'resort',
+  bed_and_breakfast: 'breakfast included',
+};
+function deriveAmenities(types: string[]): string {
+  const out: string[] = [];
+  for (const t of types) {
+    const v = AMENITY_LABELS[t];
+    if (v && !out.includes(v)) out.push(v);
+  }
+  return out.slice(0, 3).join(' · ');
+}
+
 type Hotel = {
   id: string;
   name: string;
+  /** Real street address. Pre-filled when the host picks via
+   *  search; renders under the rating row on the live site. */
+  address?: string;
   distance?: string;
   price?: string;
   description?: string;
@@ -20,6 +48,12 @@ type Hotel = {
   photoUrl?: string;
   /** Comma-separated amenities pulled from Place Details. */
   amenities?: string;
+  /** Star rating (0–5) from Google. Persisted on the manifest so
+   *  the renderer can show "★ 4.6 · 218 reviews" without an
+   *  extra API call. */
+  rating?: number;
+  /** Total Google review count behind that rating. */
+  ratingCount?: number;
 };
 
 // Enrich a Place pick into a full Hotel row: amenities, distance
@@ -52,6 +86,7 @@ async function enrichPickedHotel(
         address: string;
         websiteUri?: string;
         rating?: number;
+        ratingCount?: number;
         priceLevel?: string;
         amenities?: string;
         distanceText?: string;
@@ -64,14 +99,17 @@ async function enrichPickedHotel(
     return {
       id,
       name: h.name || fallback.name,
+      address: h.address || fallback.address,
       // Description prefers Claude's blurb; falls back to amenities,
-      // then to the place's address so the row never reads as empty.
-      description: h.blurb || h.amenities || h.address || fallback.address,
+      // then empty (we store address separately now).
+      description: h.blurb || h.amenities || '',
       bookingUrl: h.websiteUri ?? '',
       distance: h.distanceText ?? '',
       price: h.priceLevel ?? '',
       photoUrl: h.photoUrl,
       amenities: h.amenities,
+      rating: h.rating,
+      ratingCount: h.ratingCount,
     };
   } catch {
     return {
@@ -240,17 +278,27 @@ function HotelsAI({ manifest, onResult }: { manifest: StoryManifest; onResult: (
         id: string; name: string; address: string;
         distanceText?: string; priceLevel?: string;
         websiteUri?: string; phone?: string; rating?: number;
-        photoUrl?: string; blurb?: string;
+        ratingCount?: number; photoUrl?: string; blurb?: string;
+        types?: string[]; editorialSummary?: string;
       }>;
     };
     const now = Date.now();
     const next: Hotel[] = (data.hotels ?? []).map((h, i) => ({
       id: `htl-real-${now.toString(36)}-${i}`,
       name: h.name,
-      description: h.blurb || h.address,
+      address: h.address,
+      description: h.blurb || h.editorialSummary || '',
       price: h.priceLevel,
       distance: h.distanceText,
       bookingUrl: h.websiteUri,
+      rating: h.rating,
+      ratingCount: h.ratingCount,
+      photoUrl: h.photoUrl,
+      // Build a short amenities line from the types array. Same
+      // mapping as /api/hotels/enrich's summariseAmenities so a
+      // hotel populated via "Find real hotels" reads consistently
+      // with one populated via Search-by-name.
+      amenities: deriveAmenities(h.types ?? []),
     }));
     if (!next.length) throw new Error('No hotels found near the venue');
     onResult(next);
@@ -302,14 +350,25 @@ export function TravelPanel({
     const existingLegacy = (manifest as unknown as { travel?: Record<string, unknown> }).travel ?? {};
     const nextLegacy = { ...existingLegacy, ...patch };
 
-    // Project Hotel[] → HotelBlock[] for the renderer.
+    // Project Hotel[] → HotelBlock[] for the renderer. Carry every
+    // rich field so the live card can render photo + stars +
+    // amenities + distance + booking CTA without re-fetching from
+    // Google. The legacy `notes` channel duplicates description so
+    // older renderers still read something useful.
     const hotelsForRender = patch.hotels
       ? patch.hotels.map((h) => ({
           name: h.name,
-          address: h.distance ?? '',
+          address: h.address ?? '',
           bookingUrl: h.bookingUrl,
           groupRate: h.price,
           notes: h.description,
+          photoUrl: h.photoUrl,
+          rating: h.rating,
+          ratingCount: h.ratingCount,
+          amenities: h.amenities,
+          distance: h.distance,
+          priceLevel: h.price,
+          description: h.description,
         }))
       : undefined;
 
@@ -462,6 +521,47 @@ export function TravelPanel({
                     />
                   </Field>
                 </div>
+                {(h.rating || h.amenities) && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: 6,
+                      padding: '4px 0',
+                      fontSize: 11,
+                      color: 'var(--ink-soft)',
+                    }}
+                  >
+                    {typeof h.rating === 'number' && (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 3,
+                          padding: '3px 8px',
+                          background: 'var(--peach-bg, rgba(198,112,61,0.10))',
+                          color: 'var(--peach-ink, #C6703D)',
+                          borderRadius: 999,
+                          fontSize: 10.5,
+                          fontWeight: 700,
+                        }}
+                      >
+                        ★ {h.rating.toFixed(1)}
+                        {h.ratingCount ? ` · ${h.ratingCount.toLocaleString()} reviews` : ''}
+                      </span>
+                    )}
+                    {h.amenities && (
+                      <span style={{ alignSelf: 'center', fontSize: 10.5 }}>{h.amenities}</span>
+                    )}
+                  </div>
+                )}
+                <Field label="Address">
+                  <TextInput
+                    value={h.address ?? ''}
+                    onChange={(e) => updateHotel(i, { address: e.target.value })}
+                    placeholder="100 Las Olas Blvd, Fort Lauderdale, FL"
+                  />
+                </Field>
                 <Field label="Short description">
                   <TextArea
                     rows={2}

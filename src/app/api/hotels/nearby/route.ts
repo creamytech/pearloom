@@ -36,11 +36,14 @@ interface PlaceHotel {
   name: string;
   address: string;
   rating?: number;
+  ratingCount?: number;
   priceLevel?: string;
   distanceMeters?: number;
   websiteUri?: string;
   internationalPhoneNumber?: string;
   photoUrl?: string;
+  types?: string[];
+  editorialSummary?: string;
 }
 
 async function geocode(query: string, apiKey: string): Promise<{ lat: number; lng: number } | null> {
@@ -58,71 +61,137 @@ async function geocode(query: string, apiKey: string): Promise<{ lat: number; ln
   }
 }
 
+// HOTEL_TYPES: real hotels, not vacation rentals. The previous
+// `includedTypes: ['lodging']` swept in apartment_complex,
+// extended-stay rental aggregators ("UHost AI 1B Retreat…"),
+// cottages, RV parks, etc — exactly the noise the user flagged
+// when Pear returned 4 random Fort Lauderdale apartments instead
+// of actual hotels. `includedPrimaryTypes` is stricter than
+// `includedTypes`: it requires the place's *primary* category to
+// match, which is how Google distinguishes "is a hotel" from
+// "happens to allow overnight stays".
+const HOTEL_TYPES = [
+  'hotel',
+  'resort_hotel',
+  'bed_and_breakfast',
+  'extended_stay_hotel',
+  'inn',
+];
+
+// Belt-and-braces — even within HOTEL_TYPES the API occasionally
+// returns places whose secondary types include these red flags
+// (a private_guest_room marketed as a hotel, etc). Filtered
+// post-fetch so we don't just rely on Google's primary-type tag.
+const REJECT_TYPES = new Set([
+  'apartment_complex',
+  'apartment_building',
+  'private_guest_room',
+  'rv_park',
+  'campground',
+  'cottage',
+  'cabin',
+  'farmstay',
+  'hostel',
+  'guest_house',
+  'self_catering_accommodation',
+]);
+
 async function searchNearbyHotels(lat: number, lng: number, apiKey: string): Promise<PlaceHotel[]> {
-  // Google Places API (New) v1 searchNearby. Lodging type. 10km radius.
-  const res = await fetch('https://places.googleapis.com/v1/places:searchNearby', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Goog-Api-Key': apiKey,
-      'X-Goog-FieldMask': [
-        'places.id',
-        'places.displayName',
-        'places.formattedAddress',
-        'places.rating',
-        'places.priceLevel',
-        'places.location',
-        'places.websiteUri',
-        'places.internationalPhoneNumber',
-        'places.photos',
-      ].join(','),
-    },
-    body: JSON.stringify({
-      includedTypes: ['lodging'],
-      maxResultCount: 12,
+  async function fetchOnce(opts: { types: string[]; primary: boolean; radius: number }): Promise<PlaceHotel[]> {
+    const body: Record<string, unknown> = {
+      maxResultCount: 20,
       locationRestriction: {
-        circle: {
-          center: { latitude: lat, longitude: lng },
-          radius: 10000,
-        },
+        circle: { center: { latitude: lat, longitude: lng }, radius: opts.radius },
       },
-      rankPreference: 'DISTANCE',
-    }),
-  });
-  if (!res.ok) return [];
-  const data = await res.json() as {
-    places?: Array<{
-      id: string;
-      displayName?: { text?: string };
-      formattedAddress?: string;
-      rating?: number;
-      priceLevel?: string;
-      location?: { latitude: number; longitude: number };
-      websiteUri?: string;
-      internationalPhoneNumber?: string;
-      photos?: Array<{ name: string }>;
-    }>;
-  };
-  return (data.places ?? []).map((p) => {
-    const photoRef = p.photos?.[0]?.name;
-    const photoUrl = photoRef
-      ? `https://places.googleapis.com/v1/${photoRef}/media?maxWidthPx=400&key=${apiKey}`
-      : undefined;
-    const dist = p.location
-      ? Math.round(haversine(lat, lng, p.location.latitude, p.location.longitude))
-      : undefined;
-    return {
-      id: p.id,
-      name: p.displayName?.text ?? 'Hotel',
-      address: p.formattedAddress ?? '',
-      rating: p.rating,
-      priceLevel: p.priceLevel,
-      distanceMeters: dist,
-      websiteUri: p.websiteUri,
-      internationalPhoneNumber: p.internationalPhoneNumber,
-      photoUrl,
+      // POPULARITY ranks by Google's quality signal — better than
+      // DISTANCE for "find me good options" because a 5-star hotel
+      // 4 km away beats a 1-star one across the street.
+      rankPreference: 'POPULARITY',
     };
-  });
+    if (opts.primary) body.includedPrimaryTypes = opts.types;
+    else body.includedTypes = opts.types;
+
+    const res = await fetch('https://places.googleapis.com/v1/places:searchNearby', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': apiKey,
+        'X-Goog-FieldMask': [
+          'places.id',
+          'places.displayName',
+          'places.formattedAddress',
+          'places.rating',
+          'places.userRatingCount',
+          'places.priceLevel',
+          'places.location',
+          'places.websiteUri',
+          'places.internationalPhoneNumber',
+          'places.photos',
+          'places.types',
+          'places.editorialSummary',
+        ].join(','),
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) return [];
+    const data = await res.json() as {
+      places?: Array<{
+        id: string;
+        displayName?: { text?: string };
+        formattedAddress?: string;
+        rating?: number;
+        userRatingCount?: number;
+        priceLevel?: string;
+        location?: { latitude: number; longitude: number };
+        websiteUri?: string;
+        internationalPhoneNumber?: string;
+        photos?: Array<{ name: string }>;
+        types?: string[];
+        editorialSummary?: { text?: string };
+      }>;
+    };
+    return (data.places ?? []).map((p) => {
+      const photoRef = p.photos?.[0]?.name;
+      const photoUrl = photoRef
+        ? `https://places.googleapis.com/v1/${photoRef}/media?maxWidthPx=600&key=${apiKey}`
+        : undefined;
+      const dist = p.location
+        ? Math.round(haversine(lat, lng, p.location.latitude, p.location.longitude))
+        : undefined;
+      return {
+        id: p.id,
+        name: p.displayName?.text ?? 'Hotel',
+        address: p.formattedAddress ?? '',
+        rating: p.rating,
+        ratingCount: p.userRatingCount,
+        priceLevel: p.priceLevel,
+        distanceMeters: dist,
+        websiteUri: p.websiteUri,
+        internationalPhoneNumber: p.internationalPhoneNumber,
+        photoUrl,
+        types: p.types,
+        editorialSummary: p.editorialSummary?.text,
+      };
+    });
+  }
+
+  // Try primary-types first (strictest → real hotels). Fall back
+  // to broader includedTypes within a wider radius only if the
+  // strict pass returns nothing — happens in small towns where
+  // the only nearby place is a B&B that didn't get tagged
+  // 'bed_and_breakfast' as primary.
+  let raw = await fetchOnce({ types: HOTEL_TYPES, primary: true, radius: 15000 });
+  if (raw.length === 0) {
+    raw = await fetchOnce({ types: HOTEL_TYPES, primary: false, radius: 25000 });
+  }
+
+  // Reject vacation-rental sub-types + filter to places with at
+  // least *some* social proof (3+ reviews). The 3-review floor
+  // is forgiving enough that a new boutique opening in 2025 still
+  // qualifies, but high enough to drop empty stub listings.
+  return raw
+    .filter((h) => !(h.types ?? []).some((t) => REJECT_TYPES.has(t)))
+    .filter((h) => (h.ratingCount ?? 0) >= 3 || (h.rating ?? 0) >= 4);
 }
 
 function haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -205,16 +274,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ hotels: [] });
   }
 
-  // Take the top 6 sorted by rating + distance, blurb them via Claude.
+  // Quality score:
+  //   • rating contributes the most (0–5, multiplied by 1000)
+  //   • log10(reviewCount) gives diminishing returns past 100 reviews
+  //     (200-review hotel ≈ same boost as 1000-review hotel — keeps
+  //     small boutiques competitive with Hilton-class chains)
+  //   • distance penalty: -1 point per km, so a 4.6 hotel 5 km away
+  //     beats a 4.5 hotel next door, but a 4.5 next door beats a
+  //     4.6 hotel 50 km away.
+  function qualityScore(h: PlaceHotel): number {
+    const r = h.rating ?? 0;
+    const c = h.ratingCount ?? 0;
+    const km = (h.distanceMeters ?? 0) / 1000;
+    return r * 1000 + Math.log10(c + 1) * 100 - km;
+  }
   const top = [...hotels]
-    .sort((a, b) => {
-      const ar = a.rating ?? 0;
-      const br = b.rating ?? 0;
-      const ad = a.distanceMeters ?? Number.MAX_SAFE_INTEGER;
-      const bd = b.distanceMeters ?? Number.MAX_SAFE_INTEGER;
-      // Higher rating + smaller distance wins.
-      return (br - ar) * 1000 + (ad - bd) / 1000;
-    })
+    .sort((a, b) => qualityScore(b) - qualityScore(a))
     .slice(0, 6);
   const blurbs = await blurbifyClaude(top, { venueCity: body.venueCity, eventDate: body.eventDate });
 
@@ -223,12 +298,16 @@ export async function POST(req: NextRequest) {
     name: h.name,
     address: h.address,
     distanceText: distanceText(h.distanceMeters),
+    distanceMeters: h.distanceMeters,
     priceLevel: h.priceLevel,
     rating: h.rating,
+    ratingCount: h.ratingCount,
     websiteUri: h.websiteUri,
     phone: h.internationalPhoneNumber,
     photoUrl: h.photoUrl,
-    blurb: blurbs[h.id] ?? '',
+    blurb: blurbs[h.id] ?? h.editorialSummary ?? '',
+    types: h.types,
+    editorialSummary: h.editorialSummary,
   }));
 
   return NextResponse.json({ hotels: decorated });

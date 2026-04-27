@@ -99,6 +99,7 @@ interface PlaceDetailsResult {
   websiteUri?: string;
   internationalPhoneNumber?: string;
   rating?: number;
+  userRatingCount?: number;
   priceLevel?: string;
   types?: string[];
   editorialSummary?: { text?: string };
@@ -113,7 +114,8 @@ async function fetchDetails(placeId: string, apiKey: string): Promise<PlaceDetai
         'X-Goog-FieldMask': [
           'id', 'displayName', 'formattedAddress', 'location',
           'websiteUri', 'internationalPhoneNumber', 'rating',
-          'priceLevel', 'types', 'editorialSummary', 'photos',
+          'userRatingCount', 'priceLevel', 'types',
+          'editorialSummary', 'photos',
         ].join(','),
       },
       signal: AbortSignal.timeout(8000),
@@ -220,6 +222,7 @@ export async function POST(req: NextRequest) {
       websiteUri: details.websiteUri,
       phone: details.internationalPhoneNumber,
       rating: details.rating,
+      ratingCount: details.userRatingCount,
       priceLevel: details.priceLevel,
       amenities,
       distanceText,

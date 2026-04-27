@@ -1058,6 +1058,22 @@ export interface HotelBlock {
   bookingUrl?: string;
   groupRate?: string;
   notes?: string;
+  /** Google Places photo URL (or any host-supplied image). The
+   *  renderer uses this to render a real thumbnail instead of
+   *  the moon-icon placeholder. */
+  photoUrl?: string;
+  /** Star rating 0-5 from Google. */
+  rating?: number;
+  /** Total review count behind that rating. */
+  ratingCount?: number;
+  /** Comma-separated short amenities line — "spa · pool · gym". */
+  amenities?: string;
+  /** Distance from venue, pre-formatted ("1.4 km · ~3 min drive"). */
+  distance?: string;
+  /** Google price level — formatted "$" / "$$" / "$$$" / "$$$$". */
+  priceLevel?: string;
+  /** Editorial blurb or host note (12-22 words ideal). */
+  description?: string;
 }
 
 // ─────────────────────────────────────────────────────────────

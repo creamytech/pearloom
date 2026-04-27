@@ -2143,6 +2143,233 @@ function pillBtn(): React.CSSProperties {
   };
 }
 
+// ── HotelCard model ──────────────────────────────────────────
+// Wide superset of the manifest's HotelBlock so we can read every
+// rich field that newer entries carry without breaking older
+// hotels that only have name + address. Every field is optional;
+// the render gracefully degrades.
+interface HotelCardModel {
+  name?: string;
+  address?: string;
+  bookingUrl?: string;
+  groupRate?: string;
+  notes?: string;
+  photoUrl?: string;
+  image?: string;
+  rating?: number;
+  ratingCount?: number;
+  amenities?: string;
+  distance?: string;
+  priceLevel?: string;
+  description?: string;
+}
+
+function HotelCard({ hotel, tone }: { hotel: HotelCardModel; tone: 'peach' | 'lavender' | 'sage' }) {
+  const tintBg =
+    tone === 'peach' ? 'var(--peach-bg)' :
+    tone === 'lavender' ? 'var(--lavender-bg)' :
+    'var(--sage-tint)';
+  const photo = hotel.photoUrl ?? hotel.image;
+  // Description preference: explicit description → notes (legacy
+  // channel that older hotels used) → empty.
+  const blurb = hotel.description ?? hotel.notes ?? '';
+  // Editorial price label: Google's PRICE_LEVEL enum is
+  // PRICE_LEVEL_INEXPENSIVE / MODERATE / EXPENSIVE / VERY_EXPENSIVE.
+  // Map to standard $ glyphs so the host doesn't see SCREAMING_CASE.
+  const priceGlyph = (() => {
+    const p = hotel.priceLevel ?? hotel.groupRate ?? '';
+    if (!p) return '';
+    if (p.includes('VERY_EXPENSIVE') || p === '$$$$') return '$$$$';
+    if (p.includes('EXPENSIVE') || p === '$$$') return '$$$';
+    if (p.includes('MODERATE') || p === '$$') return '$$';
+    if (p.includes('INEXPENSIVE') || p === '$') return '$';
+    return p;  // host-typed nightly rate — show as-is
+  })();
+  // Stack the three meta rails into chips. Hide rails that are empty
+  // so the card never reads as half-full.
+  return (
+    <article
+      className="pl8-hotel-card"
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '120px 1fr',
+        gap: 16,
+        padding: 14,
+        borderRadius: 18,
+        background: 'var(--card)',
+        border: '1px solid var(--card-ring)',
+        boxShadow: '0 4px 12px -8px rgba(14,13,11,0.18)',
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        aria-hidden={!photo}
+        style={{
+          width: 120,
+          aspectRatio: '4 / 5',
+          borderRadius: 12,
+          background: photo
+            ? `linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.20) 100%), url(${photo}) center/cover no-repeat`
+            : tintBg,
+          display: 'grid',
+          placeItems: 'center',
+          color: 'var(--ink-soft)',
+          flexShrink: 0,
+          position: 'relative',
+        }}
+      >
+        {!photo && <Icon name="moon" size={32} />}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+        <h3
+          style={{
+            fontSize: 'clamp(16px, 1.6cqw, 18px)',
+            fontWeight: 700,
+            margin: 0,
+            lineHeight: 1.2,
+            color: 'var(--ink)',
+          }}
+        >
+          {hotel.name || 'Hotel'}
+        </h3>
+        {(typeof hotel.rating === 'number' || priceGlyph || hotel.distance) && (
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 6,
+              alignItems: 'center',
+              fontSize: 12,
+              color: 'var(--ink-soft)',
+            }}
+          >
+            {typeof hotel.rating === 'number' && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '3px 9px',
+                  background: 'var(--peach-bg, rgba(198,112,61,0.10))',
+                  color: 'var(--peach-ink, #C6703D)',
+                  borderRadius: 999,
+                  fontSize: 11.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.01em',
+                }}
+                aria-label={`Rated ${hotel.rating.toFixed(1)} out of 5${hotel.ratingCount ? ` from ${hotel.ratingCount} reviews` : ''}`}
+              >
+                <span aria-hidden style={{ fontSize: 12 }}>★</span>
+                {hotel.rating.toFixed(1)}
+                {hotel.ratingCount ? (
+                  <span style={{ opacity: 0.75, fontWeight: 600 }}>
+                    · {hotel.ratingCount.toLocaleString()} reviews
+                  </span>
+                ) : null}
+              </span>
+            )}
+            {priceGlyph && (
+              <span
+                style={{
+                  fontWeight: 700,
+                  color: 'var(--ink)',
+                  fontFamily: 'var(--font-ui)',
+                  letterSpacing: '0.02em',
+                }}
+              >
+                {priceGlyph}
+              </span>
+            )}
+            {hotel.distance && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  fontSize: 11.5,
+                  color: 'var(--ink-soft)',
+                }}
+              >
+                <Icon name="pin" size={11} /> {hotel.distance}
+              </span>
+            )}
+          </div>
+        )}
+        {blurb && (
+          <p
+            style={{
+              fontSize: 13.5,
+              lineHeight: 1.5,
+              color: 'var(--ink-soft)',
+              margin: 0,
+            }}
+          >
+            {blurb}
+          </p>
+        )}
+        {hotel.amenities && (
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-muted)',
+            }}
+          >
+            {hotel.amenities}
+          </div>
+        )}
+        {hotel.address && (
+          <div
+            style={{
+              fontSize: 12,
+              color: 'var(--ink-muted)',
+              marginTop: 2,
+            }}
+          >
+            {hotel.address}
+          </div>
+        )}
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 8,
+            marginTop: 8,
+          }}
+        >
+          {hotel.bookingUrl && (
+            <a
+              href={hotel.bookingUrl}
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '6px 12px',
+                borderRadius: 999,
+                background: 'var(--ink)',
+                color: 'var(--cream)',
+                fontSize: 11.5,
+                fontWeight: 700,
+                textDecoration: 'none',
+                letterSpacing: '0.04em',
+              }}
+            >
+              <Icon name="arrow-ur" size={11} /> Book
+            </a>
+          )}
+          {hotel.address && (
+            <OpenInMapsButton address={hotel.address} label="Directions" />
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
 function TravelSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; onEditField?: FieldEditor }) {
   const edit = useIsEditMode();
   const venue = manifest.logistics?.venue ?? 'Our venue';
@@ -2214,79 +2441,11 @@ function TravelSectionImpl({ manifest, onEditField }: { manifest: StoryManifest;
                 </p>
               )}
               {hotels.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {hotels.slice(0, 4).map((h, i) => {
-                    // Render the actual hotel photo if the host uploaded one;
-                    // otherwise show a hotel icon in a tinted square — no
-                    // more empty colored placeholder.
-                    const hotelPhoto = (h as { photoUrl?: string; image?: string }).photoUrl
-                      ?? (h as { image?: string }).image;
-                    const tintBg =
-                      hotelTones[i % hotelTones.length] === 'peach' ? 'var(--peach-bg)' :
-                      hotelTones[i % hotelTones.length] === 'lavender' ? 'var(--lavender-bg)' :
-                      'var(--sage-tint)';
-                    const card = (
-                      <div
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: '80px 1fr',
-                          gap: 14,
-                          padding: 16,
-                          borderRadius: 16,
-                          background: 'var(--card)',
-                          border: '1px solid var(--card-ring)',
-                          alignItems: 'center',
-                        }}
-                      >
-                        {hotelPhoto ? (
-                          <div
-                            style={{
-                              width: 80, height: 80,
-                              borderRadius: 12,
-                              background: `url(${hotelPhoto}) center/cover no-repeat`,
-                            }}
-                          />
-                        ) : (
-                          <div
-                            aria-hidden
-                            style={{
-                              width: 80, height: 80,
-                              borderRadius: 12,
-                              background: tintBg,
-                              display: 'grid', placeItems: 'center',
-                              color: 'var(--ink-soft)',
-                            }}
-                          >
-                            <Icon name="moon" size={28} />
-                          </div>
-                        )}
-                        <div>
-                          <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>{h.name}</div>
-                          <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.4 }}>
-                            {h.address}
-                            {h.groupRate ? ` · ${h.groupRate}` : ''}
-                            {h.notes ? ` · ${h.notes}` : ''}
-                          </div>
-                          {h.address && (
-                            <div style={{ marginTop: 8 }}>
-                              <OpenInMapsButton address={h.address} label="Directions" />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                    return h.bookingUrl ? (
-                      <a
-                        key={i}
-                        href={h.bookingUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{ textDecoration: 'none', color: 'inherit' }}
-                      >
-                        {card}
-                      </a>
-                    ) : (
-                      <div key={i}>{card}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {hotels.slice(0, 6).map((h, i) => {
+                    const tone = hotelTones[i % hotelTones.length] as 'peach' | 'lavender' | 'sage';
+                    return (
+                      <HotelCard key={i} hotel={h as HotelCardModel} tone={tone} />
                     );
                   })}
                 </div>
