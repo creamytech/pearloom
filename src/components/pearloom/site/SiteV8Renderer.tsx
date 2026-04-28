@@ -4626,6 +4626,13 @@ function TravelSectionImpl({ manifest, onEditField }: { manifest: StoryManifest;
                 <OpenInMapsButton address={address} label="Directions" />
               </div>
             )}
+            {/* Airports — sit DIRECTLY beneath the venue on the
+                left column. Used to land at the end of the
+                pl8-cols-2 grid as a third child (so they fell
+                under "Places to stay" on the right) which read as
+                "this is part of the hotels". They're venue-context
+                so they belong with the venue column. */}
+            <AirportsBlock manifest={manifest} />
           </div>
 
           {showPlacesToStay && (
@@ -4712,7 +4719,6 @@ function TravelSectionImpl({ manifest, onEditField }: { manifest: StoryManifest;
               )}
             </div>
           )}
-          <AirportsBlock manifest={manifest} />
         </div>
       </div>
     </section>

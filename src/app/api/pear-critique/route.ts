@@ -29,7 +29,18 @@ const VALID_TABS: ReadonlySet<EditorTab> = new Set([
 interface CritiqueRequest {
   manifest: StoryManifest;
   coupleNames: [string, string];
+  /** Quick-action focus from the Pear Companion. The route uses
+   *  this to nudge the system prompt so each pass reads
+   *  differently — a "polish-hero" pass should ignore travel
+   *  gaps; a "missing" pass should bias toward warnings. */
+  intent?: 'review' | 'missing' | 'polish-hero';
 }
+
+const INTENT_HINTS: Record<NonNullable<CritiqueRequest['intent']>, string> = {
+  review:        '',
+  missing:       '\nFOCUS: Bias toward "warning" level — what critical info is missing? Skip nice-to-haves.',
+  'polish-hero': '\nFOCUS: Limit suggestions to the hero / story / chapters tabs. Ignore travel + registry + faq for this pass.',
+};
 
 const SYSTEM = `You are Pear, a warm and concise editor for a wedding/celebration site builder.
 You read a site manifest (JSON summary) and return 3–8 specific, actionable improvements.
@@ -100,13 +111,14 @@ export async function POST(req: NextRequest) {
   }
 
   const summary = summariseManifest(body.manifest, body.coupleNames);
+  const intentHint = body.intent && INTENT_HINTS[body.intent] ? INTENT_HINTS[body.intent] : '';
 
   try {
     const res = await fetch(`${GEMINI_FLASH}?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        system_instruction: { parts: [{ text: SYSTEM }] },
+        system_instruction: { parts: [{ text: SYSTEM + intentHint }] },
         contents: [{ parts: [{ text: `Site summary:\n\n${summary}\n\nReturn the JSON array of suggestions now.` }] }],
         generationConfig: {
           temperature: 0.5,
