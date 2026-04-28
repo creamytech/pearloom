@@ -93,7 +93,12 @@ export function PhotoActionMenu({
   return (
     <div
       className="pl8-photo-action-wrap"
-      style={{ position: 'relative' }}
+      // 100% width/height so descendants using height:100% (gallery
+      // PhotoPlaceholder, hero photo, chapter tiles) inherit the
+      // grid cell height through this wrapper. Without it, edit-mode
+      // photos collapsed to 0px and rendered as white tiles while
+      // the live site (no wrapper) displayed them correctly.
+      style={{ position: 'relative', width: '100%', height: '100%' }}
       onContextMenu={handleContextMenu}
     >
       {children}
