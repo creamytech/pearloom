@@ -356,6 +356,7 @@ export async function POST(req: Request) {
     songUrl,
     eventDetails,
     templateId,
+    prebuiltDecor,
   } = body as {
     photos: GooglePhotoMetadata[];
     clusters?: PhotoCluster[];
@@ -426,6 +427,12 @@ export async function POST(req: Request) {
       school?: string;
     };
     templateId?: string;
+    /** Speculative decor library cooked during the wizard so the
+     *  editor opens with decor already populated. Shape mirrors
+     *  /api/decor/library response — { divider, sectionStamps,
+     *  confetti, footerBouquet, prompts? }. Best-effort: if the
+     *  shape is wrong we silently drop it. */
+    prebuiltDecor?: unknown;
   };
 
   // Derive defaults from category / occasion when the wizard didn't
@@ -939,6 +946,29 @@ export async function POST(req: Request) {
         // and seeded theme/poetry on top of the AI-generated manifest.
         const { applyTemplateToManifest } = await import('@/lib/templates/apply-template');
         const themed = applyTemplateToManifest(manifest, templateId ?? null);
+
+        // Merge speculative decor cooked in the wizard. Only the
+        // recognised slot keys are accepted so a malformed body
+        // doesn't poison the manifest.
+        if (prebuiltDecor && typeof prebuiltDecor === 'object') {
+          const d = prebuiltDecor as Record<string, unknown>;
+          const lib: Record<string, unknown> = {
+            ...((themed as { decorLibrary?: Record<string, unknown> }).decorLibrary ?? {}),
+            updatedAt: new Date().toISOString(),
+          };
+          if (typeof d.divider === 'string') lib.divider = d.divider;
+          if (typeof d.confetti === 'string') lib.confetti = d.confetti;
+          if (typeof d.footerBouquet === 'string') lib.footerBouquet = d.footerBouquet;
+          if (d.sectionStamps && typeof d.sectionStamps === 'object') {
+            const stamps: Record<string, string> = {};
+            for (const [k, v] of Object.entries(d.sectionStamps as Record<string, unknown>)) {
+              if (typeof v === 'string') stamps[k] = v;
+            }
+            if (Object.keys(stamps).length) lib.sectionStamps = stamps;
+          }
+          (themed as { decorLibrary?: Record<string, unknown> }).decorLibrary = lib;
+        }
+
         send({ type: 'complete', manifest: themed });
       } catch (err) {
         send({ type: 'error', message: err instanceof Error ? err.message : 'Generation failed' });

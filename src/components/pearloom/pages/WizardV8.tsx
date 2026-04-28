@@ -22,6 +22,8 @@ import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotos
 import { WizardLocationAutocomplete } from '../wizard/WizardLocationAutocomplete';
 import { WizardDatePicker } from '../wizard/WizardDatePicker';
 import { GeneratingScreen } from '../wizard/GeneratingScreen';
+import { useBackgroundCook, readCookedDecor } from '../wizard/useBackgroundCook';
+import { BackgroundCookPill } from '../wizard/BackgroundCookPill';
 
 const STEPS = ['Occasion', 'Basics', 'Details', 'Photos', 'Vibe', 'Palette', 'Layout', 'Review'] as const;
 type StepKey = (typeof STEPS)[number];
@@ -1102,6 +1104,22 @@ export function WizardV8() {
   }, [st]);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  // Background cook — kicks off the AI decor library generation
+  // as soon as the host has occasion + palette + venue. The
+  // result lands in sessionStorage so the editor's first paint
+  // can read it instead of generating decor on demand. Saves
+  // 60-120s after the wizard's main generate pass.
+  const cookSig =
+    st.occasion && st.paletteColors && st.paletteColors.length > 0
+      ? {
+          occasion: st.occasion,
+          paletteHex: st.paletteColors,
+          venue: st.location || undefined,
+          vibe: st.vibes.join(', ') || undefined,
+        }
+      : null;
+  const cookStatus = useBackgroundCook(cookSig);
   const [genStep, setGenStep] = useState<string>('');
   const [generatedTagline, setGeneratedTagline] = useState<string>('');
   const [taglineState, setTaglineState] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
@@ -1312,6 +1330,12 @@ export function WizardV8() {
           layoutFormat: st.layout,
           templateId: st.templateId,
           selectedPaletteColors: st.paletteColors,
+          // Speculative decor library, baked while the wizard
+          // ran. The generate route can fold this into the new
+          // manifest so the editor opens with decor already
+          // populated — no on-demand generation needed. Server
+          // ignores the field if the shape doesn't match.
+          prebuiltDecor: cookSig ? readCookedDecor(cookSig) : null,
         };
         setGenStep('Pear is reading your photos…');
         const res = await fetch('/api/generate/stream', {
@@ -1446,6 +1470,12 @@ export function WizardV8() {
       <Blob tone="lavender" size={320} opacity={0.4} seed={0} style={{ position: 'absolute', top: -100, left: -100 }} />
       <Blob tone="peach" size={260} opacity={0.35} seed={2} style={{ position: 'absolute', top: 200, right: -80 }} />
       <Squiggle variant={1} width={180} stroke="#D4A95D" style={{ position: 'absolute', top: 120, right: 220, opacity: 0.5 }} />
+
+      {/* Background cook indicator — surfaces "Pear is preparing
+          things" while the speculative decor + warm-up runs in
+          parallel to the wizard. Skipped on step 0 (occasion) so
+          there's nothing to support yet. */}
+      {stepIndex > 0 && <BackgroundCookPill cooking={cookStatus.cooking} ready={cookStatus.decorReady} />}
 
       {/* Header */}
       <header
