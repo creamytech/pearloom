@@ -2048,6 +2048,58 @@ html { scroll-behavior: smooth; }
   color: var(--peach-ink, #C6703D);
 }
 
+/* Section reveal on scroll. Each <section> inside the published
+   site fades + rises a small distance as it scrolls into view.
+   Uses the modern animation-timeline feature where supported, so
+   no IntersectionObserver overhead and no flash-of-unstyled
+   content. The hero is already in the viewport on load so it
+   completes the animation immediately (no perceptible jump).
+   Edit-mode skips this — section transitions during editing
+   would feel laggy when the host is dragging blocks around. */
+@supports (animation-timeline: view()) {
+  .pl8-guest section {
+    animation: pl-section-reveal cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 18%;
+  }
+  @keyframes pl-section-reveal {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-guest section {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Hero kicker entrance — the first time the page paints, the
+   "save the date" kicker fades in from below. Subtle, runs
+   once. Display headings already letterpress-shadow so the
+   entrance feels like ink drying onto paper, not a SaaS toast.
+   The two hairline strokes either side of the kicker animate
+   their width 0 → full so they read as threads pulling the text
+   into place. */
+@keyframes pl-kicker-rise {
+  0%   { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.pl8-hero-kicker-anim {
+  animation: pl-kicker-rise 720ms cubic-bezier(0.22, 1, 0.36, 1) 200ms both;
+}
+.pl8-hero-kicker-anim::before,
+.pl8-hero-kicker-anim::after {
+  /* Reserved for hairline thread expansion if added later. */
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-hero-kicker-anim {
+    animation: none;
+    opacity: 1;
+  }
+}
+
 /* Card hover lift — applied to every editorial card surface so
    the canvas feels alive without each card reinventing the
    transition. The transform is GPU-accelerated (translate3d) and

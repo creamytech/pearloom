@@ -24,6 +24,7 @@ export function HeroKicker({ manifest, dateInfo, onEditField }: {
     ?? (dateInfo ? `together, ${dateInfo.weekday.toLowerCase()}` : 'save the date');
   return (
     <div
+      className="pl8-hero-kicker-anim"
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         gap: 16, marginBottom: 22, color: 'var(--ink-soft)',
