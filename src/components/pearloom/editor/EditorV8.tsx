@@ -39,6 +39,7 @@ import { CanvasStage } from './canvas/CanvasStage';
 import { FirstThreadTour } from './FirstThreadTour';
 import { DecorGenerationToast } from './DecorGenerationToast';
 import { DecorRecolorModal } from './DecorRecolorModal';
+import { DecorSwapModal } from './DecorSwapModal';
 import { IconSwapModal } from './IconSwapModal';
 import { HotelQuickEditModal } from './HotelQuickEditModal';
 import { PearNudges } from './PearNudges';
@@ -635,6 +636,7 @@ export function EditorV8({
       <FirstThreadTour siteSlug={siteSlug} />
       <DecorGenerationToast />
       <DecorRecolorModal manifest={manifest} onEditField={(patch) => setManifest((m) => patch(m))} />
+      <DecorSwapModal manifest={manifest} onEditField={(patch) => setManifest((m) => patch(m))} />
       <IconSwapModal manifest={manifest} onEditField={(patch) => setManifest((m) => patch(m))} />
       <HotelQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
       <FaqQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />

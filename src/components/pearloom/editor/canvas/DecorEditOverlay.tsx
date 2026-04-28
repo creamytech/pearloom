@@ -4,19 +4,21 @@
 // DecorEditOverlay — generalized canvas affordance for every AI
 // art surface. Wraps the rendered art (stamp, divider, footer
 // bouquet, hero flourish, confetti, sticker) and reveals on
-// hover a small chip with three actions:
+// hover a small chip with two actions:
 //
-//   ✎ Recolor   — opens the recolor flow (gpt-image-2 edit pass
-//                  with a target palette pulled from the theme)
-//   ⟳ Regenerate — jumps the inspector to the Decor Library
-//                  scoped to this asset's slot so the host can
-//                  redraft from scratch
+//   ⤥ Swap      — opens the DecorSwapModal so the host can pick
+//                  any other piece in their asset library —
+//                  uploads, AI marks, editorial scenes — and
+//                  apply it to this surface. Same UX as swapping
+//                  any other icon on the canvas.
 //   × Hide       — toggles manifest.decorVisibility[key] off so
 //                  the surface no longer renders
 //
-// Replaces the divider-specific DecorDividerEditOverlay which
-// only handled one surface. Same UX language across every AI
-// art surface so the editor reads as one consistent system.
+// Recolor + regenerate were moved out of the canvas entirely
+// (they read as too aggressive for a click-on-art interaction).
+// Hosts who want either now go through the Decor Library or
+// Pear directly. Click-on-canvas → swap-from-library is the
+// only canvas-side action now.
 // ─────────────────────────────────────────────────────────────
 
 import { useState, type ReactNode } from 'react';
@@ -48,8 +50,6 @@ interface Props {
   children: ReactNode;
 }
 
-const DECOR_LIBRARY_ANCHOR = '[data-pl-decor-library]';
-
 export function DecorEditOverlay({
   visibilityKey,
   kind,
@@ -74,22 +74,13 @@ export function DecorEditOverlay({
     });
   }
 
-  function handleRegenerate() {
+  function handleSwap() {
     if (typeof window === 'undefined') return;
-    window.dispatchEvent(new CustomEvent('pearloom:inspector-focus', { detail: { blockKey: 'theme' } }));
-    setTimeout(() => {
-      const el = document.querySelector(DECOR_LIBRARY_ANCHOR);
-      el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 240);
-  }
-
-  function handleRecolor() {
-    if (typeof window === 'undefined' || !url) return;
-    // Surface a recolor request via a global event so the
-    // inspector picks it up and opens the recolor modal scoped
-    // to this exact asset. Implementation in DecorRecolorModal
-    // (mounted at the editor root).
-    window.dispatchEvent(new CustomEvent('pearloom:decor-recolor', {
+    // Surface a swap request via a global event. DecorSwapModal
+    // (mounted at the editor root) listens, opens the library,
+    // and writes the picked URL back to the same manifest path
+    // this overlay's visibilityKey corresponds to.
+    window.dispatchEvent(new CustomEvent('pearloom:decor-swap', {
       detail: { kind, url, visibilityKey, label },
     }));
   }
@@ -123,23 +114,13 @@ export function DecorEditOverlay({
           zIndex: 30,
         }}
       >
-        {url && (
-          <button
-            type="button"
-            onClick={handleRecolor}
-            title="Recolor with theme palette"
-            style={chipStyle}
-          >
-            <ColorIcon /> Recolor
-          </button>
-        )}
         <button
           type="button"
-          onClick={handleRegenerate}
-          title="Open the Decor Library"
+          onClick={handleSwap}
+          title="Swap for another piece in your library"
           style={chipStyle}
         >
-          <RefreshIcon /> Regenerate
+          <SwapIcon /> Swap
         </button>
         <button
           type="button"
@@ -169,19 +150,13 @@ const chipStyle: React.CSSProperties = {
   fontFamily: 'inherit',
 };
 
-function ColorIcon() {
+function SwapIcon() {
   return (
     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <circle cx="13.5" cy="6.5" r="2.5" /><circle cx="17.5" cy="10.5" r="2.5" /><circle cx="13.5" cy="14.5" r="2.5" />
-      <path d="M3 21l4-4M3 21h6" />
-    </svg>
-  );
-}
-function RefreshIcon() {
-  return (
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" />
-      <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" />
+      <polyline points="17 1 21 5 17 9" />
+      <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+      <polyline points="7 23 3 19 7 15" />
+      <path d="M21 13v2a4 4 0 0 1-4 4H3" />
     </svg>
   );
 }

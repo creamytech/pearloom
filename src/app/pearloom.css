@@ -2655,3 +2655,91 @@ html { scroll-behavior: smooth; }
   font-family: var(--font-ui);
   box-shadow: 0 6px 18px -4px rgba(14, 13, 11, 0.4);
 }
+
+/* ──────────────────────────────────────────────────────────────
+   Editor phone preview parity
+   ──────────────────────────────────────────────────────────────
+   The canvas device toggle narrows the frame to 390px, but most
+   site CSS uses @media (max-width: ...) which sees the editor's
+   *window* width, not the frame width. Result: phone preview
+   showed desktop layout. Until every site rule is rewritten as
+   @container pl-site, this block mirrors the most-used mobile
+   breakpoints under the `[data-device="phone"]` attribute the
+   canvas frame already carries — so phone preview gains parity
+   with what real-mobile guests see. Real mobile devices keep
+   firing the @media versions; this is purely additive. ────── */
+.pl8-canvas-device-frame[data-device="phone"] .pl8-guest section[id] {
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+}
+.pl8-canvas-device-frame[data-device="phone"] .pl8-guest li {
+  line-height: 1.65;
+}
+.pl8-canvas-device-frame[data-device="phone"] .pl8-guest .pl8-hero-strip {
+  gap: 6px !important;
+}
+/* Hero typography — clamp the display size against the *frame*,
+   not the editor window, so 390px-wide preview shows the same
+   tight headline a real phone gets. */
+.pl8-canvas-device-frame[data-device="phone"] .pl8-guest h1,
+.pl8-canvas-device-frame[data-device="phone"] .pl8-guest h2 {
+  font-size: clamp(2rem, 8cqw, 3.4rem) !important;
+  line-height: 1.05 !important;
+  letter-spacing: -0.02em;
+}
+.pl8-canvas-device-frame[data-device="phone"] .pl8-guest h3 {
+  font-size: clamp(1.4rem, 5cqw, 1.9rem) !important;
+}
+/* Multi-column grids → single column at phone width. Uses an
+   attribute selector so any inline style="display:grid; grid-
+   template-columns:repeat(N,1fr)" collapses cleanly. */
+.pl8-canvas-device-frame[data-device="phone"] .pl8-guest [class*="pl8-cols-"] {
+  grid-template-columns: 1fr !important;
+}
+/* The bento gallery reads as one tall stack on phones — match
+   the site's mobile layout. */
+.pl8-canvas-device-frame[data-device="phone"] .pl8-guest .pl8-gallery-grid {
+  grid-template-columns: 1fr !important;
+  grid-auto-rows: 220px !important;
+}
+.pl8-canvas-device-frame[data-device="phone"] .pl8-guest .pl8-gallery-grid > * {
+  grid-column: auto !important;
+  grid-row: auto !important;
+}
+/* Touch-target floor — every interactive element has at least
+   44x44px of tap zone, matching real-mobile WCAG guidance. */
+.pl8-canvas-device-frame[data-device="phone"] .pl8-guest button,
+.pl8-canvas-device-frame[data-device="phone"] .pl8-guest a[role="button"],
+.pl8-canvas-device-frame[data-device="phone"] .pl8-guest [role="button"] {
+  min-height: 44px;
+}
+/* Sticky RSVP pill anchors lower on phones to clear the system
+   gesture bar. */
+.pl8-canvas-device-frame[data-device="phone"] .pl8-guest .pl8-sticky-rsvp {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+  right: 16px;
+}
+/* Reading-progress thread is thicker on phones for visibility. */
+.pl8-canvas-device-frame[data-device="phone"] .pl8-guest .pl8-reading-progress {
+  height: 3px;
+}
+/* The nav collapses to a drawer below ~640px. Mirror that here. */
+.pl8-canvas-device-frame[data-device="phone"] .pl8-guest [data-pl-nav-links] {
+  display: none !important;
+}
+.pl8-canvas-device-frame[data-device="phone"] .pl8-guest [data-pl-nav-mobile-trigger] {
+  display: inline-flex !important;
+}
+/* Any element relying on flex row → wrap or stack on phones.
+   Catches travel hotel cards, FAQ pairs, registry cards, etc. */
+.pl8-canvas-device-frame[data-device="phone"] .pl8-guest .pl8-flex-row {
+  flex-direction: column !important;
+  gap: 14px !important;
+}
+/* Larger tap-friendly form controls. */
+.pl8-canvas-device-frame[data-device="phone"] .pl8-guest input,
+.pl8-canvas-device-frame[data-device="phone"] .pl8-guest textarea,
+.pl8-canvas-device-frame[data-device="phone"] .pl8-guest select {
+  font-size: 16px !important; /* prevents iOS zoom-in */
+  padding: 12px 14px !important;
+}
