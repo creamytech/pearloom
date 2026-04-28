@@ -107,6 +107,20 @@ const QUICK_ACTIONS: Array<{ key: QuickActionKey; label: string; icon: string; h
   { key: 'polish-hero', label: 'Polish my hero',   icon: 'pencil',   helpful: 'A focused pass on the hero copy + names + tagline.' },
 ];
 
+// Slash-command shortcuts. Each one expands the draft into a
+// focused prompt so Pear knows exactly what kind of pass to
+// make. Names + paths follow the patch.ts convention so any
+// resulting pearloom:patch block applies cleanly.
+const SLASH_COMMANDS: Array<{ command: string; label: string; template: string }> = [
+  { command: '/hero',        label: 'Polish hero tagline + welcome line',                 template: 'Rewrite my hero tagline + welcome line in a warmer, more specific voice that matches the rest of the site.' },
+  { command: '/tagline',     label: 'Write a fresh hero tagline',                         template: 'Write me a fresh hero tagline — short, in our voice, no "celebrate with us" cliché.' },
+  { command: '/closing',     label: 'Polish the closing line',                            template: 'Rewrite the closing line at the bottom of the site — heartfelt, brief, no filler.' },
+  { command: '/faq',         label: 'Draft 5 FAQ items',                                  template: 'Draft 5 FAQ items guests would actually ask about my event. Reference the venue + occasion.' },
+  { command: '/chapter',     label: 'Polish a specific chapter (chapter <n>)',            template: 'Polish chapter 0 — keep the bones, sharpen the voice, cut anything that reads as filler.' },
+  { command: '/dresscode',   label: 'Suggest dress-code copy',                            template: 'Suggest dress-code copy — formal but warm, with one specific line about footwear or weather.' },
+  { command: '/help',        label: 'List the slash commands',                            template: 'List the slash commands available in this chat.' },
+];
+
 export function DesignAdvisor({
   manifest,
   names,
@@ -696,6 +710,53 @@ export function DesignAdvisor({
               </button>
             </div>
           )}
+          {/* Slash-command picker — surfaces when the draft starts
+              with "/". Each chip is a templated prompt the host
+              can pick to skip the prose. Hidden otherwise so the
+              chat doesn't feel like a CLI by default. */}
+          {draft.startsWith('/') && (
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 4,
+                padding: '4px 0',
+              }}
+            >
+              {SLASH_COMMANDS
+                .filter((c) => c.command.startsWith(draft.split(' ')[0]))
+                .map((c) => (
+                  <button
+                    key={c.command}
+                    type="button"
+                    onClick={() => {
+                      setDraft(c.template);
+                      inputRef.current?.focus();
+                    }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '4px 10px',
+                      borderRadius: 999,
+                      background: 'var(--card)',
+                      border: '1px solid var(--peach-ink, #C6703D)',
+                      color: 'var(--peach-ink, #C6703D)',
+                      fontSize: 11,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    <span style={{ fontWeight: 800 }}>{c.command}</span>
+                    <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 500, color: 'var(--ink-soft)', letterSpacing: 0 }}>
+                      {c.label}
+                    </span>
+                  </button>
+                ))}
+            </div>
+          )}
           <div
             style={{
               display: 'flex',
@@ -718,7 +779,7 @@ export function DesignAdvisor({
                   void sendChat(draft);
                 }
               }}
-              placeholder={chat.length === 0 ? 'Ask Pear anything — “rewrite my hero tagline warmer” or “draft 3 FAQs”' : 'Reply to Pear…'}
+              placeholder={chat.length === 0 ? 'Ask Pear anything — try /faq, /hero, or "rewrite my tagline warmer"' : 'Reply to Pear…'}
               rows={1}
               style={{
                 flex: 1,

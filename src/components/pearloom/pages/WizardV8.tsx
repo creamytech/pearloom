@@ -23,6 +23,13 @@ import { WizardLocationAutocomplete } from '../wizard/WizardLocationAutocomplete
 import { WizardDatePicker } from '../wizard/WizardDatePicker';
 import { GeneratingScreen } from '../wizard/GeneratingScreen';
 import { useBackgroundCook, readCookedDecor } from '../wizard/useBackgroundCook';
+import {
+  useBackgroundManifest,
+  buildManifestSignature,
+  readCookedManifest,
+  type ManifestCookContext,
+  type ManifestCookBody,
+} from '../wizard/useBackgroundManifest';
 import { BackgroundCookPill } from '../wizard/BackgroundCookPill';
 
 const STEPS = ['Occasion', 'Basics', 'Details', 'Photos', 'Vibe', 'Palette', 'Layout', 'Review'] as const;
@@ -1120,6 +1127,109 @@ export function WizardV8() {
         }
       : null;
   const cookStatus = useBackgroundCook(cookSig);
+
+  // Speculative manifest pre-warm — kicks the full /api/generate
+  // /stream pipeline once the host has all the required inputs
+  // (photos + names + occasion + vibes + palette). The cooked
+  // manifest lands in sessionStorage; if the host doesn't change
+  // inputs before tapping Generate, we skip the foreground fetch
+  // entirely and land in the editor instantly.
+  const readyPhotosForCook = useMemo(
+    () => st.photos.filter((p) => p.url && !p.uploading),
+    [st.photos],
+  );
+  const manifestCookInput = useMemo<ManifestCookBody | null>(() => {
+    if (
+      readyPhotosForCook.length === 0 ||
+      !st.names[0] ||
+      !st.occasion ||
+      !st.vibes.length ||
+      !st.paletteColors ||
+      st.paletteColors.length === 0
+    ) {
+      return null;
+    }
+    const photosPayload = readyPhotosForCook.map((p) => ({
+      mediaId: p.id,
+      baseUrl: p.url,
+      filename: p.name ?? p.id,
+      mimeType: p.mimeType ?? 'image/jpeg',
+      width: p.width ?? 1200,
+      height: p.height ?? 1200,
+      creationTime: p.takenAt,
+      description: p.caption,
+    }));
+    const clusters = [
+      {
+        id: 'c-all',
+        photos: photosPayload,
+        timeRange: st.eventDate || new Date().toISOString(),
+        locationLabel: st.location || undefined,
+      },
+    ];
+    const vibeString = st.vibes.join(', ') || 'warm, celebratory';
+    const e = getEventType(st.occasion as never);
+    const category = e?.category;
+    const ctx: ManifestCookContext = {
+      photoIds: readyPhotosForCook.map((p) => p.id),
+      names: st.names,
+      occasion: st.occasion,
+      category,
+      vibes: st.vibes,
+      paletteColors: st.paletteColors,
+      templateId: st.templateId,
+      layout: st.layout,
+      eventDate: st.eventDate,
+      eventVenue: st.location,
+    };
+    return {
+      ctx,
+      body: {
+        photos: photosPayload,
+        clusters,
+        vibeString,
+        vibeName: vibeString,
+        names: st.names,
+        occasion: st.occasion,
+        category,
+        eventDate: st.eventDate || undefined,
+        eventVenue: st.location || undefined,
+        hostRole: 'principal',
+        factSheet: {
+          howWeMet: st.howWeMet,
+          why: st.whyCelebrate,
+          favorite: st.favoriteMemory,
+        },
+        eventDetails: {
+          days: st.detailDays,
+          livestreamUrl: st.detailLivestreamUrl,
+          inMemoryOf: st.detailInMemoryOf,
+          school: st.detailSchool,
+        },
+        layoutFormat: st.layout,
+        templateId: st.templateId,
+        selectedPaletteColors: st.paletteColors,
+      },
+    };
+  }, [
+    readyPhotosForCook,
+    st.names,
+    st.occasion,
+    st.vibes,
+    st.paletteColors,
+    st.templateId,
+    st.layout,
+    st.eventDate,
+    st.location,
+    st.howWeMet,
+    st.whyCelebrate,
+    st.favoriteMemory,
+    st.detailDays,
+    st.detailLivestreamUrl,
+    st.detailInMemoryOf,
+    st.detailSchool,
+  ]);
+  const manifestStatus = useBackgroundManifest(manifestCookInput);
   const [genStep, setGenStep] = useState<string>('');
   const [generatedTagline, setGeneratedTagline] = useState<string>('');
   const [taglineState, setTaglineState] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
@@ -1284,6 +1394,44 @@ export function WizardV8() {
       let manifest: Record<string, unknown>;
 
       if (hasPhotos) {
+        // Speculative manifest pre-warm — if the background hook
+        // already cooked a manifest for the same signature, skip
+        // the foreground fetch entirely. The 1-2 minute generation
+        // wait collapses to ~600ms because we just hand the cached
+        // result to the editor.
+        const liveSig = manifestCookInput ? buildManifestSignature(manifestCookInput.ctx) : null;
+        const cachedPrewarm = liveSig ? readCookedManifest(liveSig) : null;
+        if (cachedPrewarm) {
+          setGenStep('Pear already prepared this — opening the editor…');
+          // Still fold in any cooked decor that may have arrived
+          // separately so the editor opens fully populated.
+          if (cookSig) {
+            const decorRaw = readCookedDecor(cookSig);
+            if (decorRaw && typeof decorRaw === 'object') {
+              const lib: Record<string, unknown> = {
+                ...((cachedPrewarm as { decorLibrary?: Record<string, unknown> }).decorLibrary ?? {}),
+                updatedAt: new Date().toISOString(),
+              };
+              const d = decorRaw as Record<string, unknown>;
+              if (typeof d.divider === 'string') lib.divider = d.divider;
+              if (typeof d.confetti === 'string') lib.confetti = d.confetti;
+              if (typeof d.footerBouquet === 'string') lib.footerBouquet = d.footerBouquet;
+              if (d.sectionStamps && typeof d.sectionStamps === 'object') {
+                const stamps: Record<string, string> = {};
+                for (const [k, v] of Object.entries(d.sectionStamps as Record<string, unknown>)) {
+                  if (typeof v === 'string') stamps[k] = v;
+                }
+                if (Object.keys(stamps).length) lib.sectionStamps = stamps;
+              }
+              (cachedPrewarm as { decorLibrary?: Record<string, unknown> }).decorLibrary = lib;
+            }
+          }
+          manifest = cachedPrewarm as unknown as Record<string, unknown>;
+          // Tiny visual settle so the GeneratingScreen doesn't
+          // flash for 50ms — feels like real progress.
+          await new Promise((r) => setTimeout(r, 600));
+          // Skip the rest of the pipeline; jump to the publish path.
+        } else {
         // Full AI pipeline — stream generate returns a populated
         // manifest with chapters, story, logistics, poetry, etc.
         const photosPayload = readyPhotos.map((p) => ({
@@ -1414,6 +1562,7 @@ export function WizardV8() {
           themeFamily: (resolvedManifest as { themeFamily?: string }).themeFamily ?? 'v8',
           templateId: st.templateId,
         };
+        } // end "no cached pre-warm — full pipeline" branch
       } else {
         // Skeleton path — no photos → no AI pass. Seed what we can
         // so the editor opens with enough for the user to write.
