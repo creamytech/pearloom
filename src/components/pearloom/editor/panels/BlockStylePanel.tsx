@@ -45,6 +45,28 @@ const RADIUS_OPTIONS = [
   { id: 'pillow',  label: 'Pillow'  },
 ] as const;
 
+const SHADOW_OPTIONS = [
+  { id: '',         label: 'Inherit'  },
+  { id: 'none',     label: 'Flat'     },
+  { id: 'soft',     label: 'Soft'     },
+  { id: 'lifted',   label: 'Lifted'   },
+  { id: 'floating', label: 'Floating' },
+] as const;
+
+const BORDER_OPTIONS = [
+  { id: '',         label: 'Inherit'  },
+  { id: 'none',     label: 'None'     },
+  { id: 'hairline', label: 'Hairline' },
+  { id: 'heavy',    label: 'Heavy'    },
+] as const;
+
+const PADDING_OPTIONS = [
+  { id: '',         label: 'Inherit'  },
+  { id: 'compact',  label: 'Compact'  },
+  { id: 'default',  label: 'Default'  },
+  { id: 'generous', label: 'Generous' },
+] as const;
+
 const MAX_WIDTH_OPTIONS = [
   { id: 0,    label: 'Inherit' },
   { id: 720,  label: 'Narrow (720)' },
@@ -148,6 +170,33 @@ export function BlockStylePanel({ manifest, blockId, label = 'Section style', on
           value={current.cardRadius ?? ''}
           options={RADIUS_OPTIONS as readonly { id: string; label: string }[]}
           onChange={(v) => set({ cardRadius: v || undefined })}
+        />
+      </Field>
+
+      {/* Card shadow */}
+      <Field label="Card shadow" help="From flat to floating — pick what reads with the rest of the section's chrome.">
+        <SegRow
+          value={current.cardShadow ?? ''}
+          options={SHADOW_OPTIONS as readonly { id: string; label: string }[]}
+          onChange={(v) => set({ cardShadow: v ? (v as 'none' | 'soft' | 'lifted' | 'floating') : undefined })}
+        />
+      </Field>
+
+      {/* Card border */}
+      <Field label="Card border">
+        <SegRow
+          value={current.cardBorder ?? ''}
+          options={BORDER_OPTIONS as readonly { id: string; label: string }[]}
+          onChange={(v) => set({ cardBorder: v ? (v as 'none' | 'hairline' | 'heavy') : undefined })}
+        />
+      </Field>
+
+      {/* Card padding */}
+      <Field label="Card padding">
+        <SegRow
+          value={current.cardPadding ?? ''}
+          options={PADDING_OPTIONS as readonly { id: string; label: string }[]}
+          onChange={(v) => set({ cardPadding: v ? (v as 'compact' | 'default' | 'generous') : undefined })}
         />
       </Field>
 

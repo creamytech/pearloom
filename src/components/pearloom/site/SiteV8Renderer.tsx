@@ -1813,9 +1813,10 @@ function DetailsCard({
     <div
       style={{
         background: 'var(--card)',
-        border: '1px solid var(--card-ring)',
+        border: 'var(--pl-block-card-border-width, 1px) solid var(--card-ring)',
         borderRadius: 'var(--pl-block-card-radius, var(--pl-card-radius, 20px))',
-        padding: 28,
+        boxShadow: 'var(--pl-block-card-shadow, none)',
+        padding: 'var(--pl-block-card-padding, 28px)',
         position: 'relative',
         color: 'var(--ink)',
         display: 'flex',
@@ -4188,13 +4189,18 @@ function HotelCard({
         display: 'grid',
         gridTemplateColumns: '120px 1fr',
         gap: 16,
-        padding: 14,
+        padding: 'var(--pl-block-card-padding, 14px)',
         borderRadius: 'var(--pl-block-card-radius, var(--pl-card-radius, 18px))',
         background: 'var(--card)',
-        border: isTop ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid var(--card-ring)',
+        // Border: when the host picks 'none' on a section, the var is '0'
+        // and the ring vanishes. The "Pear's pick" highlight wins so a
+        // top hotel still reads with its accent edge.
+        border: isTop
+          ? '1.5px solid var(--peach-ink, #C6703D)'
+          : 'var(--pl-block-card-border-width, 1px) solid var(--card-ring)',
         boxShadow: isTop
           ? '0 8px 24px -10px rgba(198,112,61,0.30), 0 0 0 4px rgba(198,112,61,0.06)'
-          : '0 4px 12px -8px rgba(14,13,11,0.18)',
+          : 'var(--pl-block-card-shadow, 0 4px 12px -8px rgba(14,13,11,0.18))',
         overflow: 'hidden',
         cursor: editMode ? 'pointer' : 'default',
       }}
@@ -4701,15 +4707,17 @@ function RegistryCard({
       style={{
         position: 'relative',
         background: 'var(--card)',
-        border: showMostLoved ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid var(--card-ring)',
+        border: showMostLoved
+          ? '1.5px solid var(--peach-ink, #C6703D)'
+          : 'var(--pl-block-card-border-width, 1px) solid var(--card-ring)',
         borderRadius: 'var(--pl-block-card-radius, var(--pl-card-radius, 20px))',
-        padding: 24,
+        padding: 'var(--pl-block-card-padding, 24px)',
         display: 'flex',
         flexDirection: 'column',
         gap: 14,
         boxShadow: showMostLoved
           ? '0 8px 24px -10px rgba(198,112,61,0.30), 0 0 0 4px rgba(198,112,61,0.06)'
-          : 'none',
+          : 'var(--pl-block-card-shadow, none)',
         cursor: editMode ? 'pointer' : 'default',
       }}
     >

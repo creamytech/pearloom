@@ -54,6 +54,34 @@ const CARD_RADIUS_PX: Record<string, number> = {
   pillow: 28,
 };
 
+// Card shadow presets. None / soft / lifted / floating layer up
+// from "no elevation" to "feels like it's hovering above the
+// page." Hosts pick per-section so a registry can read flat while
+// details cards lift.
+const CARD_SHADOWS: Record<string, string> = {
+  none: 'none',
+  soft: '0 2px 6px rgba(14,13,11,0.06), 0 1px 2px rgba(14,13,11,0.04)',
+  lifted: '0 8px 22px rgba(14,13,11,0.10), 0 3px 8px rgba(14,13,11,0.06)',
+  floating: '0 18px 40px rgba(14,13,11,0.14), 0 6px 14px rgba(14,13,11,0.08)',
+};
+
+// Card border weights. The 'none' option fully removes the ring;
+// hairline + heavy adjust the weight in px while keeping the
+// existing card-ring colour.
+const CARD_BORDERS: Record<string, string> = {
+  none: '0',
+  hairline: '1px',
+  heavy: '2px',
+};
+
+// Card padding scale. Cards opt into `padding: var(--pl-block-card-padding, …)`
+// to follow the host's pick.
+const CARD_PADDING_PX: Record<string, number> = {
+  compact: 16,
+  default: 24,
+  generous: 36,
+};
+
 export function BlockStyleWrapper({ manifest, blockId, children, as: Tag = 'div', style }: Props) {
   const override = readOverride(manifest, blockId);
   if (!override) {
@@ -84,6 +112,15 @@ export function BlockStyleWrapper({ manifest, blockId, children, as: Tag = 'div'
   }
   if (override.cardRadius && CARD_RADIUS_PX[override.cardRadius] != null) {
     cssVars['--pl-block-card-radius'] = `${CARD_RADIUS_PX[override.cardRadius]}px`;
+  }
+  if (override.cardShadow && CARD_SHADOWS[override.cardShadow] != null) {
+    cssVars['--pl-block-card-shadow'] = CARD_SHADOWS[override.cardShadow];
+  }
+  if (override.cardBorder && CARD_BORDERS[override.cardBorder] != null) {
+    cssVars['--pl-block-card-border-width'] = CARD_BORDERS[override.cardBorder];
+  }
+  if (override.cardPadding && CARD_PADDING_PX[override.cardPadding] != null) {
+    cssVars['--pl-block-card-padding'] = `${CARD_PADDING_PX[override.cardPadding]}px`;
   }
 
   // Spacing: additive padding on top of any explicit paddingY

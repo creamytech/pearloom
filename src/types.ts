@@ -51,6 +51,14 @@ export interface BlockStyleOverride {
   spacing?: string;
   /** Card corner radius override: 'sharp' | 'soft' | 'rounded' | 'pillow' */
   cardRadius?: string;
+  /** Card shadow weight: 'none' | 'soft' | 'lifted' | 'floating'.
+   *  Default (omitted) keeps the card's intrinsic shadow. Hosts pick
+   *  per-section so e.g. hotels can read flat while details lift. */
+  cardShadow?: 'none' | 'soft' | 'lifted' | 'floating';
+  /** Card border treatment: 'none' | 'hairline' | 'heavy'. */
+  cardBorder?: 'none' | 'hairline' | 'heavy';
+  /** Card interior padding: 'compact' | 'default' | 'generous'. */
+  cardPadding?: 'compact' | 'default' | 'generous';
   /** Horizontal alignment of section copy. */
   textAlign?: 'left' | 'center' | 'right';
   /** Override container max-width (px). Useful for narrowing prose-heavy
