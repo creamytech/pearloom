@@ -42,6 +42,7 @@ import { DecorRecolorModal } from './DecorRecolorModal';
 import { IconSwapModal } from './IconSwapModal';
 import { HotelQuickEditModal } from './HotelQuickEditModal';
 import { PearNudges } from './PearNudges';
+import { PearWelcome } from './PearWelcome';
 import { FaqQuickEditModal } from './FaqQuickEditModal';
 import { ScheduleQuickEditModal } from './ScheduleQuickEditModal';
 import { RegistryQuickEditModal } from './RegistryQuickEditModal';
@@ -813,9 +814,17 @@ export function EditorV8({
         manifest={manifest}
         names={names}
         siteSlug={siteSlug}
+        currentBlock={block}
         open={advisorOpen}
         onClose={() => setAdvisorOpen(false)}
         onApplyPatch={(next) => setManifest(() => next)}
+      />
+      {/* First-paint Pear welcome — fires once per site. Accept
+          opens the Companion + biases it toward "what's missing"
+          so fresh sites get a guided start. */}
+      <PearWelcome
+        siteSlug={siteSlug}
+        onAccept={() => setAdvisorOpen(true)}
       />
     </div>
   );

@@ -26,10 +26,28 @@ import { AISuggestButton, useAICall } from './ai';
 import { Icon, Pear } from '../motifs';
 import {
   applyPearPatchEnvelope,
+  extractFollowups,
   extractPatch,
   stripPatchFromText,
   type PearPatchEnvelope,
 } from './pear/patch';
+
+// Minimal Web Speech API typing — TS doesn't ship a built-in
+// declaration. Only the subset we use is modelled.
+interface SpeechRecognitionEvent {
+  resultIndex: number;
+  results: ArrayLike<{ isFinal: boolean; 0: { transcript: string }; length: number }>;
+}
+interface SpeechRecognitionLike {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((e: SpeechRecognitionEvent) => void) | null;
+  onend: (() => void) | null;
+  onerror: ((e: unknown) => void) | null;
+  start: () => void;
+  stop: () => void;
+}
 
 interface ChatMessage {
   id: string;
@@ -42,6 +60,10 @@ interface ChatMessage {
   /** Becomes true after the host clicks Apply. Keeps the chip
    *  visible as confirmation but disables further taps. */
   patchApplied?: boolean;
+  /** Up to 3 short suggested follow-ups Pear emitted after the
+   *  prose. Rendered as chips below the bubble; clicking sends
+   *  the follow-up text as the next prompt. */
+  followups?: string[];
 }
 
 type SuggestionCategory = 'palette' | 'typography' | 'content' | 'layout' | 'voice' | 'accessibility';
@@ -128,6 +150,8 @@ export function DesignAdvisor({
   onClose,
   onApplyPatch,
   siteSlug,
+  currentBlock,
+  selectedBlockIds,
 }: {
   manifest: StoryManifest;
   names: [string, string];
@@ -139,6 +163,12 @@ export function DesignAdvisor({
   /** Used to namespace conversation memory in localStorage so
    *  reopening Pear on the same site picks up where it left off. */
   siteSlug?: string;
+  /** Section the host is currently editing — passed to the chat
+   *  so Pear can answer "polish this" without the host having
+   *  to specify what. */
+  currentBlock?: string;
+  /** Specific block ids the host has selected on canvas. */
+  selectedBlockIds?: string[];
 }) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [activeAction, setActiveAction] = useState<QuickActionKey>('review');
@@ -146,8 +176,66 @@ export function DesignAdvisor({
   const [draft, setDraft] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
+  const [listening, setListening] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const voiceRecRef = useRef<unknown>(null);
+
+  // Web Speech API support detection. Only Chrome/Edge ship a
+  // working implementation (Firefox + Safari are gappy). We
+  // progressively render a mic button when the API is present.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const w = window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown };
+    if (w.SpeechRecognition || w.webkitSpeechRecognition) {
+      setVoiceSupported(true);
+    }
+  }, []);
+
+  function startVoice() {
+    if (typeof window === 'undefined' || listening) return;
+    const w = window as unknown as {
+      SpeechRecognition?: new () => SpeechRecognitionLike;
+      webkitSpeechRecognition?: new () => SpeechRecognitionLike;
+    };
+    const SpeechRecognition = w.SpeechRecognition || w.webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+    const rec = new SpeechRecognition();
+    rec.continuous = false;
+    rec.interimResults = true;
+    rec.lang = 'en-US';
+    let finalText = draft;
+    rec.onresult = (e) => {
+      let interim = '';
+      let final = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        const t = r[0]?.transcript ?? '';
+        if (r.isFinal) final += t; else interim += t;
+      }
+      if (final) finalText = (finalText ? finalText + ' ' : '') + final.trim();
+      // Show running interim text in the textarea while dictating.
+      setDraft((finalText + (interim ? ' ' + interim : '')).trimStart());
+    };
+    rec.onend = () => {
+      setListening(false);
+      setDraft(finalText.trim());
+      voiceRecRef.current = null;
+    };
+    rec.onerror = () => {
+      setListening(false);
+      voiceRecRef.current = null;
+    };
+    setListening(true);
+    rec.start();
+    voiceRecRef.current = rec;
+  }
+  function stopVoice() {
+    const rec = voiceRecRef.current as SpeechRecognitionLike | null;
+    if (rec) rec.stop();
+    setListening(false);
+  }
 
   // Persist + rehydrate chat per-site so reopening Pear feels
   // like a continuing thread, not a fresh session each time.
@@ -211,6 +299,10 @@ export function DesignAdvisor({
           coupleNames: names,
           prompt: userMsg.content,
           history: chat.slice(-6).map((m) => ({ role: m.role, content: m.content })),
+          context: {
+            block: currentBlock,
+            selectedIds: selectedBlockIds,
+          },
         }),
       });
       if (!res.ok || !res.body) {
@@ -243,19 +335,24 @@ export function DesignAdvisor({
           }
         }
       }
-      // Final pass — extract patch envelope after the stream
-      // ends so partial JSON during streaming doesn't trip
-      // extraction.
+      // Final pass — extract patch + follow-ups envelope after
+      // the stream ends so partial JSON during streaming doesn't
+      // trip extraction.
       const finalEnvelope = extractPatch(acc);
+      const finalFollowups = extractFollowups(acc);
       const finalDisplay = stripPatchFromText(acc);
-      setChat((prev) => prev.map((m) => (m.id === pearId ? { ...m, content: finalDisplay, patch: finalEnvelope } : m)));
+      setChat((prev) => prev.map((m) => (
+        m.id === pearId
+          ? { ...m, content: finalDisplay, patch: finalEnvelope, followups: finalFollowups }
+          : m
+      )));
     } catch (e) {
       setChatError(e instanceof Error ? e.message : 'Pear lost the thread');
       setChat((prev) => prev.filter((m) => m.id !== pearId));
     } finally {
       setStreaming(false);
     }
-  }, [manifest, names, chat, streaming]);
+  }, [manifest, names, chat, streaming, currentBlock, selectedBlockIds]);
 
   function applyChatPatch(messageId: string) {
     const target = chat.find((m) => m.id === messageId);
@@ -529,6 +626,10 @@ export function DesignAdvisor({
                   message={m}
                   canApply={!!onApplyPatch}
                   onApply={() => applyChatPatch(m.id)}
+                  onPickFollowup={(text) => {
+                    setDraft(text);
+                    void sendChat(text);
+                  }}
                 />
               ))}
               {streaming && chat[chat.length - 1]?.role === 'pear' && chat[chat.length - 1].content === '' && (
@@ -795,6 +896,34 @@ export function DesignAdvisor({
                 maxHeight: 120,
               }}
             />
+            {voiceSupported && (
+              <button
+                type="button"
+                onClick={() => (listening ? stopVoice() : startVoice())}
+                aria-label={listening ? 'Stop dictation' : 'Dictate to Pear'}
+                title={listening ? 'Stop dictation' : 'Dictate to Pear'}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 999,
+                  background: listening ? 'var(--peach-ink, #C6703D)' : 'transparent',
+                  color: listening ? '#FFFFFF' : 'var(--ink-muted)',
+                  border: listening ? '1px solid var(--peach-ink, #C6703D)' : '1px solid var(--line-soft)',
+                  cursor: 'pointer',
+                  display: 'grid',
+                  placeItems: 'center',
+                  flexShrink: 0,
+                  transition: 'all 160ms ease',
+                  animation: listening ? 'pl-pear-mic-pulse 1.4s ease-in-out infinite' : 'none',
+                }}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="9" y="2" width="6" height="12" rx="3" />
+                  <path d="M5 10v2a7 7 0 0 0 14 0v-2" />
+                  <line x1="12" y1="19" x2="12" y2="22" />
+                </svg>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => void sendChat(draft)}
@@ -856,6 +985,10 @@ export function DesignAdvisor({
             0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
             30%           { opacity: 1; transform: translateY(-2px); }
           }
+          @keyframes pl-pear-mic-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(198, 112, 61, 0); }
+            50%      { box-shadow: 0 0 0 6px rgba(198, 112, 61, 0.30); }
+          }
           @media (prefers-reduced-motion: reduce) {
             [aria-label="Pear, your design advisor"] aside { animation: none; }
             [aria-label="Pear, your design advisor"] { animation: none; }
@@ -871,10 +1004,12 @@ function ChatBubble({
   message,
   canApply,
   onApply,
+  onPickFollowup,
 }: {
   message: ChatMessage;
   canApply: boolean;
   onApply: () => void;
+  onPickFollowup: (text: string) => void;
 }) {
   const isUser = message.role === 'user';
   return (
@@ -985,6 +1120,38 @@ function ChatBubble({
               Applied
             </div>
           )}
+        </div>
+      )}
+      {/* Suggested follow-ups — Pear's "what next?" chip rail.
+          Only on Pear bubbles, only when the model emitted a
+          pearloom:followups block. Each chip becomes the next
+          prompt on click. */}
+      {message.role === 'pear' && message.followups && message.followups.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 2 }}>
+          {message.followups.map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => onPickFollowup(f)}
+              style={{
+                padding: '5px 10px',
+                borderRadius: 999,
+                background: 'transparent',
+                border: '1px solid var(--peach-ink, #C6703D)',
+                color: 'var(--peach-ink, #C6703D)',
+                fontSize: 11.5,
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'var(--font-ui)',
+                letterSpacing: '-0.005em',
+                transition: 'background 140ms ease',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(198,112,61,0.08)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+            >
+              {f}
+            </button>
+          ))}
         </div>
       )}
     </div>

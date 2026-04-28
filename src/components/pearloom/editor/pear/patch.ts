@@ -66,10 +66,37 @@ export function extractPatch(text: string): PearPatchEnvelope | null {
   return null;
 }
 
-/** Strips the patch fence out of streamed text so the prose part
- *  can be displayed without showing the JSON to the host. */
+/** Strips the patch + follow-ups fences out of streamed text so
+ *  the prose part can be displayed without showing the JSON to
+ *  the host. */
 export function stripPatchFromText(text: string): string {
-  return text.replace(FENCE_RX, '').trim();
+  return text
+    .replace(FENCE_RX, '')
+    .replace(FOLLOWUPS_RX, '')
+    .trim();
+}
+
+const FOLLOWUPS_RX = /```pearloom:followups\s*\n([\s\S]*?)\n```/;
+
+/** Pull up to 3 short follow-up suggestions out of the response.
+ *  Returns [] when no fence is present or the JSON is malformed. */
+export function extractFollowups(text: string): string[] {
+  const m = FOLLOWUPS_RX.exec(text);
+  if (!m) return [];
+  const raw = m[1].trim();
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed
+        .filter((s): s is string => typeof s === 'string')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0 && s.length <= 60)
+        .slice(0, 3);
+    }
+  } catch {
+    // ignore
+  }
+  return [];
 }
 
 /** Apply a single patch path → value to the manifest. Returns a

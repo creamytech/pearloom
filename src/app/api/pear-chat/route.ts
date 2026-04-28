@@ -33,6 +33,15 @@ interface ChatRequest {
   prompt: string;
   /** Up to ~6 recent messages so Pear has working memory. */
   history?: ChatMessage[];
+  /** What the host is currently editing on canvas. When set,
+   *  Pear biases its response toward that section so "polish
+   *  this" works without the host having to specify what. */
+  context?: {
+    /** The current block key — 'hero' | 'story' | 'travel' | … */
+    block?: string;
+    /** Specific block ids selected (multi-select on canvas). */
+    selectedIds?: string[];
+  };
 }
 
 const SYSTEM = `You are Pear, the Pearloom site assistant. You help a host design their wedding / celebration site.
@@ -66,6 +75,14 @@ Supported patch paths:
 - faqs (replace whole array — items: { id, question, answer, order })
 
 If the host is just asking a question (not requesting a change), DON'T include a patch block. Just answer in prose.
+
+After your prose response, you MAY include up to 3 short follow-up suggestions in another fenced block — only if they'd genuinely help the host's next move. Format:
+
+\`\`\`pearloom:followups
+["Polish my hero tagline", "Draft 3 FAQs", "Suggest hotel descriptions"]
+\`\`\`
+
+Each suggestion is a short imperative (under 36 chars). Skip the block when nothing useful comes to mind.
 
 Keep responses under 180 words unless the host explicitly asks for more.`;
 
@@ -108,6 +125,18 @@ export async function POST(req: NextRequest) {
   const summary = summariseManifest(body.manifest, body.coupleNames);
   const history = (body.history ?? []).slice(-6);
 
+  // Stitch a short "you're currently looking at X" line into the
+  // user turn so Pear naturally biases responses toward that
+  // section. Skipped when no context — chat falls back to
+  // whole-site mode.
+  const contextLine = body.context?.block
+    ? `\n\n(I'm currently editing the "${body.context.block}" section.${
+        body.context.selectedIds?.length
+          ? ` Selected blocks: ${body.context.selectedIds.slice(0, 5).join(', ')}.`
+          : ''
+      })`
+    : '';
+
   // Build Gemini contents: alternating user/model with the
   // running history, then the new user turn that re-anchors with
   // the latest manifest summary so Pear always sees current state.
@@ -120,7 +149,7 @@ export async function POST(req: NextRequest) {
   }
   contents.push({
     role: 'user',
-    parts: [{ text: `Current site state:\n\n${summary}\n\n---\n\nMy question:\n${body.prompt}` }],
+    parts: [{ text: `Current site state:\n\n${summary}${contextLine}\n\n---\n\nMy question:\n${body.prompt}` }],
   });
 
   // Stream from Gemini's streamGenerateContent endpoint and
