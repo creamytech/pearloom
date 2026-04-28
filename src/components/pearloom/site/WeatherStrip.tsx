@@ -41,9 +41,21 @@ interface Props {
   date: string | undefined;
   unit?: 'fahrenheit' | 'celsius';
   city?: string;
+  /** Voice override — 'poetic' is the default editorial column;
+   *  'plain' drops the metaphors; 'brief' is one short sentence. */
+  voice?: 'poetic' | 'plain' | 'brief';
+  /** Glyph treatment — line is the default; 'filled' uses the
+   *  filled glyph variants; 'none' hides the glyph entirely so
+   *  the line reads as pure prose. */
+  glyph?: 'line' | 'filled' | 'none';
+  /** Hide the strip on the day-of? Hosts of memorials sometimes
+   *  prefer to remove forecast chatter once the day arrives. */
+  hideOnDay?: boolean;
 }
 
-export function WeatherStrip({ lat, lng, date, unit = 'fahrenheit', city }: Props) {
+// Day-of detection — daysOut is computed below; if hideOnDay is set
+// and we're within 1 day of the event, return null entirely.
+export function WeatherStrip({ lat, lng, date, unit = 'fahrenheit', city, voice = 'poetic', glyph = 'line', hideOnDay }: Props) {
   const [climate, setClimate] = useState<ClimateNormals | null>(null);
   const [forecast, setForecast] = useState<DayForecast | null>(null);
   const [climateError, setClimateError] = useState(false);
@@ -108,18 +120,25 @@ export function WeatherStrip({ lat, lng, date, unit = 'fahrenheit', city }: Prop
   if (lat == null || lng == null) return null;
   if (climateError && !forecast) return null;
   if (!climate && !forecast) return null;
+  // Day-of suppression — host opt-in. Two days before through one
+  // day after the event, hide the strip if hideOnDay is true.
+  if (hideOnDay && Math.abs(daysOut) <= 1) return null;
 
   // Pick the glyph from whichever data we have. Forecast wins
   // when present (it's the most relevant signal) — otherwise the
   // climate-normal dominant code.
   const glyphCode = forecast?.code ?? climate?.dominantCode ?? 0;
 
-  // Compose the editorial line. Climate sentence is always first
-  // (it's the broader context); forecast sentence appends when
-  // available. Both written in Pearloom voice — observational,
-  // not technical.
-  const climateLine = climate ? composeClimateLine(climate, date) : null;
-  const forecastLine = forecast ? composeForecastLine(forecast, climate?.unit ?? unit) : null;
+  // Compose the editorial line. Voice picks one of three registers:
+  //   poetic — full editorial column with metaphor
+  //   plain  — same facts, no metaphor (just observed numbers)
+  //   brief  — one short sentence, no follow-up forecast
+  // Climate sentence is always first (it's the broader context);
+  // forecast sentence appends when available — except in brief.
+  const climateLine = climate ? composeClimateLine(climate, date, voice) : null;
+  const forecastLine = forecast && voice !== 'brief'
+    ? composeForecastLine(forecast, climate?.unit ?? unit)
+    : null;
 
   return (
     <div
@@ -137,7 +156,7 @@ export function WeatherStrip({ lat, lng, date, unit = 'fahrenheit', city }: Prop
         margin: '24px auto 0',
       }}
     >
-      <WeatherGlyph code={glyphCode} size={28} />
+      {glyph !== 'none' && <WeatherGlyph code={glyphCode} size={28} filled={glyph === 'filled'} />}
       <p
         style={{
           margin: 0,
@@ -164,15 +183,17 @@ export function WeatherStrip({ lat, lng, date, unit = 'fahrenheit', city }: Prop
 
 // ── Voice composition ─────────────────────────────────────────
 
-function composeClimateLine(c: ClimateNormals, isoDate: string): string {
+function composeClimateLine(c: ClimateNormals, isoDate: string, voice: 'poetic' | 'plain' | 'brief' = 'poetic'): string {
   const symbol = c.unit === 'fahrenheit' ? '°' : '°';
   const monthWord = monthBucketFor(isoDate);
   const summary = c.summary.toLowerCase();
-  // Map 22% rain probability → human language. "About 1-in-5"
-  // reads more naturally than "22% chance of rain".
   const rainPhrase = rainPhraseFor(c.rainProbability);
-  // Lead with the venue's mood for that time of year, then drop
-  // the actual numbers in the next clause.
+  if (voice === 'brief') {
+    return `Around ${monthWord}: ${c.avgHigh}${symbol} day, ${c.avgLow}${symbol} night.`;
+  }
+  if (voice === 'plain') {
+    return `Around ${monthWord}, average highs near ${c.avgHigh}${symbol} and lows near ${c.avgLow}${symbol}${rainPhrase ? ' (' + rainPhrase + ')' : ''}.`;
+  }
   return `Around ${monthWord} this corner tends to land ${summary} — afternoons near ${c.avgHigh}${symbol}, evenings cooling to about ${c.avgLow}${symbol}${rainPhrase ? ', ' + rainPhrase : ''}.`;
 }
 
@@ -228,15 +249,18 @@ function labelFor(code: number): string {
 // editorial line they sit beside. Replace the default emoji set
 // (☀️ ⛅ 🌧️ etc) so the page never reads as iOS-system.
 
-function WeatherGlyph({ code, size = 28 }: { code: number; size?: number }) {
+function WeatherGlyph({ code, size = 28, filled = false }: { code: number; size?: number; filled?: boolean }) {
   const stroke = 'var(--olive, #5C6B3F)';
   const accent = 'var(--peach-ink, #C6703D)';
   const sw = 1.6;
+  // Filled variant uses olive at 0.18 alpha as a subtle wash behind
+  // the line drawing — same shape, more presence. Keeps stroke
+  // visible so reduced-contrast viewers still see the icon outline.
   const props = {
     width: size,
     height: size,
     viewBox: '0 0 32 32',
-    fill: 'none' as const,
+    fill: filled ? 'rgba(92,107,63,0.18)' : ('none' as const),
     stroke,
     strokeWidth: sw,
     strokeLinecap: 'round' as const,

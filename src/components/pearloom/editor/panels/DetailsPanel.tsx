@@ -259,9 +259,102 @@ export function DetailsPanel({
           <Icon name="plus" size={11} /> Add a card
         </button>
       </PanelSection>
+
+      <WeatherStyleSection manifest={manifest} onChange={onChange} />
     </PanelGroup>
   );
 }
+
+// ── WeatherStyleSection ───────────────────────────────────────
+// Lives at the bottom of the Details panel — controls the small
+// weather strip that renders below the Details cards. Voice +
+// glyph treatment + day-of suppression. Stored at
+// manifest.weatherStyle so the renderer reads it directly.
+function WeatherStyleSection({
+  manifest,
+  onChange,
+}: {
+  manifest: StoryManifest;
+  onChange: (m: StoryManifest) => void;
+}) {
+  type WS = { voice?: 'poetic' | 'plain' | 'brief'; glyph?: 'line' | 'filled' | 'none'; hideOnDay?: boolean };
+  const ws = (manifest as unknown as { weatherStyle?: WS }).weatherStyle ?? {};
+  function set(patch: Partial<WS>) {
+    const next: WS = { ...ws, ...patch };
+    Object.keys(next).forEach((k) => {
+      const v = (next as Record<string, unknown>)[k];
+      if (v === undefined || v === '') delete (next as Record<string, unknown>)[k];
+    });
+    onChange({ ...manifest, weatherStyle: Object.keys(next).length ? next : undefined } as unknown as StoryManifest);
+  }
+  return (
+    <PanelSection
+      label="Weather strip"
+      hint="The single editorial line below the cards. Voice + glyph + when to hide."
+    >
+      <Field label="Voice">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
+          {(['poetic', 'plain', 'brief'] as const).map((v) => {
+            const on = (ws.voice ?? 'poetic') === v;
+            return (
+              <button
+                key={v}
+                type="button"
+                onClick={() => set({ voice: v === 'poetic' ? undefined : v })}
+                style={voiceBtn(on)}
+              >
+                {v[0].toUpperCase() + v.slice(1)}
+              </button>
+            );
+          })}
+        </div>
+      </Field>
+      <Field label="Glyph">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
+          {(['line', 'filled', 'none'] as const).map((g) => {
+            const on = (ws.glyph ?? 'line') === g;
+            return (
+              <button
+                key={g}
+                type="button"
+                onClick={() => set({ glyph: g === 'line' ? undefined : g })}
+                style={voiceBtn(on)}
+              >
+                {g[0].toUpperCase() + g.slice(1)}
+              </button>
+            );
+          })}
+        </div>
+      </Field>
+      <Field label="Day-of">
+        <button
+          type="button"
+          onClick={() => set({ hideOnDay: ws.hideOnDay ? undefined : true })}
+          style={{
+            ...voiceBtn(!!ws.hideOnDay),
+            width: '100%',
+            justifyContent: 'flex-start',
+            padding: '8px 12px',
+          }}
+        >
+          {ws.hideOnDay ? '✓ Hide the strip on the day-of' : 'Keep the strip showing on the day-of'}
+        </button>
+      </Field>
+    </PanelSection>
+  );
+}
+
+const voiceBtn = (on: boolean): React.CSSProperties => ({
+  padding: '6px 8px',
+  borderRadius: 6,
+  background: on ? 'var(--ink, #0E0D0B)' : 'var(--card)',
+  color: on ? 'var(--cream, #FBF7EE)' : 'var(--ink-soft)',
+  border: `1px solid ${on ? 'var(--ink, #0E0D0B)' : 'var(--line)'}`,
+  cursor: 'pointer',
+  fontSize: 11,
+  fontWeight: on ? 700 : 600,
+  fontFamily: 'var(--font-ui)',
+});
 
 function CustomCardEditor({
   card,

@@ -67,6 +67,22 @@ const PADDING_OPTIONS = [
   { id: 'generous', label: 'Generous' },
 ] as const;
 
+const SHAPE_OPTIONS = [
+  { id: '',        label: 'Default' },
+  { id: 'pillow',  label: 'Pillow'  },
+  { id: 'sharp',   label: 'Sharp'   },
+  { id: 'scallop', label: 'Scallop' },
+  { id: 'arch',    label: 'Arch'    },
+] as const;
+
+const BACKDROP_OPTIONS = [
+  { id: '',           label: 'Inherit'  },
+  { id: 'paper',      label: 'Paper'    },
+  { id: 'cream-2',    label: 'Cream'    },
+  { id: 'vellum',     label: 'Vellum'   },
+  { id: 'gold-mist',  label: 'Gold mist' },
+] as const;
+
 const MAX_WIDTH_OPTIONS = [
   { id: 0,    label: 'Inherit' },
   { id: 720,  label: 'Narrow (720)' },
@@ -197,6 +213,28 @@ export function BlockStylePanel({ manifest, blockId, label = 'Section style', on
           value={current.cardPadding ?? ''}
           options={PADDING_OPTIONS as readonly { id: string; label: string }[]}
           onChange={(v) => set({ cardPadding: v ? (v as 'compact' | 'default' | 'generous') : undefined })}
+        />
+      </Field>
+
+      {/* Card silhouette — different language than radius. Pillow
+          rounds harder than 'rounded' radius; scallop gives a wavy
+          edge; arch keeps the bottom flat with a rounded top. */}
+      <Field label="Card shape" help="Goes beyond corner radius — scallop gives wavy edges, arch curves only the top.">
+        <SegRow
+          value={current.cardShape ?? ''}
+          options={SHAPE_OPTIONS as readonly { id: string; label: string }[]}
+          onChange={(v) => set({ cardShape: v ? (v as 'pillow' | 'sharp' | 'scallop' | 'arch') : undefined })}
+        />
+      </Field>
+
+      {/* Card backdrop — adds a subtle tint layer behind the card
+          without affecting any other style. Useful when cards live
+          on a section's main background and need separation. */}
+      <Field label="Card backdrop">
+        <SegRow
+          value={current.cardBackdrop ?? ''}
+          options={BACKDROP_OPTIONS as readonly { id: string; label: string }[]}
+          onChange={(v) => set({ cardBackdrop: v ? (v as 'paper' | 'cream-2' | 'vellum' | 'gold-mist') : undefined })}
         />
       </Field>
 

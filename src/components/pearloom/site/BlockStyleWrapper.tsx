@@ -122,6 +122,33 @@ export function BlockStyleWrapper({ manifest, blockId, children, as: Tag = 'div'
   if (override.cardPadding && CARD_PADDING_PX[override.cardPadding] != null) {
     cssVars['--pl-block-card-padding'] = `${CARD_PADDING_PX[override.cardPadding]}px`;
   }
+  // Card silhouette — pillow rounds harder, sharp removes radius,
+  // scallop draws a wavy edge via mask, arch keeps bottom flat.
+  // Cards opt into these via CSS reading the matching custom vars.
+  if (override.cardShape) {
+    cssVars['--pl-block-card-shape'] = override.cardShape;
+    if (override.cardShape === 'pillow') {
+      cssVars['--pl-block-card-radius'] = cssVars['--pl-block-card-radius'] ?? '28px';
+    } else if (override.cardShape === 'sharp') {
+      cssVars['--pl-block-card-radius'] = '0px';
+    } else if (override.cardShape === 'arch') {
+      cssVars['--pl-block-card-radius'] = '999px 999px 0 0';
+    }
+    // Scallop is applied via -webkit-mask in card CSS keyed off
+    // [data-pl-card-shape="scallop"]. We surface the attribute
+    // via a CSS variable consumers can read.
+  }
+  // Card backdrop — a subtle tint behind the card so it stands
+  // out against the section bg without leaning on shadow.
+  if (override.cardBackdrop) {
+    const backdropMap: Record<NonNullable<BlockStyleOverride['cardBackdrop']>, string> = {
+      paper:       'var(--paper, #FBF7EE)',
+      'cream-2':   'var(--cream-2, #F5EFE2)',
+      vellum:      'rgba(245, 232, 209, 0.78)',
+      'gold-mist': 'rgba(184, 147, 90, 0.10)',
+    };
+    cssVars['--pl-block-card-backdrop'] = backdropMap[override.cardBackdrop];
+  }
   // Mirror text-align as a flex align-items var so card layouts
   // (Details strip, custom cards, etc.) can opt in. text-align
   // alone affects text content but not flex children — without

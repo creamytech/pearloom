@@ -1815,14 +1815,24 @@ function DetailsStripImpl({ manifest, siteSlug }: { manifest: StoryManifest; sit
             into one horizontal layout, separated by peach hairlines.
             Replaces the awkward two-card rail. Falls through
             cleanly when data isn't available. */}
-        {l.date && l.venueLat != null && l.venueLng != null && (
-          <WeatherStrip
-            lat={l.venueLat}
-            lng={l.venueLng}
-            date={l.date}
-            city={weatherCity}
-          />
-        )}
+        {l.date && l.venueLat != null && l.venueLng != null && (() => {
+          // Per-host weather style — voice / glyph treatment / day-of
+          // suppression. Defaults match the original strip exactly so
+          // sites without weatherStyle in their manifest are visually
+          // unchanged.
+          const ws = (manifest as unknown as { weatherStyle?: { voice?: 'poetic' | 'plain' | 'brief'; glyph?: 'line' | 'filled' | 'none'; hideOnDay?: boolean } }).weatherStyle;
+          return (
+            <WeatherStrip
+              lat={l.venueLat}
+              lng={l.venueLng}
+              date={l.date}
+              city={weatherCity}
+              voice={ws?.voice}
+              glyph={ws?.glyph}
+              hideOnDay={ws?.hideOnDay}
+            />
+          );
+        })()}
       </div>
     </section>
   );

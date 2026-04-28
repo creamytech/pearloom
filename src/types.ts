@@ -59,6 +59,16 @@ export interface BlockStyleOverride {
   cardBorder?: 'none' | 'hairline' | 'heavy';
   /** Card interior padding: 'compact' | 'default' | 'generous'. */
   cardPadding?: 'compact' | 'default' | 'generous';
+  /** Card silhouette: 'pillow' | 'sharp' | 'scallop' | 'arch'. Different
+   *  shape language than `cardRadius` — radius rounds the corners,
+   *  shape changes the actual outline (a scalloped card has wavy
+   *  edges; an arch is rounded only at the top). Omitted = defer
+   *  to cardRadius for corners. */
+  cardShape?: 'pillow' | 'sharp' | 'scallop' | 'arch';
+  /** Card backdrop tint: 'paper' | 'cream-2' | 'vellum' | 'gold-mist'.
+   *  Cosmetic-only — doesn't change spacing or border. Layers on top
+   *  of the section background so cards stand out without shadow. */
+  cardBackdrop?: 'paper' | 'cream-2' | 'vellum' | 'gold-mist';
   /** Horizontal alignment of section copy. */
   textAlign?: 'left' | 'center' | 'right';
   /** Override container max-width (px). Useful for narrowing prose-heavy

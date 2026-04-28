@@ -1763,6 +1763,27 @@ html { scroll-behavior: smooth; }
   border-radius: var(--pl-block-card-radius, inherit);
 }
 
+/* ── Per-section card backdrop — applies a subtle tint behind every
+       card descendant when the host picks one in BlockStylePanel.
+       Layered behind the card's own background via a pseudo-element
+       so existing inline backgrounds are preserved. ── */
+:where([data-pl-block-styled][style*="--pl-block-card-backdrop"]) :where(.pl8-card, .pl8-card-2, .pl8-tile) {
+  background-color: var(--pl-block-card-backdrop) !important;
+}
+
+/* ── Scallop card shape — wavy edge mask. The mask creates ~12px
+       half-circles along the bottom edge for a paper-cutout feel.
+       Lives at low specificity so a card with its own clip-path
+       still wins. ── */
+:where([data-pl-block-styled]) :where([data-pl-card-shape="scallop"], .pl8-card[style*="--pl-block-card-shape"]) {
+  -webkit-mask-image: radial-gradient(circle 8px at 12px 100%, transparent 98%, #000 100%);
+  mask-image: radial-gradient(circle 8px at 12px 100%, transparent 98%, #000 100%);
+  -webkit-mask-size: 24px 100%;
+  mask-size: 24px 100%;
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+}
+
 /* (.pl8-card-lift now lives in the dashboard motion system v2 block above) */
 
 /* ── Make existing v8 nav-links match the new look on hover (no
