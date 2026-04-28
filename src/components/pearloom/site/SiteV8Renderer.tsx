@@ -1994,6 +1994,27 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
       return { ...m, events: arr };
     });
   };
+  // Drag-to-reorder. The schedule sorter falls back to event.time
+  // when `order` is equal, so we rewrite each event's `order` to
+  // its new index after the drop and the renderer's sort honours
+  // the host's choice. We re-resolve to manifest events via id so
+  // the WeddingEvent shape stays intact.
+  const reorderEvents = (next: Array<{ id?: string }>) => {
+    onEditField?.((m) => {
+      const cur = m.events ?? [];
+      const byId = new Map(cur.map((e) => [e.id, e] as const));
+      const reordered = next
+        .map((nh, i) => {
+          const nid = (nh as { id?: string }).id;
+          if (!nid) return null;
+          const original = byId.get(nid);
+          if (!original) return null;
+          return { ...original, order: i };
+        })
+        .filter((x): x is NonNullable<typeof x> => x !== null);
+      return { ...m, events: reordered };
+    });
+  };
   const patchEventTime = (eventId: string) => (nextTime: string) => {
     onEditField?.((m) => {
       const arr = (m.events ?? []).map((e) =>
@@ -2038,7 +2059,8 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
         </div>
 
         <div style={{ background: 'var(--card)', border: '1px solid var(--card-ring)', borderRadius: 24, overflow: 'hidden' }}>
-          {rows.map((r, i) => (
+          {(() => {
+            const renderRow = (r: typeof rows[number], i: number, dragHandleProps?: React.HTMLAttributes<HTMLElement> & { ref: (el: HTMLElement | null) => void }) => (
             <div
               key={i}
               className={`pl8-schedule-row${edit ? ' pl8-canvas-row' : ''}`}
@@ -2091,6 +2113,9 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
                 >
                   ×
                 </button>
+              )}
+              {edit && dragHandleProps && (
+                <CanvasGripHandle dragHandleProps={dragHandleProps} ariaLabel="Drag to reorder event" position="top-left" />
               )}
               {edit && r.id ? (
                 <ScheduleTimeEditor
@@ -2199,7 +2224,20 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
                 </span>
               </div>
             </div>
-          ))}
+            );
+            // Synthesize ids when missing for CanvasSortable.
+            const itemsWithIds = rows.map((r, i) => ({ ...r, id: r.id ?? `evt-idx-${i}` }));
+            if (edit && onEditField) {
+              return (
+                <CanvasSortable
+                  items={itemsWithIds}
+                  onReorder={(next) => reorderEvents(next as Array<{ id?: string }>)}
+                  renderItem={(item, ctx) => renderRow(item as typeof rows[number], ctx.index, ctx.dragHandleProps)}
+                />
+              );
+            }
+            return rows.map((r, i) => renderRow(r, i));
+          })()}
           {edit && (
             <button
               type="button"
