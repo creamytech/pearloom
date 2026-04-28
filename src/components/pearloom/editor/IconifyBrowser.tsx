@@ -111,17 +111,49 @@ export function IconifyBrowser({ onPick }: Props) {
         </div>
       )}
       {!query.trim() ? (
-        <div
-          style={{
-            padding: 28,
-            textAlign: 'center',
-            color: 'var(--ink-muted)',
-            fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
-            fontStyle: 'italic',
-            fontSize: 14,
-          }}
-        >
-          Type a word — we&rsquo;ll find icons across Phosphor, Lucide, Tabler.
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '12px 0 0' }}>
+          <div
+            style={{
+              textAlign: 'center',
+              color: 'var(--ink-muted)',
+              fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+              fontStyle: 'italic',
+              fontSize: 14,
+            }}
+          >
+            Type a word — or pick a starter:
+          </div>
+          {/* Curated starter searches. Hand-picked terms that
+              return on-brand results across our allowlisted icon
+              sets. Hosts who don't know what they want still find
+              something usable in two clicks. */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' }}>
+            {[
+              'heart', 'leaf', 'flower', 'ring', 'ribbon',
+              'champagne', 'cake', 'star', 'sun', 'moon',
+              'compass', 'plane', 'mountain', 'feather', 'olive',
+              'envelope', 'calendar', 'camera', 'music', 'wave',
+            ].map((term) => (
+              <button
+                key={term}
+                type="button"
+                onClick={() => setQuery(term)}
+                style={{
+                  padding: '5px 11px',
+                  borderRadius: 999,
+                  background: 'var(--cream-2, #F5EFE2)',
+                  border: '1px solid var(--line)',
+                  color: 'var(--ink-soft)',
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-ui)',
+                }}
+              >
+                {term}
+              </button>
+            ))}
+          </div>
         </div>
       ) : loading ? (
         <div

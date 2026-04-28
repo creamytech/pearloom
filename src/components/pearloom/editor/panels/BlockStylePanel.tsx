@@ -83,6 +83,51 @@ const BACKDROP_OPTIONS = [
   { id: 'gold-mist',  label: 'Gold mist' },
 ] as const;
 
+// ── Scene presets ─────────────────────────────────────────────
+// Six named combinations of card style values. Picking one
+// applies all of its fields at once; clearing reverts to inherit.
+// Designed to feel like "moods" rather than mechanical settings —
+// hosts pick "Linen" rather than tweaking five sliders.
+type Scene = {
+  id: 'letterpress' | 'carved' | 'scrapbook' | 'linen' | 'slate' | 'vellum';
+  label: string;
+  hint: string;
+  apply: Partial<BlockStyleOverride>;
+};
+
+const SCENES: readonly Scene[] = [
+  {
+    id: 'letterpress', label: 'Letterpress',
+    hint: 'Sharp ink, hairline border, no shadow. Reads like a printed card.',
+    apply: { cardRadius: 'sharp', cardBorder: 'hairline', cardShadow: 'none', cardBackdrop: 'paper' },
+  },
+  {
+    id: 'carved', label: 'Carved',
+    hint: 'Pillow shape, lifted shadow, generous padding. Feels embossed.',
+    apply: { cardRadius: 'pillow', cardShadow: 'lifted', cardPadding: 'generous', cardBackdrop: 'paper' },
+  },
+  {
+    id: 'scrapbook', label: 'Scrapbook',
+    hint: 'Scallop edges, soft shadow, cream backdrop. Hand-cut feel.',
+    apply: { cardShape: 'scallop', cardShadow: 'soft', cardBackdrop: 'cream-2', cardPadding: 'compact' },
+  },
+  {
+    id: 'linen', label: 'Linen',
+    hint: 'Vellum tint, soft radius, no border. Layered + airy.',
+    apply: { cardRadius: 'soft', cardShadow: 'soft', cardBorder: 'none', cardBackdrop: 'vellum' },
+  },
+  {
+    id: 'slate', label: 'Slate',
+    hint: 'Sharp, heavy border, floating shadow. Architectural.',
+    apply: { cardRadius: 'sharp', cardBorder: 'heavy', cardShadow: 'floating', cardBackdrop: 'paper', cardPadding: 'generous' },
+  },
+  {
+    id: 'vellum', label: 'Vellum',
+    hint: 'Rounded, gold-mist backdrop, no shadow. Quiet warmth.',
+    apply: { cardRadius: 'rounded', cardShadow: 'none', cardBorder: 'hairline', cardBackdrop: 'gold-mist' },
+  },
+];
+
 const MAX_WIDTH_OPTIONS = [
   { id: 0,    label: 'Inherit' },
   { id: 720,  label: 'Narrow (720)' },
@@ -144,6 +189,44 @@ export function BlockStylePanel({ manifest, blockId, label = 'Section style', on
         ) : undefined
       }
     >
+      {/* Scene presets — six named card-style combos. One click
+          applies the whole stack so hosts pick a feel ("Linen")
+          rather than tweaking five sliders. */}
+      <Field label="Scene preset" help="Apply a named look in one click. Tweak any field below to fine-tune.">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
+          {SCENES.map((s) => {
+            // A scene is "active" when every key it sets matches
+            // the current override exactly. Strict comparison keeps
+            // the highlight honest — partial matches don't light up.
+            const on = Object.entries(s.apply).every(
+              ([k, v]) => (current as Record<string, unknown>)[k] === v,
+            );
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => set(s.apply)}
+                title={s.hint}
+                style={{
+                  padding: '8px 6px',
+                  borderRadius: 8,
+                  background: on ? 'var(--ink, #0E0D0B)' : 'var(--card)',
+                  color: on ? 'var(--cream, #FBF7EE)' : 'var(--ink)',
+                  border: `1px solid ${on ? 'var(--ink, #0E0D0B)' : 'var(--line)'}`,
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  fontWeight: on ? 700 : 600,
+                  fontFamily: 'var(--font-ui)',
+                  letterSpacing: '0.01em',
+                }}
+              >
+                {s.label}
+              </button>
+            );
+          })}
+        </div>
+      </Field>
+
       {/* Hide toggle */}
       <Field label="Visibility">
         <div

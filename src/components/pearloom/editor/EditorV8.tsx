@@ -48,6 +48,7 @@ import { FaqQuickEditModal } from './FaqQuickEditModal';
 import { ScheduleQuickEditModal } from './ScheduleQuickEditModal';
 import { RegistryQuickEditModal } from './RegistryQuickEditModal';
 import { StoryQuickEditModal } from './StoryQuickEditModal';
+import { GalleryQuickEditModal } from './GalleryQuickEditModal';
 import { FindInSite } from './FindInSite';
 import { MobileSaveIndicator } from './MobileSaveIndicator';
 import { ThemeQuickBar } from './canvas/ThemeQuickBar';
@@ -301,6 +302,20 @@ export function EditorV8({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [advisorOpen, setAdvisorOpen] = useState(false);
+  // Inline "Pear, polish this" buttons in section panels dispatch
+  // pearloom:open-pear-for with the block they belong to. We open
+  // the advisor + jump the outline so Pear's first pass is scoped.
+  useEffect(() => {
+    function onOpen(e: Event) {
+      const detail = (e as CustomEvent<{ block?: string }>).detail;
+      if (detail?.block && BLOCKS.some((b) => b.key === detail.block)) {
+        setBlock(detail.block as BlockKey);
+      }
+      setAdvisorOpen(true);
+    }
+    window.addEventListener('pearloom:open-pear-for', onOpen);
+    return () => window.removeEventListener('pearloom:open-pear-for', onOpen);
+  }, []);
   // Mobile-first fallback. <960px collapses the 3-pane layout into
   // a single canvas with drawers for Outline + Inspector (P0 fix,
   // replaces the "editor requires a laptop" failure mode).
@@ -644,6 +659,7 @@ export function EditorV8({
       <ScheduleQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
       <RegistryQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
       <StoryQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
+      <GalleryQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
       <FindInSite
         manifest={manifest}
         open={findOpen}

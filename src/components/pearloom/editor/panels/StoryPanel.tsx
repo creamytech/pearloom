@@ -7,6 +7,7 @@ import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { Icon } from '../../motifs';
 import { BlockStylePicker } from './BlockStylePicker';
+import { PolishThisButton } from '../PolishThisButton';
 // Side-effect import — registers the 6 story layouts with the
 // block-style registry before the picker reads from it.
 import '@/components/pearloom/site/story-variants';
@@ -212,6 +213,9 @@ export function StoryPanel({
   return (
     <PanelGroup>
       <PanelSmartActions actions={smartActions} />
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 16px' }}>
+        <PolishThisButton block="story" label="Pear, polish my story" />
+      </div>
       <BlockStylePicker
         blockType="story"
         manifest={manifest}

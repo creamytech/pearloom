@@ -7,6 +7,7 @@ import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { BadgesEditor } from './BadgesEditor';
 import { focusPanelRow } from './focus-row';
+import { PolishThisButton } from '../PolishThisButton';
 
 // Local FAQ row shape — mirror of the manifest's FaqItem (which
 // also carries `order`) plus the new badges field. Both panels
@@ -97,6 +98,9 @@ export function FaqPanel({
 
   return (
     <PanelGroup>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 16px' }}>
+        <PolishThisButton block="faq" label="Pear, polish my FAQ" />
+      </div>
       <PanelSection label="Frequently asked" hint="Drag to reorder. Guests see these below the schedule.">
         <AIHint>
           Pear drafts an 8–10 question FAQ from your occasion, venue, date, and vibes. Everything is editable.

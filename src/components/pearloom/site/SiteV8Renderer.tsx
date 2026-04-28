@@ -5289,10 +5289,19 @@ function GallerySectionImpl({
               : undefined;
             const reactionCount = url ? (reactions.counts[url] ?? 0) : 0;
             const isMostLoved = !!url && url === mostLovedUrl;
+            // In edit mode, clicking a gallery tile opens the
+            // GalleryQuickEditModal scoped to that photo. Falls back
+            // to the lightbox on the published view.
+            const onTileClick = edit && url
+              ? () => {
+                  if (typeof window === 'undefined') return;
+                  window.dispatchEvent(new CustomEvent('pearloom:gallery-quick-edit', { detail: { url } }));
+                }
+              : (clickable ? () => open(photoIndex) : undefined);
             return (
               <div
                 key={i}
-                onClick={clickable ? () => open(photoIndex) : undefined}
+                onClick={onTileClick}
                 style={{
                   position: 'relative',
                   gridColumn: s.cs,

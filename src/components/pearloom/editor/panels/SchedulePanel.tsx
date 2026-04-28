@@ -6,6 +6,7 @@ import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PanelSm
 import { SortableList, SortableRowCard } from '../sortable';
 import { BadgesEditor } from './BadgesEditor';
 import { focusPanelRow } from './focus-row';
+import { PolishThisButton } from '../PolishThisButton';
 
 // Schedule auto-tags one badge today: 'main' for the highlighted
 // "main moment" event (ceremony or main-event-of-the-day). Hosts
@@ -169,6 +170,9 @@ export function SchedulePanel({
   return (
     <PanelGroup>
       <PanelSmartActions actions={smartActions} />
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 16px' }}>
+        <PolishThisButton block="schedule" label="Pear, polish my schedule" />
+      </div>
       <PanelSection
         label="Today's rundown"
         hint="Drag to reorder. Times are free-form — '4:00', '4 PM', 'Sunset'."
